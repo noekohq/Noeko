@@ -8,51 +8,46 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import useFetch from "../hooks/useFetch";
-import { notifications } from "@mantine/notifications";
 import { Link } from "react-router";
+import Graph from "../components/Graph";
+import { IGraph } from "../declarations/graph";
+import { useRef, useState } from "react";
+
+const data: IGraph = {
+  nodes: [
+    { id: "A", content: "I am A", x: 50, y: 50 },
+    { id: "B", content: "I am B", x: 150, y: 100 },
+    { id: "C", content: "I am C", x: 100, y: 200 },
+    { id: "D", content: "I am D", x: 250, y: 150 },
+  ],
+  edges: [
+    { source: "A", target: "B" },
+    { source: "B", target: "C" },
+    { source: "C", target: "D" },
+    { source: "D", target: "A" },
+  ],
+};
 
 export default function Home() {
-  const { load: getMessage } = useFetch<undefined, string>({
-    url: "/hello",
-    onSuccess: (data) => {
-      notifications.show({
-        title: "Message",
-        message: data,
-        autoClose: false,
-      });
-    },
-  });
+  const [localData, setLocalData] = useState(data);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <Container h={"80vh"}>
-      <Flex direction="column" justify="center" h={"100%"}>
-        <Grid>
-          <Grid.Col span={12}>
-            <Title order={1}>Lightning App</Title>
-          </Grid.Col>
-          <Grid.Col span={12} />
-          <Grid.Col span={12}>
-            <Text>
-              Edit this file at <Code>src/App.tsx</Code>
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={12}>
-            <Group gap="md">
-              <Button
-                onClick={() => {
-                  getMessage();
-                }}
-              >
-                Get message
-              </Button>
-              <Link to="/second">
-                <Button variant="outline">Second page</Button>
-              </Link>
-            </Group>
-          </Grid.Col>
-        </Grid>
-      </Flex>
+    <Container
+      ref={containerRef}
+      style={{
+        height: "100vh",
+      }}
+    >
+      <Graph
+        graph={localData}
+        width={containerRef.current?.clientWidth || 0}
+        height={containerRef.current?.clientHeight || 0}
+        onNodeClick={(e, n) => {
+          console.log("clicked node: ", e, n);
+        }}
+      />
     </Container>
   );
 }
