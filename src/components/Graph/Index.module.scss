@@ -1,0 +1,11 @@
+.container {
+    --color-edges: #734D2C;
+    --color-nodes: var(--mantine-color-green-6);
+    --color-nodes-stroke: var(--mantine-color-green-9);
+}
+
+.nodeText {
+    font-size: 24px;
+    fill: var(--color-edges);
+    pointer-events: none; // Important: Make text non-interactive
+}

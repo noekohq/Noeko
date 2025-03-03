@@ -8,17 +8,18 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Link } from "react-router";
-import Graph from "../components/Graph";
-import { IGraph } from "../declarations/graph";
+import Graph from "../../components/Graph/Index";
+import { IGraph } from "../../declarations/graph";
 import { useRef, useState } from "react";
+import styles from "./Home.module.scss";
 
 const data: IGraph = {
   nodes: [
-    { id: "A", content: "I am A", x: 50, y: 50 },
-    { id: "B", content: "I am B", x: 150, y: 100 },
-    { id: "C", content: "I am C", x: 100, y: 200 },
-    { id: "D", content: "I am D", x: 250, y: 150 },
+    { id: "A", content: "I am A" },
+    { id: "B", content: "I am B" },
+    { id: "C", content: "I am C" },
+    { id: "D", content: "I am D" },
+    { id: "Z", content: "I am Z" },
   ],
   edges: [
     { source: "A", target: "B" },
@@ -33,21 +34,16 @@ export default function Home() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  console.log("Container ref: ", containerRef.current);
+
   return (
-    <Container
-      ref={containerRef}
-      style={{
-        height: "100vh",
-      }}
-    >
+    <div ref={containerRef} className={styles.container}>
       <Graph
         graph={localData}
-        width={containerRef.current?.clientWidth || 0}
-        height={containerRef.current?.clientHeight || 0}
         onNodeClick={(e, n) => {
           console.log("clicked node: ", e, n);
         }}
       />
-    </Container>
+    </div>
   );
 }

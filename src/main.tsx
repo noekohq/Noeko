@@ -7,6 +7,7 @@ import { theme } from "./theme.ts";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import { BrowserRouter } from "react-router";
+import "./Global.scss";
 
 const Client = () => {
   return (
