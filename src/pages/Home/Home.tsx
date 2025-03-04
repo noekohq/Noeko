@@ -1,17 +1,8 @@
-import {
-  Button,
-  Code,
-  Container,
-  Flex,
-  Grid,
-  Group,
-  Text,
-  Title,
-} from "@mantine/core";
 import Graph from "../../components/Graph/Index";
 import { IGraph } from "../../declarations/graph";
 import { useRef, useState } from "react";
 import styles from "./Home.module.scss";
+import { Container, Textarea } from "@mantine/core";
 
 const data: IGraph = {
   nodes: [
@@ -42,6 +33,37 @@ export default function Home() {
         graph={localData}
         onNodeClick={(e, n) => {
           console.log("clicked node: ", e, n);
+        }}
+      />
+      <UI
+        addNode={(content) => {
+          setLocalData((prevData) => ({
+            ...prevData,
+            nodes: [
+              ...prevData.nodes,
+              { id: `N${prevData.nodes.length + 1}`, content },
+            ],
+          }));
+        }}
+      />
+    </div>
+  );
+}
+
+type UIProps = {
+  addNode: (content: string) => void;
+};
+
+function UI({ addNode }: UIProps) {
+  return (
+    <div className={styles.ui}>
+      <Textarea
+        placeholder="Add a node"
+        onKeyUp={(e) => {
+          if (e.key === "Enter") {
+            addNode(e.currentTarget.value);
+            e.currentTarget.value = "";
+          }
         }}
       />
     </div>
