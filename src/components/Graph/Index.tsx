@@ -24,8 +24,9 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
   // --- Styles
   const markerWidth = 10;
   const markerHeight = 10;
-  const strokeWidth = 4;
+  const strokeWidth = 3.5;
   const nodeRadius = 56;
+  const nodeStrokeWidth = 4;
 
   // --- Update dimensions on container resize ---
   useEffect(() => {
@@ -84,7 +85,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
           .forceCenter(currentWidth / 2, currentHeight / 2)
           .strength(centerForceStrength),
       )
-      .alphaDecay(0.01); //Controls how quickly the simulation cools down.
+      .alphaDecay(0.008); //Controls how quickly the simulation cools down.
 
     // --- Arrow Markers (Define once, outside the join) ---
     svg
@@ -94,13 +95,13 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .join("marker")
       .attr("id", String)
       .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 23) // Adjust to position the arrowhead relative to the line end
+      .attr("refX", 20.5) // Adjust to position the arrowhead relative to the line end
       .attr("refY", 0)
       .attr("markerWidth", markerWidth)
       .attr("markerHeight", markerHeight)
       .attr("orient", "auto")
       .append("path")
-      .attr("d", "M0,-5L10,0L0,5")
+      .attr("d", "M0,-2L5,0L0,2")
       .attr("fill", "var(--color-edges)");
 
     // --- Edges (Lines) ---
@@ -117,7 +118,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
     const node = svg
       .selectAll(`.${styles.node}`) // Select by class
       .data(graph.nodes)
-      .join("g") // **KEY CHANGE: Join to <g> elements**
+      .join("g")
       .attr("class", styles.node) // Apply the class to the group
       .call(
         d3
@@ -136,6 +137,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("r", nodeRadius)
       .attr("fill", "var(--color-nodes)")
       .attr("stroke", "var(--color-nodes-stroke)")
+      .attr("stroke-width", nodeStrokeWidth)
       .on("click", (event, d) => onNodeClick(event, d));
 
     // Append the text to the *same group*

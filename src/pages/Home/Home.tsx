@@ -2,21 +2,36 @@ import Graph from "../../components/Graph/Index";
 import { IGraph } from "../../declarations/graph";
 import { useRef, useState } from "react";
 import styles from "./Home.module.scss";
-import { Container, Textarea } from "@mantine/core";
+import { Grid, Textarea } from "@mantine/core";
 
 const data: IGraph = {
   nodes: [
-    { id: "A", content: "I am A" },
-    { id: "B", content: "I am B" },
-    { id: "C", content: "I am C" },
-    { id: "D", content: "I am D" },
-    { id: "Z", content: "I am Z" },
+    { id: "A", content: "Start Node" },
+    { id: "B", content: "Process Data" },
+    { id: "C", content: "Validate Input" },
+    { id: "D", content: "Transform Data" },
+    { id: "E", content: "Load Data" },
+    { id: "F", content: "Analyze Results" },
+    { id: "G", content: "Generate Report" },
+    { id: "H", content: "Send Notification" },
+    { id: "I", content: "Archive Data" },
+    { id: "J", content: "End Node" },
   ],
   edges: [
     { source: "A", target: "B" },
     { source: "B", target: "C" },
     { source: "C", target: "D" },
-    { source: "D", target: "A" },
+    { source: "D", target: "E" },
+    { source: "E", target: "F" },
+    { source: "F", target: "G" },
+    { source: "G", target: "H" },
+    { source: "H", target: "I" },
+    { source: "I", target: "J" },
+    { source: "J", target: "A" }, // Creating a loop back to the start node
+    {
+      source: "D",
+      target: "H",
+    },
   ],
 };
 
@@ -57,15 +72,19 @@ type UIProps = {
 function UI({ addNode }: UIProps) {
   return (
     <div className={styles.ui}>
-      <Textarea
-        placeholder="Add a node"
-        onKeyUp={(e) => {
-          if (e.key === "Enter") {
-            addNode(e.currentTarget.value);
-            e.currentTarget.value = "";
-          }
-        }}
-      />
+      <Grid>
+        <Grid.Col span={{ sm: 12 }}>
+          <Textarea
+            placeholder="Add a node"
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                addNode(e.currentTarget.value);
+                e.currentTarget.value = "";
+              }
+            }}
+          />
+        </Grid.Col>
+      </Grid>
     </div>
   );
 }
