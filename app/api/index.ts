@@ -1,12 +1,8 @@
 import { Router } from "express";
+import graphRouter from "./graph";
 
 const router = Router();
 
-router.get("/hello", (_, res) => {
-  res.send({
-    message: "Hello there from the Lightning App backend",
-    data: "Hello there from the Lightning App backend",
-  });
-});
+router.use("/graph", graphRouter);
 
 export default router;

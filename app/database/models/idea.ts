@@ -15,13 +15,7 @@ export type IIdeaConnection = {
 };
 
 export class Idea {
-  id: string;
-  content: string;
-
-  constructor(id: string, content: string) {
-    this.id = id;
-    this.content = content;
-  }
+  constructor() {}
 
   async create(form: IIdeaForm) {
     try {
@@ -39,7 +33,7 @@ export class Idea {
     }
   }
 
-  async all() {
+  async all(filters: any) {
     try {
       const result = await Database.db?.select<IIdea>("idea");
       if (!result) {
@@ -47,6 +41,21 @@ export class Idea {
         return undefined;
       }
       return result;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  async graph() {
+    try {
+      const ideas = await Database.db?.select<IIdea>("idea");
+      if (!ideas) {
+        console.error("No ideas found.");
+        return undefined;
+      }
+      const edges = Database.db?.select<IIdeaConnection>("connection");
+      return { ideas, edges };
     } catch (err) {
       console.error(err);
       return undefined;
@@ -95,6 +104,26 @@ export class Idea {
       );
       if (!result) {
         console.error("No link created.");
+        return undefined;
+      }
+      return result;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  async disconnect(source: string, target: string) {
+    try {
+      const result = await Database.db?.query<IIdeaConnection[]>(
+        "DELETE FROM connection WHERE source = ? AND target = ?",
+        {
+          source,
+          target,
+        },
+      );
+      if (!result) {
+        console.error("No connection deleted.");
         return undefined;
       }
       return result;
