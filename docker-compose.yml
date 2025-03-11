@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    env_file:
+      - ./.env  # Assuming .env is in the project root
+    entrypoint:
+      - /surreal
+      - start
+      - --user
+      - $DB_USER
+      - --pass
+      - $DB_PASSWORD
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      - surrealdb
+    ports:
+      - "3400:3400"
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge

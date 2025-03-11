@@ -16,9 +16,9 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); // State for dimensions
 
   // --- Force Simulation Parameters (easily adjustable) ---
-  const forceStrength = -50; // Negative for repulsion
-  const linkDistance = 256;
-  const linkStrength = 0.025;
+  const forceStrength = -300; // Negative for repulsion
+  const linkDistance = 124;
+  const linkStrength = 0.2;
   const centerForceStrength = 0.4;
 
   // --- Styles

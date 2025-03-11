@@ -2,6 +2,7 @@ import Express from "express";
 import { config } from "dotenv";
 import chalk from "chalk";
 import path from "path";
+import { initDatabase } from "./database/db";
 
 // Routers
 import apiRouter from "./api";
@@ -14,6 +15,8 @@ const { PORT } = process.env;
 if (!PORT || !Number(PORT)) {
   throw new Error("PORT is not defined or not a number");
 }
+
+await initDatabase();
 
 const app = Express();
 app.use(Express.json());

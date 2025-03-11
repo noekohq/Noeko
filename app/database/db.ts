@@ -1,19 +1,59 @@
 import Surreal from "surrealdb";
 
-const { DB_URL } = process.env;
+const {
+  DB_PROTOCOL,
+  DB_HOST,
+  DB_PORT,
+  DB_NAMESPACE,
+  DB_DATABASE,
+  DB_USER,
+  DB_PASSWORD,
+} = process.env;
 
-if (!DB_URL) {
-  throw new Error("DB_URL is not defined");
+if (!DB_PROTOCOL) {
+  throw new Error("DB_PROTOCOL is not defined");
 }
 
-const db = new Surreal();
+if (!DB_HOST) {
+  throw new Error("DB_HOST is not defined");
+}
 
-const init = async () => {
-  await db.connect(DB_URL);
-  await db.use({
-    namespace: "twig",
-    database: "twig",
-  });
+if (!DB_PORT) {
+  throw new Error("DB_PORT is not defined");
+}
+
+if (!DB_NAMESPACE) {
+  throw new Error("DB_NAMESPACE is not defined");
+}
+
+if (!DB_DATABASE) {
+  throw new Error("DB_DATABASE is not defined");
+}
+
+if (!DB_USER) {
+  throw new Error("DB_USER is not defined");
+}
+
+if (!DB_PASSWORD) {
+  throw new Error("DB_PASSWORD is not defined");
+}
+
+export const initDatabase = async () => {
+  const db = new Surreal();
+
+  try {
+    await db.connect(`${DB_PROTOCOL}://${DB_HOST}:${DB_PORT}`, {
+      auth: {
+        username: DB_USER,
+        password: DB_PASSWORD,
+      },
+    });
+    await db.ready;
+    await db.use({
+      namespace: DB_NAMESPACE,
+      database: DB_DATABASE,
+    });
+  } catch (err) {
+    console.error(err);
+  }
 };
-
-await init();
