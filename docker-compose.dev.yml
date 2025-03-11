@@ -1,12 +1,12 @@
-version: "3.9" # It's good practice to include the version
+version: "3.9"
 
 services:
   web:
     build:
-      target: builder  # Override: Use the 'builder' stage for development
+      target: builder
     volumes:
-      - .:/app       # Mount the project root for hot reloading
-      - /app/node_modules  # Named volume for node_modules
-    command: bun run dev:server  # Override: Use the 'dev' command
+      - .:/app
+      - /app/node_modules
+    command: bun run server:watch
     environment:
-        - NODE_ENV=development
+      - NODE_ENV=development

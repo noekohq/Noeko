@@ -48,6 +48,6 @@ if (process.env.NODE_ENV === "production") {
 
 app.listen(Number(PORT), () => {
   console.info(
-    `Lightning server is running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`,
+    `Twig server is running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`,
   );
 });

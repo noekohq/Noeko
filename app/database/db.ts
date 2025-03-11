@@ -1,3 +1,4 @@
+import { FocusTrapInitialFocus } from "@mantine/core";
 import Surreal from "surrealdb";
 
 const {
@@ -38,11 +39,20 @@ if (!DB_PASSWORD) {
   throw new Error("DB_PASSWORD is not defined");
 }
 
-export const initDatabase = async () => {
+type IDatabase = {
+  db: Surreal | undefined;
+};
+
+export const Database: IDatabase = {
+  db: undefined,
+};
+
+export const initConnection = async () => {
   const db = new Surreal();
 
   try {
-    await db.connect(`${DB_PROTOCOL}://${DB_HOST}:${DB_PORT}`, {
+    const connectionString = `${DB_PROTOCOL}://${DB_HOST}:${DB_PORT}`;
+    await db.connect(connectionString, {
       auth: {
         username: DB_USER,
         password: DB_PASSWORD,
@@ -53,7 +63,26 @@ export const initDatabase = async () => {
       namespace: DB_NAMESPACE,
       database: DB_DATABASE,
     });
+    Database.db = db;
+    console.info(`Connected to database at ${connectionString}`);
   } catch (err) {
     console.error(err);
   }
+};
+
+export const initSchema = async () => {
+  await Database.db?.ready;
+  try {
+    await Database.db?.query(`DEFINE NAMESPACE IF NOT EXISTS ${DB_NAMESPACE};`);
+    await Database.db?.query(`DEFINE DATABASE IF NOT EXISTS ${DB_DATABASE};`);
+
+    console.info(`Initialized ${DB_DATABASE} in namespace ${DB_NAMESPACE}.`);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const initDatabase = async () => {
+  await initConnection();
+  await initSchema();
 };

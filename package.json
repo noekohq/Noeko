@@ -3,14 +3,13 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev:client": "vite",
+    "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "start": "bun app/index.ts",
-    "dev:server": "bun --watch app/index.ts",
-    "dev": "concurrently \"bun run dev:client\" \"bun run dev:server\"",
-    "docker": "docker-compose -f docker-compose.yml up",
-    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up"
+    "server:watch": "bun --watch app/index.ts",
+    "server": "docker-compose -f docker-compose.yml up",
+    "server:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up"
   },
   "dependencies": {
     "@mantine/core": "^7.15.2",
