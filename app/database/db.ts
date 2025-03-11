@@ -1,4 +1,3 @@
-import { FocusTrapInitialFocus } from "@mantine/core";
 import Surreal from "surrealdb";
 
 const {

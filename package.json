@@ -3,9 +3,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "client": "tsc && vite build",
+    "client:dev": "vite",
     "start": "bun app/index.ts",
     "server:watch": "bun --watch app/index.ts",
     "server": "docker-compose -f docker-compose.yml up",
