@@ -1,5 +1,5 @@
 import { RecordId, RecordIdValue } from "surrealdb";
-import { Database } from "../db";
+import { getDatabase } from "../db";
 
 export type IIdea = {
   id: string;
@@ -14,12 +14,18 @@ export type IIdeaConnection = {
   out: string;
 };
 
+export type IDBGraph = {
+  ideas: IIdea[];
+  edges: IIdeaConnection[];
+};
+
 export class Idea {
   constructor() {}
 
   async create(form: IIdeaForm) {
     try {
-      const result = await Database.db?.create<IIdea, IIdeaForm>("idea", {
+      const db = await getDatabase();
+      const result = await db?.create<IIdea, IIdeaForm>("idea", {
         content: form.content,
       });
       if (!result) {
@@ -33,9 +39,25 @@ export class Idea {
     }
   }
 
+  async get(id: string) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.select<IIdea>("idea", id);
+      if (!result) {
+        console.error(`Idea with id ${id} not found.`);
+        return;
+      }
+      return result;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
   async all(filters: any) {
     try {
-      const result = await Database.db?.select<IIdea>("idea");
+      const db = await getDatabase();
+      const result = await db?.select<IIdea>("idea");
       if (!result) {
         console.error("No ideas found.");
         return undefined;
@@ -49,12 +71,13 @@ export class Idea {
 
   async graph() {
     try {
-      const ideas = await Database.db?.select<IIdea>("idea");
+      const db = await getDatabase();
+      const ideas = await db?.select<IIdea>("idea");
       if (!ideas) {
         console.error("No ideas found.");
         return undefined;
       }
-      const edges = Database.db?.select<IIdeaConnection>("connection");
+      const edges = await db?.select<IIdeaConnection>("connection");
       return { ideas, edges };
     } catch (err) {
       console.error(err);
@@ -64,7 +87,8 @@ export class Idea {
 
   async update(id: RecordIdValue, form: IIdeaForm) {
     try {
-      const result = await Database.db?.update<IIdea, IIdeaForm>(
+      const db = await getDatabase();
+      const result = await db?.update<IIdea, IIdeaForm>(
         new RecordId("idea", id),
         {
           content: form.content,
@@ -83,7 +107,8 @@ export class Idea {
 
   async delete(id: RecordIdValue) {
     try {
-      const result = await Database.db?.delete<IIdea>(new RecordId("idea", id));
+      const db = await getDatabase();
+      const result = await db?.delete<IIdea>(new RecordId("idea", id));
       if (!result) {
         console.error("No idea deleted.");
         return undefined;
@@ -97,11 +122,8 @@ export class Idea {
 
   async connect(from: string, to: string) {
     try {
-      const result = await Database.db?.relate<IIdeaConnection>(
-        from,
-        "connection",
-        to,
-      );
+      const db = await getDatabase();
+      const result = await db?.relate<IIdeaConnection>(from, "connection", to);
       if (!result) {
         console.error("No link created.");
         return undefined;
@@ -115,7 +137,8 @@ export class Idea {
 
   async disconnect(source: string, target: string) {
     try {
-      const result = await Database.db?.query<IIdeaConnection[]>(
+      const db = await getDatabase();
+      const result = await db?.query<IIdeaConnection[]>(
         "DELETE FROM connection WHERE source = ? AND target = ?",
         {
           source,

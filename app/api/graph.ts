@@ -39,6 +39,21 @@ router.get("/ideas", async (req, res) => {
   }
 });
 
+router.get("/idea/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const i = await idea.get(id);
+    if (!i) {
+      res.status(404).json({ error: "Idea not found" });
+      return;
+    }
+    res.send({ message: "Successfully retrieved idea.", data: { idea: i } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.post("/ideas", async (req, res) => {
   try {
     const { content } = req.body;

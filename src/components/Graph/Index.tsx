@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { IEdge, IGraph, INode } from "../../declarations/graph";
+import { IGraph, INode } from "../../declarations/graph";
 import * as d3 from "d3";
 import styles from "./Index.module.scss";
+import { Flex, Text } from "@mantine/core";
 
 type GraphProps = {
   graph: IGraph;
@@ -14,12 +15,13 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null); // Ref for the container
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); // State for dimensions
+  const zoomRef = useRef<d3.ZoomBehavior<any, any> | null>(null); //Ref to store the zoom behavior.
 
   // --- Force Simulation Parameters (easily adjustable) ---
-  const forceStrength = -300; // Negative for repulsion
+  const forceStrength = -200; // Negative for repulsion
   const linkDistance = 124;
   const linkStrength = 0.2;
-  const centerForceStrength = 0.4;
+  const centerForceStrength = 1;
 
   // --- Styles
   const markerWidth = 10;
@@ -64,8 +66,6 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
     }
 
     const svg = d3.select(svgRef.current);
-
-    // --- Force Simulation Setup ---
     const simulation = d3
       .forceSimulation(graph.nodes as d3.SimulationNodeDatum[]) // Cast for type compatibility
       .force(
@@ -74,7 +74,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
           .forceLink(
             graph.edges as d3.SimulationLinkDatum<d3.SimulationNodeDatum>[],
           )
-          .id((d: any) => d.id) // Important:  Tell D3 how to get node IDs from your data
+          .id((d: any) => d.id) // Important:  Tell D3 how to get node IDs from your data
           .distance(linkDistance)
           .strength(linkStrength),
       )
@@ -87,9 +87,11 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       )
       .alphaDecay(0.008); //Controls how quickly the simulation cools down.
 
+    // --- Create a group for zoom/pan ---
+    const g = svg.append("g").attr("class", "everything"); //VERY IMPORTANT
+
     // --- Arrow Markers (Define once, outside the join) ---
-    svg
-      .append("defs")
+    g.append("defs")
       .selectAll("marker")
       .data(["arrowhead"]) // Unique ID for the marker
       .join("marker")
@@ -105,7 +107,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("fill", "var(--color-edges)");
 
     // --- Edges (Lines) ---
-    const link = svg
+    const link = g
       .selectAll(`.${styles.link}`) // Use class for easier selection/updates
       .data(graph.edges)
       .join("line")
@@ -115,7 +117,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("marker-end", "url(#arrowhead)");
 
     // --- Nodes (Circles and Text) ---
-    const node = svg
+    const node = g
       .selectAll(`.${styles.node}`) // Select by class
       .data(graph.nodes)
       .join("g")
@@ -178,10 +180,25 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       d.fy = null;
     }
 
+    // --- Zoom and Pan ---
+    const zoomed = (event: d3.D3ZoomEvent<any, any>) => {
+      g.attr("transform", event.transform as any);
+    };
+
+    const zoom: d3.ZoomBehavior<any, any> = d3
+      .zoom()
+      .scaleExtent([0.1, 8])
+      .on("zoom", zoomed); // Limit zoom
+    zoomRef.current = zoom; // Store the zoom behavior in the ref
+    svg.call(zoom as any);
+
     // --- Cleanup ---
     return () => {
       simulation.stop(); // Stop the simulation when unmounting
       svg.selectAll("*").remove();
+      if (zoomRef.current) {
+        svg.on(".zoom", null); // Remove zoom listener
+      }
     };
   }, [
     graph,
@@ -202,11 +219,23 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       style={{ width: "100%", height: "100%" }}
       className={styles.container}
     >
-      <svg
-        ref={svgRef}
-        width={width ?? dimensions.width}
-        height={height ?? dimensions.height}
-      />
+      {graph.nodes.length > 0 ? (
+        <svg
+          ref={svgRef}
+          width={width ?? dimensions.width}
+          height={height ?? dimensions.height}
+        />
+      ) : (
+        <Flex
+          align="center"
+          justify="center"
+          style={{
+            height: "100%",
+          }}
+        >
+          <Text>No data available. Add some!</Text>
+        </Flex>
+      )}
     </div>
   );
 }
