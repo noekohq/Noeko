@@ -18,7 +18,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
   const zoomRef = useRef<d3.ZoomBehavior<any, any> | null>(null); //Ref to store the zoom behavior.
 
   // --- Force Simulation Parameters (easily adjustable) ---
-  const forceStrength = -200; // Negative for repulsion
+  const forceStrength = -150; // Negative for repulsion
   const linkDistance = 124;
   const linkStrength = 0.2;
   const centerForceStrength = 1;
@@ -26,9 +26,9 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
   // --- Styles
   const markerWidth = 10;
   const markerHeight = 10;
-  const strokeWidth = 3.5;
-  const nodeRadius = 56;
-  const nodeStrokeWidth = 4;
+  const strokeWidth = 1;
+  const nodeRadius = 24;
+  const nodeStrokeWidth = 1.5;
 
   // --- Update dimensions on container resize ---
   useEffect(() => {
@@ -133,7 +133,6 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
           .on("end", dragended) as any,
       );
 
-    // Append the circle to the group
     node
       .append("circle")
       .attr("r", nodeRadius)
@@ -142,7 +141,6 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("stroke-width", nodeStrokeWidth)
       .on("click", (event, d) => onNodeClick(event, d));
 
-    // Append the text to the *same group*
     node
       .append("text")
       .attr("class", styles.nodeText)
