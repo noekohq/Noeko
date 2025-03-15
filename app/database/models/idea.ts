@@ -3,6 +3,7 @@ import { getDatabase } from "../db";
 
 export type IIdea = {
   id: string;
+  title: string;
   content: string;
 };
 
@@ -25,7 +26,9 @@ export class Idea {
   async create(form: IIdeaForm) {
     try {
       const db = await getDatabase();
+      console.log("Creating idea: ", form);
       const result = await db?.create<IIdea, IIdeaForm>("idea", {
+        title: form.title,
         content: form.content,
       });
       if (!result) {
@@ -42,7 +45,7 @@ export class Idea {
   async get(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IIdea>("idea", id);
+      const result = await db?.select<IIdea>(id);
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return;
@@ -91,6 +94,7 @@ export class Idea {
       const result = await db?.update<IIdea, IIdeaForm>(
         new RecordId("idea", id),
         {
+          title: form.title,
           content: form.content,
         },
       );

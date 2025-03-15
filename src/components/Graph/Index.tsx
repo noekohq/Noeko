@@ -146,7 +146,7 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("class", styles.nodeText)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "central")
-      .text((d) => d.content);
+      .text((d) => d.title);
 
     // --- Update positions on each tick of the simulation ---
     simulation.on("tick", () => {

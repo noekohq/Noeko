@@ -2,13 +2,21 @@ import Graph from "../../components/Graph/Index";
 import { IGraph } from "../../declarations/graph";
 import { useRef, useState } from "react";
 import styles from "./Home.module.scss";
-import { ActionIcon, Button, Grid, Group, Modal } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Checkbox,
+  Grid,
+  Group,
+  Modal,
+  TextInput,
+} from "@mantine/core";
 import { Plus, X } from "@phosphor-icons/react";
 import { useForm } from "@mantine/form";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { IDBGraph, IIdea } from "../../../app/database/models/idea";
+import { IDBGraph, IIdea, IIdeaForm } from "../../../app/database/models/idea";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,6 +32,7 @@ export default function Home() {
           return {
             ...n,
             id: n.id,
+            title: n.title,
             content: n.content,
           };
         })
@@ -42,25 +51,6 @@ export default function Home() {
 
   console.log("Graph", graphData, localData);
 
-  const [newIdea, setNewIdea] = useState<string>("");
-  const { load: addIdea } = useFetch<{ content: string }, IIdea>({
-    url: "/graph/ideas",
-    method: "POST",
-    body: {
-      content: newIdea,
-    },
-    onSuccess: () => {
-      showNotification({
-        title: "Idea added successfully",
-        message: "Your idea has been added to the graph.",
-        color: "green",
-      });
-    },
-    onFinally: () => {
-      reloadGraph();
-    },
-  });
-
   return (
     <div ref={containerRef} className={styles.container}>
       <Graph
@@ -69,40 +59,65 @@ export default function Home() {
           console.log("clicked node: ", e, n);
         }}
       />
-      <AddNode
-        addNode={(content) => {
-          addIdea({
-            updatedBody: {
-              content,
-            },
-          });
-        }}
-        setContent={(c) => {
-          setNewIdea(c);
-        }}
-      />
+      <AddNode reloadGraph={reloadGraph} />
     </div>
   );
 }
 
 type UIProps = {
-  addNode: (content: string) => void;
-  setContent: (content: string) => void;
+  reloadGraph: () => void;
 };
 
-function AddNode({ addNode, setContent }: UIProps) {
+function AddNode({ reloadGraph }: UIProps) {
   const [opened, setOpened] = useState(false);
 
   const form = useForm({
     initialValues: {
+      title: "",
       content: "",
     },
     validate: {
+      title: (value) =>
+        value.length < 2 ? "Title must be at least 2 characters long" : null,
       content: (value) =>
         value.length < 2 ? "Content must be at least 2 characters long" : null,
     },
   });
 
+  const { load: addIdea } = useFetch<{ content: string }, IIdea>({
+    url: "/graph/ideas",
+    method: "POST",
+    body: {
+      ...form.getTransformedValues(),
+    },
+    dependencies: [form.values],
+    onSuccess: () => {
+      showNotification({
+        title: "Idea added successfully",
+        message: "Your idea has been added to the graph.",
+      });
+    },
+    onFinally: () => {
+      reloadGraph();
+    },
+  });
+
+  const handleSubmit = async () => {
+    const { hasErrors, errors } = form.validate();
+    if (hasErrors) {
+      showNotification({
+        title: "Errors",
+        message: Object.values(errors)[0],
+        color: "red",
+      });
+      return;
+    }
+    await addIdea();
+    form.reset();
+    setOpened(false);
+  };
+
+  const [autogenTitle, setAutogenTitle] = useState(false);
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
       <ActionIcon
@@ -123,12 +138,28 @@ function AddNode({ addNode, setContent }: UIProps) {
         size="70%"
       >
         <Grid>
+          {!autogenTitle && (
+            <Grid.Col span={{ sm: 12 }}>
+              <TextInput
+                label="Title"
+                placeholder="Enter title"
+                {...form.getInputProps("title")}
+              />
+            </Grid.Col>
+          )}
+          <Grid.Col span={{ sm: 12 }}>
+            <Checkbox
+              label="Autogenerate the title"
+              description="Automatically generate a title based on the content"
+              checked={autogenTitle}
+              onChange={(event) => setAutogenTitle(event.currentTarget.checked)}
+            />
+          </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <TextEditor
               content=""
               onBlur={(content) => {
                 form.setFieldValue("content", content);
-                setContent(content);
               }}
             />
           </Grid.Col>
@@ -138,19 +169,8 @@ function AddNode({ addNode, setContent }: UIProps) {
                 Cancel
               </Button>
               <Button
-                onClick={() => {
-                  const { hasErrors, errors } = form.validate();
-                  if (hasErrors) {
-                    showNotification({
-                      title: "Errors",
-                      message: Object.values(errors)[0],
-                      color: "red",
-                    });
-                    return;
-                  }
-                  form.reset();
-                  addNode(form.values.content);
-                  setOpened(false);
+                onClick={async () => {
+                  await handleSubmit();
                 }}
               >
                 Add

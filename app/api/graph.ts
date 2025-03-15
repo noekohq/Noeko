@@ -56,9 +56,9 @@ router.get("/idea/:id", async (req, res) => {
 
 router.post("/ideas", async (req, res) => {
   try {
-    const { content } = req.body;
+    const body = req.body;
     const i = await idea.create({
-      content,
+      ...body,
     });
     if (!i) {
       res.status(404).json({ error: "Idea not created" });

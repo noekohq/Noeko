@@ -1,9 +1,7 @@
 import { SimulationNodeDatum, SimulationLinkDatum } from "d3";
+import { IIdea } from "../../app/database/models/idea";
 
-interface INode extends SimulationNodeDatum {
-  id: string;
-  content: string;
-}
+type INode = SimulationNodeDatum & IIdea;
 
 export interface IEdge extends SimulationLinkDatum {
   source: string;
