@@ -1,4 +1,4 @@
-import Graph from "../../components/Graph/Index";
+import Graph from "../../components/Graph/Graph";
 import { IGraph } from "../../declarations/graph";
 import { useRef, useState } from "react";
 import styles from "./Home.module.scss";
@@ -17,6 +17,7 @@ import TextEditor from "../../components/TextEditor/TextEditor";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { IDBGraph, IIdea, IIdeaForm } from "../../../app/database/models/idea";
+import { useNavigate } from "react-router";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,12 +52,14 @@ export default function Home() {
 
   console.log("Graph", graphData, localData);
 
+  const navigate = useNavigate();
+
   return (
     <div ref={containerRef} className={styles.container}>
       <Graph
         graph={localData}
         onNodeClick={(e, n) => {
-          console.log("clicked node: ", e, n);
+          navigate(`/idea/${n.id}`);
         }}
       />
       <AddNode reloadGraph={reloadGraph} />
