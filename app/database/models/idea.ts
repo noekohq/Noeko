@@ -26,7 +26,6 @@ export class Idea {
   async create(form: IIdeaForm) {
     try {
       const db = await getDatabase();
-      console.log("Creating idea: ", form);
       const result = await db?.create<IIdea, IIdeaForm>("idea", {
         title: form.title,
         content: form.content,

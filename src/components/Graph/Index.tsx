@@ -6,31 +6,36 @@ import { Flex, Text } from "@mantine/core";
 
 type GraphProps = {
   graph: IGraph;
-  width?: number; // Optional width
-  height?: number; // Optional height
+  width?: number;
+  height?: number;
   onNodeClick: (event: any, node: INode) => void;
 };
 
 function Graph({ graph, width, height, onNodeClick }: GraphProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null); // Ref for the container
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); // State for dimensions
-  const zoomRef = useRef<d3.ZoomBehavior<any, any> | null>(null); //Ref to store the zoom behavior.
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const zoomRef = useRef<d3.ZoomBehavior<any, any> | null>(null);
 
-  // --- Force Simulation Parameters (easily adjustable) ---
-  const forceStrength = -150; // Negative for repulsion
+  // --- Force Simulation Parameters ---
+  const forceStrength = -150;
   const linkDistance = 124;
   const linkStrength = 0.2;
-  const centerForceStrength = 1;
+  const centerForceStrength = 1.25;
 
-  // --- Styles
+  // --- Styles ---
   const markerWidth = 10;
   const markerHeight = 10;
   const strokeWidth = 1;
-  const nodeRadius = 24;
+  const nodeRadius = 56;
   const nodeStrokeWidth = 1.5;
 
-  // --- Update dimensions on container resize ---
+  // --- Gradient Parameters ---
+  const gradientInnerColor = "var(--color-nodes-inner)"; // Tunable: Inner color of the gradient
+  const gradientOuterColor = "var(--color-nodes-outer)"; // Tunable: Outer color (defaults to node color)
+  const gradientOpacityInner = 0.25; // Tunable: Opacity of the gradient
+  const gradientOpacityOuter = 1; // Tunable: Opacity of the gradient
+
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -41,10 +46,8 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       }
     };
 
-    // Initial dimensions
     updateDimensions();
 
-    // Listen for window resize (using ResizeObserver for better performance)
     const resizeObserver = new ResizeObserver(updateDimensions);
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
@@ -62,19 +65,19 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
     const currentHeight = height ?? dimensions.height;
 
     if (currentWidth === 0 || currentHeight === 0) {
-      return; // Don't render if dimensions are 0
+      return;
     }
 
     const svg = d3.select(svgRef.current);
     const simulation = d3
-      .forceSimulation(graph.nodes as d3.SimulationNodeDatum[]) // Cast for type compatibility
+      .forceSimulation(graph.nodes as d3.SimulationNodeDatum[])
       .force(
         "link",
         d3
           .forceLink(
             graph.edges as d3.SimulationLinkDatum<d3.SimulationNodeDatum>[],
           )
-          .id((d: any) => d.id) // Important:  Tell D3 how to get node IDs from your data
+          .id((d: any) => d.id)
           .distance(linkDistance)
           .strength(linkStrength),
       )
@@ -85,19 +88,18 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
           .forceCenter(currentWidth / 2, currentHeight / 2)
           .strength(centerForceStrength),
       )
-      .alphaDecay(0.008); //Controls how quickly the simulation cools down.
+      .alphaDecay(0.008);
 
-    // --- Create a group for zoom/pan ---
-    const g = svg.append("g").attr("class", "everything"); //VERY IMPORTANT
+    const g = svg.append("g").attr("class", "everything");
 
-    // --- Arrow Markers (Define once, outside the join) ---
+    // --- Arrow Markers ---
     g.append("defs")
       .selectAll("marker")
-      .data(["arrowhead"]) // Unique ID for the marker
+      .data(["arrowhead"])
       .join("marker")
       .attr("id", String)
       .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 20.5) // Adjust to position the arrowhead relative to the line end
+      .attr("refX", 20.5)
       .attr("refY", 0)
       .attr("markerWidth", markerWidth)
       .attr("markerHeight", markerHeight)
@@ -106,9 +108,35 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("d", "M0,-2L5,0L0,2")
       .attr("fill", "var(--color-edges)");
 
-    // --- Edges (Lines) ---
+    // --- Radial Gradients (Define *once* per node, inside the 'defs') ---
+    const defs = g.append("defs");
+
+    const gradients = defs
+      .selectAll("radialGradient")
+      .data(graph.nodes)
+      .join("radialGradient")
+      .attr("id", (d) => `gradient-${d.id}`) // **CRITICAL: Unique ID per gradient**
+      .attr("cx", "50%") // Center of the gradient (relative to the circle)
+      .attr("cy", "50%")
+      .attr("r", "50%") // Radius of the gradient
+      .attr("fx", "50%") // Focal point (can be different for interesting effects)
+      .attr("fy", "50%");
+
+    gradients // Inner color stop
+      .append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", gradientInnerColor)
+      .attr("stop-opacity", gradientOpacityInner);
+
+    gradients // Outer color stop
+      .append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", gradientOuterColor)
+      .attr("stop-opacity", gradientOpacityOuter);
+
+    // --- Edges ---
     const link = g
-      .selectAll(`.${styles.link}`) // Use class for easier selection/updates
+      .selectAll(`.${styles.link}`)
       .data(graph.edges)
       .join("line")
       .attr("class", styles.link)
@@ -116,15 +144,15 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("stroke-width", strokeWidth)
       .attr("marker-end", "url(#arrowhead)");
 
-    // --- Nodes (Circles and Text) ---
+    // --- Nodes ---
     const node = g
-      .selectAll(`.${styles.node}`) // Select by class
+      .selectAll(`.${styles.node}`)
       .data(graph.nodes)
       .join("g")
-      .attr("class", styles.node) // Apply the class to the group
+      .attr("class", styles.node)
       .call(
         d3
-          .drag<SVGGElement, INode>() // Type arguments for d3.drag
+          .drag<SVGGElement, INode>()
           .subject(function (event: any, d: any) {
             return { x: event.x, y: event.y, ...d };
           })
@@ -133,12 +161,13 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
           .on("end", dragended) as any,
       );
 
+    // --- Use the gradient for the fill ---
     node
       .append("circle")
       .attr("r", nodeRadius)
-      .attr("fill", "var(--color-nodes)")
-      .attr("stroke", "var(--color-nodes-stroke)")
-      .attr("stroke-width", nodeStrokeWidth)
+      .attr("fill", (d) => `url(#gradient-${d.id})`) // **CRITICAL: Refer to the gradient**
+      // .attr("stroke", "var(--color-nodes-stroke)")
+      // .attr("stroke-width", nodeStrokeWidth)
       .on("click", (event, d) => onNodeClick(event, d));
 
     node
@@ -148,7 +177,6 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       .attr("dominant-baseline", "central")
       .text((d) => d.title);
 
-    // --- Update positions on each tick of the simulation ---
     simulation.on("tick", () => {
       link
         .attr("x1", (d: any) => d.source.x)
@@ -156,14 +184,12 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
         .attr("x2", (d: any) => d.target.x)
         .attr("y2", (d: any) => d.target.y);
 
-      // **KEY CHANGE: Update the transform of the GROUP**
       node.attr("transform", (d: any) => `translate(${d.x}, ${d.y})`);
     });
 
-    // --- Drag Handlers ---
     function dragstarted(event: any, d: any) {
-      if (!event.active) simulation.alphaTarget(0.3).restart(); //Reheat the simulation
-      d.fx = d.x; //Fix the position
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
       d.fy = d.y;
     }
 
@@ -173,12 +199,11 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
     }
 
     function dragended(event: any, d: any) {
-      if (!event.active) simulation.alphaTarget(0); //Let the simulation cool down
-      d.fx = null; //Unfix the position, letting the simulation take over again
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
       d.fy = null;
     }
 
-    // --- Zoom and Pan ---
     const zoomed = (event: d3.D3ZoomEvent<any, any>) => {
       g.attr("transform", event.transform as any);
     };
@@ -186,16 +211,15 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
     const zoom: d3.ZoomBehavior<any, any> = d3
       .zoom()
       .scaleExtent([0.1, 8])
-      .on("zoom", zoomed); // Limit zoom
-    zoomRef.current = zoom; // Store the zoom behavior in the ref
+      .on("zoom", zoomed);
+    zoomRef.current = zoom;
     svg.call(zoom as any);
 
-    // --- Cleanup ---
     return () => {
-      simulation.stop(); // Stop the simulation when unmounting
+      simulation.stop();
       svg.selectAll("*").remove();
       if (zoomRef.current) {
-        svg.on(".zoom", null); // Remove zoom listener
+        svg.on(".zoom", null);
       }
     };
   }, [
@@ -209,7 +233,11 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
     linkStrength,
     centerForceStrength,
     nodeRadius,
-  ]); // Include relevant parameters in dependencies
+    gradientInnerColor,
+    gradientOuterColor,
+    gradientOpacityInner,
+    gradientOpacityOuter, // Add gradient parameters to dependencies
+  ]);
 
   return (
     <div
