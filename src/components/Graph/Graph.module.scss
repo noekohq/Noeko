@@ -1,33 +1,26 @@
 .container {
     --color-edges: var(--mantine-color-gray-5);
-    --color-nodes-inner: var(--mantine-color-gray-5);
-    --color-nodes-outer: var(--mantine-color-body);
+    --color-nodes: var(--mantine-color-gray-5);
     --color-nodes-stroke: var(--mantine-color-gray-2);
-}
-
-.nodeText {
-    font-size: 24px;
-    fill: var(--mantine-color-gray-2);
-    pointer-events: none; // Important: Make text non-interactive
-    font-family: Lato, sans-serif;
-    font-weight: bold;
+    --color-background: var(--mantine-color-body);
 }
 
 .node {
-    cursor: grab;
+    cursor: pointer;
+
+    &:active {
+    }
 
     circle {
-        transition:
-            stroke 0.2s ease-in-out,
-            stroke-width 0.2s ease-in-out;
-
         &:hover {
-            stroke: var(--color-nodes-stroke);
-            stroke-width: 1px;
         }
     }
 
-    &:active {
-        cursor: grabbing;
+    .nodeText {
+        font-size: 18px;
+        fill: var(--mantine-color-gray-2);
+        pointer-events: none; // Important: Make text non-interactive
+        font-family: Lato, sans-serif;
+        font-weight: bold;
     }
 }

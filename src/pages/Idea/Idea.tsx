@@ -7,9 +7,9 @@ export default function Idea() {
   const { ideaId } = useParams();
 
   const { data: idea } = useFetch<undefined, IIdea>({
-    url: `/api/ideas/${ideaId}`,
+    url: `/graph/ideas/${ideaId}`,
     method: "GET",
-    runOnDependencies: [ideaId],
+    runOnMount: true,
   });
 
   console.log("Idea: ", idea);

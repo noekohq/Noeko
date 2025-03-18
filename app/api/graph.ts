@@ -39,9 +39,10 @@ router.get("/ideas", async (req, res) => {
   }
 });
 
-router.get("/idea/:id", async (req, res) => {
+router.get("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("Fetching idea with id:", id);
     const i = await idea.get(id);
     if (!i) {
       res.status(404).json({ error: "Idea not found" });
@@ -110,8 +111,9 @@ router.delete("/connection", async (req, res) => {
 router.put("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    const { title, content } = req.body;
     const i = await idea.update(id, {
+      title,
       content,
     });
     if (!i) {

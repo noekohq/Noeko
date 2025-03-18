@@ -87,10 +87,10 @@ export class Idea {
     }
   }
 
-  async update(id: RecordIdValue, form: IIdeaForm) {
+  async update(id: RecordIdValue, form: Partial<IIdeaForm>) {
     try {
       const db = await getDatabase();
-      const result = await db?.update<IIdea, IIdeaForm>(
+      const result = await db?.update<IIdea, Partial<IIdeaForm>>(
         new RecordId("idea", id),
         {
           title: form.title,

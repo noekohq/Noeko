@@ -57,10 +57,14 @@ export const getDatabase = async () => {
       },
     });
     await db.ready;
+
     await db.use({
       namespace: DB_NAMESPACE,
       database: DB_DATABASE,
     });
+    console.info(
+      `Connected to database ${DB_DATABASE} in namespace ${DB_NAMESPACE}.`,
+    );
 
     return db;
   } catch (err) {
@@ -74,14 +78,12 @@ export const initSchema = async () => {
     const db = await getDatabase();
 
     await db?.query(`DEFINE NAMESPACE IF NOT EXISTS ${DB_NAMESPACE};`);
+    await db?.use({
+      namespace: DB_NAMESPACE,
+    });
     await db?.query(`DEFINE DATABASE IF NOT EXISTS ${DB_DATABASE};`);
 
     console.info(`Initialized ${DB_DATABASE} in namespace ${DB_NAMESPACE}.`);
-
-    await Database.db?.use({
-      namespace: DB_NAMESPACE,
-      database: DB_DATABASE,
-    });
   } catch (err) {
     console.error(err);
   }

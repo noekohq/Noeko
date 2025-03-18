@@ -4,7 +4,7 @@ services:
   surrealdb:
     image: surrealdb/surrealdb:latest
     env_file:
-      - ./.env  # Assuming .env is in the project root
+      - ./.env # Assuming .env is in the project root
     entrypoint:
       - /surreal
       - start
@@ -12,6 +12,7 @@ services:
       - $DB_USER
       - --pass
       - $DB_PASSWORD
+      - surrealkv://data/database.db
     ports:
       - "8000:8000"
     healthcheck:
@@ -21,6 +22,9 @@ services:
       retries: 3
     networks:
       - app
+    volumes:
+      - surrealdb_data:/data # Using the named volume
+    user: root
 
   web:
     build:
@@ -38,3 +42,7 @@ services:
 networks:
   app:
     driver: bridge
+
+volumes:
+  surrealdb_data:
+    driver: local

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "client": "tsc && vite build",
+    "client:build": "tsc && vite build",
     "client:dev": "vite",
     "start": "bun app/index.ts",
     "server:watch": "bun --watch app/index.ts",
