@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Idea } from "../database/models/idea";
+import { Idea, IIdeaForm } from "../database/models/idea";
 
 const router = Router();
 
@@ -30,7 +30,7 @@ router.get("/ideas", async (req, res) => {
       res.status(404).json({ error: "Ideas not found" });
       return;
     }
-    res.send({ message: "Successfully retrieved ideas.", data: { ideas } });
+    res.send({ message: "Successfully retrieved ideas.", data: ideas });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -40,7 +40,6 @@ router.get("/ideas", async (req, res) => {
 router.get("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("Fetching idea with id:", id);
     const i = await Idea.get(id);
     if (!i) {
       res.status(404).json({ error: "Idea not found" });
@@ -63,7 +62,7 @@ router.post("/ideas", async (req, res) => {
       res.status(404).json({ error: "Idea not created" });
       return;
     }
-    res.send({ message: "Successfully created idea.", data: { idea: i } });
+    res.send({ message: "Successfully created idea.", data: i });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -80,7 +79,7 @@ router.post("/connection", async (req, res) => {
     }
     res.send({
       message: "Successfully created connection.",
-      data: { connection },
+      data: connection,
     });
   } catch (err) {
     console.error(err);
@@ -98,7 +97,7 @@ router.delete("/connection", async (req, res) => {
     }
     res.send({
       message: "Successfully deleted connection.",
-      data: { connection },
+      data: connection,
     });
   } catch (err) {
     console.error(err);
@@ -110,15 +109,21 @@ router.put("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content } = req.body;
-    const i = await Idea.update(id, {
-      title,
-      content,
-    });
+    const updater: Partial<IIdeaForm> = {};
+    if (title !== undefined) {
+      updater.title = title;
+    }
+    if (content !== undefined) {
+      updater.content = content;
+    }
+    console.log("Updating with: ", updater);
+    const i = await Idea.update(id, updater);
+    console.log("Updated idea: ", i);
     if (!i) {
       res.status(404).json({ error: "Idea not updated" });
       return;
     }
-    res.send({ message: "Successfully updated idea.", data: { idea: i } });
+    res.send({ message: "Successfully updated idea.", data: i });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });

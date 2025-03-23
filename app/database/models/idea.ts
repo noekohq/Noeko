@@ -42,11 +42,9 @@ export class Idea {
   }
 
   static async get(id: string) {
-    console.log("Getting idea with id:", id);
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea>(new StringRecordId(id));
-      console.log("got idea: ", result);
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return;
@@ -89,15 +87,13 @@ export class Idea {
     }
   }
 
-  static async update(id: RecordIdValue, form: Partial<IIdeaForm>) {
+  static async update(id: string, form: Partial<IIdeaForm>) {
     try {
       const db = await getDatabase();
-      const result = await db?.update<IIdea, Partial<IIdeaForm>>(
-        new RecordId("idea", id),
-        {
-          title: form.title,
-          content: form.content,
-        },
+      console.log("Merging data: ", form);
+      const result = await db?.merge<IIdea, Partial<IIdeaForm>>(
+        new StringRecordId(id),
+        form,
       );
       if (!result) {
         console.error("No idea updated.");
@@ -110,10 +106,10 @@ export class Idea {
     }
   }
 
-  static async delete(id: RecordIdValue) {
+  static async delete(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.delete<IIdea>(new RecordId("idea", id));
+      const result = await db?.delete<IIdea>(new StringRecordId(id));
       if (!result) {
         console.error("No idea deleted.");
         return undefined;
