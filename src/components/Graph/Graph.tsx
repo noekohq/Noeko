@@ -218,7 +218,7 @@ Graph.DefBuilder = function ({ parent, graph }: GraphBuilderProps) {
 
   gradients // Inner color stop
     .append("stop")
-    .attr("offset", "0%")
+    .attr("offset", "40%")
     .attr("stop-color", gradientOptions.innerColor)
     .attr("stop-opacity", gradientOptions.opacityInner);
 
@@ -263,7 +263,7 @@ Graph.NodeBuilder = function ({
   const { onNodeClick } = handlers;
   const options = {
     radius: 24,
-    textOffset: 15,
+    textOffset: 8,
   };
 
   const handleNodeClick = (event: React.MouseEvent<SVGElement>, d: any) => {
@@ -300,9 +300,8 @@ Graph.NodeBuilder = function ({
   node
     .append("text")
     .attr("class", styles.nodeText)
-    .attr("text-anchor", "start")
+    .attr("text-anchor", "middle")
     .attr("dominant-baseline", "hanging")
-    .attr("x", -options.radius)
     .attr("y", options.radius + options.textOffset)
     .text((d) => d.title);
 

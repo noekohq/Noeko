@@ -1,4 +1,4 @@
-import { RecordId, RecordIdValue } from "surrealdb";
+import { RecordId, RecordIdValue, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 
 export type IIdea = {
@@ -23,7 +23,7 @@ export type IDBGraph = {
 export class Idea {
   constructor() {}
 
-  async create(form: IIdeaForm) {
+  static async create(form: IIdeaForm) {
     try {
       const db = await getDatabase();
       const result = await db?.create<IIdea, IIdeaForm>("idea", {
@@ -41,10 +41,12 @@ export class Idea {
     }
   }
 
-  async get(id: string) {
+  static async get(id: string) {
+    console.log("Getting idea with id:", id);
     try {
       const db = await getDatabase();
-      const result = await db?.select<IIdea>(id);
+      const result = await db?.select<IIdea>(new StringRecordId(id));
+      console.log("got idea: ", result);
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return;
@@ -56,7 +58,7 @@ export class Idea {
     }
   }
 
-  async all(filters: any) {
+  static async all(filters: any) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea>("idea");
@@ -71,7 +73,7 @@ export class Idea {
     }
   }
 
-  async graph() {
+  static async graph() {
     try {
       const db = await getDatabase();
       const ideas = await db?.select<IIdea>("idea");
@@ -87,7 +89,7 @@ export class Idea {
     }
   }
 
-  async update(id: RecordIdValue, form: Partial<IIdeaForm>) {
+  static async update(id: RecordIdValue, form: Partial<IIdeaForm>) {
     try {
       const db = await getDatabase();
       const result = await db?.update<IIdea, Partial<IIdeaForm>>(
@@ -108,7 +110,7 @@ export class Idea {
     }
   }
 
-  async delete(id: RecordIdValue) {
+  static async delete(id: RecordIdValue) {
     try {
       const db = await getDatabase();
       const result = await db?.delete<IIdea>(new RecordId("idea", id));
@@ -123,7 +125,7 @@ export class Idea {
     }
   }
 
-  async connect(from: string, to: string) {
+  static async connect(from: string, to: string) {
     try {
       const db = await getDatabase();
       const result = await db?.relate<IIdeaConnection>(from, "connection", to);
@@ -138,7 +140,7 @@ export class Idea {
     }
   }
 
-  async disconnect(source: string, target: string) {
+  static async disconnect(source: string, target: string) {
     try {
       const db = await getDatabase();
       const result = await db?.query<IIdeaConnection[]>(

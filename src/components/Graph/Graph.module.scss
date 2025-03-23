@@ -1,19 +1,24 @@
 .container {
     --color-edges: var(--mantine-color-gray-5);
-    --color-nodes: var(--mantine-color-gray-5);
-    --color-nodes-stroke: var(--mantine-color-gray-2);
+    --color-nodes: var(--mantine-color-grape-8);
     --color-background: var(--mantine-color-body);
 }
 
 .node {
     cursor: pointer;
 
+    &:hover {
+        circle {
+            r: 36;
+        }
+    }
+
     &:active {
     }
 
     circle {
-        &:hover {
-        }
+        r: 24;
+        transition: r 0.2s ease-in-out;
     }
 
     .nodeText {

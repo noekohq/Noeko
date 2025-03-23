@@ -1,15 +1,12 @@
 version: "3.9"
 
 services:
-  # surrealdb:
-  #   image: surrealdb/surrealdb:latest-dev
-
   web:
     build:
       target: builder
     volumes:
-      - .:/app
-      - /app/node_modules
+      - .:/project # Changed from /app to /project to match your Dockerfile WORKDIR
+      - /project/node_modules # Changed from /app/node_modules
     command: bun run server:watch
     environment:
       - NODE_ENV=development

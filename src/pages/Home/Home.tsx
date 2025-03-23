@@ -18,6 +18,7 @@ import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { IDBGraph, IIdea, IIdeaForm } from "../../../app/database/models/idea";
 import { useNavigate } from "react-router";
+import { getRecordId } from "../../utils/db";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);

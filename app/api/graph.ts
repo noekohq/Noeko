@@ -3,12 +3,10 @@ import { Idea } from "../database/models/idea";
 
 const router = Router();
 
-const idea = new Idea();
-
 router.get("/", async (req, res) => {
   try {
     const filters = req.body.filters;
-    const graph = await idea.graph();
+    const graph = await Idea.graph();
     if (!graph) {
       res.status(404).json({ error: "Graph not found" });
       return;
@@ -27,7 +25,7 @@ router.get("/", async (req, res) => {
 router.get("/ideas", async (req, res) => {
   try {
     const filters = req.body.filters;
-    const ideas = await idea.all(filters);
+    const ideas = await Idea.all(filters);
     if (!ideas) {
       res.status(404).json({ error: "Ideas not found" });
       return;
@@ -43,12 +41,12 @@ router.get("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
     console.log("Fetching idea with id:", id);
-    const i = await idea.get(id);
+    const i = await Idea.get(id);
     if (!i) {
       res.status(404).json({ error: "Idea not found" });
       return;
     }
-    res.send({ message: "Successfully retrieved idea.", data: { idea: i } });
+    res.send({ message: "Successfully retrieved idea.", data: i });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -58,7 +56,7 @@ router.get("/ideas/:id", async (req, res) => {
 router.post("/ideas", async (req, res) => {
   try {
     const body = req.body;
-    const i = await idea.create({
+    const i = await Idea.create({
       ...body,
     });
     if (!i) {
@@ -75,7 +73,7 @@ router.post("/ideas", async (req, res) => {
 router.post("/connection", async (req, res) => {
   try {
     const { source, target } = req.body;
-    const connection = await idea.connect(source, target);
+    const connection = await Idea.connect(source, target);
     if (!connection) {
       res.status(404).json({ error: "Connection not created" });
       return;
@@ -93,7 +91,7 @@ router.post("/connection", async (req, res) => {
 router.delete("/connection", async (req, res) => {
   try {
     const { source, target } = req.body;
-    const connection = await idea.disconnect(source, target);
+    const connection = await Idea.disconnect(source, target);
     if (!connection) {
       res.status(404).json({ error: "Connection not deleted" });
       return;
@@ -112,7 +110,7 @@ router.put("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content } = req.body;
-    const i = await idea.update(id, {
+    const i = await Idea.update(id, {
       title,
       content,
     });

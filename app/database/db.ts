@@ -49,6 +49,7 @@ export const Database: IDatabase = {
 export const getDatabase = async () => {
   const db = new Surreal();
   try {
+    console.log("Attempting to connect to database...");
     const connectionString = `${DB_PROTOCOL}://${DB_HOST}:${DB_PORT}`;
     await db.connect(connectionString, {
       auth: {
