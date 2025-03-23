@@ -9,6 +9,7 @@ import SubScript from "@tiptap/extension-subscript";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskItem from "@tiptap/extension-task-item";
 import TipTapTaskList from "@tiptap/extension-task-list";
+import { useEffect, useState } from "react";
 
 type TextEditorProps = {
   content: string;
@@ -16,29 +17,38 @@ type TextEditorProps = {
 };
 
 export default function TextEditor({ content, onBlur }: TextEditorProps) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link,
-      Superscript,
-      SubScript,
-      Highlight,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Placeholder.configure({
-        placeholder: "Write something...",
-      }),
-      getTaskListExtension(TipTapTaskList),
-      TaskItem.configure({
-        nested: true,
-        HTMLAttributes: {},
-      }),
-    ],
-    content,
-    onBlur: ({ editor }) => {
-      onBlur(editor.getHTML());
+  const [actualContent, setActualContent] = useState(content);
+
+  useEffect(() => {
+    setActualContent(content);
+  }, [content]);
+
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit,
+        Underline,
+        Link,
+        Superscript,
+        SubScript,
+        Highlight,
+        TextAlign.configure({ types: ["heading", "paragraph"] }),
+        Placeholder.configure({
+          placeholder: "Write something...",
+        }),
+        getTaskListExtension(TipTapTaskList),
+        TaskItem.configure({
+          nested: true,
+          HTMLAttributes: {},
+        }),
+      ],
+      content: actualContent,
+      onBlur: ({ editor }) => {
+        onBlur(editor.getHTML());
+      },
     },
-  });
+    [actualContent],
+  );
 
   return (
     <RichTextEditor editor={editor} variant="subtle">
