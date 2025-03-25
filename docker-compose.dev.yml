@@ -7,6 +7,6 @@ services:
     volumes:
       - .:/project # Changed from /app to /project to match your Dockerfile WORKDIR
       - /project/node_modules # Changed from /app/node_modules
-    command: bun run server:watch
+    command: sh -c "bun install && bun run server:watch"
     environment:
       - NODE_ENV=development

@@ -130,4 +130,24 @@ router.put("/ideas/:id", async (req, res) => {
   }
 });
 
+router.post("/ideas/:id/embed", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const idea = await Idea.loadEmbeddings(id);
+    if (!idea) {
+      res.status(404).json({ error: "Idea not found" });
+      return;
+    }
+    const embeddings = await Idea.loadEmbeddings(id);
+    // if (!embeddings) {
+    //   res.status(404).json({ error: "Embeddings not found" });
+    //   return;
+    // }
+    res.send({ message: "Successfully loaded embeddings.", data: embeddings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 export default router;

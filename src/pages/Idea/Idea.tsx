@@ -2,11 +2,19 @@ import { useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IIdea, IIdeaForm } from "../../../app/database/models/idea";
-import { ActionIcon, Grid, Group, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Grid,
+  Group,
+  Title,
+  Loader,
+  Text,
+} from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useAlert } from "../../contexts/AlertContext";
 import TextEditor from "../../components/TextEditor/TextEditor";
-import { ArrowLeft } from "@phosphor-icons/react";
+import { ArrowLeft, Shapes } from "@phosphor-icons/react";
 
 export default function Idea() {
   const { ideaId } = useParams();
@@ -86,19 +94,75 @@ export default function Idea() {
   }, [content]);
 
   console.log("Idea: ", idea);
+  const { load: embedIdea, loading: loadingEmbeddings } = useFetch({
+    url: `/graph/ideas/${ideaId}/embed`,
+    method: "POST",
+    onSuccess: () => {
+      reloadIdea();
+    },
+    onError: (error) => {
+      setAlert({
+        title: "Error",
+        message: "There was an error generating embeddings",
+        type: "error",
+      });
+    },
+  });
+
+  const embeddingsOutOfDate = () => {
+    if (!idea) return false;
+    if (!idea.embeddingsUpdatedAt) return true;
+    return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
+  };
+
+  const statusText = () => {
+    let text = "";
+    if (loadingEmbeddings) {
+      text += "Loading embeddings.";
+    }
+    if (embeddingsOutOfDate()) {
+      text += "Embeddings out of date.";
+    }
+    return text;
+  };
 
   return (
     <div className={styles.idea}>
       <Grid>
         <Grid.Col span={{ sm: 12 }}>
-          <Group>
+          <Group gap={14}>
             <ActionIcon
               onClick={() => {
                 navigate("/");
               }}
+              variant="default"
             >
               <ArrowLeft weight="bold" />
             </ActionIcon>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12 }}>
+          <Text>{statusText()}</Text>
+        </Grid.Col>
+        <Grid.Col span={12}>
+          <Group>
+            {embeddingsOutOfDate() && (
+              <Button
+                leftSection={
+                  loadingEmbeddings ? (
+                    <Loader size="sm" />
+                  ) : (
+                    <Shapes weight="bold" />
+                  )
+                }
+                disabled={loadingEmbeddings}
+                onClick={() => {
+                  embedIdea();
+                }}
+              >
+                Generate Embeddings
+              </Button>
+            )}
           </Group>
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
@@ -120,6 +184,7 @@ export default function Idea() {
             }}
           />
         </Grid.Col>
+        <Grid.Col span={12} />
       </Grid>
     </div>
   );

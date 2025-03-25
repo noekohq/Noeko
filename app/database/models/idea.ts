@@ -1,10 +1,15 @@
 import { RecordId, RecordIdValue, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
+import { Embeddings } from "../../semantics/embeddings";
 
 export type IIdea = {
   id: string;
   title: string;
   content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  contentUpdatedAt: Date;
+  embeddingsUpdatedAt: Date;
 };
 
 export type IIdeaForm = Omit<IIdea, "id">;
@@ -26,9 +31,20 @@ export class Idea {
   static async create(form: IIdeaForm) {
     try {
       const db = await getDatabase();
-      const result = await db?.create<IIdea, IIdeaForm>("idea", {
+      const result = await db?.create<
+        IIdea,
+        IIdeaForm & {
+          createdAt: Date;
+          updatedAt: Date;
+          embeddingsUpdatedAt: Date;
+        }
+      >("idea", {
         title: form.title,
         content: form.content,
+        contentUpdatedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        embeddingsUpdatedAt: new Date(),
       });
       if (!result) {
         console.error("No idea created.");
@@ -91,10 +107,17 @@ export class Idea {
     try {
       const db = await getDatabase();
       console.log("Merging data: ", form);
-      const result = await db?.merge<IIdea, Partial<IIdeaForm>>(
-        new StringRecordId(id),
-        form,
-      );
+      const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
+      if (form.content !== undefined) {
+        updater.contentUpdatedAt = new Date();
+      }
+      const result = await db?.merge<
+        IIdea,
+        Partial<IIdeaForm> & { updatedAt: Date }
+      >(new StringRecordId(id), {
+        ...updater,
+        updatedAt: new Date(),
+      });
       if (!result) {
         console.error("No idea updated.");
         return undefined;
@@ -154,6 +177,38 @@ export class Idea {
     } catch (err) {
       console.error(err);
       return undefined;
+    }
+  }
+
+  static async loadEmbeddings(id: string) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.select<IIdea>(new StringRecordId(id));
+      if (!result) {
+        console.error(`Idea with id ${id} not found.`);
+        return;
+      }
+      const e = new Embeddings();
+      const embeddings = await e.generateEmbeddings(result.content);
+
+      const idea = await db?.merge<
+        IIdea,
+        { embeddings: number[]; embeddingsUpdatedAt: Date }
+      >(new StringRecordId(id), {
+        embeddings,
+        embeddingsUpdatedAt: new Date(),
+      });
+
+      console.log("Idea: ", idea);
+
+      if (!idea) {
+        console.error(`Idea with id ${id} not found.`);
+        return;
+      }
+
+      return idea;
+    } catch (error) {
+      console.error(error);
     }
   }
 }
