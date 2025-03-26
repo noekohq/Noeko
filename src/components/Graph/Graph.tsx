@@ -1,31 +1,89 @@
-import { Ref, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { IGraph, INode } from "../../declarations/graph";
-import * as d3 from "d3";
+// GraphContainer.tsx (renamed from Graph.tsx for clarity)
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { IGraph, INode, IEdge } from "../../declarations/graph"; // Adjust path as needed
+import Node from "./Node";
+import Edge from "./Edge";
 import styles from "./Graph.module.scss";
-import { Flex, Text } from "@mantine/core";
+import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
 
-type GraphProps = {
+// --- Simulation Configuration ---
+// These values are similar to your D3 setup
+const SIMULATION_CONFIG = {
+  forceStrength: -100, // Repulsion strength
+  linkDistance: 100, // Target distance between linked nodes
+  linkStrength: 0.1, // Stiffness of links (0 to 1)
+  centerForceStrength: 0.05, // Strength of pull towards center
+  alpha: 1, // Initial simulation intensity
+  alphaDecay: 0.0228, // How quickly simulation cools down
+  alphaMin: 0.001, // Threshold to stop simulation
+  velocityDecay: 0.4, // Friction (0 to 1)
+};
+
+// --- Node/Edge Rendering Configuration ---
+const RENDER_CONFIG = {
+  nodeRadius: 24,
+  nodeTextOffset: 8,
+  edgeStrokeWidth: 2,
+};
+
+// --- Helper Functions ---
+function getVector(
+  p1: { x?: number; y?: number },
+  p2: { x?: number; y?: number },
+) {
+  if (!p1.x || !p1.y || !p2.x || !p2.y) return { dx: 0, dy: 0, dist: 0 };
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  return { dx, dy, dist };
+}
+
+type GraphContainerProps = {
   graph: IGraph;
   width?: number;
   height?: number;
-  onNodeClick: (event: any, node: INode) => void;
-  onNodeHover: (event: any, node: INode) => void;
-  onNodeHoverOut: (event: any, node: INode) => void;
+  onNodeClick: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeHover: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeHoverOut: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
 };
 
-function Graph({
+const GraphContainer: React.FC<GraphContainerProps> = ({
   graph,
-  width,
-  height,
+  width: propWidth,
+  height: propHeight,
   onNodeClick,
   onNodeHover,
   onNodeHoverOut,
-}: GraphProps) {
+}) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const zoomRef = useRef<d3.ZoomBehavior<any, any> | null>(null);
 
+  // --- Simulation State ---
+  const [nodes, setNodes] = useState<INode[]>([]);
+  const alphaRef = useRef(SIMULATION_CONFIG.alpha); // Current simulation intensity
+  const simulationRef = useRef<number | null>(null); // To store requestAnimationFrame id
+  const [isSimulating, setIsSimulating] = useState(true);
+
+  // --- Interaction State ---
+  const [viewBox, setViewBox] = useState("0 0 0 0");
+  const [isDraggingNode, setIsDraggingNode] = useState<string | null>(null); // ID of node being dragged
+  const dragStartPosRef = useRef<{
+    x: number;
+    y: number;
+    nodeStartX: number;
+    nodeStartY: number;
+  } | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const panStartPosRef = useRef<{
+    x: number;
+    y: number;
+    vbX: number;
+    vbY: number;
+  } | null>(null);
+  const [transform, setTransform] = useState({ k: 1, x: 0, y: 0 }); // Scale, Translate X, Translate Y
+
+  // --- Initialize Dimensions ---
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -35,14 +93,11 @@ function Graph({
         });
       }
     };
-
     updateDimensions();
-
     const resizeObserver = new ResizeObserver(updateDimensions);
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
-
     return () => {
       if (containerRef.current) {
         resizeObserver.unobserve(containerRef.current);
@@ -50,300 +105,500 @@ function Graph({
     };
   }, []);
 
-  useLayoutEffect(() => {
-    const currentWidth = width ?? dimensions.width;
-    const currentHeight = height ?? dimensions.height;
+  // --- Initialize Simulation Nodes ---
+  useEffect(() => {
+    const currentWidth = propWidth ?? dimensions.width;
+    const currentHeight = propHeight ?? dimensions.height;
 
-    if (currentWidth === 0 || currentHeight === 0) {
-      return;
-    }
+    if (currentWidth === 0 || currentHeight === 0) return;
 
-    const svg = d3.select(svgRef.current);
-    const simulationConfig = {
-      forceStrength: -100,
-      linkDistance: 100,
-      linkStrength: 0.1,
-      centerForceStrength: 0.1,
-      alphaDecay: 0.0228,
+    // Initialize node positions randomly near the center if they don't have positions
+    const initializedNodes = graph.nodes.map((node) => ({
+      ...node,
+      x: node.x ?? currentWidth / 2 + (Math.random() - 0.5) * 50,
+      y: node.y ?? currentHeight / 2 + (Math.random() - 0.5) * 50,
+      vx: node.vx ?? 0,
+      vy: node.vy ?? 0,
+      fx: node.fx !== undefined ? node.fx : null, // Persist fixed positions if provided
+      fy: node.fy !== undefined ? node.fy : null,
+    }));
+    setNodes(initializedNodes);
+
+    // Reset simulation alpha and start
+    alphaRef.current = SIMULATION_CONFIG.alpha;
+    setIsSimulating(true);
+
+    // Set initial viewBox based on dimensions
+    // setViewBox(`0 0 ${currentWidth} ${currentHeight}`); // Basic viewbox
+    // Initialize transform for zoom/pan
+    setTransform({ k: 1, x: 0, y: 0 });
+
+    // Cleanup function to stop simulation when graph data changes
+    return () => {
+      if (simulationRef.current) {
+        cancelAnimationFrame(simulationRef.current);
+        simulationRef.current = null;
+      }
+      setIsSimulating(false);
     };
-    const simulation = d3
-      .forceSimulation(graph.nodes as d3.SimulationNodeDatum[])
-      .force(
-        "link",
-        d3
-          .forceLink(
-            graph.edges as d3.SimulationLinkDatum<d3.SimulationNodeDatum>[],
-          )
-          .id((d: any) => d.id)
-          .distance(simulationConfig.linkDistance)
-          .strength(simulationConfig.linkStrength),
-      )
-      .force(
-        "charge",
-        d3.forceManyBody().strength(simulationConfig.forceStrength),
-      )
-      .force(
-        "center",
-        d3
-          .forceCenter(currentWidth / 2, currentHeight / 2)
-          .strength(simulationConfig.centerForceStrength),
-      )
-      .alphaDecay(simulationConfig.alphaDecay);
+  }, [graph, dimensions, propWidth, propHeight]); // Re-run if graph or dimensions change
 
-    function dragstarted(event: any, d: any) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
+  // --- Simulation Tick Logic ---
+  const runSimulationTick = useCallback(() => {
+    if (!isSimulating) return;
+
+    const currentWidth = propWidth ?? dimensions.width;
+    const currentHeight = propHeight ?? dimensions.height;
+    const centerX = currentWidth / 2;
+    const centerY = currentHeight / 2;
+
+    let newNodes = [...nodes]; // Create a mutable copy for this tick
+
+    // --- Apply Forces ---
+    for (let i = 0; i < newNodes.length; i++) {
+      const nodeA = newNodes[i];
+      if (!nodeA.x || !nodeA.y) continue; // Skip if position is somehow undefined
+
+      // 1. Charge Force (Repulsion) - Simple N^2 implementation
+      for (let j = i + 1; j < newNodes.length; j++) {
+        const nodeB = newNodes[j];
+        if (!nodeB.x || !nodeB.y) continue;
+
+        const { dx, dy, dist } = getVector(nodeA, nodeB);
+
+        if (dist > 0) {
+          // Avoid division by zero
+          const force =
+            (SIMULATION_CONFIG.forceStrength * alphaRef.current) /
+            (dist * dist);
+          const forceX = dx * force;
+          const forceY = dy * force;
+
+          if (!nodeA.fx) {
+            nodeA.vx = (nodeA.vx ?? 0) + forceX;
+            nodeA.vy = (nodeA.vy ?? 0) + forceY;
+          }
+          if (!nodeB.fx) {
+            nodeB.vx = (nodeB.vx ?? 0) - forceX;
+            nodeB.vy = (nodeB.vy ?? 0) - forceY;
+          }
+        }
+      }
+
+      // 2. Center Force (Gravitational pull towards center)
+      if (!nodeA.fx) {
+        const dxCenter = centerX - nodeA.x;
+        const dyCenter = centerY - nodeA.y;
+        nodeA.vx =
+          (nodeA.vx ?? 0) +
+          dxCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
+        nodeA.vy =
+          (nodeA.vy ?? 0) +
+          dyCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
+      }
     }
 
-    function dragged(event: any, d: any) {
-      d.fx = event.x;
-      d.fy = event.y;
+    // 3. Link Force (Springs)
+    for (const edge of graph.edges) {
+      const sourceNode = newNodes.find((n) => n.id === edge.source);
+      const targetNode = newNodes.find((n) => n.id === edge.target);
+
+      if (
+        sourceNode &&
+        targetNode &&
+        sourceNode.x &&
+        sourceNode.y &&
+        targetNode.x &&
+        targetNode.y
+      ) {
+        const { dx, dy, dist } = getVector(sourceNode, targetNode);
+
+        if (dist > 0) {
+          const diff = dist - SIMULATION_CONFIG.linkDistance;
+          const force =
+            (diff * SIMULATION_CONFIG.linkStrength * alphaRef.current) / dist; // Normalized force
+          const forceX = dx * force;
+          const forceY = dy * force;
+
+          if (!sourceNode.fx) {
+            sourceNode.vx = (sourceNode.vx ?? 0) + forceX;
+            sourceNode.vy = (sourceNode.vy ?? 0) + forceY;
+          }
+          if (!targetNode.fx) {
+            targetNode.vx = (targetNode.vx ?? 0) - forceX;
+            targetNode.vy = (targetNode.vy ?? 0) - forceY;
+          }
+        }
+      }
     }
 
-    function dragended(event: any, d: any) {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
-    }
+    // --- Update Positions ---
+    newNodes = newNodes.map((node) => {
+      if (node.fx !== null && node.fy !== null) {
+        // Node is fixed (e.g., during drag)
+        return { ...node, x: node.fx, y: node.fy, vx: 0, vy: 0 };
+      }
 
-    const g = svg.append("g").attr("class", "everything");
+      // Apply velocity decay (friction)
+      const vx = (node.vx ?? 0) * SIMULATION_CONFIG.velocityDecay;
+      const vy = (node.vy ?? 0) * SIMULATION_CONFIG.velocityDecay;
 
-    // --- Arrow Markers ---
+      // Update position
+      const x = (node.x ?? 0) + vx;
+      const y = (node.y ?? 0) + vy;
 
-    const builderProps: GraphBuilderProps = {
-      graph,
-      parent: g,
-      events: {
-        drag: {
-          start: dragstarted,
-          drag: dragged,
-          end: dragended,
-        },
-      },
-      handlers: {
-        onNodeClick,
-        onNodeHover,
-        onNodeHoverOut,
-      },
-    };
+      // Optional: Boundary collision (simple clamp) - adjust as needed
+      // const clampedX = Math.max(RENDER_CONFIG.nodeRadius, Math.min(currentWidth - RENDER_CONFIG.nodeRadius, x));
+      // const clampedY = Math.max(RENDER_CONFIG.nodeRadius, Math.min(currentHeight - RENDER_CONFIG.nodeRadius, y));
 
-    const defs = Graph.DefBuilder(builderProps);
-    const link = Graph.EdgeBuilder(builderProps);
-    const node = Graph.NodeBuilder(builderProps);
-
-    simulation.on("tick", () => {
-      link
-        .attr("x1", (d: any) => d.source.x)
-        .attr("y1", (d: any) => d.source.y)
-        .attr("x2", (d: any) => d.target.x)
-        .attr("y2", (d: any) => d.target.y);
-
-      node.attr("transform", (d: any) => `translate(${d.x}, ${d.y})`);
+      return { ...node, x, y, vx, vy };
     });
 
-    const zoomed = (event: d3.D3ZoomEvent<any, any>) => {
-      g.attr("transform", event.transform as any);
-    };
+    // --- Update State & Alpha ---
+    setNodes(newNodes);
+    alphaRef.current *= 1 - SIMULATION_CONFIG.alphaDecay;
 
-    const zoom: d3.ZoomBehavior<any, any> = d3
-      .zoom()
-      .scaleExtent([0.1, 8])
-      .on("zoom", zoomed);
-    zoomRef.current = zoom;
-    svg.call(zoom as any);
+    // --- Continue or Stop Simulation ---
+    if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
+      alphaRef.current = 0; // Ensure it's fully stopped
+      setIsSimulating(false);
+      console.log("Simulation stopped.");
+      simulationRef.current = null;
+    } else {
+      simulationRef.current = requestAnimationFrame(runSimulationTick);
+    }
+  }, [nodes, graph.edges, dimensions, propWidth, propHeight, isSimulating]); // Dependencies for the tick function
 
+  // --- Start/Manage Simulation Loop ---
+  useEffect(() => {
+    // Start simulation if conditions are met
+    if (isSimulating && nodes.length > 0 && !simulationRef.current) {
+      console.log("Starting simulation...");
+      simulationRef.current = requestAnimationFrame(runSimulationTick);
+    }
+
+    // Cleanup: Stop animation frame on component unmount or when simulation stops
     return () => {
-      simulation.stop();
-      svg.selectAll("*").remove();
-      if (zoomRef.current) {
-        svg.on(".zoom", null);
+      if (simulationRef.current) {
+        cancelAnimationFrame(simulationRef.current);
+        simulationRef.current = null;
+        console.log("Simulation cancelled.");
       }
     };
-  }, [graph, dimensions, width, height, onNodeClick]);
+  }, [isSimulating, nodes, runSimulationTick]); // Depend on isSimulating and nodes
+
+  // --- Coordinate Transformation (Screen to SVG) ---
+  const getSVGPoint = useCallback(
+    (screenX: number, screenY: number): { x: number; y: number } => {
+      if (!svgRef.current) return { x: 0, y: 0 };
+      const svg = svgRef.current;
+      const pt = svg.createSVGPoint();
+      pt.x = screenX;
+      pt.y = screenY;
+      const svgPoint = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+      // Apply inverse of the group transform
+      return {
+        x: (svgPoint.x - transform.x) / transform.k,
+        y: (svgPoint.y - transform.y) / transform.k,
+      };
+    },
+    [transform],
+  );
+
+  // --- Drag Handlers ---
+  const handleNodeDragStart = useCallback(
+    (event: React.MouseEvent<SVGGElement>, nodeId: string) => {
+      event.stopPropagation(); // Prevent panning while dragging node
+      setIsDraggingNode(nodeId);
+      const { x, y } = getSVGPoint(event.clientX, event.clientY);
+
+      setNodes((prevNodes) =>
+        prevNodes.map((n) => {
+          if (n.id === nodeId) {
+            // Store start position relative to SVG coordinate system
+            dragStartPosRef.current = {
+              x,
+              y,
+              nodeStartX: n.x ?? 0,
+              nodeStartY: n.y ?? 0,
+            };
+            // Fix node position and wake up simulation
+            return { ...n, fx: n.x, fy: n.y };
+          }
+          return n;
+        }),
+      );
+      // Restart simulation slightly if stopped
+      if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
+        alphaRef.current = 0.1; // Give it a small kick
+        setIsSimulating(true);
+      }
+    },
+    [getSVGPoint],
+  );
+
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
+      const currentWidth = propWidth ?? dimensions.width;
+      const currentHeight = propHeight ?? dimensions.height;
+      if (!currentWidth || !currentHeight) return;
+
+      // --- Node Dragging ---
+      if (isDraggingNode && dragStartPosRef.current) {
+        const { x, y } = getSVGPoint(event.clientX, event.clientY);
+        // Calculate the new fixed position based on drag movement
+        const newFx =
+          dragStartPosRef.current.nodeStartX + (x - dragStartPosRef.current.x);
+        const newFy =
+          dragStartPosRef.current.nodeStartY + (y - dragStartPosRef.current.y);
+
+        setNodes((prevNodes) =>
+          prevNodes.map((n) =>
+            n.id === isDraggingNode ? { ...n, fx: newFx, fy: newFy } : n,
+          ),
+        );
+        // Keep simulation active while dragging
+        if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
+          alphaRef.current = 0.1; // Keep it slightly warm
+          setIsSimulating(true);
+        }
+      }
+      // --- Panning ---
+      else if (isPanning && panStartPosRef.current) {
+        // Calculate delta in screen coordinates
+        const dx = event.clientX - panStartPosRef.current.x;
+        const dy = event.clientY - panStartPosRef.current.y;
+
+        // New translate values (no scaling applied here, just translation delta)
+        const newTx = panStartPosRef.current.vbX + dx;
+        const newTy = panStartPosRef.current.vbY + dy;
+
+        setTransform((prev) => ({ ...prev, x: newTx, y: newTy }));
+      }
+    },
+    [isDraggingNode, getSVGPoint, isPanning, dimensions, propWidth, propHeight],
+  );
+
+  const handleMouseUp = useCallback(
+    (event: MouseEvent) => {
+      // --- End Node Drag ---
+      if (isDraggingNode) {
+        setNodes((prevNodes) =>
+          prevNodes.map((n) => {
+            if (n.id === isDraggingNode) {
+              // Unfix the node
+              return { ...n, fx: null, fy: null };
+            }
+            return n;
+          }),
+        );
+        setIsDraggingNode(null);
+        dragStartPosRef.current = null;
+        // Optional: Reduce simulation intensity after drag
+        // alphaRef.current = Math.max(alphaRef.current, 0.3); // Or some other value
+      }
+      // --- End Panning ---
+      if (isPanning) {
+        setIsPanning(false);
+        panStartPosRef.current = null;
+      }
+    },
+    [isDraggingNode, isPanning],
+  );
+
+  // --- Global Mouse Move/Up Listeners for Drag/Pan ---
+  useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  // --- Pan Start Handler ---
+  const handlePanStart = (event: React.MouseEvent<SVGSVGElement>) => {
+    // Only pan if not clicking on a node (drag start handler stops propagation)
+    if (!isDraggingNode) {
+      setIsPanning(true);
+      panStartPosRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        vbX: transform.x,
+        vbY: transform.y,
+      };
+    }
+  };
+
+  // --- Zoom Handler ---
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<SVGSVGElement>) => {
+      event.preventDefault();
+      const scaleFactor = 1.1;
+      const zoomSpeed = 0.1; // Adjust sensitivity
+      const delta = -event.deltaY * (zoomSpeed / 100); // Normalize wheel delta
+
+      const newScale = transform.k * Math.pow(scaleFactor, delta);
+      const minScale = 0.1;
+      const maxScale = 8;
+      const clampedScale = Math.max(minScale, Math.min(maxScale, newScale));
+
+      // Get mouse position in SVG coordinates before zoom
+      const { x: mouseX, y: mouseY } = getSVGPoint(
+        event.clientX,
+        event.clientY,
+      );
+
+      // Calculate new translation to keep mouse position fixed relative to zoom point
+      // Formula: newTx = mouseClientX - mouseSvgX * newScale
+      // We need svgPoint relative to the untransformed svg coordinate space
+      // The getSVGPoint already accounts for current transform, so we use its output directly
+      const newTx =
+        transform.x + (mouseX * transform.k - mouseX * clampedScale);
+      const newTy =
+        transform.y + (mouseY * transform.k - mouseY * clampedScale);
+
+      setTransform({ k: clampedScale, x: newTx, y: newTy });
+    },
+    [transform, getSVGPoint],
+  );
+
+  // --- SVG Definitions ---
+  // These can be static or generated based on nodes if needed
+  const renderDefs = () => {
+    // Gradient options from original code
+    const gradientOptions = {
+      innerColor: "var(--color-nodes)",
+      outerColor: "var(--color-background)",
+      opacityInner: 0.8,
+      opacityOuter: 0.2,
+    };
+    // Marker options from original code
+    const markerOptions = {
+      width: 10,
+      height: 10,
+      refX: RENDER_CONFIG.nodeRadius * 0.8 + 5, // Adjust refX based on node radius
+      refY: 0,
+      orient: "auto",
+      fill: "var(--color-edges)",
+    };
+
+    return (
+      <defs>
+        {/* Arrowhead Marker */}
+        <marker
+          id="arrowhead"
+          viewBox="0 -5 10 10"
+          refX={markerOptions.refX}
+          refY={markerOptions.refY}
+          markerWidth={markerOptions.width}
+          markerHeight={markerOptions.height}
+          orient={markerOptions.orient}
+        >
+          <path d="M0,-2L5,0L0,2" fill={markerOptions.fill} />
+        </marker>
+
+        {/* Node Gradients (one per node) */}
+        {nodes.map((node) => (
+          <radialGradient
+            key={node.id}
+            id={`gradient-${node.id}`}
+            cx="50%"
+            cy="50%"
+            r="50%"
+            fx="50%"
+            fy="50%"
+          >
+            <stop
+              offset="40%"
+              stopColor={gradientOptions.innerColor}
+              stopOpacity={gradientOptions.opacityInner}
+            />
+            <stop
+              offset="100%"
+              stopColor={gradientOptions.outerColor}
+              stopOpacity={gradientOptions.opacityOuter}
+            />
+          </radialGradient>
+        ))}
+      </defs>
+    );
+  };
+
+  // --- Render ---
+  const currentWidth = propWidth ?? dimensions.width;
+  const currentHeight = propHeight ?? dimensions.height;
+  const nodeMap = React.useMemo(
+    () =>
+      nodes.reduce(
+        (acc, node) => {
+          acc[node.id] = node;
+          return acc;
+        },
+        {} as { [key: string]: INode },
+      ),
+    [nodes],
+  );
 
   return (
     <div
       ref={containerRef}
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: "100%", height: "100%", overflow: "hidden" }} // Hide SVG overflow
       className={styles.container}
     >
-      {graph.nodes.length > 0 ? (
+      {currentWidth > 0 && currentHeight > 0 ? (
         <svg
           ref={svgRef}
-          width={width ?? dimensions.width}
-          height={height ?? dimensions.height}
-        />
-      ) : (
-        <Flex
-          align="center"
-          justify="center"
-          style={{
-            height: "100%",
-          }}
+          width={currentWidth}
+          height={currentHeight}
+          //   viewBox={viewBox} // Control zoom/pan via transform instead of viewBox for easier drag coordinate math
+          onWheel={handleWheel}
+          onMouseDown={handlePanStart} // Use svg background for panning
+          style={{ cursor: isPanning ? "grabbing" : "grab" }} // Indicate panning state
         >
-          <Text>No data available. Add some!</Text>
+          {renderDefs()}
+          <g
+            className="everything"
+            transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
+          >
+            {/* Render Edges first (under nodes) */}
+            {graph.edges.map((edge) => (
+              <Edge
+                key={`${edge.source}-${edge.target}`}
+                edge={edge}
+                sourceNode={nodeMap[edge.source]}
+                targetNode={nodeMap[edge.target]}
+                strokeWidth={RENDER_CONFIG.edgeStrokeWidth}
+              />
+            ))}
+
+            {/* Render Nodes */}
+            {nodes.map((node) => (
+              <Node
+                key={node.id}
+                node={node}
+                radius={RENDER_CONFIG.nodeRadius}
+                textOffset={RENDER_CONFIG.nodeTextOffset}
+                isDragging={isDraggingNode === node.id}
+                onNodeClick={onNodeClick}
+                onNodeHover={onNodeHover}
+                onNodeHoverOut={onNodeHoverOut}
+                onDragStart={handleNodeDragStart}
+              />
+            ))}
+          </g>
+        </svg>
+      ) : (
+        <Flex align="center" justify="center" style={{ height: "100%" }}>
+          {graph.nodes.length === 0 ? (
+            <Text>No data available. Add some!</Text>
+          ) : (
+            <Text>Initializing...</Text> // Placeholder while dimensions are calculated
+          )}
         </Flex>
       )}
     </div>
   );
-}
-
-export default Graph;
-
-type GraphBuilderProps = {
-  graph: IGraph;
-  parent: d3.Selection<SVGGElement, unknown, null, undefined>;
-  events: {
-    drag: {
-      start: (event: any, d: any) => void;
-      drag: (event: any, d: any) => void;
-      end: (event: any, d: any) => void;
-    };
-  };
-  handlers: {
-    onNodeClick: (e: React.MouseEvent<SVGElement>, node: INode) => void;
-    onNodeHover: (e: React.MouseEvent<SVGElement>, node: INode) => void;
-    onNodeHoverOut: (e: React.MouseEvent<SVGElement>, node: INode) => void;
-  };
 };
 
-Graph.DefBuilder = function ({ parent, graph }: GraphBuilderProps) {
-  const defs = parent.append("defs");
-
-  const gradientOptions = {
-    innerColor: "var(--color-nodes)",
-    outerColor: "var(--color-background)",
-    opacityInner: 0.8,
-    opacityOuter: 0.2,
-  };
-
-  const gradients = defs
-    .selectAll("radialGradient")
-    .data(graph.nodes)
-    .join("radialGradient")
-    .attr("id", (d) => `gradient-${d.id}`) // **CRITICAL: Unique ID per gradient**
-    .attr("cx", "50%") // Center of the gradient (relative to the circle)
-    .attr("cy", "50%")
-    .attr("r", "50%") // Radius of the gradient
-    .attr("fx", "50%") // Focal point (can be different for interesting effects)
-    .attr("fy", "50%");
-
-  gradients // Inner color stop
-    .append("stop")
-    .attr("offset", "40%")
-    .attr("stop-color", gradientOptions.innerColor)
-    .attr("stop-opacity", gradientOptions.opacityInner);
-
-  gradients // Outer color stop
-    .append("stop")
-    .attr("offset", "100%")
-    .attr("stop-color", gradientOptions.outerColor)
-    .attr("stop-opacity", gradientOptions.opacityOuter);
-
-  const markerOptions = {
-    width: 10,
-    height: 10,
-    refX: 20.5,
-    refY: 0,
-    orient: "auto",
-    fill: "var(--color-edges)",
-  };
-
-  defs
-    .selectAll("marker")
-    .data(["arrowhead"])
-    .join("marker")
-    .attr("id", String)
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", markerOptions.refX)
-    .attr("refY", markerOptions.refY)
-    .attr("markerWidth", markerOptions.width)
-    .attr("markerHeight", markerOptions.height)
-    .attr("orient", markerOptions.orient)
-    .append("path")
-    .attr("d", "M0,-2L5,0L0,2")
-    .attr("fill", markerOptions.fill);
-};
-
-Graph.NodeBuilder = function ({
-  graph,
-  parent,
-  events,
-  handlers,
-}: GraphBuilderProps) {
-  const { drag } = events;
-  const { onNodeClick, onNodeHover, onNodeHoverOut } = handlers;
-  const options = {
-    radius: 24,
-    textOffset: 8,
-  };
-
-  const handleNodeClick = (event: React.MouseEvent<SVGElement>, d: any) => {
-    onNodeClick(event, d);
-    if (event.shiftKey) {
-      const target = event.currentTarget;
-      if (!target) return;
-      target.style.fill = "red";
-    }
-  };
-
-  const handleNodeHover = (event: React.MouseEvent<SVGElement>, d: any) => {
-    onNodeHover(event, d);
-  };
-
-  const handleNodeHoverOut = (event: React.MouseEvent<SVGElement>, d: any) => {
-    onNodeHoverOut(event, d);
-  };
-
-  const node = parent
-    .selectAll(`.${styles.node}`)
-    .data(graph.nodes)
-    .join("g")
-    .attr("class", styles.node)
-    .call(
-      d3
-        .drag<SVGGElement, INode>()
-        .subject(function (event: any, d: any) {
-          return { x: event.x, y: event.y, ...d };
-        })
-        .on("start", drag.start)
-        .on("drag", drag.drag)
-        .on("end", drag.end) as any,
-    );
-
-  node
-    .append("circle")
-    .attr("r", options.radius)
-    .attr("fill", (d) => `url(#gradient-${d.id})`) // **CRITICAL: Refer to the gradient**
-    .on("click", handleNodeClick)
-    .on("mouseenter", handleNodeHover)
-    .on("mouseleave", handleNodeHoverOut);
-
-  node
-    .append("text")
-    .attr("class", styles.nodeText)
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "hanging")
-    .attr("y", options.radius + options.textOffset)
-    .text((d) => d.title);
-
-  return node;
-};
-
-Graph.EdgeBuilder = function ({ graph, parent }: GraphBuilderProps) {
-  const options = {
-    strokeWidth: 2,
-  };
-
-  const link = parent
-    .selectAll(`.${styles.link}`)
-    .data(graph.edges)
-    .join("line")
-    .attr("class", styles.link)
-    .attr("stroke", "var(--color-edges)")
-    .attr("stroke-width", options.strokeWidth)
-    .attr("marker-end", "url(#arrowhead)");
-
-  return link;
-};
+export default GraphContainer;
