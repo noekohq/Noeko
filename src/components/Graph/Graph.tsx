@@ -9,9 +9,18 @@ type GraphProps = {
   width?: number;
   height?: number;
   onNodeClick: (event: any, node: INode) => void;
+  onNodeHover: (event: any, node: INode) => void;
+  onNodeHoverOut: (event: any, node: INode) => void;
 };
 
-function Graph({ graph, width, height, onNodeClick }: GraphProps) {
+function Graph({
+  graph,
+  width,
+  height,
+  onNodeClick,
+  onNodeHover,
+  onNodeHoverOut,
+}: GraphProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -114,6 +123,8 @@ function Graph({ graph, width, height, onNodeClick }: GraphProps) {
       },
       handlers: {
         onNodeClick,
+        onNodeHover,
+        onNodeHoverOut,
       },
     };
 
@@ -192,6 +203,8 @@ type GraphBuilderProps = {
   };
   handlers: {
     onNodeClick: (e: React.MouseEvent<SVGElement>, node: INode) => void;
+    onNodeHover: (e: React.MouseEvent<SVGElement>, node: INode) => void;
+    onNodeHoverOut: (e: React.MouseEvent<SVGElement>, node: INode) => void;
   };
 };
 
@@ -260,7 +273,7 @@ Graph.NodeBuilder = function ({
   handlers,
 }: GraphBuilderProps) {
   const { drag } = events;
-  const { onNodeClick } = handlers;
+  const { onNodeClick, onNodeHover, onNodeHoverOut } = handlers;
   const options = {
     radius: 24,
     textOffset: 8,
@@ -273,6 +286,14 @@ Graph.NodeBuilder = function ({
       if (!target) return;
       target.style.fill = "red";
     }
+  };
+
+  const handleNodeHover = (event: React.MouseEvent<SVGElement>, d: any) => {
+    onNodeHover(event, d);
+  };
+
+  const handleNodeHoverOut = (event: React.MouseEvent<SVGElement>, d: any) => {
+    onNodeHoverOut(event, d);
   };
 
   const node = parent
@@ -295,7 +316,9 @@ Graph.NodeBuilder = function ({
     .append("circle")
     .attr("r", options.radius)
     .attr("fill", (d) => `url(#gradient-${d.id})`) // **CRITICAL: Refer to the gradient**
-    .on("click", handleNodeClick);
+    .on("click", handleNodeClick)
+    .on("mouseenter", handleNodeHover)
+    .on("mouseleave", handleNodeHoverOut);
 
   node
     .append("text")
