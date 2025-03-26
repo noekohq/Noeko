@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { Idea, IIdeaForm } from "../database/models/idea";
+import { Embeddings } from "../semantics/embeddings";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
     const filters = req.body.filters;
-    const graph = await Idea.graph();
+    const graph = await Idea.graph(filters, { computeFields: true });
     if (!graph) {
       res.status(404).json({ error: "Graph not found" });
       return;
@@ -116,9 +117,7 @@ router.put("/ideas/:id", async (req, res) => {
     if (content !== undefined) {
       updater.content = content;
     }
-    console.log("Updating with: ", updater);
     const i = await Idea.update(id, updater);
-    console.log("Updated idea: ", i);
     if (!i) {
       res.status(404).json({ error: "Idea not updated" });
       return;
@@ -144,6 +143,33 @@ router.post("/ideas/:id/embed", async (req, res) => {
     //   return;
     // }
     res.send({ message: "Successfully loaded embeddings.", data: embeddings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/ideas/:id/similar", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const similar = await Idea.findSimilar(id);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/ideas/similar/to", async (req, res) => {
+  try {
+    const { query } = req.body;
+    const e = new Embeddings();
+    const query_embedding = await e.generateEmbeddings(query);
+    const similar = await Idea.semanticSearch(query_embedding);
+    if (!similar) {
+      res.status(404).json({ error: "Similar ideas not found" });
+      return;
+    }
+    res.send({ message: "Successfully found similar ideas.", data: similar });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });

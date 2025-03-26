@@ -1,17 +1,19 @@
 import Graph from "../../components/Graph/Graph";
 import { IGraph } from "../../declarations/graph";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./Home.module.scss";
 import {
   ActionIcon,
   Button,
   Checkbox,
+  Flex,
   Grid,
   Group,
+  Menu,
   Modal,
   TextInput,
 } from "@mantine/core";
-import { Plus, X } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, X } from "@phosphor-icons/react";
 import { useForm } from "@mantine/form";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import useFetch from "../../hooks/useFetch";
@@ -55,12 +57,29 @@ export default function Home() {
 
   const navigate = useNavigate();
 
+  const [hoveringNode, setHoveringNode] = useState<string | null>(null);
+
+  const { data: similarIdeas } = useFetch<undefined, IIdea[]>({
+    url: `/graph/ideas/${hoveringNode}/similar`,
+    method: "GET",
+    runOnDependencies: [hoveringNode],
+  });
+  console.log("Similar ideas: ", similarIdeas);
+
   return (
     <div ref={containerRef} className={styles.container}>
       <Graph
         graph={localData}
         onNodeClick={(e, n) => {
           navigate(`/idea/${n.id}`);
+        }}
+        onNodeHover={(e, n) => {
+          setHoveringNode(n.id);
+          console.log("Node hover: ", n);
+        }}
+        onNodeHoverOut={(e, n) => {
+          setHoveringNode(null);
+          console.log("Node hover out: ", n);
         }}
       />
       <AddNode reloadGraph={reloadGraph} />
@@ -74,6 +93,7 @@ type UIProps = {
 
 function AddNode({ reloadGraph }: UIProps) {
   const [opened, setOpened] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm({
     initialValues: {
@@ -121,20 +141,75 @@ function AddNode({ reloadGraph }: UIProps) {
     setOpened(false);
   };
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data: similarIdeas, load: loadSimilarIdeas } = useFetch<
+    { query: string },
+    IIdea[]
+  >({
+    url: `/graph/ideas/similar/to`,
+    method: "POST",
+    body: {
+      query: searchQuery,
+    },
+    dependencies: [searchQuery],
+  });
+  console.log("Similar items: ", similarIdeas);
+
   const [autogenTitle, setAutogenTitle] = useState(false);
+
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
-      <ActionIcon
-        variant="default"
-        size="md"
-        onClick={() => setOpened(!opened)}
-        style={{
-          fontSize: 18,
-        }}
-        title="Add an idea"
-      >
-        {opened ? <X weight="bold" /> : <Plus weight="bold" />}
-      </ActionIcon>
+      <Grid>
+        <Grid.Col span={{ sm: 12 }}>
+          <Menu
+            opened={similarIdeas ? similarIdeas.length > 0 : false}
+            position="bottom-end"
+          >
+            <Menu.Dropdown>
+              {similarIdeas &&
+                similarIdeas.map((idea) => (
+                  <Menu.Item
+                    key={idea.id}
+                    onClick={() => {
+                      navigate(`/idea/${idea.id}`);
+                    }}
+                  >
+                    {idea.title}
+                  </Menu.Item>
+                ))}
+            </Menu.Dropdown>
+          </Menu>
+          <Group justify="end">
+            <TextInput
+              placeholder="Enter a query"
+              onChange={(event) => setSearchQuery(event.currentTarget.value)}
+            />
+            <ActionIcon
+              onClick={() => {
+                loadSimilarIdeas();
+              }}
+              size="lg"
+            >
+              <MagnifyingGlass weight="bold" />
+            </ActionIcon>
+          </Group>
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12 }}>
+          <Group justify="end">
+            <ActionIcon
+              variant="default"
+              size="lg"
+              onClick={() => setOpened(!opened)}
+              style={{
+                fontSize: 18,
+              }}
+              title="Add an idea"
+            >
+              {opened ? <X weight="bold" /> : <Plus weight="bold" />}
+            </ActionIcon>
+          </Group>
+        </Grid.Col>
+      </Grid>
       <Modal
         opened={opened}
         onClose={() => setOpened(false)}
