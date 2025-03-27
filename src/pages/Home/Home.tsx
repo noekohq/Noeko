@@ -74,11 +74,9 @@ export default function Home() {
           navigate(`/idea/${n.id}`);
         }}
         onNodeHover={(e, n) => {
-          setHoveringNode(n.id);
           console.log("Node hover: ", n);
         }}
         onNodeHoverOut={(e, n) => {
-          setHoveringNode(null);
           console.log("Node hover out: ", n);
         }}
       />
