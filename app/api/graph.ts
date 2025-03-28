@@ -1,6 +1,13 @@
 import { Router } from "express";
-import { Idea, IIdeaForm } from "../database/models/idea";
+import {
+  Idea,
+  IIdea,
+  IIdeaAsRelation,
+  IIdeaConnection,
+  IIdeaForm,
+} from "../database/models/idea";
 import { Embeddings } from "../semantics/embeddings";
+import { RecordId } from "surrealdb";
 
 const router = Router();
 
@@ -41,12 +48,26 @@ router.get("/ideas", async (req, res) => {
 router.get("/ideas/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const withRelatedIdeas = req.query.withRelatedIdeas === "true";
+    const withConnections = req.query.withConnections === "true";
     const i = await Idea.get(id);
     if (!i) {
       res.status(404).json({ error: "Idea not found" });
       return;
     }
-    res.send({ message: "Successfully retrieved idea.", data: i });
+    const toSend: IIdea & {
+      connections?: (IIdeaConnection & { id: RecordId })[];
+      relatedIdeas?: (IIdeaAsRelation & { id: RecordId })[];
+    } = { ...i };
+    if (withConnections) {
+      const connections = await Idea.getConnections(id);
+      toSend.connections = connections;
+    }
+    if (withRelatedIdeas) {
+      const relatedIdeas = await Idea.findSimilar(id);
+      toSend.relatedIdeas = relatedIdeas;
+    }
+    res.send({ message: "Successfully retrieved idea.", data: toSend });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });

@@ -1,15 +1,14 @@
-// GraphContainer.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { IGraph, INode, IEdge } from "../../declarations/graph"; // Adjust path as needed
 import Node from "./Node";
 import Edge from "./Edge";
 import styles from "./Graph.module.scss";
-import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
+import { Flex } from "@mantine/core"; // Assuming you still use Mantine
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
-  forceStrength: -100,
-  linkDistance: 100,
+  forceStrength: -250,
+  linkDistance: 200,
   linkStrength: 0.1,
   centerForceStrength: 0.05,
   alpha: 1,
@@ -18,11 +17,8 @@ const SIMULATION_CONFIG = {
   velocityDecay: 0.4,
 };
 
-// --- Node/Edge Rendering Configuration ---
 const RENDER_CONFIG = {
-  nodeRadius: 24,
-  nodeTextOffset: 8,
-  edgeStrokeWidth: 2,
+  nodeRadius: 10,
 };
 
 // --- Helper Functions ---
@@ -472,26 +468,60 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     [transform, getSVGPoint],
   );
 
-  // --- SVG Definitions --- (Keep as is)
   const renderDefs = () => {
-    // ... (implementation remains the same)
+    // Gradient options from original code
     const gradientOptions = {
-      /* ... */
+      innerColor: "var(--color-nodes)",
+      outerColor: "var(--color-background)",
+      opacityInner: 0.8,
+      opacityOuter: 0.2,
     };
+    // Marker options from original code
     const markerOptions = {
-      /* ... */
+      width: 10,
+      height: 10,
+      refX: RENDER_CONFIG.nodeRadius * 0.8 + 5, // Adjust refX based on node radius
+      refY: 0,
+      orient: "auto",
+      fill: "var(--color-edges)",
     };
+
     return (
       <defs>
         {/* Arrowhead Marker */}
-        <marker /* ... */>
+        <marker
+          id="arrowhead"
+          viewBox="0 -5 10 10"
+          refX={markerOptions.refX}
+          refY={markerOptions.refY}
+          markerWidth={markerOptions.width}
+          markerHeight={markerOptions.height}
+          orient={markerOptions.orient}
+        >
           <path d="M0,-2L5,0L0,2" fill={markerOptions.fill} />
         </marker>
-        {/* Node Gradients */}
+
+        {/* Node Gradients (one per node) */}
         {nodes.map((node) => (
-          <radialGradient key={node.id} id={`gradient-${node.id}`} /* ... */>
-            <stop /* ... */ />
-            <stop /* ... */ />
+          <radialGradient
+            key={node.id}
+            id={`gradient-${node.id}`}
+            cx="50%"
+            cy="50%"
+            r="50%"
+            fx="50%"
+            fy="50%"
+          >
+            <stop
+              offset="40%"
+              stopColor={gradientOptions.innerColor}
+              stopOpacity={gradientOptions.opacityInner}
+            />
+            <stop
+              offset="100%"
+              stopColor={gradientOptions.outerColor}
+              stopOpacity={gradientOptions.opacityOuter}
+            />
           </radialGradient>
         ))}
       </defs>
@@ -542,7 +572,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 edge={edge}
                 sourceNode={nodeMap[edge.source]}
                 targetNode={nodeMap[edge.target]}
-                strokeWidth={RENDER_CONFIG.edgeStrokeWidth}
               />
             ))}
             {/* Render Nodes */}
@@ -550,8 +579,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
               <Node
                 key={node.id}
                 node={node}
-                radius={RENDER_CONFIG.nodeRadius}
-                textOffset={RENDER_CONFIG.nodeTextOffset}
                 isDragging={isDraggingNode === node.id}
                 onNodeClick={onNodeClick}
                 onNodeHover={onNodeHover}

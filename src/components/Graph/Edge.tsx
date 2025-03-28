@@ -7,10 +7,9 @@ type EdgeProps = {
   edge: IEdge;
   sourceNode: INode | undefined;
   targetNode: INode | undefined;
-  strokeWidth: number;
 };
 
-const Edge = ({ edge, sourceNode, targetNode, strokeWidth }: EdgeProps) => {
+const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
   if (
     !sourceNode ||
     !targetNode ||
@@ -22,6 +21,8 @@ const Edge = ({ edge, sourceNode, targetNode, strokeWidth }: EdgeProps) => {
     // Don't render edge if nodes or their positions aren't defined yet
     return null;
   }
+
+  const strokeWidth = 2;
 
   return (
     <line

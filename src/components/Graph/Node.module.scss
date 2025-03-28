@@ -1,0 +1,28 @@
+.node {
+    cursor: pointer;
+
+    &:hover {
+        circle {
+            r: 36;
+        }
+    }
+
+    &:active {
+        circle {
+            fill: var(--mantine-color-gray-7);
+        }
+    }
+
+    circle {
+        transition: r 0.2s ease-in-out;
+        fill: var(--mantine-color-gray-5);
+    }
+
+    .nodeText {
+        font-size: 18px;
+        fill: var(--mantine-color-gray-2);
+        pointer-events: none; // Important: Make text non-interactive
+        font-family: Lato, sans-serif;
+        font-weight: bold;
+    }
+}

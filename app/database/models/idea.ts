@@ -6,7 +6,7 @@ export type IIdea = {
   id: string;
   title: string;
   content: string;
-  embeddings: Embeddings;
+  embeddings: Embeddings | null;
   createdAt: Date;
   updatedAt: Date;
   contentUpdatedAt: Date;
@@ -15,6 +15,10 @@ export type IIdea = {
 
 export type IIdeaWithComputedFields = IIdea & {
   embeddingsOutOfDate: boolean;
+};
+
+export type IIdeaAsRelation = IIdea & {
+  distance: number;
 };
 
 export type IIdeaForm = Omit<IIdea, "id">;
@@ -64,7 +68,7 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
-        embeddings: [],
+        embeddings: null,
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -199,8 +203,8 @@ export class Idea {
   static async disconnect(source: string, target: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<IIdeaConnection[]>(
-        "DELETE FROM connection WHERE source = ? AND target = ?",
+      const result = await db?.query<(IIdeaConnection & { id: RecordId })[]>(
+        "DELETE FROM connection WHERE source = $source AND target = $target",
         {
           source,
           target,
@@ -217,10 +221,31 @@ export class Idea {
     }
   }
 
+  static async getConnections(id: string) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[(IIdeaConnection & { id: RecordId })[]]>(
+        "SELECT * FROM connection WHERE source = $source OR target = $source",
+        {
+          id,
+        },
+      );
+      if (!result) {
+        console.error("No connections found.");
+        return undefined;
+      }
+      const [connections] = result;
+      return connections;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
   static async getMany(ids: string[]) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<IIdea[]>(
+      const result = await db?.query<(IIdea & { id: RecordId })[]>(
         "SELECT * FROM idea WHERE id IN ($ids)",
         {
           ids,
@@ -241,7 +266,9 @@ export class Idea {
     try {
       console.log("Loading embeddings for idea with id", id);
       const db = await getDatabase();
-      const result = await db?.select<IIdea>(new StringRecordId(id));
+      const result = await db?.select<IIdea & { id: RecordId }>(
+        new StringRecordId(id),
+      );
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return;
@@ -280,7 +307,7 @@ export class Idea {
         return;
       }
       const limit = options.limit;
-      const result = await db?.query<[IIdea & { distance: number }[]]>(
+      const result = await db?.query<[(IIdeaAsRelation & { id: RecordId })[]]>(
         `
         SELECT
             *,
@@ -300,8 +327,11 @@ export class Idea {
         return;
       }
       const [ideas] = result;
-      console.log("Items: ", result);
-      return ideas;
+      const filteredIdeas = ideas.filter((idea) => {
+        console.log("Comparing:", idea.id.toString(), rootNodeId);
+        return idea.id.toString() !== rootNodeId;
+      });
+      return filteredIdeas;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -311,7 +341,7 @@ export class Idea {
   static async semanticSearch(embedding: number[], limit: number = 10) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IIdea & { distance: number }[]]>(
+      const result = await db?.query<[(IIdeaAsRelation & { id: RecordId })[]]>(
         `
         SELECT
             *,

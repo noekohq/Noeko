@@ -1,12 +1,10 @@
 // Node.tsx
 import React, { useRef, useEffect } from "react";
 import { INode } from "../../declarations/graph.d"; // Adjust path as needed
-import styles from "./Graph.module.scss"; // Assuming styles remain similar
+import styles from "./Node.module.scss"; // Assuming styles remain similar
 
 type NodeProps = {
   node: INode;
-  radius: number;
-  textOffset: number;
   isDragging: boolean;
   onNodeClick: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
   onNodeHover: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
@@ -16,8 +14,7 @@ type NodeProps = {
 
 const Node = ({
   node,
-  radius,
-  textOffset,
+  isDragging,
   onNodeClick,
   onNodeHover,
   onNodeHoverOut,
@@ -33,6 +30,9 @@ const Node = ({
 
   // We only need onMouseDown here. onMouseMove and onMouseUp will be handled globally
   // in the parent SVG component because mouse events can leave the original element.
+  //
+  const radius = 24;
+  const textOffset = 8;
 
   return (
     <g
@@ -42,9 +42,8 @@ const Node = ({
       onClick={(e) => onNodeClick(e, node)}
       onMouseEnter={(e) => onNodeHover(e, node)}
       onMouseLeave={(e) => onNodeHoverOut(e, node)}
-      style={{ cursor: "pointer" }} // Indicate interactivity
     >
-      <circle r={radius} fill={`url(#${gradientId})`} />
+      <circle r={radius} fill={`var(--primary-color)`} />
       <text
         className={styles.nodeText}
         textAnchor="middle"

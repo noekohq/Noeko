@@ -1,7 +1,11 @@
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
-import { IIdea, IIdeaForm } from "../../../app/database/models/idea";
+import {
+  IIdea,
+  IIdeaAsRelation,
+  IIdeaForm,
+} from "../../../app/database/models/idea";
 import {
   ActionIcon,
   Button,
@@ -10,6 +14,8 @@ import {
   Title,
   Loader,
   Text,
+  List,
+  Card,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useAlert } from "../../contexts/AlertContext";
@@ -22,8 +28,11 @@ export default function Idea() {
 
   const navigate = useNavigate();
 
-  const { data: idea, load: reloadIdea } = useFetch<undefined, IIdea>({
-    url: `/graph/ideas/${ideaId}`,
+  const { data: idea, load: reloadIdea } = useFetch<
+    undefined,
+    IIdea & { relatedIdeas: IIdeaAsRelation[]; connections: IIdea[] }
+  >({
+    url: `/graph/ideas/${ideaId}?withRelatedIdeas=true&withConnections=true`,
     method: "GET",
     runOnMount: true,
   });
@@ -126,6 +135,8 @@ export default function Idea() {
     return text;
   };
 
+  console.log("Connections:", idea?.connections?.length);
+
   return (
     <div className={styles.idea}>
       <Grid>
@@ -185,6 +196,52 @@ export default function Idea() {
           />
         </Grid.Col>
         <Grid.Col span={12} />
+        <Grid.Col span={{ sm: 12, md: 6 }}>
+          <Card p="lg" radius="lg">
+            <Grid>
+              <Grid.Col>
+                <Title order={2}>Connections</Title>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                {idea && idea.connections?.length > 0 ? (
+                  <List type="unordered">
+                    {idea?.connections?.map((connection) => (
+                      <List.Item key={connection.id}>
+                        {connection.title}
+                      </List.Item>
+                    ))}
+                  </List>
+                ) : (
+                  <Text>No connections yet.</Text>
+                )}
+              </Grid.Col>
+            </Grid>
+          </Card>
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12, md: 6 }}>
+          <Card p="lg" radius="lg">
+            <Grid>
+              <Grid.Col>
+                <Title order={2}>Related Ideas</Title>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                {idea && idea.relatedIdeas?.length > 0 ? (
+                  <Group>
+                    {idea?.relatedIdeas?.map((relatedIdea) => (
+                      <Link to={`/idea/${relatedIdea.id}`}>
+                        <Button variant="light" key={relatedIdea.id}>
+                          {relatedIdea.title}
+                        </Button>
+                      </Link>
+                    ))}
+                  </Group>
+                ) : (
+                  <Text>No related ideas yet.</Text>
+                )}
+              </Grid.Col>
+            </Grid>
+          </Card>
+        </Grid.Col>
       </Grid>
     </div>
   );
