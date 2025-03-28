@@ -9,13 +9,11 @@
 
     &:active {
         circle {
-            fill: var(--mantine-color-gray-7);
         }
     }
 
     circle {
         transition: r 0.2s ease-in-out;
-        fill: var(--mantine-color-gray-5);
     }
 
     .nodeText {

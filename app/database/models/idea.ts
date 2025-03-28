@@ -6,7 +6,7 @@ export type IIdea = {
   id: string;
   title: string;
   content: string;
-  embeddings: Embeddings | null;
+  embeddings: number[] | null;
   createdAt: Date;
   updatedAt: Date;
   contentUpdatedAt: Date;
@@ -78,6 +78,8 @@ export class Idea {
         console.error("No idea created.");
         return undefined;
       }
+      const [idea] = result;
+      await Idea.loadEmbeddings(idea.id.toString());
       return result;
     } catch (err) {
       console.error(err);

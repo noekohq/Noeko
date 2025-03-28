@@ -43,7 +43,7 @@ const Node = ({
       onMouseEnter={(e) => onNodeHover(e, node)}
       onMouseLeave={(e) => onNodeHoverOut(e, node)}
     >
-      <circle r={radius} fill={`var(--primary-color)`} />
+      <circle r={radius} fill={`url(#${gradientId})`} />
       <text
         className={styles.nodeText}
         textAnchor="middle"
