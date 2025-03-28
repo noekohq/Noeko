@@ -70,12 +70,8 @@ export default function Home() {
         onNodeClick={(e, n) => {
           navigate(`/idea/${n.id}`);
         }}
-        onNodeHover={(e, n) => {
-          console.log("Node hover: ", n);
-        }}
-        onNodeHoverOut={(e, n) => {
-          console.log("Node hover out: ", n);
-        }}
+        onNodeHover={(e, n) => {}}
+        onNodeHoverOut={(e, n) => {}}
       />
       <AddNode reloadGraph={reloadGraph} />
     </div>
