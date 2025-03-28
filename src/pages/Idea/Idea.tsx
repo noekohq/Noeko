@@ -239,10 +239,6 @@ export default function Idea() {
     return distance.toFixed(2);
   };
 
-  if (loadingIdea) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
-
   return (
     <div className={styles.idea}>
       <Drawer
@@ -254,6 +250,11 @@ export default function Idea() {
         size="70%"
       >
         <Grid>
+          {loadingIdea && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Loader size="lg" />
+            </Grid.Col>
+          )}
           <Grid.Col span={{ sm: 12, md: 6 }}>
             <Card p="lg" radius="lg">
               <Grid>
