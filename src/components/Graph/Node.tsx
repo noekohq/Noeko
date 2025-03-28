@@ -28,11 +28,14 @@ const Node = ({
     onDragStart(event, node.id);
   };
 
-  // We only need onMouseDown here. onMouseMove and onMouseUp will be handled globally
-  // in the parent SVG component because mouse events can leave the original element.
-  //
   const radius = 24;
-  const textOffset = 8;
+  const textOffset = 0;
+  const foreignObjectWidth = 124; // Width for the wrapping container
+  const foreignObjectHeight = 100; // Estimate needed height (can be dynamic)
+
+  // Calculate position for foreignObject to center it below the circle
+  const foX = -foreignObjectWidth / 2;
+  const foY = radius + textOffset;
 
   return (
     <g
@@ -44,14 +47,16 @@ const Node = ({
       onMouseLeave={(e) => onNodeHoverOut(e, node)}
     >
       <circle r={radius} fill={`url(#${gradientId})`} />
-      <text
-        className={styles.nodeText}
-        textAnchor="middle"
-        dominantBaseline="hanging"
-        y={radius + textOffset}
+      <foreignObject
+        x={foX}
+        y={foY}
+        width={foreignObjectWidth}
+        height={foreignObjectHeight} // Needs to be large enough for wrapped text
+        // Overflow can be set via CSS on the inner div if needed
       >
-        {node.title}
-      </text>
+        {/* Required xmlns for HTML inside SVG */}
+        <div className={styles.nodeText}>{node.title}</div>
+      </foreignObject>
     </g>
   );
 };

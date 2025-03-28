@@ -4,6 +4,7 @@ import useFetch from "../../hooks/useFetch";
 import {
   IIdea,
   IIdeaAsRelation,
+  IIdeaConnection,
   IIdeaForm,
 } from "../../../app/database/models/idea";
 import {
@@ -17,12 +18,19 @@ import {
   List,
   Card,
   Pill,
+  Space,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useAlert } from "../../contexts/AlertContext";
 import TextEditor from "../../components/TextEditor/TextEditor";
-import { ArrowLeft, Circle, Shapes } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  ArrowsClockwise,
+  Circle,
+  Shapes,
+} from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
+import { InlineSearch } from "../../components/Search/InlineSearch";
 
 export default function Idea() {
   const { ideaId } = useParams();
@@ -53,6 +61,10 @@ export default function Idea() {
     dependencies: [title],
     onSuccess: () => {
       reloadIdea();
+      showNotification({
+        title: "Success",
+        message: "Idea title updated successfully",
+      });
     },
     onError: (error) => {
       setAlert({
@@ -79,9 +91,10 @@ export default function Idea() {
     setContent(idea?.content || "");
   }, [idea?.content]);
 
-  console.log("Content: ", content);
-
-  const { load: submitContent } = useFetch<Partial<IIdeaForm>, IIdea>({
+  const { load: submitContent, loading: loadingContentUpdate } = useFetch<
+    Partial<IIdeaForm>,
+    IIdea
+  >({
     url: `/graph/ideas/${ideaId}`,
     method: "PUT",
     body: {
@@ -108,7 +121,6 @@ export default function Idea() {
     content && content !== idea?.content && submitContent();
   }, [content]);
 
-  console.log("Idea: ", idea);
   const { load: embedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/graph/ideas/${ideaId}/embed`,
     method: "POST",
@@ -133,42 +145,78 @@ export default function Idea() {
   const statusText = () => {
     let text = "";
     if (loadingEmbeddings) {
-      text += "Loading embeddings.";
+      text += "Loading embeddings. ";
     }
     if (embeddingsOutOfDate()) {
-      text += "Embeddings out of date.";
+      text += "Embeddings are out of date. ";
     }
     if (!idea?.embeddings || idea.embeddings?.length === 0) {
-      text += "No embeddings available.";
+      text += "No embeddings available. ";
     }
     return text;
   };
 
-  console.log("Connections:", idea?.connections?.length);
-
   const formattedDistance = (distance: number) => {
     return distance.toFixed(2);
   };
+
+  console.log("Idea: ", idea);
+
+  const statusBlockShow =
+    statusText().length || embeddingsOutOfDate() || !idea?.embeddings;
+
+  const { load: createConnection, loading: loadingNewConnection } = useFetch<
+    { source: string; target: string },
+    IIdeaConnection
+  >({
+    url: "/graph/ideas/connection",
+    method: "POST",
+  });
 
   return (
     <div className={styles.idea}>
       <Grid>
         <Grid.Col span={{ sm: 12 }}>
           <Group gap={14}>
-            <Button
+            <ActionIcon
               onClick={() => {
                 navigate("/");
               }}
               variant="default"
-              leftSection={<ArrowLeft weight="bold" />}
             >
-              Back to Graph
-            </Button>
+              <ArrowLeft weight="bold" />
+            </ActionIcon>
+            <ActionIcon
+              variant="default"
+              onClick={() => {
+                submitContent();
+              }}
+            >
+              {loadingContentUpdate ? (
+                <Loader size="xs" color="white" />
+              ) : (
+                <ArrowsClockwise weight="bold" />
+              )}
+            </ActionIcon>
           </Group>
         </Grid.Col>
-        {(statusText().length ||
-          embeddingsOutOfDate() ||
-          !idea?.embeddings) && (
+        <Grid.Col span={{ sm: 12 }}>
+          <Space my="lg" />
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12 }}>
+          <Title
+            order={1}
+            contentEditable
+            onBlur={(e) => setTitle(e.currentTarget.innerText)}
+            dangerouslySetInnerHTML={{
+              __html: title || "Hold on...",
+            }}
+          />
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12 }}>
+          <Text>{idea?.contentSummary || "No summary provided."}</Text>
+        </Grid.Col>
+        {statusBlockShow && (
           <Grid.Col span={{ sm: 12 }}>
             <Card p="lg" radius="lg">
               <Grid>
@@ -202,16 +250,6 @@ export default function Idea() {
             </Card>
           </Grid.Col>
         )}
-        <Grid.Col span={{ sm: 12 }}>
-          <Title
-            order={1}
-            contentEditable
-            onBlur={(e) => setTitle(e.currentTarget.innerText)}
-            dangerouslySetInnerHTML={{
-              __html: title || "Hold on...",
-            }}
-          />
-        </Grid.Col>
         <Grid.Col span={12} />
         <Grid.Col span={{ sm: 12 }}>
           <TextEditor
@@ -226,8 +264,23 @@ export default function Idea() {
           <Card p="lg" radius="lg">
             <Grid>
               <Grid.Col>
-                <Title order={2}>Connections</Title>
+                <Group gap="md">
+                  {loadingNewConnection && <Loader size={"md"} />}
+                  <Title order={2}>Connections</Title>
+                </Group>
               </Grid.Col>
+              {idea && (
+                <Grid.Col span={{ sm: 12 }}>
+                  <InlineSearch
+                    placeholder="Search idea to connect..."
+                    onSelect={(i) => {
+                      createConnection({
+                        updatedBody: { source: idea.id, target: i.id },
+                      });
+                    }}
+                  />
+                </Grid.Col>
+              )}
               <Grid.Col span={{ sm: 12 }}>
                 {idea && idea.connections?.length > 0 ? (
                   <List type="unordered">
@@ -238,7 +291,7 @@ export default function Idea() {
                     ))}
                   </List>
                 ) : (
-                  <Text>No connections yet.</Text>
+                  <Text c="dimmed">No connections yet.</Text>
                 )}
               </Grid.Col>
             </Grid>

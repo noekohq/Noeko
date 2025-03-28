@@ -14,9 +14,14 @@ import { useEffect, useState } from "react";
 type TextEditorProps = {
   content: string;
   onBlur: (content: string) => void;
+  disabled?: boolean;
 };
 
-export default function TextEditor({ content, onBlur }: TextEditorProps) {
+export default function TextEditor({
+  content,
+  onBlur,
+  disabled,
+}: TextEditorProps) {
   const [actualContent, setActualContent] = useState(content);
 
   useEffect(() => {

@@ -53,8 +53,6 @@ export default function Home() {
       : [],
   };
 
-  console.log("Graph", graphData, localData);
-
   const navigate = useNavigate();
 
   const [hoveringNode, setHoveringNode] = useState<string | null>(null);
@@ -64,7 +62,6 @@ export default function Home() {
     method: "GET",
     runOnDependencies: [hoveringNode],
   });
-  console.log("Similar ideas: ", similarIdeas);
 
   return (
     <div ref={containerRef} className={styles.container}>
@@ -97,10 +94,19 @@ function AddNode({ reloadGraph }: UIProps) {
     initialValues: {
       title: "",
       content: "",
+      generateTitle:
+        window.localStorage.getItem("should-autogen-title") === "true",
     },
     validate: {
-      title: (value) =>
-        value.length < 2 ? "Title must be at least 2 characters long" : null,
+      title: (value, fields) => {
+        if (fields.generateTitle) {
+          return null;
+        }
+        if (value.length < 2 && !fields.generateTitle) {
+          return "Title must be at least 2 characters long";
+        }
+        return null;
+      },
       content: (value) =>
         value.length < 2 ? "Content must be at least 2 characters long" : null,
     },
@@ -151,9 +157,6 @@ function AddNode({ reloadGraph }: UIProps) {
     },
     dependencies: [searchQuery],
   });
-  console.log("Similar items: ", similarIdeas);
-
-  const [autogenTitle, setAutogenTitle] = useState(false);
 
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
@@ -163,6 +166,24 @@ function AddNode({ reloadGraph }: UIProps) {
             opened={similarIdeas ? similarIdeas.length > 0 : false}
             position="bottom-end"
           >
+            <Menu.Target>
+              <Group justify="end">
+                <TextInput
+                  placeholder="Enter a query"
+                  onChange={(event) =>
+                    setSearchQuery(event.currentTarget.value)
+                  }
+                />
+                <ActionIcon
+                  onClick={() => {
+                    loadSimilarIdeas();
+                  }}
+                  size="lg"
+                >
+                  <MagnifyingGlass weight="bold" />
+                </ActionIcon>
+              </Group>
+            </Menu.Target>
             <Menu.Dropdown>
               {similarIdeas &&
                 similarIdeas.map((idea) => (
@@ -177,20 +198,6 @@ function AddNode({ reloadGraph }: UIProps) {
                 ))}
             </Menu.Dropdown>
           </Menu>
-          <Group justify="end">
-            <TextInput
-              placeholder="Enter a query"
-              onChange={(event) => setSearchQuery(event.currentTarget.value)}
-            />
-            <ActionIcon
-              onClick={() => {
-                loadSimilarIdeas();
-              }}
-              size="lg"
-            >
-              <MagnifyingGlass weight="bold" />
-            </ActionIcon>
-          </Group>
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
           <Group justify="end">
@@ -215,7 +222,7 @@ function AddNode({ reloadGraph }: UIProps) {
         size="70%"
       >
         <Grid>
-          {!autogenTitle && (
+          {!form.values.generateTitle && (
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
                 label="Title"
@@ -228,8 +235,9 @@ function AddNode({ reloadGraph }: UIProps) {
             <Checkbox
               label="Autogenerate the title"
               description="Automatically generate a title based on the content"
-              checked={autogenTitle}
-              onChange={(event) => setAutogenTitle(event.currentTarget.checked)}
+              {...form.getInputProps("generateTitle", {
+                type: "checkbox",
+              })}
             />
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>

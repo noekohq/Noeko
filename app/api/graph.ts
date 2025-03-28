@@ -8,6 +8,7 @@ import {
 } from "../database/models/idea";
 import { Embeddings } from "../semantics/embeddings";
 import { RecordId } from "surrealdb";
+import { getLM } from "../semantics/lm";
 
 const router = Router();
 
@@ -77,8 +78,16 @@ router.get("/ideas/:id", async (req, res) => {
 router.post("/ideas", async (req, res) => {
   try {
     const body = req.body;
+    const form = { ...body };
+    if (body.generateTitle) {
+      const lm = getLM();
+      form.title = await lm.utils.entitle(
+        form.content,
+        "short and concise, fewly worded",
+      );
+    }
     const i = await Idea.create({
-      ...body,
+      ...form,
     });
     if (!i) {
       res.status(404).json({ error: "Idea not created" });
@@ -181,6 +190,38 @@ router.get("/ideas/:id/similar", async (req, res) => {
 });
 
 router.post("/ideas/similar/to", async (req, res) => {
+  try {
+    const { query } = req.body;
+    const e = new Embeddings();
+    const query_embedding = await e.generateEmbeddings(query);
+    const similar = await Idea.semanticSearch(query_embedding);
+    if (!similar) {
+      res.status(404).json({ error: "Similar ideas not found" });
+      return;
+    }
+    res.send({ message: "Successfully found similar ideas.", data: similar });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/ideas/search", async (req, res) => {
+  try {
+    const { query } = req.body;
+    const similar = await Idea.searchIdeas(query);
+    if (!similar) {
+      res.status(404).json({ error: "Similar ideas not found" });
+      return;
+    }
+    res.send({ message: "Successfully found similar ideas.", data: similar });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/ideas/semantic", async (req, res) => {
   try {
     const { query } = req.body;
     const e = new Embeddings();
