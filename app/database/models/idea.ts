@@ -143,7 +143,7 @@ export class Idea {
         console.error("No ideas found.");
         return undefined;
       }
-      const edges = await db?.select<IIdeaConnection>("connection");
+      const edges = await db?.select<IIdeaConnection>("connected");
       if (options?.computeFields) {
         const computedIdeas = Idea.attachComputedFieldsToCollection(ideas);
         return {
@@ -204,7 +204,14 @@ export class Idea {
   static async connect(from: string, to: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.relate<IIdeaConnection>(from, "connection", to);
+      const result = await db?.query<[IIdeaConnection & { id: RecordId }]>(
+        `RELATE $fromId -> connected -> $toId SET createdAt = $now;`,
+        {
+          fromId: new StringRecordId(from),
+          toId: new StringRecordId(to),
+          now: new Date(),
+        },
+      );
       if (!result) {
         console.error("No link created.");
         return undefined;
@@ -220,7 +227,7 @@ export class Idea {
     try {
       const db = await getDatabase();
       const result = await db?.query<(IIdeaConnection & { id: RecordId })[]>(
-        "DELETE FROM connection WHERE source = $source AND target = $target",
+        "DELETE FROM connected WHERE source = $source AND target = $target",
         {
           source,
           target,
@@ -240,18 +247,43 @@ export class Idea {
   static async getConnections(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[(IIdeaConnection & { id: RecordId })[]]>(
-        "SELECT * FROM connection WHERE source = $source OR target = $source",
+      const incoming = await db?.query<
+        [{ incoming_connections: (IIdea & { id: RecordId })[] }[]]
+      >(
+        `
+        SELECT <-connected<-idea AS incoming_connections
+        FROM $id
+        FETCH incoming_connections;
+        `,
         {
-          id,
+          id: new StringRecordId(id),
         },
       );
-      if (!result) {
+      if (!incoming) {
         console.error("No connections found.");
         return undefined;
       }
-      const [connections] = result;
-      return connections;
+      const outgoing = await db?.query<
+        [{ outgoing_connections: (IIdea & { id: RecordId })[] }[]]
+      >(
+        `
+        SELECT ->connected->idea AS outgoing_connections
+        FROM $id
+        FETCH outgoing_connections;
+        `,
+        {
+          id: new StringRecordId(id),
+        },
+      );
+      if (!outgoing) {
+        console.error("No connections found.");
+        return undefined;
+      }
+      const [incomingConnected] = incoming;
+      const [outgoingConnected] = outgoing;
+      const { incoming_connections } = incomingConnected[0];
+      const { outgoing_connections } = outgoingConnected[0];
+      return { incoming: incoming_connections, outgoing: outgoing_connections };
     } catch (err) {
       console.error(err);
       return undefined;
@@ -427,7 +459,6 @@ export class Idea {
       }
 
       if (semanticCandidates.length === 0) {
-        console.log("searchIdeas: No semantic matches found.");
         // TODO: Optionally perform a pure text search here as a fallback
         return [];
       }

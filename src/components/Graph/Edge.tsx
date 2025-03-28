@@ -33,7 +33,6 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
       y2={targetNode.y}
       stroke="var(--color-edges)"
       strokeWidth={strokeWidth}
-      markerEnd="url(#arrowhead)" // Assumes arrowhead marker is defined in SVG defs
     />
   );
 };

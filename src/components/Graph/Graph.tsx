@@ -7,9 +7,9 @@ import { Flex } from "@mantine/core"; // Assuming you still use Mantine
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
-  forceStrength: -250,
-  linkDistance: 200,
-  linkStrength: 0.1,
+  forceStrength: -350,
+  linkDistance: 100,
+  linkStrength: 0.5,
   centerForceStrength: 0.05,
   alpha: 1,
   alphaDecay: 0.0228,
@@ -236,7 +236,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     // --- Continue or Stop Simulation ---
     if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
       alphaRef.current = 0; // Ensure it's fully stopped
-      console.log("Simulation stopped.");
       simulationRef.current = null; // Clear the ref, stopping the loop
     } else {
       // Schedule the *next* frame ONLY if alpha is still sufficient
@@ -257,8 +256,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
     if (currentWidth === 0 || currentHeight === 0) return;
 
-    console.log("Initializing nodes and simulation...");
-
     // Initialize node positions
     const initializedNodes = graph.nodes.map((node) => ({
       ...node,
@@ -278,15 +275,12 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
     // Start the simulation loop IF it's not already running
     if (simulationRef.current === null && initializedNodes.length > 0) {
-      console.log("Starting simulation loop...");
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     } else {
-      console.log("Simulation already running or no nodes to simulate.");
     }
 
     // Cleanup function: Stop simulation when graph data or dimensions change, or on unmount
     return () => {
-      console.log("Cleanup: Stopping simulation loop.");
       if (simulationRef.current) {
         cancelAnimationFrame(simulationRef.current);
       }
@@ -342,7 +336,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       alphaRef.current = Math.max(alphaRef.current, 0.1); // Give it a kick
       // Ensure the loop restarts if it was fully stopped
       if (simulationRef.current === null) {
-        console.log("Restarting simulation loop due to drag start...");
         simulationRef.current = requestAnimationFrame(runSimulationTick);
       }
     },
@@ -369,7 +362,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         alphaRef.current = Math.max(alphaRef.current, 0.1);
         if (simulationRef.current === null) {
           // Check again in case it stopped mid-drag somehow
-          console.log("Restarting simulation loop during drag move...");
           simulationRef.current = requestAnimationFrame(runSimulationTick);
         }
       }
@@ -488,19 +480,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
     return (
       <defs>
-        {/* Arrowhead Marker */}
-        <marker
-          id="arrowhead"
-          viewBox="0 -5 10 10"
-          refX={markerOptions.refX}
-          refY={markerOptions.refY}
-          markerWidth={markerOptions.width}
-          markerHeight={markerOptions.height}
-          orient={markerOptions.orient}
-        >
-          <path d="M0,-2L5,0L0,2" fill={markerOptions.fill} />
-        </marker>
-
         {/* Node Gradients (one per node) */}
         {nodes.map((node) => (
           <radialGradient
@@ -533,7 +512,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const currentHeight = propHeight ?? dimensions.height;
   // Memoize nodeMap only based on nodes state
   const nodeMap = React.useMemo(() => {
-    console.log("Recalculating nodeMap"); // Add log to see when this happens
     return nodes.reduce(
       (acc, node) => {
         acc[node.id] = node;
@@ -542,8 +520,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       {} as { [key: string]: INode },
     );
   }, [nodes]);
-
-  console.log("Rendering GraphContainer"); // Add log to see render frequency
 
   return (
     <div

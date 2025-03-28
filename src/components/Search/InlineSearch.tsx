@@ -98,7 +98,6 @@ export function InlineSearch({
           {results ? (
             results.map((result) => {
               const isBestResult = result.idea.id === bestResult?.idea.id;
-              console.log("Is best result:", isBestResult);
 
               return (
                 <>
