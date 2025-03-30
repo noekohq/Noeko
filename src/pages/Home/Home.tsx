@@ -21,6 +21,7 @@ import { showNotification } from "@mantine/notifications";
 import { IDBGraph, IIdea, IIdeaForm } from "../../../app/database/models/idea";
 import { useNavigate } from "react-router";
 import { getRecordId } from "../../utils/db";
+import { InlineSearch } from "../../components/Search/InlineSearch";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -141,59 +142,15 @@ function AddNode({ reloadGraph }: UIProps) {
     setOpened(false);
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const { data: similarIdeas, load: loadSimilarIdeas } = useFetch<
-    { query: string },
-    IIdea[]
-  >({
-    url: `/graph/ideas/similar/to`,
-    method: "POST",
-    body: {
-      query: searchQuery,
-    },
-    dependencies: [searchQuery],
-  });
-
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
       <Grid>
         <Grid.Col span={{ sm: 12 }}>
-          <Menu
-            opened={similarIdeas ? similarIdeas.length > 0 : false}
-            position="bottom-end"
-          >
-            <Menu.Target>
-              <Group justify="end">
-                <TextInput
-                  placeholder="Enter a query"
-                  onChange={(event) =>
-                    setSearchQuery(event.currentTarget.value)
-                  }
-                />
-                <ActionIcon
-                  onClick={() => {
-                    loadSimilarIdeas();
-                  }}
-                  size="lg"
-                >
-                  <MagnifyingGlass weight="bold" />
-                </ActionIcon>
-              </Group>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {similarIdeas &&
-                similarIdeas.map((idea) => (
-                  <Menu.Item
-                    key={idea.id}
-                    onClick={() => {
-                      navigate(`/idea/${idea.id}`);
-                    }}
-                  >
-                    {idea.title}
-                  </Menu.Item>
-                ))}
-            </Menu.Dropdown>
-          </Menu>
+          <InlineSearch
+            onSelect={(i) => {
+              navigate(`/idea/${i.id}`);
+            }}
+          />
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
           <Group justify="end">

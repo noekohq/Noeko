@@ -1,13 +1,5 @@
 // graph.d.ts
-
-// Keep your IIdea definition as is
-// import { IIdea } from "../../app/database/models/idea";
-// Assuming IIdea is defined elsewhere with at least an 'id' and 'title'
-export type IIdea = {
-  id: string;
-  title: string;
-  // other properties...
-};
+import { IIdea } from "../../app/database/models/idea";
 
 // Add simulation properties directly to INode
 export type INode = IIdea & {

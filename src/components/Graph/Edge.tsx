@@ -1,7 +1,6 @@
-// Edge.tsx
 import React from "react";
 import { IEdge, INode } from "../../declarations/graph.d"; // Adjust path as needed
-import styles from "./Graph.module.scss"; // Assuming styles remain similar
+import styles from "./Edge.module.scss"; // Assuming styles remain similar
 
 type EdgeProps = {
   edge: IEdge;
@@ -26,12 +25,11 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
 
   return (
     <line
-      className={styles.link}
+      className={styles.edge}
       x1={sourceNode.x}
       y1={sourceNode.y}
       x2={targetNode.x}
       y2={targetNode.y}
-      stroke="var(--color-edges)"
       strokeWidth={strokeWidth}
     />
   );

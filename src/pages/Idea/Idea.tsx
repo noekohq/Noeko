@@ -239,6 +239,10 @@ export default function Idea() {
     return distance.toFixed(2);
   };
 
+  const ideaIsConnected = (ideaId: string) => {
+    // check idea.connections both incoming and outgoing
+  };
+
   return (
     <div className={styles.idea}>
       <Drawer
@@ -278,9 +282,11 @@ export default function Idea() {
                             >
                               <IdeaPreview
                                 idea={relatedIdea}
-                                subtext={formattedDistance(
-                                  relatedIdea.distance,
-                                )}
+                                subtext={
+                                  <Text>
+                                    {formattedDistance(relatedIdea.distance)}
+                                  </Text>
+                                }
                                 onDragStart={() => setDraggingRelatedIdea(true)}
                                 onDragEnd={() => setDraggingRelatedIdea(false)}
                                 setDraggingIdea={(i) => setDraggedIdea(i)}

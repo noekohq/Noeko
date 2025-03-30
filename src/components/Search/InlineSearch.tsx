@@ -7,10 +7,10 @@ import {
   Loader,
   Text,
   Highlight,
-  useMantineTheme,
+  ActionIcon,
 } from "@mantine/core";
 import styles from "./InlineSearch.module.scss";
-import { MagnifyingGlass, Star } from "@phosphor-icons/react";
+import { MagnifyingGlass, X } from "@phosphor-icons/react";
 
 type InlineSearchProps = {
   placeholder?: string;
@@ -57,6 +57,11 @@ export function InlineSearch({
     setDropdownOpen(false);
   };
 
+  const clearResults = () => {
+    setQuery("");
+    setDropdownOpen(false);
+  };
+
   return (
     <div className={styles.inlineSearch}>
       <Menu
@@ -88,6 +93,16 @@ export function InlineSearch({
               ) : (
                 <MagnifyingGlass weight="bold" />
               )
+            }
+            rightSection={
+              <ActionIcon
+                variant="light"
+                size="sm"
+                color="gray"
+                onClick={clearResults}
+              >
+                <X weight="bold" />
+              </ActionIcon>
             }
             ref={inputRef}
             onBlur={() => setDropdownOpen(false)}

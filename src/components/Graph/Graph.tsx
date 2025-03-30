@@ -4,11 +4,12 @@ import Node from "./Node";
 import Edge from "./Edge";
 import styles from "./Graph.module.scss";
 import { Flex } from "@mantine/core"; // Assuming you still use Mantine
+import NodePanel, { NodePanelProps } from "./NodePanel";
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
-  forceStrength: -350,
-  linkDistance: 100,
+  forceStrength: -550,
+  linkDistance: 200,
   linkStrength: 0.5,
   centerForceStrength: 0.05,
   alpha: 1,
@@ -465,17 +466,8 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     const gradientOptions = {
       innerColor: "var(--color-nodes)",
       outerColor: "var(--color-background)",
-      opacityInner: 0.8,
+      opacityInner: 1,
       opacityOuter: 0.2,
-    };
-    // Marker options from original code
-    const markerOptions = {
-      width: 10,
-      height: 10,
-      refX: RENDER_CONFIG.nodeRadius * 0.8 + 5, // Adjust refX based on node radius
-      refY: 0,
-      orient: "auto",
-      fill: "var(--color-edges)",
     };
 
     return (
@@ -521,12 +513,32 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     );
   }, [nodes]);
 
+  const [nodePanel, setNodePanel] = useState<NodePanelProps | null>(null);
+
+  const handleNodeContextMenu = (
+    event: React.MouseEvent<SVGGElement>,
+    node: INode,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setNodePanel({
+      node,
+      position: { x: event.clientX || 0, y: event.clientY || 0 },
+    });
+  };
+
+  const handleBackgroundClick = () => {
+    setNodePanel(null);
+  };
+
   return (
     <div
       ref={containerRef}
       style={{ width: "100%", height: "100%", overflow: "hidden" }}
       className={styles.container}
+      onClick={handleBackgroundClick}
     >
+      {nodePanel && <NodePanel {...nodePanel} />}
       {currentWidth > 0 && currentHeight > 0 ? (
         <svg
           ref={svgRef}
@@ -560,6 +572,9 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 onNodeHover={onNodeHover}
                 onNodeHoverOut={onNodeHoverOut}
                 onDragStart={handleNodeDragStart}
+                onContextMenu={(event, node) => {
+                  handleNodeContextMenu(event, node);
+                }}
               />
             ))}
           </g>
