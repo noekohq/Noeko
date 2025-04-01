@@ -1,4 +1,4 @@
-import { JwtPayload, sign, verify } from "jsonwebtoken";
+import { JwtPayload, sign, SignOptions, verify } from "jsonwebtoken";
 
 const { TOKEN_SECRET } = process.env;
 
@@ -19,20 +19,27 @@ export const verifyPassword = async (
   return verified;
 };
 
-export function generateToken<T extends object | string>(payload: T): string {
+export function generateToken<T extends object | string>(
+  payload: T,
+  options?: SignOptions,
+): string {
   if (!TOKEN_SECRET) {
     throw new Error("TOKEN_SECRET environment variable is not set");
   }
-  const token = sign(payload, TOKEN_SECRET);
+  const token = sign(payload, TOKEN_SECRET, options);
   return token;
 }
 
 export async function verifyToken<T extends object | string>(
   token: string,
-): Promise<T> {
+): Promise<T | undefined> {
   if (!TOKEN_SECRET) {
     throw new Error("TOKEN_SECRET environment variable is not set");
   }
-  const decoded = verify(token, TOKEN_SECRET);
-  return decoded as T;
+  try {
+    const decoded = verify(token, TOKEN_SECRET);
+    return decoded as T;
+  } catch (error) {
+    return undefined;
+  }
 }
