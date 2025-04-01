@@ -15,17 +15,13 @@ import {
   Title,
   Loader,
   Text,
-  List,
   Card,
-  Pill,
   Space,
   Overlay,
-  Box,
   Drawer,
   Tooltip,
   Kbd,
-  ScrollArea,
-  Flex,
+  HoverCard,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useAlert } from "../../contexts/AlertContext";
@@ -34,10 +30,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowsClockwise,
-  Brain,
-  Circle,
   Lightbulb,
-  Magnet,
   Shapes,
   Sparkle,
 } from "@phosphor-icons/react";
@@ -223,17 +216,19 @@ export default function Idea() {
     setDraggingOverConnectionDrop(false);
   };
 
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
-    useDisclosure();
+  const [
+    drawerOpened,
+    { open: openDrawer, close: closeDrawer, toggle: toggleDrawer },
+  ] = useDisclosure();
 
   useEffect(() => {
     // register a keyboard shortcut to open the drawer on ctrl (or command) i
     const k = document.addEventListener("keydown", (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "i") {
-        openDrawer();
+        toggleDrawer();
       }
     });
-  }, [openDrawer]);
+  }, [toggleDrawer]);
 
   const formattedDistance = (distance: number) => {
     return distance.toFixed(2);
@@ -241,7 +236,21 @@ export default function Idea() {
 
   const ideaIsConnected = (ideaId: string) => {
     // check idea.connections both incoming and outgoing
+    if (!idea) {
+      return false;
+    }
+    const connections = [
+      ...idea.connections.incoming,
+      ...idea.connections.outgoing,
+    ];
+    return connections.some((connection) => connection.id === ideaId);
   };
+
+  const [hoveringIdea, setHoveringIdea] = useState<string>();
+
+  const { load: removeConnection } = useFetch({
+    url: `/graph/ideas/`,
+  });
 
   return (
     <div className={styles.idea}>
@@ -263,42 +272,46 @@ export default function Idea() {
             <Card p="lg" radius="lg">
               <Grid>
                 <Grid.Col>
-                  <Group>
+                  <Group align="end">
                     <Title order={2}>Related Ideas</Title>
+                    <Text c="dimmed">Drag ideas to connect them.</Text>
                   </Group>
                 </Grid.Col>
                 <Grid.Col span={{ sm: 12 }}>
-                  <ScrollArea h={"40vh"} scrollbars="y" offsetScrollbars>
-                    {idea && idea.relatedIdeas?.length > 0 ? (
-                      <Group>
-                        {idea.relatedIdeas?.map((relatedIdea) => {
-                          return (
-                            <Link
-                              key={relatedIdea.id}
-                              to={`/idea/${relatedIdea.id}`}
-                              style={{
-                                textDecoration: "none",
+                  {idea && idea.relatedIdeas?.length > 0 ? (
+                    <Group>
+                      {idea.relatedIdeas?.map((relatedIdea) => {
+                        return (
+                          <Link
+                            key={relatedIdea.id + "related"}
+                            to={`/idea/${relatedIdea.id}`}
+                            style={{
+                              textDecoration: "none",
+                            }}
+                          >
+                            <IdeaPreview
+                              idea={relatedIdea}
+                              subtext={
+                                <Text>
+                                  {formattedDistance(relatedIdea.distance)}
+                                </Text>
+                              }
+                              onDragStart={() => setDraggingRelatedIdea(true)}
+                              onDragEnd={() => setDraggingRelatedIdea(false)}
+                              setDraggingIdea={(i) => setDraggedIdea(i)}
+                              draggable={!ideaIsConnected(relatedIdea.id)}
+                              setHoveringIdea={(i) => {
+                                setHoveringIdea(i);
                               }}
-                            >
-                              <IdeaPreview
-                                idea={relatedIdea}
-                                subtext={
-                                  <Text>
-                                    {formattedDistance(relatedIdea.distance)}
-                                  </Text>
-                                }
-                                onDragStart={() => setDraggingRelatedIdea(true)}
-                                onDragEnd={() => setDraggingRelatedIdea(false)}
-                                setDraggingIdea={(i) => setDraggedIdea(i)}
-                              />
-                            </Link>
-                          );
-                        })}
-                      </Group>
-                    ) : (
-                      <Text>No related ideas yet.</Text>
-                    )}
-                  </ScrollArea>
+                              hoveringIdea={hoveringIdea}
+                            />
+                          </Link>
+                        );
+                      })}
+                    </Group>
+                  ) : (
+                    <Text>No related ideas yet.</Text>
+                  )}
                 </Grid.Col>
               </Grid>
             </Card>
@@ -370,11 +383,14 @@ export default function Idea() {
                           <Link
                             to={`/idea/${connection.id}`}
                             style={{ textDecoration: "none", color: "inherit" }}
+                            key={connection.id + "incoming"}
                           >
                             <IdeaPreview
-                              key={connection.id}
                               idea={connection}
                               subtext={<ArrowLeft weight="bold" />}
+                              draggable={false}
+                              hoveringIdea={hoveringIdea}
+                              setHoveringIdea={setHoveringIdea}
                             />
                           </Link>
                         );
@@ -399,11 +415,13 @@ export default function Idea() {
                           <Link
                             to={`/idea/${connection.id}`}
                             style={{ textDecoration: "none", color: "inherit" }}
+                            key={connection.id + "outgoing"}
                           >
                             <IdeaPreview
-                              key={connection.id}
                               idea={connection}
                               subtext={<ArrowRight weight="bold" />}
+                              hoveringIdea={hoveringIdea}
+                              setHoveringIdea={setHoveringIdea}
                             />
                           </Link>
                         );
@@ -450,21 +468,6 @@ export default function Idea() {
                 <Lightbulb weight="bold" />
               </ActionIcon>
             </Tooltip>
-            <Button
-              style={{
-                opacity: 0,
-              }}
-              onClick={() => {
-                showNotification({
-                  title: "Summoned!",
-                  message: "Summoned hot MILFs in your area!",
-                });
-              }}
-            >
-              <Group gap={8}>
-                <Brain weight="bold" /> + <Magnet weight="bold" />
-              </Group>
-            </Button>
           </Group>
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
@@ -537,11 +540,14 @@ export default function Idea() {
 }
 
 type IdeaPreviewProps = {
-  idea: IIdea | IIdeaAsRelation;
+  idea: IIdea;
   subtext: JSX.Element;
-  setDraggingIdea?: (idea: IIdea | IIdeaAsRelation | null) => void;
+  setDraggingIdea?: (idea: IIdea | null) => void;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
+  draggable?: boolean;
+  hoveringIdea: string | undefined;
+  setHoveringIdea: (hoveringIdea: string | undefined) => void;
 };
 
 function IdeaPreview({
@@ -550,14 +556,17 @@ function IdeaPreview({
   setDraggingIdea,
   onDragStart,
   onDragEnd,
+  draggable = false,
+  hoveringIdea,
+  setHoveringIdea,
 }: IdeaPreviewProps) {
   const [dragging, setDragging] = useState(false);
 
   return (
     <Card
-      p="lg"
+      px="lg"
       radius="lg"
-      draggable={!!onDragStart}
+      draggable={draggable}
       onDragStart={(e) => {
         setDraggingIdea?.(idea);
         onDragStart?.(e);
@@ -570,22 +579,31 @@ function IdeaPreview({
       }}
       withBorder={!dragging}
       shadow={dragging ? "md" : ""}
+      onMouseEnter={() => {
+        setHoveringIdea(idea.id);
+      }}
+      onMouseLeave={() => {
+        setHoveringIdea(idea.id);
+      }}
+      className={`${styles.ideaPreview} ${hoveringIdea === idea.id ? styles.hovered : ""}`}
     >
-      <Grid>
-        <Grid.Col span={{ sm: 12 }}>
-          <Group gap="xs">
-            <Text size="xs" c="dimmed">
-              {subtext}
-            </Text>
-            <Text fw="bold">{idea.title}</Text>
-          </Group>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
-          <Text size="sm" c="dimmed">
-            {idea.contentSummary}
-          </Text>
-        </Grid.Col>
-      </Grid>
+      <HoverCard width={300}>
+        <HoverCard.Target>
+          <Grid>
+            <Grid.Col span={{ sm: 12 }}>
+              <Group gap="xs">
+                <Text size="xs" c="dimmed">
+                  {subtext}
+                </Text>
+                <Text fw="bold">{idea.title}</Text>
+              </Group>
+            </Grid.Col>
+          </Grid>
+        </HoverCard.Target>
+        <HoverCard.Dropdown>
+          <Text>{idea.contentSummary}</Text>
+        </HoverCard.Dropdown>
+      </HoverCard>
     </Card>
   );
 }

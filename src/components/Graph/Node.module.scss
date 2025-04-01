@@ -12,18 +12,18 @@
         }
     }
 
+    &.selected {
+        circle {
+            opacity: 1;
+        }
+    }
+
     circle {
+        opacity: 0.5;
         transition: r 0.2s ease-in-out;
     }
 
     .nodeText {
-        font-size: 14px;
-        fill: var(--mantine-color-gray-2);
-        pointer-events: none; // Important: Make text non-interactive
-        font-family: Lato, sans-serif;
-        font-weight: normal;
-        // text should wrap
         white-space: wrap;
-        text-align: center;
     }
 }

@@ -1,14 +1,16 @@
-// Node.tsx
-import React, { useRef, useEffect, useState } from "react";
-import { INode } from "../../declarations/graph.d"; // Adjust path as needed
-import styles from "./Node.module.scss"; // Assuming styles remain similar
+import React from "react";
+import { INode } from "../../declarations/graph.d";
+import styles from "./Node.module.scss";
+import { useGraph } from "../../contexts/GraphContext";
+import { Text } from "@mantine/core";
 
 type NodeProps = {
   node: INode;
   isDragging: boolean;
-  onNodeClick: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeHover: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeHoverOut: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeNavigate?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeSelect?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeHover?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeHoverOut?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
   onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
   onContextMenu: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
 };
@@ -16,7 +18,8 @@ type NodeProps = {
 const Node = ({
   node,
   isDragging,
-  onNodeClick,
+  onNodeNavigate,
+  onNodeSelect,
   onNodeHover,
   onNodeHoverOut,
   onDragStart,
@@ -24,18 +27,23 @@ const Node = ({
 }: NodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
+  const {
+    selected: { set: setSelected, get: selectedNode },
+  } = useGraph();
+
+  const iAmSelected = selectedNode() === node.id;
+
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
-    // Prevent browser drag behavior if needed
     event.preventDefault();
     onDragStart(event, node.id);
   };
 
   const handleMouseEnter = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeHover(event, node);
+    onNodeHover?.(event, node);
   };
 
   const handleMouseLeave = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeHoverOut(event, node);
+    onNodeHoverOut?.(event, node);
   };
 
   const handleContextMenu = (event: React.MouseEvent<SVGGElement>) => {
@@ -44,35 +52,48 @@ const Node = ({
     onContextMenu(event, node);
   };
 
+  const handleNodeSelect = (event: React.MouseEvent<SVGGElement>) => {
+    onNodeSelect?.(event, node);
+    if (iAmSelected) {
+      setSelected(null);
+    } else {
+      setSelected(node.id);
+    }
+  };
+
+  const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
+    onNodeNavigate?.(event, node);
+  };
+
   const radius = 24;
   const textOffset = 0;
-  const foreignObjectWidth = 124; // Width for the wrapping container
-  const foreignObjectHeight = 100; // Estimate needed height (can be dynamic)
+  const foreignObjectWidth = 124;
+  const foreignObjectHeight = 100;
 
-  // Calculate position for foreignObject to center it below the circle
   const foX = -foreignObjectWidth / 2;
   const foY = radius + textOffset;
 
   return (
     <g
-      className={styles.node}
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onMouseDown={handleMouseDown}
-      onDoubleClick={(e) => onNodeClick(e, node)}
+      onClick={handleNodeSelect}
+      onDoubleClick={handleNodeNavigate}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onContextMenu={handleContextMenu}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""}`}
     >
       <circle r={radius} fill={`url(#${gradientId})`} />
       <foreignObject
         x={foX}
         y={foY}
         width={foreignObjectWidth}
-        height={foreignObjectHeight} // Needs to be large enough for wrapped text
-        // Overflow can be set via CSS on the inner div if needed
+        height={foreignObjectHeight}
       >
-        {/* Required xmlns for HTML inside SVG */}
-        <div className={styles.nodeText}>{node.title}</div>
+        <Text className={styles.nodeText} size="sm" ta="center">
+          {node.title}
+        </Text>
       </foreignObject>
     </g>
   );

@@ -1,3 +1,9 @@
 .idea {
     padding: 24px;
 }
+
+.ideaPreview {
+    &.hovered {
+        opacity: .5;
+    }
+}

@@ -57,7 +57,10 @@ router.get("/ideas/:id", async (req, res) => {
       return;
     }
     const toSend: IIdea & {
-      connections?: (IIdeaConnection & { id: RecordId })[];
+      connections?: {
+        incoming: (IIdea & { id: RecordId })[];
+        outgoing: (IIdea & { id: RecordId })[];
+      };
       relatedIdeas?: (IIdeaAsRelation & { id: RecordId })[];
     } = { ...i };
     if (withConnections) {

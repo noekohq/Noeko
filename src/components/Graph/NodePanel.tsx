@@ -20,6 +20,10 @@ export default function NodePanel({ node, position }: NodePanelProps) {
         top: position.y + 4,
       }}
       className={styles.nodePanel}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
     >
       <Grid gutter="sm">
         <Grid.Col span={{ sm: 12 }}>
