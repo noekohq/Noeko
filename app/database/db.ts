@@ -1,4 +1,5 @@
 import Surreal from "surrealdb";
+import { seedDatabase } from "./init";
 
 const {
   DB_PROTOCOL,
@@ -92,4 +93,5 @@ export const initSchema = async () => {
 
 export const initDatabase = async () => {
   await initSchema();
+  await seedDatabase();
 };

@@ -13,10 +13,11 @@
 
     &.unselected {
         circle {
-            opacity: 0.5;
+            opacity: 0.25;
             transition:
                 r 0.2s ease-in-out,
-                opacity 0.2s ease-in-out;
+                opacity 0.2s ease-in-out,
+                fill 0.2s ease-in-out;
         }
 
         .nodeText {

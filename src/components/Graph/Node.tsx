@@ -29,6 +29,7 @@ const Node = ({
   } = useGraph();
 
   const iAmSelected = selectedNode() === node.id;
+  const iAmUnselected = !iAmSelected && selectedNode();
   const { filter } = getFilter();
 
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
@@ -44,14 +45,15 @@ const Node = ({
 
   const handleNodeSelect = (event: React.MouseEvent<SVGGElement>) => {
     onNodeSelect?.(event, node);
-    if (iAmSelected) {
-      setSelected(null);
-    } else {
-      setSelected(node.id);
-    }
+    setSelected(node.id);
+  };
+  const handleNodeUnselect = (event: React.MouseEvent<SVGGElement>) => {
+    onNodeSelect?.(event, node);
+    setSelected(null);
   };
 
   const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
+    setSelected(null);
     onNodeNavigate?.(event, node);
   };
 
@@ -81,10 +83,11 @@ const Node = ({
     <g
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onMouseDown={handleMouseDown}
-      onClick={handleNodeSelect}
-      onDoubleClick={handleNodeNavigate}
+      onMouseEnter={handleNodeSelect}
+      onMouseLeave={handleNodeUnselect}
+      onClick={handleNodeNavigate}
       onContextMenu={handleContextMenu}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${selectedNode() && !iAmSelected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""}`}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""}`}
     >
       <defs>
         <radialGradient
