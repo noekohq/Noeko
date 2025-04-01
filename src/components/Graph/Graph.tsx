@@ -42,8 +42,6 @@ type GraphContainerProps = {
   height?: number;
   onNodeNavigate?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
   onNodeSelect?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeHover?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeHoverOut?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
 };
 
 const GraphContainer: React.FC<GraphContainerProps> = ({
@@ -52,8 +50,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   height: propHeight,
   onNodeNavigate,
   onNodeSelect,
-  onNodeHover,
-  onNodeHoverOut,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -369,8 +365,8 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<SVGSVGElement>) => {
-      event.preventDefault();
-      const scaleFactor = 1.1;
+      // event.preventDefault();
+      const scaleFactor = 1.7;
       const zoomSpeed = 0.1;
       const delta = -event.deltaY * (zoomSpeed / 100);
 
@@ -397,42 +393,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     },
     [transform, getSVGPoint],
   );
-
-  const renderDefs = () => {
-    const gradientOptions = {
-      innerColor: "var(--color-nodes)",
-      outerColor: "var(--color-background)",
-      opacityInner: 1,
-      opacityOuter: 0.2,
-    };
-
-    return (
-      <defs>
-        {nodes.map((node) => (
-          <radialGradient
-            key={node.id}
-            id={`gradient-${node.id}`}
-            cx="50%"
-            cy="50%"
-            r="50%"
-            fx="50%"
-            fy="50%"
-          >
-            <stop
-              offset="40%"
-              stopColor={gradientOptions.innerColor}
-              stopOpacity={gradientOptions.opacityInner}
-            />
-            <stop
-              offset="100%"
-              stopColor={gradientOptions.outerColor}
-              stopOpacity={gradientOptions.opacityOuter}
-            />
-          </radialGradient>
-        ))}
-      </defs>
-    );
-  };
 
   const currentWidth = propWidth ?? dimensions.width;
   const currentHeight = propHeight ?? dimensions.height;
@@ -481,7 +441,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           onMouseDown={handlePanStart}
           style={{ cursor: isPanning ? "grabbing" : "grab" }}
         >
-          {renderDefs()}
           <g
             className="everything"
             transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
@@ -501,8 +460,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 isDragging={isDraggingNode === node.id}
                 onNodeSelect={onNodeSelect}
                 onNodeNavigate={onNodeNavigate}
-                onNodeHover={onNodeHover}
-                onNodeHoverOut={onNodeHoverOut}
                 onDragStart={handleNodeDragStart}
                 onContextMenu={(event, node) => {
                   handleNodeContextMenu(event, node);

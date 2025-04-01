@@ -1,26 +1,50 @@
 .node {
+    --color-nodes: var(--mantine-color-blue-9);
+    --node-radius: 24;
+    --node-radius-selected: 36;
+
     cursor: pointer;
 
     &:hover {
         circle {
-            r: 36;
+            r: var(--node-radius-selected);
         }
     }
 
-    &:active {
+    &.unselected {
         circle {
+            opacity: 0.5;
+            transition:
+                r 0.2s ease-in-out,
+                opacity 0.2s ease-in-out;
+        }
+
+        .nodeText {
+            opacity: 0.5;
+            white-space: wrap;
         }
     }
 
     &.selected {
         circle {
             opacity: 1;
+            stroke: 1px solid var(--mantine-color-yellow-9);
+            r: var(--node-radius-selected);
+        }
+
+        .nodeText {
+            opacity: 1;
         }
     }
 
+    &.hidden {
+        opacity: .25;
+    }
+
     circle {
-        opacity: 0.5;
-        transition: r 0.2s ease-in-out;
+        transition:
+            r 0.2s ease-in-out,
+            opacity 0.2s ease-in-out;
     }
 
     .nodeText {

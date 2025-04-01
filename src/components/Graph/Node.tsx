@@ -9,8 +9,6 @@ type NodeProps = {
   isDragging: boolean;
   onNodeNavigate?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
   onNodeSelect?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeHover?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeHoverOut?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
   onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
   onContextMenu: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
 };
@@ -20,8 +18,6 @@ const Node = ({
   isDragging,
   onNodeNavigate,
   onNodeSelect,
-  onNodeHover,
-  onNodeHoverOut,
   onDragStart,
   onContextMenu,
 }: NodeProps) => {
@@ -29,21 +25,15 @@ const Node = ({
 
   const {
     selected: { set: setSelected, get: selectedNode },
+    filter: { get: getFilter },
   } = useGraph();
 
   const iAmSelected = selectedNode() === node.id;
+  const { filter } = getFilter();
 
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
     event.preventDefault();
     onDragStart(event, node.id);
-  };
-
-  const handleMouseEnter = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeHover?.(event, node);
-  };
-
-  const handleMouseLeave = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeHoverOut?.(event, node);
   };
 
   const handleContextMenu = (event: React.MouseEvent<SVGGElement>) => {
@@ -66,12 +56,26 @@ const Node = ({
   };
 
   const radius = 24;
-  const textOffset = 0;
-  const foreignObjectWidth = 124;
-  const foreignObjectHeight = 100;
 
-  const foX = -foreignObjectWidth / 2;
-  const foY = radius + textOffset;
+  const textOffset = 0;
+  const textWidth = 124;
+  const textHeight = 100;
+
+  const text = {
+    width: textWidth,
+    height: textHeight,
+    x: -textWidth / 2,
+    y: radius + textOffset,
+  };
+
+  const gradientOptions = {
+    innerColor: "var(--color-nodes)",
+    outerColor: "var(--color-background)",
+    opacityInner: 1,
+    opacityOuter: 0.2,
+  };
+
+  const shouldShow = filter(node);
 
   return (
     <g
@@ -79,22 +83,44 @@ const Node = ({
       onMouseDown={handleMouseDown}
       onClick={handleNodeSelect}
       onDoubleClick={handleNodeNavigate}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       onContextMenu={handleContextMenu}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""}`}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${selectedNode() && !iAmSelected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""}`}
     >
+      <defs>
+        <radialGradient
+          key={node.id}
+          id={`gradient-${node.id}`}
+          cx="50%"
+          cy="50%"
+          r="50%"
+          fx="50%"
+          fy="50%"
+        >
+          <stop
+            offset="40%"
+            stopColor={gradientOptions.innerColor}
+            stopOpacity={gradientOptions.opacityInner}
+          />
+          <stop
+            offset="100%"
+            stopColor={gradientOptions.outerColor}
+            stopOpacity={gradientOptions.opacityOuter}
+          />
+        </radialGradient>
+      </defs>
       <circle r={radius} fill={`url(#${gradientId})`} />
-      <foreignObject
-        x={foX}
-        y={foY}
-        width={foreignObjectWidth}
-        height={foreignObjectHeight}
-      >
-        <Text className={styles.nodeText} size="sm" ta="center">
-          {node.title}
-        </Text>
-      </foreignObject>
+      {shouldShow && (
+        <foreignObject
+          x={text.x}
+          y={text.y}
+          width={text.width}
+          height={text.height}
+        >
+          <Text className={styles.nodeText} size="sm" ta="center">
+            {node.title}
+          </Text>
+        </foreignObject>
+      )}
     </g>
   );
 };

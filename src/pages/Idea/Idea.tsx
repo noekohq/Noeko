@@ -24,7 +24,6 @@ import {
   HoverCard,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { useAlert } from "../../contexts/AlertContext";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import {
   ArrowLeft,
@@ -40,7 +39,6 @@ import { useDisclosure } from "@mantine/hooks";
 
 export default function Idea() {
   const { ideaId } = useParams();
-  const { setAlert } = useAlert();
 
   const navigate = useNavigate();
 
@@ -80,23 +78,16 @@ export default function Idea() {
       });
     },
     onError: (error) => {
-      setAlert({
+      showNotification({
         title: "Error",
         message: "There was an error updating the idea",
-        type: "error",
+        color: "red",
       });
     },
   });
 
   useEffect(() => {
     title && title !== idea?.title && submitTitle();
-    if (!title) {
-      setAlert({
-        title: "Error",
-        message: "Title is required",
-        type: "error",
-      });
-    }
   }, [title]);
 
   const [content, setContent] = useState(idea?.content || "");
@@ -122,10 +113,10 @@ export default function Idea() {
       });
     },
     onError: (error) => {
-      setAlert({
+      showNotification({
         title: "Error",
         message: "There was an error updating the idea",
-        type: "error",
+        color: "red",
       });
     },
   });
@@ -141,10 +132,10 @@ export default function Idea() {
       reloadIdea();
     },
     onError: (error) => {
-      setAlert({
+      showNotification({
         title: "Error",
         message: "There was an error generating embeddings",
-        type: "error",
+        color: "red",
       });
     },
   });

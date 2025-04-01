@@ -1,4 +1,9 @@
 import React, { useContext, useState } from "react";
+import { INode } from "../declarations/graph";
+
+type FilterConfig = {
+  filter: (node: INode) => boolean;
+};
 
 type GraphContextType = {
   selected: {
@@ -8,6 +13,11 @@ type GraphContextType = {
   highlighted: {
     get: () => Set<string>;
     set: (ids: string[]) => void;
+  };
+  filter: {
+    set: (config: FilterConfig) => void;
+    get: () => FilterConfig;
+    clear: () => void;
   };
 };
 
@@ -20,6 +30,11 @@ const initialGraphContext: GraphContextType = {
     get: () => new Set<string>(),
     set: (ids: string[]) => {},
   },
+  filter: {
+    set: (config: FilterConfig) => {},
+    get: () => ({ filter: () => true }),
+    clear: () => {},
+  },
 };
 
 const GraphContext = React.createContext(initialGraphContext);
@@ -27,6 +42,9 @@ const GraphContext = React.createContext(initialGraphContext);
 export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
+  const [filterConfig, setFilterConfig] = useState<FilterConfig>({
+    filter: () => true,
+  });
 
   const value = {
     selected: {
@@ -36,6 +54,11 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
     highlighted: {
       get: () => highlighted,
       set: (ids: string[]) => setHighlighted(new Set(ids)),
+    },
+    filter: {
+      set: (config: FilterConfig) => setFilterConfig(config),
+      get: () => filterConfig,
+      clear: () => setFilterConfig({ filter: () => true }),
     },
   };
 

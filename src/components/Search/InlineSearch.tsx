@@ -15,11 +15,15 @@ import { MagnifyingGlass, X } from "@phosphor-icons/react";
 type InlineSearchProps = {
   placeholder?: string;
   onSelect: (idea: IIdea) => void;
+  onResults?: (results: SearchResult[]) => void;
+  onResultsClear?: () => void;
 };
 
 export function InlineSearch({
   placeholder = "Search ideas...",
   onSelect,
+  onResults,
+  onResultsClear,
 }: InlineSearchProps) {
   const [query, setQuery] = useState("");
 
@@ -35,6 +39,12 @@ export function InlineSearch({
     },
     dependencies: [query],
   });
+
+  useEffect(() => {
+    if (results) {
+      onResults?.(results);
+    }
+  }, [results]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -60,7 +70,10 @@ export function InlineSearch({
   const clearResults = () => {
     setQuery("");
     setDropdownOpen(false);
+    onResultsClear?.();
   };
+
+  console.log("Results: ", results);
 
   return (
     <div className={styles.inlineSearch}>
@@ -117,14 +130,14 @@ export function InlineSearch({
               return (
                 <>
                   <Menu.Item
-                    key={result.idea.id}
+                    key={result.idea.id + "result"}
                     onClick={() => {
                       handleSelect(result);
                     }}
                   >
                     <Text>{result.idea.title}</Text>
                     <Text size="xs" c="dimmed">
-                      <Highlight highlight={query}>
+                      <Highlight component="span" highlight={query}>
                         {result.idea.contentSummary}
                       </Highlight>
                     </Text>

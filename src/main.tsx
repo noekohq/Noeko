@@ -5,7 +5,6 @@ import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { theme } from "./theme.ts";
 import { BrowserRouter } from "react-router";
-import { AlertProvider } from "./contexts/AlertContext.tsx";
 import { GraphProvider } from "./contexts/GraphContext.tsx";
 import "@mantine/tiptap/styles.css";
 import "@mantine/core/styles.css";
@@ -17,11 +16,9 @@ const Client = () => {
     <BrowserRouter>
       <MantineProvider theme={theme} defaultColorScheme="dark">
         <Notifications position="top-right" />
-        <AlertProvider>
-          <GraphProvider>
-            <App />
-          </GraphProvider>
-        </AlertProvider>
+        <GraphProvider>
+          <App />
+        </GraphProvider>
       </MantineProvider>
     </BrowserRouter>
   );

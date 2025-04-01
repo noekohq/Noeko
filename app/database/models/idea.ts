@@ -416,14 +416,15 @@ export class Idea {
 
   static async searchIdeas(
     query: string,
-    options: { limit?: number } = {},
+    options: { limit?: number; threshold?: number } = {},
   ): Promise<SearchResult[] | undefined> {
     const limit = options.limit ?? 10; // Default limit
+    const threshold = options.threshold ?? 0.8; // Default threshold
     const semanticLimitMultiplier = 3; // Fetch more candidates for reranking
 
     // Define weights for scoring (adjust as needed)
     const weights = {
-      semantic: 1.0,
+      semantic: 1.5,
       titleMatch: 0.5, // Higher weight for title matches
       contentMatch: 0.2, // Lower weight for content matches
     };
@@ -497,17 +498,19 @@ export class Idea {
             (candidate.content.length > 150 ? "..." : "")
           : "";
 
-        resultsWithScores.push({
-          // Need to convert Surreal's RecordId back to string for IIdea type
-          // Assuming IIdea expects a string 'id'
-          idea: {
-            ...candidate,
-            id: candidate.id.toString(), // Convert RecordId to string
-            // Remove the 'distance' field if it's not part of the standard IIdea type
-          } as IIdea, // Asserting type after conversion
-          score: combinedScore,
-          highlightText: highlightText,
-        });
+        if (combinedScore >= threshold) {
+          resultsWithScores.push({
+            // Need to convert Surreal's RecordId back to string for IIdea type
+            // Assuming IIdea expects a string 'id'
+            idea: {
+              ...candidate,
+              id: candidate.id.toString(), // Convert RecordId to string
+              // Remove the 'distance' field if it's not part of the standard IIdea type
+            } as IIdea, // Asserting type after conversion
+            score: combinedScore,
+            highlightText: highlightText,
+          });
+        }
       }
 
       // 4. Sort by combined score (descending)

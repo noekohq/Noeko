@@ -1,8 +1,8 @@
 import { useForm } from "@mantine/form";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import useFetch from "../../hooks/useFetch";
-import { IIdea } from "../../../app/database/models/idea";
+import { IIdea, SearchResult } from "../../../app/database/models/idea";
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
@@ -21,16 +21,20 @@ import TextEditor from "../../components/TextEditor/TextEditor";
 import { Plus, X } from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
-import { formatDateTime } from "../../utils/formatting";
+import { formatDate } from "../../utils/formatting";
 
 type UIProps = {
-  reloadGraph: () => void;
+  reloadGraph: () => Promise<void>;
   nodes: INode[];
 };
 
 export default function UI({ reloadGraph, nodes }: UIProps) {
   const [opened, setOpened] = useState(false);
   const navigate = useNavigate();
+
+  const {
+    filter: { set: setFilter, clear: clearFilter },
+  } = useGraph();
 
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const {
@@ -40,7 +44,6 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
   const selectedNode = getSelectedNode();
 
   const currentNode = selectedNode ? nodeMap.get(selectedNode) : null;
-  console.log("Selected node", selectedNode, currentNode);
 
   const form = useForm({
     initialValues: {
@@ -97,6 +100,21 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
     setOpened(false);
   };
 
+  console.log("Rendering ui");
+
+  const handleResults = useCallback((results: SearchResult[]) => {
+    const ideas = results.map((r) => r.idea.id);
+    console.log("Setting filter");
+    setFilter({
+      filter: (idea) => ideas.includes(idea.id),
+    });
+    return ideas;
+  }, []);
+
+  const handleResultsClear = useCallback(() => {
+    clearFilter();
+  }, []);
+
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
       <Flex gap={"md"} justify="space-between">
@@ -105,7 +123,7 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
             <Flex direction="column">
               <Text fw="bold">{currentNode?.title}</Text>
               <Text fw="normal" size="xs" c="dimmed">
-                {formatDateTime(currentNode?.createdAt)}
+                {formatDate(currentNode?.createdAt)}
               </Text>
             </Flex>
           )}
@@ -116,6 +134,8 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
               onSelect={(i) => {
                 navigate(`/idea/${i.id}`);
               }}
+              onResults={handleResults}
+              onResultsClear={handleResultsClear}
             />
           </div>
           <Group justify="end">
