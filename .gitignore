@@ -124,3 +124,6 @@ dist
 
 # SurrealDB Database
 data/*
+
+# Auth stuff
+auth/*

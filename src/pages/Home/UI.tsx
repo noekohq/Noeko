@@ -114,7 +114,7 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
 
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
-      <Flex gap={"md"} justify="space-between">
+      <Flex gap={"md"} justify="space-between" align="flex-start">
         <Group>
           {currentNode && (
             <Flex direction="column">
