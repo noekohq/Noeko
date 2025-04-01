@@ -73,8 +73,6 @@ export function InlineSearch({
     onResultsClear?.();
   };
 
-  console.log("Results: ", results);
-
   return (
     <div className={styles.inlineSearch}>
       <Menu

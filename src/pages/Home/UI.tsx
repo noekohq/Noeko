@@ -100,11 +100,8 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
     setOpened(false);
   };
 
-  console.log("Rendering ui");
-
   const handleResults = useCallback((results: SearchResult[]) => {
     const ideas = results.map((r) => r.idea.id);
-    console.log("Setting filter");
     setFilter({
       filter: (idea) => ideas.includes(idea.id),
     });
