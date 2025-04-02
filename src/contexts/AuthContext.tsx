@@ -8,6 +8,8 @@ type IAuthContext = {
   loggedIn: boolean;
   setTokens: (accessToken: string, refreshToken?: string) => void;
   clearTokens: () => void;
+  loadUser: () => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const initialAuthContext: IAuthContext = {
@@ -15,12 +17,15 @@ const initialAuthContext: IAuthContext = {
   loggedIn: false,
   setTokens: (accessToken: string, refreshToken?: string) => {},
   clearTokens: () => {},
+  loadUser: async () => {},
+  logout: async () => {},
 };
 
 const AuthContext = React.createContext<IAuthContext>(initialAuthContext);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const setTokens = (accessToken: string, refreshToken?: string) => {
+    console.log("Setting tokens");
     localStorage.setItem("accessToken", accessToken);
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
@@ -40,7 +45,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         message: "Please log in to continue",
         color: "red",
       });
-      clearTokens();
+      // clearTokens();
       console.error(error);
     },
     runOnMount: localStorage.getItem("accessToken") ? true : false,
@@ -48,11 +53,25 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loggedIn = !!user?.id;
 
-  const value = {
+  console.log(
+    "Logged",
+    loggedIn,
+    user,
+    localStorage.getItem("accessToken")?.slice(0, 8),
+  );
+
+  const value: IAuthContext = {
     user,
     loggedIn,
     setTokens,
     clearTokens,
+    loadUser: async () => {
+      await loadUser();
+    },
+    logout: async () => {
+      clearTokens();
+      await loadUser();
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

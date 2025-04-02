@@ -20,7 +20,7 @@ import { showNotification } from "@mantine/notifications";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setTokens } = useAuth();
+  const { setTokens, loadUser } = useAuth();
 
   const loginForm = useForm({
     initialValues: {
@@ -46,10 +46,14 @@ export default function Login() {
     },
     dependencies: [loginForm.values],
     onSuccess: (data) => {
+      console.log("Got data: ", data);
       setTokens(data.accessToken, data.refreshToken);
       showNotification({
         title: "Login Successful",
         message: "Welcome back!",
+      });
+      loadUser().then(() => {
+        navigate("/");
       });
     },
   });

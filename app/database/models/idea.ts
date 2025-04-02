@@ -34,6 +34,11 @@ export type IIdeaConnection = {
 export type IDBGraph = {
   ideas: IIdea[];
   edges: IIdeaConnection[];
+  flags: {
+    embeddings: {
+      synced: boolean;
+    };
+  };
 };
 
 export type IDBGraphWithComputedFields = IDBGraph & {
@@ -44,6 +49,11 @@ export type SearchResult = {
   score: number;
   idea: IIdea;
   highlightText: string; // Placeholder for potential future implementation
+  debug?: {
+    // Optional: Add a debug structure to see score breakdown
+    semanticScore: number;
+    exactTitleBonus: number;
+  };
 };
 
 export class Idea {
@@ -113,7 +123,7 @@ export class Idea {
     }
   }
 
-  static async all(filters: any) {
+  static async all(filters?: any) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea>("idea");
@@ -144,14 +154,20 @@ export class Idea {
         return undefined;
       }
       const edges = await db?.select<IIdeaConnection>("connected");
+      const flags: IDBGraph["flags"] = {
+        embeddings: {
+          synced: ideas.every((idea) => idea.embeddings),
+        },
+      };
       if (options?.computeFields) {
         const computedIdeas = Idea.attachComputedFieldsToCollection(ideas);
         return {
           ideas: computedIdeas,
           edges,
+          flags,
         } as IDBGraphWithComputedFields;
       }
-      return { ideas, edges } as IDBGraph;
+      return { ideas, edges, flags } as IDBGraph;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -358,7 +374,7 @@ export class Idea {
         `
         SELECT
             *,
-            vector::distance::euclidean(embeddings, $query_embedding) AS distance
+            vector::similarity::cosine(embeddings, $query_embedding) AS distance
         FROM
             idea
         ORDER BY
@@ -391,7 +407,7 @@ export class Idea {
         `
         SELECT
             *,
-            vector::distance::euclidean(embeddings, $query_embedding) AS distance
+            vector::similarity::cosine(embeddings, $query_embedding) AS distance
         FROM
             idea
         ORDER BY
@@ -416,21 +432,27 @@ export class Idea {
 
   static async searchIdeas(
     query: string,
-    options: { limit?: number; threshold?: number } = {},
+    options: { limit?: number; semanticThreshold?: number } = {},
   ): Promise<SearchResult[] | undefined> {
-    const limit = options.limit ?? 10; // Default limit
-    const threshold = options.threshold ?? 0.8; // Default threshold
-    const semanticLimitMultiplier = 3; // Fetch more candidates for reranking
+    // --- Configuration ---
+    const limit = options.limit ?? 10; // Max results to return
+    // Default semantic threshold - filter results below this cosine similarity
+    const semanticThreshold = options.semanticThreshold ?? 0.5;
+    // Fetch more candidates than 'limit' initially to allow for good ranking
+    // Adjusted multiplier: fetching 3x allows more room for filtering/reranking
+    const semanticLimitMultiplier = 3;
+    const initialFetchLimit = Math.max(limit * semanticLimitMultiplier, 20); // Fetch at least 20 potential candidates
 
-    // Define weights for scoring (adjust as needed)
+    // Weights and Bonuses - Emphasize semantic score, add large bonus for exact title
     const weights = {
-      semantic: 1.5,
-      titleMatch: 0.5, // Higher weight for title matches
-      contentMatch: 0.2, // Lower weight for content matches
+      semantic: 1.5, // Primary driver of the score
+      // Removed titleMatch and contentMatch weights
     };
+    const exactTitleBonus = 2.0; // Large bonus to push exact title matches to the top
 
+    // --- Search Execution ---
     try {
-      const db = await getDatabase(); // Assuming getDatabase is available
+      const db = await getDatabase();
       if (!db) {
         console.error("searchIdeas: Database connection not available.");
         return undefined;
@@ -442,21 +464,21 @@ export class Idea {
 
       if (!queryEmbedding) {
         console.error("searchIdeas: Failed to generate query embedding.");
-        // Fallback to text-only search? Or return error? Returning undefined for now.
-        // TODO: Implement text-only search fallback if needed
+        // TODO: Consider fallback to text-only search if needed
         return undefined;
       }
 
-      // 2. Perform initial semantic search to get candidate ideas
-      // Fetch more than the final limit to allow for reranking
+      // 2. Perform initial semantic search (vector search)
+      // Assuming Idea.semanticSearch returns candidates sorted by cosine similarity (higher is better)
+      // and the 'distance' field actually contains the cosine similarity score.
       const semanticCandidates = await Idea.semanticSearch(
         queryEmbedding,
-        limit * semanticLimitMultiplier,
+        initialFetchLimit, // Fetch more candidates
       );
 
       if (semanticCandidates === undefined) {
         console.error("searchIdeas: Semantic search phase failed.");
-        return undefined; // Or empty array?
+        return undefined;
       }
 
       if (semanticCandidates.length === 0) {
@@ -464,59 +486,65 @@ export class Idea {
         return [];
       }
 
-      // 3. Calculate combined scores and rerank
+      // 3. Rerank based on Semantic Threshold, Exact Title Match, and Weighted Score
       const resultsWithScores: SearchResult[] = [];
-      const queryLower = query.toLowerCase();
+      const queryLower = query.toLowerCase().trim(); // Normalize query for comparison
 
       for (const candidate of semanticCandidates) {
-        // a. Calculate semantic score (invert distance: lower distance = higher score)
-        // Avoid division by zero, ensure score is positive. Adding 1 to distance helps.
-        const semanticScore = 1 / (1 + (candidate.distance ?? 1)); // Use ?? 1 as fallback if distance is null/undefined
+        // a. Get raw semantic score (cosine similarity)
+        // Use 0 as fallback if distance is null/undefined for some reason
+        const rawSemanticScore = candidate.distance ?? 0;
 
-        // b. Check for text matches (case-insensitive)
-        const titleMatchScore = candidate.title
-          ?.toLowerCase()
-          .includes(queryLower)
-          ? weights.titleMatch
-          : 0;
-        const contentMatchScore = candidate.content
-          ?.toLowerCase()
-          .includes(queryLower)
-          ? weights.contentMatch
-          : 0;
+        // b. Apply Semantic Threshold Filter
+        if (rawSemanticScore < semanticThreshold) {
+          // console.log(`Skipping "${candidate.title}" due to low semantic score: ${rawSemanticScore}`);
+          continue; // Skip candidates below the relevance threshold
+        }
 
-        // c. Calculate combined score
+        // c. Check for Exact Title Match Bonus (Case-insensitive, trimmed)
+        const currentExactTitleBonus =
+          candidate.title?.toLowerCase().trim() === queryLower
+            ? exactTitleBonus
+            : 0;
+
+        // d. Calculate combined score
+        // Primarily driven by weighted semantic score, with a large boost for exact title match.
         const combinedScore =
-          semanticScore * weights.semantic +
-          titleMatchScore +
-          contentMatchScore;
+          rawSemanticScore * weights.semantic + currentExactTitleBonus;
 
-        // d. Basic highlighting (placeholder - just return first N chars of content)
-        // A real implementation would find query terms and add context/markup.
+        // e. Basic highlighting (placeholder)
         const highlightText = candidate.content
           ? candidate.content.substring(0, 150) +
             (candidate.content.length > 150 ? "..." : "")
           : "";
 
-        if (combinedScore >= threshold) {
-          resultsWithScores.push({
-            // Need to convert Surreal's RecordId back to string for IIdea type
-            // Assuming IIdea expects a string 'id'
-            idea: {
-              ...candidate,
-              id: candidate.id.toString(), // Convert RecordId to string
-              // Remove the 'distance' field if it's not part of the standard IIdea type
-            } as IIdea, // Asserting type after conversion
-            score: combinedScore,
-            highlightText: highlightText,
-          });
-        }
+        console.log(
+          `${candidate.title}: COMBINED SCORE ${combinedScore.toFixed(4)} | SEMANTIC SCORE ${rawSemanticScore.toFixed(4)} | EXACT TITLE BONUS ${currentExactTitleBonus}`,
+        );
+
+        // No combined score threshold here anymore, relying on semantic threshold primarily.
+        // We filter based on semantic relevance first.
+        resultsWithScores.push({
+          idea: {
+            ...candidate,
+            id: candidate.id.toString(), // Convert RecordId to string if needed
+            // Ensure 'distance' field is handled/removed if not part of IIdea
+          } as IIdea,
+          score: combinedScore,
+          highlightText: highlightText,
+          debug: {
+            // Add debug info
+            semanticScore: rawSemanticScore,
+            exactTitleBonus: currentExactTitleBonus,
+          },
+        });
       }
 
-      // 4. Sort by combined score (descending)
+      // 4. Sort by final combined score (descending)
       resultsWithScores.sort((a, b) => b.score - a.score);
 
-      // 5. Return the top N results based on the limit
+      // 5. Return the top N results, up to the limit.
+      // Prioritizes relevance - if fewer than 'limit' items pass the semantic threshold, less will be returned.
       return resultsWithScores.slice(0, limit);
     } catch (err) {
       console.error(`Error during searchIdeas for query "${query}":`, err);
@@ -533,6 +561,38 @@ export class Idea {
     } catch (err) {
       console.error(`Error during generateSummary`, err);
       return null;
+    }
+  }
+
+  static async updateEmbeddings(idea: IIdea) {
+    try {
+      const embedding = new Embeddings();
+      const vector = await embedding.generateEmbeddings(idea.content);
+      await Idea.update(idea.id, {
+        embeddings: vector,
+      });
+    } catch (err) {
+      console.error(
+        `Error during updateEmbeddings for idea "${idea.id}":`,
+        err,
+      );
+    }
+  }
+
+  static async synchronizeEmbeddings(ideas: IIdea[]) {
+    try {
+      const toUpdate = ideas.filter((idea) => {
+        if (!idea.embeddings) {
+          return true;
+        }
+        if (idea.embeddingsUpdatedAt < idea.contentUpdatedAt) {
+          return true;
+        }
+        return false;
+      });
+      await Promise.all(toUpdate.map((idea) => Idea.updateEmbeddings(idea)));
+    } catch (err) {
+      console.error(`Error during synchronizeEmbeddings`, err);
     }
   }
 }

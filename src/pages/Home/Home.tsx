@@ -16,6 +16,8 @@ export default function Home() {
     runOnMount: true,
   });
 
+  console.log("Graph data:", graphData);
+
   const [localData, setLocalData] = useState<IGraph | null>(null);
   useEffect(() => {
     if (graphData) {
@@ -27,7 +29,7 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className={styles.container}>
-      {!!localData ? (
+      {!!localData && graphData ? (
         <>
           <Graph
             graph={localData}
@@ -40,6 +42,7 @@ export default function Home() {
             reloadGraph={async () => {
               reloadGraph();
             }}
+            flags={graphData.flags}
           />
         </>
       ) : (

@@ -13,6 +13,7 @@
     "docker:build": "docker-compose build"
   },
   "dependencies": {
+    "@google-cloud/aiplatform": "^4.1.0",
     "@google/generative-ai": "^0.24.0",
     "@mantine/core": "^7.17.1",
     "@mantine/form": "^7.17.1",
@@ -39,7 +40,9 @@
     "d3": "^7.9.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
+    "long": "^5.3.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router": "^7.1.1",

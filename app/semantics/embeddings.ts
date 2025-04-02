@@ -1,61 +1,408 @@
-import { GenerativeModel, GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  GenerativeModel as GeminiGenerativeModel,
+  BatchEmbedContentsRequest, // Keep this type if needed internally, though the cast below makes it less critical
+} from "@google/generative-ai";
+// Correct import for PredictionServiceClient and helpers
+import { PredictionServiceClient, helpers } from "@google-cloud/aiplatform"; // Ensure v1 is correct
+import * as fs from "fs";
+import * as path from "path";
 
-const apiKeyName = "GEMINI_API_KEY";
+// --- Environment Variables ---
+// These are now the SOLE source of configuration for the Embeddings class
 
-const API_KEY = process.env[apiKeyName];
+// REQUIRED (determines which provider/config is needed)
+const MODEL_NAME = process.env.MODEL_NAME;
 
-if (!API_KEY) {
-  throw new Error(`${apiKeyName} is not defined. Is it set in ".env"?`);
+// Required if MODEL_NAME is a Gemini model (e.g., "embedding-001")
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// Required if MODEL_NAME is a Vertex AI model (e.g., "text-embedding-005")
+const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
+const GCP_LOCATION = process.env.GCP_LOCATION || "us-central1"; // Default location if not set
+
+// Optional: Path to explicit Vertex AI credentials file (overrides ADC)
+const GOOGLE_CREDENTIALS_LOCATION = process.env.GOOGLE_CREDENTIALS_LOCATION;
+
+// --- Interfaces and Types ---
+
+interface EmbeddingProvider {
+  embedContent(content: string): Promise<number[]>;
+  embedContents(contents: string[]): Promise<number[][]>;
 }
 
-export type EmbeddingsModelConfig = {
-  apiKey: string;
+// No longer needs to be exported, but useful internally for provider constructors
+type EmbeddingsConfigInternal = {
+  modelName: string;
+  geminiApiKey?: string;
+  gcpProjectId?: string;
+  gcpLocation?: string;
+  googleCredentialsLocation?: string;
 };
 
-export type EmbeddingsModelResponse = {
-  embeddings: number[];
-};
-
-export class EmbeddingsModel {
-  apiKey: string;
-  private client: GoogleGenerativeAI;
-  private model: GenerativeModel;
-
-  constructor(config: EmbeddingsModelConfig) {
-    this.apiKey = config.apiKey;
-    this.client = new GoogleGenerativeAI(this.apiKey);
-    this.model = this.client.getGenerativeModel({
-      model: "text-embeddings-005",
-    });
-  }
-
-  async embedContent(content: string): Promise<EmbeddingsModelResponse> {
-    const response = await this.model.embedContent(content);
-    return {
-      embeddings: response.embedding.values,
-    };
-  }
+interface GoogleCredentials {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+  universe_domain?: string;
 }
 
-export class Embeddings {
-  private model: EmbeddingsModel;
+interface VertexEmbeddingPrediction {
+  embeddings: {
+    values: number[];
+  };
+}
 
-  constructor() {
-    if (!API_KEY) {
+// --- Gemini API Provider ---
+// (No changes needed in this class implementation itself)
+class GeminiEmbeddingProvider implements EmbeddingProvider {
+  private readonly model: GeminiGenerativeModel;
+
+  constructor(apiKey: string, modelName: string) {
+    if (!apiKey) {
       throw new Error(
-        `${apiKeyName} is not defined. Cannot initialize EmbeddingsModel.`,
+        `Gemini API Key was not provided for model ${modelName} (check GEMINI_API_KEY env var).`,
       );
     }
-    this.model = new EmbeddingsModel({ apiKey: API_KEY });
+    const client = new GoogleGenerativeAI(apiKey);
+    this.model = client.getGenerativeModel({ model: modelName });
+  }
+
+  async embedContent(content: string): Promise<number[]> {
+    const response = await this.model.embedContent(content);
+    if (!response.embedding?.values) {
+      throw new Error("Invalid response structure from Gemini embedContent");
+    }
+    return response.embedding.values;
+  }
+
+  async embedContents(contents: string[]): Promise<number[][]> {
+    const requests = contents.map((content) => ({ content }));
+    const response = await this.model.batchEmbedContents({
+      requests,
+    } as unknown as BatchEmbedContentsRequest);
+    if (
+      !response.embeddings ||
+      response.embeddings.length !== contents.length
+    ) {
+      throw new Error(
+        "Invalid response structure or length mismatch from Gemini batchEmbedContents",
+      );
+    }
+    return response.embeddings.map((emb) => {
+      if (!emb?.values) {
+        throw new Error(
+          "Missing values in one of the embeddings from Gemini batchEmbedContents",
+        );
+      }
+      return emb.values;
+    });
+  }
+}
+
+// --- Vertex AI API Provider ---
+// (No changes needed in this class implementation itself)
+class VertexAIEmbeddingProvider implements EmbeddingProvider {
+  private readonly client: PredictionServiceClient;
+  private readonly endpoint: string;
+  private readonly modelId: string;
+
+  constructor(
+    projectId: string,
+    location: string,
+    modelId: string,
+    credentialsPath?: string,
+  ) {
+    if (!projectId) {
+      throw new Error(
+        `Google Cloud Project ID was not provided for Vertex AI model ${modelId} (check GCP_PROJECT_ID env var).`,
+      );
+    }
+    if (!location) {
+      throw new Error(
+        `Google Cloud Location was not provided for Vertex AI model ${modelId} (check GCP_LOCATION env var).`,
+      );
+    }
+
+    const publisher = "google";
+    this.modelId = modelId;
+    this.endpoint = `projects/${projectId}/locations/${location}/publishers/${publisher}/models/${this.modelId}`;
+
+    const clientOptions: any = {
+      apiEndpoint: `${location}-aiplatform.googleapis.com`,
+    };
+
+    const effectiveCredentialsPath = credentialsPath; // Already determined before calling constructor
+
+    if (effectiveCredentialsPath) {
+      console.log(
+        `Attempting to load Vertex AI credentials explicitly from: ${effectiveCredentialsPath}`,
+      );
+      try {
+        const absolutePath = path.resolve(effectiveCredentialsPath);
+        if (!fs.existsSync(absolutePath)) {
+          throw new Error(`Credentials file not found at: ${absolutePath}`);
+        }
+        const credentialsFileContent = fs.readFileSync(absolutePath, "utf-8");
+        const credentials = JSON.parse(
+          credentialsFileContent,
+        ) as GoogleCredentials;
+        if (!credentials.client_email || !credentials.private_key) {
+          throw new Error(
+            "Credentials file is missing client_email or private_key.",
+          );
+        }
+        clientOptions.credentials = credentials;
+        console.log(
+          `Successfully loaded credentials for service account: ${credentials.client_email}`,
+        );
+      } catch (error) {
+        console.error(
+          `Error loading or parsing credentials file from ${effectiveCredentialsPath}:`,
+          error,
+        );
+        throw new Error(
+          `Failed to load explicit credentials: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    } else {
+      console.log(
+        "No explicit credentials path provided (GOOGLE_CREDENTIALS_LOCATION env var not set). Relying on Application Default Credentials (ADC) for Vertex AI.",
+      );
+    }
+
+    this.client = new PredictionServiceClient(clientOptions);
+  }
+
+  private async predictVertexAI(instances: any[]): Promise<any[]> {
+    const parameters = helpers.toValue({}); // Empty params for now
+    const request = { endpoint: this.endpoint, instances, parameters };
+    try {
+      const [response] = await this.client.predict(request);
+      if (
+        !response.predictions ||
+        response.predictions.length !== instances.length
+      ) {
+        throw new Error(
+          `Vertex AI returned ${response.predictions?.length ?? 0} predictions, expected ${instances.length}.`,
+        );
+      }
+      return response.predictions;
+    } catch (error) {
+      console.error("Error calling Vertex AI Prediction API:", error);
+      throw new Error(
+        `Vertex AI API request failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  async embedContent(content: string): Promise<number[]> {
+    const instances = [helpers.toValue({ content })];
+    const predictionsProto = await this.predictVertexAI(instances);
+    const prediction = helpers.fromValue(
+      predictionsProto[0],
+    ) as VertexEmbeddingPrediction;
+    if (prediction?.embeddings?.values) {
+      return prediction.embeddings.values;
+    } else {
+      console.error(
+        "Unexpected prediction structure:",
+        JSON.stringify(prediction, null, 2),
+      );
+      throw new Error(
+        "Failed to extract embeddings from Vertex AI prediction.",
+      );
+    }
+  }
+
+  async embedContents(contents: string[]): Promise<number[][]> {
+    const instances = contents.map((content) => helpers.toValue({ content }));
+    const predictionsProto = await this.predictVertexAI(instances);
+    return predictionsProto.map((predictionProto: any, index: number) => {
+      const prediction = helpers.fromValue(
+        predictionProto,
+      ) as VertexEmbeddingPrediction;
+      if (prediction?.embeddings?.values) {
+        return prediction.embeddings.values;
+      } else {
+        console.error(
+          `Unexpected prediction structure for content index ${index}:`,
+          JSON.stringify(prediction, null, 2),
+        );
+        throw new Error(
+          `Failed to extract embeddings from Vertex AI prediction for content index ${index}.`,
+        );
+      }
+    });
+  }
+}
+
+// --- Main Embeddings Service ---
+
+export class Embeddings {
+  private readonly provider: EmbeddingProvider;
+
+  // Constructor now reads directly from environment variables
+  constructor() {
+    // --- Read Configuration Directly from Environment ---
+    const embeddingModelName = process.env.EMBEDDING_MODEL_NAME;
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const gcpProjectId = process.env.GCP_PROJECT_ID;
+    // Use default if GCP_LOCATION is not set
+    const gcpLocation = process.env.GCP_LOCATION || "us-central1";
+    const googleCredentialsLocation = process.env.GOOGLE_CREDENTIALS_LOCATION;
+
+    console.log(
+      `Initializing Embeddings service with EMBEDDING_MODEL_NAME: ${embeddingModelName}`,
+    );
+
+    // --- Determine Provider Based on EMBEDDING_MODEL_NAME ---
+    if (!embeddingModelName) {
+      throw new Error(
+        "EMBEDDING_MODEL_NAME environment variable is required but not set.",
+      );
+    }
+
+    if (embeddingModelName === "text-embedding-005") {
+      // Specific Vertex model
+      console.log(`Configuring for Vertex AI model: ${embeddingModelName}`);
+      if (!gcpProjectId) {
+        throw new Error(
+          `GCP_PROJECT_ID environment variable is required for Vertex AI model ${embeddingModelName}.`,
+        );
+      }
+      // Location has a default, but log it
+      console.log(`Using Vertex AI Location: ${gcpLocation}`);
+      this.provider = new VertexAIEmbeddingProvider(
+        gcpProjectId,
+        gcpLocation,
+        embeddingModelName,
+        googleCredentialsLocation, // Pass explicit creds path if set
+      );
+    } else if (embeddingModelName.startsWith("embedding-")) {
+      // Heuristic for Gemini models
+      console.log(`Configuring for Gemini API model: ${embeddingModelName}`);
+      if (!geminiApiKey) {
+        throw new Error(
+          `GEMINI_API_KEY environment variable is required for Gemini model ${embeddingModelName}.`,
+        );
+      }
+      this.provider = new GeminiEmbeddingProvider(
+        geminiApiKey,
+        embeddingModelName,
+      );
+    }
+    // Add checks for other Vertex models here if needed (e.g., using includes('/'))
+    else {
+      throw new Error(
+        `Unsupported or unrecognized EMBEDDING_MODEL_NAME: ${embeddingModelName}. Cannot determine embedding provider.`,
+      );
+    }
+    console.log("Embeddings service provider initialized successfully.");
   }
 
   async generateEmbeddings(text: string): Promise<number[]> {
-    try {
-      const response = await this.model.embedContent(text);
-      return response.embeddings;
-    } catch (error) {
-      console.error("Error generating embeddings:", error);
-      throw error;
-    }
+    // Add a check here? Or assume provider is always initialized correctly by constructor
+    if (!this.provider) throw new Error("Embeddings provider not initialized.");
+    return this.provider.embedContent(text);
   }
+
+  async generateEmbeddingsBatch(texts: string[]): Promise<number[][]> {
+    if (!this.provider) throw new Error("Embeddings provider not initialized.");
+    if (!texts || texts.length === 0) {
+      return [];
+    }
+    return this.provider.embedContents(texts);
+  }
+}
+
+// --- Example Usage ---
+
+async function runExample() {
+  // --- Configuration ---
+  // ENSURE these environment variables are set BEFORE running the script
+  // (e.g., using a .env file and require('dotenv').config() AT THE VERY TOP,
+  // or setting them in your shell/deployment environment)
+
+  // Example required vars:
+  // export MODEL_NAME="text-embedding-005" # Or "embedding-001"
+  // export GCP_PROJECT_ID="your-project-id" # If using Vertex
+  // export GCP_LOCATION="us-central1" # Optional if using Vertex, defaults to us-central1
+  // export GOOGLE_CREDENTIALS_LOCATION="/path/to/your/keyfile.json" # Optional if using Vertex (uses ADC otherwise)
+  // export GEMINI_API_KEY="your-api-key" # If using Gemini
+
+  console.log("--- Running Embedding Examples ---");
+  console.log("Model Name (from env):", process.env.MODEL_NAME || "Not Set");
+  console.log(
+    "Vertex AI Project ID (from env):",
+    process.env.GCP_PROJECT_ID || "Not Set",
+  );
+  console.log(
+    "Vertex AI Location (from env):",
+    process.env.GCP_LOCATION || `us-central1 (Default)`,
+  );
+  console.log(
+    "Vertex AI Explicit Credentials Path (from env):",
+    process.env.GOOGLE_CREDENTIALS_LOCATION || "Not Set (Using ADC if needed)",
+  );
+  console.log(
+    "Gemini API Key Set (from env):",
+    process.env.GEMINI_API_KEY ? "Yes" : "No",
+  );
+  console.log("----------------------------------");
+
+  const textsToEmbed = [
+    "The quick brown fox jumps over the lazy dog.",
+    "Exploring the capabilities of large language models.",
+    "How does batch embedding work?",
+  ];
+
+  try {
+    // --- Instantiate the simplified Embeddings class ---
+    // It automatically reads config from environment variables
+    console.log("\nAttempting to instantiate Embeddings service...");
+    const embeddingsService = new Embeddings();
+    console.log("Embeddings service instantiated.");
+
+    // --- Use the service ---
+    console.log("\n--- Generating Single Embedding ---");
+    const singleResult = await embeddingsService.generateEmbeddings(
+      textsToEmbed[0],
+    );
+    console.log(
+      `Single Embedding (first 5 dims): [${singleResult.slice(0, 5).join(", ")}...] (Dim: ${singleResult.length})`,
+    );
+
+    console.log("\n--- Generating Batch Embeddings ---");
+    const batchResult =
+      await embeddingsService.generateEmbeddingsBatch(textsToEmbed);
+    console.log(`Batch Embeddings: Received ${batchResult.length} embeddings.`);
+    batchResult.forEach((embedding, index) => {
+      console.log(
+        `  Batch ${index + 1} (first 5 dims): [${embedding.slice(0, 5).join(", ")}...] (Dim: ${embedding.length})`,
+      );
+    });
+  } catch (error) {
+    console.error("\n--- Error during example execution ---");
+    // Log the specific error message and potentially the stack
+    console.error(
+      "Error Message:",
+      error instanceof Error ? error.message : String(error),
+    );
+    // if (error instanceof Error) { console.error("Stack Trace:", error.stack); }
+  }
+}
+
+// --- Script Execution ---
+if (require.main === module) {
+  // IMPORTANT: If using .env files, load it BEFORE any other code runs
+  // E.g., require('dotenv').config();
+  runExample();
 }

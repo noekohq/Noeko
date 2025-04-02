@@ -9,6 +9,7 @@ COPY tsconfig.json tsconfig.node.json ./
 COPY index.html ./
 COPY app ./app
 COPY src ./src
+COPY credentials ./credentials
 
 RUN bun install
 
@@ -25,6 +26,7 @@ COPY --from=builder /project/index.html ./
 COPY --from=builder /project/node_modules ./node_modules
 COPY --from=builder /project/app ./app
 COPY --from=builder /project/src ./src
+COPY --from=builder /project/credentials ./credentials
 
 RUN bun run client:build
 

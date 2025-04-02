@@ -9,7 +9,9 @@ export const checkToken = async (
   next: NextFunction,
 ) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = (req.headers.authorization as string)?.split(" ")[1];
+    console.log("authorization: ", req.headers.authorization);
+
     if (!token) {
       res.status(401).json({
         message: "Unauthorized",
@@ -17,7 +19,10 @@ export const checkToken = async (
       return;
     }
 
+    console.log("Got token: ", token.slice(0, 10));
+
     const decoded = await verifyToken<ISafeUser>(token);
+    console.log("Decoded: ", decoded, !!decoded);
     if (!decoded) {
       res.status(401).json({
         message: "Unauthorized",
