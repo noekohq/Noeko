@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { checkIsSuperuser, checkToken } from "../middlware/auth";
 import { ISafeUser, IUser, User } from "../database/models/user";
-import { verifyPassword } from "../utils/crypto";
+import { hashPassword, verifyPassword } from "../utils/crypto";
 import { getFromReq } from "../utils/middleware";
 
 const router = Router();
@@ -9,15 +9,27 @@ const router = Router();
 router.post("/register", async (req, res) => {
   try {
     const form = req.body;
-    if (!form.email || !form.password || !form.password || !form.name) {
+    if (
+      !form.email ||
+      !form.password ||
+      !form.passwordConfirmation ||
+      !form.firstName ||
+      !form.lastName
+    ) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
-    if (!(form.password !== form.confirmPassword)) {
+    const userExistsWithEmail = await User.findByEmail(form.email);
+    if (userExistsWithEmail) {
+      res.status(400).json({ message: "Email already in use" });
+      return;
+    }
+    if (!(form.password === form.passwordConfirmation)) {
       res.status(400).json({ message: "Passwords do not match" });
       return;
     }
-    const user = await User.create(req.body);
+    const hashedPassword = await hashPassword(form.password);
+    const user = await User.create({ ...req.body, password: hashedPassword });
     if (!user) {
       res.status(400).json({ message: "User already exists" });
       return;
@@ -40,7 +52,6 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Email: ", email);
     const user = await User.findByEmail(email, true);
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -65,10 +76,26 @@ router.post("/login", async (req, res) => {
 router.get("/me", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
-    console.log("Found user: ", user);
     res.json({
       message: "User checked successfully",
       data: user,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      res.status(400).json({ message: "Missing refresh token" });
+      return;
+    }
+    const token = await User.refreshAccessTokens(refreshToken);
+    res.json({
+      message: "Token refreshed successfully",
+      data: { accessToken: token, refreshToken: refreshToken },
     });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });

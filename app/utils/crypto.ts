@@ -15,7 +15,9 @@ export const verifyPassword = async (
   password: string,
   hashedPassword: string,
 ): Promise<boolean> => {
+  console.log("Password and hashedPassword:", password, hashedPassword);
   const verified = await Bun.password.verify(password, hashedPassword);
+  console.log("Verified: ", verified);
   return verified;
 };
 

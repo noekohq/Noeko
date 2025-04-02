@@ -8,6 +8,8 @@ import { useAuth } from "./contexts/AuthContext";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Sidebar from "./components/Navigation/Sidebar";
+import Profile from "./pages/Settings/Profile";
+import Settings from "./pages/Settings/Settings";
 
 export default function App() {
   const navigate = useNavigate();
@@ -56,14 +58,16 @@ export default function App() {
       </div>
       <div className={styles.content}>
         <Routes>
-          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Navigate to="/" />} />
           <Route path="/register" element={<Navigate to="/" />} />
-          {loggedIn && (
+          <Route path="/">
+            <Route index element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/idea">
               <Route path=":ideaId" element={<Idea />} />
             </Route>
-          )}
+          </Route>
         </Routes>
       </div>
     </div>

@@ -518,10 +518,6 @@ export class Idea {
             (candidate.content.length > 150 ? "..." : "")
           : "";
 
-        console.log(
-          `${candidate.title}: COMBINED SCORE ${combinedScore.toFixed(4)} | SEMANTIC SCORE ${rawSemanticScore.toFixed(4)} | EXACT TITLE BONUS ${currentExactTitleBonus}`,
-        );
-
         // No combined score threshold here anymore, relying on semantic threshold primarily.
         // We filter based on semantic relevance first.
         resultsWithScores.push({
