@@ -25,7 +25,6 @@ const AuthContext = React.createContext<IAuthContext>(initialAuthContext);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const setTokens = (accessToken: string, refreshToken?: string) => {
-    console.log("Setting tokens");
     localStorage.setItem("accessToken", accessToken);
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
@@ -52,13 +51,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const loggedIn = !!user?.id;
-
-  console.log(
-    "Logged",
-    loggedIn,
-    user,
-    localStorage.getItem("accessToken")?.slice(0, 8),
-  );
 
   const value: IAuthContext = {
     user,

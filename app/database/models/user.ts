@@ -28,7 +28,7 @@ export type ISafeUser = Omit<IUser, "password">;
 export type IToken = {
   id: string;
   token: string;
-  user: string;
+  user: IUser;
   type: string;
   createdAt: Date;
   expiresAt: Date;
@@ -266,7 +266,7 @@ export class User {
     }
   }
 
-  static async refreshAccessTokens(user: ISafeUser, refresh: string) {
+  static async refreshAccessTokens(refresh: string) {
     try {
       const foundRefresh = await Token.findByToken(refresh);
       if (!foundRefresh) {
@@ -279,7 +279,7 @@ export class User {
         await Token.delete(foundRefresh.id);
         return undefined;
       }
-      const token = generateToken<ISafeUser>(user, {
+      const token = generateToken<ISafeUser>(foundRefresh.user, {
         expiresIn: "1h",
       });
       return token;
@@ -425,7 +425,7 @@ export class Token {
       const db = await getDatabase();
       const result = await db?.create<IToken, ITokenForm>("token", {
         token: token,
-        user: user.id,
+        user: user,
         type: type,
         createdAt: new Date(),
         expiresAt: expiresAt,

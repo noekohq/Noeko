@@ -46,7 +46,6 @@ export default function Login() {
     },
     dependencies: [loginForm.values],
     onSuccess: (data) => {
-      console.log("Got data: ", data);
       setTokens(data.accessToken, data.refreshToken);
       showNotification({
         title: "Login Successful",

@@ -87,8 +87,6 @@ const Node = ({
 
   const circleRef = useRef<SVGCircleElement>(null);
 
-  console.log("X Y: ", node.x, node.y);
-
   const getCoordinateBasedDelay = () => {
     // closer to the center, delay is shorter
     if (!node || !node.x || !node.y) return 0;
