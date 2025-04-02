@@ -40,6 +40,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Email: ", email);
     const user = await User.findByEmail(email, true);
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -63,7 +64,8 @@ router.post("/login", async (req, res) => {
 
 router.get("/me", checkToken, async (req, res) => {
   try {
-    const user = getFromReq<ISafeUser>(req, "user");
+    const user = await getFromReq<ISafeUser>(req, "user");
+    console.log("Found user: ", user);
     res.json({
       message: "User checked successfully",
       data: user,

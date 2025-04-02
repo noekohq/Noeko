@@ -127,3 +127,4 @@ data/*
 
 # Auth stuff
 auth/*
+credentials/*

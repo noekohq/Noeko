@@ -17,6 +17,7 @@ type InlineSearchProps = {
   onSelect: (idea: IIdea) => void;
   onResults?: (results: SearchResult[]) => void;
   onResultsClear?: () => void;
+  onBlur?: () => void;
 };
 
 export function InlineSearch({
@@ -24,6 +25,7 @@ export function InlineSearch({
   onSelect,
   onResults,
   onResultsClear,
+  onBlur,
 }: InlineSearchProps) {
   const [query, setQuery] = useState("");
 
@@ -77,7 +79,7 @@ export function InlineSearch({
     <div className={styles.inlineSearch}>
       <Menu
         shadow="md"
-        width={300}
+        width={"target"}
         opened={dropdownOpen}
         position="bottom-start"
         trapFocus={false}
@@ -116,7 +118,10 @@ export function InlineSearch({
               </ActionIcon>
             }
             ref={inputRef}
-            onBlur={() => setDropdownOpen(false)}
+            onBlur={() => {
+              setDropdownOpen(false);
+              onBlur && onBlur();
+            }}
             onClick={() => setDropdownOpen(!dropdownOpen)}
           />
         </Menu.Target>

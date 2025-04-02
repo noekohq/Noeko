@@ -1,0 +1,17 @@
+@mixin breakpoint($breakpoint) {
+    @media (max-width: $breakpoint) {
+        @content;
+    }
+}
+
+@mixin tablet {
+    @include breakpoint(768px) {
+        @content;
+    }
+}
+
+@mixin desktop {
+    @include breakpoint(1024px) {
+        @content;
+    }
+}

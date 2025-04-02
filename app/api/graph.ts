@@ -20,10 +20,10 @@ router.get("/", async (req, res) => {
       res.status(404).json({ error: "Graph not found" });
       return;
     }
-    const { edges, ideas } = graph;
+    const { edges, ideas, flags } = graph;
     res.send({
       message: "Successfully retrieved graph.",
-      data: { edges, ideas },
+      data: { edges, ideas, flags },
     });
   } catch (err) {
     console.error(err);
@@ -235,6 +235,21 @@ router.post("/ideas/semantic", async (req, res) => {
       return;
     }
     res.send({ message: "Successfully found similar ideas.", data: similar });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/synchronize", async (req, res) => {
+  try {
+    const ideas = await Idea.all();
+    if (!ideas) {
+      res.status(404).json({ error: "Ideas not found" });
+      return;
+    }
+    await Idea.synchronizeEmbeddings(ideas);
+    res.send({ message: "Successfully synchronized embeddings." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });

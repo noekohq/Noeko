@@ -2,7 +2,11 @@ import { useForm } from "@mantine/form";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import useFetch from "../../hooks/useFetch";
-import { IIdea, SearchResult } from "../../../app/database/models/idea";
+import {
+  IDBGraph,
+  IIdea,
+  SearchResult,
+} from "../../../app/database/models/idea";
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
@@ -14,11 +18,12 @@ import {
   Modal,
   Text,
   TextInput,
+  Loader,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import TextEditor from "../../components/TextEditor/TextEditor";
-import { Plus, X } from "@phosphor-icons/react";
+import { ArrowsClockwise, Plus, X } from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
 import { formatDate } from "../../utils/formatting";
@@ -26,9 +31,10 @@ import { formatDate } from "../../utils/formatting";
 type UIProps = {
   reloadGraph: () => Promise<void>;
   nodes: INode[];
+  flags: IDBGraph["flags"];
 };
 
-export default function UI({ reloadGraph, nodes }: UIProps) {
+export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   const [opened, setOpened] = useState(false);
   const navigate = useNavigate();
 
@@ -112,6 +118,25 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
     clearFilter();
   }, []);
 
+  const { load: synchronizeGraph, loading: loadingSynchronizeGraph } = useFetch<
+    undefined,
+    undefined
+  >({
+    url: "/graph/synchronize",
+    method: "POST",
+    onFinally: () => {
+      reloadGraph();
+    },
+  });
+
+  const statusText = () => {
+    let text = "";
+    if (!flags.embeddings.synced) {
+      text += "Embeddings out of sync. ";
+    }
+    return text;
+  };
+
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
       <Flex gap={"md"} justify="space-between" align="flex-start">
@@ -126,16 +151,29 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
           )}
         </Group>
         <Group>
-          <div className={styles.searchWrapper}>
-            <InlineSearch
-              onSelect={(i) => {
-                navigate(`/idea/${i.id}`);
-              }}
-              onResults={handleResults}
-              onResultsClear={handleResultsClear}
-            />
-          </div>
           <Group justify="end">
+            <Text c="dimmed" size="sm">
+              {statusText()}
+            </Text>
+          </Group>
+          <Group justify="end">
+            {!flags.embeddings.synced && (
+              <ActionIcon
+                variant="default"
+                size="lg"
+                style={{
+                  fontSize: 18,
+                }}
+                onClick={() => synchronizeGraph()}
+                title="Synchronize graph embeddings"
+              >
+                {loadingSynchronizeGraph ? (
+                  <Loader size="xs" />
+                ) : (
+                  <ArrowsClockwise weight="bold" />
+                )}
+              </ActionIcon>
+            )}
             <ActionIcon
               variant="default"
               size="lg"
@@ -148,6 +186,18 @@ export default function UI({ reloadGraph, nodes }: UIProps) {
               {opened ? <X weight="bold" /> : <Plus weight="bold" />}
             </ActionIcon>
           </Group>
+          <div className={styles.searchWrapper}>
+            <InlineSearch
+              onSelect={(i) => {
+                navigate(`/idea/${i.id}`);
+              }}
+              onResults={handleResults}
+              onResultsClear={handleResultsClear}
+              onBlur={() => {
+                handleResultsClear();
+              }}
+            />
+          </div>
         </Group>
       </Flex>
 

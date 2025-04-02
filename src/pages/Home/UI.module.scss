@@ -1,11 +1,16 @@
 .ui {
     position: fixed;
     top: 24px;
-    right: 24px;
     left: 24px;
+    right: calc(var(--sidebar-width) + 14px);
     background-color: transparent;
 }
 
 .searchWrapper {
+    width: 20vw;
+    transition: width 0.2s ease-in-out;
 
+    &:focus-within {
+        width: 30vw;
+    }
 }
