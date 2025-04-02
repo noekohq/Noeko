@@ -19,6 +19,10 @@ type IGraphContext = {
     get: () => FilterConfig;
     clear: () => void;
   };
+  loading: {
+    get: () => boolean;
+    set: (loading: boolean) => void;
+  };
 };
 
 const initialGraphContext: IGraphContext = {
@@ -35,6 +39,10 @@ const initialGraphContext: IGraphContext = {
     get: () => ({ filter: () => true }),
     clear: () => {},
   },
+  loading: {
+    get: () => false,
+    set: (loading: boolean) => {},
+  },
 };
 
 const GraphContext = React.createContext(initialGraphContext);
@@ -45,8 +53,9 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
   const [filterConfig, setFilterConfig] = useState<FilterConfig>({
     filter: () => true,
   });
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const value = {
+  const value: IGraphContext = {
     selected: {
       get: () => selected,
       set: (id: string | null) => setSelected(id),
@@ -59,6 +68,10 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
       set: (config: FilterConfig) => setFilterConfig(config),
       get: () => filterConfig,
       clear: () => setFilterConfig({ filter: () => true }),
+    },
+    loading: {
+      get: () => loading,
+      set: (loading: boolean) => setLoading(loading),
     },
   };
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { INode } from "../../declarations/graph.d";
 import styles from "./Node.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
@@ -26,10 +26,12 @@ const Node = ({
   const {
     selected: { set: setSelected, get: selectedNode },
     filter: { get: getFilter },
+    loading: { get: isLoading },
   } = useGraph();
 
   const iAmSelected = selectedNode() === node.id;
   const iAmUnselected = !iAmSelected && selectedNode();
+  const iAmLoading = isLoading();
   const { filter } = getFilter();
 
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
@@ -79,6 +81,38 @@ const Node = ({
 
   const shouldShow = filter(node);
 
+  const randomDelay = () => {
+    return Math.floor(Math.random() * 1400);
+  };
+
+  const circleRef = useRef<SVGCircleElement>(null);
+
+  console.log("X Y: ", node.x, node.y);
+
+  const getCoordinateBasedDelay = () => {
+    // closer to the center, delay is shorter
+    if (!node || !node.x || !node.y) return 0;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const distance = Math.sqrt(
+      Math.pow(node.x - centerX, 2) + Math.pow(node.y - centerY, 2),
+    );
+    const maxDistance = Math.sqrt(
+      Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2),
+    );
+    const delay = Math.max(
+      0,
+      Math.min(1000, 1000 * (1 - distance / maxDistance)),
+    );
+    return delay;
+  };
+
+  useEffect(() => {
+    if (circleRef.current) {
+      circleRef.current.style.animationDelay = `${randomDelay()}ms`;
+    }
+  }, []);
+
   return (
     <g
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
@@ -87,7 +121,7 @@ const Node = ({
       onMouseLeave={handleNodeUnselect}
       onClick={handleNodeNavigate}
       onContextMenu={handleContextMenu}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""}`}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""}`}
     >
       <defs>
         <radialGradient
@@ -111,7 +145,7 @@ const Node = ({
           />
         </radialGradient>
       </defs>
-      <circle r={radius} fill={`url(#${gradientId})`} />
+      <circle r={radius} fill={`url(#${gradientId})`} ref={circleRef} />
       {shouldShow && (
         <foreignObject
           x={text.x}
