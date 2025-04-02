@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/crypto";
-import { IUser, User } from "../database/models/user";
+import { ISafeUser, IUser, User } from "../database/models/user";
 import { addToReq, getFromReq } from "../utils/middleware";
-
-const { JWT_SECRET } = process.env;
 
 export const checkToken = async (
   req: Request,
@@ -19,7 +17,7 @@ export const checkToken = async (
       return;
     }
 
-    const decoded = await verifyToken<IUser>(token);
+    const decoded = await verifyToken<ISafeUser>(token);
     if (!decoded) {
       res.status(401).json({
         message: "Unauthorized",
@@ -40,7 +38,7 @@ export const checkIsSuperuser = async (
   next: NextFunction,
 ) => {
   try {
-    const user = await getFromReq<IUser>(req, "user");
+    const user = await getFromReq<ISafeUser>(req, "user");
     if (!user || !user.roles) {
       res.status(403).json({
         message: "Forbidden",

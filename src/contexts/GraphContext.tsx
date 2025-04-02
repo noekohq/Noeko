@@ -5,7 +5,7 @@ type FilterConfig = {
   filter: (node: INode) => boolean;
 };
 
-type GraphContextType = {
+type IGraphContext = {
   selected: {
     get: () => string | null;
     set: (id: string | null) => void;
@@ -21,7 +21,7 @@ type GraphContextType = {
   };
 };
 
-const initialGraphContext: GraphContextType = {
+const initialGraphContext: IGraphContext = {
   selected: {
     get: () => null,
     set: (id: string | null) => {},

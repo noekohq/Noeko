@@ -25,7 +25,7 @@ export class EmbeddingsModel {
     this.apiKey = config.apiKey;
     this.client = new GoogleGenerativeAI(this.apiKey);
     this.model = this.client.getGenerativeModel({
-      model: "gemini-embedding-exp-03-07",
+      model: "text-embeddings-005",
     });
   }
 
