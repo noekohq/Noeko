@@ -18,6 +18,8 @@ type InlineSearchProps = {
   onResults?: (results: SearchResult[]) => void;
   onResultsClear?: () => void;
   onBlur?: () => void;
+  onSearchStart?: () => void;
+  onSearchEnd?: () => void;
 };
 
 export function InlineSearch({
@@ -26,6 +28,8 @@ export function InlineSearch({
   onResults,
   onResultsClear,
   onBlur,
+  onSearchStart,
+  onSearchEnd,
 }: InlineSearchProps) {
   const [query, setQuery] = useState("");
 
@@ -40,6 +44,12 @@ export function InlineSearch({
       query,
     },
     dependencies: [query],
+    onBefore: () => {
+      onSearchStart?.();
+    },
+    onFinally: () => {
+      onSearchEnd?.();
+    },
   });
 
   useEffect(() => {

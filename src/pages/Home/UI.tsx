@@ -45,6 +45,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const {
     selected: { get: getSelectedNode },
+    loading: { get: getLoading, set: setLoading },
   } = useGraph();
 
   const selectedNode = getSelectedNode();
@@ -195,6 +196,12 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
               onResultsClear={handleResultsClear}
               onBlur={() => {
                 handleResultsClear();
+              }}
+              onSearchStart={() => {
+                setLoading(true);
+              }}
+              onSearchEnd={() => {
+                setLoading(false);
               }}
             />
           </div>

@@ -16,6 +16,18 @@
     }
 }
 
+@keyframes pulsing {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
 .node {
     --color-nodes: var(--mantine-color-blue-9);
     --node-radius: 24;
@@ -58,7 +70,13 @@
     }
 
     &.hidden {
-        opacity: .25;
+        opacity: 0.25;
+    }
+
+    &.loading {
+        circle {
+            animation: pulsing 1s infinite;
+        }
     }
 
     circle {

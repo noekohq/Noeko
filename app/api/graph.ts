@@ -212,6 +212,7 @@ router.post("/ideas/similar/to", async (req, res) => {
 router.post("/ideas/search", async (req, res) => {
   try {
     const { query } = req.body;
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     const similar = await Idea.searchIdeas(query);
     if (!similar) {
       res.status(404).json({ error: "Similar ideas not found" });
