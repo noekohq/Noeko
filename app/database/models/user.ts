@@ -23,6 +23,8 @@ export type IUser = {
 
 export type IUserForm = Omit<IUser, "id" | "createdAt" | "updatedAt">;
 
+export type ISafeUser = Omit<IUser, "password">;
+
 export type IToken = {
   id: string;
   token: string;
@@ -65,6 +67,16 @@ export class User {
     }
   }
 
+  static filterSafeFields(user: IUser): ISafeUser;
+  static filterSafeFields(user: IUser[]): ISafeUser[];
+  static filterSafeFields(user: IUser | IUser[]): ISafeUser | ISafeUser[] {
+    if (Array.isArray(user)) {
+      return user.map((u) => this.filterSafeFields(u)) as ISafeUser[];
+    }
+    const { password, ...safeUser } = user;
+    return safeUser as ISafeUser;
+  }
+
   static async create(form: IUserForm, withRoles: string[] = ["role:user"]) {
     try {
       const db = await getDatabase();
@@ -88,7 +100,7 @@ export class User {
         return undefined;
       }
       const [user] = result;
-      return user;
+      return this.filterSafeFields(user);
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
@@ -112,7 +124,8 @@ export class User {
         console.error("Failed to update user");
         return undefined;
       }
-      return result;
+      const user = result;
+      return this.filterSafeFields(user);
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
@@ -128,14 +141,16 @@ export class User {
         return undefined;
       }
       const user = result;
-      return user;
+      return this.filterSafeFields(user);
     } catch (error) {
       console.error("Error deleting user:", error);
       throw error;
     }
   }
 
-  static async get(id: string) {
+  static async get(id: string, unsafe?: true): Promise<IUser>;
+  static async get(id: string, unsafe?: false): Promise<ISafeUser>;
+  static async get(id: string, unsafe = false) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUser>(new StringRecordId(id));
@@ -144,7 +159,10 @@ export class User {
         return undefined;
       }
       const user = result;
-      return user;
+      if (unsafe) {
+        return user;
+      }
+      return this.filterSafeFields(user);
     } catch (error) {
       console.error("Error getting user:", error);
       throw error;
@@ -159,15 +177,17 @@ export class User {
         console.error("Failed to get user");
         return undefined;
       }
-      const user = result;
-      return user;
+      const users = result;
+      return this.filterSafeFields(users);
     } catch (error) {
       console.error("Error getting user:", error);
       throw error;
     }
   }
 
-  static async findByEmail(email: string) {
+  static async findByEmail(email: string, unsafe?: true): Promise<IUser>;
+  static async findByEmail(email: string, unsafe?: false): Promise<ISafeUser>;
+  static async findByEmail(email: string, unsafe = false) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IUser[] | undefined]>(
@@ -184,7 +204,10 @@ export class User {
         return undefined;
       }
       const user = users[0];
-      return user;
+      if (unsafe) {
+        return user;
+      }
+      return this.filterSafeFields(user);
     } catch (error) {
       console.error("Error getting user:", error);
       throw error;
@@ -208,9 +231,9 @@ export class User {
     }
   }
 
-  static async generateAccessToken(user: IUser) {
+  static async generateAccessToken(user: ISafeUser) {
     try {
-      const token = generateToken<IUser>(user, {
+      const token = generateToken<ISafeUser>(user, {
         expiresIn: "1h",
       });
       return token;
@@ -220,13 +243,18 @@ export class User {
     }
   }
 
-  static async generateRefreshToken(user: IUser) {
+  static async generateRefreshToken(user: ISafeUser) {
     try {
-      const token = generateToken<IUser>(user, {
+      const token = generateToken<ISafeUser>(user, {
         expiresIn: "7d",
       });
+      const fullUser = await User.get(user.id, true);
+      if (!fullUser) {
+        console.error("User not found");
+        return undefined;
+      }
       await Token.create(
-        user,
+        fullUser,
         token,
         "refresh",
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -238,19 +266,20 @@ export class User {
     }
   }
 
-  static async refreshAccessTokens(user: IUser, refresh: string) {
+  static async refreshAccessTokens(user: ISafeUser, refresh: string) {
     try {
       const foundRefresh = await Token.findByToken(refresh);
       if (!foundRefresh) {
         console.error("Refresh token not found");
         return undefined;
       }
-      const valid = await verifyToken<IUser>(foundRefresh.token);
+      const valid = await verifyToken<ISafeUser>(foundRefresh.token);
       if (!valid) {
         console.error("Invalid refresh token");
+        await Token.delete(foundRefresh.id);
         return undefined;
       }
-      const token = generateToken<IUser>(user, {
+      const token = generateToken<ISafeUser>(user, {
         expiresIn: "1h",
       });
       return token;
@@ -461,6 +490,22 @@ export class Token {
       return tokenRecord;
     } catch (error) {
       console.error("Error finding token:", error);
+      throw error;
+    }
+  }
+
+  static async delete(id: string) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.delete(new RecordId("token", id));
+      if (!result) {
+        console.error("Failed to delete token");
+        return undefined;
+      }
+      const tokenRecord = result;
+      return tokenRecord;
+    } catch (error) {
+      console.error("Error deleting token:", error);
       throw error;
     }
   }

@@ -8,14 +8,14 @@ import NodePanel, { NodePanelProps } from "./NodePanel";
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
-  forceStrength: -400,
-  linkDistance: 100,
+  forceStrength: -500,
+  linkDistance: 150,
   linkStrength: 0.7,
   centerForceStrength: 0.05,
   alpha: 1,
   alphaDecay: 0.0228,
-  alphaMin: 0.002,
-  velocityDecay: 0.5,
+  alphaMin: 0.001,
+  velocityDecay: 0.6,
 };
 
 function getVector(
