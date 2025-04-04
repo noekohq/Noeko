@@ -1,5 +1,5 @@
 import { useForm } from "@mantine/form";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import useFetch from "../../hooks/useFetch";
 import {
@@ -19,6 +19,7 @@ import {
   Text,
   TextInput,
   Loader,
+  LoadingOverlay,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -74,7 +75,10 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     },
   });
 
-  const { load: addIdea } = useFetch<{ content: string }, IIdea>({
+  const { load: addIdea, loading: loadingAddIdea } = useFetch<
+    { content: string },
+    IIdea
+  >({
     url: "/graph/ideas",
     method: "POST",
     body: {
@@ -137,6 +141,30 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     }
     return text;
   };
+
+  useEffect(() => {
+    document.addEventListener("keydown", (event) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.shiftKey &&
+        event.key === "a"
+      ) {
+        setOpened(!opened);
+      }
+    });
+
+    return () => {
+      document.removeEventListener("keydown", (event) => {
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.shiftKey &&
+          event.key === "a"
+        ) {
+          setOpened(!opened);
+        }
+      });
+    };
+  }, []);
 
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
@@ -243,13 +271,21 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Group justify="end">
-              <Button variant="default" onClick={() => setOpened(false)}>
+              <Button
+                variant="default"
+                onClick={() => setOpened(false)}
+                disabled={loadingAddIdea}
+              >
                 Cancel
               </Button>
               <Button
                 onClick={async () => {
                   await handleSubmit();
                 }}
+                leftSection={
+                  loadingAddIdea && <Loader size="sm" color="white" />
+                }
+                disabled={loadingAddIdea}
               >
                 Add
               </Button>

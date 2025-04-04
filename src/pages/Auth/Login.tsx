@@ -55,6 +55,14 @@ export default function Login() {
         navigate("/");
       });
     },
+    onError: (err: any) => {
+      console.error("Error: ", err);
+      showNotification({
+        title: "Login Failed",
+        message: err?.response?.data?.message || "Something went wrong",
+        color: "red",
+      });
+    },
   });
 
   const handleLogin = async () => {
