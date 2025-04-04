@@ -2,6 +2,7 @@ import { RecordId, RecordIdValue, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { Embeddings } from "../../semantics/embeddings";
 import { getLM } from "../../semantics/lm";
+import { IUser, User } from "./user";
 
 export type IIdea = {
   id: string;
@@ -23,9 +24,19 @@ export type IIdeaAsRelation = IIdea & {
   distance: number;
 };
 
+export type IIdeaWithRecordId = IIdea & {
+  id: RecordId;
+};
+
 export type IIdeaForm = Omit<IIdea, "id">;
 
 export type IIdeaConnection = {
+  id: string;
+  in: string;
+  out: string;
+};
+
+export type IIdeaUserOwnership = {
   id: string;
   in: string;
   out: string;
@@ -73,9 +84,14 @@ export class Idea {
     return ideas.map(Idea.attachComputedFields);
   }
 
-  static async create(form: IIdeaForm) {
+  static async create(form: IIdeaForm, userId: string) {
     try {
       const db = await getDatabase();
+      const user = await User.get(userId, true);
+      if (!user) {
+        console.error(`User with id ${userId} not found.`);
+        return undefined;
+      }
       const result = await db?.create<
         IIdea,
         IIdeaForm & {
@@ -100,10 +116,88 @@ export class Idea {
         return undefined;
       }
       const [idea] = result;
-      await Idea.loadEmbeddings(idea.id.toString());
+      await Idea.connectToUser(idea.id, userId);
+      await Idea.loadEmbeddings(idea.id);
       return result;
     } catch (err) {
       console.error(err);
+      return undefined;
+    }
+  }
+
+  static async connectToUser(ideaId: string, userId: string) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
+        `RELATE $fromId -> owns -> $toId SET createdAt = $now;`,
+        {
+          fromId: new StringRecordId(userId),
+          toId: new StringRecordId(ideaId),
+          now: new Date(),
+        },
+      );
+      if (!result) {
+        console.error(
+          `No ownership created for idea "${ideaId}" and user "${userId}".`,
+        );
+        return undefined;
+      }
+      const [ownership] = result;
+      return ownership;
+    } catch (err) {
+      console.error(`Error during connectToUser for idea "${ideaId}":`, err);
+      return undefined;
+    }
+  }
+
+  static async checkUserOwnership(ideaId: string, userId: string) {
+    try {
+      const db = await getDatabase();
+      const results = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
+        `SELECT * FROM owns WHERE in = $userId AND out = $ideaId;`,
+        {
+          userId,
+          ideaId,
+        },
+      );
+
+      if (!results) {
+        console.error(
+          `No ownership found for idea "${ideaId}" and user "${userId}".`,
+        );
+        return false;
+      }
+      const [ownership] = results;
+      if (ownership) {
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error(
+        `Error during checkUserOwnership for idea "${ideaId}":`,
+        err,
+      );
+      return false;
+    }
+  }
+
+  static async getIdeaOwners(ideaId: string) {
+    try {
+      const db = await getDatabase();
+      const results = await db?.query<[IUser & { id: RecordId }[]]>(
+        `SELECT VALUE <-owns<-user FROM ONLY $ideaId;`,
+        {
+          ideaId,
+        },
+      );
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      const [users] = results;
+      return users;
+    } catch (err) {
+      console.error("Something went wrong", err);
       return undefined;
     }
   }
@@ -139,6 +233,7 @@ export class Idea {
   }
 
   static async graph(
+    userId: string,
     filters?:
       | {
           highlightedNode?: string;
@@ -148,12 +243,33 @@ export class Idea {
   ) {
     try {
       const db = await getDatabase();
-      const ideas = await db?.select<IIdea>("idea");
-      if (!ideas) {
-        console.error("No ideas found.");
+      const results = await db?.query<
+        [{ ideas: IIdea[]; connections: IIdeaConnection[] }]
+      >(
+        `LET $user = $userId;
+        LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY $user FETCH userIdeas;
+        LET $ideaIds = array::flatten($userIdeas[*].id);
+        LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
+        LET $ideas = $userIdeas.userIdeas;
+
+        RETURN {
+            ideas: $ideas,
+            connections: $connections,
+        };`,
+        {
+          userId,
+        },
+      );
+      if (!results) {
+        console.error("Something went wrong.");
         return undefined;
       }
-      const edges = await db?.select<IIdeaConnection>("connected");
+      const [graph] = results;
+      if (!graph) {
+        console.error("Something went wrong.");
+        return undefined;
+      }
+      const { ideas, connections } = graph;
       const flags: IDBGraph["flags"] = {
         embeddings: {
           synced: ideas.every((idea) => idea.embeddings),
@@ -163,11 +279,11 @@ export class Idea {
         const computedIdeas = Idea.attachComputedFieldsToCollection(ideas);
         return {
           ideas: computedIdeas,
-          edges,
+          edges: connections,
           flags,
         } as IDBGraphWithComputedFields;
       }
-      return { ideas, edges, flags } as IDBGraph;
+      return { ideas, edges: connections, flags } as IDBGraph;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -221,7 +337,7 @@ export class Idea {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaConnection & { id: RecordId }]>(
-        `RELATE $fromId -> connected -> $toId SET createdAt = $now;`,
+        `RELATE $fromId -> connected -> $toId CONTENT { createdAt: $now; }`,
         {
           fromId: new StringRecordId(from),
           toId: new StringRecordId(to),
@@ -243,7 +359,7 @@ export class Idea {
     try {
       const db = await getDatabase();
       const result = await db?.query<(IIdeaConnection & { id: RecordId })[]>(
-        "DELETE FROM connected WHERE source = $source AND target = $target",
+        "DELETE FROM connected WHERE source = $source AND target = $target;",
         {
           source,
           target,
@@ -263,26 +379,18 @@ export class Idea {
   static async getConnections(id: string) {
     try {
       const db = await getDatabase();
-      const incoming = await db?.query<
-        [{ incoming_connections: (IIdea & { id: RecordId })[] }[]]
+      const results = await db?.query<
+        [
+          { incoming_connections: (IIdea & { id: RecordId })[] },
+          {
+            outgoing_connections: (IIdea & { id: RecordId })[];
+          },
+        ]
       >(
         `
         SELECT <-connected<-idea AS incoming_connections
         FROM $id
         FETCH incoming_connections;
-        `,
-        {
-          id: new StringRecordId(id),
-        },
-      );
-      if (!incoming) {
-        console.error("No connections found.");
-        return undefined;
-      }
-      const outgoing = await db?.query<
-        [{ outgoing_connections: (IIdea & { id: RecordId })[] }[]]
-      >(
-        `
         SELECT ->connected->idea AS outgoing_connections
         FROM $id
         FETCH outgoing_connections;
@@ -291,14 +399,11 @@ export class Idea {
           id: new StringRecordId(id),
         },
       );
-      if (!outgoing) {
+      if (!results) {
         console.error("No connections found.");
         return undefined;
       }
-      const [incomingConnected] = incoming;
-      const [outgoingConnected] = outgoing;
-      const { incoming_connections } = incomingConnected[0];
-      const { outgoing_connections } = outgoingConnected[0];
+      const [{ incoming_connections }, { outgoing_connections }] = results;
       return { incoming: incoming_connections, outgoing: outgoing_connections };
     } catch (err) {
       console.error(err);
@@ -359,30 +464,32 @@ export class Idea {
   }
 
   static async findSimilar(
+    userId: string,
     rootNodeId: string,
     options: { limit?: number } = { limit: 10 },
   ) {
     try {
       const db = await getDatabase();
-      const rootNode = await Idea.get(rootNodeId);
-      if (!rootNode) {
-        console.error(`Root node with id ${rootNodeId} not found.`);
-        return;
-      }
       const limit = options.limit;
       const result = await db?.query<[(IIdeaAsRelation & { id: RecordId })[]]>(
         `
-        SELECT
-            *,
-            vector::similarity::cosine(embeddings, $query_embedding) AS distance
-        FROM
-            idea
-        ORDER BY
-            distance ASC
-        LIMIT ${limit};
-        `,
+        LET $embeddings = SELECT embeddings FROM ONLY $ideaId;
+        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY $userId;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance
+            FROM idea
+            WHERE id IN $userIdeas
+            ORDER BY distance ASC
+            LIMIT $limit;
+
+        RETURN $results;`,
         {
-          query_embedding: rootNode.embeddings,
+          ideaId: rootNodeId,
+          userId: userId,
+          limit,
         },
       );
       if (!result) {
@@ -400,22 +507,31 @@ export class Idea {
     }
   }
 
-  static async semanticSearch(embedding: number[], limit: number = 10) {
+  static async semanticSearch(
+    userId: string,
+    embedding: number[],
+    limit: number = 10,
+  ) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[(IIdeaAsRelation & { id: RecordId })[]]>(
         `
-        SELECT
-            *,
-            vector::similarity::cosine(embeddings, $query_embedding) AS distance
-        FROM
-            idea
-        ORDER BY
-            distance ASC
-        LIMIT ${limit};
-        `,
+        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY $userId;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance
+            FROM idea
+            WHERE id IN $userIdeas
+            ORDER BY distance ASC
+            LIMIT $limit;
+
+        RETURN $results;`,
         {
-          query_embedding: embedding,
+          userId: userId,
+          provided_embeddings: embedding,
+          limit,
         },
       );
       if (!result) {
@@ -430,35 +546,29 @@ export class Idea {
     }
   }
 
+  // TODO: update for users
   static async searchIdeas(
+    userId: string,
     query: string,
     options: { limit?: number; semanticThreshold?: number } = {},
   ): Promise<SearchResult[] | undefined> {
-    // --- Configuration ---
-    const limit = options.limit ?? 10; // Max results to return
-    // Default semantic threshold - filter results below this cosine similarity
+    const limit = options.limit ?? 10;
     const semanticThreshold = options.semanticThreshold ?? 0.5;
-    // Fetch more candidates than 'limit' initially to allow for good ranking
-    // Adjusted multiplier: fetching 3x allows more room for filtering/reranking
     const semanticLimitMultiplier = 3;
-    const initialFetchLimit = Math.max(limit * semanticLimitMultiplier, 20); // Fetch at least 20 potential candidates
+    const initialFetchLimit = Math.max(limit * semanticLimitMultiplier, 20);
 
-    // Weights and Bonuses - Emphasize semantic score, add large bonus for exact title
     const weights = {
-      semantic: 1.5, // Primary driver of the score
-      // Removed titleMatch and contentMatch weights
+      semantic: 1.5,
     };
-    const exactTitleBonus = 2.0; // Large bonus to push exact title matches to the top
+    const exactTitleBonus = 2.0;
 
-    // --- Search Execution ---
     try {
       const db = await getDatabase();
       if (!db) {
-        console.error("searchIdeas: Database connection not available.");
+        console.error("Database connection not available.");
         return undefined;
       }
 
-      // 1. Generate embedding for the query
       const embeddingProcessor = new Embeddings();
       const queryEmbedding = await embeddingProcessor.generateEmbeddings(query);
 
@@ -468,12 +578,10 @@ export class Idea {
         return undefined;
       }
 
-      // 2. Perform initial semantic search (vector search)
-      // Assuming Idea.semanticSearch returns candidates sorted by cosine similarity (higher is better)
-      // and the 'distance' field actually contains the cosine similarity score.
       const semanticCandidates = await Idea.semanticSearch(
+        userId,
         queryEmbedding,
-        initialFetchLimit, // Fetch more candidates
+        initialFetchLimit,
       );
 
       if (semanticCandidates === undefined) {
@@ -486,61 +594,45 @@ export class Idea {
         return [];
       }
 
-      // 3. Rerank based on Semantic Threshold, Exact Title Match, and Weighted Score
       const resultsWithScores: SearchResult[] = [];
-      const queryLower = query.toLowerCase().trim(); // Normalize query for comparison
+      const queryLower = query.toLowerCase().trim();
 
       for (const candidate of semanticCandidates) {
-        // a. Get raw semantic score (cosine similarity)
-        // Use 0 as fallback if distance is null/undefined for some reason
         const rawSemanticScore = candidate.distance ?? 0;
 
-        // b. Apply Semantic Threshold Filter
         if (rawSemanticScore < semanticThreshold) {
-          // console.log(`Skipping "${candidate.title}" due to low semantic score: ${rawSemanticScore}`);
-          continue; // Skip candidates below the relevance threshold
+          continue;
         }
 
-        // c. Check for Exact Title Match Bonus (Case-insensitive, trimmed)
         const currentExactTitleBonus =
           candidate.title?.toLowerCase().trim() === queryLower
             ? exactTitleBonus
             : 0;
 
-        // d. Calculate combined score
-        // Primarily driven by weighted semantic score, with a large boost for exact title match.
         const combinedScore =
           rawSemanticScore * weights.semantic + currentExactTitleBonus;
 
-        // e. Basic highlighting (placeholder)
         const highlightText = candidate.content
           ? candidate.content.substring(0, 150) +
             (candidate.content.length > 150 ? "..." : "")
           : "";
 
-        // No combined score threshold here anymore, relying on semantic threshold primarily.
-        // We filter based on semantic relevance first.
         resultsWithScores.push({
           idea: {
             ...candidate,
-            id: candidate.id.toString(), // Convert RecordId to string if needed
-            // Ensure 'distance' field is handled/removed if not part of IIdea
+            id: candidate.id.toString(),
           } as IIdea,
           score: combinedScore,
           highlightText: highlightText,
           debug: {
-            // Add debug info
             semanticScore: rawSemanticScore,
             exactTitleBonus: currentExactTitleBonus,
           },
         });
       }
 
-      // 4. Sort by final combined score (descending)
       resultsWithScores.sort((a, b) => b.score - a.score);
 
-      // 5. Return the top N results, up to the limit.
-      // Prioritizes relevance - if fewer than 'limit' items pass the semantic threshold, less will be returned.
       return resultsWithScores.slice(0, limit);
     } catch (err) {
       console.error(`Error during searchIdeas for query "${query}":`, err);

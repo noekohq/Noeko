@@ -88,26 +88,17 @@ const Node = ({
   const circleRef = useRef<SVGCircleElement>(null);
 
   const getCoordinateBasedDelay = () => {
-    // closer to the center, delay is shorter
+    // delay gets higher on a top left to bottom right gradient
     if (!node || !node.x || !node.y) return 0;
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const distance = Math.sqrt(
-      Math.pow(node.x - centerX, 2) + Math.pow(node.y - centerY, 2),
-    );
-    const maxDistance = Math.sqrt(
-      Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2),
-    );
-    const delay = Math.max(
-      0,
-      Math.min(1000, 1000 * (1 - distance / maxDistance)),
-    );
+    const x = node.x;
+    const y = node.y;
+    const delay = Math.sqrt(x * x + y * y) * 10;
     return delay;
   };
 
   useEffect(() => {
     if (circleRef.current) {
-      circleRef.current.style.animationDelay = `${randomDelay()}ms`;
+      circleRef.current.style.animationDelay = `${getCoordinateBasedDelay()}ms`;
     }
   }, []);
 

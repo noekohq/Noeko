@@ -90,7 +90,10 @@ export class User {
           updatedAt: Date;
         }
       >("user", {
-        ...form,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
         roles,
         createdAt: new Date(),
         updatedAt: new Date(),
