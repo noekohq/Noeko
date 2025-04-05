@@ -404,13 +404,13 @@ export class Token {
   static async up() {
     try {
       const db = await getDatabase();
-      await db?.query(`DEFINE TABLE IF NOT EXISTS token SCHEMAFULL;
-      DEFINE FIELD IF NOT EXISTS id ON TABLE token TYPE string;
-      DEFINE FIELD IF NOT EXISTS token ON TABLE token TYPE string;
-      DEFINE FIELD IF NOT EXISTS createdAt ON TABLE token TYPE string;
-      DEFINE FIELD IF NOT EXISTS expiresAt ON TABLE token TYPE string;
-      DEFINE FIELD IF NOT EXISTS user ON TABLE token TYPE record<user>;
-      DEFINE FIELD IF NOT EXISTS type ON TABLE token TYPE string;
+      await db?.query(`DEFINE TABLE IF NOT EXISTS user_token SCHEMAFULL;
+      DEFINE FIELD IF NOT EXISTS id ON TABLE user_token TYPE string;
+      DEFINE FIELD IF NOT EXISTS token ON TABLE user_token TYPE string;
+      DEFINE FIELD IF NOT EXISTS createdAt ON TABLE user_token TYPE string;
+      DEFINE FIELD IF NOT EXISTS expiresAt ON TABLE user_token TYPE string;
+      DEFINE FIELD IF NOT EXISTS user ON TABLE user_token TYPE record<user>;
+      DEFINE FIELD IF NOT EXISTS type ON TABLE user_token TYPE string;
       `);
     } catch (error) {
       console.error("Error defining token schema:", error);
@@ -426,18 +426,29 @@ export class Token {
   ) {
     try {
       const db = await getDatabase();
-      const result = await db?.create<IToken, ITokenForm>("token", {
-        token: token,
-        user: user,
-        type: type,
-        createdAt: new Date(),
-        expiresAt: expiresAt,
-      });
+      const result = await db?.query<[IToken]>(
+        `
+        INSERT INTO user_token {
+          user: <record> $userId,
+          type: $type,
+          token: $tokenValue,
+          createdAt: $createdAt,
+          expiresAt: $expiresAt
+        };
+        `,
+        {
+          tokenValue: token,
+          userId: user.id,
+          type: type,
+          createdAt: new Date(),
+          expiresAt: expiresAt,
+        },
+      );
       if (!result) {
         console.error("Failed to create token");
         return undefined;
       }
-      const tokenRecord = result;
+      const [tokenRecord] = result;
       return tokenRecord;
     } catch (error) {
       console.error("Error creating token:", error);
@@ -448,9 +459,12 @@ export class Token {
   static async findByToken(token: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IToken]>("token", {
-        token: token,
-      });
+      const result = await db?.query<[IToken]>(
+        "SELECT VALUE * FROM user_token WHERE token = $token;",
+        {
+          token,
+        },
+      );
       if (!result) {
         console.error("Failed to find token");
         return undefined;
@@ -466,7 +480,7 @@ export class Token {
   static async findByUser(user: IUser) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IToken]>("token", {
+      const result = await db?.query<[IToken]>("user_token", {
         user: user.id,
       });
       if (!result) {
@@ -484,7 +498,7 @@ export class Token {
   static async get(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IToken>(new RecordId("token", id));
+      const result = await db?.select<IToken>(new RecordId("user_token", id));
       if (!result) {
         console.error("Failed to find token");
         return undefined;
@@ -500,7 +514,7 @@ export class Token {
   static async delete(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.delete(new RecordId("token", id));
+      const result = await db?.delete(new RecordId("user_token", id));
       if (!result) {
         console.error("Failed to delete token");
         return undefined;

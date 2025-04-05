@@ -78,6 +78,78 @@ export class Idea {
     };
   }
 
+  static async up() {
+    const userGraphFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::user_graph(
+        $userId: string,
+      ) {
+        LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY <record> $userId FETCH userIdeas;
+        LET $ideaIds = array::flatten($userIdeas[*].id);
+        LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
+        LET $ideas = $userIdeas.userIdeas;
+
+        RETURN {
+            ideas: $ideas,
+            connections: $connections,
+        };
+      }
+      `;
+    };
+
+    const searchSimilarToIdea = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
+        $ideaId: string,
+        $userId: string,
+        $limit: int
+      ) {
+        LET $embeddings = SELECT embeddings FROM ONLY <record> $ideaId;
+        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance
+            FROM idea
+            WHERE id IN $userIdeas
+            ORDER BY distance ASC
+            LIMIT $limit;
+
+        RETURN $results;
+      }
+      `;
+    };
+
+    const searchSimilarToEmbeddings = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
+        $provided_embeddings: array<float>,
+        $userId: string,
+        $limit: int
+      ) {
+        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance
+            FROM idea
+            WHERE id IN $userIdeas
+            ORDER BY distance ASC
+            LIMIT $limit;
+
+        RETURN $results;
+      }
+      `;
+    };
+
+    const db = await getDatabase();
+    await db?.query(userGraphFunction());
+    await db?.query(searchSimilarToIdea());
+    await db?.query(searchSimilarToEmbeddings());
+  }
+
   static attachComputedFieldsToCollection(
     ideas: IIdea[],
   ): IIdeaWithComputedFields[] {
@@ -243,30 +315,12 @@ export class Idea {
   ) {
     try {
       const db = await getDatabase();
-      const results = await db?.query<
-        [{ ideas: IIdea[]; connections: IIdeaConnection[] }]
-      >(
-        `LET $user = $userId;
-        LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY $user FETCH userIdeas;
-        LET $ideaIds = array::flatten($userIdeas[*].id);
-        LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
-        LET $ideas = $userIdeas.userIdeas;
-
-        RETURN {
-            ideas: $ideas,
-            connections: $connections,
-        };`,
-        {
-          userId,
-        },
-      );
-      if (!results) {
-        console.error("Something went wrong.");
-        return undefined;
-      }
-      const [graph] = results;
+      const graph = await db?.run<{
+        ideas: IIdea[];
+        connections: IIdeaConnection[];
+      }>("fn::user_graph", [userId]);
       if (!graph) {
-        console.error("Something went wrong.");
+        console.error("Something went wrong. Graph undefined.");
         return undefined;
       }
       const { ideas, connections } = graph;
@@ -379,6 +433,7 @@ export class Idea {
   static async getConnections(id: string) {
     try {
       const db = await getDatabase();
+      // TODO: REFACTOR THIS TO USE A FUNCTION INSTEAD
       const results = await db?.query<
         [
           { incoming_connections: (IIdea & { id: RecordId })[] },
@@ -399,6 +454,7 @@ export class Idea {
           id: new StringRecordId(id),
         },
       );
+      console.log("Results: ", results);
       if (!results) {
         console.error("No connections found.");
         return undefined;
@@ -471,32 +527,14 @@ export class Idea {
     try {
       const db = await getDatabase();
       const limit = options.limit;
-      const result = await db?.query<[(IIdeaAsRelation & { id: RecordId })[]]>(
-        `
-        LET $embeddings = SELECT embeddings FROM ONLY $ideaId;
-        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY $userId;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance
-            FROM idea
-            WHERE id IN $userIdeas
-            ORDER BY distance ASC
-            LIMIT $limit;
-
-        RETURN $results;`,
-        {
-          ideaId: rootNodeId,
-          userId: userId,
-          limit,
-        },
+      const ideas = await db?.run<(IIdeaAsRelation & { id: RecordId })[]>(
+        "fn::search_similar_to_idea",
+        [rootNodeId, userId, limit],
       );
-      if (!result) {
+      if (!ideas) {
         console.error(`No ideas found.`);
         return;
       }
-      const [ideas] = result;
       const filteredIdeas = ideas.filter((idea) => {
         return idea.id.toString() !== rootNodeId;
       });
@@ -514,31 +552,14 @@ export class Idea {
   ) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[(IIdeaAsRelation & { id: RecordId })[]]>(
-        `
-        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY $userId;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance
-            FROM idea
-            WHERE id IN $userIdeas
-            ORDER BY distance ASC
-            LIMIT $limit;
-
-        RETURN $results;`,
-        {
-          userId: userId,
-          provided_embeddings: embedding,
-          limit,
-        },
+      const ideas = await db?.run<(IIdeaAsRelation & { id: RecordId })[]>(
+        "fn::search_similar_to_embeddings",
+        [embedding, userId, limit],
       );
-      if (!result) {
+      if (!ideas) {
         console.error(`No ideas found.`);
         return;
       }
-      const [ideas] = result;
       return ideas;
     } catch (err) {
       console.error(err);
@@ -546,7 +567,6 @@ export class Idea {
     }
   }
 
-  // TODO: update for users
   static async searchIdeas(
     userId: string,
     query: string,
