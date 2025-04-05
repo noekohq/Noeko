@@ -44,7 +44,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         message: "Please log in to continue",
         color: "red",
       });
-      clearTokens();
+      // clearTokens();
       console.error(error);
     },
     runOnMount: localStorage.getItem("accessToken") ? true : false,
