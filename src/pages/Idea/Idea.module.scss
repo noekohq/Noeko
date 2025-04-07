@@ -4,6 +4,6 @@
 
 .ideaPreview {
     &.hovered {
-        opacity: .5;
+        border-color: var(--mantine-color-white);
     }
 }

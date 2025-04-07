@@ -2,7 +2,11 @@ import { Router } from "express";
 import { checkIsSuperuser, checkToken } from "../middlware/auth";
 import { ISafeUser, IUser, User } from "../database/models/user";
 import { hashPassword, verifyPassword } from "../utils/crypto";
-import { getFromReq } from "../utils/middleware";
+import {
+  addRefreshTokenToRes,
+  getFromReq,
+  getRefreshTokenFromReq,
+} from "../utils/requests";
 
 const router = Router();
 
@@ -64,6 +68,11 @@ router.post("/login", async (req, res) => {
     }
     const token = await User.generateAccessToken(user);
     const refreshToken = await User.generateRefreshToken(user);
+    if (!refreshToken) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+    await addRefreshTokenToRes(res, refreshToken);
     res.json({
       message: "User logged in successfully",
       data: { accessToken: token, refreshToken: refreshToken },
@@ -87,7 +96,7 @@ router.get("/me", checkToken, async (req, res) => {
 
 router.post("/refresh", async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = await getRefreshTokenFromReq(req);
     if (!refreshToken) {
       res.status(400).json({ message: "Missing refresh token" });
       return;

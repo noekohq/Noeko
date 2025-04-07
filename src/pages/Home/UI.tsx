@@ -147,7 +147,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
       if (
         (event.ctrlKey || event.metaKey) &&
         event.shiftKey &&
-        event.key === "a"
+        event.key === "i"
       ) {
         setOpened(!opened);
       }
