@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useNavigate } from "react-router";
 import styles from "./App.module.scss";
+import { Loader } from "@mantine/core";
 
 import Home from "./pages/Home/Home";
 import Idea from "./pages/Idea/Idea";
@@ -13,7 +14,7 @@ import Settings from "./pages/Settings/Settings";
 
 export default function App() {
   const navigate = useNavigate();
-  const { user, loggedIn } = useAuth();
+  const { user, loggedIn, loading: loadingAuth } = useAuth();
 
   useEffect(() => {
     document.addEventListener("keydown", (event) => {
@@ -38,6 +39,14 @@ export default function App() {
       });
     };
   }, []);
+
+  if (loadingAuth) {
+    return (
+      <>
+        <Loader size="lg" />
+      </>
+    );
+  }
 
   if (!loggedIn) {
     return (

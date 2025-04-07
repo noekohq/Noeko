@@ -459,18 +459,20 @@ export class Token {
   static async findByToken(token: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IToken]>(
-        "SELECT VALUE * FROM user_token WHERE token = $token;",
+      const result = await db?.query<[IToken[]]>(
+        "SELECT * FROM user_token WHERE token = $token;",
         {
           token,
         },
       );
+      console.log("Query result:", result);
       if (!result) {
         console.error("Failed to find token");
         return undefined;
       }
       const [tokenRecord] = result;
-      return tokenRecord;
+      const fullToken = tokenRecord[0];
+      return fullToken;
     } catch (error) {
       console.error("Error finding token:", error);
       throw error;
