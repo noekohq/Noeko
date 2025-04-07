@@ -10,7 +10,7 @@ import { Embeddings } from "../semantics/embeddings";
 import { RecordId } from "surrealdb";
 import { getLM } from "../semantics/lm";
 import { checkIsSuperuser, checkToken } from "../middlware/auth";
-import { getFromReq } from "../utils/middleware";
+import { getFromReq } from "../utils/requests";
 import { IUser, User } from "../database/models/user";
 
 const router = Router();

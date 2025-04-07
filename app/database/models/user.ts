@@ -406,12 +406,13 @@ export class Token {
       const db = await getDatabase();
       await db?.query(`DEFINE TABLE IF NOT EXISTS user_token SCHEMAFULL;
       DEFINE FIELD IF NOT EXISTS id ON TABLE user_token TYPE string;
-      DEFINE FIELD IF NOT EXISTS token ON TABLE user_token TYPE string;
+      DEFINE FIELD IF NOT EXISTS value ON TABLE user_token TYPE string;
       DEFINE FIELD IF NOT EXISTS createdAt ON TABLE user_token TYPE string;
       DEFINE FIELD IF NOT EXISTS expiresAt ON TABLE user_token TYPE string;
       DEFINE FIELD IF NOT EXISTS user ON TABLE user_token TYPE record<user>;
       DEFINE FIELD IF NOT EXISTS type ON TABLE user_token TYPE string;
       `);
+      console.info("Defined user_token table");
     } catch (error) {
       console.error("Error defining token schema:", error);
       throw error;
@@ -431,7 +432,7 @@ export class Token {
         INSERT INTO user_token {
           user: <record> $userId,
           type: $type,
-          token: $tokenValue,
+          value: $tokenValue,
           createdAt: $createdAt,
           expiresAt: $expiresAt
         };
@@ -460,12 +461,11 @@ export class Token {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IToken[]]>(
-        "SELECT * FROM user_token WHERE token = $token;",
+        "SELECT * FROM user_token WHERE value = $token;",
         {
           token,
         },
       );
-      console.log("Query result:", result);
       if (!result) {
         console.error("Failed to find token");
         return undefined;

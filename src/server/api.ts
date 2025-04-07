@@ -1,9 +1,13 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  InternalAxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
 
 // --- Configuration ---
-// Ensure VITE_SERVER_LOCATION is defined in your .env file
 const serverLocation = import.meta.env.VITE_SERVER_LOCATION;
 const refreshEndpoint = "/users/refresh"; // Your refresh token endpoint
+const logoutEndpoint = "/users/logout"; // Your backend logout endpoint
 
 if (!serverLocation) {
   throw new Error(
@@ -13,46 +17,53 @@ if (!serverLocation) {
 
 const baseURL = `${serverLocation}/api`;
 
-// --- Helper Functions ---
+// --- Helper Functions (Simplified) ---
 
-const getToken = (): string | null => localStorage.getItem("token");
-const getRefreshToken = (): string | null =>
-  localStorage.getItem("refreshToken");
-const setToken = (token: string): void => localStorage.setItem("token", token);
-const setRefreshToken = (refreshToken: string): void =>
-  localStorage.setItem("refreshToken", refreshToken);
-const removeTokens = (): void => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("refreshToken");
+// Decide where to store the access token: localStorage, sessionStorage, or in-memory
+// localStorage is used here for persistence, but consider memory for slightly better XSS protection.
+const getAccessToken = (): string | null => localStorage.getItem("accessToken");
+const setAccessToken = (token: string): void =>
+  localStorage.setItem("accessToken", token);
+const removeAccessToken = (): void => {
+  localStorage.removeItem("accessToken");
 };
 
 // --- Axios Instance Creation ---
 
 export const api = axios.create({
   baseURL: baseURL,
+  // Crucial: Send cookies with requests, necessary for the HttpOnly refresh token
+  withCredentials: true,
 });
 
 // --- Request Interceptor ---
-// Adds the Authorization header to outgoing requests
+// Adds the Authorization header (Access Token) to outgoing requests
 
 api.interceptors.request.use(
   (config): InternalAxiosRequestConfig => {
-    const token = getToken();
-    if (token && !config.headers.Authorization) {
-      // Add token if not already present
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = getAccessToken();
+    // Add token only if it exists and the header isn't already set
+    // Important: Don't add Authorization header to the refresh request itself
+    // if your backend expects *only* the cookie for refresh authentication.
+    // Check if your backend refresh endpoint requires the Authorization header or not.
+    // Assuming here it does NOT require Authorization header, only the cookie.
+    if (
+      accessToken &&
+      !config.headers.Authorization &&
+      config.url !== refreshEndpoint
+    ) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
   (error): Promise<AxiosError> => {
-    // Handle request configuration errors
     console.error("Request config error:", error);
     return Promise.reject(error);
   },
 );
 
 // --- Response Interceptor ---
-// Handles 401 errors and token refreshing
+// Handles 401 errors (Access Token expired) and triggers token refreshing
 
 let isRefreshing = false;
 let failedQueue: {
@@ -65,14 +76,38 @@ const processQueue = (error: Error | null, token: string | null = null) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      prom.resolve(token); // Resolve with the new access token
     }
   });
   failedQueue = [];
 };
 
+// --- Logout Function ---
+// Needs to be callable by the interceptor. Could be passed in or managed via state.
+// IMPORTANT: This function MUST call the backend logout endpoint.
+let _logoutHandler: () => Promise<void> = async () => {
+  console.warn("Logout handler not configured. Attempting basic cleanup.");
+  removeAccessToken();
+  // Make a request to the backend logout endpoint to clear the HttpOnly cookie
+  try {
+    // Ensure this request also goes with credentials if needed by backend
+    await api.post(logoutEndpoint, {}, { withCredentials: true });
+    console.log("Backend logout call successful (cookie should be cleared).");
+  } catch (logoutError) {
+    console.error("Backend logout call failed:", logoutError);
+    // Still proceed with frontend cleanup & potential redirect
+  }
+  // Redirect or update state after attempting backend logout
+  // Example: window.location.href = '/login'; // Use React Router navigate instead
+};
+
+// Function to configure the logout handler (e.g., from your Auth context)
+export const configureLogoutHandler = (logoutHandler: () => Promise<void>) => {
+  _logoutHandler = logoutHandler;
+};
+
 api.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     // Any status code within the range of 2xx cause this function to trigger
     return response;
   },
@@ -82,19 +117,22 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Check for 401 Unauthorized and ensure it's not the refresh endpoint itself
+    // Check for 401 Unauthorized, ensure it's not a retry, and not the refresh endpoint itself failing
     if (
       error.response?.status === 401 &&
-      originalRequest.url !== refreshEndpoint
+      originalRequest.url !== refreshEndpoint &&
+      !originalRequest._retry // Important to prevent infinite loops if refresh fails with 401
     ) {
       if (isRefreshing) {
         // If token is already being refreshed, queue the original request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
+          .then((newAccessToken) => {
+            // Update header of the queued request with the new access token
             if (originalRequest.headers) {
-              originalRequest.headers["Authorization"] = "Bearer " + token;
+              originalRequest.headers["Authorization"] =
+                "Bearer " + newAccessToken;
             }
             return api(originalRequest); // Retry with new token
           })
@@ -103,102 +141,110 @@ api.interceptors.response.use(
           });
       }
 
-      originalRequest._retry = true; // Mark request to avoid infinite loops if refresh fails repeatedly
+      originalRequest._retry = true; // Mark request to avoid infinite loops
       isRefreshing = true;
 
-      const refreshToken = getRefreshToken();
-
-      if (!refreshToken) {
-        console.error("No refresh token available.");
-        isRefreshing = false;
-        // --- Logout Logic Here ---
-        // Example: Redirect to login or trigger global logout state
-        removeTokens();
-        // window.location.href = '/login'; // Consider using React Router's navigate for better UX
-        processQueue(new Error("No refresh token, user logged out."), null);
-        return Promise.reject(error);
-      }
-
       try {
-        console.log("Attempting token refresh...");
-        const refreshResponse = await axios.post<{
-          accessToken: string;
-          refreshToken?: string;
-        }>( // Adjust<{...}> based on your API response
-          `${baseURL}${refreshEndpoint}`,
-          { refreshToken: refreshToken }, // Send refreshToken in the body
+        console.log("Attempting token refresh via HttpOnly cookie...");
+
+        // Make the refresh request. The browser automatically sends the HttpOnly cookie
+        // because `withCredentials: true` is set on the Axios instance.
+        // We don't send the refresh token in the body.
+        const refreshResponse = await api.post<{ accessToken: string }>( // Adjust<{...}> based on your API response
+          refreshEndpoint,
+          {}, // Empty body, refresh token is in the cookie
+          // Redundant if withCredentials is global, but explicit for clarity
+          // { withCredentials: true }
         );
 
-        const { accessToken, refreshToken: newRefreshToken } =
-          refreshResponse.data;
+        const { accessToken } = refreshResponse.data;
 
         console.log("Token refresh successful.");
-        setToken(accessToken);
-        if (newRefreshToken) {
-          // Handle if your backend sends back a new refresh token
-          setRefreshToken(newRefreshToken);
-        }
+        setAccessToken(accessToken); // Store the new access token
 
-        // Update the Authorization header for the current request
-        if (api.defaults.headers.common) {
-          api.defaults.headers.common["Authorization"] =
-            `Bearer ${accessToken}`;
-        }
+        // Update the Authorization header for the current failed request
         if (originalRequest.headers) {
           originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
         }
 
-        processQueue(null, accessToken); // Process queued requests with the new token
-        return api(originalRequest); // Retry the original request
+        // Process queued requests with the new access token
+        processQueue(null, accessToken);
+
+        // Retry the original request with the new access token
+        return api(originalRequest);
       } catch (refreshError: any) {
         console.error(
           "Token refresh failed:",
           refreshError?.response?.data || refreshError.message,
         );
-        removeTokens();
+
+        // Refresh failed, likely invalid/expired refresh token cookie. Log out.
         processQueue(refreshError, null); // Reject queued requests
-        // --- Logout Logic Here ---
-        // Example: Redirect to login or trigger global logout state
-        // window.location.href = '/login'; // Consider using React Router's navigate
+        await _logoutHandler(); // Trigger the configured logout process (clears access token, calls backend logout)
         return Promise.reject(refreshError); // Reject the original request's promise
       } finally {
         isRefreshing = false;
       }
     }
 
-    // For errors other than 401, just return the promise rejection
+    // For errors other than 401 or handled retries, just return the promise rejection
     return Promise.reject(error);
   },
 );
 
-// --- React Integration Considerations ---
+// --- React Integration Considerations (Updated) ---
 
-// 1. Logout:
-//    - Instead of `window.location.href`, it's better to integrate with your app's state management (Context, Redux, Zustand) or routing (React Router).
-//    - You might need to pass a `logout` function or React Router's `Maps` function into this module during setup, or emit a custom event that your UI layer listens for.
-//    Example using a callback:
+// 1. Logout Handler Configuration:
+//    - In your main App component or Auth Context setup, import and call `configureLogoutHandler`.
+//    - Pass a function that clears frontend state (e.g., user context), calls `removeAccessToken()`, makes the necessary backend `/logout` call, and redirects using React Router's `Maps`.
 /*
-let _logoutHandler: () => void = () => {
-  console.warn("Logout handler not configured in axiosInstance.");
-  removeTokens();
-  window.location.href = '/login'; // Fallback
-};
+   // Example in an AuthContext.tsx
+   import { configureLogoutHandler, api, removeAccessToken } from './api/axiosInstance';
+   import { useNavigate } from 'react-router-dom';
+   import { useCallback, useEffect } from 'react';
 
-export const configureAxiosInterceptors = (logoutHandler: () => void) => {
- _logoutHandler = logoutHandler;
-};
+   const AuthProvider = ({ children }) => {
+     const navigate = useNavigate();
 
-// Inside the catch blocks where logout is needed:
-_logoutHandler();
+     const handleLogout = useCallback(async () => {
+       console.log("Executing logout handler...");
+       removeAccessToken(); // Clear frontend token state/storage
+       try {
+         // Call backend to clear HttpOnly cookie
+         await api.post('/users/logout', {}, { withCredentials: true });
+         console.log("Backend logout successful.");
+       } catch (error) {
+         console.error("Backend logout failed:", error);
+         // Decide how to handle this - usually proceed with frontend logout anyway
+       } finally {
+         // Clear any other user state (e.g., context state) here
+         // setUser(null);
+         navigate('/login'); // Redirect to login
+       }
+     }, [navigate]);
+
+     useEffect(() => {
+       // Configure the handler when the auth provider mounts
+       configureLogoutHandler(handleLogout);
+     }, [handleLogout]);
+
+     // ... rest of your auth context logic
+     return <AuthContext.Provider value={...}>{children}</AuthContext.Provider>;
+   }
 */
 
-// 2. Token Storage:
-//    - `localStorage` is simple but vulnerable to XSS. Consider `sessionStorage` (clears on tab close) or storing tokens in memory within your auth state manager (more secure but requires fetching on app load). HttpOnly cookies set by the backend are the most secure method if you control the backend.
+// 2. Access Token Storage:
+//    - `localStorage` was used above. Consider `sessionStorage` (clears on tab close) or storing the access token in React's memory state (e.g., in your Auth Context). Storing in memory is generally safer against XSS but requires refetching/refreshing on page load/app start. HttpOnly cookies are the most secure for the *refresh token*.
 
 // 3. Environment Variables:
-//    - Make sure `VITE_SERVER_LOCATION` is correctly set in your `.env` file(s) (e.g., `.env.development`, `.env.production`).
+//    - Still ensure `VITE_SERVER_LOCATION` is correctly set.
 
-// --- Usage in React Components ---
+// 4. CSRF Protection:
+//    - If your backend uses cookie-based sessions or requires CSRF protection (highly recommended, especially with `withCredentials: true`), ensure your Axios setup handles CSRF tokens correctly (often involving reading a CSRF cookie and sending it back in a header like `X-CSRF-TOKEN`). Axios might need further interceptor logic for this depending on your backend framework.
+
+// --- Usage in React Components (Mostly Unchanged) ---
+// The component usage remains largely the same, but error handling might
+// simplify slightly as logout is more centrally managed.
 /*
 import { api } from './api/axiosInstance';
 import { useEffect, useState } from 'react';
@@ -206,28 +252,39 @@ import { useEffect, useState } from 'react';
 function MyComponent() {
   const [data, setData] = useState(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const response = await api.get('/protected-data');
         setData(response.data);
         setError(null);
       } catch (err: any) {
          console.error("Failed to fetch data:", err);
-         // Handle error display in UI - check if it's an auth error leading to logout
-         if (err.message?.includes("refresh failed") || err.response?.status === 401) {
-            // The interceptor likely handled logout, maybe show a "Session expired" message
-            setError("Your session may have expired. Please log in again.");
-         } else {
-           setError(err.message || 'An unknown error occurred');
+         // Check if the error indicates a logout occurred via interceptor
+         if (err.message?.includes("Token refresh failed")) {
+             // Interceptor handled logout, maybe show a generic "Session expired" or rely on redirect
+             setError("Your session has expired. Redirecting to login...");
+             // Note: The actual redirect is handled by the configured logout handler
+         } else if (err.response?.status === 401) {
+             // This might happen if the initial token is bad / logout already happened
+              setError("Authentication failed. Please log in.");
          }
+          else {
+            setError(err.response?.data?.message || err.message || 'An unknown error occurred');
+          }
+      } finally {
+          setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  // Render logic based on data and error states...
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
+  // Render logic based on data ...
 }
 */

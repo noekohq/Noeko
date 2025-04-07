@@ -1,0 +1,7 @@
+@use "../../styles/mixins.scss" as *;
+
+.container {
+    @include desktop {
+        /* width: 50%; */
+    }
+}

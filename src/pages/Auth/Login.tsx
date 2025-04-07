@@ -86,7 +86,7 @@ export default function Login() {
       }}
     >
       <Flex justify="center" align="center" h="100%">
-        <Card w={{ sm: "190vw", md: "50vw", lg: "30vw" }} p="lg">
+        <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
           <Grid>
             {loadingLogin && (
               <Grid.Col span={12}>

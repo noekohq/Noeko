@@ -321,7 +321,7 @@ export default function Idea() {
               }}
             >
               <Grid>
-                {draggingOverConnectionDrop && (
+                {draggingOverConnectionDrop && draggedIdea && (
                   <Overlay
                     backgroundOpacity={0.5}
                     blur={5}
@@ -576,7 +576,7 @@ function IdeaPreview({
         setHoveringIdea(idea.id);
       }}
       onMouseLeave={() => {
-        setHoveringIdea(idea.id);
+        setHoveringIdea(undefined);
       }}
       className={`${styles.ideaPreview} ${hoveringIdea === idea.id ? styles.hovered : ""}`}
     >

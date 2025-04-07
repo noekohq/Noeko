@@ -10,10 +10,14 @@ import cors from "cors";
 
 config();
 
-const { PORT } = process.env;
+const { PORT, CLIENT_ORIGIN } = process.env;
 
 if (!PORT || !Number(PORT)) {
   throw new Error("PORT is not defined or not a number");
+}
+
+if (!CLIENT_ORIGIN) {
+  throw new Error("CLIENT_ORIGIN is not defined");
 }
 
 await initDatabase();
@@ -24,11 +28,11 @@ app.use(Express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "*",
+    origin: CLIENT_ORIGIN,
     credentials: true,
   }),
   (_, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", CLIENT_ORIGIN);
     res.header(
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept",
