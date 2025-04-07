@@ -10,6 +10,7 @@ type IAuthContext = {
   clearTokens: () => void;
   loadUser: () => Promise<void>;
   logout: () => Promise<void>;
+  loading: boolean;
 };
 
 const initialAuthContext: IAuthContext = {
@@ -19,6 +20,7 @@ const initialAuthContext: IAuthContext = {
   clearTokens: () => {},
   loadUser: async () => {},
   logout: async () => {},
+  loading: false,
 };
 
 const AuthContext = React.createContext<IAuthContext>(initialAuthContext);
@@ -36,7 +38,11 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("refreshToken");
   };
 
-  const { data: user, load: loadUser } = useFetch<undefined, ISafeUser>({
+  const {
+    data: user,
+    load: loadUser,
+    loading,
+  } = useFetch<undefined, ISafeUser>({
     url: "/users/me",
     onError: (error) => {
       showNotification({
@@ -44,7 +50,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         message: "Please log in to continue",
         color: "red",
       });
-      // clearTokens();
+      clearTokens();
       console.error(error);
     },
     runOnMount: localStorage.getItem("accessToken") ? true : false,
@@ -54,6 +60,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value: IAuthContext = {
     user,
+    loading,
     loggedIn,
     setTokens,
     clearTokens,

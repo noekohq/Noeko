@@ -144,10 +144,27 @@ export class Idea {
       `;
     };
 
+    const getIdeaConnections = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_idea_connections(
+        $ideaId: string,
+      ) {
+        LET $incoming = SELECT VALUE <-connected<-idea FROM ONLY <record> $ideaId FETCH idea;
+        LET $outgoing = SELECT VALUE ->connected->idea FROM ONLY <record> $ideaId FETCH idea;
+
+        RETURN {
+            incoming: $incoming,
+            outgoing: $outgoing,
+        };
+      }
+      `;
+    };
+
     const db = await getDatabase();
     await db?.query(userGraphFunction());
     await db?.query(searchSimilarToIdea());
     await db?.query(searchSimilarToEmbeddings());
+    await db?.query(getIdeaConnections());
   }
 
   static attachComputedFieldsToCollection(
@@ -434,33 +451,17 @@ export class Idea {
     try {
       const db = await getDatabase();
       // TODO: REFACTOR THIS TO USE A FUNCTION INSTEAD
-      const results = await db?.query<
-        [
-          { incoming_connections: (IIdea & { id: RecordId })[] },
-          {
-            outgoing_connections: (IIdea & { id: RecordId })[];
-          },
-        ]
-      >(
-        `
-        SELECT <-connected<-idea AS incoming_connections
-        FROM $id
-        FETCH incoming_connections;
-        SELECT ->connected->idea AS outgoing_connections
-        FROM $id
-        FETCH outgoing_connections;
-        `,
-        {
-          id: new StringRecordId(id),
-        },
-      );
+      const results = await db?.run<{
+        incoming: (IIdea & { id: RecordId })[];
+        outgoing: (IIdea & { id: RecordId })[];
+      }>("fn::get_idea_connections", [id]);
       console.log("Results: ", results);
       if (!results) {
         console.error("No connections found.");
         return undefined;
       }
-      const [{ incoming_connections }, { outgoing_connections }] = results;
-      return { incoming: incoming_connections, outgoing: outgoing_connections };
+      const { incoming, outgoing } = results;
+      return { incoming, outgoing };
     } catch (err) {
       console.error(err);
       return undefined;
