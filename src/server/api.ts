@@ -92,7 +92,6 @@ let _logoutHandler: () => Promise<void> = async () => {
   try {
     // Ensure this request also goes with credentials if needed by backend
     await api.post(logoutEndpoint, {}, { withCredentials: true });
-    console.log("Backend logout call successful (cookie should be cleared).");
   } catch (logoutError) {
     console.error("Backend logout call failed:", logoutError);
     // Still proceed with frontend cleanup & potential redirect
@@ -145,8 +144,6 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log("Attempting token refresh via HttpOnly cookie...");
-
         // Make the refresh request. The browser automatically sends the HttpOnly cookie
         // because `withCredentials: true` is set on the Axios instance.
         // We don't send the refresh token in the body.
@@ -159,7 +156,6 @@ api.interceptors.response.use(
 
         const { accessToken } = refreshResponse.data;
 
-        console.log("Token refresh successful.");
         setAccessToken(accessToken); // Store the new access token
 
         // Update the Authorization header for the current failed request

@@ -16,7 +16,7 @@ const Client = () => {
   return (
     <BrowserRouter>
       <MantineProvider theme={theme} defaultColorScheme="dark">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-right" />
         <AuthProvider>
           <GraphProvider>
             <App />

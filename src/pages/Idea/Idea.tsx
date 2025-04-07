@@ -243,8 +243,6 @@ export default function Idea() {
     url: `/graph/ideas/`,
   });
 
-  console.log("Idea connections: ", idea?.connections);
-
   return (
     <div className={styles.idea}>
       <Drawer

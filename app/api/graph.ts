@@ -3,13 +3,11 @@ import {
   Idea,
   IIdea,
   IIdeaAsRelation,
-  IIdeaConnection,
   IIdeaForm,
 } from "../database/models/idea";
-import { Embeddings } from "../semantics/embeddings";
 import { RecordId } from "surrealdb";
 import { getLM } from "../semantics/lm";
-import { checkIsSuperuser, checkToken } from "../middlware/auth";
+import { checkIsSuperuser, checkToken } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { IUser, User } from "../database/models/user";
 

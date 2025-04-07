@@ -24,6 +24,7 @@ import {
   Stack,
   Alert,
   Paper,
+  Container,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -113,6 +114,13 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     };
   }, []);
 
+  const enableDeveloperTools = true;
+
+  const { load: refreshUser } = useFetch({
+    url: "/users/refresh",
+    method: "POST",
+  });
+
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
       <AddIdea
@@ -121,6 +129,19 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
         reloadGraph={reloadGraph}
       />
       <Flex gap={"md"} justify="space-between" align="flex-start">
+        {enableDeveloperTools && (
+          <Group>
+            <Button
+              leftSection={<ArrowsClockwise weight="bold" />}
+              onClick={() => {
+                refreshUser();
+              }}
+              variant="light"
+            >
+              Refresh Auth
+            </Button>
+          </Group>
+        )}
         <Group>
           {currentNode && (
             <Flex direction="column">

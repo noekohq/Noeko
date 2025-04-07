@@ -17,10 +17,11 @@ import { Link, useNavigate } from "react-router";
 import { ISafeUser } from "../../../app/database/models/user";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
+import { validateEmail } from "../../utils/data";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setTokens, loadUser } = useAuth();
+  const { login: loadUser } = useAuth();
 
   const loginForm = useForm({
     initialValues: {
@@ -28,9 +29,19 @@ export default function Login() {
       password: "",
     },
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-      password: (value) =>
-        value.length >= 6 ? null : "Password must be at least 6 characters",
+      email: (value) => {
+        if (!value) {
+          return "Email is required";
+        }
+        if (!validateEmail(value)) {
+          return "Invalid email";
+        }
+      },
+      password: (value) => {
+        if (!value) {
+          return "Password is required";
+        }
+      },
     },
   });
 
@@ -46,12 +57,11 @@ export default function Login() {
     },
     dependencies: [loginForm.values],
     onSuccess: (data) => {
-      setTokens(data.accessToken, data.refreshToken);
       showNotification({
         title: "Login Successful",
         message: "Welcome back!",
       });
-      loadUser().then(() => {
+      loadUser(data.accessToken).then(() => {
         navigate("/");
       });
     },

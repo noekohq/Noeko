@@ -17,10 +17,11 @@ import { Link, useNavigate } from "react-router";
 import { ISafeUser } from "../../../app/database/models/user";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
+import { validateEmail } from "../../utils/data";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { setTokens, loadUser } = useAuth();
+  const { setTokens, login: loadUser } = useAuth();
 
   const registerForm = useForm({
     initialValues: {
@@ -31,15 +32,46 @@ export default function Register() {
       passwordConfirmation: "",
     },
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
-      password: (value) =>
-        value.length >= 6 ? null : "Password must be at least 6 characters",
-      passwordConfirmation: (value, values) =>
-        value === values.password ? null : "Passwords do not match",
-      firstName: (value) =>
-        value.length >= 2 ? null : "First name must be at least 2 characters",
-      lastName: (value) =>
-        value.length >= 2 ? null : "Last name must be at least 2 characters",
+      email: (value) => {
+        if (!value) {
+          return "Email is required";
+        }
+        if (!validateEmail(value)) {
+          return "Invalid email";
+        }
+      },
+      password: (value) => {
+        if (!value) {
+          return "Password is required";
+        }
+        if (value.length < 6) {
+          return "Password must be at least 6 characters";
+        }
+      },
+      passwordConfirmation: (value, values) => {
+        if (!value) {
+          return "Password confirmation is required";
+        }
+        if (value !== values.password) {
+          return "Passwords do not match";
+        }
+      },
+      firstName: (value) => {
+        if (!value) {
+          return "First name is required";
+        }
+        if (value.length < 2) {
+          return "First name must be at least 2 characters";
+        }
+      },
+      lastName: (value) => {
+        if (!value) {
+          return "Last name is required";
+        }
+        if (value.length < 2) {
+          return "Last name must be at least 2 characters";
+        }
+      },
     },
   });
 
@@ -64,12 +96,12 @@ export default function Register() {
     },
     dependencies: [registerForm.values],
     onSuccess: (data) => {
-      setTokens(data.accessToken, data.refreshToken);
+      setTokens(data.accessToken);
       showNotification({
         title: "Registration Successful",
         message: "Welcome!",
       });
-      loadUser().then(() => {
+      loadUser(data.accessToken).then(() => {
         navigate("/");
       });
     },
@@ -84,6 +116,15 @@ export default function Register() {
 
   const handleRegister = async () => {
     try {
+      const { errors, hasErrors } = registerForm.validate();
+      if (hasErrors) {
+        showNotification({
+          title: "Registration Failed",
+          message: Object.values(errors)[0],
+          color: "red",
+        });
+        return;
+      }
       await register();
     } catch (error) {
       console.error(error);

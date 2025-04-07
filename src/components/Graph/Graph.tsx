@@ -432,7 +432,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       onClick={handleBackgroundClick}
     >
       {nodePanel && <NodePanel {...nodePanel} />}
-      {currentWidth > 0 && currentHeight > 0 ? (
+      {currentWidth > 0 && currentHeight > 0 && nodes.length ? (
         <svg
           ref={svgRef}
           width={currentWidth}

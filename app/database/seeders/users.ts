@@ -33,19 +33,16 @@ export const seedUsers = async () => {
       console.info(`Checking if user exists: `, exists);
       if (!exists) {
         console.info(`Creating user: ${user}`);
-        const suRole = await Role.get("role:superuser");
-        if (!suRole) {
-          console.error(`Role 'role:superuser' not found`);
-          return;
-        }
         const userPassword = randomString(10);
-        await User.create({
-          email: user,
-          firstName: "Super",
-          lastName: "User",
-          password: await hashPassword(userPassword),
-          roles: [suRole],
-        });
+        await User.create(
+          {
+            email: user,
+            firstName: "Super",
+            lastName: "User",
+            password: await hashPassword(userPassword),
+          },
+          ["role:superuser"],
+        );
         await dumpUserAuth({ email: user, password: userPassword });
       } else {
         console.info(`User ${user} already exists, skipping.`);

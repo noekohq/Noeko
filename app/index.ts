@@ -2,6 +2,7 @@ import Express from "express";
 import { config } from "dotenv";
 import chalk from "chalk";
 import path from "path";
+import cookieParser from "cookie-parser";
 import { initDatabase } from "./database/db";
 
 // Routers
@@ -25,6 +26,7 @@ await initDatabase();
 const app = Express();
 app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(
   cors({
