@@ -7,6 +7,7 @@ import { IDBGraph } from "../../../app/database/models/idea";
 import { useNavigate } from "react-router";
 import UI from "./UI";
 import { dbGraphToLocalGraph } from "../../utils/graph";
+import { Group, Loader } from "@mantine/core";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +45,9 @@ export default function Home() {
           />
         </>
       ) : (
-        <div>Loading...</div>
+        <Group>
+          <Loader size="lg" />
+        </Group>
       )}
     </div>
   );

@@ -455,7 +455,6 @@ export class Idea {
         incoming: (IIdea & { id: RecordId })[];
         outgoing: (IIdea & { id: RecordId })[];
       }>("fn::get_idea_connections", [id]);
-      console.log("Results: ", results);
       if (!results) {
         console.error("No connections found.");
         return undefined;

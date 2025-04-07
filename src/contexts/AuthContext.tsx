@@ -1,81 +1,152 @@
-import React, { useContext, useEffect, useState } from "react";
-import { ISafeUser, IUser } from "../../app/database/models/user";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  createContext,
+  useCallback,
+} from "react";
+import { ISafeUser } from "../../app/database/models/user";
 import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 
-type IAuthContext = {
-  user: ISafeUser | undefined;
-  loggedIn: boolean;
-  setTokens: (accessToken: string, refreshToken?: string) => void;
-  clearTokens: () => void;
-  loadUser: () => Promise<void>;
-  logout: () => Promise<void>;
+type AuthState = {
+  user: ISafeUser | null | undefined;
   loading: boolean;
 };
 
-const initialAuthContext: IAuthContext = {
-  user: undefined,
-  loggedIn: false,
-  setTokens: (accessToken: string, refreshToken?: string) => {},
-  clearTokens: () => {},
-  loadUser: async () => {},
-  logout: async () => {},
-  loading: false,
+type AuthActions = {
+  setTokens: (accessToken: string, refreshToken?: string) => void;
+  clearTokens: () => void;
+  login: (accessToken: string, refreshToken?: string) => Promise<void>;
+  logout: () => void;
+  reload: () => Promise<void>;
+  loggedIn: boolean;
 };
 
-const AuthContext = React.createContext<IAuthContext>(initialAuthContext);
+type IAuthContext = AuthState & AuthActions;
+
+const initialAuthState: AuthState = {
+  user: undefined,
+  loading: true,
+};
+
+const initialAuthActions: AuthActions = {
+  setTokens: () => {},
+  clearTokens: () => {},
+  login: async () => {},
+  logout: () => {},
+  reload: async () => {},
+  loggedIn: false,
+};
+
+const AuthContext = createContext<IAuthContext>({
+  ...initialAuthState,
+  ...initialAuthActions,
+});
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const setTokens = (accessToken: string, refreshToken?: string) => {
+  const [user, setUser] = useState<ISafeUser | null | undefined>(
+    initialAuthState.user,
+  );
+  const [loading, setLoading] = useState<boolean>(initialAuthState.loading);
+
+  const setTokens = useCallback((accessToken: string) => {
     localStorage.setItem("accessToken", accessToken);
-    if (refreshToken) {
-      localStorage.setItem("refreshToken", refreshToken);
-    }
-  };
+  }, []);
 
-  const clearTokens = () => {
+  const clearTokens = useCallback(() => {
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-  };
+  }, []);
 
-  const {
-    data: user,
-    load: loadUser,
-    loading,
-  } = useFetch<undefined, ISafeUser>({
+  const { load: performUserFetch } = useFetch<undefined, ISafeUser>({
     url: "/users/me",
-    onError: (error) => {
-      showNotification({
-        title: "Not authenticated",
-        message: "Please log in to continue",
-        color: "red",
-      });
-      clearTokens();
-      console.error(error);
+    onSuccess: (data) => {
+      setUser(data ?? null);
+      setLoading(false);
     },
-    runOnMount: localStorage.getItem("accessToken") ? true : false,
+    onError: (error) => {
+      console.error("AuthProvider: User fetch error", error);
+      clearTokens();
+      setUser(null);
+      setLoading(false);
+    },
   });
 
-  const loggedIn = !!user?.id;
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      setLoading(true);
+      performUserFetch();
+    } else {
+      setUser(null);
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [performUserFetch]);
 
-  const value: IAuthContext = {
-    user,
-    loading,
-    loggedIn,
-    setTokens,
-    clearTokens,
-    loadUser: async () => {
-      await loadUser();
+  const login = useCallback(
+    async (accessToken: string) => {
+      setTokens(accessToken);
+      setLoading(true);
+      try {
+        await performUserFetch();
+      } catch (error) {
+        showNotification({
+          title: "Login Failed",
+          message: "Could not verify your credentials. Please try again.",
+          color: "red",
+        });
+      }
     },
-    logout: async () => {
-      clearTokens();
-      await loadUser();
-    },
-  };
+    [setTokens, performUserFetch],
+  );
+
+  const logout = useCallback(() => {
+    clearTokens();
+    setUser(null);
+    setLoading(false);
+    window.location.reload();
+  }, [clearTokens]);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      await performUserFetch();
+    } catch (error) {
+      showNotification({
+        title: "Reload Failed",
+        message: "Could not reload your credentials. Please try again.",
+        color: "red",
+      });
+    }
+  }, [performUserFetch]);
+
+  const value = React.useMemo(
+    () =>
+      ({
+        user,
+        loading,
+        setTokens,
+        clearTokens,
+        login,
+        logout,
+        reload,
+        loggedIn: !!user?.id,
+      }) satisfies IAuthContext,
+    [user, loading, setTokens, clearTokens, login, logout, reload],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export { AuthContext, AuthProvider };
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return {
+    ...context,
+  };
+};
 
-export const useAuth = () => useContext(AuthContext);
+export { AuthContext, AuthProvider };

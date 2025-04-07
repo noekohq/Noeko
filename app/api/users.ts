@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { checkIsSuperuser, checkToken } from "../middlware/auth";
-import { ISafeUser, IUser, User } from "../database/models/user";
+import { checkIsSuperuser, checkToken } from "../middleware/auth";
+import { ISafeUser, IUser, IUserForm, User } from "../database/models/user";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import {
   addRefreshTokenToRes,
@@ -40,15 +40,20 @@ router.post("/register", async (req, res) => {
     }
     const accessToken = await User.generateAccessToken(user);
     const refreshToken = await User.generateRefreshToken(user);
+    if (!refreshToken) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+    await addRefreshTokenToRes(res, refreshToken);
     res.json({
       message: "User registered successfully",
       data: {
         accessToken,
-        refreshToken,
         user,
       },
     });
   } catch (error) {
+    console.error("User registration error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -58,12 +63,12 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findByEmail(email, true);
     if (!user) {
-      res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "User not found." });
       return;
     }
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
-      res.status(401).json({ message: "Invalid credentials" });
+      res.status(401).json({ message: "Incorrect password." });
       return;
     }
     const token = await User.generateAccessToken(user);
@@ -78,6 +83,7 @@ router.post("/login", async (req, res) => {
       data: { accessToken: token, refreshToken: refreshToken },
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -85,11 +91,52 @@ router.post("/login", async (req, res) => {
 router.get("/me", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
     res.json({
       message: "User checked successfully",
       data: user,
     });
   } catch (error) {
+    console.error("User check error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.put("/me", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+
+    const updater: Partial<IUserForm> = { ...req.body };
+    if (req.body.newPassword) {
+      const foundUser = await User.get(user.id, true);
+      const valid = await verifyPassword(user.password, foundUser.password);
+      if (!valid) {
+        res.status(400).json({ message: "Invalid password." });
+        return;
+      }
+      if (req.body.newPassword !== req.body.newPasswordConfirmation) {
+        res.status(400).json({ message: "Passwords do not match." });
+        return;
+      }
+      const newPassword = await hashPassword(req.body.newPassword);
+      updater.password = newPassword;
+    }
+
+    const updatedUser = await User.update(user.id, updater);
+
+    res.json({
+      message: "User updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("User update error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -107,6 +154,7 @@ router.post("/refresh", async (req, res) => {
       data: { accessToken: token, refreshToken: refreshToken },
     });
   } catch (error) {
+    console.error("Refresh token error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -119,6 +167,7 @@ router.get("/", checkToken, checkIsSuperuser, async (req, res) => {
       data: users,
     });
   } catch (error) {
+    console.error("User retrieval error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -131,6 +180,7 @@ router.get("/:id", checkToken, checkIsSuperuser, async (req, res) => {
       data: user,
     });
   } catch (error) {
+    console.error("User retrieval error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

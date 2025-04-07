@@ -21,20 +21,22 @@ export type IUser = {
   updatedAt: Date;
 };
 
-export type IUserForm = Omit<IUser, "id" | "createdAt" | "updatedAt">;
+export type IUserForm = Omit<IUser, "id" | "createdAt" | "updatedAt" | "roles">;
 
 export type ISafeUser = Omit<IUser, "password">;
 
 export type IToken = {
   id: string;
-  token: string;
+  value: string;
   user: IUser;
   type: string;
   createdAt: Date;
   expiresAt: Date;
 };
 
-export type ITokenForm = Omit<IToken, "id">;
+export type ITokenForm = Omit<IToken, "id" | "user"> & {
+  user: StringRecordId;
+};
 
 export class User {
   constructor() {}
@@ -80,21 +82,19 @@ export class User {
   static async create(form: IUserForm, withRoles: string[] = ["role:user"]) {
     try {
       const db = await getDatabase();
-      const roles = (
-        await Promise.all(withRoles.map(async (r) => Role.get(r)))
-      ).filter((r) => !!r);
       const result = await db?.create<
         IUser,
         IUserForm & {
           createdAt: Date;
           updatedAt: Date;
+          roles: Role[];
         }
       >("user", {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
         password: form.password,
-        roles,
+        roles: withRoles.map((r) => new StringRecordId(r)),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -276,15 +276,18 @@ export class User {
         console.error("Refresh token not found");
         return undefined;
       }
-      const valid = await verifyToken<ISafeUser>(foundRefresh.token);
+      const valid = await verifyToken<ISafeUser>(foundRefresh.value);
       if (!valid) {
         console.error("Invalid refresh token");
         await Token.delete(foundRefresh.id);
         return undefined;
       }
-      const token = generateToken<ISafeUser>(foundRefresh.user, {
-        expiresIn: "1h",
-      });
+      const token = generateToken<ISafeUser>(
+        User.filterSafeFields(foundRefresh.user),
+        {
+          expiresIn: "1h",
+        },
+      );
       return token;
     } catch (error) {
       console.error("Error generating access token:", error);
@@ -427,30 +430,18 @@ export class Token {
   ) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IToken]>(
-        `
-        INSERT INTO user_token {
-          user: <record> $userId,
-          type: $type,
-          value: $tokenValue,
-          createdAt: $createdAt,
-          expiresAt: $expiresAt
-        };
-        `,
-        {
-          tokenValue: token,
-          userId: user.id,
-          type: type,
-          createdAt: new Date(),
-          expiresAt: expiresAt,
-        },
-      );
+      const result = await db?.create<IToken, ITokenForm>("user_token", {
+        value: token,
+        user: new StringRecordId(user.id),
+        type: type,
+        createdAt: new Date(),
+        expiresAt: expiresAt,
+      });
       if (!result) {
         console.error("Failed to create token");
         return undefined;
       }
-      const [tokenRecord] = result;
-      return tokenRecord;
+      return result;
     } catch (error) {
       console.error("Error creating token:", error);
       throw error;
@@ -461,9 +452,9 @@ export class Token {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IToken[]]>(
-        "SELECT * FROM user_token WHERE value = $token;",
+        "SELECT * FROM user_token WHERE value = $value;",
         {
-          token,
+          value: token,
         },
       );
       if (!result) {
@@ -482,14 +473,17 @@ export class Token {
   static async findByUser(user: IUser) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IToken]>("user_token", {
-        user: user.id,
-      });
+      const result = await db?.query<[IToken[]]>(
+        "SELECT * FROM user_token WHERE user = <record> $user;",
+        {
+          user: user.id,
+        },
+      );
       if (!result) {
         console.error("Failed to find token");
         return undefined;
       }
-      const tokenRecord = result;
+      const [tokenRecord] = result;
       return tokenRecord;
     } catch (error) {
       console.error("Error finding token:", error);
@@ -500,7 +494,7 @@ export class Token {
   static async get(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IToken>(new RecordId("user_token", id));
+      const result = await db?.select<IToken>(new StringRecordId(id));
       if (!result) {
         console.error("Failed to find token");
         return undefined;
@@ -516,7 +510,7 @@ export class Token {
   static async delete(id: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.delete(new RecordId("user_token", id));
+      const result = await db?.delete(new StringRecordId(id));
       if (!result) {
         console.error("Failed to delete token");
         return undefined;
