@@ -3,7 +3,7 @@ import { getDatabase } from "../../db";
 import { Embeddings } from "../../../semantics/embeddings";
 import { getLM } from "../../../semantics/lm";
 import { IUser, User } from "../user";
-import { GenerativeSummary } from "./summaries";
+import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 
 export type IIdea = {
   id: string;
@@ -14,6 +14,9 @@ export type IIdea = {
   updatedAt: Date;
   contentUpdatedAt: Date;
   embeddingsUpdatedAt: Date;
+  connections?: IIdeaConnection[];
+  relatedIdeas?: IIdeaAsRelation[];
+  derived?: IIdeaDerivedMap;
 };
 
 export type IIdeaWithComputedFields = IIdea & {
@@ -34,6 +37,12 @@ export type IIdeaConnection = {
   id: string;
   in: string;
   out: string;
+};
+
+export type IIdeaDerived = IGenerativeSummary;
+
+export type IIdeaDerivedMap = {
+  generative_summary?: IGenerativeSummary;
 };
 
 export type IIdeaUserOwnership = {
@@ -76,14 +85,6 @@ export class Idea {
       embeddingsOutOfDate:
         new Date(idea.contentUpdatedAt) < new Date(idea.embeddingsUpdatedAt),
     };
-  }
-
-  static async runDerivedCascade(ideaId: string) {
-    try {
-    } catch (err) {
-      console.error("Error running derived cascade: ", err);
-      return undefined;
-    }
   }
 
   static async up() {
@@ -168,17 +169,40 @@ export class Idea {
       `;
     };
 
+    const getIdeaDerived = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_idea_derived(
+        $ideaId: string,
+      ) {
+        LET $derived = SELECT VALUE ->is_source_for->generative_summary as derived FROM ONLY <record> $ideaId FETCH derived;
+
+        RETURN $derived;
+      }
+      `;
+    };
+
     const db = await getDatabase();
     await db?.query(userGraphFunction());
     await db?.query(searchSimilarToIdea());
     await db?.query(searchSimilarToEmbeddings());
     await db?.query(getIdeaConnections());
+    await db?.query(getIdeaDerived());
   }
 
   static attachComputedFieldsToCollection(
     ideas: IIdea[],
   ): IIdeaWithComputedFields[] {
     return ideas.map(Idea.attachComputedFields);
+  }
+
+  static async runDerivedCascade(ideaId: string) {
+    try {
+      const derivedCascade = new IdeaDerivedCascade(ideaId);
+      return await derivedCascade.cascade();
+    } catch (err) {
+      console.error("Error running derived cascade: ", err);
+      return undefined;
+    }
   }
 
   static async create(form: IIdeaForm, userId: string) {
@@ -212,6 +236,7 @@ export class Idea {
       const [idea] = result;
       await Idea.connectToUser(idea.id, userId);
       await Idea.loadEmbeddings(idea.id);
+      await Idea.runDerivedCascade(idea.id);
       return result;
     } catch (err) {
       console.error(err);
@@ -296,10 +321,11 @@ export class Idea {
     }
   }
 
-  static async get(id: string) {
+  static async get(id: string | RecordId) {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IIdea>(new StringRecordId(id));
+      const recordId = typeof id === "string" ? new StringRecordId(id) : id;
+      const result = await db?.select<IIdea>(recordId);
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return;
@@ -384,6 +410,7 @@ export class Idea {
         console.error("No idea updated.");
         return undefined;
       }
+      await Idea.runDerivedCascade(result.id);
       return result;
     } catch (err) {
       console.error(err);
@@ -452,7 +479,6 @@ export class Idea {
   static async getConnections(id: string) {
     try {
       const db = await getDatabase();
-      // TODO: REFACTOR THIS TO USE A FUNCTION INSTEAD
       const results = await db?.run<{
         incoming: (IIdea & { id: RecordId })[];
         outgoing: (IIdea & { id: RecordId })[];
@@ -463,6 +489,45 @@ export class Idea {
       }
       const { incoming, outgoing } = results;
       return { incoming, outgoing };
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  static async getDerived(id: string) {
+    try {
+      const db = await getDatabase();
+      const derived = await db?.run<IIdeaDerived[]>("fn::get_idea_derived", [
+        id,
+      ]);
+      if (!derived) {
+        console.error("No derived ideas found.");
+        return undefined;
+      }
+      return derived;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  static async getDerivedMap(id: string) {
+    try {
+      const db = await getDatabase();
+      const derived = await db?.run<IIdeaDerived[]>("fn::get_idea_derived", [
+        id,
+      ]);
+      if (!derived) {
+        console.error("No derived ideas found.");
+        return undefined;
+      }
+      const map: IIdeaDerivedMap = {};
+      derived.forEach((d) => {
+        const type = d.id.tb as keyof IIdeaDerivedMap;
+        map[type] = d;
+      });
+      return map;
     } catch (err) {
       console.error(err);
       return undefined;

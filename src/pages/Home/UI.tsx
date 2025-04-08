@@ -6,7 +6,7 @@ import {
   IDBGraph,
   IIdea,
   SearchResult,
-} from "../../../app/database/models/idea";
+} from "../../../app/database/models/ideas";
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
@@ -266,7 +266,6 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       showNotification({
         title: "Idea added successfully",
         message: `Your idea "${data.title || "Generated Title"}" has been added.`,
-        color: "green",
       });
       reloadGraph(); // Reload graph on success
       form.reset();

@@ -16,11 +16,12 @@ if (!API_KEY) {
 export type LMSchema = ResponseSchema;
 export const LMSchemaType = SchemaType;
 
-type ModelTypes = "simple" | "advanced";
+type ModelTypes = "simple" | "advanced" | "fast-accurate";
 
 const ModelMapper: Record<ModelTypes, string> = {
   simple: "models/gemini-2.0-flash-lite",
-  advanced: "models/gemini-2.0",
+  advanced: "models/gemini-1.5-pro",
+  "fast-accurate": "models/gemini-2.0-flash",
 };
 
 export class PromptBuilder {
@@ -59,13 +60,18 @@ export default class LM {
   }
 
   getModel(options?: Partial<{ model: string; schema: ResponseSchema }>) {
-    return this.client.getGenerativeModel({
-      model: options?.model ?? this._model,
-      generationConfig: {
-        responseMimeType: options?.schema ? "application/json" : "text/plain",
-        responseSchema: options?.schema,
-      },
-    });
+    try {
+      return this.client.getGenerativeModel({
+        model: options?.model ?? this._model,
+        generationConfig: {
+          responseMimeType: options?.schema ? "application/json" : "text/plain",
+          responseSchema: options?.schema,
+        },
+      });
+    } catch (error) {
+      console.error("Error getting model:", error);
+      throw error;
+    }
   }
 
   get utils() {
@@ -80,7 +86,7 @@ export default class LM {
     if (model in ModelMapper) {
       const existingModel = ModelMapper[model as ModelTypes];
       this._model = existingModel;
-      return;
+      return this;
     }
     this._model = model;
     return this;
@@ -118,10 +124,10 @@ export default class LM {
 }
 
 export const getLM = () => {
-  if (!process.env[apiKeyName]) {
+  if (!API_KEY) {
     throw new Error(`${apiKeyName} is not defined`);
   }
-  return new LM({ apiKey: process.env[apiKeyName] });
+  return new LM({ apiKey: API_KEY });
 };
 
 export class LMUtils {

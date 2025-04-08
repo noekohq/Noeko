@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IIdea, SearchResult } from "../../../app/database/models/idea";
+import { IIdea, SearchResult } from "../../../app/database/models/ideas";
 import useFetch from "../../hooks/useFetch";
 import {
   Menu,
