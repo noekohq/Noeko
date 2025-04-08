@@ -1,6 +1,5 @@
 import {
   GenerateContentResult,
-  GenerativeModel,
   GoogleGenerativeAI,
   ResponseSchema,
   SchemaType,
@@ -15,6 +14,14 @@ if (!API_KEY) {
 }
 
 export type LMSchema = ResponseSchema;
+export const LMSchemaType = SchemaType;
+
+type ModelTypes = "simple" | "advanced";
+
+const ModelMapper: Record<ModelTypes, string> = {
+  simple: "models/gemini-2.0-flash-lite",
+  advanced: "models/gemini-2.0",
+};
 
 export class PromptBuilder {
   private _prompt: string = "";
@@ -69,7 +76,12 @@ export default class LM {
     return this.getModel();
   }
 
-  public withModel(model: string) {
+  public withModel(model: string | ModelTypes) {
+    if (model in ModelMapper) {
+      const existingModel = ModelMapper[model as ModelTypes];
+      this._model = existingModel;
+      return;
+    }
     this._model = model;
     return this;
   }
@@ -92,7 +104,12 @@ export default class LM {
   ): Promise<T | null> {
     try {
       const result = await this.getModel({ schema }).generateContent(prompt);
-      return JSON.parse(result.response.text()) as T;
+      const parsed = JSON.parse(result.response.text()) as T;
+      if (!parsed) {
+        console.error("Invalid JSON response");
+        return null;
+      }
+      return parsed;
     } catch (err) {
       console.error("Error generating JSON:", err);
       return null;

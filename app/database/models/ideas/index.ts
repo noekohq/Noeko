@@ -1,14 +1,13 @@
 import { RecordId, RecordIdValue, StringRecordId } from "surrealdb";
-import { getDatabase } from "../db";
-import { Embeddings } from "../../semantics/embeddings";
-import { getLM } from "../../semantics/lm";
-import { IUser, User } from "./user";
+import { getDatabase } from "../../db";
+import { Embeddings } from "../../../semantics/embeddings";
+import { getLM } from "../../../semantics/lm";
+import { IUser, User } from "../user";
 
 export type IIdea = {
   id: string;
   title: string;
   content: string;
-  contentSummary: string;
   embeddings: number[] | null;
   createdAt: Date;
   updatedAt: Date;
@@ -191,9 +190,6 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
-        contentSummary:
-          (await Idea.generateSummary(form.content)) ||
-          "Summary not available.",
         embeddings: null,
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
@@ -367,9 +363,6 @@ export class Idea {
       const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
       if (form.content !== undefined) {
         updater.contentUpdatedAt = new Date();
-        updater.contentSummary =
-          (await Idea.generateSummary(form.content)) ||
-          "Summary not available.";
       }
       const result = await db?.merge<
         IIdea,

@@ -4,7 +4,7 @@ import {
   IIdea,
   IIdeaAsRelation,
   IIdeaForm,
-} from "../database/models/idea";
+} from "../database/models/ideas";
 import { RecordId } from "surrealdb";
 import { getLM } from "../semantics/lm";
 import { checkIsSuperuser, checkToken } from "../middleware/auth";
