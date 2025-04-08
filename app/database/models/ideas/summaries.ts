@@ -5,7 +5,8 @@ import LM, {
   LMSchemaType,
   PromptBuilder,
 } from "../../../semantics/lm";
-import { Idea } from ".";
+import { Idea, IIdea } from ".";
+import { getDatabase } from "../../db";
 
 export type IGenerativeSummary = {
   id: RecordId;
@@ -69,14 +70,50 @@ export const GenerativeSummarySchema: LMSchema = {
 export class GenerativeSummary {
   constructor() {}
 
+  static async getPromptFromContent(content: string) {
+    const prompt = new PromptBuilder()
+      .addText("Generate a summary given the schema and the following content:")
+      .addBlock("Content", content);
+    return prompt;
+  }
+
   static async create(ideaId: string) {
     try {
+      const db = await getDatabase();
       const idea = await Idea.get(ideaId);
       if (!idea) {
         throw new Error(`Idea with ID ${ideaId} not found`);
       }
       const generation =
         await GenerativeSummary.getGenerativeSummaryFromContent(idea.content);
+      if (!generation) {
+        throw new Error(
+          `Failed to generate summary for idea with ID ${ideaId}`,
+        );
+      }
+      const result = await db?.insert<
+        IGenerativeSummary,
+        IGenerativeSummaryForm
+      >("generative_summary", {
+        sentenceSummary: generation.sentenceSummary,
+        paragraphSummary: generation.paragraphSummary,
+        abstractSummary: generation.abstractSummary,
+        simplifiedSummary: generation.simplifiedSummary,
+        outline: generation.outline,
+        keyPoints: generation.keyPoints,
+        highlights: generation.highlights,
+      });
+      if (!result) {
+        throw new Error(
+          `Failed to create generative summary for idea with ID ${ideaId}`,
+        );
+      }
+      const [generativeSummary] = result;
+      await db?.query(`RELATE $ideaId->is_source_for->$summaryId;`, {
+        ideaId: idea.id,
+        summaryId: generativeSummary.id,
+      });
+      return generativeSummary;
     } catch (error) {
       console.error(error);
       return undefined;
@@ -88,11 +125,7 @@ export class GenerativeSummary {
   ): Promise<IGenerativeSummaryForm | undefined> {
     try {
       const lm = getLM().withModel("advanced");
-      const prompt = new PromptBuilder()
-        .addText(
-          "Generate a summary given the schema and the following content:",
-        )
-        .addBlock("Content", content);
+      const prompt = await this.getPromptFromContent(content);
       const generation = await lm?.generateJSON<IGenerativeSummaryForm>(
         prompt.get(),
         GenerativeSummarySchema,
@@ -101,6 +134,73 @@ export class GenerativeSummary {
         throw new Error("Failed to generate summary");
       }
       return generation;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  static async refreshGenerativeSummary(summaryId: string) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available");
+      }
+      const sourceResults = await db.query<[IIdea[]]>(
+        `SELECT idea->is_source_for FROM $summaryId;`,
+        { summaryId },
+      );
+      if (!sourceResults) {
+        throw new Error("Failed to fetch source ideas");
+      }
+      const [sourceIdea] = sourceResults[0];
+      if (!sourceIdea) {
+        throw new Error("No source idea found.");
+      }
+      const { content } = sourceIdea;
+      const lm = getLM();
+      const prompt = await this.getPromptFromContent(content);
+      const generation = await lm.generateJSON<IGenerativeSummaryForm>(
+        prompt.get(),
+        GenerativeSummarySchema,
+      );
+      if (!generation) {
+        throw new Error("Failed to generate summary");
+      }
+      const update = await db.update<
+        IGenerativeSummary,
+        IGenerativeSummaryForm
+      >(new StringRecordId(summaryId), {
+        ...generation,
+      });
+      return update;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  static async cascadeGenerativeSummary(ideaId: string) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available");
+      }
+      const derivedSummariesResults = await db?.query<[IGenerativeSummary[]]>(
+        `SELECT generative_summary<-is_source_for FROM $ideaId;`,
+        { ideaId },
+      );
+      if (!derivedSummariesResults) {
+        throw new Error("Failed to fetch derived summaries");
+      }
+      const [derivedSummaries] = derivedSummariesResults;
+      for (const summary of derivedSummaries) {
+        await this.refreshGenerativeSummary(summary.id.toString());
+      }
+      if (derivedSummaries.length < 1) {
+        await this.create(ideaId);
+      }
+      return true;
     } catch (error) {
       console.error(error);
       return undefined;

@@ -3,6 +3,7 @@ import { getDatabase } from "../../db";
 import { Embeddings } from "../../../semantics/embeddings";
 import { getLM } from "../../../semantics/lm";
 import { IUser, User } from "../user";
+import { GenerativeSummary } from "./summaries";
 
 export type IIdea = {
   id: string;
@@ -75,6 +76,14 @@ export class Idea {
       embeddingsOutOfDate:
         new Date(idea.contentUpdatedAt) < new Date(idea.embeddingsUpdatedAt),
     };
+  }
+
+  static async runDerivedCascade(ideaId: string) {
+    try {
+    } catch (err) {
+      console.error("Error running derived cascade: ", err);
+      return undefined;
+    }
   }
 
   static async up() {
@@ -694,6 +703,43 @@ export class Idea {
       await Promise.all(toUpdate.map((idea) => Idea.updateEmbeddings(idea)));
     } catch (err) {
       console.error(`Error during synchronizeEmbeddings`, err);
+    }
+  }
+}
+
+class IdeaDerivedCascade {
+  private _ideaId: string;
+  private _idea: IIdea | undefined;
+
+  constructor(ideaId: string) {
+    this._ideaId = ideaId;
+    (async () => {
+      this._idea = await Idea.get(ideaId);
+      if (!this._idea) {
+        throw new Error(
+          `Idea not found when constructing DerivedCascade: ${ideaId}`,
+        );
+      }
+    })();
+  }
+
+  get ideaId() {
+    return this._ideaId;
+  }
+
+  async cascade() {
+    try {
+      const updatedGenerativeSummary =
+        await GenerativeSummary.cascadeGenerativeSummary(this.ideaId);
+      if (updatedGenerativeSummary) {
+        console.info(`Updated generative summary for idea "${this.ideaId}"`);
+      } else {
+        console.error(
+          `No generative summary updated for idea "${this.ideaId}"`,
+        );
+      }
+    } catch (error) {
+      console.error(`Error during cascade for idea "${this.ideaId}":`, error);
     }
   }
 }

@@ -1,5 +1,5 @@
 import { User, Role, Token } from "./user";
-import { Idea } from "./idea";
+import { Idea } from "./ideas";
 
 export const modelsUp = async () => {
   console.info("Running model up functions.");
