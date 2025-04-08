@@ -114,7 +114,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     };
   }, []);
 
-  const enableDeveloperTools = true;
+  const enableDeveloperTools = false;
 
   const { load: refreshUser } = useFetch({
     url: "/users/refresh",
@@ -366,7 +366,7 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       setClipboardError(null);
       // You could uncomment the line below to *try* checking on open,
       // but the button approach is generally safer/more reliable.
-      // handleCheckClipboard();
+      handleCheckClipboard();
     }
   }, [opened]);
 
@@ -417,14 +417,14 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
           {/* --- Clipboard Preview Section --- */}
           <Grid.Col span={{ base: 12 }}>
             <Group>
-              <Button
+              {/* <Button
                 onClick={handleCheckClipboard}
                 loading={isCheckingClipboard}
                 variant="light"
                 size="xs"
               >
                 Check Clipboard for Content
-              </Button>
+              </Button> */}
             </Group>
             {clipboardError && (
               <Alert
