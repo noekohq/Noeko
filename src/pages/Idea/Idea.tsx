@@ -5,8 +5,9 @@ import {
   IIdea,
   IIdeaAsRelation,
   IIdeaConnection,
+  IIdeaDerivedMap,
   IIdeaForm,
-} from "../../../app/database/models/idea";
+} from "../../../app/database/models/ideas";
 import {
   ActionIcon,
   Button,
@@ -36,6 +37,7 @@ import {
 import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import { useDisclosure } from "@mantine/hooks";
+import { IIdeaDerived } from "../../../app/database/models/ideas";
 
 export default function Idea() {
   const { ideaId } = useParams();
@@ -51,9 +53,15 @@ export default function Idea() {
     IIdea & {
       relatedIdeas: IIdeaAsRelation[];
       connections: { incoming: IIdea[]; outgoing: IIdea[] };
+      derived: IIdeaDerivedMap;
     }
   >({
-    url: `/graph/ideas/${ideaId}?withRelatedIdeas=true&withConnections=true`,
+    url: `/graph/ideas/${ideaId}`,
+    query: {
+      withRelatedIdeas: "true",
+      withConnections: "true",
+      withDerived: "true",
+    },
     method: "GET",
     runOnMount: true,
   });
@@ -268,7 +276,14 @@ export default function Idea() {
                     <Text c="dimmed">Drag ideas to connect them.</Text>
                   </Group>
                 </Grid.Col>
-                <Grid.Col span={{ sm: 12 }}>
+                <Grid.Col
+                  span={{ sm: 12 }}
+                  style={{
+                    overflowY: "scroll",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "transparent transparent",
+                  }}
+                >
                   {idea && idea.relatedIdeas?.length > 0 ? (
                     <Group>
                       {idea.relatedIdeas?.map((relatedIdea) => {
@@ -479,7 +494,10 @@ export default function Idea() {
             <Text fw="bold" c="dimmed">
               <Sparkle weight="bold" /> Content Summary
             </Text>
-            <Text>{idea?.contentSummary || "No summary provided."}</Text>
+            <Text>
+              {idea?.derived.generative_summary?.sentenceSummary ||
+                "No summary provided."}
+            </Text>
           </Card>
         </Grid.Col>
         {statusBlockShow && (
@@ -553,6 +571,10 @@ function IdeaPreview({
 }: IdeaPreviewProps) {
   const [dragging, setDragging] = useState(false);
 
+  const summary =
+    idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
+  console.log("Summary: ", summary, idea);
+
   return (
     <Card
       px="lg"
@@ -592,7 +614,10 @@ function IdeaPreview({
           </Grid>
         </HoverCard.Target>
         <HoverCard.Dropdown>
-          <Text>{idea.contentSummary}</Text>
+          <Text>
+            {idea.derived?.generative_summary?.sentenceSummary ||
+              "No summary provided."}
+          </Text>
         </HoverCard.Dropdown>
       </HoverCard>
     </Card>

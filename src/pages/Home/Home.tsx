@@ -3,7 +3,7 @@ import { IGraph } from "../../declarations/graph";
 import { useEffect, useRef, useState } from "react";
 import styles from "./Home.module.scss";
 import useFetch from "../../hooks/useFetch";
-import { IDBGraph } from "../../../app/database/models/idea";
+import { IDBGraph } from "../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
 import UI from "./UI";
 import { dbGraphToLocalGraph } from "../../utils/graph";

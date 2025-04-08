@@ -1,4 +1,4 @@
-import { IDBGraph } from "../../app/database/models/idea";
+import { IDBGraph } from "../../app/database/models/ideas";
 import { IGraph } from "../declarations/graph";
 
 export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {

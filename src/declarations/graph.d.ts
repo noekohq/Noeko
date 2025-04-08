@@ -1,5 +1,5 @@
 // graph.d.ts
-import { IIdea } from "../../app/database/models/idea";
+import { IIdea } from "../../app/database/models/ideas";
 
 // Add simulation properties directly to INode
 export type INode = IIdea & {

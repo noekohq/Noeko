@@ -3,6 +3,8 @@ import {
   Idea,
   IIdea,
   IIdeaAsRelation,
+  IIdeaDerived,
+  IIdeaDerivedMap,
   IIdeaForm,
 } from "../database/models/ideas";
 import { RecordId } from "surrealdb";
@@ -72,6 +74,7 @@ router.get("/ideas/:id", checkToken, async (req, res) => {
     }
     const withRelatedIdeas = req.query.withRelatedIdeas === "true";
     const withConnections = req.query.withConnections === "true";
+    const withDerived = req.query.withDerived === "true";
     const i = await Idea.get(id);
     if (!i) {
       res.status(404).json({ message: "Idea not found" });
@@ -83,6 +86,7 @@ router.get("/ideas/:id", checkToken, async (req, res) => {
         outgoing: (IIdea & { id: RecordId })[];
       };
       relatedIdeas?: (IIdeaAsRelation & { id: RecordId })[];
+      derived?: IIdeaDerivedMap;
     } = { ...i };
     if (withConnections) {
       const connections = await Idea.getConnections(id);
@@ -91,6 +95,10 @@ router.get("/ideas/:id", checkToken, async (req, res) => {
     if (withRelatedIdeas && !isSuperuser) {
       const relatedIdeas = await Idea.findSimilar(user.id, id);
       toSend.relatedIdeas = relatedIdeas;
+    }
+    if (withDerived) {
+      const derived = await Idea.getDerivedMap(id);
+      toSend.derived = derived;
     }
     res.send({ message: "Successfully retrieved idea.", data: toSend });
   } catch (err) {
