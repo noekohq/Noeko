@@ -237,7 +237,7 @@ export class User {
   static async generateAccessToken(user: ISafeUser) {
     try {
       const token = generateToken<ISafeUser>(user, {
-        expiresIn: "10s",
+        expiresIn: "1hr",
       });
       return token;
     } catch (error) {
