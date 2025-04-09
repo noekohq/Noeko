@@ -28,10 +28,9 @@ router.get("/", checkToken, async (req, res) => {
       res.status(404).json({ message: "Graph not found" });
       return;
     }
-    const { edges, ideas, flags } = graph;
     res.send({
       message: "Successfully retrieved graph.",
-      data: { edges, ideas, flags },
+      data: graph,
     });
   } catch (err) {
     console.error(err);

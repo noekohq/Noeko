@@ -93,7 +93,12 @@ export class Idea {
         LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY <record> $userId FETCH userIdeas;
         LET $ideaIds = array::flatten($userIdeas[*].id);
         LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
-        LET $ideas = $userIdeas.userIdeas;
+        LET $ideas =
+          SELECT
+            *,
+            ->is_source_for->(?).* as derivedList
+          FROM
+            $userIdeas.userIdeas;
 
         RETURN {
             ideas: $ideas,
@@ -366,7 +371,7 @@ export class Idea {
     try {
       const db = await getDatabase();
       const graph = await db?.run<{
-        ideas: IIdea[];
+        ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
         connections: IIdeaConnection[];
       }>("fn::user_graph", [userId]);
       if (!graph) {
@@ -379,15 +384,22 @@ export class Idea {
           synced: ideas.every((idea) => idea.embeddings),
         },
       };
+      const ideasWithDerived = ideas.map((i) => {
+        return {
+          ...i,
+          derived: Idea.mapDerived(i.derivedList),
+        };
+      });
       if (options?.computeFields) {
-        const computedIdeas = Idea.attachComputedFieldsToCollection(ideas);
+        const computedIdeas =
+          Idea.attachComputedFieldsToCollection(ideasWithDerived);
         return {
           ideas: computedIdeas,
           edges: connections,
           flags,
         } as IDBGraphWithComputedFields;
       }
-      return { ideas, edges: connections, flags } as IDBGraph;
+      return { ideas: ideasWithDerived, edges: connections, flags } as IDBGraph;
     } catch (err) {
       console.error(err);
       return undefined;

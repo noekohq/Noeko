@@ -241,19 +241,6 @@ export default function Connections({
                 </Group>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
-                <InlineSearch
-                  onSelect={(i) => {
-                    if (!idea) return;
-                    createConnection({
-                      updatedBody: {
-                        source: idea?.id.toString(),
-                        target: i.id.toString(),
-                      },
-                    });
-                  }}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
                 <Group>
                   {idea?.connections && idea.connections?.length > 0 ? (
                     idea.connections?.map((connection) => {

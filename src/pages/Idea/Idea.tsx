@@ -37,6 +37,7 @@ import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import { useDisclosure } from "@mantine/hooks";
 import Connections from "./Connections";
+import Overview from "./Overview";
 
 export default function Idea() {
   const { ideaId } = useParams();
@@ -210,21 +211,17 @@ export default function Idea() {
           reloadIdea={reloadIdea}
         />
       )}
-      <Drawer
-        opened={overviewDrawerOpened}
-        onClose={closeOverviewDrawer}
-        offset={14}
-        radius="lg"
-        position="right"
-        size="70%"
-      >
-        <Text>
-          <Group>
-            <Sparkle />
-            Overview
-          </Group>
-        </Text>
-      </Drawer>
+      {idea && (
+        <Overview
+          opened={overviewDrawerOpened}
+          onClose={closeOverviewDrawer}
+          loadingIdea={loadingIdea}
+          idea={idea}
+          reloadIdea={async () => {
+            reloadIdea();
+          }}
+        />
+      )}
       <Grid>
         <Grid.Col span={{ sm: 12 }}>
           <Group gap={14}>
