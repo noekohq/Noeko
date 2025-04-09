@@ -7,7 +7,7 @@ export interface UseFetchConfig<B, D> {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: B;
   onBefore?: () => void;
-  onSuccess?: (data: D) => void;
+  onSuccess?: (data: D, message?: string) => void;
   onError?: (err: unknown) => void;
   onFinally?: () => void;
   headers?: Record<string, string> | undefined;
@@ -66,7 +66,8 @@ function useFetch<B, D>({
         headers,
       })
         .then((res) => {
-          onSuccess && onSuccess(res.data.data as D);
+          onSuccess &&
+            onSuccess(res.data.data as D, res.data.message as string);
           setData(res.data.data);
           setSuccess(true);
           return res.data;
@@ -131,7 +132,7 @@ function useFetch<B, D>({
         headers,
       })
         .then((res) => {
-          onSuccess && onSuccess(res.data.data as D);
+          onSuccess && onSuccess(res.data.data as D, res.data.message);
           setData(res.data.data);
           setSuccess(true);
           return res.data;

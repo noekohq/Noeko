@@ -13,9 +13,10 @@ import { useForm } from "@mantine/form";
 import { validateEmail } from "../../utils/data";
 import useFetch from "../../hooks/useFetch";
 import { IUser, IUserForm } from "../../../app/database/models/user";
+import { showNotification } from "@mantine/notifications";
 
 export default function Profile() {
-  const { user, reload } = useAuth();
+  const { user, reload: reloadUser } = useAuth();
 
   const profileForm = useForm({
     initialValues: {
@@ -34,10 +35,6 @@ export default function Profile() {
       password: (value) => {
         if (!value) return "Password is required";
         if (value.length < 8) return "Password must be at least 8 characters";
-      },
-      password: (value, values) => {
-        if (!value) return "Password confirmation is required";
-        if (value !== values.password) return "Passwords do not match";
       },
       newPassword: (value) => {
         if (!value) return "New password is required";
@@ -65,11 +62,24 @@ export default function Profile() {
     method: "PUT",
     body: profileForm.getTransformedValues(),
     dependencies: [profileForm.getTransformedValues()],
+    onSuccess: (data, message) => {
+      showNotification({
+        title: "Success",
+        message: message || "Profile updated successfully",
+      });
+      reloadUser();
+    },
+    onError: (error: any) => {
+      showNotification({
+        title: "Error",
+        message: error?.response?.data?.message || "Something went wrong",
+        color: "red",
+      });
+    },
   });
 
   const handleSave = async () => {
     await updateUser();
-    await reload();
   };
 
   return (

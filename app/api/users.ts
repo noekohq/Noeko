@@ -88,6 +88,26 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/refresh", async (req, res) => {
+  try {
+    const refreshToken = await getRefreshTokenFromReq(req);
+    if (!refreshToken) {
+      res.status(400).json({ message: "Missing refresh token" });
+      return;
+    }
+    const token = await User.refreshAccessTokens(refreshToken);
+    await addRefreshTokenToRes(res, refreshToken);
+
+    res.json({
+      message: "Token refreshed successfully",
+      data: { accessToken: token },
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get("/me", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -95,9 +115,14 @@ router.get("/me", checkToken, async (req, res) => {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
+    const foundUser = await User.get(user.id);
+    if (!foundUser) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
     res.json({
       message: "User checked successfully",
-      data: user,
+      data: foundUser,
     });
   } catch (error) {
     console.error("User check error:", error);
@@ -113,7 +138,22 @@ router.put("/me", checkToken, async (req, res) => {
       return;
     }
 
-    const updater: Partial<IUserForm> = { ...req.body };
+    const updater: Partial<IUserForm> = {};
+    if (req.body.email && user.email !== req.body.email) {
+      const email = req.body.email;
+      const emailExists = await User.findByEmail(email);
+      if (emailExists) {
+        res.status(400).json({ message: "Email already exists." });
+        return;
+      }
+      updater.email = email;
+    }
+    if (req.body.firstName && user.firstName !== req.body.firstName) {
+      updater.firstName = req.body.firstName;
+    }
+    if (req.body.lastName && user.lastName !== req.body.lastName) {
+      updater.lastName = req.body.lastName;
+    }
     if (req.body.newPassword) {
       const foundUser = await User.get(user.id, true);
       const valid = await verifyPassword(user.password, foundUser.password);
@@ -130,31 +170,14 @@ router.put("/me", checkToken, async (req, res) => {
     }
 
     const updatedUser = await User.update(user.id, updater);
+    const fieldsUpdated = Object.keys(updater);
 
     res.json({
-      message: "User updated successfully",
+      message: `User ${fieldsUpdated.join(", ")} updated successfully`,
       data: updatedUser,
     });
   } catch (error) {
     console.error("User update error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-router.post("/refresh", async (req, res) => {
-  try {
-    const refreshToken = await getRefreshTokenFromReq(req);
-    if (!refreshToken) {
-      res.status(400).json({ message: "Missing refresh token" });
-      return;
-    }
-    const token = await User.refreshAccessTokens(refreshToken);
-    res.json({
-      message: "Token refreshed successfully",
-      data: { accessToken: token, refreshToken: refreshToken },
-    });
-  } catch (error) {
-    console.error("Refresh token error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

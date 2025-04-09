@@ -154,7 +154,9 @@ api.interceptors.response.use(
           // { withCredentials: true }
         );
 
-        const { accessToken } = refreshResponse.data;
+        const accessToken = refreshResponse.data.accessToken;
+
+        console.log("Access token: ", accessToken);
 
         setAccessToken(accessToken); // Store the new access token
 
@@ -164,6 +166,7 @@ api.interceptors.response.use(
         }
 
         // Process queued requests with the new access token
+        console.info("Processing queued requests");
         processQueue(null, accessToken);
 
         // Retry the original request with the new access token
