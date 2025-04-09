@@ -116,7 +116,6 @@ export class User {
 
       const updater: Partial<IUserForm> = form;
 
-      console.log("Updating with: ", updater);
       const result = await db?.merge<
         IUser,
         Partial<IUserForm> & { updatedAt: Date }
@@ -124,7 +123,6 @@ export class User {
         ...updater,
         updatedAt: new Date(),
       });
-      console.log("Result: ", result);
       if (!result) {
         console.error("Failed to update user");
         return undefined;
@@ -185,7 +183,7 @@ export class User {
       const users = result;
       return this.filterSafeFields(users);
     } catch (error) {
-      console.error("Error getting user:", error);
+      console.error("Error getting all users:", error);
       throw error;
     }
   }
@@ -214,7 +212,7 @@ export class User {
       }
       return this.filterSafeFields(user);
     } catch (error) {
-      console.error("Error getting user:", error);
+      console.error("Error getting user by email:", error);
       throw error;
     }
   }
@@ -231,7 +229,7 @@ export class User {
       const has = user.roles.find((r) => r.name === role || r.id === role);
       return has !== undefined;
     } catch (error) {
-      console.error("Error getting user:", error);
+      console.error("Error checking user role:", error);
       throw error;
     }
   }
@@ -239,7 +237,7 @@ export class User {
   static async generateAccessToken(user: ISafeUser) {
     try {
       const token = generateToken<ISafeUser>(user, {
-        expiresIn: "1h",
+        expiresIn: "10s",
       });
       return token;
     } catch (error) {
@@ -259,7 +257,7 @@ export class User {
         return undefined;
       }
       await Token.create(
-        fullUser,
+        fullUser.id,
         token,
         "refresh",
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -284,12 +282,8 @@ export class User {
         await Token.delete(foundRefresh.id);
         return undefined;
       }
-      const token = generateToken<ISafeUser>(
-        User.filterSafeFields(foundRefresh.user),
-        {
-          expiresIn: "1h",
-        },
-      );
+      const safeUser = User.filterSafeFields(foundRefresh.user);
+      const token = await User.generateAccessToken(safeUser);
       return token;
     } catch (error) {
       console.error("Error generating access token:", error);
@@ -425,7 +419,7 @@ export class Token {
   }
 
   static async create(
-    user: IUser,
+    userId: string,
     token: string,
     type: string,
     expiresAt: Date,
@@ -434,7 +428,7 @@ export class Token {
       const db = await getDatabase();
       const result = await db?.create<IToken, ITokenForm>("user_token", {
         value: token,
-        user: new StringRecordId(user.id),
+        user: new StringRecordId(userId),
         type: type,
         createdAt: new Date(),
         expiresAt: expiresAt,
@@ -454,7 +448,7 @@ export class Token {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IToken[]]>(
-        "SELECT * FROM user_token WHERE value = $value;",
+        "SELECT *, user.* FROM user_token WHERE value = $value;",
         {
           value: token,
         },

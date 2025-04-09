@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { IIdea, SearchResult } from "../../../app/database/models/ideas";
 import useFetch from "../../hooks/useFetch";
 import {
@@ -135,15 +135,18 @@ export function InlineSearch({
             onClick={() => setDropdownOpen(!dropdownOpen)}
           />
         </Menu.Target>
-        <Menu.Dropdown>
+        <Menu.Dropdown
+          style={{
+            scrollbarWidth: "none",
+          }}
+        >
           {results ? (
             results.map((result) => {
               const isBestResult = result.idea.id === bestResult?.idea.id;
 
               return (
-                <>
+                <React.Fragment key={result.idea.id + "result"}>
                   <Menu.Item
-                    key={result.idea.id + "result"}
                     onClick={() => {
                       handleSelect(result);
                     }}
@@ -151,12 +154,13 @@ export function InlineSearch({
                     <Text>{result.idea.title}</Text>
                     <Text size="xs" c="dimmed">
                       <Highlight component="span" highlight={query}>
-                        {result.idea.contentSummary}
+                        {result.idea.derived?.generative_summary
+                          ?.sentenceSummary || "No summary available"}
                       </Highlight>
                     </Text>
                   </Menu.Item>
                   <Menu.Divider />
-                </>
+                </React.Fragment>
               );
             })
           ) : (

@@ -147,14 +147,16 @@ api.interceptors.response.use(
         // Make the refresh request. The browser automatically sends the HttpOnly cookie
         // because `withCredentials: true` is set on the Axios instance.
         // We don't send the refresh token in the body.
-        const refreshResponse = await api.post<{ accessToken: string }>( // Adjust<{...}> based on your API response
+        const refreshResponse = await api.post<{
+          data: { accessToken: string };
+        }>( // Adjust<{...}> based on your API response
           refreshEndpoint,
           {}, // Empty body, refresh token is in the cookie
           // Redundant if withCredentials is global, but explicit for clarity
           // { withCredentials: true }
         );
 
-        const accessToken = refreshResponse.data.accessToken;
+        const accessToken = refreshResponse.data.data.accessToken;
 
         console.log("Access token: ", accessToken);
 

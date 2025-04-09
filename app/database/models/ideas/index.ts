@@ -6,7 +6,7 @@ import { IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 
 export type IIdea = {
-  id: string;
+  id: string | RecordId;
   title: string;
   content: string;
   embeddings: number[] | null;
@@ -25,10 +25,7 @@ export type IIdeaWithComputedFields = IIdea & {
 
 export type IIdeaAsRelation = IIdea & {
   distance: number;
-};
-
-export type IIdeaWithRecordId = IIdea & {
-  id: RecordId;
+  derivedList: IIdeaDerived[];
 };
 
 export type IIdeaForm = Omit<IIdea, "id">;
@@ -67,7 +64,7 @@ export type IDBGraphWithComputedFields = IDBGraph & {
 
 export type SearchResult = {
   score: number;
-  idea: IIdea;
+  idea: IIdeaAsRelation;
   highlightText: string; // Placeholder for potential future implementation
   debug?: {
     // Optional: Add a debug structure to see score breakdown
@@ -119,7 +116,8 @@ export class Idea {
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance
+                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance,
+                ->is_source_for->(?).* as derivedList
             FROM idea
             WHERE id IN $userIdeas
             ORDER BY distance ASC
@@ -142,7 +140,8 @@ export class Idea {
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance
+                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
+                ->is_source_for->(?).* as derivedList
             FROM idea
             WHERE id IN $userIdeas
             ORDER BY distance ASC
@@ -160,7 +159,7 @@ export class Idea {
       ) {
         LET $connections = SELECT
             *,
-            ->is_source_for->(?).* as derived
+            ->is_source_for->(?).* as derivedList
         FROM
             (SELECT VALUE array::complement(<->connected<->idea.id, [id]) FROM ONLY <record> $ideaId);
 
@@ -195,7 +194,7 @@ export class Idea {
     return ideas.map(Idea.attachComputedFields);
   }
 
-  static async runDerivedCascade(ideaId: string) {
+  static async runDerivedCascade(ideaId: string | RecordId) {
     try {
       const derivedCascade = new IdeaDerivedCascade(ideaId);
       return await derivedCascade.cascade();
@@ -244,7 +243,10 @@ export class Idea {
     }
   }
 
-  static async connectToUser(ideaId: string, userId: string) {
+  static async connectToUser(
+    ideaId: string | RecordId,
+    userId: string | RecordId,
+  ) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
@@ -392,7 +394,7 @@ export class Idea {
     }
   }
 
-  static async update(id: string, form: Partial<IIdeaForm>) {
+  static async update(id: string | RecordId, form: Partial<IIdeaForm>) {
     try {
       const db = await getDatabase();
       const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
@@ -418,7 +420,7 @@ export class Idea {
     }
   }
 
-  static async delete(id: string) {
+  static async delete(id: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.delete<IIdea>(new StringRecordId(id));
@@ -480,13 +482,18 @@ export class Idea {
     try {
       const db = await getDatabase();
       const results = await db?.run<
-        (IIdea & { id: RecordId; derived: IIdeaDerived[] })[]
+        (IIdea & { id: RecordId; derivedList: IIdeaDerived[] })[]
       >("fn::get_idea_connections", [id]);
       if (!results) {
         console.error("No connections found.");
         return undefined;
       }
-      const connections = results;
+      const connections = results.map((connection) => {
+        return {
+          ...connection,
+          derived: Idea.mapDerived(connection.derivedList),
+        };
+      });
       return connections;
     } catch (err) {
       console.error(err);
@@ -509,6 +516,15 @@ export class Idea {
       console.error(err);
       return undefined;
     }
+  }
+
+  static mapDerived(derived: IIdeaDerived[]) {
+    const map: IIdeaDerivedMap = {};
+    derived.forEach((d) => {
+      const type = d.id.tb as keyof IIdeaDerivedMap;
+      map[type] = d;
+    });
+    return map;
   }
 
   static async getDerivedMap(id: string) {
@@ -553,7 +569,7 @@ export class Idea {
     }
   }
 
-  static async loadEmbeddings(id: string) {
+  static async loadEmbeddings(id: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea & { id: RecordId }>(
@@ -586,14 +602,14 @@ export class Idea {
   }
 
   static async findSimilar(
-    userId: string,
-    rootNodeId: string,
+    userId: string | RecordId,
+    rootNodeId: string | RecordId,
     options: { limit?: number } = { limit: 10 },
   ) {
     try {
       const db = await getDatabase();
       const limit = options.limit;
-      const ideas = await db?.run<(IIdeaAsRelation & { id: RecordId })[]>(
+      const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_idea",
         [rootNodeId, userId, limit],
       );
@@ -604,7 +620,13 @@ export class Idea {
       const filteredIdeas = ideas.filter((idea) => {
         return idea.id.toString() !== rootNodeId;
       });
-      return filteredIdeas;
+      const withDerivedMapped = filteredIdeas.map((idea) => {
+        return {
+          ...idea,
+          derived: Idea.mapDerived(idea.derivedList),
+        };
+      });
+      return withDerivedMapped;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -612,13 +634,13 @@ export class Idea {
   }
 
   static async semanticSearch(
-    userId: string,
+    userId: string | RecordId,
     embedding: number[],
     limit: number = 10,
   ) {
     try {
       const db = await getDatabase();
-      const ideas = await db?.run<(IIdeaAsRelation & { id: RecordId })[]>(
+      const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_embeddings",
         [embedding, userId, limit],
       );
@@ -626,7 +648,13 @@ export class Idea {
         console.error(`No ideas found.`);
         return;
       }
-      return ideas;
+      const withDerivedMapped = ideas.map((idea) => {
+        return {
+          ...idea,
+          derived: Idea.mapDerived(idea.derivedList),
+        };
+      });
+      return withDerivedMapped;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -634,7 +662,7 @@ export class Idea {
   }
 
   static async searchIdeas(
-    userId: string,
+    userId: string | RecordId,
     query: string,
     options: { limit?: number; semanticThreshold?: number } = {},
   ): Promise<SearchResult[] | undefined> {
@@ -707,7 +735,7 @@ export class Idea {
           idea: {
             ...candidate,
             id: candidate.id.toString(),
-          } as IIdea,
+          },
           score: combinedScore,
           highlightText: highlightText,
           debug: {
@@ -772,10 +800,10 @@ export class Idea {
 }
 
 class IdeaDerivedCascade {
-  private _ideaId: string;
+  private _ideaId: string | RecordId;
   private _idea: IIdea | undefined;
 
-  constructor(ideaId: string) {
+  constructor(ideaId: string | RecordId) {
     this._ideaId = ideaId;
     (async () => {
       this._idea = await Idea.get(ideaId);
