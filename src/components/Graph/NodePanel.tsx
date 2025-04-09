@@ -44,7 +44,7 @@ export default function NodePanel({ node, position }: NodePanelProps) {
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
           <Text c="dimmed" size="sm">
-            {node.contentSummary}
+            {node.derived?.generative_summary?.abstractSummary}
           </Text>
         </Grid.Col>
       </Grid>

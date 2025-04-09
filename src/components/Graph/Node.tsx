@@ -114,7 +114,7 @@ const Node = ({
     >
       <defs>
         <radialGradient
-          key={node.id}
+          key={node.id.toString()}
           id={`gradient-${node.id}`}
           cx="50%"
           cy="50%"
