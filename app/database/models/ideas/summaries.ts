@@ -180,7 +180,7 @@ export class GenerativeSummary {
     }
   }
 
-  static async cascadeGenerativeSummary(ideaId: string) {
+  static async cascadeGenerativeSummary(ideaId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {

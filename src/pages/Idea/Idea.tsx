@@ -3,9 +3,7 @@ import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
 import {
   IIdea,
-  IIdeaAsRelation,
   IIdeaConnection,
-  IIdeaDerivedMap,
   IIdeaForm,
 } from "../../../app/database/models/ideas";
 import {
@@ -28,12 +26,12 @@ import { useEffect, useState } from "react";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import {
   ArrowLeft,
-  ArrowRight,
   ArrowsClockwise,
   Graph,
-  Lightbulb,
+  ListMagnifyingGlass,
   Shapes,
   Sparkle,
+  TreeStructure,
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -176,8 +174,8 @@ export default function Idea() {
     url: "/graph/connection",
     method: "POST",
     body: {
-      source: idea?.id || "",
-      target: draggedIdea?.id || "",
+      source: idea?.id.toString() || "",
+      target: draggedIdea?.id.toString() || "",
     },
     dependencies: [idea, draggedIdea],
     onSuccess: async (data) => {
@@ -209,21 +207,37 @@ export default function Idea() {
   };
 
   const [
-    drawerOpened,
-    { open: openDrawer, close: closeDrawer, toggle: toggleDrawer },
+    connectionDrawerOpened,
+    { close: closeConnectionDrawer, toggle: toggleConnectionDrawer },
+  ] = useDisclosure();
+  const [
+    overviewDrawerOpened,
+    { close: closeOverviewDrawer, toggle: toggleOverviewDrawer },
   ] = useDisclosure();
 
   useEffect(() => {
     // register a keyboard shortcut to open the drawer on ctrl (or command) i
     const k = document.addEventListener("keydown", (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "i") {
-        toggleDrawer();
+        toggleConnectionDrawer();
       }
     });
-  }, [toggleDrawer]);
+
+    const l = document.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "o") {
+        toggleOverviewDrawer();
+      }
+    });
+
+    return () => {
+      document.removeEventListener("keydown", k as any);
+      document.removeEventListener("keydown", l as any);
+    };
+  }, [toggleConnectionDrawer]);
 
   useEffect(() => {
-    closeDrawer();
+    closeConnectionDrawer();
+    closeOverviewDrawer();
   }, []);
 
   const formattedDistance = (distance: number) => {
@@ -249,8 +263,8 @@ export default function Idea() {
   return (
     <div className={styles.idea}>
       <Drawer
-        opened={drawerOpened}
-        onClose={closeDrawer}
+        opened={connectionDrawerOpened}
+        onClose={closeConnectionDrawer}
         offset={14}
         radius="lg"
         position="bottom"
@@ -309,7 +323,9 @@ export default function Idea() {
                               onDragStart={() => setDraggingRelatedIdea(true)}
                               onDragEnd={() => setDraggingRelatedIdea(false)}
                               setDraggingIdea={(i) => setDraggedIdea(i)}
-                              draggable={!ideaIsConnected(relatedIdea.id)}
+                              draggable={
+                                !ideaIsConnected(relatedIdea.id.toString())
+                              }
                               setHoveringIdea={(i) => {
                                 setHoveringIdea(i);
                               }}
@@ -373,7 +389,10 @@ export default function Idea() {
                       placeholder="Search idea to connect..."
                       onSelect={(i) => {
                         createConnection({
-                          updatedBody: { source: idea.id, target: i.id },
+                          updatedBody: {
+                            source: idea.id.toString(),
+                            target: i.id.toString(),
+                          },
                         });
                       }}
                     />
@@ -384,6 +403,19 @@ export default function Idea() {
                     <Text fw="bold">Connected</Text>
                     <Graph />
                   </Group>
+                </Grid.Col>
+                <Grid.Col span={{ sm: 12 }}>
+                  <InlineSearch
+                    onSelect={(i) => {
+                      if (!idea) return;
+                      createConnection({
+                        updatedBody: {
+                          source: idea?.id.toString(),
+                          target: i.id.toString(),
+                        },
+                      });
+                    }}
+                  />
                 </Grid.Col>
                 <Grid.Col span={{ sm: 12 }}>
                   <Group>
@@ -414,6 +446,21 @@ export default function Idea() {
           </Grid.Col>
         </Grid>
       </Drawer>
+      <Drawer
+        opened={overviewDrawerOpened}
+        onClose={closeOverviewDrawer}
+        offset={14}
+        radius="lg"
+        position="right"
+        size="70%"
+      >
+        <Text>
+          <Group>
+            <Sparkle />
+            Overview
+          </Group>
+        </Text>
+      </Drawer>
       <Grid>
         <Grid.Col span={{ sm: 12 }}>
           <Group gap={14}>
@@ -440,12 +487,19 @@ export default function Idea() {
             <Tooltip label={<Kbd>Ctrl + I</Kbd>}>
               <ActionIcon
                 onClick={() => {
-                  openDrawer();
+                  toggleConnectionDrawer();
                 }}
               >
-                <Lightbulb weight="bold" />
+                <TreeStructure />
               </ActionIcon>
             </Tooltip>
+            <ActionIcon
+              onClick={() => {
+                toggleOverviewDrawer();
+              }}
+            >
+              <ListMagnifyingGlass />
+            </ActionIcon>
           </Group>
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
@@ -564,7 +618,7 @@ function IdeaPreview({
       withBorder={!dragging}
       shadow={dragging ? "md" : ""}
       onMouseEnter={() => {
-        setHoveringIdea(idea.id);
+        setHoveringIdea(idea.id.toString());
       }}
       onMouseLeave={() => {
         setHoveringIdea(undefined);
@@ -587,10 +641,7 @@ function IdeaPreview({
           </Grid>
         </HoverCard.Target>
         <HoverCard.Dropdown>
-          <Text>
-            {idea.derived?.generative_summary?.sentenceSummary ||
-              "No summary provided."}
-          </Text>
+          <Text>{summary || "No summary provided."}</Text>
         </HoverCard.Dropdown>
       </HoverCard>
     </Card>
