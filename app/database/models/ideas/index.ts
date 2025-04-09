@@ -14,7 +14,7 @@ export type IIdea = {
   updatedAt: Date;
   contentUpdatedAt: Date;
   embeddingsUpdatedAt: Date;
-  connections?: IIdeaConnection[];
+  connections?: IIdea[];
   relatedIdeas?: IIdeaAsRelation[];
   derived?: IIdeaDerivedMap;
 };
@@ -158,13 +158,13 @@ export class Idea {
       DEFINE FUNCTION OVERWRITE fn::get_idea_connections(
         $ideaId: string,
       ) {
-        LET $incoming = SELECT VALUE <-connected<-idea FROM ONLY <record> $ideaId FETCH idea;
-        LET $outgoing = SELECT VALUE ->connected->idea FROM ONLY <record> $ideaId FETCH idea;
+        LET $connections = SELECT
+            *,
+            ->is_source_for->(?).* as derived
+        FROM
+            (SELECT VALUE array::complement(<->connected<->idea.id, [id]) FROM ONLY <record> $ideaId);
 
-        RETURN {
-            incoming: $incoming,
-            outgoing: $outgoing,
-        };
+        RETURN $connections;
       }
       `;
     };
@@ -174,7 +174,7 @@ export class Idea {
       DEFINE FUNCTION OVERWRITE fn::get_idea_derived(
         $ideaId: string,
       ) {
-        LET $derived = SELECT VALUE ->is_source_for->generative_summary as derived FROM ONLY <record> $ideaId FETCH derived;
+        LET $derived = SELECT VALUE ->is_source_for->(?) as derived FROM ONLY <record> $ideaId FETCH derived;
 
         RETURN $derived;
       }
@@ -236,7 +236,7 @@ export class Idea {
       const [idea] = result;
       await Idea.connectToUser(idea.id, userId);
       await Idea.loadEmbeddings(idea.id);
-      await Idea.runDerivedCascade(idea.id);
+      Idea.runDerivedCascade(idea.id);
       return result;
     } catch (err) {
       console.error(err);
@@ -437,7 +437,7 @@ export class Idea {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaConnection & { id: RecordId }]>(
-        `RELATE $fromId -> connected -> $toId CONTENT { createdAt: $now; }`,
+        `RELATE $fromId -> connected -> $toId CONTENT { createdAt: $now, }`,
         {
           fromId: new StringRecordId(from),
           toId: new StringRecordId(to),
@@ -479,16 +479,15 @@ export class Idea {
   static async getConnections(id: string) {
     try {
       const db = await getDatabase();
-      const results = await db?.run<{
-        incoming: (IIdea & { id: RecordId })[];
-        outgoing: (IIdea & { id: RecordId })[];
-      }>("fn::get_idea_connections", [id]);
+      const results = await db?.run<
+        (IIdea & { id: RecordId; derived: IIdeaDerived[] })[]
+      >("fn::get_idea_connections", [id]);
       if (!results) {
         console.error("No connections found.");
         return undefined;
       }
-      const { incoming, outgoing } = results;
-      return { incoming, outgoing };
+      const connections = results;
+      return connections;
     } catch (err) {
       console.error(err);
       return undefined;

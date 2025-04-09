@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowsClockwise,
+  Graph,
   Lightbulb,
   Shapes,
   Sparkle,
@@ -37,7 +38,6 @@ import {
 import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import { useDisclosure } from "@mantine/hooks";
-import { IIdeaDerived } from "../../../app/database/models/ideas";
 
 export default function Idea() {
   const { ideaId } = useParams();
@@ -48,14 +48,7 @@ export default function Idea() {
     data: idea,
     load: reloadIdea,
     loading: loadingIdea,
-  } = useFetch<
-    undefined,
-    IIdea & {
-      relatedIdeas: IIdeaAsRelation[];
-      connections: { incoming: IIdea[]; outgoing: IIdea[] };
-      derived: IIdeaDerivedMap;
-    }
-  >({
+  } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}`,
     query: {
       withRelatedIdeas: "true",
@@ -229,6 +222,10 @@ export default function Idea() {
     });
   }, [toggleDrawer]);
 
+  useEffect(() => {
+    closeDrawer();
+  }, []);
+
   const formattedDistance = (distance: number) => {
     return distance.toFixed(2);
   };
@@ -238,11 +235,7 @@ export default function Idea() {
     if (!idea) {
       return false;
     }
-    const connections = [
-      ...idea.connections.incoming,
-      ...idea.connections.outgoing,
-    ];
-    return connections.some((connection) => connection.id === ideaId);
+    return idea.connections?.some((connection) => connection.id === ideaId);
   };
 
   const [hoveringIdea, setHoveringIdea] = useState<string>();
@@ -250,6 +243,8 @@ export default function Idea() {
   const { load: removeConnection } = useFetch({
     url: `/graph/ideas/`,
   });
+
+  console.log("Idea: ", idea);
 
   return (
     <div className={styles.idea}>
@@ -268,9 +263,18 @@ export default function Idea() {
             </Grid.Col>
           )}
           <Grid.Col span={{ sm: 12, md: 6 }}>
-            <Card p="lg" radius="lg">
+            <Card
+              p="lg"
+              radius="lg"
+              h="50vh"
+              style={{
+                overflowY: "scroll",
+                scrollbarWidth: "thin",
+                scrollbarColor: "transparent transparent",
+              }}
+            >
               <Grid>
-                <Grid.Col>
+                <Grid.Col span={{ sm: 12 }}>
                   <Group align="end">
                     <Title order={2}>Related Ideas</Title>
                     <Text c="dimmed">Drag ideas to connect them.</Text>
@@ -284,7 +288,7 @@ export default function Idea() {
                     scrollbarColor: "transparent transparent",
                   }}
                 >
-                  {idea && idea.relatedIdeas?.length > 0 ? (
+                  {idea?.relatedIdeas && idea.relatedIdeas?.length > 0 ? (
                     <Group>
                       {idea.relatedIdeas?.map((relatedIdea) => {
                         return (
@@ -377,55 +381,23 @@ export default function Idea() {
                 )}
                 <Grid.Col span={{ sm: 12 }}>
                   <Group>
-                    <Text fw="bold">Incoming</Text>
-                    <ArrowLeft weight="bold" />
+                    <Text fw="bold">Connected</Text>
+                    <Graph />
                   </Group>
                 </Grid.Col>
                 <Grid.Col span={{ sm: 12 }}>
                   <Group>
-                    {idea && idea.connections.incoming?.length > 0 ? (
-                      idea.connections.incoming.map((connection) => {
+                    {idea?.connections && idea.connections?.length > 0 ? (
+                      idea.connections?.map((connection) => {
                         return (
                           <Link
                             to={`/idea/${connection.id}`}
                             style={{ textDecoration: "none", color: "inherit" }}
-                            key={connection.id + "incoming"}
+                            key={connection.id + "connected"}
                           >
                             <IdeaPreview
                               idea={connection}
-                              subtext={<ArrowLeft weight="bold" />}
                               draggable={false}
-                              hoveringIdea={hoveringIdea}
-                              setHoveringIdea={setHoveringIdea}
-                            />
-                          </Link>
-                        );
-                      })
-                    ) : (
-                      <Text c="dimmed">No connections yet.</Text>
-                    )}
-                  </Group>
-                </Grid.Col>
-                <Grid.Col span={{ sm: 12 }} />
-                <Grid.Col span={{ sm: 12 }}>
-                  <Group>
-                    <Text fw="bold">Outgoing</Text>
-                    <ArrowRight weight="bold" />
-                  </Group>
-                </Grid.Col>
-                <Grid.Col span={{ sm: 12 }}>
-                  <Group>
-                    {idea && idea.connections.outgoing?.length > 0 ? (
-                      idea.connections.outgoing.map((connection) => {
-                        return (
-                          <Link
-                            to={`/idea/${connection.id}`}
-                            style={{ textDecoration: "none", color: "inherit" }}
-                            key={connection.id + "outgoing"}
-                          >
-                            <IdeaPreview
-                              idea={connection}
-                              subtext={<ArrowRight weight="bold" />}
                               hoveringIdea={hoveringIdea}
                               setHoveringIdea={setHoveringIdea}
                             />
@@ -495,7 +467,7 @@ export default function Idea() {
               <Sparkle weight="bold" /> Content Summary
             </Text>
             <Text>
-              {idea?.derived.generative_summary?.sentenceSummary ||
+              {idea?.derived?.generative_summary?.sentenceSummary ||
                 "No summary provided."}
             </Text>
           </Card>
@@ -550,7 +522,7 @@ export default function Idea() {
 
 type IdeaPreviewProps = {
   idea: IIdea;
-  subtext: JSX.Element;
+  subtext?: JSX.Element;
   setDraggingIdea?: (idea: IIdea | null) => void;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -573,7 +545,6 @@ function IdeaPreview({
 
   const summary =
     idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
-  console.log("Summary: ", summary, idea);
 
   return (
     <Card
@@ -605,9 +576,11 @@ function IdeaPreview({
           <Grid>
             <Grid.Col span={{ sm: 12 }}>
               <Group gap="xs">
-                <Text size="xs" c="dimmed">
-                  {subtext}
-                </Text>
+                {subtext && (
+                  <Text size="xs" c="dimmed">
+                    {subtext}
+                  </Text>
+                )}
                 <Text fw="bold">{idea.title}</Text>
               </Group>
             </Grid.Col>

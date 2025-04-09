@@ -116,6 +116,7 @@ export class User {
 
       const updater: Partial<IUserForm> = form;
 
+      console.log("Updating with: ", updater);
       const result = await db?.merge<
         IUser,
         Partial<IUserForm> & { updatedAt: Date }
@@ -123,6 +124,7 @@ export class User {
         ...updater,
         updatedAt: new Date(),
       });
+      console.log("Result: ", result);
       if (!result) {
         console.error("Failed to update user");
         return undefined;

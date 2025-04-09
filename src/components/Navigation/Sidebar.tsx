@@ -18,7 +18,13 @@ export default function Sidebar() {
         <Grid.Col span={12}>
           <Menu width={200}>
             <Menu.Target>
-              <Avatar color="blue" style={{ cursor: "pointer" }}>
+              <Avatar
+                color="blue"
+                style={{ cursor: "pointer" }}
+                onDoubleClick={() => {
+                  navigate("/");
+                }}
+              >
                 {initials}
               </Avatar>
             </Menu.Target>

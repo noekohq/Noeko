@@ -10,7 +10,7 @@ import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 
 type AuthState = {
-  user: ISafeUser | null | undefined;
+  user: ISafeUser | undefined;
   loading: boolean;
 };
 
@@ -45,7 +45,7 @@ const AuthContext = createContext<IAuthContext>({
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<ISafeUser | null | undefined>(
+  const [user, setUser] = useState<ISafeUser | undefined>(
     initialAuthState.user,
   );
   const [loading, setLoading] = useState<boolean>(initialAuthState.loading);
@@ -61,13 +61,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { load: performUserFetch } = useFetch<undefined, ISafeUser>({
     url: "/users/me",
     onSuccess: (data) => {
-      setUser(data ?? null);
+      setUser(data ?? undefined);
       setLoading(false);
     },
     onError: (error) => {
       console.error("AuthProvider: User fetch error", error);
       clearTokens();
-      setUser(null);
+      setUser(undefined);
       setLoading(false);
     },
   });
@@ -78,7 +78,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       performUserFetch();
     } else {
-      setUser(null);
+      setUser(undefined);
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,7 +103,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(() => {
     clearTokens();
-    setUser(null);
+    setUser(undefined);
     setLoading(false);
     window.location.reload();
   }, [clearTokens]);
