@@ -120,6 +120,64 @@ export class GenerativeSummary {
     }
   }
 
+  static async deleteCascade(ideaId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available");
+      }
+      const derivedSummariesResults = await db?.query<[IGenerativeSummary[]]>(
+        `SELECT VALUE ->is_source_for->generative_summary FROM ONLY $ideaId;`,
+        { ideaId },
+      );
+      if (!derivedSummariesResults) {
+        throw new Error("Failed to fetch derived summaries");
+      }
+      const [derivedSummaries] = derivedSummariesResults;
+      if (!derivedSummaries || derivedSummaries.length < 1) {
+        await this.delete(ideaId);
+        return true;
+      }
+      for (const summary of derivedSummaries) {
+        await this.deleteCascade(summary.id.toString());
+      }
+      await this.delete(ideaId);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  static async delete(ideaId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available");
+      }
+      const summaryResults = await db?.query<[IGenerativeSummary[]]>(
+        `SELECT VALUE ->is_source_for->generative_summary FROM ONLY $ideaId;`,
+        { ideaId },
+      );
+      if (!summaryResults) {
+        throw new Error("Failed to fetch summaries");
+      }
+      const [summaries] = summaryResults;
+      if (!summaries || summaries.length < 1) {
+        await db?.query(`DELETE FROM $ideaId;`, { ideaId });
+        return true;
+      }
+      for (const summary of summaries) {
+        await this.delete(summary.id.toString());
+      }
+      await db?.query(`DELETE FROM $ideaId;`, { ideaId });
+      return true;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
   static async getGenerativeSummaryFromContent(
     content: string,
   ): Promise<IGenerativeSummaryForm | undefined> {

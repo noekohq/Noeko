@@ -4,7 +4,7 @@ import {
   Routes,
   useLocation,
   useNavigate,
-} from "react-router"; // Consistent imports
+} from "react-router";
 import styles from "./App.module.scss";
 import { Loader } from "@mantine/core";
 
@@ -18,25 +18,11 @@ import Sidebar from "./components/Navigation/Sidebar";
 import Profile from "./pages/Settings/Profile";
 import Settings from "./pages/Settings/Settings";
 
-// Protected component can be kept if you prefer wrapping each route,
-// but it's not strictly needed with the structure below.
-// Remove it if you adopt the structure below fully.
-/*
-function Protected({ children }: { children: React.ReactNode }) {
-  const { loggedIn, loading } = useAuth();
-  const location = useLocation();
-  if (loading) { return null; } // Should rely on global loader mostly
-  if (!loggedIn) { return <Navigate to="/login" state={{ from: location }} replace />; }
-  return <>{children}</>;
-}
-*/
-
 export default function App() {
   const navigate = useNavigate();
   const { loggedIn, loading: loadingAuth } = useAuth();
-  const location = useLocation(); // Needed for redirect state
+  const location = useLocation();
 
-  // Keyboard shortcut useEffect (keep as is)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
@@ -53,7 +39,6 @@ export default function App() {
     };
   }, [navigate]);
 
-  // --- Global Loading State ---
   if (loadingAuth) {
     return (
       <div
@@ -69,17 +54,14 @@ export default function App() {
     );
   }
 
-  // --- Render Routes Based on Final Auth State ---
   return (
     <Routes>
-      {/* === Public Routes (User is NOT Logged In) === */}
       {!loggedIn && (
         <>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          {/* Any other path redirects to login */}
           <Route
-            path="/*" // Catch-all for logged-out users
+            path="/*"
             element={
               <Navigate to="/login" state={{ from: location }} replace />
             }
@@ -87,33 +69,26 @@ export default function App() {
         </>
       )}
 
-      {/* === Protected Routes (User IS Logged In) === */}
       {loggedIn && (
         <Route
-          path="/*" // Use a layout route to wrap all logged-in pages
+          path="/*"
           element={
-            // This is the main layout for authenticated users
             <div className={styles.app}>
               <div className={styles.ui}>
                 <Sidebar />
               </div>
               <div className={styles.content}>
-                {/* Nested Routes rendered within the layout */}
                 <Routes>
-                  {/* Redirect away from auth pages if logged in */}
                   <Route path="login" element={<Navigate to="/" replace />} />
                   <Route
                     path="register"
                     element={<Navigate to="/" replace />}
                   />
-                  {/* Your application routes */}
-                  <Route index element={<Home />} /> {/* Matches "/" */}
+                  <Route index element={<Home />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="idea/:ideaId" element={<Idea />} />
-                  {/* Catch-all for unknown paths when logged in */}
                   <Route path="*" element={<Navigate to="/" replace />} />
-                  {/* Or <Route path="*" element={<NotFound />} /> */}
                 </Routes>
               </div>
             </div>

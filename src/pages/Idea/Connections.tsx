@@ -7,6 +7,7 @@ import {
   Title,
   Text,
   Overlay,
+  ActionIcon,
 } from "@mantine/core";
 import { IIdea, IIdeaConnection } from "../../../app/database/models/ideas";
 import { Link } from "react-router";
@@ -15,15 +16,13 @@ import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
-import { Graph } from "@phosphor-icons/react";
+import { Graph, TrashSimple } from "@phosphor-icons/react";
 
 type IConnectionsProps = {
   opened: boolean;
   onClose: () => void;
   loadingIdea: boolean;
   idea: IIdea;
-  selectedIdea?: string;
-  setSelectedIdea?: (id: string | undefined) => void;
   reloadIdea: () => void;
 };
 
@@ -32,10 +31,10 @@ export default function Connections({
   onClose,
   loadingIdea,
   idea,
-  selectedIdea,
-  setSelectedIdea,
   reloadIdea,
 }: IConnectionsProps) {
+  const [selectedIdea, setSelectedIdea] = useState<string>();
+
   const formattedDistance = (distance: number) => {
     return distance.toFixed(2);
   };
@@ -48,7 +47,6 @@ export default function Connections({
     return idea.connections?.some((connection) => connection.id === ideaId);
   };
 
-  const [hoveringIdea, setHoveringIdea] = useState<string>();
   const [draggedIdea, setDraggedIdea] = useState<IIdea>();
   const [draggingRelatedIdea, setDraggingRelatedIdea] = useState(false);
   const [draggingOverConnectionDrop, setDraggingOverConnectionDrop] =
@@ -61,7 +59,7 @@ export default function Connections({
     url: "/graph/connection",
     method: "POST",
     body: {
-      source: idea?.id.toString() || "",
+      source: idea?.id.toString(),
       target: draggedIdea?.id.toString() || "",
     },
     dependencies: [idea, draggedIdea],
@@ -81,10 +79,6 @@ export default function Connections({
     },
   });
 
-  const { load: removeConnection } = useFetch({
-    url: `/graph/ideas/`,
-  });
-
   const handleDropIdeaInConnection = async () => {
     if (!draggedIdea) return;
     try {
@@ -96,6 +90,36 @@ export default function Connections({
     setDraggingRelatedIdea(false);
     setDraggingOverConnectionDrop(false);
   };
+
+  const { load: removeConnection } = useFetch({
+    url: `/graph/connection`,
+    method: "DELETE",
+    body: {
+      source: idea?.id.toString(),
+      target: selectedIdea,
+    },
+    dependencies: [idea, selectedIdea],
+    onSuccess: async (data) => {
+      showNotification({
+        title: "Connection removed",
+        message: "The connection was successfully removed.",
+      });
+      reloadIdea();
+    },
+    onError: async (error) => {
+      showNotification({
+        title: "Connection removal failed",
+        message: "The connection could not be removed.",
+        color: "red",
+      });
+    },
+  });
+
+  const handleRemoveConnection = () => {
+    removeConnection();
+  };
+
+  console.log("Selected idea:", selectedIdea);
 
   return (
     <Drawer
@@ -162,10 +186,8 @@ export default function Connections({
                             draggable={
                               !ideaIsConnected(relatedIdea.id.toString())
                             }
-                            setHoveringIdea={(i) => {
-                              setHoveringIdea(i);
-                            }}
-                            hoveringIdea={hoveringIdea}
+                            hoveringIdea={selectedIdea}
+                            setHoveringIdea={setSelectedIdea}
                           />
                         </Link>
                       );
@@ -254,8 +276,20 @@ export default function Connections({
                             idea={connection}
                             draggable={false}
                             hoveringIdea={selectedIdea}
-                            setHoveringIdea={
-                              setSelectedIdea ? setSelectedIdea : undefined
+                            setHoveringIdea={setSelectedIdea}
+                            options={
+                              <>
+                                <ActionIcon
+                                  variant="light"
+                                  color="red"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveConnection();
+                                  }}
+                                >
+                                  <TrashSimple />
+                                </ActionIcon>
+                              </>
                             }
                           />
                         </Link>
