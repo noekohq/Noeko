@@ -1,11 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
-import {
-  IIdea,
-  IIdeaConnection,
-  IIdeaForm,
-} from "../../../app/database/models/ideas";
+import { IIdea, IIdeaForm } from "../../../app/database/models/ideas";
 import {
   ActionIcon,
   Button,
@@ -16,25 +12,22 @@ import {
   Text,
   Card,
   Space,
-  Overlay,
-  Drawer,
   Tooltip,
   Kbd,
-  HoverCard,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import {
   ArrowLeft,
   ArrowsClockwise,
-  Graph,
   ListMagnifyingGlass,
   Shapes,
   Sparkle,
+  TrashSimple,
   TreeStructure,
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
-import { InlineSearch } from "../../components/Search/InlineSearch";
 import { useDisclosure } from "@mantine/hooks";
 import Connections from "./Connections";
 import Overview from "./Overview";
@@ -126,6 +119,47 @@ export default function Idea() {
     content && content !== idea?.content && submitContent();
   }, [content]);
 
+  const { load: deleteIdea } = useFetch({
+    url: `/graph/ideas/${ideaId}`,
+    method: "DELETE",
+    onSuccess: () => {
+      navigate("/");
+      showNotification({
+        title: "Success",
+        message: "Idea deleted successfully",
+      });
+    },
+    onError: (error) => {
+      showNotification({
+        title: "Error",
+        message: "There was an error deleting the idea",
+        color: "red",
+      });
+    },
+  });
+
+  const handleDeleteIdea = () => {
+    modals.openConfirmModal({
+      title: "Are you sure you want to delete this idea?",
+      children: (
+        <Text>
+          Are you sure you want to delete this idea forever?{" "}
+          <Text inline fw="bold" component="span">
+            This action cannot be undone.
+          </Text>
+        </Text>
+      ),
+      onConfirm: () => deleteIdea(),
+      labels: {
+        confirm: "Yes, delete forever",
+        cancel: "No, cancel",
+      },
+      confirmProps: {
+        color: "red",
+      },
+    });
+  };
+
   const { load: embedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/graph/ideas/${ideaId}/embed`,
     method: "POST",
@@ -198,8 +232,6 @@ export default function Idea() {
     closeOverviewDrawer();
   }, []);
 
-  console.log("Idea: ", idea);
-
   return (
     <div className={styles.idea}>
       {idea && (
@@ -231,7 +263,7 @@ export default function Idea() {
               }}
               variant="default"
             >
-              <ArrowLeft weight="bold" />
+              <ArrowLeft />
             </ActionIcon>
             <ActionIcon
               variant="default"
@@ -242,7 +274,7 @@ export default function Idea() {
               {loadingContentUpdate ? (
                 <Loader size="xs" color="white" />
               ) : (
-                <ArrowsClockwise weight="bold" />
+                <ArrowsClockwise />
               )}
             </ActionIcon>
             <Tooltip label={<Kbd>Ctrl + I</Kbd>}>
@@ -250,6 +282,7 @@ export default function Idea() {
                 onClick={() => {
                   toggleConnectionDrawer();
                 }}
+                variant="light"
               >
                 <TreeStructure />
               </ActionIcon>
@@ -258,8 +291,18 @@ export default function Idea() {
               onClick={() => {
                 toggleOverviewDrawer();
               }}
+              variant="light"
             >
               <ListMagnifyingGlass />
+            </ActionIcon>
+            <ActionIcon
+              variant="light"
+              color="red"
+              onClick={() => {
+                handleDeleteIdea();
+              }}
+            >
+              <TrashSimple />
             </ActionIcon>
           </Group>
         </Grid.Col>

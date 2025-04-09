@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IIdea } from "../../../../app/database/models/ideas";
-import { Card, Grid, Group, HoverCard, Text } from "@mantine/core";
+import { Card, Container, Grid, Group, HoverCard, Text } from "@mantine/core";
 import styles from "./IdeaPreview.module.scss";
 
 type IdeaPreviewProps = {
@@ -12,6 +12,7 @@ type IdeaPreviewProps = {
   draggable?: boolean;
   hoveringIdea?: string | undefined;
   setHoveringIdea?: (hoveringIdea: string | undefined) => void;
+  options?: JSX.Element;
 };
 
 export default function IdeaPreview({
@@ -23,6 +24,7 @@ export default function IdeaPreview({
   draggable = false,
   hoveringIdea,
   setHoveringIdea,
+  options,
 }: IdeaPreviewProps) {
   const [dragging, setDragging] = useState(false);
 
@@ -70,7 +72,12 @@ export default function IdeaPreview({
           </Grid>
         </HoverCard.Target>
         <HoverCard.Dropdown>
-          <Text>{summary || "No summary provided."}</Text>
+          <Grid>
+            <Grid.Col span={{ sm: 12 }}>{options}</Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <Text>{summary || "No summary provided."}</Text>
+            </Grid.Col>
+          </Grid>
         </HoverCard.Dropdown>
       </HoverCard>
     </Card>

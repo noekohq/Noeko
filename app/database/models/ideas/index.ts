@@ -125,7 +125,7 @@ export class Idea {
                 ->is_source_for->(?).* as derivedList
             FROM idea
             WHERE id IN $userIdeas
-            ORDER BY distance ASC
+            ORDER BY distance DESC
             LIMIT $limit;
 
         RETURN $results;
@@ -149,7 +149,7 @@ export class Idea {
                 ->is_source_for->(?).* as derivedList
             FROM idea
             WHERE id IN $userIdeas
-            ORDER BY distance ASC
+            ORDER BY distance DESC
             LIMIT $limit;
 
         RETURN $results;
@@ -205,6 +205,16 @@ export class Idea {
       return await derivedCascade.cascade();
     } catch (err) {
       console.error("Error running derived cascade: ", err);
+      return undefined;
+    }
+  }
+
+  static async runDeleteCascade(ideaId: string | RecordId) {
+    try {
+      const deleteCascade = new IdeaDerivedCascade(ideaId);
+      return await deleteCascade.deleteCascade();
+    } catch (err) {
+      console.error("Error running delete cascade: ", err);
       return undefined;
     }
   }
@@ -424,7 +434,9 @@ export class Idea {
         console.error("No idea updated.");
         return undefined;
       }
-      await Idea.runDerivedCascade(result.id);
+      if (result.content !== undefined) {
+        await Idea.runDerivedCascade(result.id);
+      }
       return result;
     } catch (err) {
       console.error(err);
@@ -435,6 +447,7 @@ export class Idea {
   static async delete(id: string | RecordId) {
     try {
       const db = await getDatabase();
+      await Idea.runDeleteCascade(id);
       const result = await db?.delete<IIdea>(new StringRecordId(id));
       if (!result) {
         console.error("No idea deleted.");
@@ -472,8 +485,8 @@ export class Idea {
   static async disconnect(source: string, target: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<(IIdeaConnection & { id: RecordId })[]>(
-        "DELETE FROM connected WHERE source = $source AND target = $target;",
+      const result = await db?.query<IIdeaConnection[]>(
+        "DELETE FROM (SELECT VALUE <->connected FROM ONLY <record> $source) WHERE out = <record> $target OR in = <record> $target;",
         {
           source,
           target,
@@ -842,6 +855,14 @@ class IdeaDerivedCascade {
           `No generative summary updated for idea "${this.ideaId}"`,
         );
       }
+    } catch (error) {
+      console.error(`Error during cascade for idea "${this.ideaId}":`, error);
+    }
+  }
+
+  async deleteCascade() {
+    try {
+      await GenerativeSummary.deleteCascade(this.ideaId);
     } catch (error) {
       console.error(`Error during cascade for idea "${this.ideaId}":`, error);
     }
