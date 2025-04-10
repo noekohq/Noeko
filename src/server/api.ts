@@ -158,8 +158,6 @@ api.interceptors.response.use(
 
         const accessToken = refreshResponse.data.data.accessToken;
 
-        console.log("Access token: ", accessToken);
-
         setAccessToken(accessToken); // Store the new access token
 
         // Update the Authorization header for the current failed request

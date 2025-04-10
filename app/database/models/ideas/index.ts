@@ -49,7 +49,7 @@ export type IIdeaUserOwnership = {
 };
 
 export type IDBGraph = {
-  ideas: IIdea[];
+  ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
   edges: IIdeaConnection[];
   flags: {
     embeddings: {
@@ -250,7 +250,7 @@ export class Idea {
       const [idea] = result;
       await Idea.connectToUser(idea.id, userId);
       await Idea.loadEmbeddings(idea.id);
-      Idea.runDerivedCascade(idea.id);
+      await Idea.runDerivedCascade(idea.id);
       return result;
     } catch (err) {
       console.error(err);
@@ -434,7 +434,7 @@ export class Idea {
         console.error("No idea updated.");
         return undefined;
       }
-      if (result.content !== undefined) {
+      if (form.content !== undefined) {
         await Idea.runDerivedCascade(result.id);
       }
       return result;

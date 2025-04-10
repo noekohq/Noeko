@@ -1,8 +1,19 @@
 // graph.d.ts
-import { IIdea } from "../../app/database/models/ideas";
+import { IIdea, IIdeaDerived } from "../../app/database/models/ideas";
 
 // Add simulation properties directly to INode
 export type INode = IIdea & {
+  type: "idea";
+  x?: number; // Current x position
+  y?: number; // Current y position
+  vx?: number; // Velocity x
+  vy?: number; // Velocity y
+  fx?: number | null; // Fixed x position (during drag)
+  fy?: number | null; // Fixed y position (during drag)
+};
+
+export type IDerivedNode = IIdeaDerived & {
+  type: "derived";
   x?: number; // Current x position
   y?: number; // Current y position
   vx?: number; // Velocity x
@@ -15,6 +26,8 @@ export type INode = IIdea & {
 export interface IEdge {
   source: string; // ID of the source node
   target: string; // ID of the target node
+  distance: number; // Distance between nodes
+  strength: number; // Strength of the link
   // You might add other edge properties if needed
 }
 
@@ -22,6 +35,8 @@ export interface IEdge {
 export type IGraph = {
   nodes: INode[];
   edges: IEdge[];
+  derivedNodes: IDerivedNode[];
+  derivedEdges: IEdge[];
 };
 
 // Type for storing node positions, easier for lookups

@@ -198,15 +198,20 @@ export class GenerativeSummary {
     }
   }
 
-  static async refreshGenerativeSummary(summaryId: string) {
+  static async refreshGenerativeSummary(summaryId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not available");
       }
       const sourceResults = await db.query<[IIdea[]]>(
-        `SELECT VALUE <-is_source_for<-idea as sourceIdeas FROM ONLY $summaryId FETCH sourceIdeas;`,
-        { summaryId },
+        `SELECT VALUE <-is_source_for<-idea as sourceIdeas FROM ONLY <record> $summaryId FETCH sourceIdeas;`,
+        {
+          summaryId:
+            typeof summaryId === "string"
+              ? new StringRecordId(summaryId)
+              : summaryId,
+        },
       );
       if (!sourceResults) {
         throw new Error("Failed to fetch source ideas");
@@ -245,7 +250,7 @@ export class GenerativeSummary {
         throw new Error("Database not available");
       }
       const derivedSummariesResults = await db?.query<[IGenerativeSummary[]]>(
-        `SELECT VALUE ->is_source_for->generative_summary FROM ONLY $ideaId;`,
+        `SELECT VALUE ->is_source_for->generative_summary as derivedSummaries FROM ONLY $ideaId FETCH derivedSummaries;`,
         { ideaId },
       );
       if (!derivedSummariesResults) {
@@ -260,7 +265,7 @@ export class GenerativeSummary {
         return true;
       }
       for (const summary of derivedSummaries) {
-        await this.refreshGenerativeSummary(summary.id.toString());
+        await this.refreshGenerativeSummary(summary.id);
       }
       return true;
     } catch (error) {
