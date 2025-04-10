@@ -119,8 +119,6 @@ export default function Connections({
     removeConnection();
   };
 
-  console.log("Selected idea:", selectedIdea);
-
   return (
     <Drawer
       opened={opened}

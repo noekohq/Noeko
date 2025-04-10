@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
-import { INode } from "../../declarations/graph.d";
-import styles from "./Node.module.scss";
+import { IDerivedNode, INode } from "../../declarations/graph.d";
+import styles from "./DerivedNode.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
 import { Text } from "@mantine/core";
 
-type NodeProps = {
-  node: INode;
+type DerivedNodeProps = {
+  node: IDerivedNode;
   isDragging: boolean;
   onNodeNavigate?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
   onNodeSelect?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
@@ -13,14 +13,14 @@ type NodeProps = {
   onContextMenu: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
 };
 
-const Node = ({
+const DerivedNode = ({
   node,
   isDragging,
   onNodeNavigate,
   onNodeSelect,
   onDragStart,
   onContextMenu,
-}: NodeProps) => {
+}: DerivedNodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
   const {
@@ -39,27 +39,13 @@ const Node = ({
     onDragStart(event, node.id.toString());
   };
 
-  const handleContextMenu = (event: React.MouseEvent<SVGGElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    onContextMenu(event, node);
-  };
-
-  const handleNodeSelect = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeSelect?.(event, node);
-    setSelected(node.id.toString());
-  };
-  const handleNodeUnselect = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeSelect?.(event, node);
-    setSelected(null);
-  };
-
   const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
     setSelected(null);
-    onNodeNavigate?.(event, node);
   };
 
-  const radius = 24;
+  const shouldShow = filter(node);
+
+  const radius = 10;
 
   const textOffset = 0;
   const textWidth = 124;
@@ -78,8 +64,6 @@ const Node = ({
     opacityInner: 1,
     opacityOuter: 0.2,
   };
-
-  const shouldShow = filter(node);
 
   const randomDelay = () => {
     return Math.floor(Math.random() * 1400);
@@ -102,14 +86,20 @@ const Node = ({
     }
   }, []);
 
+  const idToTitle = (id: string) => {
+    const parts = id.split(":");
+    const table = parts[0];
+    if (table === "generative_summary") {
+      return "Summary";
+    }
+    return table;
+  };
+
   return (
     <g
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onMouseDown={handleMouseDown}
-      onMouseEnter={handleNodeSelect}
-      onMouseLeave={handleNodeUnselect}
       onClick={handleNodeNavigate}
-      onContextMenu={handleContextMenu}
       className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""}`}
     >
       <defs>
@@ -143,7 +133,7 @@ const Node = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
-            {node.title}
+            {idToTitle(node.id.toString())}
           </Text>
         </foreignObject>
       )}
@@ -151,4 +141,4 @@ const Node = ({
   );
 };
 
-export default Node;
+export default DerivedNode;

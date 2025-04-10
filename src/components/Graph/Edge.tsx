@@ -1,11 +1,11 @@
 import React from "react";
-import { IEdge, INode } from "../../declarations/graph.d"; // Adjust path as needed
+import { IDerivedNode, IEdge, INode } from "../../declarations/graph.d"; // Adjust path as needed
 import styles from "./Edge.module.scss"; // Assuming styles remain similar
 
 type EdgeProps = {
   edge: IEdge;
-  sourceNode: INode | undefined;
-  targetNode: INode | undefined;
+  sourceNode: INode | IDerivedNode | undefined;
+  targetNode: INode | IDerivedNode | undefined;
 };
 
 const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {

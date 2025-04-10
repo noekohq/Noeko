@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
-import { INode } from "../declarations/graph";
+import { IDerivedNode, INode } from "../declarations/graph";
 
 type FilterConfig = {
-  filter: (node: INode) => boolean;
+  filter: (node: INode | IDerivedNode) => boolean;
 };
 
 type IGraphContext = {

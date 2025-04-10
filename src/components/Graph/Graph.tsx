@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { IGraph, INode } from "../../declarations/graph"; // Adjust path as needed
+import { IDerivedNode, IGraph, INode } from "../../declarations/graph"; // Adjust path as needed
 import Node from "./Node";
 import Edge from "./Edge";
+import DerivedNode from "./DerivedNode";
 import styles from "./Graph.module.scss";
 import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
 import NodePanel, { NodePanelProps } from "./NodePanel";
@@ -9,7 +10,6 @@ import NodePanel, { NodePanelProps } from "./NodePanel";
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
   forceStrength: -500,
-  linkDistance: 150,
   linkStrength: 0.7,
   centerForceStrength: 0.05,
   alpha: 1,
@@ -55,7 +55,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const [nodes, setNodes] = useState<INode[]>([]);
+  const [nodes, setNodes] = useState<(INode | IDerivedNode)[]>([]);
   const alphaRef = useRef(SIMULATION_CONFIG.alpha);
   const simulationRef = useRef<number | null>(null); // requestAnimationFrame ID
 
@@ -168,12 +168,51 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           const { dx, dy, dist } = getVector(sourceNode, targetNode);
 
           if (dist > 0) {
-            const diff = dist - SIMULATION_CONFIG.linkDistance;
+            const diff = dist - edge.distance;
+            // Use edge's strength, default to 1.0 if undefined
+            const edgeStrengthMultiplier = edge.strength ?? 1.0;
+            // Calculate effective strength for this link
+            const effectiveLinkStrength =
+              SIMULATION_CONFIG.linkStrength * edgeStrengthMultiplier;
+
             const force =
-              (diff * SIMULATION_CONFIG.linkStrength * alphaRef.current) / dist;
+              (diff * effectiveLinkStrength * alphaRef.current) / dist; // Use effective strength
             const forceX = dx * force;
             const forceY = dy * force;
 
+            // Apply forces... (rest of the logic is the same)
+            if (!sourceNode.fx) {
+              sourceNode.vx = (sourceNode.vx ?? 0) + forceX;
+              sourceNode.vy = (sourceNode.vy ?? 0) + forceY;
+            }
+            if (!targetNode.fx) {
+              targetNode.vx = (targetNode.vx ?? 0) - forceX;
+              targetNode.vy = (targetNode.vy ?? 0) - forceY;
+            }
+          }
+        }
+      }
+
+      // --- Repeat the same modification in the loop for graph.derivedEdges ---
+      for (const edge of graph.derivedEdges) {
+        const sourceNode = newNodes.find((n) => n.id === edge.source);
+        const targetNode = newNodes.find((n) => n.id === edge.target);
+
+        if (sourceNode && targetNode) {
+          const { dx, dy, dist } = getVector(sourceNode, targetNode);
+
+          if (dist > 0) {
+            const diff = dist - edge.distance;
+            const edgeStrengthMultiplier = edge.strength ?? 1.0; // Default to 1.0
+            const effectiveLinkStrength =
+              SIMULATION_CONFIG.linkStrength * edgeStrengthMultiplier;
+
+            const force =
+              (diff * effectiveLinkStrength * alphaRef.current) / dist; // Use effective strength
+            const forceX = dx * force;
+            const forceY = dy * force;
+
+            // Apply forces...
             if (!sourceNode.fx) {
               sourceNode.vx = (sourceNode.vx ?? 0) + forceX;
               sourceNode.vy = (sourceNode.vy ?? 0) + forceY;
@@ -210,7 +249,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     } else {
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     }
-  }, [graph.edges, dimensions, propWidth, propHeight]);
+  }, [graph.edges, graph.derivedEdges, dimensions, propWidth, propHeight]);
 
   useEffect(() => {
     const currentWidth = propWidth ?? dimensions.width;
@@ -226,8 +265,17 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       vy: node.vy ?? 0,
       fx: node.fx !== undefined ? node.fx : null,
       fy: node.fy !== undefined ? node.fy : null,
-    }));
-    setNodes(initializedNodes);
+    })) as INode[];
+    const initializedDerivedNodes = graph.derivedNodes.map((node) => ({
+      ...node,
+      x: node.x ?? currentWidth / 2 + (Math.random() - 0.5) * 50,
+      y: node.y ?? currentHeight / 2 + (Math.random() - 0.5) * 50,
+      vx: node.vx ?? 0,
+      vy: node.vy ?? 0,
+      fx: node.fx !== undefined ? node.fx : null,
+      fy: node.fy !== undefined ? node.fy : null,
+    })) as IDerivedNode[];
+    setNodes([...initializedNodes, ...initializedDerivedNodes]);
 
     alphaRef.current = SIMULATION_CONFIG.alpha;
     setTransform({ k: 1, x: 0, y: 0 });
@@ -399,10 +447,10 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const nodeMap = React.useMemo(() => {
     return nodes.reduce(
       (acc, node) => {
-        acc[node.id] = node;
+        acc[node.id.toString()] = node;
         return acc;
       },
-      {} as { [key: string]: INode },
+      {} as { [key: string]: INode | IDerivedNode },
     );
   }, [nodes]);
 
@@ -410,7 +458,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const handleNodeContextMenu = (
     event: React.MouseEvent<SVGGElement>,
-    node: INode,
+    node: INode | IDerivedNode,
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -453,19 +501,48 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 targetNode={nodeMap[edge.target]}
               />
             ))}
-            {nodes.map((node) => (
-              <Node
-                key={node.id}
-                node={node}
-                isDragging={isDraggingNode === node.id}
-                onNodeSelect={onNodeSelect}
-                onNodeNavigate={onNodeNavigate}
-                onDragStart={handleNodeDragStart}
-                onContextMenu={(event, node) => {
-                  handleNodeContextMenu(event, node);
-                }}
+            {graph.derivedEdges.map((edge) => (
+              <Edge
+                key={`${edge.source}-${edge.target}`}
+                edge={edge}
+                sourceNode={nodeMap[edge.source]}
+                targetNode={nodeMap[edge.target]}
               />
             ))}
+            {nodes.map((node) => {
+              switch (node.type) {
+                case "idea":
+                  return (
+                    <Node
+                      key={node.id.toString()}
+                      node={node}
+                      isDragging={isDraggingNode === node.id}
+                      onNodeSelect={onNodeSelect}
+                      onNodeNavigate={onNodeNavigate}
+                      onDragStart={handleNodeDragStart}
+                      onContextMenu={(event, node) => {
+                        handleNodeContextMenu(event, node);
+                      }}
+                    />
+                  );
+                case "derived":
+                  return (
+                    <DerivedNode
+                      key={node.id.toString()}
+                      node={node}
+                      isDragging={isDraggingNode === node.id.toString()}
+                      onNodeSelect={onNodeSelect}
+                      onNodeNavigate={onNodeNavigate}
+                      onDragStart={handleNodeDragStart}
+                      onContextMenu={(event, node) => {
+                        handleNodeContextMenu(event, node);
+                      }}
+                    />
+                  );
+                default:
+                  return null;
+              }
+            })}
           </g>
         </svg>
       ) : (

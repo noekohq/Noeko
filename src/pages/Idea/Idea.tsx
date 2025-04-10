@@ -14,6 +14,7 @@ import {
   Space,
   Tooltip,
   Kbd,
+  LoadingOverlay,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
@@ -234,6 +235,7 @@ export default function Idea() {
 
   return (
     <div className={styles.idea}>
+      <LoadingOverlay visible={loadingIdea} />
       {idea && (
         <Connections
           opened={connectionDrawerOpened}
