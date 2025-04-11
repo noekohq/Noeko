@@ -34,6 +34,7 @@ import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
 import { formatDate } from "../../utils/formatting";
 import { isYouTubeLink } from "../../utils/classification";
+import ContentBox from "../../components/Inputs/ContentBox/ContentBox";
 
 type UIProps = {
   reloadGraph: () => Promise<void>;
@@ -42,7 +43,7 @@ type UIProps = {
 };
 
 export default function UI({ reloadGraph, nodes, flags }: UIProps) {
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(true);
   const navigate = useNavigate();
 
   const {
@@ -300,76 +301,6 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
     }
   };
 
-  // --- Clipboard Preview State ---
-  const [clipboardPreview, setClipboardPreview] = useState<InputPreview | null>(
-    null,
-  );
-  const [isCheckingClipboard, setIsCheckingClipboard] = useState(false);
-  const [clipboardError, setClipboardError] = useState<string | null>(null);
-
-  // Function to attempt reading from clipboard
-  const handleCheckClipboard = async () => {
-    setIsCheckingClipboard(true);
-    setClipboardError(null);
-    setClipboardPreview(null); // Clear previous preview
-
-    if (!navigator.clipboard?.readText) {
-      setClipboardError(
-        "Clipboard API is not available or not permitted in this context.",
-      );
-      setIsCheckingClipboard(false);
-      return;
-    }
-
-    try {
-      const text = await navigator.clipboard.readText();
-      if (text) {
-        if (isYouTubeLink(text)) {
-          setClipboardPreview({ type: "youtube", value: text });
-        } else {
-          setClipboardPreview({ type: "text", value: text });
-        }
-      } else {
-        setClipboardError("Clipboard is empty or contains no text.");
-      }
-    } catch (err) {
-      console.error("Failed to read clipboard:", err);
-      if (err instanceof DOMException && err.name === "NotAllowedError") {
-        setClipboardError(
-          "Clipboard access denied. You may need to grant permission.",
-        );
-      } else {
-        setClipboardError("Could not read clipboard content.");
-      }
-    } finally {
-      setIsCheckingClipboard(false);
-    }
-  };
-
-  // Function to use the previewed content
-  const handleUsePreview = () => {
-    if (clipboardPreview) {
-      form.setFieldValue("content", clipboardPreview.value);
-      // Optionally clear the preview after using it
-      setClipboardPreview(null);
-      setClipboardError(null);
-    }
-  };
-
-  // Optional: Trigger clipboard check when the drawer opens
-  // Be mindful of the potential permission prompt this might cause
-  useEffect(() => {
-    if (opened) {
-      // Reset state when opening
-      setClipboardPreview(null);
-      setClipboardError(null);
-      // You could uncomment the line below to *try* checking on open,
-      // but the button approach is generally safer/more reliable.
-      handleCheckClipboard();
-    }
-  }, [opened]);
-
-  // Store generateTitle preference in localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(
@@ -385,114 +316,72 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       onClose={() => setOpened(false)}
       title="Add an idea"
       position="bottom"
-      size="100vh" // Consider if 100vh is necessary, maybe 'xl' or percentage?
-      padding="md" // Added padding
+      size="100vh"
+      padding="md"
     >
       <Stack gap="lg">
-        {" "}
-        {/* Use Stack for vertical spacing */}
-        <Grid>
-          {!form.values.generateTitle && (
-            <Grid.Col span={{ base: 12 }}>
-              {" "}
-              {/* Use base span */}
-              <TextInput
-                label="Title"
-                placeholder="Enter title"
-                {...form.getInputProps("title")}
-              />
-            </Grid.Col>
-          )}
-          <Grid.Col span={{ base: 12 }}>
-            <Checkbox
-              label="Autogenerate the title"
-              description="Automatically generate a title based on the content"
-              {...form.getInputProps("generateTitle", {
-                type: "checkbox",
-              })}
-            />
-          </Grid.Col>
-
-          {/* --- Clipboard Preview Section --- */}
-          <Grid.Col span={{ base: 12 }}>
-            <Group>
-              {/* <Button
-                onClick={handleCheckClipboard}
-                loading={isCheckingClipboard}
-                variant="light"
-                size="xs"
-              >
-                Check Clipboard for Content
-              </Button> */}
-            </Group>
-            {clipboardError && (
-              <Alert
-                title="Clipboard Error"
-                color="red"
-                mt="sm"
-                withCloseButton
-                onClose={() => setClipboardError(null)}
-              >
-                {clipboardError}
-              </Alert>
-            )}
-            {clipboardPreview && (
-              <Paper withBorder p="sm" mt="sm">
-                <Text size="sm" fw={500} mb={4}>
-                  Clipboard Preview:
-                </Text>
-                {clipboardPreview.type === "youtube" && (
-                  <Text size="sm">
-                    YouTube Link:{" "}
-                    <a
-                      href={clipboardPreview.value}
-                      target="_blank"
-                      rel="noopener noreferrer"
+        <Grid gutter="xl">
+          <Grid.Col span={{ sm: 12, md: 5 }}>
+            <Grid>
+              <Grid.Col span={{ sm: 12 }}>
+                {!form.values.generateTitle && (
+                  <TextInput
+                    label="Title"
+                    placeholder="Enter title"
+                    {...form.getInputProps("title")}
+                  />
+                )}
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Checkbox
+                  label="Autogenerate the title"
+                  description="Automatically generate a title based on the content"
+                  {...form.getInputProps("generateTitle", {
+                    type: "checkbox",
+                  })}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Group>
+                  {/* <Button
+                      onClick={handleCheckClipboard}
+                      loading={isCheckingClipboard}
+                      variant="light"
+                      size="xs"
                     >
-                      {clipboardPreview.value}
-                    </a>
-                  </Text>
-                  // You could embed a player here if desired
-                )}
-                {clipboardPreview.type === "text" && (
-                  <Text size="sm" lineClamp={3}>
-                    {clipboardPreview.value}
-                  </Text> // Show truncated text
-                )}
-                <Button
-                  variant="light"
-                  size="xs"
-                  mt="xs"
-                  onClick={handleUsePreview}
-                >
-                  Use this content
-                </Button>
-              </Paper>
-            )}
+                      Check Clipboard for Content
+                    </Button> */}
+                </Group>
+              </Grid.Col>
+            </Grid>
           </Grid.Col>
-          {/* --- End Clipboard Preview Section --- */}
 
-          <Grid.Col span={{ base: 12 }}>
-            <Text mb={4} size="sm" fw={500}>
+          <Grid.Col span={{ sm: 12, md: 7 }}>
+            <Text mb={4} size="sm" fw="bold">
               Content
-            </Text>{" "}
-            {/* Added label for TextEditor */}
+            </Text>
+            <ContentBox
+              content={form.values.content}
+              onContentChange={(content) => {
+                form.setFieldValue("content", content);
+                form.validateField("content"); // Validate on change
+              }}
+            />
             <TextEditor
-              // Use form value and update on change/blur for better sync
               content={form.values.content}
               onBlur={(content) => {
                 form.setFieldValue("content", content);
                 form.validateField("content"); // Validate on blur
               }}
             />
-            {/* Display content validation error directly */}
             {form.errors.content && (
               <Text c="red" size="xs" mt={4}>
                 {form.errors.content}
               </Text>
             )}
           </Grid.Col>
-          <Grid.Col span={{ base: 12 }}>
+          <Grid.Col span={{ sm: 12 }} />
+          <Grid.Col span={{ sm: 12 }}>
             <Group justify="flex-end">
               {" "}
               {/* Changed from "end" */}
