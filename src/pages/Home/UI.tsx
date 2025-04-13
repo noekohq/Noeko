@@ -358,10 +358,16 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
             )}
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }} />
+          {loadingAddIdea && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Group>
+                <Loader size="sm" />
+                <Text>Creating idea... This may take a short while.</Text>
+              </Group>
+            </Grid.Col>
+          )}
           <Grid.Col span={{ sm: 12 }}>
             <Group justify="flex-end">
-              {" "}
-              {/* Changed from "end" */}
               <Button
                 variant="default"
                 onClick={() => setOpened(false)}
