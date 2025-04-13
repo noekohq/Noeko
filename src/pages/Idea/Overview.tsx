@@ -11,7 +11,7 @@ type IOverviewProps = {
   onClose: () => void;
   idea: IIdea | undefined;
   loadingIdea: boolean;
-  reloadIdea: () => Promise<void>;
+  reloadIdea: () => void;
 };
 
 export default function Overview({

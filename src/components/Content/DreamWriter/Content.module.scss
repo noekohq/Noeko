@@ -65,7 +65,6 @@ h5 {
     &::before {
       content: counter(list-counter) ". ";
       counter-increment: list-counter;
-      font-size: 1.8rem;
       left: 14px;
       top: 0.2rem;
       position: absolute;
@@ -78,7 +77,6 @@ h5 {
   .listItem {
     &::before {
       content: "•";
-      font-size: 1.8rem;
       left: 14px;
       top: 0.2rem;
       position: absolute;
@@ -103,32 +101,20 @@ h5 {
   }
 }
 
-.code {
-  display: inline-block;
-  // Replaced --color-background-contrast with a subtle gray for inline code
-  // Adjust --mantine-color-gray-1 if needed (e.g., gray-0, gray-2)
-  background-color: var(--mantine-color-gray-1);
-  padding: 8px 8px;
-  // Non-color variable kept
-  border-radius: var(--border-radius-small);
-  font-size: 1.6rem;
-}
-
 .codeBlock {
-  font-size: 1.8rem;
   padding: 14px 18px;
-  // Non-color variable kept
-  border-radius: var(--border-radius-small);
-  // Replaced border rgba(var(--color-primary-rgb), 0.25) with Mantine's specific variable
+  border-radius: var(--mantine-radius-md);
   border: 2px solid var(--mantine-code-block-border-color);
   white-space: pre-wrap;
-  // Replaced --color-background-contrast with Mantine's specific variable
-  background-color: var(--mantine-code-block-background-color);
+  background-color: var(--mantine-color-dark-5);
+}
 
-  code {
-    // Mantine themes usually handle code color within the block,
-    // but you could add color: var(--mantine-color-text); if needed.
-  }
+.code {
+  color: var(--mantine-color-text);
+  background-color: var(--mantine-color-dark-5);
+  border-radius: var(--mantine-radius-md);
+  padding: 4px 8px;
+  font-size: inherit;
 }
 
 .strike {
