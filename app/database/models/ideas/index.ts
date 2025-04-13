@@ -435,6 +435,7 @@ export class Idea {
         return undefined;
       }
       if (form.content !== undefined) {
+        await Idea.updateEmbeddings(result);
         await Idea.runDerivedCascade(result.id);
       }
       return result;

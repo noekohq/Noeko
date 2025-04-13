@@ -1,6 +1,7 @@
-import { Link, useNavigate, useParams } from "react-router";
+import React, { useEffect, useState, useCallback } from "react"; // Import React
+import { useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
-import useFetch from "../../hooks/useFetch";
+import useFetch from "../../hooks/useFetch"; // Your custom hook
 import { IIdea, IIdeaForm } from "../../../app/database/models/ideas";
 import {
   ActionIcon,
@@ -14,14 +15,12 @@ import {
   Space,
   Tooltip,
   Kbd,
-  LoadingOverlay,
+  Box,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { useEffect, useState } from "react";
-import TextEditor from "../../components/TextEditor/TextEditor";
 import {
   ArrowLeft,
-  ArrowsClockwise,
+  FloppyDisk, // Save icon
   ListMagnifyingGlass,
   Shapes,
   Sparkle,
@@ -32,16 +31,31 @@ import { showNotification } from "@mantine/notifications";
 import { useDisclosure } from "@mantine/hooks";
 import Connections from "./Connections";
 import Overview from "./Overview";
+import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 
 export default function Idea() {
-  const { ideaId } = useParams();
-
+  const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
 
+  // State for the fetched idea data
+  const [idea, setIdea] = useState<IIdea | null>(null);
+  // State to store the original fetched data for comparison
+  const [originalIdea, setOriginalIdea] = useState<IIdea | null>(null);
+
+  // State for editable fields
+  const [title, setTitle] = useState<string>("");
+  const [content, setContent] = useState<string>("");
+
+  // State to track unsaved changes
+  const [isSaved, setIsSaved] = useState<boolean>(true);
+
+  // --- Fetching the Idea ---
+  // Uses the hook's returned data/error state, handled by useEffect below
   const {
-    data: idea,
-    load: reloadIdea,
-    loading: loadingIdea,
+    data: fetchedIdeaData, // Hook's state for fetched data
+    load: reloadIdea, // Function to re-trigger the fetch
+    loading: loadingIdea, // Loading state from the hook
+    errors: loadErrors, // Changed from 'error' to 'errors' based on hook source
   } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}`,
     query: {
@@ -50,332 +64,511 @@ export default function Idea() {
       withDerived: "true",
     },
     method: "GET",
-    runOnMount: true,
+    runOnMount: true, // Let the hook handle running on mount
+    // onSuccess/onError are handled internally by the hook updating its state (data, errors)
+    // We'll use useEffect to react to changes in 'fetchedIdeaData' and 'loadErrors'
   });
 
-  const [title, setTitle] = useState(idea?.title);
+  // Effect to update component state when idea data is successfully fetched/reloaded
   useEffect(() => {
-    setTitle(idea?.title);
-  }, [idea?.title]);
+    if (fetchedIdeaData) {
+      setIdea(fetchedIdeaData);
+      setOriginalIdea(fetchedIdeaData); // Store the original state
+      setTitle(fetchedIdeaData.title);
+      setContent(fetchedIdeaData.content || "");
+      setIsSaved(true); // Reset save state on successful load/reload
+    }
+  }, [fetchedIdeaData]); // Run when the hook's data state changes
 
-  const { load: submitTitle } = useFetch<Partial<IIdeaForm>, IIdea>({
-    url: `/graph/ideas/${ideaId}`,
-    method: "PUT",
-    body: {
-      title,
-    },
-    dependencies: [title],
-    onSuccess: () => {
-      reloadIdea();
+  // Effect to handle loading errors from the hook
+  useEffect(() => {
+    // Check if errors array has content
+    if (loadErrors && loadErrors.length > 0) {
       showNotification({
-        title: "Success",
-        message: "Idea title updated successfully",
-      });
-    },
-    onError: (error) => {
-      showNotification({
-        title: "Error",
-        message: "There was an error updating the idea",
+        title: "Error Loading Idea",
+        // Display the first error message, or a default
+        message: `Could not fetch idea details: ${loadErrors[0] || "Unknown error"}`,
         color: "red",
       });
-    },
-  });
+      // Optionally navigate away if the idea can't be loaded
+      // navigate("/");
+    }
+    // Add navigate to dependency array if used inside
+  }, [loadErrors /*, navigate*/]); // Run when the hook's errors state changes
 
+  // --- Update Title State ---
+  const handleTitleChange = useCallback((newTitle: string) => {
+    setTitle(newTitle);
+  }, []);
+
+  // --- Update Content State ---
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+  }, []);
+
+  // --- Track Unsaved Changes ---
   useEffect(() => {
-    title && title !== idea?.title && submitTitle();
-  }, [title]);
+    if (!originalIdea) return; // Don't compare until original data is loaded
 
-  const [content, setContent] = useState(idea?.content || "");
-  useEffect(() => {
-    setContent(idea?.content || "");
-  }, [idea?.content]);
+    const titleChanged = title !== originalIdea.title;
+    const contentChanged = content !== (originalIdea.content || "");
 
-  const { load: submitContent, loading: loadingContentUpdate } = useFetch<
-    Partial<IIdeaForm>,
-    IIdea
-  >({
+    setIsSaved(!(titleChanged || contentChanged));
+  }, [title, content, originalIdea]);
+
+  // --- Saving Changes (Combined Title & Content) ---
+  // Using the hook as per your example and source code
+  const {
+    load: triggerSaveChanges, // Function to trigger the save PUT request
+    loading: loadingSaveChanges, // Loading state for the save request
+  } = useFetch<Partial<IIdeaForm>, IIdea>({
     url: `/graph/ideas/${ideaId}`,
     method: "PUT",
     body: {
-      content,
+      // Body defined upfront using current state values
+      title: title,
+      content: content,
     },
-    dependencies: [content],
-    onSuccess: () => {
+    dependencies: [title, content], // Dependencies listed as per example
+    onSuccess: (updatedIdea) => {
+      // onSuccess defined in config
+      // We need to reload to ensure all data (especially derived) is fresh
       reloadIdea();
+      // The useEffect watching 'fetchedIdeaData' will handle updating state & isSaved
       showNotification({
         title: "Success",
         message: "Idea updated successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      // onError defined in config
       showNotification({
-        title: "Error",
-        message: "There was an error updating the idea",
+        title: "Error Saving",
+        // Attempt to get a meaningful message from the error object
+        message: `There was an error updating the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
         color: "red",
       });
     },
+    // No runOnMount or runOnDependencies needed for manual trigger
   });
 
-  useEffect(() => {
-    content && content !== idea?.content && submitContent();
-  }, [content]);
+  // Handler for the save button, calls the hook's load function
+  const handleSaveChanges = useCallback(() => {
+    // Prevent saving if already saved, currently saving, or no idea loaded
+    if (isSaved || loadingSaveChanges || !idea) return;
+    triggerSaveChanges(); // Execute the PUT request defined in the hook
+  }, [isSaved, loadingSaveChanges, idea, triggerSaveChanges]);
 
-  const { load: deleteIdea } = useFetch({
+  // --- Deleting the Idea ---
+  const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
+    // No specific types needed if body/response are simple/ignored
     url: `/graph/ideas/${ideaId}`,
     method: "DELETE",
+    // No body or dependencies typically needed
     onSuccess: () => {
-      navigate("/");
+      navigate("/"); // Navigate away after successful deletion
       showNotification({
         title: "Success",
         message: "Idea deleted successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       showNotification({
-        title: "Error",
-        message: "There was an error deleting the idea",
+        title: "Error Deleting",
+        message: `There was an error deleting the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
         color: "red",
       });
     },
   });
 
-  const handleDeleteIdea = () => {
+  // Modal confirmation for delete
+  const handleDeleteIdea = useCallback(() => {
+    if (loadingDelete) return;
     modals.openConfirmModal({
       title: "Are you sure you want to delete this idea?",
+      centered: true, // Optional: center modal
       children: (
-        <Text>
-          Are you sure you want to delete this idea forever?{" "}
-          <Text inline fw="bold" component="span">
-            This action cannot be undone.
-          </Text>
+        <Text size="sm">
+          This action cannot be undone. All associated data will be lost.
         </Text>
       ),
-      onConfirm: () => deleteIdea(),
-      labels: {
-        confirm: "Yes, delete forever",
-        cancel: "No, cancel",
-      },
-      confirmProps: {
-        color: "red",
-      },
+      labels: { confirm: "Delete Idea", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => triggerDeleteIdea(), // Call hook's load on confirm
     });
-  };
+  }, [loadingDelete, triggerDeleteIdea]);
 
-  const { load: embedIdea, loading: loadingEmbeddings } = useFetch({
+  // --- Embeddings ---
+  const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
+    // Assuming simple POST with no complex body/response needed here
     url: `/graph/ideas/${ideaId}/embed`,
     method: "POST",
+    // No body or dependencies needed if endpoint takes ID from URL only
     onSuccess: () => {
+      // Reload idea data to get updated embedding status/timestamps
       reloadIdea();
-    },
-    onError: (error) => {
       showNotification({
-        title: "Error",
-        message: "There was an error generating embeddings",
+        title: "Embeddings",
+        message: "Embedding generation process started.", // Message suggests async process
+      });
+    },
+    onError: (error: any) => {
+      showNotification({
+        title: "Embedding Error",
+        message: `Failed to start embedding generation: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
         color: "red",
       });
     },
   });
 
-  const embeddingsOutOfDate = () => {
-    if (!idea) return false;
-    if (!idea.embeddingsUpdatedAt) return true;
-    return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
-  };
+  // Handler to trigger embedding
+  const handleEmbedIdea = useCallback(() => {
+    // Prevent triggering if already loading, saving, or no idea
+    if (loadingEmbeddings || loadingSaveChanges || !idea) return;
+    // Optional: Prevent embedding if there are unsaved changes
+    if (!isSaved) {
+      showNotification({
+        title: "Unsaved Changes",
+        message: "Please save your changes before generating embeddings.",
+        color: "yellow",
+      });
+      return;
+    }
+    triggerEmbedIdea(); // Call the hook's load function
+  }, [isSaved, loadingEmbeddings, loadingSaveChanges, idea, triggerEmbedIdea]);
 
-  const statusText = () => {
+  // Helper function to check embedding status
+  const embeddingsOutOfDate = useCallback(() => {
+    if (!idea) return false;
+    if (!idea.embeddingsUpdatedAt) return true; // Needs embedding for the first time
+    // Compare content update time with embedding update time
+    return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
+  }, [idea]);
+
+  // --- Status Text ---
+  const statusText = useCallback(() => {
     let text = "";
     if (loadingEmbeddings) {
-      text += "Loading embeddings. ";
+      text += "Generating embeddings... ";
+    } else if (!idea?.embeddings || idea.embeddings?.length === 0) {
+      text += "No embeddings generated yet. ";
+    } else if (embeddingsOutOfDate()) {
+      text += "Embeddings might be out of date. ";
     }
-    if (embeddingsOutOfDate()) {
-      text += "Embeddings are out of date. ";
-    }
-    if (!idea?.embeddings || idea.embeddings?.length === 0) {
-      text += "No embeddings available. ";
-    }
-    return text;
-  };
+    return text.trim();
+  }, [idea, loadingEmbeddings, embeddingsOutOfDate]);
 
-  const statusBlockShow =
-    statusText().length || embeddingsOutOfDate() || !idea?.embeddings;
+  const showStatusBlock = statusText().length > 0 || loadingEmbeddings;
+  const showEmbedButton =
+    !idea?.embeddings || idea.embeddings?.length === 0 || embeddingsOutOfDate();
 
-  const [
-    connectionDrawerOpened,
-    { close: closeConnectionDrawer, toggle: toggleConnectionDrawer },
-  ] = useDisclosure();
-  const [
-    overviewDrawerOpened,
-    { close: closeOverviewDrawer, toggle: toggleOverviewDrawer },
-  ] = useDisclosure();
+  // --- Drawers ---
+  const [connectionDrawerOpened, connectionDrawerHandlers] =
+    useDisclosure(false);
+  const [overviewDrawerOpened, overviewDrawerHandlers] = useDisclosure(false);
 
+  // Close drawers on initial mount or when idea changes
   useEffect(() => {
-    // register a keyboard shortcut to open the drawer on ctrl (or command) i
-    const k = document.addEventListener("keydown", (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "i") {
-        toggleConnectionDrawer();
-      }
-    });
+    connectionDrawerHandlers.close();
+    overviewDrawerHandlers.close();
+  }, [ideaId, connectionDrawerHandlers, overviewDrawerHandlers]); // Add handlers to deps
 
-    const l = document.addEventListener("keydown", (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "o") {
-        toggleOverviewDrawer();
-      }
-    });
+  // --- Keyboard Shortcuts ---
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Target inputs, textareas, or contentEditable elements
+      const targetElement = event.target as HTMLElement;
+      const isEditing =
+        targetElement.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(targetElement.tagName);
 
-    return () => {
-      document.removeEventListener("keydown", k as any);
-      document.removeEventListener("keydown", l as any);
+      // Allow shortcuts if Cmd/Ctrl is pressed, even while editing for common actions like save
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case "i":
+            event.preventDefault();
+            connectionDrawerHandlers.toggle();
+            break;
+          case "o":
+            event.preventDefault();
+            overviewDrawerHandlers.toggle();
+            break;
+          case "s":
+            event.preventDefault();
+            handleSaveChanges(); // Allow save even when editing
+            break;
+          // Add other shortcuts if needed
+        }
+      }
+      // Add non-Cmd/Ctrl shortcuts here, potentially checking !isEditing
     };
-  }, [toggleConnectionDrawer]);
 
-  useEffect(() => {
-    closeConnectionDrawer();
-    closeOverviewDrawer();
-  }, []);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+    // Add handlers to dependency array
+  }, [connectionDrawerHandlers, overviewDrawerHandlers, handleSaveChanges]);
 
+  if (loadingIdea && !idea) {
+    return (
+      <Loader
+        size="md"
+        style={{ display: "block", margin: "auto", marginTop: "2rem" }}
+      />
+    );
+  }
+
+  if (!idea && !loadingIdea && loadErrors.length > 0) {
+    return (
+      <Text c="red" ta="center" mt="lg">
+        Failed to load idea. It might not exist or there was a network error.
+      </Text>
+    );
+  }
+
+  // Safety check if somehow idea is still null after loading checks
+  if (!idea) {
+    // This state might indicate an issue or a brief moment before navigation
+    return (
+      <Text ta="center" mt="lg">
+        Idea not available.
+      </Text>
+    );
+  }
+
+  // Main component render
   return (
     <div className={styles.idea}>
-      <LoadingOverlay visible={loadingIdea} />
-      {idea && (
-        <Connections
-          opened={connectionDrawerOpened}
-          onClose={closeConnectionDrawer}
-          loadingIdea={loadingIdea}
-          idea={idea}
-          reloadIdea={reloadIdea}
-        />
-      )}
-      {idea && (
-        <Overview
-          opened={overviewDrawerOpened}
-          onClose={closeOverviewDrawer}
-          loadingIdea={loadingIdea}
-          idea={idea}
-          reloadIdea={async () => {
-            reloadIdea();
-          }}
-        />
-      )}
+      {/* Drawers */}
+      <Connections
+        opened={connectionDrawerOpened}
+        onClose={connectionDrawerHandlers.close}
+        loadingIdea={loadingIdea}
+        idea={idea}
+        reloadIdea={reloadIdea}
+      />
+      <Overview
+        opened={overviewDrawerOpened}
+        onClose={overviewDrawerHandlers.close}
+        loadingIdea={loadingIdea}
+        idea={idea}
+        reloadIdea={reloadIdea}
+      />
+
+      {/* Main Content Grid */}
       <Grid>
-        <Grid.Col span={{ sm: 12 }}>
-          <Group gap={14}>
-            <ActionIcon
-              onClick={() => {
-                navigate("/");
-              }}
-              variant="default"
-            >
-              <ArrowLeft />
-            </ActionIcon>
-            <ActionIcon
-              variant="default"
-              onClick={() => {
-                submitContent();
-              }}
-            >
-              {loadingContentUpdate ? (
-                <Loader size="xs" color="white" />
-              ) : (
-                <ArrowsClockwise />
-              )}
-            </ActionIcon>
-            <Tooltip label={<Kbd>Ctrl + I</Kbd>}>
+        {/* Action Buttons */}
+        <Grid.Col span={{ base: 12 }}>
+          <Group gap="sm">
+            <Tooltip label="Back to List">
               <ActionIcon
-                onClick={() => {
-                  toggleConnectionDrawer();
-                }}
-                variant="light"
+                onClick={() => navigate("/")}
+                variant="default"
+                size="lg"
+                aria-label="Back to list"
               >
-                <TreeStructure />
+                <ArrowLeft size={18} />
               </ActionIcon>
             </Tooltip>
-            <ActionIcon
-              onClick={() => {
-                toggleOverviewDrawer();
-              }}
-              variant="light"
+
+            {/* Save Button */}
+            <Tooltip
+              label={isSaved ? "No changes to save" : "Save changes (Ctrl+S)"}
             >
-              <ListMagnifyingGlass />
-            </ActionIcon>
-            <ActionIcon
-              variant="light"
-              color="red"
-              onClick={() => {
-                handleDeleteIdea();
+              <Box>
+                {" "}
+                {/* Wrap for tooltip when disabled */}
+                <Button
+                  leftSection={
+                    loadingSaveChanges ? (
+                      <Loader size="xs" color="white" />
+                    ) : (
+                      <FloppyDisk size={18} />
+                    )
+                  }
+                  onClick={handleSaveChanges}
+                  disabled={isSaved || loadingSaveChanges}
+                  variant="filled"
+                  size="sm" // Consistent size
+                >
+                  Save
+                </Button>
+              </Box>
+            </Tooltip>
+
+            {/* Visual Separator */}
+            <Box
+              style={{
+                borderLeft: "1px solid var(--mantine-color-gray-3)",
+                height: "24px",
+                alignSelf: "center",
               }}
-            >
-              <TrashSimple />
-            </ActionIcon>
+              mx="xs"
+            />
+
+            <Tooltip label="Connections (Ctrl+I)">
+              <ActionIcon
+                onClick={connectionDrawerHandlers.toggle}
+                variant="light"
+                size="lg"
+                aria-label="Open connections"
+              >
+                <TreeStructure size={18} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Overview (Ctrl+O)">
+              <ActionIcon
+                onClick={overviewDrawerHandlers.toggle}
+                variant="light"
+                size="lg"
+                aria-label="Open overview"
+              >
+                <ListMagnifyingGlass size={18} />
+              </ActionIcon>
+            </Tooltip>
+
+            {/* Visual Separator */}
+            <Box
+              style={{
+                borderLeft: "1px solid var(--mantine-color-gray-3)",
+                height: "24px",
+                alignSelf: "center",
+              }}
+              mx="xs"
+            />
+
+            <Tooltip label="Delete Idea">
+              <ActionIcon
+                variant="light"
+                color="red"
+                size="lg"
+                onClick={handleDeleteIdea}
+                disabled={loadingDelete}
+                aria-label="Delete idea"
+              >
+                {loadingDelete ? (
+                  <Loader size="xs" />
+                ) : (
+                  <TrashSimple size={18} />
+                )}
+              </ActionIcon>
+            </Tooltip>
           </Group>
         </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
-          <Space my="lg" />
+
+        {/* Spacing */}
+        <Grid.Col span={{ base: 12 }}>
+          <Space h="lg" />
         </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
+
+        {/* Title */}
+        <Grid.Col span={{ base: 12 }}>
+          {/* Using Mantine Title, making it look editable */}
           <Title
             order={1}
             contentEditable
-            onBlur={(e) => setTitle(e.currentTarget.innerText)}
-            dangerouslySetInnerHTML={{
-              __html: title || "Hold on...",
-            }}
+            suppressContentEditableWarning
+            onBlur={(e) => handleTitleChange(e.currentTarget.innerText)}
+            dangerouslySetInnerHTML={{ __html: title || "" }}
+            className={styles.editableTitle} // Add custom style for focus/blur
           />
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
-          <Card radius="lg">
-            <Text fw="bold" c="dimmed">
-              <Sparkle weight="bold" /> Content Summary
+          {!isSaved && title !== originalIdea?.title && (
+            <Text size="xs" c="orange.7" mt={4}>
+              Title has unsaved changes.
             </Text>
-            <Text>
-              {idea?.derived?.generative_summary?.sentenceSummary ||
-                "No summary provided."}
+          )}
+        </Grid.Col>
+
+        {/* Content Summary Card */}
+        <Grid.Col span={{ base: 12 }}>
+          <Card radius="md" withBorder shadow="xs" p="md">
+            <Text fw={500} c="dimmed" size="sm" mb={4}>
+              <Sparkle
+                weight="bold"
+                style={{
+                  verticalAlign: "middle",
+                  marginRight: "6px",
+                  fontSize: "1.1em",
+                }}
+              />
+              Content Summary
+            </Text>
+            <Text size="sm" lineClamp={3}>
+              {" "}
+              {/* Limit lines for potentially long summaries */}
+              {idea.derived?.generative_summary?.sentenceSummary || (
+                <Text span c="dimmed" fs="italic">
+                  No summary available.
+                </Text>
+              )}
             </Text>
           </Card>
         </Grid.Col>
-        {statusBlockShow && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Card p="lg" radius="lg">
-              <Grid>
-                {statusText && (
-                  <Grid.Col span={{ sm: 12 }}>
-                    <Text>{statusText()}</Text>
-                  </Grid.Col>
+
+        {/* Status Block (Embeddings, etc.) */}
+        {showStatusBlock && (
+          <Grid.Col span={{ base: 12 }}>
+            <Card p="lg" radius="md" withBorder shadow="xs">
+              <Group justify="space-between" align="center">
+                <Text size="sm" c="dimmed">
+                  {statusText()}
+                </Text>
+                {showEmbedButton && (
+                  <Button
+                    leftSection={
+                      loadingEmbeddings ? (
+                        <Loader size="sm" />
+                      ) : (
+                        <Shapes weight="bold" size={16} />
+                      )
+                    }
+                    disabled={
+                      loadingEmbeddings || loadingSaveChanges || !isSaved
+                    }
+                    onClick={handleEmbedIdea}
+                    variant="light"
+                    size="xs" // Smaller button for this context
+                  >
+                    Generate Embeddings
+                  </Button>
                 )}
-                <Grid.Col span={12}>
-                  <Group>
-                    {(embeddingsOutOfDate() || !idea?.embeddings) && (
-                      <Button
-                        leftSection={
-                          loadingEmbeddings ? (
-                            <Loader size="sm" />
-                          ) : (
-                            <Shapes weight="bold" />
-                          )
-                        }
-                        disabled={loadingEmbeddings}
-                        onClick={() => {
-                          embedIdea();
-                        }}
-                      >
-                        Generate Embeddings
-                      </Button>
-                    )}
-                  </Group>
-                </Grid.Col>
-              </Grid>
+              </Group>
             </Card>
           </Grid.Col>
         )}
-        <Grid.Col span={12} />
-        <Grid.Col span={{ sm: 12 }}>
-          <TextEditor
-            content={content}
-            onBlur={(value) => {
-              setContent(value);
-            }}
+
+        {/* Editor */}
+        <Grid.Col span={{ base: 12 }}>
+          <Space h="md" />
+          <DreamWriter
+            key={ideaId} // Ensures re-mount if navigating between different idea pages
+            initialContent={idea.content || ""} // Use fetched content for initialization
+            stickyMenu={true}
+            onChange={handleContentChange} // Update parent state for saving
           />
+          {!isSaved && content !== (originalIdea?.content || "") && (
+            <Text size="xs" c="orange.7" mt={4}>
+              Content has unsaved changes.
+            </Text>
+          )}
         </Grid.Col>
       </Grid>
     </div>
   );
 }
+
+// Add corresponding CSS in Idea.module.scss for .editableTitle if needed:
+/*
+.editableTitle {
+  border: 1px solid transparent;
+  padding: 2px 4px;
+  border-radius: var(--mantine-radius-sm);
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: var(--mantine-color-blue-5); // Or your focus color
+  }
+}
+*/

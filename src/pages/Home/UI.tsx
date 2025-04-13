@@ -15,16 +15,11 @@ import {
   Flex,
   Grid,
   Group,
-  Modal,
   Text,
   TextInput,
   Loader,
-  LoadingOverlay,
   Drawer,
   Stack,
-  Alert,
-  Paper,
-  Container,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -33,8 +28,6 @@ import { ArrowsClockwise, Plus, X, YoutubeLogo } from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
 import { formatDate } from "../../utils/formatting";
-import { isYouTubeLink } from "../../utils/classification";
-import ContentBox from "../../components/Inputs/ContentBox/ContentBox";
 
 type UIProps = {
   reloadGraph: () => Promise<void>;
@@ -43,7 +36,7 @@ type UIProps = {
 };
 
 export default function UI({ reloadGraph, nodes, flags }: UIProps) {
-  const [opened, setOpened] = useState(true);
+  const [opened, setOpened] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -107,7 +100,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
         if (
           (event.ctrlKey || event.metaKey) &&
           event.shiftKey &&
-          event.key === "a"
+          event.key === "i"
         ) {
           setOpened(!opened);
         }
@@ -121,6 +114,8 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     url: "/users/refresh",
     method: "POST",
   });
+
+  useEffect(() => {}, []);
 
   return (
     <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
@@ -321,7 +316,7 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
     >
       <Stack gap="lg">
         <Grid gutter="xl">
-          <Grid.Col span={{ sm: 12, md: 5 }}>
+          <Grid.Col span={{ sm: 12 }}>
             <Grid>
               <Grid.Col span={{ sm: 12 }}>
                 {!form.values.generateTitle && (
@@ -356,17 +351,10 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
             </Grid>
           </Grid.Col>
 
-          <Grid.Col span={{ sm: 12, md: 7 }}>
+          <Grid.Col span={{ sm: 12 }}>
             <Text mb={4} size="sm" fw="bold">
               Content
             </Text>
-            <ContentBox
-              content={form.values.content}
-              onContentChange={(content) => {
-                form.setFieldValue("content", content);
-                form.validateField("content"); // Validate on change
-              }}
-            />
             <TextEditor
               content={form.values.content}
               onBlur={(content) => {

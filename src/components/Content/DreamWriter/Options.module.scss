@@ -1,0 +1,46 @@
+.option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: none;
+    color: var(--color-text);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 600;
+    background-color: var(--color-background-alt);
+
+    svg {
+        font-size: 1.8rem;
+    }
+
+    &:hover {
+        background-color: rgba(var(--color-background-alt-rgb), 0.65);
+        color: rgba(var(--color-text-rgb), 0.65);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.optionActive {
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+
+    &:hover {
+        background-color: rgba(var(--color-primary-rgb), 0.65);
+    }
+}
+
+.extra {
+    position: relative;
+}
+
+.loader {
+    --loader-size: 3px;
+}

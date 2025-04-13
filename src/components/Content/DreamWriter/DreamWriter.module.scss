@@ -1,0 +1,276 @@
+.editor {
+  height: fit-content;
+}
+
+.tippyContent {
+  display: block;
+  height: 100%;
+  position: relative;
+  padding-bottom: 50vh;
+}
+
+.tippyEditor {
+  height: 100%;
+
+  &:focus {
+    outline: none;
+  }
+
+  p.emptyEditor:first-child::before {
+    // Replaced rgba(var(--color-text-rgb), 0.5) with Mantine's standard dimmed text color
+    color: var(--mantine-color-dimmed);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}
+
+.divider {
+  display: inline-block;
+  height: 18px;
+  width: 1.5px;
+  margin-inline: 8px;
+  // Replaced --color-text with --mantine-color-text
+  background-color: var(--mantine-color-text);
+}
+
+.stickyMenu {
+  position: sticky;
+  // Non-color variables kept
+  top: calc(var(--topnav-height) + var(--navbar-height));
+  z-index: 100;
+  // Replaced --color-background with --mantine-color-body
+  background-color: var(--mantine-color-body);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  // Replaced rgba(var(--color-text-rgb), 0) with transparent, as alpha is 0
+  outline: 1px solid transparent;
+  padding: 14px 0;
+
+  @media screen and (min-width: 768px) {
+    top: calc(var(--topnav-height) + 8px);
+    // Non-color variable kept
+    border-radius: var(--border-radius-small);
+  }
+
+  &.navCollapsed {
+    @media screen and (min-width: 768px) {
+      top: 14px;
+      // Non-color variable kept
+      border-radius: var(--border-radius-small);
+    }
+  }
+
+  // Non-color variable definition kept
+  --sticky-offset: 14px;
+
+  @media screen and (min-width: 1024px) {
+    // Non-color variable definition kept
+    --sticky-offset: 36px;
+  }
+  &.stickyMenuFixed {
+    box-sizing: border-box;
+
+    @media screen and (min-width: 768px) {
+      padding: 14px 14px;
+      // Replaced rgba(var(--color-text-rgb), 0.1) with Mantine's default border color or a light gray
+      // Using default-border is usually appropriate here. Adjust if needed (e.g., --mantine-color-gray-3)
+      outline: 1px solid var(--mantine-color-default-border);
+      // Non-color variables kept
+      margin-left: calc(-1 * var(--sticky-offset));
+      margin-right: calc(-1 * var(--sticky-offset));
+      left: initial;
+      right: initial;
+      width: calc(100% + (2 * var(--sticky-offset)));
+    }
+  }
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.bubbleMenu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  // Replaced rgba(var(--color-background-alt-rgb), 1) with --mantine-color-default
+  // This is often used for card/paper-like backgrounds in Mantine.
+  background-color: var(--mantine-color-gray-8);
+  padding: 8px 14px;
+  // Non-color variable kept
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  position: relative;
+
+  .frameIndicator {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+
+    .indicatorItem {
+      background-color: transparent;
+      border: none;
+      // Non-color variable kept
+      border-radius: var(--border-radius-small);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      // Replaced rgba(var(--color-text-rgb), 0.5) with --mantine-color-dimmed
+      color: var(--mantine-color-dimmed);
+      opacity: 0; // Opacity handled by animation potentially
+
+      @keyframes itemIn {
+        0% {
+          transform: translateY(-5px);
+          opacity: 0.5; // Adjust opacity animation if needed
+        }
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      animation: itemIn 0.3s ease forwards;
+
+      &:hover {
+        // Replaced rgba(var(--color-text-rgb), 0.75) - maybe default text is fine for hover? Or a slightly less dim gray?
+        // Let's try default text color on hover.
+        color: var(--mantine-color-text);
+      }
+
+      &.active {
+        // Replaced rgba(var(--color-text-rgb), 1) with --mantine-color-text
+        color: var(--mantine-color-text);
+      }
+    }
+  }
+
+  .content {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .frameContainer {
+     // Replaced rgba(var(--color-background-contrast-rgb), 0.5)
+     // Using a light gray shade directly instead of relying on alpha. Adjust gray shade (0, 1, 2) as needed.
+    background-color: var(--mantine-color-gray-9);
+    padding: 8px 8px;
+    // Non-color variable kept
+    border-radius: var(--border-radius-normal);
+    overflow: hidden;
+  }
+
+  .frame {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    // Animation kept
+  }
+
+  .switch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    height: 36px;
+    // Replaced --color-text with --mantine-color-text
+    color: var(--mantine-color-text);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 600;
+    background-color: transparent;
+
+    svg {
+      font-size: 1.4rem;
+    }
+
+    &:hover {
+       // Replaced rgba(var(--color-background-alt-rgb), 0.65) with standard hover variable
+      background-color: var(--mantine-color-default-hover);
+      // Replaced rgba(var(--color-text-rgb), 0.65) - dimmed or default text? Let's try default.
+      color: var(--mantine-color-text);
+    }
+  }
+}
+
+.floatingMenu {
+  position: relative;
+  left: -48px; // Kept positioning
+
+  svg {
+    font-size: 16px; // Kept style
+    // Replaced rgba($color: var(--color-text-rgb), $alpha: 0.5) with dimmed color
+    color: var(--mantine-color-dimmed);
+  }
+
+  .menuButton {
+    transition: all 0.2s ease-in-out;
+    aspect-ratio: 1/1;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    // Replaced border color rgba($color: var(--color-text-rgb), $alpha: 0.5)
+    // Use a mid-gray for the border. Adjust shade (4, 5, 6) if needed.
+    border: 1.5px solid var(--mantine-color-gray-5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.active {
+      transform: rotate(45deg);
+      // Replaced border color rgba($color: var(--color-text-rgb), $alpha: 1) with text color
+      border: 1.5px solid var(--mantine-color-text);
+
+      svg {
+        // Replaced color rgba($color: var(--color-text-rgb), $alpha: 1) with text color
+        color: var(--mantine-color-text);
+      }
+    }
+  }
+
+  .menu {
+    // Animation kept
+    @keyframes menuIn {
+      0% {
+        transform: rotateX(90deg);
+      }
+      100% {
+        transform: rotateX(0deg);
+      }
+    }
+    animation: menuIn 0.3s ease;
+
+    position: absolute;
+    bottom: 36px;
+    right: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    // Replaced background rgba($color: var(--color-background-contrast-rgb), $alpha: 1)
+    // Using --mantine-color-default here, similar to bubbleMenu. Could also use a light gray like gray-0.
+    background-color: var(--mantine-color-default);
+    padding: 8px 14px;
+    // Non-color variable kept
+    border-radius: var(--border-radius-small);
+    overflow: hidden;
+  }
+}

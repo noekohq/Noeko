@@ -1,0 +1,137 @@
+.blockquote {
+  margin-inline-start: 0;
+  padding-inline-start: 24px;
+  // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
+  border-left: 2.5px solid var(--mantine-primary-color-5);
+}
+
+.link {
+  cursor: pointer;
+  color: var(--mantine-primary-color-5);
+  text-decoration: underline;
+  transition: all 0.1s ease-in-out;
+
+  &:hover {
+    // Replaced --color-primary with --mantine-color-primary
+    color: var(--mantine-color-primary);
+  }
+}
+
+.image {
+  width: 100%;
+}
+
+// Heading styles without color variables remain unchanged
+.heading {
+  margin: 0;
+}
+h1 {
+  &.heading {
+    margin-top: 36px;
+  }
+}
+h2 {
+  &.heading {
+    margin-top: 32px;
+  }
+}
+h3 {
+  &.heading {
+    margin-top: 24px;
+  }
+}
+h4 {
+  &.heading {
+    margin-top: 20px;
+  }
+}
+h5 {
+  &.heading {
+    margin-top: 16px;
+  }
+}
+
+// List structure styles remain unchanged
+.orderedList,
+.bulletList {
+  padding-left: 0;
+  list-style-type: none;
+}
+
+.orderedList {
+  counter-reset: list-counter;
+
+  .listItem {
+    &::before {
+      content: counter(list-counter) ". ";
+      counter-increment: list-counter;
+      font-size: 1.8rem;
+      left: 14px;
+      top: 0.2rem;
+      position: absolute;
+      color: var(--mantine-color-text);
+    }
+  }
+}
+
+.bulletList {
+  .listItem {
+    &::before {
+      content: "•";
+      font-size: 1.8rem;
+      left: 14px;
+      top: 0.2rem;
+      position: absolute;
+      color: var(--mantine-color-text);
+    }
+  }
+}
+
+.listItem {
+  padding-left: 36px;
+  margin: 0;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.image {
+  cursor: pointer; // Kept non-color style
+
+  &:active {
+    // Replaced --color-primary with --mantine-color-primary for outline
+    outline: 3px solid var(--mantine-color-primary);
+  }
+}
+
+.code {
+  display: inline-block;
+  // Replaced --color-background-contrast with a subtle gray for inline code
+  // Adjust --mantine-color-gray-1 if needed (e.g., gray-0, gray-2)
+  background-color: var(--mantine-color-gray-1);
+  padding: 8px 8px;
+  // Non-color variable kept
+  border-radius: var(--border-radius-small);
+  font-size: 1.6rem;
+}
+
+.codeBlock {
+  font-size: 1.8rem;
+  padding: 14px 18px;
+  // Non-color variable kept
+  border-radius: var(--border-radius-small);
+  // Replaced border rgba(var(--color-primary-rgb), 0.25) with Mantine's specific variable
+  border: 2px solid var(--mantine-code-block-border-color);
+  white-space: pre-wrap;
+  // Replaced --color-background-contrast with Mantine's specific variable
+  background-color: var(--mantine-code-block-background-color);
+
+  code {
+    // Mantine themes usually handle code color within the block,
+    // but you could add color: var(--mantine-color-text); if needed.
+  }
+}
+
+.strike {
+  // No styles defined, kept as is
+  text-decoration: line-through; // Added standard strike-through for clarity
+}
