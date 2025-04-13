@@ -188,7 +188,7 @@ function DreamWriter({
   useShortcuts({
     shortcuts: [
       {
-        keys: { ctrl: true, key: "k" },
+        keys: { meta: true, key: "k" },
         run: () => {
           toggleLink();
         },

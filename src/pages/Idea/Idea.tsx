@@ -547,10 +547,10 @@ export default function Idea() {
         <Grid.Col span={{ base: 12 }}>
           <Space h="md" />
           <DreamWriter
-            key={ideaId} // Ensures re-mount if navigating between different idea pages
-            initialContent={idea.content || ""} // Use fetched content for initialization
+            key={ideaId}
+            initialContent={idea.content || ""}
             stickyMenu={true}
-            onChange={handleContentChange} // Update parent state for saving
+            onChange={handleContentChange}
           />
         </Grid.Col>
       </Grid>
