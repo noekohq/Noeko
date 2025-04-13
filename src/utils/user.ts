@@ -5,3 +5,8 @@ export const userInitials = (user: ISafeUser | undefined) => {
   const initials = user.firstName.charAt(0) + user.lastName.charAt(0);
   return initials.toUpperCase();
 };
+
+export const userIsSuperuser = (user: ISafeUser | undefined) => {
+  if (!user) return false;
+  return user.roles.find((role) => role.id === "role:superuser");
+};

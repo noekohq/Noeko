@@ -54,8 +54,8 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
         };
       }),
     ],
-    derivedNodes,
-    derivedEdges,
+    derivedNodes: [],
+    derivedEdges: [],
   };
   return localData;
 };
