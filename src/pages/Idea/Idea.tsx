@@ -259,8 +259,7 @@ export default function Idea() {
   }, [idea, loadingEmbeddings, embeddingsOutOfDate]);
 
   const showStatusBlock = statusText().length > 0 || loadingEmbeddings;
-  const showEmbedButton =
-    !idea?.embeddings || idea.embeddings?.length === 0 || embeddingsOutOfDate();
+  const showEmbedButton = embeddingsOutOfDate();
 
   // --- Drawers ---
   const [connectionDrawerOpened, connectionDrawerHandlers] =
@@ -271,7 +270,7 @@ export default function Idea() {
   useEffect(() => {
     connectionDrawerHandlers.close();
     overviewDrawerHandlers.close();
-  }, [ideaId, connectionDrawerHandlers, overviewDrawerHandlers]); // Add handlers to deps
+  }, [ideaId]); // Add handlers to deps
 
   // --- Keyboard Shortcuts ---
   useEffect(() => {
@@ -340,7 +339,6 @@ export default function Idea() {
   // Main component render
   return (
     <div className={styles.idea}>
-      {/* Drawers */}
       <Connections
         opened={connectionDrawerOpened}
         onClose={connectionDrawerHandlers.close}
@@ -539,6 +537,13 @@ export default function Idea() {
         )}
 
         {/* Editor */}
+        {!isSaved && content !== (originalIdea?.content || "") && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Text size="xs" c="orange.7" mt={4}>
+              Content has unsaved changes.
+            </Text>
+          </Grid.Col>
+        )}
         <Grid.Col span={{ base: 12 }}>
           <Space h="md" />
           <DreamWriter
@@ -547,11 +552,6 @@ export default function Idea() {
             stickyMenu={true}
             onChange={handleContentChange} // Update parent state for saving
           />
-          {!isSaved && content !== (originalIdea?.content || "") && (
-            <Text size="xs" c="orange.7" mt={4}>
-              Content has unsaved changes.
-            </Text>
-          )}
         </Grid.Col>
       </Grid>
     </div>
