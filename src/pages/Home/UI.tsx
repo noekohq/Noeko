@@ -20,6 +20,7 @@ import {
   Loader,
   Drawer,
   Stack,
+  Title,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -28,6 +29,8 @@ import { ArrowsClockwise, Plus, X, YoutubeLogo } from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
 import { formatDate } from "../../utils/formatting";
+import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
+import useShortcuts from "../../hooks/useShortcuts";
 
 type UIProps = {
   reloadGraph: () => Promise<void>;
@@ -84,29 +87,16 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     return text;
   };
 
-  useEffect(() => {
-    document.addEventListener("keydown", (event) => {
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        event.shiftKey &&
-        event.key === "i"
-      ) {
-        setOpened(!opened);
-      }
-    });
-
-    return () => {
-      document.removeEventListener("keydown", (event) => {
-        if (
-          (event.ctrlKey || event.metaKey) &&
-          event.shiftKey &&
-          event.key === "i"
-        ) {
+  useShortcuts({
+    shortcuts: [
+      {
+        keys: { meta: true, key: "i" },
+        run: () => {
           setOpened(!opened);
-        }
-      });
-    };
-  }, []);
+        },
+      },
+    ],
+  });
 
   const enableDeveloperTools = false;
 
@@ -310,9 +300,10 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       opened={opened}
       onClose={() => setOpened(false)}
       title="Add an idea"
+      offset={14}
+      radius="lg"
       position="bottom"
-      size="100vh"
-      padding="md"
+      size="70%"
     >
       <Stack gap="lg">
         <Grid gutter="xl">
@@ -352,14 +343,12 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
           </Grid.Col>
 
           <Grid.Col span={{ sm: 12 }}>
-            <Text mb={4} size="sm" fw="bold">
-              Content
-            </Text>
-            <TextEditor
-              content={form.values.content}
-              onBlur={(content) => {
+            <Title order={3}>Content</Title>
+            <DreamWriter
+              initialContent={""}
+              stickyMenu={true}
+              onChange={(content) => {
                 form.setFieldValue("content", content);
-                form.validateField("content"); // Validate on blur
               }}
             />
             {form.errors.content && (
