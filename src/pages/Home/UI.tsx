@@ -25,7 +25,13 @@ import {
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import TextEditor from "../../components/TextEditor/TextEditor";
-import { ArrowsClockwise, Plus, X, YoutubeLogo } from "@phosphor-icons/react";
+import {
+  ArrowsClockwise,
+  Plus,
+  UploadSimple,
+  X,
+  YoutubeLogo,
+} from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
 import { formatDate } from "../../utils/formatting";
@@ -39,7 +45,8 @@ type UIProps = {
 };
 
 export default function UI({ reloadGraph, nodes, flags }: UIProps) {
-  const [opened, setOpened] = useState(false);
+  const [addIdeaOpened, setAddIdeaOpened] = useState(false);
+  const [uploadFileOpened, setUploadFileOpened] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -92,7 +99,13 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
       {
         keys: { meta: true, key: "i" },
         run: () => {
-          setOpened(!opened);
+          setAddIdeaOpened(!addIdeaOpened);
+        },
+      },
+      {
+        keys: { meta: true, key: "u" },
+        run: () => {
+          setUploadFileOpened(!uploadFileOpened);
         },
       },
     ],
@@ -105,13 +118,16 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     method: "POST",
   });
 
-  useEffect(() => {}, []);
-
   return (
-    <div className={`${styles.ui} ${opened ? styles.opened : ""}`}>
+    <div className={`${styles.ui}`}>
       <AddIdea
-        opened={opened}
-        setOpened={setOpened}
+        opened={addIdeaOpened}
+        setOpened={setAddIdeaOpened}
+        reloadGraph={reloadGraph}
+      />
+      <UploadFile
+        opened={uploadFileOpened}
+        setOpened={setUploadFileOpened}
         reloadGraph={reloadGraph}
       />
       <Flex gap={"md"} justify="space-between" align="flex-start">
@@ -165,13 +181,28 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
             <ActionIcon
               variant="default"
               size="lg"
+              onClick={() => setUploadFileOpened(!uploadFileOpened)}
+              style={{
+                fontSize: 18,
+              }}
+              title="Add an idea"
+            >
+              {uploadFileOpened ? (
+                <X weight="bold" />
+              ) : (
+                <UploadSimple weight="bold" />
+              )}
+            </ActionIcon>
+            <ActionIcon
+              variant="default"
+              size="lg"
               onClick={() => setOpened(!opened)}
               style={{
                 fontSize: 18,
               }}
               title="Add an idea"
             >
-              {opened ? <X weight="bold" /> : <Plus weight="bold" />}
+              {addIdeaOpened ? <X weight="bold" /> : <Plus weight="bold" />}
             </ActionIcon>
           </Group>
           <div className={styles.searchWrapper}>
@@ -190,6 +221,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
               onSearchEnd={() => {
                 setLoading(false);
               }}
+              onShortcut={{ meta: true, key: "k" }}
             />
           </div>
         </Group>
@@ -197,11 +229,6 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     </div>
   );
 }
-
-type InputPreview = {
-  type: "youtube" | "text";
-  value: string;
-};
 
 type AddIdeaProps = {
   opened: boolean;
@@ -390,6 +417,28 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
           </Grid.Col>
         </Grid>
       </Stack>
+    </Drawer>
+  );
+}
+
+type IUploadFileProps = {
+  opened: boolean;
+  setOpened: (opened: boolean) => void;
+  reloadGraph: () => void;
+};
+
+function UploadFile({ opened, setOpened, reloadGraph }: IUploadFileProps) {
+  return (
+    <Drawer
+      onClose={() => setOpened(false)}
+      opened={opened}
+      title="Upload a file"
+      offset={14}
+      radius="lg"
+      position="bottom"
+      size="70%"
+    >
+      Upload a file
     </Drawer>
   );
 }
