@@ -1,7 +1,38 @@
 import { IDBGraph } from "../../app/database/models/ideas";
-import { IDerivedNode, IEdge, IGraph, INode } from "../declarations/graph";
+import {
+  IDerivedNode,
+  IEdge,
+  IFileNode,
+  IGraph,
+  INode,
+} from "../declarations/graph";
 
 export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
+  const ideaNodes = dbGraph.ideas.map((i) => {
+    return {
+      ...i,
+      id: i.id,
+      title: i.title,
+      content: i.content,
+      type: "idea" as const,
+    };
+  });
+
+  const ideaEdges = dbGraph.ideas
+    .map((i) => {
+      return [
+        ...i.derivedList.map((d) => {
+          return {
+            source: i.id.toString(),
+            target: d.id.toString(),
+            distance: 50,
+            strength: 1,
+          };
+        }),
+      ] as IEdge[];
+    })
+    .flat();
+
   const derivedEdges = dbGraph.ideas
     .map((i) => {
       return [
@@ -30,32 +61,23 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
     })
     .flat();
 
+  const fileNodes = dbGraph.files.map((f) => {
+    return {
+      ...f,
+      type: "file",
+    } as IFileNode;
+  });
+
   const localData: IGraph = {
     nodes: [
-      ...dbGraph?.ideas.map((n) => {
-        return {
-          ...n,
-          id: n.id,
-          title: n.title,
-          content: n.content,
-          type: "idea" as const,
-        };
-      }),
+      ...ideaNodes,
+      ...fileNodes,
+      // ...derivedNodes,
     ],
     edges: [
-      ...dbGraph?.edges.map((e) => {
-        return {
-          ...e,
-          id: e.id,
-          source: e.in,
-          target: e.out,
-          distance: 150,
-          strength: 0.7,
-        };
-      }),
+      ...ideaEdges,
+      // ...derivedEdges,
     ],
-    derivedNodes: [],
-    derivedEdges: [],
   };
   return localData;
 };

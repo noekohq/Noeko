@@ -17,6 +17,8 @@ export default function Home() {
     runOnMount: true,
   });
 
+  console.log("Graph data: ", graphData);
+
   const [localData, setLocalData] = useState<IGraph | null>(null);
   useEffect(() => {
     if (graphData) {
@@ -33,7 +35,12 @@ export default function Home() {
           <Graph
             graph={localData}
             onNodeNavigate={(e, n) => {
-              navigate(`/idea/${n.id}`);
+              if (n.type === "idea") {
+                navigate(`/idea/${n.id}`);
+              }
+              if (n.type === "file") {
+                navigate(`/file/${n.id}`);
+              }
             }}
           />
           <UI
