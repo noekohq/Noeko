@@ -322,7 +322,7 @@ router.post("/ideas/search", checkToken, async (req, res) => {
       return;
     }
     // Artificial wait
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await Bun.sleep(3000);
     const similar = await Idea.searchIdeas(user.id, query);
     if (!similar) {
       res.status(404).json({ error: "Similar ideas not found" });

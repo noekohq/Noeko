@@ -22,3 +22,10 @@ export const getRefreshTokenFromReq = async (req: Request) => {
   const refreshToken = req.cookies?.refreshToken;
   return refreshToken as string | undefined;
 };
+
+export const multerToStandardFile = (multerFile: Express.Multer.File): File => {
+  const newFile = new File([multerFile.buffer], multerFile.originalname, {
+    type: multerFile.mimetype,
+  });
+  return newFile;
+};

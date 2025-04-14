@@ -42,7 +42,6 @@
     "chalk": "^5.4.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "d3": "^7.9.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "google-auth-library": "^9.15.1",
@@ -50,12 +49,14 @@
     "jsonwebtoken": "^9.0.2",
     "long": "^5.3.1",
     "lowlight": "^3.3.0",
+    "multer": "^1.4.5-lts.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router": "^7.1.1",
     "sass": "^1.85.1",
     "showdown": "^2.1.0",
-    "surrealdb": "^1.2.1"
+    "surrealdb": "^1.2.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",
@@ -64,6 +65,7 @@
     "@types/d3": "^7.4.3",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lowlight": "^2.0.1",
+    "@types/multer": "^1.4.12",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/showdown": "^2.0.6",

@@ -151,9 +151,9 @@ export class User {
     }
   }
 
-  static async get(id: string, unsafe?: true): Promise<IUser>;
-  static async get(id: string, unsafe?: false): Promise<ISafeUser>;
-  static async get(id: string, unsafe = false) {
+  static async get(id: string | RecordId, unsafe?: true): Promise<IUser>;
+  static async get(id: string | RecordId, unsafe?: false): Promise<ISafeUser>;
+  static async get(id: string | RecordId, unsafe = false) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUser>(new StringRecordId(id));

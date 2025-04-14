@@ -11,8 +11,9 @@ import {
 } from "@mantine/core";
 import styles from "./InlineSearch.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
+import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 
-type InlineSearchProps = {
+type IInlineSearchProps = {
   placeholder?: string;
   onSelect: (idea: IIdea) => void;
   onResults?: (results: SearchResult[]) => void;
@@ -20,6 +21,7 @@ type InlineSearchProps = {
   onBlur?: () => void;
   onSearchStart?: () => void;
   onSearchEnd?: () => void;
+  onShortcut?: IShortcut["keys"];
 };
 
 export function InlineSearch({
@@ -30,7 +32,8 @@ export function InlineSearch({
   onBlur,
   onSearchStart,
   onSearchEnd,
-}: InlineSearchProps) {
+  onShortcut,
+}: IInlineSearchProps) {
   const [query, setQuery] = useState("");
 
   const {
@@ -50,6 +53,27 @@ export function InlineSearch({
     onFinally: () => {
       onSearchEnd?.();
     },
+  });
+
+  useShortcuts({
+    shortcuts: [
+      {
+        keys: { esc: true },
+        run: () => {
+          inputRef.current?.blur();
+        },
+      },
+      ...(onShortcut
+        ? [
+            {
+              keys: onShortcut,
+              run: () => {
+                inputRef.current?.focus();
+              },
+            },
+          ]
+        : []),
+    ],
   });
 
   useEffect(() => {

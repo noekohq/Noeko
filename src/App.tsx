@@ -17,27 +17,21 @@ import Register from "./pages/Auth/Register";
 import Sidebar from "./components/Navigation/Sidebar";
 import Profile from "./pages/Settings/Profile";
 import Settings from "./pages/Settings/Settings";
+import useShortcuts from "./hooks/useShortcuts";
 
 export default function App() {
   const navigate = useNavigate();
   const { loggedIn, loading: loadingAuth } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        event.shiftKey &&
-        event.key === "h"
-      ) {
-        navigate("/");
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [navigate]);
+  useShortcuts({
+    shortcuts: [
+      {
+        keys: { shift: true, key: "h" },
+        run: () => navigate("/"),
+      },
+    ],
+  });
 
   if (loadingAuth) {
     return (
