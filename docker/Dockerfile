@@ -3,6 +3,7 @@ FROM oven/bun:1.2.5 as builder
 WORKDIR /project
 
 COPY package.json ./
+COPY .env ./
 COPY vite.config.ts ./
 COPY bun.lockb ./
 COPY tsconfig.json tsconfig.node.json ./
@@ -27,6 +28,7 @@ COPY --from=builder /project/node_modules ./node_modules
 COPY --from=builder /project/app ./app
 COPY --from=builder /project/src ./src
 COPY --from=builder /project/credentials ./credentials
+COPY --from=builder /project/.env ./
 
 RUN bun run client:build
 

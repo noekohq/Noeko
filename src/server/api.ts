@@ -4,12 +4,15 @@ import axios, {
   AxiosResponse,
 } from "axios";
 
+const appEnv = import.meta.env.VITE_APP_ENV ?? "development";
+
 // --- Configuration ---
-const serverLocation = import.meta.env.VITE_SERVER_LOCATION;
+const serverLocation =
+  appEnv === "production" ? "" : import.meta.env.VITE_SERVER_LOCATION;
 const refreshEndpoint = "/users/refresh"; // Your refresh token endpoint
 const logoutEndpoint = "/users/logout"; // Your backend logout endpoint
 
-if (!serverLocation) {
+if (serverLocation === undefined || serverLocation === null) {
   throw new Error(
     "Server location (VITE_SERVER_LOCATION) is not defined in .env",
   );
