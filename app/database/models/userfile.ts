@@ -2,7 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { v4 as uuidv4 } from "uuid";
 import path from "node:path";
 import { User } from "./user";
-import { deleteFromS3, writeToS3 } from "../../utils/aws/s3";
+import { deleteFromS3, downloadLinkS3, writeToS3 } from "../../utils/aws/s3";
 import { getDatabase } from "../db";
 
 export type IUserFile = {
@@ -36,7 +36,7 @@ const constructS3Key = (userId: string, fileName: string) => {
   return `user_data/${userId}/${uniqueId}_${sanitizedBase}${fileExtension}`;
 };
 
-export default class UserFile {
+export class UserFile {
   constructor() {}
 
   static async up() {
@@ -163,6 +163,23 @@ export default class UserFile {
       return result;
     } catch (err) {
       console.error(`Error during getUserFile for id "${userFileId}":`, err);
+      return undefined;
+    }
+  }
+
+  static async getDownloadLink(userFileId: string | RecordId) {
+    try {
+      const file = await UserFile.get(userFileId);
+      if (!file) {
+        throw Error(`No user file found for id "${userFileId}".`);
+      }
+      const url = downloadLinkS3(file.s3key);
+      return url;
+    } catch (err) {
+      console.error(
+        `Error during getDownloadLink for id "${userFileId}":`,
+        err,
+      );
       return undefined;
     }
   }

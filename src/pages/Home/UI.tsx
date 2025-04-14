@@ -21,12 +21,20 @@ import {
   Drawer,
   Stack,
   Title,
+  Card,
+  FileInput,
+  Code,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import {
   ArrowsClockwise,
+  FileCode,
+  FileCsv,
+  FilePdf,
+  Icon,
+  Image,
   Plus,
   UploadSimple,
   X,
@@ -34,7 +42,7 @@ import {
 } from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
-import { formatDate } from "../../utils/formatting";
+import { formatDate, formatFileSize } from "../../utils/formatting";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import useShortcuts from "../../hooks/useShortcuts";
 
@@ -118,6 +126,27 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     method: "POST",
   });
 
+  const getNodeTitle = (node: INode) => {
+    if (node.type === "idea") {
+      return node.title;
+    }
+    if (node.type === "file") {
+      return node.originalFileName;
+    }
+  };
+
+  const getNodeSubtitle = (node: INode) => {
+    if (node.type === "idea") {
+      return formatDate(node.createdAt);
+    }
+    if (node.type === "file") {
+      return formatDate(node.createdAt);
+    }
+    if (node.type === "derived") {
+      return node.type;
+    }
+  };
+
   return (
     <div className={`${styles.ui}`}>
       <AddIdea
@@ -147,9 +176,9 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
         <Group>
           {currentNode && (
             <Flex direction="column">
-              <Text fw="bold">{currentNode?.title}</Text>
+              <Text fw="bold">{getNodeTitle(currentNode)}</Text>
               <Text fw="normal" size="xs" c="dimmed">
-                {formatDate(currentNode?.createdAt)}
+                {getNodeSubtitle(currentNode)}
               </Text>
             </Flex>
           )}
@@ -196,7 +225,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
             <ActionIcon
               variant="default"
               size="lg"
-              onClick={() => setOpened(!opened)}
+              onClick={() => setAddIdeaOpened(!addIdeaOpened)}
               style={{
                 fontSize: 18,
               }}
@@ -332,31 +361,30 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       position="bottom"
       size="70%"
     >
-      <Stack gap="lg">
-        <Grid gutter="xl">
-          <Grid.Col span={{ sm: 12 }}>
-            <Grid>
-              <Grid.Col span={{ sm: 12 }}>
-                {!form.values.generateTitle && (
-                  <TextInput
-                    label="Title"
-                    placeholder="Enter title"
-                    {...form.getInputProps("title")}
-                  />
-                )}
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Checkbox
-                  label="Autogenerate the title"
-                  description="Automatically generate a title based on the content"
-                  {...form.getInputProps("generateTitle", {
-                    type: "checkbox",
-                  })}
+      <Grid gutter="xl">
+        <Grid.Col span={{ sm: 12 }}>
+          <Grid>
+            <Grid.Col span={{ sm: 12 }}>
+              {!form.values.generateTitle && (
+                <TextInput
+                  label="Title"
+                  placeholder="Enter title"
+                  {...form.getInputProps("title")}
                 />
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Group>
-                  {/* <Button
+              )}
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <Checkbox
+                label="Autogenerate the title"
+                description="Automatically generate a title based on the content"
+                {...form.getInputProps("generateTitle", {
+                  type: "checkbox",
+                })}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <Group>
+                {/* <Button
                       onClick={handleCheckClipboard}
                       loading={isCheckingClipboard}
                       variant="light"
@@ -364,59 +392,56 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
                     >
                       Check Clipboard for Content
                     </Button> */}
-                </Group>
-              </Grid.Col>
-            </Grid>
-          </Grid.Col>
-
-          <Grid.Col span={{ sm: 12 }}>
-            <Title order={3}>Content</Title>
-            <DreamWriter
-              initialContent={""}
-              stickyMenu={true}
-              onChange={(content) => {
-                form.setFieldValue("content", content);
-              }}
-            />
-            {form.errors.content && (
-              <Text c="red" size="xs" mt={4}>
-                {form.errors.content}
-              </Text>
-            )}
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }} />
-          {loadingAddIdea && (
-            <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                <Loader size="sm" />
-                <Text>Creating idea... This may take a short while.</Text>
               </Group>
             </Grid.Col>
+          </Grid>
+        </Grid.Col>
+
+        <Grid.Col span={{ sm: 12 }}>
+          <Title order={3}>Content</Title>
+          <DreamWriter
+            initialContent={""}
+            stickyMenu={true}
+            onChange={(content) => {
+              form.setFieldValue("content", content);
+            }}
+          />
+          {form.errors.content && (
+            <Text c="red" size="xs" mt={4}>
+              {form.errors.content}
+            </Text>
           )}
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12 }} />
+        {loadingAddIdea && (
           <Grid.Col span={{ sm: 12 }}>
-            <Group justify="flex-end">
-              <Button
-                variant="default"
-                onClick={() => setOpened(false)}
-                disabled={loadingAddIdea}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmit} // Simplified onClick
-                leftSection={
-                  loadingAddIdea ? (
-                    <Loader size="sm" color="white" />
-                  ) : undefined
-                } // Conditional loader
-                disabled={loadingAddIdea}
-              >
-                Add
-              </Button>
+            <Group>
+              <Loader size="sm" />
+              <Text>Creating idea... This may take a short while.</Text>
             </Group>
           </Grid.Col>
-        </Grid>
-      </Stack>
+        )}
+        <Grid.Col span={{ sm: 12 }}>
+          <Group justify="flex-end">
+            <Button
+              variant="default"
+              onClick={() => setOpened(false)}
+              disabled={loadingAddIdea}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit} // Simplified onClick
+              leftSection={
+                loadingAddIdea ? <Loader size="sm" color="white" /> : undefined
+              } // Conditional loader
+              disabled={loadingAddIdea}
+            >
+              Add
+            </Button>
+          </Group>
+        </Grid.Col>
+      </Grid>
     </Drawer>
   );
 }
@@ -428,6 +453,126 @@ type IUploadFileProps = {
 };
 
 function UploadFile({ opened, setOpened, reloadGraph }: IUploadFileProps) {
+  const fileForm = useForm<{
+    userFile: File | null;
+  }>({
+    initialValues: {
+      userFile: null,
+    },
+    validate: {
+      userFile: (value) => {
+        if (!value) return "File is required";
+        if (value.size > 1024 * 1024 * 10)
+          return "File size should not exceed 10MB";
+        return null;
+      },
+    },
+  });
+
+  const userFile = fileForm.values.userFile;
+
+  const [formData, setFormData] = useState<FormData>();
+  const { load: uploadFile, loading: loadingUpload } = useFetch<
+    FormData,
+    undefined
+  >({
+    url: "/files",
+    method: "POST",
+    body: formData,
+    dependencies: [formData],
+    onSuccess: async () => {
+      reloadGraph();
+      showNotification({
+        title: "File Uploaded",
+        message: "File uploaded successfully",
+      });
+      setFormData(undefined);
+      fileForm.reset();
+      setOpened(false);
+    },
+    onError: async (error) => {
+      showNotification({
+        title: "Upload Error",
+        message: "Failed to upload file",
+        color: "red",
+      });
+    },
+  });
+
+  const handleUploadFile = async () => {
+    try {
+      const { errors, hasErrors } = fileForm.validate();
+      if (hasErrors) {
+        showNotification({
+          title: "Validation Error",
+          message: errors.userFile,
+          color: "red",
+        });
+      }
+      await uploadFile();
+    } catch (error) {
+      showNotification({
+        title: "Upload Error",
+        message: "Failed to upload file",
+        color: "red",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!userFile) {
+      return;
+    }
+    const { errors, hasErrors } = fileForm.validate();
+    if (!hasErrors) {
+      const formData = new FormData();
+      formData.append("userFile", userFile);
+      setFormData(formData);
+    }
+    if (hasErrors) {
+      showNotification({
+        title: "Validation Error",
+        message: errors.userFile,
+        color: "red",
+      });
+    }
+  }, [userFile]);
+
+  const typeToPreview: (type: string) =>
+    | {
+        icon: Icon;
+      }
+    | undefined = (type) => {
+    if (type === "application/pdf") {
+      return {
+        icon: FilePdf,
+      };
+    }
+    if (type.startsWith("image/")) {
+      return {
+        icon: Image,
+      };
+    }
+    if (type === "application/json") {
+      return {
+        icon: FileCode,
+      };
+    }
+    if (type === "text/csv") {
+      return {
+        icon: FileCsv,
+      };
+    }
+    if (type === "application/xml") {
+      return {
+        icon: FileCode,
+      };
+    }
+    return;
+  };
+
+  const preview = userFile ? typeToPreview(userFile.type) : null;
+
   return (
     <Drawer
       onClose={() => setOpened(false)}
@@ -438,7 +583,73 @@ function UploadFile({ opened, setOpened, reloadGraph }: IUploadFileProps) {
       position="bottom"
       size="70%"
     >
-      Upload a file
+      <Grid>
+        <Grid.Col span={{ sm: 12 }}>
+          <Text>Start by picking the file you want to upload...</Text>
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12, md: 6 }}>
+          <FileInput
+            placeholder="Choose a file"
+            {...fileForm.getInputProps("userFile")}
+            leftSection={
+              <>
+                {preview ? (
+                  <preview.icon weight="bold" />
+                ) : (
+                  <UploadSimple weight="bold" />
+                )}
+              </>
+            }
+          />
+        </Grid.Col>
+        {userFile && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Text>
+              You want to upload <Code>{userFile.name}</Code>, which is{" "}
+              {formatFileSize(userFile.size)} in size.{" "}
+              {fileForm.isValid()
+                ? "Is that correct?"
+                : "Unfortunately, this file cannot be uploaded."}
+            </Text>
+          </Grid.Col>
+        )}
+        {loadingUpload && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Group>
+              <Loader size="sm" />
+              <Text>Uploading file...</Text>
+            </Group>
+          </Grid.Col>
+        )}
+        {userFile && fileForm.isValid() && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Group>
+              <Button
+                color="red"
+                variant="light"
+                disabled={loadingUpload}
+                onClick={() => {
+                  fileForm.reset();
+                  setOpened(false);
+                }}
+              >
+                No, nevermind.
+              </Button>
+              <Button
+                onClick={() => {
+                  handleUploadFile();
+                }}
+                disabled={loadingUpload}
+                leftSection={
+                  loadingUpload ? <Loader size="sm" color="white" /> : undefined
+                }
+              >
+                Yes, upload.
+              </Button>
+            </Group>
+          </Grid.Col>
+        )}
+      </Grid>
     </Drawer>
   );
 }

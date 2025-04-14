@@ -8,10 +8,10 @@ import {
 import styles from "./App.module.scss";
 import { Loader } from "@mantine/core";
 
+import { useAuth } from "./contexts/AuthContext";
 import Home from "./pages/Home/Home";
 import Idea from "./pages/Idea/Idea";
-import { useEffect } from "react";
-import { useAuth } from "./contexts/AuthContext";
+import UserFile from "./pages/File/File";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Sidebar from "./components/Navigation/Sidebar";
@@ -81,7 +81,14 @@ export default function App() {
                   <Route index element={<Home />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="settings" element={<Settings />} />
-                  <Route path="idea/:ideaId" element={<Idea />} />
+                  <Route path="idea">
+                    <Route index element={<Navigate to="/" replace />} />
+                    <Route path=":ideaId" element={<Idea />} />
+                  </Route>
+                  <Route path="file">
+                    <Route index element={<Navigate to="/" replace />} />
+                    <Route path=":fileId" element={<UserFile />} />
+                  </Route>
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>

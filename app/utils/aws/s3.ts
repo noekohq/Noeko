@@ -25,11 +25,8 @@ export const writeToS3 = async (
 ): Promise<{ written: number; completed: boolean }> => {
   try {
     const s3File = s3.file(path);
-    console.log("Uploading file to S3...", s3File.name);
     const totalBytes = s3File.size;
-    // const written = await s3File.write(file);
-    await Bun.sleep(1000);
-    const written = 1000; // Simulated for now
+    const written = await s3File.write(file);
     const completed = totalBytes === written;
     return {
       written,
@@ -58,6 +55,19 @@ export const existsS3 = async (path: string): Promise<boolean> => {
     return await s3File.exists();
   } catch (error) {
     console.error("Error checking file existence:", error);
+    throw error;
+  }
+};
+
+export const downloadLinkS3 = async (path: string): Promise<string> => {
+  try {
+    const url = s3.presign(path, {
+      expiresIn: 3600,
+      method: "GET",
+    });
+    return url;
+  } catch (error) {
+    console.error("Error generating download link:", error);
     throw error;
   }
 };

@@ -1,5 +1,6 @@
 import { User, Role, Token } from "./user";
 import { Idea } from "./ideas";
+import { UserFile } from "./userfile";
 
 export const modelsUp = async () => {
   console.info("Running model up functions.");
@@ -7,4 +8,5 @@ export const modelsUp = async () => {
   await Role.up();
   await Token.up();
   await Idea.up();
+  await UserFile.up();
 };

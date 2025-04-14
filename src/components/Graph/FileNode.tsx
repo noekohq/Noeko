@@ -1,16 +1,35 @@
 import React, { useEffect, useRef } from "react";
-import { IDerivedNode, INode } from "../../declarations/graph.d";
-import styles from "./DerivedNode.module.scss";
+import { IFileNode } from "../../declarations/graph.d";
+import styles from "./FileNode.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
-import { Text } from "@mantine/core";
+import { Code, Text } from "@mantine/core";
 
-type DerivedNodeProps = {
-  node: IDerivedNode;
+type FileNodeProps = {
+  node: IFileNode;
   isDragging: boolean;
-  onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
+  onNodeNavigate?: (
+    event: React.MouseEvent<SVGGElement>,
+    node: IFileNode,
+  ) => void;
+  onNodeSelect?: (
+    event: React.MouseEvent<SVGGElement>,
+    node: IFileNode,
+  ) => void;
+  onDragStart?: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
+  onContextMenu?: (
+    event: React.MouseEvent<SVGGElement>,
+    node: IFileNode,
+  ) => void;
 };
 
-const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
+const FileNode = ({
+  node,
+  isDragging,
+  onNodeNavigate,
+  onNodeSelect,
+  onDragStart,
+  onContextMenu,
+}: FileNodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
   const {
@@ -26,16 +45,30 @@ const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
 
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
     event.preventDefault();
-    onDragStart(event, node.id.toString());
+    onDragStart?.(event, node.id.toString());
+  };
+
+  const handleContextMenu = (event: React.MouseEvent<SVGGElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onContextMenu?.(event, node);
+  };
+
+  const handleNodeSelect = (event: React.MouseEvent<SVGGElement>) => {
+    onNodeSelect?.(event, node);
+    setSelected(node.id.toString());
+  };
+  const handleNodeUnselect = (event: React.MouseEvent<SVGGElement>) => {
+    onNodeSelect?.(event, node);
+    setSelected(null);
   };
 
   const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
     setSelected(null);
+    onNodeNavigate?.(event, node);
   };
 
-  const shouldShow = filter(node);
-
-  const radius = 10;
+  const radius = 24;
 
   const textOffset = 0;
   const textWidth = 124;
@@ -54,6 +87,8 @@ const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
     opacityInner: 1,
     opacityOuter: 0.2,
   };
+
+  const shouldShow = filter(node);
 
   const randomDelay = () => {
     return Math.floor(Math.random() * 1400);
@@ -76,20 +111,14 @@ const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
     }
   }, []);
 
-  const idToTitle = (id: string) => {
-    const parts = id.split(":");
-    const table = parts[0];
-    if (table === "generative_summary") {
-      return "Summary";
-    }
-    return table;
-  };
-
   return (
     <g
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onMouseDown={handleMouseDown}
+      onMouseEnter={handleNodeSelect}
+      onMouseLeave={handleNodeUnselect}
       onClick={handleNodeNavigate}
+      onContextMenu={handleContextMenu}
       className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""}`}
     >
       <defs>
@@ -123,7 +152,7 @@ const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
-            {idToTitle(node.id.toString())}
+            <Code>{node.originalFileName}</Code>
           </Text>
         </foreignObject>
       )}
@@ -131,4 +160,4 @@ const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
   );
 };
 
-export default DerivedNode;
+export default FileNode;

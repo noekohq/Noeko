@@ -1,9 +1,10 @@
-import { RecordId, RecordIdValue, StringRecordId } from "surrealdb";
+import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
 import { Embeddings } from "../../../semantics/embeddings";
 import { getLM } from "../../../semantics/lm";
 import { IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
+import { IUserFile } from "../userfile";
 
 export type IIdea = {
   id: string | RecordId;
@@ -51,6 +52,7 @@ export type IIdeaUserOwnership = {
 export type IDBGraph = {
   ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
   edges: IIdeaConnection[];
+  files: IUserFile[];
   flags: {
     embeddings: {
       synced: boolean;
@@ -93,6 +95,7 @@ export class Idea {
         LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY <record> $userId FETCH userIdeas;
         LET $ideaIds = array::flatten($userIdeas[*].id);
         LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
+        LET $userFiles = SELECT ->owns->user_file as userFiles FROM ONLY <record> $userId FETCH userFiles;
         LET $ideas =
           SELECT
             *,
@@ -103,6 +106,7 @@ export class Idea {
         RETURN {
             ideas: $ideas,
             connections: $connections,
+            files: $userFiles,
         };
       }
       `;
@@ -377,18 +381,19 @@ export class Idea {
         }
       | "none",
     options?: { computeFields: boolean },
-  ) {
+  ): Promise<IDBGraph | undefined> {
     try {
       const db = await getDatabase();
       const graph = await db?.run<{
         ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
         connections: IIdeaConnection[];
+        files: IUserFile[];
       }>("fn::user_graph", [userId]);
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
         return undefined;
       }
-      const { ideas, connections } = graph;
+      const { ideas, connections, files = [] } = graph;
       const flags: IDBGraph["flags"] = {
         embeddings: {
           synced: ideas.every((idea) => idea.embeddings),
@@ -407,9 +412,15 @@ export class Idea {
           ideas: computedIdeas,
           edges: connections,
           flags,
+          files,
         } as IDBGraphWithComputedFields;
       }
-      return { ideas: ideasWithDerived, edges: connections, flags } as IDBGraph;
+      return {
+        ideas: ideasWithDerived,
+        edges: connections,
+        flags,
+        files,
+      } as IDBGraph;
     } catch (err) {
       console.error(err);
       return undefined;

@@ -1,16 +1,25 @@
 import React, { useEffect, useRef } from "react";
-import { INode } from "../../declarations/graph.d";
+import { IIdeaNode } from "../../declarations/graph.d";
 import styles from "./Node.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
 import { Text } from "@mantine/core";
 
 type NodeProps = {
-  node: INode;
+  node: IIdeaNode;
   isDragging: boolean;
-  onNodeNavigate?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
-  onNodeSelect?: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onNodeNavigate?: (
+    event: React.MouseEvent<SVGGElement>,
+    node: IIdeaNode,
+  ) => void;
+  onNodeSelect?: (
+    event: React.MouseEvent<SVGGElement>,
+    node: IIdeaNode,
+  ) => void;
   onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
-  onContextMenu: (event: React.MouseEvent<SVGGElement>, node: INode) => void;
+  onContextMenu: (
+    event: React.MouseEvent<SVGGElement>,
+    node: IIdeaNode,
+  ) => void;
 };
 
 const Node = ({
