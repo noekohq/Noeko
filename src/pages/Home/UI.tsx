@@ -24,6 +24,7 @@ import {
   Card,
   FileInput,
   Code,
+  Tooltip,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -207,32 +208,36 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
                 )}
               </ActionIcon>
             )}
-            <ActionIcon
-              variant="default"
-              size="lg"
-              onClick={() => setUploadFileOpened(!uploadFileOpened)}
-              style={{
-                fontSize: 18,
-              }}
-              title="Add an idea"
-            >
-              {uploadFileOpened ? (
-                <X weight="bold" />
-              ) : (
-                <UploadSimple weight="bold" />
-              )}
-            </ActionIcon>
-            <ActionIcon
-              variant="default"
-              size="lg"
-              onClick={() => setAddIdeaOpened(!addIdeaOpened)}
-              style={{
-                fontSize: 18,
-              }}
-              title="Add an idea"
-            >
-              {addIdeaOpened ? <X weight="bold" /> : <Plus weight="bold" />}
-            </ActionIcon>
+            <Tooltip label="Upload file">
+              <ActionIcon
+                variant="default"
+                size="lg"
+                onClick={() => setUploadFileOpened(!uploadFileOpened)}
+                style={{
+                  fontSize: 18,
+                }}
+                title="Add an idea"
+              >
+                {uploadFileOpened ? (
+                  <X weight="bold" />
+                ) : (
+                  <UploadSimple weight="bold" />
+                )}
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Add an idea">
+              <ActionIcon
+                variant="default"
+                size="lg"
+                onClick={() => setAddIdeaOpened(!addIdeaOpened)}
+                style={{
+                  fontSize: 18,
+                }}
+                title="Add an idea"
+              >
+                {addIdeaOpened ? <X weight="bold" /> : <Plus weight="bold" />}
+              </ActionIcon>
+            </Tooltip>
           </Group>
           <div className={styles.searchWrapper}>
             <InlineSearch

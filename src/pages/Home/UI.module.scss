@@ -1,16 +1,26 @@
+@use "../../styles/mixins.scss" as *;
+
 .ui {
     position: fixed;
     top: 24px;
     left: 24px;
-    right: calc(var(--sidebar-width) + 14px);
+    right: calc(var(--sidebar-width) + 36px);
     background-color: transparent;
 }
 
 .searchWrapper {
-    width: 20vw;
+    width: 60vw;
     transition: width 0.2s ease-in-out;
 
+    @include tablet {
+        width: 20vw;
+    }
+
     &:focus-within {
-        width: 30vw;
+        width: 80vw;
+
+        @include tablet {
+            width: 30vw;
+        }
     }
 }
