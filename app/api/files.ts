@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { checkToken } from "../middleware/auth";
+import { checkToken, disallowDisabled } from "../middleware/auth";
 import multer from "multer";
 import { UserFile } from "../database/models/userfile";
 import { getFromReq, multerToStandardFile } from "../utils/requests";
@@ -15,47 +15,53 @@ const upload = multer({
   },
 });
 
-router.post("/", checkToken, upload.single("userFile"), async (req, res) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      res.status(400).json({
-        error: "Bad Request",
-        message: "No file uploaded.",
+router.post(
+  "/",
+  checkToken,
+  disallowDisabled,
+  upload.single("userFile"),
+  async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        res.status(400).json({
+          error: "Bad Request",
+          message: "No file uploaded.",
+        });
+        return;
+      }
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res.status(401).json({
+          error: "Unauthorized",
+          message: "User not found.",
+        });
+        return;
+      }
+      const standardFile = multerToStandardFile(file);
+      const result = await UserFile.create(user.id, standardFile);
+      if (!result) {
+        res.status(500).json({
+          error: "Internal Server Error",
+          message: "Failed to create file.",
+        });
+        return;
+      }
+      res.status(201).json({
+        message: "File created successfully.",
+        data: result,
       });
-      return;
-    }
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(401).json({
-        error: "Unauthorized",
-        message: "User not found.",
-      });
-      return;
-    }
-    const standardFile = multerToStandardFile(file);
-    const result = await UserFile.create(user.id, standardFile);
-    if (!result) {
+    } catch (error) {
+      console.error(error);
       res.status(500).json({
         error: "Internal Server Error",
-        message: "Failed to create file.",
+        message: "Something went wrong.",
       });
-      return;
     }
-    res.status(201).json({
-      message: "File created successfully.",
-      data: result,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message: "Something went wrong.",
-    });
-  }
-});
+  },
+);
 
-router.get("/", checkToken, async (req, res) => {
+router.get("/", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -86,7 +92,7 @@ router.get("/", checkToken, async (req, res) => {
   }
 });
 
-router.get("/:fileId", checkToken, async (req, res) => {
+router.get("/:fileId", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -124,7 +130,7 @@ router.get("/:fileId", checkToken, async (req, res) => {
   }
 });
 
-router.delete("/:fileId", checkToken, async (req, res) => {
+router.delete("/:fileId", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -162,7 +168,7 @@ router.delete("/:fileId", checkToken, async (req, res) => {
   }
 });
 
-router.get("/:id/download", checkToken, async (req, res) => {
+router.get("/:id/download", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {

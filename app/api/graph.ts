@@ -7,13 +7,17 @@ import {
   IIdeaForm,
 } from "../database/models/ideas";
 import { getLM } from "../semantics/lm";
-import { checkIsSuperuser, checkToken } from "../middleware/auth";
+import {
+  checkIsSuperuser,
+  checkToken,
+  disallowDisabled,
+} from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { IUser, User } from "../database/models/user";
 
 const router = Router();
 
-router.get("/", checkToken, async (req, res) => {
+router.get("/", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<IUser>(req, "user");
     if (!user) {
@@ -36,22 +40,28 @@ router.get("/", checkToken, async (req, res) => {
   }
 });
 
-router.get("/ideas", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const filters = req.body.filters;
-    const ideas = await Idea.all(filters);
-    if (!ideas) {
-      res.status(404).json({ error: "Ideas not found" });
-      return;
+router.get(
+  "/ideas",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const filters = req.body.filters;
+      const ideas = await Idea.all(filters);
+      if (!ideas) {
+        res.status(404).json({ error: "Ideas not found" });
+        return;
+      }
+      res.send({ message: "Successfully retrieved ideas.", data: ideas });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    res.send({ message: "Successfully retrieved ideas.", data: ideas });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  },
+);
 
-router.get("/ideas/:id", checkToken, async (req, res) => {
+router.get("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await getFromReq<IUser>(req, "user");
@@ -101,7 +111,7 @@ router.get("/ideas/:id", checkToken, async (req, res) => {
   }
 });
 
-router.post("/ideas", checkToken, async (req, res) => {
+router.post("/ideas", checkToken, disallowDisabled, async (req, res) => {
   try {
     const body = req.body;
     const user = await getFromReq<IUser>(req, "user");
@@ -134,7 +144,7 @@ router.post("/ideas", checkToken, async (req, res) => {
   }
 });
 
-router.post("/connection", checkToken, async (req, res) => {
+router.post("/connection", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { source, target } = req.body;
     const user = await getFromReq<IUser>(req, "user");
@@ -165,7 +175,7 @@ router.post("/connection", checkToken, async (req, res) => {
   }
 });
 
-router.delete("/connection", checkToken, async (req, res) => {
+router.delete("/connection", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { source, target } = req.body;
     const user = await getFromReq<IUser>(req, "user");
@@ -196,7 +206,7 @@ router.delete("/connection", checkToken, async (req, res) => {
   }
 });
 
-router.put("/ideas/:id", checkToken, async (req, res) => {
+router.put("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await getFromReq<IUser>(req, "user");
@@ -231,7 +241,7 @@ router.put("/ideas/:id", checkToken, async (req, res) => {
   }
 });
 
-router.delete("/ideas/:id", checkToken, async (req, res) => {
+router.delete("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await getFromReq<IUser>(req, "user");
@@ -258,60 +268,70 @@ router.delete("/ideas/:id", checkToken, async (req, res) => {
   }
 });
 
-router.post("/ideas/:id/embed", checkToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ message: "Unauthorized" });
-      return;
+router.post(
+  "/ideas/:id/embed",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const hasAccess = await Idea.checkUserOwnership(id, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const idea = await Idea.loadEmbeddings(id);
+      if (!idea) {
+        res.status(404).json({ error: "Idea not found" });
+        return;
+      }
+      res.send({ message: "Successfully loaded embeddings.", data: idea });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    const hasAccess = await Idea.checkUserOwnership(id, user.id);
-    if (!hasAccess) {
-      res.status(403).json({
-        message: "Unauthorized",
-      });
-      return;
-    }
-    const idea = await Idea.loadEmbeddings(id);
-    if (!idea) {
-      res.status(404).json({ error: "Idea not found" });
-      return;
-    }
-    res.send({ message: "Successfully loaded embeddings.", data: idea });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  },
+);
 
-router.get("/ideas/:id/similar", checkToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ message: "Unauthorized" });
-      return;
-    }
-    const hasAccess = await Idea.checkUserOwnership(id, user.id);
-    if (!hasAccess) {
-      res.status(403).json({
-        message: "Unauthorized",
+router.get(
+  "/ideas/:id/similar",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const hasAccess = await Idea.checkUserOwnership(id, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const similar = await Idea.findSimilar(user.id, id);
+      res.send({
+        message: "Retrieved similar ideas",
+        data: similar,
       });
-      return;
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    const similar = await Idea.findSimilar(user.id, id);
-    res.send({
-      message: "Retrieved similar ideas",
-      data: similar,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  },
+);
 
-router.post("/ideas/search", checkToken, async (req, res) => {
+router.post("/ideas/search", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { query } = req.body;
     const user = await getFromReq<IUser>(req, "user");
@@ -333,19 +353,25 @@ router.post("/ideas/search", checkToken, async (req, res) => {
   }
 });
 
-router.post("/synchronize", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const ideas = await Idea.all();
-    if (!ideas) {
-      res.status(404).json({ error: "Ideas not found" });
-      return;
+router.post(
+  "/synchronize",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const ideas = await Idea.all();
+      if (!ideas) {
+        res.status(404).json({ error: "Ideas not found" });
+        return;
+      }
+      await Idea.synchronizeEmbeddings(ideas);
+      res.send({ message: "Successfully synchronized embeddings." });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-    await Idea.synchronizeEmbeddings(ideas);
-    res.send({ message: "Successfully synchronized embeddings." });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+  },
+);
 
 export default router;

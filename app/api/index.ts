@@ -6,9 +6,8 @@ import { disallowDisabled } from "../middleware/auth";
 
 const router = Router();
 
-router.use(disallowDisabled);
 router.use("/graph", graphRouter);
-router.use("/users", userRouter);
 router.use("/files", fileRouter);
+router.use("/users", userRouter);
 
 export default router;
