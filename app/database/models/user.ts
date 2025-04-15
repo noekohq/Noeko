@@ -162,7 +162,6 @@ export class User {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUser>(new StringRecordId(id));
-      console.log("User: ", result);
       if (!result) {
         console.error("Failed to get user");
         return undefined;
@@ -227,7 +226,6 @@ export class User {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUser>(new StringRecordId(id));
-      console.log("Result: ", result);
       if (!result) {
         console.error("Failed to get user");
         return false;
@@ -348,7 +346,7 @@ export class User {
       return disabled;
     } catch (error) {
       console.error("Error finding token:", error);
-      throw error;
+      return true;
     }
   }
 }

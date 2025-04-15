@@ -111,8 +111,6 @@ const Node = ({
     }
   }, []);
 
-  console.log("Node loading: ", iAmLoading);
-
   return (
     <g
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}

@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { checkIsSuperuser, checkToken } from "../middleware/auth";
+import {
+  checkIsSuperuser,
+  checkToken,
+  disallowDisabled,
+} from "../middleware/auth";
 import { ISafeUser, IUser, IUserForm, User } from "../database/models/user";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import {
@@ -182,69 +186,99 @@ router.put("/me", checkToken, async (req, res) => {
   }
 });
 
-router.get("/", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const users = await User.getAll();
-    res.json({
-      message: "Users retrieved successfully",
-      data: users,
-    });
-  } catch (error) {
-    console.error("User retrieval error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.get(
+  "/",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const users = await User.getAll();
+      res.json({
+        message: "Users retrieved successfully",
+        data: users,
+      });
+    } catch (error) {
+      console.error("User retrieval error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
-router.get("/:id", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const user = await User.get(req.params.id);
-    res.json({
-      message: "User retrieved successfully",
-      data: user,
-    });
-  } catch (error) {
-    console.error("User retrieval error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.get(
+  "/:id",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const user = await User.get(req.params.id);
+      res.json({
+        message: "User retrieved successfully",
+        data: user,
+      });
+    } catch (error) {
+      console.error("User retrieval error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
-router.post("/enable/:id", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const user = await User.enable(req.params.id);
-    res.json({
-      message: "User enabled successfully",
-      data: user,
-    });
-  } catch (error) {
-    console.error("User enable error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.post(
+  "/enable/:id",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const user = await User.enable(req.params.id);
+      res.json({
+        message: "User enabled successfully",
+        data: user,
+      });
+    } catch (error) {
+      console.error("User enable error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
-router.post("/disable/:id", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const user = await User.disable(req.params.id);
-    res.json({
-      message: "User disabled successfully",
-      data: user,
-    });
-  } catch (error) {
-    console.error("User disable error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.post(
+  "/disable/:id",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const user = await User.disable(req.params.id);
+      res.json({
+        message: "User disabled successfully",
+        data: user,
+      });
+    } catch (error) {
+      console.error("User disable error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
-router.delete("/:id", checkToken, checkIsSuperuser, async (req, res) => {
-  try {
-    const user = await User.delete(req.params.id);
-    res.json({
-      message: "User disabled successfully",
-      data: user,
-    });
-  } catch (error) {
-    console.error("User disable error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+router.delete(
+  "/:id",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const user = await User.delete(req.params.id);
+      res.json({
+        message: "User disabled successfully",
+        data: user,
+      });
+    } catch (error) {
+      console.error("User disable error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
 
 export default router;
