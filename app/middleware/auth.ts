@@ -59,3 +59,30 @@ export const checkIsSuperuser = async (
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const disallowDisabled = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.roles) {
+      res.status(403).json({
+        message: "Forbidden. Account is suspended.",
+      });
+      return;
+    }
+    const isDisabled = await User.isDisabled(user.id);
+    if (isDisabled) {
+      res.status(403).json({
+        message: "Forbidden. Account is suspended.",
+      });
+    } else {
+      next();
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

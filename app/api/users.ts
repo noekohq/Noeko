@@ -208,4 +208,43 @@ router.get("/:id", checkToken, checkIsSuperuser, async (req, res) => {
   }
 });
 
+router.post("/enable/:id", checkToken, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.enable(req.params.id);
+    res.json({
+      message: "User enabled successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User enable error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/disable/:id", checkToken, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.disable(req.params.id);
+    res.json({
+      message: "User disabled successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User disable error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/:id", checkToken, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.delete(req.params.id);
+    res.json({
+      message: "User disabled successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User disable error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 export default router;
