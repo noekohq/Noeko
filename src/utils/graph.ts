@@ -18,18 +18,14 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
     };
   });
 
-  const ideaEdges = dbGraph.ideas
+  const ideaEdges = dbGraph.edges
     .map((i) => {
-      return [
-        ...i.derivedList.map((d) => {
-          return {
-            source: i.id.toString(),
-            target: d.id.toString(),
-            distance: 50,
-            strength: 1,
-          };
-        }),
-      ] as IEdge[];
+      return {
+        source: i.in.toString(),
+        target: i.out.toString(),
+        distance: 150,
+        strength: 0.7,
+      };
     })
     .flat();
 

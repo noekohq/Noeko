@@ -434,6 +434,8 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     setNodePanel(null);
   };
 
+  console.log("Graph edges: ", graph.edges);
+
   return (
     <div
       ref={containerRef}
