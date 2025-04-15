@@ -38,6 +38,7 @@ services:
       - $PORT:$PORT
     networks:
       - app
+    command: sh -c "bun run start"
 
 networks:
   app:

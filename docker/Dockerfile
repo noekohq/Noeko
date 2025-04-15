@@ -31,5 +31,3 @@ COPY --from=builder /project/credentials ./credentials
 COPY --from=builder /project/.env ./
 
 RUN bun run client:build
-
-CMD ["bun", "run", "start"]
