@@ -38,7 +38,6 @@ app.use(
 app.use("/api", apiRouter);
 
 const publicAssetsPath = path.join(projectRoot, "public/assets");
-console.log(`Serving static assets from ${publicAssetsPath} at /assets`);
 app.use("/assets", Express.static(publicAssetsPath));
 
 if (isProduction) {

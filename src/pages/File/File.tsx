@@ -28,8 +28,6 @@ export default function UserFile() {
     },
   });
 
-  console.log(file);
-
   return (
     <div className={styles.file}>
       <Grid>
