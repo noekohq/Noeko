@@ -35,7 +35,7 @@ services:
     depends_on:
       - surrealdb
     ports:
-      - "3400:3400"
+      - $PORT:$PORT
     networks:
       - app
 
