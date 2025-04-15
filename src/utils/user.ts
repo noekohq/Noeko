@@ -8,5 +8,5 @@ export const userInitials = (user: ISafeUser | undefined) => {
 
 export const userIsSuperuser = (user: ISafeUser | undefined) => {
   if (!user) return false;
-  return user.roles.find((role) => role.id === "role:superuser");
+  return user.roles.find((role) => role === "role:superuser");
 };

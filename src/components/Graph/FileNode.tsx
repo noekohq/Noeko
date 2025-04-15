@@ -119,7 +119,7 @@ const FileNode = ({
       onMouseLeave={handleNodeUnselect}
       onClick={handleNodeNavigate}
       onContextMenu={handleContextMenu}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""}`}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.hidden : ""}`}
     >
       <defs>
         <radialGradient

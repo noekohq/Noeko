@@ -101,15 +101,17 @@ const Node = ({
     if (!node || !node.x || !node.y) return 0;
     const x = node.x;
     const y = node.y;
-    const delay = Math.sqrt(x * x + y * y) * 10;
+    const delay = Math.sqrt(x * x + y * y) * 1;
     return delay;
   };
 
   useEffect(() => {
     if (circleRef.current) {
-      circleRef.current.style.animationDelay = `${getCoordinateBasedDelay()}ms`;
+      circleRef.current.style.animationDelay = `${randomDelay()}ms`;
     }
   }, []);
+
+  console.log("Node loading: ", iAmLoading);
 
   return (
     <g
