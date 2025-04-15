@@ -8,6 +8,7 @@
     "start": "bun app/index.ts",
     "server:watch": "bun --watch app/index.ts",
     "server": "docker-compose -f docker-compose.yml up",
+    "server:detached": "docker-compose -f docker-compose.yml up -d",
     "server:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "server:build": "bun build app/index.ts",
     "docker:build": "docker-compose build"

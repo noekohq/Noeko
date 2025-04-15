@@ -95,7 +95,7 @@ export class Idea {
         LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY <record> $userId FETCH userIdeas;
         LET $ideaIds = array::flatten($userIdeas[*].id);
         LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
-        LET $userFiles = SELECT ->owns->user_file as userFiles FROM ONLY <record> $userId FETCH userFiles;
+        LET $userFiles = SELECT VALUE ->owns->user_file as userFiles FROM ONLY <record> $userId FETCH userFiles;
         LET $ideas =
           SELECT
             *,
