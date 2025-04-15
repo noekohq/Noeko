@@ -17,8 +17,6 @@ export default function Home() {
     runOnMount: true,
   });
 
-  console.log("Graph data: ", graphData);
-
   const [localData, setLocalData] = useState<IGraph | null>(null);
   useEffect(() => {
     if (graphData) {

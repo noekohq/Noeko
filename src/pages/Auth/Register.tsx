@@ -136,6 +136,36 @@ export default function Register() {
     }
   };
 
+  const noRegistrations = true;
+
+  if (noRegistrations) {
+    return (
+      <Container
+        style={{
+          width: "100%",
+          height: "100vh",
+        }}
+      >
+        <Flex justify="center" align="center" h="100%">
+          <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
+            <Grid>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text>
+                  Sorry, we are currently not accepting new registrations.
+                </Text>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Link to="/login">
+                  <Button variant="light">I have an account</Button>
+                </Link>
+              </Grid.Col>
+            </Grid>
+          </Card>
+        </Flex>
+      </Container>
+    );
+  }
+
   return (
     <Container
       style={{
