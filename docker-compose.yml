@@ -15,11 +15,6 @@ services:
       - surrealkv://data/database.db
     ports:
       - "8000:8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
-      interval: 5s
-      timeout: 10s
-      retries: 3
     networks:
       - app
     volumes:
