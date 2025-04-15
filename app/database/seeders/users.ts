@@ -41,7 +41,7 @@ export const seedUsers = async () => {
             lastName: "User",
             password: await hashPassword(userPassword),
           },
-          ["role:superuser"],
+          ["role:superuser", "role:user"],
         );
         await dumpUserAuth({ email: user, password: userPassword });
       } else {

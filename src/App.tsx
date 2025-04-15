@@ -18,10 +18,12 @@ import Sidebar from "./components/Navigation/Sidebar";
 import Profile from "./pages/Settings/Profile";
 import Settings from "./pages/Settings/Settings";
 import useShortcuts from "./hooks/useShortcuts";
+import { userIsSuperuser } from "./utils/user";
+import Users from "./pages/Users/Users";
 
 export default function App() {
   const navigate = useNavigate();
-  const { loggedIn, loading: loadingAuth } = useAuth();
+  const { loggedIn, loading: loadingAuth, user } = useAuth();
   const location = useLocation();
 
   useShortcuts({
@@ -32,6 +34,8 @@ export default function App() {
       },
     ],
   });
+
+  const isSuperuser = userIsSuperuser(user);
 
   if (loadingAuth) {
     return (
@@ -89,6 +93,11 @@ export default function App() {
                     <Route index element={<Navigate to="/" replace />} />
                     <Route path=":fileId" element={<UserFile />} />
                   </Route>
+                  {isSuperuser && (
+                    <Route path="admin">
+                      <Route path="users" element={<Users />} />
+                    </Route>
+                  )}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>

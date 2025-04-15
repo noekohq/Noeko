@@ -16,12 +16,16 @@ export type IUser = {
   lastName: string;
   email: string;
   password: string;
-  roles: IRole[];
+  roles: RecordId[];
+  disabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
 
-export type IUserForm = Omit<IUser, "id" | "createdAt" | "updatedAt" | "roles">;
+export type IUserForm = Omit<
+  IUser,
+  "id" | "createdAt" | "updatedAt" | "roles" | "disabled"
+>;
 
 export type ISafeUser = Omit<IUser, "password">;
 
@@ -52,6 +56,7 @@ export class User {
         DEFINE FIELD IF NOT EXISTS createdAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS updatedAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS roles ON TABLE user TYPE array<record<role>>;
+        DEFINE FIELD IF NOT EXISTS disabled ON TABLE user TYPE bool DEFAULT false;
       `);
     } catch (error) {
       console.error("Error creating user table:", error);
@@ -157,6 +162,7 @@ export class User {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUser>(new StringRecordId(id));
+      console.log("User: ", result);
       if (!result) {
         console.error("Failed to get user");
         return undefined;
@@ -221,12 +227,15 @@ export class User {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUser>(new StringRecordId(id));
+      console.log("Result: ", result);
       if (!result) {
         console.error("Failed to get user");
         return false;
       }
       const user = result;
-      const has = user.roles.find((r) => r.name === role || r.id === role);
+      const has = user.roles.find(
+        (r) => r.toString() === role || r.id === role,
+      );
       return has !== undefined;
     } catch (error) {
       console.error("Error checking user role:", error);
@@ -287,6 +296,58 @@ export class User {
       return token;
     } catch (error) {
       console.error("Error generating access token:", error);
+      throw error;
+    }
+  }
+
+  static async disable(id: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.merge(new StringRecordId(id), {
+        disabled: true,
+      });
+      if (!result) {
+        console.error("Failed to disable token");
+        return undefined;
+      }
+      const tokenRecord = result;
+      return tokenRecord;
+    } catch (error) {
+      console.error("Error disabling token:", error);
+      throw error;
+    }
+  }
+
+  static async enable(id: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.merge(new StringRecordId(id), {
+        disabled: false,
+      });
+      if (!result) {
+        console.error("Failed to enable token");
+        return undefined;
+      }
+      const tokenRecord = result;
+      return tokenRecord;
+    } catch (error) {
+      console.error("Error enabling token:", error);
+      throw error;
+    }
+  }
+
+  static async isDisabled(id: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.select<ISafeUser>(new StringRecordId(id));
+      if (!result) {
+        console.error("Failed to find token");
+        return undefined;
+      }
+      const disabled = result.disabled;
+      return disabled;
+    } catch (error) {
+      console.error("Error finding token:", error);
       throw error;
     }
   }
@@ -487,7 +548,7 @@ export class Token {
     }
   }
 
-  static async get(id: string) {
+  static async get(id: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IToken>(new StringRecordId(id));
@@ -503,7 +564,7 @@ export class Token {
     }
   }
 
-  static async delete(id: string) {
+  static async delete(id: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.delete(new StringRecordId(id));

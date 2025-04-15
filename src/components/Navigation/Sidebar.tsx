@@ -20,14 +20,20 @@ import {
   User,
   UsersThree,
 } from "@phosphor-icons/react";
-import { useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
 
   const navigate = useNavigate();
   const initials = userInitials(user);
-  const isSuperuser = userIsSuperuser(user);
+  const isSuperuser = userIsSuperuser(user) ?? false;
+
+  const { pathname } = useLocation();
+
+  const isActiveRoute = (path: string) => {
+    return pathname === path;
+  };
 
   return (
     <div className={styles.sidebar}>
@@ -85,11 +91,13 @@ export default function Sidebar() {
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>
-        {isSuperuser && (
+        {isSuperuser && !isActiveRoute("/admin/users") && (
           <Tooltip label="Manage Users">
-            <ActionIcon size="lg" variant="default">
-              <UsersThree />
-            </ActionIcon>
+            <Link to="/admin/users">
+              <ActionIcon size="lg" variant="default">
+                <UsersThree />
+              </ActionIcon>
+            </Link>
           </Tooltip>
         )}
       </Flex>

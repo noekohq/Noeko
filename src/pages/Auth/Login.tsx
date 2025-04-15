@@ -138,13 +138,13 @@ export default function Login() {
                 </Button>
               </Group>
             </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
+            {/* <Grid.Col span={{ sm: 12 }}>
               <Group justify="center">
                 <Text size="sm">
                   <Link to="/forgot-password">Forgot password?</Link>
                 </Text>
               </Group>
-            </Grid.Col>
+            </Grid.Col> */}
           </Grid>
         </Card>
       </Flex>
