@@ -255,7 +255,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
               onSearchEnd={() => {
                 setLoading(false);
               }}
-              onShortcut={{ meta: true, key: "k" }}
+              onShortcut={{ key: "/" }}
             />
           </div>
         </Group>

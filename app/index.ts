@@ -5,12 +5,13 @@ import path from "path";
 import cors from "cors";
 import apiRouter from "./api";
 import { initDatabase } from "./database/db";
+import cookieParser from "cookie-parser";
 
 config();
 
 const { PORT, CLIENT_ORIGIN } = process.env;
 const isProduction = process.env.NODE_ENV === "production";
-const projectRoot = process.cwd(); // Get project root
+const projectRoot = process.cwd();
 
 if (!PORT) throw new Error("PORT is not defined");
 
@@ -19,6 +20,7 @@ await initDatabase();
 const app = Express();
 app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(
   cors({

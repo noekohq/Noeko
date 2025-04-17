@@ -1,4 +1,5 @@
 import { JwtPayload, sign, SignOptions, verify } from "jsonwebtoken";
+import { randomBytes } from "crypto";
 
 const { TOKEN_SECRET } = process.env;
 
@@ -9,6 +10,10 @@ if (!TOKEN_SECRET) {
 export const hashPassword = async (password: string): Promise<string> => {
   const hashed = await Bun.password.hash(password);
   return hashed;
+};
+
+export const getRandomPassword = (length = 12): string => {
+  return randomBytes(length).toString("hex");
 };
 
 export const verifyPassword = async (

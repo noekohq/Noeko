@@ -5,12 +5,18 @@ import {
   disallowDisabled,
 } from "../middleware/auth";
 import { ISafeUser, IUser, IUserForm, User } from "../database/models/user";
-import { hashPassword, verifyPassword } from "../utils/crypto";
+import {
+  getRandomPassword,
+  hashPassword,
+  verifyPassword,
+} from "../utils/crypto";
 import {
   addRefreshTokenToRes,
   getFromReq,
   getRefreshTokenFromReq,
 } from "../utils/requests";
+import { sendEmail } from "../utils/email";
+import { getRandomValues } from "crypto";
 
 const router = Router();
 
@@ -186,6 +192,57 @@ router.put("/me", checkToken, async (req, res) => {
   }
 });
 
+router.post(
+  "/invite",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const creator = await getFromReq<ISafeUser>(req, "user");
+      if (!creator) {
+        res.status(401).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const form = req.body;
+      if (!form.email || !form.firstName || !form.lastName) {
+        res.status(400).json({ message: "Missing required fields" });
+        return;
+      }
+      const userExistsWithEmail = await User.findByEmail(form.email);
+      if (userExistsWithEmail) {
+        res.status(400).json({ message: "Email already in use" });
+        return;
+      }
+      const userPassword = getRandomPassword();
+      const hashedPassword = await hashPassword(userPassword);
+      const user = await User.create({ ...req.body, password: hashedPassword });
+      if (!user) {
+        res.status(400).json({ message: "User already exists" });
+        return;
+      }
+      const sentEmail = await User.sendInvitationEmail(
+        user,
+        creator,
+        userPassword,
+      );
+      res.json({
+        message: "User registered successfully",
+        data: {
+          user,
+          emailSuccess: sentEmail,
+          newUserPassword: userPassword,
+        },
+      });
+    } catch (error) {
+      console.error("User registration error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
 router.get(
   "/",
   checkToken,
@@ -276,6 +333,73 @@ router.delete(
       });
     } catch (error) {
       console.error("User disable error:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.post(
+  "/email/:id",
+  checkToken,
+  disallowDisabled,
+  checkIsSuperuser,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { type } = req.body;
+      const sender = await getFromReq<ISafeUser>(req, "user");
+      if (!sender) {
+        res.status(401).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const user = await User.get(id);
+      if (!user) {
+        res.status(404).json({
+          message: "User not found.",
+        });
+        return;
+      }
+
+      if (!type) {
+        res.status(400).json({
+          message: "Type is required.",
+        });
+        return;
+      }
+      if (!["invitation"].includes(type)) {
+        res.status(400).json({
+          message: `Type ${type} not supported.`,
+        });
+      }
+
+      if (type === "invitation") {
+        const newPassword = getRandomPassword();
+        const hashedPassword = await hashPassword(newPassword);
+        if (!hashedPassword) {
+          throw Error("Something went wrong hashing the users password.");
+        }
+        await User.update(user.id, { password: hashedPassword });
+        const response = await User.sendInvitationEmail(
+          user,
+          sender,
+          newPassword,
+        );
+        if (response) {
+          res.status(200).json({
+            message: "Invitation sent successfully.",
+            data: true,
+          });
+          return;
+        }
+      }
+      res.status(500).json({
+        message: "Something went wrong.",
+        data: false,
+      });
+    } catch (error) {
+      console.error("Error sending email: ", error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   },

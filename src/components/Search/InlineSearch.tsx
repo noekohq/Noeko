@@ -25,7 +25,7 @@ type IInlineSearchProps = {
 };
 
 export function InlineSearch({
-  placeholder = "Search ideas...",
+  placeholder = "Press / to search...",
   onSelect,
   onResults,
   onResultsClear,
