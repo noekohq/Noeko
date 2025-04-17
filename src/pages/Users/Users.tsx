@@ -199,6 +199,7 @@ export default function Users() {
       invitationForm.reset();
       setInvitingUser(false);
       setInvitedUser(d);
+      reloadUsers();
     },
     onError: (error) => {
       console.error("Error inviting user: ", error);
