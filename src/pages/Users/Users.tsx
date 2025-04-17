@@ -11,17 +11,29 @@ import {
   Modal,
   Text,
   Button,
+  Textarea,
+  RadioCard,
+  RadioGroup,
+  Radio,
+  Alert,
+  CopyButton,
+  Code,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
-import { ISafeUser } from "../../../app/database/models/user";
+import { ISafeUser, IUser } from "../../../app/database/models/user";
 import {
   TrashSimple,
-  PencilSimple,
   HandPalm,
   ThumbsUp,
+  EnvelopeSimple,
+  Check,
+  Clipboard,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
+import { useForm } from "@mantine/form";
+import TextEditor from "../../components/TextEditor/TextEditor";
+import { validateEmail } from "../../utils/data";
 
 export default function Users() {
   const {
@@ -96,6 +108,103 @@ export default function Users() {
         title: "Error",
         message: `Failed to delete user`,
         color: "red",
+      });
+    },
+  });
+
+  const [toEmail, setToEmail] = useState<ISafeUser>();
+  const [emailType, setEmailType] = useState<"onboarding">("onboarding");
+  const { load: sendUserEmail, loading: sendingUserEmail } = useFetch<
+    { type: string },
+    boolean
+  >({
+    url: `/users/email/${toEmail?.id}`,
+    method: "POST",
+    body: {
+      type: emailType,
+    },
+    dependencies: [emailType],
+    onSuccess: (d) => {
+      showNotification({
+        title: "Success",
+        message: "User emailed successfully",
+      });
+      setToEmail(undefined);
+    },
+    onError: (e) => {
+      console.error("Error sending email.");
+      showNotification({
+        title: "Something went wrong.",
+        message: "Something went wrong sending the email.",
+        color: "red",
+      });
+    },
+  });
+
+  const invitationForm = useForm({
+    initialValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+    },
+    validate: {
+      email: (value) => {
+        if (!value) {
+          return "Email is required";
+        }
+        if (!validateEmail(value)) {
+          return "Invalid email";
+        }
+      },
+      firstName: (value) => {
+        if (!value) {
+          return "First name is required";
+        }
+        if (value.length < 2) {
+          return "First name must be at least 2 characters";
+        }
+      },
+      lastName: (value) => {
+        if (!value) {
+          return "Last name is required";
+        }
+        if (value.length < 2) {
+          return "Last name must be at least 2 characters";
+        }
+      },
+    },
+  });
+
+  const [invitedUser, setInvitedUser] = useState<{
+    user: ISafeUser;
+    emailSuccess: boolean;
+    newUserPassword: string;
+  }>();
+  const [invitingUser, setInvitingUser] = useState(false);
+  const { load: inviteUser, loading: loadingUserInvite } = useFetch<
+    { firstName: string; lastName: string; email: string },
+    { user: ISafeUser; emailSuccess: boolean; newUserPassword: string }
+  >({
+    url: "/users/invite",
+    method: "POST",
+    body: {
+      ...invitationForm.getTransformedValues(),
+    },
+    dependencies: [invitationForm.values],
+    onSuccess: (d) => {
+      showNotification({
+        title: "Success",
+        message: "Invitation sent successfully.",
+      });
+      invitationForm.reset();
+      setInvitingUser(false);
+      setInvitedUser(d);
+    },
+    onError: (error) => {
+      console.error("Error inviting user: ", error);
+      showNotification({
+        title: "Error",
+        message: "Something went wrong.",
       });
     },
   });
@@ -178,17 +287,178 @@ export default function Users() {
         </Group>
       </Modal>
 
+      <Modal
+        opened={!!toEmail}
+        title="Email user"
+        onClose={() => setToEmail(undefined)}
+        size="lg"
+      >
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>
+            Sending email to {toEmail?.email}
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <RadioGroup
+              value={emailType}
+              onChange={(v) => setEmailType(v as typeof emailType)}
+            >
+              <RadioCard value="onboarding" radius="sm" p="md">
+                <Group wrap="nowrap" align="flex-start">
+                  <Radio.Indicator />
+                  <Text>Send the user an onboarding email.</Text>
+                </Group>
+              </RadioCard>
+            </RadioGroup>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group>
+              <Button
+                variant="default"
+                onClick={() => setToEmail(undefined)}
+                disabled={sendingUserEmail}
+              >
+                Cancel.
+              </Button>
+              <Button
+                onClick={() => {
+                  sendUserEmail();
+                }}
+                leftSection={
+                  sendingUserEmail ? <Loader size="sm" color="white" /> : ""
+                }
+                disabled={sendingUserEmail}
+              >
+                Send it.
+              </Button>
+            </Group>
+          </Grid.Col>
+        </Grid>
+      </Modal>
+
+      <Modal
+        opened={invitingUser}
+        onClose={() => setInvitingUser(false)}
+        title="Invite user"
+        size="lg"
+      >
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>
+            <TextInput
+              label="First name"
+              placeholder="First name"
+              {...invitationForm.getInputProps("firstName")}
+              withAsterisk
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <TextInput
+              label="Last name"
+              placeholder="Last name"
+              {...invitationForm.getInputProps("lastName")}
+              withAsterisk
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <TextInput
+              label="Email"
+              placeholder="Email"
+              {...invitationForm.getInputProps("email")}
+              withAsterisk
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }} />
+          <Grid.Col span={{ sm: 12 }}>
+            <Group justify="right">
+              <Button
+                variant="default"
+                onClick={() => {
+                  invitationForm.reset();
+                  setInvitingUser(false);
+                }}
+                disabled={loadingUserInvite}
+              >
+                Cancel.
+              </Button>
+              <Button
+                onClick={() => {
+                  inviteUser();
+                }}
+                leftSection={
+                  loadingUserInvite ? <Loader color="white" size="sm" /> : ""
+                }
+                disabled={loadingUserInvite}
+              >
+                Send invite!
+              </Button>
+            </Group>
+          </Grid.Col>
+        </Grid>
+      </Modal>
+
       {loadingUsers && <Loader size="lg" />}
       <Grid>
+        {!!invitedUser && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Alert
+              withCloseButton
+              onClose={() => {
+                setInvitedUser(undefined);
+              }}
+            >
+              <Grid>
+                <Grid.Col span={{ sm: 12 }}>
+                  <Text>
+                    The new user has been created with the email{" "}
+                    <a href={`mailto:${invitedUser.user.email}`}>
+                      {invitedUser.user.email}
+                    </a>{" "}
+                    and password <Code>{invitedUser.newUserPassword}</Code>.{" "}
+                    {invitedUser.emailSuccess
+                      ? "Email was sent successfully."
+                      : "Email was not sent successfully."}
+                  </Text>
+                </Grid.Col>
+                <Grid.Col span={{ sm: 12 }}>
+                  <CopyButton value={invitedUser.newUserPassword}>
+                    {({ copied, copy }) => {
+                      return (
+                        <Button
+                          onClick={copy}
+                          leftSection={
+                            copied ? (
+                              <Check weight="bold" />
+                            ) : (
+                              <Clipboard weight="bold" />
+                            )
+                          }
+                        >
+                          {copied ? "Copied" : "Copy Password"}
+                        </Button>
+                      );
+                    }}
+                  </CopyButton>
+                </Grid.Col>
+              </Grid>
+            </Alert>
+          </Grid.Col>
+        )}
         <Grid.Col span={{ sm: 12 }}>
           <Title>Manage Users</Title>
         </Grid.Col>
+        <Grid.Col span={{ sm: 12 }} />
         <Grid.Col span={{ sm: 12 }}>
           <TextInput
             placeholder="Filter users"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+        </Grid.Col>
+        <Grid.Col span={{ sm: 12 }}>
+          <Group justify="end">
+            <Button variant="light" onClick={() => setInvitingUser(true)}>
+              Invite a user
+            </Button>
+          </Group>
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }} />
         <Grid.Col>
@@ -237,6 +507,14 @@ export default function Users() {
                             <HandPalm />
                           </ActionIcon>
                         )}
+                        <ActionIcon
+                          variant="light"
+                          color="orange"
+                          size="sm"
+                          onClick={() => setToEmail(user)}
+                        >
+                          <EnvelopeSimple />
+                        </ActionIcon>
                         <ActionIcon
                           variant="light"
                           color="red"

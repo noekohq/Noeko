@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/crypto";
 import { ISafeUser, IUser, User } from "../database/models/user";
-import { addToReq, getFromReq } from "../utils/requests";
+import {
+  addToReq,
+  getFromReq,
+  getRefreshTokenFromReq,
+} from "../utils/requests";
 
 export const checkToken = async (
   req: Request,
@@ -25,6 +29,7 @@ export const checkToken = async (
       });
       return;
     }
+
     await addToReq(req, "user", decoded);
     next();
   } catch (err) {
@@ -67,6 +72,7 @@ export const disallowDisabled = async (
 ) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
+    console.log("User in is disabled: ", user);
     if (!user || !user.roles) {
       res.status(403).json({
         message: "Forbidden. Account is suspended.",

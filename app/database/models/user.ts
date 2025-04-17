@@ -1,6 +1,9 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { generateToken, verifyToken } from "../../utils/crypto";
+import { invitationTemplate } from "../../emails/types";
+import { sendEmail } from "../../utils/email";
+import { Idea } from "./ideas";
 
 export type IRole = {
   id: string;
@@ -143,10 +146,13 @@ export class User {
   static async delete(id: string) {
     try {
       const db = await getDatabase();
+      const deletedIdeas = await Idea.deleteUserIdeas(id);
+      if (!deletedIdeas) {
+        throw Error("Something went wrong deleting user ideas.");
+      }
       const result = await db?.delete<IUser>(new StringRecordId(id));
       if (!result) {
-        console.error("Failed to delete user");
-        return undefined;
+        throw Error("Failed to delete user");
       }
       const user = result;
       return this.filterSafeFields(user);
@@ -161,10 +167,10 @@ export class User {
   static async get(id: string | RecordId, unsafe = false) {
     try {
       const db = await getDatabase();
+      console.log("Getting with: ", id, new StringRecordId(id));
       const result = await db?.select<IUser>(new StringRecordId(id));
       if (!result) {
-        console.error("Failed to get user");
-        return undefined;
+        throw Error("Failed to get user.");
       }
       const user = result;
       if (unsafe) {
@@ -222,10 +228,28 @@ export class User {
     }
   }
 
-  static async checkUserHasRole(id: string, role: string) {
+  static async sendInvitationEmail(
+    to: ISafeUser,
+    sender: ISafeUser,
+    invitationPassword: string,
+  ) {
     try {
-      const db = await getDatabase();
-      const result = await db?.select<IUser>(new StringRecordId(id));
+      const invitation = invitationTemplate(to, sender, invitationPassword);
+      const worked = await sendEmail(
+        to.email,
+        "Invitation to join Qwest",
+        invitation,
+      );
+      return worked;
+    } catch (error) {
+      console.error("Error sending invitation email: ", error);
+      return undefined;
+    }
+  }
+
+  static async checkUserHasRole(id: string | RecordId, role: string) {
+    try {
+      const result = await User.get(id);
       if (!result) {
         console.error("Failed to get user");
         return false;

@@ -189,12 +189,24 @@ export class Idea {
       `;
     };
 
+    const getUserIdeas = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_user_ideas(
+        $userId: string
+      ) {
+        LET $userIdeas = SELECT VALUE ->owns->idea as userIdeas FROM ONLY <record> $userId FETCH userIdeas;
+        return $userIdeas;
+      }
+      `;
+    };
+
     const db = await getDatabase();
     await db?.query(userGraphFunction());
     await db?.query(searchSimilarToIdea());
     await db?.query(searchSimilarToEmbeddings());
     await db?.query(getIdeaConnections());
     await db?.query(getIdeaDerived());
+    await db?.query(getUserIdeas());
   }
 
   static attachComputedFieldsToCollection(
@@ -468,6 +480,30 @@ export class Idea {
       return result;
     } catch (err) {
       console.error(err);
+      return undefined;
+    }
+  }
+
+  static async deleteUserIdeas(userId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw Error("Database not initialized.");
+      }
+      const userIdeas = await db.run<IIdea[]>("fn::get_user_ideas", [userId]);
+      console.log("Got user ideas: ", userIdeas);
+      if (!userIdeas) {
+        throw Error("Error getting user ideas");
+      }
+      for (const idea of userIdeas) {
+        const deleted = await Idea.delete(idea.id.toString());
+        if (!deleted) {
+          throw Error(`Idea ${idea.id} failed to delete.`);
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error(error);
       return undefined;
     }
   }

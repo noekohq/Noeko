@@ -19,6 +19,7 @@ export const addRefreshTokenToRes = async (
 };
 
 export const getRefreshTokenFromReq = async (req: Request) => {
+  console.log("Request: ", req);
   const refreshToken = req.cookies?.refreshToken;
   return refreshToken as string | undefined;
 };
