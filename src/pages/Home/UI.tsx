@@ -77,10 +77,14 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   }, []);
 
   const handleQueryChange = useCallback((q: string) => {
+    const normalized = q.toLowerCase();
     setFilter({
-      filter: (idea) => {
-        if (idea.type === "idea") {
-          return idea.title.includes(q);
+      filter: (node) => {
+        if (node.type === "idea") {
+          return node.title.toLowerCase().includes(normalized);
+        }
+        if (node.type === "file") {
+          return node.originalFileName.toLowerCase().includes(normalized);
         }
         return false;
       },
