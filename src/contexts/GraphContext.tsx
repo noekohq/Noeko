@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { IDerivedNode, INode } from "../declarations/graph";
 
 type FilterConfig = {
-  filter: (node: INode | IDerivedNode) => boolean;
+  filter: (node: INode) => boolean;
 };
 
 type IGraphContext = {

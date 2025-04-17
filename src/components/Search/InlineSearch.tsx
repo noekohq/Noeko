@@ -22,6 +22,7 @@ type IInlineSearchProps = {
   onSearchStart?: () => void;
   onSearchEnd?: () => void;
   onShortcut?: IShortcut["keys"];
+  onQueryChange?: (v: string) => void;
 };
 
 export function InlineSearch({
@@ -33,6 +34,7 @@ export function InlineSearch({
   onSearchStart,
   onSearchEnd,
   onShortcut,
+  onQueryChange,
 }: IInlineSearchProps) {
   const [query, setQuery] = useState("");
 
@@ -81,6 +83,10 @@ export function InlineSearch({
       onResults?.(results);
     }
   }, [results]);
+
+  useEffect(() => {
+    onQueryChange?.(query);
+  }, [query]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 

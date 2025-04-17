@@ -19,16 +19,13 @@ import {
   TextInput,
   Loader,
   Drawer,
-  Stack,
   Title,
-  Card,
   FileInput,
   Code,
   Tooltip,
 } from "@mantine/core";
 import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
-import TextEditor from "../../components/TextEditor/TextEditor";
 import {
   ArrowsClockwise,
   FileCode,
@@ -39,7 +36,6 @@ import {
   Plus,
   UploadSimple,
   X,
-  YoutubeLogo,
 } from "@phosphor-icons/react";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
@@ -78,6 +74,17 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
       filter: (idea) => ideas.includes(idea.id),
     });
     return ideas;
+  }, []);
+
+  const handleQueryChange = useCallback((q: string) => {
+    setFilter({
+      filter: (idea) => {
+        if (idea.type === "idea") {
+          return idea.title.includes(q);
+        }
+        return false;
+      },
+    });
   }, []);
 
   const handleResultsClear = useCallback(() => {
@@ -256,6 +263,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
                 setLoading(false);
               }}
               onShortcut={{ key: "/" }}
+              onQueryChange={handleQueryChange}
             />
           </div>
         </Group>

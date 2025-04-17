@@ -126,8 +126,8 @@ export class GenerativeSummary {
       if (!db) {
         throw new Error("Database not available");
       }
-      const derivedSummariesResults = await db?.query<[IGenerativeSummary[]]>(
-        `SELECT VALUE ->is_source_for->generative_summary FROM ONLY $ideaId;`,
+      const derivedSummariesResults = await db?.query<[RecordId[]]>(
+        `SELECT VALUE ->is_source_for->generative_summary FROM ONLY <record> $ideaId;`,
         { ideaId },
       );
       if (!derivedSummariesResults) {
@@ -135,13 +135,11 @@ export class GenerativeSummary {
       }
       const [derivedSummaries] = derivedSummariesResults;
       if (!derivedSummaries || derivedSummaries.length < 1) {
-        await this.delete(ideaId);
         return true;
       }
       for (const summary of derivedSummaries) {
-        await this.deleteCascade(summary.id.toString());
+        await this.delete(summary);
       }
-      await this.delete(ideaId);
       return true;
     } catch (error) {
       console.error(error);
@@ -149,29 +147,14 @@ export class GenerativeSummary {
     }
   }
 
-  static async delete(ideaId: string | RecordId) {
+  static async delete(summaryId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not available");
       }
-      const summaryResults = await db?.query<[IGenerativeSummary[]]>(
-        `SELECT VALUE ->is_source_for->generative_summary FROM ONLY $ideaId;`,
-        { ideaId },
-      );
-      if (!summaryResults) {
-        throw new Error("Failed to fetch summaries");
-      }
-      const [summaries] = summaryResults;
-      if (!summaries || summaries.length < 1) {
-        await db?.query(`DELETE FROM $ideaId;`, { ideaId });
-        return true;
-      }
-      for (const summary of summaries) {
-        await this.delete(summary.id.toString());
-      }
-      await db?.query(`DELETE FROM $ideaId;`, { ideaId });
-      return true;
+      const result = await db?.delete(new StringRecordId(summaryId));
+      return result;
     } catch (error) {
       console.error(error);
       return undefined;
@@ -258,10 +241,11 @@ export class GenerativeSummary {
       }
       const [derivedSummaries] = derivedSummariesResults;
       if (!derivedSummaries || derivedSummaries.length < 1) {
-        const newSummary = await this.create(ideaId);
-        if (!newSummary) {
-          return false;
-        }
+        // Decided not to create the summary implicitly, leaving this here in case we change our minds
+        // const newSummary = await this.create(ideaId);
+        // if (!newSummary) {
+        //   return false;
+        // }
         return true;
       }
       for (const summary of derivedSummaries) {
