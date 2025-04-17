@@ -13,7 +13,7 @@ import {
   disallowDisabled,
 } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { IUser, User } from "../database/models/user";
+import { ISafeUser, IUser, User } from "../database/models/user";
 
 const router = Router();
 
@@ -352,6 +352,90 @@ router.post("/ideas/search", checkToken, disallowDisabled, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+router.post(
+  "/ideas/:ideaId/derive",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res.status(401).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { ideaId } = req.params;
+      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { type } = req.body;
+      const derivedResponse = await Idea.derive(ideaId, type);
+      if (!derivedResponse) {
+        res.status(500).json({
+          message: "Internal Server Error.",
+        });
+        return;
+      }
+      res.json({
+        message: `Successfully derived ${type} from idea`,
+        data: derivedResponse,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+    }
+  },
+);
+
+router.delete(
+  "/ideas/:ideaId/derive",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res.status(401).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { ideaId } = req.params;
+      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { type } = req.body;
+      const derivedResponse = await Idea.removeDerived(ideaId, type);
+      if (!derivedResponse) {
+        res.status(500).json({
+          message: "Internal Server Error.",
+        });
+        return;
+      }
+      res.json({
+        message: `Successfully removed derived ${type} from idea`,
+        data: derivedResponse,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+    }
+  },
+);
 
 router.post(
   "/synchronize",

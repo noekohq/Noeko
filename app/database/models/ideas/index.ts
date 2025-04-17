@@ -37,6 +37,7 @@ export type IIdeaConnection = {
   out: string;
 };
 
+export type IDerivedType = "generative_summary";
 export type IIdeaDerived = IGenerativeSummary;
 
 export type IIdeaDerivedMap = {
@@ -868,6 +869,31 @@ export class Idea {
       await Promise.all(toUpdate.map((idea) => Idea.updateEmbeddings(idea)));
     } catch (err) {
       console.error(`Error during synchronizeEmbeddings`, err);
+    }
+  }
+
+  static async derive(ideaId: string | RecordId, type: IDerivedType) {
+    try {
+      if (type === "generative_summary") {
+        return GenerativeSummary.create(ideaId);
+      }
+      throw Error(`Type ${type} cannot be derived.`);
+    } catch (error) {
+      console.error("Error deriving: ", type, error);
+      return false;
+    }
+  }
+
+  static async removeDerived(ideaId: string | RecordId, type: IDerivedType) {
+    try {
+      if (type === "generative_summary") {
+        console.log("Running delete cascade");
+        return await GenerativeSummary.deleteCascade(ideaId);
+      }
+      throw Error(`Type ${type} cannot be derived.`);
+    } catch (error) {
+      console.error("Error deleting derived: ", type, error);
+      return false;
     }
   }
 }
