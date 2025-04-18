@@ -60,8 +60,9 @@ export function InlineSearch({
   useShortcuts({
     shortcuts: [
       {
-        keys: { esc: true },
+        keys: { key: "Escape" },
         run: () => {
+          console.log("Blurring input");
           inputRef.current?.blur();
         },
       },
