@@ -339,8 +339,6 @@ router.post("/ideas/search", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    // Artificial wait
-    await Bun.sleep(3000);
     const similar = await Idea.searchIdeas(user.id, query);
     if (!similar) {
       res.status(404).json({ error: "Similar ideas not found" });

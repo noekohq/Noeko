@@ -6,7 +6,6 @@ export type IShortcut = {
     ctrl?: boolean;
     meta?: boolean;
     shift?: boolean;
-    esc?: boolean;
     key?: string;
   };
 };
@@ -19,12 +18,12 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
       shortcuts.forEach((shortcut) => {
-        const { ctrl, meta, shift, esc, key } = shortcut.keys;
+        const { ctrl, meta, shift, key } = shortcut.keys;
+        console.log("Key: ", event.key);
         if (
           (ctrl === undefined || ctrl === event.ctrlKey) &&
           (meta === undefined || meta === event.metaKey) &&
           (shift === undefined || shift === event.shiftKey) &&
-          (esc === undefined || esc === (event.key === "Escape")) &&
           event.key === key
         ) {
           event.preventDefault();
