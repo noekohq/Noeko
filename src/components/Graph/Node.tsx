@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { IIdeaNode } from "../../declarations/graph.d";
 import styles from "./Node.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
-import { Text } from "@mantine/core";
+import { Highlight, Text } from "@mantine/core";
 
 type NodeProps = {
   node: IIdeaNode;
@@ -36,12 +36,14 @@ const Node = ({
     selected: { set: setSelected, get: selectedNode },
     filter: { get: getFilter },
     loading: { get: isLoading },
+    query: { get: getQuery },
   } = useGraph();
 
   const iAmSelected = selectedNode() === node.id.toString();
   const iAmUnselected = !iAmSelected && selectedNode();
   const iAmLoading = isLoading();
   const { filter } = getFilter();
+  const query = getQuery();
 
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
     event.preventDefault();
@@ -152,7 +154,7 @@ const Node = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
-            {node.title}
+            <Highlight highlight={query}>{node.title}</Highlight>
           </Text>
         </foreignObject>
       )}

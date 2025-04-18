@@ -23,6 +23,10 @@ type IGraphContext = {
     get: () => boolean;
     set: (loading: boolean) => void;
   };
+  query: {
+    get: () => string;
+    set: (query: string) => void;
+  };
 };
 
 const initialGraphContext: IGraphContext = {
@@ -43,6 +47,10 @@ const initialGraphContext: IGraphContext = {
     get: () => false,
     set: (loading: boolean) => {},
   },
+  query: {
+    get: () => "",
+    set: (query: string) => {},
+  },
 };
 
 const GraphContext = React.createContext(initialGraphContext);
@@ -54,6 +62,7 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
     filter: () => true,
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [query, setQuery] = useState<string>("");
 
   const value: IGraphContext = {
     selected: {
@@ -72,6 +81,12 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
     loading: {
       get: () => loading,
       set: (loading: boolean) => setLoading(loading),
+    },
+    query: {
+      get: () => query,
+      set: (query: string) => {
+        setQuery(query);
+      },
     },
   };
 

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { IFileNode } from "../../declarations/graph.d";
 import styles from "./FileNode.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
-import { Code, Text } from "@mantine/core";
+import { Code, Highlight, Text } from "@mantine/core";
 
 type FileNodeProps = {
   node: IFileNode;
@@ -36,12 +36,14 @@ const FileNode = ({
     selected: { set: setSelected, get: selectedNode },
     filter: { get: getFilter },
     loading: { get: isLoading },
+    query: { get: getQuery },
   } = useGraph();
 
   const iAmSelected = selectedNode() === node.id.toString();
   const iAmUnselected = !iAmSelected && selectedNode();
   const iAmLoading = isLoading();
   const { filter } = getFilter();
+  const query = getQuery();
 
   const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
     event.preventDefault();
@@ -152,7 +154,7 @@ const FileNode = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
-            <Code>{node.originalFileName}</Code>
+            <Highlight highlight={query}>{node.originalFileName}</Highlight>
           </Text>
         </foreignObject>
       )}
