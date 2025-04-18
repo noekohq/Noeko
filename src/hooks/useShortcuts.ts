@@ -19,7 +19,6 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
     const handleKeydown = (event: KeyboardEvent) => {
       shortcuts.forEach((shortcut) => {
         const { ctrl, meta, shift, key } = shortcut.keys;
-        console.log("Key: ", event.key);
         if (
           (ctrl === undefined || ctrl === event.ctrlKey) &&
           (meta === undefined || meta === event.metaKey) &&

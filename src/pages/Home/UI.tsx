@@ -266,7 +266,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
               onSearchEnd={() => {
                 setLoading(false);
               }}
-              onShortcut={{ key: "/" }}
+              onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
               onQueryChange={handleQueryChange}
             />
           </div>
