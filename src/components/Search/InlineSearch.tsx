@@ -23,6 +23,7 @@ type IInlineSearchProps = {
   onSearchEnd?: () => void;
   onShortcuts?: IShortcut["keys"][];
   onQueryChange?: (v: string) => void;
+  helpText?: string;
 };
 
 export function InlineSearch({
@@ -35,6 +36,7 @@ export function InlineSearch({
   onSearchEnd,
   onShortcuts,
   onQueryChange,
+  helpText = "Press enter to search...",
 }: IInlineSearchProps) {
   const [query, setQuery] = useState("");
 
@@ -62,8 +64,8 @@ export function InlineSearch({
       {
         keys: { key: "Escape" },
         run: () => {
-          console.log("Blurring input");
           inputRef.current?.blur();
+          setDropdownOpen(false);
         },
       },
       ...(onShortcuts
@@ -73,6 +75,7 @@ export function InlineSearch({
                 keys: s,
                 run: () => {
                   inputRef.current?.focus();
+                  setDropdownOpen(true);
                 },
               };
             }),
@@ -132,6 +135,7 @@ export function InlineSearch({
             overflowY: "scroll",
           },
         }}
+        offset={24}
       >
         <Menu.Target>
           <TextInput
@@ -173,6 +177,9 @@ export function InlineSearch({
             scrollbarWidth: "none",
           }}
         >
+          <Text size="sm" c="dimmed" p="xs">
+            {helpText}
+          </Text>
           {results ? (
             results.map((result) => {
               const isBestResult = result.idea.id === bestResult?.idea.id;

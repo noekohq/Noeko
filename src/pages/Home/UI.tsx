@@ -62,6 +62,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   const {
     selected: { get: getSelectedNode },
     loading: { get: getLoading, set: setLoading },
+    query: { set: setQuery },
   } = useGraph();
 
   const selectedNode = getSelectedNode();
@@ -77,6 +78,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   }, []);
 
   const handleQueryChange = useCallback((q: string) => {
+    setQuery(q);
     const normalized = q.toLowerCase();
     setFilter({
       filter: (node) => {
@@ -268,6 +270,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
               }}
               onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
               onQueryChange={handleQueryChange}
+              helpText="Press enter to search deeper..."
             />
           </div>
         </Group>
