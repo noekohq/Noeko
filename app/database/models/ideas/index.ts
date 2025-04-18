@@ -5,6 +5,7 @@ import { getLM } from "../../../semantics/lm";
 import { IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
+import { htmlToPlainText } from "../../../utils/formatting";
 
 export type IIdea = {
   id: string | RecordId;
@@ -654,7 +655,8 @@ export class Idea {
         return;
       }
       const e = new Embeddings();
-      const embeddings = await e.generateEmbeddings(result.content);
+      const plaintextContent = htmlToPlainText(result.content);
+      const embeddings = await e.generateEmbeddings(plaintextContent);
 
       const idea = await db?.merge<
         IIdea,
@@ -887,7 +889,6 @@ export class Idea {
   static async removeDerived(ideaId: string | RecordId, type: IDerivedType) {
     try {
       if (type === "generative_summary") {
-        console.log("Running delete cascade");
         return await GenerativeSummary.deleteCascade(ideaId);
       }
       throw Error(`Type ${type} cannot be derived.`);

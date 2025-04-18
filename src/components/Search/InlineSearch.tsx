@@ -21,7 +21,7 @@ type IInlineSearchProps = {
   onBlur?: () => void;
   onSearchStart?: () => void;
   onSearchEnd?: () => void;
-  onShortcut?: IShortcut["keys"];
+  onShortcuts?: IShortcut["keys"][];
   onQueryChange?: (v: string) => void;
 };
 
@@ -33,7 +33,7 @@ export function InlineSearch({
   onBlur,
   onSearchStart,
   onSearchEnd,
-  onShortcut,
+  onShortcuts,
   onQueryChange,
 }: IInlineSearchProps) {
   const [query, setQuery] = useState("");
@@ -66,14 +66,16 @@ export function InlineSearch({
           inputRef.current?.blur();
         },
       },
-      ...(onShortcut
+      ...(onShortcuts
         ? [
-            {
-              keys: onShortcut,
-              run: () => {
-                inputRef.current?.focus();
-              },
-            },
+            ...onShortcuts.map((s) => {
+              return {
+                keys: s,
+                run: () => {
+                  inputRef.current?.focus();
+                },
+              };
+            }),
           ]
         : []),
     ],
