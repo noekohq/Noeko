@@ -1,4 +1,6 @@
 import { BunFile, s3, S3File } from "bun";
+import { Response } from "express";
+import { ReadableStream } from "node:stream/web";
 
 const { S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET } =
   process.env;
@@ -17,7 +19,6 @@ export const writeToS3 = async (
     | ArrayBuffer
     | SharedArrayBuffer
     | Request
-    | Response
     | BunFile
     | S3File
     | Blob
@@ -68,6 +69,17 @@ export const downloadLinkS3 = async (path: string): Promise<string> => {
     return url;
   } catch (error) {
     console.error("Error generating download link:", error);
+    throw error;
+  }
+};
+
+export const getStreamS3 = (path: string): globalThis.ReadableStream => {
+  try {
+    const s3file = s3.file(path);
+    const stream = s3file.stream();
+    return stream;
+  } catch (error) {
+    console.error("Error streaming image: ", error);
     throw error;
   }
 };

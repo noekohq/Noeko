@@ -87,6 +87,7 @@ export default function Idea() {
   }, []);
 
   const handleContentChange = useCallback((newContent: string) => {
+    console.log("Content changed: ", newContent);
     setContent(newContent);
   }, []);
 
@@ -233,10 +234,11 @@ export default function Idea() {
       {
         keys: {
           meta: true,
-          key: "o",
+          key: "i",
         },
         run: () => {
           connectionDrawerHandlers.toggle();
+          overviewDrawerHandlers.close();
         },
       },
       {
@@ -246,6 +248,7 @@ export default function Idea() {
         },
         run: () => {
           overviewDrawerHandlers.toggle();
+          connectionDrawerHandlers.close();
         },
       },
       {
