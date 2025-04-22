@@ -2,8 +2,14 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { v4 as uuidv4 } from "uuid";
 import path from "node:path";
 import { User } from "./user";
-import { deleteFromS3, downloadLinkS3, writeToS3 } from "../../utils/aws/s3";
+import {
+  deleteFromS3,
+  downloadLinkS3,
+  getStreamS3,
+  writeToS3,
+} from "../../utils/aws/s3";
 import { getDatabase } from "../db";
+import { Response } from "express";
 
 export type IUserFile = {
   id: RecordId;
@@ -180,6 +186,33 @@ export class UserFile {
         `Error during getDownloadLink for id "${userFileId}":`,
         err,
       );
+      return undefined;
+    }
+  }
+
+  static async streamToResponse(
+    userFileId: string | RecordId,
+    response: Response,
+  ) {
+    try {
+      const file = await UserFile.get(userFileId);
+      if (!file) {
+        throw Error(`No user file found for id "${userFileId}".`);
+      }
+      response.setHeader(
+        "Content-Type",
+        `attachment; filename=${file.originalFileName}`,
+      );
+      response.setHeader("Content-Disposition", `application/octet-stream`);
+      const stream = getStreamS3(file.s3key);
+      for await (const chunk of stream) {
+        response.write(chunk);
+      }
+      response.end();
+    } catch (error) {
+      response.status(500).send({
+        message: "Internal Server Error",
+      });
       return undefined;
     }
   }

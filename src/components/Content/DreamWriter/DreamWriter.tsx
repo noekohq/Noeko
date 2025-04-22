@@ -12,12 +12,10 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import CodeBlock from "@tiptap/extension-code-block";
 import Typography from "@tiptap/extension-typography";
 import {
-  AddImageButton,
   BlockquoteButton,
   BoldButton,
   CopyAsHTMLButton,
@@ -33,6 +31,7 @@ import {
   ExtraButton,
 } from "./Options";
 import {
+  File,
   MagicWand,
   Plus,
   TextAUnderline,
@@ -42,6 +41,10 @@ import {
 import { useSettings } from "../../../contexts/SettingsContext";
 import { useLink } from "./Utils";
 import useShortcuts from "../../../hooks/useShortcuts";
+import { DreamImage } from "./nodes/DreamImage";
+import { DreamFile } from "./nodes/DreamFile";
+import { DreamFileHandler } from "./extensions/DreamFileHandler";
+import { Group, Overlay, Text } from "@mantine/core";
 
 interface EditorData {
   comments: [];
@@ -146,15 +149,13 @@ function DreamWriter({
             class: contentStyles.link,
           },
         }),
-        Image.configure({
-          HTMLAttributes: {
-            class: contentStyles.image,
-          },
-        }),
         Dropcursor.configure({
           color: "var(--color-accent)",
         }),
         Typography.configure({}),
+        DreamImage.configure({}),
+        DreamFile.configure({}),
+        DreamFileHandler.configure({}),
       ],
       content,
       onUpdate: ({ editor: e }) => {
@@ -170,6 +171,9 @@ function DreamWriter({
             outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
           onBlur(output);
         }
+      },
+      onPaste: (e) => {
+        console.log("Clipboard data: ", e);
       },
       editorProps: {
         attributes: {
@@ -196,8 +200,41 @@ function DreamWriter({
     ],
   });
 
+  const [droppingOver, setDroppingOver] = useState(false);
+
   return (
-    <div className={styles.editor}>
+    <div
+      className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+      }}
+      onDragEnterCapture={(e) => {
+        setDroppingOver(true);
+      }}
+      onDragLeaveCapture={(e) => {
+        setDroppingOver(false);
+      }}
+      onDropCapture={(e) => {
+        setDroppingOver(false);
+      }}
+    >
+      {droppingOver && (
+        <Overlay
+          backgroundOpacity={0.5}
+          blur={5}
+          onDragOver={(e) => {
+            e.preventDefault();
+          }}
+          style={{
+            pointerEvents: "none",
+          }}
+        >
+          <Group align="center" justify="center" style={{ height: "100%" }}>
+            <File />
+            <Text fw="bold">Drop your file here</Text>
+          </Group>
+        </Overlay>
+      )}
       <StickyMenu editor={editor} show={!!stickyMenu} devTools={devTools} />
       <FloatingMenu editor={editor} />
       <BubbleMenu editor={editor} />
@@ -270,7 +307,6 @@ function StickyMenu({
       <BlockquoteButton editor={editor} />
       <div className={styles.divider} />
       <LinkButton editor={editor} />
-      <AddImageButton editor={editor} />
       <CodeBlockButton editor={editor} />
       <div className={styles.divider} />
       <ExtraButton editor={editor}>

@@ -209,87 +209,6 @@ export function LinkButton({ editor }: OptionProps) {
   );
 }
 
-export function AddImageButton({ editor }: OptionProps) {
-  const [image, setImage] = React.useState<File>();
-
-  const addImage = (url: string) => {
-    editor?.chain().focus().setImage({ src: url }).run();
-  };
-
-  const { load: uploadImage } = useFetch<
-    FormData,
-    {
-      path: string;
-      name: string;
-    }
-  >({
-    url: `/content/images`,
-    body: (() => {
-      const formData = new FormData();
-      formData.append("image", image!);
-      return formData;
-    })(),
-    method: "POST",
-    dependencies: [image],
-    onSuccess: (data) => {
-      const { name, path } = data;
-      const fullPath = `${imagesPath}/${name}`;
-
-      addImage(fullPath);
-
-      showNotification({
-        title: "Success",
-        message: "Image uploaded successfully",
-      });
-    },
-    onError: (error) => {
-      showNotification({
-        title: "Error",
-        message: "There was an error uploading the image",
-        color: "error",
-      });
-    },
-  });
-
-  useEffect(() => {
-    if (!image) {
-      return;
-    }
-    uploadImage();
-  }, [image]);
-
-  const [adding, setAdding] = useState(false);
-
-  return (
-    <>
-      <ActionIcon
-        variant="outline"
-        onClick={() => {
-          setAdding(true);
-        }}
-      >
-        <Image weight="bold" />
-      </ActionIcon>
-      <Modal
-        opened={adding}
-        onClose={() => {
-          setAdding(false);
-        }}
-      >
-        <FileInput
-          accept="image/*"
-          onChange={(file) => {
-            if (!file) {
-              return;
-            }
-            setImage(file);
-          }}
-        />
-      </Modal>
-    </>
-  );
-}
-
 export function ExportAsHTMLButton({ editor }: OptionProps) {
   const exportAsHTML = () => {
     const html = editor?.getHTML();
@@ -329,7 +248,7 @@ export function ExportAsHTMLButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon variant="outline" onClick={exportAsHTML} title="Export as HTML">
+    <ActionIcon variant="default" onClick={exportAsHTML} title="Export as HTML">
       <Download weight="bold" />
     </ActionIcon>
   );
@@ -380,7 +299,7 @@ export function CopyAsHTMLButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon variant="outline" onClick={copyAsHTML} title="Copy as HTML">
+    <ActionIcon variant="default" onClick={copyAsHTML} title="Copy as HTML">
       <BracketsAngle weight="bold" />
     </ActionIcon>
   );
@@ -395,7 +314,7 @@ export function CodeBlockButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant="outline"
+      variant={isCode ? "filled" : "light"}
       onClick={() => toggleCode()}
       title="Toggle Code Block"
     >
@@ -417,7 +336,7 @@ export function CodeInlineButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant="outline"
+      variant={isCode ? "filled" : "light"}
       onClick={() => toggleCode()}
       title="Toggle Code"
     >
