@@ -153,8 +153,16 @@ function DreamWriter({
           color: "var(--color-accent)",
         }),
         Typography.configure({}),
-        DreamImage.configure({}),
-        DreamFile.configure({}),
+        DreamImage.configure({
+          HTMLAttributes: {
+            class: contentStyles.image,
+          },
+        }),
+        DreamFile.configure({
+          HTMLAttributes: {
+            class: contentStyles.file,
+          },
+        }),
         DreamFileHandler.configure({}),
       ],
       content,
@@ -171,9 +179,6 @@ function DreamWriter({
             outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
           onBlur(output);
         }
-      },
-      onPaste: (e) => {
-        console.log("Clipboard data: ", e);
       },
       editorProps: {
         attributes: {

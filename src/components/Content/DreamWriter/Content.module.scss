@@ -121,3 +121,12 @@ h5 {
   // No styles defined, kept as is
   text-decoration: line-through; // Added standard strike-through for clarity
 }
+
+.image {
+    width: 100%;
+
+    &:global(.ProseMirror-selectednode) {
+        border: 5px solid var(--mantine-color-yellow-3);
+        border-radius: 10px;
+    }
+}

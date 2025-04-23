@@ -196,16 +196,15 @@ export class UserFile {
   ) {
     try {
       const file = await UserFile.get(userFileId);
+      console.log("Got file: ", file);
       if (!file) {
         throw Error(`No user file found for id "${userFileId}".`);
       }
-      response.setHeader(
-        "Content-Type",
-        `attachment; filename=${file.originalFileName}`,
-      );
-      response.setHeader("Content-Disposition", `application/octet-stream`);
+      response.setHeader("Content-Type", file.mimeType);
       const stream = getStreamS3(file.s3key);
+      // console.log("Got stream: ", stream);
       for await (const chunk of stream) {
+        // console.log("Writing chunk: ", chunk);
         response.write(chunk);
       }
       response.end();

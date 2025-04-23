@@ -87,7 +87,6 @@ export default function Idea() {
   }, []);
 
   const handleContentChange = useCallback((newContent: string) => {
-    console.log("Content changed: ", newContent);
     setContent(newContent);
   }, []);
 

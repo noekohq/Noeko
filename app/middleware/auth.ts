@@ -3,6 +3,7 @@ import { verifyToken } from "../utils/crypto";
 import { ISafeUser, IUser, User } from "../database/models/user";
 import {
   addToReq,
+  getAccessTokenFromReq,
   getFromReq,
   getRefreshTokenFromReq,
 } from "../utils/requests";
@@ -13,7 +14,7 @@ export const checkToken = async (
   next: NextFunction,
 ) => {
   try {
-    const token = (req.headers.authorization as string)?.split(" ")[1];
+    const token = await getAccessTokenFromReq(req);
 
     if (!token) {
       res.status(401).json({
@@ -72,7 +73,6 @@ export const disallowDisabled = async (
 ) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
-    console.log("User in is disabled: ", user);
     if (!user || !user.roles) {
       res.status(403).json({
         message: "Forbidden. Account is suspended.",
