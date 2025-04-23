@@ -13,12 +13,14 @@ export interface DreamFileHandlerOptions {
 
 export const uploadFile = async (file: File) => {
   try {
+    console.log("Uploading file: ", file);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("userFile", file);
     const response = await api.post("/files/", formData);
-    return response.data as UploadResponse;
+    return response.data.data as UploadResponse;
   } catch (error) {
     console.error(error);
+    return undefined;
   }
 };
 
@@ -33,7 +35,7 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
 
   addProseMirrorPlugins() {
     const extension = this;
-    const editor = this.editor as Editor;
+    const editor = this.editor;
 
     const handleFileUpload = (file: File) => {
       if (
@@ -46,9 +48,9 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
       }
 
       console.info(`Uploading ${file.name}...`);
-      console.info("Would have uploaded: ", file);
 
       uploadFile(file).then((response) => {
+        console.log("Got uploaded response: ", response);
         editor.view.dispatch(editor.view.state.tr.scrollIntoView());
         if (!response) {
           console.error("Failed to upload file");
@@ -56,6 +58,7 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
         }
 
         if (response.mimeType.startsWith("image/")) {
+          console.log("Setting dream image");
           editor
             .chain()
             .focus()
@@ -63,13 +66,19 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
               src: streamImageEndpoint(response),
               alt: response.originalFileName,
               title: response.originalFileName,
-            });
+            })
+            .run();
         } else {
-          editor.chain().focus().setDreamFile({
-            fileId: response.id.toString(),
-            fileName: response.originalFileName,
-            fileType: response.mimeType,
-          });
+          console.log("Setting dream file");
+          editor
+            .chain()
+            .focus()
+            .setDreamFile({
+              fileId: response.id.toString(),
+              fileName: response.originalFileName,
+              fileType: response.mimeType,
+            })
+            .run();
         }
       });
     };

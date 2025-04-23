@@ -1,12 +1,16 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IUserFile } from "../../../app/database/models/userfile";
 import { Button, Card, Flex, Grid, Group, Text, Title } from "@mantine/core";
 import { triggerDownload } from "../../utils/helpers";
+import { modals } from "@mantine/modals";
+import { showNotification } from "@mantine/notifications";
 
 export default function UserFile() {
   const { fileId } = useParams();
+
+  const navigate = useNavigate();
 
   const { data: file } = useFetch<undefined, IUserFile>({
     url: `/files/${fileId}`,
@@ -28,6 +32,44 @@ export default function UserFile() {
     },
   });
 
+  const { load: deleteFile, loading: deletingFile } = useFetch<
+    undefined,
+    undefined
+  >({
+    url: `/files/${fileId}`,
+    method: "DELETE",
+    onSuccess: () => {
+      console.info("File deleted");
+      showNotification({
+        title: "File deleted successfully",
+        message: "The file has been deleted successfully.",
+      });
+      navigate("/files");
+    },
+    onError: (error) => {
+      console.error("Error deleting file", error);
+      showNotification({
+        title: "Error deleting file",
+        message: "An error occurred while deleting the file.",
+        color: "red",
+      });
+    },
+  });
+
+  const handleDelete = () => {
+    modals.openConfirmModal({
+      title: "Delete file",
+      children: (
+        <Text size="sm">Are you sure you want to delete this file?</Text>
+      ),
+      labels: { confirm: "Delete", cancel: "Cancel" },
+      onConfirm: () => deleteFile(),
+      confirmProps: {
+        color: "red",
+      },
+    });
+  };
+
   return (
     <div className={styles.file}>
       <Grid>
@@ -48,6 +90,9 @@ export default function UserFile() {
               <Group>
                 <Button onClick={() => downloadFile()} variant="light">
                   Download
+                </Button>
+                <Button onClick={handleDelete} variant="light" color="red">
+                  Delete
                 </Button>
               </Group>
             </Flex>

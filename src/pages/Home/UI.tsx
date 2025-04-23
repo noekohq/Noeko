@@ -28,6 +28,7 @@ import styles from "./UI.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import {
   ArrowsClockwise,
+  ExclamationMark,
   FileCode,
   FileCsv,
   FilePdf,
@@ -42,6 +43,7 @@ import { useGraph } from "../../contexts/GraphContext";
 import { formatDate, formatFileSize } from "../../utils/formatting";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import useShortcuts from "../../hooks/useShortcuts";
+import { validateIdeaContent } from "../../utils/data";
 
 type UIProps = {
   reloadGraph: () => Promise<void>;
@@ -333,11 +335,37 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       form.reset();
       setOpened(false);
     },
+    onError: (error) => {
+      console.error("Failed to add idea:", error);
+      showNotification({
+        title: "Error Adding Idea",
+        message: "An unexpected error occurred. Please try again.",
+        color: "red",
+      });
+    },
     onFinally: () => {
       // onFinally can be used for cleanup regardless of success/error
       // If you only want reloadGraph on success, keep it in onSuccess
     },
   });
+
+  const [contentError, setContentError] = useState<string | null>(null);
+  useEffect(() => {
+    const { isValid, errors: contentErrors } = validateIdeaContent(
+      form.values.content,
+    );
+    if (!isValid) {
+      setContentError(contentErrors[0]);
+      showNotification({
+        title: "Content Error",
+        message: contentErrors[0],
+        color: "red",
+      });
+      return;
+    } else if (isValid) {
+      setContentError(undefined);
+    }
+  }, [form.values.content]);
 
   const handleSubmit = async () => {
     const { hasErrors, errors } = form.validate();
@@ -348,6 +376,20 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
         color: "red",
       });
       return;
+    }
+    const { isValid, errors: contentErrors } = validateIdeaContent(
+      form.values.content,
+    );
+    if (!isValid) {
+      setContentError(contentErrors[0]);
+      showNotification({
+        title: "Content Error",
+        message: contentError,
+        color: "red",
+      });
+      return;
+    } else if (isValid) {
+      setContentError(undefined);
     }
     try {
       await addIdea();
@@ -441,6 +483,14 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
             </Group>
           </Grid.Col>
         )}
+        {contentError && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Group c="red">
+              <ExclamationMark />
+              <Text>{contentError}</Text>
+            </Group>
+          </Grid.Col>
+        )}
         <Grid.Col span={{ sm: 12 }}>
           <Group justify="flex-end">
             <Button
@@ -454,8 +504,8 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
               onClick={handleSubmit} // Simplified onClick
               leftSection={
                 loadingAddIdea ? <Loader size="sm" color="white" /> : undefined
-              } // Conditional loader
-              disabled={loadingAddIdea}
+              }
+              disabled={loadingAddIdea || !!contentError}
             >
               Add
             </Button>

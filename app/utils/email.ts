@@ -7,8 +7,6 @@ if (!EMAIL_FROM) throw Error("EMAIL_FROM is not defined");
 
 export const sendEmail = async (to: string, subject: string, body: string) => {
   try {
-    console.log("Sending email with: ", to, EMAIL_FROM, subject, body);
-
     const response = await mailbaby.post("/mail/send", {
       to,
       from: EMAIL_FROM,

@@ -493,7 +493,6 @@ export class Idea {
         throw Error("Database not initialized.");
       }
       const userIdeas = await db.run<IIdea[]>("fn::get_user_ideas", [userId]);
-      console.log("Got user ideas: ", userIdeas);
       if (!userIdeas) {
         throw Error("Error getting user ideas");
       }

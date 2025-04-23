@@ -225,6 +225,7 @@ router.get("/:id/stream", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const file = await UserFile.get(req.params.id);
+    console.log("Got file to stream: ", file);
     if (!file) {
       res.status(404).json({
         error: "Not Found",

@@ -11,6 +11,7 @@ import {
   verifyPassword,
 } from "../utils/crypto";
 import {
+  addAccessTokenToRes,
   addRefreshTokenToRes,
   getFromReq,
   getRefreshTokenFromReq,
@@ -54,6 +55,7 @@ router.post("/register", async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
+    await addAccessTokenToRes(res, accessToken);
     await addRefreshTokenToRes(res, refreshToken);
     res.json({
       message: "User registered successfully",
@@ -81,16 +83,17 @@ router.post("/login", async (req, res) => {
       res.status(401).json({ message: "Incorrect password." });
       return;
     }
-    const token = await User.generateAccessToken(user);
+    const accessToken = await User.generateAccessToken(user);
     const refreshToken = await User.generateRefreshToken(user);
     if (!refreshToken) {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
+    await addAccessTokenToRes(res, accessToken);
     await addRefreshTokenToRes(res, refreshToken);
     res.json({
       message: "User logged in successfully",
-      data: { accessToken: token, refreshToken: refreshToken },
+      data: { accessToken, refreshToken },
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -105,12 +108,19 @@ router.post("/refresh", async (req, res) => {
       res.status(400).json({ message: "Missing refresh token" });
       return;
     }
-    const token = await User.refreshAccessTokens(refreshToken);
+    const accessToken = await User.refreshAccessTokens(refreshToken);
+    if (!accessToken) {
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+      return;
+    }
+    await addAccessTokenToRes(res, accessToken);
     await addRefreshTokenToRes(res, refreshToken);
 
     res.json({
       message: "Token refreshed successfully",
-      data: { accessToken: token },
+      data: { accessToken },
     });
   } catch (error) {
     console.error("Refresh token error:", error);

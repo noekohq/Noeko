@@ -167,7 +167,6 @@ export class User {
   static async get(id: string | RecordId, unsafe = false) {
     try {
       const db = await getDatabase();
-      console.log("Getting with: ", id, new StringRecordId(id));
       const result = await db?.select<IUser>(new StringRecordId(id));
       if (!result) {
         throw Error("Failed to get user.");
