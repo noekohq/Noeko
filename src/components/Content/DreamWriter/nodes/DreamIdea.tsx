@@ -1,30 +1,47 @@
-import { File, FilePdf, X } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  DownloadSimple,
+  File,
+  FilePdf,
+  Lightbulb,
+  X,
+} from "@phosphor-icons/react";
+// Keep other imports...
 import { Node, mergeAttributes } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewProps,
-  NodeViewContent,
+  NodeViewContent, // Keep import if needed elsewhere, but maybe not used below
   NodeViewWrapper,
 } from "@tiptap/react";
-import styles from "./styles/DreamFile.module.scss";
-import { ActionIcon } from "@mantine/core";
+import styles from "./styles/DreamIdea.module.scss";
+import { ActionIcon, Card, Flex, Group, Text } from "@mantine/core";
 import { Link } from "react-router";
+import useFetch from "../../../../hooks/useFetch";
+import { IIdea } from "../../../../../app/database/models/ideas";
+import { triggerDownload } from "../../../../utils/helpers";
+import { IUserFile } from "../../../../../app/database/models/userfile";
+// Keep Mantine, React Router, hook, types, and helper imports...
 
-export interface DreamFileOptions {
+export interface IDreamIdeaOptions {
   HTMLAttributes: Record<string, any>;
 }
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     dreamIdea: {
-      setDreamIdea: (options: { id: string; alias: string }) => ReturnType;
+      setDreamIdea: (options: {
+        ideaId: string;
+        ideaAlias: string;
+      }) => ReturnType;
     };
   }
 }
 
-export const DreamFile = Node.create<DreamFileOptions>({
+export const DreamIdea = Node.create<IDreamIdeaOptions>({
   name: "dreamIdea",
-  group: "inline",
+  group: "block",
+  atom: true,
   draggable: true,
 
   addOptions() {
@@ -35,15 +52,19 @@ export const DreamFile = Node.create<DreamFileOptions>({
 
   addAttributes() {
     return {
-      id: {
+      ideaId: {
         default: null,
         parseHTML: (element) => element.getAttribute("data-idea-id"),
-        renderHTML: (attributes) => ({ "data-idea-id": attributes.id }),
+        renderHTML: (attributes) => ({ "data-idea-id": attributes.ideaId }),
+        keepOnSplit: false,
       },
-      alias: {
-        default: null,
+      ideaAlias: {
+        default: "Untitled Idea",
         parseHTML: (element) => element.getAttribute("data-idea-alias"),
-        renderHTML: (attributes) => ({ "data-idea-alias": attributes.alias }),
+        renderHTML: (attributes) => ({
+          "data-idea-alias": attributes.ideaAlias,
+        }),
+        keepOnSplit: false,
       },
     };
   },
@@ -51,8 +72,17 @@ export const DreamFile = Node.create<DreamFileOptions>({
   parseHTML() {
     return [
       {
-        tag: "a[href][data-idea-id]",
+        tag: "div[data-dream-idea][data-idea-id][data-idea-alias]",
       },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        "data-dream-idea": "",
+      }),
     ];
   },
 
@@ -61,31 +91,46 @@ export const DreamFile = Node.create<DreamFileOptions>({
       setDreamIdea:
         (options) =>
         ({ commands }) => {
-          if (!options.id || !options.alias) {
-            console.error("Cannot set idea link without id and alias");
+          if (!options.ideaId || !options.ideaAlias) {
+            console.error("Cannot set idea link without ideaId and ideaAlias");
             return false;
           }
+          const attrs = {
+            ideaId: options.ideaId,
+            ideaAlias: options.ideaAlias,
+          };
           return commands.insertContent({
             type: this.name,
-            attrs: options,
+            attrs: attrs,
           });
         },
     };
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DreamConnectionComponent);
+    return ReactNodeViewRenderer(DreamIdeaComponent);
   },
 });
 
-export const DreamConnectionComponent: React.FC<NodeViewProps> = (props) => {
+export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
   const { node, deleteNode, editor, selected } = props;
-  const { id, alias } = node.attrs;
+  const { ideaId, ideaAlias } = node.attrs;
+
+  const { data: idea } = useFetch<undefined, IIdea>({
+    url: `/graph/ideas/${ideaId}`,
+    runOnMount: !!ideaId,
+  });
 
   const handleDelete = (event: React.MouseEvent) => {
     event.preventDefault();
     deleteNode();
   };
+
+  if (!ideaId) {
+    return <div>Error: missing idea ID</div>;
+  }
+
+  const displayName = ideaAlias || idea?.title || "Untitled Idea";
 
   return (
     <NodeViewWrapper
@@ -93,22 +138,52 @@ export const DreamConnectionComponent: React.FC<NodeViewProps> = (props) => {
       data-file-link-node
       data-selected={selected || undefined}
     >
-      <Link
-        to={`/idea/${id}`}
-        rel="noopener noreferrer nofollow"
-        className={styles.dreamFileLink}
-        title={`Go to ${alias}`}
-      >
-        {alias || "Untitled Idea"}
-      </Link>
+      <Card radius="md" withBorder shadow="xs" p="md">
+        <Flex
+          direction="column"
+          justify="flex-start"
+          gap="md"
+          style={{ width: "100%" }}
+        >
+          {/* Link to file details page */}
+          <Link
+            to={`/idea/${ideaId}`}
+            rel="noopener noreferrer nofollow"
+            className={styles.dreamIdeaLink}
+            title={`Go to ${displayName}`}
+            style={{ textDecoration: "none" }}
+          >
+            <Group align="center" wrap="nowrap">
+              {" "}
+              {/* Ensure group doesn't wrap */}
+              <Flex c="white" align="center" style={{ flexShrink: 0 }}>
+                {<Lightbulb />}
+              </Flex>
+              <Text c="white" size="lg" truncate>
+                {displayName}
+              </Text>
+            </Group>
+          </Link>
 
-      {editor.isEditable && (
-        <ActionIcon onClick={handleDelete} title="Remove file link">
-          <X />
-        </ActionIcon>
-      )}
-
-      <NodeViewContent className={styles.dreamFileContent} />
+          <Group>
+            {editor.isEditable && (
+              <ActionIcon
+                onClick={handleDelete}
+                title="Remove idea link"
+                color="red"
+                variant="light"
+              >
+                <X weight="bold" />
+              </ActionIcon>
+            )}
+            <Link to={`/idea/${ideaId}`} title="Go to idea page">
+              <ActionIcon variant="light">
+                <ArrowRight weight="bold" />
+              </ActionIcon>
+            </Link>
+          </Group>
+        </Flex>
+      </Card>
     </NodeViewWrapper>
   );
 };

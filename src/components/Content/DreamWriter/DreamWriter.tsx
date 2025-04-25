@@ -45,6 +45,7 @@ import { DreamImage } from "./nodes/DreamImage";
 import { DreamFile } from "./nodes/DreamFile";
 import { DreamFileHandler } from "./extensions/DreamFileHandler";
 import { Group, Overlay, Text } from "@mantine/core";
+import { DreamConnection } from "./extensions/DreamConnection";
 
 interface EditorData {
   comments: [];
@@ -164,6 +165,7 @@ function DreamWriter({
           },
         }),
         DreamFileHandler.configure({}),
+        DreamConnection.configure({}),
       ],
       content,
       onUpdate: ({ editor: e }) => {
@@ -241,7 +243,7 @@ function DreamWriter({
         </Overlay>
       )}
       <StickyMenu editor={editor} show={!!stickyMenu} devTools={devTools} />
-      <FloatingMenu editor={editor} />
+      {/* <FloatingMenu editor={editor} /> */}
       <BubbleMenu editor={editor} />
       <EditorContent className={styles.tippyContent} editor={editor} />
     </div>

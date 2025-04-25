@@ -6,6 +6,7 @@ import cors from "cors";
 import apiRouter from "./api";
 import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
+import { initSearch } from "./services/Search";
 
 config();
 
@@ -16,6 +17,7 @@ const projectRoot = process.cwd();
 if (!PORT) throw new Error("PORT is not defined");
 
 await initDatabase();
+await initSearch();
 
 const app = Express();
 app.use(Express.json());
