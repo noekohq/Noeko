@@ -18,7 +18,7 @@
     "@google/generative-ai": "^0.24.0",
     "@mantine/core": "^7.17.1",
     "@mantine/form": "^7.17.1",
-    "@mantine/hooks": "^7.17.1",
+    "@mantine/hooks": "^7.17.4",
     "@mantine/modals": "^7.17.4",
     "@mantine/notifications": "^7.17.1",
     "@mantine/tiptap": "^7.17.1",
@@ -59,6 +59,7 @@
     "sass": "^1.85.1",
     "showdown": "^2.1.0",
     "surrealdb": "^1.2.1",
+    "tippy.js": "^6.3.7",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
