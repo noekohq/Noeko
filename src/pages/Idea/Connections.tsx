@@ -119,6 +119,8 @@ export default function Connections({
     removeConnection();
   };
 
+  console.log("Related ideas: ", idea.relatedIdeas);
+
   return (
     <Drawer
       opened={opened}
@@ -251,6 +253,7 @@ export default function Connections({
                         },
                       });
                     }}
+                    omit={[idea.id.toString()]}
                   />
                 </Grid.Col>
               )}

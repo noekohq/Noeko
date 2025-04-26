@@ -24,6 +24,7 @@ type IInlineSearchProps = {
   onShortcuts?: IShortcut["keys"][];
   onQueryChange?: (v: string) => void;
   helpText?: string;
+  omit?: string[];
 };
 
 export function InlineSearch({
@@ -37,11 +38,12 @@ export function InlineSearch({
   onShortcuts,
   onQueryChange,
   helpText = "Press enter to search...",
+  omit,
 }: IInlineSearchProps) {
   const [query, setQuery] = useState("");
 
   const {
-    data: results,
+    data: rawResults,
     load: searchIdeas,
     loading: loadingIdeas,
   } = useFetch<{ query: string }, SearchResult[]>({
@@ -58,6 +60,10 @@ export function InlineSearch({
       onSearchEnd?.();
     },
   });
+
+  const results = rawResults?.filter(
+    (result) => !omit?.includes(result.idea.id.toString()),
+  );
 
   useShortcuts({
     shortcuts: [

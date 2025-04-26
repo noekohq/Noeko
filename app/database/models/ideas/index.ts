@@ -643,39 +643,6 @@ export class Idea {
     }
   }
 
-  static async loadEmbeddings(id: string | RecordId) {
-    try {
-      const db = await getDatabase();
-      const result = await db?.select<IIdea & { id: RecordId }>(
-        new StringRecordId(id),
-      );
-      if (!result) {
-        console.error(`Idea with id ${id} not found.`);
-        return;
-      }
-      const e = new Embeddings();
-      const plaintextContent = htmlToPlainText(result.content);
-      const embeddings = await e.generateEmbeddings(plaintextContent);
-
-      const idea = await db?.merge<
-        IIdea,
-        { embeddings: number[]; embeddingsUpdatedAt: Date }
-      >(new StringRecordId(id), {
-        embeddings,
-        embeddingsUpdatedAt: new Date(),
-      });
-
-      if (!idea) {
-        console.error(`Idea with id ${id} not found.`);
-        return;
-      }
-
-      return idea;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   static async findSimilar(
     userId: string | RecordId,
     rootNodeId: string | RecordId,
@@ -695,7 +662,10 @@ export class Idea {
       const filteredIdeas = ideas.filter((idea) => {
         return idea.id.toString() !== rootNodeId;
       });
-      const withDerivedMapped = filteredIdeas.map((idea) => {
+      const withLimit = filteredIdeas.filter((idea) => {
+        return idea.distance > 0.5;
+      });
+      const withDerivedMapped = withLimit.map((idea) => {
         return {
           ...idea,
           derived: Idea.mapDerived(idea.derivedList),
@@ -841,12 +811,52 @@ export class Idea {
     }
   }
 
+  static getEmbeddableContent(content: string) {
+    const plaintextContent = htmlToPlainText(content);
+    return plaintextContent;
+  }
+
+  static async loadEmbeddings(id: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.select<IIdea & { id: RecordId }>(
+        new StringRecordId(id),
+      );
+      if (!result) {
+        console.error(`Idea with id ${id} not found.`);
+        return;
+      }
+      const e = new Embeddings();
+      const embeddableContent = htmlToPlainText(result.content);
+      const embeddings = await e.generateEmbeddings(embeddableContent);
+
+      const idea = await db?.merge<
+        IIdea,
+        { embeddings: number[]; embeddingsUpdatedAt: Date }
+      >(new StringRecordId(id), {
+        embeddings,
+        embeddingsUpdatedAt: new Date(),
+      });
+
+      if (!idea) {
+        console.error(`Idea with id ${id} not found.`);
+        return;
+      }
+
+      return idea;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   static async updateEmbeddings(idea: IIdea) {
     try {
       const embedding = new Embeddings();
-      const vector = await embedding.generateEmbeddings(idea.content);
+      const embeddableContent = htmlToPlainText(idea.content);
+      const vector = await embedding.generateEmbeddings(embeddableContent);
       await Idea.update(idea.id, {
         embeddings: vector,
+        embeddingsUpdatedAt: new Date(),
       });
     } catch (err) {
       console.error(

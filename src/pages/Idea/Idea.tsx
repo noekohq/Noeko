@@ -430,12 +430,12 @@ export default function Idea() {
                   fontSize: "1.1em",
                 }}
               />
-              Content Summary
+              Content Overview
             </Text>
             <Text size="sm" lineClamp={3}>
               {idea.derived?.generative_summary?.sentenceSummary || (
                 <Text span c="dimmed" fs="italic">
-                  No summary available.
+                  No overview available.
                 </Text>
               )}
             </Text>
