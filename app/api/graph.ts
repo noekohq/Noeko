@@ -96,8 +96,9 @@ router.get("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
       const connections = await Idea.getConnections(id);
       toSend.connections = connections;
     }
-    if (withRelatedIdeas && !isSuperuser) {
+    if (withRelatedIdeas) {
       const relatedIdeas = await Idea.findSimilar(user.id, id);
+      console.log(relatedIdeas);
       toSend.relatedIdeas = relatedIdeas;
     }
     if (withDerived) {

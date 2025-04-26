@@ -61,6 +61,9 @@ export class User {
         DEFINE FIELD IF NOT EXISTS roles ON TABLE user TYPE array<record<role>>;
         DEFINE FIELD IF NOT EXISTS disabled ON TABLE user TYPE bool DEFAULT false;
       `);
+      await db?.query(
+        `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
+      );
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;

@@ -10,13 +10,15 @@ import { getDatabase } from "../../db";
 
 export type IGenerativeSummary = {
   id: RecordId;
+  sentenceOverview: string;
   sentenceSummary: string;
-  paragraphSummary: string;
-  abstractSummary: string;
-  simplifiedSummary: string;
-  outline: string[];
-  keyPoints: string[];
-  highlights: string[];
+  paragraphOverview?: string;
+  paragraphSummary?: string;
+  abstractSummary?: string;
+  simplifiedSummary?: string;
+  outline?: string[];
+  keyPoints?: string[];
+  highlights?: string[];
 };
 
 export type IGenerativeSummaryForm = Omit<IGenerativeSummary, "id">;
@@ -24,9 +26,19 @@ export type IGenerativeSummaryForm = Omit<IGenerativeSummary, "id">;
 export const GenerativeSummarySchema: LMSchema = {
   type: LMSchemaType.OBJECT,
   properties: {
+    sentenceOverview: {
+      type: LMSchemaType.STRING,
+      description:
+        "A single sentence long descriptive overview of the content.",
+    },
     sentenceSummary: {
       type: LMSchemaType.STRING,
       description: "A single sentence long summary of the content.",
+    },
+    paragraphOverview: {
+      type: LMSchemaType.STRING,
+      description:
+        "A single paragraph long descriptive overview of the content.",
     },
     paragraphSummary: {
       type: LMSchemaType.STRING,
@@ -56,15 +68,7 @@ export const GenerativeSummarySchema: LMSchema = {
       description: "Highlights extracted from the content.",
     },
   },
-  required: [
-    "sentenceSummary",
-    "paragraphSummary",
-    "abstractSummary",
-    "simplifiedSummary",
-    "outline",
-    "keyPoints",
-    "highlights",
-  ],
+  required: ["sentenceSummary"],
 };
 
 export class GenerativeSummary {
@@ -72,7 +76,9 @@ export class GenerativeSummary {
 
   static async getPromptFromContent(content: string) {
     const prompt = new PromptBuilder()
-      .addText("Generate a summary given the schema and the following content:")
+      .addText(
+        "Generate a summary given the schema and the content below. Include properties which are relevant, and skip properties that are unnecessary. The content is as follows:",
+      )
       .addBlock("Content", content);
     return prompt;
   }
@@ -95,7 +101,9 @@ export class GenerativeSummary {
         IGenerativeSummary,
         IGenerativeSummaryForm
       >("generative_summary", {
+        sentenceOverview: generation.sentenceOverview,
         sentenceSummary: generation.sentenceSummary,
+        paragraphOverview: generation.paragraphOverview,
         paragraphSummary: generation.paragraphSummary,
         abstractSummary: generation.abstractSummary,
         simplifiedSummary: generation.simplifiedSummary,
@@ -241,11 +249,10 @@ export class GenerativeSummary {
       }
       const [derivedSummaries] = derivedSummariesResults;
       if (!derivedSummaries || derivedSummaries.length < 1) {
-        // Decided not to create the summary implicitly, leaving this here in case we change our minds
-        // const newSummary = await this.create(ideaId);
-        // if (!newSummary) {
-        //   return false;
-        // }
+        const newSummary = await this.create(ideaId);
+        if (!newSummary) {
+          return false;
+        }
         return true;
       }
       for (const summary of derivedSummaries) {

@@ -76,7 +76,9 @@ export default function Overview({
   });
 
   const summary: IGenerativeSummaryForm = idea?.derived?.generative_summary || {
+    sentenceOverview: "",
     sentenceSummary: "",
+    paragraphOverview: "",
     paragraphSummary: "",
     abstractSummary: "",
     simplifiedSummary: "",
@@ -86,7 +88,9 @@ export default function Overview({
   };
 
   const {
+    sentenceOverview,
     sentenceSummary,
+    paragraphOverview,
     paragraphSummary,
     abstractSummary,
     simplifiedSummary,
@@ -161,71 +165,101 @@ export default function Overview({
           <Grid.Col span={{ sm: 12 }}>
             <Card radius="lg">
               <Text fw="bold" c="dimmed">
+                <Sparkle weight="bold" /> Content Overview
+              </Text>
+              <Text>{sentenceOverview}</Text>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Card radius="lg">
+              <Text fw="bold" c="dimmed">
                 <Sparkle weight="bold" /> Content Summary
               </Text>
               <Text>{sentenceSummary}</Text>
             </Card>
           </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Paragraph Summary
-              </Text>
-              <Text>{paragraphSummary}</Text>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Abstract Summary
-              </Text>
-              <Text>{abstractSummary}</Text>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Simplified Summary
-              </Text>
-              <Text>{simplifiedSummary}</Text>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Outline
-              </Text>
-              <List type="unordered">
-                {outline.map((item, index) => (
-                  <List.Item key={index}>{item}</List.Item>
-                ))}
-              </List>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Key Points
-              </Text>
-              <List type="unordered">
-                {keyPoints.map((point, index) => (
-                  <List.Item key={index}>{point}</List.Item>
-                ))}
-              </List>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Highlights
-              </Text>
-              <List type="unordered">
-                {highlights.map((highlight, index) => (
-                  <List.Item key={index}>{highlight}</List.Item>
-                ))}
-              </List>
-            </Card>
-          </Grid.Col>
+          {paragraphSummary && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Paragraph Summary
+                </Text>
+                <Text>{paragraphSummary}</Text>
+              </Card>
+            </Grid.Col>
+          )}
+          {paragraphOverview && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Paragraph Overview
+                </Text>
+                <Text>{paragraphOverview}</Text>
+              </Card>
+            </Grid.Col>
+          )}
+          {abstractSummary && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Abstract Summary
+                </Text>
+                <Text>{abstractSummary}</Text>
+              </Card>
+            </Grid.Col>
+          )}
+          {simplifiedSummary && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Simplified Summary
+                </Text>
+                <Text>{simplifiedSummary}</Text>
+              </Card>
+            </Grid.Col>
+          )}
+          {outline && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Outline
+                </Text>
+                <List type="unordered">
+                  {outline.map((item, index) => (
+                    <List.Item key={index}>{item}</List.Item>
+                  ))}
+                </List>
+              </Card>
+            </Grid.Col>
+          )}
+          {keyPoints && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Key Points
+                </Text>
+                <List type="unordered">
+                  {keyPoints.map((point, index) => (
+                    <List.Item key={index}>{point}</List.Item>
+                  ))}
+                </List>
+              </Card>
+            </Grid.Col>
+          )}
+          {highlights && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Card radius="lg">
+                <Text fw="bold" c="dimmed">
+                  <Sparkle weight="bold" /> Highlights
+                </Text>
+                <List type="unordered">
+                  {highlights.map((highlight, index) => (
+                    <List.Item key={index}>{highlight}</List.Item>
+                  ))}
+                </List>
+              </Card>
+            </Grid.Col>
+          )}
         </Grid>
       )}
     </Drawer>
