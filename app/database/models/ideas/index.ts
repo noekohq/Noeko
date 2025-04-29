@@ -11,6 +11,7 @@ export type IIdea = {
   id: string | RecordId;
   title: string;
   content: string;
+  contentPlain: string;
   embeddings: number[] | null;
   createdAt: Date;
   updatedAt: Date;
@@ -255,6 +256,7 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
+        contentPlain: htmlToPlainText(form.content),
         embeddings: null,
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
@@ -447,6 +449,7 @@ export class Idea {
       const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
       if (form.content !== undefined) {
         updater.contentUpdatedAt = new Date();
+        updater.contentPlain = htmlToPlainText(form.content);
       }
       const result = await db?.merge<
         IIdea,

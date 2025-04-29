@@ -11,6 +11,7 @@ import { ModalsProvider } from "@mantine/modals";
 import "@mantine/tiptap/styles.css";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@mantine/spotlight/styles.css";
 import "./Global.scss";
 
 const Client = () => {
