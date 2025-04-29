@@ -39,9 +39,39 @@ export class Search {
       `;
     };
 
+    const ideaSearchAnalyzer = () => {
+      return `
+      DEFINE ANALYZER idea_analyzer
+      TOKENIZERS class
+      FILTERS lowercase;`;
+    };
+
+    const ftsTitleSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_idea_title_fts
+        ON TABLE idea
+        FIELDS title
+        SEARCH ANALYZER idea_analyzer
+        BM25 HIGHLIGHTS;
+      `;
+    };
+
+    const ftsContentSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_idea_content_fts
+        ON TABLE idea
+        FIELDS contentPlain
+        SEARCH ANALYZER idea_analyzer
+        BM25 HIGHLIGHTS;
+      `;
+    };
+
     const db = await getDatabase();
     // db?.query(keywordSearchFunction());
-    db?.query(vectorEmbeddingsIndex());
+    // db?.query(vectorEmbeddingsIndex());
+    db?.query(ideaSearchAnalyzer());
+    db?.query(ftsTitleSearchIndex());
+    db?.query(ftsContentSearchIndex());
   }
 
   static async down() {}
