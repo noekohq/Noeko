@@ -44,6 +44,8 @@ import { formatDate, formatFileSize } from "../../utils/formatting";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import useShortcuts from "../../hooks/useShortcuts";
 import { validateIdeaContent } from "../../utils/data";
+import { useAuth } from "../../contexts/AuthContext";
+import { userIsSuperuser } from "../../utils/user";
 
 type UIProps = {
   reloadGraph: () => Promise<void>;
@@ -55,6 +57,9 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   const [addIdeaOpened, setAddIdeaOpened] = useState(false);
   const [uploadFileOpened, setUploadFileOpened] = useState(false);
   const navigate = useNavigate();
+
+  const { user } = useAuth();
+  const isAdmin = userIsSuperuser(user);
 
   const {
     filter: { set: setFilter, clear: clearFilter },
@@ -136,6 +141,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
   });
 
   const enableDeveloperTools = false;
+  const enableAdminTools = isAdmin;
 
   const { load: refreshUser } = useFetch({
     url: "/users/refresh",
@@ -176,19 +182,6 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
         reloadGraph={reloadGraph}
       />
       <Flex gap={"md"} justify="space-between" align="flex-start">
-        {enableDeveloperTools && (
-          <Group>
-            <Button
-              leftSection={<ArrowsClockwise weight="bold" />}
-              onClick={() => {
-                refreshUser();
-              }}
-              variant="light"
-            >
-              Refresh Auth
-            </Button>
-          </Group>
-        )}
         <Group>
           {currentNode && (
             <Flex direction="column">
@@ -206,7 +199,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
             </Text>
           </Group>
           <Group justify="end">
-            {!flags.embeddings.synced && (
+            {enableAdminTools && (
               <ActionIcon
                 variant="default"
                 size="lg"

@@ -196,7 +196,6 @@ export class UserFile {
   ) {
     try {
       const file = await UserFile.get(userFileId);
-      console.log("Got file: ", file);
       if (!file) {
         throw Error(`No user file found for id "${userFileId}".`);
       }

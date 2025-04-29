@@ -15,6 +15,7 @@ import styles from "./styles/DreamConnection.module.scss";
 // --- Database Model Types (Ensure these paths are correct) ---
 import { IIdea } from "../../../../../app/database/models/ideas";
 import { IUserFile } from "../../../../../app/database/models/userfile";
+import { api } from "../../../../server/api";
 
 // --- Type Definitions ---
 export interface IDreamConnectionOptions {
@@ -30,7 +31,16 @@ export type IDreamConnectionItem =
 async function fetchDreamConnectionItems(
   query: string,
 ): Promise<IDreamConnectionItem[]> {
-  return [];
+  try {
+    const response = await api.get(`/search/ideas/suggest?query=${query}`);
+    return response.data.data.map((item: IIdea) => ({
+      ...item,
+      type: "idea",
+    }));
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 }
 
 // --- Suggestion Configuration Object ---
@@ -38,12 +48,13 @@ const suggestionOptionsDefinition = (
   styles: Record<string, string>,
 ): Omit<SuggestionOptions<IDreamConnectionItem>, "editor"> => {
   return {
-    char: "#",
+    char: "$",
     items: async ({ query }) => {
       return await fetchDreamConnectionItems(query);
     },
     render: () => {
-      let element: HTMLElement | null = null;
+      let element: HTMLElement | null = document.createElement("div");
+      element.classList.add(styles.suggestionList);
       let tippyInstance: TippyInstance | null = null;
       let currentProps: SuggestionProps<IDreamConnectionItem> | null = null;
       let activeIndex = 0;
@@ -81,18 +92,14 @@ const suggestionOptionsDefinition = (
         }
 
         props.items.forEach((item, index) => {
+          console.log("Rendering items: ", item);
           const itemElement = document.createElement("button");
           itemElement.className = styles.suggestionItem;
           itemElement.textContent =
             item.type === "idea" ? item.title : item.originalFileName;
           itemElement.dataset.index = String(index);
 
-          const typeSpan = document.createElement("span");
-          typeSpan.className = `${styles.suggestionType} ${styles[`suggestionType-${item.type}`] || ""}`;
-          typeSpan.textContent = ` (${item.type})`;
-          itemElement.appendChild(typeSpan);
-
-          itemElement.addEventListener("mousedown", (event) => {
+          itemElement.addEventListener("click", (event) => {
             event.preventDefault();
             props.command(item);
           });

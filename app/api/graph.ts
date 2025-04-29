@@ -98,7 +98,6 @@ router.get("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
     }
     if (withRelatedIdeas) {
       const relatedIdeas = await Idea.findSimilar(user.id, id);
-      console.log(relatedIdeas);
       toSend.relatedIdeas = relatedIdeas;
     }
     if (withDerived) {
@@ -449,7 +448,8 @@ router.post(
         return;
       }
       await Idea.synchronizeEmbeddings(ideas);
-      res.send({ message: "Successfully synchronized embeddings." });
+      await Idea.synchronizeContentPlain(ideas);
+      res.send({ message: "Successfully synchronized graph." });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal Server Error" });
