@@ -73,10 +73,10 @@ export class Search {
     };
 
     const db = await getDatabase();
-    db?.query(ideaSearchAnalyzer());
-    db?.query(ftsTitleSearchIndex());
-    db?.query(ftsContentSearchIndex());
-    db?.query(ftsSearchFunction());
+    await db?.query(ideaSearchAnalyzer());
+    await db?.query(ftsTitleSearchIndex());
+    await db?.query(ftsContentSearchIndex());
+    await db?.query(ftsSearchFunction());
   }
 
   static async down() {}
