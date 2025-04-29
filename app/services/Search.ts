@@ -1,5 +1,5 @@
 import { getDatabase } from "../database/db";
-import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
+import { Idea, IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
 
 export type ISearchResult = {
@@ -12,36 +12,19 @@ export type ISearchResult = {
   };
 };
 
+export type IFTSIdeaResult = IIdea & {
+  contentScore: number;
+  titleScore: number;
+  preview: string;
+};
+
 export class Search {
   constructor() {}
 
   static async up() {
-    const semanticSearchFunction = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::hnsw_search(
-        $user_id: string,
-        $query_embeddings: array<F32>,
-      ) {
-      }
-      `;
-    };
-
-    const vectorEmbeddingsIndex = () => {
-      return `
-      -- Recommended Index for Google Text Embeddings (e.g., 768 dimensions)
-      DEFINE INDEX OVERWRITE idx_idea_embeddings_hnsw
-      ON idea
-      FIELDS embeddings
-      HNSW
-      DIMENSION 768   -- Replace 768 with your model's actual dimension
-      TYPE F32        -- Use 32-bit floats
-      DIST COSINE;    -- Use Cosine distance
-      `;
-    };
-
     const ideaSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER idea_analyzer
+      DEFINE ANALYZER OVERWRITE idea_analyzer
       TOKENIZERS class
       FILTERS lowercase;`;
     };
@@ -66,12 +49,34 @@ export class Search {
       `;
     };
 
+    const ftsSearchFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_user_ideas_fts(
+        $userId: string,
+        $query: string
+      ) {
+        LET $ideas = SELECT
+            *,
+            contentPlain,
+            title,
+            search::highlight("->", "<-", 0) AS preview,
+            search::score(0) AS contentScore,
+            search::score(1) AS titleScore
+        FROM idea
+        WHERE
+            (contentPlain @0@ $query OR
+            title @1@ $query)
+            AND <-owns<-(user WHERE id = <record> $userId);
+
+        return $ideas;
+      }`;
+    };
+
     const db = await getDatabase();
-    // db?.query(keywordSearchFunction());
-    // db?.query(vectorEmbeddingsIndex());
     db?.query(ideaSearchAnalyzer());
     db?.query(ftsTitleSearchIndex());
     db?.query(ftsContentSearchIndex());
+    db?.query(ftsSearchFunction());
   }
 
   static async down() {}
@@ -84,7 +89,30 @@ export class Search {
     }
   }
 
-  static async suggest(userId: string, query: string) {}
+  static async suggest(userId: string, query: string) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      if (!query) {
+        return Idea.getUserIdeas(userId);
+      }
+      console.log("User id and query:", userId, query);
+      const suggestions = await db.run<IFTSIdeaResult[]>(
+        "fn::search_user_ideas_fts",
+        [userId, query],
+      );
+      console.log("Getting suggestions: ", suggestions);
+      if (!suggestions || suggestions.length === 0) {
+        return [];
+      }
+      return suggestions;
+    } catch (error) {
+      console.error("Error suggesting...", error);
+      return undefined;
+    }
+  }
 }
 
 export const initSearch = async () => {

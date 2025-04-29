@@ -16,6 +16,7 @@ export type IIdea = {
   createdAt: Date;
   updatedAt: Date;
   contentUpdatedAt: Date;
+  contentPlainUpdatedAt: Date;
   embeddingsUpdatedAt: Date;
   connections?: IIdea[];
   relatedIdeas?: IIdeaAsRelation[];
@@ -257,6 +258,7 @@ export class Idea {
         title: form.title,
         content: form.content,
         contentPlain: htmlToPlainText(form.content),
+        contentPlainUpdatedAt: new Date(),
         embeddings: null,
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
@@ -334,6 +336,21 @@ export class Idea {
         err,
       );
       return false;
+    }
+  }
+
+  static async getUserIdeas(userId: string) {
+    try {
+      const db = await getDatabase();
+      const results = await db?.run<IIdea[]>("fn::get_user_ideas", [userId]);
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      return results;
+    } catch (err) {
+      console.error("Something went wrong", err);
+      return undefined;
     }
   }
 
@@ -450,6 +467,7 @@ export class Idea {
       if (form.content !== undefined) {
         updater.contentUpdatedAt = new Date();
         updater.contentPlain = htmlToPlainText(form.content);
+        updater.contentPlainUpdatedAt = new Date();
       }
       const result = await db?.merge<
         IIdea,
@@ -883,6 +901,23 @@ export class Idea {
       await Promise.all(toUpdate.map((idea) => Idea.updateEmbeddings(idea)));
     } catch (err) {
       console.error(`Error during synchronizeEmbeddings`, err);
+    }
+  }
+
+  static async synchronizeContentPlain(ideas: IIdea[]) {
+    try {
+      const toUpdate = ideas.filter((idea) => {
+        if (!idea.contentPlain) {
+          return true;
+        }
+        if (idea.contentPlainUpdatedAt < idea.contentUpdatedAt) {
+          return true;
+        }
+        return false;
+      });
+      await Promise.all(toUpdate.map((idea) => Idea.updateContentPlain(idea)));
+    } catch (err) {
+      console.error(`Error during synchronizeContentPlain`, err);
     }
   }
 
