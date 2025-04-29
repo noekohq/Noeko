@@ -342,7 +342,7 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
     },
   });
 
-  const [contentError, setContentError] = useState<string | null>(null);
+  const [contentError, setContentError] = useState<string>();
   useEffect(() => {
     const { isValid, errors: contentErrors } = validateIdeaContent(
       form.values.content,

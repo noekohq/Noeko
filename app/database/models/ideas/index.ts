@@ -915,7 +915,14 @@ export class Idea {
         }
         return false;
       });
-      await Promise.all(toUpdate.map((idea) => Idea.updateContentPlain(idea)));
+      await Promise.all(
+        toUpdate.map((idea) =>
+          Idea.update(idea.id, {
+            contentPlain: idea.contentPlain,
+            contentPlainUpdatedAt: idea.contentUpdatedAt,
+          }),
+        ),
+      );
     } catch (err) {
       console.error(`Error during synchronizeContentPlain`, err);
     }
