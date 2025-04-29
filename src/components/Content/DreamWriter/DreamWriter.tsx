@@ -46,6 +46,7 @@ import { DreamFile } from "./nodes/DreamFile";
 import { DreamFileHandler } from "./extensions/DreamFileHandler";
 import { Group, Overlay, Text } from "@mantine/core";
 import { DreamConnection } from "./extensions/DreamConnection";
+import { DreamIdea } from "./nodes/DreamIdea";
 
 interface EditorData {
   comments: [];
@@ -162,6 +163,11 @@ function DreamWriter({
         DreamFile.configure({
           HTMLAttributes: {
             class: contentStyles.file,
+          },
+        }),
+        DreamIdea.configure({
+          HTMLAttributes: {
+            class: contentStyles.idea,
           },
         }),
         DreamFileHandler.configure({}),
