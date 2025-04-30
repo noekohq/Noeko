@@ -27,6 +27,11 @@ const DerivedNode = ({ node, isDragging }: DerivedNodeProps) => {
     setSelected(null);
   };
 
+  const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
+    event.stopPropagation();
+    setSelected(node.id.toString());
+  };
+
   const shouldShow = filter(node);
 
   const radius = 10;
