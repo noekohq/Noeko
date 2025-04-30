@@ -1,13 +1,11 @@
 import {
   ActionIcon,
   Avatar,
-  Flex,
   Group,
   Menu,
   Space,
   Text,
   Tooltip,
-  Tree,
 } from "@mantine/core";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./RightSidebar.module.scss";
@@ -23,13 +21,19 @@ import {
 } from "@phosphor-icons/react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import useShortcuts from "../../hooks/useShortcuts";
+import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 
 type RightSidebarProps = {
   children?: React.ReactNode;
+  toggleOpenShortcuts?: IShortcut["keys"][];
+  openOnShortcut?: IShortcut["keys"][];
 };
 
-export default function RightSidebar({ children }: RightSidebarProps) {
+export default function RightSidebar({
+  children,
+  toggleOpenShortcuts,
+  openOnShortcut,
+}: RightSidebarProps) {
   const [opened, setOpened] = useState(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       const storedValue = localStorage.getItem("rightSidebarOpened");
@@ -54,6 +58,18 @@ export default function RightSidebar({ children }: RightSidebarProps) {
         keys: { ctrl: true, key: "l" },
         run: () => handleToggle(),
       },
+      ...(toggleOpenShortcuts
+        ? toggleOpenShortcuts.map((s) => ({
+            keys: s,
+            run: () => handleToggle(),
+          }))
+        : []),
+      ...(openOnShortcut
+        ? openOnShortcut.map((s) => ({
+            keys: s,
+            run: () => setOpened(true),
+          }))
+        : []),
     ],
   });
 
