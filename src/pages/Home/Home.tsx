@@ -36,7 +36,7 @@ export default function Home() {
     <PageWrapper>
       <LeftSidebar>
         <GraphNavigation
-          nodes={localData?.nodes || []}
+          graph={localData}
           reloadGraph={async () => {
             reloadGraph();
           }}

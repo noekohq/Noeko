@@ -5,11 +5,7 @@
     flex-direction: row-reverse;
     width: 100%;
 
-    .ui {
-        width: var(--sidebar-width);
-    }
-
     .content {
-        width: calc(100% - var(--sidebar-width));
+        width: 100%;
     }
 }
