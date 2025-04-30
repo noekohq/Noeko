@@ -14,7 +14,7 @@ import Idea from "./pages/Idea/Idea";
 import UserFile from "./pages/File/File";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import Sidebar from "./components/Navigation/Sidebar";
+import RightSidebar from "./components/UI/RightSidebar";
 import Profile from "./pages/Settings/Profile";
 import Settings from "./pages/Settings/Settings";
 import useShortcuts from "./hooks/useShortcuts";
@@ -72,35 +72,27 @@ export default function App() {
           path="/*"
           element={
             <div className={styles.app}>
-              <div className={styles.ui}>
-                <Sidebar />
-              </div>
-              <div className={styles.content}>
-                <Routes>
-                  <Route path="login" element={<Navigate to="/" replace />} />
-                  <Route
-                    path="register"
-                    element={<Navigate to="/" replace />}
-                  />
-                  <Route index element={<Home />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="idea">
-                    <Route index element={<Navigate to="/" replace />} />
-                    <Route path=":ideaId" element={<Idea />} />
+              <Routes>
+                <Route path="login" element={<Navigate to="/" replace />} />
+                <Route path="register" element={<Navigate to="/" replace />} />
+                <Route index element={<Home />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="idea">
+                  <Route index element={<Navigate to="/" replace />} />
+                  <Route path=":ideaId" element={<Idea />} />
+                </Route>
+                <Route path="file">
+                  <Route index element={<Navigate to="/" replace />} />
+                  <Route path=":fileId" element={<UserFile />} />
+                </Route>
+                {isSuperuser && (
+                  <Route path="admin">
+                    <Route path="users" element={<Users />} />
                   </Route>
-                  <Route path="file">
-                    <Route index element={<Navigate to="/" replace />} />
-                    <Route path=":fileId" element={<UserFile />} />
-                  </Route>
-                  {isSuperuser && (
-                    <Route path="admin">
-                      <Route path="users" element={<Users />} />
-                    </Route>
-                  )}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </div>
+                )}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
             </div>
           }
         />

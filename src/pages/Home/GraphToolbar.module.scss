@@ -1,0 +1,10 @@
+@use "../../styles/mixins.scss" as *;
+
+.ui {
+    background-color: transparent;
+}
+
+.searchWrapper {
+    width: 100%;
+    transition: width 0.2s ease-in-out;
+}
