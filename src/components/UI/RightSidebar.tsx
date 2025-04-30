@@ -109,7 +109,15 @@ export default function RightSidebar({
             : "space-between"
         }
         align="center"
-        direction={isMobile ? (opened ? "row-reverse" : "row-reverse") : "row"}
+        direction={
+          isMobile
+            ? opened
+              ? "row-reverse"
+              : "row-reverse"
+            : opened
+              ? "row"
+              : "column"
+        }
         gap="md"
       >
         <ActionIcon
@@ -123,7 +131,12 @@ export default function RightSidebar({
             <ToggleIconClosed weight="bold" />
           )}
         </ActionIcon>
-        <Flex gap="md" direction={isMobile ? (opened ? "row" : "row") : "row"}>
+        <Flex
+          gap="md"
+          direction={
+            isMobile ? (opened ? "row" : "row") : opened ? "row" : "column"
+          }
+        >
           <Menu width={200}>
             <Menu.Target>
               <Avatar

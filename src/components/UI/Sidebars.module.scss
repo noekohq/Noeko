@@ -77,7 +77,7 @@
 
         // Desktop specific opened state
         &.opened {
-            width: 30vw;
+            width: var(--sidebar-width);
             height: calc(100vh - 28px); // Ensure correct height
             padding: 24px; // Restore larger padding
         }
