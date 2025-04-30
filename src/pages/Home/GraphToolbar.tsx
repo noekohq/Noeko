@@ -24,7 +24,7 @@ import {
   Code,
   Tooltip,
 } from "@mantine/core";
-import styles from "./UI.module.scss";
+import styles from "./GraphToolbar.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import {
   ArrowsClockwise,
@@ -47,13 +47,13 @@ import { validateIdeaContent } from "../../utils/data";
 import { useAuth } from "../../contexts/AuthContext";
 import { userIsSuperuser } from "../../utils/user";
 
-type UIProps = {
+type GraphStateProps = {
   reloadGraph: () => Promise<void>;
   nodes: INode[];
   flags: IDBGraph["flags"];
 };
 
-export default function UI({ reloadGraph, nodes, flags }: UIProps) {
+export const GraphState = ({ reloadGraph }: GraphStateProps) => {
   const [addIdeaOpened, setAddIdeaOpened] = useState(false);
   const [uploadFileOpened, setUploadFileOpened] = useState(false);
   const navigate = useNavigate();
@@ -65,16 +65,10 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     filter: { set: setFilter, clear: clearFilter },
   } = useGraph();
 
-  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const {
-    selected: { get: getSelectedNode },
-    loading: { get: getLoading, set: setLoading },
+    loading: { set: setLoading },
     query: { set: setQuery },
   } = useGraph();
-
-  const selectedNode = getSelectedNode();
-
-  const currentNode = selectedNode ? nodeMap.get(selectedNode) : null;
 
   const handleResults = useCallback((results: SearchResult[]) => {
     const ideas = results.map((r) => r.idea.id);
@@ -115,14 +109,6 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     },
   });
 
-  const statusText = () => {
-    let text = "";
-    if (!flags.embeddings.synced) {
-      text += "Embeddings out of sync. ";
-    }
-    return text;
-  };
-
   useShortcuts({
     shortcuts: [
       {
@@ -140,34 +126,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
     ],
   });
 
-  const enableDeveloperTools = false;
   const enableAdminTools = isAdmin;
-
-  const { load: refreshUser } = useFetch({
-    url: "/users/refresh",
-    method: "POST",
-  });
-
-  const getNodeTitle = (node: INode) => {
-    if (node.type === "idea") {
-      return node.title;
-    }
-    if (node.type === "file") {
-      return node.originalFileName;
-    }
-  };
-
-  const getNodeSubtitle = (node: INode) => {
-    if (node.type === "idea") {
-      return formatDate(node.createdAt);
-    }
-    if (node.type === "file") {
-      return formatDate(node.createdAt);
-    }
-    if (node.type === "derived") {
-      return node.type;
-    }
-  };
 
   return (
     <div className={`${styles.ui}`}>
@@ -181,23 +140,8 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
         setOpened={setUploadFileOpened}
         reloadGraph={reloadGraph}
       />
-      <Flex gap={"md"} justify="space-between" align="flex-start">
-        <Group>
-          {currentNode && (
-            <Flex direction="column">
-              <Text fw="bold">{getNodeTitle(currentNode)}</Text>
-              <Text fw="normal" size="xs" c="dimmed">
-                {getNodeSubtitle(currentNode)}
-              </Text>
-            </Flex>
-          )}
-        </Group>
-        <Group>
-          <Group justify="end">
-            <Text c="dimmed" size="sm">
-              {statusText()}
-            </Text>
-          </Group>
+      <Flex gap={"md"} justify="space-between" align="flex-end">
+        <Group justify="end">
           <Group justify="end">
             {enableAdminTools && (
               <ActionIcon
@@ -272,7 +216,7 @@ export default function UI({ reloadGraph, nodes, flags }: UIProps) {
       </Flex>
     </div>
   );
-}
+};
 
 type AddIdeaProps = {
   opened: boolean;
