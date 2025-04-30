@@ -3,32 +3,39 @@ import { IIdeaNode } from "../../declarations/graph.d";
 import styles from "./Node.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
 import { Highlight, Text } from "@mantine/core";
+import { ArrowRight } from "@phosphor-icons/react";
+import { useMediaQuery } from "@mantine/hooks";
 
 type NodeProps = {
   node: IIdeaNode;
-  isDragging: boolean;
+  isDragging: boolean; // Keep this to apply dragging styles if needed
   onNodeNavigate?: (
-    event: React.MouseEvent<SVGGElement>,
+    // Keep navigation logic
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
     node: IIdeaNode,
   ) => void;
   onNodeSelect?: (
-    event: React.MouseEvent<SVGGElement>,
+    // Keep selection logic
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
     node: IIdeaNode,
   ) => void;
-  onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
+  // onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void; // REMOVE THIS PROP
   onContextMenu: (
-    event: React.MouseEvent<SVGGElement>,
+    // Keep context menu logic
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
     node: IIdeaNode,
   ) => void;
+  "data-node-id": string; // ADD THIS PROP TYPE (it's passed directly)
 };
 
 const Node = ({
   node,
-  isDragging,
+  isDragging, // Still useful for styling
   onNodeNavigate,
   onNodeSelect,
-  onDragStart,
+  // onDragStart, // REMOVE THIS PARAMETER
   onContextMenu,
+  "data-node-id": dataNodeId, // Receive the prop
 }: NodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
@@ -45,68 +52,64 @@ const Node = ({
   const { filter } = getFilter();
   const query = getQuery();
 
-  const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
-    event.preventDefault();
-    onDragStart(event, node.id.toString());
-  };
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const handleContextMenu = (event: React.MouseEvent<SVGGElement>) => {
+  const handleContextMenu = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+  ) => {
     event.preventDefault();
     event.stopPropagation();
     onContextMenu(event, node);
   };
 
-  const handleNodeSelect = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeSelect?.(event, node);
-    setSelected(node.id.toString());
+  const handleMouseEnterSelect = (event: React.MouseEvent<SVGGElement>) => {
+    if (!isMobile) {
+      onNodeSelect?.(event, node);
+      setSelected(node.id.toString());
+    }
   };
-  const handleNodeUnselect = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeSelect?.(event, node);
-    setSelected(null);
+  const handleMouseLeaveUnselect = (event: React.MouseEvent<SVGGElement>) => {
+    if (!isMobile) {
+      onNodeSelect?.(event, node); // Maybe just call onNodeSelect with hover state?
+      setSelected(null);
+    }
   };
 
-  const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
+  const handleNodeNavigate = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+  ) => {
     setSelected(null);
     onNodeNavigate?.(event, node);
   };
 
-  const radius = 24;
+  const handleNodeClick = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+  ) => {
+    if (isMobile) {
+      onNodeSelect?.(event, node);
+      onContextMenu?.(event, node);
+    }
+  };
 
+  const radius = 24;
   const textOffset = 0;
   const textWidth = 124;
   const textHeight = 100;
-
   const text = {
     width: textWidth,
     height: textHeight,
     x: -textWidth / 2,
     y: radius + textOffset,
   };
-
   const gradientOptions = {
     innerColor: "var(--color-nodes)",
     outerColor: "var(--color-background)",
     opacityInner: 1,
     opacityOuter: 0.2,
   };
-
   const shouldShow = filter(node);
-
-  const randomDelay = () => {
-    return Math.floor(Math.random() * 1400);
-  };
-
+  const randomDelay = () => Math.floor(Math.random() * 1400);
   const circleRef = useRef<SVGCircleElement>(null);
-
-  const getCoordinateBasedDelay = () => {
-    // delay gets higher on a top left to bottom right gradient
-    if (!node || !node.x || !node.y) return 0;
-    const x = node.x;
-    const y = node.y;
-    const delay = Math.sqrt(x * x + y * y) * 1;
-    return delay;
-  };
-
   useEffect(() => {
     if (circleRef.current) {
       circleRef.current.style.animationDelay = `${randomDelay()}ms`;
@@ -115,14 +118,20 @@ const Node = ({
 
   return (
     <g
+      data-node-id={dataNodeId}
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
-      onMouseDown={handleMouseDown}
-      onMouseEnter={handleNodeSelect}
-      onMouseLeave={handleNodeUnselect}
-      onClick={handleNodeNavigate}
-      onContextMenu={handleContextMenu}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""}`}
+      onMouseEnter={handleMouseEnterSelect}
+      onMouseLeave={handleMouseLeaveUnselect}
+      onContextMenu={handleContextMenu} // Keep for right-click (long press handled by GraphContainer)
+      onDoubleClick={handleNodeNavigate}
+      onClick={handleNodeClick}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${
+        iAmUnselected ? styles.unselected : ""
+      } ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""} ${
+        isDragging ? styles.dragging : "" // Optional: Style for dragging state if needed
+      }`}
     >
+      {/* ... rest of the component (defs, circle, foreignObject) ... */}
       <defs>
         <radialGradient
           key={node.id.toString()}
@@ -154,6 +163,12 @@ const Node = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
+            {iAmSelected && (
+              <Text size="xs" c="dimmed">
+                Double click to navigate{" "}
+                <ArrowRight style={{ position: "relative", top: "2px" }} />
+              </Text>
+            )}
             <Highlight highlight={query}>{node.title}</Highlight>
           </Text>
         </foreignObject>

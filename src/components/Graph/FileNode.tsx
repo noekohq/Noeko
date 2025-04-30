@@ -3,31 +3,37 @@ import { IFileNode } from "../../declarations/graph.d";
 import styles from "./FileNode.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
 import { Code, Highlight, Text } from "@mantine/core";
+import { ArrowRight } from "@phosphor-icons/react";
+import { useMediaQuery } from "@mantine/hooks";
 
 type FileNodeProps = {
   node: IFileNode;
-  isDragging: boolean;
+  isDragging: boolean; // Keep this to apply dragging styles if needed
   onNodeNavigate?: (
-    event: React.MouseEvent<SVGGElement>,
+    // Keep navigation logic
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
     node: IFileNode,
   ) => void;
   onNodeSelect?: (
-    event: React.MouseEvent<SVGGElement>,
+    // Keep selection logic
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
     node: IFileNode,
   ) => void;
-  onDragStart?: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
-  onContextMenu?: (
-    event: React.MouseEvent<SVGGElement>,
+  // onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void; // REMOVE THIS PROP
+  onContextMenu: (
+    // Keep context menu logic
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
     node: IFileNode,
   ) => void;
+  "data-node-id": string; // ADD THIS PROP TYPE (it's passed directly)
 };
 
 const FileNode = ({
+  "data-node-id": dataNodeId,
   node,
   isDragging,
   onNodeNavigate,
   onNodeSelect,
-  onDragStart,
   onContextMenu,
 }: FileNodeProps) => {
   const gradientId = `gradient-${node.id}`;
@@ -45,31 +51,44 @@ const FileNode = ({
   const { filter } = getFilter();
   const query = getQuery();
 
-  const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
-    event.preventDefault();
-    onDragStart?.(event, node.id.toString());
-  };
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const handleContextMenu = (event: React.MouseEvent<SVGGElement>) => {
+  const handleContextMenu = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+  ) => {
     event.preventDefault();
     event.stopPropagation();
-    onContextMenu?.(event, node);
+    onContextMenu(event, node);
   };
 
-  const handleNodeSelect = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeSelect?.(event, node);
-    setSelected(node.id.toString());
+  const handleMouseEnterSelect = (event: React.MouseEvent<SVGGElement>) => {
+    if (!isMobile) {
+      onNodeSelect?.(event, node);
+      setSelected(node.id.toString());
+    }
   };
-  const handleNodeUnselect = (event: React.MouseEvent<SVGGElement>) => {
-    onNodeSelect?.(event, node);
-    setSelected(null);
+  const handleMouseLeaveUnselect = (event: React.MouseEvent<SVGGElement>) => {
+    if (!isMobile) {
+      onNodeSelect?.(event, node); // Maybe just call onNodeSelect with hover state?
+      setSelected(null);
+    }
   };
 
-  const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
+  const handleNodeNavigate = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+  ) => {
     setSelected(null);
     onNodeNavigate?.(event, node);
   };
 
+  const handleNodeClick = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+  ) => {
+    if (isMobile) {
+      onNodeSelect?.(event, node);
+      onContextMenu?.(event, node);
+    }
+  };
   const radius = 24;
 
   const textOffset = 0;
@@ -115,13 +134,18 @@ const FileNode = ({
 
   return (
     <g
+      data-node-id={dataNodeId}
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
-      onMouseDown={handleMouseDown}
-      onMouseEnter={handleNodeSelect}
-      onMouseLeave={handleNodeUnselect}
-      onClick={handleNodeNavigate}
-      onContextMenu={handleContextMenu}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${iAmUnselected ? styles.unselected : ""} ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.hidden : ""}`}
+      onMouseEnter={handleMouseEnterSelect}
+      onMouseLeave={handleMouseLeaveUnselect}
+      onContextMenu={handleContextMenu} // Keep for right-click (long press handled by GraphContainer)
+      onDoubleClick={handleNodeNavigate}
+      onClick={handleNodeClick}
+      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${
+        iAmUnselected ? styles.unselected : ""
+      } ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""} ${
+        isDragging ? styles.dragging : "" // Optional: Style for dragging state if needed
+      }`}
     >
       <defs>
         <radialGradient
@@ -154,6 +178,12 @@ const FileNode = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
+            {iAmSelected && (
+              <Text size="xs" c="dimmed">
+                Double click to navigate{" "}
+                <ArrowRight style={{ position: "relative", top: "2px" }} />
+              </Text>
+            )}
             <Highlight highlight={query}>{node.originalFileName}</Highlight>
           </Text>
         </foreignObject>

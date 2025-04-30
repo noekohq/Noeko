@@ -63,8 +63,8 @@ export default function LeftSidebar({
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // if mobile, use up arrow, if desktop, use left arrow
-  const ToggleIconClosed = isMobile ? ArrowLineDown : ArrowLineLeft;
-  const ToggleIconOpened = isMobile ? ArrowLineUp : ArrowLineRight;
+  const ToggleIconClosed = isMobile ? ArrowLineDown : ArrowLineRight;
+  const ToggleIconOpened = isMobile ? ArrowLineUp : ArrowLineLeft;
 
   return (
     <div
