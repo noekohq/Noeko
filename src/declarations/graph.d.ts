@@ -35,11 +35,11 @@ export type IFileNode = IUserFile & {
 
 // IEdge can remain largely the same, linking node IDs
 export interface IEdge {
-  source: string; // ID of the source node
-  target: string; // ID of the target node
-  distance: number; // Distance between nodes
-  strength: number; // Strength of the link
-  // You might add other edge properties if needed
+  source: string;
+  target: string;
+  distance: number;
+  strength: number;
+  visibility: "high" | "medium" | "low";
 }
 
 export type INode = IIdeaNode | IFileNode | IDerivedNode;

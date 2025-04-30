@@ -13,7 +13,6 @@ export interface DreamFileHandlerOptions {
 
 export const uploadFile = async (file: File) => {
   try {
-    console.log("Uploading file: ", file);
     const formData = new FormData();
     formData.append("userFile", file);
     const response = await api.post("/files/", formData);
@@ -50,7 +49,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
       console.info(`Uploading ${file.name}...`);
 
       uploadFile(file).then((response) => {
-        console.log("Got uploaded response: ", response);
         editor.view.dispatch(editor.view.state.tr.scrollIntoView());
         if (!response) {
           console.error("Failed to upload file");
@@ -58,7 +56,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
         }
 
         if (response.mimeType.startsWith("image/")) {
-          console.log("Setting dream image");
           editor
             .chain()
             .focus()
@@ -69,7 +66,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
             })
             .run();
         } else {
-          console.log("Setting dream file");
           editor
             .chain()
             .focus()
@@ -96,7 +92,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
               const file = items[i].getAsFile();
               if (file) {
                 event.preventDefault();
-                console.log("File: ", file);
                 handleFileUpload(file);
                 fileFound = true;
               }
@@ -111,7 +106,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
             for (let i = 0; i < items.length; i++) {
               const file = items[i].getAsFile();
               if (file) {
-                console.log("File: ", file);
                 event.preventDefault();
                 handleFileUpload(file);
                 fileFound = true;

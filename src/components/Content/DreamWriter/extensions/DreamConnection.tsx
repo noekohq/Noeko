@@ -92,7 +92,6 @@ const suggestionOptionsDefinition = (
         }
 
         props.items.forEach((item, index) => {
-          console.log("Rendering items: ", item);
           const itemElement = document.createElement("button");
           itemElement.className = styles.suggestionItem;
           itemElement.textContent =

@@ -21,6 +21,7 @@ export type IIdea = {
   connections?: IIdea[];
   relatedIdeas?: IIdeaAsRelation[];
   derived?: IIdeaDerivedMap;
+  similar?: IIdeaAsRelation[];
 };
 
 export type IIdeaWithComputedFields = IIdea & {
@@ -94,24 +95,42 @@ export class Idea {
     const userGraphFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::user_graph(
-        $userId: string,
+          $userId: string,
+          $semanticLimit: option<int>
       ) {
-        LET $userIdeas = SELECT ->owns->idea as userIdeas FROM ONLY <record> $userId FETCH userIdeas;
-        LET $ideaIds = array::flatten($userIdeas[*].id);
-        LET $connections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
-        LET $userFiles = SELECT VALUE ->owns->user_file as userFiles FROM ONLY <record> $userId FETCH userFiles;
-        LET $ideas =
-          SELECT
-            *,
-            ->is_source_for->(?).* as derivedList
-          FROM
-            $userIdeas.userIdeas;
+          LET $similarityLimit = $semanticLimit ?? 5;
 
-        RETURN {
-            ideas: $ideas,
-            connections: $connections,
-            files: $userFiles,
-        };
+          LET $userOwnedIdeas = SELECT VALUE ->owns->idea FROM ONLY <record> $userId FETCH idea;
+          LET $ideas = IF $userOwnedIdeas IS NONE THEN [] ELSE $userOwnedIdeas END;
+
+          -- 2. Extract the IDs
+          LET $ideaIds = $ideas[*].id;
+
+          -- 3. Get connections
+          LET $connections = IF array::len($ideaIds) > 0 THEN (
+              SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds
+          ) ELSE
+              []
+          END;
+
+          -- 4. Get user files
+          LET $userFiles = SELECT VALUE ->owns->user_file FROM ONLY <record> $userId FETCH user_file;
+          LET $files = IF $userFiles IS NONE THEN [] ELSE $userFiles END;
+
+          -- 5. Select final idea data, including derived and similar ideas
+          LET $processedIdeas = SELECT
+              *,
+              ->is_source_for->(?).* as derivedList,
+              -- Call the similarity function with the determined limit
+              fn::search_similar_to_embeddings(embeddings, $userId, $similarityLimit) as similar
+          FROM $ideas
+          FETCH derivedList, similar;
+
+          RETURN {
+              ideas: $processedIdeas,
+              connections: $connections,
+              files: $files,
+          };
       }
       `;
     };

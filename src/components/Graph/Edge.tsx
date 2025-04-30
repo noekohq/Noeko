@@ -23,9 +23,21 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
 
   const strokeWidth = 2;
 
+  const visibilityToStyle: Record<
+    IEdge["visibility"],
+    { opacity: number; strokeWidth?: number }
+  > = {
+    high: { opacity: 0.5 },
+    medium: { opacity: 0.15 },
+    low: { opacity: 0.05, strokeWidth: 1 },
+  };
+
   return (
     <line
-      className={styles.edge}
+      className={`${styles.edge}`}
+      style={{
+        ...visibilityToStyle[edge.visibility || "low"],
+      }}
       x1={sourceNode.x}
       y1={sourceNode.y}
       x2={targetNode.x}
