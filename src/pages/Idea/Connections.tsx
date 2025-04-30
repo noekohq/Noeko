@@ -17,6 +17,7 @@ import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import { Graph, TrashSimple } from "@phosphor-icons/react";
+import { api } from "../../server/api";
 
 type IConnectionsProps = {
   opened: boolean;
@@ -79,6 +80,29 @@ export default function Connections({
     },
   });
 
+  const createConnectionInline = async (source: string, target: string) => {
+    try {
+      await api
+        .post("/graph/connection", { source, target })
+        .then(() => {
+          showNotification({
+            title: "Connection created",
+            message: "The connection was successfully created.",
+          });
+          reloadIdea();
+        })
+        .catch((error) => {
+          showNotification({
+            title: "Connection creation failed",
+            message: "The connection could not be created.",
+            color: "red",
+          });
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleDropIdeaInConnection = async () => {
     if (!draggedIdea) return;
     try {
@@ -118,8 +142,6 @@ export default function Connections({
   const handleRemoveConnection = () => {
     removeConnection();
   };
-
-  console.log("Related ideas: ", idea.relatedIdeas);
 
   return (
     <Drawer
@@ -246,12 +268,10 @@ export default function Connections({
                   <InlineSearch
                     placeholder="Search idea to connect..."
                     onSelect={(i) => {
-                      createConnection({
-                        updatedBody: {
-                          source: idea.id.toString(),
-                          target: i.id.toString(),
-                        },
-                      });
+                      createConnectionInline(
+                        idea.id.toString(),
+                        i.id.toString(),
+                      );
                     }}
                     omit={[idea.id.toString()]}
                   />
