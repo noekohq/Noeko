@@ -34,7 +34,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
         target: i.out.toString(),
         distance: 150,
         strength: 0.7,
-        visibility: "high",
+        visibility: "high" as const,
       };
     })
     .flat();
@@ -48,7 +48,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
             target: d.id.toString(),
             distance: 50,
             strength: 1,
-            visibility: "medium",
+            visibility: "medium" as const,
           };
         }),
       ] as IEdge[];
@@ -104,7 +104,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
               target: d.id.toString(),
               distance: targetDistance,
               strength: linkStrength,
-              visibility: "low",
+              visibility: "low" as const,
             };
           }) ?? []),
       ] as IEdge[];
