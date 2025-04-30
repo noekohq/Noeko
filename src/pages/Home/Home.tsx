@@ -64,7 +64,7 @@ export default function Home() {
           </Group>
         )}
       </div>
-      <RightSidebar>
+      <RightSidebar openOnShortcut={[{ key: "/" }]}>
         {isLoaded && (
           <GraphState
             nodes={localData.nodes}
