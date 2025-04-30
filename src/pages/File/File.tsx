@@ -1,11 +1,24 @@
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IUserFile } from "../../../app/database/models/userfile";
-import { Button, Card, Flex, Grid, Group, Text, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Card,
+  Flex,
+  Grid,
+  Group,
+  Text,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import { triggerDownload } from "../../utils/helpers";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import LeftSidebar from "../../components/UI/LeftSidebar";
+import { ArrowLeft } from "@phosphor-icons/react";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -71,34 +84,37 @@ export default function UserFile() {
   };
 
   return (
-    <div className={styles.file}>
-      <Grid>
-        <Grid.Col span={{ sm: 12 }}>
-          <Title>Viewing file</Title>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
-          <Card radius="md" withBorder shadow="xs" p="md">
-            <Flex justify="space-between">
-              <Group align="center">
-                <Text size="lg" fw="bold">
-                  {file?.originalFileName}
-                </Text>
-                <Text c="dimmed" size="sm">
-                  {file?.mimeType} {file?.sizeBytes} bytes
-                </Text>
-              </Group>
-              <Group>
-                <Button onClick={() => downloadFile()} variant="light">
-                  Download
-                </Button>
-                <Button onClick={handleDelete} variant="light" color="red">
-                  Delete
-                </Button>
-              </Group>
-            </Flex>
-          </Card>
-        </Grid.Col>
-      </Grid>
-    </div>
+    <PageWrapper>
+      <LeftSidebar stayCollapsed />
+      <div className={styles.file}>
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>
+            <Title>Viewing file</Title>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Card radius="md" withBorder shadow="xs" p="md">
+              <Flex justify="space-between">
+                <Group align="center">
+                  <Text size="lg" fw="bold">
+                    {file?.originalFileName}
+                  </Text>
+                  <Text c="dimmed" size="sm">
+                    {file?.mimeType} {file?.sizeBytes} bytes
+                  </Text>
+                </Group>
+                <Group>
+                  <Button onClick={() => downloadFile()} variant="light">
+                    Download
+                  </Button>
+                  <Button onClick={handleDelete} variant="light" color="red">
+                    Delete
+                  </Button>
+                </Group>
+              </Flex>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      </div>
+    </PageWrapper>
   );
 }

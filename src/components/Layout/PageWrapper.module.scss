@@ -1,5 +1,9 @@
+@use "../../styles/mixins.scss" as *;
+
 .pageWrapper {
-    display: flex;
-    flex-direction: row;
-    width: 100vw;
+    @include desktop {
+        display: flex;
+        width: 100vw;
+        flex-direction: row;
+    }
 }

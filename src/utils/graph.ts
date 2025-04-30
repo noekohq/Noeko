@@ -7,14 +7,14 @@ import {
   INode,
 } from "../declarations/graph";
 
-const MIN_SIMILARITY_THRESHOLD = 0.5;
-const MIN_GRAPH_DIST = 100; // Target distance for similarity = 1
-const MAX_GRAPH_DIST = 200; // Target distance for similarity = MIN_SIMILARITY_THRESHOLD
-const DISTANCE_EXPONENT = 2; // > 1 emphasizes closeness
+export const MIN_SIMILARITY_THRESHOLD = 0.5;
+export const MIN_GRAPH_DIST = 100; // Target distance for similarity = 1
+export const MAX_GRAPH_DIST = 200; // Target distance for similarity = MIN_SIMILARITY_THRESHOLD
+export const DISTANCE_EXPONENT = 2; // > 1 emphasizes closeness
 
-const MIN_STRENGTH = 0.1; // Pull strength for similarity = MIN_SIMILARITY_THRESHOLD
-const MAX_STRENGTH = 1.0; // Pull strength for similarity = 1
-const STRENGTH_EXPONENT = 2; // > 1 emphasizes stronger links
+export const MIN_STRENGTH = 0.1; // Pull strength for similarity = MIN_SIMILARITY_THRESHOLD
+export const MAX_STRENGTH = 1.0; // Pull strength for similarity = 1
+export const STRENGTH_EXPONENT = 2; // > 1 emphasizes stronger links
 
 export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
   const ideaNodes = dbGraph.ideas.map((i) => {
@@ -32,7 +32,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
       return {
         source: i.in.toString(),
         target: i.out.toString(),
-        distance: 150,
+        distance: MIN_GRAPH_DIST,
         strength: 0.7,
         visibility: "high" as const,
       };
@@ -72,7 +72,9 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
     .map((i) => {
       return [
         ...(i.similar
-          ?.filter((d) => d.distance > 0.5 && d.id !== i.id)
+          ?.filter(
+            (d) => d.distance > MIN_SIMILARITY_THRESHOLD && d.id !== i.id,
+          )
           .map((d) => {
             const similarity = d.distance; // clarity: d.distance is the similarity score
 

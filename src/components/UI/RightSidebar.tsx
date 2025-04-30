@@ -1,6 +1,8 @@
 import {
   ActionIcon,
   Avatar,
+  Divider,
+  Flex,
   Group,
   Menu,
   Space,
@@ -8,11 +10,13 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useAuth } from "../../contexts/AuthContext";
-import styles from "./RightSidebar.module.scss";
+import styles from "./Sidebars.module.scss";
 import { userInitials, userIsSuperuser } from "../../utils/user";
 import {
+  ArrowLineDown,
   ArrowLineLeft,
   ArrowLineRight,
+  ArrowLineUp,
   Gear,
   Graph,
   Shield,
@@ -22,6 +26,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
+import { useMediaQuery } from "@mantine/hooks";
 
 type RightSidebarProps = {
   children?: React.ReactNode;
@@ -85,21 +90,40 @@ export default function RightSidebar({
     return pathname === path;
   };
 
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  // if mobile, use up arrow, if desktop, use left arrow
+  const ToggleIconClosed = isMobile ? ArrowLineUp : ArrowLineLeft;
+  const ToggleIconOpened = isMobile ? ArrowLineDown : ArrowLineRight;
+
   return (
     <div
       className={`${styles.rightSidebar} ${opened ? styles.opened : styles.closed}`}
     >
-      <Group>
-        <ActionIcon onClick={handleToggle} variant="subtle">
+      <Flex
+        justify={
+          isMobile
+            ? opened
+              ? "space-between"
+              : "space-between"
+            : "space-between"
+        }
+        align="center"
+        direction={isMobile ? (opened ? "row-reverse" : "row-reverse") : "row"}
+        gap="md"
+      >
+        <ActionIcon
+          onClick={handleToggle}
+          variant="subtle"
+          style={{ justifySelf: "flex-start" }}
+        >
           {opened ? (
-            <ArrowLineRight weight="bold" />
+            <ToggleIconOpened weight="bold" />
           ) : (
-            <ArrowLineLeft weight="bold" />
+            <ToggleIconClosed weight="bold" />
           )}
         </ActionIcon>
-      </Group>
-      <div className={styles.content}>
-        <Group gap="md" justify="end">
+        <Flex gap="md" direction={isMobile ? (opened ? "row" : "row") : "row"}>
           <Menu width={200}>
             <Menu.Target>
               <Avatar
@@ -162,8 +186,10 @@ export default function RightSidebar({
               </Link>
             </Tooltip>
           )}
-        </Group>
-        <Space h="md" />
+        </Flex>
+      </Flex>
+      {opened && <Divider my="md" />}
+      <div className={styles.content}>
         <Group>{children}</Group>
       </div>
     </div>
