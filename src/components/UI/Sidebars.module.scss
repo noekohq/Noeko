@@ -20,7 +20,7 @@
     &.opened {
         // Take up half the viewport height each
         // Subtract margins if they cause overflow, or manage height via flexbox on parent
-        height: calc(50vh - 21px); // 50% height minus approx vertical margins (14px top + 14px bottom / 2)
+        height: auto; // 50% height minus approx vertical margins (14px top + 14px bottom / 2)
         padding: 24px; // Larger padding when opened
     }
 }
@@ -37,10 +37,10 @@
 
     // Example: Set a specific minimum height when closed on mobile
     &.closed {
-       min-height: 40px; // Adjust as needed
-       height: auto; // Allow content to define height if larger
-       // Ensure padding is small for closed state
-       padding: 14px;
+        min-height: 40px; // Adjust as needed
+        height: auto; // Allow content to define height if larger
+        // Ensure padding is small for closed state
+        padding: 14px;
     }
 }
 
@@ -55,14 +55,13 @@
     right: 14px;
 
     // Example: Set a specific minimum height when closed on mobile
-     &.closed {
-       min-height: 40px; // Adjust as needed
-       height: auto; // Allow content to define height if larger
-       // Ensure padding is small for closed state
-       padding: 14px;
+    &.closed {
+        min-height: 40px; // Adjust as needed
+        height: auto; // Allow content to define height if larger
+        // Ensure padding is small for closed state
+        padding: 14px;
     }
 }
-
 
 // --- Desktop Overrides (Side-by-Side Layout) ---
 
@@ -71,24 +70,21 @@
     .rightSidebar {
         position: initial;
         height: calc(100vh - 28px);
-        width: auto;
         margin: 14px;
         padding: 14px;
 
         // Desktop specific opened state
         &.opened {
             width: var(--sidebar-width);
-            height: calc(100vh - 28px); // Ensure correct height
             padding: 24px; // Restore larger padding
+            height: calc(100vh - 28px);
         }
 
         // Desktop specific closed state
         &.closed {
-             width: initial; // Or a specific fixed width like 60px if 'initial' is too small
-             // Adjust padding if needed for desktop closed state, otherwise inherits 14px
-             padding: 14px;
-             // Ensure content remains hidden
-             & > .content {
+            padding: 14px;
+            height: calc(100vh - 28px);
+            & > .content {
                 display: none;
             }
         }

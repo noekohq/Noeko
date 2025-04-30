@@ -7,10 +7,9 @@ import { Text } from "@mantine/core";
 type DerivedNodeProps = {
   node: IDerivedNode;
   isDragging: boolean;
-  onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void;
 };
 
-const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
+const DerivedNode = ({ node, isDragging }: DerivedNodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
   const {
@@ -23,11 +22,6 @@ const DerivedNode = ({ node, isDragging, onDragStart }: DerivedNodeProps) => {
   const iAmUnselected = !iAmSelected && selectedNode();
   const iAmLoading = isLoading();
   const { filter } = getFilter();
-
-  const handleMouseDown = (event: React.MouseEvent<SVGGElement>) => {
-    event.preventDefault();
-    onDragStart(event, node.id.toString());
-  };
 
   const handleNodeNavigate = (event: React.MouseEvent<SVGGElement>) => {
     setSelected(null);
