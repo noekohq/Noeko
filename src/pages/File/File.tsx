@@ -19,6 +19,7 @@ import { showNotification } from "@mantine/notifications";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import { ArrowLeft } from "@phosphor-icons/react";
+import RightSidebar from "../../components/UI/RightSidebar";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -115,6 +116,7 @@ export default function UserFile() {
           </Grid.Col>
         </Grid>
       </div>
+      <RightSidebar />
     </PageWrapper>
   );
 }

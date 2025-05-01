@@ -46,6 +46,7 @@ import useShortcuts from "../../hooks/useShortcuts";
 import { validateIdeaContent } from "../../utils/data";
 import { useAuth } from "../../contexts/AuthContext";
 import { userIsSuperuser } from "../../utils/user";
+import { useLayout } from "../../contexts/LayoutContext";
 
 type GraphStateProps = {
   reloadGraph: () => Promise<void>;
@@ -127,6 +128,10 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
   });
 
   const enableAdminTools = isAdmin;
+
+  const {
+    rightSidebar: { opened: rightSidebarOpened },
+  } = useLayout();
 
   return (
     <div className={`${styles.ui}`}>
