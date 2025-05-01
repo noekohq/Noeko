@@ -27,19 +27,25 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useMediaQuery } from "@mantine/hooks";
+import { useLayout } from "../../contexts/LayoutContext";
 
 type RightSidebarProps = {
   children?: React.ReactNode;
   toggleOpenShortcuts?: IShortcut["keys"][];
   openOnShortcut?: IShortcut["keys"][];
+  stayCollapsed?: boolean;
 };
 
 export default function RightSidebar({
   children,
   toggleOpenShortcuts,
   openOnShortcut,
+  stayCollapsed,
 }: RightSidebarProps) {
+  const openable = children !== undefined || !stayCollapsed;
+
   const [opened, setOpened] = useState(() => {
+    if (!openable) return false;
     if (typeof window !== "undefined" && window.localStorage) {
       const storedValue = localStorage.getItem("rightSidebarOpened");
       return storedValue !== "false";
@@ -47,13 +53,19 @@ export default function RightSidebar({
     return true;
   });
 
+  const {
+    rightSidebar: { setOpened: setRightSidebarOpened },
+  } = useLayout();
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem("rightSidebarOpened", opened.toString());
     }
+    setRightSidebarOpened(opened);
   }, [opened]);
 
   const handleToggle = () => {
+    if (!openable) return;
     setOpened((currentOpened) => !currentOpened);
   };
 
@@ -120,17 +132,21 @@ export default function RightSidebar({
         }
         gap="md"
       >
-        <ActionIcon
-          onClick={handleToggle}
-          variant="subtle"
-          style={{ justifySelf: "flex-start" }}
-        >
-          {opened ? (
-            <ToggleIconOpened weight="bold" />
-          ) : (
-            <ToggleIconClosed weight="bold" />
-          )}
-        </ActionIcon>
+        {openable && (
+          <Tooltip label="Toggle Sidebar (ctrl + l)">
+            <ActionIcon
+              onClick={handleToggle}
+              variant="subtle"
+              style={{ justifySelf: "flex-start" }}
+            >
+              {opened ? (
+                <ToggleIconOpened weight="bold" />
+              ) : (
+                <ToggleIconClosed weight="bold" />
+              )}
+            </ActionIcon>
+          </Tooltip>
+        )}
         <Flex
           gap="md"
           direction={
@@ -201,7 +217,7 @@ export default function RightSidebar({
           )}
         </Flex>
       </Flex>
-      {opened && <Divider my="md" />}
+      {opened && children && <Divider my="md" />}
       <div className={styles.content}>
         <Group>{children}</Group>
       </div>

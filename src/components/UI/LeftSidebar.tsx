@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./Sidebars.module.scss";
-import { ActionIcon, Divider, Flex, Group, Text } from "@mantine/core";
+import { ActionIcon, Divider, Flex, Group, Text, Tooltip } from "@mantine/core";
 import {
   ArrowLineDown,
   ArrowLineLeft,
@@ -13,6 +13,7 @@ import { getCurrentTimeOfDay } from "../../utils/datetime";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation } from "react-router";
 import { useMediaQuery } from "@mantine/hooks";
+import { useLayout } from "../../contexts/LayoutContext";
 
 type LeftSidebarProps = {
   children?: React.ReactNode | React.ReactNode[];
@@ -24,8 +25,10 @@ export default function LeftSidebar({
   stayCollapsed,
 }: LeftSidebarProps) {
   const { user } = useAuth();
+  const openable = children !== undefined || !stayCollapsed;
 
   const [opened, setOpened] = useState(() => {
+    if (!openable) return false;
     if (typeof window !== "undefined" && window.localStorage) {
       const storedValue = localStorage.getItem("leftSidebarOpened");
       return storedValue !== "false";
@@ -33,18 +36,20 @@ export default function LeftSidebar({
     return true;
   });
 
+  const {
+    leftSidebar: { setOpened: setLeftSidebarOpened },
+  } = useLayout();
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem("leftSidebarOpened", opened.toString());
     }
+    setLeftSidebarOpened(opened);
   }, [opened]);
 
   const handleToggle = () => {
-    if (stayCollapsed) {
-      setOpened(false);
-    } else {
-      setOpened((currentOpened) => !currentOpened);
-    }
+    if (!openable) return;
+    setOpened((currentOpened) => !currentOpened);
   };
 
   useShortcuts({
@@ -84,23 +89,27 @@ export default function LeftSidebar({
         )}
         {!isHome && (
           <Link to="/">
-            <ActionIcon variant="subtle">
-              <HouseSimple weight="bold" />
-            </ActionIcon>
+            <Tooltip label="Go home (cmd/ctrl + H)">
+              <ActionIcon variant="subtle">
+                <HouseSimple weight="bold" />
+              </ActionIcon>
+            </Tooltip>
           </Link>
         )}
-        {!stayCollapsed && (
-          <ActionIcon
-            onClick={handleToggle}
-            variant="subtle"
-            aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
-          >
-            {opened ? (
-              <ToggleIconOpened weight="bold" />
-            ) : (
-              <ToggleIconClosed weight="bold" />
-            )}
-          </ActionIcon>
+        {openable && (
+          <Tooltip label="Toggle Sidebar (ctrl + q)">
+            <ActionIcon
+              onClick={handleToggle}
+              variant="subtle"
+              aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              {opened ? (
+                <ToggleIconOpened weight="bold" />
+              ) : (
+                <ToggleIconClosed weight="bold" />
+              )}
+            </ActionIcon>
+          </Tooltip>
         )}
       </Flex>
       {opened && <Divider my="md" />}

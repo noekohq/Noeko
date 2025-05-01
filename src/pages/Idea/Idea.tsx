@@ -33,6 +33,10 @@ import Connections from "./Connections";
 import Overview from "./Overview";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import useShortcuts from "../../hooks/useShortcuts";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import LeftSidebar from "../../components/UI/LeftSidebar";
+import RightSidebar from "../../components/UI/RightSidebar";
+import Loading from "../../components/Display/Loading/Loading";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -262,234 +266,220 @@ export default function Idea() {
     ],
   });
 
-  if (loadingIdea && !idea) {
-    return (
-      <Loader
-        size="md"
-        style={{ display: "block", margin: "auto", marginTop: "2rem" }}
-      />
-    );
-  }
-
-  if (!idea && !loadingIdea && loadErrors.length > 0) {
-    return (
-      <Text c="red" ta="center" mt="lg">
-        Failed to load idea. It might not exist or there was a network error.
-      </Text>
-    );
-  }
-
-  if (!idea) {
-    return (
-      <Text ta="center" mt="lg">
-        Idea not available.
-      </Text>
-    );
-  }
-
   return (
-    <div className={styles.idea}>
-      <Connections
-        opened={connectionDrawerOpened}
-        onClose={connectionDrawerHandlers.close}
-        loadingIdea={loadingIdea}
-        idea={idea}
-        reloadIdea={reloadIdea}
-      />
-      <Overview
-        opened={overviewDrawerOpened}
-        onClose={overviewDrawerHandlers.close}
-        loadingIdea={loadingIdea}
-        idea={idea}
-        reloadIdea={reloadIdea}
-      />
-
-      <Grid>
-        <Grid.Col span={{ base: 12 }}>
-          <Group gap="sm">
-            <Tooltip label="Back to List">
-              <ActionIcon
-                onClick={() => navigate("/")}
-                variant="default"
-                size="lg"
-                aria-label="Back to list"
-              >
-                <ArrowLeft size={18} />
-              </ActionIcon>
-            </Tooltip>
-
-            <Tooltip
-              label={isSaved ? "No changes to save" : "Save changes (Ctrl+S)"}
-            >
-              <Box>
-                <Button
-                  leftSection={
-                    loadingSaveChanges ? (
-                      <Loader size="xs" color="white" />
-                    ) : (
-                      <FloppyDisk size={18} />
-                    )
-                  }
-                  onClick={handleSaveChanges}
-                  disabled={isSaved || loadingSaveChanges}
-                  variant="filled"
-                  size="sm" // Consistent size
-                >
-                  Save
-                </Button>
-              </Box>
-            </Tooltip>
-
-            <Box
-              style={{
-                borderLeft: "1px solid var(--mantine-color-gray-3)",
-                height: "24px",
-                alignSelf: "center",
-              }}
-              mx="xs"
+    <PageWrapper>
+      <LeftSidebar />
+      <div className={styles.idea}>
+        {loadingIdea && <Loading size="md" />}
+        {idea && (
+          <>
+            <Connections
+              opened={connectionDrawerOpened}
+              onClose={connectionDrawerHandlers.close}
+              loadingIdea={loadingIdea}
+              idea={idea}
+              reloadIdea={reloadIdea}
+            />
+            <Overview
+              opened={overviewDrawerOpened}
+              onClose={overviewDrawerHandlers.close}
+              loadingIdea={loadingIdea}
+              idea={idea}
+              reloadIdea={reloadIdea}
             />
 
-            <Tooltip label="Connections (Ctrl+I)">
-              <ActionIcon
-                onClick={connectionDrawerHandlers.toggle}
-                variant="light"
-                size="lg"
-                aria-label="Open connections"
-              >
-                <TreeStructure size={18} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Overview (Ctrl+O)">
-              <ActionIcon
-                onClick={overviewDrawerHandlers.toggle}
-                variant="light"
-                size="lg"
-                aria-label="Open overview"
-              >
-                <ListMagnifyingGlass size={18} />
-              </ActionIcon>
-            </Tooltip>
+            <Grid>
+              <Grid.Col span={{ base: 12 }}>
+                <Group gap="sm">
+                  <Tooltip label="Back to List">
+                    <ActionIcon
+                      onClick={() => navigate("/")}
+                      variant="default"
+                      size="lg"
+                      aria-label="Back to list"
+                    >
+                      <ArrowLeft size={18} />
+                    </ActionIcon>
+                  </Tooltip>
 
-            {/* Visual Separator */}
-            <Box
-              style={{
-                borderLeft: "1px solid var(--mantine-color-gray-3)",
-                height: "24px",
-                alignSelf: "center",
-              }}
-              mx="xs"
-            />
-
-            <Tooltip label="Delete Idea">
-              <ActionIcon
-                variant="light"
-                color="red"
-                size="lg"
-                onClick={handleDeleteIdea}
-                disabled={loadingDelete}
-                aria-label="Delete idea"
-              >
-                {loadingDelete ? (
-                  <Loader size="xs" />
-                ) : (
-                  <TrashSimple size={18} />
-                )}
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        </Grid.Col>
-
-        <Grid.Col span={{ base: 12 }}>
-          <Space h="lg" />
-        </Grid.Col>
-
-        <Grid.Col span={{ base: 12 }}>
-          <Title
-            order={1}
-            contentEditable
-            suppressContentEditableWarning
-            onBlur={(e) => handleTitleChange(e.currentTarget.innerText)}
-            dangerouslySetInnerHTML={{ __html: title || "" }}
-            className={styles.editableTitle} // Add custom style for focus/blur
-          />
-          {!isSaved && title !== originalIdea?.title && (
-            <Text size="xs" c="orange.7" mt={4}>
-              Title has unsaved changes.
-            </Text>
-          )}
-        </Grid.Col>
-
-        <Grid.Col span={{ base: 12 }}>
-          <Card radius="md" withBorder shadow="xs" p="md">
-            <Text fw={500} c="dimmed" size="sm" mb={4}>
-              <Sparkle
-                weight="bold"
-                style={{
-                  verticalAlign: "middle",
-                  marginRight: "6px",
-                  fontSize: "1.1em",
-                }}
-              />
-              Content Overview
-            </Text>
-            <Text size="sm" lineClamp={3}>
-              {idea.derived?.generative_summary?.sentenceSummary || (
-                <Text span c="dimmed" fs="italic">
-                  No overview available.
-                </Text>
-              )}
-            </Text>
-          </Card>
-        </Grid.Col>
-
-        {showStatusBlock && (
-          <Grid.Col span={{ base: 12 }}>
-            <Card p="lg" radius="md" withBorder shadow="xs">
-              <Group justify="space-between" align="center">
-                <Text size="sm" c="dimmed">
-                  {statusText()}
-                </Text>
-                {showEmbedButton && (
-                  <Button
-                    leftSection={
-                      loadingEmbeddings ? (
-                        <Loader size="sm" />
-                      ) : (
-                        <Shapes weight="bold" size={16} />
-                      )
+                  <Tooltip
+                    label={
+                      isSaved ? "No changes to save" : "Save changes (Ctrl+S)"
                     }
-                    disabled={
-                      loadingEmbeddings || loadingSaveChanges || !isSaved
-                    }
-                    onClick={handleEmbedIdea}
-                    variant="light"
-                    size="xs" // Smaller button for this context
                   >
-                    Generate Embeddings
-                  </Button>
-                )}
-              </Group>
-            </Card>
-          </Grid.Col>
-        )}
+                    <Box>
+                      <Button
+                        leftSection={
+                          loadingSaveChanges ? (
+                            <Loader size="xs" color="white" />
+                          ) : (
+                            <FloppyDisk size={18} />
+                          )
+                        }
+                        onClick={handleSaveChanges}
+                        disabled={isSaved || loadingSaveChanges}
+                        variant="filled"
+                        size="sm" // Consistent size
+                      >
+                        Save
+                      </Button>
+                    </Box>
+                  </Tooltip>
 
-        {!isSaved && content !== (originalIdea?.content || "") && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Text size="xs" c="orange.7" mt={4}>
-              Content has unsaved changes.
-            </Text>
-          </Grid.Col>
+                  <Box
+                    style={{
+                      borderLeft: "1px solid var(--mantine-color-gray-3)",
+                      height: "24px",
+                      alignSelf: "center",
+                    }}
+                    mx="xs"
+                  />
+
+                  <Tooltip label="Connections (Ctrl+I)">
+                    <ActionIcon
+                      onClick={connectionDrawerHandlers.toggle}
+                      variant="light"
+                      size="lg"
+                      aria-label="Open connections"
+                    >
+                      <TreeStructure size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Overview (Ctrl+O)">
+                    <ActionIcon
+                      onClick={overviewDrawerHandlers.toggle}
+                      variant="light"
+                      size="lg"
+                      aria-label="Open overview"
+                    >
+                      <ListMagnifyingGlass size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+
+                  {/* Visual Separator */}
+                  <Box
+                    style={{
+                      borderLeft: "1px solid var(--mantine-color-gray-3)",
+                      height: "24px",
+                      alignSelf: "center",
+                    }}
+                    mx="xs"
+                  />
+
+                  <Tooltip label="Delete Idea">
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      size="lg"
+                      onClick={handleDeleteIdea}
+                      disabled={loadingDelete}
+                      aria-label="Delete idea"
+                    >
+                      {loadingDelete ? (
+                        <Loader size="xs" />
+                      ) : (
+                        <TrashSimple size={18} />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12 }}>
+                <Space h="lg" />
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12 }}>
+                <Title
+                  order={1}
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => handleTitleChange(e.currentTarget.innerText)}
+                  dangerouslySetInnerHTML={{ __html: title || "" }}
+                  className={styles.editableTitle} // Add custom style for focus/blur
+                />
+                {!isSaved && title !== originalIdea?.title && (
+                  <Text size="xs" c="orange.7" mt={4}>
+                    Title has unsaved changes.
+                  </Text>
+                )}
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 12 }}>
+                <Card radius="md" withBorder shadow="xs" p="md">
+                  <Text fw={500} c="dimmed" size="sm" mb={4}>
+                    <Sparkle
+                      weight="bold"
+                      style={{
+                        verticalAlign: "middle",
+                        marginRight: "6px",
+                        fontSize: "1.1em",
+                      }}
+                    />
+                    Content Overview
+                  </Text>
+                  <Text size="sm" lineClamp={3}>
+                    {idea.derived?.generative_summary?.sentenceSummary || (
+                      <Text span c="dimmed" fs="italic">
+                        No overview available.
+                      </Text>
+                    )}
+                  </Text>
+                </Card>
+              </Grid.Col>
+
+              {showStatusBlock && (
+                <Grid.Col span={{ base: 12 }}>
+                  <Card p="lg" radius="md" withBorder shadow="xs">
+                    <Group justify="space-between" align="center">
+                      <Text size="sm" c="dimmed">
+                        {statusText()}
+                      </Text>
+                      {showEmbedButton && (
+                        <Button
+                          leftSection={
+                            loadingEmbeddings ? (
+                              <Loader size="sm" />
+                            ) : (
+                              <Shapes weight="bold" size={16} />
+                            )
+                          }
+                          disabled={
+                            loadingEmbeddings || loadingSaveChanges || !isSaved
+                          }
+                          onClick={handleEmbedIdea}
+                          variant="light"
+                          size="xs" // Smaller button for this context
+                        >
+                          Generate Embeddings
+                        </Button>
+                      )}
+                    </Group>
+                  </Card>
+                </Grid.Col>
+              )}
+
+              {!isSaved && content !== (originalIdea?.content || "") && (
+                <Grid.Col span={{ sm: 12 }}>
+                  <Text size="xs" c="orange.7" mt={4}>
+                    Content has unsaved changes.
+                  </Text>
+                </Grid.Col>
+              )}
+              <Grid.Col span={{ base: 12 }}>
+                <Space h="md" />
+                <DreamWriter
+                  key={ideaId}
+                  initialContent={idea.content || ""}
+                  stickyMenu={true}
+                  onChange={handleContentChange}
+                />
+              </Grid.Col>
+            </Grid>
+          </>
         )}
-        <Grid.Col span={{ base: 12 }}>
-          <Space h="md" />
-          <DreamWriter
-            key={ideaId}
-            initialContent={idea.content || ""}
-            stickyMenu={true}
-            onChange={handleContentChange}
-          />
-        </Grid.Col>
-      </Grid>
-    </div>
+      </div>
+      <RightSidebar />
+    </PageWrapper>
   );
 }
