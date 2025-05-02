@@ -1,4 +1,15 @@
-import { Button, Card, Drawer, Grid, List, Loader, Text } from "@mantine/core";
+import {
+  Accordion,
+  AccordionValue,
+  Button,
+  Card,
+  Drawer,
+  Grid,
+  Group,
+  List,
+  Loader,
+  Text,
+} from "@mantine/core";
 import { Sparkle } from "@phosphor-icons/react";
 import { IIdea } from "../../../app/database/models/ideas";
 import {
@@ -8,6 +19,7 @@ import {
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
+import { validate } from "uuid";
 
 type IOverviewProps = {
   opened: boolean;
@@ -100,168 +112,179 @@ export default function Overview({
   } = summary;
 
   return (
-    <Drawer
-      opened={opened}
-      onClose={onClose}
-      offset={14}
-      radius="lg"
-      position="right"
-      size={"70%"}
-    >
-      {!idea?.derived?.generative_summary ? (
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            There is no overview currently, would you like to generate one?
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Button
-              variant="light"
-              onClick={() => {
-                generateSummary();
-              }}
-              disabled={loadingOverview}
-              leftSection={
-                loadingOverview ? <Loader size="sm" color="white" /> : ""
-              }
-            >
-              {loadingOverview
-                ? "Creating overview..."
-                : "Yes, create overview."}
-            </Button>
-          </Grid.Col>
-        </Grid>
-      ) : (
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            <Button
-              variant="light"
-              onClick={() => {
-                openConfirmModal({
-                  title: "Are you sure?",
-                  children: (
-                    <Text>Are you sure you want to delete the overview?</Text>
-                  ),
-                  onConfirm: () => {
-                    removeSummary();
-                  },
-                  labels: {
-                    cancel: "No, Cancel",
-                    confirm: "Yes, Delete",
-                  },
-                  confirmProps: {
-                    color: "red",
-                  },
-                });
-              }}
-              color="red"
-              disabled={loadingDelete}
-              leftSection={
-                loadingDelete ? <Loader size="sm" color="white" /> : ""
-              }
-            >
-              Delete Overview
-            </Button>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Content Overview
-              </Text>
-              <Text>{sentenceOverview}</Text>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="lg">
-              <Text fw="bold" c="dimmed">
-                <Sparkle weight="bold" /> Content Summary
-              </Text>
-              <Text>{sentenceSummary}</Text>
-            </Card>
-          </Grid.Col>
-          {paragraphSummary && (
+    <div>
+      <Grid>
+        <Grid.Col span={12}>
+          <Text>Insights into your idea...</Text>
+        </Grid.Col>
+        {!idea?.derived?.generative_summary ? (
+          <>
             <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Paragraph Summary
-                </Text>
-                <Text>{paragraphSummary}</Text>
-              </Card>
+              There is no overview currently, would you like to generate one?
             </Grid.Col>
-          )}
-          {paragraphOverview && (
             <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Paragraph Overview
-                </Text>
-                <Text>{paragraphOverview}</Text>
-              </Card>
+              <Button
+                variant="light"
+                onClick={() => {
+                  generateSummary();
+                }}
+                disabled={loadingOverview}
+                leftSection={
+                  loadingOverview ? <Loader size="sm" color="white" /> : ""
+                }
+                size="sm"
+              >
+                {loadingOverview
+                  ? "Creating overview..."
+                  : "Yes, create overview."}
+              </Button>
             </Grid.Col>
-          )}
-          {abstractSummary && (
+          </>
+        ) : (
+          <>
             <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Abstract Summary
-                </Text>
-                <Text>{abstractSummary}</Text>
-              </Card>
+              <Group>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    openConfirmModal({
+                      title: "Are you sure?",
+                      children: (
+                        <Text>
+                          Are you sure you want to delete the overview?
+                        </Text>
+                      ),
+                      onConfirm: () => {
+                        removeSummary();
+                      },
+                      labels: {
+                        cancel: "No, Cancel",
+                        confirm: "Yes, Delete",
+                      },
+                      confirmProps: {
+                        color: "red",
+                      },
+                    });
+                  }}
+                  color="red"
+                  disabled={loadingDelete}
+                  leftSection={
+                    loadingDelete ? <Loader size="sm" color="white" /> : ""
+                  }
+                  size="sm"
+                >
+                  Delete Overview
+                </Button>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    generateSummary();
+                  }}
+                  disabled={loadingOverview}
+                  leftSection={
+                    loadingOverview ? <Loader size="sm" color="white" /> : ""
+                  }
+                  size="sm"
+                >
+                  {loadingOverview
+                    ? "Creating overview..."
+                    : "Refresh overview"}
+                </Button>
+              </Group>
             </Grid.Col>
-          )}
-          {simplifiedSummary && (
             <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Simplified Summary
-                </Text>
-                <Text>{simplifiedSummary}</Text>
-              </Card>
+              <Accordion>
+                <Accordion.Item value={"overview"}>
+                  <Accordion.Control icon={<Sparkle />}>
+                    Overview
+                  </Accordion.Control>
+                  <Accordion.Panel>{sentenceOverview}</Accordion.Panel>
+                </Accordion.Item>
+                <Accordion.Item value="summary">
+                  <Accordion.Control icon={<Sparkle />}>
+                    Brief Summary
+                  </Accordion.Control>
+                  <Accordion.Panel>{sentenceSummary}</Accordion.Panel>
+                </Accordion.Item>
+                {paragraphSummary && (
+                  <Accordion.Item value="paragraph_summary">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Summary
+                    </Accordion.Control>
+                    <Accordion.Panel>{paragraphSummary}</Accordion.Panel>
+                  </Accordion.Item>
+                )}
+                {paragraphOverview && (
+                  <Accordion.Item value="paragraph_overview">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Overview
+                    </Accordion.Control>
+                    <Accordion.Panel>{paragraphOverview}</Accordion.Panel>
+                  </Accordion.Item>
+                )}
+                {abstractSummary && (
+                  <Accordion.Item value="abstract_summary">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Abstract
+                    </Accordion.Control>
+                    <Accordion.Panel>{abstractSummary}</Accordion.Panel>
+                  </Accordion.Item>
+                )}
+                {simplifiedSummary && (
+                  <Accordion.Item value="abstract_summary">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Simplified
+                    </Accordion.Control>
+                    <Accordion.Panel>{simplifiedSummary}</Accordion.Panel>
+                  </Accordion.Item>
+                )}
+                {outline && (
+                  <Accordion.Item value="abstract_summary">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Outline
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <List type="unordered">
+                        {outline.map((item, index) => (
+                          <List.Item key={index}>{item}</List.Item>
+                        ))}
+                      </List>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                )}
+                {keyPoints && (
+                  <Accordion.Item value="abstract_summary">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Key Points
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <List type="unordered">
+                        {keyPoints.map((item, index) => (
+                          <List.Item key={index}>{item}</List.Item>
+                        ))}
+                      </List>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                )}
+                {highlights && (
+                  <Accordion.Item value="abstract_summary">
+                    <Accordion.Control icon={<Sparkle />}>
+                      Highlights
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <List type="unordered">
+                        {highlights.map((item, index) => (
+                          <List.Item key={index}>{item}</List.Item>
+                        ))}
+                      </List>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                )}
+              </Accordion>
             </Grid.Col>
-          )}
-          {outline && (
-            <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Outline
-                </Text>
-                <List type="unordered">
-                  {outline.map((item, index) => (
-                    <List.Item key={index}>{item}</List.Item>
-                  ))}
-                </List>
-              </Card>
-            </Grid.Col>
-          )}
-          {keyPoints && (
-            <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Key Points
-                </Text>
-                <List type="unordered">
-                  {keyPoints.map((point, index) => (
-                    <List.Item key={index}>{point}</List.Item>
-                  ))}
-                </List>
-              </Card>
-            </Grid.Col>
-          )}
-          {highlights && (
-            <Grid.Col span={{ sm: 12 }}>
-              <Card radius="lg">
-                <Text fw="bold" c="dimmed">
-                  <Sparkle weight="bold" /> Highlights
-                </Text>
-                <List type="unordered">
-                  {highlights.map((highlight, index) => (
-                    <List.Item key={index}>{highlight}</List.Item>
-                  ))}
-                </List>
-              </Card>
-            </Grid.Col>
-          )}
-        </Grid>
-      )}
-    </Drawer>
+          </>
+        )}
+      </Grid>
+    </div>
   );
 }
