@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react"; // Import React
+import React, { useEffect, useState, useCallback, useRef } from "react"; // Import React
 import { useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch"; // Your custom hook
@@ -16,6 +16,7 @@ import {
   Tooltip,
   Kbd,
   Box,
+  Flex,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import {
@@ -37,6 +38,9 @@ import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import Loading from "../../components/Display/Loading/Loading";
+import { useLayout } from "../../contexts/LayoutContext";
+import { getTextProcessed } from "../../utils/processing";
+import { htmlToPlainText } from "../../utils/formatting";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -210,6 +214,12 @@ export default function Idea() {
 
   const statusText = useCallback(() => {
     let text = "";
+    const { wordCount, characterCount, sentenceCount } = getTextProcessed(
+      htmlToPlainText(content),
+    );
+    text += `${wordCount} words. `;
+    text += `${characterCount} characters. `;
+    text += `${sentenceCount} sentences. `;
     if (loadingEmbeddings) {
       text += "Generating embeddings... ";
     } else if (!idea?.embeddings || idea.embeddings?.length === 0) {
@@ -220,7 +230,7 @@ export default function Idea() {
     return text.trim();
   }, [idea, loadingEmbeddings, embeddingsOutOfDate]);
 
-  const showStatusBlock = statusText().length > 0 || loadingEmbeddings;
+  const showStatusBlock = statusText().length > 0;
   const showEmbedButton = embeddingsOutOfDate();
 
   const [connectionDrawerOpened, connectionDrawerHandlers] =
@@ -266,11 +276,76 @@ export default function Idea() {
     ],
   });
 
+  const {
+    rightSidebar: { opened: rightSidebarOpened },
+    isMobile,
+  } = useLayout();
+
+  const [toolbarStyles, setToolbarStyles] = useState<{
+    left: string;
+    width: string;
+  }>();
+
+  const ideaRef = useRef<HTMLDivElement>(null);
+
+  const updateFixedStyle = useCallback(() => {
+    if (isMobile) {
+      return;
+    }
+    if (ideaRef.current) {
+      const parentRect = ideaRef.current.getBoundingClientRect();
+
+      setToolbarStyles({
+        width: `${parentRect.width}px`,
+        left: `${parentRect.left}px`,
+      });
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    const parentElement = ideaRef.current;
+    if (!parentElement) {
+      return;
+    }
+
+    updateFixedStyle();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateFixedStyle();
+    });
+    resizeObserver.observe(parentElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [updateFixedStyle]);
+
   return (
     <PageWrapper>
       <LeftSidebar>
         {idea && (
           <>
+            <Card radius="md" withBorder shadow="xs" p="md">
+              <Text fw={500} c="dimmed" size="sm" mb={4}>
+                <Sparkle
+                  weight="bold"
+                  style={{
+                    verticalAlign: "middle",
+                    marginRight: "6px",
+                    fontSize: "1.1em",
+                  }}
+                />
+                Content Overview
+              </Text>
+              <Text size="sm" lineClamp={3}>
+                {idea.derived?.generative_summary?.sentenceSummary ||
+                  idea.derived?.generative_summary?.sentenceOverview || (
+                    <Text span c="dimmed" fs="italic">
+                      No overview available.
+                    </Text>
+                  )}
+              </Text>
+            </Card>
             <Connections
               opened={connectionDrawerOpened}
               onClose={connectionDrawerHandlers.close}
@@ -288,100 +363,11 @@ export default function Idea() {
           </>
         )}
       </LeftSidebar>
-      <div className={styles.idea}>
+      <div className={styles.idea} ref={ideaRef}>
         {loadingIdea && <Loading size="md" />}
         {idea && (
           <>
             <Grid>
-              <Grid.Col span={{ base: 12 }}>
-                <Group gap="sm">
-                  <Tooltip
-                    label={
-                      isSaved ? "No changes to save" : "Save changes (Ctrl+S)"
-                    }
-                  >
-                    <Box>
-                      <Button
-                        leftSection={
-                          loadingSaveChanges ? (
-                            <Loader size="xs" color="white" />
-                          ) : (
-                            <FloppyDisk size={18} />
-                          )
-                        }
-                        onClick={handleSaveChanges}
-                        disabled={isSaved || loadingSaveChanges}
-                        variant="filled"
-                        size="sm" // Consistent size
-                      >
-                        Save
-                      </Button>
-                    </Box>
-                  </Tooltip>
-
-                  <Box
-                    style={{
-                      borderLeft: "1px solid var(--mantine-color-gray-3)",
-                      height: "24px",
-                      alignSelf: "center",
-                    }}
-                    mx="xs"
-                  />
-
-                  <Tooltip label="Connections (Ctrl+I)">
-                    <ActionIcon
-                      onClick={connectionDrawerHandlers.toggle}
-                      variant="light"
-                      size="lg"
-                      aria-label="Open connections"
-                    >
-                      <TreeStructure size={18} />
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label="Overview (Ctrl+O)">
-                    <ActionIcon
-                      onClick={overviewDrawerHandlers.toggle}
-                      variant="light"
-                      size="lg"
-                      aria-label="Open overview"
-                    >
-                      <ListMagnifyingGlass size={18} />
-                    </ActionIcon>
-                  </Tooltip>
-
-                  {/* Visual Separator */}
-                  <Box
-                    style={{
-                      borderLeft: "1px solid var(--mantine-color-gray-3)",
-                      height: "24px",
-                      alignSelf: "center",
-                    }}
-                    mx="xs"
-                  />
-
-                  <Tooltip label="Delete Idea">
-                    <ActionIcon
-                      variant="light"
-                      color="red"
-                      size="lg"
-                      onClick={handleDeleteIdea}
-                      disabled={loadingDelete}
-                      aria-label="Delete idea"
-                    >
-                      {loadingDelete ? (
-                        <Loader size="xs" />
-                      ) : (
-                        <TrashSimple size={18} />
-                      )}
-                    </ActionIcon>
-                  </Tooltip>
-                </Group>
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12 }}>
-                <Space h="lg" />
-              </Grid.Col>
-
               <Grid.Col span={{ base: 12 }}>
                 <Title
                   order={1}
@@ -398,61 +384,6 @@ export default function Idea() {
                 )}
               </Grid.Col>
 
-              <Grid.Col span={{ base: 12 }}>
-                <Card radius="md" withBorder shadow="xs" p="md">
-                  <Text fw={500} c="dimmed" size="sm" mb={4}>
-                    <Sparkle
-                      weight="bold"
-                      style={{
-                        verticalAlign: "middle",
-                        marginRight: "6px",
-                        fontSize: "1.1em",
-                      }}
-                    />
-                    Content Overview
-                  </Text>
-                  <Text size="sm" lineClamp={3}>
-                    {idea.derived?.generative_summary?.sentenceSummary ||
-                      idea.derived?.generative_summary?.sentenceOverview || (
-                        <Text span c="dimmed" fs="italic">
-                          No overview available.
-                        </Text>
-                      )}
-                  </Text>
-                </Card>
-              </Grid.Col>
-
-              {showStatusBlock && (
-                <Grid.Col span={{ base: 12 }}>
-                  <Card p="lg" radius="md" withBorder shadow="xs">
-                    <Group justify="space-between" align="center">
-                      <Text size="sm" c="dimmed">
-                        {statusText()}
-                      </Text>
-                      {showEmbedButton && (
-                        <Button
-                          leftSection={
-                            loadingEmbeddings ? (
-                              <Loader size="sm" />
-                            ) : (
-                              <Shapes weight="bold" size={16} />
-                            )
-                          }
-                          disabled={
-                            loadingEmbeddings || loadingSaveChanges || !isSaved
-                          }
-                          onClick={handleEmbedIdea}
-                          variant="light"
-                          size="xs" // Smaller button for this context
-                        >
-                          Generate Embeddings
-                        </Button>
-                      )}
-                    </Group>
-                  </Card>
-                </Grid.Col>
-              )}
-
               {!isSaved && content !== (originalIdea?.content || "") && (
                 <Grid.Col span={{ sm: 12 }}>
                   <Text size="xs" c="orange.7" mt={4}>
@@ -461,19 +392,118 @@ export default function Idea() {
                 </Grid.Col>
               )}
               <Grid.Col span={{ base: 12 }}>
-                <Space h="md" />
                 <DreamWriter
                   key={ideaId}
                   initialContent={idea.content || ""}
-                  stickyMenu={true}
+                  stickyMenu={false}
                   onChange={handleContentChange}
                 />
               </Grid.Col>
             </Grid>
+            {showStatusBlock && (
+              <div
+                className={`${styles.toolbar} ${rightSidebarOpened ? styles.rightSidebarOpen : ""}`}
+                style={{
+                  width:
+                    toolbarStyles && !isMobile
+                      ? toolbarStyles.width
+                      : undefined,
+                  left:
+                    toolbarStyles && !isMobile ? toolbarStyles.left : undefined,
+                }}
+              >
+                <Group justify="space-between" align="center">
+                  <Text size="sm" c="dimmed">
+                    {statusText()}
+                  </Text>
+                  {showEmbedButton && (
+                    <Button
+                      leftSection={
+                        loadingEmbeddings ? (
+                          <Loader size="sm" />
+                        ) : (
+                          <Shapes weight="bold" size={16} />
+                        )
+                      }
+                      disabled={
+                        loadingEmbeddings || loadingSaveChanges || !isSaved
+                      }
+                      onClick={handleEmbedIdea}
+                      variant="light"
+                      size="xs" // Smaller button for this context
+                    >
+                      Generate Embeddings
+                    </Button>
+                  )}
+                </Group>
+              </div>
+            )}
           </>
         )}
       </div>
-      <RightSidebar />
+      <RightSidebar stayCollapsed={isMobile}>
+        <Flex
+          direction={
+            isMobile
+              ? rightSidebarOpened
+                ? "row"
+                : "row"
+              : rightSidebarOpened
+                ? "row"
+                : "column"
+          }
+          align={"center"}
+          wrap={"wrap"}
+          gap="md"
+        >
+          <Tooltip
+            label={isSaved ? "No changes to save" : "Save changes (Ctrl+S)"}
+          >
+            {rightSidebarOpened ? (
+              <Button
+                leftSection={
+                  loadingSaveChanges ? (
+                    <Loader size="xs" color="white" />
+                  ) : (
+                    <FloppyDisk />
+                  )
+                }
+                onClick={handleSaveChanges}
+                disabled={isSaved || loadingSaveChanges}
+                variant="filled"
+                size="sm" // Consistent size
+              >
+                Save
+              </Button>
+            ) : (
+              <ActionIcon
+                onClick={handleSaveChanges}
+                disabled={isSaved || loadingSaveChanges}
+                variant="filled"
+                size="lg" // Consistent size
+              >
+                {loadingSaveChanges ? (
+                  <Loader size="xs" color="white" />
+                ) : (
+                  <FloppyDisk />
+                )}
+              </ActionIcon>
+            )}
+          </Tooltip>
+
+          <Tooltip label="Delete Idea">
+            <ActionIcon
+              variant="light"
+              color="red"
+              size="lg"
+              onClick={handleDeleteIdea}
+              disabled={loadingDelete}
+            >
+              {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
+            </ActionIcon>
+          </Tooltip>
+        </Flex>
+      </RightSidebar>
     </PageWrapper>
   );
 }

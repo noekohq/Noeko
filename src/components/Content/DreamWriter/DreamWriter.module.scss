@@ -109,10 +109,11 @@
     gap: 8px;
     // Replaced rgba(var(--color-background-alt-rgb), 1) with --mantine-color-default
     // This is often used for card/paper-like backgrounds in Mantine.
-    background-color: var(--mantine-color-gray-8);
+    background-color: var(--mantine-color-dark-6);
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-default-border);
     padding: 8px 14px;
     // Non-color variable kept
-    border-radius: var(--border-radius-small);
     overflow: hidden;
     position: relative;
 
@@ -171,10 +172,10 @@
     .frameContainer {
         // Replaced rgba(var(--color-background-contrast-rgb), 0.5)
         // Using a light gray shade directly instead of relying on alpha. Adjust gray shade (0, 1, 2) as needed.
-        background-color: var(--mantine-color-gray-9);
+        background-color: var(--mantine-color-body);
         padding: 8px 8px;
         // Non-color variable kept
-        border-radius: var(--border-radius-normal);
+        border-radius: var(--mantine-radius-md);
         overflow: hidden;
     }
 

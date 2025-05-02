@@ -72,17 +72,80 @@ export class Search {
       }`;
     };
 
+    const searchSimilarToIdea = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
+        $ideaId: string,
+        $userId: string,
+        $limit: int
+      ) {
+        LET $embeddings = SELECT embeddings FROM ONLY <record> $ideaId;
+        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance,
+                ->is_source_for->(?).* as derivedList
+            FROM idea
+            WHERE id IN $userIdeas
+            ORDER BY distance DESC
+            LIMIT $limit;
+
+        RETURN $results;
+      }
+          `;
+    };
+
+    const searchSimilarToEmbeddings = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
+        $provided_embeddings: array<float>,
+        $userId: string,
+        $limit: int
+      ) {
+        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
+                ->is_source_for->(?).* as derivedList
+            FROM idea
+            WHERE id IN $userIdeas
+            ORDER BY distance DESC
+            LIMIT $limit;
+
+        RETURN $results;
+      }
+          `;
+    };
+
     const db = await getDatabase();
     await db?.query(ideaSearchAnalyzer());
     await db?.query(ftsTitleSearchIndex());
     await db?.query(ftsContentSearchIndex());
     await db?.query(ftsSearchFunction());
+    await db?.query(searchSimilarToIdea());
+    await db?.query(searchSimilarToEmbeddings());
   }
 
   static async down() {}
 
-  static async keywordSearch(userId: string, query: string) {
+  static async ftsSearch(userId: string, query: string) {
     try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const results = await db.run<IFTSIdeaResult[]>(
+        "fn::search_user_ideas_fts",
+        [userId, query],
+      );
+      if (!results || results.length === 0) {
+        return [];
+      }
+      return results;
     } catch (error) {
       console.error("Error searching by keyword...", error);
       return undefined;
@@ -98,13 +161,8 @@ export class Search {
       if (!query) {
         return Idea.getUserIdeas(userId);
       }
-      console.log("User id and query:", userId, query);
-      const suggestions = await db.run<IFTSIdeaResult[]>(
-        "fn::search_user_ideas_fts",
-        [userId, query],
-      );
-      console.log("Getting suggestions: ", suggestions);
-      if (!suggestions || suggestions.length === 0) {
+      const suggestions = await Search.ftsSearch(userId, query);
+      if (!suggestions) {
         return [];
       }
       return suggestions;

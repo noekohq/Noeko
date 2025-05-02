@@ -25,7 +25,7 @@ export default function LeftSidebar({
   stayCollapsed,
 }: LeftSidebarProps) {
   const { user } = useAuth();
-  const openable = children !== undefined || !stayCollapsed;
+  const openable = children !== undefined && !stayCollapsed;
 
   const [opened, setOpened] = useState(() => {
     if (!openable) return false;
@@ -77,7 +77,7 @@ export default function LeftSidebar({
     >
       <Flex
         justify="space-between"
-        align="center"
+        align={isMobile ? (opened ? "center" : "flex-end") : "center"}
         direction={opened ? "row" : "column"}
         gap="md"
       >
@@ -87,7 +87,18 @@ export default function LeftSidebar({
             {user?.firstName ?? user?.email ?? "Guest"}
           </Text>
         )}
-        <Flex direction={opened ? "row-reverse" : "column"} gap="md">
+        <Flex
+          direction={
+            isMobile
+              ? opened
+                ? "row-reverse"
+                : "row-reverse"
+              : opened
+                ? "row-reverse"
+                : "column"
+          }
+          gap="md"
+        >
           {openable && (
             <Tooltip label="Toggle Sidebar (ctrl + q)">
               <ActionIcon

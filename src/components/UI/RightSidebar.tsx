@@ -42,7 +42,7 @@ export default function RightSidebar({
   openOnShortcut,
   stayCollapsed,
 }: RightSidebarProps) {
-  const openable = children !== undefined || !stayCollapsed;
+  const openable = children !== undefined && !stayCollapsed;
 
   const [opened, setOpened] = useState(() => {
     if (!openable) return false;
@@ -108,6 +108,8 @@ export default function RightSidebar({
   const ToggleIconClosed = isMobile ? ArrowLineUp : ArrowLineLeft;
   const ToggleIconOpened = isMobile ? ArrowLineDown : ArrowLineRight;
 
+  console.log("Openable: ", openable);
+
   return (
     <div
       className={`${styles.rightSidebar} ${opened ? styles.opened : styles.closed}`}
@@ -122,13 +124,7 @@ export default function RightSidebar({
         }
         align="center"
         direction={
-          isMobile
-            ? opened
-              ? "row-reverse"
-              : "row-reverse"
-            : opened
-              ? "row"
-              : "column"
+          isMobile ? (opened ? "row" : "row") : opened ? "row" : "column"
         }
         gap="md"
       >
@@ -217,10 +213,7 @@ export default function RightSidebar({
           )}
         </Flex>
       </Flex>
-      {opened && children && <Divider my="md" />}
-      <div className={styles.content}>
-        <Group>{children}</Group>
-      </div>
+      <div className={styles.content}>{children}</div>
     </div>
   );
 }

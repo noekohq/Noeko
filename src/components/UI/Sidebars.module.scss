@@ -11,14 +11,18 @@
     padding: 14px; // Default padding (like closed state)
     height: auto; // Default height, determined by content or specific small height for closed
     /* flex-grow: 1; */
+    overflow: hidden;
+    overflow-y: scroll;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: var(--mantine-spacing-md);
 
     // Content is hidden when closed (applies to mobile and desktop)
     &.closed {
         background-color: transparent;
-    }
-
-    &.closed > .content {
-        display: none;
+        flex-direction: row;
     }
 
     // Styles when opened on Mobile/Tablet
@@ -39,7 +43,7 @@
     top: 0;
     left: 0;
     right: 0;
-    border-radius: 0 24px 24px 0;
+    border-radius: 0 0 24px 24px;
 
     // Example: Set a specific minimum height when closed on mobile
     &.closed {
@@ -59,7 +63,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    border-radius: 24px 0 0 24px;
+    border-radius: 24px 24px 0 0;
 
     // Example: Set a specific minimum height when closed on mobile
     &.closed {
@@ -67,6 +71,7 @@
         height: auto; // Allow content to define height if larger
         // Ensure padding is small for closed state
         padding: 14px;
+        background-color: var(--mantine-color-dark-6);
     }
 }
 
@@ -76,6 +81,7 @@
         position: initial;
         height: calc(100vh);
         padding: 14px;
+        display: initial;
 
         // Desktop specific opened state
         &.opened {
@@ -88,9 +94,10 @@
         &.closed {
             padding: 14px;
             height: calc(100vh);
-            & > .content {
-                display: none;
-            }
+        }
+
+        & > .content {
+            margin-top: var(--mantine-spacing-lg);
         }
 
         // Reset mobile borders explicitly
@@ -102,11 +109,17 @@
         // Restore desktop border
         border-right: 1px solid var(--input-bd);
         border-left: none; // Ensure left border is off
+        border-radius: 0 24px 24px 0;
     }
 
     .rightSidebar {
         // Restore desktop border
         border-left: 1px solid var(--input-bd);
         border-right: none; // Ensure right border is off
+        border-radius: 24px 0 0 24px;
+
+        &.closed {
+            background-color: transparent;
+        }
     }
 }

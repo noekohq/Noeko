@@ -43,32 +43,32 @@ export default function IdeaPreview({
     idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
 
   return (
-    <Card
-      px="lg"
-      radius="lg"
-      draggable={draggable}
-      onDragStart={(e) => {
-        setDraggingIdea?.(idea);
-        onDragStart?.(e);
-        setDragging(true);
-      }}
-      onDragEnd={(e) => {
-        setDraggingIdea?.(undefined);
-        onDragEnd?.(e);
-        setDragging(false);
-      }}
-      withBorder={!dragging}
-      shadow={hoveringIdea === idea.id ? "md" : ""}
-      onMouseEnter={() => {
-        setHoveringIdea?.(idea.id.toString());
-      }}
-      onMouseLeave={() => {
-        setHoveringIdea?.(undefined);
-      }}
-      className={`${styles.ideaPreview} ${hoveringIdea === idea.id ? styles.hovered : ""}`}
-    >
-      <HoverCard width={"target"}>
-        <HoverCard.Target>
+    <HoverCard width="target" shadow="md">
+      <HoverCard.Target>
+        <Card
+          px="lg"
+          radius="lg"
+          draggable={draggable}
+          onDragStart={(e) => {
+            setDraggingIdea?.(idea);
+            onDragStart?.(e);
+            setDragging(true);
+          }}
+          onDragEnd={(e) => {
+            setDraggingIdea?.(undefined);
+            onDragEnd?.(e);
+            setDragging(false);
+          }}
+          withBorder={!dragging}
+          shadow={hoveringIdea === idea.id ? "md" : ""}
+          onMouseEnter={() => {
+            setHoveringIdea?.(idea.id.toString());
+          }}
+          onMouseLeave={() => {
+            setHoveringIdea?.(undefined);
+          }}
+          className={`${styles.ideaPreview} ${hoveringIdea === idea.id ? styles.hovered : ""}`}
+        >
           <Flex direction="column" gap="sm">
             <Text inline>
               {subtext && (
@@ -80,16 +80,16 @@ export default function IdeaPreview({
             </Text>
             {tags && tags.length > 0 && <div>{tags.map((tag) => tag)}</div>}
           </Flex>
-        </HoverCard.Target>
-        <HoverCard.Dropdown>
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>{options}</Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Text>{summary || "No summary provided."}</Text>
-            </Grid.Col>
-          </Grid>
-        </HoverCard.Dropdown>
-      </HoverCard>
-    </Card>
+        </Card>
+      </HoverCard.Target>
+      <HoverCard.Dropdown>
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>{options}</Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Text>{summary || "No summary provided."}</Text>
+          </Grid.Col>
+        </Grid>
+      </HoverCard.Dropdown>
+    </HoverCard>
   );
 }

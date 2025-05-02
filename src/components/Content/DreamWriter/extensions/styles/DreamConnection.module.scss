@@ -1,6 +1,7 @@
 /* Basic Suggestion List Styling */
 .suggestionList {
     width: 200px;
+    background-color: var(--mantine-color-dark-6);
 }
 
 .suggestionItem {
@@ -9,8 +10,8 @@
     text-align: left;
     border: none;
     border-bottom: 2px solid var(--mantine-primary-color);
-    background-color: var(--mantine-primary-color-light);
-    color: var(--mantine-primary-color-filled);
+    background-color: var(--mantine-primary-color);
+    color: var(--mantine-color-text);
     font-weight: 500;
     border-radius: 5px;
     margin-bottom: 2px;

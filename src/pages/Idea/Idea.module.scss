@@ -7,12 +7,46 @@
     overflow-y: scroll;
     scrollbar-width: none;
     /* scrollbar-color: var(--mantine-color-gray) transparent; */
+    padding-block-end: 20vh;
+    padding-block-start: 56px;
 
     @include desktop {
         max-width: 70vw;
+        padding-block-start: var(--mantine-spacing-lg);
     }
 
     @include widescreen {
         max-width: 55vw;
+    }
+}
+
+.toolbar {
+    position: fixed;
+    bottom: 82px;
+    left: 24px;
+    right: 24px;
+    padding: 8px 14px;
+    border-radius: var(--mantine-radius-md);
+    background-color: var(--mantine-color-dark-6);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+
+    &.rightSidebarOpen {
+        display: none;
+    }
+
+    @include desktop {
+        position: fixed;
+        bottom: 0;
+        border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+        left: initial;
+        right: initial;
+        box-sizing: border-box;
+
+        &.rightSidebarOpen {
+            display: initial;
+        }
     }
 }
