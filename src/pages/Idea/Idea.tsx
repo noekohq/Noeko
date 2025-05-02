@@ -268,9 +268,7 @@ export default function Idea() {
 
   return (
     <PageWrapper>
-      <LeftSidebar />
-      <div className={styles.idea}>
-        {loadingIdea && <Loading size="md" />}
+      <LeftSidebar>
         {idea && (
           <>
             <Connections
@@ -287,21 +285,16 @@ export default function Idea() {
               idea={idea}
               reloadIdea={reloadIdea}
             />
-
+          </>
+        )}
+      </LeftSidebar>
+      <div className={styles.idea}>
+        {loadingIdea && <Loading size="md" />}
+        {idea && (
+          <>
             <Grid>
               <Grid.Col span={{ base: 12 }}>
                 <Group gap="sm">
-                  <Tooltip label="Back to List">
-                    <ActionIcon
-                      onClick={() => navigate("/")}
-                      variant="default"
-                      size="lg"
-                      aria-label="Back to list"
-                    >
-                      <ArrowLeft size={18} />
-                    </ActionIcon>
-                  </Tooltip>
-
                   <Tooltip
                     label={
                       isSaved ? "No changes to save" : "Save changes (Ctrl+S)"
@@ -419,11 +412,12 @@ export default function Idea() {
                     Content Overview
                   </Text>
                   <Text size="sm" lineClamp={3}>
-                    {idea.derived?.generative_summary?.sentenceSummary || (
-                      <Text span c="dimmed" fs="italic">
-                        No overview available.
-                      </Text>
-                    )}
+                    {idea.derived?.generative_summary?.sentenceSummary ||
+                      idea.derived?.generative_summary?.sentenceOverview || (
+                        <Text span c="dimmed" fs="italic">
+                          No overview available.
+                        </Text>
+                      )}
                   </Text>
                 </Card>
               </Grid.Col>

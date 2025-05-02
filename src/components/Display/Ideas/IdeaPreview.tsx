@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { IIdea } from "../../../../app/database/models/ideas";
-import { Card, Container, Grid, Group, HoverCard, Text } from "@mantine/core";
+import {
+  Card,
+  Container,
+  Flex,
+  Grid,
+  Group,
+  HoverCard,
+  MantineColor,
+  Text,
+} from "@mantine/core";
 import styles from "./IdeaPreview.module.scss";
 
 type IdeaPreviewProps = {
@@ -13,6 +22,7 @@ type IdeaPreviewProps = {
   hoveringIdea?: string | undefined;
   setHoveringIdea?: (hoveringIdea: string | undefined) => void;
   options?: JSX.Element;
+  tags?: React.ReactNode[];
 };
 
 export default function IdeaPreview({
@@ -25,6 +35,7 @@ export default function IdeaPreview({
   hoveringIdea,
   setHoveringIdea,
   options,
+  tags,
 }: IdeaPreviewProps) {
   const [dragging, setDragging] = useState(false);
 
@@ -47,7 +58,7 @@ export default function IdeaPreview({
         setDragging(false);
       }}
       withBorder={!dragging}
-      shadow={dragging ? "md" : ""}
+      shadow={hoveringIdea === idea.id ? "md" : ""}
       onMouseEnter={() => {
         setHoveringIdea?.(idea.id.toString());
       }}
@@ -56,20 +67,19 @@ export default function IdeaPreview({
       }}
       className={`${styles.ideaPreview} ${hoveringIdea === idea.id ? styles.hovered : ""}`}
     >
-      <HoverCard width={300}>
+      <HoverCard width={"target"}>
         <HoverCard.Target>
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group gap="xs">
-                {subtext && (
-                  <Text size="xs" c="dimmed">
-                    {subtext}
-                  </Text>
-                )}
-                <Text fw="bold">{idea.title}</Text>
-              </Group>
-            </Grid.Col>
-          </Grid>
+          <Flex direction="column" gap="sm">
+            <Text inline>
+              {subtext && (
+                <Text inline size="xs" c="dimmed">
+                  {subtext}
+                </Text>
+              )}
+              {idea.title}
+            </Text>
+            {tags && tags.length > 0 && <div>{tags.map((tag) => tag)}</div>}
+          </Flex>
         </HoverCard.Target>
         <HoverCard.Dropdown>
           <Grid>

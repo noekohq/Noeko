@@ -8,6 +8,10 @@ import {
   Text,
   Overlay,
   ActionIcon,
+  Button,
+  Pill,
+  Badge,
+  Stack,
 } from "@mantine/core";
 import { IIdea, IIdeaConnection } from "../../../app/database/models/ideas";
 import { Link } from "react-router";
@@ -16,8 +20,9 @@ import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { InlineSearch } from "../../components/Search/InlineSearch";
-import { Graph, TrashSimple } from "@phosphor-icons/react";
+import { Graph, Lightbulb, TrashSimple } from "@phosphor-icons/react";
 import { api } from "../../server/api";
+import { similarityToColor, similarityToLevel } from "../../vars/ideas";
 
 type IConnectionsProps = {
   opened: boolean;
@@ -143,188 +148,134 @@ export default function Connections({
     removeConnection();
   };
 
+  const titleClamped = (title: string) => {
+    return title.length > 20 ? `${title.slice(0, 20)}...` : title;
+  };
+
   return (
-    <Drawer
-      opened={opened}
-      onClose={onClose}
-      offset={14}
-      radius="lg"
-      position="bottom"
-      size="70%"
-    >
-      <Grid>
-        {loadingIdea && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Loader size="lg" />
+    <Grid>
+      {loadingIdea && (
+        <Grid.Col span={{ sm: 12 }}>
+          <Loader size="lg" />
+        </Grid.Col>
+      )}
+      <Grid.Col span={{ sm: 12 }}>
+        <Grid>
+          {draggingOverConnectionDrop && draggedIdea && (
+            <Overlay
+              backgroundOpacity={0.5}
+              blur={5}
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={() => {
+                handleDropIdeaInConnection();
+              }}
+            >
+              <Group align="center" justify="center" style={{ height: "100%" }}>
+                <Text fw="bold">Drop here to create a connection</Text>
+              </Group>
+            </Overlay>
+          )}
+          <Grid.Col>
+            {draggingRelatedIdea && (
+              <Text size="sm">Drag idea here to create a connection</Text>
+            )}
           </Grid.Col>
-        )}
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <Card
-            p="lg"
-            radius="lg"
-            h="50vh"
-            style={{
-              overflowY: "scroll",
-              scrollbarWidth: "thin",
-              scrollbarColor: "transparent transparent",
-            }}
-          >
-            <Grid>
-              <Grid.Col span={{ sm: 12 }}>
-                <Group align="end">
-                  <Title order={2}>Related Ideas</Title>
-                  <Text c="dimmed">Drag ideas to connect them.</Text>
-                </Group>
-              </Grid.Col>
-              <Grid.Col
-                span={{ sm: 12 }}
-                style={{
-                  overflowY: "scroll",
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "transparent transparent",
-                }}
-              >
-                {idea?.relatedIdeas && idea.relatedIdeas?.length > 0 ? (
-                  <Group>
-                    {idea.relatedIdeas?.map((relatedIdea) => {
-                      return (
-                        <Link
-                          key={relatedIdea.id + "related"}
-                          to={`/idea/${relatedIdea.id}`}
-                          style={{
-                            textDecoration: "none",
-                          }}
-                        >
-                          <IdeaPreview
-                            idea={relatedIdea}
-                            subtext={
-                              <Text>
-                                {formattedDistance(relatedIdea.distance)}
-                              </Text>
-                            }
-                            onDragStart={() => setDraggingRelatedIdea?.(true)}
-                            onDragEnd={() => setDraggingRelatedIdea?.(false)}
-                            setDraggingIdea={(i) => setDraggedIdea?.(i)}
-                            draggable={
-                              !ideaIsConnected(relatedIdea.id.toString())
-                            }
-                            hoveringIdea={selectedIdea}
-                            setHoveringIdea={setSelectedIdea}
-                          />
-                        </Link>
-                      );
-                    })}
-                  </Group>
-                ) : (
-                  <Text>No related ideas yet.</Text>
-                )}
-              </Grid.Col>
-            </Grid>
-          </Card>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <Card
-            p="lg"
-            radius="lg"
-            onDragOver={() => {
-              setDraggingOverConnectionDrop(true);
-            }}
-            onDragLeave={() => {
-              setDraggingOverConnectionDrop(false);
-            }}
-          >
-            <Grid>
-              {draggingOverConnectionDrop && draggedIdea && (
-                <Overlay
-                  backgroundOpacity={0.5}
-                  blur={5}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                  }}
-                  onDrop={() => {
-                    handleDropIdeaInConnection();
-                  }}
-                >
-                  <Group
-                    align="center"
-                    justify="center"
-                    style={{ height: "100%" }}
-                  >
-                    <Text fw="bold">Drop here to create a connection</Text>
-                  </Group>
-                </Overlay>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group>
+              <Text fw="bold">Connected</Text>
+              <Graph />
+            </Group>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group>
+              {idea?.connections && idea.connections?.length > 0 ? (
+                idea.connections?.map((connection) => {
+                  return (
+                    <Link
+                      to={`/idea/${connection.id}`}
+                      style={{ textDecoration: "none", color: "inherit" }}
+                      key={connection.id + "connected"}
+                    >
+                      <IdeaPreview
+                        idea={connection}
+                        draggable={false}
+                        hoveringIdea={selectedIdea}
+                        setHoveringIdea={setSelectedIdea}
+                        options={
+                          <>
+                            <ActionIcon
+                              variant="light"
+                              color="red"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveConnection();
+                              }}
+                            >
+                              <TrashSimple />
+                            </ActionIcon>
+                          </>
+                        }
+                      />
+                    </Link>
+                  );
+                })
+              ) : (
+                <Text c="dimmed">No connections yet.</Text>
               )}
-              <Grid.Col>
-                <Group gap="md">
-                  {loadingNewConnection && <Loader size={"md"} />}
-                  <Title order={2}>Connections</Title>
-                </Group>
-                {draggingRelatedIdea && (
-                  <Text size="sm">Drag idea here to create a connection</Text>
-                )}
-              </Grid.Col>
-              {idea && (
-                <Grid.Col span={{ sm: 12 }}>
-                  <InlineSearch
-                    placeholder="Search idea to connect..."
-                    onSelect={(i) => {
-                      createConnectionInline(
-                        idea.id.toString(),
-                        i.id.toString(),
-                      );
-                    }}
-                    omit={[idea.id.toString()]}
-                  />
-                </Grid.Col>
-              )}
-              <Grid.Col span={{ sm: 12 }}>
-                <Group>
-                  <Text fw="bold">Connected</Text>
-                  <Graph />
-                </Group>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Group>
-                  {idea?.connections && idea.connections?.length > 0 ? (
-                    idea.connections?.map((connection) => {
-                      return (
-                        <Link
-                          to={`/idea/${connection.id}`}
-                          style={{ textDecoration: "none", color: "inherit" }}
-                          key={connection.id + "connected"}
-                        >
-                          <IdeaPreview
-                            idea={connection}
-                            draggable={false}
-                            hoveringIdea={selectedIdea}
-                            setHoveringIdea={setSelectedIdea}
-                            options={
-                              <>
-                                <ActionIcon
-                                  variant="light"
-                                  color="red"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveConnection();
-                                  }}
-                                >
-                                  <TrashSimple />
-                                </ActionIcon>
-                              </>
-                            }
-                          />
-                        </Link>
-                      );
-                    })
-                  ) : (
-                    <Text c="dimmed">No connections yet.</Text>
-                  )}
-                </Group>
-              </Grid.Col>
-            </Grid>
-          </Card>
-        </Grid.Col>
-      </Grid>
-    </Drawer>
+            </Group>
+          </Grid.Col>
+        </Grid>
+      </Grid.Col>
+      <Grid.Col span={{ sm: 12 }}>
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>
+            <Text size="sm">Some similar ideas to this one...</Text>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            {idea?.relatedIdeas && idea.relatedIdeas?.length > 0 ? (
+              <Stack>
+                {idea.relatedIdeas?.map((relatedIdea) => {
+                  const distance = relatedIdea.distance;
+                  const level = similarityToLevel(distance);
+                  const color = similarityToColor[level];
+
+                  return (
+                    <Link
+                      key={relatedIdea.id + "related"}
+                      to={`/idea/${relatedIdea.id}`}
+                      style={{
+                        textDecoration: "none",
+                      }}
+                    >
+                      <IdeaPreview
+                        idea={relatedIdea}
+                        subtext={
+                          <Text>{formattedDistance(relatedIdea.distance)}</Text>
+                        }
+                        onDragStart={() => setDraggingRelatedIdea?.(true)}
+                        onDragEnd={() => setDraggingRelatedIdea?.(false)}
+                        setDraggingIdea={(i) => setDraggedIdea?.(i)}
+                        draggable={!ideaIsConnected(relatedIdea.id.toString())}
+                        hoveringIdea={selectedIdea}
+                        setHoveringIdea={setSelectedIdea}
+                        tags={[
+                          <Badge color={color} variant="light" size="xs">
+                            {level}
+                          </Badge>,
+                        ]}
+                      />
+                    </Link>
+                  );
+                })}
+              </Stack>
+            ) : (
+              <Text>No related ideas yet.</Text>
+            )}
+          </Grid.Col>
+        </Grid>
+      </Grid.Col>
+    </Grid>
   );
 }

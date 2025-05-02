@@ -500,12 +500,22 @@ export class Idea {
         return undefined;
       }
       if (form.content !== undefined) {
-        await Idea.updateEmbeddings(result);
-        await Idea.runDerivedCascade(result.id);
+        // await Idea.updateEmbeddings(result);
+        // await Idea.runDerivedCascade(result.id);
       }
       return result;
     } catch (err) {
       console.error(err);
+      return undefined;
+    }
+  }
+
+  static async synchronizeUpdate(idea: IIdea) {
+    try {
+      await Idea.updateEmbeddings(idea);
+      await Idea.runDerivedCascade(idea.id);
+    } catch (error) {
+      console.error(error);
       return undefined;
     }
   }
@@ -889,8 +899,11 @@ export class Idea {
     }
   }
 
-  static async updateEmbeddings(idea: IIdea) {
+  static async updateEmbeddings(idea: IIdea, force = false) {
     try {
+      if (!force && idea.embeddingsUpdatedAt >= idea.contentUpdatedAt) {
+        return;
+      }
       const embedding = new Embeddings();
       const embeddableContent = htmlToPlainText(idea.content);
       const vector = await embedding.generateEmbeddings(embeddableContent);

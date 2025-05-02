@@ -68,7 +68,7 @@ export const GenerativeSummarySchema: LMSchema = {
       description: "Highlights extracted from the content.",
     },
   },
-  required: ["sentenceSummary"],
+  required: ["sentenceOverview", "sentenceSummary"],
 };
 
 export class GenerativeSummary {
