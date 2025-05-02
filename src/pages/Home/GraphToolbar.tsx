@@ -148,14 +148,14 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
       />
       <Flex gap={"md"} justify="space-between" align="flex-end">
         <Group justify="end">
-          <Group justify="end">
+          <Flex
+            direction={isMobile ? "row" : rightSidebarOpened ? "row" : "column"}
+            justify="end"
+            gap="md"
+          >
             {enableAdminTools && (
               <ActionIcon
                 variant="default"
-                size="lg"
-                style={{
-                  fontSize: 18,
-                }}
                 onClick={() => synchronizeGraph()}
                 title="Synchronize graph embeddings"
               >
@@ -169,11 +169,8 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
             <Tooltip label="Upload file">
               <ActionIcon
                 variant="default"
-                size="lg"
+                size="md"
                 onClick={() => setUploadFileOpened(!uploadFileOpened)}
-                style={{
-                  fontSize: 18,
-                }}
                 title="Add an idea"
               >
                 {uploadFileOpened ? (
@@ -186,17 +183,13 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
             <Tooltip label="Add an idea">
               <ActionIcon
                 variant="default"
-                size="lg"
                 onClick={() => setAddIdeaOpened(!addIdeaOpened)}
-                style={{
-                  fontSize: 18,
-                }}
                 title="Add an idea"
               >
                 {addIdeaOpened ? <X weight="bold" /> : <Plus weight="bold" />}
               </ActionIcon>
             </Tooltip>
-          </Group>
+          </Flex>
           {rightSidebarOpened && (
             <div className={styles.searchWrapper}>
               <InlineSearch

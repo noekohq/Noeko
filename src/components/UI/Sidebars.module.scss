@@ -18,6 +18,7 @@
     justify-content: space-between;
     flex-direction: column;
     gap: var(--mantine-spacing-md);
+    scrollbar-width: none;
 
     // Content is hidden when closed (applies to mobile and desktop)
     &.closed {
