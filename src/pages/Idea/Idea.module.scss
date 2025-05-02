@@ -3,6 +3,10 @@
 .idea {
     padding: 24px;
     width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    /* scrollbar-color: var(--mantine-color-gray) transparent; */
 
     @include desktop {
         max-width: 70vw;
