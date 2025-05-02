@@ -4,6 +4,8 @@
     @include desktop {
         display: flex;
         width: 100vw;
+        height: 100vh;
+        overflow: hidden;
         flex-direction: row;
         justify-content: space-between;
         gap: 36px;
