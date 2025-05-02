@@ -7,11 +7,16 @@
     box-sizing: border-box;
     background-color: var(--mantine-color-dark-6);
     position: fixed;
-    border-radius: 24px; // You might want to adjust/remove radius for mobile view corners
+    /* border-radius: 24px; // You might want to adjust/remove radius for mobile view corners */
     padding: 14px; // Default padding (like closed state)
     height: auto; // Default height, determined by content or specific small height for closed
+    /* flex-grow: 1; */
 
     // Content is hidden when closed (applies to mobile and desktop)
+    &.closed {
+        background-color: transparent;
+    }
+
     &.closed > .content {
         display: none;
     }
@@ -31,9 +36,10 @@
     border-left: none; // Ensure side borders are off for mobile/tablet
     border-right: none;
     border-top: none; // Assume no top border needed
-    top: 14px;
-    left: 14px;
-    right: 14px;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0 24px 24px 0;
 
     // Example: Set a specific minimum height when closed on mobile
     &.closed {
@@ -50,9 +56,10 @@
     border-left: none; // Ensure side borders are off for mobile/tablet
     border-right: none;
     border-bottom: none; // Assume no bottom border needed
-    bottom: 14px;
-    left: 14px;
-    right: 14px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 24px 0 0 24px;
 
     // Example: Set a specific minimum height when closed on mobile
     &.closed {
@@ -63,27 +70,24 @@
     }
 }
 
-// --- Desktop Overrides (Side-by-Side Layout) ---
-
 @include desktop {
     .leftSidebar,
     .rightSidebar {
         position: initial;
-        height: calc(100vh - 28px);
-        margin: 14px;
+        height: calc(100vh);
         padding: 14px;
 
         // Desktop specific opened state
         &.opened {
             width: var(--sidebar-width);
             padding: 24px; // Restore larger padding
-            height: calc(100vh - 28px);
+            height: calc(100vh);
         }
 
         // Desktop specific closed state
         &.closed {
             padding: 14px;
-            height: calc(100vh - 28px);
+            height: calc(100vh);
             & > .content {
                 display: none;
             }

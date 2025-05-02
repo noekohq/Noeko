@@ -87,30 +87,32 @@ export default function LeftSidebar({
             {user?.firstName ?? user?.email ?? "Guest"}
           </Text>
         )}
-        {!isHome && (
-          <Link to="/">
-            <Tooltip label="Go home (cmd/ctrl + H)">
-              <ActionIcon variant="subtle">
-                <HouseSimple weight="bold" />
+        <Flex direction={opened ? "row-reverse" : "column"} gap="md">
+          {openable && (
+            <Tooltip label="Toggle Sidebar (ctrl + q)">
+              <ActionIcon
+                onClick={handleToggle}
+                variant="subtle"
+                aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                {opened ? (
+                  <ToggleIconOpened weight="bold" />
+                ) : (
+                  <ToggleIconClosed weight="bold" />
+                )}
               </ActionIcon>
             </Tooltip>
-          </Link>
-        )}
-        {openable && (
-          <Tooltip label="Toggle Sidebar (ctrl + q)">
-            <ActionIcon
-              onClick={handleToggle}
-              variant="subtle"
-              aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
-            >
-              {opened ? (
-                <ToggleIconOpened weight="bold" />
-              ) : (
-                <ToggleIconClosed weight="bold" />
-              )}
-            </ActionIcon>
-          </Tooltip>
-        )}
+          )}
+          {!isHome && (
+            <Link to="/">
+              <Tooltip label="Go home (cmd/ctrl + H)">
+                <ActionIcon variant="subtle">
+                  <HouseSimple weight="bold" />
+                </ActionIcon>
+              </Tooltip>
+            </Link>
+          )}
+        </Flex>
       </Flex>
       {opened && <Divider my="md" />}
       {opened && <div className={styles.content}>{children}</div>}

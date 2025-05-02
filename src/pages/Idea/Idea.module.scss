@@ -1,4 +1,14 @@
+@use "../../styles/mixins.scss" as *;
+
 .idea {
     padding: 24px;
     width: 100%;
+
+    @include desktop {
+        max-width: 70vw;
+    }
+
+    @include widescreen {
+        max-width: 55vw;
+    }
 }
