@@ -114,13 +114,10 @@ export default function Overview({
   return (
     <div>
       <Grid>
-        <Grid.Col span={12}>
-          <Text>Insights into your idea...</Text>
-        </Grid.Col>
         {!idea?.derived?.generative_summary ? (
           <>
             <Grid.Col span={{ sm: 12 }}>
-              There is no overview currently, would you like to generate one?
+              Would you like an overview for this idea?
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Button
@@ -136,61 +133,14 @@ export default function Overview({
               >
                 {loadingOverview
                   ? "Creating overview..."
-                  : "Yes, create overview."}
+                  : "Yes, create overview"}
               </Button>
             </Grid.Col>
           </>
         ) : (
           <>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                <Button
-                  variant="light"
-                  onClick={() => {
-                    openConfirmModal({
-                      title: "Are you sure?",
-                      children: (
-                        <Text>
-                          Are you sure you want to delete the overview?
-                        </Text>
-                      ),
-                      onConfirm: () => {
-                        removeSummary();
-                      },
-                      labels: {
-                        cancel: "No, Cancel",
-                        confirm: "Yes, Delete",
-                      },
-                      confirmProps: {
-                        color: "red",
-                      },
-                    });
-                  }}
-                  color="red"
-                  disabled={loadingDelete}
-                  leftSection={
-                    loadingDelete ? <Loader size="sm" color="white" /> : ""
-                  }
-                  size="sm"
-                >
-                  Delete Overview
-                </Button>
-                <Button
-                  variant="light"
-                  onClick={() => {
-                    generateSummary();
-                  }}
-                  disabled={loadingOverview}
-                  leftSection={
-                    loadingOverview ? <Loader size="sm" color="white" /> : ""
-                  }
-                  size="sm"
-                >
-                  {loadingOverview
-                    ? "Creating overview..."
-                    : "Refresh overview"}
-                </Button>
-              </Group>
+            <Grid.Col span={12}>
+              <Text>Insights into your idea...</Text>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Accordion>
@@ -281,6 +231,56 @@ export default function Overview({
                   </Accordion.Item>
                 )}
               </Accordion>
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <Group>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    openConfirmModal({
+                      title: "Are you sure?",
+                      children: (
+                        <Text>
+                          Are you sure you want to delete the overview?
+                        </Text>
+                      ),
+                      onConfirm: () => {
+                        removeSummary();
+                      },
+                      labels: {
+                        cancel: "No, Cancel",
+                        confirm: "Yes, Delete",
+                      },
+                      confirmProps: {
+                        color: "red",
+                      },
+                    });
+                  }}
+                  color="red"
+                  disabled={loadingDelete || loadingOverview}
+                  leftSection={
+                    loadingDelete ? <Loader size="sm" color="white" /> : ""
+                  }
+                  size="xs"
+                  title="Delete overview"
+                >
+                  Delete
+                </Button>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    generateSummary();
+                  }}
+                  disabled={loadingOverview || loadingDelete}
+                  leftSection={
+                    loadingOverview ? <Loader size="sm" color="white" /> : ""
+                  }
+                  size="xs"
+                  title="Refresh overview"
+                >
+                  {loadingOverview ? "Refreshing overview..." : "Refresh"}
+                </Button>
+              </Group>
             </Grid.Col>
           </>
         )}
