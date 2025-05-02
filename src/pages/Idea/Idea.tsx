@@ -17,6 +17,7 @@ import {
   Kbd,
   Box,
   Flex,
+  Divider,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import {
@@ -353,6 +354,7 @@ export default function Idea() {
               idea={idea}
               reloadIdea={reloadIdea}
             />
+            <Divider my="lg" />
             <Overview
               opened={overviewDrawerOpened}
               onClose={overviewDrawerHandlers.close}

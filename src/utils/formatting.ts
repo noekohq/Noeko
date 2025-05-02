@@ -31,3 +31,10 @@ export const formatFileSize = (size: number) => {
   }
   return `${size.toFixed(2)} ${units[i]}`;
 };
+
+export const formatCamelCase = (text: string) => {
+  return text
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2") // insert space before uppercase
+    .replace(/^./, (str) => str.toUpperCase()) // capitalize first character
+    .replace(/\b\w/g, (char) => char.toUpperCase()); // capitalize every word
+};
