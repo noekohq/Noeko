@@ -131,6 +131,7 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
 
   const {
     rightSidebar: { opened: rightSidebarOpened },
+    isMobile,
   } = useLayout();
 
   return (
@@ -196,27 +197,29 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
               </ActionIcon>
             </Tooltip>
           </Group>
-          <div className={styles.searchWrapper}>
-            <InlineSearch
-              onSelect={(i) => {
-                navigate(`/idea/${i.id}`);
-              }}
-              onResults={handleResults}
-              onResultsClear={handleResultsClear}
-              onBlur={() => {
-                handleResultsClear();
-              }}
-              onSearchStart={() => {
-                setLoading(true);
-              }}
-              onSearchEnd={() => {
-                setLoading(false);
-              }}
-              onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-              onQueryChange={handleQueryChange}
-              helpText="Press enter to search deeper..."
-            />
-          </div>
+          {rightSidebarOpened && (
+            <div className={styles.searchWrapper}>
+              <InlineSearch
+                onSelect={(i) => {
+                  navigate(`/idea/${i.id}`);
+                }}
+                onResults={handleResults}
+                onResultsClear={handleResultsClear}
+                onBlur={() => {
+                  handleResultsClear();
+                }}
+                onSearchStart={() => {
+                  setLoading(true);
+                }}
+                onSearchEnd={() => {
+                  setLoading(false);
+                }}
+                onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
+                onQueryChange={handleQueryChange}
+                helpText="Press enter to search deeper..."
+              />
+            </div>
+          )}
         </Group>
       </Flex>
     </div>

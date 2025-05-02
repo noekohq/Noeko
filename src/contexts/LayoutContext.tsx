@@ -1,3 +1,4 @@
+import { useMediaQuery } from "@mantine/hooks";
 import React, { useContext, useState } from "react";
 
 type ILayoutContext = {
@@ -9,6 +10,7 @@ type ILayoutContext = {
     opened: boolean;
     setOpened: (opened: boolean) => void;
   };
+  isMobile: boolean;
 };
 
 const initialLayoutContext: ILayoutContext = {
@@ -20,6 +22,7 @@ const initialLayoutContext: ILayoutContext = {
     opened: false,
     setOpened: (opened: boolean) => {},
   },
+  isMobile: false,
 };
 
 const LayoutContext = React.createContext(initialLayoutContext);
@@ -36,8 +39,10 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       setRightSidebar({ ...rightSidebar, opened }),
   });
 
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   return (
-    <LayoutContext.Provider value={{ leftSidebar, rightSidebar }}>
+    <LayoutContext.Provider value={{ leftSidebar, rightSidebar, isMobile }}>
       {children}
     </LayoutContext.Provider>
   );

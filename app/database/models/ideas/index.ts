@@ -135,55 +135,6 @@ export class Idea {
       `;
     };
 
-    const searchSimilarToIdea = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
-        $ideaId: string,
-        $userId: string,
-        $limit: int
-      ) {
-        LET $embeddings = SELECT embeddings FROM ONLY <record> $ideaId;
-        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance,
-                ->is_source_for->(?).* as derivedList
-            FROM idea
-            WHERE id IN $userIdeas
-            ORDER BY distance DESC
-            LIMIT $limit;
-
-        RETURN $results;
-      }
-      `;
-    };
-
-    const searchSimilarToEmbeddings = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
-        $provided_embeddings: array<float>,
-        $userId: string,
-        $limit: int
-      ) {
-        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
-                ->is_source_for->(?).* as derivedList
-            FROM idea
-            WHERE id IN $userIdeas
-            ORDER BY distance DESC
-            LIMIT $limit;
-
-        RETURN $results;
-      }
-      `;
-    };
-
     const getIdeaConnections = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::get_idea_connections(
@@ -225,8 +176,6 @@ export class Idea {
 
     const db = await getDatabase();
     await db?.query(userGraphFunction());
-    await db?.query(searchSimilarToIdea());
-    await db?.query(searchSimilarToEmbeddings());
     await db?.query(getIdeaConnections());
     await db?.query(getIdeaDerived());
     await db?.query(getUserIdeas());

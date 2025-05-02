@@ -182,10 +182,10 @@ export default function Connections({
               <Text size="sm">Drag idea here to create a connection</Text>
             )}
           </Grid.Col>
+          <Grid.Col span={{ sm: 12 }} />
           <Grid.Col span={{ sm: 12 }}>
             <Group>
-              <Text fw="bold">Connected</Text>
-              <Graph />
+              <Text size="sm">Ideas you've connected...</Text>
             </Group>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
@@ -228,6 +228,7 @@ export default function Connections({
           </Grid.Col>
         </Grid>
       </Grid.Col>
+      <Grid.Col span={{ sm: 12 }} />
       <Grid.Col span={{ sm: 12 }}>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
