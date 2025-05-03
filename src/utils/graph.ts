@@ -6,6 +6,7 @@ import {
   IGraph,
   INode,
 } from "../declarations/graph";
+import { formatDate } from "./formatting";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 100; // Target distance for similarity = 1
@@ -133,4 +134,40 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
     ],
   };
   return localData;
+};
+
+export const getNodeSubtitle = (node: INode) => {
+  if (node.type === "idea") {
+    return formatDate(node.createdAt);
+  }
+  if (node.type === "file") {
+    return formatDate(node.createdAt);
+  }
+  if (node.type === "derived") {
+    return node.type;
+  }
+};
+
+export const getNodeTitle = (node: INode) => {
+  if (node.type === "idea") {
+    return node.title;
+  }
+  if (node.type === "file") {
+    return node.originalFileName;
+  }
+};
+
+export const getNodeDescription = (node: INode) => {
+  if (node.type === "idea") {
+    return (
+      node.derived?.generative_summary?.sentenceOverview ??
+      "No summary available"
+    );
+  }
+  if (node.type === "file") {
+    return node.mimeType;
+  }
+  if (node.type === "derived") {
+    return node.type;
+  }
 };

@@ -87,6 +87,10 @@ const FileNode = ({
     if (isMobile) {
       onNodeSelect?.(event, node);
       onContextMenu?.(event, node);
+    } else {
+      if (event.shiftKey) {
+        onNodeNavigate?.(event, node);
+      }
     }
   };
   const radius = 24;
@@ -180,7 +184,7 @@ const FileNode = ({
           <Text className={styles.nodeText} size="sm" ta="center">
             {iAmSelected && (
               <Text size="xs" c="dimmed">
-                Double click to navigate{" "}
+                Shift + click to navigate{" "}
                 <ArrowRight style={{ position: "relative", top: "2px" }} />
               </Text>
             )}

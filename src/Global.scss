@@ -4,11 +4,11 @@
 
 html {
     @include desktop {
-        --sidebar-width: 30vw;
+        --sidebar-width: 36vw;
     }
 
     @include widescreen {
-        --sidebar-width: 30vw;
+        --sidebar-width: 34vw;
     }
 }
 

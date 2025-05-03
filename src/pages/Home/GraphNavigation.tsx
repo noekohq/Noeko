@@ -5,6 +5,11 @@ import { IGraph, INode } from "../../declarations/graph";
 import { formatDate } from "../../utils/formatting";
 import { useAuth } from "../../contexts/AuthContext";
 import { getCurrentTimeOfDay, getTimeOfDay } from "../../utils/datetime";
+import {
+  getNodeDescription,
+  getNodeSubtitle,
+  getNodeTitle,
+} from "../../utils/graph";
 
 type GraphNavigationProps = {
   graph: IGraph | null;
@@ -25,42 +30,6 @@ export const GraphNavigation = ({
   const { user } = useAuth();
 
   const selectedNode = getSelectedNode();
-
-  const getNodeSubtitle = (node: INode) => {
-    if (node.type === "idea") {
-      return formatDate(node.createdAt);
-    }
-    if (node.type === "file") {
-      return formatDate(node.createdAt);
-    }
-    if (node.type === "derived") {
-      return node.type;
-    }
-  };
-
-  const getNodeTitle = (node: INode) => {
-    if (node.type === "idea") {
-      return node.title;
-    }
-    if (node.type === "file") {
-      return node.originalFileName;
-    }
-  };
-
-  const getNodeDescription = (node: INode) => {
-    if (node.type === "idea") {
-      return (
-        node.derived?.generative_summary?.sentenceOverview ??
-        "No summary available"
-      );
-    }
-    if (node.type === "file") {
-      return node.mimeType;
-    }
-    if (node.type === "derived") {
-      return node.type;
-    }
-  };
 
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
   const currentNode = selectedNode ? nodeMap.get(selectedNode) : null;
