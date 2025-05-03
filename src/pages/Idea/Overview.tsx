@@ -181,7 +181,7 @@ export default function Overview({
                   </Accordion.Item>
                 )}
                 {simplifiedSummary && (
-                  <Accordion.Item value="abstract_summary">
+                  <Accordion.Item value="simplified_summary">
                     <Accordion.Control icon={<Sparkle />}>
                       Simplified
                     </Accordion.Control>
@@ -189,7 +189,7 @@ export default function Overview({
                   </Accordion.Item>
                 )}
                 {outline && (
-                  <Accordion.Item value="abstract_summary">
+                  <Accordion.Item value="outline">
                     <Accordion.Control icon={<Sparkle />}>
                       Outline
                     </Accordion.Control>
@@ -203,7 +203,7 @@ export default function Overview({
                   </Accordion.Item>
                 )}
                 {keyPoints && (
-                  <Accordion.Item value="abstract_summary">
+                  <Accordion.Item value="key_points">
                     <Accordion.Control icon={<Sparkle />}>
                       Key Points
                     </Accordion.Control>
@@ -217,7 +217,7 @@ export default function Overview({
                   </Accordion.Item>
                 )}
                 {highlights && (
-                  <Accordion.Item value="abstract_summary">
+                  <Accordion.Item value="highlights">
                     <Accordion.Control icon={<Sparkle />}>
                       Highlights
                     </Accordion.Control>
