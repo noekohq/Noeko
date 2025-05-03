@@ -1,5 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import { IIdea, SearchResult } from "../../../app/database/models/ideas";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { IIdea } from "../../../app/database/models/ideas";
+import {
+  ISearchResult,
+  ISearchResultValue,
+} from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import {
   Menu,
@@ -12,17 +16,17 @@ import {
 import styles from "./InlineSearch.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
+import { getNodeDescription, getNodeTitle } from "../../utils/graph";
 
 type IInlineSearchProps = {
   placeholder?: string;
-  onSelect: (idea: IIdea) => void;
-  onResults?: (results: SearchResult[]) => void;
+  onSelect: (value: ISearchResultValue) => void;
+  onResults?: (results: ISearchResult[]) => void;
   onResultsClear?: () => void;
   onBlur?: () => void;
   onSearchStart?: () => void;
   onSearchEnd?: () => void;
   onShortcuts?: IShortcut["keys"][];
-  onQueryChange?: (v: string) => void;
   helpText?: string;
   omit?: string[];
 };
@@ -36,7 +40,6 @@ export function InlineSearch({
   onSearchStart,
   onSearchEnd,
   onShortcuts,
-  onQueryChange,
   helpText = "Press enter to search...",
   omit,
 }: IInlineSearchProps) {
@@ -46,8 +49,8 @@ export function InlineSearch({
     data: rawResults,
     load: searchIdeas,
     loading: loadingIdeas,
-  } = useFetch<{ query: string }, SearchResult[]>({
-    url: "/graph/ideas/search",
+  } = useFetch<{ query: string }, ISearchResult[]>({
+    url: "/search/comprehensive",
     method: "POST",
     body: {
       query,
@@ -62,7 +65,7 @@ export function InlineSearch({
   });
 
   const results = rawResults?.filter(
-    (result) => !omit?.includes(result.idea.id.toString()),
+    (result) => !omit?.includes(result.value.id.toString()),
   );
 
   useShortcuts({
@@ -90,16 +93,6 @@ export function InlineSearch({
     ],
   });
 
-  useEffect(() => {
-    if (results) {
-      onResults?.(results);
-    }
-  }, [results]);
-
-  useEffect(() => {
-    onQueryChange?.(query);
-  }, [query]);
-
   const inputRef = useRef<HTMLInputElement>(null);
 
   const resultsExist = results && results.length > 0;
@@ -115,17 +108,17 @@ export function InlineSearch({
 
   const bestResult = results && results[0];
 
-  const handleSelect = (result: SearchResult) => {
-    onSelect(result.idea);
+  const handleSelect = useCallback((result: ISearchResult) => {
+    onSelect(result.value);
     setQuery("");
     setDropdownOpen(false);
-  };
+  }, []);
 
-  const clearResults = () => {
+  const clearResults = useCallback(() => {
     setQuery("");
     setDropdownOpen(false);
     onResultsClear?.();
-  };
+  }, []);
 
   return (
     <div className={styles.inlineSearch}>
@@ -175,7 +168,9 @@ export function InlineSearch({
               setDropdownOpen(false);
               onBlur && onBlur();
             }}
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onFocus={() => {
+              setDropdownOpen(true);
+            }}
           />
         </Menu.Target>
         <Menu.Dropdown
@@ -188,21 +183,18 @@ export function InlineSearch({
           </Text>
           {results ? (
             results.map((result) => {
-              const isBestResult = result.idea.id === bestResult?.idea.id;
+              const isBestResult = result.value.id === bestResult?.value.id;
 
               return (
-                <React.Fragment key={result.idea.id + "result"}>
+                <React.Fragment key={result.value.id + "result"}>
                   <Menu.Item
                     onClick={() => {
                       handleSelect(result);
                     }}
                   >
-                    <Text>{result.idea.title}</Text>
+                    <Text>{getNodeTitle(result.value)}</Text>
                     <Text size="xs" c="dimmed">
-                      <Highlight component="span" highlight={query}>
-                        {result.idea.derived?.generative_summary
-                          ?.sentenceSummary || "No summary available"}
-                      </Highlight>
+                      {result.highlightText ?? getNodeDescription(result.value)}
                     </Text>
                   </Menu.Item>
                   <Menu.Divider />

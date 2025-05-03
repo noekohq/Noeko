@@ -8,34 +8,29 @@ import { useMediaQuery } from "@mantine/hooks";
 
 type NodeProps = {
   node: IIdeaNode;
-  isDragging: boolean; // Keep this to apply dragging styles if needed
+  isDragging: boolean;
   onNodeNavigate?: (
-    // Keep navigation logic
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: IIdeaNode,
   ) => void;
   onNodeSelect?: (
-    // Keep selection logic
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: IIdeaNode,
   ) => void;
-  // onDragStart: (event: React.MouseEvent<SVGGElement>, nodeId: string) => void; // REMOVE THIS PROP
   onContextMenu: (
-    // Keep context menu logic
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent too
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: IIdeaNode,
   ) => void;
-  "data-node-id": string; // ADD THIS PROP TYPE (it's passed directly)
+  "data-node-id": string;
 };
 
 const Node = ({
   node,
-  isDragging, // Still useful for styling
+  isDragging,
   onNodeNavigate,
   onNodeSelect,
-  // onDragStart, // REMOVE THIS PARAMETER
   onContextMenu,
-  "data-node-id": dataNodeId, // Receive the prop
+  "data-node-id": dataNodeId,
 }: NodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
@@ -88,6 +83,10 @@ const Node = ({
     if (isMobile) {
       onNodeSelect?.(event, node);
       onContextMenu?.(event, node);
+    } else {
+      if (event.shiftKey) {
+        onNodeNavigate?.(event, node);
+      }
     }
   };
 
@@ -122,16 +121,14 @@ const Node = ({
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onMouseEnter={handleMouseEnterSelect}
       onMouseLeave={handleMouseLeaveUnselect}
-      onContextMenu={handleContextMenu} // Keep for right-click (long press handled by GraphContainer)
-      onDoubleClick={handleNodeNavigate}
+      onContextMenu={handleContextMenu}
       onClick={handleNodeClick}
       className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${
         iAmUnselected ? styles.unselected : ""
       } ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""} ${
-        isDragging ? styles.dragging : "" // Optional: Style for dragging state if needed
+        isDragging ? styles.dragging : ""
       }`}
     >
-      {/* ... rest of the component (defs, circle, foreignObject) ... */}
       <defs>
         <radialGradient
           key={node.id.toString()}
@@ -165,7 +162,7 @@ const Node = ({
           <Text className={styles.nodeText} size="sm" ta="center">
             {iAmSelected && (
               <Text size="xs" c="dimmed">
-                Double click to navigate{" "}
+                Shift + click to navigate{" "}
                 <ArrowRight style={{ position: "relative", top: "2px" }} />
               </Text>
             )}

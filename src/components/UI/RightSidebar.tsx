@@ -108,8 +108,6 @@ export default function RightSidebar({
   const ToggleIconClosed = isMobile ? ArrowLineUp : ArrowLineLeft;
   const ToggleIconOpened = isMobile ? ArrowLineDown : ArrowLineRight;
 
-  console.log("Openable: ", openable);
-
   return (
     <div
       className={`${styles.rightSidebar} ${opened ? styles.opened : styles.closed}`}

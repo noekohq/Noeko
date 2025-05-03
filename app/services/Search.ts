@@ -1,26 +1,75 @@
+import { RecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import { Idea, IIdea, IIdeaAsRelation } from "../database/models/ideas";
+// Make sure IIdea includes all fields returned by your functions,
+// including potentially embeddings, contentPlain etc.
+import {
+  Idea,
+  IIdea,
+  IIdeaAsRelation,
+  IIdeaDerived,
+  IIdeaDerivedMap,
+} from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
+import { Embeddings } from "../semantics/embeddings";
 
+// --- Standardized Search Result Types ---
+
+// Define the possible value types a search result can represent
+export type ISearchResultValue =
+  | (IIdea & {
+      type: "idea";
+    })
+  | (IUserFile & {
+      type: "file";
+    }); // Keep flexible for future
+
+// The standardized structure for returning search results
 export type ISearchResult = {
-  score: number;
-  node: IIdeaAsRelation | IUserFile;
-  highlightText: string; // Placeholder for potential future implementation
+  id: string | RecordId; // Unique ID of the result item (e.g., 'idea:uuid')
+  score: number; // Final combined or specific score for ranking
+  value: ISearchResultValue; // The actual data object (IIdea or IUserFile)
+  highlightText?: string; // Highlighted snippet (from FTS 'preview' if available)
   debug?: {
-    semanticScore: number;
-    exactTitleBonus: number;
+    semanticScore?: number; // Score from vector similarity ('distance')
+    ftsContentScore?: number; // Score from FTS content match
+    ftsTitleScore?: number; // Score from FTS title match
+    exactTitleBonus?: number; // Bonus applied for exact title match
+    source: "semantic" | "fts" | "hybrid"; // Origin of the result determination
   };
 };
 
+// Type matching the exact output of your original fn::search_user_ideas_fts
 export type IFTSIdeaResult = IIdea & {
+  // Ensure IIdea includes contentPlain, title, etc. required by the query
   contentScore: number;
   titleScore: number;
-  preview: string;
+  preview: string; // Contains '->' and '<-' markers
 };
 
+// Type matching the output of fn::search_similar_to_embeddings (includes distance)
+// Note: Your original function also selected derivedList. Ensure IIdeaAsRelation includes it.
+export type ISemanticIdeaResult = IIdeaAsRelation & {
+  // IIdeaAsRelation should include IIdea fields + distance + derivedList
+};
+
+// --- Refactored Search Service ---
+
 export class Search {
+  // Weights and constants for comprehensive search scoring (tune as needed)
+  private static readonly COMPREHENSIVE_WEIGHTS = {
+    SEMANTIC: 1.5,
+    FTS_TITLE: 1.0,
+    FTS_CONTENT: 0.5,
+  };
+  private static readonly EXACT_TITLE_BONUS = 2.0;
+  private static readonly SEMANTIC_THRESHOLD = 0.5; // Min cosine similarity
+
   constructor() {}
 
+  /**
+   * Defines SurrealDB Analyzers, Indexes, and Functions for search.
+   * Uses the exact definitions provided in the initial prompt.
+   */
   static async up() {
     const ideaSearchAnalyzer = () => {
       return `
@@ -49,6 +98,7 @@ export class Search {
       `;
     };
 
+    // Uses the exact function definition from the initial prompt
     const ftsSearchFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_user_ideas_fts(
@@ -59,7 +109,7 @@ export class Search {
             *,
             contentPlain,
             title,
-            search::highlight("->", "<-", 0) AS preview,
+            search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
             search::score(0) AS contentScore,
             search::score(1) AS titleScore
         FROM idea
@@ -72,6 +122,7 @@ export class Search {
       }`;
     };
 
+    // Uses the exact function definition from the initial prompt
     const searchSimilarToIdea = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
@@ -86,7 +137,7 @@ export class Search {
             SELECT
                 *,
                 vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance,
-                ->is_source_for->(?).* as derivedList
+                ->is_source_for->(?).* as derivedList -- Includes derivedList
             FROM idea
             WHERE id IN $userIdeas
             ORDER BY distance DESC
@@ -97,6 +148,7 @@ export class Search {
           `;
     };
 
+    // Uses the exact function definition from the initial prompt
     const searchSimilarToEmbeddings = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
@@ -110,7 +162,7 @@ export class Search {
             SELECT
                 *,
                 vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
-                ->is_source_for->(?).* as derivedList
+                ->is_source_for->(?).* as derivedList -- Includes derivedList
             FROM idea
             WHERE id IN $userIdeas
             ORDER BY distance DESC
@@ -121,62 +173,337 @@ export class Search {
           `;
     };
 
-    const db = await getDatabase();
-    await db?.query(ideaSearchAnalyzer());
-    await db?.query(ftsTitleSearchIndex());
-    await db?.query(ftsContentSearchIndex());
-    await db?.query(ftsSearchFunction());
-    await db?.query(searchSimilarToIdea());
-    await db?.query(searchSimilarToEmbeddings());
-  }
-
-  static async down() {}
-
-  static async ftsSearch(userId: string, query: string) {
     try {
       const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
+      if (!db) throw new Error("Database not initialized for Search.up");
+      console.log(
+        "Defining search analyzers, indexes, and functions (using original definitions)...",
+      );
+      // Execute the original definitions
+      await db.query(ideaSearchAnalyzer());
+      await db.query(ftsTitleSearchIndex());
+      await db.query(ftsContentSearchIndex());
+      await db.query(ftsSearchFunction());
+      await db.query(searchSimilarToIdea());
+      await db.query(searchSimilarToEmbeddings());
+      console.log("Search setup complete (using original definitions).");
+    } catch (error) {
+      console.error("Error during Search.up():", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Optional: Removes search indexes and functions.
+   */
+  static async down() {
+    // Implement DROP ANALYZER, DROP INDEX, REMOVE FUNCTION if needed
+    // Example:
+    // const db = await getDatabase();
+    // await db?.query("REMOVE INDEX idx_idea_title_fts;");
+    // await db?.query("REMOVE INDEX idx_idea_content_fts;");
+    // await db?.query("REMOVE FUNCTION fn::search_user_ideas_fts;");
+    // ... etc.
+    console.warn(
+      "Search.down() needs specific REMOVE statements based on defined resources.",
+    );
+  }
+
+  /**
+   * Performs Full-Text Search (FTS) using the original `fn::search_user_ideas_fts`.
+   * Returns results mapped to the standardized ISearchResult format.
+   */
+  static async ftsSearch(
+    userId: string,
+    query: string,
+  ): Promise<ISearchResult[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      // Call the original function by name
+      // It expects userId as a string like "user:id"
       const results = await db.run<IFTSIdeaResult[]>(
         "fn::search_user_ideas_fts",
-        [userId, query],
+        [
+          userId, // Pass the user ID string directly as the function expects
+          query,
+        ],
       );
-      if (!results || results.length === 0) {
-        return [];
-      }
-      return results;
+
+      if (!results) return [];
+
+      // Map raw FTS results to the standard ISearchResult format
+      return results.map((idea): ISearchResult => {
+        // Simple FTS score combination (can be refined)
+        const combinedFtsScore =
+          (idea.titleScore ?? 0) + (idea.contentScore ?? 0);
+        return {
+          id: idea.id,
+          score: combinedFtsScore,
+          value: {
+            ...idea,
+            type: "idea",
+          }, // The full object as returned by the function
+          highlightText: idea.preview, // Use the 'preview' field with -> <- markers
+          debug: {
+            ftsContentScore: idea.contentScore,
+            ftsTitleScore: idea.titleScore,
+            source: "fts",
+          },
+        };
+      });
     } catch (error) {
-      console.error("Error searching by keyword...", error);
+      console.error("Error during FTS search:", error);
       return undefined;
     }
   }
 
-  static async suggest(userId: string, query: string) {
+  /**
+   * Performs Semantic (Vector) Search using the original `fn::search_similar_to_embeddings`.
+   * Returns results mapped to the standardized ISearchResult format.
+   */
+  static async semanticSearch(
+    userId: string,
+    embedding: number[],
+    limit: number = 10,
+  ): Promise<ISearchResult[] | undefined> {
     try {
       const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
-      if (!query) {
-        return Idea.getUserIdeas(userId);
-      }
-      const suggestions = await Search.ftsSearch(userId, query);
-      if (!suggestions) {
-        return [];
-      }
-      return suggestions;
+      if (!db) throw new Error("Database not initialized");
+
+      // Call the original function by name
+      // It expects userId as a string like "user:id"
+      const results = await db.run<ISemanticIdeaResult[]>( // Type includes distance and derivedList
+        "fn::search_similar_to_embeddings",
+        [embedding, userId, limit], // Pass userId string directly
+      );
+
+      if (!results) return [];
+
+      // Map semantic results to the standard ISearchResult format
+      return results.map((idea): ISearchResult => {
+        // Generate a simple preview if FTS isn't involved
+        // Use contentPlain if available, otherwise title
+        const preview = idea.contentPlain
+          ? idea.contentPlain.substring(0, 150) +
+            (idea.contentPlain.length > 150 ? "..." : "")
+          : (idea.title ?? "No Content");
+
+        // **Important**: Decide how to handle `derivedList` from the function results.
+        // Option 1: Include it in the `value` object (as it is now).
+        // Option 2: Process it into the `IIdeaDerivedMap` and add to `value`.
+        // Option 3: Ignore it in the search result and fetch separately if needed.
+        // Current implementation keeps it within the `value` object as returned.
+        // If you need the mapped version:
+        // const mappedDerived = Search.mapDerived(idea.derivedList);
+        // const valueWithMappedDerived = { ...idea, derived: mappedDerived };
+
+        return {
+          id: idea.id,
+          score: idea.distance ?? 0, // Use cosine similarity as the score
+          value: {
+            ...idea,
+            type: "idea",
+          }, // The full object as returned by the function (includes derivedList)
+          highlightText: preview, // Basic preview for semantic-only
+          debug: {
+            semanticScore: idea.distance,
+            source: "semantic",
+          },
+        };
+      });
     } catch (error) {
-      console.error("Error suggesting...", error);
+      console.error("Error during semantic search:", error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Provides search suggestions, currently based *only* on FTS results
+   * using the original `fn::search_user_ideas_fts`.
+   * Returns standard ISearchResult format.
+   */
+  static async suggest(
+    userId: string,
+    query: string,
+  ): Promise<ISearchResult[] | undefined> {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+
+    try {
+      // Use the dedicated ftsSearch method which calls the correct function
+      const suggestions = await Search.ftsSearch(userId, query);
+      // Apply limit suitable for suggestions
+      return suggestions?.slice(0, 5);
+    } catch (error) {
+      console.error("Error during suggest:", error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Performs a comprehensive search combining FTS and Semantic search results
+   * using the original database functions.
+   * Falls back to FTS if embeddings cannot be generated for the query.
+   * Returns results in the standardized ISearchResult format, ranked by a combined score.
+   */
+  static async comprehensiveSearch(
+    userId: string, // Expecting 'user:id' format here now, consistent with function calls
+    query: string,
+    options: { limit?: number } = {},
+  ): Promise<ISearchResult[] | undefined> {
+    const limit = options.limit ?? 10;
+    const initialFetchLimit = Math.max(limit * 2, 20); // Fetch more for ranking
+    const queryLower = query.toLowerCase().trim();
+
+    try {
+      // 1. Attempt to generate query embedding
+      const embeddingProcessor = new Embeddings();
+      let queryEmbedding: number[] | null = null;
+      try {
+        queryEmbedding = await embeddingProcessor.generateEmbeddings(query);
+      } catch (embeddingError) {
+        console.warn(
+          `Failed to generate query embedding for query "${query}":`,
+          embeddingError,
+        );
+        // Continue with FTS fallback
+      }
+
+      // 2. Fetch Results (using the standardized methods)
+      let ftsResults: ISearchResult[] | undefined;
+      let semanticResults: ISearchResult[] | undefined;
+
+      // Always perform FTS search
+      ftsResults = await Search.ftsSearch(userId, query);
+      if (ftsResults === undefined) {
+        console.error(
+          "Comprehensive Search: FTS search phase failed critically.",
+        );
+        return undefined; // FTS error is critical for fallback too
+      }
+
+      // Perform semantic search *only if* query embedding was successful
+      if (queryEmbedding) {
+        semanticResults = await Search.semanticSearch(
+          userId,
+          queryEmbedding,
+          initialFetchLimit,
+        );
+        if (semanticResults === undefined) {
+          console.warn(
+            "Comprehensive Search: Semantic search phase failed. Proceeding with FTS results only.",
+          );
+          // Non-fatal: proceed without semantic results
+        }
+      } else {
+        console.log(
+          `Comprehensive Search: No query embedding. Using FTS results only for query "${query}".`,
+        );
+      }
+
+      // 3. Merge and Score Results
+      const combinedResults: Map<string, ISearchResult> = new Map();
+
+      // Process FTS results first (these provide base + highlights)
+      for (const ftsRes of ftsResults) {
+        const id = ftsRes.id.toString(); // Use string ID for Map key consistency
+        const idea = ftsRes.value as IIdea; // Asserting type for access
+
+        // Base score from FTS weights
+        let score =
+          (ftsRes.debug?.ftsTitleScore ?? 0) *
+            Search.COMPREHENSIVE_WEIGHTS.FTS_TITLE +
+          (ftsRes.debug?.ftsContentScore ?? 0) *
+            Search.COMPREHENSIVE_WEIGHTS.FTS_CONTENT;
+
+        // Apply exact title bonus
+        const exactTitleBonus =
+          idea.title?.toLowerCase().trim() === queryLower
+            ? Search.EXACT_TITLE_BONUS
+            : 0;
+        score += exactTitleBonus;
+
+        combinedResults.set(id, {
+          ...ftsRes,
+          // highlightText already set by ftsSearch from 'preview'
+          score: score, // Score based on FTS + title bonus
+          debug: {
+            ...ftsRes.debug, // Includes fts scores and 'fts' source
+            exactTitleBonus: exactTitleBonus,
+            // Source will be updated to 'hybrid' if semantic match found
+            source: queryEmbedding ? "hybrid" : "fts",
+          },
+        });
+      }
+
+      // Merge Semantic results (if available and above threshold)
+      if (semanticResults) {
+        for (const semRes of semanticResults) {
+          const id = semRes.id.toString();
+          const semanticScore = semRes.debug?.semanticScore ?? 0;
+
+          if (semanticScore >= Search.SEMANTIC_THRESHOLD) {
+            const existing = combinedResults.get(id);
+            const semanticContribution =
+              semanticScore * Search.COMPREHENSIVE_WEIGHTS.SEMANTIC;
+            const idea = semRes.value as IIdea; // Assert type
+
+            if (existing) {
+              // Found by both: Add semantic score, update debug info
+              existing.score += semanticContribution;
+              existing.debug = {
+                ...existing.debug,
+                semanticScore: semanticScore,
+                source: "hybrid", // Mark clearly as hybrid
+              };
+              // Keep FTS highlightText from existing entry
+            } else {
+              // Found only by Semantic (above threshold): Add as new entry
+              const exactTitleBonus =
+                idea.title?.toLowerCase().trim() === queryLower
+                  ? Search.EXACT_TITLE_BONUS
+                  : 0;
+
+              combinedResults.set(id, {
+                ...semRes, // Use semantic result as base
+                // highlightText will be the basic preview generated by semanticSearch
+                score: semanticContribution + exactTitleBonus,
+                debug: {
+                  ...semRes.debug, // Includes semantic score
+                  exactTitleBonus: exactTitleBonus,
+                  source: "hybrid", // Found semantically in hybrid search context
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Final Ranking and Selection
+      const finalResults = Array.from(combinedResults.values());
+      finalResults.sort((a, b) => b.score - a.score); // Sort descending by score
+
+      return finalResults.slice(0, limit);
+    } catch (error) {
+      console.error(
+        `Error during comprehensive search for query "${query}":`,
+        error,
+      );
       return undefined;
     }
   }
 }
 
+// --- Initialization functions ---
 export const initSearch = async () => {
+  console.log("Initializing Search Service (using original definitions)...");
   await Search.up();
 };
 
 export const dropSearch = async () => {
+  console.log("Dropping Search Service Indexes/Functions...");
   await Search.down();
 };

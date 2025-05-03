@@ -2,11 +2,8 @@ import { useForm } from "@mantine/form";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import useFetch from "../../hooks/useFetch";
-import {
-  IDBGraph,
-  IIdea,
-  SearchResult,
-} from "../../../app/database/models/ideas";
+import { IDBGraph, IIdea } from "../../../app/database/models/ideas";
+import { ISearchResult } from "../../../app/services/Search";
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
@@ -71,28 +68,12 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
     query: { set: setQuery },
   } = useGraph();
 
-  const handleResults = useCallback((results: SearchResult[]) => {
-    const ideas = results.map((r) => r.idea.id);
+  const handleResults = useCallback((results: ISearchResult[]) => {
+    const filteredResults = results.map((r) => r.value.id.toString());
     setFilter({
-      filter: (idea) => ideas.includes(idea.id),
+      filter: (result) => filteredResults.includes(result.id.toString()),
     });
-    return ideas;
-  }, []);
-
-  const handleQueryChange = useCallback((q: string) => {
-    setQuery(q);
-    const normalized = q.toLowerCase();
-    setFilter({
-      filter: (node) => {
-        if (node.type === "idea") {
-          return node.title.toLowerCase().includes(normalized);
-        }
-        if (node.type === "file") {
-          return node.originalFileName.toLowerCase().includes(normalized);
-        }
-        return false;
-      },
-    });
+    return filteredResults;
   }, []);
 
   const handleResultsClear = useCallback(() => {
@@ -194,6 +175,7 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
             <div className={styles.searchWrapper}>
               <InlineSearch
                 onSelect={(i) => {
+                  console.log("Selected result: ", i);
                   navigate(`/idea/${i.id}`);
                 }}
                 onResults={handleResults}
@@ -208,7 +190,6 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
                   setLoading(false);
                 }}
                 onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-                onQueryChange={handleQueryChange}
                 helpText="Press enter to search deeper..."
               />
             </div>
