@@ -43,7 +43,7 @@ export default function IdeaPreview({
     idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
 
   return (
-    <HoverCard width="target" shadow="md">
+    <HoverCard width={200} shadow="md">
       <HoverCard.Target>
         <Card
           px="lg"
