@@ -221,7 +221,7 @@ router.put("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const { title, content } = req.body;
+    const { title, content, withComputations } = req.body;
     const updater: Partial<IIdeaForm> = {};
     if (title !== undefined) {
       updater.title = title;
@@ -229,7 +229,7 @@ router.put("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
     if (content !== undefined) {
       updater.content = content;
     }
-    const i = await Idea.update(id, updater);
+    const i = await Idea.update(id, updater, withComputations === true);
     if (!i) {
       res.status(404).json({ error: "Idea not updated" });
       return;
@@ -240,6 +240,47 @@ router.put("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+router.post(
+  "/ideas/update/:id",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      console.log("Updating on page hide!!!", req.body.title);
+      const { id } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const hasAccess = await Idea.checkUserOwnership(id, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const { title, content, withComputations } = req.body;
+      const updater: Partial<IIdeaForm> = {};
+      if (title !== undefined) {
+        updater.title = title;
+      }
+      if (content !== undefined) {
+        updater.content = content;
+      }
+      const i = await Idea.update(id, updater, withComputations === true);
+      if (!i) {
+        res.status(404).json({ error: "Idea not updated" });
+        return;
+      }
+      res.send({ message: "Successfully updated idea.", data: i });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+);
 
 router.delete("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
   try {
@@ -293,6 +334,34 @@ router.post(
         return;
       }
       res.send({ message: "Successfully loaded embeddings.", data: idea });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+);
+
+router.post(
+  "/ideas/:id/cascade",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const hasAccess = await Idea.checkUserOwnership(id, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized",
+        });
+        return;
+      }
+      await Idea.runDerivedCascade(id);
+      res.send({ message: "Successfully loaded embeddings.", data: true });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal Server Error" });

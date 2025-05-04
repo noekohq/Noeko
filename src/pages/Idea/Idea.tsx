@@ -42,6 +42,7 @@ import Loading from "../../components/Display/Loading/Loading";
 import { useLayout } from "../../contexts/LayoutContext";
 import { getTextProcessed } from "../../utils/processing";
 import { htmlToPlainText } from "../../utils/formatting";
+import useBeaconOnHide from "../../hooks/useBeaconOnHide";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -91,14 +92,6 @@ export default function Idea() {
     }
   }, [loadErrors]);
 
-  const handleTitleChange = useCallback((newTitle: string) => {
-    setTitle(newTitle);
-  }, []);
-
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
-  }, []);
-
   useEffect(() => {
     if (!originalIdea) return;
 
@@ -115,16 +108,12 @@ export default function Idea() {
     url: `/graph/ideas/${ideaId}`,
     method: "PUT",
     body: {
-      title: title,
-      content: content,
+      title: title || "New idea...",
+      content: content || "Nothing here yet...",
     },
     dependencies: [title, content],
     onSuccess: (updatedIdea) => {
       reloadIdea();
-      showNotification({
-        title: "Success",
-        message: "Idea updated successfully",
-      });
     },
     onError: (error: any) => {
       showNotification({
@@ -136,9 +125,24 @@ export default function Idea() {
   });
 
   const handleSaveChanges = useCallback(() => {
-    if (isSaved || loadingSaveChanges || !idea) return;
+    if (
+      isSaved ||
+      loadingSaveChanges ||
+      !idea
+      // !idea.content ||
+      // !idea.title
+    ) {
+      return;
+    }
     triggerSaveChanges();
-  }, [isSaved, loadingSaveChanges, idea, triggerSaveChanges]);
+  }, [
+    isSaved,
+    loadingSaveChanges,
+    idea,
+    idea?.content,
+    idea?.title,
+    triggerSaveChanges,
+  ]);
 
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/graph/ideas/${ideaId}`,
@@ -180,10 +184,6 @@ export default function Idea() {
     method: "POST",
     onSuccess: () => {
       reloadIdea();
-      showNotification({
-        title: "Embeddings",
-        message: "Embedding generation process started.", // Message suggests async process
-      });
     },
     onError: (error: any) => {
       showNotification({
@@ -194,18 +194,21 @@ export default function Idea() {
     },
   });
 
-  const handleEmbedIdea = useCallback(() => {
-    if (loadingEmbeddings || loadingSaveChanges || !idea) return;
-    if (!isSaved) {
-      showNotification({
-        title: "Unsaved Changes",
-        message: "Please save your changes before generating embeddings.",
-        color: "yellow",
-      });
-      return;
-    }
-    triggerEmbedIdea();
-  }, [isSaved, loadingEmbeddings, loadingSaveChanges, idea, triggerEmbedIdea]);
+  const { load: triggerDerivedCascade, loading: loadingDerivedCascade } =
+    useFetch({
+      url: `/graph/ideas/${ideaId}/cascade`,
+      method: "POST",
+      onSuccess: () => {
+        reloadIdea();
+      },
+      onError: (error: any) => {
+        showNotification({
+          title: "Error",
+          message: `Failed to run some updates on idea.`,
+          color: "red",
+        });
+      },
+    });
 
   const embeddingsOutOfDate = useCallback(() => {
     if (!idea) return false;
@@ -218,6 +221,14 @@ export default function Idea() {
     const { wordCount, characterCount, sentenceCount } = getTextProcessed(
       htmlToPlainText(content),
     );
+    if (!isSaved && content !== (originalIdea?.content || "")) {
+      text += "Out of date... ";
+    }
+    if (loadingSaveChanges) {
+      text += "Saving...";
+    } else if (isSaved) {
+      text += "Saved. ";
+    }
     text += `${wordCount} words. `;
     text += `${characterCount} characters. `;
     text += `${sentenceCount} sentences. `;
@@ -229,10 +240,16 @@ export default function Idea() {
       text += "Embeddings might be out of date. ";
     }
     return text.trim();
-  }, [idea, loadingEmbeddings, embeddingsOutOfDate]);
+  }, [
+    idea,
+    content,
+    isSaved,
+    originalIdea,
+    loadingEmbeddings,
+    embeddingsOutOfDate,
+  ]);
 
   const showStatusBlock = statusText().length > 0;
-  const showEmbedButton = embeddingsOutOfDate();
 
   const [connectionDrawerOpened, connectionDrawerHandlers] =
     useDisclosure(false);
@@ -242,6 +259,10 @@ export default function Idea() {
     connectionDrawerHandlers.close();
     overviewDrawerHandlers.close();
   }, [ideaId]);
+
+  const handleManualSaveChanges = useCallback(() => {
+    handleSaveChanges();
+  }, []);
 
   useShortcuts({
     shortcuts: [
@@ -271,7 +292,7 @@ export default function Idea() {
           key: "s",
         },
         run: () => {
-          handleSaveChanges();
+          handleManualSaveChanges();
         },
       },
     ],
@@ -321,6 +342,93 @@ export default function Idea() {
     };
   }, [updateFixedStyle]);
 
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+  }, []);
+
+  useEffect(() => {
+    if (!originalIdea) return;
+    const titleChanged = title !== originalIdea.title;
+    const contentChanged = content !== (originalIdea.content || "");
+    setIsSaved(!(titleChanged || contentChanged));
+  }, [title, content, originalIdea]);
+
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const triggerComputeIfNeeded = useCallback(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
+
+    if (!idea) {
+      return;
+    }
+
+    if (!isSaved) {
+      return;
+    }
+
+    const needsEmbedding =
+      !idea.embeddingsUpdatedAt ||
+      new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
+
+    if (needsEmbedding && !loadingEmbeddings && !loadingSaveChanges) {
+      triggerEmbedIdea();
+    } else if (!needsEmbedding) {
+    } else {
+    }
+    // if (!loadingDerivedCascade && !loadingSaveChanges) {
+    //   triggerDerivedCascade();
+    // }
+  }, [
+    idea,
+    isSaved,
+    loadingEmbeddings,
+    loadingDerivedCascade,
+    loadingSaveChanges,
+    triggerEmbedIdea,
+    embeddingsOutOfDate,
+  ]);
+
+  const handleEditorBlur = useCallback(
+    (content: string) => {
+      triggerComputeIfNeeded();
+    },
+    [triggerComputeIfNeeded],
+  );
+
+  const titleDebounceTimeoutRef = useRef<Timer | null>(null); // Ref to hold timeout ID
+
+  useEffect(() => {
+    if (originalIdea && title && idea && originalIdea?.title !== title) {
+      triggerSaveChanges();
+    }
+  }, [title]);
+
+  const getDataForBeacon = () => {
+    if (!idea) {
+      return null;
+    }
+    return {
+      content,
+      title,
+      withComputations: true,
+    };
+  };
+
+  useBeaconOnHide({
+    url: `/graph/ideas/update/${ideaId}`,
+    getData: getDataForBeacon,
+    isEnabled: true,
+    event: "pagehide",
+  });
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -367,7 +475,7 @@ export default function Idea() {
         )}
       </LeftSidebar>
       <div className={styles.idea} ref={ideaRef}>
-        {loadingIdea && <Loading size="md" />}
+        {/* {loadingIdea && <Loading size="md" />} */}
         {idea && (
           <>
             <Grid>
@@ -376,7 +484,9 @@ export default function Idea() {
                   order={1}
                   contentEditable
                   suppressContentEditableWarning
-                  onBlur={(e) => handleTitleChange(e.currentTarget.innerText)}
+                  onBlur={(e) => {
+                    setTitle(e.currentTarget.innerText);
+                  }}
                   dangerouslySetInnerHTML={{ __html: title || "" }}
                   className={styles.editableTitle} // Add custom style for focus/blur
                 />
@@ -387,19 +497,15 @@ export default function Idea() {
                 )}
               </Grid.Col>
 
-              {!isSaved && content !== (originalIdea?.content || "") && (
-                <Grid.Col span={{ sm: 12 }}>
-                  <Text size="xs" c="orange.7" mt={4}>
-                    Content has unsaved changes.
-                  </Text>
-                </Grid.Col>
-              )}
               <Grid.Col span={{ base: 12 }}>
                 <DreamWriter
                   key={ideaId}
                   initialContent={idea.content || ""}
                   stickyMenu={false}
                   onChange={handleContentChange}
+                  onDebounce={handleSaveChanges}
+                  debounce={1000}
+                  onBlur={handleEditorBlur}
                 />
               </Grid.Col>
             </Grid>
@@ -419,25 +525,6 @@ export default function Idea() {
                   <Text size="sm" c="dimmed">
                     {statusText()}
                   </Text>
-                  {showEmbedButton && (
-                    <Button
-                      leftSection={
-                        loadingEmbeddings ? (
-                          <Loader size="sm" />
-                        ) : (
-                          <Shapes weight="bold" size={16} />
-                        )
-                      }
-                      disabled={
-                        loadingEmbeddings || loadingSaveChanges || !isSaved
-                      }
-                      onClick={handleEmbedIdea}
-                      variant="light"
-                      size="xs" // Smaller button for this context
-                    >
-                      Generate Embeddings
-                    </Button>
-                  )}
                 </Group>
               </div>
             )}
@@ -459,41 +546,6 @@ export default function Idea() {
           wrap={"wrap"}
           gap="md"
         >
-          <Tooltip
-            label={isSaved ? "No changes to save" : "Save changes (Ctrl+S)"}
-          >
-            {rightSidebarOpened ? (
-              <Button
-                leftSection={
-                  loadingSaveChanges ? (
-                    <Loader size="xs" color="white" />
-                  ) : (
-                    <FloppyDisk />
-                  )
-                }
-                onClick={handleSaveChanges}
-                disabled={isSaved || loadingSaveChanges}
-                variant="filled"
-                size="sm" // Consistent size
-              >
-                Save
-              </Button>
-            ) : (
-              <ActionIcon
-                onClick={handleSaveChanges}
-                disabled={isSaved || loadingSaveChanges}
-                variant="filled"
-                size="lg" // Consistent size
-              >
-                {loadingSaveChanges ? (
-                  <Loader size="xs" color="white" />
-                ) : (
-                  <FloppyDisk />
-                )}
-              </ActionIcon>
-            )}
-          </Tooltip>
-
           <Tooltip label="Delete Idea">
             <ActionIcon
               variant="light"
