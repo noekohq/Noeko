@@ -14,6 +14,8 @@ import { validateEmail } from "../../utils/data";
 import useFetch from "../../hooks/useFetch";
 import { IUser, IUserForm } from "../../../app/database/models/user";
 import { showNotification } from "@mantine/notifications";
+import RightSidebar from "../../components/UI/RightSidebar";
+import PageWrapper from "../../components/Layout/PageWrapper";
 
 export default function Profile() {
   const { user, reload: reloadUser } = useAuth();
@@ -83,75 +85,79 @@ export default function Profile() {
   };
 
   return (
-    <Container p="lg">
-      <Grid>
-        <Grid.Col span={12}>
-          <Title order={1}>Profile</Title>
-        </Grid.Col>
-        <Grid.Col span={12}>
-          <Title order={3}>Your name is...</Title>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <TextInput
-            label="First name"
-            placeholder="First name"
-            {...profileForm.getInputProps("firstName")}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <TextInput
-            label="Last name"
-            placeholder="Last name"
-            {...profileForm.getInputProps("lastName")}
-          />
-        </Grid.Col>
-        <Grid.Col span={12} />
-        <Grid.Col span={12}>
-          <Title order={3}>Your email is...</Title>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <TextInput
-            label="Email"
-            placeholder="Email"
-            {...profileForm.getInputProps("email")}
-          />
-        </Grid.Col>
-        <Grid.Col span={12} />
-        <Grid.Col span={12}>
-          <Title order={3}>Update Password</Title>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <PasswordInput
-            label="New password"
-            placeholder="New password"
-            {...profileForm.getInputProps("newPassword")}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <PasswordInput
-            label="Confirm password"
-            placeholder="Confirm password"
-            {...profileForm.getInputProps("newPasswordConfirmation")}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <PasswordInput
-            label="Current Password"
-            placeholder="Current Password"
-            {...profileForm.getInputProps("password")}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
-          <Group justify="right">
-            <Button
-              leftSection={loadingProfile ? <Loader size="sm" /> : null}
-              onClick={handleSave}
-            >
-              Save
-            </Button>
-          </Group>
-        </Grid.Col>
-      </Grid>
-    </Container>
+    <PageWrapper>
+      <Container p="lg">
+        <Grid>
+          <Grid.Col span={12}>
+            <Title order={1}>Profile</Title>
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Title order={3}>Your name is...</Title>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12, md: 6 }}>
+            <TextInput
+              label="First name"
+              placeholder="First name"
+              {...profileForm.getInputProps("firstName")}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12, md: 6 }}>
+            <TextInput
+              label="Last name"
+              placeholder="Last name"
+              {...profileForm.getInputProps("lastName")}
+            />
+          </Grid.Col>
+          <Grid.Col span={12} />
+          <Grid.Col span={12}>
+            <Title order={3}>Your email is...</Title>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12, md: 6 }}>
+            <TextInput
+              label="Email"
+              placeholder="Email"
+              {...profileForm.getInputProps("email")}
+            />
+          </Grid.Col>
+          <Grid.Col span={12} />
+          <Grid.Col span={12}>
+            <Title order={3}>Update Password</Title>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12, md: 6 }}>
+            <PasswordInput
+              label="New password"
+              placeholder="New password"
+              {...profileForm.getInputProps("newPassword")}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12, md: 6 }}>
+            <PasswordInput
+              label="Confirm password"
+              placeholder="Confirm password"
+              {...profileForm.getInputProps("newPasswordConfirmation")}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12, md: 6 }}>
+            <PasswordInput
+              name="password"
+              label="Current Password"
+              placeholder="Current Password"
+              {...profileForm.getInputProps("password")}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group justify="right">
+              <Button
+                leftSection={loadingProfile ? <Loader size="sm" /> : null}
+                onClick={handleSave}
+              >
+                Save
+              </Button>
+            </Group>
+          </Grid.Col>
+        </Grid>
+      </Container>
+      <RightSidebar />
+    </PageWrapper>
   );
 }

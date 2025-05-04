@@ -14,6 +14,7 @@ import "@mantine/notifications/styles.css";
 import "@mantine/spotlight/styles.css";
 import "./Global.scss";
 import { LayoutProvider } from "./contexts/LayoutContext.tsx";
+import { SearchProvider } from "./contexts/SearchContext.tsx";
 
 const Client = () => {
   return (
@@ -22,11 +23,13 @@ const Client = () => {
         <Notifications position="bottom-right" />
         <ModalsProvider>
           <AuthProvider>
-            <LayoutProvider>
-              <GraphProvider>
-                <App />
-              </GraphProvider>
-            </LayoutProvider>
+            <SearchProvider>
+              <LayoutProvider>
+                <GraphProvider>
+                  <App />
+                </GraphProvider>
+              </LayoutProvider>
+            </SearchProvider>
           </AuthProvider>
         </ModalsProvider>
       </MantineProvider>

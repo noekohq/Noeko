@@ -9,11 +9,11 @@
   cursor: pointer;
   color: var(--mantine-primary-color-5);
   text-decoration: underline;
-  transition: all 0.1s ease-in-out;
+  transition: all 0.2s ease-in-out;
 
   &:hover {
     // Replaced --color-primary with --mantine-color-primary
-    color: var(--mantine-color-primary);
+    color: var(--mantine-primary-color-9);
   }
 }
 
@@ -25,6 +25,7 @@
 .heading {
   margin: 0;
 }
+
 h1 {
   &.heading {
     margin-top: 36px;
@@ -54,39 +55,22 @@ h5 {
 // List structure styles remain unchanged
 .orderedList,
 .bulletList {
-  padding-left: 0;
-  list-style-type: none;
 }
 
 .orderedList {
   counter-reset: list-counter;
 
   .listItem {
-    &::before {
-      content: counter(list-counter) ". ";
-      counter-increment: list-counter;
-      left: 14px;
-      top: 0.2rem;
-      position: absolute;
-      color: var(--mantine-color-text);
-    }
   }
 }
 
 .bulletList {
+
   .listItem {
-    &::before {
-      content: "•";
-      left: 14px;
-      top: 0.2rem;
-      position: absolute;
-      color: var(--mantine-color-text);
-    }
   }
 }
 
 .listItem {
-  padding-left: 36px;
   margin: 0;
   margin-bottom: 8px;
   position: relative;
@@ -122,11 +106,21 @@ h5 {
   text-decoration: line-through; // Added standard strike-through for clarity
 }
 
-.image {
-    width: 100%;
+.taskList {
+    /* padding: 0; */
 
-    &:global(.ProseMirror-selectednode) {
-        border: 5px solid var(--mantine-color-yellow-3);
-        border-radius: 10px;
+    .taskItem {
+        display: flex;
+        align-items: center;
+        position: relative;
+
+        label {
+            position: absolute;
+            left: -24px;
+        }
+
+        p {
+            margin: 0;
+        }
     }
 }

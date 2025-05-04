@@ -20,6 +20,7 @@ import Settings from "./pages/Settings/Settings";
 import useShortcuts from "./hooks/useShortcuts";
 import { userIsSuperuser } from "./utils/user";
 import Users from "./pages/Users/Users";
+import Search from "./pages/Search/Search";
 
 export default function App() {
   const navigate = useNavigate();
@@ -85,6 +86,9 @@ export default function App() {
                 <Route path="file">
                   <Route index element={<Navigate to="/" replace />} />
                   <Route path=":fileId" element={<UserFile />} />
+                </Route>
+                <Route path="search">
+                  <Route index element={<Search />} />
                 </Route>
                 {isSuperuser && (
                   <Route path="admin">

@@ -61,9 +61,6 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
 
   const {
     filter: { set: setFilter, clear: clearFilter },
-  } = useGraph();
-
-  const {
     loading: { set: setLoading },
     query: { set: setQuery },
   } = useGraph();
@@ -163,7 +160,7 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
             </Tooltip>
             <Tooltip label="Add an idea">
               <ActionIcon
-                variant="default"
+                variant="filled"
                 onClick={() => setAddIdeaOpened(!addIdeaOpened)}
                 title="Add an idea"
               >
