@@ -327,16 +327,20 @@ export class Search {
   static async suggest(
     userId: string,
     query: string,
-  ): Promise<ISearchResult[] | undefined> {
+  ): Promise<IIdea[] | undefined> {
     if (!query || query.trim().length < 2) {
       return [];
     }
 
     try {
-      // Use the dedicated ftsSearch method which calls the correct function
       const suggestions = await Search.ftsSearch(userId, query);
-      // Apply limit suitable for suggestions
-      return suggestions?.slice(0, 5);
+      const ideas = suggestions?.map((i) => {
+        return {
+          ...(i.value as IIdea),
+          type: "idea",
+        };
+      });
+      return ideas;
     } catch (error) {
       console.error("Error during suggest:", error);
       return undefined;

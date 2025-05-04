@@ -1010,27 +1010,27 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     setNodePanel(null);
   };
 
-  const {
-    filter: { get: getFilter },
-  } = useGraph();
-  const { filter } = getFilter();
+  // const {
+  //   filter: { get: getFilter },
+  // } = useGraph();
+  // const { filter } = getFilter();
 
-  const filteredSet = new Set();
-  const filteredNodes = nodes.filter((n) => {
-    const shouldInclude = filter(n);
-    if (shouldInclude) {
-      filteredSet.add(n.id);
-    } else {
-      filteredSet.delete(n.id);
-    }
-    return shouldInclude;
-  });
-  const filteredEdges = graph.edges.filter((e) => {
-    return (
-      filteredSet.has(e.source.toString()) &&
-      filteredSet.has(e.target.toString())
-    );
-  });
+  // const filteredSet = new Set();
+  // const filteredNodes = nodes.filter((n) => {
+  //   const shouldInclude = filter(n);
+  //   if (shouldInclude) {
+  //     filteredSet.add(n.id);
+  //   } else {
+  //     filteredSet.delete(n.id);
+  //   }
+  //   return shouldInclude;
+  // });
+  // const filteredEdges = graph.edges.filter((e) => {
+  //   return (
+  //     filteredSet.has(e.source.toString()) &&
+  //     filteredSet.has(e.target.toString())
+  //   );
+  // });
 
   return (
     <div
@@ -1065,7 +1065,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
             className="everything"
             transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
           >
-            {filteredEdges.map((edge) => (
+            {edges.map((edge) => (
               <Edge
                 key={`${edge.source}-${edge.target}`}
                 edge={edge}
@@ -1073,59 +1073,22 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 targetNode={nodeMap[edge.target]}
               />
             ))}
-            {filteredNodes.map((node) => {
-              switch (node.type) {
-                case "idea":
-                  return (
-                    <Node
-                      key={node.id.toString()}
-                      node={node}
-                      isDragging={isDraggingNode === node.id} // Correct check
-                      onNodeSelect={
-                        onNodeSelect ? (e) => onNodeSelect(e, node) : undefined
-                      }
-                      onNodeNavigate={
-                        onNodeNavigate
-                          ? (e) => onNodeNavigate(e, node)
-                          : undefined
-                      }
-                      onContextMenu={(event) =>
-                        handleNodeContextMenu(event, node)
-                      }
-                      data-node-id={node.id.toString()}
-                    />
-                  );
-                case "derived":
-                  return (
-                    <DerivedNode
-                      key={node.id.toString()}
-                      node={node}
-                      isDragging={isDraggingNode === node.id.toString()}
-                    />
-                  );
-                case "file":
-                  return (
-                    <FileNode
-                      key={node.id.toString()}
-                      node={node}
-                      isDragging={isDraggingNode === node.id.toString()} // Correct check
-                      onNodeSelect={
-                        onNodeSelect ? (e) => onNodeSelect(e, node) : undefined
-                      }
-                      onNodeNavigate={
-                        onNodeNavigate
-                          ? (e) => onNodeNavigate(e, node)
-                          : undefined
-                      }
-                      onContextMenu={(event) =>
-                        handleNodeContextMenu(event, node)
-                      }
-                      data-node-id={node.id.toString()}
-                    />
-                  );
-                default:
-                  return null;
-              }
+            {nodes.map((node) => {
+              return (
+                <Node
+                  key={node.id.toString()}
+                  node={node}
+                  isDragging={isDraggingNode === node.id} // Correct check
+                  onNodeSelect={
+                    onNodeSelect ? (e) => onNodeSelect(e, node) : undefined
+                  }
+                  onNodeNavigate={
+                    onNodeNavigate ? (e) => onNodeNavigate(e, node) : undefined
+                  }
+                  onContextMenu={(event) => handleNodeContextMenu(event, node)}
+                  data-node-id={node.id.toString()}
+                />
+              );
             })}
           </g>
         </svg>

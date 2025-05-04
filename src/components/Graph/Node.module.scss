@@ -29,7 +29,6 @@
 }
 
 .node {
-    --color-nodes: var(--mantine-color-blue-9);
     --node-radius: 24;
     --node-radius-selected: 36;
 
@@ -89,4 +88,12 @@
         white-space: wrap;
         animation: textIn 0.2s ease-in-out forwards;
     }
+}
+
+.idea {
+    --color-nodes: var(--mantine-color-blue-9);
+}
+
+.file {
+    --color-nodes: var(--mantine-color-green-9);
 }

@@ -1,6 +1,6 @@
 import { useForm } from "@mantine/form";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import useFetch from "../../hooks/useFetch";
 import { IDBGraph, IIdea } from "../../../app/database/models/ideas";
 import { ISearchResult } from "../../../app/services/Search";
@@ -20,6 +20,9 @@ import {
   FileInput,
   Code,
   Tooltip,
+  Card,
+  Space,
+  UnstyledButton,
 } from "@mantine/core";
 import styles from "./GraphToolbar.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
@@ -44,6 +47,14 @@ import { validateIdeaContent } from "../../utils/data";
 import { useAuth } from "../../contexts/AuthContext";
 import { userIsSuperuser } from "../../utils/user";
 import { useLayout } from "../../contexts/LayoutContext";
+import { SearchBar } from "../../components/Search/SearchBar";
+import { useSearch } from "../../contexts/SearchContext";
+import {
+  getNodeDescription,
+  getNodeSubtitle,
+  getNodeTitle,
+} from "../../utils/graph";
+import { Match } from "../../components/Utils/Match";
 
 type GraphStateProps = {
   reloadGraph: () => Promise<void>;
@@ -65,6 +76,10 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
     query: { set: setQuery },
   } = useGraph();
 
+  const {
+    results: { get: searchResults, set: setResults },
+  } = useSearch();
+
   const handleResults = useCallback((results: ISearchResult[]) => {
     const filteredResults = results.map((r) => r.value.id.toString());
     setFilter({
@@ -75,6 +90,7 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
 
   const handleResultsClear = useCallback(() => {
     clearFilter();
+    setResults(null);
   }, []);
 
   const { load: synchronizeGraph, loading: loadingSynchronizeGraph } = useFetch<
@@ -170,16 +186,9 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
           </Flex>
           {rightSidebarOpened && (
             <div className={styles.searchWrapper}>
-              <InlineSearch
-                onSelect={(i) => {
-                  console.log("Selected result: ", i);
-                  navigate(`/idea/${i.id}`);
-                }}
+              <SearchBar
                 onResults={handleResults}
                 onResultsClear={handleResultsClear}
-                onBlur={() => {
-                  handleResultsClear();
-                }}
                 onSearchStart={() => {
                   setLoading(true);
                 }}
@@ -187,8 +196,48 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
                   setLoading(false);
                 }}
                 onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-                helpText="Press enter to search deeper..."
               />
+              {searchResults && (
+                <>
+                  <Space my="lg" />
+                  <Text c="dimmed" size="sm">
+                    Found {searchResults.length} result
+                    {searchResults.length === 1 ? "" : "s"}...
+                  </Text>
+                  <Space my="sm" />
+                  {searchResults?.map((s, i) => {
+                    return (
+                      <Link
+                        to={`/${s.value.type}/${s.value.id.toString()}`}
+                        style={{
+                          textDecoration: "none",
+                        }}
+                        className="searchResult"
+                        tabIndex={i}
+                      >
+                        <UnstyledButton key={s.id.toString()}>
+                          <Text fw="bold" c="gray">
+                            {getNodeTitle(s.value)}
+                          </Text>
+                          <Text c="dimmed">
+                            <Match
+                              opener="->"
+                              closer="<-"
+                              match={(t) => {
+                                return (
+                                  <span className={styles.highlight}>{t}</span>
+                                );
+                              }}
+                            >
+                              {getNodeDescription(s.value)}
+                            </Match>
+                          </Text>
+                        </UnstyledButton>
+                      </Link>
+                    );
+                  })}
+                </>
+              )}
             </div>
           )}
         </Group>
@@ -379,7 +428,7 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
           <Title order={3}>Content</Title>
           <DreamWriter
             initialContent={""}
-            stickyMenu={true}
+            stickyMenu={false}
             onChange={(content) => {
               form.setFieldValue("content", content);
             }}

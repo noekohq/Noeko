@@ -87,12 +87,20 @@ const FileNode = ({
     if (isMobile) {
       onNodeSelect?.(event, node);
       onContextMenu?.(event, node);
-    } else {
-      if (event.shiftKey) {
-        onNodeNavigate?.(event, node);
-      }
+      return;
     }
+    if (event.shiftKey) {
+      if (iAmSelected) {
+        onNodeSelect?.(event, node);
+        setSelected(null);
+      } else {
+        setSelected(node.id.toString());
+      }
+      return;
+    }
+    onNodeNavigate?.(event, node);
   };
+
   const radius = 24;
 
   const textOffset = 0;
@@ -182,12 +190,6 @@ const FileNode = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
-            {iAmSelected && (
-              <Text size="xs" c="dimmed">
-                Shift + click to navigate{" "}
-                <ArrowRight style={{ position: "relative", top: "2px" }} />
-              </Text>
-            )}
             <Highlight highlight={query}>{node.originalFileName}</Highlight>
           </Text>
         </foreignObject>

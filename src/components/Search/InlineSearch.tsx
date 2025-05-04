@@ -1,18 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { IIdea } from "../../../app/database/models/ideas";
 import {
   ISearchResult,
   ISearchResultValue,
 } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
-import {
-  Menu,
-  TextInput,
-  Loader,
-  Text,
-  Highlight,
-  ActionIcon,
-} from "@mantine/core";
+import { Menu, TextInput, Loader, Text, ActionIcon } from "@mantine/core";
 import styles from "./InlineSearch.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
