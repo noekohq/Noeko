@@ -1,10 +1,8 @@
 import { Card, Flex, Group, Space, Text } from "@mantine/core";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { useGraph } from "../../contexts/GraphContext";
-import { IGraph, INode } from "../../declarations/graph";
-import { formatDate } from "../../utils/formatting";
+import { IGraph } from "../../declarations/graph";
 import { useAuth } from "../../contexts/AuthContext";
-import { getCurrentTimeOfDay, getTimeOfDay } from "../../utils/datetime";
 import {
   getNodeDescription,
   getNodeSubtitle,

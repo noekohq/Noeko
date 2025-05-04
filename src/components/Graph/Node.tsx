@@ -1,25 +1,26 @@
 import React, { useEffect, useRef } from "react";
-import { IIdeaNode } from "../../declarations/graph.d";
+import { IIdeaNode, INode } from "../../declarations/graph.d";
 import styles from "./Node.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
 import { Highlight, Text } from "@mantine/core";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useMediaQuery } from "@mantine/hooks";
+import { getNodeTitle } from "../../utils/graph";
 
 type NodeProps = {
-  node: IIdeaNode;
+  node: INode;
   isDragging: boolean;
   onNodeNavigate?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: IIdeaNode,
+    node: INode,
   ) => void;
   onNodeSelect?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: IIdeaNode,
+    node: INode,
   ) => void;
   onContextMenu: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: IIdeaNode,
+    node: INode,
   ) => void;
   "data-node-id": string;
 };
@@ -66,11 +67,15 @@ const Node = ({
       return;
     }
     if (event.shiftKey) {
-      onNodeNavigate?.(event, node);
+      if (iAmSelected) {
+        onNodeSelect?.(event, node);
+        setSelected(null);
+      } else {
+        setSelected(node.id.toString());
+      }
       return;
     }
-    onNodeSelect?.(event, node);
-    setSelected(node.id.toString());
+    onNodeNavigate?.(event, node);
   };
 
   const radius = 24;
@@ -108,7 +113,7 @@ const Node = ({
         iAmUnselected ? styles.unselected : ""
       } ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""} ${
         isDragging ? styles.dragging : ""
-      }`}
+      } ${styles[node.type]}`}
     >
       <defs>
         <radialGradient
@@ -141,13 +146,7 @@ const Node = ({
           height={text.height}
         >
           <Text className={styles.nodeText} size="sm" ta="center">
-            {iAmSelected && (
-              <Text size="xs" c="dimmed">
-                Shift + click to navigate{" "}
-                <ArrowRight style={{ position: "relative", top: "2px" }} />
-              </Text>
-            )}
-            <Highlight highlight={query}>{node.title}</Highlight>
+            {getNodeTitle(node)}
           </Text>
         </foreignObject>
       )}
