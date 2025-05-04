@@ -8,7 +8,7 @@ type ISearchContext = {
   };
   results: {
     get: ISearchResult[] | null;
-    set: (results: ISearchResult[] | undefined) => void;
+    set: (results: ISearchResult[] | null) => void;
   };
 };
 
@@ -31,7 +31,9 @@ type ISearchProviderProps = {
 
 export const SearchProvider = ({ children }: ISearchProviderProps) => {
   const [query, setQuery] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<ISearchResult[]>(null);
+  const [searchResults, setSearchResults] = useState<ISearchResult[] | null>(
+    null,
+  );
 
   const value: ISearchContext = {
     query: {
@@ -40,7 +42,9 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
     },
     results: {
       get: searchResults,
-      set: setSearchResults,
+      set: (r: ISearchResult[] | null) => {
+        setSearchResults(r);
+      },
     },
   };
 
