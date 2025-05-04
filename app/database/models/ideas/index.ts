@@ -437,7 +437,7 @@ export class Idea {
       const db = await getDatabase();
       const originalIdea = await Idea.get(id);
       if (!originalIdea) {
-        throw new Error("Idea does not exist with id: ", id);
+        throw new Error("Idea does not exist with id: " + id.toString());
       }
       const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
       if (form.content !== undefined) {
