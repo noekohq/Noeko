@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   IDerivedNode,
+  IEdge,
   IGraph,
   IIdeaNode,
   INode,
@@ -12,12 +13,13 @@ import styles from "./Graph.module.scss";
 import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
 import NodePanel, { NodePanelProps } from "./NodePanel";
 import FileNode from "./FileNode";
+import { useGraph } from "../../contexts/GraphContext";
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
-  forceStrength: -500,
+  forceStrength: -600,
   linkStrength: 0.7,
-  centerForceStrength: 0.05,
+  centerForceStrength: 0.06,
   alpha: 1,
   alphaDecay: 0.0228,
   alphaMin: 0.001,
@@ -85,6 +87,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   const [nodes, setNodes] = useState<INode[]>([]);
+  const [edges, setEdges] = useState<IEdge[]>(graph.edges);
   const alphaRef = useRef(SIMULATION_CONFIG.alpha);
   const simulationRef = useRef<number | null>(null); // requestAnimationFrame ID
 
@@ -284,7 +287,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     } else {
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     }
-  }, [graph.edges, dimensions, propWidth, propHeight]);
+  }, [edges, dimensions, propWidth, propHeight]);
 
   useEffect(() => {
     const currentWidth = propWidth ?? dimensions.width;
@@ -1007,6 +1010,28 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     setNodePanel(null);
   };
 
+  const {
+    filter: { get: getFilter },
+  } = useGraph();
+  const { filter } = getFilter();
+
+  const filteredSet = new Set();
+  const filteredNodes = nodes.filter((n) => {
+    const shouldInclude = filter(n);
+    if (shouldInclude) {
+      filteredSet.add(n.id);
+    } else {
+      filteredSet.delete(n.id);
+    }
+    return shouldInclude;
+  });
+  const filteredEdges = graph.edges.filter((e) => {
+    return (
+      filteredSet.has(e.source.toString()) &&
+      filteredSet.has(e.target.toString())
+    );
+  });
+
   return (
     <div
       ref={containerRef}
@@ -1040,7 +1065,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
             className="everything"
             transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
           >
-            {graph.edges.map((edge) => (
+            {filteredEdges.map((edge) => (
               <Edge
                 key={`${edge.source}-${edge.target}`}
                 edge={edge}
@@ -1048,7 +1073,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 targetNode={nodeMap[edge.target]}
               />
             ))}
-            {nodes.map((node) => {
+            {filteredNodes.map((node) => {
               switch (node.type) {
                 case "idea":
                   return (

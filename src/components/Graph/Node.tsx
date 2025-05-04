@@ -57,37 +57,20 @@ const Node = ({
     onContextMenu(event, node);
   };
 
-  const handleMouseEnterSelect = (event: React.MouseEvent<SVGGElement>) => {
-    if (!isMobile) {
-      onNodeSelect?.(event, node);
-      setSelected(node.id.toString());
-    }
-  };
-  const handleMouseLeaveUnselect = (event: React.MouseEvent<SVGGElement>) => {
-    if (!isMobile) {
-      onNodeSelect?.(event, node); // Maybe just call onNodeSelect with hover state?
-      setSelected(null);
-    }
-  };
-
-  const handleNodeNavigate = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
-  ) => {
-    setSelected(null);
-    onNodeNavigate?.(event, node);
-  };
-
   const handleNodeClick = (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
   ) => {
     if (isMobile) {
       onNodeSelect?.(event, node);
       onContextMenu?.(event, node);
-    } else {
-      if (event.shiftKey) {
-        onNodeNavigate?.(event, node);
-      }
+      return;
     }
+    if (event.shiftKey) {
+      onNodeNavigate?.(event, node);
+      return;
+    }
+    onNodeSelect?.(event, node);
+    setSelected(node.id.toString());
   };
 
   const radius = 24;
@@ -119,8 +102,6 @@ const Node = ({
     <g
       data-node-id={dataNodeId}
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
-      onMouseEnter={handleMouseEnterSelect}
-      onMouseLeave={handleMouseLeaveUnselect}
       onContextMenu={handleContextMenu}
       onClick={handleNodeClick}
       className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${

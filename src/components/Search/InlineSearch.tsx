@@ -17,6 +17,7 @@ import styles from "./InlineSearch.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { getNodeDescription, getNodeTitle } from "../../utils/graph";
+import { useSearch } from "../../contexts/SearchContext";
 
 type IInlineSearchProps = {
   placeholder?: string;
@@ -43,7 +44,9 @@ export function InlineSearch({
   helpText = "Press enter to search...",
   omit,
 }: IInlineSearchProps) {
-  const [query, setQuery] = useState("");
+  const {
+    query: { get: query, set: setQuery },
+  } = useSearch();
 
   const {
     data: rawResults,
@@ -58,6 +61,9 @@ export function InlineSearch({
     dependencies: [query],
     onBefore: () => {
       onSearchStart?.();
+    },
+    onSuccess: (r) => {
+      onResults?.(r);
     },
     onFinally: () => {
       onSearchEnd?.();

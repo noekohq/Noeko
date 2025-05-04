@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { IDerivedNode, INode } from "../declarations/graph";
 
 type FilterConfig = {
@@ -89,6 +89,10 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
       },
     },
   };
+
+  useEffect(() => {
+    console.log("Filter config: ", filterConfig);
+  }, [filterConfig]);
 
   return (
     <GraphContext.Provider value={value}>{children}</GraphContext.Provider>

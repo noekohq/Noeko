@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   BracketsAngle,
   ChatTeardrop,
   Check,
+  CheckSquare,
   Code,
   CodeSimple,
   DotsThreeVertical,
   Download,
   Image,
   Link,
+  ListBullets,
+  ListChecks,
+  ListNumbers,
   MagicWand,
   Quotes,
   TextB,
@@ -49,7 +53,7 @@ export function BoldButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant={isBold ? "filled" : "filled"}
+      variant={isBold ? "filled" : "light"}
       onClick={makeBold}
       title="Toggle Bold"
     >
@@ -153,58 +157,6 @@ export function BlockquoteButton({ editor }: OptionProps) {
       title="Toggle Blockquote"
     >
       <Quotes weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function LinkButton({ editor }: OptionProps) {
-  const isLink = editor?.isActive("link");
-  const [settingLink, setSettingLink] = useState(false);
-  const [href, setHREF] = useState("");
-  const setTextLink = () => {
-    editor?.chain().focus().setLink({ href }).run();
-  };
-
-  const toggleLink = () => {
-    if (isLink) {
-      editor?.chain().focus().unsetLink().run();
-    } else {
-      editor?.chain().focus().blur().run();
-      const selection = editor?.view.state.selection;
-      const state = editor?.view.state;
-      if (!selection || !state) {
-        return;
-      }
-      const { to, from } = selection;
-      const text = state.doc.textBetween(from, to);
-    }
-  };
-
-  return (
-    <ActionIcon
-      variant={isLink ? "filled" : "light"}
-      onClick={() => {
-        toggleLink();
-      }}
-      title="Toggle Link"
-    >
-      <Link weight="bold" />
-      <Modal opened={settingLink} onClose={() => setSettingLink(false)}>
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              type="text"
-              value={href}
-              onChange={(e) => setHREF(e.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Group justify="right">
-              <Button onClick={setTextLink}>Set Link</Button>
-            </Group>
-          </Grid.Col>
-        </Grid>
-      </Modal>
     </ActionIcon>
   );
 }
@@ -373,5 +325,229 @@ export function ExtraButton({
         </Popover.Dropdown>
       </Popover>
     </div>
+  );
+}
+
+export function LinkButton({ editor }: OptionProps) {
+  const [popoverOpened, setPopoverOpened] = useState(false);
+  // Initialize href from current selection if it's already a link
+  const [href, setHREF] = useState(
+    () => editor?.getAttributes("link").href || "",
+  );
+
+  // Check if the current selection/cursor is within a link
+  const isLink = editor?.isActive("link");
+
+  // Update href state if the link attribute changes externally or on selection change
+  // This helps pre-fill the input when the cursor moves into an existing link
+  useEffect(() => {
+    if (isLink && editor) {
+      const currentHref = editor.getAttributes("link").href;
+      setHREF(currentHref);
+    }
+    // We only want to re-run this when `isLink` or `editor` changes specifically
+    // related to the link state, not on every editor update.
+  }, [isLink, editor]);
+
+  // Function to set or update the link
+  const setLink = useCallback(() => {
+    if (!editor) return;
+
+    // If URL is empty, unset the link
+    if (href === "") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      setPopoverOpened(false); // Close popover
+      return;
+    }
+
+    // Set the link mark
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link") // Ensure the range covers the link mark
+      .setLink({ href })
+      .run();
+
+    setPopoverOpened(false); // Close popover after setting link
+  }, [editor, href]);
+
+  // Function to handle the main button click
+  const handleButtonClick = () => {
+    if (!editor) return;
+
+    if (isLink) {
+      // If it's already a link, unset it directly
+      editor.chain().focus().unsetLink().run();
+      setHREF(""); // Clear the href state
+    } else {
+      // If not a link, open the popover to add one
+      // Potentially pre-fill href based on selection or clipboard? (optional)
+      // For now, just ensure it's cleared or uses the last value
+      // setHREF(""); // Optionally clear href state when opening for a new link
+      setPopoverOpened((o) => !o); // Toggle popover open/closed
+    }
+  };
+
+  // Handle closing the popover
+  const handleClosePopover = () => {
+    setPopoverOpened(false);
+    // Optionally reset href if you don't want it to persist
+    // setHREF(editor?.getAttributes("link").href || "");
+  };
+
+  // Handle Enter key press in the TextInput
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent potential form submission
+      setLink();
+    }
+  };
+
+  return (
+    <Popover
+      opened={popoverOpened}
+      onClose={handleClosePopover} // Use the handler
+      position="bottom"
+      withArrow
+      shadow="md"
+      trapFocus // Keep focus within the popover
+    >
+      <Popover.Target>
+        <ActionIcon
+          variant={isLink ? "filled" : "light"}
+          onClick={handleButtonClick}
+          title={isLink ? "Remove Link" : "Set Link"}
+          disabled={!editor} // Disable if editor is null
+        >
+          <Link weight="bold" />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Flex direction="column" gap="xs">
+          {" "}
+          {/* Use Flex for layout */}
+          <TextInput
+            placeholder="Enter URL"
+            type="url"
+            value={href}
+            onChange={(e) => setHREF(e.target.value)}
+            onKeyDown={handleKeyDown} // Add keydown handler
+            data-autofocus // Focus input when popover opens
+          />
+          <Group justify="right">
+            {" "}
+            {/* Align button to the right */}
+            <Button onClick={setLink} size="xs">
+              {" "}
+              {/* Use smaller button */}
+              {href === "" ? "Remove Link" : "Set Link"}
+            </Button>
+          </Group>
+        </Flex>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+
+export function TaskListButton({ editor }: OptionProps) {
+  // This check correctly reflects if the context is a task list
+  const isActive = editor?.isActive("taskList");
+
+  // This command works correctly on paragraphs, bullet lists,
+  // ordered lists, and existing task lists.
+  const toggleTaskList = () => {
+    editor?.chain().focus().toggleTaskList().run();
+  };
+
+  const isDisabled = !editor;
+
+  return (
+    <ActionIcon
+      variant={isActive ? "filled" : "light"}
+      onClick={toggleTaskList}
+      title="Toggle Task List"
+      disabled={isDisabled}
+    >
+      <ListChecks weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function TaskItemButton({ editor }: OptionProps) {
+  // Check if the current selection or node is part of a task list.
+  // We check 'taskList' because toggling an item affects the entire list's state.
+  const isActive = editor?.isActive("taskList");
+
+  // Function to toggle the task list format.
+  // This command handles paragraphs, other lists, and existing task lists correctly.
+  const toggleTask = () => {
+    editor?.chain().focus().toggleTaskList().run();
+  };
+
+  // Disable button if the editor instance is not available
+  const isDisabled = !editor;
+
+  return (
+    <ActionIcon
+      variant={isActive ? "filled" : "light"}
+      onClick={toggleTask}
+      title="Toggle Task Item / List" // Title reflects it toggles list state
+      disabled={isDisabled}
+    >
+      {/* Using a checkmark icon to signify "item" */}
+      <CheckSquare weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function OrderedListButton({ editor }: OptionProps) {
+  // Check if the current selection or node is an ordered list
+  const isActive = editor?.isActive("orderedList");
+
+  // Function to toggle the ordered list format
+  const toggleOrderedList = () => {
+    editor?.chain().focus().toggleOrderedList().run();
+  };
+
+  // Disable button if the editor instance is not available
+  const isDisabled = !editor;
+
+  return (
+    <ActionIcon
+      variant={isActive ? "filled" : "light"} // Style based on active state
+      onClick={toggleOrderedList}
+      title="Toggle Ordered List"
+      disabled={isDisabled}
+    >
+      <ListNumbers weight="bold" /> {/* Icon for ordered list */}
+    </ActionIcon>
+  );
+}
+
+/**
+ * Button to toggle Bullet List formatting (e.g., •, •, •)
+ */
+export function BulletListButton({ editor }: OptionProps) {
+  // Check if the current selection or node is a bullet list
+  // Tiptap typically calls this 'bulletList' internally
+  const isActive = editor?.isActive("bulletList");
+
+  // Function to toggle the bullet list format
+  const toggleBulletList = () => {
+    editor?.chain().focus().toggleBulletList().run();
+  };
+
+  // Disable button if the editor instance is not available
+  const isDisabled = !editor;
+
+  return (
+    <ActionIcon
+      variant={isActive ? "filled" : "light"} // Style based on active state
+      onClick={toggleBulletList}
+      title="Toggle Bullet List"
+      disabled={isDisabled}
+    >
+      <ListBullets weight="bold" /> {/* Icon for bullet list */}
+    </ActionIcon>
   );
 }

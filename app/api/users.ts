@@ -176,7 +176,7 @@ router.put("/me", checkToken, async (req, res) => {
     }
     if (req.body.newPassword) {
       const foundUser = await User.get(user.id, true);
-      const valid = await verifyPassword(user.password, foundUser.password);
+      const valid = await verifyPassword(req.body.password, foundUser.password);
       if (!valid) {
         res.status(400).json({ message: "Invalid password." });
         return;

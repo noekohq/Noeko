@@ -15,6 +15,8 @@ import Link from "@tiptap/extension-link";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import CodeBlock from "@tiptap/extension-code-block";
 import Typography from "@tiptap/extension-typography";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
 import {
   BlockquoteButton,
   BoldButton,
@@ -29,6 +31,8 @@ import {
   CodeInlineButton,
   StrikeThroughButton,
   ExtraButton,
+  TaskListButton,
+  TaskItemButton,
 } from "./Options";
 import {
   File,
@@ -93,6 +97,11 @@ function DreamWriter({
               class: contentStyles.heading,
             },
           },
+          horizontalRule: {
+            HTMLAttributes: {
+              class: contentStyles.horizontalRule,
+            },
+          },
           blockquote: {
             HTMLAttributes: {
               class: contentStyles.blockquote,
@@ -155,6 +164,17 @@ function DreamWriter({
           color: "var(--color-accent)",
         }),
         Typography.configure({}),
+        TaskList.configure({
+          HTMLAttributes: {
+            class: contentStyles.taskList,
+          },
+        }),
+        TaskItem.configure({
+          nested: true,
+          HTMLAttributes: {
+            class: contentStyles.taskItem,
+          },
+        }),
         DreamImage.configure({
           HTMLAttributes: {
             class: contentStyles.image,
@@ -361,6 +381,7 @@ function BubbleMenu({ editor }: { editor: IEditor | null }) {
       <UnderlineButton editor={editor} />
       <ParagraphButton editor={editor} />
       <CodeInlineButton editor={editor} />
+      <TaskItemButton editor={editor} />
     </>
   );
 
@@ -371,6 +392,7 @@ function BubbleMenu({ editor }: { editor: IEditor | null }) {
       <HeadingButton editor={editor} level={3} />
       <BlockquoteButton editor={editor} />
       <CodeBlockButton editor={editor} />
+      <TaskListButton editor={editor} />
     </>
   );
 
