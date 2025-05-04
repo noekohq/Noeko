@@ -157,7 +157,7 @@ export default function Connections({
     <Grid>
       {loadingIdea && (
         <Grid.Col span={{ sm: 12 }}>
-          <Loader size="lg" />
+          <Loader size="xs" />
         </Grid.Col>
       )}
       <Grid.Col span={{ sm: 12 }}>
@@ -276,7 +276,12 @@ export default function Connections({
                         hoveringIdea={selectedIdea}
                         setHoveringIdea={setSelectedIdea}
                         tags={[
-                          <Badge color={color} variant="light" size="xs">
+                          <Badge
+                            color={color}
+                            variant="light"
+                            size="xs"
+                            key="level"
+                          >
                             {level}
                           </Badge>,
                         ]}

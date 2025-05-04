@@ -428,9 +428,17 @@ export class Idea {
     }
   }
 
-  static async update(id: string | RecordId, form: Partial<IIdeaForm>) {
+  static async update(
+    id: string | RecordId,
+    form: Partial<IIdeaForm>,
+    withComputations?: boolean,
+  ) {
     try {
       const db = await getDatabase();
+      const originalIdea = await Idea.get(id);
+      if (!originalIdea) {
+        throw new Error("Idea does not exist with id: ", id);
+      }
       const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
       if (form.content !== undefined) {
         updater.contentUpdatedAt = new Date();
@@ -448,9 +456,9 @@ export class Idea {
         console.error("No idea updated.");
         return undefined;
       }
-      if (form.content !== undefined) {
-        // await Idea.updateEmbeddings(result);
-        // await Idea.runDerivedCascade(result.id);
+      if (withComputations && updater.content !== originalIdea.content) {
+        await Idea.updateEmbeddings(result);
+        await Idea.runDerivedCascade(result.id);
       }
       return result;
     } catch (err) {
@@ -827,6 +835,14 @@ export class Idea {
       }
       const e = new Embeddings();
       const embeddableContent = htmlToPlainText(result.content);
+      if (!embeddableContent) {
+        await Idea.update(result.id, {
+          embeddings: [],
+          embeddingsUpdatedAt: new Date(),
+        });
+        return;
+      }
+
       const embeddings = await e.generateEmbeddings(embeddableContent);
 
       const idea = await db?.merge<
@@ -855,6 +871,13 @@ export class Idea {
       }
       const embedding = new Embeddings();
       const embeddableContent = htmlToPlainText(idea.content);
+      if (!embeddableContent) {
+        await Idea.update(idea.id, {
+          embeddings: [],
+          embeddingsUpdatedAt: new Date(),
+        });
+        return;
+      }
       const vector = await embedding.generateEmbeddings(embeddableContent);
       await Idea.update(idea.id, {
         embeddings: vector,
