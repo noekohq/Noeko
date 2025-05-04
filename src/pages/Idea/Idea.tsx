@@ -347,6 +347,7 @@ export default function Idea() {
                   )}
               </Text>
             </Card>
+            <Divider my="lg" />
             <Connections
               opened={connectionDrawerOpened}
               onClose={connectionDrawerHandlers.close}

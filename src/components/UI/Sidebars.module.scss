@@ -30,7 +30,7 @@
     &.opened {
         // Take up half the viewport height each
         // Subtract margins if they cause overflow, or manage height via flexbox on parent
-        height: auto; // 50% height minus approx vertical margins (14px top + 14px bottom / 2)
+        height: 50vh; // 50% height minus approx vertical margins (14px top + 14px bottom / 2)
         padding: 24px; // Larger padding when opened
     }
 }
