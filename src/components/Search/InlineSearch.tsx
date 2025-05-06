@@ -118,6 +118,12 @@ export function InlineSearch({
     onResultsClear?.();
   }, []);
 
+  useEffect(() => {
+    if (query === "") {
+      clearResults();
+    }
+  }, [query]);
+
   return (
     <div className={styles.inlineSearch}>
       <Menu

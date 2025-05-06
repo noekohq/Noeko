@@ -54,7 +54,9 @@ import {
   getNodeSubtitle,
   getNodeTitle,
 } from "../../utils/graph";
-import { Match } from "../../components/Utils/Match";
+import Match from "../../components/Utils/Match";
+import { getSearchResultPreview } from "../../utils/search";
+import { matchSegments, splitBySentences } from "../../utils/processing";
 
 type GraphStateProps = {
   reloadGraph: () => Promise<void>;
@@ -223,13 +225,22 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
                             <Match
                               opener="->"
                               closer="<-"
-                              match={(t) => {
+                              match={(content) => {
                                 return (
-                                  <span className={styles.highlight}>{t}</span>
+                                  <span className={styles.highlight}>
+                                    {content}
+                                  </span>
                                 );
                               }}
                             >
-                              {getNodeDescription(s.value)}
+                              {matchSegments({
+                                text: getSearchResultPreview(s) || "",
+                                opener: "->",
+                                closer: "<-",
+                                splitBy: splitBySentences,
+                              })
+                                .slice(0, 2)
+                                .join(" ... ")}
                             </Match>
                           </Text>
                         </UnstyledButton>

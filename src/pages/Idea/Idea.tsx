@@ -56,6 +56,14 @@ export default function Idea() {
 
   const [isSaved, setIsSaved] = useState<boolean>(true);
 
+  useEffect(() => {
+    setIdea(null);
+    setOriginalIdea(null);
+    setTitle(""); // Or a loading placeholder like "Loading..."
+    setContent(""); // Or a loading placeholder
+    setIsSaved(true); // Assume saved or loading until new data arrives
+  }, [ideaId]); // Only dependency is ideaId
+
   const {
     data: fetchedIdeaData,
     load: reloadIdea,
@@ -63,6 +71,7 @@ export default function Idea() {
     errors: loadErrors,
   } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}`,
+    dependencies: [ideaId],
     query: {
       withRelatedIdeas: "true",
       withConnections: "true",
@@ -70,17 +79,14 @@ export default function Idea() {
     },
     method: "GET",
     runOnMount: true,
-  });
-
-  useEffect(() => {
-    if (fetchedIdeaData) {
-      setIdea(fetchedIdeaData);
-      setOriginalIdea(fetchedIdeaData); // Store the original state
-      setTitle(fetchedIdeaData.title);
-      setContent(fetchedIdeaData.content || "");
+    onSuccess: (d) => {
+      setIdea(d);
+      setOriginalIdea(d); // Store the original state
+      setTitle(d.title);
+      setContent(d.content || "");
       setIsSaved(true);
-    }
-  }, [fetchedIdeaData]);
+    },
+  });
 
   useEffect(() => {
     if (loadErrors && loadErrors.length > 0) {
@@ -111,7 +117,7 @@ export default function Idea() {
       title: title || "New idea...",
       content: content || "Nothing here yet...",
     },
-    dependencies: [title, content],
+    dependencies: [title, content, ideaId],
     onSuccess: (updatedIdea) => {
       reloadIdea();
     },
@@ -142,10 +148,12 @@ export default function Idea() {
     idea?.content,
     idea?.title,
     triggerSaveChanges,
+    ideaId,
   ]);
 
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/graph/ideas/${ideaId}`,
+    dependencies: [ideaId],
     method: "DELETE",
     onSuccess: () => {
       navigate("/");
@@ -177,7 +185,7 @@ export default function Idea() {
       confirmProps: { color: "red" },
       onConfirm: () => triggerDeleteIdea(),
     });
-  }, [loadingDelete, triggerDeleteIdea]);
+  }, [loadingDelete, triggerDeleteIdea, ideaId]);
 
   const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/graph/ideas/${ideaId}/embed`,
@@ -197,6 +205,7 @@ export default function Idea() {
   const { load: triggerDerivedCascade, loading: loadingDerivedCascade } =
     useFetch({
       url: `/graph/ideas/${ideaId}/cascade`,
+      dependencies: [ideaId],
       method: "POST",
       onSuccess: () => {
         reloadIdea();
@@ -214,7 +223,7 @@ export default function Idea() {
     if (!idea) return false;
     if (!idea.embeddingsUpdatedAt) return true;
     return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
-  }, [idea]);
+  }, [idea, ideaId]);
 
   const statusText = useCallback(() => {
     let text = "";
@@ -242,6 +251,7 @@ export default function Idea() {
     return text.trim();
   }, [
     idea,
+    ideaId,
     content,
     isSaved,
     originalIdea,
@@ -262,7 +272,7 @@ export default function Idea() {
 
   const handleManualSaveChanges = useCallback(() => {
     handleSaveChanges();
-  }, []);
+  }, [ideaId]);
 
   useShortcuts({
     shortcuts: [
@@ -342,9 +352,12 @@ export default function Idea() {
     };
   }, [updateFixedStyle]);
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
-  }, []);
+  const handleContentChange = useCallback(
+    (newContent: string) => {
+      setContent(newContent);
+    },
+    [ideaId],
+  );
 
   useEffect(() => {
     if (!originalIdea) return;
@@ -388,6 +401,7 @@ export default function Idea() {
     // }
   }, [
     idea,
+    ideaId,
     isSaved,
     loadingEmbeddings,
     loadingDerivedCascade,
@@ -400,16 +414,35 @@ export default function Idea() {
     (content: string) => {
       triggerComputeIfNeeded();
     },
-    [triggerComputeIfNeeded],
+    [triggerComputeIfNeeded, ideaId],
   );
 
   const titleDebounceTimeoutRef = useRef<Timer | null>(null); // Ref to hold timeout ID
 
   useEffect(() => {
-    if (originalIdea && title && idea && originalIdea?.title !== title) {
+    if (
+      idea &&
+      idea.id.toString() === ideaId &&
+      originalIdea &&
+      originalIdea.id.toString() === ideaId &&
+      title !== originalIdea.title && // Actual change from fetched original
+      !loadingIdea && // Not currently loading the main idea data
+      !loadingSaveChanges // Not already saving
+    ) {
+      console.log(
+        `Title changed from "${originalIdea.title}" to "${title}" for idea ${ideaId}. Triggering save.`,
+      );
       triggerSaveChanges();
     }
-  }, [title]);
+  }, [
+    title,
+    originalIdea,
+    idea,
+    ideaId,
+    loadingIdea,
+    triggerSaveChanges,
+    loadingSaveChanges,
+  ]); // Add ALL relevant dependencies
 
   const getDataForBeacon = () => {
     if (!idea) {

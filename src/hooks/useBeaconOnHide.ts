@@ -84,7 +84,6 @@ function useBeaconOnHide<T>({
           // Construct the full URL if your base URL isn't absolute
           // Assuming `api.defaults.baseURL` holds your base path like '/api' or 'http://...'
           const fullUrl = `${api.defaults.baseURL || ""}${urlRef.current}`;
-          console.log("Sending to fullUrl: ", fullUrl);
 
           // Use sendBeacon
           const queued = navigator.sendBeacon(fullUrl, dataBlob);

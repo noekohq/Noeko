@@ -215,10 +215,6 @@ function DreamWriter({
           debounceTimeoutRef.current = setTimeout(() => {
             const output =
               outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
-            console.log(
-              "Debounced action triggered:",
-              output.substring(0, 50) + "...",
-            ); // For debugging
             onDebounce(output); // Call the actual save function passed from parent
           }, debounce);
         }
