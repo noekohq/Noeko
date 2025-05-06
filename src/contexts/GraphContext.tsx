@@ -90,10 +90,6 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
     },
   };
 
-  useEffect(() => {
-    console.log("Filter config: ", filterConfig);
-  }, [filterConfig]);
-
   return (
     <GraphContext.Provider value={value}>{children}</GraphContext.Provider>
   );

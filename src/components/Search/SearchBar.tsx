@@ -104,6 +104,12 @@ export function SearchBar({
     onResultsClear?.();
   }, []);
 
+  useEffect(() => {
+    if (query === "") {
+      clearResults();
+    }
+  }, [query]);
+
   return (
     <div className={styles.searchBar}>
       <TextInput

@@ -247,7 +247,6 @@ router.post(
   disallowDisabled,
   async (req, res) => {
     try {
-      console.log("Updating on page hide!!!", req.body.title);
       const { id } = req.params;
       const user = await getFromReq<IUser>(req, "user");
       if (!user) {
