@@ -233,14 +233,8 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
                                 );
                               }}
                             >
-                              {matchSegments({
-                                text: getSearchResultPreview(s) || "",
-                                opener: "->",
-                                closer: "<-",
-                                splitBy: splitBySentences,
-                              })
-                                .slice(0, 2)
-                                .join(" ... ")}
+                              {getSearchResultPreview(s) ||
+                                "No preview available."}
                             </Match>
                           </Text>
                         </UnstyledButton>
