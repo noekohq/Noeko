@@ -10,9 +10,9 @@ export const getSearchResultPreview = (result: ISearchResult, length = 2) => {
       closer: "<-",
       splitBy: splitBySentences,
     })
-      .slice(0, length)
+      ?.slice(0, length)
       .join(" ... ");
-    if (matching.length > 1) {
+    if (matching?.length > 1) {
       return matching;
     }
   }
