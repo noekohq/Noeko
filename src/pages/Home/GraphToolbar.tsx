@@ -58,13 +58,13 @@ import Match from "../../components/Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
 import { matchSegments, splitBySentences } from "../../utils/processing";
 
-type GraphStateProps = {
+type GraphToolbarProps = {
   reloadGraph: () => Promise<void>;
   nodes: INode[];
   flags: IDBGraph["flags"];
 };
 
-export const GraphState = ({ reloadGraph }: GraphStateProps) => {
+export const GraphToolbar = ({ reloadGraph }: GraphToolbarProps) => {
   const [addIdeaOpened, setAddIdeaOpened] = useState(false);
   const [uploadFileOpened, setUploadFileOpened] = useState(false);
   const navigate = useNavigate();
@@ -210,6 +210,7 @@ export const GraphState = ({ reloadGraph }: GraphStateProps) => {
                   {searchResults?.map((s, i) => {
                     return (
                       <Link
+                        key={s.id.toString()}
                         to={`/${s.value.type}/${s.value.id.toString()}`}
                         style={{
                           textDecoration: "none",

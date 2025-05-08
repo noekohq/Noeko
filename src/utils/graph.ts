@@ -161,6 +161,8 @@ export const getNodeDescription = (node: INode) => {
   if (node.type === "idea") {
     return (
       node.derived?.generative_summary?.sentenceOverview ??
+      node.derived?.generative_summary?.sentenceSummary ??
+      node.contentPlain.slice(0, 124) ??
       "No summary available"
     );
   }

@@ -5,7 +5,7 @@ import styles from "./Home.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
-import { GraphState } from "./GraphToolbar";
+import { GraphToolbar } from "./GraphToolbar";
 import { dbGraphToLocalGraph } from "../../utils/graph";
 import { Group, Loader } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -66,7 +66,7 @@ export default function Home() {
       </div>
       <RightSidebar openOnShortcut={[{ key: "/" }]}>
         {isLoaded && (
-          <GraphState
+          <GraphToolbar
             nodes={localData.nodes}
             reloadGraph={async () => {
               reloadGraph();
