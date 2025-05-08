@@ -52,7 +52,7 @@ export const DreamFile = Node.create<DreamFileOptions>({
   addAttributes() {
     return {
       fileId: {
-        default: null,
+        default: "",
         // Parse from data-file-id attribute
         parseHTML: (element) => element.getAttribute("data-file-id"),
         // Render as data-file-id attribute
@@ -75,32 +75,20 @@ export const DreamFile = Node.create<DreamFileOptions>({
     };
   },
 
-  // How to parse this node FROM HTML
   parseHTML() {
     return [
       {
-        // Match a <div> tag that has these specific data attributes
         tag: "div[data-dream-file][data-file-id][data-file-name]",
-        // data-file-type might be optional, so don't require it in the main selector
-        // The individual attribute parsers above will handle grabbing it if present.
       },
     ];
   },
 
-  // How to render this node TO HTML
   renderHTML({ HTMLAttributes }) {
-    // Render as a <div> element.
-    // HTMLAttributes will contain the rendered attributes from addAttributes (e.g., data-file-id)
-    // We also add a specific marker attribute 'data-dream-file' to make parsing more robust.
-    // mergeAttributes combines the node's HTMLAttributes option with the specific attributes.
     return [
       "div",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         "data-dream-file": "", // Add a specific marker
       }),
-      // For atom nodes, content is typically 0 (no nested content)
-      // If you remove atom:true and need content, place the content hole marker here.
-      // 0,
     ];
   },
 

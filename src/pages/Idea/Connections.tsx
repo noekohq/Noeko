@@ -1,18 +1,14 @@
 import {
-  Drawer,
   Grid,
   Loader,
-  Card,
   Group,
-  Title,
   Text,
   Overlay,
   ActionIcon,
-  Button,
-  Pill,
   Badge,
   Stack,
   Box,
+  Button,
 } from "@mantine/core";
 import { IIdea, IIdeaConnection } from "../../../app/database/models/ideas";
 import { Link } from "react-router";
@@ -20,8 +16,7 @@ import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
 import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { InlineSearch } from "../../components/Search/InlineSearch";
-import { Graph, Lightbulb, TrashSimple } from "@phosphor-icons/react";
+import { ArrowsClockwise, TrashSimple } from "@phosphor-icons/react";
 import { api } from "../../server/api";
 import { similarityToColor, similarityToLevel } from "../../vars/ideas";
 
@@ -31,6 +26,9 @@ type IConnectionsProps = {
   loadingIdea: boolean;
   idea: IIdea;
   reloadIdea: () => void;
+  computeOutOfDate: boolean;
+  triggerCompute: () => void;
+  computing: boolean;
 };
 
 export default function Connections({
@@ -39,6 +37,9 @@ export default function Connections({
   loadingIdea,
   idea,
   reloadIdea,
+  computeOutOfDate,
+  triggerCompute,
+  computing,
 }: IConnectionsProps) {
   const [selectedIdea, setSelectedIdea] = useState<string>();
 
@@ -149,15 +150,26 @@ export default function Connections({
     removeConnection();
   };
 
-  const titleClamped = (title: string) => {
-    return title.length > 20 ? `${title.slice(0, 20)}...` : title;
-  };
-
   return (
     <Grid>
       {loadingIdea && (
         <Grid.Col span={{ sm: 12 }}>
           <Loader size="xs" />
+        </Grid.Col>
+      )}
+      {computeOutOfDate && (
+        <Grid.Col span={{ sm: 12 }}>
+          <Text c="dimmed" size="sm" mb="sm">
+            These may be out of date...
+          </Text>
+          <Button
+            onClick={triggerCompute}
+            variant="light"
+            size="xs"
+            leftSection={computing ? <Loader size="xs" /> : <ArrowsClockwise />}
+          >
+            Refresh
+          </Button>
         </Grid.Col>
       )}
       <Grid.Col span={{ sm: 12 }}>

@@ -65,8 +65,7 @@ interface EditorProps {
   editorData?: EditorData;
   onChange?: (output: string) => void;
   onBlur?: (output: string) => void;
-  onDebounce?: (output: string) => void;
-  debounce?: number;
+  dependencies: any[];
 }
 
 const defaultContent = ``;
@@ -80,11 +79,9 @@ function DreamWriter({
   editorData,
   onChange,
   onBlur,
-  onDebounce,
-  debounce = 3,
+  dependencies,
 }: EditorProps) {
   const content = initialContent || defaultContent.trim();
-  const debounceTimeoutRef = useRef<Timer | null>(null); // Ref to hold timeout ID
 
   const {
     ui: {
@@ -205,27 +202,8 @@ function DreamWriter({
             outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
           onChange(output);
         }
-        if (onDebounce) {
-          // Clear any existing timeout
-          if (debounceTimeoutRef.current) {
-            clearTimeout(debounceTimeoutRef.current);
-          }
-
-          // Start a new timeout
-          debounceTimeoutRef.current = setTimeout(() => {
-            const output =
-              outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
-            onDebounce(output); // Call the actual save function passed from parent
-          }, debounce);
-        }
       },
       onBlur: ({ editor: e }) => {
-        if (debounceTimeoutRef.current) {
-          const output =
-            outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
-          onDebounce?.(output);
-          clearTimeout(debounceTimeoutRef.current);
-        }
         if (onBlur) {
           const output =
             outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
@@ -241,18 +219,10 @@ function DreamWriter({
       injectCSS: false,
       autofocus: true,
     },
-    [],
+    [...dependencies, initialContent],
   );
 
   const { toggleLink } = useLink({ editor });
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, []);
 
   useShortcuts({
     shortcuts: [

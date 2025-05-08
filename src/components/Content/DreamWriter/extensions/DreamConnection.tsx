@@ -1,6 +1,4 @@
-import { Editor, Extension, Range } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model"; // Import Node for potential command usage
-import { PluginKey } from "@tiptap/pm/state";
+import { Extension } from "@tiptap/core";
 import Suggestion, {
   SuggestionKeyDownProps,
   SuggestionOptions,
