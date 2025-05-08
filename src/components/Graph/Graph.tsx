@@ -1065,18 +1065,18 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
             className="everything"
             transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
           >
-            {edges.map((edge) => (
+            {edges.map((edge, i) => (
               <Edge
-                key={`${edge.source}-${edge.target}`}
+                key={`${edge.source}-${edge.target}-${i}`}
                 edge={edge}
                 sourceNode={nodeMap[edge.source]}
                 targetNode={nodeMap[edge.target]}
               />
             ))}
-            {nodes.map((node) => {
+            {nodes.map((node, i) => {
               return (
                 <Node
-                  key={node.id.toString()}
+                  key={node.id.toString() + i}
                   node={node}
                   isDragging={isDraggingNode === node.id} // Correct check
                   onNodeSelect={
