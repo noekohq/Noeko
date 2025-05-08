@@ -11,7 +11,7 @@ export type IIdea = {
   id: string | RecordId;
   title: string;
   content: string;
-  contentPlain: string;
+  contentPlain?: string;
   embeddings: number[] | null;
   createdAt: Date;
   updatedAt: Date;
@@ -919,10 +919,11 @@ export class Idea {
         }
         return false;
       });
+      console.log("To update: ", toUpdate);
       await Promise.all(
         toUpdate.map((idea) =>
           Idea.update(idea.id, {
-            contentPlain: idea.contentPlain,
+            contentPlain: htmlToPlainText(idea.content),
             contentPlainUpdatedAt: idea.contentUpdatedAt,
           }),
         ),
