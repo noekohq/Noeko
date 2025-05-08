@@ -21,6 +21,7 @@ import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../app/database/models/ideas";
 import { triggerDownload } from "../../../../utils/helpers";
 import { IUserFile } from "../../../../../app/database/models/userfile";
+import { useIdea } from "../../../../contexts/IdeaContext";
 // Keep Mantine, React Router, hook, types, and helper imports...
 
 export interface IDreamIdeaOptions {
@@ -53,7 +54,7 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   addAttributes() {
     return {
       ideaId: {
-        default: null,
+        default: "",
         parseHTML: (element) => element.getAttribute("data-idea-id"),
         renderHTML: (attributes) => ({ "data-idea-id": attributes.ideaId }),
         keepOnSplit: false,
@@ -115,6 +116,9 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
 export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
   const { node, deleteNode, editor, selected } = props;
   const { ideaId, ideaAlias } = node.attrs;
+
+  const { idea: contextIdea } = useIdea();
+  // console.log("Context idea: ", contextIdea);
 
   const { data: idea } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}`,

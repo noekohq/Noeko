@@ -2,33 +2,22 @@ import React, { useEffect, useState, useCallback, useRef } from "react"; // Impo
 import { useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch"; // Your custom hook
-import { IIdea, IIdeaForm } from "../../../app/database/models/ideas";
+import { useDebouncedCallback } from "@mantine/hooks";
+import { IIdea } from "../../../app/database/models/ideas";
 import {
   ActionIcon,
-  Button,
   Grid,
   Group,
   Title,
   Loader,
   Text,
   Card,
-  Space,
   Tooltip,
-  Kbd,
-  Box,
   Flex,
   Divider,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import {
-  ArrowLeft,
-  FloppyDisk, // Save icon
-  ListMagnifyingGlass,
-  Shapes,
-  Sparkle,
-  TrashSimple,
-  TreeStructure,
-} from "@phosphor-icons/react";
+import { Sparkle, TrashSimple } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import { useDisclosure } from "@mantine/hooks";
 import Connections from "./Connections";
@@ -38,37 +27,22 @@ import useShortcuts from "../../hooks/useShortcuts";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
-import Loading from "../../components/Display/Loading/Loading";
 import { useLayout } from "../../contexts/LayoutContext";
 import { getTextProcessed } from "../../utils/processing";
 import { htmlToPlainText } from "../../utils/formatting";
-import useBeaconOnHide from "../../hooks/useBeaconOnHide";
+import { IdeaProvider } from "../../contexts/IdeaContext";
+import { api } from "../../server/api";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
-
-  const [idea, setIdea] = useState<IIdea | null>(null);
-  const [originalIdea, setOriginalIdea] = useState<IIdea | null>(null);
-
   const [title, setTitle] = useState<string>("");
-  const [content, setContent] = useState<string>("");
-
-  const [isSaved, setIsSaved] = useState<boolean>(true);
-
-  useEffect(() => {
-    setIdea(null);
-    setOriginalIdea(null);
-    setTitle(""); // Or a loading placeholder like "Loading..."
-    setContent(""); // Or a loading placeholder
-    setIsSaved(true); // Assume saved or loading until new data arrives
-  }, [ideaId]); // Only dependency is ideaId
+  const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
 
   const {
-    data: fetchedIdeaData,
+    data: idea,
     load: reloadIdea,
     loading: loadingIdea,
-    errors: loadErrors,
   } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}`,
     dependencies: [ideaId],
@@ -80,76 +54,9 @@ export default function Idea() {
     method: "GET",
     runOnMount: true,
     onSuccess: (d) => {
-      setIdea(d);
-      setOriginalIdea(d); // Store the original state
       setTitle(d.title);
-      setContent(d.content || "");
-      setIsSaved(true);
     },
   });
-
-  useEffect(() => {
-    if (loadErrors && loadErrors.length > 0) {
-      showNotification({
-        title: "Error Loading Idea",
-        message: `Could not fetch idea details: ${loadErrors[0] || "Unknown error"}`,
-        color: "red",
-      });
-    }
-  }, [loadErrors]);
-
-  useEffect(() => {
-    if (!originalIdea) return;
-
-    const titleChanged = title !== originalIdea.title;
-    const contentChanged = content !== (originalIdea.content || "");
-
-    setIsSaved(!(titleChanged || contentChanged));
-  }, [title, content, originalIdea]);
-
-  const { load: triggerSaveChanges, loading: loadingSaveChanges } = useFetch<
-    Partial<IIdeaForm>,
-    IIdea
-  >({
-    url: `/graph/ideas/${ideaId}`,
-    method: "PUT",
-    body: {
-      title: title || "New idea...",
-      content: content || "Nothing here yet...",
-    },
-    dependencies: [title, content, ideaId],
-    onSuccess: (updatedIdea) => {
-      reloadIdea();
-    },
-    onError: (error: any) => {
-      showNotification({
-        title: "Error Saving",
-        message: `There was an error updating the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
-        color: "red",
-      });
-    },
-  });
-
-  const handleSaveChanges = useCallback(() => {
-    if (
-      isSaved ||
-      loadingSaveChanges ||
-      !idea
-      // !idea.content ||
-      // !idea.title
-    ) {
-      return;
-    }
-    triggerSaveChanges();
-  }, [
-    isSaved,
-    loadingSaveChanges,
-    idea,
-    idea?.content,
-    idea?.title,
-    triggerSaveChanges,
-    ideaId,
-  ]);
 
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/graph/ideas/${ideaId}`,
@@ -219,23 +126,23 @@ export default function Idea() {
       },
     });
 
-  const embeddingsOutOfDate = useCallback(() => {
+  const embeddingsOutOfDate = () => {
     if (!idea) return false;
     if (!idea.embeddingsUpdatedAt) return true;
     return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
-  }, [idea, ideaId]);
+  };
 
   const statusText = useCallback(() => {
     let text = "";
-    const { wordCount, characterCount, sentenceCount } = getTextProcessed(
-      htmlToPlainText(content),
-    );
-    if (!isSaved && content !== (originalIdea?.content || "")) {
-      text += "Out of date... ";
+    if (!idea) {
+      return "Still loading...";
     }
+    const { wordCount, characterCount, sentenceCount } = getTextProcessed(
+      htmlToPlainText(idea.content),
+    );
     if (loadingSaveChanges) {
       text += "Saving...";
-    } else if (isSaved) {
+    } else {
       text += "Saved. ";
     }
     text += `${wordCount} words. `;
@@ -249,15 +156,7 @@ export default function Idea() {
       text += "Embeddings might be out of date. ";
     }
     return text.trim();
-  }, [
-    idea,
-    ideaId,
-    content,
-    isSaved,
-    originalIdea,
-    loadingEmbeddings,
-    embeddingsOutOfDate,
-  ]);
+  }, [idea, ideaId, loadingEmbeddings, embeddingsOutOfDate]);
 
   const showStatusBlock = statusText().length > 0;
 
@@ -269,44 +168,6 @@ export default function Idea() {
     connectionDrawerHandlers.close();
     overviewDrawerHandlers.close();
   }, [ideaId]);
-
-  const handleManualSaveChanges = useCallback(() => {
-    handleSaveChanges();
-  }, [ideaId]);
-
-  useShortcuts({
-    shortcuts: [
-      {
-        keys: {
-          meta: true,
-          key: "i",
-        },
-        run: () => {
-          connectionDrawerHandlers.toggle();
-          overviewDrawerHandlers.close();
-        },
-      },
-      {
-        keys: {
-          meta: true,
-          key: "o",
-        },
-        run: () => {
-          overviewDrawerHandlers.toggle();
-          connectionDrawerHandlers.close();
-        },
-      },
-      {
-        keys: {
-          meta: true,
-          key: "s",
-        },
-        run: () => {
-          handleManualSaveChanges();
-        },
-      },
-    ],
-  });
 
   const {
     rightSidebar: { opened: rightSidebarOpened },
@@ -352,19 +213,46 @@ export default function Idea() {
     };
   }, [updateFixedStyle]);
 
+  const updateContent = async (newContent: string) => {
+    setLoadingSaveChanges(true);
+    await api
+      .put(`/graph/ideas/${ideaId}`, {
+        content: newContent,
+      })
+      .then(() => {
+        reloadIdea();
+      })
+      .finally(() => {
+        setLoadingSaveChanges(false);
+      });
+  };
+
+  const updateTitle = async (newTitle: string) => {
+    setLoadingSaveChanges(true);
+    await api
+      .put(`/graph/ideas/${ideaId}`, {
+        title: newTitle,
+      })
+      .then(() => {
+        reloadIdea();
+      })
+      .finally(() => {
+        setLoadingSaveChanges(false);
+      });
+  };
+  const debouncedUpdateContent = useDebouncedCallback(updateContent, 500);
+  const debouncedUpdateTitle = useDebouncedCallback(updateTitle, 500);
+
   const handleContentChange = useCallback(
     (newContent: string) => {
-      setContent(newContent);
+      debouncedUpdateContent(newContent);
     },
     [ideaId],
   );
 
   useEffect(() => {
-    if (!originalIdea) return;
-    const titleChanged = title !== originalIdea.title;
-    const contentChanged = content !== (originalIdea.content || "");
-    setIsSaved(!(titleChanged || contentChanged));
-  }, [title, content, originalIdea]);
+    debouncedUpdateTitle(title);
+  }, [title]);
 
   const isMountedRef = useRef(false);
   useEffect(() => {
@@ -374,7 +262,7 @@ export default function Idea() {
     };
   }, []);
 
-  const triggerComputeIfNeeded = useCallback(() => {
+  const triggerComputeIfNeeded = useCallback(async () => {
     if (!isMountedRef.current) {
       return;
     }
@@ -383,26 +271,16 @@ export default function Idea() {
       return;
     }
 
-    if (!isSaved) {
-      return;
-    }
-
     const needsEmbedding =
       !idea.embeddingsUpdatedAt ||
       new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
 
     if (needsEmbedding && !loadingEmbeddings && !loadingSaveChanges) {
-      triggerEmbedIdea();
-    } else if (!needsEmbedding) {
-    } else {
+      await triggerEmbedIdea();
     }
-    // if (!loadingDerivedCascade && !loadingSaveChanges) {
-    //   triggerDerivedCascade();
-    // }
   }, [
     idea,
     ideaId,
-    isSaved,
     loadingEmbeddings,
     loadingDerivedCascade,
     loadingSaveChanges,
@@ -410,159 +288,129 @@ export default function Idea() {
     embeddingsOutOfDate,
   ]);
 
-  const handleEditorBlur = useCallback(
-    (content: string) => {
-      triggerComputeIfNeeded();
-    },
-    [triggerComputeIfNeeded, ideaId],
-  );
-
-  const titleDebounceTimeoutRef = useRef<Timer | null>(null); // Ref to hold timeout ID
+  useShortcuts({
+    shortcuts: [],
+  });
 
   useEffect(() => {
-    if (
-      idea &&
-      idea.id.toString() === ideaId &&
-      originalIdea &&
-      originalIdea.id.toString() === ideaId &&
-      title !== originalIdea.title && // Actual change from fetched original
-      !loadingIdea && // Not currently loading the main idea data
-      !loadingSaveChanges // Not already saving
-    ) {
-      console.log(
-        `Title changed from "${originalIdea.title}" to "${title}" for idea ${ideaId}. Triggering save.`,
-      );
-      triggerSaveChanges();
-    }
-  }, [
-    title,
-    originalIdea,
-    idea,
-    ideaId,
-    loadingIdea,
-    triggerSaveChanges,
-    loadingSaveChanges,
-  ]); // Add ALL relevant dependencies
-
-  const getDataForBeacon = () => {
-    if (!idea) {
-      return null;
-    }
-    return {
-      content,
-      title,
-      withComputations: true,
+    return () => {
+      triggerComputeIfNeeded();
     };
-  };
+  }, []);
 
-  useBeaconOnHide({
-    url: `/graph/ideas/update/${ideaId}`,
-    getData: getDataForBeacon,
-    isEnabled: true,
-    event: "pagehide",
-  });
+  const [editorContent, setEditorContent] = useState<string>();
+  const currentIdeaId = useRef(idea?.id);
+  useEffect(() => {
+    const idChanged = currentIdeaId.current !== idea?.id;
+    console.log("ID changed: ", idChanged);
+    if (idChanged) {
+      console.log("Updating content due to changed id: ", idea?.id);
+      setEditorContent(idea?.content);
+    }
+  }, [idea?.id]);
 
   return (
     <PageWrapper>
       <LeftSidebar>
-        {idea && (
-          <>
-            <Card radius="md" withBorder shadow="xs" p="md">
-              <Text fw={500} c="dimmed" size="sm" mb={4}>
-                <Sparkle
-                  weight="bold"
-                  style={{
-                    verticalAlign: "middle",
-                    marginRight: "6px",
-                    fontSize: "1.1em",
-                  }}
-                />
-                Content Overview
-              </Text>
-              <Text size="sm" lineClamp={3}>
-                {idea.derived?.generative_summary?.sentenceSummary ||
-                  idea.derived?.generative_summary?.sentenceOverview || (
-                    <Text span c="dimmed" fs="italic">
-                      No overview available.
-                    </Text>
-                  )}
-              </Text>
-            </Card>
-            <Divider my="lg" />
-            <Connections
-              opened={connectionDrawerOpened}
-              onClose={connectionDrawerHandlers.close}
-              loadingIdea={loadingIdea}
-              idea={idea}
-              reloadIdea={reloadIdea}
-            />
-            <Divider my="lg" />
-            <Overview
-              opened={overviewDrawerOpened}
-              onClose={overviewDrawerHandlers.close}
-              loadingIdea={loadingIdea}
-              idea={idea}
-              reloadIdea={reloadIdea}
-            />
-          </>
-        )}
+        <>
+          <Card radius="md" withBorder shadow="xs" p="md">
+            <Text fw={500} c="dimmed" size="sm" mb={4}>
+              <Sparkle
+                weight="bold"
+                style={{
+                  verticalAlign: "middle",
+                  marginRight: "6px",
+                  fontSize: "1.1em",
+                }}
+              />
+              Content Overview
+            </Text>
+            <Text size="sm" lineClamp={3}>
+              {idea?.derived?.generative_summary?.sentenceSummary ||
+                idea?.derived?.generative_summary?.sentenceOverview || (
+                  <Text span c="dimmed" fs="italic">
+                    No overview available.
+                  </Text>
+                )}
+            </Text>
+          </Card>
+          {idea ? (
+            <>
+              <Divider my="lg" />
+              <Connections
+                opened={connectionDrawerOpened}
+                onClose={connectionDrawerHandlers.close}
+                loadingIdea={loadingIdea}
+                idea={idea}
+                reloadIdea={reloadIdea}
+                computeOutOfDate={embeddingsOutOfDate()}
+                triggerCompute={triggerComputeIfNeeded}
+                computing={loadingEmbeddings || loadingDerivedCascade}
+              />
+              <Divider my="lg" />
+
+              <Overview
+                opened={overviewDrawerOpened}
+                onClose={overviewDrawerHandlers.close}
+                loadingIdea={loadingIdea}
+                idea={idea}
+                reloadIdea={reloadIdea}
+              />
+            </>
+          ) : (
+            <Loader size="sm" />
+          )}
+        </>
       </LeftSidebar>
       <div className={styles.idea} ref={ideaRef}>
         {/* {loadingIdea && <Loading size="md" />} */}
-        {idea && (
-          <>
-            <Grid>
-              <Grid.Col span={{ base: 12 }}>
-                <Title
-                  order={1}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    setTitle(e.currentTarget.innerText);
-                  }}
-                  dangerouslySetInnerHTML={{ __html: title || "" }}
-                  className={styles.editableTitle} // Add custom style for focus/blur
-                />
-                {!isSaved && title !== originalIdea?.title && (
-                  <Text size="xs" c="orange.7" mt={4}>
-                    Title has unsaved changes.
-                  </Text>
-                )}
-              </Grid.Col>
-
-              <Grid.Col span={{ base: 12 }}>
-                <DreamWriter
-                  key={ideaId}
-                  initialContent={idea.content || ""}
-                  stickyMenu={false}
-                  onChange={handleContentChange}
-                  onDebounce={handleSaveChanges}
-                  debounce={1000}
-                  onBlur={handleEditorBlur}
-                />
-              </Grid.Col>
-            </Grid>
-            {showStatusBlock && (
-              <div
-                className={`${styles.toolbar} ${rightSidebarOpened ? styles.rightSidebarOpen : ""}`}
-                style={{
-                  width:
-                    toolbarStyles && !isMobile
-                      ? toolbarStyles.width
-                      : undefined,
-                  left:
-                    toolbarStyles && !isMobile ? toolbarStyles.left : undefined,
+        <>
+          <Grid>
+            <Grid.Col span={{ base: 12 }}>
+              <Title
+                order={1}
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => {
+                  updateTitle(e.currentTarget.innerText);
                 }}
-              >
-                <Group justify="space-between" align="center">
-                  <Text size="sm" c="dimmed">
-                    {statusText()}
-                  </Text>
-                </Group>
-              </div>
-            )}
-          </>
-        )}
+                dangerouslySetInnerHTML={{ __html: title || "" }}
+                className={styles.editableTitle} // Add custom style for focus/blur
+              />
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12 }}>
+              {idea && (
+                <IdeaProvider idea={idea}>
+                  <DreamWriter
+                    key={ideaId}
+                    initialContent={editorContent}
+                    stickyMenu={false}
+                    onChange={handleContentChange}
+                    dependencies={[ideaId, idea.id]}
+                  />
+                </IdeaProvider>
+              )}
+            </Grid.Col>
+          </Grid>
+          {showStatusBlock && (
+            <div
+              className={`${styles.toolbar} ${rightSidebarOpened ? styles.rightSidebarOpen : ""}`}
+              style={{
+                width:
+                  toolbarStyles && !isMobile ? toolbarStyles.width : undefined,
+                left:
+                  toolbarStyles && !isMobile ? toolbarStyles.left : undefined,
+              }}
+            >
+              <Group justify="space-between" align="center">
+                <Text size="sm" c="dimmed">
+                  {statusText()}
+                </Text>
+              </Group>
+            </div>
+          )}
+        </>
       </div>
       <RightSidebar stayCollapsed={isMobile}>
         <Flex
