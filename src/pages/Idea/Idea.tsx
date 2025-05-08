@@ -302,10 +302,8 @@ export default function Idea() {
   const currentIdeaId = useRef(idea?.id);
   useEffect(() => {
     const idChanged = currentIdeaId.current !== idea?.id;
-    console.log("ID changed: ", idChanged);
     if (idChanged && idea) {
       currentIdeaId.current = idea.id;
-      console.log("Updating content due to changed id: ", idea.id);
       setEditorContent(idea.content);
     }
 
