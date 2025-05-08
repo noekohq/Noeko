@@ -65,7 +65,7 @@ interface EditorProps {
   editorData?: EditorData;
   onChange?: (output: string) => void;
   onBlur?: (output: string) => void;
-  dependencies: any[];
+  dependencies?: any[];
 }
 
 const defaultContent = ``;
@@ -219,7 +219,7 @@ function DreamWriter({
       injectCSS: false,
       autofocus: true,
     },
-    [...dependencies, initialContent],
+    [...(dependencies ?? []), initialContent],
   );
 
   const { toggleLink } = useLink({ editor });
