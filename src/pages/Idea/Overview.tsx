@@ -22,16 +22,12 @@ import { openConfirmModal } from "@mantine/modals";
 import { validate } from "uuid";
 
 type IOverviewProps = {
-  opened: boolean;
-  onClose: () => void;
   idea: IIdea | undefined;
   loadingIdea: boolean;
   reloadIdea: () => void;
 };
 
 export default function Overview({
-  opened,
-  onClose,
   idea,
   loadingIdea,
   reloadIdea,
@@ -77,7 +73,6 @@ export default function Overview({
         message: "Overview deleted successfully",
       });
       reloadIdea();
-      onClose();
     },
     onError: () => {
       showNotification({

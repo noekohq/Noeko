@@ -1,4 +1,4 @@
-import { IDBGraph } from "../../app/database/models/ideas";
+import { IDBGraph, IIdea } from "../../app/database/models/ideas";
 import {
   IDerivedNode,
   IEdge,
@@ -172,4 +172,15 @@ export const getNodeDescription = (node: INode) => {
   if (node.type === "derived") {
     return node.type;
   }
+};
+
+export const ideasAreConnected = (first: IIdea, second: IIdea | string) => {
+  if (!first.connections && !second) {
+    return undefined;
+  }
+  const secondId = typeof second === "string" ? second : second.id.toString();
+  const firstHasSecond = !!first.connections?.find(
+    (c) => c.id.toString() === secondId,
+  );
+  return firstHasSecond;
 };

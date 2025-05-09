@@ -72,7 +72,7 @@ export default function IdeaPreview({
           <Flex direction="column" gap="sm">
             <Text inline>
               {subtext && (
-                <Text inline size="xs" c="dimmed">
+                <Text inline size="xs" c="dimmed" component="span">
                   {subtext}
                 </Text>
               )}

@@ -19,10 +19,9 @@ import { showNotification } from "@mantine/notifications";
 import { ArrowsClockwise, TrashSimple } from "@phosphor-icons/react";
 import { api } from "../../server/api";
 import { similarityToColor, similarityToLevel } from "../../vars/ideas";
+import { ideasAreConnected } from "../../utils/graph";
 
 type IConnectionsProps = {
-  opened: boolean;
-  onClose: () => void;
   loadingIdea: boolean;
   idea: IIdea;
   reloadIdea: () => void;
@@ -32,8 +31,6 @@ type IConnectionsProps = {
 };
 
 export default function Connections({
-  opened,
-  onClose,
   loadingIdea,
   idea,
   reloadIdea,
@@ -52,7 +49,7 @@ export default function Connections({
     if (!idea) {
       return false;
     }
-    return idea.connections?.some((connection) => connection.id === ideaId);
+    return ideasAreConnected(idea, ideaId);
   };
 
   const [draggedIdea, setDraggedIdea] = useState<IIdea>();
@@ -110,6 +107,34 @@ export default function Connections({
     }
   };
 
+  const disconnectInline = async (source: string, target: string) => {
+    try {
+      await api
+        .delete("/graph/connection", {
+          data: {
+            source,
+            target,
+          },
+        })
+        .then(() => {
+          showNotification({
+            title: "Connection created",
+            message: "The connection was successfully created.",
+          });
+          reloadIdea();
+        })
+        .catch((error) => {
+          showNotification({
+            title: "Connection creation failed",
+            message: "The connection could not be created.",
+            color: "red",
+          });
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleDropIdeaInConnection = async () => {
     if (!draggedIdea) return;
     try {
@@ -146,8 +171,8 @@ export default function Connections({
     },
   });
 
-  const handleRemoveConnection = () => {
-    removeConnection();
+  const handleRemoveConnection = (target: string) => {
+    disconnectInline(idea.id.toString(), target);
   };
 
   return (
@@ -216,12 +241,12 @@ export default function Connections({
             <Grid.Col span={{ sm: 12 }}>
               <Group>
                 {idea?.connections && idea.connections?.length > 0 ? (
-                  idea.connections?.map((connection) => {
+                  idea.connections?.map((connection, i) => {
                     return (
                       <Link
                         to={`/idea/${connection.id}`}
                         style={{ textDecoration: "none", color: "inherit" }}
-                        key={connection.id + "connected"}
+                        key={connection.id + "connected" + i}
                       >
                         <IdeaPreview
                           idea={connection}
@@ -235,7 +260,9 @@ export default function Connections({
                                 color="red"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleRemoveConnection();
+                                  handleRemoveConnection(
+                                    connection.id.toString(),
+                                  );
                                 }}
                               >
                                 <TrashSimple />
