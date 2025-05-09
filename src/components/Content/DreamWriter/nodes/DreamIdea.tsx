@@ -22,6 +22,9 @@ import { IIdea } from "../../../../../app/database/models/ideas";
 import { triggerDownload } from "../../../../utils/helpers";
 import { IUserFile } from "../../../../../app/database/models/userfile";
 import { useIdea } from "../../../../contexts/IdeaContext";
+import { ideasAreConnected } from "../../../../utils/graph";
+import { useEffect, useRef } from "react";
+import { createIdeaConnection } from "../../../../utils/ideas";
 // Keep Mantine, React Router, hook, types, and helper imports...
 
 export interface IDreamIdeaOptions {
@@ -117,8 +120,8 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
   const { node, deleteNode, editor, selected } = props;
   const { ideaId, ideaAlias } = node.attrs;
 
-  const { idea: contextIdea } = useIdea();
-  // console.log("Context idea: ", contextIdea);
+  const { idea: parentIdea, ensureConnected } = useIdea();
+  ensureConnected(ideaId);
 
   const { data: idea } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}`,

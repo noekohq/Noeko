@@ -1,18 +1,30 @@
 import { IProcessedText } from "../types/ideas";
 
-export const getWordCount = (text: string) => {
-  return text.split(" ").length;
-};
-
-export const getCharCount = (text: string, omitSpaces?: boolean) => {
-  if (omitSpaces) {
-    return text.split("").filter((l) => " ").length;
+export const getWordCount = (text: string): number => {
+  if (!text || text.trim() === "") {
+    return 0;
   }
-  return text.split("").length;
+  const words = text.match(/[\w'-]+|[^\s\w]+/g);
+  return words ? words.length : 0;
 };
 
-export const getSentenceCount = (text: string) => {
-  return text.split(".").length;
+export const getCharCount = (
+  text: string,
+  omitSpaces: boolean = false,
+): number => {
+  if (omitSpaces) {
+    return text.replace(/\s/g, "").length;
+  }
+  return text.length;
+};
+
+export const getSentenceCount = (text: string): number => {
+  if (!text || text.trim() === "") {
+    return 0;
+  }
+  const sentences = text.match(/[^.!?\s][^.!?\n]*[.!?]+(\s|$)|(\n\s*\n)/g);
+
+  return sentences ? sentences.length : 0;
 };
 
 export const getTextProcessed = (text: string): IProcessedText => {

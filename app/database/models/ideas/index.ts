@@ -516,14 +516,54 @@ export class Idea {
     }
   }
 
-  static async connect(from: string, to: string) {
+  static async checkConnectionExists(source: string, target: string) {
     try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Could not get database!");
+      }
+      const results = await db.query<[IIdeaConnection[]]>(
+        `SELECT * FROM connected WHERE in = $source AND out = $target;`,
+        {
+          source,
+          target,
+        },
+      );
+      if (!results) {
+        throw new Error("Could not get results!");
+      }
+      const [connections] = results;
+      if (connections.length > 0) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking connection exists: ", error);
+      return undefined;
+    }
+  }
+
+  static async connect(source: string, target: string) {
+    try {
+      const connectionExists = await Idea.checkConnectionExists(source, target);
+      if (connectionExists === undefined) {
+        throw new Error("Could not check if connection existed");
+      }
+      if (connectionExists) {
+        console.error(
+          "Did not create duplicate connection between: ",
+          source,
+          target,
+        );
+        return undefined;
+      }
+      console.log("Checked connection exists: ", connectionExists);
       const db = await getDatabase();
       const result = await db?.query<[IIdeaConnection & { id: RecordId }]>(
         `RELATE $fromId -> connected -> $toId CONTENT { createdAt: $now, }`,
         {
-          fromId: new StringRecordId(from),
-          toId: new StringRecordId(to),
+          fromId: new StringRecordId(source),
+          toId: new StringRecordId(target),
           now: new Date(),
         },
       );
@@ -541,6 +581,7 @@ export class Idea {
   static async disconnect(source: string, target: string) {
     try {
       const db = await getDatabase();
+      console.log("Deleting from connection: ", source, target);
       const result = await db?.query<IIdeaConnection[]>(
         "DELETE FROM (SELECT VALUE <->connected FROM ONLY <record> $source) WHERE out = <record> $target OR in = <record> $target;",
         {

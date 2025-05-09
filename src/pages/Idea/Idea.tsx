@@ -145,9 +145,9 @@ export default function Idea() {
     } else {
       text += "Saved. ";
     }
-    text += `${wordCount} words. `;
-    text += `${characterCount} characters. `;
-    text += `${sentenceCount} sentences. `;
+    text += `${wordCount} word${characterCount === 1 ? "" : "s"}. `;
+    text += `${characterCount} character${characterCount === 1 ? "" : "s"}. `;
+    text += `${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}. `;
     if (loadingEmbeddings) {
       text += "Generating embeddings... ";
     } else if (!idea?.embeddings || idea.embeddings?.length === 0) {
@@ -159,15 +159,6 @@ export default function Idea() {
   }, [idea, ideaId, loadingEmbeddings, embeddingsOutOfDate]);
 
   const showStatusBlock = statusText().length > 0;
-
-  const [connectionDrawerOpened, connectionDrawerHandlers] =
-    useDisclosure(false);
-  const [overviewDrawerOpened, overviewDrawerHandlers] = useDisclosure(false);
-
-  useEffect(() => {
-    connectionDrawerHandlers.close();
-    overviewDrawerHandlers.close();
-  }, [ideaId]);
 
   const {
     rightSidebar: { opened: rightSidebarOpened },
@@ -341,8 +332,6 @@ export default function Idea() {
             <>
               <Divider my="lg" />
               <Connections
-                opened={connectionDrawerOpened}
-                onClose={connectionDrawerHandlers.close}
                 loadingIdea={loadingIdea}
                 idea={idea}
                 reloadIdea={reloadIdea}
@@ -353,8 +342,6 @@ export default function Idea() {
               <Divider my="lg" />
 
               <Overview
-                opened={overviewDrawerOpened}
-                onClose={overviewDrawerHandlers.close}
                 loadingIdea={loadingIdea}
                 idea={idea}
                 reloadIdea={reloadIdea}
@@ -384,7 +371,12 @@ export default function Idea() {
 
             <Grid.Col span={{ base: 12 }}>
               {idea && (
-                <IdeaProvider idea={idea}>
+                <IdeaProvider
+                  idea={idea}
+                  reloadIdea={async () => {
+                    await reloadIdea();
+                  }}
+                >
                   <DreamWriter
                     key={ideaId}
                     initialContent={editorContent}
