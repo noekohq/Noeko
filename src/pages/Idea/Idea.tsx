@@ -38,6 +38,7 @@ export default function Idea() {
   const navigate = useNavigate();
   const [title, setTitle] = useState<string>("");
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
+  const [originalIdea, setOriginalIdea] = useState<IIdea>();
 
   const {
     data: idea,
@@ -55,6 +56,7 @@ export default function Idea() {
     runOnMount: true,
     onSuccess: (d) => {
       setTitle(d.title);
+      setOriginalIdea(d);
     },
   });
 
@@ -242,7 +244,9 @@ export default function Idea() {
   );
 
   useEffect(() => {
-    debouncedUpdateTitle(title);
+    if (title && originalIdea?.title !== title) {
+      debouncedUpdateTitle(title);
+    }
   }, [title]);
 
   const isMountedRef = useRef(false);
