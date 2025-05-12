@@ -34,6 +34,9 @@ import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import TextEditor from "../../components/TextEditor/TextEditor";
 import { validateEmail } from "../../utils/data";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import LeftSidebar from "../../components/UI/LeftSidebar";
+import RightSidebar from "../../components/UI/RightSidebar";
 
 export default function Users() {
   const {
@@ -222,317 +225,321 @@ export default function Users() {
   );
 
   return (
-    <Container p="lg">
-      <Modal
-        opened={!!toDisable}
-        title="Disable user"
-        onClose={() => setToDisable(undefined)}
-      >
-        <Text>Are you sure you want to disable {toDisable?.email}?</Text>
-        <br />
-        <Group justify="end">
-          <Button onClick={() => setToDisable(undefined)} variant="default">
-            No, nevermind.
-          </Button>
-          <Button
-            onClick={() => {
-              disableUser();
-            }}
-            color="red"
-          >
-            Yes, disable.
-          </Button>
-        </Group>
-      </Modal>
-      <Modal
-        opened={!!toEnable}
-        title="Enable user"
-        onClose={() => setToEnable(undefined)}
-      >
-        <Text>Are you sure you want to enable {toEnable?.email}?</Text>
-        <br />
-        <Group justify="end">
-          <Button onClick={() => setToEnable(undefined)} variant="default">
-            No, nevermind.
-          </Button>
-          <Button
-            onClick={() => {
-              enableUser();
-            }}
-            color="green"
-          >
-            Yes, enable.
-          </Button>
-        </Group>
-      </Modal>
-
-      <Modal
-        opened={!!toDelete}
-        title="Delete user"
-        onClose={() => setToDelete(undefined)}
-      >
-        <Text>Are you sure you want to delete {toDelete?.email}?</Text>
-        <br />
-        <Group justify="end">
-          <Button onClick={() => setToDelete(undefined)} variant="default">
-            No, nevermind.
-          </Button>
-          <Button
-            onClick={() => {
-              deleteUser();
-            }}
-            color="red"
-          >
-            Yes, delete.
-          </Button>
-        </Group>
-      </Modal>
-
-      <Modal
-        opened={!!toEmail}
-        title="Email user"
-        onClose={() => setToEmail(undefined)}
-        size="lg"
-      >
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            Sending email to {toEmail?.email}
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <RadioGroup
-              value={emailType}
-              onChange={(v) => setEmailType(v as typeof emailType)}
+    <PageWrapper>
+      <LeftSidebar />
+      <Container p="lg">
+        <Modal
+          opened={!!toDisable}
+          title="Disable user"
+          onClose={() => setToDisable(undefined)}
+        >
+          <Text>Are you sure you want to disable {toDisable?.email}?</Text>
+          <br />
+          <Group justify="end">
+            <Button onClick={() => setToDisable(undefined)} variant="default">
+              No, nevermind.
+            </Button>
+            <Button
+              onClick={() => {
+                disableUser();
+              }}
+              color="red"
             >
-              <RadioCard value="onboarding" radius="sm" p="md">
-                <Group wrap="nowrap" align="flex-start">
-                  <Radio.Indicator />
-                  <Text>Send the user an onboarding email.</Text>
-                </Group>
-              </RadioCard>
-            </RadioGroup>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Group>
-              <Button
-                variant="default"
-                onClick={() => setToEmail(undefined)}
-                disabled={sendingUserEmail}
-              >
-                Cancel.
-              </Button>
-              <Button
-                onClick={() => {
-                  sendUserEmail();
-                }}
-                leftSection={
-                  sendingUserEmail ? <Loader size="sm" color="white" /> : ""
-                }
-                disabled={sendingUserEmail}
-              >
-                Send it.
-              </Button>
-            </Group>
-          </Grid.Col>
-        </Grid>
-      </Modal>
+              Yes, disable.
+            </Button>
+          </Group>
+        </Modal>
+        <Modal
+          opened={!!toEnable}
+          title="Enable user"
+          onClose={() => setToEnable(undefined)}
+        >
+          <Text>Are you sure you want to enable {toEnable?.email}?</Text>
+          <br />
+          <Group justify="end">
+            <Button onClick={() => setToEnable(undefined)} variant="default">
+              No, nevermind.
+            </Button>
+            <Button
+              onClick={() => {
+                enableUser();
+              }}
+              color="green"
+            >
+              Yes, enable.
+            </Button>
+          </Group>
+        </Modal>
 
-      <Modal
-        opened={invitingUser}
-        onClose={() => setInvitingUser(false)}
-        title="Invite user"
-        size="lg"
-      >
+        <Modal
+          opened={!!toDelete}
+          title="Delete user"
+          onClose={() => setToDelete(undefined)}
+        >
+          <Text>Are you sure you want to delete {toDelete?.email}?</Text>
+          <br />
+          <Group justify="end">
+            <Button onClick={() => setToDelete(undefined)} variant="default">
+              No, nevermind.
+            </Button>
+            <Button
+              onClick={() => {
+                deleteUser();
+              }}
+              color="red"
+            >
+              Yes, delete.
+            </Button>
+          </Group>
+        </Modal>
+
+        <Modal
+          opened={!!toEmail}
+          title="Email user"
+          onClose={() => setToEmail(undefined)}
+          size="lg"
+        >
+          <Grid>
+            <Grid.Col span={{ sm: 12 }}>
+              Sending email to {toEmail?.email}
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <RadioGroup
+                value={emailType}
+                onChange={(v) => setEmailType(v as typeof emailType)}
+              >
+                <RadioCard value="onboarding" radius="sm" p="md">
+                  <Group wrap="nowrap" align="flex-start">
+                    <Radio.Indicator />
+                    <Text>Send the user an onboarding email.</Text>
+                  </Group>
+                </RadioCard>
+              </RadioGroup>
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <Group>
+                <Button
+                  variant="default"
+                  onClick={() => setToEmail(undefined)}
+                  disabled={sendingUserEmail}
+                >
+                  Cancel.
+                </Button>
+                <Button
+                  onClick={() => {
+                    sendUserEmail();
+                  }}
+                  leftSection={
+                    sendingUserEmail ? <Loader size="sm" color="white" /> : ""
+                  }
+                  disabled={sendingUserEmail}
+                >
+                  Send it.
+                </Button>
+              </Group>
+            </Grid.Col>
+          </Grid>
+        </Modal>
+
+        <Modal
+          opened={invitingUser}
+          onClose={() => setInvitingUser(false)}
+          title="Invite user"
+          size="lg"
+        >
+          <Grid>
+            <Grid.Col span={{ sm: 12 }}>
+              <TextInput
+                label="First name"
+                placeholder="First name"
+                {...invitationForm.getInputProps("firstName")}
+                withAsterisk
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <TextInput
+                label="Last name"
+                placeholder="Last name"
+                {...invitationForm.getInputProps("lastName")}
+                withAsterisk
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <TextInput
+                label="Email"
+                placeholder="Email"
+                {...invitationForm.getInputProps("email")}
+                withAsterisk
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }} />
+            <Grid.Col span={{ sm: 12 }}>
+              <Group justify="right">
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    invitationForm.reset();
+                    setInvitingUser(false);
+                  }}
+                  disabled={loadingUserInvite}
+                >
+                  Cancel.
+                </Button>
+                <Button
+                  onClick={() => {
+                    inviteUser();
+                  }}
+                  leftSection={
+                    loadingUserInvite ? <Loader color="white" size="sm" /> : ""
+                  }
+                  disabled={loadingUserInvite}
+                >
+                  Send invite!
+                </Button>
+              </Group>
+            </Grid.Col>
+          </Grid>
+        </Modal>
+
+        {loadingUsers && <Loader size="lg" />}
         <Grid>
+          {!!invitedUser && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Alert
+                withCloseButton
+                onClose={() => {
+                  setInvitedUser(undefined);
+                }}
+              >
+                <Grid>
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Text>
+                      The new user has been created with the email{" "}
+                      <a href={`mailto:${invitedUser.user.email}`}>
+                        {invitedUser.user.email}
+                      </a>{" "}
+                      and password <Code>{invitedUser.newUserPassword}</Code>.{" "}
+                      {invitedUser.emailSuccess
+                        ? "Email was sent successfully."
+                        : "Email was not sent successfully."}
+                    </Text>
+                  </Grid.Col>
+                  <Grid.Col span={{ sm: 12 }}>
+                    <CopyButton value={invitedUser.newUserPassword}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Button
+                            onClick={copy}
+                            leftSection={
+                              copied ? (
+                                <Check weight="bold" />
+                              ) : (
+                                <Clipboard weight="bold" />
+                              )
+                            }
+                          >
+                            {copied ? "Copied" : "Copy Password"}
+                          </Button>
+                        );
+                      }}
+                    </CopyButton>
+                  </Grid.Col>
+                </Grid>
+              </Alert>
+            </Grid.Col>
+          )}
           <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              label="First name"
-              placeholder="First name"
-              {...invitationForm.getInputProps("firstName")}
-              withAsterisk
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              label="Last name"
-              placeholder="Last name"
-              {...invitationForm.getInputProps("lastName")}
-              withAsterisk
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              label="Email"
-              placeholder="Email"
-              {...invitationForm.getInputProps("email")}
-              withAsterisk
-            />
+            <Title>Manage Users</Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }} />
           <Grid.Col span={{ sm: 12 }}>
-            <Group justify="right">
-              <Button
-                variant="default"
-                onClick={() => {
-                  invitationForm.reset();
-                  setInvitingUser(false);
-                }}
-                disabled={loadingUserInvite}
-              >
-                Cancel.
-              </Button>
-              <Button
-                onClick={() => {
-                  inviteUser();
-                }}
-                leftSection={
-                  loadingUserInvite ? <Loader color="white" size="sm" /> : ""
-                }
-                disabled={loadingUserInvite}
-              >
-                Send invite!
+            <TextInput
+              placeholder="Filter users"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group justify="end">
+              <Button variant="light" onClick={() => setInvitingUser(true)}>
+                Invite a user
               </Button>
             </Group>
           </Grid.Col>
-        </Grid>
-      </Modal>
-
-      {loadingUsers && <Loader size="lg" />}
-      <Grid>
-        {!!invitedUser && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Alert
-              withCloseButton
-              onClose={() => {
-                setInvitedUser(undefined);
-              }}
-            >
-              <Grid>
-                <Grid.Col span={{ sm: 12 }}>
-                  <Text>
-                    The new user has been created with the email{" "}
-                    <a href={`mailto:${invitedUser.user.email}`}>
-                      {invitedUser.user.email}
-                    </a>{" "}
-                    and password <Code>{invitedUser.newUserPassword}</Code>.{" "}
-                    {invitedUser.emailSuccess
-                      ? "Email was sent successfully."
-                      : "Email was not sent successfully."}
-                  </Text>
-                </Grid.Col>
-                <Grid.Col span={{ sm: 12 }}>
-                  <CopyButton value={invitedUser.newUserPassword}>
-                    {({ copied, copy }) => {
-                      return (
-                        <Button
-                          onClick={copy}
-                          leftSection={
-                            copied ? (
-                              <Check weight="bold" />
-                            ) : (
-                              <Clipboard weight="bold" />
-                            )
-                          }
-                        >
-                          {copied ? "Copied" : "Copy Password"}
-                        </Button>
-                      );
-                    }}
-                  </CopyButton>
-                </Grid.Col>
-              </Grid>
-            </Alert>
+          <Grid.Col span={{ sm: 12 }} />
+          <Grid.Col>
+            <Table>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>ID</Table.Th>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th>Email</Table.Th>
+                  <Table.Th>Roles</Table.Th>
+                  <Table.Th>Actions</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {filteredUsers?.map((user) => {
+                  return (
+                    <Table.Tr key={user.id}>
+                      <Table.Td>
+                        <Text c={user.disabled ? "dimmed" : ""} size="sm">
+                          {user.id}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        {user.firstName} {user.lastName}
+                      </Table.Td>
+                      <Table.Td>{user.email}</Table.Td>
+                      <Table.Td>{user.roles.join(", ")}</Table.Td>
+                      <Table.Td>
+                        <Group gap="xs">
+                          {user.disabled ? (
+                            <ActionIcon
+                              variant="light"
+                              color="green"
+                              size="sm"
+                              onClick={() => setToEnable(user)}
+                            >
+                              <ThumbsUp />
+                            </ActionIcon>
+                          ) : (
+                            <ActionIcon
+                              variant="light"
+                              color="blue"
+                              size="sm"
+                              onClick={() => setToDisable(user)}
+                            >
+                              <HandPalm />
+                            </ActionIcon>
+                          )}
+                          <ActionIcon
+                            variant="light"
+                            color="orange"
+                            size="sm"
+                            onClick={() => setToEmail(user)}
+                          >
+                            <EnvelopeSimple />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="light"
+                            color="red"
+                            size="sm"
+                            onClick={() => setToDelete(user)}
+                          >
+                            <TrashSimple />
+                          </ActionIcon>
+                        </Group>
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
           </Grid.Col>
-        )}
-        <Grid.Col span={{ sm: 12 }}>
-          <Title>Manage Users</Title>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }} />
-        <Grid.Col span={{ sm: 12 }}>
-          <TextInput
-            placeholder="Filter users"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }}>
-          <Group justify="end">
-            <Button variant="light" onClick={() => setInvitingUser(true)}>
-              Invite a user
-            </Button>
-          </Group>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12 }} />
-        <Grid.Col>
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>ID</Table.Th>
-                <Table.Th>Name</Table.Th>
-                <Table.Th>Email</Table.Th>
-                <Table.Th>Roles</Table.Th>
-                <Table.Th>Actions</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {filteredUsers?.map((user) => {
-                return (
-                  <Table.Tr key={user.id}>
-                    <Table.Td>
-                      <Text c={user.disabled ? "dimmed" : ""} size="sm">
-                        {user.id}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      {user.firstName} {user.lastName}
-                    </Table.Td>
-                    <Table.Td>{user.email}</Table.Td>
-                    <Table.Td>{user.roles.join(", ")}</Table.Td>
-                    <Table.Td>
-                      <Group gap="xs">
-                        {user.disabled ? (
-                          <ActionIcon
-                            variant="light"
-                            color="green"
-                            size="sm"
-                            onClick={() => setToEnable(user)}
-                          >
-                            <ThumbsUp />
-                          </ActionIcon>
-                        ) : (
-                          <ActionIcon
-                            variant="light"
-                            color="blue"
-                            size="sm"
-                            onClick={() => setToDisable(user)}
-                          >
-                            <HandPalm />
-                          </ActionIcon>
-                        )}
-                        <ActionIcon
-                          variant="light"
-                          color="orange"
-                          size="sm"
-                          onClick={() => setToEmail(user)}
-                        >
-                          <EnvelopeSimple />
-                        </ActionIcon>
-                        <ActionIcon
-                          variant="light"
-                          color="red"
-                          size="sm"
-                          onClick={() => setToDelete(user)}
-                        >
-                          <TrashSimple />
-                        </ActionIcon>
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
-        </Grid.Col>
-      </Grid>
-    </Container>
+        </Grid>
+      </Container>
+      <RightSidebar />
+    </PageWrapper>
   );
 }
