@@ -21,6 +21,7 @@ import useShortcuts from "./hooks/useShortcuts";
 import { userIsSuperuser } from "./utils/user";
 import Users from "./pages/Users/Users";
 import Search from "./pages/Search/Search";
+import Feedback from "./pages/Feedback/Feedback";
 
 export default function App() {
   const navigate = useNavigate();
@@ -93,6 +94,7 @@ export default function App() {
                 {isSuperuser && (
                   <Route path="admin">
                     <Route path="users" element={<Users />} />
+                    <Route path="feedback" element={<Feedback />} />
                   </Route>
                 )}
                 <Route path="*" element={<Navigate to="/" replace />} />
