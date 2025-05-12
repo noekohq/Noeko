@@ -1,12 +1,26 @@
 import { useEffect, useState } from "react";
 import styles from "./Sidebars.module.scss";
-import { ActionIcon, Divider, Flex, Group, Text, Tooltip } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Checkbox,
+  Divider,
+  Flex,
+  Grid,
+  Group,
+  Modal,
+  Text,
+  Textarea,
+  TextInput,
+  Tooltip,
+} from "@mantine/core";
 import {
   ArrowLineDown,
   ArrowLineLeft,
   ArrowLineRight,
   ArrowLineUp,
   HouseSimple,
+  MegaphoneSimple,
 } from "@phosphor-icons/react";
 import useShortcuts from "../../hooks/useShortcuts";
 import { getCurrentTimeOfDay } from "../../utils/datetime";
@@ -14,6 +28,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation } from "react-router";
 import { useMediaQuery } from "@mantine/hooks";
 import { useLayout } from "../../contexts/LayoutContext";
+import useFetch from "../../hooks/useFetch";
+import {
+  IFeedback,
+  IFeedbackForm,
+} from "../../../app/database/models/feedback";
+import { useForm } from "@mantine/form";
+import { showNotification } from "@mantine/notifications";
 
 type LeftSidebarProps = {
   children?: React.ReactNode | React.ReactNode[];
@@ -71,10 +92,112 @@ export default function LeftSidebar({
   const ToggleIconClosed = isMobile ? ArrowLineDown : ArrowLineRight;
   const ToggleIconOpened = isMobile ? ArrowLineUp : ArrowLineLeft;
 
+  const feedbackForm = useForm({
+    initialValues: {
+      content: "",
+      consentToContact: true,
+    },
+    validate: {
+      content: (v) => {
+        if (!v) {
+          return "Content cannot be empty.";
+        }
+        return null;
+      },
+    },
+  });
+
+  const [addingFeedback, setAddingFeedback] = useState(false);
+
+  const { load: createFeedback, loading: loadingFeedback } = useFetch<
+    Omit<IFeedbackForm, "status">,
+    IFeedback
+  >({
+    url: "/feedback",
+    method: "POST",
+    body: {
+      ...feedbackForm.values,
+    },
+    dependencies: [feedbackForm.values],
+    onSuccess: () => {
+      showNotification({
+        title: "Success",
+        message: "Thank you for your valuable feedback!",
+      });
+      feedbackForm.reset();
+      setAddingFeedback(false);
+    },
+    onError: () => {
+      showNotification({
+        title: "Error",
+        message: "Something went wrong creating your feedback",
+        color: "red",
+      });
+    },
+  });
+
+  const handleSubmitFeedback = () => {
+    const { hasErrors, errors } = feedbackForm.validate();
+    if (hasErrors) {
+      showNotification({
+        title: "Error with form",
+        message: Object.values(errors)[0],
+        color: "red",
+      });
+      return;
+    }
+    createFeedback();
+  };
+
   return (
     <div
       className={`${styles.leftSidebar} ${opened ? styles.opened : styles.closed}`}
     >
+      <Modal
+        opened={addingFeedback}
+        onClose={() => {
+          setAddingFeedback(false);
+        }}
+        title="Submit feedback"
+      >
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>
+            <Textarea
+              label="Your Feedback"
+              placeholder="Your feedback here..."
+              {...feedbackForm.getInputProps("content")}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Checkbox
+              label="Can we contact you about this?"
+              description={`We have your email as ${user?.email}`}
+              {...feedbackForm.getInputProps("consentToContact", {
+                type: "checkbox",
+              })}
+            />
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group justify="end">
+              <Button
+                variant="default"
+                onClick={() => {
+                  feedbackForm.reset();
+                }}
+              >
+                Nevermind.
+              </Button>
+              <Button
+                onClick={() => {
+                  handleSubmitFeedback();
+                }}
+              >
+                Submit!
+              </Button>
+            </Group>
+          </Grid.Col>
+        </Grid>
+      </Modal>
       <Flex
         justify="space-between"
         align={isMobile ? (opened ? "center" : "flex-end") : "center"}
@@ -124,6 +247,40 @@ export default function LeftSidebar({
             </Link>
           )}
         </Flex>
+      </Flex>
+      <Divider my="md" />
+      <Flex
+        justify="space-between"
+        align={isMobile ? (opened ? "center" : "flex-end") : "center"}
+        direction={opened ? "row" : "column"}
+        gap="md"
+      >
+        {opened ? (
+          <Tooltip label="Give us feedback!">
+            <Button
+              variant="light"
+              size="sm"
+              leftSection={<MegaphoneSimple weight="bold" />}
+              onClick={() => {
+                setAddingFeedback(true);
+              }}
+            >
+              I have feedback!
+            </Button>
+          </Tooltip>
+        ) : (
+          <Tooltip label="Give us feedback!">
+            <ActionIcon
+              variant="light"
+              size="md"
+              onClick={() => {
+                setAddingFeedback(true);
+              }}
+            >
+              <MegaphoneSimple />
+            </ActionIcon>
+          </Tooltip>
+        )}
       </Flex>
       {opened && <Divider my="md" />}
       {opened && <div className={styles.content}>{children}</div>}

@@ -17,8 +17,10 @@ import {
   ArrowLineLeft,
   ArrowLineRight,
   ArrowLineUp,
+  ChatCircleDots,
   Gear,
   Graph,
+  MegaphoneSimple,
   Shield,
   User,
   UsersThree,
@@ -144,7 +146,13 @@ export default function RightSidebar({
         <Flex
           gap="md"
           direction={
-            isMobile ? (opened ? "row" : "row") : opened ? "row" : "column"
+            isMobile
+              ? opened
+                ? "row"
+                : "row"
+              : opened
+                ? "row-reverse"
+                : "column"
           }
         >
           <Menu width={200}>
@@ -205,6 +213,15 @@ export default function RightSidebar({
               <Link to="/admin/users">
                 <ActionIcon size="lg" variant="default">
                   <UsersThree />
+                </ActionIcon>
+              </Link>
+            </Tooltip>
+          )}
+          {isSuperuser && !isActiveRoute("/admin/feedback") && (
+            <Tooltip label="View Feedback">
+              <Link to="/admin/feedback">
+                <ActionIcon size="lg" variant="default">
+                  <ChatCircleDots />
                 </ActionIcon>
               </Link>
             </Tooltip>

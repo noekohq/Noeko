@@ -23,7 +23,7 @@
     // Content is hidden when closed (applies to mobile and desktop)
     &.closed {
         background-color: transparent;
-        flex-direction: row;
+        flex-direction: column;
     }
 
     // Styles when opened on Mobile/Tablet
