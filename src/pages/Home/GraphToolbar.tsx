@@ -517,7 +517,7 @@ function UploadFile({ opened, setOpened, reloadGraph }: IUploadFileProps) {
     FormData,
     undefined
   >({
-    url: "/files/user_file",
+    url: "/files/",
     method: "POST",
     body: formData,
     dependencies: [formData],
