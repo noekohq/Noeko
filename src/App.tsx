@@ -22,6 +22,7 @@ import { userIsSuperuser } from "./utils/user";
 import Users from "./pages/Users/Users";
 import Search from "./pages/Search/Search";
 import Feedback from "./pages/Feedback/Feedback";
+import Import from "./pages/Import/Import";
 
 export default function App() {
   const navigate = useNavigate();
@@ -87,6 +88,9 @@ export default function App() {
                 <Route path="file">
                   <Route index element={<Navigate to="/" replace />} />
                   <Route path=":fileId" element={<UserFile />} />
+                </Route>
+                <Route path="import">
+                  <Route index element={<Import />} />
                 </Route>
                 <Route path="search">
                   <Route index element={<Search />} />
