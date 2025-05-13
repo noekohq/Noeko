@@ -29,3 +29,14 @@ export class Importer {
     }
   }
 }
+
+export class ImportReceiver {
+  private connections: Record<string, string[]>;
+  private numberExpectedChunks: number;
+
+  constructor() {}
+
+  public open() {}
+
+  public close() {}
+}

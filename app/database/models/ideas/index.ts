@@ -251,7 +251,7 @@ export class Idea {
       await Idea.connectToUser(idea.id, userId);
       await Idea.loadEmbeddings(idea.id);
       await Idea.runDerivedCascade(idea.id);
-      return result;
+      return idea;
     } catch (err) {
       console.error(err);
       return undefined;
