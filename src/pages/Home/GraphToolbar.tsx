@@ -28,6 +28,7 @@ import styles from "./GraphToolbar.module.scss";
 import { InlineSearch } from "../../components/Search/InlineSearch";
 import {
   ArrowsClockwise,
+  DownloadSimple,
   ExclamationMark,
   FileCode,
   FileCsv,
@@ -175,6 +176,18 @@ export const GraphToolbar = ({ reloadGraph }: GraphToolbarProps) => {
                   <UploadSimple weight="bold" />
                 )}
               </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Import note(s)">
+              <Link to="/import">
+                <ActionIcon
+                  variant="default"
+                  size="md"
+                  onClick={() => setUploadFileOpened(!uploadFileOpened)}
+                  title="Import note(s)"
+                >
+                  <DownloadSimple weight="bold" />
+                </ActionIcon>
+              </Link>
             </Tooltip>
             <Tooltip label="Add an idea">
               <ActionIcon

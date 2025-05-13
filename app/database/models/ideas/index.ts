@@ -33,7 +33,15 @@ export type IIdeaAsRelation = IIdea & {
   derivedList: IIdeaDerived[];
 };
 
-export type IIdeaForm = Omit<IIdea, "id">;
+export type IIdeaForm = Omit<
+  IIdea,
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "contentUpdatedAt"
+  | "contentPlainUpdatedAt"
+  | "embeddingsUpdatedAt"
+>;
 
 export type IIdeaConnection = {
   id: string;
@@ -207,7 +215,7 @@ export class Idea {
     }
   }
 
-  static async create(form: IIdeaForm, userId: string) {
+  static async create(form: IIdeaForm, userId: string | RecordId) {
     try {
       const db = await getDatabase();
       const user = await User.get(userId, true);
@@ -220,7 +228,9 @@ export class Idea {
         IIdeaForm & {
           createdAt: Date;
           updatedAt: Date;
+          contentUpdatedAt: Date;
           embeddingsUpdatedAt: Date;
+          contentPlainUpdatedAt: Date;
         }
       >("idea", {
         title: form.title,
@@ -430,7 +440,7 @@ export class Idea {
 
   static async update(
     id: string | RecordId,
-    form: Partial<IIdeaForm>,
+    form: Partial<IIdea>,
     withComputations?: boolean,
   ) {
     try {
@@ -439,7 +449,7 @@ export class Idea {
       if (!originalIdea) {
         throw new Error("Idea does not exist with id: " + id.toString());
       }
-      const updater: Partial<IIdeaForm> & { contentUpdatedAt?: Date } = form;
+      const updater: Partial<IIdea> = form;
       if (form.content !== undefined) {
         updater.contentUpdatedAt = new Date();
         updater.contentPlain = htmlToPlainText(form.content);
