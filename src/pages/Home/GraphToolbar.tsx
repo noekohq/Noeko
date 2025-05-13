@@ -272,6 +272,7 @@ type AddIdeaProps = {
 };
 
 function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
+  const navigate = useNavigate();
   const form = useForm({
     initialValues: {
       title: "",
@@ -318,6 +319,7 @@ function AddIdea({ opened, setOpened, reloadGraph }: AddIdeaProps) {
       reloadGraph(); // Reload graph on success
       form.reset();
       setOpened(false);
+      navigate(`/idea/${data.id.toString()}`);
     },
     onError: (error) => {
       console.error("Failed to add idea:", error);

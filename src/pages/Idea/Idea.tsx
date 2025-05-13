@@ -15,6 +15,7 @@ import {
   Tooltip,
   Flex,
   Divider,
+  Button,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { Sparkle, TrashSimple } from "@phosphor-icons/react";
@@ -427,15 +428,30 @@ export default function Idea() {
           gap="md"
         >
           <Tooltip label="Delete Idea">
-            <ActionIcon
-              variant="light"
-              color="red"
-              size="lg"
-              onClick={handleDeleteIdea}
-              disabled={loadingDelete}
-            >
-              {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
-            </ActionIcon>
+            {rightSidebarOpened ? (
+              <Button
+                variant="light"
+                color="red"
+                fullWidth
+                onClick={handleDeleteIdea}
+                disabled={loadingDelete}
+                leftSection={
+                  loadingDelete ? <Loader size="xs" /> : <TrashSimple />
+                }
+              >
+                Delete Idea
+              </Button>
+            ) : (
+              <ActionIcon
+                variant="light"
+                color="red"
+                size="lg"
+                onClick={handleDeleteIdea}
+                disabled={loadingDelete}
+              >
+                {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
+              </ActionIcon>
+            )}
           </Tooltip>
         </Flex>
       </RightSidebar>
