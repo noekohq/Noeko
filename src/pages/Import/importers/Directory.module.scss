@@ -1,0 +1,11 @@
+.filePreview {
+    .filePreviewContent {
+        width: 100%;
+        box-sizing: border-box;
+
+        * {
+            width: 100%;
+            overflow-wrap: break-word;
+        }
+    }
+}
