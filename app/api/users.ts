@@ -80,7 +80,7 @@ router.post("/login", async (req, res) => {
     }
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
-      res.status(401).json({ message: "Incorrect password." });
+      res.status(400).json({ message: "Incorrect password." });
       return;
     }
     const accessToken = await User.generateAccessToken(user);
