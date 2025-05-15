@@ -1,5 +1,12 @@
-import { useEffect, useState } from "react";
-import { Eye, X } from "@phosphor-icons/react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Eye,
+  HandsClapping,
+  Percent,
+  SmileySad,
+  WarningCircle,
+  X,
+} from "@phosphor-icons/react";
 import { formatFileNameToTitle, readFileContent } from "../../../utils/files";
 import {
   Button,
@@ -16,11 +23,19 @@ import {
   Flex,
   TextInput,
   Stack,
+  Alert,
+  Loader,
+  Progress,
 } from "@mantine/core";
 import { markdownToHtml } from "../../../utils/formatting";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import styles from "./Directory.module.scss";
 import { useDebouncedCallback } from "@mantine/hooks";
+import useFetch from "../../../hooks/useFetch";
+import { IChunk } from "../../../../app/services/Importer";
+import { IIdeaForm } from "../../../../app/database/models/ideas";
+import { getChunkedIdeas } from "../../../utils/ideas";
+import { sleep } from "../../../utils/helpers";
 
 type IParsedFile = {
   title: string;
@@ -105,6 +120,77 @@ export default function DirectoryImporter() {
 
   const [showAll, setShowAll] = useState(false);
 
+  const [importId, setImportId] = useState<string>();
+
+  const { load: initializeImport } = useFetch<undefined, string>({
+    url: "/import/initialize",
+    method: "POST",
+    onSuccess: (d) => {
+      setImportId(d);
+    },
+  });
+
+  const [importing, setImporting] = useState(false);
+  const [progressText, setProgressText] = useState<string>();
+  const [progressError, setProgressError] = useState<string>();
+  const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [importComplete, setImportComplete] = useState(false);
+
+  const handleInitiateUpload = useCallback(async () => {
+    try {
+      setImporting(true);
+      setProgressPercent(5);
+      setProgressText("Preparing your ideas...");
+      const ideasParsed = files.map(async (file) => {
+        const contents = await readFileContent(file.originalFile);
+        const contentsHTML = markdownToHtml(contents);
+        return {
+          title: file.title,
+          content: contentsHTML,
+          embeddings: [],
+        } satisfies IIdeaForm;
+      });
+      const ideas = await Promise.all(ideasParsed);
+      const { chunks, tooLarge } = getChunkedIdeas(ideas, 10000);
+      await sleep(500);
+      console.log("Chunks: ", chunks, tooLarge);
+      const allChunks = [...chunks, ...tooLarge];
+      const totalRequests = allChunks.length;
+      const setPercentage = (index: number) => {
+        const percentage = (index / totalRequests) * 100;
+        console.log("Calculated percentage: ", percentage);
+        if (percentage < 10) {
+          setProgressPercent(10);
+          return;
+        }
+        if (percentage > 90) {
+          setProgressPercent(90);
+          return;
+        }
+        setProgressPercent(percentage);
+      };
+      setProgressText("Initiating the upload...");
+      await sleep(1000);
+      setProgressText("Uploading your files...");
+      let i = 0;
+      for (const chunk of allChunks) {
+        await sleep(300);
+        setPercentage(i);
+        i++;
+      }
+      await sleep(1000);
+      setProgressText("Finalizing the import...");
+      setProgressPercent(95);
+      await sleep(4000);
+      setProgressText("Import successful!");
+      setImportComplete(true);
+    } catch (error) {
+      console.error("Error importing directory: ", error);
+      setProgressText("Something went wrong...");
+      setProgressError("Looks like something went wrong with the import...");
+    }
+  }, [files]);
+
   return (
     <div>
       <Grid>
@@ -132,7 +218,8 @@ export default function DirectoryImporter() {
                   The folder is named{" "}
                   <Text inline fw="bold" component="span">
                     {topPath.toUpperCase()}
-                  </Text>
+                  </Text>{" "}
+                  and contains {files.length} files...
                 </Text>
                 <Tooltip label="Clear this selection.">
                   <ActionIcon
@@ -147,54 +234,142 @@ export default function DirectoryImporter() {
                 </Tooltip>
               </Group>
             </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Text>and contains {files.length} files...</Text>
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Flex gap="md">
-                <Button
-                  onClick={() => {
-                    setShowAll(!showAll);
-                  }}
-                  variant="default"
-                >
-                  {showAll ? "Hide Notes" : "Show Notes"}
-                </Button>
-                <TextInput
-                  w="50%"
-                  placeholder="Search files..."
-                  value={filter}
-                  onChange={(e) => {
-                    setFilter(e.currentTarget.value);
-                  }}
-                  rightSection={
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
+            {!importing && (
+              <>
+                <Grid.Col span={{ sm: 12 }}>
+                  <Text>Should we start the import?</Text>
+                </Grid.Col>
+                <Grid.Col>
+                  <Group>
+                    <Button
                       onClick={() => {
-                        setFilter("");
+                        handleReset();
+                      }}
+                      variant="light"
+                      color="red"
+                    >
+                      No, Nevermind.
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        handleInitiateUpload();
                       }}
                     >
-                      <X />
-                    </ActionIcon>
-                  }
-                />
-              </Flex>
-            </Grid.Col>
-            {(showAll || query) && (
-              <Grid.Col span={{ sm: 12 }}>
-                <Flex gap="sm" wrap={"wrap"}>
-                  {filteredFiles.map((file, index) => {
-                    return (
-                      <ParsedFilePreview
-                        key={file.originalFile.webkitRelativePath}
-                        file={file}
-                        onRemove={handleRemoveFile}
-                      />
-                    );
-                  })}
-                </Flex>
-              </Grid.Col>
+                      Yes! Initiate Import.
+                    </Button>
+                  </Group>
+                </Grid.Col>
+                <Grid.Col span={{ sm: 12 }}>
+                  <Title order={3}>Preview</Title>
+                </Grid.Col>
+                {files.length > 100 && !importing && (
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Alert
+                      title="Lot's of files!"
+                      icon={<WarningCircle />}
+                      color="red"
+                    >
+                      Currently, displaying all {files.length} might be a bit
+                      laggy. We're working on this, but in the meantime, feel
+                      free to keep the notes hidden by default, and search
+                      through them to filter, or display them and scroll!
+                    </Alert>
+                  </Grid.Col>
+                )}
+                <Grid.Col span={{ sm: 12 }}>
+                  <Flex gap="md">
+                    <Button
+                      onClick={() => {
+                        setShowAll(!showAll);
+                      }}
+                      variant="default"
+                    >
+                      {showAll ? "Hide Notes" : "Show Notes"}
+                    </Button>
+                    <TextInput
+                      w="50%"
+                      placeholder="Search files..."
+                      value={filter}
+                      onChange={(e) => {
+                        setFilter(e.currentTarget.value);
+                      }}
+                      rightSection={
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          onClick={() => {
+                            setFilter("");
+                          }}
+                        >
+                          <X />
+                        </ActionIcon>
+                      }
+                    />
+                  </Flex>
+                </Grid.Col>
+                {(showAll || query) && (
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Flex gap="sm" wrap={"wrap"}>
+                      {filteredFiles.map((file, index) => {
+                        return (
+                          <ParsedFilePreview
+                            key={file.originalFile.webkitRelativePath}
+                            file={file}
+                            onRemove={handleRemoveFile}
+                          />
+                        );
+                      })}
+                    </Flex>
+                  </Grid.Col>
+                )}
+              </>
+            )}
+            {importing && (
+              <>
+                {progressError ? (
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Alert
+                      title="Something went wrong"
+                      icon={<SmileySad />}
+                      color="red"
+                    >
+                      <Text>{progressError}</Text>
+                    </Alert>
+                  </Grid.Col>
+                ) : (
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Group>
+                      {!importComplete && <Loader size="sm" />}
+                      <Text>{progressText}</Text>
+                    </Group>
+                  </Grid.Col>
+                )}
+                {!importComplete && (
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Progress value={importComplete ? 100 : progressPercent} />
+                  </Grid.Col>
+                )}
+                {importComplete && (
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Alert icon={<HandsClapping />} title="Success!">
+                      <Text>
+                        We've successfully imported {files.length} ideas into
+                        your knowledge base!{" "}
+                        <Link
+                          to="/"
+                          style={{
+                            textDecoration: "none",
+                          }}
+                        >
+                          <Text c="white" component="span" td="underline">
+                            Check them out!
+                          </Text>
+                        </Link>
+                      </Text>
+                    </Alert>
+                  </Grid.Col>
+                )}
+              </>
             )}
           </>
         )}

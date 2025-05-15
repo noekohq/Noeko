@@ -5,9 +5,10 @@ import { IImport, Import } from "../database/models/import";
 import { IUser, User } from "../database/models/user";
 import { randomUUIDv7 } from "bun";
 
-type IChunk = {
+export type IChunk = {
   id: string;
   items: IIdeaForm[];
+  totalSize: number;
 };
 
 export class ImporterManager {
@@ -21,28 +22,35 @@ export class ImporterManager {
     const importer = new Importer(userId);
     await importer.initialize();
     this.add(importer);
+    return importer;
   }
 
-  public async complete(importer: string | Importer) {
-    if (typeof importer === "string") {
-      const i = this.importers[importer];
-      if (i) {
-        await i.complete();
-      } else {
+  public async finalize(importer: string | Importer) {
+    try {
+      if (typeof importer === "string") {
+        const i = this.importers[importer];
+        if (i) {
+          await i.complete();
+        } else {
+          throw new Error(
+            "Tried to complete an importer in manager that isn't registered.",
+          );
+        }
+        this.remove(importer);
+        return true;
+      }
+      if (!importer.instanceId) {
         throw new Error(
-          "Tried to complete an importer in manager that isn't registered.",
+          "Attempted to complete an importer in manager that has not been initialized.",
         );
       }
+      await importer.complete();
       this.remove(importer);
-      return;
+      return true;
+    } catch (error) {
+      console.error("Error finalizing importer", error);
+      return false;
     }
-    if (!importer.instanceId) {
-      throw new Error(
-        "Attempted to complete an importer in manager that has not been initialized.",
-      );
-    }
-    await importer.complete();
-    this.remove(importer);
   }
 
   public add(importer: Importer) {
@@ -70,6 +78,7 @@ export class ImporterManager {
   public async pipeChunk(id: string, chunk: IChunk) {
     try {
       const piped = await this.importers[id].processChunk(chunk);
+      return piped;
     } catch (error) {
       return false;
     }
