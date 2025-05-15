@@ -1,6 +1,12 @@
 import { showNotification } from "@mantine/notifications";
-import { IIdea, IIdeaDerived } from "../../app/database/models/ideas";
+import {
+  IIdea,
+  IIdeaForm,
+  IIdeaDerived,
+} from "../../app/database/models/ideas";
 import { api } from "../server/api";
+import { IChunk } from "../../app/services/Importer";
+import { Cursor } from "@phosphor-icons/react";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
@@ -33,4 +39,69 @@ export const createIdeaConnection = async (source: string, target: string) => {
   } catch (error) {
     console.error("Error creating idea connection: ", error);
   }
+};
+
+export const getIdeaSize = (idea: IIdeaForm | IIdea) => {
+  // This is based on the rule of thumb that each character is two bytes
+  return idea.content.length * 2;
+};
+
+export const getChunkSize = (chunk: IChunk): number => {
+  return chunk.items.reduce((acc, curr) => {
+    return acc + getIdeaSize(curr);
+  }, 0);
+};
+
+export const getChunkedIdeas = (
+  ideas: IIdeaForm[],
+  chunkMax: number,
+): {
+  chunks: IChunk[];
+  tooLarge: IChunk[];
+} => {
+  const tooLarge: IChunk[] = [];
+  const chunks: IChunk[] = [
+    {
+      id: "0",
+      items: [],
+      totalSize: 0,
+    },
+  ];
+  let currentChunk = 0;
+
+  const newChunk = () => {
+    currentChunk++;
+    chunks[currentChunk] = {
+      id: `${currentChunk}`,
+      items: [],
+      totalSize: 0,
+    };
+  };
+
+  const pushToCurrent = (idea: IIdeaForm) => {
+    chunks[currentChunk].items.push(idea);
+    chunks[currentChunk].totalSize = getChunkSize(chunks[currentChunk]);
+  };
+
+  for (const idea of ideas) {
+    const ideaSize = getIdeaSize(idea);
+    if (ideaSize > chunkMax) {
+      tooLarge.push({
+        id: `${tooLarge.length}`,
+        items: [idea],
+        totalSize: ideaSize,
+      });
+      continue;
+    }
+    const currentChunkSize = getChunkSize(chunks[currentChunk]);
+    if (currentChunkSize > chunkMax) {
+      newChunk();
+    }
+    pushToCurrent(idea);
+  }
+
+  return {
+    chunks,
+    tooLarge,
+  };
 };
