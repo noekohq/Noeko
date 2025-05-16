@@ -7,6 +7,7 @@ import {
 import { PredictionServiceClient, helpers } from "@google-cloud/aiplatform"; // Ensure v1 is correct
 import * as fs from "fs";
 import * as path from "path";
+import { sleep } from "bun";
 
 // --- Environment Variables ---
 // These are now the SOLE source of configuration for the Embeddings class
@@ -19,7 +20,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Required if MODEL_NAME is a Vertex AI model (e.g., "text-embedding-005")
 const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
-const GCP_LOCATION = process.env.GCP_LOCATION || "us-central1"; // Default location if not set
+const GCP_LOCATION = process.env.GCP_LOCATION || "us-west1"; // Default location if not set
 
 // Optional: Path to explicit Vertex AI credentials file (overrides ADC)
 const GOOGLE_CREDENTIALS_LOCATION = process.env.GOOGLE_CREDENTIALS_LOCATION;
@@ -85,9 +86,14 @@ class GeminiEmbeddingProvider implements EmbeddingProvider {
 
   async embedContents(contents: string[]): Promise<number[][]> {
     const requests = contents.map((content) => ({ content }));
+    console.log(`Batch embedding contents with ${requests.length} requests...`);
     const response = await this.model.batchEmbedContents({
       requests,
     } as unknown as BatchEmbedContentsRequest);
+    console.log(
+      "Recieved response from batch embeddings, num embeddings: ",
+      response.embeddings.length,
+    );
     if (
       !response.embeddings ||
       response.embeddings.length !== contents.length
@@ -113,6 +119,9 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
   private readonly client: PredictionServiceClient;
   private readonly endpoint: string;
   private readonly modelId: string;
+  private lastRequestTimestamp: number = 0;
+  private readonly minIntervalMs: number;
+  private readonly rpm: number;
 
   constructor(
     projectId: string,
@@ -179,6 +188,19 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     }
 
     this.client = new PredictionServiceClient(clientOptions);
+    // Add RPM config
+    const rpmEnv = process.env.EMBEDDINGS_RPM_LIMIT || "60"; // Default to 60 RPM
+    this.rpm = parseInt(rpmEnv, 10);
+    if (isNaN(this.rpm) || this.rpm <= 0) {
+      console.warn(
+        `[VertexAIEmbeddingProvider] Invalid EMBEDDINGS_RPM_LIMIT value "${rpmEnv}", defaulting to 60 RPM.`,
+      );
+      this.rpm = 60;
+    }
+    this.minIntervalMs = (60 * 1000) / this.rpm;
+    console.log(
+      `[VertexAIEmbeddingProvider] Configured for model ${modelId} with RPM: ${this.rpm} (Min Interval: ${this.minIntervalMs.toFixed(2)}ms)`,
+    );
   }
 
   private async predictVertexAI(instances: any[]): Promise<any[]> {
@@ -222,9 +244,11 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     }
   }
 
-  async embedContents(contents: string[]): Promise<number[][]> {
+  async embedContentsBatch(contents: string[]): Promise<number[][]> {
     const instances = contents.map((content) => helpers.toValue({ content }));
+    console.log("Got instances: ", instances);
     const predictionsProto = await this.predictVertexAI(instances);
+    console.log("Predicting vertex ai: ", predictionsProto);
     return predictionsProto.map((predictionProto: any, index: number) => {
       const prediction = helpers.fromValue(
         predictionProto,
@@ -241,6 +265,70 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
         );
       }
     });
+  }
+
+  async embedContents(contents: string[]): Promise<number[][]> {
+    if (!contents || contents.length === 0) {
+      console.log(
+        `[${this.constructor.name}] embedContents: No texts provided, returning empty array.`,
+      );
+      return [];
+    }
+
+    console.log(
+      `[${this.constructor.name}] embedContents: Embedding ${contents.length} texts sequentially with throttling (Target RPM: ${this.rpm}).`,
+    );
+    const allEmbeddings: number[][] = [];
+
+    for (let i = 0; i < contents.length; i++) {
+      const content = contents[i];
+      const now = Date.now();
+      const timeSinceLastRequest = now - this.lastRequestTimestamp;
+
+      // For the very first request in this batch invocation, or if sufficient time has passed, no delay.
+      // Otherwise, calculate and apply delay.
+      if (
+        this.lastRequestTimestamp !== 0 &&
+        timeSinceLastRequest < this.minIntervalMs
+      ) {
+        const delayNeeded = this.minIntervalMs - timeSinceLastRequest;
+        console.log(
+          `[${this.constructor.name}] Throttling: waiting ${delayNeeded.toFixed(0)}ms before embedding text ${i + 1}/${contents.length}.`,
+        );
+        await sleep(delayNeeded); // Make sure sleep is imported/available
+      }
+
+      // Update timestamp *before* making the call to reserve the slot
+      this.lastRequestTimestamp = Date.now();
+
+      const displayText =
+        content.length > 70 ? `${content.substring(0, 67)}...` : content;
+      console.log(
+        `[${this.constructor.name}] Embedding text ${i + 1}/${contents.length}: "${displayText}"`,
+      );
+
+      try {
+        // Call the provider's own single-item embedding method
+        const embedding = await this.embedContent(content); // This uses the existing single embedding logic
+        allEmbeddings.push(embedding);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(
+          `[${this.constructor.name}] Error embedding text ${i + 1} ("${displayText}"): ${errorMessage}`,
+        );
+        // Option: Rethrow to fail the entire batch
+        throw error;
+        // Option: Collect errors and return partial results (e.g., push null or an error object)
+        // allEmbeddings.push(null); // Example: pushing null for failed embeddings
+        // console.warn(`[${this.constructor.name}] Skipping text ${i + 1} due to error.`);
+      }
+    }
+
+    console.log(
+      `[${this.constructor.name}] embedContents: Successfully processed ${allEmbeddings.length} texts sequentially.`,
+    );
+    return allEmbeddings;
   }
 }
 
@@ -315,10 +403,13 @@ export class Embeddings {
   }
 
   async generateEmbeddingsBatch(texts: string[]): Promise<number[][]> {
+    console.log("Reached batch function...");
     if (!this.provider) throw new Error("Embeddings provider not initialized.");
     if (!texts || texts.length === 0) {
+      console.log("No texts, returning empty array");
       return [];
     }
+    console.log("Embedding content...");
     return this.provider.embedContents(texts);
   }
 }

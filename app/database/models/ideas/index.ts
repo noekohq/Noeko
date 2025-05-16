@@ -1122,6 +1122,54 @@ export class Idea {
     }
   }
 
+  static async updateManyEmbeddings(ideas: IIdea[], force = false) {
+    try {
+      const e = new Embeddings();
+      const ideasAndContent = ideas
+        .filter((idea) => {
+          if (!force && idea.embeddingsUpdatedAt >= idea.contentUpdatedAt) {
+            return false;
+          }
+          return true;
+        })
+        .map((idea) => {
+          return [idea.id.toString(), htmlToPlainText(idea.content)] as [
+            string,
+            string,
+          ];
+        });
+      if (!ideasAndContent) {
+        return;
+      }
+
+      const justContent = ideasAndContent.map((i) => i[1]);
+      const embeddings = await e.generateEmbeddingsBatch(justContent);
+      const withEmbeddings = ideasAndContent.map(
+        (i, index) => [...i, embeddings[index]] as [string, string, number[]],
+      );
+
+      const loadedIdeas: IIdea[] = [];
+      const updaters = withEmbeddings.map(([id, content, embeddings]) => {
+        return {
+          id: id,
+          form: {
+            embeddings: embeddings,
+            embeddingsUpdatedAt: new Date(),
+          },
+        } as { id: string; form: Partial<IIdea> };
+      });
+      const updates = await Idea.updateMany(updaters);
+      if (!updates) {
+        throw new Error("Error updating many ideas");
+      }
+
+      return loadedIdeas;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
   static async synchronizeEmbeddings(ideas: IIdea[]) {
     try {
       const toUpdate = ideas.filter((idea) => {
@@ -1133,7 +1181,12 @@ export class Idea {
         }
         return false;
       });
-      await Promise.all(toUpdate.map((idea) => Idea.updateEmbeddings(idea)));
+      console.log(
+        "Planning to update embeddings on: ",
+        toUpdate.map((i) => i.title).join(", "),
+      );
+      const updated = await Idea.updateManyEmbeddings(toUpdate);
+      console.log("Updated many: ", updated?.map((i) => i.title).join(", "));
     } catch (err) {
       console.error(`Error during synchronizeEmbeddings`, err);
     }

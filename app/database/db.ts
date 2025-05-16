@@ -55,11 +55,7 @@ const getDbConfig = () => {
 
 export const getDatabase = async (): Promise<Surreal | undefined> => {
   // Check if an instance exists and is properly connected
-  if (
-    Database.db &&
-    Database.db.status === ConnectionStatus.Connected &&
-    (await Database.db.info())
-  ) {
+  if (Database.db && Database.db.status === ConnectionStatus.Connected) {
     console.info("Reusing existing and connected database instance.");
     return Database.db;
   }
