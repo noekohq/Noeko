@@ -22,6 +22,7 @@ import {
   Graph,
   MegaphoneSimple,
   Shield,
+  ShieldStar,
   User,
   UsersThree,
 } from "@phosphor-icons/react";
@@ -195,6 +196,16 @@ export default function RightSidebar({
               >
                 <Text>Settings</Text>
               </Menu.Item>
+              {isSuperuser && (
+                <Menu.Item
+                  leftSection={<ShieldStar weight="bold" />}
+                  onClick={() => {
+                    navigate("/admin");
+                  }}
+                >
+                  <Text>Admin Panel</Text>
+                </Menu.Item>
+              )}
               <Menu.Divider />
               <Menu.Label>Actions</Menu.Label>
               <Menu.Item

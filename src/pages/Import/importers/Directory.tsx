@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import {
   Eye,
   HandsClapping,
@@ -308,17 +308,10 @@ export default function DirectoryImporter() {
                 </Grid.Col>
                 {(showAll || query) && (
                   <Grid.Col span={{ sm: 12 }}>
-                    <Flex gap="sm" wrap={"wrap"}>
-                      {filteredFiles.map((file, index) => {
-                        return (
-                          <ParsedFilePreview
-                            key={file.originalFile.webkitRelativePath}
-                            file={file}
-                            onRemove={handleRemoveFile}
-                          />
-                        );
-                      })}
-                    </Flex>
+                    <ParsedFilesPreview
+                      files={filteredFiles}
+                      handleRemoveFile={handleRemoveFile}
+                    />
                   </Grid.Col>
                 )}
               </>
@@ -376,6 +369,30 @@ export default function DirectoryImporter() {
     </div>
   );
 }
+
+type IParsedFilesPreviewProps = {
+  files: IParsedFile[];
+  handleRemoveFile: (path: string) => void;
+};
+
+const ParsedFilesPreview = memo(function ({
+  files,
+  handleRemoveFile,
+}: IParsedFilesPreviewProps) {
+  return (
+    <Flex gap="sm" wrap={"wrap"}>
+      {files.map((file, index) => {
+        return (
+          <ParsedFilePreview
+            key={file.originalFile.webkitRelativePath}
+            file={file}
+            onRemove={handleRemoveFile}
+          />
+        );
+      })}
+    </Flex>
+  );
+});
 
 type IParsedFilePreviewProps = {
   file: IParsedFile;
