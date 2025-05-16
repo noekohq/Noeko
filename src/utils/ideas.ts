@@ -41,6 +41,51 @@ export const createIdeaConnection = async (source: string, target: string) => {
   }
 };
 
+export const initializeImport = async (): Promise<string | undefined> => {
+  try {
+    const result = await api.post("/imports/initialize").then((d) => {
+      return d.data.data as string;
+    });
+    return result;
+  } catch (error) {
+    console.error("Error initializing import: ", error);
+    return undefined;
+  }
+};
+
+export const uploadChunkToImport = async (importId: string, chunk: IChunk) => {
+  try {
+    const result = await api
+      .post(`/imports/chunk/${importId}`, {
+        chunk,
+      })
+      .then((d) => {
+        return d.data.data as boolean;
+      });
+    return result;
+  } catch (error) {
+    console.error(
+      `Error uploading chunk to import with id ${chunk.id}: `,
+      error,
+    );
+    return false;
+  }
+};
+
+export const finalizeImport = async (
+  importId: string,
+): Promise<string | undefined> => {
+  try {
+    const result = await api.post(`/imports/finalize/${importId}`).then((d) => {
+      return d.data.data as string;
+    });
+    return result;
+  } catch (error) {
+    console.error("Error initializing import: ", error);
+    return undefined;
+  }
+};
+
 export const getIdeaSize = (idea: IIdeaForm | IIdea) => {
   // This is based on the rule of thumb that each character is two bytes
   return idea.content.length * 2;

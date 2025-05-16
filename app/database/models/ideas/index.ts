@@ -7,12 +7,14 @@ import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToPlainText } from "../../../utils/formatting";
 
+export const embeddableContentLimit = 20000;
+
 export type IIdea = {
   id: string | RecordId;
   title: string;
   content: string;
   contentPlain?: string;
-  embeddings: number[] | null;
+  embeddings: number[];
   createdAt: Date;
   updatedAt: Date;
   contentUpdatedAt: Date;
@@ -22,6 +24,7 @@ export type IIdea = {
   relatedIdeas?: IIdeaAsRelation[];
   derived?: IIdeaDerivedMap;
   similar?: IIdeaAsRelation[];
+  importedAt?: Date;
 };
 
 export type IIdeaWithComputedFields = IIdea & {
@@ -219,7 +222,8 @@ export class Idea {
     form: IIdeaForm,
     userId: string | RecordId,
     options?: {
-      omitEmbeddings: boolean;
+      omitEmbeddings?: boolean;
+      wasImported?: boolean;
     },
   ) {
     try {
@@ -243,11 +247,12 @@ export class Idea {
         content: form.content,
         contentPlain: htmlToPlainText(form.content),
         contentPlainUpdatedAt: new Date(),
-        embeddings: null,
+        embeddings: [],
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
         embeddingsUpdatedAt: new Date(),
+        ...(options?.wasImported ? { importedAt: new Date() } : {}),
       });
       if (!result) {
         console.error("No idea created.");
@@ -272,6 +277,7 @@ export class Idea {
     options?: {
       omitEmbeddings?: boolean;
       omitDerivations?: boolean;
+      wereImported?: boolean;
     },
   ) {
     try {
@@ -298,11 +304,12 @@ export class Idea {
             content: form.content,
             contentPlain: htmlToPlainText(form.content),
             contentPlainUpdatedAt: new Date(),
-            embeddings: null,
+            embeddings: [],
             contentUpdatedAt: new Date(),
             createdAt: new Date(),
             updatedAt: new Date(),
             embeddingsUpdatedAt: new Date(),
+            ...(options?.wereImported ? { importedAt: new Date() } : {}),
           };
         }),
       );
@@ -311,6 +318,7 @@ export class Idea {
         return undefined;
       }
       const ideas = result;
+      console.log("Sending user id to connect many to users: ", userId);
       await Idea.connectManyToUser(
         ideas.map((i) => i.id.toString()),
         userId,
@@ -368,7 +376,7 @@ export class Idea {
         `RELATE $fromId -> owns -> $toIds SET createdAt = $now;`,
         {
           fromId: new StringRecordId(userId),
-          toId: ideaIds.map((ideaId) => new StringRecordId(ideaId)),
+          toIds: ideaIds.map((ideaId) => new StringRecordId(ideaId)),
           now: new Date(),
         },
       );
@@ -493,6 +501,7 @@ export class Idea {
   ): Promise<IDBGraph | undefined> {
     try {
       const db = await getDatabase();
+      console.log("Getting graph: ", userId);
       const graph = await db?.run<{
         ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
         connections: IIdeaConnection[];
@@ -1013,7 +1022,10 @@ export class Idea {
       }
       const e = new Embeddings();
       const embeddableContent = htmlToPlainText(result.content);
-      if (!embeddableContent) {
+      if (
+        !embeddableContent ||
+        embeddableContent.length > embeddableContentLimit
+      ) {
         await Idea.update(result.id, {
           embeddings: [],
           embeddingsUpdatedAt: new Date(),
@@ -1045,10 +1057,9 @@ export class Idea {
   static async loadManyEmbeddings(ids: string[] | RecordId[]) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IIdea[]]>(
-        `SELECT * FROM idea FROM $ideas;`,
-        { ideas: ids.map((i) => new StringRecordId(i)) },
-      );
+      const result = await db?.query<[IIdea[]]>(`SELECT * FROM $ideas;`, {
+        ideas: ids.map((i) => new StringRecordId(i)),
+      });
       if (!result) {
         throw new Error(`Ideas not found.`);
       }
@@ -1058,10 +1069,10 @@ export class Idea {
       }
       const e = new Embeddings();
       const ideasAndContent = ideas.map((idea) => {
-        return [idea.id.toString(), htmlToPlainText(idea.content)] as [
-          string,
-          string,
-        ];
+        return [
+          idea.id.toString(),
+          htmlToPlainText(idea.content).slice(0, embeddableContentLimit),
+        ] as [string, string];
       });
       if (!ideasAndContent) {
         return;
@@ -1097,12 +1108,19 @@ export class Idea {
 
   static async updateEmbeddings(idea: IIdea, force = false) {
     try {
-      if (!force && idea.embeddingsUpdatedAt >= idea.contentUpdatedAt) {
+      if (
+        !force &&
+        idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
+        idea.embeddings.length !== 0
+      ) {
         return;
       }
       const embedding = new Embeddings();
       const embeddableContent = htmlToPlainText(idea.content);
-      if (!embeddableContent) {
+      if (
+        !embeddableContent ||
+        embeddableContent.length > embeddableContentLimit
+      ) {
         await Idea.update(idea.id, {
           embeddings: [],
           embeddingsUpdatedAt: new Date(),
@@ -1133,10 +1151,10 @@ export class Idea {
           return true;
         })
         .map((idea) => {
-          return [idea.id.toString(), htmlToPlainText(idea.content)] as [
-            string,
-            string,
-          ];
+          return [
+            idea.id.toString(),
+            htmlToPlainText(idea.content).slice(0, embeddableContentLimit),
+          ] as [string, string];
         });
       if (!ideasAndContent) {
         return;

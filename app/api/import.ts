@@ -10,7 +10,7 @@ const router = Router();
 
 router.use(checkToken, disallowDisabled);
 
-router.post("/initiate", async (req, res) => {
+router.post("/initialize", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -47,6 +47,7 @@ router.post("/chunk/:instanceId", async (req, res) => {
     if (!piped) {
       res.send({
         message: "Something went wrong piping this chunk.",
+        data: false,
       });
       return;
     }
@@ -58,6 +59,7 @@ router.post("/chunk/:instanceId", async (req, res) => {
     res
       .send({
         message: "Internal Server Error",
+        data: false,
       })
       .status(500);
   }
@@ -88,6 +90,7 @@ router.post("/finalize/:instanceId", async (req, res) => {
   } catch (error) {
     res.send({
       message: "Internal Server Error",
+      data: false,
     });
   }
 });

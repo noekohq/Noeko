@@ -13,6 +13,6 @@ router.use("/files", fileRouter);
 router.use("/users", userRouter);
 router.use("/search", searchRouter);
 router.use("/feedback", feedbackRouter);
-router.use("/import", importRouter);
+router.use("/imports", importRouter);
 
 export default router;

@@ -34,8 +34,12 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import useFetch from "../../../hooks/useFetch";
 import { IChunk } from "../../../../app/services/Importer";
 import { IIdeaForm } from "../../../../app/database/models/ideas";
-import { getChunkedIdeas } from "../../../utils/ideas";
-import { sleep } from "../../../utils/helpers";
+import {
+  finalizeImport,
+  getChunkedIdeas,
+  initializeImport,
+  uploadChunkToImport,
+} from "../../../utils/ideas";
 
 type IParsedFile = {
   title: string;
@@ -120,16 +124,6 @@ export default function DirectoryImporter() {
 
   const [showAll, setShowAll] = useState(false);
 
-  const [importId, setImportId] = useState<string>();
-
-  const { load: initializeImport } = useFetch<undefined, string>({
-    url: "/import/initialize",
-    method: "POST",
-    onSuccess: (d) => {
-      setImportId(d);
-    },
-  });
-
   const [importing, setImporting] = useState(false);
   const [progressText, setProgressText] = useState<string>();
   const [progressError, setProgressError] = useState<string>();
@@ -152,13 +146,10 @@ export default function DirectoryImporter() {
       });
       const ideas = await Promise.all(ideasParsed);
       const { chunks, tooLarge } = getChunkedIdeas(ideas, 10000);
-      await sleep(500);
-      console.log("Chunks: ", chunks, tooLarge);
       const allChunks = [...chunks, ...tooLarge];
       const totalRequests = allChunks.length;
       const setPercentage = (index: number) => {
         const percentage = (index / totalRequests) * 100;
-        console.log("Calculated percentage: ", percentage);
         if (percentage < 10) {
           setProgressPercent(10);
           return;
@@ -170,18 +161,27 @@ export default function DirectoryImporter() {
         setProgressPercent(percentage);
       };
       setProgressText("Initiating the upload...");
-      await sleep(1000);
+      const importId = await initializeImport();
+      setProgressText("Import initialized...");
+      if (!importId) {
+        throw new Error("The import was not initialized.");
+      }
       setProgressText("Uploading your files...");
       let i = 0;
       for (const chunk of allChunks) {
-        await sleep(300);
+        const success = await uploadChunkToImport(importId, chunk);
+        if (!success) {
+          throw new Error("Failed to upload chunk");
+        }
         setPercentage(i);
         i++;
       }
-      await sleep(1000);
       setProgressText("Finalizing the import...");
       setProgressPercent(95);
-      await sleep(4000);
+      const finalized = await finalizeImport(importId);
+      if (!finalized) {
+        throw new Error("Import was not finalized...");
+      }
       setProgressText("Import successful!");
       setImportComplete(true);
     } catch (error) {
@@ -245,8 +245,7 @@ export default function DirectoryImporter() {
                       onClick={() => {
                         handleReset();
                       }}
-                      variant="light"
-                      color="red"
+                      variant="default"
                     >
                       No, Nevermind.
                     </Button>
@@ -267,7 +266,7 @@ export default function DirectoryImporter() {
                     <Alert
                       title="Lot's of files!"
                       icon={<WarningCircle />}
-                      color="red"
+                      color="gray"
                     >
                       Currently, displaying all {files.length} might be a bit
                       laggy. We're working on this, but in the meantime, feel
