@@ -11,11 +11,39 @@ export type IChunk = {
   totalSize: number;
 };
 
+const maxAge = 30; // Seconds
+
 export class ImporterManager {
-  private importers: Record<string, Importer>;
+  private importers: Record<
+    string,
+    {
+      inactivity: number;
+      importer: Importer;
+    }
+  >;
+  private watchInterval?: Timer;
 
   constructor() {
     this.importers = {};
+    this.watch();
+  }
+
+  public dispose() {
+    if (this.watchInterval) {
+      clearInterval(this.watchInterval);
+    }
+  }
+
+  private watch() {
+    this.watchInterval = setInterval(() => {
+      Object.values(this.importers).forEach((i) => {
+        if (i.inactivity > maxAge) {
+          this.remove(i.importer);
+          return;
+        }
+        i.inactivity += 1;
+      });
+    }, 1000);
   }
 
   public async create(userId: string | RecordId) {
@@ -30,7 +58,7 @@ export class ImporterManager {
       if (typeof importer === "string") {
         const i = this.importers[importer];
         if (i) {
-          await i.complete();
+          await i.importer.complete();
         } else {
           throw new Error(
             "Tried to complete an importer in manager that isn't registered.",
@@ -59,7 +87,10 @@ export class ImporterManager {
         "Attempted to register an importer that has not been initialized.",
       );
     }
-    this.importers[importer.instanceId] = importer;
+    this.importers[importer.instanceId] = {
+      inactivity: 0,
+      importer,
+    };
   }
 
   public remove(importer: string | Importer) {
@@ -77,8 +108,12 @@ export class ImporterManager {
 
   public async pipeChunk(id: string, chunk: IChunk) {
     try {
-      const piped = await this.importers[id].processChunk(chunk);
+      const i = this.importers[id];
+      i.inactivity = 0;
+      const piped = await i.importer.processChunk(chunk);
       return piped;
+      // console.log("Simulating piping of chunk: ", chunk);
+      // return true;
     } catch (error) {
       return false;
     }
@@ -149,7 +184,11 @@ export class Importer {
       }
       const { id, items } = chunk;
       console.info(`Processing ${id} with ${items.length} items...`);
-      const created = await Idea.createMany(items, this.userId);
+      const created = await Idea.createMany(items, this.userId, {
+        wereImported: true,
+        omitEmbeddings: true,
+        omitDerivations: true,
+      });
       if (!created) {
         throw new Error("Error creating ideas while processing chunk...");
       }

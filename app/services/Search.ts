@@ -156,6 +156,8 @@ export class Search {
         $userId: string,
         $limit: int
       ) {
+        IF !$provided_embeddings THEN return [] END;
+
         LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
 
         LET $results =

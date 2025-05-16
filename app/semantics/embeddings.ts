@@ -282,6 +282,10 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
 
     for (let i = 0; i < contents.length; i++) {
       const content = contents[i];
+      if (content.length === 0) {
+        allEmbeddings.push([]);
+        continue;
+      }
       const now = Date.now();
       const timeSinceLastRequest = now - this.lastRequestTimestamp;
 
