@@ -23,6 +23,7 @@ import Users from "./pages/Users/Users";
 import Search from "./pages/Search/Search";
 import Feedback from "./pages/Feedback/Feedback";
 import Import from "./pages/Import/Import";
+import Admin from "./pages/Admin/Admin";
 
 export default function App() {
   const navigate = useNavigate();
@@ -97,6 +98,7 @@ export default function App() {
                 </Route>
                 {isSuperuser && (
                   <Route path="admin">
+                    <Route index element={<Admin />} />
                     <Route path="users" element={<Users />} />
                     <Route path="feedback" element={<Feedback />} />
                   </Route>

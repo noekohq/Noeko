@@ -28,8 +28,9 @@ const GOOGLE_CREDENTIALS_LOCATION = process.env.GOOGLE_CREDENTIALS_LOCATION;
 // --- Interfaces and Types ---
 
 interface EmbeddingProvider {
-  embedContent(content: string): Promise<number[]>;
-  embedContents(contents: string[]): Promise<number[][]>;
+  embedContent(content: string): Promise<number[] | null>;
+  embedContents(contents: string[]): Promise<(number[] | null)[]>;
+  getEmptyEmbeddings(): Promise<number[]>;
 }
 
 // No longer needs to be exported, but useful internally for provider constructors
@@ -76,6 +77,10 @@ class GeminiEmbeddingProvider implements EmbeddingProvider {
     this.model = client.getGenerativeModel({ model: modelName });
   }
 
+  async getEmptyEmbeddings(): Promise<number[]> {
+    return Array(1536).fill(0);
+  }
+
   async embedContent(content: string): Promise<number[]> {
     const response = await this.model.embedContent(content);
     if (!response.embedding?.values) {
@@ -86,11 +91,10 @@ class GeminiEmbeddingProvider implements EmbeddingProvider {
 
   async embedContents(contents: string[]): Promise<number[][]> {
     const requests = contents.map((content) => ({ content }));
-    console.log(`Batch embedding contents with ${requests.length} requests...`);
     const response = await this.model.batchEmbedContents({
       requests,
     } as unknown as BatchEmbedContentsRequest);
-    console.log(
+    console.info(
       "Recieved response from batch embeddings, num embeddings: ",
       response.embeddings.length,
     );
@@ -151,9 +155,6 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     const effectiveCredentialsPath = credentialsPath; // Already determined before calling constructor
 
     if (effectiveCredentialsPath) {
-      console.log(
-        `Attempting to load Vertex AI credentials explicitly from: ${effectiveCredentialsPath}`,
-      );
       try {
         const absolutePath = path.resolve(effectiveCredentialsPath);
         if (!fs.existsSync(absolutePath)) {
@@ -169,9 +170,6 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
           );
         }
         clientOptions.credentials = credentials;
-        console.log(
-          `Successfully loaded credentials for service account: ${credentials.client_email}`,
-        );
       } catch (error) {
         console.error(
           `Error loading or parsing credentials file from ${effectiveCredentialsPath}:`,
@@ -182,7 +180,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
         );
       }
     } else {
-      console.log(
+      console.info(
         "No explicit credentials path provided (GOOGLE_CREDENTIALS_LOCATION env var not set). Relying on Application Default Credentials (ADC) for Vertex AI.",
       );
     }
@@ -198,9 +196,13 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
       this.rpm = 60;
     }
     this.minIntervalMs = (60 * 1000) / this.rpm;
-    console.log(
+    console.info(
       `[VertexAIEmbeddingProvider] Configured for model ${modelId} with RPM: ${this.rpm} (Min Interval: ${this.minIntervalMs.toFixed(2)}ms)`,
     );
+  }
+
+  async getEmptyEmbeddings(): Promise<number[]> {
+    return Array(768).fill(0);
   }
 
   private async predictVertexAI(instances: any[]): Promise<any[]> {
@@ -246,9 +248,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
 
   async embedContentsBatch(contents: string[]): Promise<number[][]> {
     const instances = contents.map((content) => helpers.toValue({ content }));
-    console.log("Got instances: ", instances);
     const predictionsProto = await this.predictVertexAI(instances);
-    console.log("Predicting vertex ai: ", predictionsProto);
     return predictionsProto.map((predictionProto: any, index: number) => {
       const prediction = helpers.fromValue(
         predictionProto,
@@ -267,15 +267,15 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     });
   }
 
-  async embedContents(contents: string[]): Promise<number[][]> {
+  async embedContents(contents: string[]): Promise<(number[] | null)[]> {
     if (!contents || contents.length === 0) {
-      console.log(
+      console.info(
         `[${this.constructor.name}] embedContents: No texts provided, returning empty array.`,
       );
       return [];
     }
 
-    console.log(
+    console.info(
       `[${this.constructor.name}] embedContents: Embedding ${contents.length} texts sequentially with throttling (Target RPM: ${this.rpm}).`,
     );
     const allEmbeddings: number[][] = [];
@@ -283,7 +283,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     for (let i = 0; i < contents.length; i++) {
       const content = contents[i];
       if (content.length === 0) {
-        allEmbeddings.push([]);
+        allEmbeddings.push(await this.getEmptyEmbeddings());
         continue;
       }
       const now = Date.now();
@@ -296,7 +296,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
         timeSinceLastRequest < this.minIntervalMs
       ) {
         const delayNeeded = this.minIntervalMs - timeSinceLastRequest;
-        console.log(
+        console.info(
           `[${this.constructor.name}] Throttling: waiting ${delayNeeded.toFixed(0)}ms before embedding text ${i + 1}/${contents.length}.`,
         );
         await sleep(delayNeeded); // Make sure sleep is imported/available
@@ -307,7 +307,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
 
       const displayText =
         content.length > 70 ? `${content.substring(0, 67)}...` : content;
-      console.log(
+      console.info(
         `[${this.constructor.name}] Embedding text ${i + 1}/${contents.length}: "${displayText}"`,
       );
 
@@ -329,7 +329,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
       }
     }
 
-    console.log(
+    console.info(
       `[${this.constructor.name}] embedContents: Successfully processed ${allEmbeddings.length} texts sequentially.`,
     );
     return allEmbeddings;
@@ -351,7 +351,7 @@ export class Embeddings {
     const gcpLocation = process.env.GCP_LOCATION || "us-central1";
     const googleCredentialsLocation = process.env.GOOGLE_CREDENTIALS_LOCATION;
 
-    console.log(
+    console.info(
       `Initializing Embeddings service with EMBEDDING_MODEL_NAME: ${embeddingModelName}`,
     );
 
@@ -362,16 +362,17 @@ export class Embeddings {
       );
     }
 
-    if (embeddingModelName === "text-embedding-005") {
+    if (
+      ["text-embedding-005", "text-embedding-004"].includes(embeddingModelName)
+    ) {
       // Specific Vertex model
-      console.log(`Configuring for Vertex AI model: ${embeddingModelName}`);
+      console.info(`Configuring for Vertex AI model: ${embeddingModelName}`);
       if (!gcpProjectId) {
         throw new Error(
           `GCP_PROJECT_ID environment variable is required for Vertex AI model ${embeddingModelName}.`,
         );
       }
       // Location has a default, but log it
-      console.log(`Using Vertex AI Location: ${gcpLocation}`);
       this.provider = new VertexAIEmbeddingProvider(
         gcpProjectId,
         gcpLocation,
@@ -380,7 +381,6 @@ export class Embeddings {
       );
     } else if (embeddingModelName.startsWith("embedding-")) {
       // Heuristic for Gemini models
-      console.log(`Configuring for Gemini API model: ${embeddingModelName}`);
       if (!geminiApiKey) {
         throw new Error(
           `GEMINI_API_KEY environment variable is required for Gemini model ${embeddingModelName}.`,
@@ -397,23 +397,20 @@ export class Embeddings {
         `Unsupported or unrecognized EMBEDDING_MODEL_NAME: ${embeddingModelName}. Cannot determine embedding provider.`,
       );
     }
-    console.log("Embeddings service provider initialized successfully.");
+    console.info("Embeddings service provider initialized successfully.");
   }
 
-  async generateEmbeddings(text: string): Promise<number[]> {
+  async generateEmbeddings(text: string): Promise<number[] | null> {
     // Add a check here? Or assume provider is always initialized correctly by constructor
     if (!this.provider) throw new Error("Embeddings provider not initialized.");
     return this.provider.embedContent(text);
   }
 
-  async generateEmbeddingsBatch(texts: string[]): Promise<number[][]> {
-    console.log("Reached batch function...");
+  async generateEmbeddingsBatch(texts: string[]): Promise<(number[] | null)[]> {
     if (!this.provider) throw new Error("Embeddings provider not initialized.");
     if (!texts || texts.length === 0) {
-      console.log("No texts, returning empty array");
       return [];
     }
-    console.log("Embedding content...");
     return this.provider.embedContents(texts);
   }
 }

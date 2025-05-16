@@ -515,7 +515,7 @@ router.post(
         res.status(404).json({ error: "Ideas not found" });
         return;
       }
-      await Idea.synchronizeContentPlain(ideas);
+      await Idea.synchronizeContentPlain(ideas, true);
       await Idea.synchronizeEmbeddings(ideas);
       res.send({ message: "Successfully synchronized graph." });
     } catch (err) {
