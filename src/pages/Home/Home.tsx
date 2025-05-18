@@ -7,7 +7,7 @@ import { IDBGraph } from "../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
 import { GraphToolbar } from "./GraphToolbar";
 import { dbGraphToLocalGraph } from "../../utils/graph";
-import { Group, Loader } from "@mantine/core";
+import { Group, Loader, Text } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
@@ -59,8 +59,9 @@ export default function Home() {
             />
           </>
         ) : (
-          <Group>
-            <Loader size="lg" />
+          <Group align="center" justify="center" h="100vh">
+            <Loader size="sm" />
+            <Text c="dimmed">Loading your graph...</Text>
           </Group>
         )}
       </div>

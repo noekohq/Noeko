@@ -504,7 +504,7 @@ export class Idea {
         ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
         connections: IIdeaConnection[];
         files: IUserFile[];
-      }>("fn::user_graph", [userId]);
+      }>("fn::user_graph", [userId, 3]);
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
         return undefined;
@@ -832,15 +832,17 @@ export class Idea {
   static async findSimilar(
     userId: string | RecordId,
     rootNodeId: string | RecordId,
-    options: { limit?: number } = { limit: 10 },
+    options: { limit?: number } = { limit: 3 },
   ) {
     try {
       const db = await getDatabase();
+      console.log("Finding similar to idea: ", rootNodeId);
       const limit = options.limit;
       const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_idea",
         [rootNodeId, userId, limit],
       );
+      console.log("Found similar ideas: ", ideas);
       if (!ideas) {
         console.error(`No ideas found.`);
         return;
