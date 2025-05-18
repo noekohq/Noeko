@@ -101,6 +101,8 @@ export class Search {
 
     const ftsContentSearchIndex = () => {
       return `
+      REMOVE INDEX idx_idea_content_fts ON TABLE idea;
+
       DEFINE INDEX OVERWRITE idx_idea_content_fts
         ON TABLE idea
         FIELDS contentPlain
@@ -194,12 +196,19 @@ export class Search {
         "Defining search analyzers, indexes, and functions (using original definitions)...",
       );
       // Execute the original definitions
+      console.info("Running idea search analyzer...");
       await db.query(ideaSearchAnalyzer());
+      console.info("Running fts title search index");
       await db.query(ftsTitleSearchIndex());
+      console.info("Running fts content search index");
       await db.query(ftsContentSearchIndex());
+      console.info("Running fts search function");
       await db.query(ftsSearchFunction());
+      console.info("Running fts search function initializer");
       await db.query(searchSimilarToIdea());
+      console.info("Running search similar to embeddings initializer");
       await db.query(searchSimilarToEmbeddings());
+      console.info("Running define vector index");
       await db.query(defineVectorIndex());
       console.log("Search setup complete (using original definitions).");
     } catch (error) {
