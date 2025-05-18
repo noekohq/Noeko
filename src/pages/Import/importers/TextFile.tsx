@@ -2,7 +2,7 @@ import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { DownloadSimple, FileMd } from "@phosphor-icons/react";
+import { DownloadSimple, FileTxt } from "@phosphor-icons/react";
 import { formatFileNameToTitle, readFileContent } from "../../../utils/files";
 import {
   Button,
@@ -21,7 +21,7 @@ import { formatFileSize, markdownToHtml } from "../../../utils/formatting";
 import { IIdea, IIdeaForm } from "../../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
 
-export default function MarkdownFileImporter() {
+export default function TextFileImporter() {
   const fileForm = useForm<{
     userFile: File | null;
   }>({
@@ -47,7 +47,7 @@ export default function MarkdownFileImporter() {
     if (file) {
       (async () => {
         setFileTitle(formatFileNameToTitle(file.name));
-        setFileContent(markdownToHtml(await readFileContent(file)));
+        setFileContent(await readFileContent(file));
       })();
     }
   }, [file]);
@@ -101,7 +101,7 @@ export default function MarkdownFileImporter() {
     }
   };
 
-  const preview = { icon: FileMd };
+  const preview = { icon: FileTxt };
 
   const [openPreview, setOpenPreview] = useState(true);
 
@@ -114,7 +114,7 @@ export default function MarkdownFileImporter() {
         <Grid.Col span={{ sm: 12 }}>
           <FileInput
             placeholder="Choose a file"
-            accept="text/markdown"
+            accept="text/*"
             {...fileForm.getInputProps("userFile")}
             leftSection={
               <>

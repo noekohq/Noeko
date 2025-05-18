@@ -14,3 +14,11 @@ export const triggerDownload = (
   link.click();
   document.body.removeChild(link);
 };
+
+export const sleep = async (ms: number): Promise<void> => {
+  return new Promise((r) => {
+    setTimeout(() => {
+      r(undefined);
+    }, ms);
+  });
+};

@@ -5,6 +5,8 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import styles from "./Import.module.scss";
 import { Grid, Select, Text, Title } from "@mantine/core";
 import MarkdownFileImporter from "./importers/MarkdownFile";
+import TextFileImporter from "./importers/TextFile";
+import DirectoryImporter from "./importers/Directory";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
@@ -13,8 +15,8 @@ export default function Import() {
 
   const typeToComponent: Record<IImportType, React.ReactNode | null> = {
     "markdown-file": <MarkdownFileImporter />,
-    "text-file": null,
-    directory: null,
+    "text-file": <TextFileImporter />,
+    directory: <DirectoryImporter />,
   };
 
   return (

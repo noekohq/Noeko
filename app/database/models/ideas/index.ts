@@ -7,6 +7,8 @@ import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToPlainText } from "../../../utils/formatting";
 
+export const embeddableContentLimit = 20000;
+
 export type IIdea = {
   id: string | RecordId;
   title: string;
@@ -22,6 +24,7 @@ export type IIdea = {
   relatedIdeas?: IIdeaAsRelation[];
   derived?: IIdeaDerivedMap;
   similar?: IIdeaAsRelation[];
+  importedAt?: Date;
 };
 
 export type IIdeaWithComputedFields = IIdea & {
@@ -215,7 +218,14 @@ export class Idea {
     }
   }
 
-  static async create(form: IIdeaForm, userId: string | RecordId) {
+  static async create(
+    form: IIdeaForm,
+    userId: string | RecordId,
+    options?: {
+      omitEmbeddings?: boolean;
+      wasImported?: boolean;
+    },
+  ) {
     try {
       const db = await getDatabase();
       const user = await User.get(userId, true);
@@ -242,6 +252,7 @@ export class Idea {
         createdAt: new Date(),
         updatedAt: new Date(),
         embeddingsUpdatedAt: new Date(),
+        ...(options?.wasImported ? { importedAt: new Date() } : {}),
       });
       if (!result) {
         console.error("No idea created.");
@@ -249,9 +260,77 @@ export class Idea {
       }
       const [idea] = result;
       await Idea.connectToUser(idea.id, userId);
-      await Idea.loadEmbeddings(idea.id);
+      if (!options?.omitEmbeddings) {
+        await Idea.loadEmbeddings(idea.id);
+      }
       await Idea.runDerivedCascade(idea.id);
       return idea;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  static async createMany(
+    forms: IIdeaForm[],
+    userId: string | RecordId,
+    options?: {
+      omitEmbeddings?: boolean;
+      omitDerivations?: boolean;
+      wereImported?: boolean;
+    },
+  ) {
+    try {
+      const db = await getDatabase();
+      const user = await User.get(userId, true);
+      if (!user) {
+        console.error(`User with id ${userId} not found.`);
+        return undefined;
+      }
+      const result = await db?.insert<
+        IIdea,
+        IIdeaForm & {
+          createdAt: Date;
+          updatedAt: Date;
+          contentUpdatedAt: Date;
+          embeddingsUpdatedAt: Date;
+          contentPlainUpdatedAt: Date;
+        }
+      >(
+        "idea",
+        forms.map((form) => {
+          return {
+            title: form.title,
+            content: form.content,
+            contentPlain: htmlToPlainText(form.content),
+            contentPlainUpdatedAt: new Date(),
+            embeddings: null,
+            contentUpdatedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            embeddingsUpdatedAt: new Date(),
+            ...(options?.wereImported ? { importedAt: new Date() } : {}),
+          };
+        }),
+      );
+      if (!result) {
+        console.error("No idea created.");
+        return undefined;
+      }
+      const ideas = result;
+      await Idea.connectManyToUser(
+        ideas.map((i) => i.id.toString()),
+        userId,
+      );
+      if (!options?.omitEmbeddings) {
+        await Idea.loadManyEmbeddings(ideas.map((i) => i.id.toString()));
+      }
+      if (!options?.omitDerivations) {
+        ideas.forEach((i) => {
+          Idea.runDerivedCascade(i.id);
+        });
+      }
+      return ideas;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -282,6 +361,32 @@ export class Idea {
       return ownership;
     } catch (err) {
       console.error(`Error during connectToUser for idea "${ideaId}":`, err);
+      return undefined;
+    }
+  }
+
+  static async connectManyToUser(
+    ideaIds: (string | RecordId)[],
+    userId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IIdeaUserOwnership[]]>(
+        `RELATE $fromId -> owns -> $toIds SET createdAt = $now;`,
+        {
+          fromId: new StringRecordId(userId),
+          toIds: ideaIds.map((ideaId) => new StringRecordId(ideaId)),
+          now: new Date(),
+        },
+      );
+      if (!result) {
+        console.error(`No ownership created for ideas and user "${userId}".`);
+        return undefined;
+      }
+      const [ownership] = result;
+      return ownership;
+    } catch (err) {
+      console.error(`Error during connectToUser for ideas:`, err);
       return undefined;
     }
   }
@@ -399,7 +504,7 @@ export class Idea {
         ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
         connections: IIdeaConnection[];
         files: IUserFile[];
-      }>("fn::user_graph", [userId]);
+      }>("fn::user_graph", [userId, 3]);
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
         return undefined;
@@ -473,6 +578,31 @@ export class Idea {
       return result;
     } catch (err) {
       console.error(err);
+      return undefined;
+    }
+  }
+
+  static async updateMany(
+    forms: (Partial<IIdea> & { id: string | RecordId })[],
+    withComputations?: boolean,
+  ): Promise<(IIdea | undefined)[] | undefined> {
+    try {
+      const updates: (IIdea | undefined)[] = [];
+      for (const form of forms) {
+        const { id, ...rest } = form;
+        const result = await Idea.update(id, rest);
+        updates.push(result);
+      }
+
+      if (updates.some((result) => result === undefined)) {
+        console.warn(
+          "updateMany: One or more ideas failed to update. See previous logs for details for each specific idea.",
+        );
+      }
+
+      return updates;
+    } catch (err) {
+      console.error("Error during the updateMany operation:", err);
       return undefined;
     }
   }
@@ -567,7 +697,6 @@ export class Idea {
         );
         return undefined;
       }
-      console.log("Checked connection exists: ", connectionExists);
       const db = await getDatabase();
       const result = await db?.query<[IIdeaConnection & { id: RecordId }]>(
         `RELATE $fromId -> connected -> $toId CONTENT { createdAt: $now, }`,
@@ -591,7 +720,6 @@ export class Idea {
   static async disconnect(source: string, target: string) {
     try {
       const db = await getDatabase();
-      console.log("Deleting from connection: ", source, target);
       const result = await db?.query<IIdeaConnection[]>(
         "DELETE FROM (SELECT VALUE <->connected FROM ONLY <record> $source) WHERE out = <record> $target OR in = <record> $target;",
         {
@@ -704,15 +832,17 @@ export class Idea {
   static async findSimilar(
     userId: string | RecordId,
     rootNodeId: string | RecordId,
-    options: { limit?: number } = { limit: 10 },
+    options: { limit?: number } = { limit: 3 },
   ) {
     try {
       const db = await getDatabase();
+      console.log("Finding similar to idea: ", rootNodeId);
       const limit = options.limit;
       const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_idea",
         [rootNodeId, userId, limit],
       );
+      console.log("Found similar ideas: ", ideas);
       if (!ideas) {
         console.error(`No ideas found.`);
         return;
@@ -884,32 +1014,26 @@ export class Idea {
         console.error(`Idea with id ${id} not found.`);
         return;
       }
-      const e = new Embeddings();
-      const embeddableContent = htmlToPlainText(result.content);
-      if (!embeddableContent) {
-        await Idea.update(result.id, {
-          embeddings: [],
-          embeddingsUpdatedAt: new Date(),
-        });
-        return;
-      }
+      return await Idea.updateEmbeddings(result);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
-      const embeddings = await e.generateEmbeddings(embeddableContent);
-
-      const idea = await db?.merge<
-        IIdea,
-        { embeddings: number[]; embeddingsUpdatedAt: Date }
-      >(new StringRecordId(id), {
-        embeddings,
-        embeddingsUpdatedAt: new Date(),
+  static async loadManyEmbeddings(ids: string[] | RecordId[]) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IIdea[]]>(`SELECT * FROM $ideas;`, {
+        ideas: ids.map((i) => new StringRecordId(i)),
       });
-
-      if (!idea) {
-        console.error(`Idea with id ${id} not found.`);
-        return;
+      if (!result) {
+        throw new Error(`Ideas not found.`);
       }
-
-      return idea;
+      const [ideas] = result;
+      if (!ideas) {
+        throw new Error("Something went wrong getting ideas.");
+      }
+      return await Idea.updateManyEmbeddings(ideas);
     } catch (error) {
       console.error(error);
     }
@@ -917,12 +1041,19 @@ export class Idea {
 
   static async updateEmbeddings(idea: IIdea, force = false) {
     try {
-      if (!force && idea.embeddingsUpdatedAt >= idea.contentUpdatedAt) {
+      if (
+        !force &&
+        idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
+        idea.embeddings?.length !== 0
+      ) {
         return;
       }
       const embedding = new Embeddings();
       const embeddableContent = htmlToPlainText(idea.content);
-      if (!embeddableContent) {
+      if (
+        !embeddableContent ||
+        embeddableContent.length > embeddableContentLimit
+      ) {
         await Idea.update(idea.id, {
           embeddings: [],
           embeddingsUpdatedAt: new Date(),
@@ -942,6 +1073,57 @@ export class Idea {
     }
   }
 
+  static async updateManyEmbeddings(ideas: IIdea[], force = false) {
+    try {
+      const e = new Embeddings();
+      const ideasAndContent = ideas
+        .filter((idea) => {
+          if (force) {
+            return true;
+          }
+          if (
+            idea.embeddings &&
+            idea.embeddingsUpdatedAt! > idea.contentUpdatedAt
+          ) {
+            return false;
+          }
+          return true;
+        })
+        .map((idea) => {
+          return [
+            idea.id.toString(),
+            htmlToPlainText(idea.content).slice(0, embeddableContentLimit),
+          ] as [string, string];
+        });
+      if (!ideasAndContent) {
+        return;
+      }
+
+      const justContent = ideasAndContent.map((i) => i[1]);
+      const embeddings = await e.generateEmbeddingsBatch(justContent);
+      const withEmbeddings = ideasAndContent.map(
+        (i, index) => [...i, embeddings[index]] as [string, string, number[]],
+      );
+
+      const updaters = withEmbeddings.map(([id, content, embeddings]) => {
+        return {
+          id: id,
+          embeddings: embeddings,
+          embeddingsUpdatedAt: new Date(),
+        } as { id: string } & Partial<Idea>;
+      });
+      const updates = await Idea.updateMany(updaters);
+      if (!updates) {
+        throw new Error("Error updating many ideas");
+      }
+
+      return updates;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
   static async synchronizeEmbeddings(ideas: IIdea[]) {
     try {
       const toUpdate = ideas.filter((idea) => {
@@ -953,15 +1135,19 @@ export class Idea {
         }
         return false;
       });
-      await Promise.all(toUpdate.map((idea) => Idea.updateEmbeddings(idea)));
+      const updated = await Idea.updateManyEmbeddings(toUpdate);
+      return updated;
     } catch (err) {
       console.error(`Error during synchronizeEmbeddings`, err);
     }
   }
 
-  static async synchronizeContentPlain(ideas: IIdea[]) {
+  static async synchronizeContentPlain(ideas: IIdea[], force?: boolean) {
     try {
       const toUpdate = ideas.filter((idea) => {
+        if (force) {
+          return true;
+        }
         if (!idea.contentPlain) {
           return true;
         }
@@ -970,14 +1156,14 @@ export class Idea {
         }
         return false;
       });
-      console.log("To update: ", toUpdate);
-      await Promise.all(
-        toUpdate.map((idea) =>
-          Idea.update(idea.id, {
-            contentPlain: htmlToPlainText(idea.content),
-            contentPlainUpdatedAt: idea.contentUpdatedAt,
-          }),
-        ),
+      await Idea.updateMany(
+        toUpdate.map((update) => {
+          return {
+            id: update.id,
+            contentPlain: htmlToPlainText(update.content),
+            contentPlainUpdatedAt: new Date(),
+          };
+        }),
       );
     } catch (err) {
       console.error(`Error during synchronizeContentPlain`, err);
