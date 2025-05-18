@@ -42,10 +42,8 @@ export const IdeaProvider = ({
         return;
       }
       setLoadingConnection(true);
-      console.log("SIMULATING IDEA CONNECT");
       runningConnection.current = true;
       ranConnection.current = true;
-      console.log("FINISHED IDEA CONNECT");
       await createIdeaConnection(idea.id.toString(), target);
       await reloadIdea();
       setLoadingConnection(false);
@@ -65,11 +63,9 @@ export const IdeaProvider = ({
       }
       const areConnected = ideasAreConnected(idea, target);
       if (areConnected === undefined) {
-        console.log("Skipping due to inconclusivity");
         return;
       }
       if (!areConnected) {
-        console.log("Going to run connect func!!!!");
         await connectIdeas(target);
       }
     },

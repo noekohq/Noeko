@@ -78,8 +78,6 @@ export default function Feedback() {
       return true;
     });
 
-  console.log("Filtered feedback: ", filteredFeedback);
-
   const clipContent = (content: string) => {
     if (content.length > 56) {
       return content.slice(0, 56) + "...";
