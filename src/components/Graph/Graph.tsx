@@ -180,23 +180,142 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     const centerX = currentWidth / 2;
     const centerY = currentHeight / 2;
 
+    // setNodes((currentNodes) => {
+    //   if (currentNodes.length === 0) {
+    //     simulationRef.current = null; // Stop the loop
+    //     return [];
+    //   }
+
+    //   let newNodes = currentNodes.map((n) => ({ ...n }));
+
+    //   for (let i = 0; i < newNodes.length; i++) {
+    //     const nodeA = newNodes[i];
+    //     const nodeAx = nodeA.x ?? 0;
+    //     const nodeAy = nodeA.y ?? 0;
+
+    //     for (let j = i + 1; j < newNodes.length; j++) {
+    //       const nodeB = newNodes[j];
+    //       const nodeBx = nodeB.x ?? 0;
+    //       const nodeBy = nodeB.y ?? 0;
+
+    //       const { dx, dy, dist } = getVector(
+    //         { x: nodeAx, y: nodeAy },
+    //         { x: nodeBx, y: nodeBy },
+    //       );
+
+    //       if (dist > 0) {
+    //         const force =
+    //           (SIMULATION_CONFIG.forceStrength * alphaRef.current) /
+    //           (dist * dist);
+    //         const forceX = dx * force;
+    //         const forceY = dy * force;
+
+    //         if (!nodeA.fx) {
+    //           nodeA.vx = (nodeA.vx ?? 0) + forceX;
+    //           nodeA.vy = (nodeA.vy ?? 0) + forceY;
+    //         }
+    //         if (!nodeB.fx) {
+    //           nodeB.vx = (nodeB.vx ?? 0) - forceX;
+    //           nodeB.vy = (nodeB.vy ?? 0) - forceY;
+    //         }
+    //       }
+    //     }
+
+    //     if (!nodeA.fx) {
+    //       const dxCenter = centerX - nodeAx;
+    //       const dyCenter = centerY - nodeAy;
+    //       nodeA.vx =
+    //         (nodeA.vx ?? 0) +
+    //         dxCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
+    //       nodeA.vy =
+    //         (nodeA.vy ?? 0) +
+    //         dyCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
+    //     }
+    //   }
+
+    //   for (const edge of graph.edges) {
+    //     const sourceNode = newNodes.find((n) => n.id === edge.source);
+    //     const targetNode = newNodes.find((n) => n.id === edge.target);
+
+    //     if (sourceNode && targetNode) {
+    //       const { dx, dy, dist } = getVector(sourceNode, targetNode);
+
+    //       if (dist > 0) {
+    //         const diff = dist - edge.distance;
+    //         const edgeStrengthMultiplier = edge.strength ?? 1.0;
+    //         const effectiveLinkStrength =
+    //           SIMULATION_CONFIG.linkStrength * edgeStrengthMultiplier;
+
+    //         const force =
+    //           (diff * effectiveLinkStrength * alphaRef.current) / dist; // Use effective strength
+    //         const forceX = dx * force;
+    //         const forceY = dy * force;
+
+    //         if (!sourceNode.fx) {
+    //           sourceNode.vx = (sourceNode.vx ?? 0) + forceX;
+    //           sourceNode.vy = (sourceNode.vy ?? 0) + forceY;
+    //         }
+    //         if (!targetNode.fx) {
+    //           targetNode.vx = (targetNode.vx ?? 0) - forceX;
+    //           targetNode.vy = (targetNode.vy ?? 0) - forceY;
+    //         }
+    //       }
+    //     }
+    //   }
+
+    //   newNodes = newNodes.map((node) => {
+    //     if (node.fx !== null && node.fy !== null) {
+    //       return { ...node, x: node.fx, y: node.fy, vx: 0, vy: 0 };
+    //     }
+
+    //     const vx = (node.vx ?? 0) * SIMULATION_CONFIG.velocityDecay;
+    //     const vy = (node.vy ?? 0) * SIMULATION_CONFIG.velocityDecay;
+    //     const x = (node.x ?? 0) + vx;
+    //     const y = (node.y ?? 0) + vy;
+
+    //     return { ...node, x, y, vx, vy };
+    //   });
+
+    //   return newNodes;
+    // });
     setNodes((currentNodes) => {
-      if (currentNodes.length === 0) {
-        simulationRef.current = null; // Stop the loop
+      const currentWidth = propWidth ?? dimensions.width; // Ensure these are available
+      const currentHeight = propHeight ?? dimensions.height;
+      const centerX = currentWidth / 2;
+      const centerY = currentHeight / 2;
+
+      if (
+        currentNodes.length === 0 ||
+        currentWidth === 0 ||
+        currentHeight === 0
+      ) {
+        simulationRef.current = null;
         return [];
       }
 
-      let newNodes = currentNodes.map((n) => ({ ...n }));
+      // 1. Create mutable copies for simulation. Initialize/ensure essential properties.
+      const simNodes = currentNodes.map((n) => ({
+        ...n,
+        x: n.x ?? centerX + (Math.random() - 0.5) * 0.1, // Ensure x is defined
+        y: n.y ?? centerY + (Math.random() - 0.5) * 0.1, // Ensure y is defined
+        vx: n.vx ?? 0,
+        vy: n.vy ?? 0,
+      }));
 
-      for (let i = 0; i < newNodes.length; i++) {
-        const nodeA = newNodes[i];
-        const nodeAx = nodeA.x ?? 0;
-        const nodeAy = nodeA.y ?? 0;
+      // 2. Create a map for efficient node lookup during edge processing (CRITICAL FOR PERFORMANCE)
+      const simNodeMap = new Map(simNodes.map((n) => [n.id, n]));
 
-        for (let j = i + 1; j < newNodes.length; j++) {
-          const nodeB = newNodes[j];
-          const nodeBx = nodeB.x ?? 0;
-          const nodeBy = nodeB.y ?? 0;
+      // --- Repulsion Forces (Node-Node) ---
+      for (let i = 0; i < simNodes.length; i++) {
+        const nodeA = simNodes[i];
+        // Ensure nodeA.x and nodeA.y are numbers
+        const nodeAx = nodeA.x!;
+        const nodeAy = nodeA.y!;
+
+        for (let j = i + 1; j < simNodes.length; j++) {
+          const nodeB = simNodes[j];
+          const nodeBx = nodeB.x!;
+          const nodeBy = nodeB.y!;
 
           const { dx, dy, dist } = getVector(
             { x: nodeAx, y: nodeAy },
@@ -211,31 +330,32 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
             const forceY = dy * force;
 
             if (!nodeA.fx) {
-              nodeA.vx = (nodeA.vx ?? 0) + forceX;
-              nodeA.vy = (nodeA.vy ?? 0) + forceY;
+              nodeA.vx += forceX; // Mutate copy
+              nodeA.vy += forceY; // Mutate copy
             }
             if (!nodeB.fx) {
-              nodeB.vx = (nodeB.vx ?? 0) - forceX;
-              nodeB.vy = (nodeB.vy ?? 0) - forceY;
+              nodeB.vx -= forceX; // Mutate copy
+              nodeB.vy -= forceY; // Mutate copy
             }
           }
         }
 
+        // --- Centering Force --- (Applied to nodeA)
         if (!nodeA.fx) {
           const dxCenter = centerX - nodeAx;
           const dyCenter = centerY - nodeAy;
-          nodeA.vx =
-            (nodeA.vx ?? 0) +
+          nodeA.vx +=
             dxCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
-          nodeA.vy =
-            (nodeA.vy ?? 0) +
+          nodeA.vy +=
             dyCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
         }
       }
 
+      // --- Link Forces (Edge) ---
       for (const edge of graph.edges) {
-        const sourceNode = newNodes.find((n) => n.id === edge.source);
-        const targetNode = newNodes.find((n) => n.id === edge.target);
+        // graph.edges is from the component's props/state
+        const sourceNode = simNodeMap.get(edge.source); // O(1) lookup
+        const targetNode = simNodeMap.get(edge.target); // O(1) lookup
 
         if (sourceNode && targetNode) {
           const { dx, dy, dist } = getVector(sourceNode, targetNode);
@@ -247,36 +367,37 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
               SIMULATION_CONFIG.linkStrength * edgeStrengthMultiplier;
 
             const force =
-              (diff * effectiveLinkStrength * alphaRef.current) / dist; // Use effective strength
+              (diff * effectiveLinkStrength * alphaRef.current) / dist;
             const forceX = dx * force;
             const forceY = dy * force;
 
             if (!sourceNode.fx) {
-              sourceNode.vx = (sourceNode.vx ?? 0) + forceX;
-              sourceNode.vy = (sourceNode.vy ?? 0) + forceY;
+              sourceNode.vx += forceX; // Mutate copy
+              sourceNode.vy += forceY; // Mutate copy
             }
             if (!targetNode.fx) {
-              targetNode.vx = (targetNode.vx ?? 0) - forceX;
-              targetNode.vy = (targetNode.vy ?? 0) - forceY;
+              targetNode.vx -= forceX; // Mutate copy
+              targetNode.vy -= forceY; // Mutate copy
             }
           }
         }
       }
 
-      newNodes = newNodes.map((node) => {
+      // --- Update positions based on velocities ---
+      // This final map creates the new objects for React state.
+      return simNodes.map((node) => {
         if (node.fx !== null && node.fy !== null) {
+          // Node is fixed, ensure vx/vy are reset
           return { ...node, x: node.fx, y: node.fy, vx: 0, vy: 0 };
         }
 
-        const vx = (node.vx ?? 0) * SIMULATION_CONFIG.velocityDecay;
-        const vy = (node.vy ?? 0) * SIMULATION_CONFIG.velocityDecay;
-        const x = (node.x ?? 0) + vx;
-        const y = (node.y ?? 0) + vy;
+        const newVx = node.vx * SIMULATION_CONFIG.velocityDecay;
+        const newVy = node.vy * SIMULATION_CONFIG.velocityDecay;
+        const newX = node.x! + newVx; // node.x is guaranteed by now
+        const newY = node.y! + newVy; // node.y is guaranteed by now
 
-        return { ...node, x, y, vx, vy };
+        return { ...node, x: newX, y: newY, vx: newVx, vy: newVy };
       });
-
-      return newNodes;
     });
 
     alphaRef.current *= 1 - SIMULATION_CONFIG.alphaDecay;

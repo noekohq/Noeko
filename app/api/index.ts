@@ -4,7 +4,7 @@ import userRouter from "./users";
 import fileRouter from "./files";
 import searchRouter from "./search";
 import feedbackRouter from "./feedback";
-import { disallowDisabled } from "../middleware/auth";
+import importRouter from "./import";
 
 const router = Router();
 
@@ -13,5 +13,6 @@ router.use("/files", fileRouter);
 router.use("/users", userRouter);
 router.use("/search", searchRouter);
 router.use("/feedback", feedbackRouter);
+router.use("/imports", importRouter);
 
 export default router;

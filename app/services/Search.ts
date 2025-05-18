@@ -71,6 +71,17 @@ export class Search {
    * Uses the exact definitions provided in the initial prompt.
    */
   static async up() {
+    const defineVectorIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_idea_embeddings
+        ON TABLE idea
+        FIELDS embeddings
+        HNSW DIMENSION 768
+        DIST COSINE
+        TYPE F32;
+      `;
+    };
+
     const ideaSearchAnalyzer = () => {
       return `
       DEFINE ANALYZER OVERWRITE idea_analyzer
@@ -130,18 +141,19 @@ export class Search {
         $userId: string,
         $limit: int
       ) {
-        LET $embeddings = SELECT embeddings FROM ONLY <record> $ideaId;
-        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
+        LET $embeddings = SELECT VALUE embeddings FROM ONLY <record> $ideaId;
 
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $embeddings.embeddings) AS distance,
+                vector::similarity::cosine(embeddings, $embeddings) AS distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
             FROM idea
-            WHERE id IN $userIdeas
+            WHERE
+              <-owns<-(user WHERE id = <record> $userId)
+              AND !!content
             ORDER BY distance DESC
-            LIMIT $limit;
+            LIMIT <int> $limit;
 
         RETURN $results;
       }
@@ -156,7 +168,7 @@ export class Search {
         $userId: string,
         $limit: int
       ) {
-        LET $userIdeas = SELECT VALUE ->owns->idea.id FROM ONLY <record> $userId;
+        IF !$provided_embeddings THEN return [] END;
 
         LET $results =
             SELECT
@@ -164,7 +176,9 @@ export class Search {
                 vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
             FROM idea
-            WHERE id IN $userIdeas
+            WHERE
+              <-owns<-(user WHERE id = <record> $userId)
+              AND !!content
             ORDER BY distance DESC
             LIMIT $limit;
 
@@ -186,6 +200,7 @@ export class Search {
       await db.query(ftsSearchFunction());
       await db.query(searchSimilarToIdea());
       await db.query(searchSimilarToEmbeddings());
+      await db.query(defineVectorIndex());
       console.log("Search setup complete (using original definitions).");
     } catch (error) {
       console.error("Error during Search.up():", error);
