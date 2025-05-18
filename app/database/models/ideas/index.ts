@@ -1012,11 +1012,12 @@ export class Idea {
       );
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
-        return;
+        return undefined;
       }
       return await Idea.updateEmbeddings(result);
     } catch (error) {
       console.error(error);
+      return undefined;
     }
   }
 
@@ -1046,7 +1047,7 @@ export class Idea {
         idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
         idea.embeddings?.length !== 0
       ) {
-        return;
+        return undefined;
       }
       const embedding = new Embeddings();
       const embeddableContent = htmlToPlainText(idea.content);
@@ -1058,10 +1059,10 @@ export class Idea {
           embeddings: [],
           embeddingsUpdatedAt: new Date(),
         });
-        return;
+        return undefined;
       }
       const vector = await embedding.generateEmbeddings(embeddableContent);
-      await Idea.update(idea.id, {
+      return await Idea.update(idea.id, {
         embeddings: vector,
         embeddingsUpdatedAt: new Date(),
       });
