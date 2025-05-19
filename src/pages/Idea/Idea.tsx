@@ -33,6 +33,7 @@ import { getTextProcessed } from "../../utils/processing";
 import { htmlToPlainText } from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
+import Search from "../../components/Search/Search";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -412,7 +413,7 @@ export default function Idea() {
           )}
         </>
       </div>
-      <RightSidebar stayCollapsed={isMobile} defaultClosed>
+      <RightSidebar stayCollapsed={isMobile} defaultClosed={isMobile}>
         <Flex
           direction={
             isMobile
@@ -454,6 +455,8 @@ export default function Idea() {
             )}
           </Tooltip>
         </Flex>
+        {rightSidebarOpened && <Divider my="md" />}
+        {rightSidebarOpened && <Search />}
       </RightSidebar>
     </PageWrapper>
   );
