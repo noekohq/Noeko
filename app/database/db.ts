@@ -147,7 +147,6 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
   }
 };
 
-};
 export const initSchema = async () => {
   try {
     const db = await getDatabase();

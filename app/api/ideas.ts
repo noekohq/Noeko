@@ -23,7 +23,7 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
         embeddings: null,
       },
       user.id,
-      { omitEmbeddings: true },
+      { omitEmbeddings: true, omitDerived: true },
     );
     if (!i) {
       res.status(404).json({ error: "Idea not created" });
