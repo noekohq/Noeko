@@ -241,6 +241,7 @@ export class Idea {
     userId: string | RecordId,
     options?: {
       omitEmbeddings?: boolean;
+      omitDerived?: boolean;
       wasImported?: boolean;
     },
   ) {
@@ -281,7 +282,9 @@ export class Idea {
       if (!options?.omitEmbeddings) {
         await Idea.loadEmbeddings(idea.id);
       }
-      await Idea.runDerivedCascade(idea.id);
+      if (!options?.omitDerived) {
+        await Idea.runDerivedCascade(idea.id);
+      }
       return idea;
     } catch (err) {
       console.error(err);
