@@ -91,6 +91,10 @@ export type SearchResult = {
   };
 };
 
+export type IUserIdeaStats = {
+  total: number;
+};
+
 export class Idea {
   constructor() {}
 
@@ -185,11 +189,25 @@ export class Idea {
       `;
     };
 
+    const getUserIdeaStats = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_user_idea_stats(
+        $userId: string
+      ) {
+        LET $total = count(SELECT VALUE id FROM idea WHERE <-owns<-(user WHERE id = <record> $userId));
+        return {
+          total: $total
+        };
+      }
+      `;
+    };
+
     const db = await getDatabase();
     await db?.query(userGraphFunction());
     await db?.query(getIdeaConnections());
     await db?.query(getIdeaDerived());
     await db?.query(getUserIdeas());
+    await db?.query(getUserIdeaStats());
   }
 
   static attachComputedFieldsToCollection(
@@ -460,6 +478,25 @@ export class Idea {
       }
       const [ideas] = results;
       return ideas;
+    } catch (err) {
+      console.error("Something went wrong", err);
+      return undefined;
+    }
+  }
+
+  static async getUserIdeaStats(
+    userId: string,
+  ): Promise<IUserIdeaStats | undefined> {
+    try {
+      const db = await getDatabase();
+      const results = await db?.run<IUserIdeaStats>("fn::get_user_idea_stats", [
+        userId,
+      ]);
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      return results;
     } catch (err) {
       console.error("Something went wrong", err);
       return undefined;
