@@ -3,11 +3,12 @@ import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Search.module.scss";
 import { SearchBar } from "./SearchBar";
 import { ISearchResult } from "../../../app/services/Search";
-import { Space, Text, UnstyledButton } from "@mantine/core";
+import { Group, Space, Text, UnstyledButton } from "@mantine/core";
 import { Link } from "react-router";
 import { getNodeTitle } from "../../utils/graph";
 import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
+import { Star } from "@phosphor-icons/react";
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,7 @@ export default function Search() {
           </Text>
           <Space my="sm" />
           {searchResults?.map((s, i) => {
+            const isBest = i === 0;
             return (
               <Link
                 key={s.id.toString()}
@@ -53,9 +55,12 @@ export default function Search() {
                 tabIndex={i}
               >
                 <UnstyledButton key={s.id.toString()}>
-                  <Text fw="bold" c="gray">
-                    {getNodeTitle(s.value)}
-                  </Text>
+                  <Group gap="xs">
+                    {isBest && <Star color="white" weight="fill" />}
+                    <Text fw="bold" c="gray">
+                      {getNodeTitle(s.value)}
+                    </Text>
+                  </Group>
                   <Text c="dimmed">
                     <Match
                       opener="->"
