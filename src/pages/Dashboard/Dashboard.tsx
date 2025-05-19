@@ -1,0 +1,79 @@
+import {
+  Card,
+  Container,
+  Divider,
+  Grid,
+  Kbd,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import LeftSidebar from "../../components/UI/LeftSidebar";
+import RightSidebar from "../../components/UI/RightSidebar";
+import { useAuth } from "../../contexts/AuthContext";
+import { getCurrentTimeOfDay } from "../../utils/datetime";
+import useFetch from "../../hooks/useFetch";
+import { IIdea } from "../../../app/database/models/ideas";
+import { useLayout } from "../../contexts/LayoutContext";
+import { getNodeDescription, getNodeSubtitle } from "../../utils/graph";
+import IdeaCard from "../../components/Display/Ideas/IdeaCard";
+
+export default function Dashboard() {
+  const { user } = useAuth();
+
+  const { data: dashboardData } = useFetch<undefined, { recentIdeas: IIdea[] }>(
+    {
+      url: "/dashboard",
+      runOnMount: true,
+      onError: (err) => {
+        console.error("Error getting dashboard data: ", err);
+      },
+    },
+  );
+  console.log("Dashboard data: ", dashboardData);
+
+  const {
+    rightSidebar: { opened: rightSidebarOpened },
+  } = useLayout();
+
+  return (
+    <PageWrapper>
+      <LeftSidebar></LeftSidebar>
+      <Container py="lg" w="100%">
+        <Grid>
+          <Grid.Col span={{ sm: 12 }}>
+            <Title>
+              Good {getCurrentTimeOfDay()}, {user?.firstName}
+            </Title>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }} />
+          <Grid.Col>
+            <Card withBorder radius="lg">
+              <Stack align="center" gap="sm">
+                <Text>
+                  Add an idea <Kbd>Ctrl + I</Kbd>
+                </Text>
+                <Text>
+                  Graph view <Kbd>Ctrl + G</Kbd>
+                </Text>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      </Container>
+      <RightSidebar>
+        {rightSidebarOpened && (
+          <Stack>
+            <Title order={3}>Recent Ideas</Title>
+
+            {dashboardData?.recentIdeas &&
+              dashboardData.recentIdeas.map((idea) => {
+                return <IdeaCard idea={idea} key={idea.id.toString()} link />;
+              })}
+          </Stack>
+        )}
+      </RightSidebar>
+    </PageWrapper>
+  );
+}

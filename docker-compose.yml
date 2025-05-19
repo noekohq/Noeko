@@ -12,7 +12,7 @@ services:
       - $DB_USER
       - --pass
       - $DB_PASSWORD
-      - surrealkv://data/database.db
+      - file:///data/database.db # Updated to use file:// for clarity with volume path
     ports:
       - "8000:8000"
     networks:

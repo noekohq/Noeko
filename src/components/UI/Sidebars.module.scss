@@ -22,7 +22,6 @@
 
     // Content is hidden when closed (applies to mobile and desktop)
     &.closed {
-        background-color: transparent;
         flex-direction: column;
     }
 
@@ -72,7 +71,7 @@
         height: auto; // Allow content to define height if larger
         // Ensure padding is small for closed state
         padding: 14px;
-        background-color: var(--mantine-color-dark-6);
+        background-color: transparent;
     }
 }
 
@@ -95,6 +94,7 @@
         &.closed {
             padding: 14px;
             height: calc(100vh);
+            background-color: transparent;
         }
 
         & > .content {

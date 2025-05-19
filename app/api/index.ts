@@ -5,9 +5,11 @@ import fileRouter from "./files";
 import searchRouter from "./search";
 import feedbackRouter from "./feedback";
 import importRouter from "./import";
+import dashboardRouter from "./dashboard";
 
 const router = Router();
 
+router.use("/dashboard", dashboardRouter);
 router.use("/graph", graphRouter);
 router.use("/files", fileRouter);
 router.use("/users", userRouter);

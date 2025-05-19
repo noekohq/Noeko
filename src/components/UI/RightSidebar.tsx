@@ -20,6 +20,7 @@ import {
   ChatCircleDots,
   Gear,
   Graph,
+  HouseSimple,
   MegaphoneSimple,
   Shield,
   ShieldStar,
@@ -171,9 +172,17 @@ export default function RightSidebar({
             <Menu.Dropdown>
               <Menu.Label>Views</Menu.Label>
               <Menu.Item
-                leftSection={<Graph weight="bold" />}
+                leftSection={<HouseSimple weight="bold" />}
                 onClick={() => {
                   navigate("/");
+                }}
+              >
+                <Text>Home</Text>
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<Graph weight="bold" />}
+                onClick={() => {
+                  navigate("/graph");
                 }}
               >
                 <Text>Graph</Text>

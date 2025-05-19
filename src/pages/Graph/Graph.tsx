@@ -1,7 +1,7 @@
 import Graph from "../../components/Graph/Graph";
 import { IGraph } from "../../declarations/graph";
 import { useEffect, useRef, useState } from "react";
-import styles from "./Home.module.scss";
+import styles from "./Graph.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { useNavigate } from "react-router";

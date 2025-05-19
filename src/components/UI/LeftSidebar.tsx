@@ -201,7 +201,9 @@ export default function LeftSidebar({
       <Flex
         justify="space-between"
         align={isMobile ? (opened ? "center" : "flex-end") : "center"}
-        direction={opened ? "row" : "column"}
+        direction={
+          isMobile ? (opened ? "column" : "row") : opened ? "row" : "column"
+        }
         gap="md"
       >
         {opened && (
@@ -248,7 +250,7 @@ export default function LeftSidebar({
           )}
         </Flex>
       </Flex>
-      <Divider my="md" />
+      {((isMobile && opened) || !isMobile) && <Divider my="md" />}
       <Flex
         justify="space-between"
         align={isMobile ? (opened ? "center" : "flex-end") : "center"}
