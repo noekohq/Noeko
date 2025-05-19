@@ -114,7 +114,7 @@ export default function Dashboard() {
           </>
         )}
       </LeftSidebar>
-      <Container py="lg" w="100%" pt={isMobile ? "10vh" : ""}>
+      <Container py="lg" w="100%">
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>
