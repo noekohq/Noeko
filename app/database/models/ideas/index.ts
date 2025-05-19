@@ -136,9 +136,14 @@ export class Idea {
           LET $processedIdeas = SELECT
               *,
               ->is_source_for->(?).* as derivedList,
-              -- Call the similarity function with the determined limit
-              fn::search_similar_to_embeddings(embeddings, $userId, $similarityLimit) as similar
-          FROM $ideas
+              IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
+                  fn::search_similar_to_embeddings(embeddings, $userId, $similarityLimit)
+              ELSE
+                  []
+              END AS similar
+          FROM idea
+          WHERE
+            <-owns<-(user WHERE id = <record> $userId)
           FETCH derivedList, similar;
 
           RETURN {
@@ -905,13 +910,11 @@ export class Idea {
   ) {
     try {
       const db = await getDatabase();
-      console.log("Finding similar to idea: ", rootNodeId);
       const limit = options.limit;
       const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_idea",
         [rootNodeId, userId, limit],
       );
-      console.log("Found similar ideas: ", ideas);
       if (!ideas) {
         console.error(`No ideas found.`);
         return;

@@ -62,7 +62,7 @@ export class Search {
     FTS_CONTENT: 0.5,
   };
   private static readonly EXACT_TITLE_BONUS = 2.0;
-  private static readonly SEMANTIC_THRESHOLD = 0.5; // Min cosine similarity
+  private static readonly SEMANTIC_THRESHOLD = 0.45; // Min cosine similarity
 
   constructor() {}
 
@@ -145,6 +145,8 @@ export class Search {
       ) {
         LET $embeddings = SELECT VALUE embeddings FROM ONLY <record> $ideaId;
 
+        IF !$embeddings THEN RETURN [] END;
+
         LET $results =
             SELECT
                 *,
@@ -154,6 +156,7 @@ export class Search {
             WHERE
               <-owns<-(user WHERE id = <record> $userId)
               AND !!content
+              AND !!embeddings
             ORDER BY distance DESC
             LIMIT <int> $limit;
 
@@ -181,6 +184,7 @@ export class Search {
             WHERE
               <-owns<-(user WHERE id = <record> $userId)
               AND !!content
+              AND !!embeddings
             ORDER BY distance DESC
             LIMIT $limit;
 
