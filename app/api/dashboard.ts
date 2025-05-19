@@ -15,10 +15,12 @@ router.get("/", async (req, res) => {
       throw new Error("User is not logged in.");
     }
     const recentIdeas = await Idea.getUserRecentIdeas(user.id, 10);
+    const ideaStats = await Idea.getUserIdeaStats(user.id);
     res.send({
       message: "Got Dashboard Successfully...",
       data: {
         recentIdeas,
+        ideaStats,
       },
     });
   } catch (error) {

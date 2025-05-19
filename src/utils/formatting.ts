@@ -1,16 +1,76 @@
 import showdown from "showdown";
 
 export const formatDate = (d: Date) => {
-  // mm/dd/yyyy hh:mm:ss in local timezone
   const date = new Date(d);
 
-  // Get components in local timezone
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${month}/${day}/${year}`;
+  return formatDateRelative(date);
 };
+
+export const formatDateTime = (d: Date) => {
+  const date = new Date(d);
+
+  return `${formatDateRelative(date)} ${formatTimeWithinDay(date)}`;
+};
+
+function formatTimeWithinDay(date: Date): string {
+  const now = new Date();
+  const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  const isToday = now.toDateString() === date.toDateString();
+
+  if (isToday) {
+    if (diffSeconds < 60) {
+      return `${diffSeconds} second${diffSeconds === 1 ? "" : "s"} ago`;
+    }
+
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) {
+      return `${diffMinutes} minute${diffMinutes === 1 ? "" : "s"} ago`;
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 6) {
+      return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+    }
+  }
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const minutesStr = minutes < 10 ? "0" + minutes : minutes.toString();
+  return `${hours}:${minutesStr} ${ampm}`;
+}
+
+function formatDateRelative(date: Date): string {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const inputDateOnly = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
+
+  const diffTime = today.getTime() - inputDateOnly.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return "today";
+  } else if (diffDays === 1) {
+    return "yesterday";
+  } else if (diffDays > 1 && diffDays <= 7) {
+    return `${diffDays} days ago`;
+  } else {
+    const month = date.toLocaleString("default", { month: "long" });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    if (now.getFullYear() === year) {
+      return `${month} ${day}`;
+    }
+    return `${month} ${day}, ${year}`;
+  }
+}
 
 export const htmlToPlainText = (html: string) => {
   const doc = new DOMParser().parseFromString(html, "text/html");

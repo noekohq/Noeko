@@ -14,32 +14,51 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import { useAuth } from "../../contexts/AuthContext";
 import { getCurrentTimeOfDay } from "../../utils/datetime";
 import useFetch from "../../hooks/useFetch";
-import { IIdea } from "../../../app/database/models/ideas";
+import { IIdea, IUserIdeaStats } from "../../../app/database/models/ideas";
 import { useLayout } from "../../contexts/LayoutContext";
 import { getNodeDescription, getNodeSubtitle } from "../../utils/graph";
 import IdeaCard from "../../components/Display/Ideas/IdeaCard";
+import { getMetaKeys, getOS } from "../../utils/platform";
 
 export default function Dashboard() {
   const { user } = useAuth();
 
-  const { data: dashboardData } = useFetch<undefined, { recentIdeas: IIdea[] }>(
-    {
-      url: "/dashboard",
-      runOnMount: true,
-      onError: (err) => {
-        console.error("Error getting dashboard data: ", err);
-      },
+  const os = getOS();
+  const { data: dashboardData } = useFetch<
+    undefined,
+    { recentIdeas: IIdea[]; ideaStats: IUserIdeaStats }
+  >({
+    url: "/dashboard",
+    runOnMount: true,
+    onError: (err) => {
+      console.error("Error getting dashboard data: ", err);
     },
-  );
+  });
   console.log("Dashboard data: ", dashboardData);
 
   const {
     rightSidebar: { opened: rightSidebarOpened },
   } = useLayout();
 
+  const isMac = os === "macos";
+  const primaryKey = isMac ? "Cmd" : "Ctrl";
+
+  const totalIdeas = dashboardData?.ideaStats.total;
+
+  const getStatusText = () => {
+    if (totalIdeas) {
+      return `You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
+    }
+    return "Loading...";
+  };
+
   return (
     <PageWrapper>
-      <LeftSidebar></LeftSidebar>
+      <LeftSidebar>
+        <Text c="dimmed" size="sm">
+          {getStatusText()}
+        </Text>
+      </LeftSidebar>
       <Container py="lg" w="100%">
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
@@ -52,10 +71,13 @@ export default function Dashboard() {
             <Card withBorder radius="lg">
               <Stack align="center" gap="sm">
                 <Text>
-                  Add an idea <Kbd>Ctrl + I</Kbd>
+                  Add an idea <Kbd>{primaryKey} + I</Kbd>
                 </Text>
                 <Text>
-                  Graph view <Kbd>Ctrl + G</Kbd>
+                  Dashboard view <Kbd>{primaryKey} + H</Kbd>
+                </Text>
+                <Text>
+                  Graph view <Kbd>{primaryKey} + G</Kbd>
                 </Text>
               </Stack>
             </Card>

@@ -4,7 +4,7 @@ import { getNodeDescription } from "../../../utils/graph";
 import { Link } from "react-router";
 import styles from "./IdeaCard.module.scss";
 import { useState } from "react";
-import { formatDate } from "../../../utils/formatting";
+import { formatDate, formatDateTime } from "../../../utils/formatting";
 
 type IIdeaCardProps = {
   idea: IIdea;
@@ -40,7 +40,7 @@ export default function IdeaCard({ idea, link }: IIdeaCardProps) {
         {idea.title}
       </Text>
       <Text size="xs" c="dimmed">
-        {formatDate(idea.updatedAt)}
+        {formatDateTime(idea.updatedAt)}
       </Text>
       <Divider my="sm" />
       <Text size="sm">{getNodeDescription({ ...idea, type: "idea" })}</Text>
