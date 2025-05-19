@@ -6,11 +6,13 @@ import searchRouter from "./search";
 import feedbackRouter from "./feedback";
 import importRouter from "./import";
 import dashboardRouter from "./dashboard";
+import ideasRouter from "./ideas";
 
 const router = Router();
 
 router.use("/dashboard", dashboardRouter);
 router.use("/graph", graphRouter);
+router.use("/ideas", ideasRouter);
 router.use("/files", fileRouter);
 router.use("/users", userRouter);
 router.use("/search", searchRouter);

@@ -12,6 +12,33 @@ export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
 };
 
+export const newIdea = async () => {
+  try {
+    const results = await api.post("/ideas/new");
+    return results.data.data as IIdea;
+  } catch (error) {
+    console.log("Error creating new idea.");
+    return undefined;
+  }
+};
+
+export const handleCreateNewIdea = async (
+  cb: (idea: IIdea) => void,
+  err: (err: Error) => void,
+) => {
+  try {
+    const idea = await newIdea();
+    if (!idea) {
+      err(new Error("New idea was not created."));
+      return;
+    }
+    cb(idea);
+  } catch (error) {
+    console.error("Error creating new idea: ", error);
+    return undefined;
+  }
+};
+
 export const createIdeaConnection = async (source: string, target: string) => {
   try {
     return await api

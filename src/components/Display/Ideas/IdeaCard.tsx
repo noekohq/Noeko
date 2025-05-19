@@ -25,6 +25,7 @@ export default function IdeaCard({ idea, link }: IIdeaCardProps) {
   return ParentEl(
     <Card
       w="100%"
+      h="100%"
       withBorder
       radius={"lg"}
       shadow={hovering ? "lg" : "sm"}
