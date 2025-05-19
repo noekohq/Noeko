@@ -32,7 +32,7 @@ type ISearchBarProps = {
 };
 
 export function SearchBar({
-  placeholder = "Press / to search...",
+  placeholder = "Search your ideas...",
   onResults,
   onResultsClear,
   onBlur,

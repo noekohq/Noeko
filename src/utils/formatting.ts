@@ -9,7 +9,7 @@ export const formatDate = (d: Date) => {
 export const formatDateTime = (d: Date) => {
   const date = new Date(d);
 
-  return `${formatDateRelative(date)} ${formatTimeWithinDay(date)}`;
+  return `${capitalize(formatDateRelative(date))}, ${formatTimeWithinDay(date)}`;
 };
 
 function formatTimeWithinDay(date: Date): string {
@@ -97,4 +97,20 @@ export const formatCamelCase = (text: string) => {
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2") // insert space before uppercase
     .replace(/^./, (str) => str.toUpperCase()) // capitalize first character
     .replace(/\b\w/g, (char) => char.toUpperCase()); // capitalize every word
+};
+
+export const capitalize = (text: string) => {
+  if (!text) {
+    return "";
+  }
+
+  return text
+    .split(" ") // Split the string into an array of words
+    .map((word) => {
+      if (word.length === 0) {
+        return "";
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1); // Capitalize the first letter and append the rest of the word
+    })
+    .join(" "); // Join the words back into a string
 };

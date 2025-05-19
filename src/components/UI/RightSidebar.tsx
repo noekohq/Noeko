@@ -38,6 +38,7 @@ type RightSidebarProps = {
   toggleOpenShortcuts?: IShortcut["keys"][];
   openOnShortcut?: IShortcut["keys"][];
   stayCollapsed?: boolean;
+  defaultClosed?: boolean;
 };
 
 export default function RightSidebar({
@@ -45,6 +46,7 @@ export default function RightSidebar({
   toggleOpenShortcuts,
   openOnShortcut,
   stayCollapsed,
+  defaultClosed,
 }: RightSidebarProps) {
   const openable = children !== undefined && !stayCollapsed;
 
@@ -56,6 +58,12 @@ export default function RightSidebar({
     }
     return true;
   });
+
+  useEffect(() => {
+    if (defaultClosed) {
+      setOpened(false);
+    }
+  }, [defaultClosed]);
 
   const {
     rightSidebar: { setOpened: setRightSidebarOpened },
@@ -118,11 +126,7 @@ export default function RightSidebar({
     >
       <Flex
         justify={
-          isMobile
-            ? opened
-              ? "space-between"
-              : "space-between"
-            : "space-between"
+          isMobile ? (opened ? "space-between" : "flex-end") : "space-between"
         }
         align="center"
         direction={
@@ -151,7 +155,7 @@ export default function RightSidebar({
             isMobile
               ? opened
                 ? "row"
-                : "row"
+                : "row-reverse"
               : opened
                 ? "row-reverse"
                 : "column"

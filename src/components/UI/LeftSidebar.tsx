@@ -57,6 +57,12 @@ export default function LeftSidebar({
     return true;
   });
 
+  useEffect(() => {
+    if (!openable) {
+      setOpened(false);
+    }
+  }, [stayCollapsed]);
+
   const {
     leftSidebar: { setOpened: setLeftSidebarOpened },
   } = useLayout();
@@ -199,64 +205,64 @@ export default function LeftSidebar({
         </Grid>
       </Modal>
       <Flex
-        justify="space-between"
-        align={isMobile ? (opened ? "center" : "flex-end") : "center"}
-        direction={
-          isMobile ? (opened ? "column" : "row") : opened ? "row" : "column"
-        }
+        direction={isMobile ? (opened ? "column" : "row") : "column"}
+        justify="flex-start"
+        align={isMobile ? "" : opened ? "flex-start" : "center"}
         gap="md"
       >
-        {opened && (
-          <Text size="sm">
-            Good {getCurrentTimeOfDay()},{" "}
-            {user?.firstName ?? user?.email ?? "Guest"}
-          </Text>
-        )}
         <Flex
+          justify="space-between"
+          align={isMobile ? (opened ? "center" : "flex-end") : "center"}
           direction={
-            isMobile
-              ? opened
-                ? "row-reverse"
-                : "row-reverse"
-              : opened
-                ? "row-reverse"
-                : "column"
+            isMobile ? (opened ? "column" : "row") : opened ? "row" : "column"
           }
           gap="md"
+          w="100%"
         >
-          {openable && (
-            <Tooltip label="Toggle Sidebar (ctrl + q)">
-              <ActionIcon
-                onClick={handleToggle}
-                variant="subtle"
-                aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                {opened ? (
-                  <ToggleIconOpened weight="bold" />
-                ) : (
-                  <ToggleIconClosed weight="bold" />
-                )}
-              </ActionIcon>
-            </Tooltip>
+          {opened && (
+            <Text size="sm">
+              Good {getCurrentTimeOfDay()},{" "}
+              {user?.firstName ?? user?.email ?? "Guest"}
+            </Text>
           )}
-          {!isHome && (
-            <Link to="/">
-              <Tooltip label="Go home (cmd/ctrl + H)">
-                <ActionIcon variant="subtle">
-                  <HouseSimple weight="bold" />
+          <Flex
+            direction={
+              isMobile
+                ? opened
+                  ? "row-reverse"
+                  : "row-reverse"
+                : opened
+                  ? "row-reverse"
+                  : "column"
+            }
+            gap="md"
+          >
+            {openable && (
+              <Tooltip label="Toggle Sidebar (ctrl + q)">
+                <ActionIcon
+                  onClick={handleToggle}
+                  variant="subtle"
+                  aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
+                >
+                  {opened ? (
+                    <ToggleIconOpened weight="bold" />
+                  ) : (
+                    <ToggleIconClosed weight="bold" />
+                  )}
                 </ActionIcon>
               </Tooltip>
-            </Link>
-          )}
+            )}
+            {!isHome && (
+              <Link to="/">
+                <Tooltip label="Go home (cmd/ctrl + H)">
+                  <ActionIcon variant="subtle">
+                    <HouseSimple weight="bold" />
+                  </ActionIcon>
+                </Tooltip>
+              </Link>
+            )}
+          </Flex>
         </Flex>
-      </Flex>
-      {((isMobile && opened) || !isMobile) && <Divider my="md" />}
-      <Flex
-        justify="space-between"
-        align={isMobile ? (opened ? "center" : "flex-end") : "center"}
-        direction={opened ? "row" : "column"}
-        gap="md"
-      >
         {opened ? (
           <Tooltip label="Give us feedback!">
             <Button

@@ -412,7 +412,7 @@ export default function Idea() {
           )}
         </>
       </div>
-      <RightSidebar stayCollapsed={isMobile}>
+      <RightSidebar stayCollapsed={isMobile} defaultClosed>
         <Flex
           direction={
             isMobile

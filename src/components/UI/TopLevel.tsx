@@ -16,17 +16,20 @@ import {
   Title,
   Loader,
   Button,
+  LoadingOverlay,
 } from "@mantine/core";
 import DreamWriter from "../Content/DreamWriter/DreamWriter";
 import { ExclamationMark } from "@phosphor-icons/react";
 import { getOS } from "../../utils/platform";
+import { handleCreateNewIdea } from "../../utils/ideas";
 
 export default function TopLevelUI() {
   const navigate = useNavigate();
-  const [addingIdea, setAddingIdea] = useState(false);
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
+
+  const [loadingSomething, setLoadingSomething] = useState(false);
 
   useShortcuts({
     shortcuts: [
@@ -40,14 +43,32 @@ export default function TopLevelUI() {
       },
       {
         keys: { ctrl, meta, shift: true, key: "i" },
-        run: () => setAddingIdea(true),
+        run: async () => {
+          setLoadingSomething(true);
+          await handleCreateNewIdea(
+            (i) => {
+              navigate(`idea/${i.id.toString()}`);
+            },
+            (err) => {
+              showNotification({
+                title: "Something went wrong",
+                message: "Something went wrong adding the note",
+              });
+            },
+          );
+          showNotification({
+            title: "Idea created",
+            message: "Created a new note",
+          });
+          setLoadingSomething(false);
+        },
       },
     ],
   });
 
   return (
     <>
-      <AddIdea opened={addingIdea} setOpened={setAddingIdea} />
+      <LoadingOverlay />
     </>
   );
 }
