@@ -31,7 +31,7 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
           (ctrl === undefined || ctrl === event.ctrlKey) &&
           (meta === undefined || meta === event.metaKey) &&
           (shift === undefined || shift === event.shiftKey) &&
-          event.key === key
+          event.key.toLowerCase() === key
         ) {
           event.preventDefault();
           shortcut.run();
