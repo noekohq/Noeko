@@ -147,43 +147,23 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
   }
 };
 
+};
 export const initSchema = async () => {
   try {
-    const db = await getDatabase(); // This will now use the singleton
-    if (!db) {
-      const errorMsg =
-        "Failed to initialize schema: Database connection not available.";
-      console.error(errorMsg);
-      // Optionally, throw an error to halt further execution if schema is critical
-      throw new Error(errorMsg);
-    }
+    const db = await getDatabase();
+    const config = getDbConfig();
 
-    const config = getDbConfig(); // Get config for defining namespace/database names
-
-    // DEFINE NAMESPACE is a global operation, not strictly tied to current 'USE'd NS, but good practice.
-    await db.query(`DEFINE NAMESPACE IF NOT EXISTS ${config.namespace};`);
-
-    // Ensure we are using the correct namespace before defining the database within it,
-    // though getDatabase() should have already set it. This is a safeguard.
-    await db.use({
+    await db?.query(`DEFINE NAMESPACE IF NOT EXISTS \`${config.namespace}\`;`);
+    await db?.use({
       namespace: config.namespace,
-      // database: config.database, // Not strictly necessary for DEFINE DATABASE if NS is set
     });
-    await db.query(`DEFINE DATABASE IF NOT EXISTS ${config.database};`);
-
-    // Switch to the newly defined/confirmed database and namespace for subsequent operations if needed
-    await db.use({
-      namespace: config.namespace,
-      database: config.database,
-    });
+    await db?.query(`DEFINE DATABASE IF NOT EXISTS \`${config.database}\`;`);
 
     console.info(
-      `Schema initialized (or ensured) for database ${config.database} in namespace ${config.namespace}.`,
+      `Initialized ${config.database} in namespace ${config.namespace}.`,
     );
   } catch (err) {
-    console.error("Error during schema initialization:", err);
-    // Rethrow or handle as appropriate for your application
-    // throw err;
+    console.error(err);
   }
 };
 

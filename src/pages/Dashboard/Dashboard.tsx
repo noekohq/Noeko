@@ -30,6 +30,7 @@ import { Plus } from "@phosphor-icons/react";
 import { handleCreateNewIdea } from "../../utils/ideas";
 import { useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
+import { useState } from "react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -66,7 +67,10 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
+  const [loadingNewIdea, setLoadingNewIdea] = useState(false);
+
   const handleNewIdea = async () => {
+    setLoadingNewIdea(true);
     await handleCreateNewIdea(
       (i) => {
         navigate(`idea/${i.id.toString()}`);
@@ -82,6 +86,7 @@ export default function Dashboard() {
       title: "Idea created",
       message: "Created a new note",
     });
+    setLoadingNewIdea(false);
   };
 
   const isMobile = useMediaQuery("(max-width: 768px)");
