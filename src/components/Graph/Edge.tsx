@@ -29,7 +29,7 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
   > = {
     high: { opacity: 0.5 },
     medium: { opacity: 0.15 },
-    low: { opacity: 0.05, strokeWidth: 1 },
+    low: { opacity: 0.1, strokeWidth: 1 },
   };
 
   return (

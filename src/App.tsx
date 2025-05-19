@@ -9,12 +9,12 @@ import styles from "./App.module.scss";
 import { Loader } from "@mantine/core";
 
 import { useAuth } from "./contexts/AuthContext";
-import Home from "./pages/Home/Home";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import Graph from "./pages/Graph/Graph";
 import Idea from "./pages/Idea/Idea";
 import UserFile from "./pages/File/File";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import RightSidebar from "./components/UI/RightSidebar";
 import Profile from "./pages/Settings/Profile";
 import Settings from "./pages/Settings/Settings";
 import useShortcuts from "./hooks/useShortcuts";
@@ -79,7 +79,8 @@ export default function App() {
               <Routes>
                 <Route path="login" element={<Navigate to="/" replace />} />
                 <Route path="register" element={<Navigate to="/" replace />} />
-                <Route index element={<Home />} />
+                <Route index element={<Dashboard />} />
+                <Route path="graph" element={<Graph />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="idea">

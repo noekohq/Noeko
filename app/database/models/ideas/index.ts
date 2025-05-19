@@ -437,6 +437,35 @@ export class Idea {
     }
   }
 
+  static async getUserRecentIdeas(userId: string, limit: number) {
+    try {
+      const db = await getDatabase();
+      const results = await db?.query<[IIdea[]]>(
+        `
+        SELECT * FROM idea
+        WHERE
+          <-owns<-(user WHERE id = <record> $userId)
+        ORDER BY
+          updatedAt DESC
+        LIMIT <int> $limit;
+          `,
+        {
+          userId,
+          limit,
+        },
+      );
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      const [ideas] = results;
+      return ideas;
+    } catch (err) {
+      console.error("Something went wrong", err);
+      return undefined;
+    }
+  }
+
   static async getIdeaOwners(ideaId: string) {
     try {
       const db = await getDatabase();
