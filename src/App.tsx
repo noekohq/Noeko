@@ -25,6 +25,7 @@ import Feedback from "./pages/Feedback/Feedback";
 import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
 import TopLevelUI from "./components/UI/TopLevel";
+import Oracle from "./pages/Agents/Oracle";
 
 export default function App() {
   const navigate = useNavigate();
@@ -100,6 +101,9 @@ export default function App() {
                       <Route path="feedback" element={<Feedback />} />
                     </Route>
                   )}
+                  <Route path="agents">
+                    <Route path="oracle" element={<Oracle />} />
+                  </Route>
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>
