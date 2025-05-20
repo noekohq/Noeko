@@ -36,4 +36,46 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
+router.post(
+  "/:ideaId/derive",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res.status(401).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { ideaId } = req.params;
+      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { type } = req.body;
+      const derivedResponse = await Idea.derive(ideaId, type);
+      if (!derivedResponse) {
+        res.status(500).json({
+          message: "Internal Server Error.",
+        });
+        return;
+      }
+      res.json({
+        message: `Successfully derived ${type} from idea`,
+        data: derivedResponse,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+    }
+  },
+);
+
 export default router;
