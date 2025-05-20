@@ -190,6 +190,11 @@ export default function Idea() {
     }
   }, [isMobile]);
 
+  const {
+    leftSidebar: { opened: leftSidebarOpened },
+    rightSidebar: { opened: rightSidebarOpened },
+  } = useLayout();
+
   useEffect(() => {
     const parentElement = ideaRef.current;
     if (!parentElement) {
@@ -206,7 +211,7 @@ export default function Idea() {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [updateFixedStyle]);
+  }, [updateFixedStyle, leftSidebarOpened, rightSidebarOpened]);
 
   const updateContent = async (newContent: string) => {
     setLoadingSaveChanges(true);
