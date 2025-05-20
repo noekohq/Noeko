@@ -90,8 +90,14 @@ export class GenerativeSummary {
       if (!idea) {
         throw new Error(`Idea with ID ${ideaId} not found`);
       }
+      const contentToGenerate = idea.contentPlain;
+      if (!contentToGenerate) {
+        throw new Error(`Idea with ID ${ideaId} has no content`);
+      }
       const generation =
-        await GenerativeSummary.getGenerativeSummaryFromContent(idea.content);
+        await GenerativeSummary.getGenerativeSummaryFromContent(
+          contentToGenerate,
+        );
       if (!generation) {
         throw new Error(
           `Failed to generate summary for idea with ID ${ideaId}`,

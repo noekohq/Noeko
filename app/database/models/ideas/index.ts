@@ -629,9 +629,11 @@ export class Idea {
         throw new Error("Idea does not exist with id: " + id.toString());
       }
       const updater: Partial<IIdea> = form;
-      if (form.content !== undefined) {
+      if ("content" in form) {
         updater.contentUpdatedAt = new Date();
-        updater.contentPlain = htmlToPlainText(form.content);
+        updater.contentPlain = form.content
+          ? htmlToPlainText(form.content)
+          : "";
         updater.contentPlainUpdatedAt = new Date();
       }
       const result = await db?.merge<
