@@ -43,6 +43,12 @@ export default function Idea() {
   const [originalIdea, setOriginalIdea] = useState<IIdea>();
 
   const {
+    leftSidebar: { opened: leftSidebarOpened },
+    rightSidebar: { opened: rightSidebarOpened },
+    isMobile,
+  } = useLayout();
+
+  const {
     data: idea,
     load: reloadIdea,
     loading: loadingIdea,
@@ -164,11 +170,6 @@ export default function Idea() {
 
   const showStatusBlock = statusText().length > 0;
 
-  const {
-    rightSidebar: { opened: rightSidebarOpened },
-    isMobile,
-  } = useLayout();
-
   const [toolbarStyles, setToolbarStyles] = useState<{
     left: string;
     width: string;
@@ -189,11 +190,6 @@ export default function Idea() {
       });
     }
   }, [isMobile]);
-
-  const {
-    leftSidebar: { opened: leftSidebarOpened },
-    rightSidebar: { opened: rightSidebarOpened },
-  } = useLayout();
 
   useEffect(() => {
     const parentElement = ideaRef.current;
