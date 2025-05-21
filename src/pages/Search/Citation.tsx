@@ -21,7 +21,6 @@ export function Citation({ id, snippet }: CitationProps) {
         <Button
           variant="outline"
           size="xs"
-          compact
           component="span" // Make it an inline element
           style={{ margin: "0 2px", cursor: "pointer" }}
         >
