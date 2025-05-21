@@ -406,9 +406,7 @@ export default function Idea() {
               }}
             >
               <Group justify="space-between" align="center">
-                <Text size="sm" c="dimmed">
-                  {statusText()}
-                </Text>
+                <Text size="sm">{statusText()}</Text>
               </Group>
             </div>
           )}

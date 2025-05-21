@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Avatar,
+  Button,
   Divider,
   Flex,
   Group,
@@ -21,6 +22,7 @@ import {
   Gear,
   Graph,
   HouseSimple,
+  MagnifyingGlass,
   MegaphoneSimple,
   Shield,
   ShieldStar,
@@ -191,6 +193,24 @@ export default function RightSidebar({
               >
                 <Text>Graph</Text>
               </Menu.Item>
+              <Menu.Item
+                leftSection={<MagnifyingGlass weight="bold" />}
+                onClick={() => {
+                  navigate("/spyglass");
+                }}
+              >
+                <Text>Spyglass</Text>
+              </Menu.Item>
+              {isSuperuser && (
+                <Menu.Item
+                  leftSection={<ShieldStar weight="bold" />}
+                  onClick={() => {
+                    navigate("/admin");
+                  }}
+                >
+                  <Text>Admin Panel</Text>
+                </Menu.Item>
+              )}
               <Menu.Divider />
               <Menu.Label>User</Menu.Label>
               <Menu.Item
@@ -209,26 +229,22 @@ export default function RightSidebar({
               >
                 <Text>Settings</Text>
               </Menu.Item>
-              {isSuperuser && (
-                <Menu.Item
-                  leftSection={<ShieldStar weight="bold" />}
-                  onClick={() => {
-                    navigate("/admin");
-                  }}
-                >
-                  <Text>Admin Panel</Text>
-                </Menu.Item>
-              )}
               <Menu.Divider />
               <Menu.Label>Actions</Menu.Label>
               <Menu.Item
-                leftSection={<ArrowLineLeft weight="bold" />}
                 color="red"
                 onClick={() => {
                   logout();
                 }}
               >
-                <Text>Logout</Text>
+                <Button
+                  color="red"
+                  variant="light"
+                  fullWidth
+                  leftSection={<ArrowLineLeft weight="bold" />}
+                >
+                  Logout
+                </Button>
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

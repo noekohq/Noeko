@@ -59,7 +59,7 @@
     &.selected {
         circle {
             opacity: 1;
-            stroke: 1px solid var(--mantine-color-yellow-9);
+            stroke: 1px solid var(--mantine-color-yellow-7);
             r: var(--node-radius-selected);
         }
 
@@ -91,9 +91,9 @@
 }
 
 .idea {
-    --color-nodes: var(--mantine-color-blue-9);
+    --color-nodes: var(--mantine-primary-color);
 }
 
 .file {
-    --color-nodes: var(--mantine-color-green-9);
+    --color-nodes: var(--mantine-color-green-6);
 }

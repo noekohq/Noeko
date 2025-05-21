@@ -1,0 +1,114 @@
+/* Bricolage Grotesque */
+@font-face {
+    font-family: "Bricolage Grotesque";
+    src: url("./assets/fonts/Bricolage-Grotesque/Variable.ttf")
+        format("truetype");
+}
+
+/* Geist */
+
+@font-face {
+    font-family: "Geist";
+    src: url("./assets/fonts/Geist/Variable.ttf")
+        format("truetype");
+}
+
+
+/* IBM Plex Serif */
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/ThinItalic.ttf') format('truetype');
+  font-weight: 100;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/ExtraLightItalic.ttf') format('truetype');
+  font-weight: 200;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/Regular.ttf') format('truetype');
+  font-weight: 400; /* or 'normal' */
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/Italic.ttf') format('truetype');
+  font-weight: 400; /* or 'normal' */
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/MediumItalic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/SemiBoldItalic.ttf') format('truetype');
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/Bold.ttf') format('truetype');
+  font-weight: 700; /* or 'bold' */
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'IBMPlexSerif';
+  src: url('./assets/fonts/IBM-Plex-Serif/BoldItalic.ttf') format('truetype');
+  font-weight: 700; /* or 'bold' */
+  font-style: italic;
+}
