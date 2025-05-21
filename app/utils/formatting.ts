@@ -1,5 +1,10 @@
 import Showdown from "showdown";
+import MarkdownIt from "markdown-it";
+import TurndownService from "turndown";
 import * as cheerio from "cheerio";
+
+const md = new MarkdownIt();
+const turndownService = new TurndownService();
 
 export const htmlToPlainText = (html: string): string => {
   if (!html) {
@@ -19,7 +24,20 @@ export const htmlToPlainText = (html: string): string => {
   }
 };
 
-export const markdownToHtml = (markdown: string) => {
-  const converter = new Showdown.Converter();
-  return converter.makeHtml(markdown);
+/**
+ * Converts a Markdown string to an HTML string.
+ * @param markdown The Markdown string to convert.
+ * @returns The HTML representation of the Markdown.
+ */
+export const markdownToHtml = (markdown: string): string => {
+  return md.render(markdown);
+};
+
+/**
+ * Converts an HTML string to a Markdown string.
+ * @param html The HTML string to convert.
+ * @returns The Markdown representation of the HTML.
+ */
+export const htmlToMarkdown = (html: string): string => {
+  return turndownService.turndown(html);
 };

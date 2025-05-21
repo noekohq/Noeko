@@ -151,7 +151,11 @@ function useFetch<B, D>({
     [load],
   );
 
-  return { loading, data, load, success, loadWithUrl, errors };
+  const resetData = () => {
+    setData(undefined);
+  };
+
+  return { loading, data, load, success, loadWithUrl, errors, resetData };
 }
 
 export default useFetch;

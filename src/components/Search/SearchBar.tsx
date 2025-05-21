@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { IIdea } from "../../../app/database/models/ideas";
 import {
+  ISearchOverview,
   ISearchResult,
   ISearchResultValue,
 } from "../../../app/services/Search";
@@ -21,7 +22,7 @@ import { useSearch } from "../../contexts/SearchContext";
 
 type ISearchBarProps = {
   placeholder?: string;
-  onResults?: (results: ISearchResult[]) => void;
+  onResults?: (results: ISearchResult[], overview?: ISearchOverview) => void;
   onResultsClear?: () => void;
   onBlur?: () => void;
   onSearchStart?: () => void;
@@ -29,6 +30,7 @@ type ISearchBarProps = {
   onShortcuts?: IShortcut["keys"][];
   helpText?: string;
   omit?: string[];
+  withOverview?: boolean;
 };
 
 export function SearchBar({
@@ -39,40 +41,42 @@ export function SearchBar({
   onSearchStart,
   onSearchEnd,
   onShortcuts,
-  helpText = "Press enter to search...",
-  omit,
+  withOverview,
 }: ISearchBarProps) {
   const {
     query: { get: query, set: setQuery },
     results: { set: setResults },
+    loading: { set: setLoading },
   } = useSearch();
 
   const {
     data: rawResults,
     load: searchIdeas,
     loading: loadingIdeas,
-  } = useFetch<{ query: string }, ISearchResult[]>({
+  } = useFetch<
+    { query: string; withOverview: boolean },
+    { results: ISearchResult[]; overview: ISearchOverview }
+  >({
     url: "/search/comprehensive",
     method: "POST",
     body: {
       query,
+      withOverview: !!withOverview,
     },
-    dependencies: [query],
+    dependencies: [query, withOverview],
     onBefore: () => {
       onSearchStart?.();
+      setLoading(true);
     },
     onSuccess: (r) => {
-      onResults?.(r);
-      setResults(r);
+      onResults?.(r.results, r.overview);
+      setResults(r.results);
     },
     onFinally: () => {
       onSearchEnd?.();
+      setLoading(false);
     },
   });
-
-  const results = rawResults?.filter(
-    (result) => !omit?.includes(result.value.id.toString()),
-  );
 
   useShortcuts({
     shortcuts: [

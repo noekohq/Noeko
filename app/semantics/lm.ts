@@ -16,12 +16,13 @@ if (!API_KEY) {
 export type LMSchema = ResponseSchema;
 export const LMSchemaType = SchemaType;
 
-type ModelTypes = "simple" | "advanced" | "fast-accurate";
+type ModelTypes = "simple" | "advanced" | "fast-accurate" | "general";
 
 const ModelMapper: Record<ModelTypes, string> = {
   simple: "models/gemini-2.0-flash-lite",
-  advanced: "models/gemini-1.5-pro",
+  advanced: "gemini-2.5-pro-preview-05-06",
   "fast-accurate": "models/gemini-2.0-flash",
+  general: "gemini-2.5-flash-preview-05-20",
 };
 
 export class PromptBuilder {
@@ -38,8 +39,14 @@ export class PromptBuilder {
     return this;
   }
 
-  addBlock(title: string, content: string) {
-    this._prompt += `\n---\n${title}\n${content}\n`;
+  addBlock(title: string, content: string, level = 1) {
+    const numPounds = Array(level).fill("#").join("");
+    this._prompt += `\n---\n${numPounds} ${title}\n${content}\n`;
+    return this;
+  }
+
+  addList(title: string, content: string[]) {
+    this._prompt += `\n---# ${title}\n${content.map((c) => c).join("\n-")}\n`;
     return this;
   }
 }
