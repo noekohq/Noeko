@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from "react-router";
 import styles from "./App.module.scss";
-import { Loader } from "@mantine/core";
+import { Loader, useMantineColorScheme } from "@mantine/core";
 
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -25,6 +25,8 @@ import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
 import TopLevelUI from "./components/UI/TopLevel";
 import Spyglass from "./pages/Search/Spyglass";
+import { useEffect } from "react";
+import { useSettings } from "./contexts/SettingsContext";
 
 export default function App() {
   const navigate = useNavigate();
@@ -32,6 +34,20 @@ export default function App() {
   const location = useLocation();
 
   const isSuperuser = userIsSuperuser(user);
+
+  const {
+    ui: {
+      theme: {
+        scheme: { get: scheme },
+      },
+    },
+  } = useSettings();
+
+  const { setColorScheme } = useMantineColorScheme();
+
+  useEffect(() => {
+    setColorScheme(scheme);
+  }, [scheme]);
 
   if (loadingAuth) {
     return (

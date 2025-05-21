@@ -1,5 +1,22 @@
 @use "./styles/mixins.scss" as *;
-@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Rasa:ital,wght@0,300..700;1,300..700&display=swap");
+
+/* For light mode */
+:root[data-mantine-color-scheme="light"] {
+    --mantine-color-body: var(--mantine-color-dark-9) !important;
+    --mantine-color-text: var(--mantine-color-dark-0) !important;
+}
+
+/* For dark mode */
+:root[data-mantine-color-scheme="dark"] {
+    --mantine-color-body: var(--mantine-color-dark-9) !important;
+    --mantine-color-text: var(--mantine-color-dark-0) !important;
+    .mantine-Paper-root {
+        background-color: var(--mantine-color-dark-7) !important;
+    }
+    .mantine-Menu-dropdown {
+        background-color: var(--mantine-color-dark-7) !important;
+    }
+}
 
 html {
     @include desktop {
@@ -16,17 +33,26 @@ body {
     padding: 0;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    /* font-stretch: 90%; */
+}
+
 .searchResult {
     width: 100%;
     display: block;
     margin-bottom: var(--mantine-spacing-md);
-    transition: transform .2s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 
     &:hover {
         transform: translateY(1px) scale(1.01);
     }
 
     &:active {
-        transform: translateY(2px) scale(.99);
+        transform: translateY(2px) scale(0.99);
     }
 }

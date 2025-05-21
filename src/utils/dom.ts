@@ -1,3 +1,5 @@
+import { IThemeSpec } from "../declarations/themes";
+
 function matchParentWidth(
   fixedElementId: string,
   parentElementId: string,
@@ -18,3 +20,17 @@ function matchParentWidth(
     console.warn("Could not find fixed element or parent element.");
   }
 }
+
+export const isDarkScheme = () => {
+  const prefersDarkMode = window.matchMedia(
+    "(prefers-color-scheme: dark)",
+  ).matches;
+  return prefersDarkMode;
+};
+
+export const getCurrentScheme = (): IThemeSpec["scheme"] => {
+  if (isDarkScheme()) {
+    return "dark";
+  }
+  return "light";
+};
