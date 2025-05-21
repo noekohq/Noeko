@@ -42,6 +42,10 @@ export default function TopLevelUI() {
         run: () => navigate("/graph"),
       },
       {
+        keys: { ctrl, meta, key: "/" },
+        run: () => navigate("/spyglass"),
+      },
+      {
         keys: { ctrl, meta, shift: true, key: "i" },
         run: async () => {
           setLoadingSomething(true);

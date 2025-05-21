@@ -7,6 +7,7 @@ export type IShortcut = {
     meta?: boolean;
     shift?: boolean;
     key?: string;
+    code?: string;
   };
 };
 
@@ -16,25 +17,29 @@ type IUseShortcutProps = {
 
 export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
   useEffect(() => {
-    console.log("Registering shortcuts: ", shortcuts);
     const handleKeydown = (event: KeyboardEvent) => {
       shortcuts.forEach((shortcut) => {
-        const { ctrl, meta, shift, key } = shortcut.keys;
-        console.log(
-          "Event keys: ",
-          event.ctrlKey,
-          event.metaKey,
-          event.shiftKey,
-          event.key,
-        );
-        if (
-          (ctrl === undefined || ctrl === event.ctrlKey) &&
-          (meta === undefined || meta === event.metaKey) &&
-          (shift === undefined || shift === event.shiftKey) &&
-          event.key.toLowerCase() === key
-        ) {
+        const { ctrl, meta, shift, key, code } = shortcut.keys;
+
+        if (!key && !code) {
+          return;
+        }
+
+        const ctrlMatch = ctrl === undefined || ctrl === event.ctrlKey;
+        const metaMatch = meta === undefined || meta === event.metaKey;
+        const shiftMatch = shift === undefined || shift === event.shiftKey;
+
+        const codeMatch = code
+          ? event.code.toLowerCase() === code.toLowerCase()
+          : false;
+        const keyMatch = key
+          ? event.key.toLowerCase() === key.toLowerCase()
+          : false;
+
+        if (ctrlMatch && metaMatch && shiftMatch && (codeMatch || keyMatch)) {
           event.preventDefault();
           shortcut.run();
+          return;
         }
       });
     };

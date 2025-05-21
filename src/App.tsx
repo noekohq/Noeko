@@ -20,11 +20,11 @@ import Settings from "./pages/Settings/Settings";
 import useShortcuts from "./hooks/useShortcuts";
 import { userIsSuperuser } from "./utils/user";
 import Users from "./pages/Users/Users";
-import Search from "./pages/Search/Search";
 import Feedback from "./pages/Feedback/Feedback";
 import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
 import TopLevelUI from "./components/UI/TopLevel";
+import Spyglass from "./pages/Search/Spyglass";
 
 export default function App() {
   const navigate = useNavigate();
@@ -90,8 +90,8 @@ export default function App() {
                   <Route path="import">
                     <Route index element={<Import />} />
                   </Route>
-                  <Route path="search">
-                    <Route index element={<Search />} />
+                  <Route path="spyglass">
+                    <Route index element={<Spyglass />} />
                   </Route>
                   {isSuperuser && (
                     <Route path="admin">

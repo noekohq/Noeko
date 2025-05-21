@@ -142,6 +142,10 @@ export default function Dashboard() {
                     <Text>Search ideas</Text>
                     <Kbd>/</Kbd>
                   </Group>
+                  <Group>
+                    <Text>Spyglass</Text>
+                    <Kbd>{primaryKey} + /</Kbd>
+                  </Group>
                 </Stack>
               </Card>
             )}

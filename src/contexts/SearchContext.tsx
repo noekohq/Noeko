@@ -10,6 +10,10 @@ type ISearchContext = {
     get: ISearchResult[] | null;
     set: (results: ISearchResult[] | null) => void;
   };
+  loading: {
+    get: boolean;
+    set: (loading: boolean) => void;
+  };
 };
 
 const initialSearch: ISearchContext = {
@@ -19,6 +23,10 @@ const initialSearch: ISearchContext = {
   },
   results: {
     get: null,
+    set: () => {},
+  },
+  loading: {
+    get: false,
     set: () => {},
   },
 };
@@ -34,6 +42,7 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
   const [searchResults, setSearchResults] = useState<ISearchResult[] | null>(
     null,
   );
+  const [loading, setLoading] = useState(false);
 
   const value: ISearchContext = {
     query: {
@@ -44,6 +53,15 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
       get: searchResults,
       set: (r: ISearchResult[] | null) => {
         setSearchResults(r);
+      },
+    },
+    loading: {
+      get: loading,
+      set: (loading: boolean) => {
+        setLoading(loading);
+        if (loading) {
+          setSearchResults(null);
+        }
       },
     },
   };

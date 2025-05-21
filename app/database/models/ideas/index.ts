@@ -5,7 +5,7 @@ import { getLM } from "../../../semantics/lm";
 import { IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
-import { htmlToPlainText } from "../../../utils/formatting";
+import { htmlToMarkdown } from "../../../utils/formatting";
 
 export const embeddableContentLimit = 20000;
 
@@ -269,7 +269,7 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
-        contentPlain: htmlToPlainText(form.content),
+        contentPlain: htmlToMarkdown(form.content),
         contentPlainUpdatedAt: new Date(),
         embeddings: null,
         contentUpdatedAt: new Date(),
@@ -328,7 +328,7 @@ export class Idea {
           return {
             title: form.title,
             content: form.content,
-            contentPlain: htmlToPlainText(form.content),
+            contentPlain: htmlToMarkdown(form.content),
             contentPlainUpdatedAt: new Date(),
             embeddings: null,
             contentUpdatedAt: new Date(),
@@ -631,9 +631,7 @@ export class Idea {
       const updater: Partial<IIdea> = form;
       if ("content" in form) {
         updater.contentUpdatedAt = new Date();
-        updater.contentPlain = form.content
-          ? htmlToPlainText(form.content)
-          : "";
+        updater.contentPlain = form.content ? htmlToMarkdown(form.content) : "";
         updater.contentPlainUpdatedAt = new Date();
       }
       const result = await db?.merge<
@@ -1074,7 +1072,7 @@ export class Idea {
   }
 
   static getEmbeddableContent(content: string) {
-    const plaintextContent = htmlToPlainText(content);
+    const plaintextContent = htmlToMarkdown(content);
     return plaintextContent;
   }
 
@@ -1124,7 +1122,7 @@ export class Idea {
         return undefined;
       }
       const embedding = new Embeddings();
-      const embeddableContent = htmlToPlainText(idea.content);
+      const embeddableContent = htmlToMarkdown(idea.content);
       if (
         !embeddableContent ||
         embeddableContent.length > embeddableContentLimit
@@ -1167,7 +1165,7 @@ export class Idea {
         .map((idea) => {
           return [
             idea.id.toString(),
-            htmlToPlainText(idea.content).slice(0, embeddableContentLimit),
+            htmlToMarkdown(idea.content).slice(0, embeddableContentLimit),
           ] as [string, string];
         });
       if (!ideasAndContent) {
@@ -1235,7 +1233,7 @@ export class Idea {
         toUpdate.map((update) => {
           return {
             id: update.id,
-            contentPlain: htmlToPlainText(update.content),
+            contentPlain: htmlToMarkdown(update.content),
             contentPlainUpdatedAt: new Date(),
           };
         }),
