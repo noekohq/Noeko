@@ -563,10 +563,6 @@ export class Search {
           "Instructions",
           `When given a series of search results, and a users query, your goal is to create a concise and informative overview of the search results that is relevant to the user's query. Your overview should be informative, but concise. It should include key information sourced from the results, based on relevance to the users query, such as snippets, summaries, etc. The goal is ultimately to provide an answer to the user's query based exclusively on the results, not to summarize the results directly. Cite your sources accurately, providing source id and relevant excerpt always if available.`,
         )
-        .addList("Additional Instructions", [
-          "Use HTML in your answer for proper formatting",
-          "If you use information from a note, please cite it along with relevant text",
-        ])
         .addBlock(
           "Citation Instructions",
           `For any inline citation, format it as such:
@@ -579,7 +575,11 @@ export class Search {
           `The user's query is as follows:
           > ${query}`,
         )
-        .addBlock("Results", "The results to use are as follows:\n");
+        .addBlock("Results", "The results to use are as follows:\n")
+        .addList("Additional Rules", [
+          "Use HTML to format your answer",
+          "If you use information from a note, please cite it along with relevant text",
+        ]);
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
