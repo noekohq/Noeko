@@ -11,6 +11,10 @@ import {
   UnstyledButton,
   Container,
   Stack,
+  HoverCard,
+  ActionIcon,
+  getSize,
+  Space,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -18,20 +22,27 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { Link } from "react-router";
 import { getNodeTitle } from "../../utils/graph";
-import { Star } from "@phosphor-icons/react";
+import { ArrowRight, Star } from "@phosphor-icons/react";
 import Match from "../../components/Utils/Match";
 import { useCallback, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Spyglass.module.scss";
 import { getSearchResultPreview } from "../../utils/search";
-import { ISearchOverview } from "../../../app/services/Search";
+import {
+  ISearchOverview,
+  ISearchResultValue,
+} from "../../../app/services/Search";
+import { generateTextFragmentUrl } from "../../utils/dom";
 
-import parse, {
-  domToReact,
-  HTMLReactParserOptions,
-  Element,
-} from "html-react-parser";
-import { Citation } from "./Citation"; // Adjust path to your Citation component
+type IResultsMap = Record<string, ISearchResultValue>;
+
+type ICitationMap = Record<
+  string,
+  {
+    index: number;
+    excerpts: string[];
+  }
+>;
 
 export default function Spyglass() {
   const {
@@ -47,48 +58,46 @@ export default function Spyglass() {
     setOverview(undefined);
   }, [setResults]);
 
-  // No need for processCitations or parseOverviewHtml separately with this approach
+  const getResultsMap = () => {
+    return searchResults?.reduce((acc, curr, i) => {
+      acc[curr.id.toString()] = curr.value;
+      return acc;
+    }, {} as IResultsMap);
+  };
 
-  const citationMap = useRef(
-    new Map<
+  const resultsMap = getResultsMap();
+
+  const buildCitationMap = (): ICitationMap => {
+    if (!overview) {
+      return {};
+    }
+    const map: Record<
       string,
       {
-        snippet: string;
+        excerpts: string[];
+        index: number;
       }
-    >(),
-  );
-
-  const parserOptions: HTMLReactParserOptions = {
-    replace: (domNode) => {
-      // Check if it's an element node (type: 'tag' for html-react-parser)
-      if (domNode instanceof Element && domNode.attribs) {
-        // Check if it's our citation span
-        if (domNode.name === "span" && domNode.attribs["data-citation-id"]) {
-          const id = domNode.attribs["data-citation-id"];
-          // html-react-parser provides children, so we can get the snippet text
-          console.log("Domnode: ", domNode);
-          const snippet =
-            domNode.children &&
-            domNode.children[0] &&
-            "data" in domNode.children[0]
-              ? domNode.children[0].data
-              : "No preview available."; // Fallback snippet text
-
-          return (
-            <Citation
-              id={id}
-              snippet={snippet}
-              // You might want to pass a key if these are in a list,
-              // but html-react-parser handles keys for replaced elements.
-            />
-          );
-        }
+    > = {};
+    let currRefNumber = 1;
+    for (const finding of overview.findings) {
+      if (!(finding.sourceId in map)) {
+        map[finding.sourceId] = {
+          excerpts: [finding.excerpt],
+          index: currRefNumber,
+        };
+        currRefNumber++;
+      } else {
+        map[finding.sourceId].excerpts.push(finding.excerpt);
       }
-      // For all other nodes, let html-react-parser handle them by default
-      // (or return undefined, which means it will process as usual)
-      return undefined;
-    },
+    }
+    return map;
   };
+
+  console.log("Results map: ", resultsMap);
+
+  const citationMap = buildCitationMap();
+
+  console.log("Citation map: ", citationMap);
 
   return (
     <PageWrapper>
@@ -110,9 +119,14 @@ export default function Spyglass() {
             placeholder="Press / to search..."
             withOverview
           />
-          {loadingSearch && (
+          {!loadingSearch && !searchResults && (
             <Group>
-              <Loader size="sm" c="dimmed" />
+              <Text c="dimmed">Ask your ideas anything...</Text>
+            </Group>
+          )}
+          {loadingSearch && (
+            <Group justify="center">
+              <Loader type="bars" size="sm" c="dimmed" />
               <Text c="dimmed" size="sm">
                 Searching your ideas...
               </Text>
@@ -122,22 +136,26 @@ export default function Spyglass() {
             <>
               <Grid>
                 <Grid.Col>
+                  <Space my="sm" />
+                </Grid.Col>
+                <Grid.Col>
                   {overview &&
                     overview.overview && ( // Ensure overview and overview.overview exist
                       <Card withBorder radius="lg">
                         <Title order={3}>Overview</Title>
                         <Divider my="xs" />
-                        {/* <div
-                          className={styles.overviewDisplay}
-                          dangerouslySetInnerHTML={{
-                            __html: overview.overview,
-                          }}
-                        /> */}
                         <div className={styles.overviewDisplay}>
-                          {parse(overview.overview, parserOptions)}
+                          <DisplayOverview
+                            overview={overview}
+                            resultsMap={resultsMap ?? {}}
+                            citationMap={citationMap ?? {}}
+                          />
                         </div>
                       </Card>
                     )}
+                </Grid.Col>
+                <Grid.Col>
+                  <Divider my="sm" />
                 </Grid.Col>
                 <Grid.Col>
                   <Title order={3}>Results...</Title>
@@ -151,12 +169,13 @@ export default function Spyglass() {
                 <Grid.Col>
                   <Grid>
                     {searchResults?.map((s, i) => {
-                      const isBest = i === 0;
+                      const hasExcerpts = !!citationMap[s.id.toString()];
+                      const excerpts = hasExcerpts
+                        ? citationMap[s.id.toString()].excerpts
+                        : [];
+
                       return (
-                        <Grid.Col
-                          span={{ xs: 12, sm: 6, md: 4 }}
-                          key={s.id.toString()}
-                        >
+                        <Grid.Col span={12} key={s.id.toString()}>
                           <Card withBorder radius="lg" h="100%">
                             <Link
                               key={s.id.toString()}
@@ -169,29 +188,21 @@ export default function Spyglass() {
                             >
                               <UnstyledButton key={s.id.toString()}>
                                 <Group gap="xs">
-                                  {isBest && (
-                                    <Star color="white" weight="fill" />
-                                  )}
                                   <Text fw="bold" c="gray">
                                     {getNodeTitle(s.value)}
                                   </Text>
                                 </Group>
-                                <Text c="dimmed">
-                                  <Match
-                                    opener="->"
-                                    closer="<-"
-                                    match={(content) => {
-                                      return (
-                                        <span className={styles.highlight}>
-                                          {content}
-                                        </span>
-                                      );
-                                    }}
-                                  >
-                                    {getSearchResultPreview(s) ||
-                                      "No preview available."}
-                                  </Match>
-                                </Text>
+                                {hasExcerpts ? (
+                                  <Stack gap="xs">
+                                    {excerpts.map((e) => {
+                                      return <Text c="dark.2">{e}</Text>;
+                                    })}
+                                  </Stack>
+                                ) : (
+                                  <Text c="dark.2">
+                                    {getSearchResultPreview(s)}
+                                  </Text>
+                                )}
                               </UnstyledButton>
                             </Link>
                           </Card>
@@ -207,5 +218,61 @@ export default function Spyglass() {
       </Container>
       <RightSidebar />
     </PageWrapper>
+  );
+}
+
+type IDisplayOverview = {
+  overview: ISearchOverview;
+  resultsMap: IResultsMap;
+  citationMap: ICitationMap;
+};
+
+function DisplayOverview({
+  overview,
+  resultsMap,
+  citationMap,
+}: IDisplayOverview) {
+  return (
+    <div>
+      <Text>
+        {overview.findings.map((finding) => {
+          console.log("Finding: ", finding);
+          const { index: citationNumber } = citationMap[finding.sourceId];
+          const mappedValue = resultsMap[finding.sourceId];
+          const title =
+            mappedValue.type === "idea"
+              ? mappedValue.title
+              : mappedValue.id.toString();
+
+          return (
+            <Text component="span" mr="xs">
+              <HoverCard width={"400px"} withArrow>
+                <HoverCard.Target>
+                  <ActionIcon variant="subtle">({citationNumber})</ActionIcon>
+                </HoverCard.Target>
+                <HoverCard.Dropdown>
+                  <Stack>
+                    <Link
+                      to={`/idea/${mappedValue.id.toString()}`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Group>
+                        <Text fw="bold" c="gray" size="xs">
+                          {title}
+                        </Text>
+                        <ArrowRight size={14} color="gray" weight="bold" />
+                      </Group>
+                    </Link>
+                    <Text size="xs">...{finding.excerpt}...</Text>
+                  </Stack>
+                </HoverCard.Dropdown>
+              </HoverCard>
+              {finding.analysis}
+            </Text>
+          );
+        })}
+      </Text>
+      <Text mt="lg">{overview.overview}</Text>
+    </div>
   );
 }

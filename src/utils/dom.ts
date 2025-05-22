@@ -34,3 +34,45 @@ export const getCurrentScheme = (): IThemeSpec["scheme"] => {
   }
   return "light";
 };
+
+export function generateTextFragmentUrl(
+  textStart: string,
+  options?: {
+    textEnd?: string;
+    prefix?: string;
+    suffix?: string;
+  },
+): string {
+  if (!textStart) {
+    console.warn("textStart cannot be empty for a text fragment URL.");
+    return "";
+  }
+
+  // URL-encode all parts of the text fragment to handle spaces, special characters, etc.
+  const encodedTextStart = encodeURIComponent(textStart);
+  let fragment = `#:~:text=`;
+
+  let parts: string[] = [];
+
+  // Add prefix if provided
+  if (options?.prefix) {
+    parts.push(encodeURIComponent(options.prefix) + "-");
+  }
+
+  // Add textStart
+  parts.push(encodedTextStart);
+
+  // Add textEnd if provided
+  if (options?.textEnd) {
+    parts.push(encodeURIComponent(options.textEnd));
+  }
+
+  // Add suffix if provided
+  if (options?.suffix) {
+    parts.push("-" + encodeURIComponent(options.suffix));
+  }
+
+  fragment += parts.join(",");
+
+  return fragment;
+}

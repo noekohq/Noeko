@@ -2,19 +2,14 @@ import { RecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
 // Make sure IIdea includes all fields returned by your functions,
 // including potentially embeddings, contentPlain etc.
-import {
-  Idea,
-  IIdea,
-  IIdeaAsRelation,
-  IIdeaDerived,
-  IIdeaDerivedMap,
-} from "../database/models/ideas";
+import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
 import { Embeddings } from "../semantics/embeddings";
 import { getLM, PromptBuilder } from "../semantics/lm";
 import { htmlToMarkdown } from "../utils/formatting";
 import { SchemaType } from "@google/generative-ai";
 import { max_lm_prompt_size } from "../settings";
+import { getFormattedDateTimeToday } from "../utils/prompts/components";
 
 // --- Standardized Search Result Types ---
 
@@ -57,6 +52,11 @@ export type ISemanticIdeaResult = IIdeaAsRelation & {
 };
 
 export type ISearchOverview = {
+  findings: {
+    excerpt: string;
+    sourceId: string;
+    analysis: string;
+  }[];
   overview: string;
 };
 
@@ -561,25 +561,17 @@ export class Search {
         .addText("You are a search overview creator.")
         .addBlock(
           "Instructions",
-          `When given a series of search results, and a users query, your goal is to create a concise and informative overview of the search results that is relevant to the user's query. Your overview should be informative, but concise. It should include key information sourced from the results, based on relevance to the users query, such as snippets, summaries, etc. The goal is ultimately to provide an answer to the user's query based exclusively on the results, not to summarize the results directly. Cite your sources accurately, providing source id and relevant excerpt always if available.`,
+          `Generate a comprehensive and informative answer (but no more than 80 words) to the user's query, based entirely on the results provided. You will generate the answer in two parts:
+          1. Findings: a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that this stage be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.
+          2. Overview: once your findings are complete, you will generate a brief, direct answer to the user's query, based entirely on the results of your findings. This doesn't need to have references, and will essentially tie your generation up in a neat bow.`,
         )
-        .addBlock(
-          "Citation Instructions",
-          `For any inline citation, format it as such:
-          > Some text <span data-citation-id="<id of result>">relevant excerpt from cited result</span> more text.
-
-          Citations must include the quoted text from the original result that is being cited.`,
-        )
+        .addBlock("Results", "The results to use are as follows:\n")
         .addBlock(
           "Query",
           `The user's query is as follows:
           > ${query}`,
         )
-        .addBlock("Results", "The results to use are as follows:\n")
-        .addList("Additional Rules", [
-          "Use HTML to format your answer",
-          "If you use information from a note, please cite it along with relevant text",
-        ]);
+        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`);
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -598,12 +590,36 @@ export class Search {
         {
           type: SchemaType.OBJECT,
           properties: {
+            findings: {
+              type: SchemaType.ARRAY,
+              description: "Your findings directly from the source results",
+              items: {
+                type: SchemaType.OBJECT,
+                description: "An individual finding from the source results",
+                properties: {
+                  sourceId: {
+                    type: SchemaType.STRING,
+                    description: "The id of the result you're sourcing",
+                  },
+                  excerpt: {
+                    type: SchemaType.STRING,
+                    description: "The relevant portion of the source result",
+                  },
+                  analysis: {
+                    type: SchemaType.STRING,
+                    description:
+                      "Your finding from this excerpt, how it relates to the query",
+                  },
+                },
+              },
+            },
             overview: {
               type: SchemaType.STRING,
-              description: "The overview of the results",
+              description:
+                "A direct response to the user's query based on the findings.",
             },
           },
-          required: ["overview"],
+          required: ["findings", "overview"],
         },
       );
       console.log("Got result: ", result);
