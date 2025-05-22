@@ -182,6 +182,7 @@ export default function Spyglass() {
                               to={`/${s.value.type}/${s.value.id.toString()}`}
                               style={{
                                 textDecoration: "none",
+                                margin: 0,
                               }}
                               className="searchResult"
                               tabIndex={i}

@@ -136,7 +136,7 @@ export class Idea {
           LET $processedIdeas = SELECT
               *,
               ->is_source_for->(?).* as derivedList,
-              IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
+              IF false AND embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
                   fn::search_similar_to_embeddings(embeddings, $userId, $similarityLimit)
               ELSE
                   []
