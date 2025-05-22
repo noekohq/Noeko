@@ -34,6 +34,14 @@ export default function Search() {
         onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
         placeholder="Press / to search..."
       />
+      {!searchResults && !loading && (
+        <>
+          <Space my="lg" />
+          <Text c="dimmed" size="xs">
+            Search anything...
+          </Text>
+        </>
+      )}
       {searchResults && (
         <>
           <Space my="lg" />

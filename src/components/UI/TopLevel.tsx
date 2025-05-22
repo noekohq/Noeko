@@ -10,20 +10,29 @@ import {
   Checkbox,
   Grid,
   Group,
-  Modal,
   Text,
-  TextInput,
-  Title,
   Loader,
   Button,
   LoadingOverlay,
+  Drawer,
+  FileInput,
+  Code,
 } from "@mantine/core";
 import DreamWriter from "../Content/DreamWriter/DreamWriter";
-import { ExclamationMark } from "@phosphor-icons/react";
+import {
+  ExclamationMark,
+  FileCode,
+  FileCsv,
+  FilePdf,
+  Icon,
+  Image,
+  UploadSimple,
+} from "@phosphor-icons/react";
 import { getOS } from "../../utils/platform";
 import { handleCreateNewIdea } from "../../utils/ideas";
 import { useAuth } from "../../contexts/AuthContext";
 import { userIsSuperuser } from "../../utils/user";
+import { formatFileSize } from "../../utils/formatting";
 
 export default function TopLevelUI() {
   const navigate = useNavigate();
@@ -35,6 +44,8 @@ export default function TopLevelUI() {
 
   const { user } = useAuth();
   const isSuperuser = userIsSuperuser(user);
+
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   useShortcuts({
     shortcuts: [
@@ -60,6 +71,12 @@ export default function TopLevelUI() {
           if (isSuperuser) {
             navigate("/admin");
           }
+        },
+      },
+      {
+        keys: { ctrl, meta, shift: true, key: "u" },
+        run: () => {
+          setUploadingFile(true);
         },
       },
       {
@@ -89,238 +106,214 @@ export default function TopLevelUI() {
 
   return (
     <>
-      <LoadingOverlay />
+      <LoadingOverlay visible={loadingSomething} />
+      <UploadFile opened={uploadingFile} setOpened={setUploadingFile} />
     </>
   );
 }
 
-type AddIdeaProps = {
+type IUploadFileProps = {
   opened: boolean;
   setOpened: (opened: boolean) => void;
 };
 
-function AddIdea({ opened, setOpened }: AddIdeaProps) {
-  const navigate = useNavigate();
-  const form = useForm({
+function UploadFile({ opened, setOpened }: IUploadFileProps) {
+  const fileForm = useForm<{
+    userFile: File | null;
+  }>({
     initialValues: {
-      title: "",
-      content: "",
-      generateTitle:
-        typeof window !== "undefined" // Check if window exists (for SSR/build)
-          ? window.localStorage.getItem("should-autogen-title") === "true"
-          : false,
+      userFile: null,
     },
     validate: {
-      title: (value, fields) => {
-        if (fields.generateTitle) {
-          return null;
-        }
-        if (value.length < 2 && !fields.generateTitle) {
-          return "Title must be at least 2 characters long";
-        }
+      userFile: (value) => {
+        if (!value) return "File is required";
+        if (value.size > 1024 * 1024 * 10)
+          return "File size should not exceed 10MB";
         return null;
       },
-      content: (value) =>
-        value.length < 2 ? "Content must be at least 2 characters long" : null,
     },
   });
 
-  const { load: addIdea, loading: loadingAddIdea } = useFetch<
-    { title?: string; content: string; generateTitle: boolean }, // Adjusted body type
-    IIdea
+  const userFile = fileForm.values.userFile;
+
+  const [formData, setFormData] = useState<FormData>();
+  const { load: uploadFile, loading: loadingUpload } = useFetch<
+    FormData,
+    undefined
   >({
-    url: "/graph/ideas",
+    url: "/files/",
     method: "POST",
-    body: {
-      ...(form.values.generateTitle ? {} : { title: form.values.title }),
-      content: form.values.content,
-      generateTitle: form.values.generateTitle,
-    },
-    dependencies: [form.values],
-    onSuccess: (data) => {
+    body: formData,
+    dependencies: [formData],
+    onSuccess: async () => {
       showNotification({
-        title: "Idea added successfully",
-        message: `Your idea "${data.title || "Generated Title"}" has been added.`,
+        title: "File Uploaded",
+        message: "File uploaded successfully",
       });
-      form.reset();
+      setFormData(undefined);
+      fileForm.reset();
       setOpened(false);
-      navigate(`/idea/${data.id.toString()}`);
     },
-    onError: (error) => {
-      console.error("Failed to add idea:", error);
+    onError: async (error) => {
       showNotification({
-        title: "Error Adding Idea",
-        message: "An unexpected error occurred. Please try again.",
+        title: "Upload Error",
+        message: "Failed to upload file",
         color: "red",
       });
-    },
-    onFinally: () => {
-      // onFinally can be used for cleanup regardless of success/error
-      // If you only want reloadGraph on success, keep it in onSuccess
     },
   });
 
-  const [contentError, setContentError] = useState<string>();
-  useEffect(() => {
-    const { isValid, errors: contentErrors } = validateIdeaContent(
-      form.values.content,
-    );
-    if (!isValid) {
-      setContentError(contentErrors[0]);
-      showNotification({
-        title: "Content Error",
-        message: contentErrors[0],
-        color: "red",
-      });
-      return;
-    } else if (isValid) {
-      setContentError(undefined);
-    }
-  }, [form.values.content]);
-
-  const handleSubmit = async () => {
-    const { hasErrors, errors } = form.validate();
-    if (hasErrors) {
-      showNotification({
-        title: "Validation Error",
-        message: Object.values(errors)[0] || "Please check the form fields.",
-        color: "red",
-      });
-      return;
-    }
-    const { isValid, errors: contentErrors } = validateIdeaContent(
-      form.values.content,
-    );
-    if (!isValid) {
-      setContentError(contentErrors[0]);
-      showNotification({
-        title: "Content Error",
-        message: contentError,
-        color: "red",
-      });
-      return;
-    } else if (isValid) {
-      setContentError(undefined);
-    }
+  const handleUploadFile = async () => {
     try {
-      await addIdea();
-      // Resetting and closing are now handled in onSuccess
+      const { errors, hasErrors } = fileForm.validate();
+      if (hasErrors) {
+        showNotification({
+          title: "Validation Error",
+          message: errors.userFile,
+          color: "red",
+        });
+      }
+      await uploadFile();
     } catch (error) {
-      console.error("Failed to add idea:", error);
       showNotification({
-        title: "Error Adding Idea",
-        message: "An unexpected error occurred. Please try again.",
+        title: "Upload Error",
+        message: "Failed to upload file",
         color: "red",
       });
     }
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        "should-autogen-title",
-        String(form.values.generateTitle),
-      );
+    if (!userFile) {
+      return;
     }
-  }, [form.values.generateTitle]);
+    const { errors, hasErrors } = fileForm.validate();
+    if (!hasErrors) {
+      const formData = new FormData();
+      formData.append("userFile", userFile);
+      setFormData(formData);
+    }
+    if (hasErrors) {
+      showNotification({
+        title: "Validation Error",
+        message: errors.userFile,
+        color: "red",
+      });
+    }
+  }, [userFile]);
+
+  const typeToPreview: (type: string) =>
+    | {
+        icon: Icon;
+      }
+    | undefined = (type) => {
+    if (type === "application/pdf") {
+      return {
+        icon: FilePdf,
+      };
+    }
+    if (type.startsWith("image/")) {
+      return {
+        icon: Image,
+      };
+    }
+    if (type === "application/json") {
+      return {
+        icon: FileCode,
+      };
+    }
+    if (type === "text/csv") {
+      return {
+        icon: FileCsv,
+      };
+    }
+    if (type === "application/xml") {
+      return {
+        icon: FileCode,
+      };
+    }
+    return;
+  };
+
+  const preview = userFile ? typeToPreview(userFile.type) : null;
 
   return (
-    <Modal
-      opened={opened}
+    <Drawer
       onClose={() => setOpened(false)}
-      title="Add an idea"
+      opened={opened}
+      title="Upload a file"
+      offset={14}
       radius="lg"
-      size="100%"
+      position="bottom"
+      size="70%"
     >
-      <Grid gutter="xl">
+      <Grid>
         <Grid.Col span={{ sm: 12 }}>
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>
-              {!form.values.generateTitle && (
-                <TextInput
-                  label="Title"
-                  placeholder="Enter title"
-                  {...form.getInputProps("title")}
-                />
-              )}
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Checkbox
-                label="Entitle for me"
-                description="Just write your content, we'll write the title"
-                {...form.getInputProps("generateTitle", {
-                  type: "checkbox",
-                })}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                {/* <Button
-                      onClick={handleCheckClipboard}
-                      loading={isCheckingClipboard}
-                      variant="light"
-                      size="xs"
-                    >
-                      Check Clipboard for Content
-                    </Button> */}
-              </Group>
-            </Grid.Col>
-          </Grid>
+          <Text>Start by picking the file you want to upload...</Text>
         </Grid.Col>
-
-        <Grid.Col span={{ sm: 12 }}>
-          <Title order={3}>Content</Title>
-          <DreamWriter
-            initialContent={""}
-            stickyMenu={false}
-            onChange={(content) => {
-              form.setFieldValue("content", content);
-            }}
+        <Grid.Col span={{ sm: 12, md: 6 }}>
+          <FileInput
+            placeholder="Choose a file"
+            {...fileForm.getInputProps("userFile")}
+            leftSection={
+              <>
+                {preview ? (
+                  <preview.icon weight="bold" />
+                ) : (
+                  <UploadSimple weight="bold" />
+                )}
+              </>
+            }
           />
-          {form.errors.content && (
-            <Text c="red" size="xs" mt={4}>
-              {form.errors.content}
-            </Text>
-          )}
         </Grid.Col>
-        <Grid.Col span={{ sm: 12 }} />
-        {loadingAddIdea && (
+        {userFile && (
+          <Grid.Col span={{ sm: 12 }}>
+            <Text>
+              You want to upload <Code>{userFile.name}</Code>, which is{" "}
+              {formatFileSize(userFile.size)} in size.{" "}
+              {fileForm.isValid()
+                ? "Is that correct?"
+                : "Unfortunately, this file cannot be uploaded."}
+            </Text>
+          </Grid.Col>
+        )}
+        {loadingUpload && (
           <Grid.Col span={{ sm: 12 }}>
             <Group>
               <Loader size="sm" />
-              <Text>Creating idea... This may take a short while.</Text>
+              <Text>Uploading file...</Text>
             </Group>
           </Grid.Col>
         )}
-        {contentError && (
+        {userFile && fileForm.isValid() && (
           <Grid.Col span={{ sm: 12 }}>
-            <Group c="red">
-              <ExclamationMark />
-              <Text>{contentError}</Text>
+            <Group>
+              <Button
+                color="red"
+                variant="light"
+                disabled={loadingUpload}
+                onClick={() => {
+                  fileForm.reset();
+                  setOpened(false);
+                }}
+              >
+                No, nevermind.
+              </Button>
+              <Button
+                onClick={() => {
+                  handleUploadFile();
+                }}
+                disabled={loadingUpload}
+                leftSection={
+                  loadingUpload ? <Loader size="sm" color="white" /> : undefined
+                }
+              >
+                Yes, upload.
+              </Button>
             </Group>
           </Grid.Col>
         )}
-        <Grid.Col span={{ sm: 12 }}>
-          <Group justify="flex-end">
-            <Button
-              variant="default"
-              onClick={() => setOpened(false)}
-              disabled={loadingAddIdea}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit} // Simplified onClick
-              leftSection={
-                loadingAddIdea ? <Loader size="sm" color="white" /> : undefined
-              }
-              disabled={loadingAddIdea || !!contentError}
-            >
-              Add
-            </Button>
-          </Group>
-        </Grid.Col>
       </Grid>
-    </Modal>
+    </Drawer>
   );
 }

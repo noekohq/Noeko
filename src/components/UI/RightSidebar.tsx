@@ -166,7 +166,8 @@ export default function RightSidebar({
           <Menu width={200}>
             <Menu.Target>
               <Avatar
-                color={isSuperuser ? "yellow" : "blue"}
+                color={isSuperuser ? "blue" : "blue"}
+                variant="filled"
                 style={{ cursor: "pointer" }}
                 onDoubleClick={() => {
                   navigate("/");
