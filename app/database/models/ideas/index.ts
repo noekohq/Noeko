@@ -941,13 +941,16 @@ export class Idea {
   static async semanticSearch(
     userId: string | RecordId,
     embedding: number[],
-    limit: number = 10,
+    options?: {
+      limit?: number;
+      threshold?: number;
+    },
   ) {
     try {
       const db = await getDatabase();
       const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_embeddings",
-        [embedding, userId, limit],
+        [embedding, userId, options?.limit || 100, options?.threshold ?? 0.4],
       );
       if (!ideas) {
         console.error(`No ideas found.`);
