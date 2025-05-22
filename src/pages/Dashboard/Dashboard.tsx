@@ -31,6 +31,7 @@ import { handleCreateNewIdea } from "../../utils/ideas";
 import { useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
+import { userIsSuperuser } from "../../utils/user";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -91,6 +92,8 @@ export default function Dashboard() {
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
+  const isSuperuser = userIsSuperuser(user);
+
   return (
     <PageWrapper>
       <LeftSidebar stayCollapsed={isMobile}>
@@ -146,6 +149,16 @@ export default function Dashboard() {
                     <Text>Spyglass</Text>
                     <Kbd>{primaryKey} + /</Kbd>
                   </Group>
+                  <Group>
+                    <Text>Settings</Text>
+                    <Kbd>{primaryKey} + ,</Kbd>
+                  </Group>
+                  {isSuperuser && (
+                    <Group>
+                      <Text>Admin Panel</Text>
+                      <Kbd>{primaryKey} + A</Kbd>
+                    </Group>
+                  )}
                 </Stack>
               </Card>
             )}

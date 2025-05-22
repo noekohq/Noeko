@@ -145,60 +145,6 @@ export const GraphToolbar = ({ reloadGraph }: GraphToolbarProps) => {
       />
       <Flex gap={"md"} justify="space-between" align="flex-end">
         <Group justify="end">
-          <Flex
-            direction={isMobile ? "row" : rightSidebarOpened ? "row" : "column"}
-            justify="end"
-            gap="md"
-          >
-            {enableAdminTools && (
-              <ActionIcon
-                variant="default"
-                onClick={() => synchronizeGraph()}
-                title="Synchronize graph embeddings"
-              >
-                {loadingSynchronizeGraph ? (
-                  <Loader size="xs" />
-                ) : (
-                  <ArrowsClockwise weight="bold" />
-                )}
-              </ActionIcon>
-            )}
-            <Tooltip label="Upload file">
-              <ActionIcon
-                variant="default"
-                size="md"
-                onClick={() => setUploadFileOpened(!uploadFileOpened)}
-                title="Add an idea"
-              >
-                {uploadFileOpened ? (
-                  <X weight="bold" />
-                ) : (
-                  <UploadSimple weight="bold" />
-                )}
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Import note(s)">
-              <Link to="/import">
-                <ActionIcon
-                  variant="default"
-                  size="md"
-                  onClick={() => setUploadFileOpened(!uploadFileOpened)}
-                  title="Import note(s)"
-                >
-                  <DownloadSimple weight="bold" />
-                </ActionIcon>
-              </Link>
-            </Tooltip>
-            <Tooltip label="Add an idea">
-              <ActionIcon
-                variant="filled"
-                onClick={() => setAddIdeaOpened(!addIdeaOpened)}
-                title="Add an idea"
-              >
-                {addIdeaOpened ? <X weight="bold" /> : <Plus weight="bold" />}
-              </ActionIcon>
-            </Tooltip>
-          </Flex>
           {rightSidebarOpened && (
             <div className={styles.searchWrapper}>
               <SearchBar

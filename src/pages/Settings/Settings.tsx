@@ -16,6 +16,7 @@ import LeftSidebar from "../../components/UI/LeftSidebar";
 import styles from "./Settings.module.scss";
 import { useSettings } from "../../contexts/SettingsContext";
 import { IThemeSpec } from "../../declarations/themes";
+import { Link } from "react-router";
 
 export default function Settings() {
   const {
@@ -112,6 +113,16 @@ export default function Settings() {
                   </Stack>
                 </Grid.Col>
               </Grid>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Card withBorder radius="lg">
+              <Stack>
+                <Title order={3}>Imports</Title>
+                <Link to="/import">
+                  <Button variant="default">Import Ideas</Button>
+                </Link>
+              </Stack>
             </Card>
           </Grid.Col>
         </Grid>

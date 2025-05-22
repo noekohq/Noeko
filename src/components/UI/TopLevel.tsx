@@ -22,6 +22,8 @@ import DreamWriter from "../Content/DreamWriter/DreamWriter";
 import { ExclamationMark } from "@phosphor-icons/react";
 import { getOS } from "../../utils/platform";
 import { handleCreateNewIdea } from "../../utils/ideas";
+import { useAuth } from "../../contexts/AuthContext";
+import { userIsSuperuser } from "../../utils/user";
 
 export default function TopLevelUI() {
   const navigate = useNavigate();
@@ -30,6 +32,9 @@ export default function TopLevelUI() {
   const meta = os === "macos";
 
   const [loadingSomething, setLoadingSomething] = useState(false);
+
+  const { user } = useAuth();
+  const isSuperuser = userIsSuperuser(user);
 
   useShortcuts({
     shortcuts: [
@@ -44,6 +49,18 @@ export default function TopLevelUI() {
       {
         keys: { ctrl, meta, key: "/" },
         run: () => navigate("/spyglass"),
+      },
+      {
+        keys: { ctrl, meta, key: "," },
+        run: () => navigate("/settings"),
+      },
+      {
+        keys: { ctrl, meta, key: "a" },
+        run: () => {
+          if (isSuperuser) {
+            navigate("/admin");
+          }
+        },
       },
       {
         keys: { ctrl, meta, shift: true, key: "i" },
