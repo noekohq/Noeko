@@ -39,7 +39,7 @@ export default function Admin() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%">
+      <Container w="100%" mt="lg">
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Admin Panel</Title>
@@ -53,6 +53,7 @@ export default function Admin() {
                     onClick={() => {
                       synchronizeGraph();
                     }}
+                    variant="light"
                     disabled={loadingSynchronizeGraph}
                     leftSection={
                       loadingSynchronizeGraph ? (
