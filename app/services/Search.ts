@@ -149,11 +149,15 @@ export class Search {
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
         $ideaId: string,
         $userId: string,
-        $limit: int
+        $limit: option<int>,
+        $threshold: option<float>
       ) {
         LET $embeddings = SELECT VALUE embeddings FROM ONLY <record> $ideaId;
 
         IF !$embeddings THEN RETURN [] END;
+
+        LET $got_limit = IF !!$limit THEN $limit ELSE 100 END;
+        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
 
         LET $results =
             SELECT
@@ -165,8 +169,9 @@ export class Search {
               <-owns<-(user WHERE id = <record> $userId)
               AND !!content
               AND !!embeddings
+              AND vector::similarity::cosine(embeddings, $embeddings) >= $got_threshold
             ORDER BY distance DESC
-            LIMIT <int> $limit;
+            LIMIT <int> $got_limit;
 
         RETURN $results;
       }
@@ -179,9 +184,12 @@ export class Search {
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
         $provided_embeddings: array<float>,
         $userId: string,
-        $limit: int
+        $limit: option<int>,
+        $threshold: option<float>
       ) {
         IF !$provided_embeddings THEN return [] END;
+        LET $got_limit = IF !!$limit THEN $limit ELSE 100 END;
+        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
 
         LET $results =
             SELECT
@@ -193,8 +201,9 @@ export class Search {
               <-owns<-(user WHERE id = <record> $userId)
               AND !!content
               AND !!embeddings
+              AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
             ORDER BY distance DESC
-            LIMIT $limit;
+            LIMIT $got_limit;
 
         RETURN $results;
       }
@@ -394,7 +403,7 @@ export class Search {
     query: string,
     options: { limit?: number } = {},
   ): Promise<ISearchResult[] | undefined> {
-    const limit = options.limit ?? 10;
+    const limit = options.limit ?? 50;
     const initialFetchLimit = Math.max(limit * 2, 20); // Fetch more for ranking
     const queryLower = query.toLowerCase().trim();
 

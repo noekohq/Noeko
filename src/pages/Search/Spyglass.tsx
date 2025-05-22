@@ -22,7 +22,7 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { Link } from "react-router";
 import { getNodeTitle } from "../../utils/graph";
-import { ArrowRight, Star } from "@phosphor-icons/react";
+import { ArrowRight, MagnifyingGlass, Star } from "@phosphor-icons/react";
 import Match from "../../components/Utils/Match";
 import { useCallback, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
@@ -33,6 +33,7 @@ import {
   ISearchResultValue,
 } from "../../../app/services/Search";
 import { generateTextFragmentUrl } from "../../utils/dom";
+import { formatMillisecondsToSecondsString } from "../../utils/formatting";
 
 type IResultsMap = Record<string, ISearchResultValue>;
 
@@ -52,6 +53,9 @@ export default function Spyglass() {
   } = useSearch();
 
   const [overview, setOverview] = useState<ISearchOverview>();
+
+  const startRef = useRef<Date>();
+  const [timeTook, setTimeTook] = useState<number>();
 
   const handleResultsClear = useCallback(() => {
     setResults(null);
@@ -111,6 +115,12 @@ export default function Spyglass() {
             onResultsClear={handleResultsClear}
             onSearchStart={() => {
               setOverview(undefined);
+              startRef.current = new Date();
+            }}
+            onSearchEnd={() => {
+              if (startRef.current) {
+                setTimeTook(new Date().getTime() - startRef.current.getTime());
+              }
             }}
             onResults={(_, searchOverview) => {
               setOverview(searchOverview);
@@ -162,8 +172,11 @@ export default function Spyglass() {
                 </Grid.Col>
                 <Grid.Col>
                   <Text c="dimmed" size="sm">
-                    Found {searchResults.length} result
-                    {searchResults.length === 1 ? "" : "s"}...
+                    Found and analyzed {searchResults.length} result
+                    {searchResults.length === 1 ? "" : "s"}{" "}
+                    {timeTook
+                      ? `in ${formatMillisecondsToSecondsString(timeTook)}`
+                      : ""}
                   </Text>
                 </Grid.Col>
                 <Grid.Col>
@@ -273,7 +286,11 @@ function DisplayOverview({
           );
         })}
       </Text>
-      <Text mt="lg">{overview.overview}</Text>
+      <Space my="sm" />
+      <Text c="gray.7" size="sm" fw="bold">
+        AT A GLANCE
+      </Text>
+      <Text>{overview.overview}</Text>
     </div>
   );
 }

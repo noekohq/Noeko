@@ -13,7 +13,12 @@ import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { ArrowsClockwise } from "@phosphor-icons/react";
+import {
+  ArrowsClockwise,
+  ChatCircleDots,
+  UsersThree,
+} from "@phosphor-icons/react";
+import { Link } from "react-router";
 
 export default function Admin() {
   const { load: synchronizeGraph, loading: loadingSynchronizeGraph } = useFetch<
@@ -43,6 +48,25 @@ export default function Admin() {
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Admin Panel</Title>
+          </Grid.Col>
+          <Grid.Col>
+            <Card withBorder radius="lg">
+              <Stack>
+                <Title order={3}>Management</Title>
+                <Group>
+                  <Link to="/admin/users">
+                    <Button leftSection={<UsersThree />} variant="default">
+                      Manage Users
+                    </Button>
+                  </Link>
+                  <Link to="/admin/feedback">
+                    <Button leftSection={<ChatCircleDots />} variant="default">
+                      Review Feedback
+                    </Button>
+                  </Link>
+                </Group>
+              </Stack>
+            </Card>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Card withBorder radius="lg">

@@ -114,3 +114,31 @@ export const capitalize = (text: string) => {
     })
     .join(" "); // Join the words back into a string
 };
+
+export function formatMillisecondsToSecondsString(
+  milliseconds: number,
+): string {
+  if (typeof milliseconds !== "number" || isNaN(milliseconds)) {
+    return "Invalid input";
+  }
+
+  const seconds = milliseconds / 1000;
+
+  if (seconds === 0) {
+    return "0 seconds";
+  }
+
+  // Determine how many decimal places to use.
+  // For values less than 1 second, we want more precision.
+  // For larger values, fewer decimal places are usually fine.
+  let formattedSeconds: string;
+  if (Math.abs(seconds) < 1) {
+    formattedSeconds = seconds.toFixed(1); // e.g., 0.4, 0.05
+  } else if (Math.abs(seconds) < 10) {
+    formattedSeconds = seconds.toFixed(1); // e.g., 2.5, 9.9
+  } else {
+    formattedSeconds = seconds.toFixed(0); // e.g., 10, 123
+  }
+
+  return `${formattedSeconds} seconds`;
+}
