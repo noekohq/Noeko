@@ -551,6 +551,12 @@ export class Search {
     results: ISearchResult[],
   ): Promise<ISearchOverview | undefined> {
     try {
+      if (results.length === 0) {
+        return {
+          findings: [],
+          overview: "There were no results to analyze.",
+        };
+      }
       const resultsStrings = results
         .filter((r) => {
           return r.value.type === "idea";
