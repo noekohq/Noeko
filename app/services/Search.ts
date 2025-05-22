@@ -580,7 +580,15 @@ export class Search {
           `The user's query is as follows:
           > ${query}`,
         )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`);
+        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
+        .addBlock(
+          "Please Remember!",
+          `
+        - Is is of the upmost importance that findings be directly sourced from the results
+        - The overview, on the other hand, should rely on findings, but ultimately favor answering the query
+        - If you do not know something from the results, don't be afraid to say you don't know.
+          `,
+        );
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size

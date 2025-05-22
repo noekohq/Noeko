@@ -249,42 +249,46 @@ function DisplayOverview({
   return (
     <div>
       <Text>
-        {overview.findings.map((finding) => {
-          console.log("Finding: ", finding);
-          const { index: citationNumber } = citationMap[finding.sourceId];
-          const mappedValue = resultsMap[finding.sourceId];
-          const title =
-            mappedValue.type === "idea"
-              ? mappedValue.title
-              : mappedValue.id.toString();
+        {overview.findings
+          .filter((finding) => {
+            return finding.sourceId in resultsMap;
+          })
+          .map((finding) => {
+            console.log("Finding: ", finding);
+            const { index: citationNumber } = citationMap[finding.sourceId];
+            const mappedValue = resultsMap[finding.sourceId];
+            const title =
+              mappedValue.type === "idea"
+                ? mappedValue.title
+                : mappedValue.id.toString();
 
-          return (
-            <Text component="span" mr="xs">
-              <HoverCard width={"400px"} withArrow>
-                <HoverCard.Target>
-                  <ActionIcon variant="subtle">({citationNumber})</ActionIcon>
-                </HoverCard.Target>
-                <HoverCard.Dropdown>
-                  <Stack>
-                    <Link
-                      to={`/idea/${mappedValue.id.toString()}`}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <Group>
-                        <Text fw="bold" c="gray" size="xs">
-                          {title}
-                        </Text>
-                        <ArrowRight size={14} color="gray" weight="bold" />
-                      </Group>
-                    </Link>
-                    <Text size="xs">...{finding.excerpt}...</Text>
-                  </Stack>
-                </HoverCard.Dropdown>
-              </HoverCard>
-              {finding.analysis}
-            </Text>
-          );
-        })}
+            return (
+              <Text component="span" mr="xs">
+                <HoverCard width={"400px"} withArrow>
+                  <HoverCard.Target>
+                    <ActionIcon variant="subtle">({citationNumber})</ActionIcon>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Stack>
+                      <Link
+                        to={`/idea/${mappedValue.id.toString()}`}
+                        style={{ textDecoration: "none" }}
+                      >
+                        <Group>
+                          <Text fw="bold" c="gray" size="xs">
+                            {title}
+                          </Text>
+                          <ArrowRight size={14} color="gray" weight="bold" />
+                        </Group>
+                      </Link>
+                      <Text size="xs">...{finding.excerpt}...</Text>
+                    </Stack>
+                  </HoverCard.Dropdown>
+                </HoverCard>
+                {finding.analysis}
+              </Text>
+            );
+          })}
       </Text>
       <Space my="sm" />
       <Text c="gray.7" size="sm" fw="bold">

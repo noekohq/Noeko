@@ -26,7 +26,7 @@ import { SearchBar } from "../../components/Search/SearchBar";
 import styles from "./Dashboard.module.scss";
 import Search from "../../components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
-import { Plus } from "@phosphor-icons/react";
+import { HandWaving, Plus } from "@phosphor-icons/react";
 import { handleCreateNewIdea } from "../../utils/ideas";
 import { useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
@@ -60,10 +60,13 @@ export default function Dashboard() {
   const totalIdeas = dashboardData?.ideaStats.total;
 
   const getStatusText = () => {
-    if (totalIdeas) {
+    if (totalIdeas === undefined) {
+      return "Loading...";
+    }
+    if (totalIdeas && totalIdeas > 0) {
       return `You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
     }
-    return "Loading...";
+    return "Hello there!";
   };
 
   const navigate = useNavigate();
@@ -120,9 +123,12 @@ export default function Dashboard() {
       <Container py="lg" w="100%">
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
-            <Title>
-              Good {getCurrentTimeOfDay()}, {user?.firstName}
-            </Title>
+            <Group>
+              <HandWaving weight="bold" size="36px" />
+              <Title>
+                Good {getCurrentTimeOfDay()}, {user?.firstName}
+              </Title>
+            </Group>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }} />
           <Grid.Col>
@@ -200,7 +206,7 @@ export default function Dashboard() {
           </Grid.Col>
         </Grid>
       </Container>
-      <RightSidebar stayCollapsed={isMobile}>
+      <RightSidebar stayCollapsed={isMobile} openOnShortcut={[{ key: "/" }]}>
         {!isMobile && rightSidebarOpened && <Search />}
       </RightSidebar>
     </PageWrapper>
