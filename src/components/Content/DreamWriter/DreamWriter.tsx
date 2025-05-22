@@ -83,12 +83,6 @@ function DreamWriter({
 }: EditorProps) {
   const content = initialContent || defaultContent.trim();
 
-  const {
-    ui: {
-      theme: { get: theme },
-    },
-  } = useSettings();
-
   const editor = useEditor(
     {
       extensions: [
