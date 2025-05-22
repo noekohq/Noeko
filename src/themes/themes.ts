@@ -234,7 +234,7 @@ export const qwest: IOverrideResolver = (t) => {
     fontFamily: t.bodyFont === "sans-serif" ? "Geist" : "IBMPlexSerif",
     headings: {
       fontFamily: "Bricolage Grotesque",
-      fontWeight: "500",
+      fontWeight: "550",
     },
     colors: colorsToUse()?.colors,
     primaryColor: "blue",
