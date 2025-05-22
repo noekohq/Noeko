@@ -7,6 +7,7 @@ import {
   INode,
 } from "../declarations/graph";
 import { formatDate } from "./formatting";
+import { splitBySentences } from "./processing";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 100; // Target distance for similarity = 1
@@ -162,7 +163,8 @@ export const getNodeDescription = (node: INode) => {
     return (
       node.derived?.generative_summary?.sentenceOverview ??
       node.derived?.generative_summary?.sentenceSummary ??
-      node.contentPlain?.slice(0, 124) ??
+      (node.contentPlain &&
+        splitBySentences(node.contentPlain).slice(0, 2).join("...")) ??
       "No summary available"
     );
   }

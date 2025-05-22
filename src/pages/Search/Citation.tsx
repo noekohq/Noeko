@@ -1,19 +1,25 @@
 // Citation.tsx (or wherever you want to place this component)
 import { Text, Popover, Button } from "@mantine/core";
 import { Link } from "react-router"; // Assuming you use react-router-dom
+import { ISearchResultValue } from "../../../app/services/Search";
 
 interface CitationProps {
   id: string;
   snippet: string | null;
+  result?: ISearchResultValue;
   // You might want to pass the full searchResult item for this citation later
   // for linking or displaying more info.
   // searchResultItem?: ISearchResult; // Assuming ISearchResult is the type for items in searchResults
 }
 
-export function Citation({ id, snippet }: CitationProps) {
+export function Citation({ id, snippet, result }: CitationProps) {
   // You'll likely want to fetch more details about the citation
   // or link to the source document.
   // For now, let's make it a simple popover.
+
+  if (!result) {
+    return null;
+  }
 
   return (
     <Popover width={200} position="bottom" withArrow shadow="md">
@@ -23,9 +29,7 @@ export function Citation({ id, snippet }: CitationProps) {
           size="xs"
           component="span" // Make it an inline element
           style={{ margin: "0 2px", cursor: "pointer" }}
-        >
-          [{id}]
-        </Button>
+        ></Button>
       </Popover.Target>
       <Popover.Dropdown>
         <Text size="sm">
