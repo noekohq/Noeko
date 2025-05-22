@@ -7,13 +7,13 @@
 
 .link {
   cursor: pointer;
-  color: var(--mantine-primary-color-5);
+  color: var(--mantine-color-anchor);
   text-decoration: underline;
   transition: all 0.2s ease-in-out;
 
   &:hover {
     // Replaced --color-primary with --mantine-color-primary
-    color: var(--mantine-primary-color-9);
+    color: var(--mantine-color-bright);
   }
 }
 

@@ -1,6 +1,7 @@
 import {
   createTheme,
   DefaultMantineColor,
+  Input,
   MantineColorsTuple,
   MantineThemeColors,
   MantineThemeOverride,
@@ -131,8 +132,8 @@ export const qwest: IOverrideResolver = (t) => {
       "#7c6f64",
       "#665c54",
       "#504945",
-      "#3c3836",
-      "#282828",
+      "#32302f",
+      "#1d2021",
     ],
     gray: [
       "#e9e5e0", // 0 (lightest)
@@ -242,6 +243,13 @@ export const qwest: IOverrideResolver = (t) => {
     black: colorsToUse()?.black,
     components: {
       Paper: Paper.extend({}),
+      Input: Input.extend({
+        styles: {
+          input: {
+            backgroundColor: "dark.8",
+          },
+        },
+      }),
     },
   });
 };
