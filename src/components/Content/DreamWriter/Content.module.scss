@@ -1,55 +1,59 @@
 .blockquote {
-  margin-inline-start: 0;
-  padding-inline-start: 24px;
-  // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
-  border-left: 2.5px solid var(--mantine-primary-color-5);
+    margin-inline-start: 0;
+    padding-inline-start: 24px;
+    // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
+    border-left: 2.5px solid var(--mantine-primary-color-5);
 }
 
 .link {
-  cursor: pointer;
-  color: var(--mantine-color-anchor);
-  text-decoration: underline;
-  transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    color: var(--mantine-color-anchor);
+    text-decoration: underline;
+    transition: all 0.2s ease-in-out;
 
-  &:hover {
-    // Replaced --color-primary with --mantine-color-primary
-    color: var(--mantine-color-bright);
-  }
+    &:hover {
+        // Replaced --color-primary with --mantine-color-primary
+        color: var(--mantine-color-anchor);
+    }
 }
 
 .image {
-  width: 100%;
+    width: 100%;
 }
 
 // Heading styles without color variables remain unchanged
 .heading {
-  margin: 0;
+    margin: 0;
+}
+
+.heading {
+    font-family: "Bricolage Grotesque", sans-serif;
 }
 
 h1 {
-  &.heading {
-    margin-top: 36px;
-  }
+    &.heading {
+        margin-top: 36px;
+    }
 }
 h2 {
-  &.heading {
-    margin-top: 32px;
-  }
+    &.heading {
+        margin-top: 32px;
+    }
 }
 h3 {
-  &.heading {
-    margin-top: 24px;
-  }
+    &.heading {
+        margin-top: 24px;
+    }
 }
 h4 {
-  &.heading {
-    margin-top: 20px;
-  }
+    &.heading {
+        margin-top: 20px;
+    }
 }
 h5 {
-  &.heading {
-    margin-top: 16px;
-  }
+    &.heading {
+        margin-top: 16px;
+    }
 }
 
 // List structure styles remain unchanged
@@ -58,52 +62,51 @@ h5 {
 }
 
 .orderedList {
-  counter-reset: list-counter;
+    counter-reset: list-counter;
 
-  .listItem {
-  }
+    .listItem {
+    }
 }
 
 .bulletList {
-
-  .listItem {
-  }
+    .listItem {
+    }
 }
 
 .listItem {
-  margin: 0;
-  margin-bottom: 8px;
-  position: relative;
+    margin: 0;
+    margin-bottom: 8px;
+    position: relative;
 }
 
 .image {
-  cursor: pointer; // Kept non-color style
+    cursor: pointer; // Kept non-color style
 
-  &:active {
-    // Replaced --color-primary with --mantine-color-primary for outline
-    outline: 3px solid var(--mantine-color-primary);
-  }
+    &:active {
+        // Replaced --color-primary with --mantine-color-primary for outline
+        outline: 3px solid var(--mantine-color-primary);
+    }
 }
 
 .codeBlock {
-  padding: 14px 18px;
-  border-radius: var(--mantine-radius-md);
-  border: 2px solid var(--mantine-code-block-border-color);
-  white-space: pre-wrap;
-  background-color: var(--mantine-color-dark-5);
+    padding: 14px 18px;
+    border-radius: var(--mantine-radius-md);
+    border: 2px solid var(--mantine-code-block-border-color);
+    white-space: pre-wrap;
+    background-color: var(--mantine-color-dark-5);
 }
 
 .code {
-  color: var(--mantine-color-text);
-  background-color: var(--mantine-color-dark-5);
-  border-radius: var(--mantine-radius-md);
-  padding: 4px 8px;
-  font-size: inherit;
+    color: var(--mantine-color-text);
+    background-color: var(--mantine-color-dark-5);
+    border-radius: var(--mantine-radius-md);
+    padding: 4px 8px;
+    font-size: inherit;
 }
 
 .strike {
-  // No styles defined, kept as is
-  text-decoration: line-through; // Added standard strike-through for clarity
+    // No styles defined, kept as is
+    text-decoration: line-through; // Added standard strike-through for clarity
 }
 
 .taskList {
