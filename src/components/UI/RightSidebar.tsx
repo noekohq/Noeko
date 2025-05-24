@@ -22,6 +22,7 @@ import {
   Gear,
   Graph,
   HouseSimple,
+  Lightbulb,
   MagnifyingGlass,
   MegaphoneSimple,
   Shield,
@@ -193,6 +194,14 @@ export default function RightSidebar({
                 }}
               >
                 <Text>Graph</Text>
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<Lightbulb weight="bold" />}
+                onClick={() => {
+                  navigate("/ideas");
+                }}
+              >
+                <Text>All Ideas</Text>
               </Menu.Item>
               <Menu.Item
                 leftSection={<MagnifyingGlass weight="bold" />}
