@@ -29,6 +29,9 @@ html {
     @include widescreen {
         --sidebar-width: 34vw;
     }
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--mantine-color-dark-5) transparent;
 }
 
 body {

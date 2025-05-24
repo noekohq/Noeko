@@ -1,11 +1,22 @@
-import { useForm } from "@mantine/form";
-import useShortcuts from "../../hooks/useShortcuts";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { IIdea } from "../../../app/database/models/ideas";
-import useFetch from "../../hooks/useFetch";
+import { handleCreateNewIdea } from "../utils/ideas";
 import { showNotification } from "@mantine/notifications";
-import { useEffect, useState } from "react";
-import { validateIdeaContent } from "../../utils/data";
+import { getOS } from "../utils/platform";
+import { useAuth } from "./AuthContext";
+import { userIsSuperuser } from "../utils/user";
+import useShortcuts from "../hooks/useShortcuts";
+import { useForm } from "@mantine/form";
+import useFetch from "../hooks/useFetch";
+import {
+  ExclamationMark,
+  FileCode,
+  FileCsv,
+  FilePdf,
+  Icon,
+  Image,
+  UploadSimple,
+} from "@phosphor-icons/react";
 import {
   Checkbox,
   Grid,
@@ -18,24 +29,63 @@ import {
   FileInput,
   Code,
 } from "@mantine/core";
-import DreamWriter from "../Content/DreamWriter/DreamWriter";
-import {
-  ExclamationMark,
-  FileCode,
-  FileCsv,
-  FilePdf,
-  Icon,
-  Image,
-  UploadSimple,
-} from "@phosphor-icons/react";
-import { getOS } from "../../utils/platform";
-import { handleCreateNewIdea } from "../../utils/ideas";
-import { useAuth } from "../../contexts/AuthContext";
-import { userIsSuperuser } from "../../utils/user";
-import { formatFileSize } from "../../utils/formatting";
+import { formatFileSize } from "../utils/formatting";
 
-export default function TopLevelUI() {
+type IInteractionContext = {
+  actions: {
+    newIdea: () => void;
+  };
+  views: {
+    dashboard: () => void;
+    graph: () => void;
+    spyglass: () => void;
+    ideas: () => void;
+    settings: () => void;
+    profile: () => void;
+    admin: () => void;
+  };
+};
+
+const initialContext: IInteractionContext = {
+  actions: {
+    newIdea: () => {},
+  },
+  views: {
+    dashboard: () => {},
+    graph: () => {},
+    spyglass: () => {},
+    ideas: () => {},
+    settings: () => {},
+    profile: () => {},
+    admin: () => {},
+  },
+};
+
+const InteractionContext = createContext(initialContext);
+
+export function InteractionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const navigate = useNavigate();
+
+  const handleNewIdea = async () => {
+    setLoadingSomething(true);
+    await handleCreateNewIdea(
+      (i) => {
+        navigate(`idea/${i.id.toString()}`);
+      },
+      (err) => {
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong adding the note",
+        });
+      },
+    );
+    setLoadingSomething(false);
+  };
+
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
@@ -47,19 +97,54 @@ export default function TopLevelUI() {
 
   const [uploadingFile, setUploadingFile] = useState(false);
 
+  const value: IInteractionContext = {
+    actions: {
+      newIdea: async () => {
+        handleNewIdea();
+      },
+    },
+    views: {
+      dashboard: () => {
+        navigate("/");
+      },
+      graph: () => {
+        navigate("/graph");
+      },
+      spyglass: () => {
+        navigate("/spyglass");
+      },
+      settings: () => {
+        navigate("/settings");
+      },
+      profile: () => {
+        navigate("/profile");
+      },
+      ideas: () => {
+        navigate("/ideas");
+      },
+      admin: () => {
+        navigate("/admin");
+      },
+    },
+  };
+
   useShortcuts({
     shortcuts: [
       {
         keys: { ctrl, meta, shift: true, key: "h" },
-        run: () => navigate("/"),
+        run: value.views.dashboard,
       },
       {
         keys: { ctrl, meta, shift: true, key: "g" },
-        run: () => navigate("/graph"),
+        run: value.views.graph,
       },
       {
         keys: { ctrl, meta, key: "/" },
-        run: () => navigate("/spyglass"),
+        run: value.views.spyglass,
+      },
+      {
+        keys: { ctrl, meta, key: "i" },
+        run: value.views.ideas,
       },
       {
         keys: { ctrl, meta, key: "," },
@@ -69,7 +154,7 @@ export default function TopLevelUI() {
         keys: { ctrl, meta, key: "a" },
         run: () => {
           if (isSuperuser) {
-            navigate("/admin");
+            value.views.admin();
           }
         },
       },
@@ -81,36 +166,29 @@ export default function TopLevelUI() {
       },
       {
         keys: { ctrl, meta, shift: true, key: "i" },
-        run: async () => {
-          setLoadingSomething(true);
-          await handleCreateNewIdea(
-            (i) => {
-              navigate(`idea/${i.id.toString()}`);
-            },
-            (err) => {
-              showNotification({
-                title: "Something went wrong",
-                message: "Something went wrong adding the note",
-              });
-            },
-          );
-          showNotification({
-            title: "Idea created",
-            message: "Created a new note",
-          });
-          setLoadingSomething(false);
-        },
+        run: value.actions.newIdea,
       },
     ],
   });
 
   return (
-    <>
-      <LoadingOverlay visible={loadingSomething} />
+    <InteractionContext.Provider value={value}>
+      {children}
       <UploadFile opened={uploadingFile} setOpened={setUploadingFile} />
-    </>
+      <LoadingOverlay visible={loadingSomething} />
+    </InteractionContext.Provider>
   );
 }
+
+export const useInteraction = () => {
+  const context = useContext(InteractionContext);
+  if (!context) {
+    throw new Error(
+      "useInteraction must be used within an InteractionProvider",
+    );
+  }
+  return context;
+};
 
 type IUploadFileProps = {
   opened: boolean;

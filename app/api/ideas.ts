@@ -9,6 +9,52 @@ const router = Router();
 router.use(checkToken);
 router.use(disallowDisabled);
 
+router.get("/", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const ideas = await Idea.getUserIdeas(user.id);
+    if (!ideas) {
+      res.status(404).json({ error: "User ideas not found" });
+      return;
+    }
+    res.send({ message: "Successfully retrieved user ideas.", data: ideas });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/page", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const page = Number(req.query.page);
+    const pageSize = Number(req.query.pageSize);
+    if (!page || !pageSize) {
+      res.status(400).send({
+        message: "page and pageSize must be provided.",
+      });
+      return;
+    }
+    const ideas = await Idea.getUserIdeasPaginated(user.id, page, pageSize);
+    if (!ideas) {
+      res.status(404).json({ error: "User ideas not found" });
+      return;
+    }
+    res.send({ message: "Successfully retrieved user ideas.", data: ideas });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.post("/new", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");

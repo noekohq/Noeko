@@ -136,20 +136,24 @@ export default function Dashboard() {
               <Card withBorder radius="lg">
                 <Stack align="center" gap="sm">
                   <Group>
-                    <Text>Add an idea </Text>
-                    <Kbd>{primaryKey} + I</Kbd>
-                  </Group>
-                  <Group>
                     <Text>Dashboard view</Text>
                     <Kbd>{primaryKey} + H</Kbd>
                   </Group>
                   <Group>
-                    <Text>Graph view</Text>
-                    <Kbd>{primaryKey} + G</Kbd>
+                    <Text>Add an idea </Text>
+                    <Kbd>{primaryKey} + I</Kbd>
+                  </Group>
+                  <Group>
+                    <Text>All ideas</Text>
+                    <Kbd>{primaryKey} + i</Kbd>
                   </Group>
                   <Group>
                     <Text>Search ideas</Text>
                     <Kbd>/</Kbd>
+                  </Group>
+                  <Group>
+                    <Text>Graph view</Text>
+                    <Kbd>{primaryKey} + G</Kbd>
                   </Group>
                   <Group>
                     <Text>Spyglass</Text>

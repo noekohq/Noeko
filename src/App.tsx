@@ -23,8 +23,8 @@ import Users from "./pages/Users/Users";
 import Feedback from "./pages/Feedback/Feedback";
 import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
-import TopLevelUI from "./components/UI/TopLevel";
 import Spyglass from "./pages/Search/Spyglass";
+import Ideas from "./pages/Idea/Ideas";
 import { useEffect } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 
@@ -96,8 +96,11 @@ export default function App() {
                   <Route path="profile" element={<Profile />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="idea">
-                    <Route index element={<Navigate to="/" replace />} />
+                    <Route index element={<Navigate to="/ideas" replace />} />
                     <Route path=":ideaId" element={<Idea />} />
+                  </Route>
+                  <Route path="ideas">
+                    <Route index element={<Ideas />} />
                   </Route>
                   <Route path="file">
                     <Route index element={<Navigate to="/" replace />} />
@@ -123,7 +126,6 @@ export default function App() {
           />
         )}
       </Routes>
-      <TopLevelUI />
     </>
   );
 }

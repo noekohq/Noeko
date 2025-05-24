@@ -37,7 +37,6 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
           : false;
 
         if (ctrlMatch && metaMatch && shiftMatch && (codeMatch || keyMatch)) {
-          event.preventDefault();
           shortcut.run();
           return;
         }

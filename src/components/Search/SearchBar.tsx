@@ -13,6 +13,8 @@ import {
   Text,
   Highlight,
   ActionIcon,
+  Textarea,
+  Flex,
 } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
@@ -101,7 +103,7 @@ export function SearchBar({
     ],
   });
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const clearResults = useCallback(() => {
     setQuery("");
@@ -116,31 +118,44 @@ export function SearchBar({
 
   return (
     <div className={styles.searchBar}>
-      <TextInput
+      <Textarea
+        minRows={1}
+        maxRows={4}
+        autosize
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
+        styles={{
+          input: {
+            scrollbarWidth: "none",
+          },
+        }}
         onKeyDown={(e) => {
-          if (e.key === "Enter") {
+          if (!e.shiftKey && e.key === "Enter") {
+            e.preventDefault();
             searchIdeas();
           }
         }}
         leftSection={
-          loadingIdeas ? (
-            <Loader size="xs" />
-          ) : (
-            <MagnifyingGlass weight="bold" />
-          )
+          <Flex direction="column" h="100%" pt="xs">
+            {loadingIdeas ? (
+              <Loader size="xs" />
+            ) : (
+              <MagnifyingGlass weight="bold" />
+            )}
+          </Flex>
         }
         rightSection={
-          <ActionIcon
-            variant="light"
-            size="sm"
-            color="gray"
-            onClick={clearResults}
-          >
-            <X weight="bold" />
-          </ActionIcon>
+          <Flex direction="column" h="100%" pt="xs">
+            <ActionIcon
+              variant="light"
+              size="sm"
+              color="gray"
+              onClick={clearResults}
+            >
+              <X weight="bold" />
+            </ActionIcon>
+          </Flex>
         }
         ref={inputRef}
         onBlur={() => {
