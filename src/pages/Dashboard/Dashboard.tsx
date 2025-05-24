@@ -26,9 +26,9 @@ import { SearchBar } from "../../components/Search/SearchBar";
 import styles from "./Dashboard.module.scss";
 import Search from "../../components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
-import { HandWaving, Plus } from "@phosphor-icons/react";
+import { ArrowRight, HandWaving, Plus } from "@phosphor-icons/react";
 import { handleCreateNewIdea } from "../../utils/ideas";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
 import { userIsSuperuser } from "../../utils/user";
@@ -108,7 +108,19 @@ export default function Dashboard() {
             <Space my="md" />
             {leftSidebarOpened && (
               <Stack>
-                <Title order={3}>Recent Ideas</Title>
+                <Group align="baseline" gap="sm">
+                  <Title order={3}>Recent Ideas</Title>
+                  <Link
+                    to="/ideas"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    <Text c="dimmed" size="xs" fw="bold">
+                      VIEW ALL <ArrowRight />
+                    </Text>
+                  </Link>
+                </Group>
                 {dashboardData?.recentIdeas &&
                   dashboardData.recentIdeas.map((idea) => {
                     return (
@@ -194,7 +206,19 @@ export default function Dashboard() {
                 <Space my="md" />
                 <Grid grow>
                   <Grid.Col span={{ sm: 12 }}>
-                    <Title order={3}>Recent Ideas</Title>
+                    <Group align="baseline" gap="sm">
+                      <Title order={3}>Recent Ideas</Title>
+                      <Link
+                        to="/ideas"
+                        style={{
+                          textDecoration: "none",
+                        }}
+                      >
+                        <Text c="dimmed" size="xs" fw="bold">
+                          VIEW ALL <ArrowRight />
+                        </Text>
+                      </Link>
+                    </Group>
                   </Grid.Col>
                   {dashboardData?.recentIdeas &&
                     dashboardData.recentIdeas.map((idea) => {
