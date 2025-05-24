@@ -109,7 +109,7 @@ export class Search {
 
     const ftsContentSearchIndex = () => {
       return `
-      REMOVE INDEX idx_idea_content_fts ON TABLE idea;
+      REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;
 
       DEFINE INDEX OVERWRITE idx_idea_content_fts
         ON TABLE idea

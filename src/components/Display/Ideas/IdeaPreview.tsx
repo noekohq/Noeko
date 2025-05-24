@@ -43,7 +43,7 @@ export default function IdeaPreview({
     idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
 
   return (
-    <HoverCard width={200} shadow="md">
+    <HoverCard width={"target"} shadow="lg" withArrow position="right">
       <HoverCard.Target>
         <Card
           px="lg"
@@ -84,7 +84,7 @@ export default function IdeaPreview({
       </HoverCard.Target>
       <HoverCard.Dropdown>
         <Grid>
-          <Grid.Col span={{ sm: 12 }}>{options}</Grid.Col>
+          {options && <Grid.Col span={{ sm: 12 }}>{options}</Grid.Col>}
           <Grid.Col span={{ sm: 12 }}>
             <Text>{summary || "No summary provided."}</Text>
           </Grid.Col>

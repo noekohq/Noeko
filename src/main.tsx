@@ -17,6 +17,7 @@ import { LayoutProvider } from "./contexts/LayoutContext.tsx";
 import { SearchProvider } from "./contexts/SearchContext.tsx";
 import { SettingsProvider } from "./contexts/SettingsContext.tsx";
 import { useSettings } from "./contexts/SettingsContext.tsx";
+import { InteractionProvider } from "./contexts/InteractionContext.tsx";
 
 const Client = () => {
   return (
@@ -27,7 +28,9 @@ const Client = () => {
             <LayoutProvider>
               <GraphProvider>
                 <WrapTheme>
-                  <App />
+                  <InteractionProvider>
+                    <App />
+                  </InteractionProvider>
                 </WrapTheme>
               </GraphProvider>
             </LayoutProvider>

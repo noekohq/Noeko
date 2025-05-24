@@ -413,47 +413,32 @@ export default function Idea() {
         </>
       </div>
       <RightSidebar stayCollapsed={isMobile} defaultClosed={isMobile}>
-        <Flex
-          direction={
-            isMobile
-              ? rightSidebarOpened
-                ? "row"
-                : "row"
-              : rightSidebarOpened
-                ? "row"
-                : "column"
-          }
-          align={"center"}
-          wrap={"wrap"}
-          gap="md"
-        >
-          <Tooltip label="Delete Idea">
-            {rightSidebarOpened ? (
-              <Button
-                variant="light"
-                color="red"
-                fullWidth
-                onClick={handleDeleteIdea}
-                disabled={loadingDelete}
-                leftSection={
-                  loadingDelete ? <Loader size="xs" /> : <TrashSimple />
-                }
-              >
-                Delete Idea
-              </Button>
-            ) : (
-              <ActionIcon
-                variant="light"
-                color="red"
-                size="lg"
-                onClick={handleDeleteIdea}
-                disabled={loadingDelete}
-              >
-                {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
-              </ActionIcon>
-            )}
-          </Tooltip>
-        </Flex>
+        <Tooltip label="Delete Idea">
+          {rightSidebarOpened ? (
+            <Button
+              variant="light"
+              color="red"
+              fullWidth
+              onClick={handleDeleteIdea}
+              disabled={loadingDelete}
+              leftSection={
+                loadingDelete ? <Loader size="xs" /> : <TrashSimple />
+              }
+            >
+              Delete Idea
+            </Button>
+          ) : (
+            <ActionIcon
+              variant="light"
+              color="red"
+              size="lg"
+              onClick={handleDeleteIdea}
+              disabled={loadingDelete}
+            >
+              {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
+            </ActionIcon>
+          )}
+        </Tooltip>
         {rightSidebarOpened && <Divider my="md" />}
         {rightSidebarOpened && <Search />}
       </RightSidebar>

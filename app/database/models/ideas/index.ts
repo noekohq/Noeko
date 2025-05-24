@@ -194,6 +194,24 @@ export class Idea {
       `;
     };
 
+    const getUserIdeasPaginated = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_user_ideas_paginated(
+        $userId: string,
+        $page: int,
+        $pageSize: int
+      ) {
+        LET $userIdeas = SELECT
+            *
+            FROM idea
+            WHERE <-owns<-(user WHERE id = <record> $userId)
+            ORDER BY updatedAt DESC
+            LIMIT $pageSize
+            START ($page * $pageSize);
+        RETURN $userIdeas;
+      };`;
+    };
+
     const getUserIdeaStats = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::get_user_idea_stats(
@@ -212,6 +230,7 @@ export class Idea {
     await db?.query(getIdeaConnections());
     await db?.query(getIdeaDerived());
     await db?.query(getUserIdeas());
+    await db?.query(getUserIdeasPaginated());
     await db?.query(getUserIdeaStats());
   }
 
@@ -452,6 +471,29 @@ export class Idea {
     try {
       const db = await getDatabase();
       const results = await db?.run<IIdea[]>("fn::get_user_ideas", [userId]);
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      return results;
+    } catch (err) {
+      console.error("Something went wrong", err);
+      return undefined;
+    }
+  }
+
+  static async getUserIdeasPaginated(
+    userId: string,
+    page?: number,
+    pageSize?: number,
+  ) {
+    try {
+      const db = await getDatabase();
+      const results = await db?.run<IIdea[]>("fn::get_user_ideas_paginated", [
+        userId,
+        page,
+        pageSize,
+      ]);
       if (!results) {
         console.error("Something went wrong, no results found.");
         return undefined;

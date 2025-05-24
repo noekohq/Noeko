@@ -3,7 +3,7 @@ import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Search.module.scss";
 import { SearchBar } from "./SearchBar";
 import { ISearchResult } from "../../../app/services/Search";
-import { Group, Space, Text, UnstyledButton } from "@mantine/core";
+import { Container, Group, Space, Text, UnstyledButton } from "@mantine/core";
 import { Link } from "react-router";
 import { getNodeTitle } from "../../utils/graph";
 import Match from "../Utils/Match";
@@ -43,7 +43,7 @@ export default function Search() {
         </>
       )}
       {searchResults && (
-        <>
+        <Container w="100%" className={styles.results}>
           <Space my="lg" />
           <Text c="dimmed" size="sm">
             Found {searchResults.length} result
@@ -86,7 +86,7 @@ export default function Search() {
               </Link>
             );
           })}
-        </>
+        </Container>
       )}
     </div>
   );

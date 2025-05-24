@@ -61,11 +61,14 @@ export default function Home() {
         ) : (
           <Group align="center" justify="center" h="100vh">
             <Loader size="sm" />
-            <Text c="dimmed">Loading your graph...</Text>
+            <Text c="dimmed">
+              Loading your graph... This could take a little while.
+            </Text>
           </Group>
         )}
       </div>
       <RightSidebar openOnShortcut={[{ key: "/" }]}>
+        {!isLoaded && <Loader size="sm" />}
         {isLoaded && (
           <GraphToolbar
             nodes={localData.nodes}

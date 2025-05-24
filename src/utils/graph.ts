@@ -10,12 +10,12 @@ import { formatDate } from "./formatting";
 import { splitBySentences } from "./processing";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
-export const MIN_GRAPH_DIST = 100; // Target distance for similarity = 1
-export const MAX_GRAPH_DIST = 200; // Target distance for similarity = MIN_SIMILARITY_THRESHOLD
-export const DISTANCE_EXPONENT = 2; // > 1 emphasizes closeness
+export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
+export const MAX_GRAPH_DIST = 250; // Target distance for similarity = MIN_SIMILARITY_THRESHOLD
+export const DISTANCE_EXPONENT = 1; // > 1 emphasizes closeness
 
 export const MIN_STRENGTH = 0.1; // Pull strength for similarity = MIN_SIMILARITY_THRESHOLD
-export const MAX_STRENGTH = 1.0; // Pull strength for similarity = 1
+export const MAX_STRENGTH = 0.7; // Pull strength for similarity = 1
 export const STRENGTH_EXPONENT = 2; // > 1 emphasizes stronger links
 
 export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
