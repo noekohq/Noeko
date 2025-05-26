@@ -12,6 +12,7 @@ import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import { GraphNavigation } from "./GraphNavigation";
+import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,10 +61,11 @@ export default function Home() {
           </>
         ) : (
           <Group align="center" justify="center" h="100vh">
-            <Loader size="sm" />
+            <LangtonsAntLoader loadingText="Loading your graph. This could take a little bit :)" />
+            {/* <Loader size="sm" />
             <Text c="dimmed">
               Loading your graph... This could take a little while.
-            </Text>
+            </Text> */}
           </Group>
         )}
       </div>

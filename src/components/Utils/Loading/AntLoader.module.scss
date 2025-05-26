@@ -1,0 +1,54 @@
+// SCSS for LangtonsAntLoader Component
+
+.langtons-ant-loader-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: transparent; // As per the original 'bg-transparent'
+
+  .loader-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: transparent; // From the style prop, assuming full opacity here for the base
+    opacity: 0.6; // Tailwind class opacity-60
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); // For Safari browser compatibility
+    pointer-events: none;
+    z-index: 0; // Tailwind class z-0
+  }
+
+  .loader-canvas {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block; // Tailwind class block
+    width: 100%;    // Tailwind class w-full
+    height: 100%;   // Tailwind class h-full
+    z-index: 10;    // Tailwind class z-10
+
+    // For crisp pixel rendering
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges; // For Firefox
+    image-rendering: crisp-edges;    // Older spec for some browsers
+  }
+
+  .loader-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20; // Above canvas and overlay
+    color: var(--mantine-color-text);
+  }
+}

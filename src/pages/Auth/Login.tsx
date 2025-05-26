@@ -10,6 +10,8 @@ import {
   TextInput,
   Title,
   Loader,
+  Tooltip,
+  Space,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
 import { useForm } from "@mantine/form";
@@ -18,6 +20,7 @@ import { ISafeUser } from "../../../app/database/models/user";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import { validateEmail } from "../../utils/data";
+import StageIndicator from "../../components/Utils/Info/StageIndicator";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -95,7 +98,7 @@ export default function Login() {
         height: "100vh",
       }}
     >
-      <Flex justify="center" align="center" h="100%">
+      <Flex direction="column" justify="center" align="center" h="100%">
         <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
           <Grid>
             {loadingLogin && (
@@ -104,7 +107,10 @@ export default function Login() {
               </Grid.Col>
             )}
             <Grid.Col span={12}>
-              <Title>Login</Title>
+              <Group>
+                <Title>Login to Qwest</Title>
+                <StageIndicator />
+              </Group>
             </Grid.Col>
             <Grid.Col span={12} />
             <Grid.Col span={{ sm: 12 }}>
@@ -126,9 +132,11 @@ export default function Login() {
             <Grid.Col span={{ sm: 12 }} />
             <Grid.Col span={{ sm: 12 }}>
               <Group justify="right">
-                <Link to="/register">
-                  <Button variant="light">Create an account</Button>
-                </Link>
+                <Tooltip label="Coming soon...">
+                  <Button variant="default" disabled>
+                    Create an account
+                  </Button>
+                </Tooltip>
                 <Button
                   onClick={() => {
                     handleLogin();
