@@ -1,46 +1,46 @@
+// components/RightSidebar/RightSidebar.tsx
+import React, { useEffect, useMemo, useCallback, useState } from "react";
+import styles from "./Sidebars.module.scss"; // Adjust path
 import {
   ActionIcon,
   Avatar,
-  Button,
   Divider,
   Flex,
-  Group,
   Menu,
-  Space,
   Text,
   Tooltip,
-} from "@mantine/core";
+} from "@mantine/core"; // Only Divider if needed
+import useShortcuts, { IShortcut } from "../../hooks/useShortcuts"; // Adjust path
+import { useLayout } from "../../contexts/LayoutContext"; // Adjust path
 import { useAuth } from "../../contexts/AuthContext";
-import styles from "./Sidebars.module.scss";
+import { Link, useLocation, useNavigate } from "react-router";
 import { userInitials, userIsSuperuser } from "../../utils/user";
+import { useMediaQuery } from "@mantine/hooks";
 import {
   ArrowLineDown,
   ArrowLineLeft,
   ArrowLineRight,
   ArrowLineUp,
+  CaretDown,
+  CaretLeft,
+  CaretRight,
+  CaretUp,
   ChatCircleDots,
   Gear,
   Graph,
   HouseSimple,
   Lightbulb,
   MagnifyingGlass,
-  MegaphoneSimple,
-  Shield,
   ShieldStar,
   User,
   UsersThree,
 } from "@phosphor-icons/react";
-import { Link, useLocation, useNavigate } from "react-router";
-import { useEffect, useState } from "react";
-import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
-import { useMediaQuery } from "@mantine/hooks";
-import { useLayout } from "../../contexts/LayoutContext";
 
 type RightSidebarProps = {
   children?: React.ReactNode;
   toggleOpenShortcuts?: IShortcut["keys"][];
   openOnShortcut?: IShortcut["keys"][];
-  stayCollapsed?: boolean;
+  forceCollapsed?: boolean;
   defaultClosed?: boolean;
 };
 
@@ -48,237 +48,286 @@ export default function RightSidebar({
   children,
   toggleOpenShortcuts,
   openOnShortcut,
-  stayCollapsed,
-  defaultClosed,
+  forceCollapsed = false,
+  defaultClosed = false,
 }: RightSidebarProps) {
-  const openable = children !== undefined && !stayCollapsed;
+  const { rightSidebar, isMobile: contextIsMobile } = useLayout();
 
-  const [opened, setOpened] = useState(() => {
-    if (!openable) return false;
-    if (typeof window !== "undefined" && window.localStorage) {
-      const storedValue = localStorage.getItem("rightSidebarOpened");
-      return storedValue !== "false";
-    }
-    return true;
-  });
+  const canBeToggled = useMemo(
+    () => children !== undefined && !forceCollapsed,
+    [children, forceCollapsed],
+  );
 
-  useEffect(() => {
-    if (defaultClosed) {
-      setOpened(false);
-    }
-  }, [defaultClosed]);
-
-  const {
-    rightSidebar: { setOpened: setRightSidebarOpened },
-  } = useLayout();
+  const isEffectivelyOpen = useMemo(
+    () => canBeToggled && rightSidebar.opened,
+    [canBeToggled, rightSidebar.opened],
+  );
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      localStorage.setItem("rightSidebarOpened", opened.toString());
+    if (forceCollapsed || children === undefined) {
+      if (rightSidebar.opened) {
+        rightSidebar.setOpened(false);
+      }
     }
-    setRightSidebarOpened(opened);
-  }, [opened]);
+  }, [forceCollapsed, children, rightSidebar.opened, rightSidebar.setOpened]); // Include all deps
 
-  const handleToggle = () => {
-    if (!openable) return;
-    setOpened((currentOpened) => !currentOpened);
-  };
+  useEffect(() => {
+    if (defaultClosed && canBeToggled && rightSidebar.opened) {
+      rightSidebar.setOpened(false);
+    }
+  }, [
+    defaultClosed,
+    canBeToggled,
+    rightSidebar.opened,
+    rightSidebar.setOpened,
+  ]);
+
+  const handleToggleSidebar = useCallback(() => {
+    if (canBeToggled) {
+      rightSidebar.setOpened(!rightSidebar.opened);
+    } else if (!forceCollapsed && children === undefined) {
+      // If no children but not forced collapsed, maybe toggle means something else?
+      // For now, this case does nothing as canBeToggled is false.
+      // If the header icons should always be "toggleable" in appearance even without children,
+      // the `canBeToggled` for the *header's* toggle button display might be different.
+      // But for content, this is correct.
+    }
+  }, [
+    canBeToggled,
+    forceCollapsed,
+    children,
+    rightSidebar.opened,
+    rightSidebar.setOpened,
+  ]); // Include all deps
+
+  const handleOpenSidebar = useCallback(() => {
+    if (canBeToggled) {
+      rightSidebar.setOpened(true);
+    }
+  }, [canBeToggled, rightSidebar.setOpened]);
 
   useShortcuts({
     shortcuts: [
       {
         keys: { ctrl: true, key: "l" },
-        run: () => handleToggle(),
+        run: handleToggleSidebar,
       },
       ...(toggleOpenShortcuts
         ? toggleOpenShortcuts.map((s) => ({
             keys: s,
-            run: () => handleToggle(),
+            run: handleToggleSidebar,
           }))
         : []),
       ...(openOnShortcut
         ? openOnShortcut.map((s) => ({
             keys: s,
-            run: () => setOpened(true),
+            run: handleOpenSidebar,
           }))
         : []),
     ],
   });
 
+  const sidebarClasses = `${styles.rightSidebar} ${
+    isEffectivelyOpen ? styles.opened : styles.closed
+  }`;
+
+  return (
+    <div className={sidebarClasses}>
+      <RightSidebarHeader
+        isEffectivelyOpen={isEffectivelyOpen}
+        canBeToggled={!forceCollapsed}
+        onToggleClick={handleToggleSidebar}
+      />
+      {isEffectivelyOpen && children && (
+        <>
+          <div className={styles.content}>{children}</div>
+        </>
+      )}
+    </div>
+  );
+}
+
+type IRightSidebarHeaderProps = {
+  isEffectivelyOpen: boolean;
+  canBeToggled: boolean;
+  onToggleClick: () => void;
+};
+
+function RightSidebarHeader({
+  isEffectivelyOpen,
+  canBeToggled,
+  onToggleClick,
+}: IRightSidebarHeaderProps) {
   const { user, logout } = useAuth();
-
   const navigate = useNavigate();
-  const initials = userInitials(user);
-  const isSuperuser = userIsSuperuser(user) ?? false;
+  const location = useLocation(); // Get location here if isActiveRoute is used here
+  const { pathname } = location;
 
-  const { pathname } = useLocation();
+  const initials = user ? userInitials(user) : "";
+  const isSuperuser = user ? (userIsSuperuser(user) ?? false) : false;
 
-  const isActiveRoute = (path: string) => {
-    return pathname === path;
-  };
+  const isActiveRoute = (path: string) => pathname === path;
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // if mobile, use up arrow, if desktop, use left arrow
-  const ToggleIconClosed = isMobile ? ArrowLineUp : ArrowLineLeft;
-  const ToggleIconOpened = isMobile ? ArrowLineDown : ArrowLineRight;
+  const ToggleIcon = isEffectivelyOpen
+    ? isMobile
+      ? CaretDown
+      : CaretRight
+    : isMobile
+      ? CaretUp
+      : CaretLeft;
+
+  const menuNavItems = [
+    { label: "Home", icon: HouseSimple, path: "/" },
+    { label: "Graph", icon: Graph, path: "/graph" },
+    { label: "All Ideas", icon: Lightbulb, path: "/ideas" },
+    { label: "Spyglass", icon: MagnifyingGlass, path: "/spyglass" },
+    ...(isSuperuser
+      ? [{ label: "Admin Panel", icon: ShieldStar, path: "/admin" }]
+      : []),
+  ];
+
+  const userMenuItems = [
+    { label: "Profile", icon: User, path: "/profile" },
+    { label: "Settings", icon: Gear, path: "/settings" },
+  ];
 
   return (
-    <div
-      className={`${styles.rightSidebar} ${opened ? styles.opened : styles.closed}`}
+    <Flex
+      justify={
+        isMobile
+          ? isEffectivelyOpen
+            ? "space-between"
+            : "flex-end"
+          : "space-between"
+      }
+      align="center"
+      direction={isMobile ? "row" : isEffectivelyOpen ? "row" : "column"}
+      gap="md"
+      w="100%"
     >
+      {canBeToggled && (
+        <Tooltip
+          label={`Toggle Sidebar (Ctrl + L)`}
+          position={isMobile ? "bottom" : "left"}
+          withArrow
+        >
+          <ActionIcon
+            onClick={onToggleClick}
+            variant="subtle"
+            color="gray"
+            size="lg" // Consistent sizing
+            aria-label={
+              isEffectivelyOpen ? "Collapse sidebar" : "Expand sidebar"
+            }
+          >
+            <ToggleIcon weight="bold" />
+          </ActionIcon>
+        </Tooltip>
+      )}
+
       <Flex
-        justify={
-          isMobile ? (opened ? "space-between" : "flex-end") : "space-between"
-        }
+        gap="md"
         align="center"
         direction={
-          isMobile ? (opened ? "row" : "row") : opened ? "row" : "column"
+          isMobile
+            ? isEffectivelyOpen
+              ? "row"
+              : "row-reverse"
+            : isEffectivelyOpen
+              ? "row-reverse"
+              : "column"
         }
-        gap="md"
+        style={
+          isMobile && !isEffectivelyOpen && !canBeToggled
+            ? { marginLeft: "auto" }
+            : {}
+        }
       >
-        {openable && (
-          <Tooltip label="Toggle Sidebar (ctrl + l)">
-            <ActionIcon
-              onClick={handleToggle}
-              variant="subtle"
-              style={{ justifySelf: "flex-start" }}
+        <Menu width={220} shadow="md" position="bottom-end">
+          <Menu.Target>
+            <Tooltip
+              label={user?.email || "User Menu"}
+              position="left"
+              withArrow
+              disabled={isEffectivelyOpen || !canBeToggled}
             >
-              {opened ? (
-                <ToggleIconOpened weight="bold" />
-              ) : (
-                <ToggleIconClosed weight="bold" />
-              )}
-            </ActionIcon>
-          </Tooltip>
-        )}
-        <Flex
-          gap="md"
-          direction={
-            isMobile
-              ? opened
-                ? "row"
-                : "row-reverse"
-              : opened
-                ? "row-reverse"
-                : "column"
-          }
-        >
-          <Menu width={200}>
-            <Menu.Target>
               <Avatar
                 color={isSuperuser ? "red" : "blue"}
                 variant="filled"
+                radius="xl"
                 style={{ cursor: "pointer" }}
-                onDoubleClick={() => {
-                  navigate("/");
-                }}
+                onDoubleClick={() => navigate("/")}
+                size={isEffectivelyOpen || !canBeToggled ? "md" : "sm"}
               >
                 {initials}
               </Avatar>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Label>Views</Menu.Label>
+            </Tooltip>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Label>Views</Menu.Label>
+            {menuNavItems.map((item) => (
               <Menu.Item
-                leftSection={<HouseSimple weight="bold" />}
-                onClick={() => {
-                  navigate("/");
-                }}
+                key={item.path}
+                leftSection={<item.icon weight="bold" size={16} />}
+                onClick={() => navigate(item.path)}
               >
-                <Text>Home</Text>
+                <Text size="sm">{item.label}</Text>
               </Menu.Item>
+            ))}
+            <Menu.Divider />
+            <Menu.Label>User</Menu.Label>
+            {userMenuItems.map((item) => (
               <Menu.Item
-                leftSection={<Graph weight="bold" />}
-                onClick={() => {
-                  navigate("/graph");
-                }}
+                key={item.path}
+                leftSection={<item.icon weight="bold" size={16} />}
+                onClick={() => navigate(item.path)}
               >
-                <Text>Graph</Text>
+                <Text size="sm">{item.label}</Text>
               </Menu.Item>
-              <Menu.Item
-                leftSection={<Lightbulb weight="bold" />}
-                onClick={() => {
-                  navigate("/ideas");
-                }}
-              >
-                <Text>All Ideas</Text>
-              </Menu.Item>
-              <Menu.Item
-                leftSection={<MagnifyingGlass weight="bold" />}
-                onClick={() => {
-                  navigate("/spyglass");
-                }}
-              >
-                <Text>Spyglass</Text>
-              </Menu.Item>
-              {isSuperuser && (
-                <Menu.Item
-                  leftSection={<ShieldStar weight="bold" />}
-                  onClick={() => {
-                    navigate("/admin");
-                  }}
-                >
-                  <Text>Admin Panel</Text>
-                </Menu.Item>
+            ))}
+            <Menu.Divider />
+            <Menu.Item
+              color="red"
+              onClick={() => logout && logout()}
+              leftSection={<ArrowLineLeft weight="bold" />} // Icon for logout from Phosphor
+            >
+              <Text size="sm">Logout</Text>
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+
+        {(isEffectivelyOpen || (!canBeToggled && !isEffectivelyOpen)) &&
+          isSuperuser && (
+            <>
+              {!isActiveRoute("/admin/users") && (
+                <Tooltip label="Manage Users" position="left" withArrow>
+                  <ActionIcon
+                    component={Link}
+                    to="/admin/users"
+                    variant="subtle"
+                    color="gray"
+                  >
+                    <UsersThree />
+                  </ActionIcon>
+                </Tooltip>
               )}
-              <Menu.Divider />
-              <Menu.Label>User</Menu.Label>
-              <Menu.Item
-                leftSection={<User weight="bold" />}
-                onClick={() => {
-                  navigate("/profile");
-                }}
-              >
-                <Text>Profile</Text>
-              </Menu.Item>
-              <Menu.Item
-                leftSection={<Gear weight="bold" />}
-                onClick={() => {
-                  navigate("/settings");
-                }}
-              >
-                <Text>Settings</Text>
-              </Menu.Item>
-              <Menu.Divider />
-              <Menu.Label>Actions</Menu.Label>
-              <Menu.Item
-                color="red"
-                onClick={() => {
-                  logout();
-                }}
-              >
-                <Button
-                  color="red"
-                  variant="light"
-                  fullWidth
-                  leftSection={<ArrowLineLeft weight="bold" />}
-                >
-                  Logout
-                </Button>
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-          {isSuperuser && !isActiveRoute("/admin/users") && (
-            <Tooltip label="Manage Users">
-              <Link to="/admin/users">
-                <ActionIcon size="lg" variant="default">
-                  <UsersThree />
-                </ActionIcon>
-              </Link>
-            </Tooltip>
+              {!isActiveRoute("/admin/feedback") && (
+                <Tooltip label="View Feedback" position="left" withArrow>
+                  <ActionIcon
+                    component={Link}
+                    to="/admin/feedback"
+                    variant="subtle"
+                    color="gray"
+                  >
+                    <ChatCircleDots />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </>
           )}
-          {isSuperuser && !isActiveRoute("/admin/feedback") && (
-            <Tooltip label="View Feedback">
-              <Link to="/admin/feedback">
-                <ActionIcon size="lg" variant="default">
-                  <ChatCircleDots />
-                </ActionIcon>
-              </Link>
-            </Tooltip>
-          )}
-        </Flex>
       </Flex>
-      <div className={styles.content}>{children}</div>
-    </div>
+    </Flex>
   );
 }

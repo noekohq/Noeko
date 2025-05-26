@@ -146,7 +146,7 @@ export function SearchBar({
           </Flex>
         }
         rightSection={
-          <Flex direction="column" h="100%" pt="xs">
+          <Flex direction="column" h="100%" justify="center">
             <ActionIcon
               variant="light"
               size="sm"

@@ -51,6 +51,7 @@ import { DreamFileHandler } from "./extensions/DreamFileHandler";
 import { Group, Overlay, Text } from "@mantine/core";
 import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
+import { Markdown } from "tiptap-markdown";
 
 interface EditorData {
   comments: [];
@@ -171,6 +172,13 @@ function DreamWriter({
             class: contentStyles.taskItem,
           },
         }),
+        Markdown.configure({
+          linkify: true,
+          transformPastedText: true,
+          html: true,
+          bulletListMarker: "-",
+          breaks: true,
+        }),
         DreamImage.configure({
           HTMLAttributes: {
             class: contentStyles.image,
@@ -209,6 +217,7 @@ function DreamWriter({
           class: `${styles.tippyEditor} ${contentStyles.editor} tippy-editor`,
         },
       },
+      onPaste: (e) => {},
       editable: true,
       injectCSS: false,
       autofocus: true,

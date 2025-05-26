@@ -68,6 +68,8 @@ export default function Idea() {
     },
   });
 
+  console.log("Idea: ", idea);
+
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/graph/ideas/${ideaId}`,
     dependencies: [ideaId],
@@ -136,13 +138,38 @@ export default function Idea() {
       },
     });
 
-  const embeddingsOutOfDate = () => {
-    if (!idea) return false;
-    if (!idea.embeddingsUpdatedAt) return true;
+  const embeddingsOutOfDate = useCallback(() => {
+    console.log("Idea in embeddings: ", idea);
+    if (!idea) {
+      console.log("No idea...", idea);
+      return false;
+    }
+    if (!idea.embeddingsUpdatedAt) {
+      return true;
+    }
     return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
-  };
+  }, [ideaId, idea]);
+
+  const derivedOutOfDate = useCallback(() => {
+    console.log("Idea in embeddings: ", idea);
+    if (!idea) {
+      console.log("No idea...", idea);
+      return false;
+    }
+    if (
+      !idea.derived?.generative_summary ||
+      !idea.derived.generative_summary.createdAt
+    ) {
+      return true;
+    }
+    return (
+      new Date(idea.contentUpdatedAt) >
+      new Date(idea.derived.generative_summary.createdAt)
+    );
+  }, [ideaId, idea]);
 
   const statusText = useCallback(() => {
+    console.log("Idea in status text: ", idea);
     let text = "";
     if (!idea) {
       return "Still loading...";
@@ -262,33 +289,25 @@ export default function Idea() {
 
   const triggerComputeIfNeeded = useCallback(async () => {
     if (!isMountedRef.current) {
+      console.log("Not sure if is mounted...");
       return;
     }
 
-    if (!idea) {
-      return;
-    }
-
-    const needsEmbedding =
-      !idea.embeddingsUpdatedAt ||
-      new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
-
-    if (needsEmbedding && !loadingEmbeddings && !loadingSaveChanges) {
+    if (embeddingsOutOfDate() && !loadingEmbeddings) {
+      console.log("Triggering embeddings gen...");
       await triggerEmbedIdea();
+    }
+    if (derivedOutOfDate() && !loadingDerivedCascade) {
+      await triggerDerivedCascade();
     }
   }, [
     idea,
     ideaId,
     loadingEmbeddings,
     loadingDerivedCascade,
-    loadingSaveChanges,
-    triggerEmbedIdea,
     embeddingsOutOfDate,
+    derivedOutOfDate,
   ]);
-
-  useShortcuts({
-    shortcuts: [],
-  });
 
   useEffect(() => {
     return () => {
@@ -309,6 +328,10 @@ export default function Idea() {
       setEditorContent(undefined);
     };
   }, [idea?.id]);
+
+  const handleEditorBlur = useCallback(async () => {
+    await triggerComputeIfNeeded();
+  }, [ideaId, idea]);
 
   return (
     <PageWrapper>
@@ -389,6 +412,7 @@ export default function Idea() {
                     initialContent={editorContent}
                     stickyMenu={false}
                     onChange={handleContentChange}
+                    onBlur={handleEditorBlur}
                     dependencies={[ideaId, idea.id]}
                   />
                 </IdeaProvider>
@@ -412,7 +436,7 @@ export default function Idea() {
           )}
         </>
       </div>
-      <RightSidebar stayCollapsed={isMobile} defaultClosed={isMobile}>
+      <RightSidebar forceCollapsed={isMobile} defaultClosed={isMobile}>
         <Tooltip label="Delete Idea">
           {rightSidebarOpened ? (
             <Button
