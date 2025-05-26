@@ -76,3 +76,21 @@ export function generateTextFragmentUrl(
 
   return fragment;
 }
+
+export function getCssVariableValue(
+  variableName: string,
+  element: HTMLElement = document.documentElement,
+): string {
+  if (typeof window !== "undefined" && typeof getComputedStyle === "function") {
+    // Ensure we are in a browser environment
+    const styles = getComputedStyle(element);
+    const value = styles.getPropertyValue(variableName.trim()).trim();
+    return value;
+  }
+  // Return empty string or handle as an error if not in a browser environment
+  // or if getComputedStyle is not available.
+  console.warn(
+    "getCssVariableValue can only be used in a browser environment with getComputedStyle support.",
+  );
+  return "";
+}
