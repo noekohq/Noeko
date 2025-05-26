@@ -10,6 +10,7 @@ import { getDatabase } from "../../db";
 
 export type IGenerativeSummary = {
   id: RecordId;
+  createdAt: Date;
   sentenceOverview: string;
   sentenceSummary: string;
   paragraphOverview?: string;
@@ -107,6 +108,7 @@ export class GenerativeSummary {
         IGenerativeSummary,
         IGenerativeSummaryForm
       >("generative_summary", {
+        createdAt: new Date(),
         sentenceOverview: generation.sentenceOverview,
         sentenceSummary: generation.sentenceSummary,
         paragraphOverview: generation.paragraphOverview,
@@ -179,7 +181,7 @@ export class GenerativeSummary {
     content: string,
   ): Promise<IGenerativeSummaryForm | undefined> {
     try {
-      const lm = getLM().withModel("advanced");
+      const lm = getLM().withModel("simple");
       const prompt = await this.getPromptFromContent(content);
       const generation = await lm?.generateJSON<IGenerativeSummaryForm>(
         prompt.get(),

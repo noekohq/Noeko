@@ -30,10 +30,23 @@ import {
   Code,
 } from "@mantine/core";
 import { formatFileSize } from "../utils/formatting";
+import { useLayout } from "./LayoutContext";
 
 type IInteractionContext = {
   actions: {
     newIdea: () => void;
+    layout: {
+      leftSidebar: {
+        open: () => void;
+        close: () => void;
+        toggle: () => void;
+      };
+      rightSidebar: {
+        open: () => void;
+        close: () => void;
+        toggle: () => void;
+      };
+    };
   };
   views: {
     dashboard: () => void;
@@ -49,6 +62,18 @@ type IInteractionContext = {
 const initialContext: IInteractionContext = {
   actions: {
     newIdea: () => {},
+    layout: {
+      leftSidebar: {
+        open: () => {},
+        close: () => {},
+        toggle: () => {},
+      },
+      rightSidebar: {
+        open: () => {},
+        close: () => {},
+        toggle: () => {},
+      },
+    },
   },
   views: {
     dashboard: () => {},
@@ -97,10 +122,42 @@ export function InteractionProvider({
 
   const [uploadingFile, setUploadingFile] = useState(false);
 
+  const {
+    leftSidebar: { setOpened: setLeftSidebarOpened, opened: leftSidebarOpened },
+    rightSidebar: {
+      setOpened: setRightSidebarOpened,
+      opened: rightSidebarOpened,
+    },
+  } = useLayout();
+
   const value: IInteractionContext = {
     actions: {
       newIdea: async () => {
         handleNewIdea();
+      },
+      layout: {
+        leftSidebar: {
+          open: () => {
+            setLeftSidebarOpened(true);
+          },
+          close: () => {
+            setLeftSidebarOpened(false);
+          },
+          toggle: () => {
+            setLeftSidebarOpened(!leftSidebarOpened);
+          },
+        },
+        rightSidebar: {
+          open: () => {
+            setRightSidebarOpened(true);
+          },
+          close: () => {
+            setRightSidebarOpened(false);
+          },
+          toggle: () => {
+            setRightSidebarOpened(!rightSidebarOpened);
+          },
+        },
       },
     },
     views: {

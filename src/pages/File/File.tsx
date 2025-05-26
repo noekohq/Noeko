@@ -86,7 +86,7 @@ export default function UserFile() {
 
   return (
     <PageWrapper>
-      <LeftSidebar stayCollapsed />
+      <LeftSidebar forceCollapsed />
       <div className={styles.file}>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>

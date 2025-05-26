@@ -3,6 +3,7 @@ import {
   Card,
   Container,
   Divider,
+  Flex,
   Grid,
   Group,
   Kbd,
@@ -32,6 +33,7 @@ import { Link, useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
 import { userIsSuperuser } from "../../utils/user";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -97,9 +99,13 @@ export default function Dashboard() {
 
   const isSuperuser = userIsSuperuser(user);
 
+  const {
+    actions: { newIdea },
+  } = useInteraction();
+
   return (
     <PageWrapper>
-      <LeftSidebar stayCollapsed={isMobile}>
+      <LeftSidebar forceCollapsed={isMobile}>
         {!isMobile && (
           <>
             <Text c="dimmed" size="sm">
@@ -146,42 +152,75 @@ export default function Dashboard() {
           <Grid.Col>
             {!isMobile && (
               <Card withBorder radius="lg">
-                <Stack align="center" gap="sm">
-                  <Group>
-                    <Text>Dashboard view</Text>
-                    <Kbd>{primaryKey} + H</Kbd>
-                  </Group>
-                  <Group>
-                    <Text>Add an idea </Text>
-                    <Kbd>{primaryKey} + I</Kbd>
-                  </Group>
-                  <Group>
-                    <Text>All ideas</Text>
-                    <Kbd>{primaryKey} + i</Kbd>
-                  </Group>
-                  <Group>
-                    <Text>Search ideas</Text>
-                    <Kbd>/</Kbd>
-                  </Group>
-                  <Group>
-                    <Text>Graph view</Text>
-                    <Kbd>{primaryKey} + G</Kbd>
-                  </Group>
-                  <Group>
-                    <Text>Spyglass</Text>
-                    <Kbd>{primaryKey} + /</Kbd>
-                  </Group>
-                  <Group>
-                    <Text>Settings</Text>
-                    <Kbd>{primaryKey} + ,</Kbd>
-                  </Group>
-                  {isSuperuser && (
+                <Flex wrap="wrap" direction="column" align="center" gap="md">
+                  <Button variant="default">
                     <Group>
-                      <Text>Admin Panel</Text>
-                      <Kbd>{primaryKey} + A</Kbd>
+                      <Text>Dashboard view</Text>
+                      <Kbd>{primaryKey} + H</Kbd>
                     </Group>
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      newIdea();
+                    }}
+                  >
+                    <Group>
+                      <Text>Add an idea</Text>
+                      <Kbd>{primaryKey} + I</Kbd>
+                    </Group>
+                  </Button>
+                  <Link to="/ideas">
+                    <Button variant="default">
+                      <Group>
+                        <Text>All ideas</Text>
+                        <Kbd>{primaryKey} + i</Kbd>
+                      </Group>
+                    </Button>
+                  </Link>
+                  <Link to="/spyglass">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Find an idea</Text>
+                        <Kbd>/</Kbd>
+                      </Group>
+                    </Button>
+                  </Link>
+                  <Link to="/graph">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Graph view</Text>
+                        <Kbd>{primaryKey} + G</Kbd>
+                      </Group>
+                    </Button>
+                  </Link>
+                  <Link to="/spyglass">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Spyglass</Text>
+                        <Kbd>{primaryKey} + /</Kbd>
+                      </Group>
+                    </Button>
+                  </Link>
+                  <Link to="/settings">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Settings</Text>
+                        <Kbd>{primaryKey} + ,</Kbd>
+                      </Group>
+                    </Button>
+                  </Link>
+                  {isSuperuser && (
+                    <Link to="/admin">
+                      <Button variant="default">
+                        <Group>
+                          <Text>Admin Panel</Text>
+                          <Kbd>{primaryKey} + A</Kbd>
+                        </Group>
+                      </Button>
+                    </Link>
                   )}
-                </Stack>
+                </Flex>
               </Card>
             )}
             {isMobile && (
@@ -234,7 +273,11 @@ export default function Dashboard() {
           </Grid.Col>
         </Grid>
       </Container>
-      <RightSidebar stayCollapsed={isMobile} openOnShortcut={[{ key: "/" }]}>
+      <RightSidebar
+        forceCollapsed={isMobile}
+        openOnShortcut={[{ key: "/" }]}
+        defaultClosed={isMobile}
+      >
         {!isMobile && rightSidebarOpened && <Search />}
       </RightSidebar>
     </PageWrapper>

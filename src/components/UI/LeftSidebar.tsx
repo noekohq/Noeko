@@ -1,297 +1,267 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styles from "./Sidebars.module.scss";
 import {
   ActionIcon,
   Button,
-  Checkbox,
+  Container,
   Divider,
   Flex,
-  Grid,
-  Group,
-  Modal,
   Text,
-  Textarea,
-  TextInput,
   Tooltip,
+  UnstyledButton,
 } from "@mantine/core";
 import {
   ArrowLineDown,
   ArrowLineLeft,
-  ArrowLineRight,
   ArrowLineUp,
+  CaretDown,
+  CaretLeft,
+  CaretRight,
+  CaretUp,
   HouseSimple,
   MegaphoneSimple,
+  Sidebar,
+  SidebarSimple,
 } from "@phosphor-icons/react";
-import useShortcuts from "../../hooks/useShortcuts";
-import { getCurrentTimeOfDay } from "../../utils/datetime";
+import useShortcuts from "../../hooks/useShortcuts"; // Adjust path
+import { useLayout } from "../../contexts/LayoutContext"; // Using your specific context
+import { useMediaQuery } from "@mantine/hooks"; // Local isMobile, context one also available via useLayout().isMobile
+import FeedbackModal from "../../components/Utils/Modals/FeedbackModal"; // Adjust path
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation } from "react-router";
-import { useMediaQuery } from "@mantine/hooks";
-import { useLayout } from "../../contexts/LayoutContext";
-import useFetch from "../../hooks/useFetch";
-import {
-  IFeedback,
-  IFeedbackForm,
-} from "../../../app/database/models/feedback";
-import { useForm } from "@mantine/form";
-import { showNotification } from "@mantine/notifications";
+import { getCurrentTimeOfDay } from "../../utils/datetime";
 
 type LeftSidebarProps = {
   children?: React.ReactNode | React.ReactNode[];
-  stayCollapsed?: boolean;
+  forceCollapsed?: boolean;
 };
 
 export default function LeftSidebar({
   children,
-  stayCollapsed,
+  forceCollapsed = false,
 }: LeftSidebarProps) {
-  const { user } = useAuth();
-  const openable = children !== undefined && !stayCollapsed;
+  // Using your specific LayoutContext structure
+  const { leftSidebar, isMobile: isContextMobile } = useLayout();
 
-  const [opened, setOpened] = useState(() => {
-    if (!openable) return false;
-    if (typeof window !== "undefined" && window.localStorage) {
-      const storedValue = localStorage.getItem("leftSidebarOpened");
-      return storedValue !== "false";
-    }
-    return true;
-  });
+  // You can choose to use isContextMobile or the local one.
+  // Local one ensures this component's responsiveness logic is self-contained.
+  const isLocalMobile = useMediaQuery("(max-width: 768px)");
+  const currentIsMobile = isLocalMobile; // Or isContextMobile, depending on preference
 
-  useEffect(() => {
-    if (!openable) {
-      setOpened(false);
-    }
-  }, [stayCollapsed]);
+  const canBeToggled = useMemo(
+    () => children !== undefined && !forceCollapsed,
+    [children, forceCollapsed],
+  );
 
-  const {
-    leftSidebar: { setOpened: setLeftSidebarOpened },
-  } = useLayout();
+  const isEffectivelyOpen = useMemo(
+    () => canBeToggled && leftSidebar.opened,
+    [canBeToggled, leftSidebar.opened],
+  );
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.localStorage) {
-      localStorage.setItem("leftSidebarOpened", opened.toString());
+    if (forceCollapsed || children === undefined) {
+      if (leftSidebar.opened) {
+        leftSidebar.setOpened(false); // Use context's setter
+      }
     }
-    setLeftSidebarOpened(opened);
-  }, [opened]);
+    // If `forceCollapsed` becomes false, and children exist,
+    // the sidebar doesn't automatically re-open; it respects the last `leftSidebar.opened` state.
+    // This seems like reasonable behavior.
+  }, [
+    forceCollapsed,
+    children,
+    leftSidebar,
+    leftSidebar.opened,
+    leftSidebar.setOpened,
+  ]); // Added leftSidebar.setOpened to dependencies
 
-  const handleToggle = () => {
-    if (!openable) return;
-    setOpened((currentOpened) => !currentOpened);
-  };
+  const handleToggleSidebar = useCallback(() => {
+    if (canBeToggled) {
+      leftSidebar.setOpened(!leftSidebar.opened); // Use context's setter
+    }
+  }, [canBeToggled, leftSidebar]); // Added leftSidebar to dependencies
 
   useShortcuts({
     shortcuts: [
       {
         keys: { ctrl: true, key: "q" },
-        run: () => handleToggle(),
+        run: handleToggleSidebar,
       },
     ],
   });
 
-  const location = useLocation();
+  const [feedbackModalOpened, setFeedbackModalOpened] = useState(false);
 
-  const isHome = location.pathname === "/";
+  const sidebarClasses = `${styles.leftSidebar} ${
+    isEffectivelyOpen ? styles.opened : styles.closed
+  }`;
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
-  // if mobile, use up arrow, if desktop, use left arrow
-  const ToggleIconClosed = isMobile ? ArrowLineDown : ArrowLineRight;
-  const ToggleIconOpened = isMobile ? ArrowLineUp : ArrowLineLeft;
-
-  const feedbackForm = useForm({
-    initialValues: {
-      content: "",
-      consentToContact: true,
-    },
-    validate: {
-      content: (v) => {
-        if (!v) {
-          return "Content cannot be empty.";
-        }
-        return null;
-      },
-    },
-  });
-
-  const [addingFeedback, setAddingFeedback] = useState(false);
-
-  const { load: createFeedback, loading: loadingFeedback } = useFetch<
-    Omit<IFeedbackForm, "status">,
-    IFeedback
-  >({
-    url: "/feedback",
-    method: "POST",
-    body: {
-      ...feedbackForm.values,
-    },
-    dependencies: [feedbackForm.values],
-    onSuccess: () => {
-      showNotification({
-        title: "Success",
-        message: "Thank you for your valuable feedback!",
-      });
-      feedbackForm.reset();
-      setAddingFeedback(false);
-    },
-    onError: () => {
-      showNotification({
-        title: "Error",
-        message: "Something went wrong creating your feedback",
-        color: "red",
-      });
-    },
-  });
-
-  const handleSubmitFeedback = () => {
-    const { hasErrors, errors } = feedbackForm.validate();
-    if (hasErrors) {
-      showNotification({
-        title: "Error with form",
-        message: Object.values(errors)[0],
-        color: "red",
-      });
-      return;
-    }
-    createFeedback();
+  const mainFlexProps = {
+    direction: currentIsMobile
+      ? isEffectivelyOpen
+        ? "column"
+        : "row"
+      : ("column" as "column" | "row"),
+    justify: "flex-start",
+    align: currentIsMobile
+      ? isEffectivelyOpen
+        ? "center"
+        : "center"
+      : isEffectivelyOpen
+        ? "flex-start"
+        : "center",
+    gap: "md",
+    className: sidebarClasses,
+    style: currentIsMobile && !isEffectivelyOpen ? { minHeight: "50px" } : {},
   };
 
   return (
-    <div
-      className={`${styles.leftSidebar} ${opened ? styles.opened : styles.closed}`}
-    >
-      <Modal
-        opened={addingFeedback}
-        onClose={() => {
-          setAddingFeedback(false);
-        }}
-        title="Submit feedback"
-      >
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            <Textarea
-              label="Your Feedback"
-              placeholder="Your feedback here..."
-              {...feedbackForm.getInputProps("content")}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Checkbox
-              label="Can we contact you about this?"
-              description={`We have your email as ${user?.email}`}
-              {...feedbackForm.getInputProps("consentToContact", {
-                type: "checkbox",
-              })}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Group justify="end">
-              <Button
-                variant="default"
-                onClick={() => {
-                  feedbackForm.reset();
-                }}
-              >
-                Nevermind.
-              </Button>
-              <Button
-                onClick={() => {
-                  handleSubmitFeedback();
-                }}
-              >
-                Submit!
-              </Button>
-            </Group>
-          </Grid.Col>
-        </Grid>
-      </Modal>
-      <Flex
-        direction={isMobile ? (opened ? "column" : "row") : "column"}
-        justify="flex-start"
-        align={isMobile ? "" : opened ? "flex-start" : "center"}
-        gap="md"
-      >
-        <Flex
-          justify="space-between"
-          align={isMobile ? (opened ? "center" : "flex-end") : "center"}
-          direction={
-            isMobile ? (opened ? "column" : "row") : opened ? "row" : "column"
-          }
-          gap="md"
-          w="100%"
-        >
-          {opened && (
-            <Text size="sm">
-              Good {getCurrentTimeOfDay()},{" "}
-              {user?.firstName ?? user?.email ?? "Guest"}
-            </Text>
-          )}
-          <Flex
-            direction={
-              isMobile
-                ? opened
-                  ? "row-reverse"
-                  : "row-reverse"
-                : opened
-                  ? "row-reverse"
-                  : "column"
-            }
-            gap="md"
-          >
-            {openable && (
-              <Tooltip label="Toggle Sidebar (ctrl + q)">
-                <ActionIcon
-                  onClick={handleToggle}
-                  variant="subtle"
-                  aria-label={opened ? "Collapse sidebar" : "Expand sidebar"}
+    <>
+      <Flex {...mainFlexProps}>
+        <LeftSidebarHeader
+          isEffectivelyOpen={isEffectivelyOpen}
+          canBeToggled={canBeToggled}
+          onToggleClick={handleToggleSidebar} // Pass the toggle handler
+        />
+        <div>
+          {canBeToggled &&
+            (isEffectivelyOpen ? (
+              <Tooltip label="Share your thoughts or report an issue">
+                <Button
+                  fullWidth
+                  leftSection={<MegaphoneSimple />}
+                  variant="light"
+                  onClick={() => setFeedbackModalOpened(true)}
                 >
-                  {opened ? (
-                    <ToggleIconOpened weight="bold" />
-                  ) : (
-                    <ToggleIconClosed weight="bold" />
-                  )}
+                  I have feedback!
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip
+                label="Share your thoughts"
+                position={currentIsMobile ? "bottom" : "right"}
+                withArrow
+              >
+                <ActionIcon
+                  variant="light"
+                  color="blue"
+                  onClick={() => setFeedbackModalOpened(true)}
+                  aria-label="Give us feedback"
+                >
+                  <MegaphoneSimple weight="regular" />
                 </ActionIcon>
               </Tooltip>
-            )}
-            {!isHome && (
-              <Link to="/">
-                <Tooltip label="Go home (cmd/ctrl + H)">
-                  <ActionIcon variant="subtle">
-                    <HouseSimple weight="bold" />
-                  </ActionIcon>
-                </Tooltip>
-              </Link>
-            )}
-          </Flex>
-        </Flex>
-        {opened ? (
-          <Tooltip label="Give us feedback!">
-            <Button
-              variant="light"
-              size="sm"
-              leftSection={<MegaphoneSimple weight="bold" />}
-              onClick={() => {
-                setAddingFeedback(true);
-              }}
-            >
-              I have feedback!
-            </Button>
-          </Tooltip>
-        ) : (
-          <Tooltip label="Give us feedback!">
+            ))}
+        </div>
+
+        {isEffectivelyOpen && children && (
+          <>
+            <div className={styles.content}>{children}</div>
+          </>
+        )}
+      </Flex>
+
+      {canBeToggled && (
+        <FeedbackModal
+          opened={feedbackModalOpened}
+          onClose={() => setFeedbackModalOpened(false)}
+        />
+      )}
+    </>
+  );
+}
+
+type LeftSidebarHeaderProps = {
+  isEffectivelyOpen: boolean;
+  canBeToggled: boolean;
+  onToggleClick: () => void; // Callback for toggling
+};
+
+function LeftSidebarHeader({
+  isEffectivelyOpen,
+  canBeToggled,
+  onToggleClick,
+}: LeftSidebarHeaderProps) {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+  // isMobile can be taken from useLayout if preferred and LayoutContext is guaranteed to be above this
+  // For now, keeping local useMediaQuery for independence or if context's isMobile is not suitable
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const ToggleIcon = isEffectivelyOpen
+    ? isMobile
+      ? CaretUp
+      : CaretLeft
+    : isMobile
+      ? CaretDown
+      : CaretRight;
+
+  return (
+    <Flex
+      justify="space-between"
+      align={isMobile ? (isEffectivelyOpen ? "center" : "center") : "center"}
+      direction={
+        isMobile
+          ? isEffectivelyOpen
+            ? "column"
+            : "row"
+          : isEffectivelyOpen
+            ? "row"
+            : "column"
+      }
+      gap="sm"
+      w="100%"
+    >
+      {isEffectivelyOpen && (
+        <Text size="sm" c="dimmed" lineClamp={1}>
+          Good {getCurrentTimeOfDay()},{" "}
+          {user?.firstName ?? user?.email ?? "Guest"}
+        </Text>
+      )}
+      <Flex
+        direction={
+          isMobile
+            ? "row-reverse"
+            : isEffectivelyOpen
+              ? "row-reverse"
+              : "column"
+        }
+        gap="sm"
+        style={{
+          alignSelf: isMobile && !isEffectivelyOpen ? "flex-end" : "auto",
+        }}
+      >
+        {canBeToggled && (
+          <Tooltip
+            label={`${isEffectivelyOpen ? "Collapse" : "Expand"} Sidebar (Ctrl + Q)`}
+            position="right"
+            withArrow
+          >
             <ActionIcon
-              variant="light"
-              size="md"
-              onClick={() => {
-                setAddingFeedback(true);
-              }}
+              onClick={onToggleClick} // Use the passed handler
+              variant="subtle"
+              aria-label={
+                isEffectivelyOpen ? "Collapse sidebar" : "Expand sidebar"
+              }
             >
-              <MegaphoneSimple />
+              <ToggleIcon weight={"bold"} />
+            </ActionIcon>
+          </Tooltip>
+        )}
+        {!isHome && (
+          <Tooltip label="Go Home (Ctrl/Cmd + H)" position="right" withArrow>
+            <ActionIcon
+              component={Link}
+              to="/"
+              variant="subtle"
+              aria-label="Go to homepage"
+            >
+              <HouseSimple weight="bold" />
             </ActionIcon>
           </Tooltip>
         )}
       </Flex>
-      {opened && <Divider my="md" />}
-      {opened && <div className={styles.content}>{children}</div>}
-    </div>
+    </Flex>
   );
 }

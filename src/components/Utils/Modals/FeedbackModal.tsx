@@ -1,0 +1,145 @@
+// components/LeftSidebar/FeedbackModal.tsx
+import { Modal, Grid, Textarea, Checkbox, Group, Button } from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { showNotification } from "@mantine/notifications";
+import useFetch from "../../../hooks/useFetch"; // Adjust path
+import {
+  IFeedback,
+  IFeedbackForm,
+} from "../../../../app/database/models/feedback"; // Adjust path
+import { useAuth } from "../../../contexts/AuthContext"; // Adjust path
+
+type FeedbackModalProps = {
+  opened: boolean;
+  onClose: () => void;
+};
+
+export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
+  const { user } = useAuth();
+
+  const feedbackForm = useForm<Partial<IFeedbackForm>>({
+    // Using Partial for initialValues
+    initialValues: {
+      content: "",
+      consentToContact: true,
+    },
+    validate: {
+      content: (value) =>
+        value && value.trim() ? null : "Feedback content cannot be empty.",
+    },
+  });
+
+  // --- Custom useFetch Hook Usage ---
+  // Preserving your original pattern for useFetch initialization and execution
+  const { load: createFeedback, loading: loadingFeedback } = useFetch<
+    Omit<IFeedbackForm, "status">, // Payload type (matches the body structure)
+    IFeedback // Response type
+  >({
+    url: "/feedback",
+    method: "POST",
+    // Body and dependencies are part of the hook's options, as per your original usage
+    body: {
+      ...feedbackForm.values,
+      // Ensure all necessary fields for Omit<IFeedbackForm, "status"> are here
+      // If feedbackForm.values directly matches Omit<IFeedbackForm, "status">,
+      // then just `...feedbackForm.values` is fine.
+    } as Omit<IFeedbackForm, "status">, // Type assertion for the body
+    dependencies: [feedbackForm.values], // Dependency array as in your original code
+    onSuccess: () => {
+      showNotification({
+        title: "Success",
+        message: "Thank you for your valuable feedback!",
+        color: "teal",
+      });
+      feedbackForm.reset();
+      onClose();
+    },
+    onError: (error) => {
+      // It's good practice for onError to receive the error object
+      console.error("Feedback submission error:", error);
+      showNotification({
+        title: "Submission Error",
+        message:
+          "Something went wrong submitting your feedback. Please try again.",
+        color: "red",
+      });
+    },
+  });
+  // --- End Custom useFetch Hook Usage ---
+
+  const handleSubmitFeedback = async () => {
+    // Retaining async, assuming createFeedback might be
+    const validationResult = feedbackForm.validate();
+    if (validationResult.hasErrors) {
+      // Optional: focus first invalid field if your form setup allows
+      // const firstErrorField = Object.keys(validationResult.errors)[0];
+      // if (firstErrorField) feedbackForm.getInputRef(firstErrorField)?.focus();
+      showNotification({
+        title: "Validation Error",
+        message:
+          "Please correct the errors in the form. The first error is: " +
+          Object.values(validationResult.errors)[0],
+        color: "orange",
+      });
+      return;
+    }
+
+    // Call createFeedback without arguments, assuming it uses the body/dependencies
+    // defined in its hook initialization, as per your custom hook's design.
+    await createFeedback();
+  };
+
+  return (
+    <Modal opened={opened} onClose={onClose} title="Submit Feedback" centered>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmitFeedback();
+        }}
+      >
+        <Grid>
+          <Grid.Col span={12}>
+            <Textarea
+              label="Your Feedback"
+              placeholder="We'd love to hear your thoughts..."
+              minRows={4}
+              required
+              data-autofocus
+              {...feedbackForm.getInputProps("content")}
+            />
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Checkbox
+              label="May we contact you about this feedback?"
+              description={
+                user?.email
+                  ? `If needed, we'll use: ${user.email}`
+                  : "We might want to follow up."
+              }
+              {...feedbackForm.getInputProps("consentToContact", {
+                type: "checkbox",
+              })}
+            />
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Group justify="flex-end" mt="md">
+              <Button
+                variant="default"
+                onClick={() => {
+                  feedbackForm.reset();
+                  onClose();
+                }}
+                disabled={loadingFeedback}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" loading={loadingFeedback}>
+                Submit Feedback
+              </Button>
+            </Group>
+          </Grid.Col>
+        </Grid>
+      </form>
+    </Modal>
+  );
+}

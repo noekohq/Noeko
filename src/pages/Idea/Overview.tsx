@@ -82,7 +82,8 @@ export default function Overview({
     },
   });
 
-  const summary: IGenerativeSummaryForm = idea?.derived?.generative_summary || {
+  const summary: Omit<IGenerativeSummaryForm, "createdAt"> = idea?.derived
+    ?.generative_summary || {
     sentenceOverview: "",
     sentenceSummary: "",
     paragraphOverview: "",
