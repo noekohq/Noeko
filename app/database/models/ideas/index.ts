@@ -276,7 +276,7 @@ export class Idea {
       if (!user) {
         throw new Error(`User with id ${userId} not found.`);
       }
-      const stats = await Idea.getUserIdeaStats(user.id);
+      const stats = await Idea.getUserIdeaStats(user.id.toString());
       if (!stats) {
         throw new Error("Something went wrong getting user stats");
       }
@@ -340,7 +340,7 @@ export class Idea {
         console.error(`User with id ${userId} not found.`);
         return undefined;
       }
-      const stats = await Idea.getUserIdeaStats(user.id);
+      const stats = await Idea.getUserIdeaStats(user.id.toString());
       if (!stats) {
         throw new Error("Something went wrong getting user stats");
       }
@@ -561,7 +561,7 @@ export class Idea {
     try {
       const db = await getDatabase();
       const results = await db?.run<IUserIdeaStats>("fn::get_user_idea_stats", [
-        userId,
+        String(userId),
       ]);
       if (!results) {
         console.error("Something went wrong, no results found.");
