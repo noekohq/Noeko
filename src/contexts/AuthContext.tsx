@@ -10,7 +10,7 @@ import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 
 type AuthState = {
-  user: ISafeUser | undefined;
+  user: (ISafeUser & { totalIdeas: number }) | undefined;
   loading: boolean;
 };
 
@@ -45,9 +45,9 @@ const AuthContext = createContext<IAuthContext>({
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<ISafeUser | undefined>(
-    initialAuthState.user,
-  );
+  const [user, setUser] = useState<
+    (ISafeUser & { totalIdeas: number }) | undefined
+  >(initialAuthState.user);
   const [loading, setLoading] = useState<boolean>(initialAuthState.loading);
 
   const setTokens = useCallback((accessToken: string) => {
@@ -58,7 +58,12 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("accessToken");
   }, []);
 
-  const { load: performUserFetch } = useFetch<undefined, ISafeUser>({
+  const { load: performUserFetch } = useFetch<
+    undefined,
+    ISafeUser & {
+      totalIdeas: number;
+    }
+  >({
     url: "/users/me",
     onSuccess: (data) => {
       setUser(data ?? undefined);

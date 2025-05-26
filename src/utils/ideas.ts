@@ -17,7 +17,7 @@ export const newIdea = async () => {
     const results = await api.post("/ideas/new");
     return results.data.data as IIdea;
   } catch (error) {
-    console.log("Error creating new idea.");
+    console.error("Error creating new idea.");
     return undefined;
   }
 };

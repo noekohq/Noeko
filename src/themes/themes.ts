@@ -223,7 +223,6 @@ export const qwest: IOverrideResolver = (t) => {
 
   const colorsToUse = () => {
     const s = t.scheme === "auto" ? getCurrentScheme() : t.scheme;
-    console.log("scheme found:", s);
     if (s === "light") {
       return { colors: lightColors, white: "#ebdbb2", black: "#282828" };
     }

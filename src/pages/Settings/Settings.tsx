@@ -29,8 +29,6 @@ export default function Settings() {
     },
   } = useSettings();
 
-  console.log("Scheme: ", scheme);
-
   return (
     <PageWrapper>
       <LeftSidebar />

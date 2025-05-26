@@ -32,6 +32,10 @@ import {
 import { formatFileSize } from "../utils/formatting";
 import { useLayout } from "./LayoutContext";
 
+const { VITE_MAX_USER_NOTES } = import.meta.env;
+
+const max_notes = Number(VITE_MAX_USER_NOTES) || 500;
+
 type IInteractionContext = {
   actions: {
     newIdea: () => void;
@@ -133,7 +137,15 @@ export function InteractionProvider({
   const value: IInteractionContext = {
     actions: {
       newIdea: async () => {
-        handleNewIdea();
+        if (user && user.totalIdeas < max_notes && max_notes !== -1) {
+          handleNewIdea();
+        } else {
+          showNotification({
+            title: "Too many notes",
+            message: `You have reached your limit of ${max_notes} ideas!`,
+            color: "red",
+          });
+        }
       },
       layout: {
         leftSidebar: {
@@ -204,11 +216,11 @@ export function InteractionProvider({
         run: value.views.ideas,
       },
       {
-        keys: { ctrl, meta, key: "," },
+        keys: { ctrl, meta, key: "." },
         run: () => navigate("/settings"),
       },
       {
-        keys: { ctrl, meta, key: "a" },
+        keys: { ctrl, meta, key: ";" },
         run: () => {
           if (isSuperuser) {
             value.views.admin();
