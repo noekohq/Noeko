@@ -2,8 +2,6 @@
 
 ./scripts/exportDB.sh
 
-docker-compose build
+bun run client:build
 
-docker-compose down
-
-docker-compose up -d
+pm2 restart ecosystem.config.js
