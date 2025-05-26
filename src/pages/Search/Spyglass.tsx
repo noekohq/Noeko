@@ -97,11 +97,7 @@ export default function Spyglass() {
     return map;
   };
 
-  console.log("Results map: ", resultsMap);
-
   const citationMap = buildCitationMap();
-
-  console.log("Citation map: ", citationMap);
 
   return (
     <PageWrapper>
@@ -254,7 +250,6 @@ function DisplayOverview({
             return finding.sourceId in resultsMap;
           })
           .map((finding) => {
-            console.log("Finding: ", finding);
             const { index: citationNumber } = citationMap[finding.sourceId];
             const mappedValue = resultsMap[finding.sourceId];
             const title =

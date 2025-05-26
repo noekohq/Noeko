@@ -6,6 +6,7 @@ import { IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToMarkdown } from "../../../utils/formatting";
+import { max_user_notes } from "../../../settings";
 
 export const embeddableContentLimit = 20000;
 
@@ -273,8 +274,15 @@ export class Idea {
       const db = await getDatabase();
       const user = await User.get(userId, true);
       if (!user) {
-        console.error(`User with id ${userId} not found.`);
-        return undefined;
+        throw new Error(`User with id ${userId} not found.`);
+      }
+      const stats = await Idea.getUserIdeaStats(user.id);
+      if (!stats) {
+        throw new Error("Something went wrong getting user stats");
+      }
+      const { total } = stats;
+      if (total >= max_user_notes && max_user_notes !== -1) {
+        throw new Error("Tried to add more notes than available.");
       }
       const result = await db?.create<
         IIdea,
@@ -311,7 +319,7 @@ export class Idea {
       }
       return idea;
     } catch (err) {
-      console.error(err);
+      console.error("Error creating idea: ", err);
       return undefined;
     }
   }
@@ -331,6 +339,19 @@ export class Idea {
       if (!user) {
         console.error(`User with id ${userId} not found.`);
         return undefined;
+      }
+      const stats = await Idea.getUserIdeaStats(user.id);
+      if (!stats) {
+        throw new Error("Something went wrong getting user stats");
+      }
+      const { total } = stats;
+      if (total >= max_user_notes && max_user_notes !== -1) {
+        throw new Error("Tried to add more notes than allowed.");
+      }
+      if (total + forms.length > max_user_notes && max_user_notes !== -1) {
+        throw new Error(
+          "Adding notes would result in larger than allowed note total.",
+        );
       }
       const result = await db?.insert<
         IIdea,

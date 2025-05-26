@@ -68,8 +68,6 @@ export default function Idea() {
     },
   });
 
-  console.log("Idea: ", idea);
-
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/graph/ideas/${ideaId}`,
     dependencies: [ideaId],
@@ -139,9 +137,7 @@ export default function Idea() {
     });
 
   const embeddingsOutOfDate = useCallback(() => {
-    console.log("Idea in embeddings: ", idea);
     if (!idea) {
-      console.log("No idea...", idea);
       return false;
     }
     if (!idea.embeddingsUpdatedAt) {
@@ -151,9 +147,7 @@ export default function Idea() {
   }, [ideaId, idea]);
 
   const derivedOutOfDate = useCallback(() => {
-    console.log("Idea in embeddings: ", idea);
     if (!idea) {
-      console.log("No idea...", idea);
       return false;
     }
     if (
@@ -169,7 +163,6 @@ export default function Idea() {
   }, [ideaId, idea]);
 
   const statusText = useCallback(() => {
-    console.log("Idea in status text: ", idea);
     let text = "";
     if (!idea) {
       return "Still loading...";
@@ -289,12 +282,10 @@ export default function Idea() {
 
   const triggerComputeIfNeeded = useCallback(async () => {
     if (!isMountedRef.current) {
-      console.log("Not sure if is mounted...");
       return;
     }
 
     if (embeddingsOutOfDate() && !loadingEmbeddings) {
-      console.log("Triggering embeddings gen...");
       await triggerEmbedIdea();
     }
     if (derivedOutOfDate() && !loadingDerivedCascade) {

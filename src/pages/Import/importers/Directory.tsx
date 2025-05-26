@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import {
+  ExclamationMark,
   Eye,
   HandsClapping,
   Percent,
@@ -26,6 +27,7 @@ import {
   Alert,
   Loader,
   Progress,
+  Space,
 } from "@mantine/core";
 import { markdownToHtml } from "../../../utils/formatting";
 import { Link, useNavigate } from "react-router";
@@ -40,6 +42,7 @@ import {
   initializeImport,
   uploadChunkToImport,
 } from "../../../utils/ideas";
+import { useAuth } from "../../../contexts/AuthContext";
 
 type IParsedFile = {
   title: string;
@@ -48,7 +51,13 @@ type IParsedFile = {
   originalFile: File;
 };
 
+const { VITE_MAX_USER_NOTES } = import.meta.env;
+
+const max_notes = Number(VITE_MAX_USER_NOTES) || 500;
+
 export default function DirectoryImporter() {
+  const { user } = useAuth();
+
   const [files, setFiles] = useState<IParsedFile[]>([]);
   const [topPath, setTopPath] = useState<string>("");
 
@@ -122,6 +131,9 @@ export default function DirectoryImporter() {
     debouncedSearch(filter);
   }, [filter]);
 
+  const notesLeft = user ? max_notes - user?.totalIdeas : 0;
+  const isAllowedToImport = notesLeft >= files.length && max_notes !== -1;
+
   const [showAll, setShowAll] = useState(false);
 
   const [importing, setImporting] = useState(false);
@@ -132,6 +144,9 @@ export default function DirectoryImporter() {
 
   const handleInitiateUpload = useCallback(async () => {
     try {
+      if (!isAllowedToImport) {
+        throw new Error(`Cannot have more than ${max_notes}.`);
+      }
       setImporting(true);
       setProgressPercent(5);
       setProgressText("Preparing your ideas...");
@@ -234,7 +249,20 @@ export default function DirectoryImporter() {
                 </Tooltip>
               </Group>
             </Grid.Col>
-            {!importing && (
+            {!isAllowedToImport && (
+              <>
+                <Alert
+                  color="red"
+                  icon={<ExclamationMark />}
+                  title="Too many files!"
+                  mt="lg"
+                >
+                  Unfortunately, importing {files.length} file(s) would push you
+                  over the current {max_notes} limit.
+                </Alert>
+              </>
+            )}
+            {!importing && isAllowedToImport && (
               <>
                 <Grid.Col span={{ sm: 12 }}>
                   <Text>Should we start the import?</Text>

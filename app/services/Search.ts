@@ -231,7 +231,6 @@ export class Search {
       await db.query(searchSimilarToEmbeddings());
       console.info("Running define vector index");
       await db.query(defineVectorIndex());
-      console.log("Search setup complete (using original definitions).");
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;
@@ -599,7 +598,7 @@ export class Search {
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
         const totalSize = overviewPrompt.get().length;
-        if (totalSize + s > max_lm_prompt_size) {
+        if (totalSize + s.length > max_lm_prompt_size) {
           return;
         }
         overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);

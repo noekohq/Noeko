@@ -49,7 +49,6 @@ export default function Dashboard() {
       console.error("Error getting dashboard data: ", err);
     },
   });
-  console.log("Dashboard data: ", dashboardData);
 
   const {
     leftSidebar: { opened: leftSidebarOpened },
@@ -206,7 +205,7 @@ export default function Dashboard() {
                     <Button variant="default">
                       <Group>
                         <Text>Settings</Text>
-                        <Kbd>{primaryKey} + ,</Kbd>
+                        <Kbd>{primaryKey} + .</Kbd>
                       </Group>
                     </Button>
                   </Link>
@@ -215,7 +214,7 @@ export default function Dashboard() {
                       <Button variant="default">
                         <Group>
                           <Text>Admin Panel</Text>
-                          <Kbd>{primaryKey} + A</Kbd>
+                          <Kbd>{primaryKey} + ;</Kbd>
                         </Group>
                       </Button>
                     </Link>

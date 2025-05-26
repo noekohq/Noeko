@@ -18,6 +18,7 @@ import {
 } from "../utils/requests";
 import { sendEmail } from "../utils/email";
 import { getRandomValues } from "crypto";
+import { Idea } from "../database/models/ideas";
 
 const router = Router();
 
@@ -140,9 +141,18 @@ router.get("/me", checkToken, async (req, res) => {
       res.status(404).json({ message: "User not found" });
       return;
     }
+    const userStats = await Idea.getUserIdeaStats(user.id);
+    if (!userStats) {
+      throw new Error("Something went wrong getting idea stats...");
+    }
     res.json({
       message: "User checked successfully",
-      data: foundUser,
+      data: {
+        ...foundUser,
+        ...{
+          totalIdeas: userStats.total,
+        },
+      },
     });
   } catch (error) {
     console.error("User check error:", error);
