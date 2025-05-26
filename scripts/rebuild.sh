@@ -4,4 +4,4 @@
 
 bun run client:build
 
-pm2 restart ecosystem.config.js
+pm2 restart ecosystem.config.cjs
