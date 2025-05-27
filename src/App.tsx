@@ -25,6 +25,7 @@ import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
 import Spyglass from "./pages/Search/Spyglass";
 import Ideas from "./pages/Idea/Ideas";
+import Tags from "./pages/Settings/Tags/Tags";
 import { useEffect } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 
@@ -93,8 +94,15 @@ export default function App() {
                   />
                   <Route index element={<Dashboard />} />
                   <Route path="graph" element={<Graph />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="settings" element={<Settings />} />
+                  <Route
+                    path="profile"
+                    element={<Navigate to="/settings/profile" />}
+                  />
+                  <Route path="settings">
+                    <Route index element={<Settings />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="tags" element={<Tags />} />
+                  </Route>
                   <Route path="idea">
                     <Route index element={<Navigate to="/ideas" replace />} />
                     <Route path=":ideaId" element={<Idea />} />

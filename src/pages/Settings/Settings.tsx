@@ -41,6 +41,25 @@ export default function Settings() {
             <Card withBorder radius="lg">
               <Grid>
                 <Grid.Col>
+                  <Title order={3}>Other Settings</Title>
+                </Grid.Col>
+                <Grid.Col>
+                  <Group>
+                    <Link to="tags">
+                      <Button variant="light">Tags</Button>
+                    </Link>
+                    <Link to="profile">
+                      <Button variant="light">Profile</Button>
+                    </Link>
+                  </Group>
+                </Grid.Col>
+              </Grid>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Card withBorder radius="lg">
+              <Grid>
+                <Grid.Col>
                   <Title order={3}>Theme</Title>
                 </Grid.Col>
                 <Grid.Col span={{ xs: 12, sm: 6, md: 4 }}>

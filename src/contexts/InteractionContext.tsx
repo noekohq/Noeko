@@ -186,7 +186,7 @@ export function InteractionProvider({
         navigate("/settings");
       },
       profile: () => {
-        navigate("/profile");
+        navigate("/settings/profile");
       },
       ideas: () => {
         navigate("/ideas");
