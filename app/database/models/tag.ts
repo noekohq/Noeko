@@ -2,17 +2,24 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { User } from "./user";
 import { Idea } from "./ideas"; // Assuming Idea model is in this path
+import { Embeddings } from "../../semantics/embeddings";
+import { htmlToMarkdown } from "../../utils/formatting";
 
 export type ITag = {
   id: string | RecordId;
   name: string;
   description: string;
   color?: string; // Optional: hex code for tag color
+  embeddings: number[] | null;
+  embeddingsUpdatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 };
 
-export type ITagForm = Omit<ITag, "id" | "createdAt" | "updatedAt">;
+export type ITagForm = Omit<
+  ITag,
+  "id" | "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt"
+>;
 
 export type ITagUserOwnership = {
   id: string | RecordId;
@@ -53,8 +60,19 @@ export class Tag {
       }`;
     };
 
+    const getTagsForIdeaFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_tags_for_idea(
+        $ideaId: record<idea>,
+      ) {
+        RETURN SELECT VALUE <-describes<-tag FROM ONLY $ideaId FETCH tag;
+      }
+      `;
+    };
+
     await db.query(getUserTagsFunction());
     await db.query(getIdeasForTagFunction());
+    await db.query(getTagsForIdeaFunction());
   }
 
   static async create(
@@ -93,6 +111,8 @@ export class Tag {
         tagId: tagRecord.id,
         now: new Date(),
       });
+
+      await Tag.updateEmbeddings(tagRecord);
 
       return tagRecord;
     } catch (error) {
@@ -142,7 +162,9 @@ export class Tag {
 
   static async update(
     id: string | RecordId,
-    data: Partial<ITagForm>,
+    data: Partial<
+      ITagForm & { embeddings: number[]; embeddingsUpdatedAt: Date }
+    >,
   ): Promise<ITag | undefined> {
     try {
       const db = await getDatabase();
@@ -158,6 +180,9 @@ export class Tag {
       });
       if (!result) {
         throw new Error("Result from tag update is falsey");
+      }
+      if ("name" in data || "description" in data) {
+        await Tag.updateEmbeddings(result);
       }
       return result;
     } catch (error) {
@@ -293,6 +318,28 @@ export class Tag {
     }
   }
 
+  static async getTagsForIdea(
+    ideaId: string | RecordId,
+  ): Promise<Tag[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+      const results = await db.run<Idea[]>("fn::get_tags_for_idea", [
+        new StringRecordId(ideaId),
+      ]);
+      if (!results) {
+        console.warn("Error getting tags for idea or idea has no tags");
+        return []; // Return empty array if no ideas or error
+      }
+      return results;
+    } catch (error) {
+      console.error("Error getting ideas for tag: ", error);
+      return undefined;
+    }
+  }
+
   static async delete(id: string | RecordId): Promise<boolean> {
     try {
       const db = await getDatabase();
@@ -327,6 +374,69 @@ export class Tag {
     } catch (error) {
       console.error("Error deleting tag: ", error);
       return false;
+    }
+  }
+
+  static async updateEmbeddings(tag: ITag, force = false) {
+    try {
+      if (
+        !force &&
+        tag.embeddingsUpdatedAt >= tag.updatedAt &&
+        tag.embeddings?.length !== 0
+      ) {
+        return undefined;
+      }
+      const embedding = new Embeddings();
+      const embeddableContent = `${tag.name}:${tag.description}`;
+      if (!embeddableContent) {
+        return undefined;
+      }
+      const vector = await embedding.generateEmbeddings(embeddableContent);
+      if (!vector) {
+        throw new Error("Couldn't get embeddings");
+      }
+      return await Tag.update(tag.id, {
+        embeddings: vector,
+        embeddingsUpdatedAt: new Date(),
+      });
+    } catch (err) {
+      console.error(`Error during updateEmbeddings for tag "${tag.id}":`, err);
+      return undefined;
+    }
+  }
+
+  static async getSimilarToIdea(
+    userId: string | RecordId,
+    ideaId: string | RecordId,
+    options?: {
+      limit?: number;
+      threshold?: number;
+    },
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+      const idea = await Idea.get(ideaId);
+      if (!idea) {
+        throw new Error("Idea not found.");
+      }
+      const results = await db.run<ITag[]>(
+        "fn::search_similar_tags_to_embeddings",
+        [
+          idea.embeddings,
+          new StringRecordId(userId),
+          options?.limit,
+          options?.threshold || 0.4,
+        ],
+      );
+      if (!results) {
+      }
+      return results;
+    } catch (error) {
+      console.error("Error getting similar tags to idea: ", error);
+      return undefined;
     }
   }
 }

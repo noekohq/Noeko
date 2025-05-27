@@ -1139,9 +1139,10 @@ export class Idea {
     }
   }
 
-  static getEmbeddableContent(content: string) {
-    const plaintextContent = htmlToMarkdown(content);
-    return plaintextContent;
+  static getEmbeddableContent(idea: IIdea) {
+    const plaintextContent = htmlToMarkdown(idea.content);
+    const withTitle = `${idea.title}\n---\n${plaintextContent}`;
+    return withTitle;
   }
 
   static async loadEmbeddings(id: string | RecordId) {
@@ -1190,7 +1191,7 @@ export class Idea {
         return undefined;
       }
       const embedding = new Embeddings();
-      const embeddableContent = htmlToMarkdown(idea.content);
+      const embeddableContent = Idea.getEmbeddableContent(idea);
       if (
         !embeddableContent ||
         embeddableContent.length > embeddableContentLimit
@@ -1233,7 +1234,7 @@ export class Idea {
         .map((idea) => {
           return [
             idea.id.toString(),
-            htmlToMarkdown(idea.content).slice(0, embeddableContentLimit),
+            Idea.getEmbeddableContent(idea).slice(0, embeddableContentLimit),
           ] as [string, string];
         });
       if (!ideasAndContent) {

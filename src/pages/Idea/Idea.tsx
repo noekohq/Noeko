@@ -16,6 +16,7 @@ import {
   Flex,
   Divider,
   Button,
+  Space,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { Sparkle, TrashSimple } from "@phosphor-icons/react";
@@ -34,6 +35,7 @@ import { htmlToPlainText } from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
 import Search from "../../components/Search/Search";
+import TagsManager from "./TagsManager";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -454,6 +456,8 @@ export default function Idea() {
             </ActionIcon>
           )}
         </Tooltip>
+        {rightSidebarOpened && <Space my="md" />}
+        {rightSidebarOpened && !!idea && <TagsManager idea={idea} />}
         {rightSidebarOpened && <Divider my="md" />}
         {rightSidebarOpened && <Search />}
       </RightSidebar>

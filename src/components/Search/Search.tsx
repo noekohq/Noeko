@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Search.module.scss";
 import { SearchBar } from "./SearchBar";
-import { ISearchResult } from "../../../app/services/Search";
 import { Container, Group, Space, Text, UnstyledButton } from "@mantine/core";
 import { Link } from "react-router";
 import { getNodeTitle } from "../../utils/graph";

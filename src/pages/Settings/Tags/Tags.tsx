@@ -21,6 +21,7 @@ import useFetch from "../../../hooks/useFetch"; // Adjust the import path as nee
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react"; // Added React, useState, and useMemo
 import { Plus, PencilSimple, FloppyDisk, X } from "@phosphor-icons/react"; // Added new icons
+import Tag from "../../../components/Tags/Tag";
 
 export default function Tags() {
   const {
@@ -37,14 +38,14 @@ export default function Tags() {
 
   // Assumes useForm is imported from '@mantine/form'
   // Assumes ITagForm is imported from the models
-  const tagForm = useForm<ITagForm>({
+  const tagForm = useForm<Partial<ITagForm>>({
     initialValues: {
       name: "",
       description: "",
       color: "", // Added color field
     },
     validate: {
-      name: (value) => (value.trim() === "" ? "Tag name is required" : null),
+      name: (value) => (!value ? "Tag name is required" : null),
       color: (value) => {
         // Added color validation
         if (
@@ -120,7 +121,7 @@ export default function Tags() {
             {loading && <p>Loading tags...</p>}
             {!!errors.length && <p>Error loading tags: {errors}</p>}
             {/* Always render table structure to include form in header */}
-            <Table>
+            <Table withRowBorders={false}>
               <Table.Thead>
                 {/* Form row for adding new tags */}
                 {/* Standard table headers */}
@@ -231,7 +232,7 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
       color: tag.color || "",
     },
     validate: {
-      name: (value) => (value.trim() === "" ? "Tag name is required" : null),
+      name: (value) => (value?.trim() === "" ? "Tag name is required" : null),
       color: (value) => {
         if (
           value &&
@@ -347,13 +348,7 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
   return (
     <Table.Tr>
       <Table.Td>
-        {tag.color ? (
-          <Badge color={tag.color} variant="filled">
-            {tag.name}
-          </Badge>
-        ) : (
-          <Badge>{tag.name}</Badge>
-        )}
+        <Tag tag={tag} />
       </Table.Td>
       <Table.Td>{tag.description || ""}</Table.Td>
       <Table.Td>

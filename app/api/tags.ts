@@ -33,13 +33,14 @@ router.post("/", async (req, res): Promise<void> => {
       res.status(400).json({ message: "Tag description must be a string." });
       return;
     }
-    // Optional: Add validation for color (e.g., regex for hex code)
     if (color !== undefined && typeof color !== "string") {
-        res.status(400).json({ message: "Tag color must be a string (hex code)." });
-        return;
+      res
+        .status(400)
+        .json({ message: "Tag color must be a string (hex code)." });
+      return;
     }
 
-    const tagData: ITagForm = {
+    const tagData: Omit<ITagForm, "embeddings" | "embeddingsUpdatedAt"> = {
       name: name.trim(),
       description: description?.trim() || "",
       color: color?.trim(), // Added color
@@ -96,17 +97,17 @@ router.get("/:tagId", async (req, res): Promise<void> => {
       return;
     }
 
+    const isOwner = await Tag.checkUserOwnership(tagId, user.id);
+    if (!isOwner) {
+      res.status(403).json({ message: "Forbidden. You do not own this tag." });
+      return;
+    }
+
     const tag = await Tag.get(tagId);
     if (!tag) {
       res.status(404).json({ message: "Tag not found." });
       return;
     }
-
-    // Optional: Check if the user owns this tag if tags are not public
-    // const isOwner = await Tag.checkUserOwnership(tagId, user.id);
-    // if (!isOwner) {
-    //   return res.status(403).json({ message: "Forbidden. You do not own this tag." });
-    // }
 
     res.status(200).json({ message: "Tag retrieved.", data: tag });
   } catch (error) {
@@ -217,12 +218,11 @@ router.get("/:tagId/ideas", async (req, res): Promise<void> => {
       return;
     }
 
-    // Optional: Check if the user owns this tag before allowing to see ideas
-    // const isOwner = await Tag.checkUserOwnership(tagId, user.id);
-    // if (!isOwner) {
-    //   // Or if the tag is public, but only show ideas the user has access to
-    //   return res.status(403).json({ message: "Forbidden. You do not own this tag." });
-    // }
+    const isOwner = await Tag.checkUserOwnership(tagId, user.id);
+    if (!isOwner) {
+      res.status(403).json({ message: "Forbidden. You do not own this tag." });
+      return;
+    }
 
     const tagExists = await Tag.get(tagId);
     if (!tagExists) {
@@ -256,16 +256,15 @@ router.post("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
 
     const isTagOwner = await Tag.checkUserOwnership(tagId, user.id);
     if (!isTagOwner) {
-      res.status(403).json({ message: "Forbidden. You do not own this tag." });
+      res.status(403).json({ message: "Forbidden." });
       return;
     }
 
-    // Optionally: Check if the idea exists and if the user has rights to modify it or associate tags with it.
-    // For now, we rely on the Tag.connectToIdea method to handle existence checks if it does.
-    // const idea = await Idea.get(ideaId);
-    // if (!idea) {
-    //    return res.status(404).json({ message: "Idea not found." });
-    // }
+    const isIdeaOwner = await Idea.checkUserOwnership(ideaId, user.id);
+    if (!isIdeaOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
 
     const relationship = await Tag.connectToIdea(tagId, ideaId);
     if (!relationship) {
@@ -303,6 +302,12 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
       return;
     }
 
+    const isIdeaOwner = await Idea.checkUserOwnership(ideaId, user.id);
+    if (!isIdeaOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
     const success = await Tag.disconnectFromIdea(tagId, ideaId);
     if (!success) {
       res.status(500).json({
@@ -317,6 +322,35 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
       .json({ message: "Tag disconnected from idea successfully." });
   } catch (error) {
     console.error("Error disconnecting tag from idea:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/similar_to/idea/:ideaId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+    const ideaId = req.params.ideaId;
+    const userOwns = Idea.checkUserOwnership(ideaId, user.id);
+    if (!userOwns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const similar = await Tag.getSimilarToIdea(user.id, ideaId);
+    if (!similar) {
+      throw new Error("Couldn't get similar.");
+    }
+    res.send({
+      message: "Got similar tags to idea",
+      data: similar,
+    });
+  } catch (error) {
+    console.error("Error finding similar tags to idea:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

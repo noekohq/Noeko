@@ -3,6 +3,7 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser, IUser } from "../database/models/user";
 import { Idea } from "../database/models/ideas";
+import { Tag } from "../database/models/tag";
 
 const router = Router();
 
@@ -76,6 +77,26 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     res.send({ message: "Successfully created idea.", data: i });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/:ideaId/tags", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const ideaId = req.params.ideaId;
+    const tags = await Tag.getTagsForIdea(ideaId);
+    if (!tags) {
+      res.status(404).json({ error: "Tags not found" });
+      return;
+    }
+    res.send({ message: "Successfully retrieved idea tags", data: tags });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
