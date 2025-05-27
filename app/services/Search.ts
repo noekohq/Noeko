@@ -1,7 +1,5 @@
 import { RecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-// Make sure IIdea includes all fields returned by your functions,
-// including potentially embeddings, contentPlain etc.
 import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
 import { Embeddings } from "../semantics/embeddings";
@@ -11,9 +9,6 @@ import { SchemaType } from "@google/generative-ai";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 
-// --- Standardized Search Result Types ---
-
-// Define the possible value types a search result can represent
 export type ISearchResultValue =
   | (IIdea & {
       type: "idea";
@@ -90,9 +85,27 @@ export class Search {
       `;
     };
 
+    const defineTagVectorIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_tag_embeddings
+        ON TABLE tag
+        FIELDS embeddings
+        HNSW DIMENSION 768
+        DIST COSINE
+        TYPE F32;
+      `;
+    };
+
     const ideaSearchAnalyzer = () => {
       return `
       DEFINE ANALYZER OVERWRITE idea_analyzer
+      TOKENIZERS class
+      FILTERS lowercase;`;
+    };
+
+    const tagSearchAnalyzer = () => {
+      return `
+      DEFINE ANALYZER OVERWRITE tag_analyzer
       TOKENIZERS class
       FILTERS lowercase;`;
     };
@@ -119,6 +132,16 @@ export class Search {
       `;
     };
 
+    const ftsTagSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_tag_fts
+        ON TABLE tag
+        FIELDS name, description
+        SEARCH ANALYZER tag_analyzer
+        BM25 HIGHLIGHTS;
+      `;
+    };
+
     // Uses the exact function definition from the initial prompt
     const ftsSearchFunction = () => {
       return `
@@ -140,6 +163,29 @@ export class Search {
             AND <-owns<-(user WHERE id = <record> $userId);
 
         return $ideas;
+      }`;
+    };
+
+    const ftsSearchTagsFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_user_tags_fts(
+        $userId: string,
+        $query: string
+      ) {
+        LET $tags = SELECT
+            *,
+            name,
+            description,
+            search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
+            search::score(0) AS nameScore,
+            search::score(1) AS descriptionScore
+        FROM idea
+        WHERE
+            (name @0@ $query OR
+            description @1@ $query)
+            AND <-owns<-(user WHERE id = <record> $userId);
+
+        return $tags;
       }`;
     };
 
@@ -210,27 +256,53 @@ export class Search {
           `;
     };
 
+    const searchSimilarTagsToEmbeddings = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_similar_tags_to_embeddings(
+        $provided_embeddings: array<float>,
+        $userId: record,
+        $limit: option<int>,
+        $threshold: option<float>
+      ) {
+        IF !$provided_embeddings THEN return [] END;
+        LET $got_limit = IF !!$limit THEN $limit ELSE count(fn::get_user_tags($userId)) END;
+        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance
+            FROM tag
+            WHERE
+              <-owns<-(user WHERE id = <record> $userId)
+              AND !!embeddings
+              AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
+            ORDER BY distance DESC
+            LIMIT $got_limit;
+
+        RETURN $results;
+      }
+          `;
+    };
+
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized for Search.up");
       console.log(
         "Defining search analyzers, indexes, and functions (using original definitions)...",
       );
-      // Execute the original definitions
-      console.info("Running idea search analyzer...");
       await db.query(ideaSearchAnalyzer());
-      console.info("Running fts title search index");
+      await db.query(tagSearchAnalyzer());
       await db.query(ftsTitleSearchIndex());
-      console.info("Running fts content search index");
       await db.query(ftsContentSearchIndex());
-      console.info("Running fts search function");
-      await db.query(ftsSearchFunction());
-      console.info("Running fts search function initializer");
-      await db.query(searchSimilarToIdea());
-      console.info("Running search similar to embeddings initializer");
-      await db.query(searchSimilarToEmbeddings());
-      console.info("Running define vector index");
+      await db.query(ftsTagSearchIndex());
       await db.query(defineVectorIndex());
+      await db.query(defineTagVectorIndex());
+      await db.query(ftsSearchFunction());
+      await db.query(ftsSearchTagsFunction());
+      await db.query(searchSimilarToIdea());
+      await db.query(searchSimilarToEmbeddings());
+      await db.query(searchSimilarTagsToEmbeddings());
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;

@@ -6,7 +6,6 @@ import {
 } from "../../app/database/models/ideas";
 import { api } from "../server/api";
 import { IChunk } from "../../app/services/Importer";
-import { Cursor } from "@phosphor-icons/react";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
@@ -122,6 +121,50 @@ export const getChunkSize = (chunk: IChunk): number => {
   return chunk.items.reduce((acc, curr) => {
     return acc + getIdeaSize(curr);
   }, 0);
+};
+
+export const addTagToIdea = async (ideaId: string, tagId: string) => {
+  try {
+    const response = await api.post(`/tags/${tagId}/ideas/${ideaId}`);
+    showNotification({
+      title: "Tag Added",
+      message: "The tag was successfully added to the idea.",
+      color: "green",
+    });
+    return response.data; // Or a more specific part of the response if needed
+  } catch (error: any) {
+    console.error(`Error adding tag ${tagId} to idea ${ideaId}:`, error);
+    showNotification({
+      title: "Error Adding Tag",
+      message:
+        error.response?.data?.message ||
+        "Something went wrong while adding the tag.",
+      color: "red",
+    });
+    return undefined;
+  }
+};
+
+export const removeTagFromIdea = async (ideaId: string, tagId: string) => {
+  try {
+    const response = await api.delete(`/tags/${tagId}/ideas/${ideaId}`);
+    showNotification({
+      title: "Tag Removed",
+      message: "The tag was successfully removed from the idea.",
+      color: "green",
+    });
+    return response.data; // Or a more specific part of the response if needed
+  } catch (error: any) {
+    console.error(`Error removing tag ${tagId} from idea ${ideaId}:`, error);
+    showNotification({
+      title: "Error Removing Tag",
+      message:
+        error.response?.data?.message ||
+        "Something went wrong while removing the tag.",
+      color: "red",
+    });
+    return undefined;
+  }
 };
 
 export const getChunkedIdeas = (
