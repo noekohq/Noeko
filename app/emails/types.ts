@@ -19,7 +19,7 @@ export const invitationTemplate = (
   - Email: ${invitee.email}
   - Password: ${invitePassword}
 
-  It's recommmended that you go to <a href="${DEPLOYED_URL}/profile">your profile page</a> shortly after to change you password.
+  It's recommmended that you go to <a href="${DEPLOYED_URL}/settings/profile">your profile page</a> shortly after to change you password.
 
   We hope to see you soon! Thanks.`.trim();
 };

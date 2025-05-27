@@ -189,7 +189,7 @@ function RightSidebarHeader({
   ];
 
   const userMenuItems = [
-    { label: "Profile", icon: User, path: "/profile" },
+    { label: "Profile", icon: User, path: "/settings/profile" },
     { label: "Settings", icon: Gear, path: "/settings" },
   ];
 

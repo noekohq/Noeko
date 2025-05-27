@@ -7,6 +7,7 @@ import feedbackRouter from "./feedback";
 import importRouter from "./import";
 import dashboardRouter from "./dashboard";
 import ideasRouter from "./ideas";
+import tagRouter from "./tags"; // Added import for tagRouter
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use("/users", userRouter);
 router.use("/search", searchRouter);
 router.use("/feedback", feedbackRouter);
 router.use("/imports", importRouter);
+router.use("/tags", tagRouter); // Registered tagRouter
 
 export default router;
