@@ -3,10 +3,20 @@ version: "3.9"
 services:
   web:
     build:
+      context: .
+      dockerfile: docker/Dockerfile
       target: builder
     volumes:
       - .:/project # Changed from /app to /project to match your Dockerfile WORKDIR
       - /project/node_modules # Changed from /app/node_modules
-    command: sh -c "bun install && bun run server:watch"
+    env_file:
+      - ./.env
+    depends_on:
+      - surrealdb
+    ports:
+      - $PORT:$PORT
+    networks:
+      - app
     environment:
       - NODE_ENV=development
+    command: sh -c "bun install && bun run server:watch"

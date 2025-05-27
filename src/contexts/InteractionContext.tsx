@@ -212,7 +212,7 @@ export function InteractionProvider({
         run: value.views.spyglass,
       },
       {
-        keys: { ctrl, meta, key: "i" },
+        keys: { ctrl, meta, shift: true, key: "b" },
         run: value.views.ideas,
       },
       {
