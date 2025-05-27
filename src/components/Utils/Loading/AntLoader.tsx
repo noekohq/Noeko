@@ -2,16 +2,11 @@ import React from "react";
 import styles from "./AntLoader.module.scss";
 import { Text } from "@mantine/core";
 import { isDarkScheme } from "../../../utils/dom";
+import { useSettings } from "../../../contexts/SettingsContext";
 // import { isDarkScheme } from "../../../utils/dom"; // Not used currently
 
 type Direction = 0 | 1 | 2 | 3;
 type RgbColor = [number, number, number];
-
-// Updated SOFT_WHITE_BG as per your provided code
-const SOFT_WHITE_BG: RgbColor = isDarkScheme()
-  ? [102, 92, 84]
-  : [251, 241, 199];
-const SOFT_BLACK_FG: RgbColor = isDarkScheme() ? [29, 32, 33] : [168, 153, 132];
 
 const colorsAreEqual = (colorA: RgbColor, colorB: RgbColor): boolean => {
   return (
@@ -56,6 +51,7 @@ interface LangtonsAntLoaderProps {
   gravityStrength?: number;
   onStepUpdate?: (steps: number) => void;
   loadingText?: string; // This prop is already defined
+  withOverlay?: boolean;
 }
 
 const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
@@ -70,7 +66,19 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
   gravityStrength = 0.1,
   onStepUpdate,
   loadingText, // Destructure the new prop
+  withOverlay,
 }) => {
+  const {
+    ui: {
+      theme: {
+        scheme: { get: scheme },
+      },
+    },
+  } = useSettings();
+  const isDark = scheme === "dark" || (scheme === "auto" && isDarkScheme());
+  const SOFT_WHITE_BG: RgbColor = isDark ? [102, 92, 84] : [251, 241, 199];
+  const SOFT_BLACK_FG: RgbColor = isDark ? [29, 32, 33] : [168, 153, 132];
+
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const grid = React.useRef<Map<string, CellData>>(new Map());
@@ -531,6 +539,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
           <Text size="xl">{loadingText}</Text>
         </div>
       )}
+      {withOverlay && <div className={styles["blur-overlay"]} />}
     </div>
   );
 };
