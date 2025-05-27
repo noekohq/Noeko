@@ -173,7 +173,7 @@ export default function Dashboard() {
                     <Button variant="default">
                       <Group>
                         <Text>All ideas</Text>
-                        <Kbd>{primaryKey} + i</Kbd>
+                        <Kbd>{primaryKey} + B</Kbd>
                       </Group>
                     </Button>
                   </Link>
