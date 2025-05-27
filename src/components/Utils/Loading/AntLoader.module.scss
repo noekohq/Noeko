@@ -51,4 +51,14 @@
     z-index: 20; // Above canvas and overlay
     color: var(--mantine-color-text);
   }
+
+  .blur-overlay {
+      position: absolute;
+      z-index: 20; // Above canvas and overlay
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      backdrop-filter: blur(5px);
+  }
 }
