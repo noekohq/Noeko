@@ -72,7 +72,7 @@ export default function Home() {
           </Group>
         )}
       </div>
-      <RightSidebar openOnShortcut={[{ key: "/" }]}>
+      <RightSidebar openOnShortcut={[{ key: "/" }]} omitDefaults>
         {!isLoaded && <Loader size="sm" />}
         {isLoaded && (
           <GraphToolbar

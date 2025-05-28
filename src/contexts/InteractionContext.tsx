@@ -9,7 +9,6 @@ import useShortcuts from "../hooks/useShortcuts";
 import { useForm } from "@mantine/form";
 import useFetch from "../hooks/useFetch";
 import {
-  ExclamationMark,
   FileCode,
   FileCsv,
   FilePdf,
@@ -31,6 +30,7 @@ import {
 } from "@mantine/core";
 import { formatFileSize } from "../utils/formatting";
 import { useLayout } from "./LayoutContext";
+import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -50,6 +50,9 @@ type IInteractionContext = {
         close: () => void;
         toggle: () => void;
       };
+    };
+    feedback: {
+      openFeedbackModal: () => void;
     };
   };
   views: {
@@ -77,6 +80,9 @@ const initialContext: IInteractionContext = {
         close: () => {},
         toggle: () => {},
       },
+    },
+    feedback: {
+      openFeedbackModal: () => {},
     },
   },
   views: {
@@ -134,6 +140,8 @@ export function InteractionProvider({
     },
   } = useLayout();
 
+  const [feedbackModalOpened, setFeedbackModalOpened] = useState(false);
+
   const value: IInteractionContext = {
     actions: {
       newIdea: async () => {
@@ -169,6 +177,11 @@ export function InteractionProvider({
           toggle: () => {
             setRightSidebarOpened(!rightSidebarOpened);
           },
+        },
+      },
+      feedback: {
+        openFeedbackModal: () => {
+          setFeedbackModalOpened(true);
         },
       },
     },
@@ -244,6 +257,10 @@ export function InteractionProvider({
     <InteractionContext.Provider value={value}>
       {children}
       <UploadFile opened={uploadingFile} setOpened={setUploadingFile} />
+      <FeedbackModal
+        opened={feedbackModalOpened}
+        onClose={() => setFeedbackModalOpened(false)}
+      />
       <LoadingOverlay visible={loadingSomething} />
     </InteractionContext.Provider>
   );

@@ -280,13 +280,7 @@ export default function Dashboard() {
           </Grid.Col>
         </Grid>
       </Container>
-      <RightSidebar
-        forceCollapsed={isMobile}
-        openOnShortcut={[{ key: "/" }]}
-        defaultClosed={isMobile}
-      >
-        {!isMobile && rightSidebarOpened && <Search />}
-      </RightSidebar>
+      <RightSidebar openOnShortcut={[{ key: "/" }]} defaultClosed={isMobile} />
     </PageWrapper>
   );
 }

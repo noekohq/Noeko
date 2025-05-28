@@ -6,6 +6,7 @@ import {
   Container,
   Divider,
   Flex,
+  Stack,
   Text,
   Tooltip,
   UnstyledButton,
@@ -20,6 +21,7 @@ import {
   CaretUp,
   HouseSimple,
   MegaphoneSimple,
+  Scroll,
   Sidebar,
   SidebarSimple,
 } from "@phosphor-icons/react";
@@ -30,6 +32,7 @@ import FeedbackModal from "../../components/Utils/Modals/FeedbackModal"; // Adju
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation } from "react-router";
 import { getCurrentTimeOfDay } from "../../utils/datetime";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 type LeftSidebarProps = {
   children?: React.ReactNode | React.ReactNode[];
@@ -90,8 +93,6 @@ export default function LeftSidebar({
     ],
   });
 
-  const [feedbackModalOpened, setFeedbackModalOpened] = useState(false);
-
   const sidebarClasses = `${styles.leftSidebar} ${
     isEffectivelyOpen ? styles.opened : styles.closed
   }`;
@@ -115,6 +116,12 @@ export default function LeftSidebar({
     style: currentIsMobile && !isEffectivelyOpen ? { minHeight: "50px" } : {},
   };
 
+  const {
+    actions: {
+      feedback: { openFeedbackModal },
+    },
+  } = useInteraction();
+
   return (
     <>
       <Flex {...mainFlexProps}>
@@ -123,36 +130,49 @@ export default function LeftSidebar({
           canBeToggled={canBeToggled}
           onToggleClick={handleToggleSidebar} // Pass the toggle handler
         />
-        <div>
-          {canBeToggled &&
-            (isEffectivelyOpen ? (
-              <Tooltip label="Share your thoughts or report an issue">
-                <Button
-                  fullWidth
-                  leftSection={<MegaphoneSimple />}
-                  variant="light"
-                  onClick={() => setFeedbackModalOpened(true)}
-                >
-                  I have feedback!
-                </Button>
-              </Tooltip>
-            ) : (
-              <Tooltip
-                label="Share your thoughts"
-                position={currentIsMobile ? "bottom" : "right"}
-                withArrow
+        <Stack>
+          {isEffectivelyOpen ? (
+            <Tooltip label="Share your thoughts or report an issue">
+              <Button
+                fullWidth
+                leftSection={<MegaphoneSimple />}
+                variant="light"
+                onClick={() => openFeedbackModal()}
               >
-                <ActionIcon
-                  variant="light"
-                  color="blue"
-                  onClick={() => setFeedbackModalOpened(true)}
-                  aria-label="Give us feedback"
-                >
-                  <MegaphoneSimple weight="regular" />
-                </ActionIcon>
-              </Tooltip>
-            ))}
-        </div>
+                I have feedback!
+              </Button>
+            </Tooltip>
+          ) : (
+            <Tooltip
+              label="Share your thoughts"
+              position={currentIsMobile ? "bottom" : "right"}
+              withArrow
+            >
+              <ActionIcon
+                variant="light"
+                color="blue"
+                onClick={() => openFeedbackModal()}
+                aria-label="Give us feedback"
+              >
+                <MegaphoneSimple weight="regular" />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {isEffectivelyOpen && (
+            <Tooltip label="View changelog">
+              <Link
+                to="/updates"
+                style={{
+                  textDecoration: "none",
+                }}
+              >
+                <Button fullWidth leftSection={<Scroll />} variant="default">
+                  View changelog
+                </Button>
+              </Link>
+            </Tooltip>
+          )}
+        </Stack>
 
         {isEffectivelyOpen && children && (
           <>
@@ -160,13 +180,6 @@ export default function LeftSidebar({
           </>
         )}
       </Flex>
-
-      {canBeToggled && (
-        <FeedbackModal
-          opened={feedbackModalOpened}
-          onClose={() => setFeedbackModalOpened(false)}
-        />
-      )}
     </>
   );
 }

@@ -48,6 +48,17 @@ h6 {
     font-stretch: 90%;
 }
 
+a {
+    color: var(--mantine-color-anchor);
+    cursor: pointer;
+    text-decoration: underline;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        color: var(--mantine-primary-color-6);
+    }
+}
+
 .searchResult {
     width: 100%;
     display: block;
