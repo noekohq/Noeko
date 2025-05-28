@@ -24,6 +24,7 @@ import { useInteraction } from "../../contexts/InteractionContext";
 
 export default function Ideas() {
   const [page, setPage] = useState(0);
+  const pageSize = 10;
   const [allIdeas, setAllIdeas] = useState<IIdea[]>([]);
   // Assuming your useFetch hook has a loading state
   const {
@@ -31,7 +32,7 @@ export default function Ideas() {
     loading,
     data: newIdeasFetched,
   } = useFetch<undefined, IIdea[]>({
-    url: `/ideas/page?page=${page}&pageSize=10`,
+    url: `/ideas/page?page=${page}&pageSize=${pageSize}`,
     runOnDependencies: [page], // This will trigger a fetch when 'page' changes
   });
 
@@ -67,7 +68,7 @@ export default function Ideas() {
           setPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 1.0 }, // Trigger when 100% of the target is visible
+      { threshold: 0.01, root: null, rootMargin: "0px 0px 250px 0px" }, // Trigger when 100% of the target is visible
     );
 
     const currentObserverTarget = observerTarget.current;
@@ -83,7 +84,7 @@ export default function Ideas() {
   }, [hasMore, loading, observerTarget.current]);
 
   useEffect(() => {
-    if (page === 0) {
+    if (page === 0 && !loading) {
       getPage();
     }
   }, [getPage]);
@@ -120,7 +121,7 @@ export default function Ideas() {
         </Stack>
         <Divider my="lg" />
         <Grid>
-          {allIdeas.map((idea) => (
+          {allIdeas.map((idea, i) => (
             <Grid.Col key={idea.id.toString()} span={{ sm: 6 }}>
               <IdeaCard idea={idea} link />
             </Grid.Col>
