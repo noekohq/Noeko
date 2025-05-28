@@ -9,6 +9,7 @@ import {
   Stack,
   Container,
   useMantineTheme,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { X, Plus, ArrowRight } from "@phosphor-icons/react"; // Corrected icon import
 import { IIdea } from "../../../app/database/models/ideas";
@@ -17,6 +18,7 @@ import useFetch from "../../hooks/useFetch";
 import { useState, useMemo } from "react";
 import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
 import { Link } from "react-router";
+import { useSettings } from "../../contexts/SettingsContext";
 
 type ITagsManagerProps = {
   idea: IIdea;
@@ -124,7 +126,13 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
     );
   }
 
-  const { colors } = useMantineTheme();
+  const {
+    ui: {
+      theme: {
+        scheme: { actual: scheme },
+      },
+    },
+  } = useSettings();
 
   if (existingTagsLoading || relatedTagsLoading) {
     return (
@@ -164,10 +172,11 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
                   <Badge
                     size="md"
                     variant={type === "existing" ? "filled" : "light"}
-                    color={"dark.0"}
+                    color={scheme === "dark" ? "dark.5" : "dark.7"}
+                    c={scheme === "dark" ? "dark.2" : "dark.3"}
                     styles={{
                       root: {
-                        border: "1px solid var(--mantine-color-dark-4)",
+                        border: "1px solid var(--mantine-color-dark-6)",
                       },
                     }}
                     pr={

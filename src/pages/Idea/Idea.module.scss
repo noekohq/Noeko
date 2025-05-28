@@ -22,7 +22,7 @@
 
 .toolbar {
     position: fixed;
-    bottom: 82px;
+    bottom: 56px;
     left: 24px;
     right: 24px;
     padding: 8px 14px;
@@ -38,6 +38,7 @@
     }
 
     @include desktop {
+        bottom: 82px;
         position: fixed;
         bottom: 0;
         border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;

@@ -39,7 +39,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       setRightSidebar({ ...rightSidebar, opened }),
   });
 
-  const isMobile = useMediaQuery("(max-width: 768px)") || false;
+  const isMobile = useMediaQuery("(max-width: 1028px)") || false;
 
   return (
     <LayoutContext.Provider value={{ leftSidebar, rightSidebar, isMobile }}>
