@@ -169,6 +169,7 @@ export default function Feedback() {
                   <Table.Th>User</Table.Th>
                   <Table.Th>Content</Table.Th>
                   <Table.Th>Status</Table.Th>
+                  <Table.Th>Can Contact?</Table.Th>
                   <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -215,6 +216,9 @@ export default function Feedback() {
                             }
                           }}
                         />
+                      </Table.Td>
+                      <Table.Td>
+                        {feedback.consentToContact ? "Yes" : "No"}
                       </Table.Td>
                       <Table.Td>
                         <Group gap="xs">
