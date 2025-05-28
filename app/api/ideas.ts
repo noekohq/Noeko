@@ -42,10 +42,22 @@ router.get("/page", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const page = Number(req.query.page);
-    const pageSize = Number(req.query.pageSize);
-    if (!page || !pageSize) {
+    const pageSize = Number(req.query.pageSize) ?? 10;
+    if (page === undefined || page === null) {
       res.status(400).send({
-        message: "page and pageSize must be provided.",
+        message: "Page must be provided",
+      });
+      return;
+    }
+    if (page < 0) {
+      res.status(400).send({
+        message: "Page must be 0 or greater",
+      });
+      return;
+    }
+    if (pageSize < 1) {
+      res.status(400).send({
+        message: "Page Size cannot be less than 1",
       });
       return;
     }

@@ -206,7 +206,7 @@ export class Idea {
             *
             FROM idea
             WHERE <-owns<-(user WHERE id = <record> $userId)
-            ORDER BY updatedAt DESC
+            ORDER BY updatedAt DESC, id ASC
             LIMIT $pageSize
             START ($page * $pageSize);
         RETURN $userIdeas;
