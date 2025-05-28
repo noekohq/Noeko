@@ -64,17 +64,14 @@ export default function Tags() {
     load: createTag,
     loading: createTagLoading,
     errors: createTagErrors,
-    // success: createTagSuccess, // Can be used for UI feedback
-    // data: createdTagData, // Can be used if the created tag data is needed immediately
-  } = useFetch<ITagForm, ITag>({
+  } = useFetch<Partial<ITagForm>, ITag>({
     // Assumes ITagForm is imported, ITag is already imported
     url: "/tags",
     method: "POST",
     body: {
       ...tagForm.getTransformedValues(),
     },
-    onSuccess: (data, message) => {
-      console.log("Tag created: ", data);
+    onSuccess: (data) => {
       loadTags();
       tagForm.reset();
     },
