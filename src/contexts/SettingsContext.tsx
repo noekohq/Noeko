@@ -13,6 +13,7 @@ import {
 } from "../declarations/themes"; // Assuming these paths are correct
 import { MantineColorScheme, MantineThemeOverride } from "@mantine/core";
 import { ResolveTheme } from "../themes"; // Assuming this path is correct
+import { isDarkScheme } from "../utils/dom";
 
 // Define keys for localStorage
 const LOCAL_STORAGE_KEYS = {
@@ -41,6 +42,7 @@ type ISettingsContext = {
       scheme: {
         get: IThemeSpec["scheme"];
         set: (s: IThemeSpec["scheme"]) => void;
+        actual: IThemeSpec["scheme"];
       };
       resolved: {
         get: IThemeResolved;
@@ -85,6 +87,7 @@ const SettingsContext = createContext<ISettingsContext>({
       scheme: {
         get: "auto", // Default value
         set: () => {},
+        actual: "light",
       },
       resolved: {
         // This default should ideally be a fully formed IThemeResolved
@@ -196,6 +199,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             scheme: {
               get: scheme,
               set: setScheme, // Simplified setter
+              actual:
+                scheme === "auto"
+                  ? isDarkScheme()
+                    ? "dark"
+                    : "light"
+                  : scheme,
             },
             bodyFont: {
               get: bodyFont,

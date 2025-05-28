@@ -431,7 +431,7 @@ export default function Idea() {
           )}
         </>
       </div>
-      <RightSidebar forceCollapsed={isMobile} defaultClosed={isMobile}>
+      <RightSidebar>
         <Tooltip label="Delete Idea">
           {rightSidebarOpened ? (
             <Button

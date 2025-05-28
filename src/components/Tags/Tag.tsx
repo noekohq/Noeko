@@ -1,5 +1,6 @@
 import { Badge, Popover } from "@mantine/core";
 import { ITag } from "../../../app/database/models/tag";
+import { useSettings } from "../../contexts/SettingsContext";
 
 type ITagProps = {
   tag: ITag;
@@ -7,16 +8,25 @@ type ITagProps = {
 };
 
 export default function Tag({ tag, variant }: ITagProps) {
+  const {
+    ui: {
+      theme: {
+        scheme: { actual: scheme },
+      },
+    },
+  } = useSettings();
+
   return (
     <Popover withArrow>
       <Popover.Target>
         {tag.color ? (
           <Badge
             variant={variant || "light"}
-            color={"dark.0"}
+            color={scheme === "dark" ? "dark.5" : "dark.7"}
+            c={scheme === "dark" ? "dark.2" : "dark.3"}
             styles={{
               root: {
-                border: "1px solid var(--mantine-color-dark-4)",
+                border: "1px solid var(--mantine-color-dark-6)",
               },
             }}
           >
