@@ -38,6 +38,10 @@ const updates: IUpdate[] = [
         </List.Item>
         <List.Item>Add the updates page :)</List.Item>
         <List.Item>Minor styling and updates</List.Item>
+        <List.Item>
+          Better "At a Glance" formatting in{" "}
+          <Link to="/spyglass">Spyglass</Link>
+        </List.Item>
       </List>
     ),
   },

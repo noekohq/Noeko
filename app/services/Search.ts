@@ -664,6 +664,8 @@ export class Search {
         - Is is of the upmost importance that findings be directly sourced from the results
         - The overview, on the other hand, should rely on findings, but ultimately favor answering the query
         - If you do not know something from the results, don't be afraid to say you don't know.
+        - Don't apply fancy formatting to the findings, keep them simple
+        - Format **the overview** as Markdown, tags are allowed, this can be formatted in accordance with the user query
           `,
         );
 
