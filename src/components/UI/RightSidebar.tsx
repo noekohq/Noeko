@@ -17,10 +17,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { userInitials, userIsSuperuser } from "../../utils/user";
 import { useMediaQuery } from "@mantine/hooks";
 import {
-  ArrowLineDown,
   ArrowLineLeft,
-  ArrowLineRight,
-  ArrowLineUp,
   CaretDown,
   CaretLeft,
   CaretRight,
@@ -35,6 +32,7 @@ import {
   User,
   UsersThree,
 } from "@phosphor-icons/react";
+import Search from "../Search/Search";
 
 type RightSidebarProps = {
   children?: React.ReactNode;
@@ -42,6 +40,7 @@ type RightSidebarProps = {
   openOnShortcut?: IShortcut["keys"][];
   forceCollapsed?: boolean;
   defaultClosed?: boolean;
+  omitDefaults?: boolean;
 };
 
 export default function RightSidebar({
@@ -50,11 +49,12 @@ export default function RightSidebar({
   openOnShortcut,
   forceCollapsed = false,
   defaultClosed = false,
+  omitDefaults = false,
 }: RightSidebarProps) {
   const { rightSidebar, isMobile: contextIsMobile } = useLayout();
 
   const canBeToggled = useMemo(
-    () => children !== undefined && !forceCollapsed,
+    () => !forceCollapsed,
     [children, forceCollapsed],
   );
 
@@ -64,7 +64,7 @@ export default function RightSidebar({
   );
 
   useEffect(() => {
-    if (forceCollapsed || children === undefined) {
+    if (forceCollapsed) {
       if (rightSidebar.opened) {
         rightSidebar.setOpened(false);
       }
@@ -143,6 +143,8 @@ export default function RightSidebar({
           <div className={styles.content}>{children}</div>
         </>
       )}
+      {isEffectivelyOpen && !omitDefaults && <Divider my="lg" />}
+      {isEffectivelyOpen && !omitDefaults && <Search />}
     </div>
   );
 }

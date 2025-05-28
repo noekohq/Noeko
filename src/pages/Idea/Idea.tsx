@@ -458,8 +458,6 @@ export default function Idea() {
             </ActionIcon>
           )}
         </Tooltip>
-        {rightSidebarOpened && <Divider my="md" />}
-        {rightSidebarOpened && <Search />}
       </RightSidebar>
     </PageWrapper>
   );

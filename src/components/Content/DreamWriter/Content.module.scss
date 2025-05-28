@@ -6,15 +6,6 @@
 }
 
 .link {
-    cursor: pointer;
-    color: var(--mantine-color-anchor);
-    text-decoration: underline;
-    transition: all 0.2s ease-in-out;
-
-    &:hover {
-        // Replaced --color-primary with --mantine-color-primary
-        color: var(--mantine-color-anchor);
-    }
 }
 
 .image {

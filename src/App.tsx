@@ -28,6 +28,7 @@ import Ideas from "./pages/Idea/Ideas";
 import Tags from "./pages/Settings/Tags/Tags";
 import { useEffect } from "react";
 import { useSettings } from "./contexts/SettingsContext";
+import Updates from "./pages/Feedback/Updates";
 
 export default function App() {
   const navigate = useNavigate();
@@ -127,6 +128,7 @@ export default function App() {
                       <Route path="feedback" element={<Feedback />} />
                     </Route>
                   )}
+                  <Route path="updates" element={<Updates />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </div>
