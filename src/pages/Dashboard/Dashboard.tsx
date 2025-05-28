@@ -99,7 +99,12 @@ export default function Dashboard() {
   const isSuperuser = userIsSuperuser(user);
 
   const {
-    actions: { newIdea },
+    actions: {
+      newIdea,
+      layout: {
+        rightSidebar: { toggle: toggleRightSidebar },
+      },
+    },
   } = useInteraction();
 
   return (
@@ -177,14 +182,17 @@ export default function Dashboard() {
                       </Group>
                     </Button>
                   </Link>
-                  <Link to="/spyglass">
-                    <Button variant="default">
-                      <Group>
-                        <Text>Find an idea</Text>
-                        <Kbd>/</Kbd>
-                      </Group>
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      toggleRightSidebar();
+                    }}
+                  >
+                    <Group>
+                      <Text>Find an idea</Text>
+                      <Kbd>/</Kbd>
+                    </Group>
+                  </Button>
                   <Link to="/graph">
                     <Button variant="default">
                       <Group>

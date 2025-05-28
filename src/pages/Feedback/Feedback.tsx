@@ -181,7 +181,7 @@ export default function Feedback() {
                       </Table.Td> */}
                       <Table.Td>{feedback.user?.email || "unknown"}</Table.Td>
                       <Table.Td>
-                        <HoverCard>
+                        <HoverCard width="target">
                           <HoverCard.Target>
                             <Text size="sm">
                               <CaretDown /> {clipContent(feedback.content)}
