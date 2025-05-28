@@ -105,7 +105,13 @@ export default function Feedback() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container p="lg">
+      <Container
+        p="lg"
+        style={{
+          overflowY: "scroll",
+          scrollbarWidth: "thin",
+        }}
+      >
         <Modal
           opened={!!toDelete}
           title="Delete Feedback"
@@ -160,7 +166,6 @@ export default function Feedback() {
             <Table>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>ID</Table.Th>
                   <Table.Th>User</Table.Th>
                   <Table.Th>Content</Table.Th>
                   <Table.Th>Status</Table.Th>
@@ -171,9 +176,9 @@ export default function Feedback() {
                 {filteredFeedback?.map((feedback) => {
                   return (
                     <Table.Tr key={feedback.id.toString()}>
-                      <Table.Td>
+                      {/* <Table.Td>
                         <Text size="sm">{feedback.id.toString()}</Text>
-                      </Table.Td>
+                      </Table.Td> */}
                       <Table.Td>{feedback.user?.email || "unknown"}</Table.Td>
                       <Table.Td>
                         <HoverCard>

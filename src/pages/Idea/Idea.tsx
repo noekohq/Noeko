@@ -330,6 +330,8 @@ export default function Idea() {
     <PageWrapper>
       <LeftSidebar>
         <>
+          {leftSidebarOpened && !!idea && <TagsManager idea={idea} />}
+          {leftSidebarOpened && <Divider my="md" />}
           <Card radius="md" withBorder shadow="xs" p="md">
             <Text fw={500} c="dimmed" size="sm" mb={4}>
               <Sparkle
@@ -456,8 +458,6 @@ export default function Idea() {
             </ActionIcon>
           )}
         </Tooltip>
-        {rightSidebarOpened && <Space my="md" />}
-        {rightSidebarOpened && !!idea && <TagsManager idea={idea} />}
         {rightSidebarOpened && <Divider my="md" />}
         {rightSidebarOpened && <Search />}
       </RightSidebar>

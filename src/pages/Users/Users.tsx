@@ -28,11 +28,11 @@ import {
   EnvelopeSimple,
   Check,
   Clipboard,
+  Eye,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
-import TextEditor from "../../components/TextEditor/TextEditor";
 import { validateEmail } from "../../utils/data";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -51,6 +51,7 @@ export default function Users() {
   const [toDisable, setToDisable] = useState<ISafeUser>();
   const [toEnable, setToEnable] = useState<ISafeUser>();
   const [toDelete, setToDelete] = useState<ISafeUser>();
+  const [toViewDetails, setToViewDetails] = useState<ISafeUser>();
 
   const { load: disableUser } = useFetch<undefined, ISafeUser>({
     url: `/users/disable/${toDisable?.id}`,
@@ -401,6 +402,112 @@ export default function Users() {
           </Grid>
         </Modal>
 
+        <Modal
+          opened={!!toViewDetails}
+          onClose={() => setToViewDetails(undefined)}
+          title="User Details"
+          size="lg"
+        >
+          {toViewDetails && (
+            <Grid>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text fw={500}>ID:</Text>
+                <Group gap="xs">
+                  <Text>{toViewDetails.id}</Text>
+                  <CopyButton value={toViewDetails.id.toString()}>
+                    {({ copied, copy }) => (
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={copy}
+                        leftSection={
+                          copied ? <Check size={14} /> : <Clipboard size={14} />
+                        }
+                      >
+                        {copied ? "Copied" : "Copy"}
+                      </Button>
+                    )}
+                  </CopyButton>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text fw={500}>Name:</Text>
+                <Group gap="xs">
+                  <Text>
+                    {toViewDetails.firstName} {toViewDetails.lastName}
+                  </Text>
+                  <CopyButton
+                    value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}
+                  >
+                    {({ copied, copy }) => (
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={copy}
+                        leftSection={
+                          copied ? <Check size={14} /> : <Clipboard size={14} />
+                        }
+                      >
+                        {copied ? "Copied" : "Copy"}
+                      </Button>
+                    )}
+                  </CopyButton>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text fw={500}>Email:</Text>
+                <Group gap="xs">
+                  <Text>{toViewDetails.email}</Text>
+                  <CopyButton value={toViewDetails.email}>
+                    {({ copied, copy }) => (
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={copy}
+                        leftSection={
+                          copied ? <Check size={14} /> : <Clipboard size={14} />
+                        }
+                      >
+                        {copied ? "Copied" : "Copy"}
+                      </Button>
+                    )}
+                  </CopyButton>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text fw={500}>Roles:</Text>
+                <Group gap="xs">
+                  <Text>{toViewDetails.roles.join(", ")}</Text>
+                  <CopyButton value={toViewDetails.roles.join(", ")}>
+                    {({ copied, copy }) => (
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={copy}
+                        leftSection={
+                          copied ? <Check size={14} /> : <Clipboard size={14} />
+                        }
+                      >
+                        {copied ? "Copied" : "Copy"}
+                      </Button>
+                    )}
+                  </CopyButton>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Group justify="end">
+                  <Button
+                    variant="default"
+                    onClick={() => setToViewDetails(undefined)}
+                  >
+                    Close
+                  </Button>
+                </Group>
+              </Grid.Col>
+            </Grid>
+          )}
+        </Modal>
+
         {loadingUsers && <Loader size="lg" />}
         <Grid>
           {!!invitedUser && (
@@ -471,7 +578,6 @@ export default function Users() {
             <Table>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>ID</Table.Th>
                   <Table.Th>Name</Table.Th>
                   <Table.Th>Email</Table.Th>
                   <Table.Th>Roles</Table.Th>
@@ -482,11 +588,6 @@ export default function Users() {
                 {filteredUsers?.map((user) => {
                   return (
                     <Table.Tr key={user.id}>
-                      <Table.Td>
-                        <Text c={user.disabled ? "dimmed" : ""} size="sm">
-                          {user.id}
-                        </Text>
-                      </Table.Td>
                       <Table.Td>
                         {user.firstName} {user.lastName}
                       </Table.Td>
@@ -528,6 +629,15 @@ export default function Users() {
                             onClick={() => setToDelete(user)}
                           >
                             <TrashSimple />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="light"
+                            color="teal"
+                            size="sm"
+                            title="View Details"
+                            onClick={() => setToViewDetails(user)}
+                          >
+                            <Eye />
                           </ActionIcon>
                         </Group>
                       </Table.Td>

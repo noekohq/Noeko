@@ -6,6 +6,7 @@ import {
 } from "../../app/database/models/ideas";
 import { api } from "../server/api";
 import { IChunk } from "../../app/services/Importer";
+import { IGenerativeSummary } from "../../app/database/models/ideas/summaries";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
@@ -219,4 +220,15 @@ export const getChunkedIdeas = (
     chunks,
     tooLarge,
   };
+};
+
+export const getIdeaSummaryItemIfExists = (
+  idea: IIdea,
+  item: keyof IGenerativeSummary,
+) => {
+  const i = idea.derived?.generative_summary?.[item];
+  if (!i) {
+    return undefined;
+  }
+  return i;
 };

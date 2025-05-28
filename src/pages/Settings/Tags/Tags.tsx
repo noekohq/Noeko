@@ -125,7 +125,6 @@ export default function Tags() {
                 <Table.Tr>
                   <Table.Th>Name</Table.Th>
                   <Table.Th>Description</Table.Th>
-                  <Table.Th>Color</Table.Th> {/* Added Color header */}
                   <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -146,16 +145,6 @@ export default function Tags() {
                       placeholder="New Tag Description (Optional)"
                       size="xs"
                       {...tagForm.getInputProps("description")}
-                      style={{ flexGrow: 1 }}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    {" "}
-                    {/* Added ColorInput cell */}
-                    <ColorInput
-                      placeholder="Pick color (Optional)"
-                      size="xs"
-                      {...tagForm.getInputProps("color")}
                       style={{ flexGrow: 1 }}
                     />
                   </Table.Td>
@@ -226,20 +215,9 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     initialValues: {
       name: tag.name,
       description: tag.description || "",
-      color: tag.color || "",
     },
     validate: {
       name: (value) => (value?.trim() === "" ? "Tag name is required" : null),
-      color: (value) => {
-        if (
-          value &&
-          value.trim() !== "" &&
-          !/^#([0-9A-Fa-f]{3}){1,2}$/.test(value)
-        ) {
-          return "Must be a valid hex color (e.g., #RRGGBB or #RGB)";
-        }
-        return null;
-      },
     },
   });
 
@@ -278,10 +256,6 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     if (currentValues.description !== (tag.description || "")) {
       valuesToUpdate.description = currentValues.description;
     }
-    if (currentValues.color !== (tag.color || "")) {
-      // Ensure empty string is sent if color is cleared, or actual color if set
-      valuesToUpdate.color = currentValues.color;
-    }
 
     // If valuesToUpdate is empty, it means no actual changes were made to be saved
     // However, useFetch body is already set to editForm.getTransformedValues()
@@ -308,9 +282,6 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
         </Table.Td>
         <Table.Td>
           <TextInput size="xs" {...editForm.getInputProps("description")} />
-        </Table.Td>
-        <Table.Td>
-          <ColorInput size="xs" {...editForm.getInputProps("color")} />
         </Table.Td>
         <Table.Td>
           <Group gap="xs" wrap="nowrap">
@@ -348,18 +319,6 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
         <Tag tag={tag} />
       </Table.Td>
       <Table.Td>{tag.description || ""}</Table.Td>
-      <Table.Td>
-        {tag.color && (
-          <>
-            <Group>
-              <ColorSwatch color={tag.color} />
-              <Text size="xs" c="dimmed">
-                {tag.color}
-              </Text>
-            </Group>
-          </>
-        )}
-      </Table.Td>
       <Table.Td>
         <Group gap="xs" wrap="nowrap">
           <ActionIcon
