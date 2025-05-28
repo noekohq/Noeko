@@ -13,7 +13,6 @@ import {
   Stack,
   HoverCard,
   ActionIcon,
-  getSize,
   Space,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -22,8 +21,7 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { Link } from "react-router";
 import { getNodeTitle } from "../../utils/graph";
-import { ArrowRight, MagnifyingGlass, Star } from "@phosphor-icons/react";
-import Match from "../../components/Utils/Match";
+import { ArrowRight } from "@phosphor-icons/react";
 import { useCallback, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Spyglass.module.scss";
@@ -32,8 +30,10 @@ import {
   ISearchOverview,
   ISearchResultValue,
 } from "../../../app/services/Search";
-import { generateTextFragmentUrl } from "../../utils/dom";
-import { formatMillisecondsToSecondsString } from "../../utils/formatting";
+import {
+  formatMillisecondsToSecondsString,
+  markdownToHtml,
+} from "../../utils/formatting";
 
 type IResultsMap = Record<string, ISearchResultValue>;
 
@@ -289,7 +289,11 @@ function DisplayOverview({
       <Text c="gray.7" size="sm" fw="bold">
         AT A GLANCE
       </Text>
-      <Text>{overview.overview}</Text>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: markdownToHtml(overview.overview),
+        }}
+      />
     </div>
   );
 }
