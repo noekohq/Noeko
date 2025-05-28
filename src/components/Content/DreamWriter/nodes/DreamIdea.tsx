@@ -15,17 +15,22 @@ import {
   NodeViewWrapper,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import { ActionIcon, Card, Flex, Group, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Card,
+  Flex,
+  Group,
+  HoverCard,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../app/database/models/ideas";
-import { triggerDownload } from "../../../../utils/helpers";
-import { IUserFile } from "../../../../../app/database/models/userfile";
 import { useIdea } from "../../../../contexts/IdeaContext";
-import { ideasAreConnected } from "../../../../utils/graph";
-import { useEffect, useRef } from "react";
-import { createIdeaConnection } from "../../../../utils/ideas";
-// Keep Mantine, React Router, hook, types, and helper imports...
+import { getNodeDescription } from "../../../../utils/graph";
+import { getIdeaSummaryItemIfExists } from "../../../../utils/ideas";
+import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 
 export interface IDreamIdeaOptions {
   HTMLAttributes: Record<string, any>;
@@ -124,7 +129,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
   ensureConnected(ideaId);
 
   const { data: idea } = useFetch<undefined, IIdea>({
-    url: `/graph/ideas/${ideaId}`,
+    url: `/graph/ideas/${ideaId}?withDerived=true`,
     runOnMount: !!ideaId,
   });
 
@@ -152,7 +157,6 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
           gap="md"
           style={{ width: "100%" }}
         >
-          {/* Link to file details page */}
           <Link
             to={`/idea/${ideaId}`}
             rel="noopener noreferrer nofollow"
@@ -160,16 +164,43 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
             title={`Go to ${displayName}`}
             style={{ textDecoration: "none" }}
           >
-            <Group align="center" wrap="nowrap">
-              {" "}
-              {/* Ensure group doesn't wrap */}
-              <Flex c="white" align="center" style={{ flexShrink: 0 }}>
-                {<Lightbulb />}
-              </Flex>
-              <Text c="white" size="lg" truncate>
-                {displayName}
-              </Text>
-            </Group>
+            <HoverCard width="target">
+              <HoverCard.Target>
+                <Stack>
+                  <Group align="center" wrap="nowrap">
+                    <Flex c="dark.1" align="center" style={{ flexShrink: 0 }}>
+                      {<Lightbulb />}
+                    </Flex>
+                    <Text c="dark.1" size="lg" truncate>
+                      {displayName}
+                    </Text>
+                  </Group>
+                  <Text size="xs" c="dimmed">
+                    {idea
+                      ? getNodeDescription({
+                          ...idea,
+                          type: "idea",
+                        })
+                      : "No preview available"}
+                  </Text>
+                </Stack>
+              </HoverCard.Target>
+              <HoverCard.Dropdown
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                {idea?.derived?.generative_summary ? (
+                  <OverviewAccordion
+                    overview={idea?.derived?.generative_summary}
+                  />
+                ) : (
+                  <Text c="dimmed" size="xs">
+                    No preview available :(
+                  </Text>
+                )}
+              </HoverCard.Dropdown>
+            </HoverCard>
           </Link>
 
           <Group>

@@ -20,6 +20,7 @@ import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
 import { validate } from "uuid";
+import OverviewAccordion from "../../components/Display/Ideas/OverviewAccordion";
 
 type IOverviewProps = {
   idea: IIdea | undefined;
@@ -139,94 +140,7 @@ export default function Overview({
               <Text>Insights into your idea...</Text>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
-              <Accordion>
-                <Accordion.Item value={"overview"}>
-                  <Accordion.Control icon={<Sparkle />}>
-                    Overview
-                  </Accordion.Control>
-                  <Accordion.Panel>{sentenceOverview}</Accordion.Panel>
-                </Accordion.Item>
-                <Accordion.Item value="summary">
-                  <Accordion.Control icon={<Sparkle />}>
-                    Brief Summary
-                  </Accordion.Control>
-                  <Accordion.Panel>{sentenceSummary}</Accordion.Panel>
-                </Accordion.Item>
-                {paragraphSummary && (
-                  <Accordion.Item value="paragraph_summary">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Summary
-                    </Accordion.Control>
-                    <Accordion.Panel>{paragraphSummary}</Accordion.Panel>
-                  </Accordion.Item>
-                )}
-                {paragraphOverview && (
-                  <Accordion.Item value="paragraph_overview">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Overview
-                    </Accordion.Control>
-                    <Accordion.Panel>{paragraphOverview}</Accordion.Panel>
-                  </Accordion.Item>
-                )}
-                {abstractSummary && (
-                  <Accordion.Item value="abstract_summary">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Abstract
-                    </Accordion.Control>
-                    <Accordion.Panel>{abstractSummary}</Accordion.Panel>
-                  </Accordion.Item>
-                )}
-                {simplifiedSummary && (
-                  <Accordion.Item value="simplified_summary">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Simplified
-                    </Accordion.Control>
-                    <Accordion.Panel>{simplifiedSummary}</Accordion.Panel>
-                  </Accordion.Item>
-                )}
-                {outline && (
-                  <Accordion.Item value="outline">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Outline
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <List type="unordered">
-                        {outline.map((item, index) => (
-                          <List.Item key={index}>{item}</List.Item>
-                        ))}
-                      </List>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                )}
-                {keyPoints && (
-                  <Accordion.Item value="key_points">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Key Points
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <List type="unordered">
-                        {keyPoints.map((item, index) => (
-                          <List.Item key={index}>{item}</List.Item>
-                        ))}
-                      </List>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                )}
-                {highlights && (
-                  <Accordion.Item value="highlights">
-                    <Accordion.Control icon={<Sparkle />}>
-                      Highlights
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <List type="unordered">
-                        {highlights.map((item, index) => (
-                          <List.Item key={index}>{item}</List.Item>
-                        ))}
-                      </List>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                )}
-              </Accordion>
+              <OverviewAccordion overview={summary} />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group>

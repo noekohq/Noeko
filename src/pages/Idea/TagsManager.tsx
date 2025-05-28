@@ -162,9 +162,14 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
               >
                 <HoverCard.Target>
                   <Badge
-                    size="lg"
+                    size="md"
                     variant={type === "existing" ? "filled" : "light"}
-                    color={tag.color || (type === "existing" ? "blue" : "gray")}
+                    color={"dark.0"}
+                    styles={{
+                      root: {
+                        border: "1px solid var(--mantine-color-dark-4)",
+                      },
+                    }}
                     pr={
                       isLoadingAction ||
                       type === "related" ||

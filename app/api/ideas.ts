@@ -1,8 +1,13 @@
 import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { ISafeUser, IUser } from "../database/models/user";
-import { Idea } from "../database/models/ideas";
+import { ISafeUser, IUser, User } from "../database/models/user";
+import {
+  Idea,
+  IIdea,
+  IIdeaAsRelation,
+  IIdeaDerivedMap,
+} from "../database/models/ideas";
 import { Tag } from "../database/models/tag";
 
 const router = Router();
@@ -80,6 +85,56 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const { ideaId } = req.params;
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+    const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
+    const isSuperuser = await User.checkUserHasRole(user.id, "role:superuser");
+    if (!isOwner) {
+      if (!isSuperuser) {
+        res.status(403).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+    }
+    const withRelatedIdeas = req.query.withRelatedIdeas === "true";
+    const withConnections = req.query.withConnections === "true";
+    const withDerived = req.query.withDerived === "true";
+    const i = await Idea.get(ideaId);
+    if (!i) {
+      res.status(404).json({ message: "Idea not found" });
+      return;
+    }
+    const toSend: IIdea & {
+      connections?: IIdea[];
+      relatedIdeas?: IIdeaAsRelation[];
+      derived?: IIdeaDerivedMap;
+    } = { ...i };
+    if (withConnections) {
+      const connections = await Idea.getConnections(ideaId);
+      toSend.connections = connections;
+    }
+    if (withRelatedIdeas) {
+      const relatedIdeas = await Idea.findSimilar(user.id, ideaId);
+      toSend.relatedIdeas = relatedIdeas;
+    }
+    if (withDerived) {
+      const derived = await Idea.getDerivedMap(ideaId);
+      toSend.derived = derived;
+    }
+    res.send({ message: "Successfully retrieved idea.", data: toSend });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 

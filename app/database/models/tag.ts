@@ -151,7 +151,7 @@ export class Tag {
       ]);
       if (!result) {
         console.warn("Error getting user tags or user has no tags");
-        return []; // Return empty array if no tags or error
+        return undefined;
       }
       return result;
     } catch (error) {

@@ -11,7 +11,15 @@ export default function Tag({ tag, variant }: ITagProps) {
     <Popover withArrow>
       <Popover.Target>
         {tag.color ? (
-          <Badge variant={variant || "light"} color={tag.color}>
+          <Badge
+            variant={variant || "light"}
+            color={"dark.0"}
+            styles={{
+              root: {
+                border: "1px solid var(--mantine-color-dark-4)",
+              },
+            }}
+          >
             {tag.name}
           </Badge>
         ) : (
