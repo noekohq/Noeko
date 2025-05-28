@@ -27,7 +27,7 @@ import { SearchBar } from "../../components/Search/SearchBar";
 import styles from "./Dashboard.module.scss";
 import Search from "../../components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
-import { ArrowRight, HandWaving, Plus } from "@phosphor-icons/react";
+import { ArrowRight, HandWaving, Plus, Scroll } from "@phosphor-icons/react";
 import { handleCreateNewIdea } from "../../utils/ideas";
 import { Link, useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
@@ -157,6 +157,14 @@ export default function Dashboard() {
             {!isMobile && (
               <Card withBorder radius="lg">
                 <Flex wrap="wrap" direction="column" align="center" gap="md">
+                  <Link to="/updates">
+                    <Button variant="default">
+                      <Group>
+                        <Scroll />
+                        <Text>See latest updates</Text>
+                      </Group>
+                    </Button>
+                  </Link>
                   <Button variant="default">
                     <Group>
                       <Text>Dashboard view</Text>
