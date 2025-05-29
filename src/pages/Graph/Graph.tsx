@@ -41,13 +41,15 @@ export default function GraphPage() {
   return (
     <PageWrapper>
       <LeftSidebar>
-        <GraphNavigation
-          graph={localData}
-          reloadGraph={async () => {
-            reloadGraph();
-          }}
-          flags={graphData?.flags}
-        />
+        {localData && (
+          <GraphNavigation
+            graph={localData}
+            reloadGraph={async () => {
+              reloadGraph();
+            }}
+            flags={graphData?.flags}
+          />
+        )}
       </LeftSidebar>
       <div ref={containerRef} className={styles.container}>
         {isLoaded ? (
