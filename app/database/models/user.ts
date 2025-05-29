@@ -59,6 +59,9 @@ export class User {
   static async up() {
     try {
       const db = await getDatabase();
+      if (!db) {
+        console.info("Cannot run users up due to lack of db.");
+      }
       await db?.query(`DEFINE TABLE IF NOT EXISTS user SCHEMAFULL;
         DEFINE FIELD IF NOT EXISTS firstName ON TABLE user TYPE string;
         DEFINE FIELD IF NOT EXISTS lastName ON TABLE user TYPE string;
@@ -82,6 +85,7 @@ export class User {
         `;
       };
 
+      console.info("Running get users function...");
       await db?.query(getUsersFunction());
     } catch (error) {
       console.error("Error creating user table:", error);
