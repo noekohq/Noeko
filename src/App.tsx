@@ -11,13 +11,13 @@ import { Loader, useMantineColorScheme } from "@mantine/core";
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Graph from "./pages/Graph/Graph";
+import GraphHeavy from "./pages/Graph/GraphHeavy";
 import Idea from "./pages/Idea/Idea";
 import UserFile from "./pages/File/File";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Profile from "./pages/Settings/Profile";
 import Settings from "./pages/Settings/Settings";
-import useShortcuts from "./hooks/useShortcuts";
 import { userIsSuperuser } from "./utils/user";
 import Users from "./pages/Users/Users";
 import Feedback from "./pages/Feedback/Feedback";
@@ -94,7 +94,10 @@ export default function App() {
                     element={<Navigate to="/" replace />}
                   />
                   <Route index element={<Dashboard />} />
-                  <Route path="graph" element={<Graph />} />
+                  <Route path="graph">
+                    <Route index element={<Graph />} />
+                    <Route path="heavy" element={<GraphHeavy />} />
+                  </Route>
                   <Route
                     path="profile"
                     element={<Navigate to="/settings/profile" />}

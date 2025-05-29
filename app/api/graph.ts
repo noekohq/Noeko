@@ -40,6 +40,32 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
+router.post("/heavy", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+    const options = req.body.options;
+    const graph = await Idea.graphHeavy(user.id, {
+      similarThreshold: options?.similarityThreshold,
+      similarityLimit: options?.similarityLimit,
+    });
+    if (!graph) {
+      res.status(404).json({ message: "Graph not found" });
+      return;
+    }
+    res.send({
+      message: "Successfully retrieved graph.",
+      data: graph,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get(
   "/ideas",
   checkToken,

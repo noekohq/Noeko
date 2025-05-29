@@ -21,15 +21,9 @@ import { Link } from "react-router";
 
 type GraphNavigationProps = {
   graph: IGraph | null;
-  reloadGraph: () => Promise<void>;
-  flags?: IDBGraph["flags"];
 };
 
-export const GraphNavigation = ({
-  graph,
-  reloadGraph,
-  flags,
-}: GraphNavigationProps) => {
+export const GraphNavigation = ({ graph }: GraphNavigationProps) => {
   const { nodes, edges } = graph || { nodes: [], edges: [] };
   const {
     selected: { get: getSelectedNode },
@@ -59,14 +53,12 @@ export const GraphNavigation = ({
       <Stack justify="end">
         <HoverCard width="30vw">
           <HoverCard.Target>
-            <Link to="heavy">Heavy mode.</Link>
+            <Link to="/graph">Normal mode</Link>
           </HoverCard.Target>
           <HoverCard.Dropdown>
             <Text>
-              Heavy mode is a heavily computed form of your graph, showing all
-              of the relationships between your ideas.{" "}
-              <strong>It takes a lot longer to load</strong>, but is arguably
-              cooler.
+              Normal mode removes all the heavy computations and just gives you
+              your graph.
             </Text>
           </HoverCard.Dropdown>
         </HoverCard>

@@ -27,12 +27,11 @@ import Match from "../../components/Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
 
 type GraphToolbarProps = {
-  reloadGraph: () => Promise<void>;
   nodes: INode[];
   flags: IDBGraph["flags"];
 };
 
-export const GraphToolbar = ({ reloadGraph }: GraphToolbarProps) => {
+export const GraphToolbar = ({ nodes, flags }: GraphToolbarProps) => {
   const navigate = useNavigate();
 
   const { user } = useAuth();
