@@ -26,47 +26,47 @@ router.post("/register", async (req, res) => {
       message: "Sorry, new registration is currently unavailable.",
     });
     return;
-    const form = req.body;
-    if (
-      !form.email ||
-      !form.password ||
-      !form.passwordConfirmation ||
-      !form.firstName ||
-      !form.lastName
-    ) {
-      res.status(400).json({ message: "Missing required fields" });
-      return;
-    }
-    const userExistsWithEmail = await User.findByEmail(form.email);
-    if (userExistsWithEmail) {
-      res.status(400).json({ message: "Email already in use" });
-      return;
-    }
-    if (!(form.password === form.passwordConfirmation)) {
-      res.status(400).json({ message: "Passwords do not match" });
-      return;
-    }
-    const hashedPassword = await hashPassword(form.password);
-    const user = await User.create({ ...req.body, password: hashedPassword });
-    if (!user) {
-      res.status(400).json({ message: "User already exists" });
-      return;
-    }
-    const accessToken = await User.generateAccessToken(user);
-    const refreshToken = await User.generateRefreshToken(user);
-    if (!refreshToken) {
-      res.status(500).json({ message: "Internal Server Error" });
-      return;
-    }
-    await addAccessTokenToRes(res, accessToken);
-    await addRefreshTokenToRes(res, refreshToken);
-    res.json({
-      message: "User registered successfully",
-      data: {
-        accessToken,
-        user,
-      },
-    });
+    // const form = req.body;
+    // if (
+    //   !form.email ||
+    //   !form.password ||
+    //   !form.passwordConfirmation ||
+    //   !form.firstName ||
+    //   !form.lastName
+    // ) {
+    //   res.status(400).json({ message: "Missing required fields" });
+    //   return;
+    // }
+    // const userExistsWithEmail = await User.findByEmail(form.email);
+    // if (userExistsWithEmail) {
+    //   res.status(400).json({ message: "Email already in use" });
+    //   return;
+    // }
+    // if (!(form.password === form.passwordConfirmation)) {
+    //   res.status(400).json({ message: "Passwords do not match" });
+    //   return;
+    // }
+    // const hashedPassword = await hashPassword(form.password);
+    // const user = await User.create({ ...req.body, password: hashedPassword });
+    // if (!user) {
+    //   res.status(400).json({ message: "User already exists" });
+    //   return;
+    // }
+    // const accessToken = await User.generateAccessToken(user);
+    // const refreshToken = await User.generateRefreshToken(user);
+    // if (!refreshToken) {
+    //   res.status(500).json({ message: "Internal Server Error" });
+    //   return;
+    // }
+    // await addAccessTokenToRes(res, accessToken);
+    // await addRefreshTokenToRes(res, refreshToken);
+    // res.json({
+    //   message: "User registered successfully",
+    //   data: {
+    //     accessToken,
+    //     user,
+    //   },
+    // });
   } catch (error) {
     console.error("User registration error:", error);
     res.status(500).json({ message: "Internal Server Error" });
