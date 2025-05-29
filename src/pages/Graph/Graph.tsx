@@ -78,13 +78,7 @@ export default function GraphPage() {
       <RightSidebar openOnShortcut={[{ key: "/" }]} omitDefaults>
         {!isLoaded && <Loader size="sm" />}
         {isLoaded && (
-          <GraphToolbar
-            nodes={localData.nodes}
-            reloadGraph={async () => {
-              reloadGraph();
-            }}
-            flags={graphData.flags}
-          />
+          <GraphToolbar nodes={localData.nodes} flags={graphData.flags} />
         )}
       </RightSidebar>
     </PageWrapper>
