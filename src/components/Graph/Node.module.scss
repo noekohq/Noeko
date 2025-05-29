@@ -99,5 +99,6 @@
 }
 
 .tag {
-    --color-nodes: var(--mantine-color-red-6);
+    --color-nodes: var(--mantine-color-dark-1);
+    stroke: var(--mantine-color-dark-7);
 }

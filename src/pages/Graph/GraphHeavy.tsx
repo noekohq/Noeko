@@ -11,23 +11,45 @@ import { Group, Loader, Text } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
-import { GraphNavigation } from "./GraphNavigation";
+import { GraphNavigation } from "./GraphHeavyNavigation";
 import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 
-export default function GraphPage() {
+export default function GraphHeavy() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data: graphData, load: reloadGraph } = useFetch<undefined, IDBGraph>({
-    url: "/graph",
-    runOnMount: true,
+  const [semanticLimit, setSemanticLimit] = useState(2);
+  const [semanticThreshold, setSemanticThreshold] = useState(0.5);
+
+  const graphIsLoading = useRef(false);
+  const { data: graphData, load: reloadGraph } = useFetch<
+    {
+      semanticThreshold: number;
+      semanticLimit: number;
+    },
+    IDBGraph
+  >({
+    url: "/graph/heavy",
+    method: "POST",
+    body: {
+      semanticLimit,
+      semanticThreshold,
+    },
+    onFinally: () => {
+      graphIsLoading.current = false;
+    },
   });
 
-  const [localData, setLocalData] = useState<IGraph | null>(null);
   useEffect(() => {
-    if (graphData) {
-      setLocalData(dbGraphToLocalGraph(graphData));
+    if (graphIsLoading.current === false) {
+      console.log("Loading graph...");
+      graphIsLoading.current = true;
+      reloadGraph();
     }
-  }, [graphData]);
+  }, []);
+
+  console.log("Rendering...");
+
+  const localData = graphData ? dbGraphToLocalGraph(graphData) : undefined;
 
   const navigate = useNavigate();
 
@@ -36,13 +58,7 @@ export default function GraphPage() {
   return (
     <PageWrapper>
       <LeftSidebar>
-        <GraphNavigation
-          graph={localData}
-          reloadGraph={async () => {
-            reloadGraph();
-          }}
-          flags={graphData?.flags}
-        />
+        {localData && <GraphNavigation graph={localData} />}
       </LeftSidebar>
       <div ref={containerRef} className={styles.container}>
         {isLoaded ? (
@@ -67,7 +83,12 @@ export default function GraphPage() {
             <Text c="dimmed">
               Loading your graph... This could take a little while :)
             </Text>
-            <LangtonsAntLoader withOverlay />
+            <LangtonsAntLoader
+              withOverlay
+              cellSize={35}
+              stepsPerSecond={4}
+              numAnts={6}
+            />
             {/* <Loader size="sm" />
             <Text c="dimmed">
               Loading your graph... This could take a little while.
@@ -78,13 +99,7 @@ export default function GraphPage() {
       <RightSidebar openOnShortcut={[{ key: "/" }]} omitDefaults>
         {!isLoaded && <Loader size="sm" />}
         {isLoaded && (
-          <GraphToolbar
-            nodes={localData.nodes}
-            reloadGraph={async () => {
-              reloadGraph();
-            }}
-            flags={graphData.flags}
-          />
+          <GraphToolbar nodes={localData.nodes} flags={graphData.flags} />
         )}
       </RightSidebar>
     </PageWrapper>

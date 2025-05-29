@@ -242,6 +242,7 @@ export class Search {
                 *,
                 vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
+            OMIT embeddings
             FROM idea
             WHERE
               <-owns<-(user WHERE id = <record> $userId)

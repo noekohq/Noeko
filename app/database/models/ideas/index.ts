@@ -142,50 +142,43 @@ export class Idea {
       `;
     };
 
-    const userComputedGraphFunction = () => {
+    const userHeavyGraphFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::user_computed_graph(
+      DEFINE FUNCTION OVERWRITE fn::user_graph_heavy(
           $userId: string,
-          $semanticLimit: option<int>
+          $semanticLimit: option<int>,
+          $semanticThreshold: option<float>
       ) {
-          LET $similarityLimit = $semanticLimit ?? 5;
+        LET $got_limit = $semanticLimit ?? 5;
+        LET $got_threshold = $threshold ?? 0.4;
 
-          LET $userOwnedIdeas = SELECT VALUE ->owns->idea FROM ONLY <record> $userId FETCH idea;
-          LET $ideas = IF $userOwnedIdeas IS NONE THEN [] ELSE $userOwnedIdeas END;
+        LET $processedIdeas = SELECT
+            *,
+            ->is_source_for->(?).* as derivedList,
+            IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
+                fn::search_similar_to_embeddings(embeddings, $userId, $got_limit, $got_threshold)
+            ELSE
+                []
+            END AS similar
+            OMIT embeddings
+        FROM idea
+        WHERE <-owns<-(user WHERE id = <record> $userId)
+        FETCH derivedList, similar, tags;
 
-          -- 2. Extract the IDs
-          LET $ideaIds = $ideas[*].id;
+        LET $ideaIds = $processedIdeas[*].id;
+        LET $ideaConnections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
+        LET $tagConnections = SELECT * FROM describes WHERE out IN $ideaIds;
+        LET $tagIds = $tagConnections[*].in;
+        LET $tags = SELECT * OMIT embeddings FROM tag WHERE id IN $tagIds;
+        LET $files = SELECT VALUE ->owns->user_file FROM ONLY <record> $userId FETCH user_file;
 
-          -- 3. Get connections
-          LET $connections = IF array::len($ideaIds) > 0 THEN (
-              SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds
-          ) ELSE
-              []
-          END;
-
-          -- 4. Get user files
-          LET $userFiles = SELECT VALUE ->owns->user_file FROM ONLY <record> $userId FETCH user_file;
-          LET $files = IF $userFiles IS NONE THEN [] ELSE $userFiles END;
-
-          -- 5. Select final idea data, including derived and similar ideas
-          LET $processedIdeas = SELECT
-              *,
-              ->is_source_for->(?).* as derivedList,
-              IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
-                  fn::search_similar_to_embeddings(embeddings, $userId, $similarityLimit)
-              ELSE
-                  []
-              END AS similar
-          FROM idea
-          WHERE
-            <-owns<-(user WHERE id = <record> $userId)
-          FETCH derivedList, similar;
-
-          RETURN {
-              ideas: $processedIdeas,
-              connections: $connections,
-              files: $files,
-          };
+        RETURN {
+            files: $files,
+            ideaConnections: $ideaConnections,
+            tagConnections: $tagConnections,
+            ideas: $processedIdeas,
+            tags: $tags
+        };
       }
       `;
     };
@@ -262,7 +255,7 @@ export class Idea {
 
     const db = await getDatabase();
     await db?.query(userGraphFunction());
-    await db?.query(userComputedGraphFunction());
+    await db?.query(userHeavyGraphFunction());
     await db?.query(getIdeaConnections());
     await db?.query(getIdeaDerived());
     await db?.query(getUserIdeas());
@@ -712,6 +705,58 @@ export class Idea {
         flags,
         files,
       } as IDBGraph;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  static async graphHeavy(
+    userId: string,
+    options?: { similarityLimit?: number; similarThreshold?: number },
+  ): Promise<IDBGraph | undefined> {
+    try {
+      const db = await getDatabase();
+      const graph = await db?.run<Omit<IDBGraph, "flags">>(
+        "fn::user_graph_heavy",
+        [
+          userId,
+          options?.similarityLimit || 3,
+          options?.similarThreshold || 0.45,
+        ],
+      );
+      if (!graph) {
+        console.error("Something went wrong. Graph undefined.");
+        return undefined;
+      }
+      const {
+        ideas,
+        tags,
+        ideaConnections,
+        tagConnections,
+        files = [],
+      } = graph;
+      const flags: IDBGraph["flags"] = {
+        embeddings: {
+          synced: ideas.every((idea) => idea.embeddings),
+        },
+      };
+      const ideasWithDerived = ideas.map((i) => {
+        return {
+          ...i,
+          derived: Idea.mapDerived(i.derivedList),
+        };
+      });
+      const computedIdeas =
+        Idea.attachComputedFieldsToCollection(ideasWithDerived);
+      return {
+        ideas: computedIdeas,
+        tags,
+        ideaConnections,
+        tagConnections,
+        flags,
+        files,
+      } as IDBGraphWithComputedFields;
     } catch (err) {
       console.error(err);
       return undefined;
