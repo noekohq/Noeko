@@ -109,15 +109,16 @@ export default function Idea() {
   const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/graph/ideas/${ideaId}/embed`,
     method: "POST",
-    onSuccess: () => {
-      reloadIdea();
-    },
+    onSuccess: () => {},
     onError: (error: any) => {
       showNotification({
         title: "Embedding Error",
         message: `Failed to start embedding generation: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
         color: "red",
       });
+    },
+    onFinally: () => {
+      reloadIdea();
     },
   });
 
@@ -126,15 +127,16 @@ export default function Idea() {
       url: `/graph/ideas/${ideaId}/cascade`,
       dependencies: [ideaId],
       method: "POST",
-      onSuccess: () => {
-        reloadIdea();
-      },
+      onSuccess: () => {},
       onError: (error: any) => {
         showNotification({
           title: "Error",
           message: `Failed to run some updates on idea.`,
           color: "red",
         });
+      },
+      onFinally: () => {
+        reloadIdea();
       },
     });
 
