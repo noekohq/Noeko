@@ -28,8 +28,14 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
       type: "idea" as const,
     };
   });
+  const tagNodes = dbGraph.tags.map((tag) => {
+    return {
+      ...tag,
+      type: "tag" as const,
+    };
+  });
 
-  const ideaEdges = dbGraph.edges
+  const ideaEdges = dbGraph.ideaConnections
     .map((i) => {
       return {
         source: i.in.toString(),
@@ -41,32 +47,15 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
     })
     .flat();
 
-  const derivedEdges = dbGraph.ideas
+  const tagEdges = dbGraph.tagConnections
     .map((i) => {
-      return [
-        ...i.derivedList.map((d) => {
-          return {
-            source: i.id.toString(),
-            target: d.id.toString(),
-            distance: 50,
-            strength: 1,
-            visibility: "medium" as const,
-          };
-        }),
-      ] as IEdge[];
-    })
-    .flat();
-
-  const derivedNodes = dbGraph.ideas
-    .map((i) => {
-      return [
-        ...i.derivedList.map((d) => {
-          return {
-            ...d,
-            type: "derived",
-          };
-        }),
-      ] as IDerivedNode[];
+      return {
+        source: i.in.toString(),
+        target: i.out.toString(),
+        distance: MIN_GRAPH_DIST,
+        strength: 0.7,
+        visibility: "high" as const,
+      };
     })
     .flat();
 
@@ -123,16 +112,8 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
   });
 
   const localData: IGraph = {
-    nodes: [
-      ...ideaNodes,
-      ...fileNodes,
-      // ...derivedNodes,
-    ],
-    edges: [
-      ...ideaEdges,
-      ...similarEdges,
-      // ...derivedEdges,
-    ],
+    nodes: [...ideaNodes, ...tagNodes, ...fileNodes],
+    edges: [...ideaEdges, ...tagEdges, ...similarEdges],
   };
   return localData;
 };
@@ -156,6 +137,9 @@ export const getNodeTitle = (node: INode) => {
   if (node.type === "file") {
     return node.originalFileName;
   }
+  if (node.type === "tag") {
+    return node.name;
+  }
 };
 
 export const getNodeDescription = (node: INode) => {
@@ -173,6 +157,9 @@ export const getNodeDescription = (node: INode) => {
   }
   if (node.type === "derived") {
     return node.type;
+  }
+  if (node.type === "tag") {
+    return node.description;
   }
 };
 

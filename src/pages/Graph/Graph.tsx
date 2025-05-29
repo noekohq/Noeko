@@ -51,10 +51,13 @@ export default function Home() {
               graph={localData}
               onNodeNavigate={(e, n) => {
                 if (n.type === "idea") {
-                  navigate(`/idea/${n.id}`);
+                  navigate(`/idea/${n.id.toString()}`);
                 }
                 if (n.type === "file") {
-                  navigate(`/file/${n.id}`);
+                  navigate(`/file/${n.id.toString()}`);
+                }
+                if (n.type === "tag") {
+                  navigate(`/file/${n.id.toString()}`);
                 }
               }}
             />

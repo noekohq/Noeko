@@ -274,7 +274,9 @@ export default function Connections({
                     );
                   })
                 ) : (
-                  <Text c="dimmed">No connections yet.</Text>
+                  <Text c="dimmed" size="sm">
+                    No connections yet. Try dragging a related idea!
+                  </Text>
                 )}
               </Group>
             </Grid.Col>
