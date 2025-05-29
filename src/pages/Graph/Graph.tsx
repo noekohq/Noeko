@@ -17,17 +17,22 @@ import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const graphIsLoading = useRef(false);
   const { data: graphData, load: reloadGraph } = useFetch<undefined, IDBGraph>({
     url: "/graph",
-    runOnMount: true,
+    onFinally: () => {
+      graphIsLoading.current = false;
+    },
   });
 
-  const [localData, setLocalData] = useState<IGraph | null>(null);
   useEffect(() => {
-    if (graphData) {
-      setLocalData(dbGraphToLocalGraph(graphData));
+    if (graphIsLoading.current === false) {
+      graphIsLoading.current = true;
+      reloadGraph();
     }
-  }, [graphData]);
+  }, []);
+
+  const localData = graphData ? dbGraphToLocalGraph(graphData) : undefined;
 
   const navigate = useNavigate();
 

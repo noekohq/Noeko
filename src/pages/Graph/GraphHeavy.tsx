@@ -41,13 +41,10 @@ export default function GraphHeavy() {
 
   useEffect(() => {
     if (graphIsLoading.current === false) {
-      console.log("Loading graph...");
       graphIsLoading.current = true;
       reloadGraph();
     }
   }, []);
-
-  console.log("Rendering...");
 
   const localData = graphData ? dbGraphToLocalGraph(graphData) : undefined;
 
