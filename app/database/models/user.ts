@@ -45,9 +45,13 @@ export type ITokenForm = Omit<IToken, "id" | "user"> & {
   user: StringRecordId;
 };
 
-export type IComputedUser = ISafeUser & {
+export type IComputedProperties = {
   numIdeas: number;
 };
+
+export type IComputedUser = IUser & IComputedProperties;
+
+export type ISafeComputedUsers = ISafeUser & IComputedProperties;
 
 export class User {
   constructor() {}
