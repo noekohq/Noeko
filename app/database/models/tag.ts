@@ -428,7 +428,7 @@ export class Tag {
           idea.embeddings,
           new StringRecordId(userId),
           options?.limit,
-          options?.threshold || 0.4,
+          options?.threshold || 0.5,
         ],
       );
       if (!results) {

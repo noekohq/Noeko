@@ -7,6 +7,7 @@ import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToMarkdown } from "../../../utils/formatting";
 import { max_user_notes } from "../../../settings";
+import { ITag, ITagIdeaRelationship } from "../tag";
 
 export const embeddableContentLimit = 20000;
 
@@ -68,7 +69,9 @@ export type IIdeaUserOwnership = {
 
 export type IDBGraph = {
   ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
-  edges: IIdeaConnection[];
+  tags: ITag[];
+  ideaConnections: IIdeaConnection[];
+  tagConnections: ITagIdeaRelationship[];
   files: IUserFile[];
   flags: {
     embeddings: {
@@ -110,7 +113,38 @@ export class Idea {
   static async up() {
     const userGraphFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::user_graph(
+        DEFINE FUNCTION OVERWRITE fn::user_graph(
+            $userId: string,
+        ) {
+          LET $processedIdeas = SELECT
+              *,
+              ->is_source_for->(?).* as derivedList
+              OMIT embeddings
+          FROM idea
+          WHERE <-owns<-(user WHERE id = <record> $userId)
+          FETCH derivedList, similar, tags;
+
+          LET $ideaIds = $processedIdeas[*].id;
+          LET $ideaConnections = SELECT * FROM connected WHERE in IN $ideaIds OR out IN $ideaIds;
+          LET $tagConnections = SELECT * FROM describes WHERE out IN $ideaIds;
+          LET $tagIds = $tagConnections[*].in;
+          LET $tags = SELECT * OMIT embeddings FROM tag WHERE id IN $tagIds;
+          LET $files = SELECT VALUE ->owns->user_file FROM ONLY <record> $userId FETCH user_file;
+
+          RETURN {
+              files: $files,
+              ideaConnections: $ideaConnections,
+              tagConnections: $tagConnections,
+              ideas: $processedIdeas,
+              tags: $tags
+          };
+        }
+      `;
+    };
+
+    const userComputedGraphFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::user_computed_graph(
           $userId: string,
           $semanticLimit: option<int>
       ) {
@@ -228,6 +262,7 @@ export class Idea {
 
     const db = await getDatabase();
     await db?.query(userGraphFunction());
+    await db?.query(userComputedGraphFunction());
     await db?.query(getIdeaConnections());
     await db?.query(getIdeaDerived());
     await db?.query(getUserIdeas());
@@ -628,25 +663,24 @@ export class Idea {
 
   static async graph(
     userId: string,
-    filters?:
-      | {
-          highlightedNode?: string;
-        }
-      | "none",
     options?: { computeFields: boolean },
   ): Promise<IDBGraph | undefined> {
     try {
       const db = await getDatabase();
-      const graph = await db?.run<{
-        ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
-        connections: IIdeaConnection[];
-        files: IUserFile[];
-      }>("fn::user_graph", [userId, 3]);
+      const graph = await db?.run<Omit<IDBGraph, "flags">>("fn::user_graph", [
+        userId,
+      ]);
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
         return undefined;
       }
-      const { ideas, connections, files = [] } = graph;
+      const {
+        ideas,
+        tags,
+        ideaConnections,
+        tagConnections,
+        files = [],
+      } = graph;
       const flags: IDBGraph["flags"] = {
         embeddings: {
           synced: ideas.every((idea) => idea.embeddings),
@@ -663,14 +697,18 @@ export class Idea {
           Idea.attachComputedFieldsToCollection(ideasWithDerived);
         return {
           ideas: computedIdeas,
-          edges: connections,
+          tags,
+          ideaConnections,
+          tagConnections,
           flags,
           files,
         } as IDBGraphWithComputedFields;
       }
       return {
         ideas: ideasWithDerived,
-        edges: connections,
+        tags,
+        ideaConnections,
+        tagConnections,
         flags,
         files,
       } as IDBGraph;

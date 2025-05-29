@@ -25,7 +25,7 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const filters = req.body.filters;
-    const graph = await Idea.graph(user.id, filters, { computeFields: true });
+    const graph = await Idea.graph(user.id, { computeFields: true });
     if (!graph) {
       res.status(404).json({ message: "Graph not found" });
       return;

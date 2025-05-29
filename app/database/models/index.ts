@@ -3,6 +3,7 @@ import { Idea } from "./ideas";
 import { UserFile } from "./userfile";
 import { Import } from "./import";
 import { Tag } from "./tag";
+import { Log } from "./log";
 
 export const modelsUp = async () => {
   try {
@@ -14,6 +15,7 @@ export const modelsUp = async () => {
     await UserFile.up();
     await Import.up();
     await Tag.up();
+    await Log.up();
   } catch (error) {
     console.error("There was an error updating models: ", error);
   }

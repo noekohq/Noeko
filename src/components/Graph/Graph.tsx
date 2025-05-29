@@ -1,19 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  IDerivedNode,
-  IEdge,
-  IGraph,
-  IIdeaNode,
-  INode,
-} from "../../declarations/graph"; // Adjust path as needed
+import { IDerivedNode, IEdge, IGraph, INode } from "../../declarations/graph"; // Adjust path as needed
 import Node from "./Node";
 import Edge from "./Edge";
-import DerivedNode from "./DerivedNode";
 import styles from "./Graph.module.scss";
 import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
-import NodePanel, { NodePanelProps } from "./NodePanel";
-import FileNode from "./FileNode";
-import { useGraph } from "../../contexts/GraphContext";
+import NodePanel from "./NodePanel";
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {

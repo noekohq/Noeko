@@ -1,10 +1,21 @@
 // graph.d.ts
 import { IIdea, IIdeaDerived } from "../../app/database/models/ideas";
+import { ITag } from "../../app/database/models/tag";
 import { IUserFile } from "../../app/database/models/userfile";
 
 // Add simulation properties directly to INode
 export type IIdeaNode = IIdea & {
   type: "idea";
+  x?: number; // Current x position
+  y?: number; // Current y position
+  vx?: number; // Velocity x
+  vy?: number; // Velocity y
+  fx?: number | null; // Fixed x position (during drag)
+  fy?: number | null; // Fixed y position (during drag)
+};
+
+export type ITagNode = ITag & {
+  type: "tag";
   x?: number; // Current x position
   y?: number; // Current y position
   vx?: number; // Velocity x
@@ -42,7 +53,7 @@ export interface IEdge {
   visibility: "high" | "medium" | "low";
 }
 
-export type INode = IIdeaNode | IFileNode | IDerivedNode;
+export type INode = IIdeaNode | IFileNode | IDerivedNode | ITagNode;
 
 // IGraph remains the container for nodes and edges
 export type IGraph = {
