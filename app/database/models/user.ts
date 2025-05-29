@@ -45,6 +45,10 @@ export type ITokenForm = Omit<IToken, "id" | "user"> & {
   user: StringRecordId;
 };
 
+export type IComputedUser = ISafeUser & {
+  numIdeas: number;
+};
+
 export class User {
   constructor() {}
 
@@ -64,6 +68,17 @@ export class User {
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
       );
+
+      const getUsersFunction = () => {
+        return `
+        DEFINE FUNCTION OVERWRITE fn::get_users() {
+          LET $users = SELECT *, count(->owns->idea) OMIT password as numIdeas FROM user;
+          RETURN $users;
+        }
+        `;
+      };
+
+      await db?.query(getUsersFunction());
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;
@@ -188,7 +203,7 @@ export class User {
   static async getAll() {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IUser>("user");
+      const result = await db?.run<IComputedUser[]>("fn::get_users");
       if (!result) {
         console.error("Failed to get user");
         return undefined;

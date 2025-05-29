@@ -20,7 +20,11 @@ import {
   Code,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
-import { ISafeUser, IUser } from "../../../app/database/models/user";
+import {
+  IComputedUser,
+  ISafeUser,
+  IUser,
+} from "../../../app/database/models/user";
 import {
   TrashSimple,
   HandPalm,
@@ -43,7 +47,7 @@ export default function Users() {
     data: users,
     loading: loadingUsers,
     load: reloadUsers,
-  } = useFetch<undefined, ISafeUser[]>({
+  } = useFetch<undefined, IComputedUser[]>({
     url: "/users",
     runOnMount: true,
   });
@@ -51,7 +55,7 @@ export default function Users() {
   const [toDisable, setToDisable] = useState<ISafeUser>();
   const [toEnable, setToEnable] = useState<ISafeUser>();
   const [toDelete, setToDelete] = useState<ISafeUser>();
-  const [toViewDetails, setToViewDetails] = useState<ISafeUser>();
+  const [toViewDetails, setToViewDetails] = useState<IComputedUser>();
 
   const { load: disableUser } = useFetch<undefined, ISafeUser>({
     url: `/users/disable/${toDisable?.id}`,
@@ -409,11 +413,38 @@ export default function Users() {
           size="lg"
         >
           {toViewDetails && (
-            <Grid>
+            <Grid mt="lg">
               <Grid.Col span={{ sm: 12 }}>
-                <Text fw={500}>ID:</Text>
-                <Group gap="xs">
-                  <Text>{toViewDetails.id}</Text>
+                <Text>
+                  {toViewDetails.numIdeas} idea
+                  {toViewDetails.numIdeas === 1 ? "" : "s"}
+                </Text>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text>
+                  Their name is
+                  <CopyButton
+                    value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}
+                  >
+                    {({ copied, copy }) => (
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={copy}
+                        mx="xs"
+                        leftSection={
+                          copied ? <Check size={14} /> : <Clipboard size={14} />
+                        }
+                      >
+                        {toViewDetails.firstName} {toViewDetails.lastName}
+                      </Button>
+                    )}
+                  </CopyButton>
+                </Text>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text>
+                  Their ID is
                   <CopyButton value={toViewDetails.id.toString()}>
                     {({ copied, copy }) => (
                       <Button
@@ -423,41 +454,17 @@ export default function Users() {
                         leftSection={
                           copied ? <Check size={14} /> : <Clipboard size={14} />
                         }
+                        mx="xs"
                       >
-                        {copied ? "Copied" : "Copy"}
+                        {toViewDetails.id}
                       </Button>
                     )}
                   </CopyButton>
-                </Group>
+                </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
-                <Text fw={500}>Name:</Text>
-                <Group gap="xs">
-                  <Text>
-                    {toViewDetails.firstName} {toViewDetails.lastName}
-                  </Text>
-                  <CopyButton
-                    value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}
-                  >
-                    {({ copied, copy }) => (
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={copy}
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
-                      >
-                        {copied ? "Copied" : "Copy"}
-                      </Button>
-                    )}
-                  </CopyButton>
-                </Group>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Text fw={500}>Email:</Text>
-                <Group gap="xs">
-                  <Text>{toViewDetails.email}</Text>
+                <Text>
+                  Their email is
                   <CopyButton value={toViewDetails.email}>
                     {({ copied, copy }) => (
                       <Button
@@ -467,31 +474,38 @@ export default function Users() {
                         leftSection={
                           copied ? <Check size={14} /> : <Clipboard size={14} />
                         }
+                        mx="xs"
                       >
-                        {copied ? "Copied" : "Copy"}
+                        {toViewDetails.email}
                       </Button>
                     )}
                   </CopyButton>
-                </Group>
+                </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
-                <Text fw={500}>Roles:</Text>
                 <Group gap="xs">
-                  <Text>{toViewDetails.roles.join(", ")}</Text>
-                  <CopyButton value={toViewDetails.roles.join(", ")}>
-                    {({ copied, copy }) => (
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={copy}
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
-                      >
-                        {copied ? "Copied" : "Copy"}
-                      </Button>
-                    )}
-                  </CopyButton>
+                  <Text>
+                    Their roles are
+                    <CopyButton value={toViewDetails.roles.join(", ")}>
+                      {({ copied, copy }) => (
+                        <Button
+                          size="xs"
+                          variant="light"
+                          onClick={copy}
+                          leftSection={
+                            copied ? (
+                              <Check size={14} />
+                            ) : (
+                              <Clipboard size={14} />
+                            )
+                          }
+                          mx="xs"
+                        >
+                          {toViewDetails.roles.join(", ")}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Text>
                 </Group>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -581,6 +595,7 @@ export default function Users() {
                   <Table.Th>Name</Table.Th>
                   <Table.Th>Email</Table.Th>
                   <Table.Th>Roles</Table.Th>
+                  <Table.Th>Info</Table.Th>
                   <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -593,6 +608,9 @@ export default function Users() {
                       </Table.Td>
                       <Table.Td>{user.email}</Table.Td>
                       <Table.Td>{user.roles.join(", ")}</Table.Td>
+                      <Table.Td>
+                        {user.numIdeas} idea{user.numIdeas === 1 ? "" : "s"}
+                      </Table.Td>
                       <Table.Td>
                         <Group gap="xs">
                           {user.disabled ? (
