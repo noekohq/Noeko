@@ -16,14 +16,16 @@ import {
   getFromReq,
   getRefreshTokenFromReq,
 } from "../utils/requests";
-import { sendEmail } from "../utils/email";
-import { getRandomValues } from "crypto";
 import { Idea } from "../database/models/ideas";
 
 const router = Router();
 
 router.post("/register", async (req, res) => {
   try {
+    res.status(403).send({
+      message: "Sorry, new registration is currently unavailable.",
+    });
+    return;
     const form = req.body;
     if (
       !form.email ||
