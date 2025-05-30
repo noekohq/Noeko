@@ -247,7 +247,7 @@ export function InteractionProvider({
         },
       },
       {
-        keys: { ctrl, meta, shift: true, key: "i" },
+        keys: { ctrl, meta, shift: true, key: "a" },
         run: value.actions.newIdea,
       },
     ],
