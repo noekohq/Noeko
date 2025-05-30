@@ -2,14 +2,13 @@ import {
   Container,
   Title,
   Text,
-  Badge,
   SimpleGrid,
   Card,
   Group,
   Stack,
   Loader,
   Alert,
-  ThemeIcon,
+  LoadingOverlay,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -18,7 +17,14 @@ import useFetch from "../../hooks/useFetch";
 import { ITag } from "../../../app/database/models/tag";
 import { useParams } from "react-router";
 import { IIdea } from "../../../app/database/models/ideas";
-import { Tag as PhosphorTag, WarningCircle } from "@phosphor-icons/react";
+import { Tag, WarningCircle } from "@phosphor-icons/react";
+import { BlockTag } from "../../components/Tags/TagDisplay";
+import {
+  CompactIdeaCard,
+  StandardIdeaCard,
+} from "../../components/Display/Ideas/IdeaCards";
+import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
+import { showNotification } from "@mantine/notifications";
 
 export default function ViewTag() {
   const { tagId } = useParams<{ tagId: string }>();
@@ -27,6 +33,7 @@ export default function ViewTag() {
     data: tag,
     loading: loadingTag,
     errors: tagErrors,
+    load: reloadTag,
   } = useFetch<undefined, ITag>({
     url: `/tags/${tagId}`,
     runOnMount: true,
@@ -36,6 +43,7 @@ export default function ViewTag() {
     data: ideas,
     loading: loadingIdeas,
     errors: ideaErrors,
+    load: reloadIdeas,
   } = useFetch<undefined, IIdea[]>({
     url: `/tags/${tagId}/ideas`,
     runOnMount: true,
@@ -45,10 +53,77 @@ export default function ViewTag() {
     data: relatedIdeas,
     loading: loadingRelatedIdeas,
     errors: relatedIdeaErrors,
+    load: reloadRelatedIdeas,
   } = useFetch<undefined, IIdea[]>({
     url: `/tags/${tagId}/similar-ideas`,
     runOnMount: true,
   });
+
+  const filteredRelatedIdeas = relatedIdeas
+    ? relatedIdeas.filter(
+        (relatedIdea) => !ideas?.some((idea) => idea.id === relatedIdea.id),
+      )
+    : [];
+
+  const somethingLoading = loadingTag || loadingIdeas || loadingRelatedIdeas;
+
+  const handleRefresh = async () => {
+    await reloadTag();
+    await reloadIdeas();
+    await reloadRelatedIdeas();
+  };
+
+  const handleAddTag = async (idea: IIdea) => {
+    if (!tag) {
+      console.error("Cannot add tag: Tag data not loaded.");
+      // Optionally show an error message to the user
+      return;
+    }
+    try {
+      // Assuming addTagToIdea takes ideaId and tagId (as strings)
+      await addTagToIdea(idea.id.toString(), tag.id.toString());
+      console.log(`Successfully added tag ${tag.name} to idea ${idea.title}`);
+      handleRefresh();
+    } catch (error) {
+      console.error(
+        `Failed to add tag ${tag.name} to idea ${idea.title}:`,
+        error,
+      );
+      // Optionally show an error message to the user
+      showNotification({
+        title: "Error",
+        message: "Something went wrong adding the tag",
+        color: "red",
+      });
+    }
+  };
+
+  // Handler for a potential "Remove tag" button (not currently in the TSX)
+  const handleRemoveTag = async (idea: IIdea) => {
+    if (!tag) {
+      console.error("Cannot remove tag: Tag data not loaded.");
+      // Optionally show an error message to the user
+      return;
+    }
+    try {
+      // Assuming removeTagFromIdea takes ideaId and tagId (as strings)
+      await removeTagFromIdea(idea.id.toString(), tag.id.toString());
+      console.log(
+        `Successfully removed tag ${tag.name} from idea ${idea.title}`,
+      );
+      handleRefresh();
+    } catch (error) {
+      console.error(
+        `Failed to remove tag ${tag.name} from idea ${idea.title}:`,
+        error,
+      );
+      showNotification({
+        title: "Error",
+        message: "Something went wrong removing the tag",
+        color: "red",
+      });
+    }
+  };
 
   if (loadingTag) {
     return (
@@ -112,31 +187,11 @@ export default function ViewTag() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" py="xl">
+      <Container w="100%" py="xl" style={{ position: "relative" }}>
         <Stack gap="xl">
-          {/* Tag Details */}
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Group gap="lg" mb="xs">
-              <Group>
-                <ThemeIcon
-                  size="lg"
-                  variant="light"
-                  color={tag.color || "gray"}
-                >
-                  <PhosphorTag size={24} /> {/* Updated icon */}
-                </ThemeIcon>
-                <Title order={2}>{tag.name}</Title>
-              </Group>
-              {tag.color && (
-                <Badge
-                  color={tag.color}
-                  variant="light"
-                  size="lg"
-                  style={{ border: `1px solid ${tag.color}` }}
-                >
-                  {tag.name}
-                </Badge>
-              )}
+              <BlockTag tag={tag} color="blue" />
             </Group>
             {tag.description && (
               <Text size="sm" c="dimmed" mt="xs">
@@ -155,12 +210,10 @@ export default function ViewTag() {
 
           {/* Ideas with this Tag */}
           <Stack gap="md">
-            <Title order={3}>Ideas with this Tag</Title>
-            {loadingIdeas && (
-              <Group justify="center" py="md">
-                <Loader />
-              </Group>
-            )}
+            <Group>
+              <Title order={3}>Ideas with this tag</Title>
+              {loadingIdeas && <Loader size="md" />}
+            </Group>
             {ideaErrors && ideaErrors.length > 0 && (
               <Alert
                 icon={<WarningCircle size={24} />} // Updated icon
@@ -177,21 +230,21 @@ export default function ViewTag() {
             ideas.length > 0 ? (
               <SimpleGrid cols={2} spacing="lg">
                 {ideas.map((idea) => (
-                  <Card
-                    shadow="sm"
-                    padding="lg"
-                    radius="md"
-                    withBorder
+                  <CompactIdeaCard
+                    idea={idea}
                     key={idea.id.toString()}
-                  >
-                    <Text fw={500}>{idea.title || "Untitled Idea"}</Text>
-                    <Text size="sm" c="dimmed" lineClamp={3} mt={4}>
-                      {idea.derived?.generative_summary?.sentenceOverview ||
-                        idea.content?.substring(0, 150) ||
-                        "No summary available."}
-                    </Text>
-                    {/* TODO: Add Link to Idea page: e.g., <Button component={Link} to={`/ideas/${idea.id}`} mt=\"md\">View Idea</Button> */}
-                  </Card>
+                    actions={[
+                      {
+                        icon: <Tag />,
+                        id: "remove_tag",
+                        label: `Remove tag`,
+                        onClick: () => {
+                          handleRemoveTag(idea);
+                        },
+                        tooltip: `Remove tag ${tag.name} from ${idea.title}`,
+                      },
+                    ]}
+                  />
                 ))}
               </SimpleGrid>
             ) : (
@@ -206,12 +259,10 @@ export default function ViewTag() {
 
           {/* Similar Ideas */}
           <Stack gap="md">
-            <Title order={3}>Related Ideas (Similar)</Title>
-            {loadingRelatedIdeas && (
-              <Group justify="center" py="md">
-                <Loader />
-              </Group>
-            )}
+            <Group>
+              <Title order={3}>Suggested Ideas</Title>
+              {loadingRelatedIdeas && <Loader size="md" />}
+            </Group>
             {relatedIdeaErrors && relatedIdeaErrors.length > 0 && (
               <Alert
                 icon={<WarningCircle size={24} />} // Updated icon
@@ -219,39 +270,36 @@ export default function ViewTag() {
                 color="red"
                 mt="md"
               >
-                Failed to load similar ideas: {relatedIdeaErrors.join(", ")}
+                Failed to load suggested ideas: {relatedIdeaErrors.join(", ")}
               </Alert>
             )}
             {!loadingRelatedIdeas &&
             !(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
-            relatedIdeas &&
-            relatedIdeas.length > 0 ? (
+            filteredRelatedIdeas &&
+            filteredRelatedIdeas.length > 0 ? (
               <SimpleGrid cols={2} spacing="lg">
-                {relatedIdeas.map((idea) => (
-                  <Card
-                    shadow="sm"
-                    padding="lg"
-                    radius="md"
-                    withBorder
+                {filteredRelatedIdeas.map((idea) => (
+                  <StandardIdeaCard
+                    idea={idea}
                     key={idea.id.toString()}
-                  >
-                    <Text fw={500}>{idea.title || "Untitled Idea"}</Text>
-                    <Text size="sm" c="dimmed" lineClamp={3} mt={4}>
-                      {idea.derived?.generative_summary?.sentenceSummary ||
-                        idea.content?.substring(0, 150) ||
-                        "No summary available."}
-                    </Text>
-                    {/* TODO: Add Link to Idea page: e.g., <Button component={Link} to={`/ideas/${idea.id}`} mt=\"md\">View Idea</Button> */}
-                  </Card>
+                    actions={[
+                      {
+                        icon: <Tag />,
+                        id: "apply_tag",
+                        label: `Apply "${tag.name}"`,
+                        onClick: () => {
+                          handleAddTag(idea);
+                        },
+                        tooltip: `Apply tag ${tag.name} to ${idea.title}`,
+                      },
+                    ]}
+                  />
                 ))}
               </SimpleGrid>
             ) : (
               !loadingRelatedIdeas &&
               !(relatedIdeaErrors && relatedIdeaErrors.length > 0) && (
-                <Text c="dimmed">
-                  No similar ideas found for this tag. Embeddings might be
-                  missing or no ideas match the criteria.
-                </Text>
+                <Text c="dimmed">No similar ideas found for this tag.</Text>
               )
             )}
           </Stack>

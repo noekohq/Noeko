@@ -461,26 +461,28 @@ export class Tag {
         return [];
       }
 
-      const results = await db.run<Idea[]>(
-        "fn::search_ideas_similar_to_tag",
-        [
-          new StringRecordId(tagId),
-          new StringRecordId(userId),
-          options?.limit,
-          options?.threshold || 0.7, // Default threshold
-        ],
-      );
+      const results = await db.run<Idea[]>("fn::search_ideas_similar_to_tag", [
+        new StringRecordId(tagId),
+        new StringRecordId(userId),
+        options?.limit,
+        options?.threshold || 0.4, // Default threshold
+      ]);
 
       if (!results) {
         // This handles cases where db.run might return null/undefined for no results,
         // or if the function itself returns an explicit null/undefined.
         // Returning an empty array for "no results found" is consistent with other methods.
-        console.warn(`No similar ideas found for tag ${tagId.toString()} for user ${userId.toString()}.`);
+        console.warn(
+          `No similar ideas found for tag ${tagId.toString()} for user ${userId.toString()}.`,
+        );
         return [];
       }
       return results;
     } catch (error) {
-      console.error(`Error getting similar ideas for tag ${tagId.toString()}: `, error);
+      console.error(
+        `Error getting similar ideas for tag ${tagId.toString()}: `,
+        error,
+      );
       return undefined;
     }
   }

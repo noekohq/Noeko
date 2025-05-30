@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react"; // Import React
+import { useEffect, useState, useCallback, useRef } from "react"; // Import React
 import { useNavigate, useParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch"; // Your custom hook
@@ -13,19 +13,15 @@ import {
   Text,
   Card,
   Tooltip,
-  Flex,
   Divider,
   Button,
-  Space,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { Sparkle, TrashSimple } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
-import { useDisclosure } from "@mantine/hooks";
 import Connections from "./Connections";
 import Overview from "./Overview";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
-import useShortcuts from "../../hooks/useShortcuts";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
@@ -34,7 +30,6 @@ import { getTextProcessed } from "../../utils/processing";
 import { htmlToPlainText } from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
-import Search from "../../components/Search/Search";
 import TagsManager from "./TagsManager";
 
 export default function Idea() {

@@ -343,7 +343,11 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     if (limit) {
       parsedLimit = parseInt(limit as string, 10);
       if (isNaN(parsedLimit) || parsedLimit <= 0) {
-        res.status(400).json({ message: "Invalid limit parameter. Must be a positive integer." });
+        res
+          .status(400)
+          .json({
+            message: "Invalid limit parameter. Must be a positive integer.",
+          });
         return;
       }
     }
@@ -352,8 +356,17 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     let parsedThreshold: number | undefined = undefined;
     if (threshold) {
       parsedThreshold = parseFloat(threshold as string);
-      if (isNaN(parsedThreshold) || parsedThreshold < 0 || parsedThreshold > 1) {
-        res.status(400).json({ message: "Invalid threshold parameter. Must be a float between 0 and 1." });
+      if (
+        isNaN(parsedThreshold) ||
+        parsedThreshold < 0 ||
+        parsedThreshold > 1
+      ) {
+        res
+          .status(400)
+          .json({
+            message:
+              "Invalid threshold parameter. Must be a float between 0 and 1.",
+          });
         return;
       }
     }
@@ -367,25 +380,36 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     // Ensure tag exists and has embeddings before calling the search function
     const tagExists = await Tag.get(tagId);
     if (!tagExists) {
-        res.status(404).json({ message: "Tag not found." });
-        return;
+      res.status(404).json({ message: "Tag not found." });
+      return;
     }
     if (!tagExists.embeddings || tagExists.embeddings.length === 0) {
-        // Send a 200 with empty data as no comparison can be made, or 400 if it's a bad request
-        res.status(200).json({ message: "Tag has no embeddings to compare, no similar ideas found.", data: [] });
-        return;
+      // Send a 200 with empty data as no comparison can be made, or 400 if it's a bad request
+      res
+        .status(200)
+        .json({
+          message: "Tag has no embeddings to compare, no similar ideas found.",
+          data: [],
+        });
+      return;
     }
 
     const options = {
-        limit: parsedLimit,
-        threshold: parsedThreshold, // getSimilarIdeasToTag will apply a default if undefined
+      limit: parsedLimit,
+      threshold: parsedThreshold, // getSimilarIdeasToTag will apply a default if undefined
     };
 
-    const similarIdeas = await Tag.getSimilarIdeasToTag(tagId, user.id, options);
+    const similarIdeas = await Tag.getSimilarIdeasToTag(
+      tagId,
+      user.id,
+      options,
+    );
 
     if (similarIdeas === undefined) {
       // This indicates an internal error within Tag.getSimilarIdeasToTag, not just "no results"
-      res.status(500).json({ message: "Error fetching similar ideas for the tag." });
+      res
+        .status(500)
+        .json({ message: "Error fetching similar ideas for the tag." });
       return;
     }
 
@@ -394,7 +418,10 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
       data: similarIdeas, // This will be an empty array if no ideas meet the criteria
     });
   } catch (error) {
-    console.error(`Error getting similar ideas for tag ${req.params.tagId}:`, error);
+    console.error(
+      `Error getting similar ideas for tag ${req.params.tagId}:`,
+      error,
+    );
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

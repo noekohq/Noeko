@@ -21,7 +21,7 @@ import useFetch from "../../hooks/useFetch"; // Adjust the import path as needed
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react"; // Added React, useState, and useMemo
 import { Plus, PencilSimple, FloppyDisk, X } from "@phosphor-icons/react"; // Added new icons
-import Tag from "../../components/Tags/Tag";
+import { InlineTag } from "../../components/Tags/TagDisplay";
 
 export default function Tags() {
   const {
@@ -316,7 +316,7 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
   return (
     <Table.Tr>
       <Table.Td>
-        <Tag tag={tag} />
+        <InlineTag tag={tag} />
       </Table.Td>
       <Table.Td>{tag.description || ""}</Table.Td>
       <Table.Td>
