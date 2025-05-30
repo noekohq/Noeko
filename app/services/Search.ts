@@ -1,4 +1,4 @@
-import { RecordId } from "surrealdb";
+import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
 import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
@@ -53,6 +53,21 @@ export type ISearchOverview = {
     analysis: string;
   }[];
   overview: string;
+};
+
+// --- Tag Search Result Types ---
+export type ITagSearchResultValue = {
+  id: string | RecordId;
+  name: string;
+  description: string;
+  color?: string;
+};
+
+export type ITagSearchResult = {
+  id: string | RecordId; // This is the Tag's own ID
+  value: ITagSearchResultValue;
+  score: number;
+  searchType: "fts" | "semantic" | "comprehensive";
 };
 
 // --- Refactored Search Service ---
@@ -363,13 +378,6 @@ export class Search {
    * Optional: Removes search indexes and functions.
    */
   static async down() {
-    // Implement DROP ANALYZER, DROP INDEX, REMOVE FUNCTION if needed
-    // Example:
-    // const db = await getDatabase();
-    // await db?.query("REMOVE INDEX idx_idea_title_fts;");
-    // await db?.query("REMOVE INDEX idx_idea_content_fts;");
-    // await db?.query("REMOVE FUNCTION fn::search_user_ideas_fts;");
-    // ... etc.
     console.warn(
       "Search.down() needs specific REMOVE statements based on defined resources.",
     );
@@ -775,9 +783,161 @@ export class Search {
       return undefined;
     }
   }
+
+  static async ftsSearchTags(
+    userId: string,
+    query: string,
+    options?: { limit?: number },
+  ): Promise<ITagSearchResult[]> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error(
+          "Database connection not available for FTS tag search.",
+        );
+      }
+      const limit = options?.limit ?? 10;
+
+      // Define the type for the raw result from the DB function
+      type RawTagFTSResult = {
+        id: string;
+        name: string;
+        description: string;
+        color?: string;
+        score: number;
+      };
+
+      const dbResults = await db.run<RawTagFTSResult[]>(
+        "fn::fts_tags_for_user",
+        [new StringRecordId(userId), query, limit],
+      );
+
+      if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
+        throw new Error("Couldn't get results");
+      }
+
+      return dbResults.map((tag) => ({
+        id: tag.id,
+        value: {
+          id: tag.id,
+          name: tag.name,
+          description: tag.description,
+          color: tag.color,
+        },
+        score: tag.score,
+        searchType: "fts",
+      }));
+    } catch (error) {
+      console.error("Error during FTS tag search:", error);
+      return [];
+    }
+  }
+
+  static async semanticSearchTags(
+    userId: string,
+    embedding: number[],
+    options?: { limit?: number; threshold?: number },
+  ): Promise<ITagSearchResult[]> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error(
+          "Database connection not available for semantic tag search.",
+        );
+      }
+      const limit = options?.limit ?? 10;
+      const threshold = options?.threshold ?? Search.SEMANTIC_THRESHOLD; // Use existing threshold or define a new one for tags
+
+      type RawTagSemanticResult = {
+        id: string;
+        name: string;
+        description: string;
+        color?: string;
+        score: number;
+      };
+
+      const dbResults = await db.run<RawTagSemanticResult[]>(
+        "fn::semantic_search_tags_for_user",
+        [new StringRecordId(userId), embedding, limit, threshold],
+      );
+
+      if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
+        throw new Error("Couldn't get results");
+      }
+
+      return dbResults.map((tag) => ({
+        id: tag.id,
+        value: {
+          id: tag.id,
+          name: tag.name,
+          description: tag.description,
+          color: tag.color,
+        },
+        score: tag.score,
+        searchType: "semantic",
+      }));
+    } catch (error) {
+      console.error("Error during semantic tag search:", error);
+      return [];
+    }
+  }
+
+  static async comprehensiveSearchTags(
+    userId: string,
+    query: string,
+    options?: { limit?: number },
+  ): Promise<ITagSearchResult[]> {
+    try {
+      const limit = options?.limit ?? 10;
+
+      const embeddingProcessor = new Embeddings();
+      const embedding = await embeddingProcessor.generateEmbeddings(query);
+
+      const ftsResults = await Search.ftsSearchTags(userId, query, { limit });
+      let semanticResults: ITagSearchResult[] = [];
+      if (embedding) {
+        semanticResults = await Search.semanticSearchTags(userId, embedding, {
+          limit,
+        });
+      }
+
+      const combinedResultsMap = new Map<string, ITagSearchResult>();
+
+      // Process FTS results
+      for (const result of ftsResults) {
+        combinedResultsMap.set(result.id.toString(), {
+          ...result,
+          score: result.score * 0.4,
+        }); // Weight FTS score
+      }
+
+      // Process Semantic results
+      for (const result of semanticResults) {
+        if (combinedResultsMap.has(result.id.toString())) {
+          const existing = combinedResultsMap.get(result.id.toString())!;
+          existing.score += result.score * 0.6; // Add weighted semantic score
+          // Potentially mark as 'comprehensive' or note both sources
+          existing.searchType = "comprehensive";
+        } else {
+          combinedResultsMap.set(result.id.toString(), {
+            ...result,
+            score: result.score * 0.6,
+            searchType: "comprehensive",
+          });
+        }
+      }
+
+      const finalResults = Array.from(combinedResultsMap.values());
+      finalResults.sort((a, b) => b.score - a.score);
+
+      return finalResults.slice(0, limit);
+    } catch (error) {
+      console.error("Error during comprehensive tag search:", error);
+      return [];
+    }
+  }
 }
 
-// --- Initialization functions ---
 export const initSearch = async () => {
   console.log("Initializing Search Service (using original definitions)...");
   await Search.up();
