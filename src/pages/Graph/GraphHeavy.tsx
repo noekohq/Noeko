@@ -70,7 +70,7 @@ export default function GraphHeavy() {
                   navigate(`/file/${n.id.toString()}`);
                 }
                 if (n.type === "tag") {
-                  navigate(`/file/${n.id.toString()}`);
+                  navigate(`/tags/${n.id.toString()}`);
                 }
               }}
             />

@@ -23,7 +23,7 @@ const router = Router();
 router.post("/register", async (req, res) => {
   try {
     res.status(403).send({
-      message: "Sorry, new registration is currently unavailable.",
+      message: "Sorry, new registration is currently unavailable. Please use a referral link.",
     });
     return;
     // const form = req.body;
@@ -49,7 +49,7 @@ router.post("/register", async (req, res) => {
     // const hashedPassword = await hashPassword(form.password);
     // const user = await User.create({ ...req.body, password: hashedPassword });
     // if (!user) {
-    //   res.status(400).json({ message: "User already exists" });
+    //   res.status(400).json({ message: "User already exists" }); // This might be incorrect, create usually returns the user or throws
     //   return;
     // }
     // const accessToken = await User.generateAccessToken(user);
@@ -69,6 +69,89 @@ router.post("/register", async (req, res) => {
     // });
   } catch (error) {
     console.error("User registration error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/register-referred", async (req, res) => {
+  try {
+    const form = req.body;
+    if (
+      !form.email ||
+      !form.password ||
+      !form.passwordConfirmation ||
+      !form.firstName ||
+      !form.lastName ||
+      !form.referralCode
+    ) {
+      res.status(400).json({ message: "Missing required fields, including referralCode" });
+      return;
+    }
+
+    const isCodeValid = await User.isReferralCodeValid(form.referralCode);
+    if (!isCodeValid) {
+      res.status(403).json({ message: "Invalid or expired referral code." });
+      return;
+    }
+
+    const userExistsWithEmail = await User.findByEmail(form.email);
+    if (userExistsWithEmail) {
+      res.status(400).json({ message: "Email already in use" });
+      return;
+    }
+
+    if (!(form.password === form.passwordConfirmation)) {
+      res.status(400).json({ message: "Passwords do not match" });
+      return;
+    }
+
+    const hashedPassword = await hashPassword(form.password);
+    const newUser = await User.create({
+      email: form.email,
+      password: hashedPassword,
+      firstName: form.firstName,
+      lastName: form.lastName,
+    });
+
+    if (!newUser) {
+      // User.create should throw or return a user. If it returns undefined, it's an issue.
+      res.status(500).json({ message: "Failed to create user account." });
+      return;
+    }
+
+    // Add referral relationship
+    const referrerUser = await User.findByReferralCode(form.referralCode);
+    if (referrerUser) {
+      await User.addReferralRelationship(referrerUser.id, newUser.id);
+      console.info(`Referral relationship added between ${referrerUser.email} and ${newUser.email}`);
+    } else {
+      // This case should ideally not happen if isReferralCodeValid passed,
+      // but good to log if it does.
+      console.warn(`Referrer user not found for code ${form.referralCode} after validation.`);
+    }
+
+    const accessToken = await User.generateAccessToken(newUser);
+    const refreshToken = await User.generateRefreshToken(newUser);
+
+    if (!refreshToken) {
+      // This indicates an issue with token generation or saving the refresh token
+      await User.delete(newUser.id); // Attempt to rollback user creation
+      res.status(500).json({ message: "Internal Server Error during token generation" });
+      return;
+    }
+
+    await addAccessTokenToRes(res, accessToken);
+    await addRefreshTokenToRes(res, refreshToken);
+
+    res.status(201).json({
+      message: "User registered successfully via referral",
+      data: {
+        accessToken,
+        user: newUser, // newUser is ISafeUser from User.create
+      },
+    });
+  } catch (error) {
+    console.error("User registration via referral error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

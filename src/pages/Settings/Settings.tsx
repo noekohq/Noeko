@@ -45,7 +45,7 @@ export default function Settings() {
                 </Grid.Col>
                 <Grid.Col>
                   <Group>
-                    <Link to="tags">
+                    <Link to="/tags">
                       <Button variant="light">Tags</Button>
                     </Link>
                     <Link to="profile">

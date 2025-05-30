@@ -3,6 +3,7 @@ import { checkToken } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser } from "../database/models/user";
 import { Idea } from "../database/models/ideas";
+import { AnalysisService } from "../services/Analysis";
 
 const router = Router();
 
@@ -14,13 +15,17 @@ router.get("/", async (req, res) => {
     if (!user) {
       throw new Error("User is not logged in.");
     }
+
     const recentIdeas = await Idea.getUserRecentIdeas(user.id, 10);
     const ideaStats = await Idea.getUserIdeaStats(user.id);
+    const totalUsers = await AnalysisService.getTotalUsers();
+
     res.send({
       message: "Got Dashboard Successfully...",
       data: {
         recentIdeas,
         ideaStats,
+        totalUsers,
       },
     });
   } catch (error) {

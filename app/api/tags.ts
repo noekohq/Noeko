@@ -326,6 +326,79 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
   }
 });
 
+// Get similar ideas for a given tag
+router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { tagId } = req.params;
+    const { limit, threshold } = req.query;
+
+    // Validate and parse limit
+    let parsedLimit: number | undefined = undefined;
+    if (limit) {
+      parsedLimit = parseInt(limit as string, 10);
+      if (isNaN(parsedLimit) || parsedLimit <= 0) {
+        res.status(400).json({ message: "Invalid limit parameter. Must be a positive integer." });
+        return;
+      }
+    }
+
+    // Validate and parse threshold
+    let parsedThreshold: number | undefined = undefined;
+    if (threshold) {
+      parsedThreshold = parseFloat(threshold as string);
+      if (isNaN(parsedThreshold) || parsedThreshold < 0 || parsedThreshold > 1) {
+        res.status(400).json({ message: "Invalid threshold parameter. Must be a float between 0 and 1." });
+        return;
+      }
+    }
+
+    const isOwner = await Tag.checkUserOwnership(tagId, user.id);
+    if (!isOwner) {
+      res.status(403).json({ message: "Forbidden. You do not own this tag." });
+      return;
+    }
+
+    // Ensure tag exists and has embeddings before calling the search function
+    const tagExists = await Tag.get(tagId);
+    if (!tagExists) {
+        res.status(404).json({ message: "Tag not found." });
+        return;
+    }
+    if (!tagExists.embeddings || tagExists.embeddings.length === 0) {
+        // Send a 200 with empty data as no comparison can be made, or 400 if it's a bad request
+        res.status(200).json({ message: "Tag has no embeddings to compare, no similar ideas found.", data: [] });
+        return;
+    }
+
+    const options = {
+        limit: parsedLimit,
+        threshold: parsedThreshold, // getSimilarIdeasToTag will apply a default if undefined
+    };
+
+    const similarIdeas = await Tag.getSimilarIdeasToTag(tagId, user.id, options);
+
+    if (similarIdeas === undefined) {
+      // This indicates an internal error within Tag.getSimilarIdeasToTag, not just "no results"
+      res.status(500).json({ message: "Error fetching similar ideas for the tag." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Successfully retrieved similar ideas for the tag.",
+      data: similarIdeas, // This will be an empty array if no ideas meet the criteria
+    });
+  } catch (error) {
+    console.error(`Error getting similar ideas for tag ${req.params.tagId}:`, error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get("/similar_to/idea/:ideaId", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");

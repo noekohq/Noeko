@@ -25,10 +25,11 @@ import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
 import Spyglass from "./pages/Search/Spyglass";
 import Ideas from "./pages/Idea/Ideas";
-import Tags from "./pages/Settings/Tags/Tags";
+import Tags from "./pages/Tags/Tags";
 import { useEffect } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 import Updates from "./pages/Feedback/Updates";
+import ViewTag from "./pages/Tags/ViewTag";
 
 export default function App() {
   const navigate = useNavigate();
@@ -105,7 +106,6 @@ export default function App() {
                   <Route path="settings">
                     <Route index element={<Settings />} />
                     <Route path="profile" element={<Profile />} />
-                    <Route path="tags" element={<Tags />} />
                   </Route>
                   <Route path="idea">
                     <Route index element={<Navigate to="/ideas" replace />} />
@@ -113,6 +113,10 @@ export default function App() {
                   </Route>
                   <Route path="ideas">
                     <Route index element={<Ideas />} />
+                  </Route>
+                  <Route path="tags">
+                    <Route index element={<Tags />} />
+                    <Route path=":tagId" element={<ViewTag />} />
                   </Route>
                   <Route path="file">
                     <Route index element={<Navigate to="/" replace />} />

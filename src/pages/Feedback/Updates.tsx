@@ -29,6 +29,23 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("May 29, 2025"),
+    title: "Graph improvements, better shortcuts",
+    details: (
+      <List>
+        <List.Item>
+          The graph has been refined to include both "normal" and "heavy" mode,
+          which allows you to tune the level of computation of your graph
+        </List.Item>
+        <List.Item>Tags will now appear in the graph</List.Item>
+        <List.Item>
+          New idea will now be (ctrl/cmd + shift + a) rather than (ctrl/cmd +
+          shift + i) due to conflict with developer tools
+        </List.Item>
+      </List>
+    ),
+  },
+  {
     date: new Date("May 28, 2025"),
     title: "UI Updates, Tags, and Bug Fixes",
     details: (
@@ -56,7 +73,7 @@ const updates: IUpdate[] = [
         </List.Item>
         <List.Item>Improved mobile UI experience</List.Item>
         <List.Item>
-          Early phases of <Link to="/settings/tags">Tags</Link> feature
+          Early phases of <Link to="/tags">Tags</Link> feature
         </List.Item>
       </List>
     ),

@@ -1,6 +1,6 @@
 import Graph from "../../components/Graph/Graph";
-import { IGraph } from "../../declarations/graph";
-import { useEffect, useRef, useState } from "react";
+import { IGraph, INode } from "../../declarations/graph";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import styles from "./Graph.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IDBGraph } from "../../../app/database/models/ideas";
@@ -32,9 +32,33 @@ export default function GraphPage() {
     }
   }, []);
 
+  useEffect(() => {
+    setIsNavigating(false); // Reset on mount/page load
+  }, []);
+
   const localData = graphData ? dbGraphToLocalGraph(graphData) : undefined;
 
   const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleNodeNavigate = useCallback(
+    (
+      event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+      node: INode,
+    ) => {
+      setIsNavigating(true);
+      if (node.type === "idea") {
+        navigate(`/idea/${node.id.toString()}`);
+      }
+      if (node.type === "file") {
+        navigate(`/file/${node.id.toString()}`);
+      }
+      if (node.type === "tag") {
+        navigate(`/tags/${node.id.toString()}`); // Maintained original navigation target for 'tag'
+      }
+    },
+    [navigate],
+  );
 
   const isLoaded = !!localData && graphData;
 
@@ -56,17 +80,8 @@ export default function GraphPage() {
           <>
             <Graph
               graph={localData}
-              onNodeNavigate={(e, n) => {
-                if (n.type === "idea") {
-                  navigate(`/idea/${n.id.toString()}`);
-                }
-                if (n.type === "file") {
-                  navigate(`/file/${n.id.toString()}`);
-                }
-                if (n.type === "tag") {
-                  navigate(`/file/${n.id.toString()}`);
-                }
-              }}
+              onNodeNavigate={handleNodeNavigate}
+              isNavigating={isNavigating}
             />
           </>
         ) : (

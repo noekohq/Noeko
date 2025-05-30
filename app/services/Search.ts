@@ -286,6 +286,54 @@ export class Search {
           `;
     };
 
+    const searchSimilarIdeasToTag = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_ideas_similar_to_tag(
+        $tagId: record<tag>,
+        $userId: record<user>,
+        $limit: option<int>,
+        $threshold: option<float>
+      ) {
+        -- Description: Finds ideas semantically similar to a given tag's embeddings for a specific user.
+        -- Parameters:
+        --   $tagId: The record ID of the tag.
+        --   $userId: The record ID of the user.
+        --   $limit: Max number of similar ideas (default: 10).
+        --   $threshold: Min similarity threshold (default: ${Search.SEMANTIC_THRESHOLD}).
+
+        LET $tag_embeddings = SELECT VALUE embeddings FROM ONLY $tagId;
+
+        IF !$tag_embeddings THEN
+          RETURN []; -- No embeddings for the tag, return empty
+        END;
+
+        LET $default_limit = 10;
+        LET $default_threshold = ${Search.SEMANTIC_THRESHOLD};
+
+        LET $actual_limit = IF $limit != NONE THEN $limit ELSE $default_limit END;
+        LET $actual_threshold = IF $threshold != NONE THEN $threshold ELSE $default_threshold END;
+
+        LET $results = (
+            SELECT
+                *, -- Select all fields from the idea
+                vector::similarity::cosine(embeddings, $tag_embeddings) AS distance,
+                ->is_source_for->(? WHERE <-owns<-(user WHERE id = $userId)).* as derivedList -- Get derived ideas owned by the user
+            OMIT embeddings -- Don't return the idea's own embeddings in the result
+            FROM idea
+            WHERE
+                <-owns<-(user WHERE id = $userId) -- Idea must be owned by the specified user
+                AND !!content     -- Idea must have content
+                AND !!embeddings  -- Idea must have embeddings
+                AND vector::similarity::cosine(embeddings, $tag_embeddings) >= $actual_threshold
+            ORDER BY distance DESC
+            LIMIT $actual_limit
+        );
+
+        RETURN $results;
+      }
+      `;
+    };
+
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized for Search.up");
@@ -304,6 +352,7 @@ export class Search {
       await db.query(searchSimilarToIdea());
       await db.query(searchSimilarToEmbeddings());
       await db.query(searchSimilarTagsToEmbeddings());
+      await db.query(searchSimilarIdeasToTag());
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;

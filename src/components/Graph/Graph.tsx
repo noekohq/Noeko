@@ -64,6 +64,7 @@ type GraphContainerProps = {
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: INode,
   ) => void;
+  isNavigating?: boolean;
 };
 
 const GraphContainer: React.FC<GraphContainerProps> = ({
@@ -72,6 +73,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   height: propHeight,
   onNodeNavigate,
   onNodeSelect,
+  isNavigating,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -161,6 +163,14 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   }, []);
 
   const runSimulationTick = useCallback(() => {
+    if (isNavigating) {
+      if (simulationRef.current) {
+        cancelAnimationFrame(simulationRef.current);
+      }
+      simulationRef.current = null;
+      alphaRef.current = 0;
+      return;
+    }
     const currentWidth = propWidth ?? dimensions.width;
     const currentHeight = propHeight ?? dimensions.height;
     if (currentWidth === 0 || currentHeight === 0) {
@@ -396,12 +406,20 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
       alphaRef.current = 0;
       simulationRef.current = null;
-    } else {
+    } else if (!isNavigating) { // Ensure not to restart if navigating
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     }
-  }, [edges, dimensions, propWidth, propHeight]);
+  }, [edges, dimensions, propWidth, propHeight, isNavigating]);
 
   useEffect(() => {
+    if (isNavigating) {
+      if (simulationRef.current) {
+        cancelAnimationFrame(simulationRef.current);
+      }
+      simulationRef.current = null;
+      alphaRef.current = 0;
+      return; // Stop if navigating
+    }
     const currentWidth = propWidth ?? dimensions.width;
     const currentHeight = propHeight ?? dimensions.height;
 
@@ -421,7 +439,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     alphaRef.current = SIMULATION_CONFIG.alpha;
     setTransform({ k: 1, x: 0, y: 0 });
 
-    if (simulationRef.current === null && initializedNodes.length > 0) {
+    if (!isNavigating && simulationRef.current === null && initializedNodes.length > 0) {
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     } else {
     }
@@ -432,7 +450,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       }
       simulationRef.current = null;
     };
-  }, [graph.nodes, dimensions, propWidth, propHeight, runSimulationTick]);
+  }, [graph.nodes, dimensions, propWidth, propHeight, runSimulationTick, isNavigating]);
 
   const getSVGPoint = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } => {
@@ -1179,7 +1197,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           >
             {edges.map((edge, i) => (
               <Edge
-                key={`${edge.source}-${edge.target}-${i}`}
+                key={`${edge.id}`}
                 edge={edge}
                 sourceNode={nodeMap[edge.source]}
                 targetNode={nodeMap[edge.target]}
@@ -1188,16 +1206,12 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
             {nodes.map((node, i) => {
               return (
                 <Node
-                  key={node.id.toString() + i}
+                  key={node.id.toString()}
                   node={node}
                   isDragging={isDraggingNode === node.id} // Correct check
-                  onNodeSelect={
-                    onNodeSelect ? (e) => onNodeSelect(e, node) : undefined
-                  }
-                  onNodeNavigate={
-                    onNodeNavigate ? (e) => onNodeNavigate(e, node) : undefined
-                  }
-                  onContextMenu={(event) => handleNodeContextMenu(event, node)}
+                  onNodeSelect={onNodeSelect}
+                  onNodeNavigate={onNodeNavigate}
+                  onContextMenu={handleNodeContextMenu}
                   data-node-id={node.id.toString()}
                 />
               );

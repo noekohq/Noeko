@@ -247,7 +247,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
             );
           })}
         </Group>
-        <Link to="/settings/tags" style={{ textDecoration: "none" }}>
+        <Link to="/tags" style={{ textDecoration: "none" }}>
           <Text c="dark.4" size="xs" fw="bold">
             MANAGE TAGS{" "}
             <ArrowRight

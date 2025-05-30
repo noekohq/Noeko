@@ -13,15 +13,15 @@ import {
   ColorInput,
   ColorSwatch, // Added ColorInput
 } from "@mantine/core";
-import { ITag, ITagForm } from "../../../../app/database/models/tag";
-import PageWrapper from "../../../components/Layout/PageWrapper";
-import LeftSidebar from "../../../components/UI/LeftSidebar";
-import RightSidebar from "../../../components/UI/RightSidebar";
-import useFetch from "../../../hooks/useFetch"; // Adjust the import path as needed
+import { ITag, ITagForm } from "../../../app/database/models/tag";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import LeftSidebar from "../../components/UI/LeftSidebar";
+import RightSidebar from "../../components/UI/RightSidebar";
+import useFetch from "../../hooks/useFetch"; // Adjust the import path as needed
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react"; // Added React, useState, and useMemo
 import { Plus, PencilSimple, FloppyDisk, X } from "@phosphor-icons/react"; // Added new icons
-import Tag from "../../../components/Tags/Tag";
+import Tag from "../../components/Tags/Tag";
 
 export default function Tags() {
   const {
