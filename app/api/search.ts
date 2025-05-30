@@ -2,7 +2,12 @@ import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser } from "../database/models/user";
-import { ISearchOverview, ISearchResult, Search } from "../services/Search";
+import {
+  ISearchOverview,
+  ISearchResult,
+  Search,
+  ITagSearchResult, // Added for tag search results
+} from "../services/Search";
 import { Embeddings } from "../semantics/embeddings";
 
 const router = Router();
@@ -152,6 +157,103 @@ router.post("/overview", checkToken, async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching search overview: ", error);
+  }
+});
+
+router.post("/tags/fts", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const query = req.body.query as string;
+    if (typeof query !== "string") {
+      res.status(400).json({ error: "Query must be a string" });
+      return;
+    }
+    const limit = req.body.options?.limit as number | undefined;
+
+    const results: ITagSearchResult[] = await Search.ftsSearchTags(
+      user.id,
+      query,
+      { limit },
+    );
+    res.json({
+      message: "Tag FTS results fetched successfully",
+      data: results,
+    });
+  } catch (error) {
+    console.error("Error in /tags/fts:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/tags/semantic", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const query = req.body.query as string;
+    if (typeof query !== "string") {
+      res.status(400).json({ error: "Query must be a string" });
+      return;
+    }
+    const limit = req.body.options?.limit as number | undefined;
+    const threshold = req.body.options?.threshold as number | undefined;
+
+    const embeddingProcessor = new Embeddings();
+    const embedding = await embeddingProcessor.generateEmbeddings(query);
+    if (!embedding) {
+      res
+        .status(500)
+        .json({ message: "Failed to generate embeddings for query", data: [] });
+      return;
+    }
+
+    const results: ITagSearchResult[] = await Search.semanticSearchTags(
+      user.id,
+      embedding,
+      { limit, threshold },
+    );
+    res.json({
+      message: "Tag semantic results fetched successfully",
+      data: results,
+    });
+  } catch (error) {
+    console.error("Error in /tags/semantic:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/tags/comprehensive", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const query = req.body.query as string;
+    if (typeof query !== "string") {
+      res.status(400).json({ error: "Query must be a string" });
+      return;
+    }
+    const limit = req.body.options?.limit as number | undefined;
+
+    const results: ITagSearchResult[] = await Search.comprehensiveSearchTags(
+      user.id,
+      query,
+      { limit },
+    );
+    res.json({
+      message: "Tag comprehensive results fetched successfully",
+      data: results,
+    });
+  } catch (error) {
+    console.error("Error in /tags/comprehensive:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
