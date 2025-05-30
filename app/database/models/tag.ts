@@ -3,7 +3,6 @@ import { getDatabase } from "../db";
 import { User } from "./user";
 import { Idea } from "./ideas"; // Assuming Idea model is in this path
 import { Embeddings } from "../../semantics/embeddings";
-import { htmlToMarkdown } from "../../utils/formatting";
 
 export type ITag = {
   id: string | RecordId;
@@ -436,6 +435,52 @@ export class Tag {
       return results;
     } catch (error) {
       console.error("Error getting similar tags to idea: ", error);
+      return undefined;
+    }
+  }
+
+  static async getSimilarIdeasToTag(
+    tagId: string | RecordId,
+    userId: string | RecordId,
+    options?: {
+      limit?: number;
+      threshold?: number;
+    },
+  ): Promise<Idea[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+      const tag = await Tag.get(tagId);
+      if (!tag) {
+        throw new Error(`Tag with id ${tagId.toString()} not found.`);
+      }
+      if (!tag.embeddings || tag.embeddings.length === 0) {
+        console.warn(`Tag with id ${tagId.toString()} has no embeddings.`);
+        return [];
+      }
+
+      const results = await db.run<Idea[]>(
+        "fn::search_ideas_similar_to_tag",
+        [
+          new StringRecordId(tagId),
+          new StringRecordId(userId),
+          options?.limit,
+          options?.threshold || 0.7, // Default threshold
+        ],
+      );
+
+      if (!results) {
+        // This handles cases where db.run might return null/undefined for no results,
+        // or if the function itself returns an explicit null/undefined.
+        // Returning an empty array for "no results found" is consistent with other methods.
+        console.warn(`No similar ideas found for tag ${tagId.toString()} for user ${userId.toString()}.`);
+        return [];
+      }
+      return results;
+    } catch (error) {
+      console.error(`Error getting similar ideas for tag ${tagId.toString()}: `, error);
       return undefined;
     }
   }

@@ -38,6 +38,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
   const ideaEdges = dbGraph.ideaConnections
     .map((i) => {
       return {
+        id: i.id.toString(),
         source: i.in.toString(),
         target: i.out.toString(),
         distance: MIN_GRAPH_DIST,
@@ -50,6 +51,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
   const tagEdges = dbGraph.tagConnections
     .map((i) => {
       return {
+        id: i.id.toString(),
         source: i.in.toString(),
         target: i.out.toString(),
         distance: MIN_GRAPH_DIST,
@@ -93,6 +95,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
               MIN_STRENGTH + strengthFactor * (MAX_STRENGTH - MIN_STRENGTH);
 
             return {
+              id: i.id.toString() + d.id.toString(),
               source: i.id.toString(),
               target: d.id.toString(),
               distance: targetDistance,

@@ -21,13 +21,14 @@ export type IUser = {
   password: string;
   roles: RecordId[];
   disabled: boolean;
+  referralCode?: string; // Added referral code
   createdAt: Date;
   updatedAt: Date;
 };
 
 export type IUserForm = Omit<
   IUser,
-  "id" | "createdAt" | "updatedAt" | "roles" | "disabled"
+  "id" | "createdAt" | "updatedAt" | "roles" | "disabled" | "referralCode"
 >;
 
 export type ISafeUser = Omit<IUser, "password">;
@@ -71,9 +72,13 @@ export class User {
         DEFINE FIELD IF NOT EXISTS updatedAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS roles ON TABLE user TYPE array<record<role>>;
         DEFINE FIELD IF NOT EXISTS disabled ON TABLE user TYPE bool DEFAULT false;
+        DEFINE FIELD IF NOT EXISTS referralCode ON TABLE user TYPE string;
       `);
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
+      );
+      await db?.query(
+        `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
       );
 
       const getUsersFunction = () => {
@@ -87,6 +92,11 @@ export class User {
 
       console.info("Running get users function...");
       await db?.query(getUsersFunction());
+
+      // Ensure all users have referral codes
+      console.info("Ensuring all users have referral codes...");
+      await User.ensureReferralCodes();
+      console.info("Finished ensuring referral codes.");
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;
@@ -122,12 +132,14 @@ export class User {
           createdAt: Date;
           updatedAt: Date;
           roles: Role[];
+          referralCode: string;
         }
       >("user", {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
         password: form.password,
+        referralCode: Bun.randomUUIDv7(),
         roles: withRoles.map((r) => new StringRecordId(r)),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -248,7 +260,47 @@ export class User {
       }
       return this.filterSafeFields(user);
     } catch (error) {
-      console.error("Error getting user by email:", error);
+      console.error("Error finding user by email:", error);
+      throw error;
+    }
+  }
+
+  static async findByReferralCode(
+    referralCode: string,
+    unsafe?: true,
+  ): Promise<IUser | undefined>;
+  static async findByReferralCode(
+    referralCode: string,
+    unsafe?: false,
+  ): Promise<ISafeUser | undefined>;
+  static async findByReferralCode(
+    referralCode: string,
+    unsafe = false,
+  ): Promise<IUser | ISafeUser | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        console.info("Cannot findByReferralCode: Database not available.");
+        return undefined;
+      }
+      const result = await db.query<[IUser[] | undefined]>(
+        "SELECT * FROM user WHERE referralCode = $rc",
+        { rc: referralCode },
+      );
+      if (!result || !result[0] || result[0].length === 0) {
+        console.info(`No user found with referral code: ${referralCode}`);
+        return undefined;
+      }
+      const user = result[0][0];
+      if (unsafe) {
+        return user;
+      }
+      return this.filterSafeFields(user) as ISafeUser;
+    } catch (error) {
+      console.error(
+        `Error finding user by referral code ${referralCode}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -396,6 +448,142 @@ export class User {
     } catch (error) {
       console.error("Error finding token:", error);
       return true;
+    }
+  }
+
+  static async ensureReferralCodes(): Promise<void> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        console.info("Cannot run ensureReferralCodes due to lack of db.");
+        return;
+      }
+
+      const users = await this.getAll(); // Fetches ISafeComputedUsers[]
+
+      if (!users) {
+        throw new Error("Couldn't get all users");
+      }
+
+      for (const user of users) {
+        if (!user.referralCode) {
+          const newReferralCode = Bun.randomUUIDv7();
+          console.info(
+            `User ${user.id} missing referral code. Assigning: ${newReferralCode}`,
+          );
+          // user.id is the full record ID (e.g., "user:xxxx")
+          // We merge the new referralCode and update the updatedAt timestamp
+          await db.merge(user.id, {
+            referralCode: newReferralCode,
+            updatedAt: new Date(),
+          });
+        }
+      }
+      console.info(
+        "Finished checking and assigning referral codes for all users.",
+      );
+    } catch (error) {
+      console.error("Error in ensureReferralCodes:", error);
+      throw error; // Re-throw to allow the caller to handle it
+    }
+  }
+
+  static async isReferralCodeValid(referralCode: string): Promise<boolean> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        console.info(
+          "Cannot check referral code validity: Database not available.",
+        );
+        return false;
+      }
+
+      // Find user by referral code
+      const queryResult = await db.query<[IUser[]]>(
+        "SELECT * FROM user WHERE referralCode = $rc",
+        { rc: referralCode },
+      );
+
+      if (!queryResult || !queryResult[0] || queryResult[0].length === 0) {
+        console.info(`Referral code ${referralCode} not found.`);
+        return false;
+      }
+      const user = queryResult[0][0];
+
+      // Check if user is disabled
+      if (await User.isDisabled(user.id)) {
+        console.info(
+          `User ${user.id} (email: ${user.email}) associated with referral code ${referralCode} is disabled.`,
+        );
+        return false;
+      }
+
+      // Check SUPERUSER_INVITE_ONLY condition
+      if (process.env.SUPERUSER_INVITE_ONLY === "true") {
+        const isSuperuser = await User.checkUserHasRole(user.id, "superuser");
+        if (!isSuperuser) {
+          console.info(
+            `SUPERUSER_INVITE_ONLY is active. User ${user.id} (email: ${user.email}, referral: ${referralCode}) is not a superuser. Code invalid.`,
+          );
+          return false;
+        }
+        console.info(
+          `SUPERUSER_INVITE_ONLY is active. User ${user.id} (email: ${user.email}, referral: ${referralCode}) is a superuser. Code valid so far.`,
+        );
+      } else {
+        console.info(
+          `SUPERUSER_INVITE_ONLY is not active or not 'true'. Skipping superuser check for ${user.id} (referral: ${referralCode}). Code valid so far.`,
+        );
+      }
+
+      // All checks passed
+      console.info(
+        `Referral code ${referralCode} is valid for user ${user.id} (email: ${user.email}).`,
+      );
+      return true;
+    } catch (error) {
+      console.error(
+        `Error in isReferralCodeValid for code ${referralCode}:`,
+        error,
+      );
+      return false; // On any error, treat the code as invalid
+    }
+  }
+
+  static async addReferralRelationship(
+    referrerUserId: string,
+    referredUserId: string,
+  ): Promise<void> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        console.info(
+          "Cannot add referral relationship: Database not available.",
+        );
+        return;
+      }
+
+      // Ensure IDs are valid SurrealDB RecordIds if not already
+      const referrerId = referrerUserId.includes(":")
+        ? referrerUserId
+        : `user:${referrerUserId}`;
+      const referredId = referredUserId.includes(":")
+        ? referredUserId
+        : `user:${referredUserId}`;
+
+      const query = `RELATE ${referrerId}->REFERRED->${referredId} CONTENT { createdAt: time::now() };`;
+      await db.query(query);
+
+      console.info(
+        `Successfully created REFERRED relationship: ${referrerId} -> ${referredId}`,
+      );
+    } catch (error) {
+      console.error(
+        `Error creating REFERRED relationship between ${referrerUserId} and ${referredUserId}:`,
+        error,
+      );
+      // Decide if this should throw or just log
+      // throw error; // Optionally re-throw
     }
   }
 }

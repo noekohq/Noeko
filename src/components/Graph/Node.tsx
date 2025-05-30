@@ -25,7 +25,7 @@ type NodeProps = {
   "data-node-id": string;
 };
 
-const Node = ({
+const NodeComponent = ({
   node,
   isDragging,
   onNodeNavigate,
@@ -154,4 +154,4 @@ const Node = ({
   );
 };
 
-export default Node;
+export default React.memo(NodeComponent);

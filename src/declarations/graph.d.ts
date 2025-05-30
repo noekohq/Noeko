@@ -46,6 +46,7 @@ export type IFileNode = IUserFile & {
 
 // IEdge can remain largely the same, linking node IDs
 export interface IEdge {
+  id: string;
   source: string;
   target: string;
   distance: number;

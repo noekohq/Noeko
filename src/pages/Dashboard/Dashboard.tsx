@@ -38,7 +38,7 @@ export default function Dashboard() {
   const os = getOS();
   const { data: dashboardData } = useFetch<
     undefined,
-    { recentIdeas: IIdea[]; ideaStats: IUserIdeaStats }
+    { recentIdeas: IIdea[]; ideaStats: IUserIdeaStats; totalUsers: number }
   >({
     url: "/dashboard",
     runOnMount: true,
@@ -56,15 +56,20 @@ export default function Dashboard() {
   const primaryKey = isMac ? "Cmd" : "Ctrl";
 
   const totalIdeas = dashboardData?.ideaStats.total;
+  const totalUsers = dashboardData?.totalUsers;
 
   const getStatusText = () => {
     if (totalIdeas === undefined) {
       return "Loading...";
     }
-    if (totalIdeas && totalIdeas > 0) {
-      return `You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
+    let text = "Hello there!";
+    if (totalUsers) {
+      text += ` You are using Qwest with ${totalUsers - 1} other people.`;
     }
-    return "Hello there!";
+    if (totalIdeas && totalIdeas > 0) {
+      text += ` You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
+    }
+    return text;
   };
 
   const navigate = useNavigate();
