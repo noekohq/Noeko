@@ -130,7 +130,6 @@ export const addTagToIdea = async (ideaId: string, tagId: string) => {
     showNotification({
       title: "Tag Added",
       message: "The tag was successfully added to the idea.",
-      color: "green",
     });
     return response.data; // Or a more specific part of the response if needed
   } catch (error: any) {
@@ -152,7 +151,6 @@ export const removeTagFromIdea = async (ideaId: string, tagId: string) => {
     showNotification({
       title: "Tag Removed",
       message: "The tag was successfully removed from the idea.",
-      color: "green",
     });
     return response.data; // Or a more specific part of the response if needed
   } catch (error: any) {

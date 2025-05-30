@@ -19,6 +19,7 @@ import { useState, useMemo } from "react";
 import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
 import { Link } from "react-router";
 import { useSettings } from "../../contexts/SettingsContext";
+import { InlineTag } from "../../components/Tags/TagDisplay";
 
 type ITagsManagerProps = {
   idea: IIdea;
@@ -160,90 +161,52 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
           {processedTags.map(({ tag, type, idStr }) => {
             const isLoadingAction = actionLoading && actingTagId === idStr;
             return (
-              <HoverCard
-                width={280}
-                shadow="md"
-                withArrow
-                key={idStr}
-                openDelay={300}
-                closeDelay={100}
-              >
-                <HoverCard.Target>
-                  <Badge
-                    size="md"
-                    variant={type === "existing" ? "filled" : "light"}
-                    color={scheme === "dark" ? "dark.5" : "dark.7"}
-                    c={scheme === "dark" ? "dark.2" : "dark.3"}
-                    styles={{
-                      root: {
-                        border: "1px solid var(--mantine-color-dark-6)",
-                      },
-                    }}
-                    pr={
-                      isLoadingAction ||
-                      type === "related" ||
-                      type === "existing"
-                        ? 7
-                        : undefined
-                    } // Adjust padding for icon space
-                    rightSection={
-                      isLoadingAction ? (
-                        <Loader
-                          size="xs"
-                          color="currentColor"
-                          style={{ marginRight: 5 }}
-                        />
-                      ) : type === "existing" ? (
-                        <ActionIcon
-                          size="xs"
-                          color="currentColor"
-                          radius="xl"
-                          variant="transparent"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveTag(tag.id);
-                          }}
-                          aria-label={`Remove tag ${tag.name}`}
-                          title={`Remove tag ${tag.name}`}
-                          disabled={actionLoading}
-                        >
-                          <X style={{ width: "70%", height: "70%" }} />
-                        </ActionIcon>
-                      ) : (
-                        // type === "related"
-                        <ActionIcon
-                          size="xs"
-                          color="currentColor"
-                          radius="xl"
-                          variant="transparent"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddTag(tag.id);
-                          }}
-                          aria-label={`Add tag ${tag.name}`}
-                          title={`Add tag ${tag.name}`}
-                          disabled={actionLoading}
-                        >
-                          <Plus style={{ width: "70%", height: "70%" }} />
-                        </ActionIcon>
-                      )
-                    }
-                  >
-                    {tag.name}
-                  </Badge>
-                </HoverCard.Target>
-                <HoverCard.Dropdown>
-                  {type === "existing" ? (
-                    <Text size="sm">
-                      {tag.description || "No description available."}
-                    </Text>
+              <InlineTag
+                tag={tag}
+                variant={type === "existing" ? "filled" : "light"}
+                rightSection={
+                  isLoadingAction ? (
+                    <Loader
+                      size="xs"
+                      color="currentColor"
+                      style={{ marginRight: 5 }}
+                    />
+                  ) : type === "existing" ? (
+                    <ActionIcon
+                      size="xs"
+                      color="currentColor"
+                      radius="xl"
+                      variant="transparent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveTag(tag.id);
+                      }}
+                      aria-label={`Remove tag ${tag.name}`}
+                      title={`Remove tag ${tag.name}`}
+                      disabled={actionLoading}
+                    >
+                      <X style={{ width: "70%", height: "70%" }} />
+                    </ActionIcon>
                   ) : (
-                    <Text size="sm" c="dimmed">
-                      This tag may be related.
-                    </Text>
-                  )}
-                </HoverCard.Dropdown>
-              </HoverCard>
+                    // type === "related"
+                    <ActionIcon
+                      size="xs"
+                      color="currentColor"
+                      radius="xl"
+                      variant="transparent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddTag(tag.id);
+                      }}
+                      aria-label={`Add tag ${tag.name}`}
+                      title={`Add tag ${tag.name}`}
+                      disabled={actionLoading}
+                    >
+                      <Plus style={{ width: "70%", height: "70%" }} />
+                    </ActionIcon>
+                  )
+                }
+              />
             );
           })}
         </Group>

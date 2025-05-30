@@ -1,4 +1,54 @@
-.ideaCard {
-    &:hover {
-    }
+.ideaCardBase {
+  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  // Default height is 100% via inline style, but can add base styles here
+}
+
+.compactIdeaCard {
+  // Specific styles for compact card if needed beyond props
+}
+
+.dragging {
+  opacity: 0.6;
+  box-shadow: var(--mantine-shadow-xl) !important; // Ensure it overrides
+  border: 1px dashed var(--mantine-color-blue-5);
+}
+
+.clickable {
+  cursor: pointer;
+  &:hover {
+    // Using Mantine's hover effects is often better than custom border here
+    // border-color: var(--mantine-color-blue-4);
+  }
+}
+
+.dragHandleIcon {
+  &:hover {
+    background-color: var(--mantine-color-gray-1);
+  }
+  &:active {
+    cursor: grabbing !important;
+  }
+}
+
+.tagBadge {
+  // Common tag badge styles
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.actionButton {
+  // Common action button styles
+}
+
+.actionsGroupWrapper { // Class for the Group wrapping IdeaActionsGroup in main cards
+  border-top: 1px solid var(--mantine-color-divider);
+}
+
+.compactArtifactsGroup, .compactTagsGroup {
+  // margin-top: var(--mantine-spacing-xxs);
+}
+
+.compactActionsMenuIcon {
+  // Specific styling for the action icon in compact view if needed
 }

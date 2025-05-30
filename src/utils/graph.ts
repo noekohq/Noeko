@@ -151,7 +151,7 @@ export const getNodeDescription = (node: INode) => {
       node.derived?.generative_summary?.sentenceOverview ??
       node.derived?.generative_summary?.sentenceSummary ??
       (node.contentPlain &&
-        splitBySentences(node.contentPlain).slice(0, 2).join("...")) ??
+        splitBySentences(node.contentPlain).slice(0, 2).join("... ")) ??
       "No summary available"
     );
   }
