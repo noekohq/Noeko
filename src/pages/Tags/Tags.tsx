@@ -9,9 +9,7 @@ import {
   TextInput,
   Title,
   ActionIcon,
-  Badge,
-  ColorInput,
-  ColorSwatch, // Added ColorInput
+  Modal, // Added Modal for delete confirmation
 } from "@mantine/core";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -20,7 +18,13 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import useFetch from "../../hooks/useFetch"; // Adjust the import path as needed
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react"; // Added React, useState, and useMemo
-import { Plus, PencilSimple, FloppyDisk, X } from "@phosphor-icons/react"; // Added new icons
+import {
+  Plus,
+  PencilSimple,
+  FloppyDisk,
+  X,
+  Trash,
+} from "@phosphor-icons/react"; // Added new icons, including Trash
 import { InlineTag } from "../../components/Tags/TagDisplay";
 
 export default function Tags() {
@@ -210,6 +214,8 @@ interface TagRowProps {
 
 const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false); // State for delete modal
+
   const editForm = useForm<Partial<ITagForm>>({
     // Use Partial<ITagForm> for flexibility
     initialValues: {
@@ -237,6 +243,23 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     onError: (error) => {
       console.error("Failed to update tag:", error);
       // Errors are in updateTagErrors and can be displayed
+    },
+  });
+
+  const {
+    load: deleteTag,
+    loading: deleteTagLoading,
+    errors: deleteTagErrors,
+  } = useFetch<undefined, undefined>({
+    url: `/tags/${tag.id.toString()}`,
+    method: "DELETE",
+    onSuccess: () => {
+      onTagUpdated(); // Refresh the tags list
+      setDeleteModalOpened(false); // Close modal on success
+    },
+    onError: (error) => {
+      console.error("Failed to delete tag:", error);
+      // Errors are in deleteTagErrors and can be displayed in the modal
     },
   });
 
@@ -272,6 +295,19 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
   const handleCancel = () => {
     editForm.reset(); // Resets to initialValues defined in useForm for this row
     setIsEditing(false);
+  };
+
+  const openDeleteModal = () => setDeleteModalOpened(true);
+  const closeDeleteModal = () => {
+    setDeleteModalOpened(false);
+    // It might be good practice to clear deleteTagErrors when closing the modal manually
+    // if useFetch doesn't clear them automatically on subsequent non-error calls.
+    // For now, we assume errors are cleared or irrelevant if the modal is simply closed.
+  };
+
+  const handleDeleteConfirm = async () => {
+    await deleteTag();
+    // Modal will be closed on success by deleteTag's onSuccess handler
   };
 
   if (isEditing) {
@@ -314,23 +350,60 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
   }
 
   return (
-    <Table.Tr>
-      <Table.Td>
-        <InlineTag tag={tag} />
-      </Table.Td>
-      <Table.Td>{tag.description || ""}</Table.Td>
-      <Table.Td>
-        <Group gap="xs" wrap="nowrap">
-          <ActionIcon
-            variant="subtle"
-            onClick={() => setIsEditing(true)}
-            title="Edit Tag"
+    <React.Fragment>
+      <Table.Tr>
+        <Table.Td>
+          <InlineTag tag={tag} />
+        </Table.Td>
+        <Table.Td>{tag.description || ""}</Table.Td>
+        <Table.Td>
+          <Group gap="xs" wrap="nowrap">
+            <ActionIcon
+              variant="subtle"
+              onClick={() => setIsEditing(true)}
+              title="Edit Tag"
+            >
+              <PencilSimple />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              onClick={openDeleteModal}
+              title="Delete Tag"
+            >
+              <Trash />
+            </ActionIcon>
+          </Group>
+        </Table.Td>
+      </Table.Tr>
+      <Modal
+        opened={deleteModalOpened}
+        onClose={closeDeleteModal}
+        title={`Delete Tag: "${tag.name}"`}
+        centered
+      >
+        <Text size="sm">
+          Are you sure you want to delete this tag? This action cannot be
+          undone.
+        </Text>
+        {deleteTagErrors.length > 0 && (
+          <Text c="red" size="xs" mt="sm">
+            Failed to delete tag: {deleteTagErrors.join(", ")}
+          </Text>
+        )}
+        <Group mt="lg" justify="flex-end">
+          <Button variant="default" onClick={closeDeleteModal}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={handleDeleteConfirm}
+            loading={deleteTagLoading}
           >
-            <PencilSimple />
-          </ActionIcon>
-          {/* Placeholder for Delete ActionIcon: <ActionIcon variant="subtle" color="red" onClick={handleDelete} title="Delete Tag"><Trash /></ActionIcon> */}
+            Delete Tag
+          </Button>
         </Group>
-      </Table.Td>
-    </Table.Tr>
+      </Modal>
+    </React.Fragment>
   );
 };

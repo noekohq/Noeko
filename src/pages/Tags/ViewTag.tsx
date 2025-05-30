@@ -15,7 +15,7 @@ import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import useFetch from "../../hooks/useFetch";
 import { ITag } from "../../../app/database/models/tag";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { IIdea } from "../../../app/database/models/ideas";
 import { Tag, WarningCircle } from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Tags/TagDisplay";
@@ -27,6 +27,7 @@ import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import n
 import { showNotification } from "@mantine/notifications";
 
 export default function ViewTag() {
+  const navigate = useNavigate();
   const { tagId } = useParams<{ tagId: string }>();
 
   const {
@@ -233,6 +234,9 @@ export default function ViewTag() {
                   <CompactIdeaCard
                     idea={idea}
                     key={idea.id.toString()}
+                    onCardClick={() => {
+                      navigate(`/idea/${idea.id.toString()}`);
+                    }}
                     actions={[
                       {
                         icon: <Tag />,
@@ -280,6 +284,9 @@ export default function ViewTag() {
               <SimpleGrid cols={2} spacing="lg">
                 {filteredRelatedIdeas.map((idea) => (
                   <StandardIdeaCard
+                    onCardClick={() => {
+                      navigate(`/idea/${idea.id.toString()}`);
+                    }}
                     idea={idea}
                     key={idea.id.toString()}
                     actions={[
