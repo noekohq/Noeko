@@ -1,20 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styles from "./Sidebars.module.scss";
+import { ActionIcon, Button, Flex, Stack, Text, Tooltip } from "@mantine/core";
 import {
-  ActionIcon,
-  Button,
-  Container,
-  Divider,
-  Flex,
-  Stack,
-  Text,
-  Tooltip,
-  UnstyledButton,
-} from "@mantine/core";
-import {
-  ArrowLineDown,
-  ArrowLineLeft,
-  ArrowLineUp,
   CaretDown,
   CaretLeft,
   CaretRight,
@@ -22,13 +9,10 @@ import {
   HouseSimple,
   MegaphoneSimple,
   Scroll,
-  Sidebar,
-  SidebarSimple,
 } from "@phosphor-icons/react";
 import useShortcuts from "../../hooks/useShortcuts"; // Adjust path
 import { useLayout } from "../../contexts/LayoutContext"; // Using your specific context
 import { useMediaQuery } from "@mantine/hooks"; // Local isMobile, context one also available via useLayout().isMobile
-import FeedbackModal from "../../components/Utils/Modals/FeedbackModal"; // Adjust path
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation } from "react-router";
 import { getCurrentTimeOfDay } from "../../utils/datetime";
@@ -130,10 +114,11 @@ export default function LeftSidebar({
           canBeToggled={canBeToggled}
           onToggleClick={handleToggleSidebar} // Pass the toggle handler
         />
-        <Stack>
+        <Stack w="100%">
           {isEffectivelyOpen ? (
             <Tooltip label="Share your thoughts or report an issue">
               <Button
+                size="xs"
                 fullWidth
                 leftSection={<MegaphoneSimple />}
                 variant="light"
@@ -166,7 +151,12 @@ export default function LeftSidebar({
                   textDecoration: "none",
                 }}
               >
-                <Button fullWidth leftSection={<Scroll />} variant="default">
+                <Button
+                  size="xs"
+                  fullWidth
+                  leftSection={<Scroll />}
+                  variant="default"
+                >
                   View changelog
                 </Button>
               </Link>

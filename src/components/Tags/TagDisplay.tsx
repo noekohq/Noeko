@@ -18,6 +18,7 @@ type IInlineTagProps = {
   leftSection?: React.ReactNode;
   rightSection?: React.ReactNode;
   link?: boolean;
+  color?: string;
 };
 
 export function InlineTag({
@@ -26,6 +27,7 @@ export function InlineTag({
   leftSection,
   rightSection,
   link = true,
+  color,
 }: IInlineTagProps) {
   const {
     ui: {
@@ -40,11 +42,13 @@ export function InlineTag({
       <HoverCard.Target>
         <Badge
           variant={variant || "light"}
-          color={scheme === "dark" ? "dark.5" : "dark.7"}
-          c={scheme === "dark" ? "dark.2" : "dark.3"}
+          color={color ? color : scheme === "dark" ? "dark.5" : "dark.7"}
+          c={!color ? (scheme === "dark" ? "dark.2" : "dark.3") : undefined}
           styles={{
             root: {
-              border: "1px solid var(--mantine-color-dark-6)",
+              border: !color
+                ? "1px solid var(--mantine-color-dark-6)"
+                : undefined,
             },
           }}
           leftSection={leftSection}

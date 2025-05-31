@@ -8,6 +8,7 @@ import { htmlToMarkdown } from "../utils/formatting";
 import { SchemaType } from "@google/generative-ai";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
+import { ITag } from "../database/models/tag";
 
 export type ISearchResultValue =
   | (IIdea & {
@@ -56,12 +57,7 @@ export type ISearchOverview = {
 };
 
 // --- Tag Search Result Types ---
-export type ITagSearchResultValue = {
-  id: string | RecordId;
-  name: string;
-  description: string;
-  color?: string;
-};
+export type ITagSearchResultValue = ITag;
 
 export type ITagSearchResult = {
   id: string | RecordId; // This is the Tag's own ID
@@ -149,7 +145,7 @@ export class Search {
 
     const ftsTagSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_tag_fts
+      DEFINE INDEX OVERWRITE idx_tag_name_fts
         ON TABLE tag
         FIELDS name, description
         SEARCH ANALYZER tag_analyzer
@@ -184,8 +180,9 @@ export class Search {
     const ftsSearchTagsFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_user_tags_fts(
-        $userId: string,
-        $query: string
+        $userId: record<user>,
+        $query: string,
+        $limit: int
       ) {
         LET $tags = SELECT
             *,
@@ -194,11 +191,12 @@ export class Search {
             search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
             search::score(0) AS nameScore,
             search::score(1) AS descriptionScore
-        FROM idea
+        FROM tag
         WHERE
             (name @0@ $query OR
             description @1@ $query)
-            AND <-owns<-(user WHERE id = <record> $userId);
+            AND <-owns<-(user WHERE id = <record> $userId)
+        LIMIT $limit;
 
         return $tags;
       }`;
@@ -808,7 +806,7 @@ export class Search {
       };
 
       const dbResults = await db.run<RawTagFTSResult[]>(
-        "fn::fts_tags_for_user",
+        "fn::search_user_tags_fts",
         [new StringRecordId(userId), query, limit],
       );
 
@@ -857,7 +855,7 @@ export class Search {
       };
 
       const dbResults = await db.run<RawTagSemanticResult[]>(
-        "fn::semantic_search_tags_for_user",
+        "fn::search_similar_tags_to_embeddings",
         [new StringRecordId(userId), embedding, limit, threshold],
       );
 
@@ -933,6 +931,31 @@ export class Search {
       return finalResults.slice(0, limit);
     } catch (error) {
       console.error("Error during comprehensive tag search:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Provides search suggestions for tags using FTS.
+   * @param userId The ID of the user.
+   * @param query The search query string.
+   * @param options Optional parameters.
+   * @param options.limit The maximum number of suggestions to return (default: 5).
+   * @returns A promise resolving to an array of ITagSearchResult.
+   */
+  static async suggestTags(
+    userId: string,
+    query: string,
+    options?: { limit?: number },
+  ): Promise<ITag[]> {
+    try {
+      const limit = options?.limit ?? 5; // Default limit for suggestions
+      const results = await Search.ftsSearchTags(userId, query, { limit });
+      return results.map((tag) => {
+        return tag.value;
+      });
+    } catch (error) {
+      console.error("Error during tag suggestions search:", error);
       return [];
     }
   }

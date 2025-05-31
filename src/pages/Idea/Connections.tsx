@@ -11,15 +11,25 @@ import {
   Button,
 } from "@mantine/core";
 import { IIdea, IIdeaConnection } from "../../../app/database/models/ideas";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
 import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { ArrowsClockwise, TrashSimple } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  ArrowsClockwise,
+  Graph,
+  TrashSimple,
+} from "@phosphor-icons/react";
 import { api } from "../../server/api";
 import { similarityToColor, similarityToLevel } from "../../vars/ideas";
 import { ideasAreConnected } from "../../utils/graph";
+import {
+  CompactIdeaCard,
+  StandardIdeaCard,
+} from "../../components/Display/Ideas/IdeaCards";
+import { createIdeaConnection } from "../../utils/ideas";
 
 type IConnectionsProps = {
   loadingIdea: boolean;
@@ -175,6 +185,13 @@ export default function Connections({
     disconnectInline(idea.id.toString(), target);
   };
 
+  const handleCreateConnection = (target: string) => {
+    createIdeaConnection(idea.id.toString(), target);
+    reloadIdea();
+  };
+
+  const navigate = useNavigate();
+
   return (
     <Grid>
       {loadingIdea && (
@@ -218,13 +235,16 @@ export default function Connections({
                 onDrop={() => {
                   handleDropIdeaInConnection();
                 }}
+                radius={"lg"}
               >
                 <Group
                   align="center"
                   justify="center"
                   style={{ height: "100%" }}
                 >
-                  <Text fw="bold">Drop here to create a connection</Text>
+                  <Text fw="bold" c="white" mx="lg">
+                    Drop here to create a connection
+                  </Text>
                 </Group>
               </Overlay>
             )}
@@ -243,34 +263,42 @@ export default function Connections({
                 {idea?.connections && idea.connections?.length > 0 ? (
                   idea.connections?.map((connection, i) => {
                     return (
-                      <Link
-                        to={`/idea/${connection.id}`}
-                        style={{ textDecoration: "none", color: "inherit" }}
-                        key={connection.id + "connected" + i}
-                      >
-                        <IdeaPreview
-                          idea={connection}
-                          draggable={false}
-                          hoveringIdea={selectedIdea}
-                          setHoveringIdea={setSelectedIdea}
-                          options={
-                            <>
-                              <ActionIcon
-                                variant="light"
-                                color="red"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRemoveConnection(
-                                    connection.id.toString(),
-                                  );
-                                }}
-                              >
-                                <TrashSimple />
-                              </ActionIcon>
-                            </>
-                          }
-                        />
-                      </Link>
+                      <CompactIdeaCard
+                        style={{
+                          width: "100%",
+                        }}
+                        idea={connection}
+                        onMouseEnterCard={() => {
+                          setSelectedIdea(connection.id.toString());
+                        }}
+                        onMouseLeaveCard={() => {
+                          setSelectedIdea(undefined);
+                        }}
+                        onCardClick={() => {
+                          // navigate(`/idea/${connection.id.toString()}`);
+                        }}
+                        actions={[
+                          {
+                            id: "View",
+                            label: "View",
+                            icon: <ArrowRight />,
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              navigate(`/idea/${connection.id.toString()}`);
+                            },
+                          },
+                          {
+                            id: "remove_connection",
+                            label: "Remove",
+                            icon: <TrashSimple />,
+                            onClick: (e) => {
+                              e.stopPropagation();
+                              handleRemoveConnection(connection.id.toString());
+                            },
+                            color: "red",
+                          },
+                        ]}
+                      />
                     );
                   })
                 ) : (
@@ -298,36 +326,58 @@ export default function Connections({
                   const color = similarityToColor[level];
 
                   return (
-                    <Link
-                      key={relatedIdea.id + "related"}
-                      to={`/idea/${relatedIdea.id}`}
+                    <CompactIdeaCard
+                      idea={relatedIdea}
                       style={{
-                        textDecoration: "none",
+                        width: "100%",
                       }}
-                    >
-                      <IdeaPreview
-                        idea={relatedIdea}
-                        subtext={
-                          <Text>{formattedDistance(relatedIdea.distance)}</Text>
-                        }
-                        onDragStart={() => setDraggingRelatedIdea?.(true)}
-                        onDragEnd={() => setDraggingRelatedIdea?.(false)}
-                        setDraggingIdea={(i) => setDraggedIdea?.(i)}
-                        draggable={!ideaIsConnected(relatedIdea.id.toString())}
-                        hoveringIdea={selectedIdea}
-                        setHoveringIdea={setSelectedIdea}
-                        tags={[
-                          <Badge
-                            color={color}
-                            variant="light"
-                            size="xs"
-                            key="level"
-                          >
-                            {level}
-                          </Badge>,
-                        ]}
-                      />
-                    </Link>
+                      onMouseEnterCard={() => {
+                        setSelectedIdea(relatedIdea.id.toString());
+                      }}
+                      onMouseLeaveCard={() => {
+                        setSelectedIdea(undefined);
+                      }}
+                      actions={[
+                        {
+                          id: "View",
+                          label: "View",
+                          icon: <ArrowRight />,
+                          onClick: (e) => {
+                            e.stopPropagation();
+                            navigate(`/idea/${relatedIdea.id.toString()}`);
+                          },
+                        },
+                        {
+                          disabled: ideaIsConnected(relatedIdea.id.toString()),
+                          icon: <Graph />,
+                          id: "create_connection",
+                          label: "Connect",
+                          onClick: (e) => {
+                            e.stopPropagation();
+                            handleCreateConnection(relatedIdea.id.toString());
+                          },
+                        },
+                      ]}
+                      onDragStartCard={() => {
+                        setDraggingRelatedIdea?.(true);
+                        setDraggedIdea(relatedIdea);
+                      }}
+                      onDragEndCard={() => {
+                        setDraggingRelatedIdea?.(false);
+                        setDraggedIdea(undefined);
+                      }}
+                      draggable={!ideaIsConnected(relatedIdea.id.toString())}
+                      showDefaultDragHandle={
+                        !ideaIsConnected(relatedIdea.id.toString())
+                      }
+                      tags={[
+                        {
+                          id: "level",
+                          label: level,
+                          color,
+                        },
+                      ]}
+                    />
                   );
                 })}
               </Stack>

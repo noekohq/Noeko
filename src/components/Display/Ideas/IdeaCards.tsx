@@ -141,21 +141,7 @@ export function CompactIdeaCard({
         <Flex align="center" gap={4}>
           {" "}
           {/* Container for drag handle and actions */}
-          {draggable && showDefaultDragHandle && (
-            <Tooltip label="Drag to reorder" withArrow openDelay={500}>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                className={styles.dragHandleIcon}
-                style={{ cursor: "grab" }}
-                aria-label="Drag idea"
-                // Draggable attribute should be on the Card if this handle is used
-                // or this handle should manage drag itself if Card isn't draggable
-              >
-                <DotsSixVertical size={18} />
-              </ActionIcon>
-            </Tooltip>
-          )}
+          {draggable && showDefaultDragHandle && <DotsSixVertical size={18} />}
           {actions.length > 0 && ( // Compact actions often just an overflow
             <IdeaActionsGroup
               idea={idea}
@@ -319,19 +305,7 @@ export function StandardIdeaCard({
               <IdeaArtifactsDisplay artifacts={artifacts} size="xs" />
             )}
           </Stack>
-          {draggable && showDefaultDragHandle && (
-            <Tooltip label="Drag to reorder" withArrow openDelay={500}>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                className={styles.dragHandleIcon}
-                style={{ cursor: "grab" }}
-                aria-label="Drag idea"
-              >
-                <DotsSixVertical size={20} />
-              </ActionIcon>
-            </Tooltip>
-          )}
+          {draggable && showDefaultDragHandle && <DotsSixVertical size={20} />}
         </Flex>
 
         {/* Description */}

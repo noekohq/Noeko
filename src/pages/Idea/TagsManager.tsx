@@ -20,6 +20,7 @@ import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import n
 import { Link } from "react-router";
 import { useSettings } from "../../contexts/SettingsContext";
 import { InlineTag } from "../../components/Tags/TagDisplay";
+import SuggestTags from "../../components/Search/SuggestTags"; // Import the SuggestTags component
 
 type ITagsManagerProps = {
   idea: IIdea;
@@ -48,6 +49,10 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
     runOnDependencies: [ideaIdStr], // Ensures ideaIdStr is truthy
   });
   const existingTags: ITag[] = existingTagsData || [];
+  const omitTagIds = useMemo(
+    () => existingTags.map((tag) => getStringId(tag.id)),
+    [existingTags],
+  );
 
   const { data: relatedTagsData, loading: relatedTagsLoading } = useFetch<
     undefined,
@@ -76,6 +81,11 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
       setActingTagId(null);
       setActionLoading(false);
     }
+  };
+
+  // Handle selection from SuggestTags component
+  const handleSuggestedTagSelect = (tag: ITag) => {
+    handleAddTag(tag.id); // Add the selected tag by ID
   };
 
   const handleRemoveTag = async (tagId: string | any) => {
@@ -151,7 +161,8 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
       <Stack w="100%">
         {processedTags.length === 0 &&
           !existingTagsLoading &&
-          !relatedTagsLoading && (
+          !relatedTagsLoading &&
+          omitTagIds.length === 0 && ( // Also check if there are no existing tags to show a more relevant message
             <Text c="dimmed" size="sm">
               No tags currently associated. Suggested tags will appear here if
               available.
@@ -162,8 +173,10 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
             const isLoadingAction = actionLoading && actingTagId === idStr;
             return (
               <InlineTag
+                key={tag.id.toString()}
                 tag={tag}
                 variant={type === "existing" ? "filled" : "light"}
+                link={false}
                 rightSection={
                   isLoadingAction ? (
                     <Loader
@@ -210,6 +223,12 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
             );
           })}
         </Group>
+        <SuggestTags
+          onSelect={handleSuggestedTagSelect}
+          omit={omitTagIds}
+          placeholder="Search or add tags..."
+          limit={10}
+        />
         <Link to="/tags" style={{ textDecoration: "none" }}>
           <Text c="dark.4" size="xs" fw="bold">
             MANAGE TAGS{" "}
