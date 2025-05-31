@@ -1,25 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { IIdea } from "../../../app/database/models/ideas";
-import {
-  ISearchOverview,
-  ISearchResult,
-  ISearchResultValue,
-} from "../../../app/services/Search";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ISearchOverview, ISearchResult } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
-import {
-  Menu,
-  TextInput,
-  Loader,
-  Text,
-  Highlight,
-  ActionIcon,
-  Textarea,
-  Flex,
-} from "@mantine/core";
+import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
-import { getNodeDescription, getNodeTitle } from "../../utils/graph";
 import { useSearch } from "../../contexts/SearchContext";
 
 type ISearchBarProps = {

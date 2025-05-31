@@ -257,5 +257,34 @@ router.post("/tags/comprehensive", checkToken, async (req, res) => {
   }
 });
 
+router.get("/tags/suggest", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const query = req.query.query as string;
+    if (typeof query !== "string") {
+      res.status(400).json({ error: "Query must be a string" });
+      return;
+    }
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+
+    const suggestions: ITagSearchResult[] = await Search.suggestTags(
+      user.id,
+      query,
+      { limit },
+    );
+    res.json({
+      message: "Tag suggestions fetched successfully",
+      data: suggestions,
+    });
+  } catch (error) {
+    console.error("Error in /tags/suggest:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.use(disallowDisabled);
 export default router;
