@@ -82,7 +82,8 @@ h5 {
     border-radius: var(--mantine-radius-md);
     border: 2px solid var(--mantine-code-block-border-color);
     white-space: pre-wrap;
-    background-color: var(--mantine-color-dark-5);
+    background-color: var(--color-code-background);
+    color: var(--color-code-foreground);
 }
 
 .code {

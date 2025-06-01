@@ -264,6 +264,7 @@ export default function Connections({
                   idea.connections?.map((connection, i) => {
                     return (
                       <CompactIdeaCard
+                        key={connection.id.toString()}
                         style={{
                           width: "100%",
                         }}
@@ -327,6 +328,7 @@ export default function Connections({
 
                   return (
                     <CompactIdeaCard
+                      key={relatedIdea.id.toString()}
                       idea={relatedIdea}
                       style={{
                         width: "100%",

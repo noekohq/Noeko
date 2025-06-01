@@ -1,4 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import styles from "./DreamWriter.module.scss";
 import contentStyles from "./Content.module.scss";
 import {
@@ -13,7 +20,6 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Dropcursor from "@tiptap/extension-dropcursor";
-import CodeBlock from "@tiptap/extension-code-block";
 import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
@@ -42,7 +48,6 @@ import {
   TextIndent,
   Textbox,
 } from "@phosphor-icons/react";
-import { useSettings } from "../../../contexts/SettingsContext";
 import { useLink } from "./Utils";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { DreamImage } from "./nodes/DreamImage";
@@ -52,6 +57,13 @@ import { Group, Overlay, Text } from "@mantine/core";
 import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
 import { Markdown } from "tiptap-markdown";
+
+import "highlight.js/styles/github-dark-dimmed.css";
+
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { all, createLowlight } from "lowlight";
+
+const lowlight = createLowlight(all);
 
 interface EditorData {
   comments: [];
@@ -71,215 +83,228 @@ interface EditorProps {
 
 const defaultContent = ``;
 
-function DreamWriter({
-  initialContent,
-  placeholder = "Start writing here...",
-  outputType,
-  stickyMenu,
-  devTools,
-  editorData,
-  onChange,
-  onBlur,
-  dependencies,
-}: EditorProps) {
-  const content = initialContent || defaultContent.trim();
-
-  const editor = useEditor(
+const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
+  (
     {
-      extensions: [
-        StarterKit.configure({
-          heading: {
-            levels: [1, 2, 3, 4, 5],
-            HTMLAttributes: {
-              class: contentStyles.heading,
-            },
-          },
-          horizontalRule: {
-            HTMLAttributes: {
-              class: contentStyles.horizontalRule,
-            },
-          },
-          blockquote: {
-            HTMLAttributes: {
-              class: contentStyles.blockquote,
-            },
-          },
-          paragraph: {
-            HTMLAttributes: {
-              class: contentStyles.paragraph,
-            },
-          },
-          listItem: {
-            HTMLAttributes: {
-              class: contentStyles.listItem,
-            },
-          },
-          orderedList: {
-            HTMLAttributes: {
-              class: contentStyles.orderedList,
-            },
-          },
-          bulletList: {
-            HTMLAttributes: {
-              class: contentStyles.bulletList,
-            },
-          },
-          code: {
-            HTMLAttributes: {
-              class: contentStyles.code,
-            },
-          },
-          strike: {
-            HTMLAttributes: {
-              class: contentStyles.strike,
-            },
-          },
-          codeBlock: false,
-          dropcursor: false,
-        }),
-        CodeBlock.configure({
-          HTMLAttributes: {
-            class: contentStyles.codeBlock,
-          },
-        }),
-        Placeholder.configure({
-          placeholder,
-          emptyEditorClass: styles.emptyEditor,
-          emptyNodeClass: styles.emptyNode,
-        }),
-        Underline.configure({
-          HTMLAttributes: {
-            class: contentStyles.underline,
-          },
-        }),
-        Link.configure({
-          HTMLAttributes: {
-            class: contentStyles.link,
-          },
-        }),
-        Dropcursor.configure({
-          color: "var(--color-accent)",
-        }),
-        Typography.configure({}),
-        TaskList.configure({
-          HTMLAttributes: {
-            class: contentStyles.taskList,
-          },
-        }),
-        TaskItem.configure({
-          nested: true,
-          HTMLAttributes: {
-            class: contentStyles.taskItem,
-          },
-        }),
-        Markdown.configure({
-          linkify: true,
-          transformPastedText: true,
-          html: true,
-          bulletListMarker: "-",
-          breaks: true,
-        }),
-        DreamImage.configure({
-          HTMLAttributes: {
-            class: contentStyles.image,
-          },
-        }),
-        DreamFile.configure({
-          HTMLAttributes: {
-            class: contentStyles.file,
-          },
-        }),
-        DreamIdea.configure({
-          HTMLAttributes: {
-            class: contentStyles.idea,
-          },
-        }),
-        DreamFileHandler.configure({}),
-        DreamConnection.configure({}),
-      ],
-      content,
-      onUpdate: ({ editor: e }) => {
-        if (onChange) {
-          const output =
-            outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
-          onChange(output);
-        }
-      },
-      onBlur: ({ editor: e }) => {
-        if (onBlur) {
-          const output =
-            outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
-          onBlur(output);
-        }
-      },
-      editorProps: {
-        attributes: {
-          class: `${styles.tippyEditor} ${contentStyles.editor} tippy-editor`,
-        },
-      },
-      onPaste: (e) => {},
-      editable: true,
-      injectCSS: false,
-      autofocus: true,
+      initialContent,
+      placeholder = "Start writing here...",
+      outputType,
+      stickyMenu,
+      devTools,
+      editorData,
+      onChange,
+      onBlur,
+      dependencies,
     },
-    [...(dependencies ?? []), initialContent],
-  );
+    ref,
+  ) => {
+    const content = initialContent || defaultContent.trim();
 
-  const { toggleLink } = useLink({ editor });
-
-  useShortcuts({
-    shortcuts: [
+    const editor = useEditor(
       {
-        keys: { meta: true, key: "k" },
-        run: () => {
-          toggleLink();
+        extensions: [
+          StarterKit.configure({
+            heading: {
+              levels: [1, 2, 3, 4, 5],
+              HTMLAttributes: {
+                class: contentStyles.heading,
+              },
+            },
+            horizontalRule: {
+              HTMLAttributes: {
+                class: contentStyles.horizontalRule,
+              },
+            },
+            blockquote: {
+              HTMLAttributes: {
+                class: contentStyles.blockquote,
+              },
+            },
+            paragraph: {
+              HTMLAttributes: {
+                class: contentStyles.paragraph,
+              },
+            },
+            listItem: {
+              HTMLAttributes: {
+                class: contentStyles.listItem,
+              },
+            },
+            orderedList: {
+              HTMLAttributes: {
+                class: contentStyles.orderedList,
+              },
+            },
+            bulletList: {
+              HTMLAttributes: {
+                class: contentStyles.bulletList,
+              },
+            },
+            code: {
+              HTMLAttributes: {
+                class: contentStyles.code,
+              },
+            },
+            strike: {
+              HTMLAttributes: {
+                class: contentStyles.strike,
+              },
+            },
+            codeBlock: false,
+            dropcursor: false,
+          }),
+          CodeBlockLowlight.configure({
+            lowlight,
+            HTMLAttributes: {
+              class: contentStyles.codeBlock,
+            },
+          }),
+          Placeholder.configure({
+            placeholder,
+            emptyEditorClass: styles.emptyEditor,
+            emptyNodeClass: styles.emptyNode,
+          }),
+          Underline.configure({
+            HTMLAttributes: {
+              class: contentStyles.underline,
+            },
+          }),
+          Link.configure({
+            HTMLAttributes: {
+              class: contentStyles.link,
+            },
+          }),
+          Dropcursor.configure({
+            color: "var(--color-accent)",
+          }),
+          Typography.configure({}),
+          TaskList.configure({
+            HTMLAttributes: {
+              class: contentStyles.taskList,
+            },
+          }),
+          TaskItem.configure({
+            nested: true,
+            HTMLAttributes: {
+              class: contentStyles.taskItem,
+            },
+          }),
+          Markdown.configure({
+            linkify: true,
+            transformPastedText: true,
+            html: true,
+            bulletListMarker: "-",
+            breaks: true,
+          }),
+          DreamImage.configure({
+            HTMLAttributes: {
+              class: contentStyles.image,
+            },
+          }),
+          DreamFile.configure({
+            HTMLAttributes: {
+              class: contentStyles.file,
+            },
+          }),
+          DreamIdea.configure({
+            HTMLAttributes: {
+              class: contentStyles.idea,
+            },
+          }),
+          DreamFileHandler.configure({}),
+          DreamConnection.configure({}),
+        ],
+        content,
+        onUpdate: ({ editor: e }) => {
+          if (onChange) {
+            const output =
+              outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
+            onChange(output);
+          }
         },
+        onBlur: ({ editor: e }) => {
+          if (onBlur) {
+            const output =
+              outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
+            onBlur(output);
+          }
+        },
+        editorProps: {
+          attributes: {
+            class: `${styles.tippyEditor} ${contentStyles.editor} tippy-editor`,
+          },
+        },
+        onPaste: (e) => {},
+        editable: true,
+        injectCSS: false,
+        autofocus: true,
       },
-    ],
-  });
+      [...(dependencies ?? []), initialContent],
+    );
 
-  const [droppingOver, setDroppingOver] = useState(false);
+    const { toggleLink } = useLink({ editor });
 
-  return (
-    <div
-      className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
-      onDragOver={(e) => {
-        e.preventDefault();
-      }}
-      onDragEnterCapture={(e) => {
-        setDroppingOver(true);
-      }}
-      onDragLeaveCapture={(e) => {
-        setDroppingOver(false);
-      }}
-      onDropCapture={(e) => {
-        setDroppingOver(false);
-      }}
-    >
-      {droppingOver && (
-        <Overlay
-          backgroundOpacity={0.5}
-          blur={5}
-          onDragOver={(e) => {
-            e.preventDefault();
-          }}
-          style={{
-            pointerEvents: "none",
-          }}
-        >
-          <Group align="center" justify="center" style={{ height: "100%" }}>
-            <File />
-            <Text fw="bold">Drop your file here</Text>
-          </Group>
-        </Overlay>
-      )}
-      <StickyMenu editor={editor} show={!!stickyMenu} devTools={devTools} />
-      {/* <FloatingMenu editor={editor} /> */}
-      <BubbleMenu editor={editor} />
-      <EditorContent className={styles.tippyContent} editor={editor} />
-    </div>
-  );
-}
+    useShortcuts({
+      shortcuts: [
+        {
+          keys: { meta: true, key: "k" },
+          run: () => {
+            toggleLink();
+          },
+        },
+      ],
+    });
+
+    const [droppingOver, setDroppingOver] = useState(false);
+
+    useImperativeHandle(ref, () => {
+      if (editor) {
+        return editor;
+      }
+      return undefined;
+    }, [editor]);
+
+    return (
+      <div
+        className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+        }}
+        onDragEnterCapture={(e) => {
+          setDroppingOver(true);
+        }}
+        onDragLeaveCapture={(e) => {
+          setDroppingOver(false);
+        }}
+        onDropCapture={(e) => {
+          setDroppingOver(false);
+        }}
+      >
+        {droppingOver && (
+          <Overlay
+            backgroundOpacity={0.5}
+            blur={5}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            style={{
+              pointerEvents: "none",
+            }}
+          >
+            <Group align="center" justify="center" style={{ height: "100%" }}>
+              <File />
+              <Text fw="bold">Drop your file here</Text>
+            </Group>
+          </Overlay>
+        )}
+        <StickyMenu editor={editor} show={!!stickyMenu} devTools={devTools} />
+        {/* <FloatingMenu editor={editor} /> */}
+        <BubbleMenu editor={editor} />
+        <EditorContent className={styles.tippyContent} editor={editor} />
+      </div>
+    );
+  },
+);
 
 export default DreamWriter;
 

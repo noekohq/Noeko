@@ -4,6 +4,9 @@
 :root[data-mantine-color-scheme="light"] {
     --mantine-color-body: var(--mantine-color-dark-9) !important;
     --mantine-color-text: var(--mantine-color-dark-0) !important;
+
+    --color-code-background: var(--mantine-color-dark-1);
+    --color-code-foreground: var(--mantine-color-dark-8);
 }
 
 /* For dark mode */
@@ -19,6 +22,10 @@
     .mantine-Menu-dropdown {
         background-color: var(--mantine-color-dark-8) !important;
     }
+
+    --color-code-background: var(--mantine-color-dark-8);
+    --color-code-foreground: var(--mantine-color-dark-1);
+
 }
 
 :root {

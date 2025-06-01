@@ -342,7 +342,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
                 link={false}
                 variant={type === "existing" ? "filled" : "light"}
                 onClick={() => {
-                  navigate(`/tag/${tag.id.toString()}`);
+                  navigate(`/tags/${tag.id.toString()}`);
                 }}
                 rightSection={
                   isLoadingAction ? (

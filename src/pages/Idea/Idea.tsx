@@ -4,6 +4,7 @@ import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch"; // Your custom hook
 import { useDebouncedCallback } from "@mantine/hooks";
 import { IIdea } from "../../../app/database/models/ideas";
+import { Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
   Grid,
@@ -15,9 +16,22 @@ import {
   Tooltip,
   Divider,
   Button,
+  Flex,
+  HoverCard,
+  HoverCardTarget,
+  Menu,
+  CopyButton,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { Sparkle, TrashSimple } from "@phosphor-icons/react";
+import {
+  BracketsAngle,
+  Check,
+  CopySimple,
+  CursorText,
+  MarkdownLogo,
+  Sparkle,
+  TrashSimple,
+} from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import Connections from "./Connections";
 import Overview from "./Overview";
@@ -31,6 +45,8 @@ import { htmlToPlainText } from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
 import TagsManager from "./TagsManager";
+import { downloadTextAsFile } from "../../utils/files";
+import { htmlToMarkdown } from "../../../app/utils/formatting";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -323,6 +339,40 @@ export default function Idea() {
     await triggerComputeIfNeeded();
   }, [ideaId, idea]);
 
+  const editorRef = useRef<IEditor>();
+
+  const downloadAsHTML = () => {
+    if (idea?.content) {
+      downloadTextAsFile(idea?.content, {
+        type: "text/html",
+        extension: "html",
+        name: idea.title,
+      });
+    }
+  };
+
+  const getMarkdownContent = () => {
+    if (!idea?.content) {
+      return "";
+    }
+    if (editorRef.current?.storage.markdown) {
+      return editorRef.current?.storage.markdown.getMarkdown() as string;
+    }
+    return htmlToMarkdown(idea?.content);
+  };
+
+  const downloadAsMarkdown = () => {
+    if (idea?.content && editorRef.current) {
+      const markdown = getMarkdownContent();
+
+      downloadTextAsFile(markdown, {
+        type: "text/markdown",
+        extension: "md",
+        name: idea.title,
+      });
+    }
+  };
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -406,6 +456,7 @@ export default function Idea() {
                     onChange={handleContentChange}
                     onBlur={handleEditorBlur}
                     dependencies={[ideaId, idea.id]}
+                    ref={editorRef}
                   />
                 </IdeaProvider>
               )}
@@ -429,32 +480,82 @@ export default function Idea() {
         </>
       </div>
       <RightSidebar>
-        <Tooltip label="Delete Idea">
-          {rightSidebarOpened ? (
-            <Button
-              variant="light"
-              color="red"
-              fullWidth
-              onClick={handleDeleteIdea}
-              disabled={loadingDelete}
-              leftSection={
-                loadingDelete ? <Loader size="xs" /> : <TrashSimple />
-              }
-            >
-              Delete Idea
-            </Button>
-          ) : (
-            <ActionIcon
-              variant="light"
-              color="red"
-              size="lg"
-              onClick={handleDeleteIdea}
-              disabled={loadingDelete}
-            >
-              {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
-            </ActionIcon>
-          )}
-        </Tooltip>
+        {rightSidebarOpened && (
+          <>
+            <Flex gap="sm">
+              <Tooltip label="Delete Idea">
+                <ActionIcon
+                  variant="light"
+                  color="red"
+                  size="md"
+                  onClick={handleDeleteIdea}
+                  disabled={loadingDelete}
+                >
+                  {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Export as HTML">
+                <ActionIcon
+                  variant="default"
+                  size="md"
+                  onClick={downloadAsHTML}
+                >
+                  <BracketsAngle />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Export as Markdown">
+                <ActionIcon
+                  variant="default"
+                  size="md"
+                  onClick={downloadAsMarkdown}
+                >
+                  <MarkdownLogo />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Copy as Markdown">
+                <Menu trigger="hover">
+                  <Menu.Target>
+                    <ActionIcon
+                      variant="default"
+                      size="md"
+                      onClick={downloadAsMarkdown}
+                    >
+                      <CopySimple />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <CopyButton value={getMarkdownContent()}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Menu.Item
+                            leftSection={copied ? <Check /> : <MarkdownLogo />}
+                            onClick={copy}
+                          >
+                            Copy as Markdown
+                          </Menu.Item>
+                        );
+                      }}
+                    </CopyButton>
+                    {idea?.content && (
+                      <CopyButton value={htmlToPlainText(idea?.content)}>
+                        {({ copied, copy }) => {
+                          return (
+                            <Menu.Item
+                              leftSection={copied ? <Check /> : <CursorText />}
+                              onClick={copy}
+                            >
+                              Copy as Text
+                            </Menu.Item>
+                          );
+                        }}
+                      </CopyButton>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Tooltip>
+            </Flex>
+          </>
+        )}
       </RightSidebar>
     </PageWrapper>
   );
