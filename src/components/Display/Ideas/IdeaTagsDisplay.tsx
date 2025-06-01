@@ -1,7 +1,7 @@
 import React from "react";
 import { Group, Badge, Tooltip } from "@mantine/core";
 import type { IdeaTag } from "./IdeaCardTypes";
-import styles from "./IdeaCard.module.scss";
+import styles from "./IdeaCards.module.scss";
 
 interface IdeaTagsDisplayProps {
   tags: IdeaTag[];

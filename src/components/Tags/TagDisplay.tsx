@@ -19,6 +19,7 @@ type IInlineTagProps = {
   rightSection?: React.ReactNode;
   link?: boolean;
   color?: string;
+  onClick?: () => void;
 };
 
 export function InlineTag({
@@ -28,6 +29,7 @@ export function InlineTag({
   rightSection,
   link = true,
   color,
+  onClick,
 }: IInlineTagProps) {
   const {
     ui: {
@@ -38,7 +40,7 @@ export function InlineTag({
   } = useSettings();
 
   return (
-    <HoverCard withArrow>
+    <HoverCard withArrow openDelay={500}>
       <HoverCard.Target>
         <Badge
           variant={variant || "light"}
@@ -53,8 +55,9 @@ export function InlineTag({
           }}
           leftSection={leftSection}
           rightSection={rightSection}
-          component={link ? Link : undefined}
-          to={link ? `/tags/${tag.id.toString()}` : ""}
+          onClick={onClick}
+          component={link && !onClick ? Link : undefined}
+          to={link && !onClick ? `/tags/${tag.id.toString()}` : ""}
         >
           {tag.name}
         </Badge>
@@ -72,6 +75,7 @@ type IBlockTagProps = {
   link?: boolean;
   className?: string; // Optional className prop for further customization
   color?: string;
+  onClick?: () => void;
 };
 
 export function BlockTag({
@@ -82,6 +86,7 @@ export function BlockTag({
   link = true,
   className,
   color,
+  onClick,
 }: IBlockTagProps) {
   const {
     ui: {
@@ -92,7 +97,7 @@ export function BlockTag({
   } = useSettings();
 
   return (
-    <HoverCard withArrow>
+    <HoverCard withArrow openDelay={500}>
       <HoverCard.Target>
         <Badge
           size="xl"
@@ -111,8 +116,9 @@ export function BlockTag({
             leftSection ? leftSection : <Tag weight="bold" size={18} />
           }
           rightSection={rightSection}
-          component={link ? Link : undefined}
-          to={link ? `/tags/${tag.id.toString()}` : ""}
+          onClick={onClick}
+          component={link && !onClick ? Link : undefined}
+          to={link && !onClick ? `/tags/${tag.id.toString()}` : ""}
         >
           {tag.name}
         </Badge>

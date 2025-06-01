@@ -15,8 +15,9 @@ import type { IdeaCardSharedProps, IIdea } from "./IdeaCardTypes"; // Ensure IId
 import { IdeaActionsGroup } from "./IdeaActionsGroup";
 import { IdeaTagsDisplay } from "./IdeaTagsDisplay";
 import { IdeaArtifactsDisplay } from "./IdeaArtifactsDisplay"; // Could be used for a single key artifact
-import styles from "./IdeaCard.module.scss";
+import styles from "./IdeaCards.module.scss";
 import { getNodeDescription } from "../../../utils/graph";
+import { Link, useNavigate } from "react-router";
 
 export interface CompactIdeaCardProps extends IdeaCardSharedProps {
   detailsForHoverCard?: React.ReactNode; // Typically the main summary for compact view
@@ -55,11 +56,14 @@ export function CompactIdeaCard({
   hoverCardProps,
   showTitleOnly = false,
   maxTitleLines = 2,
+  link,
 }: CompactIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
   const effectiveDetailsForHover =
     detailsForHoverCard ?? getIdeaDefaultSummary(idea);
+
+  const navigate = useNavigate();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     if (draggable) {
@@ -86,7 +90,18 @@ export function CompactIdeaCard({
       draggable={draggable && showDefaultDragHandle} // Only make card draggable if default handle shown
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onClick={onCardClick ? (e) => onCardClick(e, idea) : undefined}
+      onClick={
+        link || onCardClick
+          ? (e: React.MouseEvent<HTMLDivElement>) => {
+              if (onCardClick) {
+                onCardClick(e, idea);
+              }
+              if (link) {
+                navigate(`/idea/${idea.id.toString()}`);
+              }
+            }
+          : undefined
+      }
       onMouseEnter={
         onMouseEnterCard
           ? (e) => onMouseEnterCard(e, idea.id.toString())
@@ -236,6 +251,7 @@ export function StandardIdeaCard({
   hoverCardProps,
   visibleActionsCount = 2,
   maxDescriptionLines = 3,
+  link,
 }: StandardIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -261,6 +277,8 @@ export function StandardIdeaCard({
     }
   };
 
+  const navigate = useNavigate();
+
   const cardContent = (
     <Card
       shadow={
@@ -272,7 +290,18 @@ export function StandardIdeaCard({
       draggable={draggable && showDefaultDragHandle}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onClick={onCardClick ? (e) => onCardClick(e, idea) : undefined}
+      onClick={
+        link || onCardClick
+          ? (e: React.MouseEvent<HTMLDivElement>) => {
+              if (onCardClick) {
+                onCardClick(e, idea);
+              }
+              if (link) {
+                navigate(`/idea/${idea.id.toString()}`);
+              }
+            }
+          : undefined
+      }
       onMouseEnter={
         onMouseEnterCard
           ? (e) => onMouseEnterCard(e, idea.id.toString())
@@ -402,6 +431,7 @@ export function DetailedIdeaCard({
   description: descriptionOverride,
   detailsSectionContent,
   visibleActionsCount = 3, // Might show more actions by default
+  link,
 }: DetailedIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -422,6 +452,8 @@ export function DetailedIdeaCard({
     }
   };
 
+  const navigate = useNavigate();
+
   return (
     <Card
       shadow={
@@ -433,7 +465,18 @@ export function DetailedIdeaCard({
       draggable={draggable && showDefaultDragHandle}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onClick={onCardClick ? (e) => onCardClick(e, idea) : undefined}
+      onClick={
+        link || onCardClick
+          ? (e: React.MouseEvent<HTMLDivElement>) => {
+              if (onCardClick) {
+                onCardClick(e, idea);
+              }
+              if (link) {
+                navigate(`/idea/${idea.id.toString()}`);
+              }
+            }
+          : undefined
+      }
       onMouseEnter={
         onMouseEnterCard
           ? (e) => onMouseEnterCard(e, idea.id.toString())

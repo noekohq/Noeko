@@ -1,7 +1,7 @@
 import React from "react";
 import { Group, Text, Tooltip } from "@mantine/core";
 import type { IdeaArtifact } from "./IdeaCardTypes";
-import styles from "./IdeaCard.module.scss";
+import styles from "./IdeaCards.module.scss";
 
 interface IdeaArtifactsDisplayProps {
   artifacts: IdeaArtifact[];

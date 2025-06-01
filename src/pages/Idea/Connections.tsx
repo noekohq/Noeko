@@ -275,18 +275,18 @@ export default function Connections({
                           setSelectedIdea(undefined);
                         }}
                         onCardClick={() => {
-                          // navigate(`/idea/${connection.id.toString()}`);
+                          navigate(`/idea/${connection.id.toString()}`);
                         }}
                         actions={[
-                          {
-                            id: "View",
-                            label: "View",
-                            icon: <ArrowRight />,
-                            onClick: (e) => {
-                              e.stopPropagation();
-                              navigate(`/idea/${connection.id.toString()}`);
-                            },
-                          },
+                          // {
+                          //   id: "View",
+                          //   label: "View",
+                          //   icon: <ArrowRight />,
+                          //   onClick: (e) => {
+                          //     e.stopPropagation();
+                          //     navigate(`/idea/${connection.id.toString()}`);
+                          //   },
+                          // },
                           {
                             id: "remove_connection",
                             label: "Remove",

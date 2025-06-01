@@ -25,6 +25,7 @@ import {
 } from "../../components/Display/Ideas/IdeaCards";
 import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
+import styles from "./ViewTag.module.scss";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -188,7 +189,12 @@ export default function ViewTag() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" py="xl" style={{ position: "relative" }}>
+      <Container
+        w="100%"
+        py="xl"
+        style={{ position: "relative" }}
+        className={styles.viewtag}
+      >
         <Stack gap="xl">
           <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Group gap="lg" mb="xs">

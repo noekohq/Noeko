@@ -24,8 +24,11 @@ import {
   FloppyDisk,
   X,
   Trash,
+  ArrowRight,
 } from "@phosphor-icons/react"; // Added new icons, including Trash
 import { InlineTag } from "../../components/Tags/TagDisplay";
+import { Link } from "react-router";
+import styles from "./Tags.module.scss";
 
 export default function Tags() {
   const {
@@ -105,7 +108,7 @@ export default function Tags() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" pt="lg">
+      <Container w="100%" pt="lg" className={styles.tags}>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Your tags</Title>
@@ -373,6 +376,11 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
             >
               <Trash />
             </ActionIcon>
+            <Link to={`/idea/${tag.id.toString()}`}>
+              <ActionIcon variant="subtle" title="View Tag">
+                <ArrowRight />
+              </ActionIcon>
+            </Link>
           </Group>
         </Table.Td>
       </Table.Tr>

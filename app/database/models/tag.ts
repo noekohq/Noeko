@@ -1,8 +1,11 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { User } from "./user";
-import { Idea } from "./ideas"; // Assuming Idea model is in this path
+import { Idea, IIdea } from "./ideas"; // Assuming Idea model is in this path
 import { Embeddings } from "../../semantics/embeddings";
+import { logger } from "../../services/Logger";
+import { getLM, PromptBuilder } from "../../semantics/lm";
+import { SchemaType } from "@google/generative-ai";
 
 export type ITag = {
   id: string | RecordId;
@@ -319,13 +322,13 @@ export class Tag {
 
   static async getTagsForIdea(
     ideaId: string | RecordId,
-  ): Promise<Tag[] | undefined> {
+  ): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Error getting database");
       }
-      const results = await db.run<Idea[]>("fn::get_tags_for_idea", [
+      const results = await db.run<ITag[]>("fn::get_tags_for_idea", [
         new StringRecordId(ideaId),
       ]);
       if (!results) {
@@ -483,6 +486,56 @@ export class Tag {
         `Error getting similar ideas for tag ${tagId.toString()}: `,
         error,
       );
+      return undefined;
+    }
+  }
+
+  static async suggestNewTagsForContent(content: string, existingTags: ITag[]) {
+    try {
+      const prompt = new PromptBuilder()
+        .addBlock(
+          "Instructions",
+          `
+        You are a tag suggestion engine.
+        Given a piece of content, you are to suggest "tags" that may classify that content accurately and usefully.
+        You will also be given a list of existing tags, so as not to cause duplication.
+        Do not suggest tags that already exists.
+        `,
+        )
+        .addBlock("Content", `${content}`)
+        .addList("Existing tags", [
+          ...existingTags.map((t) => {
+            return `${t.name}: ${t.description}`;
+          }),
+        ]);
+
+      const lm = getLM().withModel("simple");
+      const tags = await lm.generateJSON<
+        { name: string; description: string }[]
+      >(prompt.get(), {
+        type: SchemaType.ARRAY,
+        items: {
+          type: SchemaType.OBJECT,
+          description: "The specific tag in question",
+          properties: {
+            name: {
+              type: SchemaType.STRING,
+              description: "The name of the tag",
+            },
+            description: {
+              type: SchemaType.STRING,
+              description: "What the tag describes about the content",
+            },
+          },
+          required: ["name", "description"],
+        },
+      });
+      if (!tags) {
+        throw new Error("No tags generated.");
+      }
+      return tags;
+    } catch (error) {
+      console.error("Error suggesting tags: ", error);
       return undefined;
     }
   }

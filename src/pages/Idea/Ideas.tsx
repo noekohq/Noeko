@@ -16,7 +16,7 @@ import {
   Stack,
   Button,
 } from "@mantine/core"; // Added Loader and Center for UX
-import IdeaCard from "../../components/Display/Ideas/IdeaCard";
+import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import styles from "./Ideas.module.scss";
 import { MagnifyingGlass, Plus } from "@phosphor-icons/react";
 import { Link } from "react-router";
@@ -123,7 +123,7 @@ export default function Ideas() {
         <Grid>
           {allIdeas.map((idea, i) => (
             <Grid.Col key={idea.id.toString()} span={{ sm: 6 }}>
-              <IdeaCard idea={idea} link />
+              <CompactIdeaCard idea={idea} link />
             </Grid.Col>
           ))}
         </Grid>

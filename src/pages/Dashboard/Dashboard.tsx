@@ -20,7 +20,10 @@ import { getCurrentTimeOfDay } from "../../utils/datetime";
 import useFetch from "../../hooks/useFetch";
 import { IIdea, IUserIdeaStats } from "../../../app/database/models/ideas";
 import { useLayout } from "../../contexts/LayoutContext";
-import IdeaCard from "../../components/Display/Ideas/IdeaCard";
+import {
+  CompactIdeaCard,
+  StandardIdeaCard,
+} from "../../components/Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
 import Search from "../../components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
@@ -136,7 +139,11 @@ export default function Dashboard() {
                 {dashboardData?.recentIdeas &&
                   dashboardData.recentIdeas.map((idea) => {
                     return (
-                      <IdeaCard idea={idea} key={idea.id.toString()} link />
+                      <CompactIdeaCard
+                        idea={idea}
+                        key={idea.id.toString()}
+                        link
+                      />
                     );
                   })}
               </Stack>
@@ -227,6 +234,13 @@ export default function Dashboard() {
                       </Group>
                     </Button>
                   </Link>
+                  <Link to="/tags">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Manage Tags</Text>
+                      </Group>
+                    </Button>
+                  </Link>
                   {isSuperuser && (
                     <Link to="/admin">
                       <Button variant="default">
@@ -280,7 +294,7 @@ export default function Dashboard() {
                     dashboardData.recentIdeas.map((idea) => {
                       return (
                         <Grid.Col span={6} key={idea.id.toString()}>
-                          <IdeaCard idea={idea} link />
+                          <StandardIdeaCard idea={idea} link />
                         </Grid.Col>
                       );
                     })}

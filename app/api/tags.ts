@@ -343,11 +343,9 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     if (limit) {
       parsedLimit = parseInt(limit as string, 10);
       if (isNaN(parsedLimit) || parsedLimit <= 0) {
-        res
-          .status(400)
-          .json({
-            message: "Invalid limit parameter. Must be a positive integer.",
-          });
+        res.status(400).json({
+          message: "Invalid limit parameter. Must be a positive integer.",
+        });
         return;
       }
     }
@@ -361,12 +359,10 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
         parsedThreshold < 0 ||
         parsedThreshold > 1
       ) {
-        res
-          .status(400)
-          .json({
-            message:
-              "Invalid threshold parameter. Must be a float between 0 and 1.",
-          });
+        res.status(400).json({
+          message:
+            "Invalid threshold parameter. Must be a float between 0 and 1.",
+        });
         return;
       }
     }
@@ -385,12 +381,10 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     }
     if (!tagExists.embeddings || tagExists.embeddings.length === 0) {
       // Send a 200 with empty data as no comparison can be made, or 400 if it's a bad request
-      res
-        .status(200)
-        .json({
-          message: "Tag has no embeddings to compare, no similar ideas found.",
-          data: [],
-        });
+      res.status(200).json({
+        message: "Tag has no embeddings to compare, no similar ideas found.",
+        data: [],
+      });
       return;
     }
 
