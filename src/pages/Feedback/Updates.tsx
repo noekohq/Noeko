@@ -2,6 +2,7 @@ import {
   Button,
   Card,
   Container,
+  Divider,
   Drawer,
   Grid,
   Group,
@@ -28,6 +29,21 @@ type IUpdate = {
 };
 
 const updates: IUpdate[] = [
+  {
+    date: new Date("May 31, 2025"),
+    title: "Improvements to tags, more consistent idea UI",
+    details: (
+      <List>
+        <List.Item>Find your tags to apply them in the left sidebar.</List.Item>
+        <List.Item>Create a tag inline.</List.Item>
+        <List.Item>Get suggested tags and apply those.</List.Item>
+        <List.Item>
+          Idea's will start to display more consistently and get better
+          interactions.
+        </List.Item>
+      </List>
+    ),
+  },
   {
     date: new Date("May 29, 2025"),
     title: "Graph improvements, better shortcuts",
@@ -121,9 +137,45 @@ export default function Updates() {
                 openFeedbackModal();
               }}
             >
-              Give us feedback
+              Give us feedback!
             </Button>
           </Group>
+          <Card withBorder radius={"lg"}>
+            <Title fw="bold" order={3}>
+              Roadmap
+            </Title>
+            <Divider my="md" />
+            <Text fw="bold">In progress</Text>
+            <Text>
+              Currently we are working on improving idea connections
+              interactions (e.g. manual connections), and improving UI
+              throughout the app to follow more consistent patterns.
+            </Text>
+            <Divider my="md" />
+            <Text fw="bold">Up next</Text>
+            <Text c="dimmed" size="xs" fs="italic">
+              *(Potentially not in this order)
+            </Text>
+            <List>
+              <List.Item>Spotlight search</List.Item>
+              <List.Item>Project concept (Rabbitholes)</List.Item>
+              <List.Item>Idea editor improvements</List.Item>
+              <List.Item>Search improvements</List.Item>
+              {/* <List.Item>Invite links</List.Item> */}
+            </List>
+            <Divider my="md" />
+            <Group>
+              <Button
+                variant="light"
+                leftSection={<MegaphoneSimple />}
+                onClick={() => {
+                  openFeedbackModal();
+                }}
+              >
+                What do you think?
+              </Button>
+            </Group>
+          </Card>
         </Stack>
         <Space my="lg" />
         <TextInput
