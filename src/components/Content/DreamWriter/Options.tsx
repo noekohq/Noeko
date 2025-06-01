@@ -2,44 +2,30 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   BracketsAngle,
-  ChatTeardrop,
-  Check,
   CheckSquare,
   Code,
   CodeSimple,
   DotsThreeVertical,
   Download,
-  Image,
   Link,
   ListBullets,
   ListChecks,
   ListNumbers,
-  MagicWand,
   Quotes,
   TextB,
-  Textbox,
   TextItalic,
   TextStrikethrough,
   TextUnderline,
   X,
 } from "@phosphor-icons/react";
-import styles from "./Options.module.scss";
-import useFetch from "../../../hooks/useFetch";
-import { useSettings } from "../../../contexts/SettingsContext";
-import Loading from "../../Display/Loading/Loading";
-import { markdownToHtml } from "../../../utils/formatting";
 import {
   ActionIcon,
   Button,
-  FileInput,
   Flex,
-  Grid,
   Group,
-  Modal,
   Popover,
   TextInput,
 } from "@mantine/core";
-import { imagesPath } from "../../../globals/static";
 import { showNotification } from "@mantine/notifications";
 
 interface OptionProps {

@@ -33,3 +33,22 @@ export const parseDirectoryContents = async (files: File[]) => {
   }
   return contents;
 };
+
+export const downloadTextAsFile = (
+  content: string,
+  options: {
+    type: string;
+    extension: string;
+    name: string;
+  },
+) => {
+  const blob = new Blob([content], { type: options.type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${options.name}.${options.extension}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
