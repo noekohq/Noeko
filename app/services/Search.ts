@@ -16,36 +16,29 @@ export type ISearchResultValue =
     })
   | (IUserFile & {
       type: "file";
-    }); // Keep flexible for future
+    });
 
-// The standardized structure for returning search results
 export type ISearchResult = {
-  id: string | RecordId; // Unique ID of the result item (e.g., 'idea:uuid')
-  score: number; // Final combined or specific score for ranking
-  value: ISearchResultValue; // The actual data object (IIdea or IUserFile)
-  highlightText?: string; // Highlighted snippet (from FTS 'preview' if available)
+  id: string | RecordId;
+  score: number;
+  value: ISearchResultValue;
+  highlightText?: string;
   debug?: {
-    semanticScore?: number; // Score from vector similarity ('distance')
-    ftsContentScore?: number; // Score from FTS content match
-    ftsTitleScore?: number; // Score from FTS title match
-    exactTitleBonus?: number; // Bonus applied for exact title match
-    source: "semantic" | "fts" | "hybrid"; // Origin of the result determination
+    semanticScore?: number;
+    ftsContentScore?: number;
+    ftsTitleScore?: number;
+    exactTitleBonus?: number;
+    source: "semantic" | "fts" | "hybrid";
   };
 };
 
-// Type matching the exact output of your original fn::search_user_ideas_fts
 export type IFTSIdeaResult = IIdea & {
-  // Ensure IIdea includes contentPlain, title, etc. required by the query
   contentScore: number;
   titleScore: number;
-  preview: string; // Contains '->' and '<-' markers
+  preview: string;
 };
 
-// Type matching the output of fn::search_similar_to_embeddings (includes distance)
-// Note: Your original function also selected derivedList. Ensure IIdeaAsRelation includes it.
-export type ISemanticIdeaResult = IIdeaAsRelation & {
-  // IIdeaAsRelation should include IIdea fields + distance + derivedList
-};
+export type ISemanticIdeaResult = IIdeaAsRelation & {};
 
 export type ISearchOverview = {
   findings: {
@@ -56,27 +49,23 @@ export type ISearchOverview = {
   overview: string;
 };
 
-// --- Tag Search Result Types ---
 export type ITagSearchResultValue = ITag;
 
 export type ITagSearchResult = {
-  id: string | RecordId; // This is the Tag's own ID
+  id: string | RecordId;
   value: ITagSearchResultValue;
   score: number;
   searchType: "fts" | "semantic" | "comprehensive";
 };
 
-// --- Refactored Search Service ---
-
 export class Search {
-  // Weights and constants for comprehensive search scoring (tune as needed)
   private static readonly COMPREHENSIVE_WEIGHTS = {
     SEMANTIC: 1.5,
     FTS_TITLE: 1.0,
     FTS_CONTENT: 0.5,
   };
   private static readonly EXACT_TITLE_BONUS = 2.0;
-  private static readonly SEMANTIC_THRESHOLD = 0.45; // Min cosine similarity
+  private static readonly SEMANTIC_THRESHOLD = 0.45;
 
   constructor() {}
 
@@ -143,11 +132,21 @@ export class Search {
       `;
     };
 
-    const ftsTagSearchIndex = () => {
+    const ftsTagNameSearchIndex = () => {
       return `
       DEFINE INDEX OVERWRITE idx_tag_name_fts
         ON TABLE tag
-        FIELDS name, description
+        FIELDS name
+        SEARCH ANALYZER tag_analyzer
+        BM25 HIGHLIGHTS;
+      `;
+    };
+
+    const ftsTagDescriptionSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_tag_description_fts
+        ON TABLE tag
+        FIELDS description
         SEARCH ANALYZER tag_analyzer
         BM25 HIGHLIGHTS;
       `;
@@ -350,14 +349,15 @@ export class Search {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized for Search.up");
-      console.log(
+      console.info(
         "Defining search analyzers, indexes, and functions (using original definitions)...",
       );
       await db.query(ideaSearchAnalyzer());
       await db.query(tagSearchAnalyzer());
       await db.query(ftsTitleSearchIndex());
       await db.query(ftsContentSearchIndex());
-      await db.query(ftsTagSearchIndex());
+      await db.query(ftsTagNameSearchIndex());
+      await db.query(ftsTagDescriptionSearchIndex());
       await db.query(defineVectorIndex());
       await db.query(defineTagVectorIndex());
       await db.query(ftsSearchFunction());
