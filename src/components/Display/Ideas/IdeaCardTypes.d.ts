@@ -54,6 +54,7 @@ export interface IdeaCardSharedProps {
   artifacts?: IdeaArtifact[];
   tags?: IdeaTag[];
   actions?: IdeaAction[];
+  link?: boolean;
 
   onCardClick?: (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,

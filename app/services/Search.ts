@@ -796,19 +796,13 @@ export class Search {
       }
       const limit = options?.limit ?? 10;
 
-      // Define the type for the raw result from the DB function
-      type RawTagFTSResult = {
-        id: string;
-        name: string;
-        description: string;
-        color?: string;
-        score: number;
-      };
-
-      const dbResults = await db.run<RawTagFTSResult[]>(
-        "fn::search_user_tags_fts",
-        [new StringRecordId(userId), query, limit],
-      );
+      const dbResults = await db.run<
+        (ITag & {
+          nameScore: number;
+          descriptionScore: number;
+          preview: string;
+        })[]
+      >("fn::search_user_tags_fts", [new StringRecordId(userId), query, limit]);
 
       if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
         throw new Error("Couldn't get results");
@@ -816,13 +810,8 @@ export class Search {
 
       return dbResults.map((tag) => ({
         id: tag.id,
-        value: {
-          id: tag.id,
-          name: tag.name,
-          description: tag.description,
-          color: tag.color,
-        },
-        score: tag.score,
+        value: tag,
+        score: tag.nameScore + tag.descriptionScore,
         searchType: "fts",
       }));
     } catch (error) {
@@ -846,15 +835,7 @@ export class Search {
       const limit = options?.limit ?? 10;
       const threshold = options?.threshold ?? Search.SEMANTIC_THRESHOLD; // Use existing threshold or define a new one for tags
 
-      type RawTagSemanticResult = {
-        id: string;
-        name: string;
-        description: string;
-        color?: string;
-        score: number;
-      };
-
-      const dbResults = await db.run<RawTagSemanticResult[]>(
+      const dbResults = await db.run<(ITag & { score: number })[]>(
         "fn::search_similar_tags_to_embeddings",
         [new StringRecordId(userId), embedding, limit, threshold],
       );
@@ -864,13 +845,8 @@ export class Search {
       }
 
       return dbResults.map((tag) => ({
-        id: tag.id,
-        value: {
-          id: tag.id,
-          name: tag.name,
-          description: tag.description,
-          color: tag.color,
-        },
+        id: tag.id.toString(),
+        value: tag,
         score: tag.score,
         searchType: "semantic",
       }));

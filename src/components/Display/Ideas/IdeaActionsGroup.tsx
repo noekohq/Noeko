@@ -2,7 +2,7 @@ import React from "react";
 import { Menu, Button, ActionIcon, Group, Tooltip } from "@mantine/core";
 import { DotsThreeVertical } from "@phosphor-icons/react"; // Phosphor Icon
 import type { IIdea, IdeaAction } from "./IdeaCardTypes";
-import styles from "./IdeaCard.module.scss";
+import styles from "./IdeaCards.module.scss";
 
 interface IdeaActionsGroupProps {
   idea: IIdea;
@@ -68,7 +68,13 @@ export function IdeaActionsGroup({
         </Tooltip>
       ))}
       {overflowActions.length > 0 && (
-        <Menu shadow="md" width={200} position={menuPosition} withArrow>
+        <Menu
+          shadow="md"
+          width={200}
+          position={menuPosition}
+          withArrow
+          trigger="hover"
+        >
           <Menu.Target>
             <Tooltip label="More options" withArrow openDelay={500}>
               <ActionIcon

@@ -6,7 +6,7 @@ import { getDatabase } from "../db";
  */
 export type ILog = {
   id: RecordId | string;
-  level: "info" | "warn" | "error" | "debug" | "verbose";
+  level: "info" | "warn" | "error" | "debug" | "verbose" | "event";
   message: string;
   context?: Record<string, any>; // For additional structured data
   source?: string; // e.g., 'UserService', 'IdeaModel', 'APIRequest'

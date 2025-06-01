@@ -9,6 +9,7 @@ import {
   ITagSearchResult, // Added for tag search results
 } from "../services/Search";
 import { Embeddings } from "../semantics/embeddings";
+import { ITag } from "../database/models/tag";
 
 const router = Router();
 
@@ -269,13 +270,13 @@ router.get("/tags/suggest", checkToken, async (req, res) => {
       res.status(400).json({ error: "Query must be a string" });
       return;
     }
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : undefined;
 
-    const suggestions: ITagSearchResult[] = await Search.suggestTags(
-      user.id,
-      query,
-      { limit },
-    );
+    const suggestions: ITag[] = await Search.suggestTags(user.id, query, {
+      limit,
+    });
     res.json({
       message: "Tag suggestions fetched successfully",
       data: suggestions,
