@@ -38,6 +38,11 @@ const updates: IUpdate[] = [
         <List.Item>Tag view no longer flashes like crazy.</List.Item>
         <List.Item>Code blocks look nicer.</List.Item>
         <List.Item>Export or Copy ideas as Markdown or HTML.</List.Item>
+        <List.Item>
+          You can now drag and drop search results to your connections to manual
+          connect ideas.
+        </List.Item>
+        <List.Item>Tag suggestions should be better now.</List.Item>
       </List>
     ),
   },
@@ -47,7 +52,7 @@ const updates: IUpdate[] = [
     details: (
       <List>
         <List.Item>Find your tags to apply them in the left sidebar.</List.Item>
-        <List.Item>Create a tag inline.</List.Item>
+        <List.Item>Create a tag from idea view.</List.Item>
         <List.Item>Get suggested tags and apply those.</List.Item>
         <List.Item>
           Idea's will start to display more consistently and get better
@@ -159,9 +164,8 @@ export default function Updates() {
             <Divider my="md" />
             <Text fw="bold">In progress</Text>
             <Text>
-              Currently we are working on improving idea connections
-              interactions (e.g. manual connections), and improving UI
-              throughout the app to follow more consistent patterns.
+              Currently we are working on the Spotlight feature, and next we'll
+              be tackling a new project concept called "Rabbitholes".
             </Text>
             <Divider my="md" />
             <Text fw="bold">Up next</Text>
@@ -169,11 +173,8 @@ export default function Updates() {
               *(Potentially not in this order)
             </Text>
             <List>
-              <List.Item>Spotlight search</List.Item>
-              <List.Item>Project concept (Rabbitholes)</List.Item>
               <List.Item>Idea editor improvements</List.Item>
               <List.Item>Search improvements</List.Item>
-              {/* <List.Item>Invite links</List.Item> */}
             </List>
             <Divider my="md" />
             <Group>
