@@ -30,6 +30,18 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("June 1, 2025"),
+    title: "Tag view UI improvements, editor updates, general UI updates",
+    details: (
+      <List>
+        <List.Item>Made search results look better.</List.Item>
+        <List.Item>Tag view no longer flashes like crazy.</List.Item>
+        <List.Item>Code blocks look nicer.</List.Item>
+        <List.Item>Export or Copy ideas as Markdown or HTML.</List.Item>
+      </List>
+    ),
+  },
+  {
     date: new Date("May 31, 2025"),
     title: "Improvements to tags, more consistent idea UI",
     details: (
@@ -177,7 +189,7 @@ export default function Updates() {
             </Group>
           </Card>
         </Stack>
-        <Space my="lg" />
+        <Divider my="lg" />
         <TextInput
           placeholder="Filter updates by title, date, or content..."
           value={query}

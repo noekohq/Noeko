@@ -9,15 +9,17 @@ import {
   Loader,
   Alert,
   LoadingOverlay,
+  Button,
+  Overlay,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import useFetch from "../../hooks/useFetch";
 import { ITag } from "../../../app/database/models/tag";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { IIdea } from "../../../app/database/models/ideas";
-import { Tag, WarningCircle } from "@phosphor-icons/react";
+import { ArrowLeft, Tag, WarningCircle } from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Tags/TagDisplay";
 import {
   CompactIdeaCard,
@@ -26,6 +28,7 @@ import {
 import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
+import { useState } from "react";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -127,147 +130,42 @@ export default function ViewTag() {
     }
   };
 
-  if (loadingTag) {
-    return (
-      <PageWrapper>
-        <LeftSidebar />
-        <Container
-          w="100%"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "calc(100vh - 60px)",
-          }}
-        >
-          <Loader size="xl" />
-        </Container>
-        <RightSidebar />
-      </PageWrapper>
-    );
-  }
+  const ideaIsConnected = (ideaId: string) => {
+    return !!ideas?.find((i) => i.id.toString() === ideaId);
+  };
 
-  if (tagErrors && tagErrors.length > 0) {
-    return (
-      <PageWrapper>
-        <LeftSidebar />
-        <Container w="100%" py="md">
-          <Alert
-            icon={<WarningCircle size={24} />} // Updated icon
-            title="Error!"
-            color="red"
-            variant="filled"
-          >
-            Failed to load tag details: {tagErrors.join(", ")}
-          </Alert>
-        </Container>
-        <RightSidebar />
-      </PageWrapper>
-    );
-  }
+  const [draggingOver, setDraggingOver] = useState(false);
 
-  if (!tag) {
-    return (
-      <PageWrapper>
-        <LeftSidebar />
-        <Container w="100%" py="md">
-          <Alert
-            icon={<WarningCircle size={24} />} // Updated icon
-            title="Not Found"
-            color="yellow"
-            variant="filled"
-          >
-            Tag not found. It might have been deleted or you may not have
-            access.
-          </Alert>
-        </Container>
-        <RightSidebar />
-      </PageWrapper>
-    );
-  }
+  const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    try {
+      if (!tag) {
+        return;
+      }
+      const jData = e.dataTransfer.getData("application/json");
+      const data = JSON.parse(jData) as { ideaId: string };
+      const { ideaId } = data;
+      if (ideaIsConnected(ideaId)) {
+        showNotification({
+          title: "Can't connect again",
+          message: "Can't connect this idea again.",
+          color: "yellow",
+        });
+        return;
+      }
+      console.log("Dropped connection id: ", ideaId);
+      await addTagToIdea(ideaId, tag.id.toString());
+      handleRefresh();
+    } catch (error) {
+      console.log("Error creating connection: ", error);
+    } finally {
+      setDraggingOver(false);
+    }
+  };
 
   return (
     <PageWrapper>
-      <LeftSidebar />
-      <Container
-        w="100%"
-        py="xl"
-        style={{ position: "relative" }}
-        className={styles.viewtag}
-      >
-        <Stack gap="xl">
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Group gap="lg" mb="xs">
-              <BlockTag tag={tag} color="blue" />
-            </Group>
-            {tag.description && (
-              <Text size="sm" c="dimmed" mt="xs">
-                {tag.description}
-              </Text>
-            )}
-            <Text size="xs" c="dimmed" mt="sm">
-              Created: {new Date(tag.createdAt).toLocaleDateString()}
-            </Text>
-            {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
-              <Text size="xs" c="dimmed">
-                Last Updated: {new Date(tag.updatedAt).toLocaleDateString()}
-              </Text>
-            )}
-          </Card>
-
-          {/* Ideas with this Tag */}
-          <Stack gap="md">
-            <Group>
-              <Title order={3}>Ideas with this tag</Title>
-              {loadingIdeas && <Loader size="md" />}
-            </Group>
-            {ideaErrors && ideaErrors.length > 0 && (
-              <Alert
-                icon={<WarningCircle size={24} />} // Updated icon
-                title="Error!"
-                color="red"
-                mt="md"
-              >
-                Failed to load ideas for this tag: {ideaErrors.join(", ")}
-              </Alert>
-            )}
-            {!loadingIdeas &&
-            !(ideaErrors && ideaErrors.length > 0) &&
-            ideas &&
-            ideas.length > 0 ? (
-              <SimpleGrid cols={2} spacing="lg">
-                {ideas.map((idea) => (
-                  <CompactIdeaCard
-                    idea={idea}
-                    key={idea.id.toString()}
-                    onCardClick={() => {
-                      navigate(`/idea/${idea.id.toString()}`);
-                    }}
-                    actions={[
-                      {
-                        icon: <Tag />,
-                        id: "remove_tag",
-                        label: `Remove tag`,
-                        onClick: () => {
-                          handleRemoveTag(idea);
-                        },
-                        tooltip: `Remove tag ${tag.name} from ${idea.title}`,
-                      },
-                    ]}
-                  />
-                ))}
-              </SimpleGrid>
-            ) : (
-              !loadingIdeas &&
-              !(ideaErrors && ideaErrors.length > 0) && (
-                <Text c="dimmed">
-                  No ideas are currently associated with this tag.
-                </Text>
-              )
-            )}
-          </Stack>
-
-          {/* Similar Ideas */}
+      <LeftSidebar>
+        {!!tag && (
           <Stack gap="md">
             <Group>
               <Title order={3}>Suggested Ideas</Title>
@@ -283,11 +181,10 @@ export default function ViewTag() {
                 Failed to load suggested ideas: {relatedIdeaErrors.join(", ")}
               </Alert>
             )}
-            {!loadingRelatedIdeas &&
-            !(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
+            {!(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
             filteredRelatedIdeas &&
             filteredRelatedIdeas.length > 0 ? (
-              <SimpleGrid cols={2} spacing="lg">
+              <Stack gap="md">
                 {filteredRelatedIdeas.map((idea) => (
                   <StandardIdeaCard
                     onCardClick={() => {
@@ -308,7 +205,7 @@ export default function ViewTag() {
                     ]}
                   />
                 ))}
-              </SimpleGrid>
+              </Stack>
             ) : (
               !loadingRelatedIdeas &&
               !(relatedIdeaErrors && relatedIdeaErrors.length > 0) && (
@@ -316,7 +213,117 @@ export default function ViewTag() {
               )
             )}
           </Stack>
-        </Stack>
+        )}
+      </LeftSidebar>
+      <Container
+        w="100%"
+        py="xl"
+        style={{ position: "relative" }}
+        className={styles.viewtag}
+        onDragOver={() => {
+          setDraggingOver(true);
+        }}
+        onDragLeave={() => {
+          setDraggingOver(false);
+        }}
+      >
+        {draggingOver && (
+          <Overlay
+            backgroundOpacity={0}
+            blur={4}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={(e) => {
+              handleConnectionDrop(e);
+            }}
+            radius={"lg"}
+          >
+            <Group align="center" justify="center" style={{ height: "100%" }}>
+              <Text c="white" mx="lg" size="sm">
+                Drop here to create a connection
+              </Text>
+            </Group>
+          </Overlay>
+        )}
+        {!!tag && (
+          <Stack gap="xl">
+            <Group>
+              <Link to="/tags">
+                <Button variant="subtle" leftSection={<ArrowLeft />}>
+                  All Tags
+                </Button>
+              </Link>
+            </Group>
+            <Card shadow="sm" padding="lg" radius="md" withBorder>
+              <Group gap="lg" mb="xs">
+                <BlockTag tag={tag} color="blue" />
+              </Group>
+              {tag.description && (
+                <Text size="sm" c="dimmed" mt="xs">
+                  {tag.description}
+                </Text>
+              )}
+              <Text size="xs" c="dimmed" mt="sm">
+                Created: {new Date(tag.createdAt).toLocaleDateString()}
+              </Text>
+              {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
+                <Text size="xs" c="dimmed">
+                  Last Updated: {new Date(tag.updatedAt).toLocaleDateString()}
+                </Text>
+              )}
+            </Card>
+
+            {/* Ideas with this Tag */}
+            <Stack gap="md">
+              <Group>
+                <Title order={3}>Ideas with this tag</Title>
+                {loadingIdeas && <Loader size="md" />}
+              </Group>
+              {ideaErrors && ideaErrors.length > 0 && (
+                <Alert
+                  icon={<WarningCircle size={24} />} // Updated icon
+                  title="Error!"
+                  color="red"
+                  mt="md"
+                >
+                  Failed to load ideas for this tag: {ideaErrors.join(", ")}
+                </Alert>
+              )}
+              {ideas && ideas.length > 0 ? (
+                <SimpleGrid cols={2} spacing="lg">
+                  {ideas.map((idea) => (
+                    <CompactIdeaCard
+                      idea={idea}
+                      key={idea.id.toString()}
+                      onCardClick={() => {
+                        navigate(`/idea/${idea.id.toString()}`);
+                      }}
+                      actions={[
+                        {
+                          icon: <Tag />,
+                          id: "remove_tag",
+                          label: `Remove tag`,
+                          onClick: () => {
+                            handleRemoveTag(idea);
+                          },
+                          tooltip: `Remove tag ${tag.name} from ${idea.title}`,
+                        },
+                      ]}
+                    />
+                  ))}
+                </SimpleGrid>
+              ) : (
+                !loadingIdeas &&
+                !(ideaErrors && ideaErrors.length > 0) && (
+                  <Text c="dimmed">
+                    No ideas are currently associated with this tag.
+                  </Text>
+                )
+              )}
+            </Stack>
+          </Stack>
+        )}
       </Container>
       <RightSidebar />
     </PageWrapper>

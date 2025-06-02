@@ -20,9 +20,9 @@ import { getNodeDescription } from "../../../utils/graph";
 import { Link, useNavigate } from "react-router";
 
 export interface CompactIdeaCardProps extends IdeaCardSharedProps {
-  detailsForHoverCard?: React.ReactNode; // Typically the main summary for compact view
+  detailsForHoverCard?: React.ReactNode;
   hoverCardProps?: Partial<React.ComponentProps<typeof HoverCard>>;
-  showTitleOnly?: boolean; // Extreme compact: only title and actions menu
+  showTitleOnly?: boolean;
   maxTitleLines?: number;
 }
 
@@ -43,7 +43,6 @@ export function CompactIdeaCard({
   draggable,
   onDragStartCard,
   onDragEndCard,
-  showDefaultDragHandle,
   isExternallyHighlighted,
   onMouseEnterCard,
   onMouseLeaveCard,
@@ -66,6 +65,12 @@ export function CompactIdeaCard({
   const navigate = useNavigate();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        ideaId: idea.id.toString(),
+      }),
+    );
     if (draggable) {
       setIsInternallyDragging(true);
       onDragStartCard?.(e, idea);
@@ -81,13 +86,14 @@ export function CompactIdeaCard({
 
   const cardContent = (
     <Card
+      data-idea-id={idea.id.toString()}
       shadow={
         isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow
       }
       padding={cardPadding}
       radius={cardRadius}
       withBorder={!isInternallyDragging}
-      draggable={draggable && showDefaultDragHandle} // Only make card draggable if default handle shown
+      draggable={draggable}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={
@@ -112,7 +118,7 @@ export function CompactIdeaCard({
           ? (e) => onMouseLeaveCard(e, idea.id.toString())
           : undefined
       }
-      className={`${styles.ideaCardBase} ${styles.compactIdeaCard} ${className || ""} ${isInternallyDragging ? styles.dragging : ""} ${onCardClick ? styles.clickable : ""}`}
+      className={`${styles.ideaCardBase} ${styles.compactIdeaCard} ${className || ""} ${isInternallyDragging ? styles.dragging : ""} ${onCardClick || link ? styles.clickable : ""}`}
       style={{
         ...style,
         height: "100%",
@@ -155,21 +161,20 @@ export function CompactIdeaCard({
 
         <Flex align="center" gap={4}>
           {" "}
-          {/* Container for drag handle and actions */}
-          {draggable && showDefaultDragHandle && <DotsSixVertical size={18} />}
-          {actions.length > 0 && ( // Compact actions often just an overflow
+          {draggable && <DotsSixVertical size={18} />}
+          {actions.length > 0 && (
             <IdeaActionsGroup
               idea={idea}
               actions={actions}
-              visibleCount={0} // All go to overflow by default for compact
+              visibleCount={0}
               buttonSize="xs"
               menuPosition="bottom-end"
-              className={styles.compactActionsMenuIcon} // Style the icon itself
+              className={styles.compactActionsMenuIcon}
             />
           )}
         </Flex>
       </Flex>
-      {/* Optionally, a very short description or more artifacts if not showTitleOnly */}
+
       {!showTitleOnly &&
         !artifacts?.length &&
         !tags?.length &&
@@ -200,7 +205,7 @@ export function CompactIdeaCard({
         position={hoverCardProps?.position || "right-start"}
         openDelay={hoverCardProps?.openDelay || 350}
         closeDelay={hoverCardProps?.closeDelay || 200}
-        disabled={isInternallyDragging} // Disable hovercard when dragging
+        disabled={isInternallyDragging}
         {...hoverCardProps}
       >
         <HoverCard.Target>{cardContent}</HoverCard.Target>
@@ -221,8 +226,8 @@ export function CompactIdeaCard({
 }
 
 export interface StandardIdeaCardProps extends IdeaCardSharedProps {
-  description?: React.ReactNode; // Inline description
-  detailsForHoverCard?: React.ReactNode; // Optional, for more details than inline description
+  description?: React.ReactNode;
+  detailsForHoverCard?: React.ReactNode;
   hoverCardProps?: Partial<React.ComponentProps<typeof HoverCard>>;
   visibleActionsCount?: number;
   maxDescriptionLines?: number;
@@ -237,7 +242,6 @@ export function StandardIdeaCard({
   draggable,
   onDragStartCard,
   onDragEndCard,
-  showDefaultDragHandle,
   isExternallyHighlighted,
   onMouseEnterCard,
   onMouseLeaveCard,
@@ -264,6 +268,12 @@ export function StandardIdeaCard({
       : undefined);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        ideaId: idea.id.toString(),
+      }),
+    );
     if (draggable) {
       setIsInternallyDragging(true);
       onDragStartCard?.(e, idea);
@@ -281,13 +291,14 @@ export function StandardIdeaCard({
 
   const cardContent = (
     <Card
+      data-idea-id={idea.id.toString()}
       shadow={
         isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow
       }
       padding={cardPadding}
       radius={cardRadius}
       withBorder={!isInternallyDragging}
-      draggable={draggable && showDefaultDragHandle}
+      draggable={draggable}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={
@@ -321,7 +332,6 @@ export function StandardIdeaCard({
       }}
     >
       <Stack gap="xs" style={{ flexGrow: 1 }}>
-        {/* Header Section: Drag Handle and Title/Artifacts */}
         <Flex justify="space-between" align="flex-start" gap="xs">
           <Stack
             gap="xs"
@@ -334,17 +344,15 @@ export function StandardIdeaCard({
               <IdeaArtifactsDisplay artifacts={artifacts} size="xs" />
             )}
           </Stack>
-          {draggable && showDefaultDragHandle && <DotsSixVertical size={20} />}
+          {draggable && <DotsSixVertical size={20} />}
         </Flex>
 
-        {/* Description */}
         {effectiveDescription && (
           <Text size="sm" c="dimmed" lineClamp={maxDescriptionLines}>
             {effectiveDescription}
           </Text>
         )}
 
-        {/* Tags */}
         {tags && tags.length > 0 && (
           <IdeaTagsDisplay
             tags={tags}
@@ -353,17 +361,15 @@ export function StandardIdeaCard({
           />
         )}
 
-        {/* Spacer */}
         <Box style={{ flexGrow: 1 }} />
 
-        {/* Actions */}
         {actions.length > 0 && (
           <IdeaActionsGroup
             idea={idea}
             actions={actions}
             visibleCount={visibleActionsCount}
             buttonSize="xs"
-            groupClassName={styles.actionsGroupWrapper} // Adds top border etc.
+            groupClassName={styles.actionsGroupWrapper}
           />
         )}
       </Stack>
@@ -405,8 +411,8 @@ export function StandardIdeaCard({
 }
 
 export interface DetailedIdeaCardProps extends IdeaCardSharedProps {
-  description?: React.ReactNode; // Primary inline content, can be longer
-  detailsSectionContent?: React.ReactNode; // Additional structured detailed content
+  description?: React.ReactNode;
+  detailsSectionContent?: React.ReactNode;
   visibleActionsCount?: number;
 }
 
@@ -419,7 +425,6 @@ export function DetailedIdeaCard({
   draggable,
   onDragStartCard,
   onDragEndCard,
-  showDefaultDragHandle,
   isExternallyHighlighted,
   onMouseEnterCard,
   onMouseLeaveCard,
@@ -430,7 +435,7 @@ export function DetailedIdeaCard({
   style,
   description: descriptionOverride,
   detailsSectionContent,
-  visibleActionsCount = 3, // Might show more actions by default
+  visibleActionsCount = 3,
   link,
 }: DetailedIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
@@ -439,6 +444,12 @@ export function DetailedIdeaCard({
     descriptionOverride ?? getIdeaDefaultSummary(idea);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        ideaId: idea.id.toString(),
+      }),
+    );
     if (draggable) {
       setIsInternallyDragging(true);
       onDragStartCard?.(e, idea);
@@ -456,13 +467,14 @@ export function DetailedIdeaCard({
 
   return (
     <Card
+      data-idea-id={idea.id.toString()}
       shadow={
         isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow
       }
       padding={cardPadding}
       radius={cardRadius}
       withBorder={!isInternallyDragging}
-      draggable={draggable && showDefaultDragHandle}
+      draggable={draggable}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={
@@ -496,9 +508,6 @@ export function DetailedIdeaCard({
       }}
     >
       <Stack gap="md" style={{ flexGrow: 1 }}>
-        {" "}
-        {/* Increased gap for detailed view */}
-        {/* Header Section */}
         <Flex justify="space-between" align="flex-start" gap="xs">
           <Stack
             gap="xs"
@@ -506,14 +515,13 @@ export function DetailedIdeaCard({
           >
             <Text fw={500} size="xl" title={idea.title}>
               {" "}
-              {/* Larger title */}
               {idea.title || "Untitled Idea"}
             </Text>
             {artifacts && artifacts.length > 0 && (
-              <IdeaArtifactsDisplay artifacts={artifacts} size="sm" /> // Slightly larger artifacts
+              <IdeaArtifactsDisplay artifacts={artifacts} size="sm" />
             )}
           </Stack>
-          {draggable && showDefaultDragHandle && (
+          {draggable && (
             <Tooltip label="Drag to reorder" withArrow openDelay={500}>
               <ActionIcon
                 variant="subtle"
@@ -527,22 +535,21 @@ export function DetailedIdeaCard({
             </Tooltip>
           )}
         </Flex>
-        {/* Main Description / Content */}
+
         {effectiveDescription && (
           <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
             {" "}
-            {/* Allow multi-line, pre-wrap */}
             {effectiveDescription}
           </Text>
         )}
-        {/* Additional Details Section */}
+
         {detailsSectionContent && (
           <Box mt="xs">
             <Divider my="sm" />
             {detailsSectionContent}
           </Box>
         )}
-        {/* Tags */}
+
         {tags && tags.length > 0 && (
           <Box mt="xs">
             <IdeaTagsDisplay
@@ -552,15 +559,15 @@ export function DetailedIdeaCard({
             />
           </Box>
         )}
-        {/* Spacer */}
+
         <Box style={{ flexGrow: 1 }} />
-        {/* Actions */}
+
         {actions.length > 0 && (
           <IdeaActionsGroup
             idea={idea}
             actions={actions}
             visibleCount={visibleActionsCount}
-            buttonSize="sm" // Slightly larger buttons for detailed view
+            buttonSize="sm"
             groupClassName={styles.actionsGroupWrapper}
           />
         )}

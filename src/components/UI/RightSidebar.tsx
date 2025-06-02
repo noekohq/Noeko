@@ -29,6 +29,7 @@ import {
   Lightbulb,
   MagnifyingGlass,
   ShieldStar,
+  Tag,
   User,
   UsersThree,
 } from "@phosphor-icons/react";
@@ -185,6 +186,7 @@ function RightSidebarHeader({
     { label: "Graph", icon: Graph, path: "/graph" },
     { label: "All Ideas", icon: Lightbulb, path: "/ideas" },
     { label: "Spyglass", icon: MagnifyingGlass, path: "/spyglass" },
+    { label: "Tags", icon: Tag, path: "/tags" },
     ...(isSuperuser
       ? [{ label: "Admin Panel", icon: ShieldStar, path: "/admin" }]
       : []),

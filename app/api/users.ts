@@ -23,7 +23,8 @@ const router = Router();
 router.post("/register", async (req, res) => {
   try {
     res.status(403).send({
-      message: "Sorry, new registration is currently unavailable. Please use a referral link.",
+      message:
+        "Sorry, new registration is currently unavailable. Please use a referral link.",
     });
     return;
     // const form = req.body;
@@ -84,7 +85,9 @@ router.post("/register-referred", async (req, res) => {
       !form.lastName ||
       !form.referralCode
     ) {
-      res.status(400).json({ message: "Missing required fields, including referralCode" });
+      res
+        .status(400)
+        .json({ message: "Missing required fields, including referralCode" });
       return;
     }
 
@@ -123,11 +126,15 @@ router.post("/register-referred", async (req, res) => {
     const referrerUser = await User.findByReferralCode(form.referralCode);
     if (referrerUser) {
       await User.addReferralRelationship(referrerUser.id, newUser.id);
-      console.info(`Referral relationship added between ${referrerUser.email} and ${newUser.email}`);
+      console.info(
+        `Referral relationship added between ${referrerUser.email} and ${newUser.email}`,
+      );
     } else {
       // This case should ideally not happen if isReferralCodeValid passed,
       // but good to log if it does.
-      console.warn(`Referrer user not found for code ${form.referralCode} after validation.`);
+      console.warn(
+        `Referrer user not found for code ${form.referralCode} after validation.`,
+      );
     }
 
     const accessToken = await User.generateAccessToken(newUser);
@@ -136,7 +143,9 @@ router.post("/register-referred", async (req, res) => {
     if (!refreshToken) {
       // This indicates an issue with token generation or saving the refresh token
       await User.delete(newUser.id); // Attempt to rollback user creation
-      res.status(500).json({ message: "Internal Server Error during token generation" });
+      res
+        .status(500)
+        .json({ message: "Internal Server Error during token generation" });
       return;
     }
 
@@ -150,6 +159,51 @@ router.post("/register-referred", async (req, res) => {
         user: newUser, // newUser is ISafeUser from User.create
       },
     });
+  } catch (error) {
+    console.error("User registration via referral error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/validate-referral", async (req, res) => {
+  try {
+    const form = req.body;
+    if (!form.referralCode) {
+      res.send({
+        message: "Referral code is non-existent.",
+        data: { valid: false },
+      });
+      return;
+    }
+
+    const isCodeValid = await User.isReferralCodeValid(form.referralCode);
+    if (!isCodeValid) {
+      res.send({
+        message: `Referral code is ${isCodeValid ? false : true}`,
+        data: {
+          valid: false,
+        },
+      });
+      return;
+    }
+    const user = await User.findByReferralCode(form.referralCode);
+    if (!user) {
+      res.send({
+        message: `Referral code is ${isCodeValid ? false : true}`,
+        data: false,
+      });
+      return;
+    }
+    res.send({
+      message: `Referral code is ${isCodeValid ? false : true}`,
+      data: {
+        valid: true,
+        user: {
+          name: user.firstName,
+        },
+      },
+    });
+    return;
   } catch (error) {
     console.error("User registration via referral error:", error);
     res.status(500).json({ message: "Internal Server Error" });

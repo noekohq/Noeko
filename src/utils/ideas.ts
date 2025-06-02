@@ -69,6 +69,37 @@ export const createIdeaConnection = async (source: string, target: string) => {
   }
 };
 
+export const removeIdeaConnection = async (source: string, target: string) => {
+  try {
+    return await api
+      .delete("/graph/connection", {
+        data: {
+          source,
+          target,
+        },
+      })
+      .then(() => {
+        showNotification({
+          title: "Connection deleted",
+          message: "The connection was successfully deleted.",
+        });
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong deleting connection between ${source} and ${target}`,
+          error,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong deleting the connection",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error creating idea connection: ", error);
+  }
+};
+
 export const initializeImport = async (): Promise<string | undefined> => {
   try {
     const result = await api.post("/imports/initialize").then((d) => {

@@ -496,11 +496,28 @@ export class Tag {
         .addBlock(
           "Instructions",
           `
-        You are a tag suggestion engine.
-        Given a piece of content, you are to suggest "tags" that may classify that content accurately and usefully.
-        You will also be given a list of existing tags, so as not to cause duplication.
-        Do not suggest tags that already exists.
-        `,
+            You are a tag suggestion engine. Your task is to analyze the provided content and suggest a diverse list of accurate and useful classification tags.
+
+            **Key Guidelines for Tag Generation:**
+
+            1.  **No Duplicates:** Ensure your suggested tags are new and NOT present in the provided "Existing Tags" list.
+            2.  **Create a "Gradient" of Tags – Spanning Broad to Specific:**
+                * **Spectrum of Specificity:** Your suggestions should cover a range:
+                    * **Very Broad:** General categories, fields, or high-level concepts (e.g., "science," "arts," "business," "technology," "health," "education").
+                    * **Mid-Range Thematic:** More focused themes, systems, or methodologies (e.g., "particle physics," "impressionist art," "market analysis," "mobile application development," "preventive medicine," "online learning platforms").
+                    * **Fairly Specific (but Reusable):** Key components, techniques, specific theories, or distinct topics that are still recognizable and useful for categorizing other similar items (e.g., "Higgs boson," "color theory," "SWOT analysis," "user interface design," "vaccine development," "gamification strategies").
+                * **General Utility:** All tags, particularly the more specific ones, must retain general usefulness for broader categorization and discovery. Avoid hyper-specific tags that would *only* apply to the exact piece of content.
+                * **Varied Tag Types (apply the above spectrum to these):**
+                    * **Action/Process-Oriented:** Verbs describing activities (e.g., "researching," "authoring," "evaluating," "performing," "manufacturing," "diagnosing"). These can vary in their implied scope.
+                    * **Conceptual/Abstract:** Broader ideas or principles (often aligning with Very Broad or Mid-Range, e.g., "innovation," "ethics," "sustainability," "data privacy," "frameworks," "usability").
+                    * **Topic-Specific (Reusable):** Key subjects/entities (often Mid-Range or Fairly Specific, as illustrated in the example below).
+            3.  **Illustrative Example (Applying the Spectrum):**
+                For content describing "a detailed review of a new open-source photo editing software called 'FotoFix'":
+                * *Very Broad:* "software," "technology," "digital media," "creative tools"
+                * *Mid-Range:* "photo editing," "open-source applications," "graphics software," "software reviews," "image manipulation"
+                * *Fairly Specific (but Reusable):* "FotoFix" (if the software itself is a recognizable entity or could become one), "raster graphics editing," "non-destructive filters," "user interface critique," "workflow efficiency"
+            4.  **Enhance Discoverability:** Tags should help users find the content via search and reflect its multiple facets.
+          `,
         )
         .addBlock("Content", `${content}`)
         .addList("Existing tags", [

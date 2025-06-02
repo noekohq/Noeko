@@ -1,18 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Link, useNavigate } from "react-router";
-import useFetch from "../../hooks/useFetch";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { ISearchResult } from "../../../app/services/Search";
-import {
-  Flex,
-  Group,
-  Text,
-  Space,
-  UnstyledButton,
-  Container,
-  Paper,
-  Card,
-} from "@mantine/core";
+import { Text, Space, Container, Card } from "@mantine/core";
 import styles from "./GraphToolbar.module.scss";
 import { INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";

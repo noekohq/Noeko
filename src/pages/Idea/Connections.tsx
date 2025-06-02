@@ -29,7 +29,7 @@ import {
   CompactIdeaCard,
   StandardIdeaCard,
 } from "../../components/Display/Ideas/IdeaCards";
-import { createIdeaConnection } from "../../utils/ideas";
+import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
 
 type IConnectionsProps = {
   loadingIdea: boolean;
@@ -94,69 +94,6 @@ export default function Connections({
     },
   });
 
-  const createConnectionInline = async (source: string, target: string) => {
-    try {
-      await api
-        .post("/graph/connection", { source, target })
-        .then(() => {
-          showNotification({
-            title: "Connection created",
-            message: "The connection was successfully created.",
-          });
-          reloadIdea();
-        })
-        .catch((error) => {
-          showNotification({
-            title: "Connection creation failed",
-            message: "The connection could not be created.",
-            color: "red",
-          });
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const disconnectInline = async (source: string, target: string) => {
-    try {
-      await api
-        .delete("/graph/connection", {
-          data: {
-            source,
-            target,
-          },
-        })
-        .then(() => {
-          showNotification({
-            title: "Connection created",
-            message: "The connection was successfully created.",
-          });
-          reloadIdea();
-        })
-        .catch((error) => {
-          showNotification({
-            title: "Connection creation failed",
-            message: "The connection could not be created.",
-            color: "red",
-          });
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleDropIdeaInConnection = async () => {
-    if (!draggedIdea) return;
-    try {
-      await createConnection();
-    } catch (error) {
-      console.error(error);
-    }
-    setDraggedIdea(undefined);
-    setDraggingRelatedIdea(false);
-    setDraggingOverConnectionDrop(false);
-  };
-
   const { load: removeConnection } = useFetch({
     url: `/graph/connection`,
     method: "DELETE",
@@ -182,12 +119,35 @@ export default function Connections({
   });
 
   const handleRemoveConnection = (target: string) => {
-    disconnectInline(idea.id.toString(), target);
+    removeIdeaConnection(idea.id.toString(), target);
   };
 
   const handleCreateConnection = (target: string) => {
     createIdeaConnection(idea.id.toString(), target);
     reloadIdea();
+  };
+
+  const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    try {
+      const jData = e.dataTransfer.getData("application/json");
+      const data = JSON.parse(jData) as { ideaId: string };
+      const { ideaId } = data;
+      if (ideaIsConnected(ideaId)) {
+        showNotification({
+          title: "Can't connect again",
+          message: "Can't connect this idea again.",
+          color: "yellow",
+        });
+        return;
+      }
+      console.log("Dropped connection id: ", ideaId);
+      await createIdeaConnection(idea.id.toString(), ideaId);
+      reloadIdea();
+    } catch (error) {
+      console.log("Error creating connection: ", error);
+    } finally {
+      setDraggingOverConnectionDrop(false);
+    }
   };
 
   const navigate = useNavigate();
@@ -225,15 +185,15 @@ export default function Connections({
           pos="relative"
         >
           <Grid>
-            {draggingOverConnectionDrop && draggedIdea && (
+            {draggingOverConnectionDrop && (
               <Overlay
-                backgroundOpacity={0.5}
-                blur={5}
+                backgroundOpacity={0}
+                blur={4}
                 onDragOver={(e) => {
                   e.preventDefault();
                 }}
-                onDrop={() => {
-                  handleDropIdeaInConnection();
+                onDrop={(e) => {
+                  handleConnectionDrop(e);
                 }}
                 radius={"lg"}
               >
@@ -242,7 +202,7 @@ export default function Connections({
                   justify="center"
                   style={{ height: "100%" }}
                 >
-                  <Text fw="bold" c="white" mx="lg">
+                  <Text c="white" mx="lg" size="sm">
                     Drop here to create a connection
                   </Text>
                 </Group>
@@ -279,15 +239,6 @@ export default function Connections({
                           navigate(`/idea/${connection.id.toString()}`);
                         }}
                         actions={[
-                          // {
-                          //   id: "View",
-                          //   label: "View",
-                          //   icon: <ArrowRight />,
-                          //   onClick: (e) => {
-                          //     e.stopPropagation();
-                          //     navigate(`/idea/${connection.id.toString()}`);
-                          //   },
-                          // },
                           {
                             id: "remove_connection",
                             label: "Remove",
@@ -333,6 +284,9 @@ export default function Connections({
                       style={{
                         width: "100%",
                       }}
+                      onCardClick={() => {
+                        navigate(`/idea/${relatedIdea.id.toString()}`);
+                      }}
                       onMouseEnterCard={() => {
                         setSelectedIdea(relatedIdea.id.toString());
                       }}
@@ -360,18 +314,6 @@ export default function Connections({
                           },
                         },
                       ]}
-                      onDragStartCard={() => {
-                        setDraggingRelatedIdea?.(true);
-                        setDraggedIdea(relatedIdea);
-                      }}
-                      onDragEndCard={() => {
-                        setDraggingRelatedIdea?.(false);
-                        setDraggedIdea(undefined);
-                      }}
-                      draggable={!ideaIsConnected(relatedIdea.id.toString())}
-                      showDefaultDragHandle={
-                        !ideaIsConnected(relatedIdea.id.toString())
-                      }
                       tags={[
                         {
                           id: "level",
