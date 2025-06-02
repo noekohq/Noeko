@@ -83,3 +83,8 @@ a {
         transform: translateY(2px) scale(0.99);
     }
 }
+
+.highlight {
+    background-color: var(--mantine-primary-color-7);
+    color: var(--mantine-color-dark-0);
+}

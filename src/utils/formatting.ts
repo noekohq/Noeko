@@ -142,3 +142,30 @@ export function formatMillisecondsToSecondsString(
 
   return `${formattedSeconds} seconds`;
 }
+
+export const numberToLetter = (num: number): string => {
+  if (num < 0) {
+    throw new Error("Number must be non-negative");
+  }
+
+  let result = "";
+  let n = num;
+
+  do {
+    result = String.fromCharCode(65 + (n % 26)) + result;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+
+  return result;
+};
+
+export const sanitizeMarkdownForDescription = (markdown: string): string => {
+  // should remove all line breaks and tabs and such and be specialized for descriptions
+  // also remove special characters
+  return markdown
+    .replace(/[\[\]]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\n/g, " ")
+    .replace(/\t/g, " ")
+    .replace(/  +/g, " ");
+};
