@@ -228,21 +228,26 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
   }
 
   async embedContent(content: string): Promise<number[]> {
-    const instances = [helpers.toValue({ content })];
-    const predictionsProto = await this.predictVertexAI(instances);
-    const prediction = helpers.fromValue(
-      predictionsProto[0],
-    ) as VertexEmbeddingPrediction;
-    if (prediction?.embeddings?.values) {
-      return prediction.embeddings.values;
-    } else {
-      console.error(
-        "Unexpected prediction structure:",
-        JSON.stringify(prediction, null, 2),
-      );
-      throw new Error(
-        "Failed to extract embeddings from Vertex AI prediction.",
-      );
+    try {
+      const instances = [helpers.toValue({ content })];
+      const predictionsProto = await this.predictVertexAI(instances);
+      const prediction = helpers.fromValue(
+        predictionsProto[0],
+      ) as VertexEmbeddingPrediction;
+      if (prediction?.embeddings?.values) {
+        return prediction.embeddings.values;
+      } else {
+        console.error(
+          "Unexpected prediction structure:",
+          JSON.stringify(prediction, null, 2),
+        );
+        throw new Error(
+          "Failed to extract embeddings from Vertex AI prediction.",
+        );
+      }
+    } catch (error) {
+      console.error("Error generating embeddings from Vertex AI: ", error);
+      return [];
     }
   }
 
@@ -403,7 +408,18 @@ export class Embeddings {
   async generateEmbeddings(text: string): Promise<number[] | null> {
     // Add a check here? Or assume provider is always initialized correctly by constructor
     if (!this.provider) throw new Error("Embeddings provider not initialized.");
-    return this.provider.embedContent(text);
+    const embeddings = await this.provider.embedContent(text);
+    console.log("Embedding generation: ", embeddings?.slice(0, 10));
+    if (embeddings && embeddings.length > 0) {
+      console.info(
+        "Embeddings generation successful...",
+        embeddings?.slice(0, 10),
+      );
+    } else {
+      console.error("Embeddings generation failed: ", embeddings);
+    }
+
+    return embeddings;
   }
 
   async generateEmbeddingsBatch(texts: string[]): Promise<(number[] | null)[]> {
