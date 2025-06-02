@@ -13,15 +13,22 @@ import {
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
 import { useForm } from "@mantine/form";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { ISafeUser } from "../../../app/database/models/user";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import { validateEmail } from "../../utils/data";
+import StageIndicator from "../../components/Utils/Info/StageIndicator";
+import { useEffect } from "react";
 
 export default function Register() {
   const navigate = useNavigate();
   const { setTokens, login: loadUser } = useAuth();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const referralCode = searchParams.get("referralCode");
+  console.log("Invite code: ", referralCode);
 
   const registerForm = useForm({
     initialValues: {
@@ -82,10 +89,11 @@ export default function Register() {
       passwordConfirmation: string;
       firstName: string;
       lastName: string;
+      referralCode: string | null;
     },
     { accessToken: string; refreshToken: string; user: ISafeUser }
   >({
-    url: "/users/register",
+    url: "/users/register-referred",
     method: "POST",
     body: {
       email: registerForm.values.email,
@@ -93,6 +101,7 @@ export default function Register() {
       passwordConfirmation: registerForm.values.passwordConfirmation,
       firstName: registerForm.values.firstName,
       lastName: registerForm.values.lastName,
+      referralCode: referralCode,
     },
     dependencies: [registerForm.values],
     onSuccess: (data) => {
@@ -136,9 +145,27 @@ export default function Register() {
     }
   };
 
-  const noRegistrations = true;
+  const { data: codeValidity, load: checkCode } = useFetch<
+    { referralCode: string | null },
+    { valid: boolean; user?: { name: string } }
+  >({
+    url: "/users/validate-referral",
+    method: "POST",
+    body: {
+      referralCode,
+    },
+    dependencies: [referralCode],
+  });
 
-  if (noRegistrations) {
+  useEffect(() => {
+    if (referralCode) {
+      checkCode();
+    }
+  }, [referralCode]);
+
+  console.log("Code is valid: ", codeValidity);
+
+  if (!referralCode) {
     return (
       <Container
         style={{
@@ -149,9 +176,53 @@ export default function Register() {
         <Flex justify="center" align="center" h="100%">
           <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
             <Grid>
+              <Grid.Col span={12}>
+                <Group>
+                  <Title>Qwest</Title>
+                  <StageIndicator />
+                </Group>
+              </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Sorry, we are currently not accepting new registrations.
+                  Sorry, we are not accepting direct registration during this
+                  phase. Please use an invitation link or join the{" "}
+                  <a href="https://waitlist.qwest.so">waitlist</a>.
+                </Text>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Link to="/login">
+                  <Button variant="light">I have an account</Button>
+                </Link>
+              </Grid.Col>
+            </Grid>
+          </Card>
+        </Flex>
+      </Container>
+    );
+  }
+
+  if (!codeValidity?.valid) {
+    return (
+      <Container
+        style={{
+          width: "100%",
+          height: "100vh",
+        }}
+      >
+        <Flex justify="center" align="center" h="100%">
+          <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
+            <Grid>
+              <Grid.Col span={12}>
+                <Group>
+                  <Title>Qwest</Title>
+                  <StageIndicator />
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Text>
+                  Sorry, it looks like this referral code is invalid. Please use
+                  a valid code or join the{" "}
+                  <a href="https://waitlist.qwest.so">waitlist</a>.
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -182,7 +253,10 @@ export default function Register() {
               </Grid.Col>
             )}
             <Grid.Col span={12}>
-              <Title>Register</Title>
+              <Group>
+                <Title>Register to Qwest!</Title>
+                <StageIndicator />
+              </Group>
             </Grid.Col>
             <Grid.Col span={12} />
             <Grid.Col span={{ sm: 12 }}>
@@ -226,6 +300,13 @@ export default function Register() {
               />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }} />
+            <Grid.Col span={12}>
+              <Group justify="end">
+                <Text c="dimmed" size="xs" fs="italic">
+                  Say hello to {codeValidity.user?.name} for us!
+                </Text>
+              </Group>
+            </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group justify="right">
                 <Link to="/login">

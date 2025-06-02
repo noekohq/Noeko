@@ -482,7 +482,7 @@ export default function Idea() {
       <RightSidebar>
         {rightSidebarOpened && (
           <>
-            <Flex gap="sm">
+            <Flex gap="sm" justify="">
               <Tooltip label="Delete Idea">
                 <ActionIcon
                   variant="light"

@@ -46,14 +46,11 @@ export default function LeftSidebar({
   );
 
   useEffect(() => {
-    if (forceCollapsed || children === undefined) {
+    if (forceCollapsed) {
       if (leftSidebar.opened) {
         leftSidebar.setOpened(false); // Use context's setter
       }
     }
-    // If `forceCollapsed` becomes false, and children exist,
-    // the sidebar doesn't automatically re-open; it respects the last `leftSidebar.opened` state.
-    // This seems like reasonable behavior.
   }, [
     forceCollapsed,
     children,

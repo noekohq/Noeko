@@ -77,9 +77,6 @@ export class User {
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
       );
-      await db?.query(
-        `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
-      );
 
       const getUsersFunction = () => {
         return `
@@ -97,6 +94,9 @@ export class User {
       console.info("Ensuring all users have referral codes...");
       await User.ensureReferralCodes();
       console.info("Finished ensuring referral codes.");
+      await db?.query(
+        `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
+      );
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;
@@ -459,7 +459,9 @@ export class User {
         return;
       }
 
+      console.info("Getting all...");
       const users = await this.getAll(); // Fetches ISafeComputedUsers[]
+      console.info("Got all: ", users);
 
       if (!users) {
         throw new Error("Couldn't get all users");
@@ -563,16 +565,14 @@ export class User {
         return;
       }
 
-      // Ensure IDs are valid SurrealDB RecordIds if not already
-      const referrerId = referrerUserId.includes(":")
-        ? referrerUserId
-        : `user:${referrerUserId}`;
-      const referredId = referredUserId.includes(":")
-        ? referredUserId
-        : `user:${referredUserId}`;
+      const referrerId = new StringRecordId(referrerUserId);
+      const referredId = new StringRecordId(referredUserId);
 
-      const query = `RELATE ${referrerId}->REFERRED->${referredId} CONTENT { createdAt: time::now() };`;
-      await db.query(query);
+      const query = `RELATE $referrerId->referred->$referredId CONTENT { createdAt: time::now() };`;
+      await db.query(query, {
+        referredId,
+        referrerId,
+      });
 
       console.info(
         `Successfully created REFERRED relationship: ${referrerId} -> ${referredId}`,

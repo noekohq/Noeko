@@ -1,4 +1,5 @@
 import { IDBGraph, IIdea } from "../../app/database/models/ideas";
+import { ISearchResult, ISearchResultValue } from "../../app/services/Search";
 import {
   IDerivedNode,
   IEdge,
@@ -175,4 +176,17 @@ export const ideasAreConnected = (first: IIdea, second: IIdea | string) => {
     (c) => c.id.toString() === secondId,
   );
   return firstHasSecond;
+};
+
+export const getNodeAsIdeaOrNull = (node: INode): IIdea | null => {
+  if (node.type === "idea") {
+    return node;
+  }
+  return null;
+};
+
+export const getNodesAsIdeas = (nodes: INode[]): IIdea[] => {
+  return nodes.filter((n) => {
+    return n.type === "idea";
+  });
 };

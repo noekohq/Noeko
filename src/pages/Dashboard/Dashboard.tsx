@@ -188,7 +188,7 @@ export default function Dashboard() {
                   >
                     <Group>
                       <Text>Add an idea</Text>
-                      <Kbd>{primaryKey} + I</Kbd>
+                      <Kbd>{primaryKey} + A</Kbd>
                     </Group>
                   </Button>
                   <Link to="/ideas">

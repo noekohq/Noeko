@@ -2,12 +2,24 @@ import { useCallback, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Search.module.scss";
 import { SearchBar } from "./SearchBar";
-import { Container, Group, Space, Text, UnstyledButton } from "@mantine/core";
+import {
+  Container,
+  Group,
+  Space,
+  Stack,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
 import { Link } from "react-router";
-import { getNodeTitle } from "../../utils/graph";
+import {
+  getNodeAsIdeaOrNull,
+  getNodesAsIdeas,
+  getNodeTitle,
+} from "../../utils/graph";
 import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
 import { Star } from "@phosphor-icons/react";
+import { CompactIdeaCard } from "../Display/Ideas/IdeaCards";
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
@@ -42,49 +54,45 @@ export default function Search() {
         </>
       )}
       {searchResults && (
-        <Container w="100%" className={styles.results}>
+        <Container w="100%" className={styles.results} p="0">
           <Space my="lg" />
           <Text c="dimmed" size="sm">
             Found {searchResults.length} result
             {searchResults.length === 1 ? "" : "s"}...
           </Text>
           <Space my="sm" />
-          {searchResults?.map((s, i) => {
-            const isBest = i === 0;
-            return (
-              <Link
-                key={s.id.toString()}
-                to={`/${s.value.type}/${s.value.id.toString()}`}
-                style={{
-                  textDecoration: "none",
-                }}
-                className="searchResult"
-                tabIndex={i}
-              >
-                <UnstyledButton key={s.id.toString()}>
-                  <Group gap="xs">
-                    {isBest && <Star color="white" weight="fill" />}
-                    <Text fw="bold" c="gray">
-                      {getNodeTitle(s.value)}
-                    </Text>
-                  </Group>
-                  <Text c="dimmed">
-                    <Match
-                      opener="->"
-                      closer="<-"
-                      match={(content) => {
-                        return (
-                          <span className={styles.highlight}>{content}</span>
-                        );
-                      }}
-                    >
-                      {getSearchResultPreview(s) || "No preview available."}
-                    </Match>
-                  </Text>
-                </UnstyledButton>
-              </Link>
-            );
-          })}
+          <Stack>
+            {searchResults
+              ?.map((s, i) => {
+                const isBest = i === 0;
+                const idea = getNodeAsIdeaOrNull(s.value);
+                if (!idea) {
+                  return null;
+                }
+                return (
+                  <CompactIdeaCard
+                    key={s.id.toString()}
+                    idea={idea}
+                    draggable
+                    link
+                    detailsForHoverCard={
+                      <Match
+                        opener="->"
+                        closer="<-"
+                        match={(content) => {
+                          return (
+                            <span className={styles.highlight}>{content}</span>
+                          );
+                        }}
+                      >
+                        {getSearchResultPreview(s) || "No preview available."}
+                      </Match>
+                    }
+                  />
+                );
+              })
+              .filter((r) => !!r)}
+          </Stack>
         </Container>
       )}
     </div>

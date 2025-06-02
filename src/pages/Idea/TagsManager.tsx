@@ -110,7 +110,6 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
       suggestTags();
     }
   }, [filteredNewTags]);
-  console.log("Suggested tags: ", filteredNewTags);
 
   const handleAddTag = async (tagId: string) => {
     if (!ideaIdStr || actionLoading) return;
@@ -248,7 +247,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
                   {filteredNewTags ? (
                     filteredNewTags?.map((s) => {
                       return (
-                        <HoverCard>
+                        <HoverCard openDelay={500} key={s.name + s.description}>
                           <HoverCard.Target>
                             <Badge
                               variant="light"
