@@ -9,6 +9,7 @@ import {
   ActionIcon,
   Tooltip,
   Divider,
+  Group,
 } from "@mantine/core";
 import { DotsSixVertical, Info } from "@phosphor-icons/react";
 import type { IdeaCardSharedProps, IIdea } from "./IdeaCardTypes"; // Ensure IIdea is imported if not re-exported
@@ -28,10 +29,11 @@ export interface CompactIdeaCardProps extends IdeaCardSharedProps {
 
 // Helper to get summary or a default
 const getIdeaDefaultSummary = (idea: IIdea): string | undefined => {
-  return getNodeDescription({
+  const desc = getNodeDescription({
     ...idea,
     type: "idea",
   });
+  return desc;
 };
 
 export function CompactIdeaCard({
@@ -210,8 +212,10 @@ export function CompactIdeaCard({
       >
         <HoverCard.Target>{cardContent}</HoverCard.Target>
         <HoverCard.Dropdown p="sm">
-          <Stack>
-            <Text fw={500}>{idea.title}</Text>
+          <Stack gap="xs">
+            <Text fw={500} c="dimmed" size="sm">
+              {idea.title}
+            </Text>
             {typeof effectiveDetailsForHover === "string" ? (
               <Text size="sm">{effectiveDetailsForHover}</Text>
             ) : (
@@ -262,10 +266,7 @@ export function StandardIdeaCard({
   const effectiveDescription =
     descriptionOverride ?? getIdeaDefaultSummary(idea);
   const effectiveDetailsForHover =
-    detailsForHoverCard ??
-    (effectiveDescription !== getIdeaDefaultSummary(idea)
-      ? getIdeaDefaultSummary(idea)
-      : undefined);
+    detailsForHoverCard ?? getIdeaDefaultSummary(idea);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
@@ -337,7 +338,13 @@ export function StandardIdeaCard({
             gap="xs"
             style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}
           >
-            <Text fw={500} size="lg" lineClamp={2} title={idea.title}>
+            <Text
+              size="md"
+              c="dimmed"
+              fw={500}
+              lineClamp={2}
+              title={idea.title}
+            >
               {idea.title || "Untitled Idea"}
             </Text>
             {artifacts && artifacts.length > 0 && (
@@ -348,7 +355,7 @@ export function StandardIdeaCard({
         </Flex>
 
         {effectiveDescription && (
-          <Text size="sm" c="dimmed" lineClamp={maxDescriptionLines}>
+          <Text size="sm" lineClamp={maxDescriptionLines}>
             {effectiveDescription}
           </Text>
         )}
@@ -507,9 +514,9 @@ export function DetailedIdeaCard({
         flexDirection: "column",
       }}
     >
-      <Stack gap="md" style={{ flexGrow: 1 }}>
+      <Stack gap="xs" style={{ flexGrow: 1 }}>
         <Flex justify="space-between" align="flex-start" gap="xs">
-          <Stack
+          <Group
             gap="xs"
             style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}
           >
@@ -520,7 +527,7 @@ export function DetailedIdeaCard({
             {artifacts && artifacts.length > 0 && (
               <IdeaArtifactsDisplay artifacts={artifacts} size="sm" />
             )}
-          </Stack>
+          </Group>
           {draggable && (
             <Tooltip label="Drag to reorder" withArrow openDelay={500}>
               <ActionIcon
@@ -537,18 +544,15 @@ export function DetailedIdeaCard({
         </Flex>
 
         {effectiveDescription && (
-          <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
-            {" "}
-            {effectiveDescription}
-          </Text>
+          <>
+            <Text size="sm" c="dimmed" style={{ whiteSpace: "pre-wrap" }}>
+              {effectiveDescription}
+            </Text>
+            {detailsSectionContent && <Divider my="md" />}
+          </>
         )}
 
-        {detailsSectionContent && (
-          <Box mt="xs">
-            <Divider my="sm" />
-            {detailsSectionContent}
-          </Box>
-        )}
+        {detailsSectionContent && <Box>{detailsSectionContent}</Box>}
 
         {tags && tags.length > 0 && (
           <Box mt="xs">

@@ -1,5 +1,6 @@
 import { IDBGraph, IIdea } from "../../app/database/models/ideas";
 import { ISearchResult, ISearchResultValue } from "../../app/services/Search";
+import { htmlToMarkdown } from "../../app/utils/formatting";
 import {
   IDerivedNode,
   IEdge,
@@ -7,7 +8,7 @@ import {
   IGraph,
   INode,
 } from "../declarations/graph";
-import { formatDate } from "./formatting";
+import { formatDate, sanitizeMarkdownForDescription } from "./formatting";
 import { splitBySentences } from "./processing";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
@@ -152,7 +153,9 @@ export const getNodeDescription = (node: INode) => {
       node.derived?.generative_summary?.sentenceOverview ??
       node.derived?.generative_summary?.sentenceSummary ??
       (node.contentPlain &&
-        splitBySentences(node.contentPlain).slice(0, 2).join("... ")) ??
+        splitBySentences(sanitizeMarkdownForDescription(node.contentPlain))
+          .slice(0, 2)
+          .join("... ")) + "..." ??
       "No summary available"
     );
   }

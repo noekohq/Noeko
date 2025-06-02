@@ -11,15 +11,26 @@ import {
   LoadingOverlay,
   Button,
   Overlay,
+  ActionIcon,
+  Modal,
+  TextInput,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import useFetch from "../../hooks/useFetch";
-import { ITag } from "../../../app/database/models/tag";
+import { ITag, ITagForm } from "../../../app/database/models/tag";
 import { Link, useNavigate, useParams } from "react-router";
 import { IIdea } from "../../../app/database/models/ideas";
-import { ArrowLeft, Tag, WarningCircle } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  Tag,
+  WarningCircle,
+  PencilSimple,
+  Trash,
+  FloppyDisk,
+  X,
+} from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Tags/TagDisplay";
 import {
   CompactIdeaCard,
@@ -28,7 +39,8 @@ import {
 import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "@mantine/form";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -135,6 +147,79 @@ export default function ViewTag() {
   };
 
   const [draggingOver, setDraggingOver] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+
+  const editForm = useForm<Partial<ITagForm>>({
+    initialValues: {
+      name: "",
+      description: "",
+    },
+    validate: {
+      name: (value) => (value?.trim() === "" ? "Tag name is required" : null),
+    },
+  });
+
+  // Update form values when tag data loads
+  useEffect(() => {
+    if (tag) {
+      editForm.setValues({
+        name: tag.name,
+        description: tag.description || "",
+      });
+    }
+  }, [tag]);
+
+  const {
+    load: updateTag,
+    loading: updateTagLoading,
+    errors: updateTagErrors,
+  } = useFetch<Partial<ITagForm>, ITag>({
+    url: `/tags/${tagId}`,
+    method: "PUT",
+    body: editForm.getTransformedValues(),
+    dependencies: [editForm],
+    onSuccess: (data) => {
+      reloadTag();
+      setIsEditing(false);
+      showNotification({
+        title: "Success",
+        message: "Tag updated successfully",
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to update tag:", error);
+      showNotification({
+        title: "Error",
+        message: "Failed to update tag",
+        color: "red",
+      });
+    },
+  });
+
+  const {
+    load: deleteTag,
+    loading: deleteTagLoading,
+    errors: deleteTagErrors,
+  } = useFetch<undefined, undefined>({
+    url: `/tags/${tagId}`,
+    method: "DELETE",
+    onSuccess: () => {
+      showNotification({
+        title: "Success",
+        message: "Tag deleted successfully",
+      });
+      navigate("/tags"); // Navigate back to tags list
+    },
+    onError: (error) => {
+      console.error("Failed to delete tag:", error);
+      showNotification({
+        title: "Error",
+        message: "Failed to delete tag",
+        color: "red",
+      });
+    },
+  });
 
   const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     try {
@@ -160,6 +245,47 @@ export default function ViewTag() {
     } finally {
       setDraggingOver(false);
     }
+  };
+
+  const handleSave = async () => {
+    const validationResult = editForm.validate();
+    if (validationResult.hasErrors) {
+      return;
+    }
+
+    const currentValues = editForm.getTransformedValues();
+    const valuesToUpdate: Partial<ITagForm> = {};
+
+    // Only include changed values
+    if (currentValues.name !== tag?.name) {
+      valuesToUpdate.name = currentValues.name;
+    }
+    if (currentValues.description !== (tag?.description || "")) {
+      valuesToUpdate.description = currentValues.description;
+    }
+
+    if (Object.keys(valuesToUpdate).length > 0) {
+      await updateTag();
+    } else {
+      setIsEditing(false); // No changes, just exit edit mode
+    }
+  };
+
+  const handleCancel = () => {
+    if (tag) {
+      editForm.setValues({
+        name: tag.name,
+        description: tag.description || "",
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const openDeleteModal = () => setDeleteModalOpened(true);
+  const closeDeleteModal = () => setDeleteModalOpened(false);
+
+  const handleDeleteConfirm = async () => {
+    await deleteTag();
   };
 
   return (
@@ -256,21 +382,90 @@ export default function ViewTag() {
               </Link>
             </Group>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
-              <Group gap="lg" mb="xs">
-                <BlockTag tag={tag} color="blue" />
-              </Group>
-              {tag.description && (
-                <Text size="sm" c="dimmed" mt="xs">
-                  {tag.description}
-                </Text>
-              )}
-              <Text size="xs" c="dimmed" mt="sm">
-                Created: {new Date(tag.createdAt).toLocaleDateString()}
-              </Text>
-              {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
-                <Text size="xs" c="dimmed">
-                  Last Updated: {new Date(tag.updatedAt).toLocaleDateString()}
-                </Text>
+              {isEditing ? (
+                <Stack gap="md">
+                  <Group justify="space-between">
+                    <Title order={4}>Edit Tag</Title>
+                    <Group gap="xs">
+                      <ActionIcon
+                        variant="filled"
+                        onClick={handleSave}
+                        loading={updateTagLoading}
+                        title="Save Tag"
+                      >
+                        <FloppyDisk weight="bold" />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="outline"
+                        color="gray"
+                        onClick={handleCancel}
+                        title="Cancel Edit"
+                      >
+                        <X weight="bold" />
+                      </ActionIcon>
+                    </Group>
+                  </Group>
+                  <TextInput
+                    label="Tag Name"
+                    placeholder="Tag name"
+                    {...editForm.getInputProps("name")}
+                    required
+                  />
+                  <TextInput
+                    label="Description"
+                    placeholder="Tag description (optional)"
+                    {...editForm.getInputProps("description")}
+                  />
+                  {updateTagErrors.length > 0 && (
+                    <Text c="red" size="sm">
+                      {updateTagErrors.join(", ")}
+                    </Text>
+                  )}
+                </Stack>
+              ) : (
+                <Stack gap="md">
+                  <Group justify="space-between" align="flex-start">
+                    <Stack gap="xs" style={{ flex: 1 }}>
+                      <Group gap="lg">
+                        <BlockTag tag={tag} color="blue" />
+                      </Group>
+                      {tag.description && (
+                        <Text size="sm" c="dimmed">
+                          {tag.description}
+                        </Text>
+                      )}
+                      <Group gap="md">
+                        <Text size="xs" c="dimmed">
+                          Created:{" "}
+                          {new Date(tag.createdAt).toLocaleDateString()}
+                        </Text>
+                        {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
+                          <Text size="xs" c="dimmed">
+                            Last Updated:{" "}
+                            {new Date(tag.updatedAt).toLocaleDateString()}
+                          </Text>
+                        )}
+                      </Group>
+                    </Stack>
+                    <Group gap="xs">
+                      <ActionIcon
+                        variant="subtle"
+                        onClick={() => setIsEditing(true)}
+                        title="Edit Tag"
+                      >
+                        <PencilSimple />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        onClick={openDeleteModal}
+                        title="Delete Tag"
+                      >
+                        <Trash />
+                      </ActionIcon>
+                    </Group>
+                  </Group>
+                </Stack>
               )}
             </Card>
 
@@ -326,6 +521,35 @@ export default function ViewTag() {
         )}
       </Container>
       <RightSidebar />
+
+      <Modal
+        opened={deleteModalOpened}
+        onClose={closeDeleteModal}
+        title={`Delete Tag: "${tag?.name}"`}
+        centered
+      >
+        <Text size="sm">
+          Are you sure you want to delete this tag? This action cannot be undone
+          and will remove the tag from all associated ideas.
+        </Text>
+        {deleteTagErrors.length > 0 && (
+          <Text c="red" size="xs" mt="sm">
+            Failed to delete tag: {deleteTagErrors.join(", ")}
+          </Text>
+        )}
+        <Group mt="lg" justify="flex-end">
+          <Button variant="default" onClick={closeDeleteModal}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={handleDeleteConfirm}
+            loading={deleteTagLoading}
+          >
+            Delete Tag
+          </Button>
+        </Group>
+      </Modal>
     </PageWrapper>
   );
 }

@@ -326,7 +326,6 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
           <Group gap="xs" wrap="nowrap">
             <ActionIcon
               variant="filled"
-              color="green"
               onClick={handleSave}
               loading={updateTagLoading}
               title="Save Tag"

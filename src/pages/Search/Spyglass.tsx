@@ -14,13 +14,14 @@ import {
   HoverCard,
   ActionIcon,
   Space,
+  Box,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { Link } from "react-router";
-import { getNodeTitle } from "../../utils/graph";
+import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useCallback, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
@@ -33,7 +34,16 @@ import {
 import {
   formatMillisecondsToSecondsString,
   markdownToHtml,
+  numberToLetter,
+  sanitizeMarkdownForDescription,
 } from "../../utils/formatting";
+import { DetailedIdeaCard } from "../../components/Display/Ideas/IdeaCards";
+import {
+  IdeaArtifact,
+  IdeaTag,
+} from "../../components/Display/Ideas/IdeaCardTypes";
+import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
+import Match from "../../components/Utils/Match";
 
 type IResultsMap = Record<string, ISearchResultValue>;
 
@@ -132,10 +142,9 @@ export default function Spyglass() {
           )}
           {loadingSearch && (
             <Group justify="center">
-              <Loader type="bars" size="sm" c="dimmed" />
-              <Text c="dimmed" size="sm">
-                Searching your ideas...
-              </Text>
+              <Box pos="relative" w="100%" h="50vh">
+                <LangtonsAntLoader />
+              </Box>
             </Group>
           )}
           {searchResults && (
@@ -160,9 +169,11 @@ export default function Spyglass() {
                       </Card>
                     )}
                 </Grid.Col>
-                <Grid.Col>
-                  <Divider my="sm" />
-                </Grid.Col>
+                {overview && (
+                  <Grid.Col>
+                    <Divider my="sm" />
+                  </Grid.Col>
+                )}
                 <Grid.Col>
                   <Title order={3}>Results...</Title>
                 </Grid.Col>
@@ -179,43 +190,86 @@ export default function Spyglass() {
                   <Grid>
                     {searchResults?.map((s, i) => {
                       const hasExcerpts = !!citationMap[s.id.toString()];
+                      const citation = hasExcerpts
+                        ? citationMap[s.id.toString()]
+                        : null;
                       const excerpts = hasExcerpts
                         ? citationMap[s.id.toString()].excerpts
                         : [];
+                      const idea = getNodeAsIdeaOrNull(s.value);
+
+                      if (!idea) {
+                        return null;
+                      }
 
                       return (
                         <Grid.Col span={12} key={s.id.toString()}>
-                          <Card withBorder radius="lg" h="100%">
-                            <Link
-                              key={s.id.toString()}
-                              to={`/${s.value.type}/${s.value.id.toString()}`}
-                              style={{
-                                textDecoration: "none",
-                                margin: 0,
-                              }}
-                              className="searchResult"
-                              tabIndex={i}
-                            >
-                              <UnstyledButton key={s.id.toString()}>
-                                <Group gap="xs">
-                                  <Text fw="bold" c="gray">
-                                    {getNodeTitle(s.value)}
-                                  </Text>
-                                </Group>
-                                {hasExcerpts ? (
-                                  <Stack gap="xs">
-                                    {excerpts.map((e) => {
-                                      return <Text c="dark.2">{e}</Text>;
-                                    })}
-                                  </Stack>
-                                ) : (
-                                  <Text c="dark.2">
-                                    {getSearchResultPreview(s)}
-                                  </Text>
-                                )}
-                              </UnstyledButton>
-                            </Link>
-                          </Card>
+                          <DetailedIdeaCard
+                            idea={idea}
+                            artifacts={
+                              hasExcerpts && [
+                                {
+                                  id: s.id.toString(),
+                                  content: (
+                                    <ActionIcon variant="light" size="sm">
+                                      {citationMap[
+                                        s.id.toString()
+                                      ].index.toString()}
+                                    </ActionIcon>
+                                  ),
+                                } as IdeaArtifact,
+                              ]
+                            }
+                            description={
+                              hasExcerpts ? (
+                                <Stack gap="xs">
+                                  {excerpts.map((e, i) => {
+                                    return (
+                                      <Group wrap="nowrap" align="flex-start">
+                                        <ActionIcon variant="light" size="xs">
+                                          <Text size="xs">
+                                            {citation?.index}
+                                            {numberToLetter(i).toLowerCase()}
+                                          </Text>
+                                        </ActionIcon>
+                                        <Text>
+                                          <Match
+                                            opener="->"
+                                            closer="<-"
+                                            match={(m) => {
+                                              return (
+                                                <span className="highlight">
+                                                  {m}
+                                                </span>
+                                              );
+                                            }}
+                                          >
+                                            {sanitizeMarkdownForDescription(e)}
+                                          </Match>
+                                        </Text>
+                                        ;
+                                      </Group>
+                                    );
+                                  })}
+                                </Stack>
+                              ) : (
+                                <Text>
+                                  <Match
+                                    opener="->"
+                                    closer="<-"
+                                    match={(m) => {
+                                      return (
+                                        <span className="highlight">{m}</span>
+                                      );
+                                    }}
+                                  >
+                                    {getSearchResultPreview(s) ||
+                                      "No preview available."}
+                                  </Match>
+                                </Text>
+                              )
+                            }
+                          />
                         </Grid.Col>
                       );
                     })}

@@ -76,20 +76,18 @@ export function IdeaActionsGroup({
           trigger="hover"
         >
           <Menu.Target>
-            <Tooltip label="More options" withArrow openDelay={500}>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size={buttonSize === "xs" ? "md" : "lg"} // Mantine ActionIcon size prop
-                className={`${styles.actionButton} ${className || ""}`}
-                aria-label="More actions"
-              >
-                <DotsThreeVertical
-                  weight="bold"
-                  size={buttonSize === "xs" ? 18 : 20}
-                />
-              </ActionIcon>
-            </Tooltip>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size={buttonSize === "xs" ? "md" : "lg"} // Mantine ActionIcon size prop
+              className={`${styles.actionButton} ${className || ""}`}
+              aria-label="More actions"
+            >
+              <DotsThreeVertical
+                weight="bold"
+                size={buttonSize === "xs" ? 18 : 20}
+              />
+            </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
             {overflowActions.map((action) => (
