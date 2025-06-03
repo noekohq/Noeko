@@ -227,6 +227,9 @@ export default function Spotlight() {
       if (event.key === "Enter") {
         handleSelectActiveResult();
       }
+      if (event.key === "Escape") {
+        closeSpotlight();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
 

@@ -332,15 +332,6 @@ export function InteractionProvider({
         preventDefault: true,
       },
     ],
-    [
-      "Escape",
-      () => {
-        setSpotlightOpened(false);
-      },
-      {
-        preventDefault: true,
-      },
-    ],
   ]);
 
   return (
@@ -352,7 +343,7 @@ export function InteractionProvider({
         onClose={() => setFeedbackModalOpened(false)}
       />
       <LoadingOverlay visible={loadingSomething} />
-      <Spotlight />
+      {spotlightOpened && <Spotlight />}
     </InteractionContext.Provider>
   );
 }
