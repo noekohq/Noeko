@@ -32,6 +32,7 @@ import { formatFileSize } from "../utils/formatting";
 import { useLayout } from "./LayoutContext";
 import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 import Spotlight from "../components/UI/Spotlight/Spotlight";
+import { useHotkeys } from "@mantine/hooks";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -250,61 +251,94 @@ export function InteractionProvider({
     },
   };
 
-  useShortcuts({
-    shortcuts: [
-      {
-        keys: { ctrl, meta, shift: true, key: "h" },
-        run: value.views.dashboard,
-      },
-      {
-        keys: { ctrl, meta, shift: true, key: "g" },
-        run: value.views.graph,
-      },
-      {
-        keys: { ctrl, meta, key: "/" },
-        run: value.views.spyglass,
-      },
-      {
-        keys: { ctrl, meta, shift: true, key: "b" },
-        run: value.views.ideas,
-      },
-      {
-        keys: { ctrl, meta, key: "." },
-        run: () => navigate("/settings"),
-      },
-      {
-        keys: { ctrl, meta, key: ";" },
-        run: () => {
-          if (isSuperuser) {
-            value.views.admin();
-          }
-        },
-      },
-      {
-        keys: { ctrl, meta, shift: true, key: "u" },
-        run: () => {
-          setUploadingFile(true);
-        },
-      },
-      {
-        keys: { ctrl, meta, shift: true, key: "a" },
-        run: value.actions.newIdea,
-      },
-      {
-        keys: { ctrl: true, key: "k" },
-        run: (e) => {
-          e.preventDefault();
-          setSpotlightOpened(!spotlightOpened);
-        },
-      },
-      {
-        keys: { key: "Escape" },
-        run: () => {
-          setSpotlightOpened(false);
-        },
+  // useShortcuts({
+  //   shortcuts: [
+  //     {
+  //       keys: { ctrl, meta, shift: true, key: "h" },
+  //       run: value.views.dashboard,
+  //     },
+  //     {
+  //       keys: { ctrl, meta, shift: true, key: "g" },
+  //       run: value.views.graph,
+  //     },
+  //     {
+  //       keys: { ctrl, meta, key: "/" },
+  //       run: value.views.spyglass,
+  //     },
+  //     {
+  //       keys: { ctrl, meta, shift: true, key: "b" },
+  //       run: value.views.ideas,
+  //     },
+  //     {
+  //       keys: { ctrl, meta, key: "." },
+  //       run: () => navigate("/settings"),
+  //     },
+  //     {
+  //       keys: { ctrl, meta, key: ";" },
+  //       run: () => {
+  //         if (isSuperuser) {
+  //           value.views.admin();
+  //         }
+  //       },
+  //     },
+  //     {
+  //       keys: { ctrl, meta, shift: true, key: "u" },
+  //       run: () => {
+  //         setUploadingFile(true);
+  //       },
+  //     },
+  //     {
+  //       keys: { ctrl, meta, shift: true, key: "a" },
+  //       run: value.actions.newIdea,
+  //     },
+  //     {
+  //       keys: { ctrl: true, key: "k" },
+  //       run: (e) => {
+  //         e.preventDefault();
+  //         setSpotlightOpened(!spotlightOpened);
+  //       },
+  //     },
+  //     {
+  //       keys: { key: "Escape" },
+  //       run: () => {
+  //         setSpotlightOpened(false);
+  //       },
+  //     },
+  //   ],
+  // });
+  useHotkeys([
+    ["mod+shift+h", value.views.dashboard],
+    ["mod+shift+g", value.views.graph],
+    ["mod+/", value.views.spyglass],
+    ["mod+shift+b", value.views.ideas],
+    ["mod+.", () => navigate("/settings")],
+    [
+      "mod+;",
+      () => {
+        if (isSuperuser) {
+          value.views.admin();
+        }
       },
     ],
-  });
+    ["mod+shift+u", () => setUploadingFile(true)],
+    ["mod+shift+a", value.actions.newIdea],
+    [
+      "ctrl+k", // Explicitly Ctrl+K on all OSes
+      (event) => {
+        event.preventDefault();
+        setSpotlightOpened((o) => !o);
+      },
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "escape",
+      () => {
+        setSpotlightOpened(false);
+      },
+    ],
+  ]);
 
   return (
     <InteractionContext.Provider value={value}>
