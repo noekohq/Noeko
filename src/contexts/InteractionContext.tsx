@@ -31,6 +31,7 @@ import {
 import { formatFileSize } from "../utils/formatting";
 import { useLayout } from "./LayoutContext";
 import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
+import Spotlight from "../components/UI/Spotlight/Spotlight";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -50,6 +51,11 @@ type IInteractionContext = {
         close: () => void;
         toggle: () => void;
       };
+      spotlight: {
+        open: () => void;
+        close: () => void;
+        toggle: () => void;
+      };
     };
     feedback: {
       openFeedbackModal: () => void;
@@ -64,6 +70,9 @@ type IInteractionContext = {
     profile: () => void;
     admin: () => void;
   };
+  state: {
+    spotlightOpened: boolean;
+  };
 };
 
 const initialContext: IInteractionContext = {
@@ -76,6 +85,11 @@ const initialContext: IInteractionContext = {
         toggle: () => {},
       },
       rightSidebar: {
+        open: () => {},
+        close: () => {},
+        toggle: () => {},
+      },
+      spotlight: {
         open: () => {},
         close: () => {},
         toggle: () => {},
@@ -94,6 +108,9 @@ const initialContext: IInteractionContext = {
     profile: () => {},
     admin: () => {},
   },
+  state: {
+    spotlightOpened: false,
+  },
 };
 
 const InteractionContext = createContext(initialContext);
@@ -103,7 +120,13 @@ export function InteractionProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const [loadingSomething, setLoadingSomething] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperuser = userIsSuperuser(user);
+  const [spotlightOpened, setSpotlightOpened] = useState(false);
+
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const handleNewIdea = async () => {
     setLoadingSomething(true);
@@ -124,13 +147,6 @@ export function InteractionProvider({
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
-
-  const [loadingSomething, setLoadingSomething] = useState(false);
-
-  const { user } = useAuth();
-  const isSuperuser = userIsSuperuser(user);
-
-  const [uploadingFile, setUploadingFile] = useState(false);
 
   const {
     leftSidebar: { setOpened: setLeftSidebarOpened, opened: leftSidebarOpened },
@@ -178,6 +194,17 @@ export function InteractionProvider({
             setRightSidebarOpened(!rightSidebarOpened);
           },
         },
+        spotlight: {
+          open: () => {
+            setSpotlightOpened(true);
+          },
+          close: () => {
+            setSpotlightOpened(false);
+          },
+          toggle: () => {
+            setSpotlightOpened(!spotlightOpened);
+          },
+        },
       },
       feedback: {
         openFeedbackModal: () => {
@@ -207,6 +234,9 @@ export function InteractionProvider({
       admin: () => {
         navigate("/admin");
       },
+    },
+    state: {
+      spotlightOpened,
     },
   };
 
@@ -250,6 +280,18 @@ export function InteractionProvider({
         keys: { ctrl, meta, shift: true, key: "a" },
         run: value.actions.newIdea,
       },
+      {
+        keys: { ctrl: true, key: "k" },
+        run: () => {
+          setSpotlightOpened(!spotlightOpened);
+        },
+      },
+      {
+        keys: { key: "Escape" },
+        run: () => {
+          setSpotlightOpened(false);
+        },
+      },
     ],
   });
 
@@ -262,6 +304,7 @@ export function InteractionProvider({
         onClose={() => setFeedbackModalOpened(false)}
       />
       <LoadingOverlay visible={loadingSomething} />
+      <Spotlight />
     </InteractionContext.Provider>
   );
 }

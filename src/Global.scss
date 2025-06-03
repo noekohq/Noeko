@@ -7,6 +7,12 @@
 
     --color-code-background: var(--mantine-color-dark-1);
     --color-code-foreground: var(--mantine-color-dark-8);
+
+    .highlight {
+        background-color: var(--mantine-color-highlight-6);
+        /* color: var(--mantine-color-dark-9); */
+        /* font-weight: 500; */
+    }
 }
 
 /* For dark mode */
@@ -26,9 +32,17 @@
     --color-code-background: var(--mantine-color-dark-8);
     --color-code-foreground: var(--mantine-color-dark-1);
 
+    .highlight {
+        background-color: var(--mantine-color-highlight-9);
+        color: var(--mantine-color-dark-0);
+    }
 }
 
 :root {
+    .highlight {
+        padding: 0 0.4rem;
+        margin: 0 0.2rem;
+    }
 }
 
 html {
@@ -56,6 +70,7 @@ h4,
 h5,
 h6 {
     font-stretch: 90%;
+    font-family: var(--mantine-font-family-headings);
 }
 
 a {
@@ -82,9 +97,4 @@ a {
     &:active {
         transform: translateY(2px) scale(0.99);
     }
-}
-
-.highlight {
-    background-color: var(--mantine-primary-color-7);
-    color: var(--mantine-color-dark-0);
 }
