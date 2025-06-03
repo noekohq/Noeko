@@ -2,7 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
 import { Embeddings } from "../../../semantics/embeddings";
 import { getLM } from "../../../semantics/lm";
-import { IUser, User } from "../user";
+import { IPublicUser, ISafeUser, IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToMarkdown } from "../../../utils/formatting";
@@ -17,6 +17,7 @@ export type IIdea = {
   content: string;
   contentPlain?: string;
   embeddings: number[] | null;
+  visibility: IIdeaVisibility;
   createdAt: Date;
   updatedAt: Date;
   contentUpdatedAt: Date;
@@ -29,7 +30,9 @@ export type IIdea = {
   importedAt?: Date;
 };
 
-export type IIdeaWithComputedFields = IIdea & {
+export type IIdeaVisibility = "private" | "public";
+
+export type IIdeaWithComputedFields = (IIdea | IPublicIdea) & {
   embeddingsOutOfDate: boolean;
 };
 
@@ -99,10 +102,14 @@ export type IUserIdeaStats = {
   total: number;
 };
 
+export type IPublicIdea = Omit<IIdea, "embeddings">;
+
 export class Idea {
   constructor() {}
 
-  static attachComputedFields(idea: IIdea): IIdeaWithComputedFields {
+  static attachComputedFields(
+    idea: IIdea | IPublicIdea,
+  ): IIdeaWithComputedFields {
     return {
       ...idea,
       embeddingsOutOfDate:
@@ -264,7 +271,7 @@ export class Idea {
   }
 
   static attachComputedFieldsToCollection(
-    ideas: IIdea[],
+    ideas: (IIdea | IPublicIdea)[],
   ): IIdeaWithComputedFields[] {
     return ideas.map(Idea.attachComputedFields);
   }
@@ -327,6 +334,7 @@ export class Idea {
         contentPlain: htmlToMarkdown(form.content),
         contentPlainUpdatedAt: new Date(),
         embeddings: null,
+        visibility: "private",
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -396,6 +404,7 @@ export class Idea {
           return {
             title: form.title,
             content: form.content,
+            visibility: form.visibility || "private",
             contentPlain: htmlToMarkdown(form.content),
             contentPlainUpdatedAt: new Date(),
             embeddings: null,
@@ -602,11 +611,26 @@ export class Idea {
     }
   }
 
-  static async getIdeaOwners(ideaId: string) {
+  static async getIdeaOwners(
+    ideaId: string,
+    safety: "safe",
+  ): Promise<ISafeUser | undefined>;
+  static async getIdeaOwners(
+    ideaId: string,
+    safety: "public",
+  ): Promise<IPublicUser | undefined>;
+  static async getIdeaOwners(
+    ideaId: string,
+    safety: "none",
+  ): Promise<IUser | undefined>;
+  static async getIdeaOwners(
+    ideaId: string,
+    safety: "public" | "safe" | "none" = "safe",
+  ) {
     try {
       const db = await getDatabase();
       const results = await db?.query<[IUser & { id: RecordId }[]]>(
-        `SELECT VALUE <-owns<-user FROM ONLY $ideaId;`,
+        `SELECT VALUE <-owns<-user OMIT password FROM ONLY $ideaId;`,
         {
           ideaId,
         },
@@ -616,14 +640,43 @@ export class Idea {
         return undefined;
       }
       const [users] = results;
-      return users;
+      if (safety === "none") {
+        return users;
+      }
+      if (safety === "safe") {
+        return User.filterSafeFields(users);
+      }
+      if (safety === "public") {
+        return User.filterPublicFields(users);
+      }
+      return undefined;
     } catch (err) {
       console.error("Something went wrong", err);
       return undefined;
     }
   }
 
-  static async get(id: string | RecordId) {
+  static filterPublicFields(idea: IIdea): IPublicIdea;
+  static filterPublicFields(idea: IIdea[]): IPublicIdea[];
+  static filterPublicFields(
+    idea: IIdea | IIdea[],
+  ): IPublicIdea | IPublicIdea[] {
+    if (Array.isArray(idea)) {
+      return idea.map((u) => this.filterPublicFields(u)) as IPublicIdea[];
+    }
+    const { embeddings, ...safeUser } = idea;
+    return safeUser as IPublicIdea;
+  }
+
+  static async get(
+    id: string | RecordId,
+    safety?: "public",
+  ): Promise<IPublicIdea>;
+  static async get(id: string | RecordId, safety?: "full"): Promise<IIdea>;
+  static async get(
+    id: string | RecordId,
+    safety: "public" | "full" = "public",
+  ): Promise<IPublicIdea | IIdea | undefined> {
     try {
       const db = await getDatabase();
       const recordId = typeof id === "string" ? new StringRecordId(id) : id;
@@ -632,7 +685,13 @@ export class Idea {
         console.error(`Idea with id ${id} not found.`);
         return;
       }
-      return result;
+      if (safety === "public") {
+        return this.filterPublicFields(result);
+      }
+      if (safety === "full") {
+        return result;
+      }
+      return undefined;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -647,7 +706,7 @@ export class Idea {
         console.error("No ideas found.");
         return undefined;
       }
-      return result;
+      return this.filterPublicFields(result);
     } catch (err) {
       console.error(err);
       return undefined;
@@ -681,7 +740,7 @@ export class Idea {
       };
       const ideasWithDerived = ideas.map((i) => {
         return {
-          ...i,
+          ...this.filterPublicFields(i),
           derived: Idea.mapDerived(i.derivedList),
         };
       });
@@ -743,7 +802,7 @@ export class Idea {
       };
       const ideasWithDerived = ideas.map((i) => {
         return {
-          ...i,
+          ...this.filterPublicFields(i),
           derived: Idea.mapDerived(i.derivedList),
         };
       });
@@ -1415,6 +1474,22 @@ export class Idea {
       throw Error(`Type ${type} cannot be derived.`);
     } catch (error) {
       console.error("Error deleting derived: ", type, error);
+      return false;
+    }
+  }
+
+  static async checkIsPublic(ideaId: string | RecordId) {
+    try {
+      const idea = await Idea.get(ideaId);
+      if (!idea) {
+        throw new Error(
+          `Idea not found when checking public status: ${ideaId}`,
+        );
+      }
+      const isPublic = idea.visibility === "public";
+      return isPublic;
+    } catch (error) {
+      console.error("Error checking public status: ", error);
       return false;
     }
   }

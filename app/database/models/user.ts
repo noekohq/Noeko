@@ -32,6 +32,10 @@ export type IUserForm = Omit<
 >;
 
 export type ISafeUser = Omit<IUser, "password">;
+export type IPublicUser = Omit<
+  IUser,
+  "password" | "email" | "roles" | "disabled" | "referralCode"
+>;
 
 export type IToken = {
   id: string;
@@ -121,6 +125,19 @@ export class User {
     }
     const { password, ...safeUser } = user;
     return safeUser as ISafeUser;
+  }
+
+  static filterPublicFields(user: IUser): IPublicUser;
+  static filterPublicFields(user: IUser[]): IPublicUser[];
+  static filterPublicFields(
+    user: IUser | IUser[],
+  ): IPublicUser | IPublicUser[] {
+    if (Array.isArray(user)) {
+      return user.map((u) => this.filterPublicFields(u)) as IPublicUser[];
+    }
+    const { password, email, roles, referralCode, disabled, ...publicUser } =
+      user;
+    return publicUser as IPublicUser;
   }
 
   static async create(form: IUserForm, withRoles: string[] = ["role:user"]) {

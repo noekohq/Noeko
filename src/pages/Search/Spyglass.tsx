@@ -20,7 +20,7 @@ import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import { SearchBar } from "../../components/Search/SearchBar";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
 import { ArrowRight } from "@phosphor-icons/react";
 import { useCallback, useRef, useState } from "react";
@@ -44,6 +44,7 @@ import {
 } from "../../components/Display/Ideas/IdeaCardTypes";
 import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 import Match from "../../components/Utils/Match";
+import { generateTextFragmentHashFromText } from "../../utils/textFragment";
 
 type IResultsMap = Record<string, ISearchResultValue>;
 
@@ -57,19 +58,20 @@ type ICitationMap = Record<
 
 export default function Spyglass() {
   const {
-    results: { get: searchResults, set: setResults },
-    query: { get: searchQuery }, // searchQuery is not directly used in the JSX, but fine to keep
-    loading: { get: loadingSearch },
+    global: {
+      results: { get: searchResults, set: setResults },
+      query: { get: searchQuery }, // searchQuery is not directly used in the JSX, but fine to keep
+      loading: { get: loadingSearch },
+      overview: { get: overview, set: setOverview },
+    },
   } = useSearch();
-
-  const [overview, setOverview] = useState<ISearchOverview>();
 
   const startRef = useRef<Date>();
   const [timeTook, setTimeTook] = useState<number>();
 
   const handleResultsClear = useCallback(() => {
     setResults(null);
-    setOverview(undefined);
+    setOverview(null);
   }, [setResults]);
 
   const getResultsMap = () => {
@@ -109,6 +111,42 @@ export default function Spyglass() {
 
   const citationMap = buildCitationMap();
 
+  // if has citation, bubble to top, otherwise keep original order
+  const sortedSearchResults = searchResults?.sort((a, b) => {
+    const aHasCitation = !!citationMap[a.id.toString()];
+    const bHasCitation = !!citationMap[b.id.toString()];
+
+    // If both have citations, sort by citation index (ascending)
+    if (aHasCitation && bHasCitation) {
+      return (
+        citationMap[a.id.toString()].index - citationMap[b.id.toString()].index
+      );
+    }
+
+    // If only a has citation, a comes first
+    if (aHasCitation && !bHasCitation) {
+      return -1;
+    }
+
+    // If only b has citation, b comes first
+    if (!aHasCitation && bHasCitation) {
+      return 1;
+    }
+
+    // If neither has citation, maintain original order
+    return 0;
+  });
+
+  const navigate = useNavigate();
+
+  const [loadingText, setLoadingText] = useState<string>("");
+  const updateLoadingText = useCallback(() => {
+    setLoadingText("Searching your ideas...");
+    setTimeout(() => {
+      setLoadingText("Analyzing your ideas...");
+    }, 1000);
+  }, []);
+
   return (
     <PageWrapper>
       <LeftSidebar />
@@ -120,16 +158,13 @@ export default function Spyglass() {
           <SearchBar
             onResultsClear={handleResultsClear}
             onSearchStart={() => {
-              setOverview(undefined);
               startRef.current = new Date();
+              updateLoadingText();
             }}
             onSearchEnd={() => {
               if (startRef.current) {
                 setTimeTook(new Date().getTime() - startRef.current.getTime());
               }
-            }}
-            onResults={(_, searchOverview) => {
-              setOverview(searchOverview);
             }}
             onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
             placeholder="Press / to search..."
@@ -143,7 +178,8 @@ export default function Spyglass() {
           {loadingSearch && (
             <Group justify="center">
               <Box pos="relative" w="100%" h="50vh">
-                <LangtonsAntLoader />
+                <Text c="dimmed">{loadingText}</Text>
+                <LangtonsAntLoader withOverlay />
               </Box>
             </Group>
           )}
@@ -157,8 +193,9 @@ export default function Spyglass() {
                   {overview &&
                     overview.overview && ( // Ensure overview and overview.overview exist
                       <Card withBorder radius="lg">
-                        <Title order={3}>Overview</Title>
-                        <Divider my="xs" />
+                        <Title order={3} mb="xs">
+                          Overview
+                        </Title>
                         <div className={styles.overviewDisplay}>
                           <DisplayOverview
                             overview={overview}
@@ -188,7 +225,7 @@ export default function Spyglass() {
                 </Grid.Col>
                 <Grid.Col>
                   <Grid>
-                    {searchResults?.map((s, i) => {
+                    {sortedSearchResults?.map((s, i) => {
                       const hasExcerpts = !!citationMap[s.id.toString()];
                       const citation = hasExcerpts
                         ? citationMap[s.id.toString()]
@@ -206,12 +243,22 @@ export default function Spyglass() {
                         <Grid.Col span={12} key={s.id.toString()}>
                           <DetailedIdeaCard
                             idea={idea}
+                            onCardClick={(e) => {
+                              e.preventDefault();
+                              navigate(`/idea/${idea.id.toString()}`);
+                            }}
                             artifacts={
                               hasExcerpts && [
                                 {
                                   id: s.id.toString(),
                                   content: (
-                                    <ActionIcon variant="light" size="sm">
+                                    <ActionIcon
+                                      variant="light"
+                                      size="sm"
+                                      onClick={() => {
+                                        navigate(`/idea/${idea.id.toString()}`);
+                                      }}
+                                    >
                                       {citationMap[
                                         s.id.toString()
                                       ].index.toString()}
@@ -223,10 +270,20 @@ export default function Spyglass() {
                             description={
                               hasExcerpts ? (
                                 <Stack gap="xs">
-                                  {excerpts.map((e, i) => {
+                                  {excerpts.map((excerpt, i) => {
                                     return (
                                       <Group wrap="nowrap" align="flex-start">
-                                        <ActionIcon variant="light" size="xs">
+                                        <ActionIcon
+                                          variant="subtle"
+                                          size="xs"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(
+                                              `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
+                                            );
+                                          }}
+                                          style={{ cursor: "pointer" }}
+                                        >
                                           <Text size="xs">
                                             {citation?.index}
                                             {numberToLetter(i).toLowerCase()}
@@ -244,7 +301,9 @@ export default function Spyglass() {
                                               );
                                             }}
                                           >
-                                            {sanitizeMarkdownForDescription(e)}
+                                            {sanitizeMarkdownForDescription(
+                                              excerpt,
+                                            )}
                                           </Match>
                                         </Text>
                                         ;
@@ -296,8 +355,35 @@ function DisplayOverview({
   resultsMap,
   citationMap,
 }: IDisplayOverview) {
+  const navigate = useNavigate();
+
+  // Helper function to navigate with text fragment
+  const navigateWithTextFragment = useCallback(
+    (ideaId: string, excerpt?: string) => {
+      if (!excerpt) {
+        let url = `/idea/${ideaId}`;
+        navigate(url);
+      } else {
+        let url = `/idea/${ideaId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`;
+        navigate(url);
+      }
+    },
+    [navigate],
+  );
   return (
     <div>
+      <Text c="gray.7" size="sm" fw="bold">
+        AT A GLANCE
+      </Text>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: markdownToHtml(overview.overview),
+        }}
+      />
+      <Space my="sm" />
+      <Text c="gray.7" size="sm" fw="bold">
+        SOURCES
+      </Text>
       <Text>
         {overview.findings
           .filter((finding) => {
@@ -315,12 +401,30 @@ function DisplayOverview({
               <Text component="span" mr="xs">
                 <HoverCard width={"400px"} withArrow>
                   <HoverCard.Target>
-                    <ActionIcon variant="subtle">({citationNumber})</ActionIcon>
+                    <ActionIcon
+                      variant="subtle"
+                      size="xs"
+                      mr="2px"
+                      onClick={() =>
+                        navigateWithTextFragment(
+                          mappedValue.id.toString(),
+                          finding.excerpt,
+                        )
+                      }
+                      style={{ cursor: "pointer" }}
+                    >
+                      <Text size="xs">({citationNumber})</Text>
+                    </ActionIcon>
                   </HoverCard.Target>
                   <HoverCard.Dropdown>
                     <Stack>
-                      <Link
-                        to={`/idea/${mappedValue.id.toString()}`}
+                      <UnstyledButton
+                        onClick={() =>
+                          navigateWithTextFragment(
+                            mappedValue.id.toString(),
+                            finding.excerpt,
+                          )
+                        }
                         style={{ textDecoration: "none" }}
                       >
                         <Group>
@@ -329,7 +433,7 @@ function DisplayOverview({
                           </Text>
                           <ArrowRight size={14} color="gray" weight="bold" />
                         </Group>
-                      </Link>
+                      </UnstyledButton>
                       <Text size="xs">...{finding.excerpt}...</Text>
                     </Stack>
                   </HoverCard.Dropdown>
@@ -339,15 +443,6 @@ function DisplayOverview({
             );
           })}
       </Text>
-      <Space my="sm" />
-      <Text c="gray.7" size="sm" fw="bold">
-        AT A GLANCE
-      </Text>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: markdownToHtml(overview.overview),
-        }}
-      />
     </div>
   );
 }

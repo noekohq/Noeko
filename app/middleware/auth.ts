@@ -92,3 +92,30 @@ export const disallowDisabled = async (
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const checkTokenAllowPass = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const token = await getAccessTokenFromReq(req);
+
+    if (!token) {
+      await addToReq(req, "user", null);
+      return next();
+    }
+
+    const decoded = await verifyToken<ISafeUser>(token);
+    if (!decoded) {
+      await addToReq(req, "user", null);
+      return next();
+    }
+
+    await addToReq(req, "user", decoded);
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

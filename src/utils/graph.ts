@@ -8,7 +8,11 @@ import {
   IGraph,
   INode,
 } from "../declarations/graph";
-import { formatDate, sanitizeMarkdownForDescription } from "./formatting";
+import {
+  formatDate,
+  markdownToHtml,
+  sanitizeMarkdownForDescription,
+} from "./formatting";
 import { splitBySentences } from "./processing";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
@@ -155,7 +159,7 @@ export const getNodeDescription = (node: INode) => {
       (node.contentPlain &&
         splitBySentences(sanitizeMarkdownForDescription(node.contentPlain))
           .slice(0, 2)
-          .join("... ")) + "..." ??
+          .join("... ") + "...") ??
       "No summary available"
     );
   }

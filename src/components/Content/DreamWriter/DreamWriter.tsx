@@ -1,5 +1,6 @@
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
@@ -76,8 +77,10 @@ interface EditorProps {
   stickyMenu?: boolean;
   devTools?: boolean;
   editorData?: EditorData;
+  highlightText?: string; // Text to highlight when editor loads
   onChange?: (output: string) => void;
   onBlur?: (output: string) => void;
+  onContentReady?: () => void;
   dependencies?: any[];
 }
 
@@ -92,8 +95,10 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       stickyMenu,
       devTools,
       editorData,
+      highlightText,
       onChange,
       onBlur,
+      onContentReady,
       dependencies,
     },
     ref,
@@ -256,6 +261,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     });
 
     const [droppingOver, setDroppingOver] = useState(false);
+    const editorContainerRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => {
       if (editor) {
@@ -264,8 +270,20 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       return undefined;
     }, [editor]);
 
+    // Call onContentReady when editor is ready and has content
+    useEffect(() => {
+      if (editor && initialContent && onContentReady) {
+        // Small delay to ensure content is fully rendered in DOM
+        const timeoutId = setTimeout(() => {
+          onContentReady();
+        }, 100);
+        return () => clearTimeout(timeoutId);
+      }
+    }, [editor, initialContent, onContentReady]);
+
     return (
       <div
+        ref={editorContainerRef}
         className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
         onDragOver={(e) => {
           e.preventDefault();

@@ -12,6 +12,29 @@ import { Tag } from "../database/models/tag";
 
 const router = Router();
 
+router.get("/:ideaId/public", async (req, res) => {
+  try {
+    const ideaId = req.params.ideaId;
+    const isPublic = await Idea.checkIsPublic(ideaId);
+    if (isPublic) {
+      const idea = await Idea.get(ideaId);
+      const owner = await Idea.getIdeaOwners(ideaId, "public");
+      res.json({
+        message: "Got public idea",
+        data: {
+          idea,
+          owner,
+        },
+      });
+      return;
+    }
+    res.status(403).json({ message: "Unauthorized" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.use(checkToken);
 router.use(disallowDisabled);
 

@@ -1,33 +1,45 @@
 import { createContext, useContext, useState } from "react";
-import { ISearchResult } from "../../app/services/Search";
+import { ISearchOverview, ISearchResult } from "../../app/services/Search";
 
 type ISearchContext = {
-  query: {
-    get: string;
-    set: (q: string) => void;
-  };
-  results: {
-    get: ISearchResult[] | null;
-    set: (results: ISearchResult[] | null) => void;
-  };
-  loading: {
-    get: boolean;
-    set: (loading: boolean) => void;
+  global: {
+    query: {
+      get: string;
+      set: (q: string) => void;
+    };
+    results: {
+      get: ISearchResult[] | null;
+      set: (results: ISearchResult[] | null) => void;
+    };
+    overview: {
+      get: ISearchOverview | null;
+      set: (overview: ISearchOverview | null) => void;
+    };
+    loading: {
+      get: boolean;
+      set: (loading: boolean) => void;
+    };
   };
 };
 
 const initialSearch: ISearchContext = {
-  query: {
-    get: "",
-    set: (q: string) => {},
-  },
-  results: {
-    get: null,
-    set: () => {},
-  },
-  loading: {
-    get: false,
-    set: () => {},
+  global: {
+    query: {
+      get: "",
+      set: (q: string) => {},
+    },
+    results: {
+      get: null,
+      set: (results: ISearchResult[] | null) => {},
+    },
+    overview: {
+      get: null,
+      set: (overview: ISearchOverview | null) => {},
+    },
+    loading: {
+      get: false,
+      set: (loading: boolean) => {},
+    },
   },
 };
 
@@ -43,25 +55,34 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
     null,
   );
   const [loading, setLoading] = useState(false);
+  const [overview, setOverview] = useState<ISearchOverview | null>(null);
 
   const value: ISearchContext = {
-    query: {
-      get: query,
-      set: setQuery,
-    },
-    results: {
-      get: searchResults,
-      set: (r: ISearchResult[] | null) => {
-        setSearchResults(r);
+    global: {
+      query: {
+        get: query,
+        set: setQuery,
       },
-    },
-    loading: {
-      get: loading,
-      set: (loading: boolean) => {
-        setLoading(loading);
-        if (loading) {
-          setSearchResults(null);
-        }
+      results: {
+        get: searchResults,
+        set: (r: ISearchResult[] | null) => {
+          setSearchResults(r);
+        },
+      },
+      overview: {
+        get: overview,
+        set: (overview: ISearchOverview | null) => {
+          setOverview(overview);
+        },
+      },
+      loading: {
+        get: loading,
+        set: (loading: boolean) => {
+          setLoading(loading);
+          if (loading) {
+            setSearchResults(null);
+          }
+        },
       },
     },
   };

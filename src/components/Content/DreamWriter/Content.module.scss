@@ -117,3 +117,9 @@ h5 {
         }
     }
 }
+
+hr {
+    border: none;
+    border-top: 1px solid var(--mantine-color-dark-5);
+    margin: 24px 0;
+}
