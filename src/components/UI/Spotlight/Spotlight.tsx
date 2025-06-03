@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import styles from "./Spotlight.module.scss";
 import MiniSearch, { SearchResult } from "minisearch";
 import {
+  ArrowLeft,
   Gear,
   Graph,
   HouseSimple,
@@ -62,6 +63,15 @@ export default function Spotlight() {
   >(
     () =>
       new Map([
+        [
+          "close",
+          {
+            id: "close",
+            title: "Close",
+            icon: <ArrowLeft weight="bold" />,
+            onClick: closeSpotlight,
+          },
+        ],
         [
           "home",
           {
