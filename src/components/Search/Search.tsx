@@ -25,7 +25,9 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
 
   const {
-    results: { get: searchResults, set: setResults },
+    global: {
+      results: { get: searchResults, set: setResults },
+    },
   } = useSearch();
 
   const handleResultsClear = useCallback(() => {

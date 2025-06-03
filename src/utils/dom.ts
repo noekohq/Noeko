@@ -1,6 +1,6 @@
 import { IThemeSpec } from "../declarations/themes";
 
-function matchParentWidth(
+export function matchParentWidth(
   fixedElementId: string,
   parentElementId: string,
 ): void {

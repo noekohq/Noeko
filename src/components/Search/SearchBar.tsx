@@ -31,9 +31,12 @@ export function SearchBar({
   withOverview,
 }: ISearchBarProps) {
   const {
-    query: { get: query, set: setQuery },
-    results: { set: setResults },
-    loading: { set: setLoading },
+    global: {
+      query: { get: query, set: setQuery },
+      results: { set: setResults },
+      loading: { set: setLoading },
+      overview: { set: setOverview },
+    },
   } = useSearch();
 
   const {
@@ -58,6 +61,7 @@ export function SearchBar({
     onSuccess: (r) => {
       onResults?.(r.results, r.overview);
       setResults(r.results);
+      setOverview(r.overview);
     },
     onFinally: () => {
       onSearchEnd?.();
@@ -122,7 +126,7 @@ export function SearchBar({
           }
         }}
         leftSection={
-          <Flex direction="column" h="100%" pt="xs">
+          <Flex direction="column" h="100%" pt="8px">
             {loadingIdeas ? (
               <Loader size="xs" />
             ) : (

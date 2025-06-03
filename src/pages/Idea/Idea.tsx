@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react"; // Import React
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch"; // Your custom hook
 import { useDebouncedCallback } from "@mantine/hooks";
@@ -24,6 +24,7 @@ import {
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import {
+  ArrowRight,
   BracketsAngle,
   Check,
   CopySimple,
@@ -195,8 +196,6 @@ export default function Idea() {
     text += `${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}. `;
     if (loadingEmbeddings) {
       text += "Generating embeddings... ";
-    } else if (!idea?.embeddings || idea.embeddings?.length === 0) {
-      text += "No embeddings generated yet. ";
     } else if (embeddingsOutOfDate()) {
       text += "Embeddings might be out of date. ";
     }
@@ -339,6 +338,14 @@ export default function Idea() {
     await triggerComputeIfNeeded();
   }, [ideaId, idea]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightText = searchParams.get("highlightText");
+  const handleContentReady = useCallback(() => {
+    if (highlightText) {
+      window.location.hash = highlightText;
+    }
+  }, [highlightText]);
+
   const editorRef = useRef<IEditor>();
 
   const downloadAsHTML = () => {
@@ -455,6 +462,7 @@ export default function Idea() {
                     stickyMenu={false}
                     onChange={handleContentChange}
                     onBlur={handleEditorBlur}
+                    onContentReady={handleContentReady}
                     dependencies={[ideaId, idea.id]}
                     ref={editorRef}
                   />
@@ -493,6 +501,13 @@ export default function Idea() {
                 >
                   {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
                 </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Viewonly">
+                <Link to="view">
+                  <ActionIcon variant="default" size="md">
+                    <ArrowRight />
+                  </ActionIcon>
+                </Link>
               </Tooltip>
               <Tooltip label="Export as HTML">
                 <ActionIcon

@@ -30,6 +30,8 @@ import { useEffect } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 import Updates from "./pages/Feedback/Updates";
 import ViewTag from "./pages/Tags/ViewTag";
+import ViewIdea from "./pages/Idea/ViewIdea";
+import PublicIdea from "./pages/Idea/PublicIdea";
 
 export default function App() {
   const navigate = useNavigate();
@@ -67,6 +69,14 @@ export default function App() {
     );
   }
 
+  const PublicRoutes = (
+    <Route path="/shared">
+      <Route path="idea">
+        <Route path=":ideaId" element={<PublicIdea />} />
+      </Route>
+    </Route>
+  );
+
   return (
     <>
       <Routes>
@@ -74,6 +84,7 @@ export default function App() {
           <>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            {PublicRoutes}
             <Route
               path="/*"
               element={
@@ -90,6 +101,7 @@ export default function App() {
               <div className={styles.app}>
                 <Routes>
                   <Route path="login" element={<Navigate to="/" replace />} />
+                  {PublicRoutes}
                   <Route
                     path="register"
                     element={<Navigate to="/" replace />}
@@ -109,10 +121,13 @@ export default function App() {
                   </Route>
                   <Route path="idea">
                     <Route index element={<Navigate to="/ideas" replace />} />
-                    <Route
-                      path=":ideaId"
-                      element={<Idea key={location.pathname} />}
-                    />
+                    <Route path=":ideaId">
+                      <Route index element={<Idea key={location.pathname} />} />
+                      <Route
+                        path="view"
+                        element={<ViewIdea key={location.pathname} />}
+                      />
+                    </Route>
                   </Route>
                   <Route path="ideas">
                     <Route index element={<Ideas />} />

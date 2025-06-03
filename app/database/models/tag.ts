@@ -420,7 +420,7 @@ export class Tag {
       if (!db) {
         throw new Error("Error getting database");
       }
-      const idea = await Idea.get(ideaId);
+      const idea = await Idea.get(ideaId, "full");
       if (!idea) {
         throw new Error("Idea not found.");
       }
