@@ -11,8 +11,6 @@ import { IThemeOption, IOverrideResolver } from "../declarations/themes";
 import { getCurrentScheme, isDarkScheme } from "../utils/dom";
 
 export const theme = createTheme({
-  /* Put your mantine theme override here */
-  fontFamily: "Lato, sans-serif",
   spacing: {},
 });
 
@@ -121,6 +119,18 @@ export const qwest: IOverrideResolver = (t) => {
         "#753308", // 8
         "#441e05", // 9 (darkest)
       ],
+      highlight: [
+        "#fcfce6",
+        "#f6f7d5",
+        "#edeeac",
+        "#e3e580",
+        "#dadd5b",
+        "#d5d843",
+        "#d2d535",
+        "#b8bb26",
+        "#a4a81d",
+        "#8d910c",
+      ],
     };
   const darkColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> = {
     dark: [
@@ -219,6 +229,18 @@ export const qwest: IOverrideResolver = (t) => {
       "#6b2f07", // 8
       "#351703", // 9 (darkest)
     ],
+    highlight: [
+      "#fdfced",
+      "#faf8da",
+      "#f4f1ae",
+      "#efe97f",
+      "#eae259",
+      "#e7de42",
+      "#e6dc36",
+      "#ccc32a",
+      "#b5ad21",
+      "#79740e",
+    ],
   };
 
   const colorsToUse = () => {
@@ -230,6 +252,7 @@ export const qwest: IOverrideResolver = (t) => {
   };
 
   return createTheme({
+    fontFamilyMonospace: "Geist Mono",
     fontFamily: t.bodyFont === "sans-serif" ? "Geist" : "IBMPlexSerif",
     headings: {
       fontFamily: "Bricolage Grotesque",

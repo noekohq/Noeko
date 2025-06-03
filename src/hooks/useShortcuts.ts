@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 export type IShortcut = {
   run: () => void;
   keys: {
+    alt?: boolean;
     ctrl?: boolean;
     meta?: boolean;
     shift?: boolean;
@@ -19,12 +20,13 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
       shortcuts.forEach((shortcut) => {
-        const { ctrl, meta, shift, key, code } = shortcut.keys;
+        const { alt, ctrl, meta, shift, key, code } = shortcut.keys;
 
         if (!key && !code) {
           return;
         }
 
+        const altMatch = alt === undefined || alt === event.altKey;
         const ctrlMatch = ctrl === undefined || ctrl === event.ctrlKey;
         const metaMatch = meta === undefined || meta === event.metaKey;
         const shiftMatch = shift === undefined || shift === event.shiftKey;
@@ -36,7 +38,13 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
           ? event.key.toLowerCase() === key.toLowerCase()
           : false;
 
-        if (ctrlMatch && metaMatch && shiftMatch && (codeMatch || keyMatch)) {
+        if (
+          altMatch &&
+          ctrlMatch &&
+          metaMatch &&
+          shiftMatch &&
+          (codeMatch || keyMatch)
+        ) {
           shortcut.run();
           return;
         }
