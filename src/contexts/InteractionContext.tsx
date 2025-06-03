@@ -333,9 +333,12 @@ export function InteractionProvider({
       },
     ],
     [
-      "escape",
+      "Escape",
       () => {
         setSpotlightOpened(false);
+      },
+      {
+        preventDefault: true,
       },
     ],
   ]);
