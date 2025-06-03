@@ -28,6 +28,7 @@ import {
   HouseSimple,
   Lightbulb,
   MagnifyingGlass,
+  Scroll,
   ShieldStar,
   Tag,
   User,
@@ -187,6 +188,7 @@ function RightSidebarHeader({
     { label: "All Ideas", icon: Lightbulb, path: "/ideas" },
     { label: "Spyglass", icon: MagnifyingGlass, path: "/spyglass" },
     { label: "Tags", icon: Tag, path: "/tags" },
+    { label: "Updates", icon: Scroll, path: "/updates" },
     ...(isSuperuser
       ? [{ label: "Admin Panel", icon: ShieldStar, path: "/admin" }]
       : []),

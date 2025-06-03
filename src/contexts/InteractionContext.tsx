@@ -68,6 +68,8 @@ type IInteractionContext = {
     ideas: () => void;
     settings: () => void;
     profile: () => void;
+    tags: () => void;
+    updates: () => void;
     admin: () => void;
   };
   state: {
@@ -106,6 +108,8 @@ const initialContext: IInteractionContext = {
     ideas: () => {},
     settings: () => {},
     profile: () => {},
+    tags: () => {},
+    updates: () => {},
     admin: () => {},
   },
   state: {
@@ -230,6 +234,12 @@ export function InteractionProvider({
       },
       ideas: () => {
         navigate("/ideas");
+      },
+      tags: () => {
+        navigate("/tags");
+      },
+      updates: () => {
+        navigate("/updates");
       },
       admin: () => {
         navigate("/admin");
