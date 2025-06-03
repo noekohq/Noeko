@@ -282,7 +282,8 @@ export function InteractionProvider({
       },
       {
         keys: { ctrl: true, key: "k" },
-        run: () => {
+        run: (e) => {
+          e.preventDefault();
           setSpotlightOpened(!spotlightOpened);
         },
       },
