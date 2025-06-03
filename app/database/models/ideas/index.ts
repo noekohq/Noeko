@@ -697,8 +697,11 @@ export class Idea {
       return undefined;
     }
   }
-
-  static async all(filters?: any) {
+  static async all(safety: "public"): Promise<IPublicIdea[]>;
+  static async all(safety: "full"): Promise<IIdea[]>;
+  static async all(
+    safety: "public" | "full" = "public",
+  ): Promise<IPublicIdea[] | IIdea[] | undefined> {
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea>("idea");
@@ -706,7 +709,13 @@ export class Idea {
         console.error("No ideas found.");
         return undefined;
       }
-      return this.filterPublicFields(result);
+      if (safety === "public") {
+        return this.filterPublicFields(result);
+      }
+      if (safety === "full") {
+        return result;
+      }
+      return undefined;
     } catch (err) {
       console.error(err);
       return undefined;
@@ -1502,7 +1511,7 @@ class IdeaDerivedCascade {
   constructor(ideaId: string | RecordId) {
     this._ideaId = ideaId;
     (async () => {
-      this._idea = await Idea.get(ideaId);
+      this._idea = await Idea.get(ideaId, "full");
       if (!this._idea) {
         throw new Error(
           `Idea not found when constructing DerivedCascade: ${ideaId}`,

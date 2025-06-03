@@ -34,7 +34,9 @@ export const GraphToolbar = ({ nodes, flags }: GraphToolbarProps) => {
   } = useGraph();
 
   const {
-    results: { get: searchResults, set: setResults },
+    global: {
+      results: { get: searchResults, set: setResults },
+    },
   } = useSearch();
 
   const handleResults = useCallback((results: ISearchResult[]) => {
