@@ -9,6 +9,8 @@ import {
   HouseSimple,
   Lightbulb,
   MagnifyingGlass,
+  Scroll,
+  Tag,
   User,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
@@ -36,7 +38,16 @@ export default function Spotlight() {
         spotlight: { close: closeSpotlight },
       },
     },
-    views: { dashboard, graph, spyglass, ideas, settings, profile, admin },
+    views: {
+      dashboard,
+      graph,
+      spyglass,
+      ideas,
+      settings,
+      profile,
+      tags,
+      updates,
+    },
   } = useInteraction();
 
   const spotlightRef = useRef<HTMLInputElement>(null);
@@ -85,6 +96,24 @@ export default function Spotlight() {
             title: "Ideas",
             icon: <Lightbulb weight="bold" />,
             onClick: ideas,
+          },
+        ],
+        [
+          "tags",
+          {
+            id: "tags",
+            title: "Tags",
+            icon: <Tag weight="bold" />,
+            onClick: tags,
+          },
+        ],
+        [
+          "updates",
+          {
+            id: "updates",
+            title: "Updates",
+            icon: <Scroll weight="bold" />,
+            onClick: updates,
           },
         ],
         [
@@ -216,7 +245,7 @@ export default function Spotlight() {
             <div className={styles.results}>
               {results.map((result, i) => (
                 <Option
-                  key={result.id}
+                  key={result.id + i}
                   icon={result.icon}
                   title={result.title}
                   active={i === active}

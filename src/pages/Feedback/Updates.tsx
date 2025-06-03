@@ -6,6 +6,7 @@ import {
   Drawer,
   Grid,
   Group,
+  Kbd,
   List,
   Space,
   Stack,
@@ -29,6 +30,23 @@ type IUpdate = {
 };
 
 const updates: IUpdate[] = [
+  {
+    date: new Date("June 2, 2025"),
+    title: "Improvements to Spyglass, Initial Spotlight Search feature",
+    details: (
+      <List>
+        <List.Item>Made Spyglass results more informative.</List.Item>
+        <List.Item>Improved Spyglass UI overall.</List.Item>
+        <List.Item>
+          Most instances of Right Sidebar search results are not draggable, and
+          can be used to create connections to tags or ideas.
+        </List.Item>
+        <List.Item>
+          Started on Spotlight Search Feature <Kbd>Ctrl + k</Kbd>
+        </List.Item>
+      </List>
+    ),
+  },
   {
     date: new Date("June 1, 2025"),
     title: "Tag view UI improvements, editor updates, general UI updates",
@@ -230,7 +248,7 @@ export default function Updates() {
             })
             .map((update) => {
               return (
-                <Grid.Col>
+                <Grid.Col key={update.title + update.date.toISOString()}>
                   <Card
                     withBorder
                     radius="lg"
