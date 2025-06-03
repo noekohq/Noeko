@@ -157,6 +157,7 @@ export default function DirectoryImporter() {
           title: file.title,
           content: contentsHTML,
           embeddings: [],
+          visibility: "private",
         } satisfies IIdeaForm;
       });
       const ideas = await Promise.all(ideasParsed);

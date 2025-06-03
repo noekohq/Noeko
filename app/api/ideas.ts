@@ -7,6 +7,7 @@ import {
   IIdea,
   IIdeaAsRelation,
   IIdeaDerivedMap,
+  IPublicIdea,
 } from "../database/models/ideas";
 import { Tag } from "../database/models/tag";
 
@@ -108,6 +109,7 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
         title: "New Title",
         content: "",
         embeddings: null,
+        visibility: "private",
       },
       user.id,
       { omitEmbeddings: true, omitDerived: true },
@@ -149,7 +151,7 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    const toSend: IIdea & {
+    const toSend: IPublicIdea & {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;

@@ -37,7 +37,9 @@ export function InlineSearch({
   omit,
 }: IInlineSearchProps) {
   const {
-    query: { get: query, set: setQuery },
+    global: {
+      query: { get: query, set: setQuery },
+    },
   } = useSearch();
 
   const {

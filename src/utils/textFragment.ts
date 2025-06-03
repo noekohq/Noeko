@@ -25,7 +25,7 @@ export function generateTextFragment(textToHighlight: string) {
 
 function extractTextRangeFromPlainText(
   plainText: string | null | undefined,
-): TextRange {
+): ITextRange {
   if (!plainText || typeof plainText !== "string") {
     return { textStart: null, textEnd: null };
   }

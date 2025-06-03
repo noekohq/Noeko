@@ -5,6 +5,7 @@ import {
   IIdeaAsRelation,
   IIdeaDerivedMap,
   IIdeaForm,
+  IPublicIdea,
 } from "../database/models/ideas";
 import { getLM } from "../semantics/lm";
 import {
@@ -113,7 +114,7 @@ router.get("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    const toSend: IIdea & {
+    const toSend: IPublicIdea & {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;
@@ -536,7 +537,7 @@ router.post(
   checkIsSuperuser,
   async (req, res) => {
     try {
-      const ideas = await Idea.all();
+      const ideas = await Idea.all("full");
       if (!ideas) {
         res.status(404).json({ error: "Ideas not found" });
         return;
