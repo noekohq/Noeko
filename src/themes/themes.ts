@@ -30,16 +30,16 @@ export const qwest: IOverrideResolver = (t) => {
         "#fbf1c7",
       ],
       gray: [
-        "#e1dcdf", // 0 (lightest)
-        "#c8c0b9", // 1
-        "#b0a395", // 2
-        "#988773", // 3
-        "#887b6a", // 4
-        "#807466", // 5
-        "#7c6f64", // 6 (Main Gruvbox Gray)
-        "#60564e", // 7
-        "#453e38", // 8
-        "#2a2623", // 9 (darkest)
+        "#fdf4ea",
+        "#ede7e0",
+        "#d4cdc6",
+        "#bbb2a8",
+        "#a69a8f",
+        "#998c7f",
+        "#928374",
+        "#807163",
+        "#736455",
+        "#665645",
       ],
       red: [
         "#f8d4d3", // 0 (lightest)
@@ -146,16 +146,16 @@ export const qwest: IOverrideResolver = (t) => {
       "#1d2021",
     ],
     gray: [
-      "#e9e5e0", // 0 (lightest)
-      "#dcd6cf", // 1
-      "#cec6be", // 2
-      "#c0b7ad", // 3
-      "#b3a89d", // 4
-      "#a8998e", // 5
-      "#a89984", // 6 (Main Gruvbox Gray)
-      "#7c7368", // 7
-      "#504c43", // 8
-      "#252421", // 9 (darkest)
+      "#fdf4ea",
+      "#ede7e0",
+      "#d4cdc6",
+      "#bbb2a8",
+      "#a69a8f",
+      "#998c7f",
+      "#928374",
+      "#807163",
+      "#736455",
+      "#665645",
     ],
     red: [
       "#f8d4d3", // 0 (lightest)
@@ -252,8 +252,8 @@ export const qwest: IOverrideResolver = (t) => {
   };
 
   return createTheme({
-    fontFamilyMonospace: "Geist Mono",
     fontFamily: t.bodyFont === "sans-serif" ? "Geist" : "IBMPlexSerif",
+    fontFamilyMonospace: "Geist Mono",
     headings: {
       fontFamily: "Bricolage Grotesque",
       fontWeight: "550",

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 
 export type IShortcut = {
-  run: () => void;
+  run: (e: KeyboardEvent) => void;
   keys: {
     alt?: boolean;
     ctrl?: boolean;
@@ -45,7 +45,7 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
           shiftMatch &&
           (codeMatch || keyMatch)
         ) {
-          shortcut.run();
+          shortcut.run(event);
           return;
         }
       });

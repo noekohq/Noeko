@@ -6,16 +6,25 @@
     left: 0;
     right: 0;
     bottom: 0;
-    backdrop-filter: blur(4px) brightness(.75);
+    backdrop-filter: blur(4px) brightness(0.5);
     z-index: 100;
     text-align: center;
     padding-top: 15vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    --spotlight-width: 90vw;
+
+    @include desktop {
+        --spotlight-width: 50vw;
+    }
 }
 
 @keyframes spotlightFadeIn {
     from {
         transform: translateY(-4px);
-        opacity: .5;
+        opacity: 0.5;
     }
     to {
         transform: translateY(0);
@@ -26,6 +35,7 @@
 .spotlight {
     background-color: transparent;
     animation: spotlightFadeIn 0.1s ease-in forwards;
+    position: relative;
 
     .input {
         font-family: var(--mantine-font-family);
@@ -33,20 +43,46 @@
         font-size: 22px;
         border-radius: var(--mantine-radius-lg);
         background-color: var(--mantine-color-dark-8);
-        border: 1px solid var(--mantine-color-dark-3);
-        /* border: none; */
-        /* box-shadow: .2px .2px 24px 10px var(--mantine-primary-color-7); */
-        padding: 14px 24px;
-        min-width: 90vw;
+        border: none;
+        border: 1px solid var(--mantine-color-dark-6);
+        box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-gray-6);
+        padding: 8px 24px;
+        width: var(--spotlight-width);
         transition: all 0.2s ease-in-out;
         color: var(--mantine-color-dark-1);
-
-        @include desktop {
-            min-width: 50vw;
-        }
+        z-index: 110;
 
         &:focus {
             outline: none;
         }
     }
+}
+
+.resultsContainer {
+    margin-top: 24px;
+    width: var(--spotlight-width);
+
+    .results {
+        text-align: left;
+
+        .result {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 8px 14px;
+            font-size: var(--mantine-font-size-lg);
+            border-radius: var(--mantine-radius-md);
+            cursor: pointer;
+
+            .icon {
+                position: relative;
+                top: 2px;
+            }
+
+            &.active {
+                background-color: var(--mantine-primary-color-8);
+            }
+        }
+    }
+
 }
