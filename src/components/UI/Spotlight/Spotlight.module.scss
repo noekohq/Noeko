@@ -14,7 +14,7 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    --spotlight-width: 90vw;
+    --spotlight-width: 80vw;
 
     @include desktop {
         --spotlight-width: 50vw;
@@ -41,6 +41,29 @@
     background-color: transparent;
     animation: spotlightFadeIn 0.1s ease-in forwards;
     position: relative;
+
+    .backButton {
+        position: absolute;
+        left: -36px;
+        top: 4px;
+        color: var(--mantine-color-dark-9);
+        padding: 8px 16px;
+        border-radius: var(--mantine-radius-md);
+        background-color: transparent;
+        border: none;
+        transition: all 0.2s ease-in-out;
+        z-index: 105;
+        font-size: 22px;
+        padding: 8px 8px;
+
+        &:focus {
+            outline: none;
+        }
+
+        @include desktop {
+            left: -48px;
+        }
+    }
 
     .input {
         font-family: var(--mantine-font-family);
