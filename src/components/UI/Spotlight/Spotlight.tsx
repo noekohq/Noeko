@@ -16,6 +16,8 @@ import {
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
+import { Text } from "@mantine/core";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 export type ISpotlightOption = {
   id: string;
@@ -38,6 +40,7 @@ export default function Spotlight() {
       layout: {
         spotlight: { close: closeSpotlight },
       },
+      newIdea,
     },
     views: {
       dashboard,
@@ -70,6 +73,15 @@ export default function Spotlight() {
             title: "Close",
             icon: <ArrowLeft weight="bold" />,
             onClick: closeSpotlight,
+          },
+        ],
+        [
+          "newIdea",
+          {
+            id: "newIdea",
+            title: "New Idea",
+            icon: <Lightbulb weight="bold" />,
+            onClick: newIdea,
           },
         ],
         [
@@ -238,12 +250,19 @@ export default function Spotlight() {
     };
   }, [results, active, activeResult]);
 
+  const { isMobile } = useLayout();
+
   if (!spotlightOpened) {
     return null;
   }
 
   return createPortal(
     <div className={styles.spotlightOverlay} onClick={closeSpotlight}>
+      <div className={styles.tipText}>
+        <Text>
+          {isMobile ? "Click anywhere to close." : "Find anything..."}
+        </Text>
+      </div>
       <div className={styles.spotlight} onClick={(e) => e.stopPropagation()}>
         <input
           className={styles.input}

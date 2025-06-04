@@ -323,7 +323,7 @@ export function InteractionProvider({
     ["mod+shift+u", () => setUploadingFile(true)],
     ["mod+shift+a", value.actions.newIdea],
     [
-      "ctrl+k", // Explicitly Ctrl+K on all OSes
+      "mod+k", // Explicitly Ctrl+K on all OSes
       (event) => {
         event.preventDefault();
         setSpotlightOpened((o) => !o);

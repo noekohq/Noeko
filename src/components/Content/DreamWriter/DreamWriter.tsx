@@ -63,6 +63,8 @@ import "highlight.js/styles/github-dark-dimmed.css";
 
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { all, createLowlight } from "lowlight";
+import { useInteraction } from "../../../contexts/InteractionContext";
+import { useHotkeys } from "@mantine/hooks";
 
 const lowlight = createLowlight(all);
 
@@ -247,19 +249,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       [...(dependencies ?? []), initialContent],
     );
 
-    const { toggleLink } = useLink({ editor });
-
-    useShortcuts({
-      shortcuts: [
-        {
-          keys: { meta: true, key: "k" },
-          run: () => {
-            toggleLink();
-          },
-        },
-      ],
-    });
-
     const [droppingOver, setDroppingOver] = useState(false);
     const editorContainerRef = useRef<HTMLDivElement>(null);
 
@@ -280,6 +269,23 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         return () => clearTimeout(timeoutId);
       }
     }, [editor, initialContent, onContentReady]);
+
+    const {
+      actions: {
+        layout: {
+          spotlight: { open: openSpotlight },
+        },
+      },
+    } = useInteraction();
+
+    useHotkeys([
+      [
+        "mod+k",
+        () => {
+          openSpotlight();
+        },
+      ],
+    ]);
 
     return (
       <div
