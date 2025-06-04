@@ -278,14 +278,24 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       },
     } = useInteraction();
 
-    useHotkeys([
-      [
-        "mod+k",
-        () => {
-          openSpotlight();
+    // useHotkeys([
+    //   [
+    //     "mod+k",
+    //     () => {
+    //       openSpotlight();
+    //     },
+    //   ],
+    // ]);
+    useShortcuts({
+      shortcuts: [
+        {
+          keys: { ctrl: true, key: "k" },
+          run: () => {
+            openSpotlight();
+          },
         },
       ],
-    ]);
+    });
 
     return (
       <div

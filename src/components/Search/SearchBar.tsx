@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ISearchOverview, ISearchResult } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
@@ -69,6 +69,11 @@ export function SearchBar({
     },
   });
 
+  const isFocused = () => {
+    const activeElement = document.activeElement;
+    return activeElement === inputRef.current;
+  };
+
   useShortcuts({
     shortcuts: [
       {
@@ -82,10 +87,13 @@ export function SearchBar({
             ...onShortcuts.map((s) => {
               return {
                 keys: s,
-                run: () => {
-                  inputRef.current?.focus();
+                run: (event) => {
+                  if (!isFocused()) {
+                    event.preventDefault();
+                    inputRef.current?.focus();
+                  }
                 },
-              };
+              } as IShortcut;
             }),
           ]
         : []),

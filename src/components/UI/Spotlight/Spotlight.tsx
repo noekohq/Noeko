@@ -377,13 +377,11 @@ export default function Spotlight() {
     subviewDefinitions,
   ]);
 
-  // --- Effect to Focus Input ---
   useEffect(() => {
     if (spotlightOpened) {
-      setSpotlightValue(""); // Clear previous value
-      setCurrentSubviewId(null); // Reset to main view
+      setSpotlightValue("");
+      setCurrentSubviewId(null);
       spotlightRef.current?.focus();
-      // Initial items for main view will be set by search useEffect
     }
   }, [spotlightOpened]);
 
