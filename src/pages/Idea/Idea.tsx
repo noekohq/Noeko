@@ -380,6 +380,30 @@ export default function Idea() {
     }
   };
 
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (loadingSaveChanges) {
+        // Standard way to show a confirmation dialog
+        // Most browsers will show a generic message, not the one you provide.
+        event.preventDefault();
+        // Required for Chrome
+        event.returnValue = "";
+      }
+    };
+
+    if (loadingSaveChanges) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    } else {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    // Cleanup function to remove the event listener when the component unmounts
+    // or before the effect runs again if hasUnsavedChanges changes.
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [loadingSaveChanges]); // Re-run the effect if loadingSaveChanges changes
+
   return (
     <PageWrapper>
       <LeftSidebar>

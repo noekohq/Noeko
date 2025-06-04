@@ -111,7 +111,12 @@ export default function LeftSidebar({
           canBeToggled={canBeToggled}
           onToggleClick={handleToggleSidebar} // Pass the toggle handler
         />
-        <Stack w="100%">
+        <Flex
+          w="100%"
+          direction={isEffectivelyOpen ? "column" : "row"}
+          justify={isEffectivelyOpen ? "flex-start" : "flex-end"}
+          gap="md"
+        >
           {isEffectivelyOpen ? (
             <Tooltip label="Share your thoughts or report an issue">
               <Button
@@ -159,7 +164,7 @@ export default function LeftSidebar({
               </Link>
             </Tooltip>
           )}
-        </Stack>
+        </Flex>
 
         {isEffectivelyOpen && children && (
           <>

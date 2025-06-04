@@ -35,6 +35,7 @@ import {
   UsersThree,
 } from "@phosphor-icons/react";
 import Search from "../Search/Search";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 type RightSidebarProps = {
   children?: React.ReactNode;
@@ -199,6 +200,14 @@ function RightSidebarHeader({
     { label: "Settings", icon: Gear, path: "/settings" },
   ];
 
+  const {
+    actions: {
+      layout: {
+        spotlight: { open: openSpotlight },
+      },
+    },
+  } = useInteraction();
+
   return (
     <Flex
       justify={
@@ -303,6 +312,12 @@ function RightSidebarHeader({
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>
+
+        <Tooltip label="Open spotlight">
+          <ActionIcon variant="subtle" onClick={openSpotlight}>
+            <MagnifyingGlass />
+          </ActionIcon>
+        </Tooltip>
 
         {(isEffectivelyOpen || (!canBeToggled && !isEffectivelyOpen)) &&
           isSuperuser && (
