@@ -290,7 +290,8 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       shortcuts: [
         {
           keys: { ctrl: true, key: "k" },
-          run: () => {
+          run: (e) => {
+            e.preventDefault();
             openSpotlight();
           },
         },
