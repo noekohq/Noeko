@@ -69,10 +69,9 @@ h5 {
 }
 
 .image {
-    cursor: pointer; // Kept non-color style
+    cursor: pointer;
 
     &:active {
-        // Replaced --color-primary with --mantine-color-primary for outline
         outline: 3px solid var(--mantine-color-primary);
     }
 }
@@ -87,21 +86,17 @@ h5 {
 }
 
 .code {
-    color: var(--mantine-color-text);
-    background-color: var(--mantine-color-dark-5);
+    color: var(--color-code-foreground);
+    background-color: var(--color-code-background);
     border-radius: var(--mantine-radius-md);
     padding: 4px 8px;
-    font-size: inherit;
 }
 
 .strike {
-    // No styles defined, kept as is
-    text-decoration: line-through; // Added standard strike-through for clarity
+    text-decoration: line-through;
 }
 
 .taskList {
-    /* padding: 0; */
-
     .taskItem {
         display: flex;
         align-items: center;
