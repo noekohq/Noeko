@@ -5,7 +5,6 @@ import Suggestion, {
   SuggestionOptions,
   SuggestionProps,
 } from "@tiptap/suggestion";
-import tippy, { Instance as TippyInstance } from "tippy.js";
 
 import styles from "./styles/DreamConnection.module.scss";
 
@@ -15,7 +14,6 @@ import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
 import { Lightbulb } from "@phosphor-icons/react";
 import { getNodeTitle } from "../../../../utils/graph";
-import { useRef } from "react";
 
 // --- Type Definitions ---
 export interface IDreamConnectionOptions {
@@ -47,6 +45,7 @@ const suggestionOptionsDefinition = (
 ): Omit<SuggestionOptions<IDreamConnectionItem>, "editor"> => {
   return {
     char: "$",
+    allowSpaces: true,
     items: async ({ query }) => {
       return await fetchDreamConnectionItems(query);
     },

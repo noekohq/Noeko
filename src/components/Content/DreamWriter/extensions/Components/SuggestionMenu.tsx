@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef, useEffect, useMemo, useRef } from "react";
 import {
   useFloating,
   autoUpdate,
@@ -7,6 +7,7 @@ import {
   shift,
   FloatingPortal,
   FloatingFocusManager,
+  size,
 } from "@floating-ui/react";
 import styles from "./SuggestionMenu.module.scss";
 import { Card } from "@mantine/core";
@@ -39,28 +40,62 @@ const SuggestionMenu = ({
     }),
     [getReferenceClientRect],
   );
+  const listRef = useRef<HTMLDivElement>(null); // Ref for the scrollable list container
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]); // Refs for each item
 
   const { refs, floatingStyles, context } = useFloating({
     whileElementsMounted: autoUpdate,
     placement: "bottom-start",
-    middleware: [offset(5), flip({ padding: 10 }), shift({ padding: 10 })],
+    middleware: [
+      offset(5),
+      flip({ padding: 10 }),
+      shift({ padding: 10 }),
+      size({
+        apply({ availableHeight, elements }) {
+          // 3. Apply the calculated max-height to the floating element
+          Object.assign(elements.floating.style, {
+            maxHeight: `${availableHeight}px`,
+          });
+        },
+        padding: 10, // Keep a 10px buffer from the viewport edge
+      }),
+    ],
   });
 
-  refs.setReference(virtualElement);
+  useEffect(() => {
+    const activeItem = itemRefs.current[activeIndex];
+    if (activeItem) {
+      activeItem.scrollIntoView({
+        block: "nearest", // Avoids scrolling if the item is already visible
+      });
+    }
+  }, [activeIndex]);
+
+  useEffect(() => {
+    refs.setReference(virtualElement);
+    if (listRef.current) {
+      refs.setFloating(listRef.current);
+    }
+  }, [refs, virtualElement, listRef]);
 
   return (
     <FloatingPortal>
       {/* Manages focus, making the menu accessible */}
       <FloatingFocusManager context={context} modal={false}>
         <div
-          ref={refs.setFloating}
+          ref={listRef}
           style={floatingStyles}
           className={styles.suggestionMenu}
           role="listbox" // ARIA role for a list of options
           aria-activedescendant={items[activeIndex]?.id} // Points to the active item's ID
         >
+          {!items.length && (
+            <div className={styles.item}>No suggestions available</div>
+          )}
           {items.map((item, index) => (
             <Suggestion
+              ref={(node) => (itemRefs.current[index] = node)}
+              key={item.id}
               item={item}
               select={() => onSelectionMade(index)}
               active={index === activeIndex}
@@ -80,23 +115,25 @@ type ISuggestionProps = {
   active: boolean;
 };
 
-function Suggestion({ item, select, active }: ISuggestionProps) {
-  return (
-    <div
-      role="option"
-      key={item.id}
-      id={item.id}
-      aria-selected={active}
-      className={`${styles.item} ${active ? styles.active : ""}`}
-      onClick={() => select()}
-    >
-      {item.icon && <div className={styles.icon}>{item.icon}</div>}
-      <div className={styles.details}>
-        <div className={styles.label}>{item.label}</div>
-        {item.description && (
-          <div className={styles.description}>{item.description}</div>
-        )}
+const Suggestion = React.forwardRef<HTMLDivElement, ISuggestionProps>(
+  ({ item, select, active }, ref) => {
+    return (
+      <div
+        ref={ref} // Attach the ref here
+        role="option"
+        id={item.id}
+        aria-selected={active}
+        className={`${styles.item} ${active ? styles.active : ""}`}
+        onClick={() => select()}
+      >
+        {item.icon && <div className={styles.icon}>{item.icon}</div>}
+        <div className={styles.details}>
+          <div className={styles.label}>{item.label}</div>
+          {item.description && (
+            <div className={styles.description}>{item.description}</div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+);
