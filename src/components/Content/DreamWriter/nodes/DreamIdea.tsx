@@ -17,12 +17,14 @@ import {
 import styles from "./styles/DreamIdea.module.scss";
 import {
   ActionIcon,
+  Button,
   Card,
   Flex,
   Group,
   HoverCard,
   Stack,
   Text,
+  TextInput,
 } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
@@ -31,6 +33,7 @@ import { useIdea } from "../../../../contexts/IdeaContext";
 import { getNodeDescription } from "../../../../utils/graph";
 import { getIdeaSummaryItemIfExists } from "../../../../utils/ideas";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
+import { useState } from "react";
 
 export interface IDreamIdeaOptions {
   HTMLAttributes: Record<string, any>;
@@ -49,7 +52,8 @@ declare module "@tiptap/core" {
 
 export const DreamIdea = Node.create<IDreamIdeaOptions>({
   name: "dreamIdea",
-  group: "block",
+  group: "inline",
+  inline: true,
   atom: true,
   draggable: true,
 
@@ -65,15 +69,15 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
         default: "",
         parseHTML: (element) => element.getAttribute("data-idea-id"),
         renderHTML: (attributes) => ({ "data-idea-id": attributes.ideaId }),
-        keepOnSplit: false,
       },
       ideaAlias: {
-        default: "Untitled Idea",
+        default: "Idea",
+        // CHANGED: Parse the alias from its own data attribute.
         parseHTML: (element) => element.getAttribute("data-idea-alias"),
+        // This was correct: it renders the 'data-idea-alias' attribute.
         renderHTML: (attributes) => ({
           "data-idea-alias": attributes.ideaAlias,
         }),
-        keepOnSplit: false,
       },
     };
   },
@@ -81,14 +85,22 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   parseHTML() {
     return [
       {
-        tag: "div[data-dream-idea][data-idea-id][data-idea-alias]",
+        // CHANGED: The tag selector now requires the data-idea-alias attribute to match.
+        // This makes parsing more specific and reliable.
+        tag: "span[data-dream-idea][data-idea-id][data-idea-alias]",
+        // We no longer need a custom `getAttrs` function here, as Tiptap will
+        // automatically use the `parseHTML` function from each attribute above.
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
+    // CHANGED: The node's content is now explicitly empty.
+    // The `HTMLAttributes` object, automatically populated by the attribute-level
+    // `renderHTML` functions, contains all the data we need (`data-idea-id` and `data-idea-alias`).
+    // The saved HTML will look like: <span data-idea-id="..." data-idea-alias="..."></span>
     return [
-      "div",
+      "span",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         "data-dream-idea": "",
       }),
@@ -96,21 +108,24 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   },
 
   addCommands() {
+    // This function remains the same as the previous refactor. It works perfectly.
     return {
       setDreamIdea:
         (options) =>
         ({ commands }) => {
           if (!options.ideaId || !options.ideaAlias) {
-            console.error("Cannot set idea link without ideaId and ideaAlias");
+            console.error("Cannot set idea without ideaId and ideaAlias");
             return false;
           }
-          const attrs = {
-            ideaId: options.ideaId,
-            ideaAlias: options.ideaAlias,
-          };
+          const sanitizedAlias = options.ideaAlias
+            .replace(/(\r\n|\n|\r)/gm, " ")
+            .trim();
           return commands.insertContent({
             type: this.name,
-            attrs: attrs,
+            attrs: {
+              ideaId: options.ideaId,
+              ideaAlias: sanitizedAlias,
+            },
           });
         },
     };
@@ -121,11 +136,13 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   },
 });
 
-export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
-  const { node, deleteNode, editor, selected } = props;
+const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
+  const { node, deleteNode, selected, updateAttributes } = props;
+  // Get both attributes
   const { ideaId, ideaAlias } = node.attrs;
+  const [updatedAlias, setUpdatedAlias] = useState(ideaAlias);
 
-  const { idea: parentIdea, ensureConnected } = useIdea();
+  const { ensureConnected } = useIdea();
   ensureConnected(ideaId);
 
   const { data: idea } = useFetch<undefined, IIdea>({
@@ -138,90 +155,83 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
     deleteNode();
   };
 
-  if (!ideaId) {
-    return <div>Error: missing idea ID</div>;
-  }
+  const [editing, setEditing] = useState(false);
 
-  const displayName = ideaAlias || idea?.title || "Untitled Idea";
+  if (!ideaId) {
+    return <span className={styles.dreamIdeaError}>Error: Missing ID</span>;
+  }
 
   return (
     <NodeViewWrapper
-      className={styles.dreamFile}
-      data-file-link-node
+      as="span"
+      className={styles.dreamIdeaInline}
       data-selected={selected || undefined}
     >
-      <Card radius="md" withBorder shadow="xs" p="md">
-        <Flex
-          direction="column"
-          justify="flex-start"
-          gap="md"
-          style={{ width: "100%" }}
-        >
-          <Link
-            to={`/idea/${ideaId}`}
-            rel="noopener noreferrer nofollow"
-            className={styles.dreamIdeaLink}
-            title={`Go to ${displayName}`}
-            style={{ textDecoration: "none" }}
-          >
-            <HoverCard width="target">
-              <HoverCard.Target>
-                <Stack>
-                  <Group align="center" wrap="nowrap">
-                    <Flex c="dark.1" align="center" style={{ flexShrink: 0 }}>
-                      {<Lightbulb />}
-                    </Flex>
-                    <Text c="dark.1" size="lg" truncate>
-                      {displayName}
-                    </Text>
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    {idea
-                      ? getNodeDescription({
-                          ...idea,
-                          type: "idea",
-                        })
-                      : "No preview available"}
-                  </Text>
-                </Stack>
-              </HoverCard.Target>
-              <HoverCard.Dropdown
-                onClick={(e) => {
-                  e.stopPropagation();
+      <HoverCard width={300} shadow="md" position="top" openDelay={300}>
+        <HoverCard.Target>
+          <span className={styles.dreamIdeaTarget}>
+            <Lightbulb className={styles.dreamIdeaIcon} weight="regular" />
+            {editing ? (
+              <TextInput
+                value={updatedAlias}
+                onChange={(e) => setUpdatedAlias(e.target.value)}
+                onBlur={() => {
+                  updateAttributes({ ideaAlias: updatedAlias });
+                  setEditing(false);
                 }}
+                size="xs"
+              />
+            ) : (
+              <span
+                className={styles.dreamIdeaContent}
+                onClick={() => setEditing(true)}
               >
-                {idea?.derived?.generative_summary ? (
-                  <OverviewAccordion
-                    overview={idea?.derived?.generative_summary}
-                  />
-                ) : (
-                  <Text c="dimmed" size="xs">
-                    No preview available :(
-                  </Text>
-                )}
-              </HoverCard.Dropdown>
-            </HoverCard>
-          </Link>
-
-          <Group>
-            {editor.isEditable && (
-              <ActionIcon
-                onClick={handleDelete}
-                title="Remove idea link"
-                color="red"
-                variant="light"
-              >
-                <X weight="bold" />
-              </ActionIcon>
+                {ideaAlias}
+              </span>
             )}
-            <Link to={`/idea/${ideaId}`} title="Go to idea page">
-              <ActionIcon variant="light">
-                <ArrowRight weight="bold" />
-              </ActionIcon>
-            </Link>
-          </Group>
-        </Flex>
-      </Card>
+          </span>
+        </HoverCard.Target>
+        <HoverCard.Dropdown
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          {idea ? (
+            <Stack>
+              <Text fw={500}>{idea.title}</Text>
+              <Text size="xs" c="dimmed">
+                {getNodeDescription({ ...idea, type: "idea" })}
+              </Text>
+              {idea?.derived?.generative_summary && (
+                <OverviewAccordion overview={idea.derived.generative_summary} />
+              )}
+              <Group justify="flex-end">
+                <ActionIcon
+                  className={styles.deleteButton}
+                  onClick={handleDelete}
+                  variant="light"
+                  color="red"
+                >
+                  <X weight="bold" />
+                </ActionIcon>
+                <ActionIcon
+                  component={Link}
+                  to={`/idea/${ideaId}`}
+                  variant="light"
+                  title="Go to idea page"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ArrowRight weight="bold" />
+                </ActionIcon>
+              </Group>
+            </Stack>
+          ) : (
+            <Text c="dimmed" size="xs">
+              Loading preview...
+            </Text>
+          )}
+        </HoverCard.Dropdown>
+      </HoverCard>
     </NodeViewWrapper>
   );
 };

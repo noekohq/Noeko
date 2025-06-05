@@ -24,6 +24,10 @@ import Dropcursor from "@tiptap/extension-dropcursor";
 import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import {
   BlockquoteButton,
   BoldButton,
@@ -181,9 +185,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               class: contentStyles.link,
             },
           }),
-          Dropcursor.configure({
-            color: "var(--color-accent)",
-          }),
+          Dropcursor.configure({}),
           Typography.configure({}),
           TaskList.configure({
             HTMLAttributes: {
@@ -203,6 +205,12 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             bulletListMarker: "-",
             breaks: true,
           }),
+          Table.configure({
+            resizable: true,
+          }),
+          TableRow,
+          TableHeader,
+          TableCell,
           DreamImage.configure({
             HTMLAttributes: {
               class: contentStyles.image,
@@ -293,6 +301,15 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           run: (e) => {
             e.preventDefault();
             openSpotlight();
+          },
+        },
+        {
+          keys: {
+            key: "Tab",
+          },
+          run: (e) => {
+            e.preventDefault();
+            editor?.commands.insertContent("\t");
           },
         },
       ],
