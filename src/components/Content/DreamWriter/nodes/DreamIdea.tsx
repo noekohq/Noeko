@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Check,
   DownloadSimple,
   File,
   FilePdf,
@@ -170,7 +171,20 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
       <HoverCard width={300} shadow="md" position="top" openDelay={300}>
         <HoverCard.Target>
           <span className={styles.dreamIdeaTarget}>
-            <Lightbulb className={styles.dreamIdeaIcon} weight="regular" />
+            {editing ? (
+              <ActionIcon
+                onClick={() => {
+                  updateAttributes({ ideaAlias: updatedAlias });
+                  setEditing(false);
+                }}
+                variant="subtle"
+                size="xs"
+              >
+                <Check size={16} />
+              </ActionIcon>
+            ) : (
+              <Lightbulb className={styles.dreamIdeaIcon} weight="regular" />
+            )}
             {editing ? (
               <TextInput
                 value={updatedAlias}
