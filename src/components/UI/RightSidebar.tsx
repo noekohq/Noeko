@@ -27,6 +27,7 @@ import {
   Graph,
   HouseSimple,
   Lightbulb,
+  ListMagnifyingGlass,
   MagnifyingGlass,
   Scroll,
   ShieldStar,
@@ -315,7 +316,7 @@ function RightSidebarHeader({
 
         <Tooltip label="Open spotlight">
           <ActionIcon variant="subtle" onClick={openSpotlight}>
-            <MagnifyingGlass />
+            <ListMagnifyingGlass />
           </ActionIcon>
         </Tooltip>
 
