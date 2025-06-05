@@ -1,0 +1,18 @@
+.dreamIdeaInline {
+    & .dreamIdeaTarget {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--mantine-spacing-xs);
+        background-color: var(--mantine-color-body);
+        box-shadow: var(--mantine-shadow-xs);
+        padding: 2px var(--mantine-spacing-xs);
+        border-radius: var(--mantine-radius-md);
+        border: 1px solid var(--mantine-color-gray-3);
+        cursor: pointer;
+    }
+
+    & .dreamIdeaIcon {
+        color: var(--mantine-color-gray-6);
+        font-size: var(--mantine-font-size-sm);
+    }
+}
