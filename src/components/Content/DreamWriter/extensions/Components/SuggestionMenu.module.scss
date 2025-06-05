@@ -1,0 +1,15 @@
+.suggestionMenu {
+    background-color: var(--button-bg);
+}
+
+.item {
+    display: flex;
+    padding: var(--mantine-spacing-sm);
+    border: 1px solid var(--mantine-color-white);
+    border-radius: var(--mantine-radius-sm);
+
+    &.active {
+        background-color: var(--mantine-color-body);
+        color: var(--mantine-color-text);
+    }
+}

@@ -1339,7 +1339,7 @@ export class Idea {
         idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
         idea.embeddings?.length !== 0
       ) {
-        return undefined;
+        return false;
       }
       const embedding = new Embeddings();
       const embeddableContent = Idea.getEmbeddableContent(idea);

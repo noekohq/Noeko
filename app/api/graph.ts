@@ -354,12 +354,12 @@ router.post(
         });
         return;
       }
-      const idea = await Idea.loadEmbeddings(id);
-      if (!idea) {
-        res.status(404).json({ error: "Idea not found" });
+      const embedded = await Idea.loadEmbeddings(id);
+      if (embedded === undefined) {
+        res.status(400).json({ error: "Could not embed idea." });
         return;
       }
-      res.send({ message: "Successfully loaded embeddings.", data: idea });
+      res.send({ message: "Successfully loaded embeddings.", data: embedded });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal Server Error" });

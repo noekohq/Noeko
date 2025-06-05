@@ -1,3 +1,4 @@
+import { createRoot } from "react-dom/client";
 import { Extension } from "@tiptap/core";
 import Suggestion, {
   SuggestionKeyDownProps,
@@ -6,19 +7,19 @@ import Suggestion, {
 } from "@tiptap/suggestion";
 import tippy, { Instance as TippyInstance } from "tippy.js";
 
-// --- CSS Modules Import ---
-// Assume DreamConnection.module.scss exists and exports class names
 import styles from "./styles/DreamConnection.module.scss";
 
-// --- Database Model Types (Ensure these paths are correct) ---
 import { IIdea } from "../../../../../app/database/models/ideas";
 import { IUserFile } from "../../../../../app/database/models/userfile";
 import { api } from "../../../../server/api";
+import SuggestionMenu from "./Components/SuggestionMenu";
+import { Lightbulb } from "@phosphor-icons/react";
+import { getNodeTitle } from "../../../../utils/graph";
+import { useRef } from "react";
 
 // --- Type Definitions ---
 export interface IDreamConnectionOptions {
   allowedTypes?: string[];
-  // Add other potential options for your extension here
 }
 
 export type IDreamConnectionItem =
@@ -41,7 +42,6 @@ async function fetchDreamConnectionItems(
   }
 }
 
-// --- Suggestion Configuration Object ---
 const suggestionOptionsDefinition = (
   styles: Record<string, string>,
 ): Omit<SuggestionOptions<IDreamConnectionItem>, "editor"> => {
@@ -51,125 +51,78 @@ const suggestionOptionsDefinition = (
       return await fetchDreamConnectionItems(query);
     },
     render: () => {
-      let element: HTMLElement | null = document.createElement("div");
-      element.classList.add(styles.suggestionList);
-      let tippyInstance: TippyInstance | null = null;
+      let element: HTMLElement | null = null;
+      let root: import("react-dom/client").Root | null = null;
       let currentProps: SuggestionProps<IDreamConnectionItem> | null = null;
       let activeIndex = 0;
 
-      const highlightItem = (index: number) => {
-        activeIndex = index;
-        if (!element) return;
-        element
-          .querySelectorAll(`.${styles.suggestionItem}`)
-          .forEach((itemEl, i) => {
-            if (i === index) {
-              itemEl.classList.add(styles.isSelected);
-              itemEl.scrollIntoView({ block: "nearest" });
-            } else {
-              itemEl.classList.remove(styles.isSelected);
-            }
-          });
-      };
+      const renderListItems = () => {
+        if (!currentProps || !root) return;
+        console.log("Rendering list items!", root, currentProps);
 
-      const renderListItems = (
-        props: SuggestionProps<IDreamConnectionItem>,
-      ) => {
-        currentProps = props;
-        if (!element) return;
-
-        element.innerHTML = "";
-        activeIndex = 0;
-
-        if (props.items.length === 0) {
-          element.innerHTML = `<div class="${styles.suggestionItem} ${styles.isEmpty}">No results found</div>`;
-          // tippyInstance?.hide();
-          return;
-        } else {
-          tippyInstance?.show();
-        }
-
-        props.items.forEach((item, index) => {
-          const itemElement = document.createElement("button");
-          itemElement.className = styles.suggestionItem;
-          itemElement.textContent =
-            item.type === "idea" ? item.title : item.originalFileName;
-          itemElement.dataset.index = String(index);
-
-          itemElement.addEventListener("click", (event) => {
-            event.preventDefault();
-            props.command(item);
-          });
-
-          itemElement.addEventListener("mouseenter", () => {
-            highlightItem(index);
-          });
-
-          element?.appendChild(itemElement);
-        });
-
-        highlightItem(0);
+        root.render(
+          <SuggestionMenu
+            items={currentProps.items.map((s) => {
+              return {
+                id: s.id.toString(),
+                label: getNodeTitle(s) ?? "Unknown",
+                icon: <Lightbulb />,
+              };
+            })}
+            activeIndex={activeIndex}
+            getReferenceClientRect={currentProps.clientRect as () => DOMRect}
+            onSelectionMade={(index) => {
+              // Use a guard in case items change.
+              const item = currentProps?.items[index];
+              if (!item) return;
+              currentProps?.command(item);
+            }}
+          />,
+        );
       };
 
       return {
         onStart: (props) => {
+          // FIX: Create the element here and append it to the body.
           element = document.createElement("div");
-          element.className = styles.suggestionList;
+          element.classList.add(styles.suggestionList);
+          document.body.appendChild(element);
 
-          renderListItems(props);
-
-          if (element) {
-            tippyInstance = tippy(document.body, {
-              getReferenceClientRect: props.clientRect as () => DOMRect,
-              appendTo: () => document.body,
-              content: element,
-              showOnCreate: true,
-              interactive: true,
-              trigger: "manual",
-              placement: "bottom-start",
-            });
-          }
-
-          // if (props.items.length === 0) {
-          //   tippyInstance?.hide();
-          // }
+          root = createRoot(element);
+          currentProps = props;
+          activeIndex = 0; // Reset on start
+          renderListItems();
         },
 
         onUpdate: (props) => {
-          if (!element || !tippyInstance) return;
-          renderListItems(props);
-          // tippyInstance.popperInstance?.update(); // Usually not needed with getReferenceClientRect
-        },
-
-        onExit: () => {
-          tippyInstance?.destroy();
-          element?.remove();
-          element = null;
-          tippyInstance = null;
-          currentProps = null;
-          activeIndex = 0;
+          currentProps = props;
+          activeIndex = 0; // Reset on update (e.g., new query)
+          renderListItems();
         },
 
         onKeyDown: ({ event }: SuggestionKeyDownProps) => {
           if (
             !element ||
-            !tippyInstance ||
+            !root ||
             !currentProps ||
             currentProps.items.length === 0
-          )
+          ) {
             return false;
+          }
 
           const itemCount = currentProps.items.length;
 
           if (event.key === "ArrowUp") {
             activeIndex = (activeIndex - 1 + itemCount) % itemCount;
-            highlightItem(activeIndex);
+            // FIX: Re-render the component to show the new active index.
+            renderListItems();
             return true;
           }
 
           if (event.key === "ArrowDown") {
             activeIndex = (activeIndex + 1) % itemCount;
-            highlightItem(activeIndex);
+            // FIX: Re-render the component to show the new active index.
+            renderListItems();
             return true;
           }
 
@@ -183,6 +136,19 @@ const suggestionOptionsDefinition = (
           }
 
           return false;
+        },
+
+        onExit: () => {
+          // The unmount and removal should be robust enough to prevent the race condition.
+          // React's unmount will handle cleanup of hooks like useFloating.
+          root?.unmount();
+          element?.remove();
+
+          // Reset all state variables
+          element = null;
+          root = null;
+          currentProps = null;
+          activeIndex = 0;
         },
       };
     },
@@ -218,7 +184,6 @@ const suggestionOptionsDefinition = (
   };
 };
 
-// --- Tiptap Extension ---
 export const DreamConnection = Extension.create<IDreamConnectionOptions>({
   name: "dreamConnection",
 
@@ -229,7 +194,6 @@ export const DreamConnection = Extension.create<IDreamConnectionOptions>({
   },
 
   addProseMirrorPlugins() {
-    // Generate options with styles object here
     const suggestionPluginOptions = suggestionOptionsDefinition(styles);
 
     return [
