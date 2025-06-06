@@ -308,8 +308,8 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             key: "Tab",
           },
           run: (e) => {
-            e.preventDefault();
-            editor?.commands.insertContent("\t");
+            // e.preventDefault();
+            // editor?.commands.insertContent("\t");
           },
         },
       ],
