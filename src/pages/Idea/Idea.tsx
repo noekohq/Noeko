@@ -554,11 +554,7 @@ export default function Idea() {
               <Tooltip label="Copy as Markdown">
                 <Menu trigger="hover">
                   <Menu.Target>
-                    <ActionIcon
-                      variant="default"
-                      size="md"
-                      onClick={downloadAsMarkdown}
-                    >
+                    <ActionIcon variant="default" size="md">
                       <CopySimple />
                     </ActionIcon>
                   </Menu.Target>
