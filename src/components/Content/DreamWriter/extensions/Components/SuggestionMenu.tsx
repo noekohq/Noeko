@@ -10,7 +10,6 @@ import {
   size,
 } from "@floating-ui/react";
 import styles from "./SuggestionMenu.module.scss";
-import { Card } from "@mantine/core";
 
 type ISuggestionItem = {
   id: string;
@@ -43,6 +42,9 @@ const SuggestionMenu = ({
   const listRef = useRef<HTMLDivElement>(null); // Ref for the scrollable list container
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]); // Refs for each item
 
+  console.log("Virtual element:", virtualElement);
+  console.log("Rect in react: ", virtualElement.getBoundingClientRect());
+
   const { refs, floatingStyles, context } = useFloating({
     whileElementsMounted: autoUpdate,
     placement: "bottom-start",
@@ -62,6 +64,21 @@ const SuggestionMenu = ({
     ],
   });
 
+  console.log("Floating styles:", floatingStyles);
+  const transform = getTransformFromDomRect(
+    virtualElement.getBoundingClientRect(),
+  );
+
+  const correctedFloatingStyles = () => {
+    if (!floatingStyles.transform) {
+      return {
+        ...floatingStyles,
+        transform,
+      };
+    }
+    return floatingStyles;
+  };
+
   useEffect(() => {
     const activeItem = itemRefs.current[activeIndex];
     if (activeItem) {
@@ -78,19 +95,23 @@ const SuggestionMenu = ({
     }
   }, [refs, virtualElement, listRef]);
 
+  console.log("Active index: ", activeIndex);
+
   return (
     <FloatingPortal>
       {/* Manages focus, making the menu accessible */}
       <FloatingFocusManager context={context} modal={false}>
         <div
           ref={listRef}
-          style={floatingStyles}
+          style={correctedFloatingStyles()}
           className={styles.suggestionMenu}
           role="listbox" // ARIA role for a list of options
           aria-activedescendant={items[activeIndex]?.id} // Points to the active item's ID
         >
           {!items.length && (
-            <div className={styles.item}>No suggestions available</div>
+            <div className={styles.item}>
+              <div className={styles.label}>No suggestions available</div>
+            </div>
           )}
           {items.map((item, index) => (
             <Suggestion
@@ -137,3 +158,7 @@ const Suggestion = React.forwardRef<HTMLDivElement, ISuggestionProps>(
     );
   },
 );
+
+function getTransformFromDomRect(rect: DOMRect) {
+  return `translate(${rect.left}px, ${rect.top + rect.height}px)`;
+}

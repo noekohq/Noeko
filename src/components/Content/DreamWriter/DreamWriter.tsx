@@ -23,7 +23,6 @@ import Link from "@tiptap/extension-link";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
 import Table from "@tiptap/extension-table";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
@@ -61,7 +60,10 @@ import { DreamFileHandler } from "./extensions/DreamFileHandler";
 import { Group, Overlay, Text } from "@mantine/core";
 import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
+import { DreamSlash } from "./extensions/DreamSlash";
 import { Markdown } from "tiptap-markdown";
+import { Indent } from "./extensions/Indent";
+import { CustomTaskItem } from "./extensions/TaskItem";
 
 // import "highlight.js/styles/github-dark-dimmed.css";
 import "./lib/qwest-highlight.scss";
@@ -192,7 +194,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               class: contentStyles.taskList,
             },
           }),
-          TaskItem.configure({
+          CustomTaskItem.configure({
             nested: true,
             HTMLAttributes: {
               class: contentStyles.taskItem,
@@ -207,10 +209,39 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }),
           Table.configure({
             resizable: true,
+            HTMLAttributes: {
+              class: contentStyles.table,
+            },
           }),
-          TableRow,
-          TableHeader,
-          TableCell,
+          TableRow.configure({
+            HTMLAttributes: {
+              class: contentStyles.tableRow,
+            },
+          }),
+          TableHeader.configure({
+            HTMLAttributes: {
+              class: contentStyles.tableHeader,
+            },
+          }),
+          TableCell.configure({
+            HTMLAttributes: {
+              class: contentStyles.tableCell,
+            },
+          }),
+          Indent.configure({
+            types: [
+              "paragraph",
+              "heading",
+              "blockquote",
+              "list",
+              "code",
+              "table",
+              "image",
+              "file",
+              "idea",
+              "connection",
+            ],
+          }),
           DreamImage.configure({
             HTMLAttributes: {
               class: contentStyles.image,
@@ -228,6 +259,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }),
           DreamFileHandler.configure({}),
           DreamConnection.configure({}),
+          DreamSlash.configure({}),
         ],
         content,
         onUpdate: ({ editor: e }) => {

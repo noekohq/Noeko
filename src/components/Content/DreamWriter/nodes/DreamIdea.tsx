@@ -194,6 +194,15 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
                   setEditing(false);
                 }}
                 size="xs"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    updateAttributes({ ideaAlias: updatedAlias });
+                    setEditing(false);
+                  }
+                  if (e.key === "Escape") {
+                    setEditing(false);
+                  }
+                }}
               />
             ) : (
               <span
