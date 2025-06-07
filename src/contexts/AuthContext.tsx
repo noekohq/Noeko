@@ -8,10 +8,12 @@ import React, {
 import { ISafeUser } from "../../app/database/models/user";
 import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
+import { getReferralLinkFromCode } from "../vars/users";
 
 type AuthState = {
   user: (ISafeUser & { totalIdeas: number }) | undefined;
   loading: boolean;
+  referralLink: string | undefined;
 };
 
 type AuthActions = {
@@ -28,6 +30,7 @@ type IAuthContext = AuthState & AuthActions;
 const initialAuthState: AuthState = {
   user: undefined,
   loading: true,
+  referralLink: "",
 };
 
 const initialAuthActions: AuthActions = {
@@ -137,6 +140,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logout,
         reload,
         loggedIn: !!user?.id,
+        referralLink: user?.referralCode
+          ? getReferralLinkFromCode(user.referralCode)
+          : undefined,
       }) satisfies IAuthContext,
     [user, loading, setTokens, clearTokens, login, logout, reload],
   );

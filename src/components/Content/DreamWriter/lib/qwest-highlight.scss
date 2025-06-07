@@ -1,0 +1,135 @@
+/*
+ * Highlight.js Theme: Gruvbox-style using Mantine.js CSS Variables
+ * Author: Gemini
+ * Description: A Gruvbox-inspired theme that uses Mantine's color system for seamless UI integration.
+ */
+
+/* Comments and Metadata */
+.hljs-comment,
+.hljs-meta {
+    color: var(--mantine-color-gray-6);
+    font-style: italic;
+}
+
+[data-mantine-color-scheme="dark"] .hljs-comment,
+[data-mantine-color-scheme="dark"] .hljs-meta {
+    color: var(--mantine-color-gray-7);
+}
+
+/* Keywords, Sections, Symbols */
+.hljs-keyword,
+.hljs-section,
+.hljs-symbol,
+.hljs-name, /* e.g., CSS selectors */
+.hljs-tag,
+.hljs-attr {
+    /* HTML attributes */
+    color: var(--mantine-color-red-6);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-keyword,
+[data-mantine-color-scheme="dark"] .hljs-section,
+[data-mantine-color-scheme="dark"] .hljs-symbol,
+[data-mantine-color-scheme="dark"] .hljs-name,
+[data-mantine-color-scheme="dark"] .hljs-tag,
+[data-mantine-color-scheme="dark"] .hljs-attr {
+    color: var(--mantine-color-red-5);
+}
+
+/* Strings, RegEx, Template Variables */
+.hljs-string,
+.hljs-regexp,
+.hljs-template-variable,
+.hljs-variable.language_ {
+    /* e.g., bash's $VAR */
+    color: var(--mantine-color-green-7);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-string,
+[data-mantine-color-scheme="dark"] .hljs-regexp,
+[data-mantine-color-scheme="dark"] .hljs-template-variable,
+[data-mantine-color-scheme="dark"] .hljs-variable.language_ {
+    color: var(--mantine-color-green-6);
+}
+
+/* Functions, Class Names, Titles */
+.hljs-function,
+.hljs-function .hljs-title,
+.hljs-class .hljs-title {
+    color: var(--mantine-color-blue-6);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-function,
+[data-mantine-color-scheme="dark"] .hljs-function .hljs-title,
+[data-mantine-color-scheme="dark"] .hljs-class .hljs-title {
+    color: var(--mantine-color-blue-5);
+}
+
+/* Types, Attributes, Built-ins, Literal values (true, false, null) */
+.hljs-type,
+.hljs-built_in,
+.hljs-literal {
+    color: var(--mantine-color-teal-8);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-type,
+[data-mantine-color-scheme="dark"] .hljs-built_in,
+[data-mantine-color-scheme="dark"] .hljs-literal {
+    color: var(--mantine-color-teal-6);
+}
+
+/* Numbers, Variables */
+.hljs-number,
+.hljs-variable {
+    color: var(--mantine-color-orange-7);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-number,
+[data-mantine-color-scheme="dark"] .hljs-variable {
+    color: var(--mantine-color-orange-5);
+}
+
+/* Special Keywords, Operators, Punctuation */
+.hljs-punctuation,
+.hljs-operator {
+    color: var(--mantine-color-grape-2);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-punctuation,
+[data-mantine-color-scheme="dark"] .hljs-operator {
+    color: var(--mantine-color-grape-5);
+}
+
+/* Using your 'highlight' color for emphasis */
+.hljs-emphasis {
+    color: var(--mantine-color-highlight-8);
+    font-style: italic;
+}
+
+.hljs-strong {
+    color: var(--mantine-color-highlight-8);
+    font-weight: bold;
+}
+
+/* Additions & Deletions for diffs */
+.hljs-addition {
+    background-color: var(
+        --mantine-color-green-2
+    ); /* Subtle green background */
+    display: inline-block;
+    width: 100%;
+}
+
+[data-mantine-color-scheme="dark"] .hljs-addition {
+    background-color: var(--mantine-color-green-8);
+}
+
+.hljs-deletion {
+    background-color: var(--mantine-color-red-1); /* Subtle red background */
+    display: inline-block;
+    width: 100%;
+}
+
+[data-mantine-color-scheme="dark"] .hljs-deletion {
+    background-color: var(--mantine-color-red-8);
+}
