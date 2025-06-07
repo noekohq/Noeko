@@ -7,8 +7,11 @@
         box-shadow: var(--mantine-shadow-xs);
         padding: 2px var(--mantine-spacing-xs);
         border-radius: var(--mantine-radius-md);
-        border: 1px solid var(--mantine-color-gray-3);
+        border: .5px solid var(--mantine-color-gray-9);
         cursor: pointer;
+        font-family: var(--mantine-font-family-headings);
+        font-weight: 565;
+        font-stretch: 90%;
     }
 
     & .dreamIdeaIcon {

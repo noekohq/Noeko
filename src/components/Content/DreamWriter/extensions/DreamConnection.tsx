@@ -6,14 +6,15 @@ import Suggestion, {
   SuggestionProps,
 } from "@tiptap/suggestion";
 
-import styles from "./styles/DreamConnection.module.scss";
-
 import { IIdea } from "../../../../../app/database/models/ideas";
 import { IUserFile } from "../../../../../app/database/models/userfile";
 import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
 import { Lightbulb } from "@phosphor-icons/react";
 import { getNodeTitle } from "../../../../utils/graph";
+import { PluginKey } from "@tiptap/pm/state";
+
+const suggestionKey = new PluginKey("dream-connection");
 
 // --- Type Definitions ---
 export interface IDreamConnectionOptions {
@@ -185,6 +186,7 @@ const suggestionOptionsDefinition = (
 
 export const DreamConnection = Extension.create<IDreamConnectionOptions>({
   name: "dreamConnection",
+  pluginKey: suggestionKey,
 
   addOptions() {
     return {
@@ -193,7 +195,7 @@ export const DreamConnection = Extension.create<IDreamConnectionOptions>({
   },
 
   addProseMirrorPlugins() {
-    const suggestionPluginOptions = suggestionOptionsDefinition(styles);
+    const suggestionPluginOptions = suggestionOptionsDefinition({});
 
     return [
       Suggestion({

@@ -1,6 +1,5 @@
 .suggestionMenu {
     background-color: var(--button-bg);
-    border-radius: var(--mantine-radius-lg);
     overflow: hidden;
     box-shadow: var(--mantine-shadow-sm);
     overflow-y: auto; // Add this line!
@@ -10,11 +9,32 @@
     display: flex;
     align-items: center;
     gap: var(--mantine-spacing-sm);
-    padding: var(--mantine-spacing-sm);
-    border: 1px solid var(--mantine-color-white);
+    padding: 2px var(--mantine-spacing-sm);
+    border: .5px solid var(--mantine-color-gray-9);
     cursor: pointer;
 
-    &.active, &:hover {
+    // when item is actually selected
+    &.active {
+        background-color: var(--mantine-primary-color-8);
+        color: var(--mantine-color-white);
+    }
+
+    &:first-child {
+        border-top-left-radius: var(--mantine-radius-sm);
+        border-top-right-radius: var(--mantine-radius-sm);
+    }
+
+    &:last-child {
+        border-bottom-left-radius: var(--mantine-radius-sm);
+        border-bottom-right-radius: var(--mantine-radius-sm);
+    }
+
+    &:hover {
+        background-color: var(--mantine-color-gray-8);
+        color: var(--mantine-color-white);
+    }
+
+    &:active {
         background-color: var(--mantine-primary-color-8);
         color: var(--mantine-color-white);
     }
@@ -24,5 +44,17 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    & .description {
+        font-size: 0.8rem;
+        color: var(--mantine-color-dimmed);
+    }
+
+    & .icon {
+        font-size: 1rem;
+        color: var(--mantine-color-dimmed);
     }
 }
