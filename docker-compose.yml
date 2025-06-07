@@ -14,12 +14,22 @@ services:
       - $DB_PASSWORD
       - file:///data/database.db # Updated to use file:// for clarity with volume path
     ports:
-      - "8000:8000"
+      - "$DB_PORT:8000"
     networks:
       - app
     volumes:
       - surrealdb_data:/data # Using the named volume
     user: root
+  redis:
+    image: redis:alpine
+    env_file:
+      - ./.env # Assuming .env is in the project root
+    ports:
+      - "$REDIS_PORT:6379" # Expose Redis port to your local machine for debugging
+    networks:
+      - app
+    volumes:
+      - redis_data:/data
 
   # web:
   #   build:
@@ -41,4 +51,6 @@ networks:
 
 volumes:
   surrealdb_data:
+    driver: local
+  redis_data:
     driver: local

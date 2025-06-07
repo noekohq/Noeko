@@ -7,6 +7,8 @@ import {
   Stack,
   Title,
   Loader,
+  CopyButton,
+  Text,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -16,11 +18,15 @@ import { showNotification } from "@mantine/notifications";
 import {
   ArrowsClockwise,
   ChatCircleDots,
+  Check,
+  Copy,
   UsersThree,
 } from "@phosphor-icons/react";
 import { Link } from "react-router";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Admin() {
+  const { referralLink } = useAuth();
   const { load: synchronizeGraph, loading: loadingSynchronizeGraph } = useFetch<
     undefined,
     undefined
@@ -89,6 +95,38 @@ export default function Admin() {
                   >
                     Synchronize Graphs
                   </Button>
+                </Group>
+              </Stack>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Card withBorder radius="lg">
+              <Stack>
+                <Title order={3}>Other Stuff</Title>
+                <Group>
+                  {referralLink && (
+                    <CopyButton value={referralLink}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Button
+                            onClick={() => {
+                              copy();
+                            }}
+                            variant="default"
+                            leftSection={
+                              copied ? (
+                                <Check weight="bold" />
+                              ) : (
+                                <Copy weight="bold" />
+                              )
+                            }
+                          >
+                            <Text>Copy Referral Link</Text>
+                          </Button>
+                        );
+                      }}
+                    </CopyButton>
+                  )}
                 </Group>
               </Stack>
             </Card>

@@ -27,7 +27,7 @@ export default function Register() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const referralCode = searchParams.get("referralCode");
+  const referralCode = searchParams.get("ref");
   console.log("Invite code: ", referralCode);
 
   const registerForm = useForm({

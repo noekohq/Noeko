@@ -90,22 +90,16 @@ export const qwest: IOverrideResolver = (t) => {
         "#402330", // 9 (darkest)
       ],
       teal: [
-        "#e0ede0", // 0 (lightest)
-        "#c5dcc8", // 1
-        "#aacad0", // 2 (Note: this seems to have shifted hue slightly due to math, should be closer to green)
-        // Recalculating Teal for light mode for better fidelity if HSL conversion was tricky
-        // Original HSL for #689d6a is H:0.34 S:0.21 L:0.51
-        // Let's ensure this is preserved. The values below are re-checked.
-        "#e0ede0", // 0 (lightest)
-        "#c5dcc7", // 1
-        "#a9cbaf", // 2
-        "#8eba98", // 3
-        "#72ac80", // 4
-        "#6aa274", // 5
-        "#689d6a", // 6 (Main Gruvbox Teal/Aqua)
-        "#517b53", // 7
-        "#3b593d", // 8
-        "#253826", // 9 (darkest)
+        "#edf9ed",
+        "#e0ede0",
+        "#c2d8c3",
+        "#a1c2a3",
+        "#86af87",
+        "#74a476",
+        "#689d6a",
+        "#588a5a",
+        "#4c7b4f",
+        "#3e6b40",
       ],
       orange: [
         "#f9e0cf", // 0 (lightest)

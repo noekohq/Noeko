@@ -63,12 +63,12 @@ import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
 import { Markdown } from "tiptap-markdown";
 
-import "highlight.js/styles/github-dark-dimmed.css";
+// import "highlight.js/styles/github-dark-dimmed.css";
+import "./lib/qwest-highlight.scss";
 
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { all, createLowlight } from "lowlight";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import { useHotkeys } from "@mantine/hooks";
 
 const lowlight = createLowlight(all);
 

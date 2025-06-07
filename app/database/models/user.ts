@@ -4,6 +4,7 @@ import { generateToken, verifyToken } from "../../utils/crypto";
 import { invitationTemplate } from "../../emails/types";
 import { sendEmail } from "../../utils/email";
 import { Idea } from "./ideas";
+import { getKernel } from "../../services/Kernel";
 
 export type IRole = {
   id: string;
@@ -58,6 +59,32 @@ export type IComputedUser = IUser & IComputedProperties;
 
 export type ISafeComputedUsers = ISafeUser & IComputedProperties;
 
+async function initializeScheduledJobs() {
+  const kernel = getKernel();
+
+  // 1. Register the job handler
+  const JOB_NAME = "refresh-all-user-referral-codes";
+
+  kernel.registerJob<void>(JOB_NAME, async () => {
+    console.log(`[Kernel] Starting job: ${JOB_NAME}`);
+    await User.refreshAllUserReferralCodes();
+    console.log(`[Kernel] Finished job: ${JOB_NAME}`);
+  });
+
+  // 2. Schedule the job to run daily (e.g., at midnight)
+  // CRON format: minute hour day-of-month month day-of-week
+  // '0 0 * * *' means at 00:00 (midnight) every day
+  try {
+    await kernel.scheduleRecurring<void>(JOB_NAME, undefined, "0 0 * * *");
+    console.log(`[Kernel] Successfully scheduled recurring job: ${JOB_NAME}`);
+  } catch (error) {
+    console.error(
+      `[Kernel] Failed to schedule recurring job: ${JOB_NAME}`,
+      error,
+    );
+  }
+}
+
 export class User {
   constructor() {}
 
@@ -101,6 +128,9 @@ export class User {
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
       );
+
+      const kernel = getKernel();
+      initializeScheduledJobs();
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;
@@ -468,7 +498,7 @@ export class User {
     }
   }
 
-  static async ensureReferralCodes(): Promise<void> {
+  static async ensureReferralCodes(force = false): Promise<void> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -478,14 +508,13 @@ export class User {
 
       console.info("Getting all...");
       const users = await this.getAll(); // Fetches ISafeComputedUsers[]
-      console.info("Got all: ", users);
 
       if (!users) {
         throw new Error("Couldn't get all users");
       }
 
       for (const user of users) {
-        if (!user.referralCode) {
+        if (!user.referralCode || force) {
           const newReferralCode = Bun.randomUUIDv7();
           console.info(
             `User ${user.id} missing referral code. Assigning: ${newReferralCode}`,
@@ -599,8 +628,20 @@ export class User {
         `Error creating REFERRED relationship between ${referrerUserId} and ${referredUserId}:`,
         error,
       );
-      // Decide if this should throw or just log
-      // throw error; // Optionally re-throw
+      return undefined;
+    }
+  }
+
+  static async refreshAllUserReferralCodes(): Promise<void> {
+    try {
+      // User.getAll() returns Promise<IComputedUser[]>
+      // IComputedUser is compatible with IUser, which User.ensureReferralCodes expects.
+      await User.ensureReferralCodes(true);
+      console.log(`[User] Completed referral code refresh for all users.`);
+    } catch (error) {
+      console.error("[User] Error refreshing all user referral codes:", error);
+      // Re-throw the error so the job runner can pick it up
+      throw error;
     }
   }
 }
