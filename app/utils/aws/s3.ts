@@ -25,7 +25,7 @@ export const writeToS3 = async (
   try {
     const s3File = s3.file(path);
     const totalBytes = s3File.size;
-    const written = await s3File.write(file);
+    const written = await s3File.write(file as any);
     const completed = totalBytes === written;
     return {
       written,
@@ -71,7 +71,7 @@ export const downloadLinkS3 = async (path: string): Promise<string> => {
   }
 };
 
-export const getStreamS3 = (path: string): globalThis.ReadableStream => {
+export const getStreamS3 = (path: string) => {
   try {
     const s3file = s3.file(path);
     const stream = s3file.stream();
