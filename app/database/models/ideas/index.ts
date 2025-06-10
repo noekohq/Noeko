@@ -8,6 +8,7 @@ import { IUserFile } from "../userfile";
 import { htmlToMarkdown } from "../../../utils/formatting";
 import { max_user_notes } from "../../../settings";
 import { ITag, ITagIdeaRelationship } from "../tag";
+import { logger } from "../../../services/Logger";
 
 export const embeddableContentLimit = 20000;
 
@@ -316,7 +317,11 @@ export class Idea {
         throw new Error("Something went wrong getting user stats");
       }
       const { total } = stats;
-      if (total >= max_user_notes && max_user_notes !== -1) {
+      if (
+        total >= max_user_notes &&
+        max_user_notes !== -1 &&
+        !User.checkUserHasRole(userId, "superuser")
+      ) {
         throw new Error("Tried to add more notes than available.");
       }
       const result = await db?.create<
@@ -356,6 +361,7 @@ export class Idea {
       return idea;
     } catch (err) {
       console.error("Error creating idea: ", err);
+      logger.error("Error creating idea: ", { error: err });
       return undefined;
     }
   }
@@ -381,10 +387,18 @@ export class Idea {
         throw new Error("Something went wrong getting user stats");
       }
       const { total } = stats;
-      if (total >= max_user_notes && max_user_notes !== -1) {
+      if (
+        total >= max_user_notes &&
+        max_user_notes !== -1 &&
+        !User.checkUserHasRole(user.id, "superuser")
+      ) {
         throw new Error("Tried to add more notes than allowed.");
       }
-      if (total + forms.length > max_user_notes && max_user_notes !== -1) {
+      if (
+        total + forms.length > max_user_notes &&
+        max_user_notes !== -1 &&
+        !User.checkUserHasRole(user.id, "superuser")
+      ) {
         throw new Error(
           "Adding notes would result in larger than allowed note total.",
         );

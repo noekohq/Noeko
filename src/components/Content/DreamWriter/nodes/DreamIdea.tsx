@@ -1,26 +1,19 @@
 import {
-  ArrowRight,
-  Check,
-  DownloadSimple,
-  File,
-  FilePdf,
-  Lightbulb,
-  X,
+  ArrowRightIcon,
+  CheckIcon,
+  LightbulbIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 // Keep other imports...
 import { Node, mergeAttributes } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewProps,
-  NodeViewContent, // Keep import if needed elsewhere, but maybe not used below
   NodeViewWrapper,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
 import {
   ActionIcon,
-  Button,
-  Card,
-  Flex,
   Group,
   HoverCard,
   Stack,
@@ -32,7 +25,6 @@ import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../app/database/models/ideas";
 import { useIdea } from "../../../../contexts/IdeaContext";
 import { getNodeDescription } from "../../../../utils/graph";
-import { getIdeaSummaryItemIfExists } from "../../../../utils/ideas";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { useState } from "react";
 
@@ -180,10 +172,13 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
                 variant="subtle"
                 size="xs"
               >
-                <Check size={16} />
+                <CheckIcon size={16} />
               </ActionIcon>
             ) : (
-              <Lightbulb className={styles.dreamIdeaIcon} weight="regular" />
+              <LightbulbIcon
+                className={styles.dreamIdeaIcon}
+                weight="regular"
+              />
             )}
             {editing ? (
               <TextInput
@@ -235,7 +230,7 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
                   variant="light"
                   color="red"
                 >
-                  <X weight="bold" />
+                  <XIcon weight="bold" />
                 </ActionIcon>
                 <ActionIcon
                   component={Link}
@@ -244,7 +239,7 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
                   title="Go to idea page"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ArrowRight weight="bold" />
+                  <ArrowRightIcon weight="bold" />
                 </ActionIcon>
               </Group>
             </Stack>

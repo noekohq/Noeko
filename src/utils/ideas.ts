@@ -48,10 +48,7 @@ export const createIdeaConnection = async (source: string, target: string) => {
         target,
       })
       .then(() => {
-        showNotification({
-          title: "Connection created",
-          message: "The connection was successfully created.",
-        });
+        return Promise.resolve();
       })
       .catch((error) => {
         console.error(
@@ -79,10 +76,7 @@ export const removeIdeaConnection = async (source: string, target: string) => {
         },
       })
       .then(() => {
-        showNotification({
-          title: "Connection deleted",
-          message: "The connection was successfully deleted.",
-        });
+        return Promise.resolve();
       })
       .catch((error) => {
         console.error(
@@ -159,10 +153,6 @@ export const getChunkSize = (chunk: IChunk): number => {
 export const addTagToIdea = async (ideaId: string, tagId: string) => {
   try {
     const response = await api.post(`/tags/${tagId}/ideas/${ideaId}`);
-    showNotification({
-      title: "Tag Added",
-      message: "The tag was successfully added to the idea.",
-    });
     return response.data.data as ITagIdeaRelationship; // Or a more specific part of the response if needed
   } catch (error: any) {
     console.error(`Error adding tag ${tagId} to idea ${ideaId}:`, error);
@@ -180,10 +170,6 @@ export const addTagToIdea = async (ideaId: string, tagId: string) => {
 export const removeTagFromIdea = async (ideaId: string, tagId: string) => {
   try {
     const response = await api.delete(`/tags/${tagId}/ideas/${ideaId}`);
-    showNotification({
-      title: "Tag Removed",
-      message: "The tag was successfully removed from the idea.",
-    });
     return response.data; // Or a more specific part of the response if needed
   } catch (error: any) {
     console.error(`Error removing tag ${tagId} from idea ${ideaId}:`, error);
@@ -203,10 +189,6 @@ export const createTag = async (name: string, description: string) => {
     const response = await api.post(`/tags`, {
       name,
       description,
-    });
-    showNotification({
-      title: "Tag Created",
-      message: "The tag was successfully created.",
     });
     return response.data.data as ITag;
   } catch (error: any) {

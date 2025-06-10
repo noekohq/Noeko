@@ -43,6 +43,7 @@ import {
   uploadChunkToImport,
 } from "../../../utils/ideas";
 import { useAuth } from "../../../contexts/AuthContext";
+import { userIsSuperuser } from "../../../utils/user";
 
 type IParsedFile = {
   title: string;
@@ -132,7 +133,8 @@ export default function DirectoryImporter() {
   }, [filter]);
 
   const notesLeft = user ? max_notes - user?.totalIdeas : 0;
-  const isAllowedToImport = notesLeft >= files.length && max_notes !== -1;
+  const isAllowedToImport =
+    notesLeft >= files.length && max_notes !== -1 && !userIsSuperuser(user);
 
   const [showAll, setShowAll] = useState(false);
 

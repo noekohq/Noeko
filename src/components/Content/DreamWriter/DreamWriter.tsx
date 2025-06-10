@@ -23,7 +23,6 @@ import Link from "@tiptap/extension-link";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
-import Table from "@tiptap/extension-table";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
@@ -45,14 +44,13 @@ import {
   TaskItemButton,
 } from "./Options";
 import {
-  File,
-  MagicWand,
-  Plus,
-  TextAUnderline,
-  TextIndent,
-  Textbox,
+  FileIcon,
+  MagicWandIcon,
+  PlusIcon,
+  TextAUnderlineIcon,
+  TextIndentIcon,
+  TextboxIcon,
 } from "@phosphor-icons/react";
-import { useLink } from "./Utils";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { DreamImage } from "./nodes/DreamImage";
 import { DreamFile } from "./nodes/DreamFile";
@@ -63,14 +61,15 @@ import { DreamIdea } from "./nodes/DreamIdea";
 import { DreamSlash } from "./extensions/DreamSlash";
 import { Markdown } from "tiptap-markdown";
 import { Indent } from "./extensions/Indent";
-import { CustomTaskItem } from "./extensions/TaskItem";
+import { DreamTaskItem } from "./extensions/TaskItem";
+import { DreamCode } from "./nodes/DreamCode";
 
 // import "highlight.js/styles/github-dark-dimmed.css";
 import "./lib/qwest-highlight.scss";
 
-import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { all, createLowlight } from "lowlight";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import { DreamTable } from "./nodes/DreamTable";
 
 const lowlight = createLowlight(all);
 
@@ -166,7 +165,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             codeBlock: false,
             dropcursor: false,
           }),
-          CodeBlockLowlight.configure({
+          DreamCode.configure({
             lowlight,
             HTMLAttributes: {
               class: contentStyles.codeBlock,
@@ -194,7 +193,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               class: contentStyles.taskList,
             },
           }),
-          CustomTaskItem.configure({
+          DreamTaskItem.configure({
             nested: true,
             HTMLAttributes: {
               class: contentStyles.taskItem,
@@ -207,7 +206,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             bulletListMarker: "-",
             breaks: true,
           }),
-          Table.configure({
+          DreamTable.configure({
             resizable: true,
             HTMLAttributes: {
               class: contentStyles.table,
@@ -376,7 +375,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             }}
           >
             <Group align="center" justify="center" style={{ height: "100%" }}>
-              <File />
+              <FileIcon />
               <Text fw="bold">Drop your file here</Text>
             </Group>
           </Overlay>
@@ -476,7 +475,7 @@ function FloatingMenu({ editor }: { editor: IEditor | null }) {
         }`}
         onClick={() => setMenuOpen(!menuOpen)}
       >
-        <Plus weight="regular" />
+        <PlusIcon weight="regular" />
       </button>
     </TippyFloatingMenu>
   );
@@ -524,22 +523,22 @@ function BubbleMenu({ editor }: { editor: IEditor | null }) {
     frame: JSX.Element;
   }[] = [
     {
-      icon: <TextAUnderline weight="regular" />,
+      icon: <TextAUnderlineIcon weight="regular" />,
       frame: BasicText,
       name: "Text editing",
     },
     {
-      icon: <TextIndent weight="regular" />,
+      icon: <TextIndentIcon weight="regular" />,
       frame: BlockEditing,
       name: "Change block",
     },
     {
-      icon: <Textbox weight="regular" />,
+      icon: <TextboxIcon weight="regular" />,
       frame: FancyFeatures,
       name: "Add features",
     },
     {
-      icon: <MagicWand weight="regular" />,
+      icon: <MagicWandIcon weight="regular" />,
       frame: GenerativeFeatures,
       name: "Generate content",
     },

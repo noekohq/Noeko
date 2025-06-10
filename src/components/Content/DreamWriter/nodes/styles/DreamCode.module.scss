@@ -1,0 +1,21 @@
+.container {
+    position: relative;
+    padding: var(--mantine-spacing-sm);
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-gray-5);
+    white-space: pre-wrap;
+    background-color: var(--color-code-background);
+    color: var(--color-code-foreground);
+}
+
+.code {
+    margin: 0;
+}
+
+.ui {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--mantine-spacing-sm);
+}
