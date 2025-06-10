@@ -1,423 +1,375 @@
-import { NodeViewProps } from "@tiptap/core";
-import {
-  NodeViewContent,
-  NodeViewWrapper,
-  ReactNodeViewRenderer,
-} from "@tiptap/react";
+import { mergeAttributes, Node, NodeViewProps } from "@tiptap/core";
+import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
+import { Table, TextInput, Button, Group, ActionIcon } from "@mantine/core";
+import React, { useState, useEffect, useCallback } from "react";
+import { PlusIcon, XIcon } from "@phosphor-icons/react"; // Make sure @tabler/icons-react is installed
 import styles from "./styles/DreamTable.module.scss";
-import Table from "@tiptap/extension-table";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  ActionIcon, 
-  Flex, 
-  Group, 
-  Stack, 
-  Menu, 
-  Button, 
-  Divider,
-  Tooltip,
-  Box,
-  Paper,
-  Select,
-  ColorPicker,
-  Popover,
-  NumberInput,
-  Switch,
-  Text
-} from "@mantine/core";
-import {
-  ArrowLineDownIcon,
-  ArrowLineRightIcon,
-  PlusIcon,
-  TrashIcon,
-  ArrowsOutIcon,
-  DotsThreeIcon,
-  CopyIcon,
-  ScissorsIcon,
-  ClipboardIcon,
-  PaintBrushIcon,
-  AlignLeftIcon,
-  TextAlignCenterIcon,
-  AlignRightIcon,
-  TableIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  CellSignalFullIcon,
-  SplitHorizontalIcon,
-  SplitVerticalIcon
-} from "@phosphor-icons/react";
-import { useTableOperations } from "./hooks/useTableOperations";
-import { TableContextMenu } from "./components/TableContextMenu";
 
-interface TableControlsProps {
-  editor: any;
-  node: any;
-  hovering: boolean;
-  selectedCell: any;
-  selectedRange: any;
-  operations: any;
-  tableStyle: any;
-  onStyleChange: (style: any) => void;
+export interface IDreamTableOptions {
+  HTMLAttributes: Record<string, any>;
 }
 
-const TableControls: React.FC<TableControlsProps> = ({ 
-  editor, 
-  node, 
-  hovering, 
-  selectedCell,
-  selectedRange,
-  operations,
-  tableStyle,
-  onStyleChange
-}) => {
-  const [menuOpened, setMenuOpened] = useState(false);
-  const [stylePopoverOpened, setStylePopoverOpened] = useState(false);
+interface TableDataType {
+  headers: string[];
+  rows: string[][];
+}
 
-  return (
-    <div className={`${styles.tableControls} ${hovering ? styles.visible : ''}`}>
-      {/* Top Row Controls */}
-      <div className={styles.topControls}>
-        <Flex gap="xs" align="center">
-          <Tooltip label="Add row above">
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={operations.addRowBefore}
-            >
-              <ArrowUpIcon />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Add row below">
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={operations.addRowAfter}
-            >
-              <ArrowDownIcon />
-            </ActionIcon>
-          </Tooltip>
-          <Divider orientation="vertical" />
-          <Tooltip label="Add column before">
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={operations.addColumnBefore}
-            >
-              <ArrowLeftIcon />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Add column after">
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={operations.addColumnAfter}
-            >
-              <ArrowRightIcon />
-            </ActionIcon>
-          </Tooltip>
-          <Divider orientation="vertical" />
-          
-          <Menu opened={menuOpened} onChange={setMenuOpened}>
-            <Menu.Target>
-              <ActionIcon variant="subtle" size="sm">
-                <DotsThreeIcon />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Label>Row Actions</Menu.Label>
-              <Menu.Item 
-                leftSection={<TrashIcon size={14} />}
-                onClick={operations.deleteRow}
-                color="red"
-              >
-                Delete Row
-              </Menu.Item>
-              
-              <Menu.Label>Column Actions</Menu.Label>
-              <Menu.Item 
-                leftSection={<TrashIcon size={14} />}
-                onClick={operations.deleteColumn}
-                color="red"
-              >
-                Delete Column
-              </Menu.Item>
-              
-              <Menu.Divider />
-              
-              <Menu.Label>Cell Actions</Menu.Label>
-              <Menu.Item 
-                leftSection={<CellSignalFullIcon size={14} />}
-                onClick={operations.mergeCells}
-              >
-                Merge Cells
-              </Menu.Item>
-              <Menu.Item 
-                leftSection={<SplitHorizontalIcon size={14} />}
-                onClick={operations.splitCell}
-              >
-                Split Cell
-              </Menu.Item>
-              
-              <Menu.Divider />
-              
-              <Menu.Label>Headers</Menu.Label>
-              <Menu.Item 
-                leftSection={<TableIcon size={14} />}
-                onClick={operations.toggleHeaderRow}
-              >
-                Toggle Header Row
-              </Menu.Item>
-              <Menu.Item 
-                leftSection={<TableIcon size={14} />}
-                onClick={operations.toggleHeaderColumn}
-              >
-                Toggle Header Column
-              </Menu.Item>
-              
-              <Menu.Divider />
-              
-              <Menu.Label>Table</Menu.Label>
-              <Menu.Item 
-                leftSection={<TrashIcon size={14} />}
-                onClick={operations.deleteTable}
-                color="red"
-              >
-                Delete Table
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-
-          <Popover opened={stylePopoverOpened} onChange={setStylePopoverOpened}>
-            <Popover.Target>
-              <ActionIcon variant="subtle" size="sm">
-                <PaintBrushIcon />
-              </ActionIcon>
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Stack gap="md" style={{ minWidth: 250 }}>
-                <Text size="sm" fw={500}>Table Styling</Text>
-                
-                <Group>
-                  <Text size="xs">Border Color:</Text>
-                  <ColorPicker
-                    size="xs"
-                    value={tableStyle.borderColor}
-                    onChange={(color) => onStyleChange({ borderColor: color })}
-                  />
-                </Group>
-                
-                <NumberInput
-                  label="Border Width"
-                  size="xs"
-                  value={tableStyle.borderWidth}
-                  onChange={(value) => onStyleChange({ borderWidth: Number(value) })}
-                  min={0}
-                  max={5}
-                />
-                
-                <Group>
-                  <Text size="xs">Background:</Text>
-                  <ColorPicker
-                    size="xs"
-                    value={tableStyle.backgroundColor}
-                    onChange={(color) => onStyleChange({ backgroundColor: color })}
-                  />
-                </Group>
-                
-                <Switch
-                  label="Striped Rows"
-                  size="xs"
-                  checked={tableStyle.stripedRows}
-                  onChange={(event) => onStyleChange({ stripedRows: event.currentTarget.checked })}
-                />
-                
-                <Switch
-                  label="Compact Mode"
-                  size="xs"
-                  checked={tableStyle.compact}
-                  onChange={(event) => onStyleChange({ compact: event.currentTarget.checked })}
-                />
-              </Stack>
-            </Popover.Dropdown>
-          </Popover>
-        </Flex>
-      </div>
-
-      {/* Cell Alignment Controls */}
-      {selectedCell && (
-        <div className={styles.cellControls}>
-          <Flex gap="xs" align="center">
-            <Text size="xs" color="dimmed">Cell:</Text>
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={() => operations.setCellAlignment('left')}
-            >
-              <AlignLeftIcon />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={() => operations.setCellAlignment('center')}
-            >
-              <TextAlignCenterIcon />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              size="sm"
-              onClick={() => operations.setCellAlignment('right')}
-            >
-              <AlignRightIcon />
-            </ActionIcon>
-          </Flex>
-        </div>
-      )}
-    </div>
-  );
+const initializeTableData = (columns: number, rows: number): TableDataType => {
+  return {
+    headers: Array(columns > 0 ? columns : 1)
+      .fill("")
+      .map((_, i) => `Header ${i + 1}`),
+    rows: Array(rows > 0 ? rows : 1)
+      .fill(null)
+      .map(() => Array(columns > 0 ? columns : 1).fill("")),
+  };
 };
 
-const ResizeHandle: React.FC<{
-  direction: 'horizontal' | 'vertical';
-  onResize: (delta: number) => void;
-}> = ({ direction, onResize }) => {
-  const [isResizing, setIsResizing] = useState(false);
-  const startPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setIsResizing(true);
-    startPos.current = { x: e.clientX, y: e.clientY };
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const delta = direction === 'horizontal' 
-        ? e.clientX - startPos.current.x 
-        : e.clientY - startPos.current.y;
-      onResize(delta);
-      startPos.current = { x: e.clientX, y: e.clientY };
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    dreamTable: {
+      setDreamTable: (options: { columns: number; rows: number }) => ReturnType;
     };
+  }
+}
 
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+export const DreamTable = Node.create<IDreamTableOptions>({
+  name: "dreamTable",
+  group: "block",
+  inline: false,
+  atom: true,
+  draggable: true,
+
+  addOptions() {
+    return {
+      HTMLAttributes: {},
     };
+  },
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [direction, onResize]);
+  addAttributes() {
+    return {
+      tableData: {
+        default: JSON.stringify(initializeTableData(2, 2)),
+        parseHTML: (element) => element.getAttribute("data-table-data"),
+        renderHTML: (attributes) => ({
+          "data-table-data": attributes.tableData,
+        }),
+      },
+    };
+  },
 
-  return (
-    <div
-      className={`${styles.resizeHandle} ${styles[direction]} ${isResizing ? styles.resizing : ''}`}
-      onMouseDown={handleMouseDown}
-    />
-  );
-};
+  parseHTML() {
+    return [
+      {
+        tag: "div[data-table-data]",
+      },
+    ];
+  },
 
-export const DreamTable = Table.extend({
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        "data-type": this.name,
+      }),
+    ];
+  },
+
+  addCommands() {
+    return {
+      setDreamTable:
+        (options) =>
+        ({ commands }) => {
+          const initialData = initializeTableData(
+            options.columns,
+            options.rows,
+          );
+          return commands.insertContent(
+            `<div data-type="${this.name}" data-table-data='${JSON.stringify(initialData)}'></div>`,
+          );
+        },
+    };
+  },
+
   addNodeView() {
-    return ReactNodeViewRenderer(DreamTableNodeView, {
-      as: "div",
-      contentDOMElementTag: "table",
-    });
+    return ReactNodeViewRenderer(DreamTableComponent);
   },
 });
 
-export const DreamTableNodeView: React.FC<NodeViewProps> = ({
+const DreamTableComponent: React.FC<NodeViewProps> = ({
   node,
-  editor,
-  getPos,
   updateAttributes,
+  editor,
 }) => {
-  const tableOperations = useTableOperations({
-    editor,
-    node,
-    getPos,
-    updateAttributes,
-  });
+  const getParsedTableData = (): TableDataType => {
+    try {
+      const dataString = node.attrs.tableData;
+      if (!dataString || typeof dataString !== "string") {
+        return initializeTableData(2, 2);
+      }
+      const rawParsed = JSON.parse(dataString);
 
-  const [contextMenuOpened, setContextMenuOpened] = useState(false);
-  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenuPosition({ x: e.clientX, y: e.clientY });
-    setContextMenuOpened(true);
-  }, []);
-
-  const handleResize = useCallback((direction: 'horizontal' | 'vertical', delta: number) => {
-    if (direction === 'horizontal') {
-      const currentWidth = tableOperations.tableRef.current?.offsetWidth || 0;
-      const newWidth = Math.max(200, currentWidth + delta);
-      tableOperations.resizeTable(newWidth, 0);
-    } else {
-      const currentHeight = tableOperations.tableRef.current?.offsetHeight || 0;
-      const newHeight = Math.max(100, currentHeight + delta);
-      tableOperations.resizeTable(0, newHeight);
+      if (
+        rawParsed &&
+        Array.isArray(rawParsed.headers) &&
+        Array.isArray(rawParsed.rows)
+      ) {
+        const Rcols = rawParsed.headers.length;
+        if (Rcols === 0 && rawParsed.rows.length === 0)
+          return initializeTableData(1, 1);
+        if (
+          Rcols > 0 &&
+          rawParsed.rows.every(
+            (r: any) => Array.isArray(r) && r.length === Rcols,
+          )
+        ) {
+          return rawParsed as TableDataType;
+        }
+      } else if (
+        rawParsed &&
+        typeof rawParsed.columns === "number" &&
+        typeof rawParsed.rows === "number"
+      ) {
+        return initializeTableData(rawParsed.columns, rawParsed.rows);
+      }
+      console.warn(
+        "Unrecognized table data format, initializing default table:",
+        dataString,
+      );
+      return initializeTableData(2, 2);
+    } catch (error) {
+      console.error(
+        "Error parsing tableData, initializing default table:",
+        error,
+        node.attrs.tableData,
+      );
+      return initializeTableData(2, 2);
     }
-  }, [tableOperations]);
+  };
+
+  const [tableState, setTableState] =
+    useState<TableDataType>(getParsedTableData());
+
+  const persistChanges = useCallback(
+    (newData: TableDataType) => {
+      updateAttributes({ tableData: JSON.stringify(newData) });
+    },
+    [updateAttributes],
+  );
+
+  useEffect(() => {
+    const currentAttrData = node.attrs.tableData;
+    if (currentAttrData !== JSON.stringify(tableState)) {
+      setTableState(getParsedTableData());
+    }
+  }, [node.attrs.tableData]);
+
+  const handleHeaderChange = (index: number, value: string) => {
+    const newHeaders = [...tableState.headers];
+    newHeaders[index] = value;
+    const newState = { ...tableState, headers: newHeaders };
+    setTableState(newState);
+    persistChanges(newState);
+  };
+
+  const handleCellChange = (
+    rowIndex: number,
+    colIndex: number,
+    value: string,
+  ) => {
+    const newRows = tableState.rows.map((row, rIdx) =>
+      rIdx === rowIndex
+        ? row.map((cell, cIdx) => (cIdx === colIndex ? value : cell))
+        : row,
+    );
+    const newState = { ...tableState, rows: newRows };
+    setTableState(newState);
+    persistChanges(newState);
+  };
+
+  const addRow = () => {
+    const columnCount = tableState.headers.length || 1;
+    const newRow = Array(columnCount).fill("");
+    const newState = {
+      ...tableState,
+      rows: [...tableState.rows, newRow],
+    };
+    setTableState(newState);
+    persistChanges(newState);
+  };
+
+  const removeRow = (rowIndex: number) => {
+    if (tableState.rows.length <= 1 && editor.isEditable) return;
+    const newRows = tableState.rows.filter((_, idx) => idx !== rowIndex);
+    const newState = { ...tableState, rows: newRows };
+    setTableState(newState);
+    persistChanges(newState);
+  };
+
+  const addColumn = () => {
+    const newHeaders = [
+      ...tableState.headers,
+      `Header ${tableState.headers.length + 1}`,
+    ];
+    const newRows = tableState.rows.map((row) => [...row, ""]);
+    const newState = { headers: newHeaders, rows: newRows };
+    setTableState(newState);
+    persistChanges(newState);
+  };
+
+  const removeColumn = (colIndex: number) => {
+    if (tableState.headers.length <= 1 && editor.isEditable) return;
+    const newHeaders = tableState.headers.filter((_, idx) => idx !== colIndex);
+    const newRows = tableState.rows.map((row) =>
+      row.filter((_, idx) => idx !== colIndex),
+    );
+    const newState = { headers: newHeaders, rows: newRows };
+    setTableState(newState);
+    persistChanges(newState);
+  };
+
+  if (!editor.isEditable) {
+    return (
+      <NodeViewWrapper style={{ padding: "0.5rem", margin: "0.5rem 0" }}>
+        <Table striped highlightOnHover withTableBorder withColumnBorders>
+          <Table.Thead>
+            <Table.Tr>
+              {tableState.headers.map((header, index) => (
+                <Table.Th key={`header-${index}`}>{header}</Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {tableState.rows.map((row, rowIndex) => (
+              <Table.Tr key={`row-${rowIndex}`}>
+                {row.map((cell, colIndex) => (
+                  <Table.Td key={`cell-${rowIndex}-${colIndex}`}>
+                    {cell}
+                  </Table.Td>
+                ))}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </NodeViewWrapper>
+    );
+  }
 
   return (
-    <>
-      <NodeViewWrapper
-        ref={tableOperations.tableRef}
-        className={`${styles.dreamTableWrapper} ${tableOperations.hovering ? styles.hovering : ''}`}
-        onMouseEnter={() => tableOperations.setHovering(true)}
-        onMouseLeave={() => tableOperations.setHovering(false)}
-        onContextMenu={handleContextMenu}
-        style={{ 
-          width: tableOperations.tableDimensions.width, 
-          height: tableOperations.tableDimensions.height 
-        }}
-      >
-        <div className={styles.tableContainer}>
-          <TableControls
-            editor={editor}
-            node={node}
-            hovering={tableOperations.hovering}
-            selectedCell={tableOperations.selectedCell}
-            selectedRange={tableOperations.selectedRange}
-            operations={tableOperations}
-            tableStyle={tableOperations.tableStyle}
-            onStyleChange={tableOperations.applyTableStyle}
-          />
-          
-          <div className={styles.tableWrapper}>
-            <NodeViewContent className={styles.tableContent} />
-            
-            {/* Resize Handles */}
-            <ResizeHandle
-              direction="horizontal"
-              onResize={(delta) => handleResize('horizontal', delta)}
-            />
-            <ResizeHandle
-              direction="vertical"
-              onResize={(delta) => handleResize('vertical', delta)}
-            />
-          </div>
-        </div>
-
-        {/* Selection Indicator */}
-        {tableOperations.selectedCell && (
-          <div className={styles.selectionIndicator}>
-            <Text size="xs" color="blue">
-              Cell {tableOperations.selectedCell.row + 1},{tableOperations.selectedCell.col + 1} selected
-            </Text>
-          </div>
-        )}
-      </NodeViewWrapper>
-
-      <TableContextMenu
-        opened={contextMenuOpened}
-        onClose={() => setContextMenuOpened(false)}
-        position={contextMenuPosition}
-        operations={tableOperations}
-        selectedCell={tableOperations.selectedCell}
-        selectedRange={tableOperations.selectedRange}
-        tableStyle={tableOperations.tableStyle}
-        onStyleChange={tableOperations.applyTableStyle}
-      />
-    </>
+    <NodeViewWrapper className={styles.table}>
+      <div style={{ overflowX: "auto" }}>
+        {" "}
+        <Table striped highlightOnHover withColumnBorders>
+          <Table.Thead>
+            <Table.Tr>
+              {tableState.headers.map((header, index) => (
+                <Table.Th
+                  key={`header-edit-${index}`}
+                  style={{ position: "relative", minWidth: "120px" }}
+                >
+                  <TextInput
+                    value={header}
+                    onChange={(event) =>
+                      handleHeaderChange(index, event.currentTarget.value)
+                    }
+                    variant="unstyled"
+                    styles={{
+                      input: {
+                        fontWeight: "bold",
+                        paddingRight:
+                          tableState.headers.length > 1 ? "28px" : "4px",
+                      },
+                    }}
+                    disabled={!editor.isEditable}
+                  />
+                  {tableState.headers.length > 1 && editor.isEditable && (
+                    <ActionIcon
+                      variant="subtle"
+                      color="dark.4"
+                      onClick={() => removeColumn(index)}
+                      style={{
+                        position: "absolute",
+                        right: "4px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
+                      title="Remove column"
+                      disabled={!editor.isEditable}
+                    >
+                      <XIcon size={16} />
+                    </ActionIcon>
+                  )}
+                </Table.Th>
+              ))}
+              {editor.isEditable && (
+                <Table.Th style={{ width: "50px", padding: 0 }} />
+              )}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {tableState.rows.map((row, rowIndex) => (
+              <Table.Tr key={`row-edit-${rowIndex}`}>
+                {row.map((cell, colIndex) => (
+                  <Table.Td
+                    key={`cell-edit-${rowIndex}-${colIndex}`}
+                    style={{ minWidth: "100px" }}
+                  >
+                    <TextInput
+                      value={cell}
+                      onChange={(event) =>
+                        handleCellChange(
+                          rowIndex,
+                          colIndex,
+                          event.currentTarget.value,
+                        )
+                      }
+                      variant="unstyled"
+                      disabled={!editor.isEditable}
+                    />
+                  </Table.Td>
+                ))}
+                {editor.isEditable && (
+                  <Table.Td style={{ padding: "0 4px", textAlign: "center" }}>
+                    {tableState.rows.length > 1 && (
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray.4"
+                        onClick={() => removeRow(rowIndex)}
+                        title="Remove row"
+                        disabled={!editor.isEditable}
+                      >
+                        <XIcon size={16} />
+                      </ActionIcon>
+                    )}
+                  </Table.Td>
+                )}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </div>
+      <div className={styles.options}>
+        <Group justify="flex-start" mt="xs">
+          <Button
+            onClick={addColumn}
+            size="xs"
+            variant="default"
+            disabled={!editor.isEditable}
+            rightSection={<PlusIcon size={14} />}
+          >
+            Column
+          </Button>
+          <Button
+            onClick={addRow}
+            size="xs"
+            variant="default"
+            disabled={!editor.isEditable}
+            rightSection={<PlusIcon size={14} />}
+          >
+            Row
+          </Button>
+        </Group>
+      </div>
+    </NodeViewWrapper>
   );
 };
