@@ -11,13 +11,13 @@ const suggestionKey = new PluginKey("dream-slash");
 
 import SuggestionMenu from "./Components/SuggestionMenu";
 import {
-  TextT,
-  ListBullets,
-  ListNumbers,
-  CodeBlock,
-  Sparkle, // Generic icon placeholder
-  CheckSquare,
-  Table,
+  TextTIcon,
+  ListBulletsIcon,
+  ListNumbersIcon,
+  CodeBlockIcon,
+  SparkleIcon, // Generic icon placeholder
+  CheckSquareIcon,
+  TableIcon,
 } from "@phosphor-icons/react";
 import { PluginKey } from "@tiptap/pm/state";
 
@@ -40,7 +40,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "paragraph",
     title: "Paragraph",
     description: "Continue writing with normal text.",
-    icon: <TextT />,
+    icon: <TextTIcon />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setNode("paragraph").run();
     },
@@ -49,7 +49,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "heading1",
     title: "Heading 1",
     description: "Large section heading.",
-    icon: <Sparkle />,
+    icon: <SparkleIcon />,
     command: ({ editor, range }) => {
       editor
         .chain()
@@ -63,7 +63,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "heading2",
     title: "Heading 2",
     description: "Medium section heading.",
-    icon: <Sparkle />,
+    icon: <SparkleIcon />,
     command: ({ editor, range }) => {
       editor
         .chain()
@@ -77,7 +77,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "heading3",
     title: "Heading 3",
     description: "Small section heading.",
-    icon: <Sparkle />,
+    icon: <SparkleIcon />,
     command: ({ editor, range }) => {
       editor
         .chain()
@@ -91,7 +91,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "bulletList",
     title: "Bullet List",
     description: "Create a simple bulleted list.",
-    icon: <ListBullets />,
+    icon: <ListBulletsIcon />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
     },
@@ -100,7 +100,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "numberedList",
     title: "Numbered List",
     description: "Create a list with numbering.",
-    icon: <ListNumbers />,
+    icon: <ListNumbersIcon />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run();
     },
@@ -109,7 +109,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "codeBlock",
     title: "Code Block",
     description: "Capture a code snippet.",
-    icon: <CodeBlock />,
+    icon: <CodeBlockIcon />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
     },
@@ -118,7 +118,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "taskList",
     title: "Task List",
     description: "Create a list with checkboxes.",
-    icon: <CheckSquare />,
+    icon: <CheckSquareIcon />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleTaskList().run();
     },
@@ -127,9 +127,14 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     id: "table",
     title: "Table",
     description: "Create a table.",
-    icon: <Table />,
+    icon: <TableIcon />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).insertTable().run();
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setDreamTable({ columns: 3, rows: 3 })
+        .run();
     },
   },
 

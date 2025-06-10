@@ -207,26 +207,25 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             breaks: true,
           }),
           DreamTable.configure({
-            resizable: true,
             HTMLAttributes: {
               class: contentStyles.table,
             },
           }),
-          TableRow.configure({
-            HTMLAttributes: {
-              class: contentStyles.tableRow,
-            },
-          }),
-          TableHeader.configure({
-            HTMLAttributes: {
-              class: contentStyles.tableHeader,
-            },
-          }),
-          TableCell.configure({
-            HTMLAttributes: {
-              class: contentStyles.tableCell,
-            },
-          }),
+          // TableRow.configure({
+          //   HTMLAttributes: {
+          //     class: contentStyles.tableRow,
+          //   },
+          // }),
+          // TableHeader.configure({
+          //   HTMLAttributes: {
+          //     class: contentStyles.tableHeader,
+          //   },
+          // }),
+          // TableCell.configure({
+          //   HTMLAttributes: {
+          //     class: contentStyles.tableCell,
+          //   },
+          // }),
           Indent.configure({
             types: [
               "paragraph",
