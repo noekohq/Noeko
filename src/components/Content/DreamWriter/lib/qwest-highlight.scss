@@ -37,18 +37,24 @@
 }
 
 /* Strings, RegEx, Template Variables */
-.hljs-string,
-.hljs-regexp,
 .hljs-template-variable,
 .hljs-variable.language_ {
     /* e.g., bash's $VAR */
+    color: var(--mantine-color-blue-7);
+}
+
+.hljs-string,
+.hljs-regexp {
     color: var(--mantine-color-green-7);
 }
 
-[data-mantine-color-scheme="dark"] .hljs-string,
-[data-mantine-color-scheme="dark"] .hljs-regexp,
 [data-mantine-color-scheme="dark"] .hljs-template-variable,
 [data-mantine-color-scheme="dark"] .hljs-variable.language_ {
+    color: var(--mantine-color-blue-6);
+}
+
+[data-mantine-color-scheme="dark"] .hljs-string,
+[data-mantine-color-scheme="dark"] .hljs-regexp {
     color: var(--mantine-color-green-6);
 }
 

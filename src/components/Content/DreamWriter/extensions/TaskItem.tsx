@@ -9,7 +9,7 @@ import { wrappingInputRule, markInputRule } from "@tiptap/core";
 // - `\s$`: Matches a final space, which triggers the rule.
 export const taskItemInputRegex = /^\s*(\[ \])\s$/;
 
-export const CustomTaskItem = TaskItem.extend({
+export const DreamTaskItem = TaskItem.extend({
   addInputRules() {
     console.log("Initializing input rule for: ", this.type);
     return [

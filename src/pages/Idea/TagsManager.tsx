@@ -87,29 +87,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
     loadRelatedTags();
   };
 
-  const { data: suggestedNewTags, load: suggestTags } = useFetch<
-    undefined,
-    { name: string; description: string }[]
-  >({
-    url: `/ideas/${idea.id.toString()}/suggest-new-tags`,
-    dependencies: [idea],
-  });
-
   const [creatingTag, setCreatingTag] = useState(false);
-  const filteredNewTags = suggestedNewTags?.filter(
-    (s) => !existingTags.find((t) => t.name === s.name),
-  );
-
-  useEffect(() => {
-    if (creatingTag) {
-      suggestTags();
-    }
-  }, [creatingTag]);
-  useEffect(() => {
-    if (!filteredNewTags?.length && creatingTag) {
-      suggestTags();
-    }
-  }, [filteredNewTags]);
 
   const handleAddTag = async (tagId: string) => {
     if (!ideaIdStr || actionLoading) return;
@@ -241,43 +219,6 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
                   placeholder="Description"
                   {...tagForm.getInputProps("description")}
                 />
-              </Grid.Col>
-              <Grid.Col span={12}>
-                <Group>
-                  {filteredNewTags ? (
-                    filteredNewTags?.map((s) => {
-                      return (
-                        <HoverCard openDelay={500} key={s.name + s.description}>
-                          <HoverCard.Target>
-                            <Badge
-                              variant="light"
-                              rightSection={<Plus />}
-                              onClick={async () => {
-                                handleCreateAndAddTag(
-                                  s.name,
-                                  s.description,
-                                  false,
-                                );
-                              }}
-                            >
-                              {s.name}
-                            </Badge>
-                          </HoverCard.Target>
-                          <HoverCard.Dropdown>
-                            <Text size="xs" c="dimmed">
-                              {s.description}
-                            </Text>
-                          </HoverCard.Dropdown>
-                        </HoverCard>
-                      );
-                    })
-                  ) : (
-                    <Group align="center">
-                      <Loader size="xs" />
-                      <Text>Loading suggestions...</Text>
-                    </Group>
-                  )}
-                </Group>
               </Grid.Col>
             </Grid>
             <Group justify="end">
