@@ -201,7 +201,7 @@ export class UserFile {
       }
       response.setHeader("Content-Type", file.mimeType);
       const stream = getStreamS3(file.s3key);
-      for await (const chunk of stream) {
+      for await (const chunk of stream as unknown as Buffer[]) {
         response.write(chunk);
       }
       response.end();
