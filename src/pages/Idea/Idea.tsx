@@ -15,10 +15,7 @@ import {
   Card,
   Tooltip,
   Divider,
-  Button,
   Flex,
-  HoverCard,
-  HoverCardTarget,
   Menu,
   CopyButton,
 } from "@mantine/core";
@@ -408,8 +405,6 @@ export default function Idea() {
     <PageWrapper>
       <LeftSidebar>
         <>
-          {leftSidebarOpened && !!idea && <TagsManager idea={idea} />}
-          {leftSidebarOpened && <Divider my="md" />}
           <Card radius="md" withBorder shadow="xs" p="md">
             <Text fw={500} c="dimmed" size="sm" mb={4}>
               <Sparkle
@@ -431,7 +426,9 @@ export default function Idea() {
                 )}
             </Text>
           </Card>
-          {idea ? (
+          {leftSidebarOpened && <Divider my="md" />}
+          {leftSidebarOpened && !!idea && <TagsManager idea={idea} />}
+          {!!idea && (
             <>
               <Divider my="lg" />
               <Connections
@@ -450,8 +447,6 @@ export default function Idea() {
                 reloadIdea={reloadIdea}
               />
             </>
-          ) : (
-            <Loader size="sm" />
           )}
         </>
       </LeftSidebar>

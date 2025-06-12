@@ -144,12 +144,27 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
 // --- Data Fetching & Filtering ---
 async function fetchDreamSlashItems(query: string): Promise<IDreamSlashItem[]> {
   const lowerCaseQuery = query.toLowerCase();
-  return DREAM_SLASH_ITEMS.filter(
-    (item) =>
-      item.title.toLowerCase().startsWith(lowerCaseQuery) ||
-      (item.description &&
-        item.description.toLowerCase().includes(lowerCaseQuery)),
-  ).slice(0, 10); // Limit results for performance
+
+  const fuzzyMatch = (text: string, query: string) => {
+    let textIndex = 0;
+    let queryIndex = 0;
+    while (textIndex < text.length && queryIndex < query.length) {
+      if (text[textIndex] === query[queryIndex]) {
+        queryIndex++;
+      }
+      textIndex++;
+    }
+    return queryIndex === query.length;
+  };
+
+  return DREAM_SLASH_ITEMS.filter((item) => {
+    const lowerCaseTitle = item.title.toLowerCase();
+    const lowerCaseDescription = item.description?.toLowerCase() || "";
+    return (
+      fuzzyMatch(lowerCaseTitle, lowerCaseQuery) ||
+      (item.description && fuzzyMatch(lowerCaseDescription, lowerCaseQuery))
+    );
+  }).slice(0, 10); // Limit results for performance
 }
 
 const suggestionOptionsDefinition = (
