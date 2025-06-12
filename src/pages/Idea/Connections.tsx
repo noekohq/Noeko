@@ -154,11 +154,6 @@ export default function Connections({
 
   return (
     <Grid>
-      {loadingIdea && (
-        <Grid.Col span={{ sm: 12 }}>
-          <Loader size="xs" />
-        </Grid.Col>
-      )}
       {computeOutOfDate && (
         <Grid.Col span={{ sm: 12 }}>
           <Text c="dimmed" size="sm" mb="sm">
@@ -215,6 +210,7 @@ export default function Connections({
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group>
+                {loadingIdea && <Loader size="sm" />}
                 <Text size="sm">Ideas you've connected...</Text>
               </Group>
             </Grid.Col>

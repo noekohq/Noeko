@@ -208,7 +208,7 @@ export default function Dashboard() {
                   >
                     <Group>
                       <Text>Find an idea</Text>
-                      <Kbd>/</Kbd>
+                      <Kbd>{primaryKey} + /</Kbd>
                     </Group>
                   </Button>
                   <Link to="/graph">
@@ -223,7 +223,7 @@ export default function Dashboard() {
                     <Button variant="default">
                       <Group>
                         <Text>Spyglass</Text>
-                        <Kbd>{primaryKey} + /</Kbd>
+                        <Kbd>{primaryKey} + shift + /</Kbd>
                       </Group>
                     </Button>
                   </Link>

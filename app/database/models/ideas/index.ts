@@ -1415,7 +1415,7 @@ export class Idea {
       const updaters = withEmbeddings.map(([id, content, embeddings]) => {
         return {
           id: id,
-          embeddings: embeddings,
+          embeddings: embeddings.length > 0 ? embeddings : null,
           embeddingsUpdatedAt: new Date(),
         } as { id: string } & Partial<Idea>;
       });

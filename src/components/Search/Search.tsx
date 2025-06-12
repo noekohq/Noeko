@@ -2,27 +2,18 @@ import { useCallback, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Search.module.scss";
 import { SearchBar } from "./SearchBar";
-import {
-  Container,
-  Group,
-  Space,
-  Stack,
-  Text,
-  UnstyledButton,
-} from "@mantine/core";
-import { Link } from "react-router";
-import {
-  getNodeAsIdeaOrNull,
-  getNodesAsIdeas,
-  getNodeTitle,
-} from "../../utils/graph";
+import { Container, Space, Stack, Text } from "@mantine/core";
+import { getNodeAsIdeaOrNull } from "../../utils/graph";
 import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
-import { Star } from "@phosphor-icons/react";
 import { CompactIdeaCard } from "../Display/Ideas/IdeaCards";
+import { getOS } from "../../utils/platform";
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
+  const os = getOS();
+  const ctrl = os !== "macos";
+  const meta = os === "macos";
 
   const {
     global: {
@@ -44,8 +35,8 @@ export default function Search() {
         onSearchEnd={() => {
           setLoading(false);
         }}
-        onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-        placeholder="Press / to search..."
+        onShortcuts={[{ key: "/", ctrl, meta }]}
+        placeholder="Press shift + / to search..."
       />
       {!searchResults && !loading && (
         <>

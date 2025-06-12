@@ -1,4 +1,4 @@
-import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ISearchOverview, ISearchResult } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
