@@ -8,7 +8,7 @@ import NodePanel from "./NodePanel";
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
-  forceStrength: -600,
+  forceStrength: -1000,
   linkStrength: 0.7,
   centerForceStrength: 0.06,
   alpha: 1,
@@ -406,7 +406,8 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
       alphaRef.current = 0;
       simulationRef.current = null;
-    } else if (!isNavigating) { // Ensure not to restart if navigating
+    } else if (!isNavigating) {
+      // Ensure not to restart if navigating
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     }
   }, [edges, dimensions, propWidth, propHeight, isNavigating]);
@@ -439,7 +440,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     alphaRef.current = SIMULATION_CONFIG.alpha;
     setTransform({ k: 1, x: 0, y: 0 });
 
-    if (!isNavigating && simulationRef.current === null && initializedNodes.length > 0) {
+    if (
+      !isNavigating &&
+      simulationRef.current === null &&
+      initializedNodes.length > 0
+    ) {
       simulationRef.current = requestAnimationFrame(runSimulationTick);
     } else {
     }
@@ -450,7 +455,14 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       }
       simulationRef.current = null;
     };
-  }, [graph.nodes, dimensions, propWidth, propHeight, runSimulationTick, isNavigating]);
+  }, [
+    graph.nodes,
+    dimensions,
+    propWidth,
+    propHeight,
+    runSimulationTick,
+    isNavigating,
+  ]);
 
   const getSVGPoint = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } => {

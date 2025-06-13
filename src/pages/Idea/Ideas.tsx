@@ -21,32 +21,28 @@ import styles from "./Ideas.module.scss";
 import { MagnifyingGlass, Plus } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useInteraction } from "../../contexts/InteractionContext";
+import { useLayout } from "../../contexts/LayoutContext";
 
 export default function Ideas() {
+  const { isMobile } = useLayout();
   const [page, setPage] = useState(0);
-  const pageSize = 10;
+  const pageSize = isMobile ? 10 : 10;
   const [allIdeas, setAllIdeas] = useState<IIdea[]>([]);
-  // Assuming your useFetch hook has a loading state
   const {
     load: getPage,
     loading,
     data: newIdeasFetched,
   } = useFetch<undefined, IIdea[]>({
     url: `/ideas/page?page=${page}&pageSize=${pageSize}`,
-    runOnDependencies: [page], // This will trigger a fetch when 'page' changes
+    runOnDependencies: [page],
   });
 
-  // Ref for the element that will trigger loading more items
   const observerTarget = useRef(null);
-
-  // State to track if there's more data to load
   const [hasMore, setHasMore] = useState(true);
 
-  // Append new ideas when newIdeasFetched changes
   useEffect(() => {
     if (newIdeasFetched && newIdeasFetched.length > 0) {
       setAllIdeas((prevIdeas) => {
-        // Prevent adding duplicate ideas if the same page is fetched multiple times
         const existingIds = new Set(prevIdeas.map((idea) => idea.id)); // Assuming IIdea has an 'id'
         const uniqueNewIdeas = newIdeasFetched.filter(
           (idea) => !existingIds.has(idea.id),

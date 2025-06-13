@@ -189,7 +189,7 @@ export default function Dashboard() {
                   >
                     <Group>
                       <Text>Add an idea</Text>
-                      <Kbd>{primaryKey} + A</Kbd>
+                      <Kbd>{primaryKey} + I</Kbd>
                     </Group>
                   </Button>
                   <Link to="/ideas">
@@ -223,7 +223,7 @@ export default function Dashboard() {
                     <Button variant="default">
                       <Group>
                         <Text>Spyglass</Text>
-                        <Kbd>{primaryKey} + shift + /</Kbd>
+                        <Kbd>{primaryKey} + Shift + /</Kbd>
                       </Group>
                     </Button>
                   </Link>
@@ -305,7 +305,7 @@ export default function Dashboard() {
           </Grid.Col>
         </Grid>
       </Container>
-      <RightSidebar openOnShortcut={[{ key: "/" }]} defaultClosed={isMobile} />
+      <RightSidebar openOnShortcut={[{ key: "/" }]} />
     </PageWrapper>
   );
 }

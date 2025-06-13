@@ -151,17 +151,26 @@ export const getNodeTitle = (node: INode) => {
   }
 };
 
-export const getNodeDescription = (node: INode) => {
+export const getNodeDescription = (
+  node: INode,
+  options?: {
+    sentences?: number;
+    maxLength?: number;
+  },
+) => {
   if (node.type === "idea") {
-    return (
+    const desc =
       node.derived?.generative_summary?.sentenceOverview ??
       node.derived?.generative_summary?.sentenceSummary ??
       (node.contentPlain &&
         splitBySentences(sanitizeMarkdownForDescription(node.contentPlain))
-          .slice(0, 2)
+          .slice(0, options?.sentences ?? 2)
           .join("... ") + "...") ??
-      "No summary available"
-    );
+      "No summary available";
+    if (options?.maxLength) {
+      return desc.slice(0, options.maxLength);
+    }
+    return desc;
   }
   if (node.type === "file") {
     return node.mimeType;
