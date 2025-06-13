@@ -112,7 +112,14 @@ export class User {
       const getUsersFunction = () => {
         return `
         DEFINE FUNCTION OVERWRITE fn::get_users() {
-          LET $users = SELECT *, count(->owns->idea) as numIdeas OMIT password FROM user;
+          LET $users = SELECT
+              *,
+              count(->owns->idea) as numIdeas
+            OMIT password
+            FROM user
+            ORDER BY
+              numIdeas DESC,
+              createdAt DESC;
           RETURN $users;
         }
         `;
