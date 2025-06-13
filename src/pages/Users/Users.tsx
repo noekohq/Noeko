@@ -184,14 +184,13 @@ export default function Users() {
   });
 
   const [invitedUser, setInvitedUser] = useState<{
-    user: ISafeUser;
+    user: { firstName: string; lastName: string; email: string };
     emailSuccess: boolean;
-    newUserPassword: string;
   }>();
   const [invitingUser, setInvitingUser] = useState(false);
   const { load: inviteUser, loading: loadingUserInvite } = useFetch<
     { firstName: string; lastName: string; email: string },
-    { user: ISafeUser; emailSuccess: boolean; newUserPassword: string }
+    { user: ISafeUser; emailSuccess: boolean }
   >({
     url: "/users/invite",
     method: "POST",
@@ -541,18 +540,19 @@ export default function Users() {
                 <Grid>
                   <Grid.Col span={{ sm: 12 }}>
                     <Text>
-                      The new user has been created with the email{" "}
+                      {invitedUser.user.firstName} has been invited with the
+                      email{" "}
                       <a href={`mailto:${invitedUser.user.email}`}>
                         {invitedUser.user.email}
-                      </a>{" "}
-                      and password <Code>{invitedUser.newUserPassword}</Code>.{" "}
+                      </a>
+                      .{" "}
                       {invitedUser.emailSuccess
                         ? "Email was sent successfully."
                         : "Email was not sent successfully."}
                     </Text>
                   </Grid.Col>
                   <Grid.Col span={{ sm: 12 }}>
-                    <CopyButton value={invitedUser.newUserPassword}>
+                    <CopyButton value={invitedUser.user.email}>
                       {({ copied, copy }) => {
                         return (
                           <Button
@@ -565,7 +565,7 @@ export default function Users() {
                               )
                             }
                           >
-                            {copied ? "Copied" : "Copy Password"}
+                            {copied ? "Copied" : "Copy Email"}
                           </Button>
                         );
                       }}

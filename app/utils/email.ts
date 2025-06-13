@@ -29,17 +29,23 @@ export const sendEmailAPI = async (
 
 export const sendEmailService = new MailBabyService();
 
-export const sendEmail = async (to: string, subject: string, body: string) => {
+export const sendEmail = async (
+  to: string,
+  subject: string,
+  body: string,
+  options?: {
+    from?: string;
+  },
+) => {
   try {
     const verified = await sendEmailService.verifyConnection();
     if (!verified) {
-      console.log("Verified: ", verified);
       throw new Error("Mail service is not connected");
     }
 
     const response = await sendEmailService.transporter.sendMail({
       to,
-      from: EMAIL_FROM,
+      from: options?.from || EMAIL_FROM,
       subject,
       html: body,
     });

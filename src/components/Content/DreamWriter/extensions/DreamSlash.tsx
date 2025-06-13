@@ -3,7 +3,6 @@ import { Editor, Extension, Range } from "@tiptap/core";
 import Suggestion, {
   SuggestionKeyDownProps,
   SuggestionOptions,
-  SuggestionPluginKey,
   SuggestionProps,
 } from "@tiptap/suggestion";
 
@@ -18,6 +17,7 @@ import {
   SparkleIcon, // Generic icon placeholder
   CheckSquareIcon,
   TableIcon,
+  YoutubeLogoIcon,
 } from "@phosphor-icons/react";
 import { PluginKey } from "@tiptap/pm/state";
 
@@ -134,6 +134,24 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
         .focus()
         .deleteRange(range)
         .setDreamTable({ columns: 3, rows: 3 })
+        .run();
+    },
+  },
+  {
+    id: "youtube",
+    title: "YouTube",
+    description: "Embed a YouTube video.",
+    icon: <YoutubeLogoIcon />,
+    command: ({ editor, range }) => {
+      const url = window.prompt("Enter YouTube video url: ");
+      if (!url) return;
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setYoutubeVideo({
+          src: url,
+        })
         .run();
     },
   },

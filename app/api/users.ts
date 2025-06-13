@@ -20,6 +20,7 @@ import {
 import { Idea } from "../database/models/ideas";
 import { sendEmail } from "../utils/email";
 import { logger } from "../services/Logger";
+import { em } from "@mantine/core";
 
 const router = Router();
 
@@ -264,7 +265,8 @@ router.post("/forgot-password", async (req, res) => {
 
     // Always return success to prevent email enumeration
     res.json({
-      message: "If an account with that email exists, a password reset link has been sent.",
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
     });
   } catch (error) {
     console.error("Forgot password error:", error);
@@ -275,9 +277,11 @@ router.post("/forgot-password", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   try {
     const { token, password, passwordConfirmation } = req.body;
-    
+
     if (!token || !password || !passwordConfirmation) {
-      res.status(400).json({ message: "Token, password, and password confirmation are required" });
+      res.status(400).json({
+        message: "Token, password, and password confirmation are required",
+      });
       return;
     }
 
@@ -331,7 +335,7 @@ router.post("/refresh", async (req, res) => {
 router.post("/logout", async (req, res) => {
   try {
     const refreshToken = await getRefreshTokenFromReq(req);
-    
+
     if (refreshToken) {
       // Remove the refresh token from the database
       const logoutSuccess = await User.logout(refreshToken);
@@ -339,12 +343,12 @@ router.post("/logout", async (req, res) => {
         console.warn("Failed to remove refresh token during logout");
       }
     }
-    
+
     // Clear both access and refresh token cookies regardless of database operation
     await clearAuthCookies(res);
-    
+
     res.json({
-      message: "Logged out successfully"
+      message: "Logged out successfully",
     });
   } catch (error) {
     console.error("Logout error:", error);
@@ -352,7 +356,7 @@ router.post("/logout", async (req, res) => {
     // This ensures the user is logged out on the client side
     await clearAuthCookies(res);
     res.json({
-      message: "Logged out successfully"
+      message: "Logged out successfully",
     });
   }
 });
@@ -459,29 +463,23 @@ router.post(
         res.status(400).json({ message: "Missing required fields" });
         return;
       }
-      const userExistsWithEmail = await User.findByEmail(form.email);
-      if (userExistsWithEmail) {
-        res.status(400).json({ message: "Email already in use" });
-        return;
-      }
-      const userPassword = getRandomPassword();
-      const hashedPassword = await hashPassword(userPassword);
-      const user = await User.create({ ...req.body, password: hashedPassword });
-      if (!user) {
-        res.status(400).json({ message: "User already exists" });
-        return;
-      }
       const sentEmail = await User.sendInvitationEmail(
-        user,
+        {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+        },
         creator,
-        userPassword,
       );
       res.json({
         message: "User registered successfully",
         data: {
-          user,
+          user: {
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email: form.email,
+          },
           emailSuccess: sentEmail,
-          newUserPassword: userPassword,
         },
       });
     } catch (error) {
