@@ -23,9 +23,6 @@ import Link from "@tiptap/extension-link";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
 import {
   BlockquoteButton,
   BoldButton,
@@ -63,6 +60,7 @@ import { Markdown } from "tiptap-markdown";
 import { Indent } from "./extensions/Indent";
 import { DreamTaskItem } from "./extensions/TaskItem";
 import { DreamCode } from "./nodes/DreamCode";
+import YouTube from "@tiptap/extension-youtube";
 
 // import "highlight.js/styles/github-dark-dimmed.css";
 import "./lib/qwest-highlight.scss";
@@ -257,6 +255,11 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }),
           DreamFileHandler.configure({}),
           DreamConnection.configure({}),
+          YouTube.configure({
+            HTMLAttributes: {
+              class: contentStyles.youtube,
+            },
+          }),
           DreamSlash.configure({}),
         ],
         content,

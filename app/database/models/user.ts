@@ -353,16 +353,18 @@ export class User {
   }
 
   static async sendInvitationEmail(
-    to: ISafeUser,
+    to: { firstName: string; lastName: string; email: string },
     sender: ISafeUser,
-    invitationPassword: string,
   ) {
     try {
-      const invitation = invitationTemplate(to, sender, invitationPassword);
+      const invitation = invitationTemplate(to, sender);
       const worked = await sendEmail(
         to.email,
         "Invitation to join Qwest",
         invitation,
+        {
+          from: "team",
+        },
       );
       return worked;
     } catch (error) {
@@ -736,7 +738,7 @@ export class User {
         console.warn("Refresh token not found for logout");
         return false;
       }
-      
+
       // Delete the refresh token from the database
       await Token.delete(tokenRecord.id);
       return true;
