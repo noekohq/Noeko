@@ -250,24 +250,15 @@ export class Import {
   static async checkUserOwnership(importId: string, userId: string) {
     try {
       const db = await getDatabase();
-      const results = await db?.query<
-        [IImportUserOwnership & { id: RecordId }]
-      >(
-        `SELECT * FROM initiated_import WHERE in = $userId AND out = $importId;`,
+      const result = await db?.query<[number]>( // Expecting an array with one object: [{ count: number }]
+        `count(SELECT id FROM owns WHERE in = $userId AND out = $importId);`,
         {
-          userId,
-          importId,
+          userId: new StringRecordId(userId),
+          importId: new StringRecordId(importId),
         },
       );
 
-      if (!results) {
-        console.error(
-          `No ownership found for import "${importId}" and user "${userId}".`,
-        );
-        return false;
-      }
-      const [ownership] = results;
-      if (ownership) {
+      if (result && result[0] && result[0] > 0) {
         return true;
       }
       return false;

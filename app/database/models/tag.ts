@@ -210,8 +210,6 @@ export class Tag {
         },
       );
 
-      console.log("Count: ", result);
-
       if (result && result[0] && result[0] > 0) {
         return true;
       }

@@ -169,8 +169,8 @@ export class Search {
             string::similarity::jaro_winkler($query, title) AS titleSimilarity
         FROM idea
         WHERE
-            (contentPlain @0@ $query OR title @1@ $query)
-            OR string::similarity::jaro_winkler($query, title) > 0.7f
+            ((contentPlain @0@ $query OR title @1@ $query)
+            OR string::similarity::jaro_winkler($query, title) > 0.7f)
             AND <-owns<-(user WHERE id = <record> $userId)
         ORDER BY
             titleSimilarity DESC,
