@@ -13,10 +13,13 @@ import {
 import {
   addAccessTokenToRes,
   addRefreshTokenToRes,
+  clearAuthCookies,
   getFromReq,
   getRefreshTokenFromReq,
 } from "../utils/requests";
 import { Idea } from "../database/models/ideas";
+import { sendEmail } from "../utils/email";
+import { logger } from "../services/Logger";
 
 const router = Router();
 
@@ -241,6 +244,63 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "Email is required" });
+      return;
+    }
+
+    const user = await User.findByEmail(email);
+    if (user) {
+      // Generate password reset token
+      const resetToken = await User.generatePasswordResetToken(user);
+      if (resetToken) {
+        // Send password reset email
+        await User.sendPasswordResetEmail(user, resetToken);
+      }
+    }
+
+    // Always return success to prevent email enumeration
+    res.json({
+      message: "If an account with that email exists, a password reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password, passwordConfirmation } = req.body;
+    
+    if (!token || !password || !passwordConfirmation) {
+      res.status(400).json({ message: "Token, password, and password confirmation are required" });
+      return;
+    }
+
+    if (password !== passwordConfirmation) {
+      res.status(400).json({ message: "Passwords do not match" });
+      return;
+    }
+
+    const success = await User.resetPasswordWithToken(token, password);
+    if (!success) {
+      res.status(400).json({ message: "Invalid or expired reset token" });
+      return;
+    }
+
+    res.json({
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.post("/refresh", async (req, res) => {
   try {
     const refreshToken = await getRefreshTokenFromReq(req);
@@ -265,6 +325,35 @@ router.post("/refresh", async (req, res) => {
   } catch (error) {
     console.error("Refresh token error:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/logout", async (req, res) => {
+  try {
+    const refreshToken = await getRefreshTokenFromReq(req);
+    
+    if (refreshToken) {
+      // Remove the refresh token from the database
+      const logoutSuccess = await User.logout(refreshToken);
+      if (!logoutSuccess) {
+        console.warn("Failed to remove refresh token during logout");
+      }
+    }
+    
+    // Clear both access and refresh token cookies regardless of database operation
+    await clearAuthCookies(res);
+    
+    res.json({
+      message: "Logged out successfully"
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Even if there's an error, clear the cookies and return success
+    // This ensures the user is logged out on the client side
+    await clearAuthCookies(res);
+    res.json({
+      message: "Logged out successfully"
+    });
   }
 });
 
@@ -527,7 +616,7 @@ router.post(
         });
         return;
       }
-      if (!["invitation"].includes(type)) {
+      if (!["invitation", "test"].includes(type)) {
         res.status(400).json({
           message: `Type ${type} not supported.`,
         });
@@ -553,12 +642,28 @@ router.post(
           return;
         }
       }
+
+      if (type === "test") {
+        const sent = await sendEmail(
+          user.email,
+          "Test Email",
+          "Testing Testing 1, 2, 3. Is this thing on?",
+        );
+        if (!sent) {
+          throw new Error("Error sending email.");
+        }
+        res.send({ message: "Email sent successfully." });
+        return;
+      }
+
       res.status(500).json({
         message: "Something went wrong.",
         data: false,
       });
     } catch (error) {
-      console.error("Error sending email: ", error);
+      logger.error("Error sending email", {
+        error,
+      });
       res.status(500).json({ message: "Internal Server Error" });
     }
   },

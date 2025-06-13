@@ -58,6 +58,19 @@ export const getAccessTokenFromReq = async (req: Request) => {
   return undefined;
 };
 
+export const clearAuthCookies = async (res: Response) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: NODE_ENV === "production" ? "lax" : "none",
+  });
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: NODE_ENV === "production" ? "lax" : "none",
+  });
+};
+
 export const multerToStandardFile = (multerFile: Express.Multer.File): File => {
   const newFile = new File([multerFile.buffer], multerFile.originalname, {
     type: multerFile.mimetype,

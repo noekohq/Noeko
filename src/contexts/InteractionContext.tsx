@@ -127,7 +127,7 @@ export function InteractionProvider({
 }) {
   const [loadingSomething, setLoadingSomething] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loggedIn } = useAuth();
   const isSuperuser = userIsSuperuser(user);
   const [spotlightOpened, setSpotlightOpened] = useState(false);
 
@@ -323,6 +323,10 @@ export function InteractionProvider({
       },
     ],
   ]);
+
+  if (!loggedIn) {
+    return <>{children}</>;
+  }
 
   return (
     <InteractionContext.Provider value={value}>

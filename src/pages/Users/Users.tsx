@@ -319,6 +319,12 @@ export default function Users() {
                     <Text>Send the user an onboarding email.</Text>
                   </Group>
                 </RadioCard>
+                <RadioCard value="test" radius="sm" p="md">
+                  <Group wrap="nowrap" align="flex-start">
+                    <Radio.Indicator />
+                    <Text>Send the user test email.</Text>
+                  </Group>
+                </RadioCard>
               </RadioGroup>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>

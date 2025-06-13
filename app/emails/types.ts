@@ -12,14 +12,29 @@ export const invitationTemplate = (
   return `
   Hello ${invitee.firstName}!
 
-  My name is ${inviter.firstName} with Qwest, a knowledge management application. I'd like to invite you to join.
+  My name is ${inviter.firstName} from Qwest, an app that helps you think better, not less.
 
-  Simply go to <a href="${DEPLOYED_URL}/login">this page</a>, and use the following information to log in:
+  I'd like to invite you to join! The process is simple, just click the link below, and register!
 
-  - Email: ${invitee.email}
-  - Password: ${invitePassword}
+  <a href="${DEPLOYED_URL}/register?ref=${inviter.referralCode}">Register Now</a>
 
-  It's recommmended that you go to <a href="${DEPLOYED_URL}/settings/profile">your profile page</a> shortly after to change you password.
+  We hope to see you soon! Thanks.
+  - ${inviter.firstName}
+  `.trim();
+};
 
-  We hope to see you soon! Thanks.`.trim();
+export const passwordResetTemplate = (user: ISafeUser, resetToken: string) => {
+  return `
+  Hello ${user.firstName}!
+
+  You recently requested to reset your password for your Qwest account. Click the link below to reset your password:
+
+  <a href="${DEPLOYED_URL}/reset-password/${resetToken}">Reset Your Password</a>
+
+  If you did not request a password reset, please ignore this email or contact support if you have questions.
+
+  This link will expire in 1 hour for security reasons.
+
+  Thanks,
+  The Qwest Team`.trim();
 };

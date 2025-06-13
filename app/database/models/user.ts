@@ -1,7 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
-import { generateToken, verifyToken } from "../../utils/crypto";
-import { invitationTemplate } from "../../emails/types";
+import { generateToken, verifyToken, hashPassword } from "../../utils/crypto";
+import { invitationTemplate, passwordResetTemplate } from "../../emails/types";
 import { sendEmail } from "../../utils/email";
 import { Idea } from "./ideas";
 import { getKernel } from "../../services/Kernel";
@@ -641,6 +641,107 @@ export class User {
     } catch (error) {
       console.error("[User] Error refreshing all user referral codes:", error);
       // Re-throw the error so the job runner can pick it up
+      throw error;
+    }
+  }
+
+  static async generatePasswordResetToken(
+    user: ISafeUser,
+  ): Promise<string | null> {
+    try {
+      const resetToken = generateToken<{ userId: string; type: string }>(
+        { userId: user.id, type: "password_reset" },
+        { expiresIn: "1h" },
+      );
+
+      // Store the token in the database with 1 hour expiration
+      await Token.create(
+        user.id,
+        resetToken,
+        "password_reset",
+        new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+      );
+
+      return resetToken;
+    } catch (error) {
+      console.error("Error generating password reset token:", error);
+      return null;
+    }
+  }
+
+  static async sendPasswordResetEmail(
+    user: ISafeUser,
+    resetToken: string,
+  ): Promise<boolean> {
+    try {
+      const emailContent = passwordResetTemplate(user, resetToken);
+      const success = await sendEmail(
+        user.email,
+        "Reset Your Qwest Password",
+        emailContent,
+      );
+      return success;
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      return false;
+    }
+  }
+
+  static async resetPasswordWithToken(
+    token: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    try {
+      // Find the token in the database
+      const tokenRecord = await Token.findByToken(token);
+      if (!tokenRecord) {
+        console.error("Password reset token not found");
+        return false;
+      }
+
+      // Check if token is expired
+      if (new Date() > tokenRecord.expiresAt) {
+        console.error("Password reset token has expired");
+        await Token.delete(tokenRecord.id);
+        return false;
+      }
+
+      // Verify the token type
+      if (tokenRecord.type !== "password_reset") {
+        console.error("Invalid token type for password reset");
+        return false;
+      }
+
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update the user's password
+      await User.update(tokenRecord.user.id, { password: hashedPassword });
+
+      // Delete the used token
+      await Token.delete(tokenRecord.id);
+
+      return true;
+    } catch (error) {
+      console.error("Error resetting password with token:", error);
+      return false;
+    }
+  }
+
+  static async logout(refreshToken: string): Promise<boolean> {
+    try {
+      // Find the refresh token in the database
+      const tokenRecord = await Token.findByToken(refreshToken);
+      if (!tokenRecord) {
+        console.warn("Refresh token not found for logout");
+        return false;
+      }
+      
+      // Delete the refresh token from the database
+      await Token.delete(tokenRecord.id);
+      return true;
+    } catch (error) {
+      console.error("Error during logout:", error);
       throw error;
     }
   }
