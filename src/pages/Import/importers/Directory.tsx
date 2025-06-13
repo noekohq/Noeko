@@ -134,7 +134,7 @@ export default function DirectoryImporter() {
 
   const notesLeft = user ? max_notes - user?.totalIdeas : 0;
   const isAllowedToImport =
-    notesLeft >= files.length && max_notes !== -1 && !userIsSuperuser(user);
+    (notesLeft >= files.length && max_notes !== -1) || userIsSuperuser(user);
 
   const [showAll, setShowAll] = useState(false);
 
