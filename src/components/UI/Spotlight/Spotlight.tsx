@@ -328,6 +328,7 @@ export default function Spotlight() {
                   },
                   {
                     sentences: 1,
+                    maxLength: 256,
                   },
                 ),
                 icon: <LightbulbIcon />,

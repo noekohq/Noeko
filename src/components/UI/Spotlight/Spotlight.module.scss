@@ -89,6 +89,9 @@
 .resultsContainer {
     margin-top: var(--mantine-spacing-xl);
     width: var(--spotlight-width);
+    height: 50vh;
+    overflow-y: scroll;
+    scrollbar-width: none;
 
     .results {
         text-align: left;

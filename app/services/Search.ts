@@ -166,19 +166,16 @@ export class Search {
             search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
             search::score(0) AS contentScore,
             search::score(1) AS titleScore,
-            string::similarity::jaro_winkler($query, contentPlain) AS contentSimilarity,
             string::similarity::jaro_winkler($query, title) AS titleSimilarity
         FROM idea
         WHERE
             (contentPlain @0@ $query OR title @1@ $query)
-            OR string::similarity::jaro_winkler($query, contentPlain) > 0.0f
-            AND string::similarity::jaro_winkler($query, title) > 0.0f
+            OR string::similarity::jaro_winkler($query, title) > 0.7f
             AND <-owns<-(user WHERE id = <record> $userId)
         ORDER BY
-          titleSimilarity DESC,
-          contentScore DESC,
-          titleScore DESC,
-          contentSimilarity DESC;
+            titleSimilarity DESC,
+            contentScore DESC,
+            titleScore DESC;
 
         return $ideas;
       }`;
@@ -583,7 +580,7 @@ export class Search {
           // Non-fatal: proceed without semantic results
         }
       } else {
-        console.log(
+        console.warn(
           `Comprehensive Search: No query embedding. Using FTS results only for query "${query}".`,
         );
       }
@@ -946,11 +943,11 @@ export class Search {
 }
 
 export const initSearch = async () => {
-  console.log("Initializing Search Service (using original definitions)...");
+  console.info("Initializing Search Service (using original definitions)...");
   await Search.up();
 };
 
 export const dropSearch = async () => {
-  console.log("Dropping Search Service Indexes/Functions...");
+  console.info("Dropping Search Service Indexes/Functions...");
   await Search.down();
 };
