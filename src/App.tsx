@@ -32,6 +32,8 @@ import Updates from "./pages/Feedback/Updates";
 import ViewTag from "./pages/Tags/ViewTag";
 import ViewIdea from "./pages/Idea/ViewIdea";
 import PublicIdea from "./pages/Idea/PublicIdea";
+import ResetPassword from "./pages/Auth/ResetPassword";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
 
 export default function App() {
   const navigate = useNavigate();
@@ -84,6 +86,8 @@ export default function App() {
           <>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             {PublicRoutes}
             <Route
               path="/*"

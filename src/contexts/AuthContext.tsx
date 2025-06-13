@@ -9,6 +9,7 @@ import { ISafeUser } from "../../app/database/models/user";
 import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { getReferralLinkFromCode } from "../vars/users";
+import { handleLogout } from "../server/auth";
 
 type AuthState = {
   user: (ISafeUser & { totalIdeas: number }) | undefined;
@@ -114,6 +115,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(undefined);
     setLoading(false);
     window.location.reload();
+    handleLogout();
   }, [clearTokens]);
 
   const reload = useCallback(async () => {
