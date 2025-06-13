@@ -31,6 +31,23 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("June 13, 2025"),
+    title: "Some editor features, find ideas quickly",
+    details: (
+      <Stack>
+        <Text>
+          We took some time to make navigation around the application
+          significantly better, as well as generally improving search.
+        </Text>
+        <List>
+          <List.Item>Added YouTube videos to the editor.</List.Item>
+          <List.Item>More robust keyboard shortcuts.</List.Item>
+          <List.Item>Updates to Spotlight usability.</List.Item>
+        </List>
+      </Stack>
+    ),
+  },
+  {
     date: new Date("June 12, 2025"),
     title: "Editor overhaul, additional updates",
     details: (
@@ -39,7 +56,7 @@ const updates: IUpdate[] = [
         <List>
           <List.Item>Added tables to editor.</List.Item>
           <List.Item>Improved connections UI (use '$').</List.Item>
-          <List.Item>Added "/" prefix.</List.Item>
+          <List.Item>Added "/" prefix for suggestion menu.</List.Item>
           <List.Item>Improvements to code blocks in the editor.</List.Item>
         </List>
       </Stack>
