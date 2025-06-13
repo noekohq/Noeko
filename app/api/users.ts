@@ -627,11 +627,7 @@ router.post(
           throw Error("Something went wrong hashing the users password.");
         }
         await User.update(user.id, { password: hashedPassword });
-        const response = await User.sendInvitationEmail(
-          user,
-          sender,
-          newPassword,
-        );
+        const response = await User.sendInvitationEmail(user, sender);
         if (response) {
           res.status(200).json({
             message: "Invitation sent successfully.",
