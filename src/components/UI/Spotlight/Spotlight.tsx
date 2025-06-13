@@ -9,84 +9,75 @@ import {
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { createPortal } from "react-dom";
 import styles from "./Spotlight.module.scss";
-import MiniSearch, { SearchResult } from "minisearch";
+import MiniSearch from "minisearch";
 import {
-  ArrowLeft,
-  Gear,
-  Graph,
-  HouseSimple,
-  Lightbulb,
-  MagnifyingGlass,
-  Scroll,
-  Tag,
-  User,
-  IconProps,
-  CaretLeft,
-  Moon,
-  Sun,
-  TextAa, // Assuming Phosphor icons accept this
+  ArrowLeftIcon,
+  GearIcon,
+  GraphIcon,
+  HouseSimpleIcon,
+  LightbulbIcon,
+  MagnifyingGlassIcon,
+  ScrollIcon,
+  TagIcon,
+  UserIcon,
+  CaretLeftIcon,
+  MoonIcon,
+  SunIcon,
+  TextAaIcon,
 } from "@phosphor-icons/react";
-import { userIsSuperuser } from "../../../utils/user"; // Kept if needed for actions
-import { useAuth } from "../../../contexts/AuthContext"; // Kept if needed for actions
+import { userIsSuperuser } from "../../../utils/user";
+import { useAuth } from "../../../contexts/AuthContext";
 import { Text } from "@mantine/core";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useSettings } from "../../../contexts/SettingsContext";
+import { useNavigate } from "react-router";
+import { api } from "../../../server/api";
+import type { IIdea } from "../../../../app/database/models/ideas";
+import { Option } from "./Option";
+import type {
+  ISubviewDefinition,
+  IUnifiedSearchItem,
+  SpotlightMainItem,
+} from "./spotlight.d";
+import { getNodeDescription } from "../../../utils/graph";
 
-// --- Type Definitions ---
-
-export interface ISpotlightAction {
-  id: string;
-  title: string;
-  icon: ReactNode;
-  keywords?: string;
-  action: () => void;
-}
-
-export interface ISpotlightSubviewLink {
-  id: string;
-  title: string;
-  icon: ReactNode;
-  keywords?: string;
-  subviewId: string;
-}
-
-export type SpotlightMainItem = ISpotlightAction | ISpotlightSubviewLink;
-
-export interface ISubviewDefinition {
-  id: string;
-  title?: string;
-  placeholder?: string;
-  items?: ISpotlightAction[];
-  component?: (props: {
-    searchText: string;
-    closeSpotlight: () => void;
-    triggerAction: (actionFn: () => void) => void;
-  }) => ReactNode;
-  onOpen?: (setSearchText: (text: string) => void) => void;
-}
-
-// --- MiniSearch Instance ---
-// Define MiniSearch instance outside the component if its config is static
-// Ensure storeFields covers all fields needed to reconstruct items from search results.
-const minisearch = new MiniSearch<SpotlightMainItem | ISpotlightAction>({
+const minisearch = new MiniSearch<IUnifiedSearchItem>({
   fields: ["title", "keywords"],
-  storeFields: ["id", "title", "icon", "action", "subviewId", "keywords"], // Add all potential fields
+  storeFields: ["id", "title", "displayTitle", "icon", "action", "isTopLevel"],
   idField: "id",
 });
 
+const createDisplayTitle = (parentTitle: string, childTitle: string) => (
+  <>
+    <span className={styles.parent}>{parentTitle}</span>
+    <span className={styles.separator}> → </span>
+    <span>{childTitle}</span>
+  </>
+);
+
+async function fetchSuggestedIdeas(query: string): Promise<IIdea[]> {
+  try {
+    const response = await api.get(`/search/ideas/suggest?query=${query}`);
+    return response.data.data as IIdea[];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
 export default function Spotlight() {
+  const navigate = useNavigate();
   const {
     state: { spotlightOpened },
     actions: {
       layout: {
         spotlight: { close: contextCloseSpotlight },
       },
-      newIdea, // Example action
+      newIdea,
     },
     views: {
-      // Example views/actions from context
       dashboard,
-      graph: viewGraph, // Renamed to avoid conflict with icon
+      graph: viewGraph,
       spyglass,
       ideas,
       settings,
@@ -100,52 +91,52 @@ export default function Spotlight() {
   const [spotlightValue, setSpotlightValue] = useState("");
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [currentSubviewId, setCurrentSubviewId] = useState<string | null>(null);
-  const [displayedItems, setDisplayedItems] = useState<
-    (SpotlightMainItem | ISpotlightAction)[]
-  >([]);
+  const [displayedItems, setDisplayedItems] = useState<IUnifiedSearchItem[]>(
+    [],
+  );
 
-  const { user } = useAuth(); // Kept if needed for actions
-  const isSuperuser = userIsSuperuser(user); // Kept if needed for actions
+  const { user } = useAuth();
+  const isSuperuser = userIsSuperuser(user);
   const { isMobile } = useLayout();
   const {
     ui: {
       theme: {
-        scheme: { get: scheme, set: setScheme },
-        bodyFont: { get: getBodyFont, set: setBodyFont },
+        scheme: { set: setScheme },
+        bodyFont: { set: setBodyFont },
       },
     },
   } = useSettings();
 
-  // --- Close Spotlight Function (with subview reset) ---
   const closeSpotlightAndResetView = useCallback(() => {
     contextCloseSpotlight();
     setCurrentSubviewId(null);
     setSpotlightValue("");
-    // activeItemIndex and displayedItems will be reset by other effects
   }, [contextCloseSpotlight]);
 
-  // --- Data Definitions ---
   const mainSpotlightItems = useMemo<SpotlightMainItem[]>(
     () => [
       {
         id: "closeCmd",
-        title: "Close Spotlight",
-        icon: <ArrowLeft weight="bold" />,
+        title: "Close",
+        icon: <ArrowLeftIcon />,
         action: closeSpotlightAndResetView,
       },
       {
-        id: "newIdeaCmd",
-        title: "New Idea",
-        icon: <Lightbulb weight="bold" />,
-        action: () => {
-          newIdea();
-          closeSpotlightAndResetView();
-        },
+        id: "ideaSwitcher",
+        title: "Find idea",
+        subviewId: "ideaSwitcherSubview",
+        icon: <MagnifyingGlassIcon />,
+      },
+      {
+        id: "ideas",
+        title: "Ideas",
+        icon: <LightbulbIcon />,
+        subviewId: "ideasSubview",
       },
       {
         id: "homeCmd",
         title: "Home",
-        icon: <HouseSimple weight="bold" />,
+        icon: <HouseSimpleIcon />,
         action: () => {
           dashboard();
           closeSpotlightAndResetView();
@@ -154,7 +145,7 @@ export default function Spotlight() {
       {
         id: "graphCmd",
         title: "Graph View",
-        icon: <Graph weight="bold" />,
+        icon: <GraphIcon />,
         action: () => {
           viewGraph();
           closeSpotlightAndResetView();
@@ -163,25 +154,16 @@ export default function Spotlight() {
       {
         id: "spyglassCmd",
         title: "Spyglass",
-        icon: <MagnifyingGlass weight="bold" />,
+        icon: <MagnifyingGlassIcon />,
         action: () => {
           spyglass();
           closeSpotlightAndResetView();
         },
       },
       {
-        id: "ideasCmd",
-        title: "Ideas List",
-        icon: <Lightbulb weight="bold" />,
-        action: () => {
-          ideas();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
         id: "tagsCmd",
         title: "Tags",
-        icon: <Tag weight="bold" />,
+        icon: <TagIcon />,
         action: () => {
           tags();
           closeSpotlightAndResetView();
@@ -190,7 +172,7 @@ export default function Spotlight() {
       {
         id: "updatesCmd",
         title: "Updates",
-        icon: <Scroll weight="bold" />,
+        icon: <ScrollIcon />,
         action: () => {
           updates();
           closeSpotlightAndResetView();
@@ -199,7 +181,7 @@ export default function Spotlight() {
       {
         id: "settingsCmd",
         title: "Settings",
-        icon: <Gear weight="bold" />,
+        icon: <GearIcon />,
         action: () => {
           settings();
           closeSpotlightAndResetView();
@@ -208,7 +190,7 @@ export default function Spotlight() {
       {
         id: "profileCmd",
         title: "Profile",
-        icon: <User weight="bold" />,
+        icon: <UserIcon />,
         action: () => {
           profile();
           closeSpotlightAndResetView();
@@ -217,14 +199,14 @@ export default function Spotlight() {
       {
         id: "themeCmd",
         title: "Theme",
-        icon: <Sun weight="bold" />,
+        icon: <SunIcon />,
         subviewId: "themeSelectorSubview",
         keywords: "light dark",
       },
       {
         id: "fontCmd",
         title: "Font",
-        icon: <TextAa weight="bold" />,
+        icon: <TextAaIcon />,
         subviewId: "fontSelectorSubview",
         keywords: "serif sans-serif",
       },
@@ -250,179 +232,259 @@ export default function Spotlight() {
           "themeSelectorSubview",
           {
             id: "themeSelectorSubview",
-            title: "Theme Selector",
-            placeholder: "Select a theme...",
+            title: "Theme",
             items: [
               {
                 id: "light",
-                title: "Light Theme",
-                icon: <Sun weight="bold" />,
-                action: () => {
+                title: "Light",
+                icon: <SunIcon />,
+                action: (close) => {
                   setScheme("light");
+                  close();
                 },
               },
               {
                 id: "dark",
-                title: "Dark Theme",
-                icon: <Moon weight="bold" />,
-                action: () => {
+                title: "Dark",
+                icon: <MoonIcon />,
+                action: (close) => {
                   setScheme("dark");
+                  close();
                 },
               },
             ],
-            onOpen: (setSearchText) => {},
           },
         ],
         [
           "fontSelectorSubview",
           {
             id: "fontSelectorSubview",
-            title: "Font Selector",
-            placeholder: "Select a font...",
+            title: "Font",
             items: [
               {
                 id: "sans-serif",
                 title: "Sans Serif",
-                icon: <TextAa weight="bold" />,
-                action: () => {
+                icon: <TextAaIcon />,
+                action: (close) => {
                   setBodyFont("sans-serif");
+                  close();
                 },
               },
               {
                 id: "serif",
                 title: "Serif",
-                icon: <TextAa weight="bold" />,
-                action: () => {
+                icon: <TextAaIcon />,
+                action: (close) => {
                   setBodyFont("serif");
+                  close();
                 },
               },
             ],
-            onOpen: (setSearchText) => {},
+          },
+        ],
+        [
+          "ideasSubview",
+          {
+            id: "ideas",
+            title: "Ideas",
+            items: [
+              {
+                id: "newIdeaCmd",
+                title: "New Idea",
+                icon: <LightbulbIcon />,
+                action: () => {
+                  newIdea();
+                  closeSpotlightAndResetView();
+                },
+              },
+              {
+                id: "ideasCmd",
+                title: "Ideas List",
+                icon: <LightbulbIcon />,
+                action: () => {
+                  ideas();
+                  closeSpotlightAndResetView();
+                },
+              },
+            ],
+          },
+        ],
+        [
+          "ideaSwitcherSubview",
+          {
+            id: "ideaSwitcherSubview",
+            title: "Idea Switcher",
+            placeholder: "Search for an idea to switch to...",
+            dynamicItems: async ({ searchText, closeSpotlight }) => {
+              const suggestedItems = await fetchSuggestedIdeas(searchText);
+
+              return suggestedItems.map((idea) => ({
+                id: idea.id.toString(),
+                title: idea.title,
+                description: getNodeDescription(
+                  {
+                    ...idea,
+                    type: "idea",
+                  },
+                  {
+                    sentences: 1,
+                  },
+                ),
+                icon: <LightbulbIcon />,
+                action: () => {
+                  navigate(`/idea/${idea.id}`);
+                  closeSpotlight();
+                },
+              }));
+            },
           },
         ],
       ]),
-    [],
+    [setScheme, setBodyFont],
   );
 
-  // --- Effect for Re-indexing MiniSearch ---
+  const unifiedSearchItems = useMemo<IUnifiedSearchItem[]>(() => {
+    const items: IUnifiedSearchItem[] = [];
+
+    mainSpotlightItems.forEach((item) => {
+      if ("subviewId" in item) {
+        const subview = subviewDefinitions.get(item.subviewId);
+
+        items.push({
+          id: item.id,
+          title: item.title,
+          displayTitle: item.title,
+          icon: item.icon,
+          keywords: item.keywords,
+          action: () => {
+            setCurrentSubviewId(item.subviewId);
+            setSpotlightValue("");
+          },
+          isTopLevel: true,
+        });
+
+        if (subview?.items) {
+          subview.items.forEach((subItem) => {
+            items.push({
+              id: `${item.id}:${subItem.id}`,
+              title: subItem.title,
+              displayTitle: createDisplayTitle(item.title, subItem.title),
+              icon: subItem.icon,
+              keywords: `${item.title} ${item.keywords || ""} ${subItem.keywords || ""}`,
+              action: () => subItem.action(closeSpotlightAndResetView),
+              isTopLevel: false,
+            });
+          });
+        }
+      } else if ("action" in item) {
+        items.push({
+          ...item,
+          displayTitle: item.title,
+          action: item.action,
+          isTopLevel: true,
+        });
+      }
+    });
+
+    return items;
+  }, [mainSpotlightItems, subviewDefinitions, closeSpotlightAndResetView]);
+
   useEffect(() => {
     minisearch.removeAll();
-    let itemsToIndex: (SpotlightMainItem | ISpotlightAction)[] = [];
+    minisearch.addAll(unifiedSearchItems);
+  }, [unifiedSearchItems]);
 
-    if (currentSubviewId) {
-      const subview = subviewDefinitions.get(currentSubviewId);
-      if (subview?.items) {
-        itemsToIndex = subview.items;
-      }
-      // If subview.component, itemsToIndex remains empty for list display purposes.
-    } else {
-      itemsToIndex = mainSpotlightItems;
-    }
-
-    if (itemsToIndex.length > 0) {
-      minisearch.addAll(itemsToIndex);
-    }
-    // Trigger search with current spotlightValue after re-indexing
-    // This is handled by the next useEffect which depends on currentSubviewId
-  }, [currentSubviewId, mainSpotlightItems, subviewDefinitions]);
-
-  // --- Effect for Searching ---
   useEffect(() => {
-    setActiveItemIndex(0); // Reset selection when search text or view changes
+    setActiveItemIndex(0);
 
     if (currentSubviewId) {
       const subview = subviewDefinitions.get(currentSubviewId);
+
       if (subview?.component) {
-        setDisplayedItems([]); // Custom component handles its own rendering
+        setDisplayedItems([]);
+        return;
+      }
+
+      if (subview?.dynamicItems) {
+        subview
+          .dynamicItems({
+            searchText: spotlightValue,
+            closeSpotlight: closeSpotlightAndResetView,
+          })
+          .then((actions) => {
+            setDisplayedItems(
+              actions.map((item) => ({
+                ...item,
+                displayTitle: item.title,
+                displayDescription: item.description,
+                isTopLevel: false,
+              })),
+            );
+          });
+        return;
+      }
+
+      if (subview?.items) {
+        const itemsInSubview = subview.items.map((subItem) => ({
+          id: `${subview.id}:${subItem.id}`,
+          title: subItem.title,
+          displayTitle: subItem.title,
+          icon: subItem.icon,
+          keywords: subItem.keywords,
+          action: () => subItem.action(closeSpotlightAndResetView),
+          isTopLevel: false,
+        }));
+
+        if (spotlightValue) {
+          const lowerCaseQuery = spotlightValue.toLowerCase();
+          const filtered = itemsInSubview.filter(
+            (item) =>
+              item.title.toLowerCase().includes(lowerCaseQuery) ||
+              item.keywords?.toLowerCase().includes(lowerCaseQuery),
+          );
+          setDisplayedItems(filtered);
+        } else {
+          setDisplayedItems(itemsInSubview);
+        }
         return;
       }
     }
 
-    let currentPool: (SpotlightMainItem | ISpotlightAction)[] = [];
-    if (currentSubviewId) {
-      const subview = subviewDefinitions.get(currentSubviewId);
-      currentPool = subview?.items || [];
-    } else {
-      currentPool = mainSpotlightItems;
-    }
-
+    // --- Handle Global Search (no subview active) ---
     if (!spotlightValue) {
-      setDisplayedItems(currentPool);
+      // Show only top-level items on initial view
+      setDisplayedItems(unifiedSearchItems.filter((item) => item.isTopLevel));
     } else {
-      if (currentPool.length === 0 && !currentSubviewId) {
-        // Should not happen if mainSpotlightItems is populated
-        setDisplayedItems([]);
-      } else if (
-        currentPool.length === 0 &&
-        currentSubviewId &&
-        !subviewDefinitions.get(currentSubviewId)?.component
-      ) {
-        setDisplayedItems([]); // Empty item list for a list-based subview
-      } else {
-        // Minisearch is already indexed by the previous effect for the current view
-        const searchResults = minisearch.search(spotlightValue, {
-          fuzzy: 0.2, // Adjusted fuzzy slightly
-          prefix: true,
-        });
-        // Results from minisearch are the full items due to storeFields
-        setDisplayedItems(
-          searchResults as unknown as (SpotlightMainItem | ISpotlightAction)[],
-        );
-      }
+      const searchResults = minisearch.search(spotlightValue, {
+        fuzzy: 0.2,
+        prefix: true,
+      });
+      setDisplayedItems(searchResults as unknown as IUnifiedSearchItem[]);
     }
   }, [
     spotlightValue,
+    unifiedSearchItems,
     currentSubviewId,
-    mainSpotlightItems,
     subviewDefinitions,
+    closeSpotlightAndResetView, // Added dependency
   ]);
 
+  // --- Effect to Focus Input when Opened ---
   useEffect(() => {
     if (spotlightOpened) {
       setSpotlightValue("");
-      setCurrentSubviewId(null);
+      setCurrentSubviewId(null); // Reset to main view on open
       spotlightRef.current?.focus();
     }
   }, [spotlightOpened]);
-
-  // --- Handle Item Selection (Unified Logic) ---
-  const handleItemSelection = useCallback(
-    (item: SpotlightMainItem | ISpotlightAction) => {
-      if (!item) return;
-
-      if ("subviewId" in item && item.subviewId) {
-        // It's a SpotlightMainItem opening a subview
-        setCurrentSubviewId(item.subviewId);
-        setSpotlightValue(""); // Clear search for the new subview
-        spotlightRef.current?.focus();
-        const subviewDef = subviewDefinitions.get(item.subviewId);
-        subviewDef?.onOpen?.(setSpotlightValue);
-      } else if ("action" in item && typeof item.action === "function") {
-        // It's an action item
-        item.action(); // This will call closeSpotlightAndResetView if defined in the action
-        // or newIdea(), then closeSpotlightAndResetView() etc.
-        // If actions don't inherently call closeSpotlightAndResetView, call it here:
-        // if (!item.action.toString().includes('closeSpotlightAndResetView')) {
-        //    closeSpotlightAndResetView();
-        // }
-        // For simplicity, assuming actions defined in mainSpotlightItems already handle closing.
-        // Subview items' actions will also typically lead to closing.
-      }
-    },
-    [subviewDefinitions, closeSpotlightAndResetView],
-  ); // Added closeSpotlightAndResetView if needed
 
   // --- Keyboard Navigation ---
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!spotlightOpened) return;
 
-      const currentItemsCount = displayedItems.length;
-      const currentActiveSubview = currentSubviewId
-        ? subviewDefinitions.get(currentSubviewId)
-        : null;
       const isCustomComponentView =
-        currentActiveSubview && currentActiveSubview.component;
+        currentSubviewId && subviewDefinitions.get(currentSubviewId)?.component;
 
       if (event.key === "ArrowUp") {
         event.preventDefault();
@@ -431,17 +493,17 @@ export default function Spotlight() {
         }
       } else if (event.key === "ArrowDown") {
         event.preventDefault();
-        if (!isCustomComponentView && currentItemsCount > 0) {
+        if (!isCustomComponentView && displayedItems.length > 0) {
           setActiveItemIndex((prev) =>
-            Math.min(currentItemsCount - 1, prev + 1),
+            Math.min(displayedItems.length - 1, prev + 1),
           );
         }
       } else if (event.key === "Enter") {
         event.preventDefault();
-        if (!isCustomComponentView && displayedItems[activeItemIndex]) {
-          handleItemSelection(displayedItems[activeItemIndex]);
+        const selectedItem = displayedItems[activeItemIndex];
+        if (!isCustomComponentView && selectedItem) {
+          selectedItem.action();
         }
-        // If it's a custom component view, Enter might be handled by the input or the component itself.
       } else if (event.key === "Escape") {
         event.preventDefault();
         if (currentSubviewId) {
@@ -455,44 +517,25 @@ export default function Spotlight() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     spotlightOpened,
     displayedItems,
     activeItemIndex,
     currentSubviewId,
-    handleItemSelection,
     closeSpotlightAndResetView,
     subviewDefinitions,
   ]);
 
-  // --- Dynamic Placeholder ---
-  const currentPlaceholder = useMemo(() => {
-    if (currentSubviewId) {
-      return (
-        subviewDefinitions.get(currentSubviewId)?.placeholder ||
-        `Search in ${subviewDefinitions.get(currentSubviewId)?.title || "subview"}...`
-      );
-    }
-    return "Search for anything...";
-  }, [currentSubviewId, subviewDefinitions]);
-
-  const currentTitle = useMemo(() => {
-    if (currentSubviewId) {
-      return subviewDefinitions.get(currentSubviewId)?.title;
-    }
-    return null;
-  }, [currentSubviewId, subviewDefinitions]);
-
-  if (!spotlightOpened) {
-    return null;
-  }
-
-  const currentActiveSubviewDef = currentSubviewId
+  // --- Dynamic Placeholder & Title ---
+  const currentSubviewDef = currentSubviewId
     ? subviewDefinitions.get(currentSubviewId)
     : null;
+  const currentPlaceholder =
+    currentSubviewDef?.placeholder || "Search or type a command...";
+  const currentTitle = currentSubviewDef?.title;
+
+  if (!spotlightOpened) return null;
 
   return createPortal(
     <div
@@ -501,13 +544,9 @@ export default function Spotlight() {
     >
       <div className={styles.tipText}>
         <Text>
-          {isMobile && !currentSubviewId
+          {isMobile
             ? "Tap anywhere to close."
-            : isMobile && currentSubviewId
-              ? "Tap overlay to go back."
-              : currentTitle
-                ? currentTitle
-                : "Find anything..."}
+            : currentTitle || "Find anything..."}
         </Text>
       </div>
       <div className={styles.spotlight} onClick={(e) => e.stopPropagation()}>
@@ -521,7 +560,7 @@ export default function Spotlight() {
             }}
             title="Go back to main search"
           >
-            <CaretLeft weight="bold" />
+            <CaretLeftIcon weight="bold" />
           </button>
         )}
         <input
@@ -533,25 +572,22 @@ export default function Spotlight() {
           placeholder={currentPlaceholder}
         />
         <div className={styles.resultsContainer}>
-          {currentActiveSubviewDef?.component ? (
-            currentActiveSubviewDef.component({
+          {currentSubviewDef?.component ? (
+            currentSubviewDef.component({
               searchText: spotlightValue,
               closeSpotlight: closeSpotlightAndResetView,
-              triggerAction: (actionFn) => {
-                actionFn();
-                closeSpotlightAndResetView();
-              },
             })
           ) : displayedItems.length > 0 ? (
             <div className={styles.results}>
               {displayedItems.map((item, i) => (
                 <Option
-                  key={item.id + i} // Ensure unique keys if IDs can repeat (they shouldn't with this model)
+                  key={item.id}
                   icon={item.icon}
-                  title={item.title}
+                  title={item.displayTitle} // Use the rich displayTitle
+                  description={item.displayDescription}
                   active={i === activeItemIndex}
                   setActive={() => setActiveItemIndex(i)}
-                  onClick={() => handleItemSelection(item)}
+                  onClick={item.action} // Action is now always a direct function call
                 />
               ))}
             </div>
@@ -564,36 +600,5 @@ export default function Spotlight() {
       </div>
     </div>,
     document.body,
-  );
-}
-
-// --- Option Sub-component (largely unchanged) ---
-type IOptionProps = {
-  icon: React.ReactNode;
-  title: string;
-  active: boolean;
-  setActive: () => void;
-  onClick: () => void;
-};
-
-function Option({ icon, title, active, setActive, onClick }: IOptionProps) {
-  const optionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (active) {
-      optionRef.current?.scrollIntoView({ block: "nearest" });
-    }
-  }, [active]);
-
-  return (
-    <div
-      ref={optionRef}
-      className={`${styles.result} ${active ? styles.active : ""}`}
-      onMouseEnter={setActive} // Simplified direct call
-      onClick={onClick}
-    >
-      <div className={styles.icon}>{icon}</div>
-      <div className={styles.title}>{title}</div>
-    </div>
   );
 }

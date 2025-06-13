@@ -251,67 +251,42 @@ export function InteractionProvider({
     },
   };
 
-  // useShortcuts({
-  //   shortcuts: [
-  //     {
-  //       keys: { ctrl, meta, shift: true, key: "h" },
-  //       run: value.views.dashboard,
-  //     },
-  //     {
-  //       keys: { ctrl, meta, shift: true, key: "g" },
-  //       run: value.views.graph,
-  //     },
-  //     {
-  //       keys: { ctrl, meta, key: "/" },
-  //       run: value.views.spyglass,
-  //     },
-  //     {
-  //       keys: { ctrl, meta, shift: true, key: "b" },
-  //       run: value.views.ideas,
-  //     },
-  //     {
-  //       keys: { ctrl, meta, key: "." },
-  //       run: () => navigate("/settings"),
-  //     },
-  //     {
-  //       keys: { ctrl, meta, key: ";" },
-  //       run: () => {
-  //         if (isSuperuser) {
-  //           value.views.admin();
-  //         }
-  //       },
-  //     },
-  //     {
-  //       keys: { ctrl, meta, shift: true, key: "u" },
-  //       run: () => {
-  //         setUploadingFile(true);
-  //       },
-  //     },
-  //     {
-  //       keys: { ctrl, meta, shift: true, key: "a" },
-  //       run: value.actions.newIdea,
-  //     },
-  //     {
-  //       keys: { ctrl: true, key: "k" },
-  //       run: (e) => {
-  //         e.preventDefault();
-  //         setSpotlightOpened(!spotlightOpened);
-  //       },
-  //     },
-  //     {
-  //       keys: { key: "Escape" },
-  //       run: () => {
-  //         setSpotlightOpened(false);
-  //       },
-  //     },
-  //   ],
-  // });
   useHotkeys([
-    ["mod+shift+h", value.views.dashboard],
-    ["mod+shift+g", value.views.graph],
-    ["mod+/", value.views.spyglass],
-    ["mod+shift+b", value.views.ideas],
-    ["mod+.", () => navigate("/settings")],
+    [
+      "mod+shift+h",
+      value.views.dashboard,
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "mod+shift+g",
+      value.views.graph,
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "mod+shift+/",
+      value.views.spyglass,
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "mod+shift+b",
+      value.views.ideas,
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "mod+.",
+      () => navigate("/settings"),
+      {
+        preventDefault: true,
+      },
+    ],
     [
       "mod+;",
       () => {
@@ -319,9 +294,24 @@ export function InteractionProvider({
           value.views.admin();
         }
       },
+      {
+        preventDefault: true,
+      },
     ],
-    ["mod+shift+u", () => setUploadingFile(true)],
-    ["mod+shift+a", value.actions.newIdea],
+    [
+      "mod+shift+u",
+      () => setUploadingFile(true),
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "mod+shift+i",
+      value.actions.newIdea,
+      {
+        preventDefault: true,
+      },
+    ],
     [
       "mod+k", // Explicitly Ctrl+K on all OSes
       (event) => {

@@ -31,6 +31,21 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("June 12, 2025"),
+    title: "Editor overhaul, additional updates",
+    details: (
+      <Stack>
+        <Text>Overall we took some time to make the editor a better.</Text>
+        <List>
+          <List.Item>Added tables to editor.</List.Item>
+          <List.Item>Improved connections UI (use '$').</List.Item>
+          <List.Item>Added "/" prefix.</List.Item>
+          <List.Item>Improvements to code blocks in the editor.</List.Item>
+        </List>
+      </Stack>
+    ),
+  },
+  {
     date: new Date("June 2, 2025"),
     title: "Improvements to Spyglass, Initial Spotlight Search feature",
     details: (

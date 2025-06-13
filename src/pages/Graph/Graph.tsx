@@ -97,7 +97,7 @@ export default function GraphPage() {
           </Group>
         )}
       </div>
-      <RightSidebar openOnShortcut={[{ key: "/" }]} omitDefaults>
+      <RightSidebar omitDefaults>
         {!isLoaded && <Loader size="sm" />}
         {isLoaded && (
           <GraphToolbar nodes={localData.nodes} flags={graphData.flags} />

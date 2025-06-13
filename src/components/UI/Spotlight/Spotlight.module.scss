@@ -97,17 +97,27 @@
         overflow: hidden;
 
         .result {
-            display: flex;
-            gap: 14px;
-            align-items: center;
-            padding: 8px 14px;
-            font-size: var(--mantine-font-size-lg);
-            cursor: pointer;
             color: var(--mantine-color-text);
 
-            .icon {
-                position: relative;
-                top: 2px;
+            .content {
+                display: flex;
+                gap: 14px;
+                align-items: center;
+                padding: 8px 14px 8px 14px;
+                font-size: var(--mantine-font-size-lg);
+                cursor: pointer;
+
+                .icon {
+                    position: relative;
+                    top: 2px;
+                }
+            }
+
+            .description {
+                padding: 0px 14px 8px 14px;
+                margin: 0;
+                font-size: var(--mantine-font-size-xs);
+                color: var(--mantine-color-dark-6);
             }
 
             &.active {
@@ -116,5 +126,16 @@
             }
         }
     }
+}
 
+.parent {
+    opacity: 0.75;
+}
+
+.noResults {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--mantine-color-body);
 }

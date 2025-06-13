@@ -8,12 +8,16 @@ import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
 import { CompactIdeaCard } from "../Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
+import { useLayout } from "../../contexts/LayoutContext";
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
+  const primaryKey = os === "macos" ? "⌘" : "Ctrl";
+
+  const { isMobile } = useLayout();
 
   const {
     global: {
@@ -36,7 +40,9 @@ export default function Search() {
           setLoading(false);
         }}
         onShortcuts={[{ key: "/", ctrl, meta }]}
-        placeholder="Press shift + / to search..."
+        placeholder={
+          isMobile ? "Search..." : `Press ${primaryKey} + / to focus...`
+        }
       />
       {!searchResults && !loading && (
         <>

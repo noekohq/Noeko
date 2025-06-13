@@ -339,7 +339,7 @@ export default function Spyglass() {
           )}
         </Stack>
       </Container>
-      <RightSidebar />
+      <RightSidebar defaultClosed={true} />
     </PageWrapper>
   );
 }

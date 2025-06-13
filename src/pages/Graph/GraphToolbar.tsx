@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { ISearchResult } from "../../../app/services/Search";
@@ -15,6 +15,7 @@ import { useSearch } from "../../contexts/SearchContext";
 import { getNodeTitle } from "../../utils/graph";
 import Match from "../../components/Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
+import Search from "../../components/Search/Search";
 
 type GraphToolbarProps = {
   nodes: INode[];
@@ -22,20 +23,15 @@ type GraphToolbarProps = {
 };
 
 export const GraphToolbar = ({ nodes, flags }: GraphToolbarProps) => {
-  const navigate = useNavigate();
-
   const { user } = useAuth();
-  const isAdmin = userIsSuperuser(user);
 
   const {
     filter: { set: setFilter, clear: clearFilter },
-    loading: { set: setLoading },
-    query: { set: setQuery },
   } = useGraph();
 
   const {
     global: {
-      results: { get: searchResults, set: setResults },
+      results: { get: searchResults },
     },
   } = useSearch();
 
@@ -47,75 +43,23 @@ export const GraphToolbar = ({ nodes, flags }: GraphToolbarProps) => {
     return filteredResults;
   }, []);
 
-  const handleResultsClear = useCallback(() => {
-    clearFilter();
-    setResults(null);
-  }, []);
+  useEffect(() => {
+    if (searchResults) {
+      handleResults(searchResults);
+    } else {
+      clearFilter();
+    }
+  }, [searchResults, handleResults]);
 
   const {
     rightSidebar: { opened: rightSidebarOpened },
-    isMobile,
   } = useLayout();
 
   return (
     <div className={`${styles.ui}`}>
       {rightSidebarOpened && (
         <div className={styles.searchWrapper}>
-          <SearchBar
-            onResults={handleResults}
-            onResultsClear={handleResultsClear}
-            onSearchStart={() => {
-              setLoading(true);
-            }}
-            onSearchEnd={() => {
-              setLoading(false);
-            }}
-            onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-          />
-          {searchResults && (
-            <Container p="0" w="100%" className={styles.searchResults}>
-              <Space my="lg" />
-              <Text c="dimmed" size="sm">
-                Found {searchResults.length} result
-                {searchResults.length === 1 ? "" : "s"}...
-              </Text>
-              <Space my="sm" />
-              {searchResults?.map((s, i) => {
-                return (
-                  <Link
-                    key={s.id.toString()}
-                    to={`/${s.value.type}/${s.value.id.toString()}`}
-                    style={{
-                      textDecoration: "none",
-                    }}
-                    className="searchResult"
-                    tabIndex={i}
-                  >
-                    <Card withBorder>
-                      <Text fw="bold" c="gray">
-                        {getNodeTitle(s.value)}
-                      </Text>
-                      <Text c="dimmed">
-                        <Match
-                          opener="->"
-                          closer="<-"
-                          match={(content) => {
-                            return (
-                              <span className={styles.highlight}>
-                                {content}
-                              </span>
-                            );
-                          }}
-                        >
-                          {getSearchResultPreview(s) || "No preview available."}
-                        </Match>
-                      </Text>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </Container>
-          )}
+          <Search />
         </div>
       )}
     </div>

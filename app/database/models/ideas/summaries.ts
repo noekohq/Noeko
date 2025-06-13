@@ -91,7 +91,7 @@ export class GenerativeSummary {
       if (!idea) {
         throw new Error(`Idea with ID ${ideaId} not found`);
       }
-      const contentToGenerate = idea.contentPlain;
+      const contentToGenerate = `${idea.title}:\n---${idea.contentPlain}`;
       if (!contentToGenerate) {
         throw new Error(`Idea with ID ${ideaId} has no content`);
       }
