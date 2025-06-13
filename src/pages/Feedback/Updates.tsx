@@ -43,6 +43,10 @@ const updates: IUpdate[] = [
           <List.Item>Added YouTube videos to the editor.</List.Item>
           <List.Item>More robust keyboard shortcuts.</List.Item>
           <List.Item>Updates to Spotlight usability.</List.Item>
+          <List.Item>
+            You can now reach us directly at{" "}
+            <a href="mailto:support@qwest.so">support@qwest.so</a>
+          </List.Item>
         </List>
       </Stack>
     ),
