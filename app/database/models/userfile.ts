@@ -219,20 +219,15 @@ export class UserFile {
   ) {
     try {
       const db = await getDatabase();
-      const results = await db?.query<[IUserFileUserOwnership]>(
-        `SELECT * FROM owns WHERE in = $userId AND out = $userFileId;`,
+      const result = await db?.query<[number]>( // Expecting an array with one object: [{ count: number }]
+        `count(SELECT id FROM owns WHERE in = $userId AND out = $userFileId);`,
         {
           userId: new StringRecordId(userId),
           userFileId: new StringRecordId(userFileId),
         },
       );
-      if (!results) {
-        throw Error(
-          `No ownership found for user file "${userFileId}" and user "${userId}".`,
-        );
-      }
-      const [ownership] = results;
-      if (ownership) {
+
+      if (result && result[0] && result[0] > 0) {
         return true;
       }
       return false;

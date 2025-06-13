@@ -189,6 +189,10 @@ api.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 403) {
+      window.location.href = "/";
+    }
+
     // For errors other than 401 or handled retries, just return the promise rejection
     return Promise.reject(error);
   },

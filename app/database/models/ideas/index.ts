@@ -511,22 +511,15 @@ export class Idea {
   static async checkUserOwnership(ideaId: string, userId: string) {
     try {
       const db = await getDatabase();
-      const results = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
-        `SELECT * FROM owns WHERE in = $userId AND out = $ideaId;`,
+      const result = await db?.query<[number]>( // Expecting an array with one object: [{ count: number }]
+        `count(SELECT id FROM owns WHERE in = $userId AND out = $ideaId);`,
         {
-          userId,
-          ideaId,
+          userId: new StringRecordId(userId),
+          ideaId: new StringRecordId(ideaId),
         },
       );
 
-      if (!results) {
-        console.error(
-          `No ownership found for idea "${ideaId}" and user "${userId}".`,
-        );
-        return false;
-      }
-      const [ownership] = results;
-      if (ownership) {
+      if (result && result[0] && result[0] > 0) {
         return true;
       }
       return false;
