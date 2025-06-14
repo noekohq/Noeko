@@ -118,7 +118,6 @@ export class User {
             OMIT password
             FROM user
             ORDER BY
-              numIdeas DESC,
               createdAt DESC;
           RETURN $users;
         }

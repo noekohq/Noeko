@@ -18,6 +18,7 @@ import {
   Alert,
   CopyButton,
   Code,
+  SimpleGrid,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
 import {
@@ -33,6 +34,8 @@ import {
   Check,
   Clipboard,
   Eye,
+  CaretUp,
+  CaretDown,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
@@ -218,6 +221,26 @@ export default function Users() {
   });
 
   const [query, setQuery] = useState("");
+  const [sortField, setSortField] = useState<keyof IComputedUser | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (field: keyof IComputedUser) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: keyof IComputedUser) => {
+    if (sortField !== field) return null;
+    return sortDirection === "asc" ? (
+      <CaretUp size={14} />
+    ) : (
+      <CaretDown size={14} />
+    );
+  };
 
   const filteredUsers = users?.filter(
     (user) =>
@@ -227,6 +250,79 @@ export default function Users() {
         .includes(query.toLowerCase()) ||
       user.id.toString().includes(query.toLowerCase()),
   );
+
+  const sortedUsers = filteredUsers?.sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
+
+    // Handle special case for full name sorting
+    if (sortField === "firstName") {
+      aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+      bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+    } else if (sortField === "createdAt") {
+      aValue = new Date(aValue).getTime();
+      bValue = new Date(bValue).getTime();
+    } else if (sortField === "disabled") {
+      // Sort disabled users to bottom when ascending, top when descending
+      aValue = aValue ? 1 : 0;
+      bValue = bValue ? 1 : 0;
+    } else if (typeof aValue === "string") {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const getSummaryDetails = () => {
+    if (!users || users.length === 0) {
+      return {
+        mostIdeas: undefined,
+        mostRecentUser: undefined,
+        numberOfUsers: 0,
+      };
+    }
+
+    const numberOfUsers = users.length;
+
+    let mostIdeasUser: IComputedUser | undefined = undefined;
+    let mostRecentUser: IComputedUser | undefined = undefined;
+
+    // Initialize with the first user if available
+    if (users.length > 0) {
+      mostIdeasUser = users[0];
+      mostRecentUser = users[0];
+    }
+
+    // Find most ideas and most recent user
+    for (const user of users) {
+      if (
+        mostIdeasUser === undefined ||
+        user.numIdeas > mostIdeasUser.numIdeas
+      ) {
+        mostIdeasUser = user;
+      }
+      if (
+        mostRecentUser === undefined ||
+        new Date(user.createdAt).getTime() >
+          new Date(mostRecentUser.createdAt).getTime()
+      ) {
+        mostRecentUser = user;
+      }
+    }
+
+    return {
+      mostIdeas: mostIdeasUser,
+      mostRecentUser: mostRecentUser,
+      numberOfUsers: numberOfUsers,
+    };
+  };
+
+  const summaryDetails = getSummaryDetails();
 
   return (
     <PageWrapper>
@@ -578,13 +674,14 @@ export default function Users() {
           <Grid.Col span={{ sm: 12 }}>
             <Title>Manage Users</Title>
           </Grid.Col>
-          <Grid.Col span={{ sm: 12 }} />
           <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              placeholder="Filter users"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+            <Text>
+              There are <strong>{summaryDetails.numberOfUsers}</strong> users.
+              The most recent user is{" "}
+              <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
+              with the most ideas is{" "}
+              <strong>{summaryDetails.mostIdeas?.email}</strong>.
+            </Text>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Group justify="end">
@@ -593,20 +690,72 @@ export default function Users() {
               </Button>
             </Group>
           </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Text></Text>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <TextInput
+              placeholder="Filter users"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </Grid.Col>
           <Grid.Col span={{ sm: 12 }} />
           <Grid.Col>
             <Table>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>Email</Table.Th>
+                  <Table.Th
+                    style={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSort("firstName")}
+                  >
+                    <Group gap="xs">
+                      Name
+                      {getSortIcon("firstName")}
+                    </Group>
+                  </Table.Th>
+                  <Table.Th
+                    style={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSort("email")}
+                  >
+                    <Group gap="xs">
+                      Email
+                      {getSortIcon("email")}
+                    </Group>
+                  </Table.Th>
                   <Table.Th>Roles</Table.Th>
-                  <Table.Th>Info</Table.Th>
+                  <Table.Th
+                    style={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSort("numIdeas")}
+                  >
+                    <Group gap="xs">
+                      Ideas
+                      {getSortIcon("numIdeas")}
+                    </Group>
+                  </Table.Th>
+                  <Table.Th
+                    style={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSort("createdAt")}
+                  >
+                    <Group gap="xs">
+                      Created
+                      {getSortIcon("createdAt")}
+                    </Group>
+                  </Table.Th>
+                  <Table.Th
+                    style={{ cursor: "pointer", userSelect: "none" }}
+                    onClick={() => handleSort("disabled")}
+                  >
+                    <Group gap="xs">
+                      Status
+                      {getSortIcon("disabled")}
+                    </Group>
+                  </Table.Th>
                   <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {filteredUsers?.map((user) => {
+                {sortedUsers?.map((user) => {
                   return (
                     <Table.Tr key={user.id}>
                       <Table.Td>
@@ -618,7 +767,15 @@ export default function Users() {
                         {user.numIdeas} idea{user.numIdeas === 1 ? "" : "s"}
                       </Table.Td>
                       <Table.Td>
-                        <Group gap="xs">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text color={user.disabled ? "red" : "green"}>
+                          {user.disabled ? "Disabled" : "Active"}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <SimpleGrid cols={2}>
                           {user.disabled ? (
                             <ActionIcon
                               variant="light"
@@ -663,7 +820,7 @@ export default function Users() {
                           >
                             <Eye />
                           </ActionIcon>
-                        </Group>
+                        </SimpleGrid>
                       </Table.Td>
                     </Table.Tr>
                   );
