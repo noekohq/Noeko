@@ -95,6 +95,7 @@ export default function Spotlight() {
   const [displayedItems, setDisplayedItems] = useState<IUnifiedSearchItem[]>(
     [],
   );
+  const currentSearchRef = useRef<number>(0);
 
   const { user } = useAuth();
   const isSuperuser = userIsSuperuser(user);
@@ -405,9 +406,8 @@ export default function Spotlight() {
     return () => clearTimeout(timeoutId);
   }, [spotlightValue]);
 
+  // Handle immediate search (non-debounced)
   useEffect(() => {
-    setActiveItemIndex(0);
-
     if (currentSubviewId) {
       const subview = subviewDefinitions.get(currentSubviewId);
 
@@ -416,27 +416,32 @@ export default function Spotlight() {
         return;
       }
 
+      // Skip dynamic items for idea switcher - handled by debounced effect
+      if (subview?.dynamicItems && currentSubviewId === "ideaSwitcherSubview") {
+        return;
+      }
+
       if (subview?.dynamicItems) {
-        // Use debounced value for idea switcher to reduce API calls
-        const searchText =
-          currentSubviewId === "ideaSwitcherSubview"
-            ? debouncedSpotlightValue
-            : spotlightValue;
+        const searchId = ++currentSearchRef.current;
 
         subview
           .dynamicItems({
-            searchText,
+            searchText: spotlightValue,
             closeSpotlight: closeSpotlightAndResetView,
           })
           .then((actions) => {
-            setDisplayedItems(
-              actions.map((item) => ({
-                ...item,
-                displayTitle: item.title,
-                displayDescription: item.description,
-                isTopLevel: false,
-              })),
-            );
+            // Only update if this is still the latest search
+            if (searchId === currentSearchRef.current) {
+              setDisplayedItems(
+                actions.map((item) => ({
+                  ...item,
+                  displayTitle: item.title,
+                  displayDescription: item.description,
+                  isTopLevel: false,
+                })),
+              );
+              setActiveItemIndex(0);
+            }
           });
         return;
       }
@@ -463,6 +468,7 @@ export default function Spotlight() {
         } else {
           setDisplayedItems(itemsInSubview);
         }
+        setActiveItemIndex(0);
         return;
       }
     }
@@ -478,13 +484,49 @@ export default function Spotlight() {
       });
       setDisplayedItems(searchResults as unknown as IUnifiedSearchItem[]);
     }
+    setActiveItemIndex(0);
   }, [
     spotlightValue,
-    debouncedSpotlightValue,
     unifiedSearchItems,
     currentSubviewId,
     subviewDefinitions,
-    closeSpotlightAndResetView, // Added dependency
+    closeSpotlightAndResetView,
+  ]);
+
+  // Handle debounced search for idea switcher
+  useEffect(() => {
+    if (currentSubviewId === "ideaSwitcherSubview") {
+      const subview = subviewDefinitions.get(currentSubviewId);
+
+      if (subview?.dynamicItems) {
+        const searchId = ++currentSearchRef.current;
+
+        subview
+          .dynamicItems({
+            searchText: debouncedSpotlightValue,
+            closeSpotlight: closeSpotlightAndResetView,
+          })
+          .then((actions) => {
+            // Only update if this is still the latest search
+            if (searchId === currentSearchRef.current) {
+              setDisplayedItems(
+                actions.map((item) => ({
+                  ...item,
+                  displayTitle: item.title,
+                  displayDescription: item.description,
+                  isTopLevel: false,
+                })),
+              );
+              setActiveItemIndex(0);
+            }
+          });
+      }
+    }
+  }, [
+    debouncedSpotlightValue,
+    currentSubviewId,
+    subviewDefinitions,
+    closeSpotlightAndResetView,
   ]);
 
   // --- Effect to Focus Input when Opened ---
