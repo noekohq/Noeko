@@ -1,4 +1,4 @@
-import { useRef, useEffect, ReactNode } from "react";
+import { useRef, useEffect, ReactNode, useState } from "react";
 import styles from "./Spotlight.module.scss";
 
 type IOptionProps = {
@@ -19,6 +19,7 @@ export function Option({
   onClick,
 }: IOptionProps) {
   const optionRef = useRef<HTMLDivElement>(null);
+  const [hovering, setHovering] = useState(false);
 
   useEffect(() => {
     if (active) {
@@ -29,8 +30,10 @@ export function Option({
   return (
     <div
       ref={optionRef}
-      className={`${styles.result} ${active ? styles.active : ""}`}
-      onMouseEnter={setActive}
+      className={`${styles.result} ${active ? styles.active : ""} ${hovering ? styles.hovering : ""}`}
+      onMouseDown={setActive}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
       onClick={onClick}
     >
       <div className={styles.content}>
