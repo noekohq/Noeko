@@ -132,7 +132,12 @@
 
             &.active {
                 color: var(--mantine-color-white);
-                background-color: var(--mantine-primary-color-8);
+                background-color: var(--mantine-primary-color-8) !important;
+            }
+
+            &.hovering {
+                color: var(--mantine-color-white);
+                background-color: var(--mantine-primary-color-7);
             }
         }
     }
