@@ -89,6 +89,7 @@ export default function Spotlight() {
 
   const spotlightRef = useRef<HTMLInputElement>(null);
   const [spotlightValue, setSpotlightValue] = useState("");
+  const [debouncedSpotlightValue, setDebouncedSpotlightValue] = useState("");
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [currentSubviewId, setCurrentSubviewId] = useState<string | null>(null);
   const [displayedItems, setDisplayedItems] = useState<IUnifiedSearchItem[]>(
@@ -395,6 +396,15 @@ export default function Spotlight() {
     minisearch.addAll(unifiedSearchItems);
   }, [unifiedSearchItems]);
 
+  // Debounce spotlight value for idea search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSpotlightValue(spotlightValue);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timeoutId);
+  }, [spotlightValue]);
+
   useEffect(() => {
     setActiveItemIndex(0);
 
@@ -407,9 +417,15 @@ export default function Spotlight() {
       }
 
       if (subview?.dynamicItems) {
+        // Use debounced value for idea switcher to reduce API calls
+        const searchText =
+          currentSubviewId === "ideaSwitcherSubview"
+            ? debouncedSpotlightValue
+            : spotlightValue;
+
         subview
           .dynamicItems({
-            searchText: spotlightValue,
+            searchText,
             closeSpotlight: closeSpotlightAndResetView,
           })
           .then((actions) => {
@@ -464,6 +480,7 @@ export default function Spotlight() {
     }
   }, [
     spotlightValue,
+    debouncedSpotlightValue,
     unifiedSearchItems,
     currentSubviewId,
     subviewDefinitions,
