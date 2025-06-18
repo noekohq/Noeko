@@ -45,6 +45,7 @@ import {
 import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 import Match from "../../components/Utils/Match";
 import { generateTextFragmentHashFromText } from "../../utils/textFragment";
+import { getOS } from "../../utils/platform";
 
 type IResultsMap = Record<string, ISearchResultValue>;
 
@@ -57,6 +58,10 @@ type ICitationMap = Record<
 >;
 
 export default function Spyglass() {
+  const os = getOS();
+  const ctrl = os !== "macos";
+  const meta = os === "macos";
+  const primaryKey = os === "macos" ? "⌘" : "Ctrl";
   const {
     global: {
       results: { get: searchResults, set: setResults },
@@ -167,7 +172,7 @@ export default function Spyglass() {
               }
             }}
             onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-            placeholder="Press / to search..."
+            placeholder={`${primaryKey} + / to focus`}
             withOverview
           />
           {!loadingSearch && !searchResults && (
@@ -306,7 +311,6 @@ export default function Spyglass() {
                                             )}
                                           </Match>
                                         </Text>
-                                        ;
                                       </Group>
                                     );
                                   })}

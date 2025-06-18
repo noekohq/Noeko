@@ -1,17 +1,20 @@
 import { Router } from "express";
-import { checkToken, disallowDisabled } from "../middleware/auth";
-import { getFromReq } from "../utils/requests";
-import { ISafeUser } from "../database/models/user";
+import { checkToken, disallowDisabled } from "../../middleware/auth";
+import { getFromReq } from "../../utils/requests";
+import { ISafeUser } from "../../database/models/user";
 import {
   ISearchOverview,
   ISearchResult,
   Search,
   ITagSearchResult, // Added for tag search results
-} from "../services/Search";
-import { Embeddings } from "../semantics/embeddings";
-import { ITag } from "../database/models/tag";
+} from "../../services/Search";
+import { Embeddings } from "../../semantics/embeddings";
+import { ITag } from "../../database/models/tag";
+import spyglassRouter from "./spyglass";
 
 const router = Router();
+
+router.use("/spyglass", spyglassRouter);
 
 router.post("/comprehensive", checkToken, async (req, res) => {
   try {
