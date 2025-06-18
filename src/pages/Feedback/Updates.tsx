@@ -31,6 +31,33 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("June 18, 2025"),
+    title: "Major refresh to Spyglass",
+    details: (
+      <Stack>
+        <Text>
+          We took some time to increase the usability and utility of Spyglass
+          search.
+        </Text>
+        <List>
+          <List.Item>
+            Drastically improved UI for <Link to={"/spyglass"}>Spyglass</Link>.
+          </List.Item>
+          <List.Item>
+            Better grounding of search results in source material.
+          </List.Item>
+          <List.Item>
+            More intuitive indication of current step in multi-stage Spyglass
+            process.
+          </List.Item>
+          <List.Item>
+            Removing redundant information and making it easy to get utility.
+          </List.Item>
+        </List>
+      </Stack>
+    ),
+  },
+  {
     date: new Date("June 13, 2025"),
     title: "Some editor features, find ideas quickly",
     details: (
