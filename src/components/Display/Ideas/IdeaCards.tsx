@@ -63,7 +63,7 @@ export function CompactIdeaCard({
   maxDescriptionLines = 2,
   link,
   description,
-  withBorder,
+  withBorder = true,
 }: CompactIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
