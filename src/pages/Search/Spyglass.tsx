@@ -519,9 +519,6 @@ function DisplayOverview({
   );
   return (
     <div>
-      <Text c="gray.7" size="sm" fw="bold">
-        AT A GLANCE
-      </Text>
       <div
         dangerouslySetInnerHTML={{
           __html: markdownToHtml(overview.overview),
@@ -529,7 +526,7 @@ function DisplayOverview({
       />
       <Space my="sm" />
       <Text c="gray.7" size="sm" fw="bold">
-        SOURCES
+        FINDINGS
       </Text>
       <Text>
         {overview.findings
