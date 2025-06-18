@@ -478,7 +478,7 @@ export class SpyglassSearch {
         const { highlightText, value } = result;
         const ideaValue = value as IIdea;
         r += `**${ideaValue.title}**\n`;
-        r += `Source ID: <${ideaValue.id.toString()}>\n`;
+        r += `Source ID: ${ideaValue.id.toString()}\n`;
         if (highlightText) {
           r += `System Highlighted Text: ${highlightText}`;
         }
@@ -537,7 +537,7 @@ export class SpyglassSearch {
                   sourceId: {
                     type: SchemaType.STRING,
                     description:
-                      "The id of the result you're sourcing, formatted as <[ACTUAL ID HERE]>.",
+                      "The id of the result you're sourcing, usually something like table:randomuniqueid",
                   },
                   excerpt: {
                     type: SchemaType.STRING,
