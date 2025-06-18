@@ -90,6 +90,7 @@ export const disallowDisabled = async (
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
+    return;
   }
 };
 
@@ -117,5 +118,6 @@ export const checkTokenAllowPass = async (
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
+    return;
   }
 };

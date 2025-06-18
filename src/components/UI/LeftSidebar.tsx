@@ -32,7 +32,7 @@ export default function LeftSidebar({
 
   // You can choose to use isContextMobile or the local one.
   // Local one ensures this component's responsiveness logic is self-contained.
-  const isLocalMobile = useMediaQuery("(max-width: 768px)");
+  const isLocalMobile = useMediaQuery("(max-width: 1024px)");
   const currentIsMobile = isLocalMobile; // Or isContextMobile, depending on preference
 
   const canBeToggled = useMemo(

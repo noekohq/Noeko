@@ -35,7 +35,7 @@ export class LoggingService {
     level: ILog["level"],
     message: string,
     context?: Record<string, any>,
-    source?: string
+    source?: string,
   ): Promise<ILog | undefined> {
     const logForm: ILogForm = {
       level,
@@ -44,20 +44,25 @@ export class LoggingService {
       source,
     };
 
+    console.log(
+      `[${level.toUpperCase()}] Message: ${message}${source ? ` | Source: ${source}` : ""}.`,
+      context,
+    );
+
     try {
       const createdLog = await Log.create(logForm);
       if (!createdLog) {
         // Fallback to console logging if database logging fails
         console.error(
-          `[DB Log Failed - ${level.toUpperCase()}] Message: ${message}${source ? ` | Source: ${source}` : ''}${context ? ` | Context: ${JSON.stringify(context)}` : ''}`
+          `[DB Log Failed - ${level.toUpperCase()}] Message: ${message}${source ? ` | Source: ${source}` : ""}${context ? ` | Context: ${JSON.stringify(context)}` : ""}`,
         );
       }
       return createdLog;
     } catch (error) {
       // Fallback for unexpected errors during the Log.create call
       console.error(
-        `[DB Log Exception - ${level.toUpperCase()}] Message: ${message}${source ? ` | Source: ${source}` : ''}${context ? ` | Context: ${JSON.stringify(context)}` : ''}`,
-        error
+        `[DB Log Exception - ${level.toUpperCase()}] Message: ${message}${source ? ` | Source: ${source}` : ""}${context ? ` | Context: ${JSON.stringify(context)}` : ""}`,
+        error,
       );
       return undefined;
     }
@@ -73,7 +78,7 @@ export class LoggingService {
   public async info(
     message: string,
     context?: Record<string, any>,
-    source?: string
+    source?: string,
   ): Promise<ILog | undefined> {
     return this.createLogEntry("info", message, context, source);
   }
@@ -88,7 +93,7 @@ export class LoggingService {
   public async warn(
     message: string,
     context?: Record<string, any>,
-    source?: string
+    source?: string,
   ): Promise<ILog | undefined> {
     return this.createLogEntry("warn", message, context, source);
   }
@@ -103,7 +108,7 @@ export class LoggingService {
   public async error(
     message: string,
     context?: Record<string, any>,
-    source?: string
+    source?: string,
   ): Promise<ILog | undefined> {
     return this.createLogEntry("error", message, context, source);
   }
@@ -118,7 +123,7 @@ export class LoggingService {
   public async debug(
     message: string,
     context?: Record<string, any>,
-    source?: string
+    source?: string,
   ): Promise<ILog | undefined> {
     return this.createLogEntry("debug", message, context, source);
   }
@@ -133,7 +138,7 @@ export class LoggingService {
   public async verbose(
     message: string,
     context?: Record<string, any>,
-    source?: string
+    source?: string,
   ): Promise<ILog | undefined> {
     return this.createLogEntry("verbose", message, context, source);
   }

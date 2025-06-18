@@ -73,11 +73,6 @@ export default function ResetPassword() {
     },
     onError: (err: any) => {
       console.error("Error: ", err);
-      showNotification({
-        title: "Reset Failed",
-        message: err?.response?.data?.message || "Something went wrong",
-        color: "red",
-      });
     },
   });
 
@@ -99,11 +94,6 @@ export default function ResetPassword() {
       await resetPassword();
     } catch (error) {
       console.error(error);
-      showNotification({
-        title: "Reset Failed",
-        message: "Failed to reset password",
-        color: "red",
-      });
     }
   };
 

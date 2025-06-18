@@ -15,6 +15,9 @@ import {
   ActionIcon,
   Space,
   Box,
+  Flex,
+  Button,
+  Badge,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -22,8 +25,13 @@ import RightSidebar from "../../components/UI/RightSidebar";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { Link, useNavigate } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
-import { ArrowRight } from "@phosphor-icons/react";
-import { useCallback, useRef, useState } from "react";
+import {
+  ArrowRight,
+  CaretDownIcon,
+  CaretUpIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import styles from "./Spyglass.module.scss";
 import { getSearchResultPreview } from "../../utils/search";
@@ -32,12 +40,16 @@ import {
   ISearchResultValue,
 } from "../../../app/services/Search";
 import {
+  formatDateTime,
   formatMillisecondsToSecondsString,
   markdownToHtml,
   numberToLetter,
   sanitizeMarkdownForDescription,
 } from "../../utils/formatting";
-import { DetailedIdeaCard } from "../../components/Display/Ideas/IdeaCards";
+import {
+  CompactIdeaCard,
+  DetailedIdeaCard,
+} from "../../components/Display/Ideas/IdeaCards";
 import {
   IdeaArtifact,
   IdeaTag,
@@ -46,6 +58,9 @@ import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 import Match from "../../components/Utils/Match";
 import { generateTextFragmentHashFromText } from "../../utils/textFragment";
 import { getOS } from "../../utils/platform";
+import useSpyglass from "./hooks/useSpyglass";
+import Textbox from "./Textbox";
+import { useLayout } from "../../contexts/LayoutContext";
 
 type IResultsMap = Record<string, ISearchResultValue>;
 
@@ -58,30 +73,21 @@ type ICitationMap = Record<
 >;
 
 export default function Spyglass() {
-  const os = getOS();
-  const ctrl = os !== "macos";
-  const meta = os === "macos";
-  const primaryKey = os === "macos" ? "⌘" : "Ctrl";
+  const [query, setQuery] = useState<string>("");
   const {
-    global: {
-      results: { get: searchResults, set: setResults },
-      query: { get: searchQuery }, // searchQuery is not directly used in the JSX, but fine to keep
-      loading: { get: loadingSearch },
-      overview: { get: overview, set: setOverview },
-    },
-  } = useSearch();
-
-  const startRef = useRef<Date>();
-  const [timeTook, setTimeTook] = useState<number>();
-
-  const handleResultsClear = useCallback(() => {
-    setResults(null);
-    setOverview(null);
-  }, [setResults]);
+    initialize,
+    results,
+    analysis: overview,
+    initialized,
+    clear,
+    statusText,
+  } = useSpyglass({ query });
 
   const getResultsMap = () => {
-    return searchResults?.reduce((acc, curr, i) => {
-      acc[curr.id.toString()] = curr.value;
+    return results?.reduce((acc, curr, i) => {
+      if (curr.value) {
+        acc[curr.id.toString()] = curr.value;
+      }
       return acc;
     }, {} as IResultsMap);
   };
@@ -116,184 +122,337 @@ export default function Spyglass() {
 
   const citationMap = buildCitationMap();
 
-  // if has citation, bubble to top, otherwise keep original order
-  const sortedSearchResults = searchResults?.sort((a, b) => {
-    const aHasCitation = !!citationMap[a.id.toString()];
-    const bHasCitation = !!citationMap[b.id.toString()];
+  const sortedSearchResults = results
+    // .filter((r) => {
+    //   const hasCitation = !!citationMap[r.id.toString()];
+    //   return hasCitation;
+    // })
+    ?.sort((a, b) => {
+      const aHasCitation = !!citationMap[a.id.toString()];
+      const bHasCitation = !!citationMap[b.id.toString()];
 
-    // If both have citations, sort by citation index (ascending)
-    if (aHasCitation && bHasCitation) {
-      return (
-        citationMap[a.id.toString()].index - citationMap[b.id.toString()].index
-      );
-    }
+      if (aHasCitation && bHasCitation) {
+        return (
+          citationMap[a.id.toString()].index -
+          citationMap[b.id.toString()].index
+        );
+      }
 
-    // If only a has citation, a comes first
-    if (aHasCitation && !bHasCitation) {
-      return -1;
-    }
+      if (aHasCitation && !bHasCitation) {
+        return -1;
+      }
 
-    // If only b has citation, b comes first
-    if (!aHasCitation && bHasCitation) {
-      return 1;
-    }
+      if (!aHasCitation && bHasCitation) {
+        return 1;
+      }
 
-    // If neither has citation, maintain original order
-    return 0;
-  });
+      return 0;
+    });
 
   const navigate = useNavigate();
 
-  const [loadingText, setLoadingText] = useState<string>("");
-  const updateLoadingText = useCallback(() => {
-    setLoadingText("Searching your ideas...");
-    setTimeout(() => {
-      setLoadingText("Analyzing your ideas...");
-    }, 1000);
-  }, []);
+  const citations = results.filter((r) => {
+    const hasCitation = !!citationMap[r.id.toString()];
+    return hasCitation;
+  });
+
+  const [showAllResults, setShowAllResults] = useState(false);
+
+  const { isMobile } = useLayout();
 
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" pt="lg" className={styles.spyglass}>
-        <Stack gap="md">
-          <Group>
-            <Title order={1}>Spyglass</Title>
-          </Group>
-          <SearchBar
-            onResultsClear={handleResultsClear}
-            onSearchStart={() => {
-              startRef.current = new Date();
-              updateLoadingText();
-            }}
-            onSearchEnd={() => {
-              if (startRef.current) {
-                setTimeTook(new Date().getTime() - startRef.current.getTime());
-              }
-            }}
-            onShortcuts={[{ key: "/" }, { meta: true, key: "k" }]}
-            placeholder={`${primaryKey} + / to focus`}
-            withOverview
-          />
-          {!loadingSearch && !searchResults && (
-            <Group>
-              <Text c="dimmed">Ask your ideas anything...</Text>
-            </Group>
+      <Container
+        w="100%"
+        py="lg"
+        className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}
+      >
+        <Grid>
+          {!initialized && (
+            <Grid.Col span={{ sm: 12 }}>
+              <Title
+                ta={initialized ? "left" : "center"}
+                className={`${styles.header} ${initialized ? styles.initialized : ""}`}
+                order={initialized ? 2 : 1}
+              >
+                Spyglass
+              </Title>
+            </Grid.Col>
           )}
-          {loadingSearch && (
-            <Group justify="center">
-              <Box pos="relative" w="100%" h="50vh">
-                <Text c="dimmed">{loadingText}</Text>
-                <LangtonsAntLoader withOverlay />
-              </Box>
-            </Group>
+          <Grid.Col span={{ sm: 12 }}>
+            <div
+              className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+            >
+              <Textbox
+                onSubmit={() => {
+                  clear();
+                  initialize();
+                }}
+                onChange={(v) => {
+                  setQuery(v);
+                }}
+                placeholder="Ask your thoughts..."
+                initialized={initialized}
+              />
+            </div>
+          </Grid.Col>
+          {initialized && statusText && (
+            <Grid.Col>
+              <Text c="dimmed" size="sm" ta="center">
+                {statusText}
+              </Text>
+              {!overview && (
+                <Box h="30vh">
+                  <LangtonsAntLoader withOverlay cellSize={10} />
+                </Box>
+              )}
+            </Grid.Col>
           )}
-          {searchResults && (
-            <>
-              <Grid>
-                <Grid.Col>
-                  <Space my="sm" />
-                </Grid.Col>
-                <Grid.Col>
-                  {overview &&
-                    overview.overview && ( // Ensure overview and overview.overview exist
-                      <Card withBorder radius="lg">
-                        <Title order={3} mb="xs">
-                          Overview
-                        </Title>
-                        <div className={styles.overviewDisplay}>
-                          <DisplayOverview
-                            overview={overview}
-                            resultsMap={resultsMap ?? {}}
-                            citationMap={citationMap ?? {}}
-                          />
-                        </div>
-                      </Card>
-                    )}
-                </Grid.Col>
-                {overview && (
-                  <Grid.Col>
-                    <Divider my="sm" />
-                  </Grid.Col>
+          {overview && (
+            <Grid.Col>
+              {overview &&
+                overview.overview && ( // Ensure overview and overview.overview exist
+                  <Card withBorder radius="lg" className={styles.overview}>
+                    <Title order={3} mb="xs">
+                      Overview
+                    </Title>
+                    <div className={styles.overviewDisplay}>
+                      <DisplayOverview
+                        overview={overview}
+                        resultsMap={resultsMap ?? {}}
+                        citationMap={citationMap ?? {}}
+                      />
+                    </div>
+                  </Card>
                 )}
-                <Grid.Col>
-                  <Title order={3}>Results...</Title>
-                </Grid.Col>
-                <Grid.Col>
-                  <Text c="dimmed" size="sm">
-                    Found and analyzed {searchResults.length} result
-                    {searchResults.length === 1 ? "" : "s"}{" "}
-                    {timeTook
-                      ? `in ${formatMillisecondsToSecondsString(timeTook)}`
-                      : ""}
-                  </Text>
-                </Grid.Col>
-                <Grid.Col>
-                  <Grid>
-                    {sortedSearchResults?.map((s, i) => {
-                      const hasExcerpts = !!citationMap[s.id.toString()];
-                      const citation = hasExcerpts
-                        ? citationMap[s.id.toString()]
-                        : null;
-                      const excerpts = hasExcerpts
-                        ? citationMap[s.id.toString()].excerpts
-                        : [];
-                      const idea = getNodeAsIdeaOrNull(s.value);
+            </Grid.Col>
+          )}
+          {citations.length > 0 && (
+            <Grid.Col>
+              <Title order={3} mb="xs">
+                {citations.length} Source{citations.length > 1 ? "s" : ""}
+              </Title>
+              <div className={styles.citationsDisplay}>
+                <Group wrap="wrap" gap="xs">
+                  {citations.map((c) => {
+                    if (!c.value) {
+                      return null;
+                    }
 
-                      if (!idea) {
-                        return null;
-                      }
+                    const idea = getNodeAsIdeaOrNull(c.value);
+                    const citation = citationMap[c.id.toString()];
 
-                      return (
-                        <Grid.Col span={12} key={s.id.toString()}>
-                          <DetailedIdeaCard
-                            idea={idea}
-                            onCardClick={(e) => {
-                              e.preventDefault();
-                              navigate(`/idea/${idea.id.toString()}`);
-                            }}
-                            artifacts={
-                              hasExcerpts && [
-                                {
-                                  id: s.id.toString(),
-                                  content: (
-                                    <ActionIcon
-                                      variant="light"
-                                      size="sm"
-                                      onClick={() => {
-                                        navigate(`/idea/${idea.id.toString()}`);
+                    if (!idea) {
+                      return null;
+                    }
+
+                    return (
+                      <CompactIdeaCard
+                        idea={idea}
+                        maxTitleLines={2}
+                        maxDescriptionLines={3}
+                        style={{
+                          width: isMobile ? "100%" : "",
+                        }}
+                        description={`${citation.excerpts.length} reference${citation.excerpts.length > 1 ? "s" : ""} - ${idea.contentPlain?.slice(0, 24)}...`}
+                        onCardClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/idea/${idea.id.toString()}`);
+                        }}
+                        detailsForHoverCard={
+                          <Stack gap="xs">
+                            {citation.excerpts.map((excerpt, i) => {
+                              return (
+                                <Group wrap="nowrap" align="flex-start">
+                                  <ActionIcon
+                                    variant="subtle"
+                                    size="xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(
+                                        `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
+                                      );
+                                    }}
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    <Text size="xs">
+                                      {citation?.index}
+                                      {numberToLetter(i).toLowerCase()}
+                                    </Text>
+                                  </ActionIcon>
+                                  <Text>
+                                    <Match
+                                      opener="->"
+                                      closer="<-"
+                                      match={(m) => {
+                                        return (
+                                          <span className="highlight">{m}</span>
+                                        );
                                       }}
                                     >
-                                      {citationMap[
-                                        s.id.toString()
-                                      ].index.toString()}
-                                    </ActionIcon>
-                                  ),
-                                } as IdeaArtifact,
-                              ]
-                            }
-                            description={
-                              hasExcerpts ? (
-                                <Stack gap="xs">
-                                  {excerpts.map((excerpt, i) => {
-                                    return (
-                                      <Group wrap="nowrap" align="flex-start">
-                                        <ActionIcon
-                                          variant="subtle"
-                                          size="xs"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(
-                                              `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
+                                      {sanitizeMarkdownForDescription(excerpt)}
+                                    </Match>
+                                  </Text>
+                                </Group>
+                              );
+                            })}
+                          </Stack>
+                        }
+                        artifacts={[
+                          {
+                            id: "index",
+                            content: (
+                              <ActionIcon variant="light" size="xs" radius="lg">
+                                <Text size="xs">{citation.index}</Text>
+                              </ActionIcon>
+                            ),
+                          },
+                        ]}
+                      />
+                    );
+                  })}
+                </Group>
+              </div>
+            </Grid.Col>
+          )}
+          {results.length > 0 && (
+            <>
+              {!showAllResults && overview && (
+                <>
+                  <Space my="lg" />
+                  <Grid.Col>
+                    <Button
+                      size="sm"
+                      onClick={() => setShowAllResults(true)}
+                      variant="default"
+                      rightSection={<CaretDownIcon weight="bold" />}
+                      radius="lg"
+                    >
+                      {results.length} Total Result
+                      {results.length > 1 ? "s" : ""}
+                    </Button>
+                  </Grid.Col>
+                </>
+              )}
+              {showAllResults && (
+                <>
+                  <Grid.Col>
+                    <Card withBorder radius={"lg"}>
+                      <Grid>
+                        <Grid.Col>
+                          <Button
+                            size="xs"
+                            onClick={() => setShowAllResults(false)}
+                            variant="default"
+                            rightSection={<CaretUpIcon weight="bold" />}
+                            radius="lg"
+                          >
+                            Hide
+                          </Button>
+                        </Grid.Col>
+                        <Grid.Col>
+                          <Title order={3}>All Results...</Title>
+                        </Grid.Col>
+                        <Grid.Col>
+                          <Grid>
+                            {sortedSearchResults.map((s, i) => {
+                              if (!s.value) {
+                                return;
+                              }
+                              const hasExcerpts =
+                                !!citationMap[s.id.toString()];
+                              const citation = hasExcerpts
+                                ? citationMap[s.id.toString()]
+                                : null;
+                              const excerpts = hasExcerpts
+                                ? citationMap[s.id.toString()].excerpts
+                                : [];
+                              const idea = getNodeAsIdeaOrNull(s.value);
+
+                              if (!idea) {
+                                return null;
+                              }
+
+                              return (
+                                <Grid.Col span={12} key={s.id.toString()}>
+                                  <DetailedIdeaCard
+                                    idea={idea}
+                                    onCardClick={(e) => {
+                                      e.preventDefault();
+                                      navigate(`/idea/${idea.id.toString()}`);
+                                    }}
+                                    artifacts={
+                                      hasExcerpts && [
+                                        {
+                                          id: s.id.toString(),
+                                          content: (
+                                            <ActionIcon
+                                              variant="light"
+                                              size="sm"
+                                              onClick={() => {
+                                                navigate(
+                                                  `/idea/${idea.id.toString()}`,
+                                                );
+                                              }}
+                                            >
+                                              {citationMap[
+                                                s.id.toString()
+                                              ].index.toString()}
+                                            </ActionIcon>
+                                          ),
+                                        } as IdeaArtifact,
+                                      ]
+                                    }
+                                    description={
+                                      hasExcerpts ? (
+                                        <Stack gap="xs">
+                                          {excerpts.map((excerpt, i) => {
+                                            return (
+                                              <Group
+                                                wrap="nowrap"
+                                                align="flex-start"
+                                              >
+                                                <ActionIcon
+                                                  variant="subtle"
+                                                  size="xs"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(
+                                                      `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
+                                                    );
+                                                  }}
+                                                  style={{ cursor: "pointer" }}
+                                                >
+                                                  <Text size="xs">
+                                                    {citation?.index}
+                                                    {numberToLetter(
+                                                      i,
+                                                    ).toLowerCase()}
+                                                  </Text>
+                                                </ActionIcon>
+                                                <Text>
+                                                  <Match
+                                                    opener="->"
+                                                    closer="<-"
+                                                    match={(m) => {
+                                                      return (
+                                                        <span className="highlight">
+                                                          {m}
+                                                        </span>
+                                                      );
+                                                    }}
+                                                  >
+                                                    {sanitizeMarkdownForDescription(
+                                                      excerpt,
+                                                    )}
+                                                  </Match>
+                                                </Text>
+                                              </Group>
                                             );
-                                          }}
-                                          style={{ cursor: "pointer" }}
-                                        >
-                                          <Text size="xs">
-                                            {citation?.index}
-                                            {numberToLetter(i).toLowerCase()}
-                                          </Text>
-                                        </ActionIcon>
+                                          })}
+                                        </Stack>
+                                      ) : (
                                         <Text>
                                           <Match
                                             opener="->"
@@ -306,42 +465,26 @@ export default function Spyglass() {
                                               );
                                             }}
                                           >
-                                            {sanitizeMarkdownForDescription(
-                                              excerpt,
-                                            )}
+                                            {getSearchResultPreview(s) ||
+                                              "No preview available."}
                                           </Match>
                                         </Text>
-                                      </Group>
-                                    );
-                                  })}
-                                </Stack>
-                              ) : (
-                                <Text>
-                                  <Match
-                                    opener="->"
-                                    closer="<-"
-                                    match={(m) => {
-                                      return (
-                                        <span className="highlight">{m}</span>
-                                      );
-                                    }}
-                                  >
-                                    {getSearchResultPreview(s) ||
-                                      "No preview available."}
-                                  </Match>
-                                </Text>
-                              )
-                            }
-                          />
+                                      )
+                                    }
+                                  />
+                                </Grid.Col>
+                              );
+                            })}
+                          </Grid>
                         </Grid.Col>
-                      );
-                    })}
-                  </Grid>
-                </Grid.Col>
-              </Grid>
+                      </Grid>
+                    </Card>
+                  </Grid.Col>
+                </>
+              )}
             </>
           )}
-        </Stack>
+        </Grid>
       </Container>
       <RightSidebar defaultClosed={true} />
     </PageWrapper>
