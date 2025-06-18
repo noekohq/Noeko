@@ -251,6 +251,8 @@ export default function Spyglass() {
                       <CompactIdeaCard
                         idea={idea}
                         maxTitleLines={2}
+                        withBorder={false}
+                        cardShadow="none"
                         maxDescriptionLines={3}
                         style={{
                           width: isMobile ? "100%" : "",
