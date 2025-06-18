@@ -21,7 +21,7 @@ export type ISearchResultValue =
 export type ISearchResult = {
   id: string | RecordId;
   score: number;
-  value: ISearchResultValue;
+  value?: ISearchResultValue;
   highlightText?: string;
   debug?: {
     semanticScore?: number;

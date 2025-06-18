@@ -157,7 +157,7 @@ export class UserFile {
     }
   }
 
-  static async get(userFileId: string | RecordId) {
+  static async get(userFileId: string | RecordId): Promise<IUserFile> {
     try {
       const db = await getDatabase();
       const result = await db?.select<IUserFile>(
