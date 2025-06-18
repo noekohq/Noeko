@@ -25,6 +25,8 @@ export interface CompactIdeaCardProps extends IdeaCardSharedProps {
   hoverCardProps?: Partial<React.ComponentProps<typeof HoverCard>>;
   showTitleOnly?: boolean;
   maxTitleLines?: number;
+  maxDescriptionLines?: number;
+  description?: string;
 }
 
 // Helper to get summary or a default
@@ -57,7 +59,9 @@ export function CompactIdeaCard({
   hoverCardProps,
   showTitleOnly = false,
   maxTitleLines = 2,
+  maxDescriptionLines = 2,
   link,
+  description,
 }: CompactIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -138,16 +142,23 @@ export function CompactIdeaCard({
           gap="xxs"
           style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}
         >
-          <Text fw={500} size="sm" lineClamp={maxTitleLines} title={idea.title}>
-            {idea.title || "Untitled Idea"}
-          </Text>
-          {!showTitleOnly && artifacts && artifacts.length > 0 && (
-            <IdeaArtifactsDisplay
-              artifacts={artifacts.slice(0, 1)}
-              size="xs"
-              groupClassName={styles.compactArtifactsGroup}
-            />
-          )}
+          <Group wrap="wrap" gap="xs">
+            <Text
+              fw={500}
+              size="sm"
+              lineClamp={maxTitleLines}
+              title={idea.title}
+            >
+              {idea.title || "Untitled Idea"}
+            </Text>
+            {!showTitleOnly && artifacts && artifacts.length > 0 && (
+              <IdeaArtifactsDisplay
+                artifacts={artifacts.slice(0, 1)}
+                size="xs"
+                groupClassName={styles.compactArtifactsGroup}
+              />
+            )}
+          </Group>
           {!showTitleOnly &&
             tags &&
             tags.length > 0 &&
@@ -177,20 +188,32 @@ export function CompactIdeaCard({
         </Flex>
       </Flex>
 
-      {!showTitleOnly &&
+      {description ? (
+        <Text
+          size="xs"
+          c="dimmed"
+          lineClamp={maxDescriptionLines}
+          mt="xxs"
+          title={getIdeaDefaultSummary(idea)}
+        >
+          {description}
+        </Text>
+      ) : (
+        !showTitleOnly &&
         !artifacts?.length &&
         !tags?.length &&
         getIdeaDefaultSummary(idea) && (
           <Text
             size="xs"
             c="dimmed"
-            lineClamp={1}
+            lineClamp={maxDescriptionLines}
             mt="xxs"
             title={getIdeaDefaultSummary(idea)}
           >
             {getIdeaDefaultSummary(idea)}
           </Text>
-        )}
+        )
+      )}
     </Card>
   );
 
@@ -198,6 +221,13 @@ export function CompactIdeaCard({
     return (
       <HoverCard
         width={hoverCardProps?.width || 300}
+        styles={{
+          dropdown: {
+            maxHeight: "calc(50vh - 200px)",
+            overflow: "auto",
+            overflowX: "hidden",
+          },
+        }}
         shadow={hoverCardProps?.shadow || "md"}
         withArrow={
           hoverCardProps?.withArrow === undefined

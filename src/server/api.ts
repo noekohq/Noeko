@@ -24,7 +24,8 @@ const baseURL = `${serverLocation}/api`;
 
 // Decide where to store the access token: localStorage, sessionStorage, or in-memory
 // localStorage is used here for persistence, but consider memory for slightly better XSS protection.
-const getAccessToken = (): string | null => localStorage.getItem("accessToken");
+export const getAccessToken = (): string | null =>
+  localStorage.getItem("accessToken");
 const setAccessToken = (token: string): void =>
   localStorage.setItem("accessToken", token);
 const removeAccessToken = (): void => {

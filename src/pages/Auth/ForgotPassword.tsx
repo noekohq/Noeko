@@ -57,11 +57,6 @@ export default function ForgotPassword() {
     },
     onError: (err: any) => {
       console.error("Error: ", err);
-      showNotification({
-        title: "Error",
-        message: err?.response?.data?.message || "Something went wrong",
-        color: "red",
-      });
     },
   });
 
@@ -74,11 +69,6 @@ export default function ForgotPassword() {
       await sendResetEmail();
     } catch (error) {
       console.error(error);
-      showNotification({
-        title: "Error",
-        message: "Failed to send reset email",
-        color: "red",
-      });
     }
   };
 

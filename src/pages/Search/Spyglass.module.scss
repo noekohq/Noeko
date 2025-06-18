@@ -1,9 +1,61 @@
+@use "../../styles/mixins.scss" as *;
+
 .spyglass {
     overflow-y: scroll;
     scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 80vh;
+
+    &.initialized {
+        height: auto;
+        min-height: 100vh;
+        justify-content: flex-start;
+    }
+}
+
+.header {
+    --mantine-h1-font-size: 56px;
+
+    &.initialized {
+    }
+}
+
+@keyframes overviewIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.overview {
+    animation: overviewIn 0.5s ease-in-out;
 }
 
 .overviewDisplay {
     span[data-citation-id] {
+    }
+}
+
+.textboxContainer {
+    margin-inline: auto;
+    width: 100%;
+    height: 12vh;
+
+    @include desktop {
+        width: 60%;
+    }
+
+    &.initialized {
+        height: fit-content;
+
+        @include desktop {
+            width: 100%;
+        }
     }
 }

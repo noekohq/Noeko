@@ -7,7 +7,7 @@ import { ISafeUser } from "../../database/models/user";
 
 const router = Router();
 
-router.post("/spyglass", checkToken, async (req, res) => {
+router.post("/", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -34,7 +34,7 @@ router.post("/spyglass", checkToken, async (req, res) => {
   }
 });
 
-router.post("/spyglass/initiate", checkToken, async (req, res) => {
+router.post("/initialize", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -79,11 +79,14 @@ router.get("/sse", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders();
-
+    const canAccess = await SpyglassSearch.checkUserOwnership(
+      spyglassId,
+      user.id,
+    );
+    if (!canAccess) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
     const spyglass = await SpyglassSearch.get(spyglassId);
     if (!spyglass) {
       res.status(404).send({
@@ -92,11 +95,16 @@ router.get("/sse", checkToken, async (req, res) => {
       return;
     }
 
+    console.info("Initialized spyglass sse");
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
     const generator = SpyglassSearch.runSpyglassGenerator(user.id, spyglass.id);
 
     // Handle client disconnect
     req.on("close", () => {
-      console.log("Client disconnected.");
       // This will cause the 'finally' block in the generator to be executed.
       generator.return(undefined);
     });
@@ -109,6 +117,36 @@ router.get("/sse", checkToken, async (req, res) => {
       console.error("Error streaming data:", error);
       res.end();
     }
+  } catch (error) {
+    console.error(error);
+    logger.error("Something went wrong getting spyglass SSE", {
+      error,
+    });
+    res.end();
+  }
+});
+
+router.get("/:spyglassId", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const spyglassId = req.params.spyglassId;
+    const canAccess = await SpyglassSearch.checkUserOwnership(
+      spyglassId,
+      user.id,
+    );
+    if (!canAccess) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const spyglass = await SpyglassSearch.get(spyglassId);
+    res.send({
+      message: "Spyglass retrieved successfully",
+      data: spyglass,
+    });
   } catch (error) {
     logger.error("Something went wrong getting spyglass SSE", {
       error,

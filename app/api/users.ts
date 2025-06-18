@@ -20,7 +20,6 @@ import {
 import { Idea } from "../database/models/ideas";
 import { sendEmail } from "../utils/email";
 import { logger } from "../services/Logger";
-import { em } from "@mantine/core";
 
 const router = Router();
 
