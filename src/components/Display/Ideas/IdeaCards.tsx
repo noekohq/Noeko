@@ -27,6 +27,7 @@ export interface CompactIdeaCardProps extends IdeaCardSharedProps {
   maxTitleLines?: number;
   maxDescriptionLines?: number;
   description?: string;
+  withBorder?: boolean;
 }
 
 // Helper to get summary or a default
@@ -62,6 +63,7 @@ export function CompactIdeaCard({
   maxDescriptionLines = 2,
   link,
   description,
+  withBorder,
 }: CompactIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -98,7 +100,7 @@ export function CompactIdeaCard({
       }
       padding={cardPadding}
       radius={cardRadius}
-      withBorder={!isInternallyDragging}
+      withBorder={withBorder}
       draggable={draggable}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
