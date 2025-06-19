@@ -126,7 +126,67 @@ router.get("/sse", checkToken, async (req, res) => {
   }
 });
 
-router.get("/:spyglassId", checkToken, async (req, res) => {
+router.get("/history", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const history = await SpyglassSearch.getHistory(user.id);
+    res.send({
+      message: "Spyglass history retrieved successfully",
+      data: history,
+    });
+  } catch (error) {
+    logger.error("Something went wrong getting spyglass history", {
+      error,
+    });
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+router.get("/history/light", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const history = await SpyglassSearch.getHistory(user.id);
+    res.send({
+      message: "Spyglass history retrieved successfully",
+      data: history,
+    });
+  } catch (error) {
+    logger.error("Something went wrong getting spyglass history", {
+      error,
+    });
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+router.get("/history/suggest", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const history = await SpyglassSearch.getHistory(user.id);
+    res.send({
+      message: "Spyglass history retrieved successfully",
+      data: history,
+    });
+  } catch (error) {
+    logger.error("Something went wrong getting spyglass history", {
+      error,
+    });
+    res.status(500).json({ message: "Something went wrong." });
+  }
+});
+
+router.get("/record/:spyglassId", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
