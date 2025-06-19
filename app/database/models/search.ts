@@ -8,11 +8,6 @@ import {
 import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
-import { htmlToMarkdown } from "../../utils/formatting";
-import { getLM, PromptBuilder } from "../../semantics/lm";
-import { getFormattedDateTimeToday } from "../../utils/prompts/components";
-import { max_lm_prompt_size } from "../../settings";
-import { SchemaType } from "@google/generative-ai";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
@@ -79,14 +74,53 @@ export class SpyglassSearch {
             SELECT
               *,
               (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
-              ->found->idea as results
+              (SELECT * OMIT embeddings FROM ->found->idea) as results
             FROM ONLY <record> $spyglassRecord
             FETCH results;
           RETURN $search;
         }
         `;
       };
+
+      const getSpyglassHistoryFunction = () => {
+        return `
+        DEFINE FUNCTION OVERWRITE fn::get_spyglass_history(
+          $userId: record,
+        ) {
+          LET $history =
+            SELECT
+              *,
+              (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
+              (SELECT * OMIT embeddings FROM ->found->idea) as results
+            FROM spyglass
+            WHERE <-searched<-(user WHERE id = user:5zxqi8aynwxmj5ft6c10)
+            ORDER BY createdAt DESC
+            FETCH results;
+          RETURN $history;
+        }
+        `;
+      };
+
+      const getSpyglassHistoryLightweightFunction = () => {
+        return `
+        DEFINE FUNCTION OVERWRITE fn::get_spyglass_history_lightweight(
+          $userId: record,
+        ) {
+          LET $history =
+            SELECT
+              *
+            FROM spyglass
+            WHERE <-searched<-(user WHERE id = user:5zxqi8aynwxmj5ft6c10)
+            ORDER BY createdAt DESC
+            FETCH results;
+          RETURN $history;
+        }
+        `;
+      };
+
       db.query(getSpyglassFunction());
+      db.query(getSpyglassHistoryFunction());
+      db.query(getSpyglassHistoryLightweightFunction());
     } catch (error) {
       logger.error("Error creating spyglass search table", { error });
     }
@@ -151,6 +185,38 @@ export class SpyglassSearch {
       return search;
     } catch (error) {
       logger.error("Error getting spyglass search", { id, error });
+    }
+  }
+
+  public static async getHistory(userId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const history = await db.run<ISpyglassSearch[]>(
+        "fn::get_spyglass_history",
+        [new StringRecordId(userId)],
+      );
+      return history;
+    } catch (error) {
+      logger.error("Error getting spyglass history", { userId, error });
+    }
+  }
+
+  public static async getHistoryLightweight(userId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const history = await db.run<ISpyglassSearch[]>(
+        "fn::get_spyglass_history_lightweight",
+        [new StringRecordId(userId)],
+      );
+      return history;
+    } catch (error) {
+      logger.error("Error getting spyglass history", { userId, error });
     }
   }
 
@@ -280,7 +346,7 @@ export class SpyglassSearch {
       if (!search.fullResults) {
         throw new Error("Did not load full results");
       }
-      const analysis = await SpyglassSearch.getSpyglassOverviewFromResults(
+      const analysis = await Search.getOverviewFromResults(
         search.baseQuery,
         search.fullResults,
       );
@@ -458,115 +524,6 @@ export class SpyglassSearch {
         data: errorMessage,
         statusText: "Something went wrong...",
       };
-      return undefined;
-    }
-  }
-
-  static async getSpyglassOverviewFromResults(
-    query: string,
-    results: ISearchResult[],
-  ): Promise<ISearchOverview | undefined> {
-    try {
-      if (results.length === 0) {
-        return {
-          findings: [],
-          overview: "There were no results to analyze.",
-        };
-      }
-      const resultsStrings = results.map((result) => {
-        let r = "";
-        const { highlightText, value } = result;
-        const ideaValue = value as IIdea;
-        r += `**${ideaValue.title}**\n`;
-        r += `Source ID: ${ideaValue.id.toString()}\n`;
-        if (highlightText) {
-          r += `System Highlighted Text: ${highlightText}`;
-        }
-        r += `${htmlToMarkdown(ideaValue.content)}`;
-        return r;
-      });
-      const overviewPrompt = new PromptBuilder()
-        .addText("You are a search overview creator.")
-        .addBlock(
-          "Instructions",
-          `Generate a comprehensive and informative answer to the user's query, based entirely on the results provided. You will generate the answer in two parts:
-          1. Findings: a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that this stage be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.
-          2. Overview: once your findings are complete, you will generate a brief, direct answer to the user's query, based entirely on the results of your findings. This doesn't need to have references, and will essentially tie your generation up in a neat bow.`,
-        )
-        .addBlock("Results", "The results to use are as follows:\n");
-
-      resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
-      });
-
-      overviewPrompt
-        .addBlock(
-          "Query",
-          `The user's query is as follows:
-          > ${query}`,
-        )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Please Remember!",
-          `
-        - Is is of the upmost importance that findings be directly sourced from the results
-        - The overview, on the other hand, should rely on findings, but ultimately favor answering the query
-        - If you do not know something from the results, don't be afraid to say you don't know.
-        - Format **the overview** as Markdown, tags are allowed, this can be formatted in accordance with the user query
-          `,
-        );
-
-      const lm = getLM().withModel("simple");
-      const result = await lm.generateJSON<ISearchOverview>(
-        overviewPrompt.get(),
-        {
-          type: SchemaType.OBJECT,
-          properties: {
-            findings: {
-              type: SchemaType.ARRAY,
-              description: "Your findings directly from the source results",
-              items: {
-                type: SchemaType.OBJECT,
-                description: "An individual finding from the source results",
-                properties: {
-                  sourceId: {
-                    type: SchemaType.STRING,
-                    description:
-                      "The id of the result you're sourcing, usually something like table:randomuniqueid",
-                  },
-                  excerpt: {
-                    type: SchemaType.STRING,
-                    description: "The relevant portion of the source result",
-                  },
-                  analysis: {
-                    type: SchemaType.STRING,
-                    description:
-                      "Your finding from this excerpt, how it relates to the query",
-                  },
-                },
-                required: ["sourceId", "excerpt", "analysis"],
-              },
-            },
-            overview: {
-              type: SchemaType.STRING,
-              description:
-                "A direct response to the user's query based on the findings.",
-            },
-          },
-          required: ["findings", "overview"],
-        },
-      );
-      if (!result) {
-        throw new Error("overview not generated by LM");
-      }
-      return result;
-    } catch (error) {
-      console.error("Error getting overview from results:", error);
       return undefined;
     }
   }

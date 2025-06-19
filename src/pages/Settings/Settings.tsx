@@ -142,6 +142,16 @@ export default function Settings() {
               </Stack>
             </Card>
           </Grid.Col>
+          <Grid.Col span={12}>
+            <Card withBorder radius="lg">
+              <Stack>
+                <Title order={3}>Your Activity</Title>
+                <Link to="/spyglass/history">
+                  <Button variant="default">Spyglass History</Button>
+                </Link>
+              </Stack>
+            </Card>
+          </Grid.Col>
         </Grid>
       </Container>
       <RightSidebar />

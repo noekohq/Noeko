@@ -34,6 +34,7 @@ import ViewIdea from "./pages/Idea/ViewIdea";
 import PublicIdea from "./pages/Idea/PublicIdea";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
+import SpyglassHistory from "./pages/Search/History";
 
 export default function App() {
   const navigate = useNavigate();
@@ -149,6 +150,7 @@ export default function App() {
                   </Route>
                   <Route path="spyglass">
                     <Route index element={<Spyglass />} />
+                    <Route path="history" element={<SpyglassHistory />} />
                   </Route>
                   {isSuperuser && (
                     <Route path="admin">

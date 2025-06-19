@@ -53,6 +53,10 @@ const updates: IUpdate[] = [
           <List.Item>
             Removing redundant information and making it easy to get utility.
           </List.Item>
+          <List.Item>
+            View your <Link to="/spyglass/search">Spyglass Search History</Link>{" "}
+            now from <Link to="/settings">Settings</Link>.
+          </List.Item>
         </List>
       </Stack>
     ),

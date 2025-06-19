@@ -44,6 +44,7 @@ import { validateEmail } from "../../utils/data";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
+import styles from "./Users.module.scss";
 
 export default function Users() {
   const {
@@ -327,7 +328,7 @@ export default function Users() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container p="lg">
+      <Container p="lg" className={styles.users}>
         <Modal
           opened={!!toDisable}
           title="Disable user"
