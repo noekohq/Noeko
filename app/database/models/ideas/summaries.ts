@@ -20,6 +20,7 @@ export type IGenerativeSummary = {
   outline?: string[];
   keyPoints?: string[];
   highlights?: string[];
+  questions?: string[];
 };
 
 export type IGenerativeSummaryForm = Omit<IGenerativeSummary, "id">;
@@ -67,6 +68,11 @@ export const GenerativeSummarySchema: LMSchema = {
       type: LMSchemaType.ARRAY,
       items: { type: LMSchemaType.STRING },
       description: "Highlights extracted from the content.",
+    },
+    questions: {
+      type: LMSchemaType.ARRAY,
+      items: { type: LMSchemaType.STRING },
+      description: "Questions raised by the content.",
     },
   },
   required: ["sentenceOverview", "sentenceSummary"],
@@ -118,6 +124,7 @@ export class GenerativeSummary {
         outline: generation.outline,
         keyPoints: generation.keyPoints,
         highlights: generation.highlights,
+        questions: generation.questions,
       });
       if (!result) {
         throw new Error(

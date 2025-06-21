@@ -128,6 +128,42 @@ export default class LM {
       return null;
     }
   }
+
+  async *generateJSONStream(
+    prompt: string,
+    schema: ResponseSchema,
+  ): AsyncGenerator<string, void, unknown> {
+    try {
+      const result = await this.getModel({ schema }).generateContentStream(
+        prompt,
+      );
+
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          yield chunkText;
+        }
+      }
+    } catch (err) {
+      console.error("Error generating JSON stream:", err);
+      throw err;
+    }
+  }
+
+  async *generateStream(prompt: string): AsyncGenerator<string, void, unknown> {
+    try {
+      const result = await this.model.generateContentStream(prompt);
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          yield chunkText;
+        }
+      }
+    } catch (err) {
+      console.error("Error generating stream:", err);
+      throw err;
+    }
+  }
 }
 
 export const getLM = () => {

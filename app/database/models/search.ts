@@ -37,7 +37,12 @@ export type ISpyglassGeneratorType =
   | "error"
   | "completed"
   | "results_loaded"
-  | "analysis_loaded";
+  | "findings_generating"
+  | "findings_chunk"
+  | "findings_loaded"
+  | "overview_generating"
+  | "overview_chunk"
+  | "overview_completed";
 
 export type ISearchConnection = {
   id: string | RecordId;
@@ -358,6 +363,87 @@ export class SpyglassSearch {
     }
   }
 
+  public static async loadFindings(
+    userId: string | RecordId,
+    searchId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const search = await SpyglassSearch.get(searchId);
+      if (!search) {
+        throw new Error("Search not found");
+      }
+      if (!search.results) {
+        throw new Error("Tried to run analysis on an empty search");
+      }
+      if (!search.resultConnections) {
+        throw new Error("Did not load result relations");
+      }
+      if (!search.fullResults) {
+        throw new Error("Did not load full results");
+      }
+      const findings = await Search.getFindingsFromResults(
+        search.baseQuery,
+        search.fullResults,
+      );
+      if (!findings) {
+        throw new Error("No findings found");
+      }
+      await db.merge<ISpyglassSearch>(searchId, {
+        analysis: {
+          findings,
+          overview: "",
+        },
+      });
+      return findings;
+    } catch (error) {
+      logger.error("Error loading analysis", { searchId, error });
+      throw error;
+    }
+  }
+
+  public static async loadOverview(
+    userId: string | RecordId,
+    searchId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const search = await SpyglassSearch.get(searchId);
+      if (!search) {
+        throw new Error("Search not found");
+      }
+      if (!search.analysis) {
+        throw new Error("No analysis found");
+      }
+      if (!search.analysis.findings) {
+        throw new Error("No findings found");
+      }
+      const overview = await Search.getOverviewFromFindings(
+        search.baseQuery,
+        search.analysis.findings,
+      );
+      if (!overview) {
+        throw new Error("No overview found");
+      }
+      await db.merge<ISpyglassSearch>(searchId, {
+        analysis: {
+          findings: search.analysis.findings,
+          overview,
+        },
+      });
+      return overview;
+    } catch (error) {
+      logger.error("Error loading overview", { searchId, error });
+      throw error;
+    }
+  }
+
   public static async runSpyglass(userId: string, query: string) {
     try {
       const db = await getDatabase();
@@ -392,7 +478,8 @@ export class SpyglassSearch {
     unknown
   > {
     let resultsTime: number | null = null;
-    let analysisTime: number | null = null;
+    let findingsTime: number | null = null;
+    let overviewTime: number | null = null;
 
     try {
       const startTime = Date.now();
@@ -450,25 +537,118 @@ export class SpyglassSearch {
         resultsTime = Date.now();
       }
 
-      if (
-        !spyglass.analysis ||
-        (!spyglass.analysis.findings.length &&
-          spyglass.results &&
-          spyglass.results.length > 0)
-      ) {
+      try {
+        if (!spyglass.fullResults) {
+          throw new Error("Did not load full results");
+        }
+
+        yield {
+          type: "findings_generating",
+          statusText: "Generating findings...",
+          data: spyglass,
+        };
+
+        let completeFindingsJSON = "";
+        for await (const findingChunk of Search.generateFindingsFromResults(
+          spyglass.baseQuery,
+          spyglass.fullResults,
+        )) {
+          completeFindingsJSON += findingChunk;
+          yield {
+            type: "findings_chunk",
+            statusText: "Generating findings...",
+            data: findingChunk,
+          };
+        }
+
+        // Save the complete findings
+        const db = await getDatabase();
+        if (!db) {
+          throw new Error("Database not initialized");
+        }
+        const completeFindings = JSON.parse(
+          completeFindingsJSON,
+        ) as ISearchOverview["findings"];
+        await db.merge<ISpyglassSearch>(spyglass.id, {
+          analysis: {
+            findings: completeFindings,
+            overview: "",
+          },
+        });
+
+        spyglass = await SpyglassSearch.get(spyglass.id);
+        if (!spyglass) {
+          throw new Error("Spyglass not found");
+        }
+
+        yield {
+          type: "findings_loaded",
+          statusText: `Generated ${completeFindings.length} findings from ${spyglass.results?.length || "some"} results...`,
+          data: spyglass,
+        };
+        findingsTime = Date.now();
+      } catch (e) {
+        const errorMessage = "Error generating findings";
+        logger.error(errorMessage, {
+          userId,
+          searchId: spyglass?.id,
+          error: e,
+        });
+        yield {
+          type: "error",
+          data: errorMessage,
+          statusText: "Something went wrong...",
+        };
+        return undefined;
+      }
+
+      // Phase 2: Stream Overview Generation
+      if (spyglass.analysis && spyglass.analysis.findings.length > 0) {
         try {
-          await SpyglassSearch.loadAnalysis(userId, spyglass.id);
+          yield {
+            type: "overview_generating",
+            statusText: "Generating overview...",
+            data: spyglass,
+          };
+
+          let completeOverview = "";
+          for await (const chunk of Search.generateOverviewFromFindings(
+            spyglass.baseQuery,
+            spyglass.analysis.findings,
+          )) {
+            completeOverview += chunk;
+            yield {
+              type: "overview_chunk",
+              statusText: "Generating overview...",
+              data: chunk,
+            };
+          }
+
+          // Save the complete overview
+          const db = await getDatabase();
+          if (!db) {
+            throw new Error("Database not initialized");
+          }
+          await db.merge<ISpyglassSearch>(spyglass.id, {
+            analysis: {
+              findings: spyglass.analysis.findings,
+              overview: completeOverview,
+            },
+          });
+
           spyglass = await SpyglassSearch.get(spyglass.id);
           if (!spyglass) {
             throw new Error("Spyglass not found");
           }
+
           yield {
-            type: "analysis_loaded",
-            statusText: `Read ${spyglass.results?.length || "some"} results...`,
+            type: "overview_completed",
+            statusText: "Overview generated successfully",
             data: spyglass,
           };
+          overviewTime = Date.now();
         } catch (e) {
-          const errorMessage = "Error loading analysis";
+          const errorMessage = "Error generating overview";
           logger.error(errorMessage, {
             userId,
             searchId: spyglass?.id,
@@ -481,7 +661,6 @@ export class SpyglassSearch {
           };
           return undefined;
         }
-        analysisTime = Date.now();
       }
 
       // Stage 4: Completion
@@ -502,9 +681,13 @@ export class SpyglassSearch {
       const resultsDuration = resultsTime
         ? (resultsTime - startTime) / 1000
         : null;
-      const analysisDuration =
-        analysisTime && resultsTime
-          ? (analysisTime - resultsTime) / 1000
+      const findingsDuration =
+        findingsTime && resultsTime
+          ? (findingsTime - resultsTime) / 1000
+          : null;
+      const overviewDuration =
+        overviewTime && findingsTime
+          ? (overviewTime - findingsTime) / 1000
           : null;
 
       const formatDecimal = (value: number | null) =>
@@ -512,7 +695,7 @@ export class SpyglassSearch {
 
       const totalCitations = finalSearch.analysis?.findings.length;
 
-      const statusText = `Found ${finalSearch.results?.length ?? 0} result${finalSearch.results?.length === 1 ? "" : "s"} in ${formatDecimal(resultsDuration)}s. Analyzed ${totalCitations} references in ${formatDecimal(analysisDuration)}s`;
+      const statusText = `Found ${finalSearch.results?.length ?? 0} result${finalSearch.results?.length === 1 ? "" : "s"} in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(findingsDuration)}s and overview in ${formatDecimal(overviewDuration)}s`;
 
       yield { type: "completed", statusText, data: finalSearch };
       return finalSearch; // The final value returned by the generator

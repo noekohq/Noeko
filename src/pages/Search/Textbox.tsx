@@ -1,7 +1,8 @@
 import { ActionIcon, Group } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import { PaperPlaneIcon, PaperPlaneRightIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayout } from "../../contexts/LayoutContext";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -40,7 +41,10 @@ export default function Textbox({
     return activeElement === inputRef.current;
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!isFocused()) {
+      inputRef.current?.focus();
+    }
     document.addEventListener("keydown", (event) => {
       if (inputRef.current && event.key === "/") {
         if (!isFocused()) {
