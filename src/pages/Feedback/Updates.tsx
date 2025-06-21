@@ -31,6 +31,22 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("June 21, 2025"),
+    title: "Even more Spyglass updates",
+    details: (
+      <Stack>
+        <Text>
+          Spyglass will now stream text, and all you to see more details about
+          your search.
+        </Text>
+        <Text>
+          We would love any feedback you might have on{" "}
+          <Link to="/spyglass">Spyglass</Link> :)
+        </Text>
+      </Stack>
+    ),
+  },
+  {
     date: new Date("June 18, 2025"),
     title: "Major refresh to Spyglass",
     details: (
