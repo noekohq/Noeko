@@ -223,7 +223,14 @@ export default function Updates() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" pt="lg">
+      <Container
+        w="100%"
+        pt="lg"
+        style={{
+          overflowY: "auto",
+          scrollbarWidth: "none",
+        }}
+      >
         <Stack>
           <Title>Qwest Updates</Title>
           <Text c="dimmed" size="sm">

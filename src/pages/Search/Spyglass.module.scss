@@ -12,6 +12,14 @@
         height: auto;
         min-height: 100vh;
         justify-content: flex-start;
+        @include desktop {
+            max-width: 70vw;
+            padding-block-start: var(--mantine-spacing-lg);
+        }
+
+        @include widescreen {
+            max-width: 55vw;
+        }
     }
 }
 
