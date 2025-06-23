@@ -60,7 +60,7 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
         id: i.id.toString(),
         source: i.in.toString(),
         target: i.out.toString(),
-        distance: MIN_GRAPH_DIST,
+        distance: MAX_GRAPH_DIST * 1.5,
         strength: 0.7,
         visibility: "high" as const,
       };
