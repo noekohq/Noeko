@@ -589,24 +589,16 @@ export class SpyglassSearch {
         if (!db) {
           throw new Error("Database not initialized");
         }
-        try {
-          console.log("JSON in question: ", completeFindingsJSON);
-          const completeFindings = JSON.parse(
-            completeFindingsJSON,
-          ) as ISearchOverview["findings"];
-          await db.merge<ISpyglassSearch>(spyglass.id, {
-            analysis: {
-              findings: completeFindings,
-              overview: "",
-            },
-          });
-        } catch (error) {
-          logger.error("Error saving complete findings", {
-            userId,
-            searchId: spyglass?.id,
-            error,
-          });
-        }
+        console.log("JSON in question: ", completeFindingsJSON);
+        const completeFindings = JSON.parse(
+          completeFindingsJSON,
+        ) as ISearchOverview["findings"];
+        await db.merge<ISpyglassSearch>(spyglass.id, {
+          analysis: {
+            findings: completeFindings,
+            overview: "",
+          },
+        });
 
         spyglass = await SpyglassSearch.get(spyglass.id);
         if (!spyglass) {
