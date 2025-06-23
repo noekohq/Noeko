@@ -1,16 +1,4 @@
-import {
-  Accordion,
-  AccordionValue,
-  Button,
-  Card,
-  Drawer,
-  Grid,
-  Group,
-  List,
-  Loader,
-  Text,
-} from "@mantine/core";
-import { Sparkle } from "@phosphor-icons/react";
+import { Button, Grid, Group, Loader, Text } from "@mantine/core";
 import { IIdea } from "../../../app/database/models/ideas";
 import {
   IGenerativeSummary,
@@ -19,7 +7,6 @@ import {
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
-import { validate } from "uuid";
 import OverviewAccordion from "../../components/Display/Ideas/OverviewAccordion";
 
 type IOverviewProps = {
@@ -83,31 +70,6 @@ export default function Overview({
     },
   });
 
-  const summary: Omit<IGenerativeSummaryForm, "createdAt"> = idea?.derived
-    ?.generative_summary || {
-    sentenceOverview: "",
-    sentenceSummary: "",
-    paragraphOverview: "",
-    paragraphSummary: "",
-    abstractSummary: "",
-    simplifiedSummary: "",
-    outline: [],
-    keyPoints: [],
-    highlights: [],
-  };
-
-  const {
-    sentenceOverview,
-    sentenceSummary,
-    paragraphOverview,
-    paragraphSummary,
-    abstractSummary,
-    simplifiedSummary,
-    outline,
-    keyPoints,
-    highlights,
-  } = summary;
-
   return (
     <div>
       <Grid>
@@ -140,7 +102,7 @@ export default function Overview({
               <Text>Insights into your idea...</Text>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
-              <OverviewAccordion overview={summary} />
+              <OverviewAccordion overview={idea.derived.generative_summary} />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group>

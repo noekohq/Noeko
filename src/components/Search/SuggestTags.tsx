@@ -76,7 +76,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
       query: debouncedSearchQuery,
       ...(limit && { limit: String(limit) }),
     },
-    runOnDependencies: [debouncedSearchQuery].filter(Boolean),
+    runOnDependencies: [debouncedSearchQuery],
     onError: (err) => {
       console.error("Error fetching tag suggestions:", err);
     },

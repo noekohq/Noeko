@@ -228,6 +228,7 @@ export class SpyglassSearch {
   static async checkUserOwnership(spyglassId: string, userId: string) {
     try {
       const db = await getDatabase();
+      console.log("Checking owns: ", userId, spyglassId);
       const result = await db?.query<[number]>( // Expecting an array with one object: [{ count: number }]
         `count(SELECT id FROM searched WHERE in = $userId AND out = $spyglassId);`,
         {
@@ -235,6 +236,7 @@ export class SpyglassSearch {
           spyglassId: new StringRecordId(spyglassId),
         },
       );
+      console.log("Got access ownership: ", result);
 
       if (result && result[0] && result[0] > 0) {
         return true;

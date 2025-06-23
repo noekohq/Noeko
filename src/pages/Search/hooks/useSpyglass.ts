@@ -10,6 +10,8 @@ import {
   ISpyglassSearch,
 } from "../../../../app/database/models/search";
 import { parseIncompleteJsonArray } from "../../../utils/processing";
+import useFetch from "../../../hooks/useFetch";
+import { showNotification } from "@mantine/notifications";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -237,6 +239,11 @@ export default function useSpyglass({
         refetch();
       };
 
+      eventSource.close = () => {
+        eventSource.close();
+        setListening(false);
+      };
+
       return () => {
         eventSource.close();
       };
@@ -266,7 +273,7 @@ export default function useSpyglass({
   const refetch = useCallback(async () => {
     try {
       setStatusText("Refetching spyglass...");
-      const response = await api.get(`/search/spyglass/${spyglassId}`);
+      const response = await api.get(`/search/spyglass/record/${spyglassId}`);
 
       const data = response.data;
       setSpyglass(data);
@@ -304,7 +311,6 @@ export default function useSpyglass({
   };
 
   const resultMap = getResultsMap();
-  console.log("Results map: ", resultMap);
 
   const buildCitationMap = (): ICitationMap => {
     if (!analysis) {
@@ -359,3 +365,92 @@ export default function useSpyglass({
     },
   } as IUseSpyglassReturn;
 }
+
+interface IUseSpyglassRecordArgs {
+  spyglassId?: string;
+}
+
+interface IUseSpyglassRecordReturn {
+  loading: boolean;
+  spyglass?: ISpyglassSearch;
+  analysis?: ISpyglassSearch["analysis"];
+  resultMap?: IResultsMap;
+  citationMap?: ICitationMap;
+}
+
+export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
+  const [spyglass, setSpyglass] = useState<ISpyglassSearch>();
+  const { loading, load: fetchSpyglassRecord } = useFetch<
+    undefined,
+    ISpyglassSearch
+  >({
+    url: `/search/spyglass/record/${spyglassId}`,
+    dependencies: [spyglassId],
+    onError: (error) => {
+      console.error("Error getting spyglass record: ", error);
+      showNotification({
+        title: "Error",
+        message: "Failed to fetch spyglass record",
+        color: "red",
+      });
+    },
+    onSuccess: (data) => {
+      setSpyglass(data);
+    },
+  });
+
+  useEffect(() => {
+    if (spyglassId) {
+      fetchSpyglassRecord();
+    }
+  }, [spyglassId]);
+
+  const analysis = spyglass?.analysis;
+
+  const getResultsMap = () => {
+    return spyglass?.fullResults?.reduce((acc, curr, i) => {
+      if (curr.value) {
+        acc[curr.id.toString()] = curr.value;
+      }
+      return acc;
+    }, {} as IResultsMap);
+  };
+
+  const resultMap = getResultsMap();
+
+  const buildCitationMap = (): ICitationMap => {
+    if (!analysis) {
+      return {};
+    }
+    const map: Record<
+      string,
+      {
+        excerpts: string[];
+        index: number;
+      }
+    > = {};
+    let currRefNumber = 1;
+    for (const finding of analysis?.findings) {
+      if (!(finding.sourceId in map)) {
+        map[finding.sourceId] = {
+          excerpts: [finding.excerpt],
+          index: currRefNumber,
+        };
+        currRefNumber++;
+      } else {
+        map[finding.sourceId].excerpts.push(finding.excerpt);
+      }
+    }
+    return map;
+  };
+
+  const citationMap = buildCitationMap();
+
+  return {
+    loading,
+    analysis,
+    spyglass,
+    resultMap,
+    citationMap,
+  } satisfies IUseSpyglassRecordReturn;
+};

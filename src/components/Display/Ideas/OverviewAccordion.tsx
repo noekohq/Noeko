@@ -1,5 +1,13 @@
 import { Accordion, List } from "@mantine/core";
-import { Sparkle } from "@phosphor-icons/react";
+import {
+  ArticleIcon,
+  AsteriskIcon,
+  HighlighterIcon,
+  NotepadIcon,
+  ShapesIcon,
+  Sparkle,
+  TextAlignLeftIcon,
+} from "@phosphor-icons/react";
 import { IGenerativeSummary } from "../../../../app/database/models/ideas/summaries";
 
 type IOverviewAccordionProps = {
@@ -19,6 +27,8 @@ export default function OverviewAccordion({
     outline,
     keyPoints,
     highlights,
+    questions,
+    tasks,
   } = overview;
 
   return (
@@ -39,25 +49,29 @@ export default function OverviewAccordion({
       )}
       {paragraphOverview && (
         <Accordion.Item value="paragraph_overview">
-          <Accordion.Control icon={<Sparkle />}>Overview</Accordion.Control>
+          <Accordion.Control icon={<ArticleIcon />}>Overview</Accordion.Control>
           <Accordion.Panel>{paragraphOverview}</Accordion.Panel>
         </Accordion.Item>
       )}
       {abstractSummary && (
         <Accordion.Item value="abstract_summary">
-          <Accordion.Control icon={<Sparkle />}>Abstract</Accordion.Control>
+          <Accordion.Control icon={<ShapesIcon />}>Abstract</Accordion.Control>
           <Accordion.Panel>{abstractSummary}</Accordion.Panel>
         </Accordion.Item>
       )}
       {simplifiedSummary && (
         <Accordion.Item value="simplified_summary">
-          <Accordion.Control icon={<Sparkle />}>Simplified</Accordion.Control>
+          <Accordion.Control icon={<NotepadIcon />}>
+            Simplified
+          </Accordion.Control>
           <Accordion.Panel>{simplifiedSummary}</Accordion.Panel>
         </Accordion.Item>
       )}
       {outline && (
         <Accordion.Item value="outline">
-          <Accordion.Control icon={<Sparkle />}>Outline</Accordion.Control>
+          <Accordion.Control icon={<TextAlignLeftIcon />}>
+            Outline
+          </Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {outline.map((item, index) => (
@@ -69,7 +83,9 @@ export default function OverviewAccordion({
       )}
       {keyPoints && (
         <Accordion.Item value="key_points">
-          <Accordion.Control icon={<Sparkle />}>Key Points</Accordion.Control>
+          <Accordion.Control icon={<AsteriskIcon />}>
+            Key Points
+          </Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {keyPoints.map((item, index) => (
@@ -81,10 +97,38 @@ export default function OverviewAccordion({
       )}
       {highlights && (
         <Accordion.Item value="highlights">
-          <Accordion.Control icon={<Sparkle />}>Highlights</Accordion.Control>
+          <Accordion.Control icon={<HighlighterIcon />}>
+            Highlights
+          </Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {highlights.map((item, index) => (
+                <List.Item key={index}>{item}</List.Item>
+              ))}
+            </List>
+          </Accordion.Panel>
+        </Accordion.Item>
+      )}
+      {questions && (
+        <Accordion.Item value="questions">
+          <Accordion.Control icon={<ArticleIcon />}>
+            Questions
+          </Accordion.Control>
+          <Accordion.Panel>
+            <List type="unordered">
+              {questions.map((item, index) => (
+                <List.Item key={index}>{item}</List.Item>
+              ))}
+            </List>
+          </Accordion.Panel>
+        </Accordion.Item>
+      )}
+      {tasks && (
+        <Accordion.Item value="tasks">
+          <Accordion.Control icon={<NotepadIcon />}>Tasks</Accordion.Control>
+          <Accordion.Panel>
+            <List type="unordered">
+              {tasks.map((item, index) => (
                 <List.Item key={index}>{item}</List.Item>
               ))}
             </List>

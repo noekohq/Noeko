@@ -336,7 +336,7 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
-        contentPlain: htmlToMarkdown(form.content),
+        contentPlain: this.getPlainContent(form.content),
         contentPlainUpdatedAt: new Date(),
         embeddings: null,
         visibility: "private",
@@ -419,7 +419,7 @@ export class Idea {
             title: form.title,
             content: form.content,
             visibility: form.visibility || "private",
-            contentPlain: htmlToMarkdown(form.content),
+            contentPlain: this.getPlainContent(form.content),
             contentPlainUpdatedAt: new Date(),
             embeddings: null,
             contentUpdatedAt: new Date(),
@@ -852,7 +852,9 @@ export class Idea {
       const updater: Partial<IIdea> = form;
       if ("content" in form) {
         updater.contentUpdatedAt = new Date();
-        updater.contentPlain = form.content ? htmlToMarkdown(form.content) : "";
+        updater.contentPlain = form.content
+          ? this.getPlainContent(form.content)
+          : "";
         updater.contentPlainUpdatedAt = new Date();
       }
       const result = await db?.merge<
@@ -900,6 +902,10 @@ export class Idea {
       console.error("Error during the updateMany operation:", err);
       return undefined;
     }
+  }
+
+  static getPlainContent(original_content: string): string {
+    return htmlToMarkdown(original_content);
   }
 
   static async synchronizeUpdate(idea: IIdea) {
@@ -1298,7 +1304,7 @@ export class Idea {
   }
 
   static getEmbeddableContent(idea: IIdea) {
-    const plaintextContent = htmlToMarkdown(idea.content);
+    const plaintextContent = this.getPlainContent(idea.content);
     const withTitle = `${idea.title}\n---\n${plaintextContent}`;
     return withTitle;
   }
@@ -1460,7 +1466,7 @@ export class Idea {
         toUpdate.map((update) => {
           return {
             id: update.id,
-            contentPlain: htmlToMarkdown(update.content),
+            contentPlain: this.getPlainContent(update.content),
             contentPlainUpdatedAt: new Date(),
           };
         }),

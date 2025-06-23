@@ -60,6 +60,7 @@ export default function Spyglass() {
     complete,
     resultMap,
     citationMap,
+    baseQuery,
   } = useSpyglass({ query });
 
   const hasInitialized = useRef(false);
@@ -416,7 +417,7 @@ export default function Spyglass() {
                         overview={overview}
                         resultsMap={resultMap ?? {}}
                         citationMap={citationMap ?? {}}
-                        query={query}
+                        query={baseQuery}
                         results={results}
                       />
                     </div>
