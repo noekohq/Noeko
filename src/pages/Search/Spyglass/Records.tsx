@@ -19,10 +19,7 @@ import LeftSidebar from "../../../components/UI/LeftSidebar";
 import RightSidebar from "../../../components/UI/RightSidebar";
 import styles from "./Records.module.scss"; // Assuming this file exists and has relevant styles
 import { ISpyglassSearch } from "../../../../app/database/models/search"; // API should return ISpyglassSearch[]
-import {
-  ArrowRightIcon,
-  DotsThree as DotsThreeIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon, DotsThreeIcon } from "@phosphor-icons/react";
 import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
 import { markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
