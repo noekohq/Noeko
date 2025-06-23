@@ -121,9 +121,25 @@ router.get("/sse", checkToken, async (req, res) => {
           generator.return(undefined); // Clean up the generator
           break;
         }
+        if (data.type === "error") {
+          res.write(`data: ${JSON.stringify(data)}\n\n`);
+          res.end();
+          return;
+        }
+        if (data.type === "completed") {
+          // 1. First, write the final data payload as usual.
+          res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+          // 2. Then, send the special "close-stream" event to the client.
+          res.write("event: close-stream\n");
+          res.write("data: Stream finished successfully.\n\n");
+
+          // 3. Finally, end the response from the server side.
+          res.end();
+          return; // Exit the loop and function.
+        }
         res.write(`data: ${JSON.stringify(data)}\n\n`);
       }
-      res.end();
     } catch (error) {
       console.error("Error streaming data:", error);
       res.end();
@@ -144,16 +160,46 @@ router.get("/history", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const history = await SpyglassSearch.getHistory(user.id);
+
+    const page = parseInt(req.query.page as string, 10);
+    const pageSize = parseInt(req.query.pageSize as string, 10);
+
+    // Default to 10 items per page, offset 0. Ensure non-negative and limit > 0.
+    const pageQuery = Number.isInteger(page) && page > 0 ? page : 1;
+    const pageSizeQuery =
+      Number.isInteger(pageSize) && pageSize >= 0 ? pageSize : 10;
+
+    console.log("Getting with page and size:", pageQuery, pageSizeQuery);
+
+    const paginatedResult = await SpyglassSearch.getHistory(
+      user.id,
+      pageQuery,
+      pageSizeQuery,
+    );
+
+    if (!paginatedResult) {
+      // SpyglassSearch.getHistory is expected to log specific DB errors.
+      res.status(500).json({ message: "Failed to retrieve Spyglass history." });
+      return;
+    }
+
     res.send({
       message: "Spyglass history retrieved successfully",
-      data: history,
+      data: paginatedResult, // This object includes { history: [], total: 0, limit: number, offset: number }
     });
   } catch (error) {
-    logger.error("Something went wrong getting spyglass history", {
-      error,
+    const userIdForLogging =
+      (req as any).user?.id ||
+      "User ID not available or error occurred before user retrieval";
+    logger.error("Error in /history GET route", {
+      userId: userIdForLogging,
+      queryParams: req.query,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
     });
-    res.status(500).json({ message: "Something went wrong." });
+    res.status(500).json({
+      message: "An unexpected error occurred while processing your request.",
+    });
   }
 });
 
@@ -184,16 +230,49 @@ router.get("/history/suggest", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const history = await SpyglassSearch.getHistory(user.id);
+
+    const queryLimit = parseInt(req.query.limit as string, 10);
+    const queryOffset = parseInt(req.query.offset as string, 10);
+
+    // Default to 10 items per page, offset 0. Ensure non-negative and limit > 0.
+    const limit =
+      Number.isInteger(queryLimit) && queryLimit > 0 ? queryLimit : 10;
+    const offset =
+      Number.isInteger(queryOffset) && queryOffset >= 0 ? queryOffset : 0;
+
+    console.log("Query lii");
+
+    const paginatedResult = await SpyglassSearch.getHistory(
+      user.id,
+      limit,
+      offset,
+    );
+
+    if (!paginatedResult) {
+      // SpyglassSearch.getHistory is expected to log specific DB errors.
+      res
+        .status(500)
+        .json({ message: "Failed to retrieve Spyglass history suggestions." });
+      return;
+    }
+
     res.send({
-      message: "Spyglass history retrieved successfully",
-      data: history,
+      message: "Spyglass history suggestions retrieved successfully",
+      data: paginatedResult, // This object includes { history: [], total: 0, limit: number, offset: number }
     });
   } catch (error) {
-    logger.error("Something went wrong getting spyglass history", {
-      error,
+    const userIdForLogging =
+      (req as any).user?.id ||
+      "User ID not available or error occurred before user retrieval";
+    logger.error("Error in /history/suggest GET route", {
+      userId: userIdForLogging,
+      queryParams: req.query,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
     });
-    res.status(500).json({ message: "Something went wrong." });
+    res.status(500).json({
+      message: "An unexpected error occurred while processing your request.",
+    });
   }
 });
 
