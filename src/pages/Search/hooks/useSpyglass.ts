@@ -115,20 +115,31 @@ export default function useSpyglass({
     return `Complete. Results: ${resultsDuration / 1000}s, Findings: ${findingsDuration / 1000}s, Overview: ${overviewDuration / 1000}s, Total: ${totalDuration / 1000}s`;
   };
 
+  const eventSourceRef = useRef<EventSource | null>(null);
+
   const fullFindings = useRef("");
   const fullOverview = useRef("");
 
   useEffect(() => {
-    if (!listening && spyglassId) {
+    if (spyglassId && !listening) {
       setListening(true);
+
       const eventSource = new EventSource(
         `${serverLocation}/api/search/spyglass/sse?spyglassId=${spyglassId}`,
         { withCredentials: true },
       );
+
+      // Store the instance in our ref.
+      eventSourceRef.current = eventSource;
+
       setLoadingResults(true);
       setLoadingFindings(true);
       setLoadingOverview(true);
       startTime.current = Date.now();
+
+      eventSource.onopen = () => {
+        setConnected(true);
+      };
 
       eventSource.onopen = () => {
         setConnected(true);
@@ -159,6 +170,7 @@ export default function useSpyglass({
             break;
           case "findings_generating":
             setStatusText("Generating findings...");
+            fullFindings.current = "";
             setLoadingFindings(true);
             break;
           case "findings_chunk":
@@ -198,6 +210,7 @@ export default function useSpyglass({
             break;
           case "overview_generating":
             setSpyglass(parsedData.data);
+            fullOverview.current = "";
             setLoadingOverview(true);
             return;
           case "overview_chunk":
@@ -229,44 +242,59 @@ export default function useSpyglass({
             setComplete(true);
             setStatusText(getEndStatusText());
             completeTime.current = Date.now();
+            // No need to do anything else, the 'close-stream' event will handle the rest.
             break;
         }
       };
 
       eventSource.onerror = (error) => {
-        setError(String(error));
-        setStatusText("Error connecting to the server");
-        refetch();
+        // We only treat it as an error if the stream wasn't closed cleanly.
+        // The `readyState` will be 2 (CLOSED) if we called .close() ourselves.
+        if (eventSource.readyState !== EventSource.CLOSED) {
+          setError(String(error));
+          setStatusText("Error connecting to the server");
+          console.error("EventSource error:", error);
+        }
+        // In any error/end case, we should ensure we stop listening.
+        setListening(false);
+        eventSource.close(); // Clean up just in case.
       };
 
-      eventSource.close = () => {
-        eventSource.close();
+      eventSource.addEventListener("close-stream", (event) => {
+        console.log("Server signaled end of stream.", event.data);
         setListening(false);
-      };
+        eventSource.close(); // <-- This is the graceful close!
+      });
 
       return () => {
         eventSource.close();
+        eventSourceRef.current = null;
       };
     }
   }, [spyglassId]);
 
   const initialize = useCallback(async () => {
-    try {
-      handleReset();
-      if (!query) {
-        console.error("Tried to initialize Spyglass with no query");
-        return;
-      }
-      setStatusText("Searching your ideas...");
-      const response = await api.post("/search/spyglass/initialize", {
-        query,
-      });
-      setInitialized(true);
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
 
+    resetState();
+
+    if (!query) {
+      console.error("Tried to initialize Spyglass with no query");
+      return;
+    }
+
+    try {
+      setStatusText("Searching your ideas...");
+      const response = await api.post("/search/spyglass/initialize", { query });
+      setInitialized(true);
       const id = response.data.data.id;
-      setSpyglassId(id);
+      setSpyglassId(id); // This will trigger the useEffect to connect
     } catch (error) {
       console.error(error);
+      setError("Failed to initialize search.");
     }
   }, [query]);
 
@@ -282,7 +310,7 @@ export default function useSpyglass({
     }
   }, [spyglassId]);
 
-  const handleReset = useCallback(async () => {
+  const resetState = useCallback(async () => {
     try {
       setConnected(false);
       setListening(false);
@@ -340,6 +368,8 @@ export default function useSpyglass({
 
   const citationMap = buildCitationMap();
 
+  console.log("Spyglass: ", spyglass);
+
   return {
     baseQuery: spyglass?.baseQuery,
     results: spyglass?.fullResults || [],
@@ -353,7 +383,7 @@ export default function useSpyglass({
     connected,
     initialize,
     refetch,
-    clear: handleReset,
+    clear: resetState,
     resultMap,
     citationMap,
     timings: {

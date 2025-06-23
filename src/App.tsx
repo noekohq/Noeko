@@ -34,7 +34,7 @@ import ViewIdea from "./pages/Idea/ViewIdea";
 import PublicIdea from "./pages/Idea/PublicIdea";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
-import SpyglassHistory from "./pages/Search/History";
+import SpyglassRecords from "./pages/Search/Spyglass/Records";
 import SpyglassRecord from "./pages/Search/Spyglass/Record";
 
 export default function App() {
@@ -151,8 +151,9 @@ export default function App() {
                   </Route>
                   <Route path="spyglass">
                     <Route index element={<Spyglass />} />
-                    <Route path="history" element={<SpyglassHistory />} />
+                    <Route path="history" element={<SpyglassRecords />} />
                     <Route path="records">
+                      <Route index element={<SpyglassRecords />} />
                       <Route path=":spyglassId" element={<SpyglassRecord />} />
                     </Route>
                   </Route>

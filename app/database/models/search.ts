@@ -89,34 +89,42 @@ export class SpyglassSearch {
 
       const getSpyglassHistoryFunction = () => {
         return `
-        DEFINE FUNCTION OVERWRITE fn::get_spyglass_history(
-          $userId: record,
-        ) {
-          LET $history =
-            SELECT
-              *,
-              (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
-              (SELECT * OMIT embeddings FROM ->found->idea) as results
-            FROM spyglass
-            WHERE <-searched<-(user WHERE id = user:5zxqi8aynwxmj5ft6c10)
-            ORDER BY createdAt DESC
-            FETCH results;
-          RETURN $history;
-        }
-        `;
+          DEFINE FUNCTION OVERWRITE fn::get_spyglass_history(
+            $userId: record,
+            $page: int,
+            $pageSize: int
+          ) {
+            LET $history =
+              SELECT
+                *,
+                (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
+                (SELECT * OMIT embeddings FROM ->found->idea) as results
+              FROM spyglass
+              WHERE <-searched<-(user WHERE id = $userId)
+              ORDER BY createdAt DESC
+              LIMIT $pageSize
+              START ($page * $pageSize)
+              FETCH results;
+            RETURN $history;
+          }
+          `;
       };
 
       const getSpyglassHistoryLightweightFunction = () => {
         return `
         DEFINE FUNCTION OVERWRITE fn::get_spyglass_history_lightweight(
           $userId: record,
+          $page: int,
+          $pageSize: int
         ) {
           LET $history =
             SELECT
               *
             FROM spyglass
-            WHERE <-searched<-(user WHERE id = user:5zxqi8aynwxmj5ft6c10)
+            WHERE <-searched<-(user WHERE id = $userId)
             ORDER BY createdAt DESC
+            LIMIT $pageSize
+            START ($page * $pageSize)
             FETCH results;
           RETURN $history;
         }
@@ -193,15 +201,25 @@ export class SpyglassSearch {
     }
   }
 
-  public static async getHistory(userId: string | RecordId) {
+  public static async getHistory(
+    userId: string | RecordId,
+    page: number = 0,
+    pageSize: number = 10,
+  ) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
       }
+      console.log(
+        "Getting spyglass history with params:",
+        userId,
+        page,
+        pageSize,
+      );
       const history = await db.run<ISpyglassSearch[]>(
         "fn::get_spyglass_history",
-        [new StringRecordId(userId)],
+        [new StringRecordId(userId), page, pageSize],
       );
       return history;
     } catch (error) {
@@ -209,7 +227,11 @@ export class SpyglassSearch {
     }
   }
 
-  public static async getHistoryLightweight(userId: string | RecordId) {
+  public static async getHistoryLightweight(
+    userId: string | RecordId,
+    page: number = 0,
+    pageSize: number = 10,
+  ) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -217,7 +239,7 @@ export class SpyglassSearch {
       }
       const history = await db.run<ISpyglassSearch[]>(
         "fn::get_spyglass_history_lightweight",
-        [new StringRecordId(userId)],
+        [new StringRecordId(userId), page, pageSize],
       );
       return history;
     } catch (error) {
@@ -236,7 +258,6 @@ export class SpyglassSearch {
           spyglassId: new StringRecordId(spyglassId),
         },
       );
-      console.log("Got access ownership: ", result);
 
       if (result && result[0] && result[0] > 0) {
         return true;

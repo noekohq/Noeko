@@ -375,7 +375,7 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
             >
               <Trash />
             </ActionIcon>
-            <Link to={`/idea/${tag.id.toString()}`}>
+            <Link to={`/tags/${tag.id.toString()}`}>
               <ActionIcon variant="subtle" title="View Tag">
                 <ArrowRight />
               </ActionIcon>
