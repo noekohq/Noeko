@@ -21,9 +21,13 @@ export type IGenerativeSummary = {
   keyPoints?: string[];
   highlights?: string[];
   questions?: string[];
+  tasks?: string[];
 };
 
-export type IGenerativeSummaryForm = Omit<IGenerativeSummary, "id">;
+export type IGenerativeSummaryForm = Omit<
+  IGenerativeSummary,
+  "id" | "createdAt"
+>;
 
 export const GenerativeSummarySchema: LMSchema = {
   type: LMSchemaType.OBJECT,
@@ -72,7 +76,14 @@ export const GenerativeSummarySchema: LMSchema = {
     questions: {
       type: LMSchemaType.ARRAY,
       items: { type: LMSchemaType.STRING },
-      description: "Questions raised by the content.",
+      description:
+        "Questions raised by the content, implicitly or explicitly, or open questions that haven't been answered.",
+    },
+    tasks: {
+      type: LMSchemaType.ARRAY,
+      items: { type: LMSchemaType.STRING },
+      description:
+        "Tasks that exist in the content, implicitly or explicitly, things that need to be done according to the content.",
     },
   },
   required: ["sentenceOverview", "sentenceSummary"],
@@ -112,7 +123,7 @@ export class GenerativeSummary {
       }
       const result = await db?.insert<
         IGenerativeSummary,
-        IGenerativeSummaryForm
+        IGenerativeSummaryForm & { createdAt: Date }
       >("generative_summary", {
         createdAt: new Date(),
         sentenceOverview: generation.sentenceOverview,
@@ -125,6 +136,7 @@ export class GenerativeSummary {
         keyPoints: generation.keyPoints,
         highlights: generation.highlights,
         questions: generation.questions,
+        tasks: generation.tasks,
       });
       if (!result) {
         throw new Error(
@@ -238,8 +250,9 @@ export class GenerativeSummary {
       }
       const update = await db.update<
         IGenerativeSummary,
-        IGenerativeSummaryForm
+        IGenerativeSummaryForm & { createdAt: Date }
       >(new StringRecordId(summaryId), {
+        createdAt: new Date(),
         ...generation,
       });
       return update;

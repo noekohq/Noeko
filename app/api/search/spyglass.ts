@@ -68,6 +68,7 @@ router.post("/initialize", checkToken, async (req, res) => {
 router.get("/sse", checkToken, async (req, res) => {
   try {
     const spyglassId = req.query.spyglassId as string;
+    console.log("SSE for spyglass id: ", spyglassId);
     if (!spyglassId || !(typeof spyglassId === "string")) {
       res.status(400).send({
         message: "Spyglass ID is required",
@@ -75,6 +76,7 @@ router.get("/sse", checkToken, async (req, res) => {
       return;
     }
     const user = await getFromReq<ISafeUser>(req, "user");
+    console.log("Got user: ", user);
     if (!user) {
       res.status(403).json({ error: "Unauthorized" });
       return;
@@ -83,6 +85,7 @@ router.get("/sse", checkToken, async (req, res) => {
       spyglassId,
       user.id,
     );
+    console.log("User can access: ", spyglassId, canAccess);
     if (!canAccess) {
       res.status(403).json({ error: "Unauthorized" });
       return;
@@ -111,8 +114,16 @@ router.get("/sse", checkToken, async (req, res) => {
 
     try {
       for await (const data of generator) {
+        if (res.writableEnded) {
+          console.warn(
+            "Client closed connection, but generator is still running. Breaking loop.",
+          );
+          generator.return(undefined); // Clean up the generator
+          break;
+        }
         res.write(`data: ${JSON.stringify(data)}\n\n`);
       }
+      res.end();
     } catch (error) {
       console.error("Error streaming data:", error);
       res.end();

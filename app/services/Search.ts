@@ -293,8 +293,10 @@ export class Search {
             FROM tag
             WHERE
               <-owns<-(user WHERE id = <record> $userId)
-              AND !!embeddings
-              AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
+              AND (
+                !!embeddings
+                AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
+              )
             ORDER BY distance DESC
             LIMIT $got_limit;
 
