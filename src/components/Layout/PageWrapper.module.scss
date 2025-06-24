@@ -2,6 +2,7 @@
 
 .pageWrapper {
     padding-block: 2.4rem;
+    height: 100vh;
 
     @include desktop {
         padding-block: 0;

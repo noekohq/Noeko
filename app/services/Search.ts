@@ -789,6 +789,54 @@ export class Search {
     }
   }
 
+  static findingsPromptBuilder(query: string) {
+    return new PromptBuilder()
+      .addText(
+        "You are a search result analyzer, tasked with generating relevant excerpts from the sources provided.",
+      )
+      .addBlock(
+        "Instructions",
+        `Your job is to generate findings, findings are a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that these be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.`,
+      )
+      .addBlock(
+        "Query",
+        `The user's query is as follows:
+        > ${query}`,
+      )
+      .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
+      .addBlock(
+        "Please Remember!",
+        `
+      - Is is of the upmost importance that findings be directly sourced from the results
+        `,
+      )
+      .addBlock("Results", "The results to use are as follows:\n");
+  }
+
+  static overviewPromptBuilder(query: string) {
+    return new PromptBuilder()
+      .addText("You are a search overview creator.")
+      .addBlock(
+        "Instructions",
+        `Generate a comprehensive and informative answer to the user's query, based entirely on the findings provided. You will generate a direct answer to the user's query, based entirely on the findings provided. It's important that this answer be entirely grounded in the findings provided, and answers the query's intent.`,
+      )
+      .addBlock(
+        "Query",
+        `The user's query is as follows:
+              > ${query}`,
+      )
+      .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
+      .addBlock(
+        "Please Remember!",
+        `
+            - The overview should rely on findings, but ultimately favor answering the query
+            - If you do not know something from the results, don't be afraid to say you don't know.
+            - Format the overview as Markdown, HTML tags are allowed, this can be formatted in accordance with the user query
+              `,
+      )
+      .addBlock("Results", "The findings to use are as follows:\n");
+  }
+
   static async getFindingsFromResults(
     query: string,
     results: ISearchResult[],
@@ -812,27 +860,7 @@ export class Search {
           r += `${htmlToMarkdown(ideaValue.content)}`;
           return r;
         });
-      const overviewPrompt = new PromptBuilder()
-        .addText(
-          "You are a search result analyzer, tasked with generating relevant excerpts from the sources provided.",
-        )
-        .addBlock(
-          "Instructions",
-          `Your job is to generate findings, findings are a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that these be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.`,
-        )
-        .addBlock(
-          "Query",
-          `The user's query is as follows:
-          > ${query}`,
-        )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Please Remember!",
-          `
-        - Is is of the upmost importance that findings be directly sourced from the results
-          `,
-        )
-        .addBlock("Results", "The results to use are as follows:\n");
+      const overviewPrompt = this.findingsPromptBuilder(query);
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -905,29 +933,7 @@ export class Search {
           r += `${htmlToMarkdown(ideaValue.content)}`;
           return r;
         });
-      const overviewPrompt = new PromptBuilder()
-        .addText(
-          "You are a search result analyzer, tasked with generating relevant excerpts from the sources provided.",
-        )
-        .addBlock(
-          "Instructions",
-          `Your job is to generate findings, findings are a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that these be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.`,
-        )
-        .addBlock(
-          "Query",
-          `The user's query is as follows:
-          > ${query}`,
-        )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Please Remember!",
-          `
-        - Is is of the upmost importance that findings be directly sourced from the results
-        - Always include a sourceId, an analysis, and the relevant excerpt with results
-        - Only include findings if they are relevant and useful, not every result must be included
-          `,
-        )
-        .addBlock("Results", "The results to use are as follows:\n");
+      const overviewPrompt = this.findingsPromptBuilder(query);
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -990,27 +996,8 @@ export class Search {
         t += `Analysis: ${htmlToMarkdown(analysis)}`;
         return t;
       });
-      const overviewPrompt = new PromptBuilder()
-        .addText("You are a search overview creator.")
-        .addBlock(
-          "Instructions",
-          `Generate a comprehensive and informative answer to the user's query, based entirely on the findings provided. You will generate a direct answer to the user's query, based entirely on the findings provided. It's important that this answer be entirely grounded in the findings provided, and answers the query's intent.`,
-        )
-        .addBlock(
-          "Query",
-          `The user's query is as follows:
-          > ${query}`,
-        )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Please Remember!",
-          `
-        - The overview should rely on findings, but ultimately favor answering the query
-        - If you do not know something from the results, don't be afraid to say you don't know.
-        - Format the overview as Markdown, HTML tags are allowed, this can be formatted in accordance with the user query
-          `,
-        )
-        .addBlock("Results", "The findings to use are as follows:\n");
+      const overviewPrompt = this.overviewPromptBuilder(query);
+
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
         const totalSize = overviewPrompt.get().length;

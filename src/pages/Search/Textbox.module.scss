@@ -8,6 +8,18 @@
     flex-direction: column;
     border: 1.5px solid transparent;
 
+    &.initialized {
+        textarea {
+            padding: 8px var(--mantine-spacing-md);
+        }
+    }
+
+    &.focused {
+        textarea {
+            padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
+        }
+    }
+
     &:focus-within {
         border-color: var(--mantine-color-dark-7);
     }
@@ -23,8 +35,9 @@
         padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
         box-sizing: border-box;
         transition:
-            padding 0.2s ease-in-out,
+            padding 0.2s ease-out,
             border 0.2s ease-in-out;
+        scrollbar-width: none;
 
         &:focus {
             padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);

@@ -583,6 +583,7 @@ export class SpyglassSearch {
         if (!db) {
           throw new Error("Database not initialized");
         }
+        console.log("JSON in question: ", completeFindingsJSON);
         const completeFindings = parseIncompleteJsonArray(completeFindingsJSON);
         await db.merge<ISpyglassSearch>(spyglass.id, {
           analysis: {

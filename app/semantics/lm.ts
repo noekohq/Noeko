@@ -19,9 +19,9 @@ export const LMSchemaType = SchemaType;
 type ModelTypes = "simple" | "advanced" | "fast-accurate" | "general";
 
 const ModelMapper: Record<ModelTypes, string> = {
-  simple: "models/gemini-2.0-flash-lite",
+  simple: "models/gemini-2.5-flash-lite-preview-06-17",
   advanced: "gemini-2.5-pro-preview-05-06",
-  "fast-accurate": "models/gemini-2.0-flash",
+  "fast-accurate": "models/gemini-2.5-flash",
   general: "gemini-2.5-flash-preview-05-20",
 };
 
