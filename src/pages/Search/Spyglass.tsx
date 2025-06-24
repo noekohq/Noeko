@@ -49,6 +49,7 @@ import { useLayout } from "../../contexts/LayoutContext";
 import { ISpyglassSearch } from "../../../app/database/models/search";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
 import CountUp from "../../components/Utils/Animations/Countup";
+import AnimateHTMLStream from "../../components/Utils/Animations/AnimateHTMLStream";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -434,7 +435,7 @@ export default function Spyglass() {
                   onChange={(v) => {
                     setQuery(v);
                   }}
-                  placeholder="Ask your thoughts..."
+                  placeholder="Ask your thoughts anything..."
                   placeholderIfInitialized="Ask another question..."
                   initialized={initialized}
                 />
@@ -502,14 +503,9 @@ function DisplayOverview({
 
   return (
     <div>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: markdownToHtml(overview.overview),
-        }}
-        className={styles.overviewText}
-      />
+      <AnimateHTMLStream html={markdownToHtml(overview.overview)} />
       <Space my="lg" />
-      <Group justify="space-between">
+      <Group justify="space-between" className={styles.overviewUI}>
         <Group>
           <Button
             rightSection={

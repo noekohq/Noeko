@@ -42,7 +42,7 @@ export default function Textbox({
   const [isFocused, setIsFocused] = useState(false);
 
   useLayoutEffect(() => {
-    if (!isFocused) {
+    if (!isFocused && !initialized) {
       inputRef.current?.focus();
     }
     document.addEventListener("keydown", (event) => {
