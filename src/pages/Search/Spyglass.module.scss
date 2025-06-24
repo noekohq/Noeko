@@ -111,7 +111,7 @@
         transform: translateY(0);
         gap: var(--mantine-spacing-xs);
     }
-    90% {
+    99% {
         opacity: 0;
         height: 0;
         gap: 0;
@@ -128,7 +128,7 @@
     gap: var(--mantine-spacing-xs);
 
     &.hide {
-        animation: previewHide 0.5s ease-in-out forwards;
+        animation: previewHide 0.2s ease-in-out forwards;
     }
 }
 
@@ -150,7 +150,7 @@
 @keyframes overviewIn {
     0% {
         opacity: 0;
-        transform: translateY(-2px);
+        transform: translateY(5px);
     }
     100% {
         opacity: 1;
@@ -161,5 +161,19 @@
 .overviewText {
     opacity: 0;
     animation: overviewIn 0.5s ease-in-out forwards;
-    animation-delay: .5s;
+}
+
+@keyframes overviewUI {
+    0% {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.overviewUI {
+    animation: overviewUI 0.5s ease-in-out forwards;
 }

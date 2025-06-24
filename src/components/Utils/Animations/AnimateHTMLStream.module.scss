@@ -1,0 +1,19 @@
+.overviewText p {
+}
+
+.word {
+    opacity: 0;
+    display: inline-block; /* Required for transform animations */
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
