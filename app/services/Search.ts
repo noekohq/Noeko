@@ -5,7 +5,7 @@ import { IUserFile } from "../database/models/userfile";
 import { Embeddings } from "../semantics/embeddings";
 import { getLM, PromptBuilder } from "../semantics/lm";
 import { htmlToMarkdown } from "../utils/formatting";
-import { SchemaType } from "@google/generative-ai";
+import { ResponseSchema, SchemaType } from "@google/generative-ai";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ITag } from "../database/models/tag";
@@ -40,12 +40,51 @@ export type IFTSIdeaResult = IIdea & {
 
 export type ISemanticIdeaResult = IIdeaAsRelation & {};
 
+export type IFindingType =
+  // FOUNDATIONAL
+  | "FACT"
+  | "CONTRADICTION"
+  | "DEFINITION"
+  // DIRECT ANSWER TYPES
+  | "EXPLANATION"
+  | "EXAMPLE"
+  | "PROCEDURE"
+  // PERSONAL & REFLECTIVE
+  | "PERSONAL_INSIGHT"
+  | "TAKEAWAY"
+  | "OPEN_QUESTION"
+  | "ACTION_ITEM"
+  | "KNOWLEDGE_GAP"
+  // STRUCTURAL AND REFERENCE TYPES
+  | "REFERENCE"
+  | "QUOTE"
+  | "COMPARISON";
+
+export const FindingTypes = [
+  "FACT",
+  "CONTRADICTION",
+  "DEFINITION",
+  "EXPLANATION",
+  "EXAMPLE",
+  "PROCEDURE",
+  "PERSONAL_INSIGHT",
+  "TAKEAWAY",
+  "OPEN_QUESTION",
+  "ACTION_ITEM",
+  "REFERENCE",
+  "QUOTE",
+  "COMPARISON",
+] as IFindingType[];
+
+export type IFinding = {
+  excerpt: string;
+  sourceId: string;
+  analysis: string;
+  findingType: IFindingType;
+};
+
 export type ISearchOverview = {
-  findings: {
-    excerpt: string;
-    sourceId: string;
-    analysis: string;
-  }[];
+  findings: IFinding[];
   overview: string;
 };
 
@@ -57,6 +96,72 @@ export type ITagSearchResult = {
   score: number;
   searchType: "fts" | "semantic" | "comprehensive";
 };
+
+const queryModes: {
+  name: string;
+  description: string;
+  specificInstructions: string[];
+}[] = [
+  {
+    name: "Synthesis Report",
+    description:
+      "This is the standard mode for general knowledge queries, the goal is to provide a comprehensive and detailed answer that covers all aspects of the user's query.",
+    specificInstructions: [
+      "Start with a brief, one-paragraph summary of the key information.",
+      "Structure the main body of the response using headings for sub-topics.",
+      "Prioritize FACT, DEFINITION, and EXPLANATION findings to build the core of the report.",
+      "Weave in PERSONAL_INSIGHT and QUOTE findings to add color and personal context, but they should support the main narrative, not lead it.",
+      "Ensure the report is well-organized, coherent, and easy to follow.",
+    ],
+  },
+  {
+    name: "Insight Review",
+    description:
+      "This mode is for when the user wants to review their own thinking process. The goal is to provide a reflective experience and insight to the user's thought process, in accordance with their query.",
+    specificInstructions: [
+      "You MUST prioritize findings with the PERSONAL_INSIGHT type above all others. Also, give high priority to KEY_TAKEAWAY and OPEN_QUESTION.",
+      "Structure the output as a narrative review. Use blockquotes (>) for direct PERSONAL_INSIGHT excerpts.",
+      "The tone should be more reflective. It is acceptable to frame the answer from the user's perspective, for example: 'Your main insight was that...' or 'You seem to have concluded that...'",
+      "Factual findings (FACT, DEFINITION) should only be used to provide brief context for the personal insights.",
+    ],
+  },
+  {
+    name: "Action Summary",
+    description:
+      "This mode is for when the user is planning or reviewing tasks. The goal is to provide a clear, actionable list of action items.",
+    specificInstructions: [
+      "Start with a concise overview of the user's action items",
+      "Prioritize actionability on the user's behalf, providing only necessary context to take action on an item.",
+      "You MUST only use findings with the ACTION_ITEM type to construct your todo-list",
+      "Group related tasks under subheadings based on their source or topic.",
+      "Prioritize flat text structure, avoid heading tags, use bold text for emphasis or categorization.",
+      "use a standard list format to construct the lists.",
+    ],
+  },
+  {
+    name: "Comparative Analysis",
+    description:
+      "This mode is for when the user wants to understand the relationship between two or more concepts. Your goal is to create a structured comparison of the concepts mentioned in the query.",
+    specificInstructions: [
+      "You MUST format the core of your response as an HTML table with <table>.",
+      "The table columns should be the items being compared (e.g., 'Permaculture', 'Syntropic Agroforestry')",
+      "The table rows should be the criteria for comparison (e.g., 'Core Principles', 'Key Proponents', 'Implementation Challenges').",
+      "Use FACT, DEFINITION, and KEY_TAKEAWAY findings to populate the table. Use CONTRADICTION findings to highlight key differences.",
+      "Conclude with a brief summary paragraph highlighting the most significant similarities and differences.",
+    ],
+  },
+  {
+    name: "Question Drilldown",
+    description:
+      "This mode is for exploring the user's knowledge gaps. Your goal is to help a user understand the gaps in their knowledge, and unanswered questions they have.",
+    specificInstructions: [
+      "The lack of a relevant finding that should be there implies a gap in knowledge",
+      "Only in this mode may you reference content that isn't specifically included in findings.",
+      "Use KNOWLEDGE_GAP findings to identify gaps in the user's knowledge. As well as OPEN_QUESTION findings to identify unanswered questions.",
+      "Conclude with a brief summary paragraph highlighting the most significant knowledge gaps and steps to address them.",
+    ],
+  },
+];
 
 export class Search {
   private static readonly COMPREHENSIVE_WEIGHTS = {
@@ -706,30 +811,7 @@ export class Search {
           r += `${htmlToMarkdown(ideaValue.content)}`;
           return r;
         });
-      const overviewPrompt = new PromptBuilder()
-        .addText("You are a search overview creator.")
-        .addBlock(
-          "Instructions",
-          `Generate a comprehensive and informative answer to the user's query, based entirely on the results provided. You will generate the answer in two parts:
-          1. Findings: a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that this stage be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.
-          2. Overview: once your findings are complete, you will generate a brief, direct answer to the user's query, based entirely on the results of your findings. This doesn't need to have references, and will essentially tie your generation up in a neat bow.`,
-        )
-        .addBlock(
-          "Query",
-          `The user's query is as follows:
-          > ${query}`,
-        )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Please Remember!",
-          `
-        - Is is of the upmost importance that findings be directly sourced from the results
-        - The overview, on the other hand, should rely on findings, but ultimately favor answering the query
-        - If you do not know something from the results, don't be afraid to say you don't know.
-        - Format **the overview** as Markdown, tags are allowed, this can be formatted in accordance with the user query
-          `,
-        )
-        .addBlock("Results", "The results to use are as follows:\n");
+      const overviewPrompt = this.findingsPromptBuilder(query);
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -790,51 +872,166 @@ export class Search {
   }
 
   static findingsPromptBuilder(query: string) {
-    return new PromptBuilder()
-      .addText(
-        "You are a search result analyzer, tasked with generating relevant excerpts from the sources provided.",
-      )
-      .addBlock(
-        "Instructions",
-        `Your job is to generate findings, findings are a list of individual findings from the results, along with the result referenced, and relevant excerpt. It is EXTREMELY important that these be entirely based on the results provided, with your analysis being derived directly from relevant excerpts from the result.`,
-      )
-      .addBlock(
-        "Query",
-        `The user's query is as follows:
-        > ${query}`,
-      )
-      .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-      .addBlock(
-        "Please Remember!",
-        `
-      - Is is of the upmost importance that findings be directly sourced from the results
+    return (
+      new PromptBuilder()
+        // --- Insight: Stronger, more specific persona.
+        .addText(
+          "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user query.",
+        )
+        .addBlock(
+          "Purpose and Goal",
+          `
+          Your goal is to provide the most relevant excerpts to the query from the provided results.
+          Quality of analysis is paramount for quality search experience for your users, you exist to provide an additional layer of intelligence and context.
+          Your analysis will be built upon by other systems, so it's crucial to be reliable, precise, and foreward-thinking.
+          Your primary source of context is the user's query. Use it to inform each finding directly. If something isn't relevant
+          to the query's intent, don't include it.
+          `,
+        )
+        .addBlock(
+          "Instructions",
+          // --- Insight: Mandate a structured, machine-readable output (JSON). This is the most critical improvement.
+          `
+        Analyze the provided search results in relation to the user's query.
+        Extract every relevant portion of a result as a "finding".
+        For each finding, you MUST provide the source ID and the direct excerpt from the source that supports it.
         `,
-      )
-      .addBlock("Results", "The results to use are as follows:\n");
+        )
+        .addBlock("User Query", query)
+        // --- Insight: Consolidate and strengthen constraints.
+        .addBlock(
+          "Strict Rules",
+          `
+        - **DO NOT** interpret or infer information not present in the results.
+        - **DO NOT** add your own knowledge.
+        - **DO NOT** synthesize or combine findings. Each finding must be a discrete piece of information from a single source.
+        `,
+        )
+        .addBlock("Search Results", "The results to use are as follows:\n")
+    );
+  }
+
+  static findingsSchema(): ResponseSchema {
+    return {
+      type: SchemaType.ARRAY,
+      description:
+        "An array of structured findings extracted from the source results that are relevant to the user's query.",
+      items: {
+        type: SchemaType.OBJECT,
+        description:
+          "A single, discrete finding that helps answer the user's query.",
+        properties: {
+          sourceId: {
+            type: SchemaType.STRING,
+            description:
+              "The unique ID of the source result from which the excerpt is taken.",
+          },
+          excerpt: {
+            type: SchemaType.STRING,
+            description:
+              "The verbatim, direct quote from the source text that supports the finding. This must not be altered or summarized.",
+          },
+          analysis: {
+            type: SchemaType.STRING,
+            description:
+              "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's query.",
+          },
+          // --- Updated the enum with the new, more detailed taxonomy for qwest.
+          findingType: {
+            type: SchemaType.STRING,
+            description:
+              "Categorize the nature of the finding in relation to the query, based on the nature of personal knowledge-bases.",
+            enum: [
+              // Foundational Evidence
+              "FACT",
+              "CONTRADICTION",
+              "DEFINITION",
+              // Explanatory & Procedural
+              "EXPLANATION",
+              "EXAMPLE",
+              "PROCEDURE",
+              // Personal & Reflective
+              "PERSONAL_INSIGHT",
+              "KEY_TAKEAWAY",
+              "OPEN_QUESTION",
+              "ACTION_ITEM",
+              // Structural & Reference
+              "REFERENCE",
+              "QUOTE",
+            ],
+            format: "enum",
+          },
+        },
+        required: ["sourceId", "excerpt", "analysis", "findingType"],
+      },
+    };
   }
 
   static overviewPromptBuilder(query: string) {
-    return new PromptBuilder()
-      .addText("You are a search overview creator.")
-      .addBlock(
-        "Instructions",
-        `Generate a comprehensive and informative answer to the user's query, based entirely on the findings provided. You will generate a direct answer to the user's query, based entirely on the findings provided. It's important that this answer be entirely grounded in the findings provided, and answers the query's intent.`,
-      )
-      .addBlock(
-        "Query",
-        `The user's query is as follows:
-              > ${query}`,
-      )
-      .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-      .addBlock(
-        "Please Remember!",
-        `
-            - The overview should rely on findings, but ultimately favor answering the query
-            - If you do not know something from the results, don't be afraid to say you don't know.
-            - Format the overview as Markdown, HTML tags are allowed, this can be formatted in accordance with the user query
-              `,
-      )
-      .addBlock("Results", "The findings to use are as follows:\n");
+    return (
+      new PromptBuilder()
+        // --- Insight: Adopting the more polished persona we discussed.
+        .addText(
+          "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
+        )
+        .addBlock("User Query", query)
+        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
+        .addBlock(
+          "Core Instructions",
+          `
+        - Write a direct and comprehensive answer to the user query using ONLY the information from the "Findings" provided below.
+        - Begin your answer with a concise introductory sentence or paragraph that summarizes the key points.
+        - Structure the rest of your answer logically using headings and lists.
+        - Attend ABOVE ALL ELSE to the user's query, ensuring that your response satisfies the intent of the user.
+        - Prioritize the most useful information first, then elaborate if need be.
+        `,
+        )
+        .addBlock(
+          "Query Type Specification",
+          `
+          You must use different instructions to write your answer based on the type of the user's query. However, be sure to also follow the Core Instructions, especially if the query doesn't match any of the defined types below. Here are the supported types.
+
+          ${queryModes
+            .map((query) => {
+              return `
+            ## ${query.name}
+            ${query.description}
+            ${query.specificInstructions
+              .map((instruction) => {
+                return `- ${instruction}`;
+              })
+              .join("\n")}
+            `;
+            })
+            .join("\n\n")}
+          `,
+        )
+        // --- Insight: Adding the critical citation mandate and strict formatting rules.
+        .addBlock(
+          "Formatting",
+          `
+        - Format your entire response using Markdown, and HTML where applicable.
+        - ALWAYS USE HTML for the following:
+          - Tables with <table>
+          - Lists with <ul> and <li>
+          - Code blocks with <pre> and <code>
+        `,
+        )
+        // --- Insight: Adding the full suite of negative constraints for safety and professionalism.
+        .addBlock(
+          "Strict Rules (NEVER/AVOID)",
+          `
+        - **NEVER** use information that is not explicitly present in the Findings. If the Findings do not contain the answer, state that you cannot answer based on the information provided.
+        - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
+        - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
+        - **NEVER** start your answer with a heading.
+        `,
+        )
+        .addBlock(
+          "Findings",
+          "The findings to use for your answer are as follows:\n",
+        )
+    ); // This will be the JSON from the first step.
   }
 
   static async getFindingsFromResults(
@@ -874,30 +1071,7 @@ export class Search {
       const lm = getLM().withModel("simple");
       const result = await lm.generateJSON<ISearchOverview["findings"]>(
         overviewPrompt.get(),
-        {
-          type: SchemaType.ARRAY,
-          description: "Your findings directly from the source results",
-          items: {
-            type: SchemaType.OBJECT,
-            description: "An individual finding from the source results",
-            properties: {
-              sourceId: {
-                type: SchemaType.STRING,
-                description: "The id of the result you're sourcing",
-              },
-              excerpt: {
-                type: SchemaType.STRING,
-                description: "The relevant portion of the source result",
-              },
-              analysis: {
-                type: SchemaType.STRING,
-                description:
-                  "Your finding from this excerpt, how it relates to the query",
-              },
-            },
-            required: ["sourceId", "excerpt", "analysis"],
-          },
-        },
+        this.findingsSchema(),
       );
       if (!result) {
         throw new Error("Findings not generated by LM");
@@ -945,30 +1119,10 @@ export class Search {
       });
 
       const lm = getLM().withModel("simple");
-      for await (const result of lm.generateJSONStream(overviewPrompt.get(), {
-        type: SchemaType.ARRAY,
-        description: "Your findings directly from the source results",
-        items: {
-          type: SchemaType.OBJECT,
-          description: "An individual finding from the source results",
-          properties: {
-            sourceId: {
-              type: SchemaType.STRING,
-              description: "The id of the result you're sourcing",
-            },
-            excerpt: {
-              type: SchemaType.STRING,
-              description: "The relevant portion of the source result",
-            },
-            analysis: {
-              type: SchemaType.STRING,
-              description:
-                "Your finding from this excerpt, how it relates to the query",
-            },
-          },
-          required: ["sourceId", "excerpt", "analysis"],
-        },
-      })) {
+      for await (const result of lm.generateJSONStream(
+        overviewPrompt.get(),
+        this.findingsSchema(),
+      )) {
         if (!result) {
           throw new Error("Findings not generated by LM");
         }
@@ -990,10 +1144,11 @@ export class Search {
       }
       const findingsString = findings.map((finding) => {
         let t = "";
-        const { excerpt, analysis, sourceId } = finding;
+        const { excerpt, analysis, sourceId, findingType } = finding;
         t += `**${sourceId}**`;
         t += `> ${htmlToMarkdown(excerpt)}`;
-        t += `Analysis: ${htmlToMarkdown(analysis)}`;
+        t += `TYPE: ${findingType}`;
+        t += `ANALYSIS: ${htmlToMarkdown(analysis)}`;
         return t;
       });
       const overviewPrompt = this.overviewPromptBuilder(query);
@@ -1037,34 +1192,14 @@ export class Search {
       }
       const findingsString = findings.map((finding) => {
         let t = "";
-        const { excerpt, analysis, sourceId } = finding;
+        const { excerpt, analysis, sourceId, findingType } = finding;
         t += `**${sourceId}**`;
         t += `> ${htmlToMarkdown(excerpt)}`;
-        t += `Analysis: ${htmlToMarkdown(analysis)}`;
+        t += `TYPE: ${findingType}`;
+        t += `ANALYSIS: ${htmlToMarkdown(analysis)}`;
         return t;
       });
-      const overviewPrompt = new PromptBuilder()
-        .addText("You are a search overview creator.")
-        .addBlock(
-          "Instructions",
-          `Generate a comprehensive and informative answer to the user's query, based entirely on the findings provided. You will generate a direct answer to the user's query. It's important that this answer be entirely grounded in the findings provided, but prioritizes responding to the query itself.`,
-        )
-        .addBlock(
-          "Query",
-          `The user's query is as follows:
-          > ${query}`,
-        )
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Please Remember!",
-          `
-        - The overview should rely on findings, but ultimately favor answering the query
-        - If you do not know something from the results, don't be afraid to say you don't know.
-        - Format the overview as Markdown, HTML tags are allowed, this can be formatted in accordance with the user query
-        - Don't include finding references in your response, instead, ground the idea in the findings through blockquotes
-          `,
-        )
-        .addBlock("Findings", "The findings to use are as follows:\n");
+      const overviewPrompt = this.overviewPromptBuilder(query);
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
         const totalSize = overviewPrompt.get().length;

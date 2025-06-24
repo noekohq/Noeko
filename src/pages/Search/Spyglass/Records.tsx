@@ -17,19 +17,24 @@ import {
 import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/LeftSidebar";
 import RightSidebar from "../../../components/UI/RightSidebar";
-import styles from "./Records.module.scss"; // Assuming this file exists and has relevant styles
-import { ISpyglassSearch } from "../../../../app/database/models/search"; // API should return ISpyglassSearch[]
-import { ArrowRightIcon, DotsThreeIcon } from "@phosphor-icons/react";
+import styles from "./Records.module.scss";
+import { ISpyglassSearch } from "../../../../app/database/models/search";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  DotsThreeIcon,
+} from "@phosphor-icons/react";
 import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
 import { markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
-import { useLayout } from "../../../contexts/LayoutContext"; // For pageSize consistency
+import { useLayout } from "../../../contexts/LayoutContext";
 import { Link } from "react-router";
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();
   const [page, setPage] = useState(0);
-  const pageSize = isMobile ? 10 : 10; // Consistent with Ideas.tsx, though hardcoded to 10 for now
+
+  const pageSize = isMobile ? 10 : 10;
   const [allHistory, setAllHistory] = useState<ISpyglassSearch[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [viewing, setViewing] = useState<ISpyglassSearch | undefined>(
@@ -37,14 +42,20 @@ export default function SpyglassHistory() {
   );
 
   const {
-    // load: getHistoryPage, // Not explicitly called for initial, useFetch handles it
+    load: getHistoryPage,
     loading,
-    data: newHistoryFetched, // API must return ISpyglassSearch[] directly
+    data: newHistoryFetched,
     errors,
   } = useFetch<undefined, ISpyglassSearch[]>({
     url: `/search/spyglass/history?page=${page}&pageSize=${pageSize}`,
-    runOnDependencies: [page], // Automatically fetch when page changes, including initial mount
+    runOnDependencies: [page],
   });
+
+  useEffect(() => {
+    if (page === 0 && !loading) {
+      getHistoryPage();
+    }
+  }, [getHistoryPage]);
 
   const observerTarget = useRef(null);
 
@@ -156,6 +167,18 @@ export default function SpyglassHistory() {
         <LeftSidebar />
         <Container className={styles.container} py="lg" fluid>
           <Stack>
+            <Group>
+              <Link to="/spyglass">
+                <Button
+                  radius="lg"
+                  leftSection={<ArrowLeftIcon />}
+                  size="sm"
+                  variant="subtle"
+                >
+                  Back to Spyglass
+                </Button>
+              </Link>
+            </Group>
             <Title order={2} mb="md">
               Your Spyglass History
             </Title>
