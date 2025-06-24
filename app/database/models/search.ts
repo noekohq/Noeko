@@ -8,6 +8,7 @@ import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
 import { parseIncompleteJsonArray } from "../../utils/processing";
+import { max_spyglass_finding_amount } from "../../settings";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
@@ -575,6 +576,11 @@ export class SpyglassSearch {
             statusText: "Generating findings...",
             data: findingChunk,
           };
+          const completeFindings =
+            parseIncompleteJsonArray(completeFindingsJSON);
+          if (completeFindings.length > max_spyglass_finding_amount) {
+            throw new Error("Too many findings");
+          }
         }
 
         // Save the complete findings
