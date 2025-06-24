@@ -122,3 +122,26 @@ code {
     border-radius: var(--mantine-radius-md);
     padding: 4px 8px;
 }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--mantine-spacing-md);
+    font-size: var(--mantine-font-size-sm);
+}
+
+th,
+td {
+    border: 1px solid var(--mantine-color-dark-4);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    text-align: left;
+}
+
+thead {
+    background-color: var(--mantine-color-dark-7);
+}
+
+th {
+    font-weight: bold;
+    color: var(--mantine-color-dark-0);
+}

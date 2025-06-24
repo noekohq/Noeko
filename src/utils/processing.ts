@@ -168,7 +168,6 @@ export const isValidJSONWith = (
  * @returns An array of the successfully parsed objects.
  */
 export const parseIncompleteJsonArray = <T = any>(jsonString: string): T[] => {
-  console.log("Original string: ", jsonString);
   const cleanString = jsonString.trim();
   if (!cleanString.startsWith("[")) {
     // If the string doesn't even start with an array, it's not what we expect.

@@ -20,9 +20,9 @@ type ModelTypes = "simple" | "advanced" | "fast-accurate" | "general";
 
 const ModelMapper: Record<ModelTypes, string> = {
   simple: "models/gemini-2.5-flash-lite-preview-06-17",
-  advanced: "gemini-2.5-pro-preview-05-06",
+  advanced: "gemini-2.5-pro",
   "fast-accurate": "models/gemini-2.5-flash",
-  general: "gemini-2.5-flash-preview-05-20",
+  general: "gemini-2.5-flash",
 };
 
 export class PromptBuilder {

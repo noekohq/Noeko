@@ -9,6 +9,7 @@
     height: 100%;
     position: relative;
     box-sizing: border-box;
+    padding-bottom: 10vh;
 
     &.initialized {
         /* This is now the flex parent */
@@ -48,11 +49,23 @@
     }
 }
 
+@keyframes textboxIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .textboxContainer {
     margin-inline: auto;
     width: 100%;
     height: 12vh;
     padding: 0;
+    animation: textboxIn 0.5s ease-in-out forwards;
 
     @include desktop {
         width: 60%;

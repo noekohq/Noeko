@@ -161,15 +161,10 @@ router.get("/history", checkToken, async (req, res) => {
     const page = parseInt(req.query.page as string, 10);
     const pageSize = parseInt(req.query.pageSize as string, 10);
 
-    // Default to 10 items per page, offset 0. Ensure non-negative and limit > 0.
-    const pageQuery = Number.isInteger(page) && page > 0 ? page : 1;
-    const pageSizeQuery =
-      Number.isInteger(pageSize) && pageSize >= 0 ? pageSize : 10;
-
     const paginatedResult = await SpyglassSearch.getHistory(
       user.id,
-      pageQuery,
-      pageSizeQuery,
+      page,
+      pageSize,
     );
 
     if (!paginatedResult) {
@@ -180,7 +175,7 @@ router.get("/history", checkToken, async (req, res) => {
 
     res.send({
       message: "Spyglass history retrieved successfully",
-      data: paginatedResult, // This object includes { history: [], total: 0, limit: number, offset: number }
+      data: paginatedResult,
     });
   } catch (error) {
     const userIdForLogging =
@@ -237,8 +232,8 @@ router.get("/history/suggest", checkToken, async (req, res) => {
 
     const paginatedResult = await SpyglassSearch.getHistory(
       user.id,
-      limit,
       offset,
+      limit,
     );
 
     if (!paginatedResult) {

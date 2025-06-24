@@ -121,6 +121,8 @@ export default function useSpyglass({
   const fullFindings = useRef("");
   const fullOverview = useRef("");
 
+  console.log("Overview: ", fullOverview);
+
   useEffect(() => {
     if (spyglassId && !listening) {
       setListening(true);
@@ -262,7 +264,6 @@ export default function useSpyglass({
       };
 
       eventSource.addEventListener("close-stream", (event) => {
-        console.info("Server signaled end of stream.", event.data);
         setListening(false);
         eventSource.close(); // <-- This is the graceful close!
       });

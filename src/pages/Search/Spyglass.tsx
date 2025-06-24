@@ -13,17 +13,22 @@ import {
   Accordion,
   Divider,
   Flex,
+  CopyButton,
+  Badge,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
+  CheckIcon,
+  ClockCounterClockwiseIcon,
+  CopyIcon,
 } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Spyglass.module.scss";
@@ -42,6 +47,7 @@ import useSpyglass, { ICitationMap, IResultsMap } from "./hooks/useSpyglass";
 import Textbox from "./Textbox";
 import { useLayout } from "../../contexts/LayoutContext";
 import { ISpyglassSearch } from "../../../app/database/models/search";
+import { htmlToMarkdown } from "../../../app/utils/formatting";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -360,43 +366,38 @@ export default function Spyglass() {
               <>
                 {
                   <Stack gap="xs">
-                    <Text className={styles.previewItem}>
-                      {!(results.length > 0)
-                        ? "Finding resources..."
-                        : `Reading ${results.length} resource${results.length === 1 ? "" : "s"}...`}
-                    </Text>
+                    {overview.findings.length <= 0 && (
+                      <Text className={styles.previewItem}>
+                        {!(results.length > 0)
+                          ? "Searching your ideas..."
+                          : `Reading ${results.length} resource${results.length === 1 ? "" : "s"}...`}
+                      </Text>
+                    )}
+                    {overview.findings.length > 0 && (
+                      <Text className={styles.previewItem}>
+                        {overview.findings.length} finding
+                        {overview.findings.length === 1 ? "" : "s"}...
+                      </Text>
+                    )}
                     {Object.entries(citationMap).map(([sourceId, citation]) => {
                       const { excerpts, index } = citation;
                       const result = resultMap[sourceId];
                       return (
-                        <Group gap="xs" className={styles.previewItem}>
+                        <Group
+                          gap="xs"
+                          className={styles.previewItem}
+                          key={sourceId}
+                        >
+                          <ActionIcon variant="subtle" size="md">
+                            <Text size="md">({index.toString()})</Text>
+                          </ActionIcon>
                           <Text component="p" inline fw="bold">
                             {result ? getNodeTitle(result) : "Unknown source"}
                           </Text>
-                          <ActionIcon variant="subtle" size="md">
-                            <Text size="md">{index.toString()}</Text>
-                          </ActionIcon>
-                          <Group gap="0">
-                            {excerpts.map((ex, i) => {
-                              return (
-                                <ActionIcon
-                                  variant="light"
-                                  size="xs"
-                                  styles={{
-                                    root: {
-                                      position: "relative",
-                                      right: `${i * 3}px`,
-                                    },
-                                  }}
-                                >
-                                  <Text size="xs">
-                                    {index.toString()}
-                                    {numberToLetter(i).toLowerCase()}
-                                  </Text>
-                                </ActionIcon>
-                              );
-                            })}
-                          </Group>
+                          <Text component="span" inline size="xs">
+                            {excerpts.length} excerpt
+                            {excerpts.length > 1 ? "s" : ""}
+                          </Text>
                         </Group>
                       );
                     })}
@@ -414,28 +415,44 @@ export default function Spyglass() {
                       citationMap={citationMap ?? {}}
                       query={baseQuery}
                       results={results}
+                      loading={loading}
                     />
                   </div>
                 </>
               )}
           </div>
           {!loading && (
-            <div
-              className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-            >
-              <Textbox
-                onSubmit={() => {
-                  clear();
-                  initialize();
-                }}
-                onChange={(v) => {
-                  setQuery(v);
-                }}
-                placeholder="Ask your thoughts..."
-                placeholderIfInitialized="Ask another question..."
-                initialized={initialized}
-              />
-            </div>
+            <>
+              <div
+                className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+              >
+                <Textbox
+                  onSubmit={() => {
+                    clear();
+                    initialize();
+                  }}
+                  onChange={(v) => {
+                    setQuery(v);
+                  }}
+                  placeholder="Ask your thoughts..."
+                  placeholderIfInitialized="Ask another question..."
+                  initialized={initialized}
+                />
+              </div>
+              {!initialized && (
+                <Group mt="lg" justify="center">
+                  <Link to="/spyglass/history">
+                    <Button
+                      leftSection={<ClockCounterClockwiseIcon weight="bold" />}
+                      radius="lg"
+                      variant="subtle"
+                    >
+                      History
+                    </Button>
+                  </Link>
+                </Group>
+              )}
+            </>
           )}
         </Flex>
       </Container>
@@ -450,6 +467,7 @@ type IDisplayOverview = {
   citationMap: ICitationMap;
   query: string;
   results: ISpyglassSearch["fullResults"];
+  loading: boolean;
 };
 
 function DisplayOverview({
@@ -458,6 +476,7 @@ function DisplayOverview({
   citationMap,
   query,
   results,
+  loading,
 }: IDisplayOverview) {
   const navigate = useNavigate();
 
@@ -483,6 +502,19 @@ function DisplayOverview({
 
   return (
     <div>
+      {!loading && (
+        <Group>
+          <CopyButton value={overview.overview}>
+            {({ copied, copy }) => {
+              return (
+                <ActionIcon variant="light" size="sm" onClick={copy}>
+                  {!copied ? <CopyIcon /> : <CheckIcon />}
+                </ActionIcon>
+              );
+            }}
+          </CopyButton>
+        </Group>
+      )}
       <div
         dangerouslySetInnerHTML={{
           __html: markdownToHtml(overview.overview),
@@ -570,17 +602,16 @@ function DisplayOverview({
                             style={{ textDecoration: "none" }}
                           >
                             <Group>
-                              <Text fw="bold" c="gray" size="xs">
+                              <Text fw="bold" c="gray" size="sm">
                                 {title}
                               </Text>
-                              <ArrowRightIcon
-                                size={14}
-                                color="gray"
-                                weight="bold"
-                              />
+                              <ArrowRightIcon color="gray" weight="bold" />
                             </Group>
                           </UnstyledButton>
-                          <Text size="xs">...{finding.excerpt}...</Text>
+                          <Badge variant="light">
+                            {finding.findingType.replaceAll(/_/g, " ")}
+                          </Badge>
+                          <Text size="sm">...{finding.excerpt}...</Text>
                         </Stack>
                       </HoverCard.Dropdown>
                     </HoverCard>
