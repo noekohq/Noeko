@@ -48,6 +48,7 @@ import Textbox from "./Textbox";
 import { useLayout } from "../../contexts/LayoutContext";
 import { ISpyglassSearch } from "../../../app/database/models/search";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
+import CountUp from "../../components/Utils/Animations/Countup";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -57,7 +58,6 @@ export default function Spyglass() {
     analysis: overview,
     initialized: spyglassInitialized,
     clear,
-    status,
     complete,
     resultMap,
     citationMap,
@@ -362,64 +362,64 @@ export default function Spyglass() {
                 {capitalize(baseQuery)}
               </Title>
             )}
-            {initialized && status && !overview.overview.length && (
+            {initialized && (
+              <div
+                className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
+              >
+                {results.length <= 0 && (
+                  <Text className={styles.previewItem}>Thinking...</Text>
+                )}
+                {results.length > 0 && (
+                  <Text>
+                    {overview.findings.length > 0 ? "Read" : "Reading"}{" "}
+                    {<CountUp targetNumber={results.length} />} resource
+                    {results.length === 1 ? "" : "s"}...
+                  </Text>
+                )}
+                {overview.findings.length > 0 && (
+                  <Text className={styles.previewItem}>
+                    {overview.findings.length} finding
+                    {overview.findings.length === 1 ? "" : "s"}...
+                  </Text>
+                )}
+                {Object.entries(citationMap).map(([sourceId, citation]) => {
+                  const { excerpts, index } = citation;
+                  const result = resultMap[sourceId];
+                  return (
+                    <Group
+                      gap="xs"
+                      className={styles.previewItem}
+                      key={sourceId}
+                    >
+                      <ActionIcon variant="subtle" size="md">
+                        <Text size="md">({index.toString()})</Text>
+                      </ActionIcon>
+                      <Text component="p" inline fw="bold">
+                        {result ? getNodeTitle(result) : "Unknown source"}
+                      </Text>
+                      <Text component="span" inline size="xs">
+                        {excerpts.length} excerpt
+                        {excerpts.length > 1 ? "s" : ""}
+                      </Text>
+                    </Group>
+                  );
+                })}
+              </div>
+            )}
+            {overview && overview.overview && (
               <>
-                {
-                  <Stack gap="xs">
-                    {overview.findings.length <= 0 && (
-                      <Text className={styles.previewItem}>
-                        {!(results.length > 0)
-                          ? "Searching your ideas..."
-                          : `Reading ${results.length} resource${results.length === 1 ? "" : "s"}...`}
-                      </Text>
-                    )}
-                    {overview.findings.length > 0 && (
-                      <Text className={styles.previewItem}>
-                        {overview.findings.length} finding
-                        {overview.findings.length === 1 ? "" : "s"}...
-                      </Text>
-                    )}
-                    {Object.entries(citationMap).map(([sourceId, citation]) => {
-                      const { excerpts, index } = citation;
-                      const result = resultMap[sourceId];
-                      return (
-                        <Group
-                          gap="xs"
-                          className={styles.previewItem}
-                          key={sourceId}
-                        >
-                          <ActionIcon variant="subtle" size="md">
-                            <Text size="md">({index.toString()})</Text>
-                          </ActionIcon>
-                          <Text component="p" inline fw="bold">
-                            {result ? getNodeTitle(result) : "Unknown source"}
-                          </Text>
-                          <Text component="span" inline size="xs">
-                            {excerpts.length} excerpt
-                            {excerpts.length > 1 ? "s" : ""}
-                          </Text>
-                        </Group>
-                      );
-                    })}
-                  </Stack>
-                }
+                <div className={styles.overviewDisplay}>
+                  <DisplayOverview
+                    overview={overview}
+                    resultsMap={resultMap ?? {}}
+                    citationMap={citationMap ?? {}}
+                    query={baseQuery}
+                    results={results}
+                    loading={loading}
+                  />
+                </div>
               </>
             )}
-            {overview &&
-              overview.overview && ( // Ensure overview and overview.overview exist
-                <>
-                  <div className={styles.overviewDisplay}>
-                    <DisplayOverview
-                      overview={overview}
-                      resultsMap={resultMap ?? {}}
-                      citationMap={citationMap ?? {}}
-                      query={baseQuery}
-                      results={results}
-                      loading={loading}
-                    />
-                  </div>
-                </>
-              )}
           </div>
           {!loading && (
             <>
@@ -502,19 +502,6 @@ function DisplayOverview({
 
   return (
     <div>
-      {!loading && (
-        <Group>
-          <CopyButton value={overview.overview}>
-            {({ copied, copy }) => {
-              return (
-                <ActionIcon variant="light" size="sm" onClick={copy}>
-                  {!copied ? <CopyIcon /> : <CheckIcon />}
-                </ActionIcon>
-              );
-            }}
-          </CopyButton>
-        </Group>
-      )}
       <div
         dangerouslySetInnerHTML={{
           __html: markdownToHtml(overview.overview),
@@ -522,39 +509,56 @@ function DisplayOverview({
         className={styles.overviewText}
       />
       <Space my="lg" />
-      <Group>
-        <Button
-          rightSection={
-            !showFindings ? (
-              <CaretDownIcon weight="bold" />
-            ) : (
-              <CaretUpIcon weight="bold" />
-            )
-          }
-          onClick={() => setShowFindings(!showFindings)}
-          variant="default"
-          radius="lg"
-          size="xs"
-        >
-          {overview.findings.length} Findings
-        </Button>
-        <Button
-          radius="lg"
-          size="xs"
-          variant="subtle"
-          leftSection={
-            leftSidebarOpened ? (
-              <ArrowRightIcon weight="bold" />
-            ) : (
-              <ArrowLeftIcon weight="bold" />
-            )
-          }
-          onClick={() => {
-            setLeftSidebarOpened(!leftSidebarOpened);
-          }}
-        >
-          Read {results?.length} Result{results?.length === 1 ? "" : "s"}
-        </Button>
+      <Group justify="space-between">
+        <Group>
+          <Button
+            rightSection={
+              !showFindings ? (
+                <CaretDownIcon weight="bold" />
+              ) : (
+                <CaretUpIcon weight="bold" />
+              )
+            }
+            onClick={() => setShowFindings(!showFindings)}
+            variant="default"
+            radius="lg"
+            size="xs"
+          >
+            {overview.findings.length} Findings
+          </Button>
+          <Button
+            radius="lg"
+            size="xs"
+            variant="subtle"
+            leftSection={
+              leftSidebarOpened ? (
+                <ArrowRightIcon weight="bold" />
+              ) : (
+                <ArrowLeftIcon weight="bold" />
+              )
+            }
+            onClick={() => {
+              setLeftSidebarOpened(!leftSidebarOpened);
+            }}
+          >
+            Read {results?.length} Result{results?.length === 1 ? "" : "s"}
+          </Button>
+        </Group>
+        <Group justify="end">
+          {!loading && (
+            <Group>
+              <CopyButton value={overview.overview}>
+                {({ copied, copy }) => {
+                  return (
+                    <ActionIcon variant="light" size="sm" onClick={copy}>
+                      {!copied ? <CopyIcon /> : <CheckIcon />}
+                    </ActionIcon>
+                  );
+                }}
+              </CopyButton>
+            </Group>
+          )}
+        </Group>
       </Group>
       {showFindings && (
         <>
