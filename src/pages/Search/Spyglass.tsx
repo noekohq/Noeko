@@ -9,11 +9,9 @@ import {
   HoverCard,
   ActionIcon,
   Space,
-  Box,
   Button,
   Accordion,
   Divider,
-  Mark,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -22,18 +20,14 @@ import { useNavigate } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
 import {
   ArrowLeftIcon,
-  ArrowRight,
   ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
 } from "@phosphor-icons/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Spyglass.module.scss";
 import { getSearchResultPreview } from "../../utils/search";
-import {
-  ISearchOverview,
-  ISearchResultValue,
-} from "../../../app/services/Search";
+import { ISearchOverview } from "../../../app/services/Search";
 import {
   capitalize,
   markdownToHtml,
@@ -109,6 +103,14 @@ export default function Spyglass() {
   const [showAllResults, setShowAllResults] = useState(false);
 
   const { isMobile } = useLayout();
+
+  useEffect(() => {
+    if (complete) {
+      setQuery("");
+    }
+  }, [complete]);
+
+  console.log("Base query: ", baseQuery);
 
   return (
     <PageWrapper>
@@ -355,57 +357,65 @@ export default function Spyglass() {
                   setQuery(v);
                 }}
                 placeholder="Ask your thoughts..."
+                placeholderIfInitialized="Ask another question..."
                 initialized={initialized}
               />
             </div>
           </Grid.Col>
-          {initialized && status && !overview.overview.length && (
+          {baseQuery && (
             <Grid.Col>
-              {
-                <Stack gap="xs">
-                  <Text>
-                    {!(results.length > 0)
-                      ? "Finding resources..."
-                      : `Reading ${results.length} resource${results.length === 1 ? "" : "s"}...`}
-                  </Text>
-                  {Object.entries(citationMap).map(([sourceId, citation]) => {
-                    const { excerpts, index } = citation;
-                    const result = resultMap[sourceId];
-                    return (
-                      <Group key={sourceId} gap="xs">
-                        <ActionIcon variant="default" size="md">
-                          <Text size="md">{index.toString()}</Text>
-                        </ActionIcon>
-                        <Group gap="0">
-                          {excerpts.map((ex, i) => {
-                            return (
-                              <ActionIcon
-                                variant="default"
-                                size="xs"
-                                styles={{
-                                  root: {
-                                    position: "relative",
-                                    right: `${i * 3}px`,
-                                  },
-                                }}
-                              >
-                                <Text size="xs">
-                                  {index.toString()}
-                                  {numberToLetter(i)}
-                                </Text>
-                              </ActionIcon>
-                            );
-                          })}
-                        </Group>
-                        <Text component="p" inline fw="bold">
-                          {result ? getNodeTitle(result) : "Unknown source"}
-                        </Text>
-                      </Group>
-                    );
-                  })}
-                </Stack>
-              }
+              <Title order={2}>{capitalize(baseQuery)}</Title>
             </Grid.Col>
+          )}
+          {initialized && status && !overview.overview.length && (
+            <>
+              <Grid.Col>
+                {
+                  <Stack gap="xs">
+                    <Text className={styles.previewItem}>
+                      {!(results.length > 0)
+                        ? "Finding resources..."
+                        : `Reading ${results.length} resource${results.length === 1 ? "" : "s"}...`}
+                    </Text>
+                    {Object.entries(citationMap).map(([sourceId, citation]) => {
+                      const { excerpts, index } = citation;
+                      const result = resultMap[sourceId];
+                      return (
+                        <Group gap="xs" className={styles.previewItem}>
+                          <ActionIcon variant="default" size="md">
+                            <Text size="md">{index.toString()}</Text>
+                          </ActionIcon>
+                          <Group gap="0">
+                            {excerpts.map((ex, i) => {
+                              return (
+                                <ActionIcon
+                                  variant="default"
+                                  size="xs"
+                                  styles={{
+                                    root: {
+                                      position: "relative",
+                                      right: `${i * 3}px`,
+                                    },
+                                  }}
+                                >
+                                  <Text size="xs">
+                                    {index.toString()}
+                                    {numberToLetter(i)}
+                                  </Text>
+                                </ActionIcon>
+                              );
+                            })}
+                          </Group>
+                          <Text component="p" inline fw="bold">
+                            {result ? getNodeTitle(result) : "Unknown source"}
+                          </Text>
+                        </Group>
+                      );
+                    })}
+                  </Stack>
+                }
+              </Grid.Col>
+            </>
           )}
           {overview && (
             <Grid.Col>
@@ -471,13 +481,11 @@ function DisplayOverview({
 
   return (
     <div>
-      <Title order={2} mb="lg">
-        {capitalize(query)}
-      </Title>
       <div
         dangerouslySetInnerHTML={{
           __html: markdownToHtml(overview.overview),
         }}
+        className={styles.overviewText}
       />
       <Space my="lg" />
       <Group>
@@ -563,7 +571,7 @@ function DisplayOverview({
                               <Text fw="bold" c="gray" size="xs">
                                 {title}
                               </Text>
-                              <ArrowRight
+                              <ArrowRightIcon
                                 size={14}
                                 color="gray"
                                 weight="bold"
