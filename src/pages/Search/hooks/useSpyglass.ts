@@ -24,11 +24,6 @@ interface IUseSpyglassArgs {
   onAnalysisChange?: (analysis: ISearchOverview | null) => void;
 }
 
-export interface IStatusItem {
-  id: string;
-  content: React.ReactNode | React.ReactNode[];
-}
-
 export type IResultsMap = Record<string, ISearchResultValue>;
 
 export type ICitationMap = Record<
@@ -54,7 +49,6 @@ interface IUseSpyglassReturn {
   loadingFindings: boolean;
   loadingOverview: boolean;
   loading: boolean;
-  status: IStatusItem[];
   connected: boolean;
   initialized: boolean;
   complete: boolean;
@@ -80,7 +74,6 @@ export default function useSpyglass({
   const [loadingFindings, setLoadingFindings] = useState<boolean>(false);
   const [loadingOverview, setLoadingOverview] = useState<boolean>(false);
   const [statusText, setStatusText] = useState<string | null>(null);
-  const [status, setStatus] = useState<IStatusItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState<boolean>(false);
   const [complete, setComplete] = useState<boolean>(false);

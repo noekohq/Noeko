@@ -52,7 +52,7 @@
 @keyframes textboxIn {
     0% {
         opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(-2px);
     }
     100% {
         opacity: 1;
@@ -82,7 +82,7 @@
 @keyframes queryHeaderIn {
     0% {
         opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(-2px);
     }
     100% {
         opacity: 1;
@@ -105,14 +105,52 @@
     }
 }
 
+@keyframes previewHide {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+        gap: var(--mantine-spacing-xs);
+    }
+    90% {
+        opacity: 0;
+        height: 0;
+        gap: 0;
+    }
+    100% {
+        display: none;
+    }
+}
+
+.preview {
+    animation: previewIn 0.5s ease-in-out forwards;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-xs);
+
+    &.hide {
+        animation: previewHide 0.5s ease-in-out forwards;
+    }
+}
+
+@keyframes previewItemIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .previewItem {
-    animation: previewIn 0.5s ease-in-out;
+    animation: previewItemIn 0.5s ease-in-out;
 }
 
 @keyframes overviewIn {
     0% {
         opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(-2px);
     }
     100% {
         opacity: 1;
@@ -123,4 +161,5 @@
 .overviewText {
     opacity: 0;
     animation: overviewIn 0.5s ease-in-out forwards;
+    animation-delay: .5s;
 }
