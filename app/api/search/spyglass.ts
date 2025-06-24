@@ -68,7 +68,6 @@ router.post("/initialize", checkToken, async (req, res) => {
 router.get("/sse", checkToken, async (req, res) => {
   try {
     const spyglassId = req.query.spyglassId as string;
-    console.log("SSE for spyglass id: ", spyglassId);
     if (!spyglassId || !(typeof spyglassId === "string")) {
       res.status(400).send({
         message: "Spyglass ID is required",
@@ -76,7 +75,6 @@ router.get("/sse", checkToken, async (req, res) => {
       return;
     }
     const user = await getFromReq<ISafeUser>(req, "user");
-    console.log("Got user: ", user);
     if (!user) {
       res.status(403).json({ error: "Unauthorized" });
       return;
@@ -85,7 +83,6 @@ router.get("/sse", checkToken, async (req, res) => {
       spyglassId,
       user.id,
     );
-    console.log("User can access: ", spyglassId, canAccess);
     if (!canAccess) {
       res.status(403).json({ error: "Unauthorized" });
       return;
@@ -169,8 +166,6 @@ router.get("/history", checkToken, async (req, res) => {
     const pageSizeQuery =
       Number.isInteger(pageSize) && pageSize >= 0 ? pageSize : 10;
 
-    console.log("Getting with page and size:", pageQuery, pageSizeQuery);
-
     const paginatedResult = await SpyglassSearch.getHistory(
       user.id,
       pageQuery,
@@ -239,8 +234,6 @@ router.get("/history/suggest", checkToken, async (req, res) => {
       Number.isInteger(queryLimit) && queryLimit > 0 ? queryLimit : 10;
     const offset =
       Number.isInteger(queryOffset) && queryOffset >= 0 ? queryOffset : 0;
-
-    console.log("Query lii");
 
     const paginatedResult = await SpyglassSearch.getHistory(
       user.id,

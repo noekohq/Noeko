@@ -261,7 +261,7 @@ export default function useSpyglass({
       };
 
       eventSource.addEventListener("close-stream", (event) => {
-        console.log("Server signaled end of stream.", event.data);
+        console.info("Server signaled end of stream.", event.data);
         setListening(false);
         eventSource.close(); // <-- This is the graceful close!
       });
@@ -367,8 +367,6 @@ export default function useSpyglass({
   };
 
   const citationMap = buildCitationMap();
-
-  console.log("Spyglass: ", spyglass);
 
   return {
     baseQuery: spyglass?.baseQuery,
