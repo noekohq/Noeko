@@ -103,6 +103,19 @@ const queryModes: {
   specificInstructions: string[];
 }[] = [
   {
+    name: "Direct Q&A",
+    description:
+      "This mode is for when a user asks a specific, direct question to their knowledge base. The goal is to provide a single, accurate, and concise answer.",
+    specificInstructions: [
+      "Your primary goal is to answer the user's question directly and concisely. Avoid providing broad, unnecessary background information.",
+      "Begin the response with the direct answer in the very first sentence. The rest of the response should only provide essential supporting context.",
+      "Prioritize findings with the types: FACT, DEFINITION, and EXPLANATION to construct your answer.",
+      "Synthesize multiple relevant findings into one cohesive answer. Do not list out different findings separately.",
+      "If the findings do not contain a direct answer to the question, you MUST explicitly state that the information is not available in the knowledge base. Do not attempt to infer or guess the answer.",
+      "Keep the response to 1-2 paragraphs maximum. Use simple sentence and paragraph structure.",
+    ],
+  },
+  {
     name: "Synthesis Report",
     description:
       "This is the standard mode for general knowledge queries, the goal is to provide a comprehensive and detailed answer that covers all aspects of the user's query.",
@@ -895,7 +908,22 @@ export class Search {
         Analyze the provided search results in relation to the user's query.
         Extract every relevant portion of a result as a "finding".
         For each finding, you MUST provide the source ID and the direct excerpt from the source that supports it.
+        The goal is as many strong findings as possible, but strong findings should be prioritized over quantity.
         `,
+        )
+        .addBlock(
+          "Query-Specific Instructions",
+          `
+          Tune your analyses towards specific instructions below if applicable. However, still follow the Instructions, especially if one of the query types below doesn't fit the user's query.
+
+          ${queryModes
+            .map((query) => {
+              return `
+            ## ${query.name}
+            ${query.description}`;
+            })
+            .join("\n\n")}
+          `,
         )
         .addBlock("User Query", query)
         // --- Insight: Consolidate and strengthen constraints.
@@ -904,7 +932,8 @@ export class Search {
           `
         - **DO NOT** interpret or infer information not present in the results.
         - **DO NOT** add your own knowledge.
-        - **DO NOT** synthesize or combine findings. Each finding must be a discrete piece of information from a single source.
+        - **DO NOT** overanalyze, find the right amount of sources to answer the question, only searching deeply IF SPECIFICALLY REQUESTED.
+        - **DO NOT** split a continuous excerpt into multiple when it could be self-contained.
         `,
         )
         .addBlock("Search Results", "The results to use are as follows:\n")
@@ -987,7 +1016,7 @@ export class Search {
         `,
         )
         .addBlock(
-          "Query Type Specification",
+          "Query-Specific Instructions",
           `
           You must use different instructions to write your answer based on the type of the user's query. However, be sure to also follow the Core Instructions, especially if the query doesn't match any of the defined types below. Here are the supported types.
 
