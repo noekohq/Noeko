@@ -53,6 +53,7 @@ interface IUseSpyglassReturn {
   analysis: ISearchOverview;
   loadingFindings: boolean;
   loadingOverview: boolean;
+  loading: boolean;
   status: IStatusItem[];
   connected: boolean;
   initialized: boolean;
@@ -371,6 +372,7 @@ export default function useSpyglass({
   return {
     baseQuery: spyglass?.baseQuery,
     results: spyglass?.fullResults || [],
+    loading: loadingResults || loadingFindings || loadingOverview,
     loadingResults,
     analysis: analysis || spyglass?.analysis || null,
     loadingFindings,

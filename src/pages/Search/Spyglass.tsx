@@ -56,6 +56,7 @@ export default function Spyglass() {
     resultMap,
     citationMap,
     baseQuery,
+    loading,
   } = useSpyglass({ query });
 
   const hasInitialized = useRef(false);
@@ -337,7 +338,9 @@ export default function Spyglass() {
           h="100%"
           justify={initialized ? "space-between" : "center"}
         >
-          <div className={styles.scrollableContent}>
+          <div
+            className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
+          >
             {!initialized && (
               <Title
                 ta={initialized ? "left" : "center"}
@@ -416,22 +419,24 @@ export default function Spyglass() {
                 </>
               )}
           </div>
-          <div
-            className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-          >
-            <Textbox
-              onSubmit={() => {
-                clear();
-                initialize();
-              }}
-              onChange={(v) => {
-                setQuery(v);
-              }}
-              placeholder="Ask your thoughts..."
-              placeholderIfInitialized="Ask another question..."
-              initialized={initialized}
-            />
-          </div>
+          {!loading && (
+            <div
+              className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+            >
+              <Textbox
+                onSubmit={() => {
+                  clear();
+                  initialize();
+                }}
+                onChange={(v) => {
+                  setQuery(v);
+                }}
+                placeholder="Ask your thoughts..."
+                placeholderIfInitialized="Ask another question..."
+                initialized={initialized}
+              />
+            </div>
+          )}
         </Flex>
       </Container>
       <RightSidebar></RightSidebar>

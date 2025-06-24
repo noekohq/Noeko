@@ -8,6 +8,7 @@
     justify-content: space-around;
     height: 100%;
     position: relative;
+    box-sizing: border-box;
 
     &.initialized {
         /* This is now the flex parent */
@@ -16,6 +17,7 @@
         justify-content: flex-start;
         overflow: hidden;
         padding-block-start: var(--mantine-spacing-lg);
+        max-width: 100%;
 
         @include desktop {
             max-width: 70vw;
@@ -66,7 +68,7 @@
 
 @keyframes queryHeaderIn {
     0% {
-        opacity: 0.5;
+        opacity: 0;
         transform: translateY(-5px);
     }
     100% {

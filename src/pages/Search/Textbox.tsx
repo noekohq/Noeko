@@ -39,18 +39,15 @@ export default function Textbox({
     onChange?.(value);
   }, [value]);
 
-  const isFocused = () => {
-    const activeElement = document.activeElement;
-    return activeElement === inputRef.current;
-  };
+  const [isFocused, setIsFocused] = useState(false);
 
   useLayoutEffect(() => {
-    if (!isFocused()) {
+    if (!isFocused) {
       inputRef.current?.focus();
     }
     document.addEventListener("keydown", (event) => {
       if (inputRef.current && event.key === "/") {
-        if (!isFocused()) {
+        if (!isFocused) {
           event.preventDefault();
           inputRef.current.focus();
         }
@@ -58,14 +55,23 @@ export default function Textbox({
     });
   }, []);
 
+  const showUI = () => {
+    if (initialized && !isFocused) {
+      return false;
+    }
+    return true;
+  };
+
   return (
     <div
-      className={`${styles.textbox}`}
+      className={`${styles.textbox} ${isFocused ? styles.focused : ""} ${initialized ? styles.initialized : ""}`}
       onClick={() => {
-        if (!isFocused()) {
+        if (!isFocused) {
           inputRef.current?.focus();
         }
       }}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
     >
       <textarea
         placeholder={initialized ? placeholderIfInitialized : placeholder}
@@ -80,25 +86,27 @@ export default function Textbox({
             send();
           }
           if (inputRef.current && e.key === "Escape") {
-            if (isFocused()) {
+            if (isFocused) {
               inputRef.current.blur();
             }
           }
         }}
       />
-      <div className={styles.ui}>
-        <Group justify="end">
-          <ActionIcon
-            variant="subtle"
-            onClick={(e) => {
-              e.stopPropagation();
-              send();
-            }}
-          >
-            <PaperPlaneRightIcon />
-          </ActionIcon>
-        </Group>
-      </div>
+      {showUI() && (
+        <div className={styles.ui}>
+          <Group justify="end">
+            <ActionIcon
+              variant="subtle"
+              onClick={(e) => {
+                e.stopPropagation();
+                send();
+              }}
+            >
+              <PaperPlaneRightIcon />
+            </ActionIcon>
+          </Group>
+        </div>
+      )}
     </div>
   );
 }
