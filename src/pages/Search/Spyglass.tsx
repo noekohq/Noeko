@@ -331,7 +331,12 @@ export default function Spyglass() {
         py="lg"
         className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}
       >
-        <Flex direction="column" gap="0" h="100%" justify="space-between">
+        <Flex
+          direction="column"
+          gap="0"
+          h="100%"
+          justify={initialized ? "space-between" : "center"}
+        >
           <div className={styles.scrollableContent}>
             {!initialized && (
               <Title
