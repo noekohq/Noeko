@@ -121,7 +121,7 @@ export default function useSpyglass({
   const fullFindings = useRef("");
   const fullOverview = useRef("");
 
-  console.log("Overview: ", fullOverview);
+  console.log("Findings: ", analysis?.findings);
 
   useEffect(() => {
     if (spyglassId && !listening) {

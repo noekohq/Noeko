@@ -934,6 +934,7 @@ export class Search {
         - **DO NOT** add your own knowledge.
         - **DO NOT** overanalyze, find the right amount of sources to answer the question, only searching deeply IF SPECIFICALLY REQUESTED.
         - **DO NOT** split a continuous excerpt into multiple when it could be self-contained.
+        - Your primary goal is to find UNIQUE and DIVERSE findings. If multiple sources mention the same core idea (e.g., 'Chicken Wings'), create only one finding for that idea and list all relevant source IDs."
         `,
         )
         .addBlock("Search Results", "The results to use are as follows:\n")
