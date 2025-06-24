@@ -8,6 +8,7 @@ import {
 import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
+import { parseIncompleteJsonArray } from "../../utils/processing";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
@@ -211,12 +212,6 @@ export class SpyglassSearch {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      console.log(
-        "Getting spyglass history with params:",
-        userId,
-        page,
-        pageSize,
-      );
       const history = await db.run<ISpyglassSearch[]>(
         "fn::get_spyglass_history",
         [new StringRecordId(userId), page, pageSize],
@@ -250,7 +245,6 @@ export class SpyglassSearch {
   static async checkUserOwnership(spyglassId: string, userId: string) {
     try {
       const db = await getDatabase();
-      console.log("Checking owns: ", userId, spyglassId);
       const result = await db?.query<[number]>( // Expecting an array with one object: [{ count: number }]
         `count(SELECT id FROM searched WHERE in = $userId AND out = $spyglassId);`,
         {
@@ -589,10 +583,7 @@ export class SpyglassSearch {
         if (!db) {
           throw new Error("Database not initialized");
         }
-        console.log("JSON in question: ", completeFindingsJSON);
-        const completeFindings = JSON.parse(
-          completeFindingsJSON,
-        ) as ISearchOverview["findings"];
+        const completeFindings = parseIncompleteJsonArray(completeFindingsJSON);
         await db.merge<ISpyglassSearch>(spyglass.id, {
           analysis: {
             findings: completeFindings,

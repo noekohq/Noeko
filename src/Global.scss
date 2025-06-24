@@ -106,3 +106,19 @@ blockquote {
     // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
     border-left: 2.5px solid var(--mantine-primary-color-5);
 }
+
+pre {
+    padding: 18px 18px;
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-gray-5);
+    white-space: pre-wrap;
+    background-color: var(--color-code-background);
+    color: var(--color-code-foreground);
+}
+
+code {
+    color: var(--color-code-foreground);
+    background-color: var(--color-code-background);
+    border-radius: var(--mantine-radius-md);
+    padding: 4px 8px;
+}

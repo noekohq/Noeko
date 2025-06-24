@@ -12,6 +12,7 @@ import {
   Button,
   Accordion,
   Divider,
+  Flex,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
@@ -109,8 +110,6 @@ export default function Spyglass() {
       setQuery("");
     }
   }, [complete]);
-
-  console.log("Base query: ", baseQuery);
 
   return (
     <PageWrapper>
@@ -332,44 +331,25 @@ export default function Spyglass() {
         py="lg"
         className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}
       >
-        <Grid>
-          {!initialized && (
-            <Grid.Col span={{ sm: 12 }}>
+        <Flex direction="column" gap="0" h="100%" justify="space-between">
+          <div className={styles.scrollableContent}>
+            {!initialized && (
               <Title
                 ta={initialized ? "left" : "center"}
                 className={`${styles.header} ${initialized ? styles.initialized : ""}`}
                 order={initialized ? 2 : 1}
+                mb="lg"
               >
                 Spyglass
               </Title>
-            </Grid.Col>
-          )}
-          <Grid.Col span={{ sm: 12 }}>
-            <div
-              className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-            >
-              <Textbox
-                onSubmit={() => {
-                  clear();
-                  initialize();
-                }}
-                onChange={(v) => {
-                  setQuery(v);
-                }}
-                placeholder="Ask your thoughts..."
-                placeholderIfInitialized="Ask another question..."
-                initialized={initialized}
-              />
-            </div>
-          </Grid.Col>
-          {baseQuery && (
-            <Grid.Col>
-              <Title order={2}>{capitalize(baseQuery)}</Title>
-            </Grid.Col>
-          )}
-          {initialized && status && !overview.overview.length && (
-            <>
-              <Grid.Col>
+            )}
+            {baseQuery && (
+              <Title order={2} className={styles.queryHeader} mb="lg">
+                {capitalize(baseQuery)}
+              </Title>
+            )}
+            {initialized && status && !overview.overview.length && (
+              <>
                 {
                   <Stack gap="xs">
                     <Text className={styles.previewItem}>
@@ -382,14 +362,17 @@ export default function Spyglass() {
                       const result = resultMap[sourceId];
                       return (
                         <Group gap="xs" className={styles.previewItem}>
-                          <ActionIcon variant="default" size="md">
+                          <Text component="p" inline fw="bold">
+                            {result ? getNodeTitle(result) : "Unknown source"}
+                          </Text>
+                          <ActionIcon variant="subtle" size="md">
                             <Text size="md">{index.toString()}</Text>
                           </ActionIcon>
                           <Group gap="0">
                             {excerpts.map((ex, i) => {
                               return (
                                 <ActionIcon
-                                  variant="default"
+                                  variant="light"
                                   size="xs"
                                   styles={{
                                     root: {
@@ -400,42 +383,51 @@ export default function Spyglass() {
                                 >
                                   <Text size="xs">
                                     {index.toString()}
-                                    {numberToLetter(i)}
+                                    {numberToLetter(i).toLowerCase()}
                                   </Text>
                                 </ActionIcon>
                               );
                             })}
                           </Group>
-                          <Text component="p" inline fw="bold">
-                            {result ? getNodeTitle(result) : "Unknown source"}
-                          </Text>
                         </Group>
                       );
                     })}
                   </Stack>
                 }
-              </Grid.Col>
-            </>
-          )}
-          {overview && (
-            <Grid.Col>
-              {overview &&
-                overview.overview && ( // Ensure overview and overview.overview exist
-                  <>
-                    <div className={styles.overviewDisplay}>
-                      <DisplayOverview
-                        overview={overview}
-                        resultsMap={resultMap ?? {}}
-                        citationMap={citationMap ?? {}}
-                        query={baseQuery}
-                        results={results}
-                      />
-                    </div>
-                  </>
-                )}
-            </Grid.Col>
-          )}
-        </Grid>
+              </>
+            )}
+            {overview &&
+              overview.overview && ( // Ensure overview and overview.overview exist
+                <>
+                  <div className={styles.overviewDisplay}>
+                    <DisplayOverview
+                      overview={overview}
+                      resultsMap={resultMap ?? {}}
+                      citationMap={citationMap ?? {}}
+                      query={baseQuery}
+                      results={results}
+                    />
+                  </div>
+                </>
+              )}
+          </div>
+          <div
+            className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+          >
+            <Textbox
+              onSubmit={() => {
+                clear();
+                initialize();
+              }}
+              onChange={(v) => {
+                setQuery(v);
+              }}
+              placeholder="Ask your thoughts..."
+              placeholderIfInitialized="Ask another question..."
+              initialized={initialized}
+            />
+          </div>
+        </Flex>
       </Container>
       <RightSidebar></RightSidebar>
     </PageWrapper>
