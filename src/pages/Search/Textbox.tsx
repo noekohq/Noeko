@@ -8,6 +8,7 @@ interface ITextboxProps {
   onSubmit: (query: string) => void;
   onChange?: (value: string) => void;
   placeholder?: string;
+  placeholderIfInitialized?: string;
   initialized?: boolean;
 }
 
@@ -15,6 +16,7 @@ export default function Textbox({
   onSubmit,
   onChange,
   placeholder,
+  placeholderIfInitialized,
   initialized,
 }: ITextboxProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -24,6 +26,7 @@ export default function Textbox({
     setSendingAnimation(true);
     onSubmit(value);
     inputRef.current?.blur();
+    setValue("");
   };
 
   useEffect(() => {
@@ -65,7 +68,8 @@ export default function Textbox({
       }}
     >
       <textarea
-        placeholder={placeholder}
+        placeholder={initialized ? placeholderIfInitialized : placeholder}
+        value={value}
         onChange={(e) => {
           setValue(e.currentTarget.value);
         }}
