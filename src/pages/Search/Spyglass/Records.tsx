@@ -25,7 +25,7 @@ import {
   DotsThreeIcon,
 } from "@phosphor-icons/react";
 import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
-import { markdownToHtml } from "../../../utils/formatting";
+import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { Link } from "react-router";
@@ -47,7 +47,7 @@ export default function SpyglassHistory() {
     data: newHistoryFetched,
     errors,
   } = useFetch<undefined, ISpyglassSearch[]>({
-    url: `/search/spyglass/history?page=${page}&pageSize=${pageSize}`,
+    url: `/search/spyglass/history/light?page=${page}&pageSize=${pageSize}`,
     runOnDependencies: [page],
   });
 
@@ -118,13 +118,16 @@ export default function SpyglassHistory() {
           <Stack p="md">
             <Group>
               <Link to={`/spyglass/records/${viewing.id}`}>
-                <Button size="xs" rightSection={<ArrowRightIcon />}>
+                <Button
+                  variant="light"
+                  size="xs"
+                  rightSection={<ArrowRightIcon weight="bold" />}
+                >
                   View Full
                 </Button>
               </Link>
             </Group>
-            <Title order={4}>Query:</Title>
-            <Text>"{viewing.baseQuery}"</Text>
+            <Title order={4}>{viewing.baseQuery}</Title>
             {viewing.analysis?.overview && (
               <Blockquote>
                 <Text fw="bold" c="dimmed" size="xs" mb="sm">
@@ -137,29 +140,6 @@ export default function SpyglassHistory() {
                 />
               </Blockquote>
             )}
-            <Title order={3} mt="lg">
-              Results ({viewing.results?.length || 0})
-            </Title>
-            <Stack>
-              {viewing.results?.map((result) => {
-                // Assuming result can be of IIdea type or compatible, and might have a 'type' field
-                if ("type" in result && result.type !== "idea") {
-                  return null;
-                }
-                return (
-                  <CompactIdeaCard
-                    key={result.id.toString()} // Assuming result has an id
-                    idea={result} // This implies result items are IIdea or structurally compatible
-                    link
-                  />
-                );
-              })}
-              {(!viewing.results || viewing.results.length === 0) && (
-                <Text c="dimmed">
-                  No specific results found for this query.
-                </Text>
-              )}
-            </Stack>
           </Stack>
         )}
       </Drawer>
@@ -241,8 +221,11 @@ export default function SpyglassHistory() {
                             "{item.baseQuery}"
                           </Text>
                           <Text size="sm" c="dimmed">
-                            Found {item.results?.length || 0} result
-                            {(item.results?.length || 0) === 1 ? "" : "s"}
+                            {item.analysis?.findings.length} finding
+                            {item.analysis?.findings.length === 1
+                              ? ""
+                              : "s"},{" "}
+                            {formatDateTime(item.createdAt).toLowerCase()}
                           </Text>
                         </Stack>
                         <ActionIcon

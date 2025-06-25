@@ -8,6 +8,7 @@ import {
   ActionIcon,
   Button,
   Container,
+  CopyButton,
   Divider,
   Grid,
   Group,
@@ -21,7 +22,6 @@ import {
 import useFetch from "../../../hooks/useFetch";
 import { ISpyglassSearch } from "../../../../app/database/models/search";
 import { showNotification } from "@mantine/notifications";
-import styles from "./Record.module.scss";
 import {
   ICitationMap,
   IResultsMap,
@@ -39,6 +39,8 @@ import {
   ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
+  CheckIcon,
+  CopyIcon,
 } from "@phosphor-icons/react";
 import { ISearchOverview } from "../../../../app/services/Search";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
@@ -47,6 +49,8 @@ import { getNodeAsIdeaOrNull } from "../../../utils/graph";
 import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
 import Match from "../../../components/Utils/Match";
 import { getSearchResultPreview } from "../../../utils/search";
+
+import styles from "./Record.module.scss";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -318,6 +322,7 @@ export default function SpyglassRecord() {
         }}
         w="100%"
         py="lg"
+        className={styles.record}
       >
         <Grid>
           {overview && (
@@ -395,39 +400,52 @@ function DisplayOverview({
         }}
       />
       <Space my="lg" />
-      <Group>
-        <Button
-          rightSection={
-            !showFindings ? (
-              <CaretDownIcon weight="bold" />
-            ) : (
-              <CaretUpIcon weight="bold" />
-            )
-          }
-          onClick={() => setShowFindings(!showFindings)}
-          variant="default"
-          radius="lg"
-          size="xs"
-        >
-          {overview.findings.length} Findings
-        </Button>
-        <Button
-          radius="lg"
-          size="xs"
-          variant="subtle"
-          leftSection={
-            leftSidebarOpened ? (
-              <ArrowRightIcon weight="bold" />
-            ) : (
-              <ArrowLeftIcon weight="bold" />
-            )
-          }
-          onClick={() => {
-            setLeftSidebarOpened(!leftSidebarOpened);
-          }}
-        >
-          Read {results?.length} Result{results?.length === 1 ? "" : "s"}
-        </Button>
+      <Group justify="space-between">
+        <Group>
+          <Button
+            rightSection={
+              !showFindings ? (
+                <CaretDownIcon weight="bold" />
+              ) : (
+                <CaretUpIcon weight="bold" />
+              )
+            }
+            onClick={() => setShowFindings(!showFindings)}
+            variant="default"
+            radius="lg"
+            size="xs"
+          >
+            {overview.findings.length} Findings
+          </Button>
+          <Button
+            radius="lg"
+            size="xs"
+            variant="subtle"
+            leftSection={
+              leftSidebarOpened ? (
+                <ArrowRightIcon weight="bold" />
+              ) : (
+                <ArrowLeftIcon weight="bold" />
+              )
+            }
+            onClick={() => {
+              setLeftSidebarOpened(!leftSidebarOpened);
+            }}
+          >
+            Read {results?.length} Result{results?.length === 1 ? "" : "s"}
+          </Button>
+        </Group>
+        <Group>
+          <CopyButton value={overview.overview}>
+            {({ copied, copy }) => {
+              return (
+                <ActionIcon variant="light" size="sm" onClick={copy}>
+                  {!copied ? <CopyIcon /> : <CheckIcon />}
+                </ActionIcon>
+              );
+            }}
+          </CopyButton>
+        </Group>
       </Group>
       {showFindings && (
         <>

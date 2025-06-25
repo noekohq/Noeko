@@ -19,7 +19,7 @@ import {
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
 import {
   ArrowLeftIcon,
@@ -50,6 +50,7 @@ import { ISpyglassSearch } from "../../../app/database/models/search";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
 import CountUp from "../../components/Utils/Animations/Countup";
 import AnimateHTMLStream from "../../components/Utils/Animations/AnimateHTMLStream";
+import { scaleSequentialQuantile } from "d3";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -118,6 +119,15 @@ export default function Spyglass() {
       setQuery("");
     }
   }, [complete]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setQuery(q);
+    }
+  }, [searchParams]);
 
   return (
     <PageWrapper>
@@ -462,7 +472,7 @@ export default function Spyglass() {
   );
 }
 
-type IDisplayOverview = {
+export type IDisplayOverview = {
   overview: ISearchOverview;
   resultsMap: IResultsMap;
   citationMap: ICitationMap;
@@ -471,7 +481,7 @@ type IDisplayOverview = {
   loading: boolean;
 };
 
-function DisplayOverview({
+export function DisplayOverview({
   overview,
   resultsMap,
   citationMap,

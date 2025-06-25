@@ -1,0 +1,12 @@
+@use "../../../styles/mixins.scss" as *;
+
+.record {
+    max-width: 100%;
+
+    @include desktop {
+        max-width: 70vw;
+    }
+    @include widescreen {
+        max-width: 55vw;
+    }
+}

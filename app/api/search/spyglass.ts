@@ -200,7 +200,14 @@ router.get("/history/light", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const history = await SpyglassSearch.getHistory(user.id);
+    const page = parseInt(req.query.page as string, 10);
+    const pageSize = parseInt(req.query.pageSize as string, 10);
+
+    const history = await SpyglassSearch.getHistoryLightweight(
+      user.id,
+      page,
+      pageSize,
+    );
     res.send({
       message: "Spyglass history retrieved successfully",
       data: history,
