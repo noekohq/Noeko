@@ -286,7 +286,7 @@ export class SpyglassSearch {
       }
       const intent = await Spyglass.getIntentFromQuery(search.baseQuery);
       if (!intent) {
-        throw new Error("Failed to load search results");
+        throw new Error("Failed to load intent");
       }
       await db.merge<ISpyglassSearch>(searchId, { intent });
     } catch (error) {

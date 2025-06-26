@@ -404,27 +404,28 @@ export default class Spyglass {
     userId: string,
     queries: string[],
   ): Promise<ISearchResult[]> {
+    console.log("Running ", queries);
+    const searchPromises = queries.map((query) =>
+      Search.comprehensiveSearch(userId, query),
+    );
+
+    const allResultSets = await Promise.all(searchPromises);
+
     const resultsExisting = new Set<string>();
     const allResults: ISearchResult[] = [];
-    for (const query of queries) {
-      const results = await Search.comprehensiveSearch(userId, query);
-      if (results) {
-        allResults.push(
-          ...results.filter((f) => {
-            if (!resultsExisting.has(f.id.toString())) {
-              resultsExisting.add(f.id.toString());
-              return true;
-            }
-            return false;
-          }),
-        );
-      } else {
-        console.error(
-          "Couldn't find results in getResultsFromQueries for: ",
-          query,
-        );
+
+    for (const resultSet of allResultSets) {
+      if (resultSet) {
+        for (const result of resultSet) {
+          const resultId = result.id.toString();
+          if (!resultsExisting.has(resultId)) {
+            resultsExisting.add(resultId);
+            allResults.push(result);
+          }
+        }
       }
     }
+
     return allResults;
   }
 
@@ -534,18 +535,20 @@ export default class Spyglass {
           `,
         )
         .addBlock("Mission Statement", spyglassMissionStatement)
+        .addBlock("User Query", query)
+        .addText(mode.analysis.prompt(query).get())
         .addBlock(
           "Strict Rules",
           `
+          - YOU MUST process results sequentially, after analyzing one result, you MUST move onto the next.
+
           - **DO NOT** interpret or infer information not present in the results.
           - **DO NOT** add your own knowledge.
-          - **DO NOT** overanalyze, find the right amount of sources to answer the question, only searching deeply IF SPECIFICALLY REQUESTED.
           - **DO NOT** split a continuous excerpt into multiple when it could be self-contained.
-          - Your primary goal is to find UNIQUE and DIVERSE findings. If multiple sources mention the same core idea (e.g., 'Chicken Wings'), create only one finding for that idea and list all relevant source IDs."
+          - **DO NOT** analyze results out of order.
+          - **DO NOT** go back to a result after recording findings on that result.
           `,
         )
-        .addBlock("User Query", query)
-        .addText(mode.analysis.prompt(query).get())
         .addBlock("Search Results", "The results to use are as follows:\n")
     );
   }
@@ -620,6 +623,39 @@ export default class Spyglass {
           `
           You **MUST** write all of your responses as semantic HTML
           **DO NOT** use Markdown directly
+
+          **DO NOT** wrap your response in a code-block, or any other top-level element.
+          Instead, YOU MUST write your response as if it will directly become the child of an existing element.
+
+          **For example**
+          Bad:
+          \`\`\`html
+          <ul>
+            <li>Item 1</li>
+            <li>Item 2</li>
+            <li>Item 3</li>
+          </ul>
+          \`\`\`
+
+          Bad:
+          <div>
+            <ul>
+              <li>Item 1</li>
+              <li>Item 2</li>
+              <li>Item 3</li>
+            </ul>
+          </div>
+
+          Good:
+          <ul>
+            <li>Item 1</li>
+            <li>Item 2</li>
+            <li>Item 3</li>
+          </ul>
+
+          Good:
+          <p>This is a very good answer</p>
+
 
           Use <span> tags with data-finding-number attributes to reference findings, for example:
 
