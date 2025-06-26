@@ -9,10 +9,12 @@ import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
 import { parseIncompleteJsonArray } from "../../utils/processing";
 import { max_spyglass_finding_amount } from "../../settings";
+import Spyglass, { ISpyglassIntent } from "../../services/Spyglass";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
   baseQuery: string;
+  intent?: ISpyglassIntent;
   results?: ISearchResultValue[];
   resultConnections?: ISearchConnection[];
   fullResults?: ISearchResult[];
@@ -23,7 +25,7 @@ export type ISpyglassSearch = {
 
 export type ISpyglassSearchForm = Omit<
   ISpyglassSearch,
-  "id" | "results" | "analysis" | "createdAt" | "updatedAt"
+  "id" | "results" | "analysis" | "intent" | "createdAt" | "updatedAt"
 >;
 
 export type ISpyglassSearchCreator = Omit<ISpyglassSearch, "id">;
@@ -37,6 +39,7 @@ export type ISearchOwnership = {
 export type ISpyglassGeneratorType =
   | "error"
   | "completed"
+  | "intent_loaded"
   | "results_loaded"
   | "findings_generating"
   | "findings_chunk"
@@ -266,6 +269,32 @@ export class SpyglassSearch {
     }
   }
 
+  public static async loadIntent(
+    userId: string | RecordId,
+    searchId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const search = await db.select<ISpyglassSearch>(
+        new StringRecordId(searchId),
+      );
+      if (!search) {
+        throw new Error("Search not found");
+      }
+      const intent = await Spyglass.getIntentFromQuery(search.baseQuery);
+      if (!intent) {
+        throw new Error("Failed to load search results");
+      }
+      await db.merge<ISpyglassSearch>(searchId, { intent });
+    } catch (error) {
+      logger.error("Error loading search results", { userId, searchId, error });
+      return undefined;
+    }
+  }
+
   public static async loadResults(
     userId: string | RecordId,
     searchId: string | RecordId,
@@ -281,10 +310,25 @@ export class SpyglassSearch {
       if (!search) {
         throw new Error("Search not found");
       }
-      const results = await Search.comprehensiveSearch(
-        userId.toString(),
-        search.baseQuery,
-      );
+      const results: ISearchResult[] = [];
+      if (search.intent) {
+        const r = await Spyglass.getResultsFromQueries(
+          userId.toString(),
+          search.intent.queries,
+        );
+        results.push(...r);
+      } else {
+        const r = await Spyglass.getResults(
+          userId.toString(),
+          search.baseQuery,
+        );
+        if (!r) {
+          console.error(
+            "Couldn't find results in loadResults for: ",
+            search.baseQuery,
+          );
+        }
+      }
       if (!results) {
         throw new Error("Failed to load search results");
       }
@@ -402,9 +446,13 @@ export class SpyglassSearch {
       if (!search.fullResults) {
         throw new Error("Did not load full results");
       }
-      const findings = await Search.getFindingsFromResults(
+      if (!search.intent) {
+        throw new Error("Search intent not found");
+      }
+      const findings = await Spyglass.getFindingsFromResults(
         search.baseQuery,
         search.fullResults,
+        search.intent,
       );
       if (!findings) {
         throw new Error("No findings found");
@@ -441,9 +489,13 @@ export class SpyglassSearch {
       if (!search.analysis.findings) {
         throw new Error("No findings found");
       }
-      const overview = await Search.getOverviewFromFindings(
+      if (!search.intent) {
+        throw new Error("Intent not found");
+      }
+      const overview = await Spyglass.getOverviewFromFindings(
         search.baseQuery,
         search.analysis.findings,
+        search.intent,
       );
       if (!overview) {
         throw new Error("No overview found");
@@ -525,6 +577,34 @@ export class SpyglassSearch {
         return undefined;
       }
 
+      if (!spyglass.intent) {
+        try {
+          await SpyglassSearch.loadIntent(userId, spyglass.id);
+          spyglass = await getSpyglass();
+          if (!spyglass) {
+            throw new Error("Spyglass not found");
+          }
+          yield {
+            type: "intent_loaded",
+            statusText: "Loading results...",
+            data: spyglass,
+          };
+        } catch (e) {
+          const errorMessage = "Error loading intent";
+          logger.error(errorMessage, {
+            userId,
+            searchId: spyglassId,
+            error: e,
+          });
+          yield {
+            type: "error",
+            data: errorMessage,
+            statusText: "Something went wrong...",
+          };
+          return undefined;
+        }
+      }
+
       if (!spyglass.results || !spyglass.results.length) {
         try {
           await SpyglassSearch.loadResults(userId, spyglass?.id);
@@ -558,6 +638,9 @@ export class SpyglassSearch {
         if (!spyglass.fullResults) {
           throw new Error("Did not load full results");
         }
+        if (!spyglass.intent) {
+          throw new Error("Spyglass intent not found");
+        }
 
         yield {
           type: "findings_generating",
@@ -566,9 +649,10 @@ export class SpyglassSearch {
         };
 
         let completeFindingsJSON = "";
-        for await (const findingChunk of Search.generateFindingsFromResults(
+        for await (const findingChunk of Spyglass.generateFindingsFromResults(
           spyglass.baseQuery,
           spyglass.fullResults,
+          spyglass.intent,
         )) {
           completeFindingsJSON += findingChunk;
           yield {
@@ -623,7 +707,11 @@ export class SpyglassSearch {
       }
 
       // Phase 2: Stream Overview Generation
-      if (spyglass.analysis && spyglass.analysis.findings.length > 0) {
+      if (
+        spyglass.intent &&
+        spyglass.analysis &&
+        spyglass.analysis.findings.length > 0
+      ) {
         try {
           yield {
             type: "overview_generating",
@@ -632,9 +720,10 @@ export class SpyglassSearch {
           };
 
           let completeOverview = "";
-          for await (const chunk of Search.generateOverviewFromFindings(
+          for await (const chunk of Spyglass.generateOverviewFromFindings(
             spyglass.baseQuery,
             spyglass.analysis.findings,
+            spyglass.intent,
           )) {
             completeOverview += chunk;
             yield {

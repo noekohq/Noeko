@@ -66,6 +66,9 @@
     height: 12vh;
     padding: 0;
     animation: textboxIn 0.5s ease-in-out forwards;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     @include desktop {
         width: 60%;
