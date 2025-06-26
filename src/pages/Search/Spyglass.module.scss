@@ -95,7 +95,9 @@
 }
 
 .queryHeader {
+    opacity: 0;
     animation: queryHeaderIn 0.5s ease-in-out forwards;
+    animation-delay: .2s;
 }
 
 @keyframes previewIn {

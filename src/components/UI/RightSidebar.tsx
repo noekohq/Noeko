@@ -275,7 +275,13 @@ function RightSidebarHeader({
                 radius="xl"
                 style={{ cursor: "pointer" }}
                 onDoubleClick={() => navigate("/")}
-                size={isEffectivelyOpen || !canBeToggled ? "md" : "sm"}
+                size={
+                  isMobile
+                    ? "md"
+                    : isEffectivelyOpen || !canBeToggled
+                      ? "md"
+                      : "sm"
+                }
               >
                 {initials}
               </Avatar>
