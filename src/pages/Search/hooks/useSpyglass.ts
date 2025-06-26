@@ -51,6 +51,7 @@ interface IUseSpyglassReturn {
   loading: boolean;
   connected: boolean;
   initialized: boolean;
+  initializing: boolean;
   complete: boolean;
   citationMap: ICitationMap;
   resultMap: IResultsMap;
@@ -77,6 +78,7 @@ export default function useSpyglass({
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState<boolean>(false);
   const [complete, setComplete] = useState<boolean>(false);
+  const [initializing, setInitializing] = useState<boolean>(false);
 
   const startTime = useRef<number>(Date.now());
   const resultsTime = useRef<number>(Date.now());
@@ -155,6 +157,8 @@ export default function useSpyglass({
             setError(parsedData.data as string);
             setStatusText("Something went wrong.");
             console.error(parsedData.data);
+            break;
+          case "intent_loaded":
             break;
           case "results_loaded":
             resultsTime.current = Date.now();
@@ -273,11 +277,13 @@ export default function useSpyglass({
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
+    setInitializing(true);
 
     resetState();
 
     if (!query) {
       console.error("Tried to initialize Spyglass with no query");
+      setInitializing(false);
       return;
     }
 
@@ -285,10 +291,12 @@ export default function useSpyglass({
       setStatusText("Searching your ideas...");
       const response = await api.post("/search/spyglass/initialize", { query });
       setInitialized(true);
+      setInitializing(false);
       const id = response.data.data.id;
       setSpyglassId(id); // This will trigger the useEffect to connect
     } catch (error) {
       console.error(error);
+      setInitializing(false);
       setError("Failed to initialize search.");
     }
   }, [query]);
@@ -373,6 +381,7 @@ export default function useSpyglass({
     loadingOverview,
     status,
     initialized,
+    initializing,
     complete,
     connected,
     initialize,

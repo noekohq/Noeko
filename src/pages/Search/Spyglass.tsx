@@ -30,7 +30,8 @@ import {
   ClockCounterClockwiseIcon,
   CopyIcon,
 } from "@phosphor-icons/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import parse, { HTMLReactParserOptions } from "html-react-parser";
 import styles from "./Spyglass.module.scss";
 import { getSearchResultPreview } from "../../utils/search";
 import { ISearchOverview } from "../../../app/services/Search";
@@ -59,6 +60,7 @@ export default function Spyglass() {
     results,
     analysis: overview,
     initialized: spyglassInitialized,
+    initializing,
     clear,
     complete,
     resultMap,
@@ -128,6 +130,22 @@ export default function Spyglass() {
       setQuery(q);
     }
   }, [searchParams]);
+
+  const displayQuery = useRef<string>();
+
+  useEffect(() => {
+    if (baseQuery) {
+      displayQuery.current = baseQuery;
+    } else if (query) {
+      displayQuery.current = query;
+    }
+  }, [baseQuery, query]);
+
+  const queryToShow = () => {
+    return displayQuery.current ?? baseQuery ?? query;
+  };
+
+  console.log("State: ", initialized, initializing, queryToShow());
 
   return (
     <PageWrapper>
@@ -368,29 +386,27 @@ export default function Spyglass() {
                 Spyglass
               </Title>
             )}
-            {baseQuery && (
-              <Title order={2} className={styles.queryHeader} mb="lg">
-                {capitalize(baseQuery)}
-              </Title>
+            {(!!initialized || !!initializing) && (
+              <Text
+                className={styles.queryHeader}
+                size="lg"
+                mb="lg"
+                fs="italic"
+              >
+                {capitalize(queryToShow())}
+              </Text>
             )}
             {initialized && (
               <div
                 className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
               >
-                {results.length <= 0 && (
-                  <Text className={styles.previewItem}>Thinking...</Text>
-                )}
                 {results.length > 0 && (
-                  <Text>
-                    {overview.findings.length > 0 ? "Read" : "Reading"}{" "}
-                    {<CountUp targetNumber={results.length} />} resource
-                    {results.length === 1 ? "" : "s"}...
-                  </Text>
-                )}
-                {overview.findings.length > 0 && (
-                  <Text className={styles.previewItem}>
-                    {overview.findings.length} finding
-                    {overview.findings.length === 1 ? "" : "s"}...
+                  <Text mb="lg">
+                    Reading{" "}
+                    <Badge variant="light">
+                      {<CountUp targetNumber={results.length} />}
+                    </Badge>{" "}
+                    resource{results.length === 1 ? "" : "s"}...
                   </Text>
                 )}
                 {Object.entries(citationMap).map(([sourceId, citation]) => {
@@ -406,7 +422,9 @@ export default function Spyglass() {
                         <Text size="md">({index.toString()})</Text>
                       </ActionIcon>
                       <Text component="p" inline fw="bold">
-                        {result ? getNodeTitle(result) : "Unknown source"}
+                        <Badge variant="light">
+                          {result ? getNodeTitle(result) : "Unknown source"}
+                        </Badge>
                       </Text>
                       <Text component="span" inline size="xs">
                         {excerpts.length} excerpt
@@ -415,6 +433,17 @@ export default function Spyglass() {
                     </Group>
                   );
                 })}
+                {overview.findings.length > 0 && (
+                  <>
+                    <Text className={styles.previewItem} mt="lg">
+                      Analyzing results...
+                    </Text>
+                    <Text className={styles.previewItem}>
+                      {overview.findings.length} finding
+                      {overview.findings.length === 1 ? "" : "s"}...
+                    </Text>
+                  </>
+                )}
               </div>
             )}
             {overview && overview.overview && (
@@ -456,7 +485,8 @@ export default function Spyglass() {
                     <Button
                       leftSection={<ClockCounterClockwiseIcon weight="bold" />}
                       radius="lg"
-                      variant="subtle"
+                      variant="light"
+                      color="dark.1"
                     >
                       History
                     </Button>
@@ -635,3 +665,37 @@ export function DisplayOverview({
     </div>
   );
 }
+
+// interface IOverviewParserProps {
+//   html: string;
+// }
+
+// const OverviewParser: React.FC<IOverviewParserProps> = ({ html }) => {
+//   const options: HTMLReactParserOptions = {
+//     replace: (domNode) => {
+//       if (domNode instanceof Text) {
+//         if (domNode.data.trim().length === 0) {
+//           return <>{domNode.data}</>;
+//         }
+
+//         const wordsAndSpaces = domNode.data.split(/(\s+)/);
+
+//         return (
+//           <>
+//             {wordsAndSpaces.map((chunk, index) =>
+//               chunk.trim().length > 0 ? (
+//                 <span key={index} className={styles.word}>
+//                   {chunk}
+//                 </span>
+//               ) : (
+//                 <React.Fragment key={index}>{chunk}</React.Fragment>
+//               ),
+//             )}
+//           </>
+//         );
+//       }
+//     },
+//   };
+
+//   return <div className={styles.overviewText}>{parse(html, options)}</div>;
+// };
