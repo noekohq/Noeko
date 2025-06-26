@@ -12,6 +12,7 @@ import {
 import { parseIncompleteJsonArray } from "../../../utils/processing";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
+import { ISpyglassIntent } from "../../../../app/services/Spyglass";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -43,6 +44,7 @@ interface IUseSpyglassReturn {
     completeTime: number;
   };
   baseQuery: string;
+  intent: ISpyglassIntent;
   results: ISearchResult[];
   loadingResults: boolean;
   analysis: ISearchOverview;
@@ -81,6 +83,7 @@ export default function useSpyglass({
   const [initializing, setInitializing] = useState<boolean>(false);
 
   const startTime = useRef<number>(Date.now());
+  const intentTime = useRef<number>(Date.now());
   const resultsTime = useRef<number>(Date.now());
   const findingsTime = useRef<number>(Date.now());
   const overviewTime = useRef<number>(Date.now());
@@ -103,6 +106,7 @@ export default function useSpyglass({
       !completeTime.current
     )
       return "Search Complete!";
+    const intentDuration = overviewTime.current - findingsTime.current;
     const resultsDuration = resultsTime.current - startTime.current;
     const findingsDuration = findingsTime.current - resultsTime.current;
     const overviewDuration = overviewTime.current - findingsTime.current;
@@ -115,8 +119,6 @@ export default function useSpyglass({
 
   const fullFindings = useRef("");
   const fullOverview = useRef("");
-
-  console.log("Findings: ", analysis?.findings);
 
   useEffect(() => {
     if (spyglassId && !listening) {
@@ -159,6 +161,9 @@ export default function useSpyglass({
             console.error(parsedData.data);
             break;
           case "intent_loaded":
+            intentTime.current = Date.now();
+            setSpyglass(parsedData.data);
+            setLoadingResults(true);
             break;
           case "results_loaded":
             resultsTime.current = Date.now();
@@ -373,6 +378,7 @@ export default function useSpyglass({
 
   return {
     baseQuery: spyglass?.baseQuery,
+    intent: spyglass?.intent,
     results: spyglass?.fullResults || [],
     loading: loadingResults || loadingFindings || loadingOverview,
     loadingResults,

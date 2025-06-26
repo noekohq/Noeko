@@ -57,6 +57,7 @@ export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
   const {
     initialize,
+    intent,
     results,
     analysis: overview,
     initialized: spyglassInitialized,
@@ -144,8 +145,6 @@ export default function Spyglass() {
   const queryToShow = () => {
     return displayQuery.current ?? baseQuery ?? query;
   };
-
-  console.log("State: ", initialized, initializing, queryToShow());
 
   return (
     <PageWrapper>
@@ -400,6 +399,18 @@ export default function Spyglass() {
               <div
                 className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
               >
+                {results.length <= 0 && (
+                  <Text mb="lg">
+                    {!!intent && intent.queries?.length > 0 ? (
+                      <span>
+                        Running <CountUp targetNumber={intent.queries.length} />{" "}
+                        search{intent.queries.length === 1 ? "" : "es"}...
+                      </span>
+                    ) : (
+                      "Searching your ideas..."
+                    )}
+                  </Text>
+                )}
                 {results.length > 0 && (
                   <Text mb="lg">
                     Reading{" "}
