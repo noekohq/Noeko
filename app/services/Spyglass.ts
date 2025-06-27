@@ -610,15 +610,6 @@ export default class Spyglass {
         )
         .addBlock("Mission Statement", spyglassMissionStatement)
         .addBlock(
-          "Strict Rules (NEVER/AVOID)",
-          `
-          - **NEVER** use information that is not explicitly present in the Findings. If the Findings do not contain the answer, state that you cannot answer based on the information provided.
-          - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
-          - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
-          - **NEVER** start your answer with a heading.
-          `,
-        )
-        .addBlock(
           "How to Format",
           `
           You **MUST** write all of your responses as semantic HTML
@@ -666,6 +657,16 @@ export default class Spyglass {
         )
         .addBlock("User Query", query)
         .addText(mode.response.prompt(query).get())
+        .addBlock(
+          "Strict Rules",
+          `
+          - **ALWAYS** cite relevant findings for statements made to ensure accuracy and verifiability.
+          - **NEVER** use information that is not explicitly present in the Findings. If the Findings do not contain the answer, state that you cannot answer based on the information provided.
+          - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
+          - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
+          - **NEVER** start your answer with a heading.
+          `,
+        )
         .addBlock(
           "Findings",
           "The findings to use for your answer are as follows:\n",
