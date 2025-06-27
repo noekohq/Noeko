@@ -1,0 +1,64 @@
+@use "../../../styles/mixins.scss" as *;
+
+:root {
+}
+
+@keyframes openIt {
+    0% {
+        transform: translateX(-5px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes collapseIt {
+    0% {
+    }
+    100% {
+    }
+}
+
+@keyframes compactIt {
+    0% {
+    }
+    100% {
+    }
+}
+
+.sidebar {
+    position: fixed;
+    top: 8px;
+    bottom: 8px;
+    padding: var(--mantine-spacing-xs);
+    background-color: transparent;
+    border-radius: var(--mantine-radius-lg);
+    z-index: 100;
+    overflow-y: scroll;
+    transition:
+        width 0.2s ease-in-out,
+        background-color 0.2s ease-in-out,
+        box-shadow 0.2s ease-in-out,
+        border-radius 0.2s ease-in-out;
+
+    &.open {
+        background-color: var(--mantine-color-dark-9);
+        animation: openIt 0.2s ease-in-out;
+        width: calc(var(--sidebar-width) - 24px);
+        backdrop-filter: blur(10px) brightness(0.9);
+        border: 1px solid var(--mantine-color-dark-7);
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.left {
+    left: 8px;
+}
+
+.right {
+}
+
+.global {
+    margin-bottom: var(--mantine-spacing-lg);
+}

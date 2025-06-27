@@ -133,7 +133,7 @@ export default function Dashboard() {
                     }}
                   >
                     <Text c="dimmed" size="xs" fw="bold">
-                      VIEW ALL <ArrowRight />
+                      VIEW ALL
                     </Text>
                   </Link>
                 </Group>
@@ -227,18 +227,18 @@ export default function Dashboard() {
                       </Group>
                     </Button>
                   </Link>
+                  <Link to="/tags">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Manage Tags</Text>
+                      </Group>
+                    </Button>
+                  </Link>
                   <Link to="/settings">
                     <Button variant="default">
                       <Group>
                         <Text>Settings</Text>
                         <Kbd>{primaryKey} + .</Kbd>
-                      </Group>
-                    </Button>
-                  </Link>
-                  <Link to="/tags">
-                    <Button variant="default">
-                      <Group>
-                        <Text>Manage Tags</Text>
                       </Group>
                     </Button>
                   </Link>

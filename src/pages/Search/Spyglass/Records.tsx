@@ -22,6 +22,7 @@ import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CaretLeftIcon,
   DotsThreeIcon,
 } from "@phosphor-icons/react";
 import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
@@ -147,19 +148,22 @@ export default function SpyglassHistory() {
         <LeftSidebar />
         <Container className={styles.container} py="lg" fluid>
           <Stack>
-            <Group>
-              <Link to="/spyglass">
-                <Button
-                  radius="lg"
-                  leftSection={<ArrowLeftIcon />}
-                  size="sm"
-                  variant="subtle"
-                >
-                  Back to Spyglass
-                </Button>
+            <Group mb="lg">
+              <Link
+                to="/spyglass"
+                style={{
+                  textDecoration: "none",
+                }}
+              >
+                <Group c="dark.3" gap="xs">
+                  <CaretLeftIcon weight="bold" size={13} />
+                  <Text c="dark.3" size="sm">
+                    Back to Spyglass
+                  </Text>
+                </Group>
               </Link>
             </Group>
-            <Title order={2} mb="md">
+            <Title order={2} mb="sm">
               Your Spyglass History
             </Title>
 
