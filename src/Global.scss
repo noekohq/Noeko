@@ -44,17 +44,22 @@
         padding: 0 0.4rem;
         margin: 0 0.2rem;
     }
-}
 
-html {
+    --sidebar-width: 80vw;
+    --content-width: 60vw;
+
     @include desktop {
-        --sidebar-width: 36vw;
+        --sidebar-width: 20vw;
+        --content-width: 60vw;
     }
 
     @include widescreen {
-        --sidebar-width: 34vw;
+        --sidebar-width: 22vw;
+        --content-width: 56vw;
     }
+}
 
+html {
     scrollbar-width: thin;
     scrollbar-color: var(--mantine-color-dark-5) transparent;
 }

@@ -11,38 +11,72 @@ import { useMediaQuery } from "@mantine/hooks";
 
 type SidebarState = {
   opened: boolean;
-  setOpened: Dispatch<SetStateAction<boolean>>; // More precise type for useState setter
+  setOpened: Dispatch<SetStateAction<boolean>>;
 };
 
+type ISidebarMode = "open" | "collapsed" | "compact";
+
 type ILayoutContext = {
+  elements: {
+    leftSidebar: {
+      mode: {
+        get: ISidebarMode;
+        set: (mode: ISidebarMode) => void;
+        toggle: () => void;
+        toggleAll: () => void;
+      };
+    };
+    rightSidebar: {
+      mode: {
+        get: ISidebarMode;
+        set: (mode: ISidebarMode) => void;
+        toggle: () => void;
+        toggleAll: () => void;
+      };
+    };
+  };
   leftSidebar: SidebarState;
   rightSidebar: SidebarState;
   isMobile: boolean;
 };
 
-// Initial context values are defaults/placeholders;
-// the Provider will supply the actual state and functions.
 const initialLayoutContext: ILayoutContext = {
+  elements: {
+    leftSidebar: {
+      mode: {
+        get: "collapsed",
+        set: () => {},
+        toggle: () => {},
+        toggleAll: () => {},
+      },
+    },
+    rightSidebar: {
+      mode: {
+        get: "collapsed",
+        set: () => {},
+        toggle: () => {},
+        toggleAll: () => {},
+      },
+    },
+  },
   leftSidebar: {
-    opened: false, // Default if no localStorage and before provider initializes
-    setOpened: () => {}, // Placeholder
+    opened: false,
+    setOpened: () => {},
   },
   rightSidebar: {
-    opened: false, // Default if no localStorage and before provider initializes
-    setOpened: () => {}, // Placeholder
+    opened: false,
+    setOpened: () => {},
   },
   isMobile: false,
 };
 
 const LayoutContext = createContext<ILayoutContext>(initialLayoutContext);
 
-// Helper function to get initial state from localStorage
 const getInitialSidebarState = (
   key: string,
   defaultValue: boolean,
 ): boolean => {
   if (typeof window === "undefined") {
-    // SSR safety: localStorage is not available on the server
     return defaultValue;
   }
   try {
@@ -58,12 +92,19 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
   const [leftSidebarOpened, setLeftSidebarOpened] = useState<boolean>(
     () => getInitialSidebarState("leftSidebarOpened", false), // Default to false if nothing in localStorage
   );
-
   const [rightSidebarOpened, setRightSidebarOpened] = useState<boolean>(
     () => getInitialSidebarState("rightSidebarOpened", false), // Default to false if nothing in localStorage
   );
 
-  // Effect to save left sidebar state to localStorage
+  const [leftSidebarMode, setLeftSidebarMode] =
+    useState<ILayoutContext["elements"]["leftSidebar"]["mode"]["get"]>(
+      "collapsed",
+    );
+  const [rightSidebarMode, setRightSidebarMode] =
+    useState<ILayoutContext["elements"]["rightSidebar"]["mode"]["get"]>(
+      "collapsed",
+    );
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
@@ -73,7 +114,6 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [leftSidebarOpened]);
 
-  // Effect to save right sidebar state to localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
@@ -85,12 +125,60 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isMobile = useMediaQuery("(max-width: 1028px)") || false;
 
-  // Memoize the context value to prevent unnecessary re-renders of consumers
-  // The setOpened functions from useState are stable and don't need to be in the deps array
-  // if we are constructing a new object for the value each time, but for clarity and
-  // best practice with objects in context, useMemo is good.
   const contextValue = useMemo<ILayoutContext>(
     () => ({
+      elements: {
+        leftSidebar: {
+          mode: {
+            get: leftSidebarMode,
+            set: setLeftSidebarMode,
+            toggle: () => {
+              setLeftSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "collapsed";
+                } else {
+                  return "open";
+                }
+              });
+            },
+            toggleAll: () => {
+              setLeftSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "compact";
+                } else if (prev === "collapsed") {
+                  return "open";
+                }
+                return "collapsed";
+              });
+            },
+          },
+        },
+        rightSidebar: {
+          mode: {
+            get: rightSidebarMode,
+            set: setRightSidebarMode,
+            toggle: () => {
+              setRightSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "collapsed";
+                } else {
+                  return "open";
+                }
+              });
+            },
+            toggleAll: () => {
+              setRightSidebarMode((prev) => {
+                if (prev === "open") {
+                  return "compact";
+                } else if (prev === "collapsed") {
+                  return "open";
+                }
+                return "collapsed";
+              });
+            },
+          },
+        },
+      },
       leftSidebar: {
         opened: leftSidebarOpened,
         setOpened: setLeftSidebarOpened,
@@ -101,12 +189,14 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       },
       isMobile,
     }),
-    [leftSidebarOpened, rightSidebarOpened, isMobile],
+    [
+      leftSidebarOpened,
+      rightSidebarOpened,
+      isMobile,
+      leftSidebarMode,
+      rightSidebarMode,
+    ],
   );
-  // Note: setLeftSidebarOpened and setRightSidebarOpened (the functions themselves)
-  // are guaranteed by React to be stable, so they don't strictly need to be dependencies
-  // for the useMemo if the structure of the value object isn't changing their role.
-  // However, `isMobile`, `leftSidebarOpened`, `rightSidebarOpened` are the actual values that drive changes.
 
   return (
     <LayoutContext.Provider value={contextValue}>
