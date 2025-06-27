@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { useSpyglassRecord } from "../hooks/useSpyglass";
 import {
+  capitalize,
   numberToLetter,
   sanitizeMarkdownForDescription,
 } from "../../../utils/formatting";
@@ -301,6 +302,13 @@ export default function SpyglassRecord() {
         className={styles.record}
       >
         <Grid>
+          <Grid.Col>
+            <Text className={styles.queryHeader} size="lg" mb="lg" fs="italic">
+              {spyglass?.baseQuery
+                ? capitalize(spyglass?.baseQuery)
+                : "No title"}
+            </Text>
+          </Grid.Col>
           {overview && (
             <Grid.Col>
               {overview &&
