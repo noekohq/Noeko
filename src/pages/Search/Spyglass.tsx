@@ -1,19 +1,14 @@
 import {
   Title,
   Text,
-  Grid,
   Group,
-  UnstyledButton,
   Container,
   Stack,
-  HoverCard,
   ActionIcon,
-  Space,
   Button,
   Accordion,
   Divider,
   Flex,
-  CopyButton,
   Badge,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -21,37 +16,23 @@ import LeftSidebar from "../../components/UI/LeftSidebar";
 import RightSidebar from "../../components/UI/RightSidebar";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  CaretDownIcon,
-  CaretUpIcon,
-  CheckIcon,
-  ClockCounterClockwiseIcon,
-  CopyIcon,
-} from "@phosphor-icons/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import parse, { HTMLReactParserOptions } from "html-react-parser";
+import { useEffect, useRef, useState } from "react";
 import styles from "./Spyglass.module.scss";
 import { getSearchResultPreview } from "../../utils/search";
-import { ISearchOverview } from "../../../app/services/Search";
 import {
   capitalize,
-  markdownToHtml,
   numberToLetter,
   sanitizeMarkdownForDescription,
 } from "../../utils/formatting";
 import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import Match from "../../components/Utils/Match";
 import { generateTextFragmentHashFromText } from "../../utils/textFragment";
-import useSpyglass, { ICitationMap, IResultsMap } from "./hooks/useSpyglass";
+import useSpyglass from "./hooks/useSpyglass";
 import Textbox from "./Textbox";
 import { useLayout } from "../../contexts/LayoutContext";
-import { ISpyglassSearch } from "../../../app/database/models/search";
-import { htmlToMarkdown } from "../../../app/utils/formatting";
 import CountUp from "../../components/Utils/Animations/Countup";
-import AnimateHTMLStream from "../../components/Utils/Animations/AnimateHTMLStream";
-import { scaleSequentialQuantile } from "d3";
+import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -512,201 +493,3 @@ export default function Spyglass() {
     </PageWrapper>
   );
 }
-
-export type IDisplayOverview = {
-  overview: ISearchOverview;
-  resultsMap: IResultsMap;
-  citationMap: ICitationMap;
-  query: string;
-  results: ISpyglassSearch["fullResults"];
-  loading: boolean;
-};
-
-export function DisplayOverview({
-  overview,
-  resultsMap,
-  citationMap,
-  query,
-  results,
-  loading,
-}: IDisplayOverview) {
-  const navigate = useNavigate();
-
-  // Helper function to navigate with text fragment
-  const navigateWithTextFragment = useCallback(
-    (ideaId: string, excerpt?: string) => {
-      if (!excerpt) {
-        let url = `/idea/${ideaId}`;
-        navigate(url);
-      } else {
-        let url = `/idea/${ideaId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`;
-        navigate(url);
-      }
-    },
-    [navigate],
-  );
-
-  const [showFindings, setShowFindings] = useState(false);
-
-  const {
-    leftSidebar: { setOpened: setLeftSidebarOpened, opened: leftSidebarOpened },
-  } = useLayout();
-
-  return (
-    <div>
-      <AnimateHTMLStream html={markdownToHtml(overview.overview)} />
-      <Space my="lg" />
-      <Group justify="space-between" className={styles.overviewUI}>
-        <Group>
-          <Button
-            rightSection={
-              !showFindings ? (
-                <CaretDownIcon weight="bold" />
-              ) : (
-                <CaretUpIcon weight="bold" />
-              )
-            }
-            onClick={() => setShowFindings(!showFindings)}
-            variant="default"
-            radius="lg"
-            size="xs"
-          >
-            {overview.findings.length} Findings
-          </Button>
-          <Button
-            radius="lg"
-            size="xs"
-            variant="subtle"
-            leftSection={
-              leftSidebarOpened ? (
-                <ArrowRightIcon weight="bold" />
-              ) : (
-                <ArrowLeftIcon weight="bold" />
-              )
-            }
-            onClick={() => {
-              setLeftSidebarOpened(!leftSidebarOpened);
-            }}
-          >
-            Read {results?.length} Result{results?.length === 1 ? "" : "s"}
-          </Button>
-        </Group>
-        <Group justify="end">
-          {!loading && (
-            <Group>
-              <CopyButton value={overview.overview}>
-                {({ copied, copy }) => {
-                  return (
-                    <ActionIcon variant="light" size="sm" onClick={copy}>
-                      {!copied ? <CopyIcon /> : <CheckIcon />}
-                    </ActionIcon>
-                  );
-                }}
-              </CopyButton>
-            </Group>
-          )}
-        </Group>
-      </Group>
-      {showFindings && (
-        <>
-          <Text mt="md">
-            {overview.findings
-              .filter((finding) => {
-                return finding.sourceId in resultsMap;
-              })
-              .map((finding) => {
-                const { index: citationNumber } = citationMap[finding.sourceId];
-                const mappedValue = resultsMap[finding.sourceId];
-                const title =
-                  mappedValue.type === "idea"
-                    ? mappedValue.title
-                    : mappedValue.id.toString();
-
-                return (
-                  <Text component="span" mr="xs">
-                    <HoverCard width={"400px"} withArrow>
-                      <HoverCard.Target>
-                        <ActionIcon
-                          variant="subtle"
-                          size="xs"
-                          mr="2px"
-                          onClick={() =>
-                            navigateWithTextFragment(
-                              mappedValue.id.toString(),
-                              finding.excerpt,
-                            )
-                          }
-                          style={{ cursor: "pointer" }}
-                        >
-                          <Text size="xs">({citationNumber})</Text>
-                        </ActionIcon>
-                      </HoverCard.Target>
-                      <HoverCard.Dropdown>
-                        <Stack>
-                          <UnstyledButton
-                            onClick={() =>
-                              navigateWithTextFragment(
-                                mappedValue.id.toString(),
-                                finding.excerpt,
-                              )
-                            }
-                            style={{ textDecoration: "none" }}
-                          >
-                            <Group>
-                              <Text fw="bold" c="gray" size="sm">
-                                {title}
-                              </Text>
-                              <ArrowRightIcon color="gray" weight="bold" />
-                            </Group>
-                          </UnstyledButton>
-                          <Badge variant="light">
-                            {finding.findingType.replaceAll(/_/g, " ")}
-                          </Badge>
-                          <Text size="sm">...{finding.excerpt}...</Text>
-                        </Stack>
-                      </HoverCard.Dropdown>
-                    </HoverCard>
-                    {finding.analysis}
-                  </Text>
-                );
-              })}
-          </Text>
-        </>
-      )}
-    </div>
-  );
-}
-
-// interface IOverviewParserProps {
-//   html: string;
-// }
-
-// const OverviewParser: React.FC<IOverviewParserProps> = ({ html }) => {
-//   const options: HTMLReactParserOptions = {
-//     replace: (domNode) => {
-//       if (domNode instanceof Text) {
-//         if (domNode.data.trim().length === 0) {
-//           return <>{domNode.data}</>;
-//         }
-
-//         const wordsAndSpaces = domNode.data.split(/(\s+)/);
-
-//         return (
-//           <>
-//             {wordsAndSpaces.map((chunk, index) =>
-//               chunk.trim().length > 0 ? (
-//                 <span key={index} className={styles.word}>
-//                   {chunk}
-//                 </span>
-//               ) : (
-//                 <React.Fragment key={index}>{chunk}</React.Fragment>
-//               ),
-//             )}
-//           </>
-//         );
-//       }
-//     },
-//   };
-
-//   return <div className={styles.overviewText}>{parse(html, options)}</div>;
-// };

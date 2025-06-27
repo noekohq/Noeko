@@ -152,35 +152,3 @@
 .previewItem {
     animation: previewItemIn 0.5s ease-in-out;
 }
-
-
-@keyframes overviewIn {
-    0% {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.overviewText {
-    opacity: 0;
-    animation: overviewIn 0.5s ease-in-out forwards;
-}
-
-@keyframes overviewUI {
-    0% {
-        opacity: 0;
-        transform: translateY(2px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.overviewUI {
-    animation: overviewUI 0.5s ease-in-out forwards;
-}
