@@ -1,17 +1,13 @@
 @use "../../styles/mixins.scss" as *;
 
 .pageWrapper {
-    padding-block: 2.4rem;
-    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
 
-    @include desktop {
-        padding-block: 0;
-        display: flex;
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
+    @include tablet {
         flex-direction: row;
-        justify-content: space-between;
-        gap: 36px;
     }
 }

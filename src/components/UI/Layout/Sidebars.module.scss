@@ -1,21 +1,68 @@
 @use "../../../styles/mixins.scss" as *;
 
 :root {
+    --background-color: var(--mantine-color-dark-8);
+    --background-color-collapsed: transparent;
+    --padding-unit: var(--layout-spacing);
 }
 
 @keyframes openIt {
     0% {
         transform: translateX(-5px);
+        width: var(--sidebar-width-collapsed);
     }
     100% {
         transform: translateX(0);
+        width: var(--sidebar-width);
+    }
+}
+
+@include desktop {
+    @keyframes openIt {
+        0% {
+            width: var(--sidebar-width-collapsed);
+            transform: translateY(-5px) scale(0.9);
+            background-color: var(--background-color-collapsed);
+        }
+        100% {
+            width: calc(var(--sidebar-width) - var(--padding-unit));
+            transform: translateY(0) scale(1);
+            background-color: var(--background-color);
+        }
     }
 }
 
 @keyframes collapseIt {
     0% {
+        width: var(--sidebar-width);
+    }
+    99% {
+        width: var(--sidebar-width-collapsed);
     }
     100% {
+        display: none;
+    }
+}
+
+@include tablet {
+    @keyframes collapseIt {
+        0% {
+            width: var(--sidebar-width);
+        }
+        100% {
+            width: var(--sidebar-width-collapsed);
+        }
+    }
+}
+
+@include desktop {
+    @keyframes collapseIt {
+        0% {
+            width: var(--sidebar-width);
+        }
+        100% {
+            width: var(--sidebar-width-collapsed);
+        }
     }
 }
 
@@ -28,37 +75,130 @@
 
 .sidebar {
     position: fixed;
-    top: 8px;
-    bottom: 8px;
-    padding: var(--mantine-spacing-xs);
-    background-color: transparent;
-    border-radius: var(--mantine-radius-lg);
-    z-index: 100;
-    overflow-y: scroll;
+    z-index: 500;
+    box-sizing: border-box;
+
     transition:
-        width 0.2s ease-in-out,
-        background-color 0.2s ease-in-out,
         box-shadow 0.2s ease-in-out,
-        border-radius 0.2s ease-in-out;
+        border-radius 0.2s ease-in-out,
+        padding 0.2s ease-in-out;
 
     &.open {
-        background-color: var(--mantine-color-dark-9);
-        animation: openIt 0.2s ease-in-out;
+        animation: openIt 0.4s ease-in-out forwards;
+        top: 0;
+        bottom: 0;
+        max-height: calc(100vh);
+        padding: var(--mantine-spacing-sm);
+        background-color: var(--background-color);
         width: calc(var(--sidebar-width) - 24px);
         backdrop-filter: blur(10px) brightness(0.9);
-        border: 1px solid var(--mantine-color-dark-7);
+        border-right: 1px solid var(--mantine-color-dark-7);
         display: flex;
         flex-direction: column;
+
+        .global {
+            width: 100%;
+            margin-bottom: var(--mantine-spacing-md);
+        }
+
+        @include tablet {
+        }
+
+        @include desktop {
+            top: var(--padding-unit);
+            bottom: var(--padding-unit);
+            border: 1px solid var(--mantine-color-dark-7);
+            border-radius: var(--mantine-radius-lg);
+            animation-duration: 0.2s;
+        }
+
+        @include widescreen {
+        }
+    }
+
+    &.collapsed {
+        height: calc(100vh - (var(--padding-unit) * 2));
+        animation: collapseIt 0.2s ease-in-out forwards;
+        display: none;
+        bottom: auto;
+
+        @include tablet {
+            top: var(--padding-unit);
+            bottom: var(--padding-unit);
+            padding: var(--mantine-spacing-sm) 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: var(--sidebar-width-collapsed);
+            background-color: var(--background-color-collapsed);
+        }
+
+        @include desktop {
+            top: var(--padding-unit);
+            bottom: var(--padding-unit);
+            border-radius: var(--mantine-radius-lg);
+        }
+
+        .global {
+            margin-bottom: var(--mantine-spacing-md);
+
+            @include tablet {
+            }
+        }
     }
 }
 
 .left {
-    left: 8px;
+    &.open {
+        left: 0;
+
+        @include desktop {
+            left: var(--padding-unit);
+        }
+    }
+
+    &.collapsed {
+        left: 0;
+
+        @include tablet {
+        }
+
+        @include desktop {
+            left: var(--padding-unit);
+        }
+    }
 }
 
 .right {
+    &.open {
+        right: 0;
+
+        @include desktop {
+            right: var(--padding-unit);
+        }
+    }
+
+    &.collapsed {
+        right: 0;
+
+        @include tablet {
+        }
+
+        @include desktop {
+            right: var(--padding-unit);
+        }
+    }
 }
 
 .global {
-    margin-bottom: var(--mantine-spacing-lg);
+}
+
+@keyframes openContent {
+}
+
+.content {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--mantine-color-dark-6) transparent;
 }

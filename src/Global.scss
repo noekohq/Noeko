@@ -45,17 +45,35 @@
         margin: 0 0.2rem;
     }
 
-    --sidebar-width: 80vw;
-    --content-width: 60vw;
+    --sidebar-width: 90vw;
+    --sidebar-width-collapsed: 24px;
+    --content-width: 100%;
+    --mobile-bar-height: 48px;
+    --layout-spacing: 8px;
+
+    @include tablet {
+        --sidebar-width: 40vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 100%;
+        --mobile-bar-height: 48px;
+    }
 
     @include desktop {
         --sidebar-width: 20vw;
+        --sidebar-width-collapsed: 48px;
         --content-width: 60vw;
     }
 
     @include widescreen {
-        --sidebar-width: 22vw;
-        --content-width: 56vw;
+        --sidebar-width: 18vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 64vw;
+    }
+
+    @include ultrawide {
+        --sidebar-width: 18vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 64vw;
     }
 }
 

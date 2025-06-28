@@ -25,6 +25,10 @@ type ILayoutContext = {
         toggle: () => void;
         toggleAll: () => void;
       };
+      content: {
+        hasContent: boolean;
+        setHasContent: Dispatch<SetStateAction<boolean>>;
+      };
     };
     rightSidebar: {
       mode: {
@@ -33,11 +37,20 @@ type ILayoutContext = {
         toggle: () => void;
         toggleAll: () => void;
       };
+      content: {
+        hasContent: boolean;
+        setHasContent: Dispatch<SetStateAction<boolean>>;
+      };
     };
   };
   leftSidebar: SidebarState;
   rightSidebar: SidebarState;
   isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isWideScreen: boolean;
+  isUltraWide: boolean;
+  isScrolled: boolean;
 };
 
 const initialLayoutContext: ILayoutContext = {
@@ -49,6 +62,10 @@ const initialLayoutContext: ILayoutContext = {
         toggle: () => {},
         toggleAll: () => {},
       },
+      content: {
+        hasContent: false,
+        setHasContent: () => {},
+      },
     },
     rightSidebar: {
       mode: {
@@ -56,6 +73,10 @@ const initialLayoutContext: ILayoutContext = {
         set: () => {},
         toggle: () => {},
         toggleAll: () => {},
+      },
+      content: {
+        hasContent: false,
+        setHasContent: () => {},
       },
     },
   },
@@ -68,6 +89,11 @@ const initialLayoutContext: ILayoutContext = {
     setOpened: () => {},
   },
   isMobile: false,
+  isTablet: false,
+  isDesktop: false,
+  isWideScreen: false,
+  isUltraWide: false,
+  isScrolled: false,
 };
 
 const LayoutContext = createContext<ILayoutContext>(initialLayoutContext);
@@ -100,10 +126,31 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     useState<ILayoutContext["elements"]["leftSidebar"]["mode"]["get"]>(
       "collapsed",
     );
+  const [leftSidebarHasContent, setLeftSidebarHasContent] =
+    useState<boolean>(false);
   const [rightSidebarMode, setRightSidebarMode] =
     useState<ILayoutContext["elements"]["rightSidebar"]["mode"]["get"]>(
       "collapsed",
     );
+  const [rightSidebarHasContent, setRightSidebarHasContent] =
+    useState<boolean>(false);
+
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("leftSidebarMode", JSON.stringify(leftSidebarMode));
+    }
+  }, [leftSidebarMode]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -117,86 +164,126 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
+        "rightSidebarMode",
+        JSON.stringify(rightSidebarMode),
+      );
+    }
+  }, [rightSidebarMode]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
         "rightSidebarOpened",
         JSON.stringify(rightSidebarOpened),
       );
     }
   }, [rightSidebarOpened]);
 
-  const isMobile = useMediaQuery("(max-width: 1028px)") || false;
+  const isMobile = useMediaQuery("(max-width: 768px)") || false;
+  const isTablet =
+    useMediaQuery("(min-width: 769px) and (max-width: 1024px)") || false;
+  const isDesktop =
+    useMediaQuery("(min-width: 1025px) and (max-width: 1280px)") || false;
+  const isWideScreen =
+    useMediaQuery("(min-width: 1281px) and (max-width: 1440px)") || false;
+  const isUltraWide = useMediaQuery("(min-width: 1441px)") || false;
 
-  const contextValue = useMemo<ILayoutContext>(
-    () => ({
-      elements: {
-        leftSidebar: {
-          mode: {
-            get: leftSidebarMode,
-            set: setLeftSidebarMode,
-            toggle: () => {
-              setLeftSidebarMode((prev) => {
-                if (prev === "open") {
-                  return "collapsed";
-                } else {
-                  return "open";
-                }
-              });
-            },
-            toggleAll: () => {
-              setLeftSidebarMode((prev) => {
-                if (prev === "open") {
-                  return "compact";
-                } else if (prev === "collapsed") {
-                  return "open";
-                }
-                return "collapsed";
-              });
-            },
-          },
-        },
-        rightSidebar: {
-          mode: {
-            get: rightSidebarMode,
-            set: setRightSidebarMode,
-            toggle: () => {
-              setRightSidebarMode((prev) => {
-                if (prev === "open") {
-                  return "collapsed";
-                } else {
-                  return "open";
-                }
-              });
-            },
-            toggleAll: () => {
-              setRightSidebarMode((prev) => {
-                if (prev === "open") {
-                  return "compact";
-                } else if (prev === "collapsed") {
-                  return "open";
-                }
-                return "collapsed";
-              });
-            },
-          },
-        },
-      },
+  useEffect(() => {
+    if (isMobile || isTablet) {
+      if (leftSidebarMode === "open") {
+        if (rightSidebarMode === "open") {
+          setRightSidebarMode("collapsed");
+        }
+      }
+    }
+  }, [leftSidebarMode]);
+
+  useEffect(() => {
+    if (isMobile || isTablet) {
+      if (rightSidebarMode === "open") {
+        if (leftSidebarMode === "open") {
+          setLeftSidebarMode("collapsed");
+        }
+      }
+    }
+  }, [rightSidebarMode]);
+
+  const contextValue: ILayoutContext = {
+    elements: {
       leftSidebar: {
-        opened: leftSidebarOpened,
-        setOpened: setLeftSidebarOpened,
+        mode: {
+          get: leftSidebarMode,
+          set: setLeftSidebarMode,
+          toggle: () => {
+            setLeftSidebarMode((prev) => {
+              if (prev === "open") {
+                return "collapsed";
+              } else {
+                return "open";
+              }
+            });
+          },
+          toggleAll: () => {
+            setLeftSidebarMode((prev) => {
+              if (prev === "open") {
+                return "compact";
+              } else if (prev === "collapsed") {
+                return "open";
+              }
+              return "collapsed";
+            });
+          },
+        },
+        content: {
+          hasContent: leftSidebarHasContent,
+          setHasContent: setLeftSidebarHasContent,
+        },
       },
       rightSidebar: {
-        opened: rightSidebarOpened,
-        setOpened: setRightSidebarOpened,
+        mode: {
+          get: rightSidebarMode,
+          set: setRightSidebarMode,
+          toggle: () => {
+            setRightSidebarMode((prev) => {
+              if (prev === "open") {
+                return "collapsed";
+              } else {
+                return "open";
+              }
+            });
+          },
+          toggleAll: () => {
+            setRightSidebarMode((prev) => {
+              if (prev === "open") {
+                return "compact";
+              } else if (prev === "collapsed") {
+                return "open";
+              }
+              return "collapsed";
+            });
+          },
+        },
+        content: {
+          hasContent: rightSidebarHasContent,
+          setHasContent: setRightSidebarHasContent,
+        },
       },
-      isMobile,
-    }),
-    [
-      leftSidebarOpened,
-      rightSidebarOpened,
-      isMobile,
-      leftSidebarMode,
-      rightSidebarMode,
-    ],
-  );
+    },
+    leftSidebar: {
+      opened: leftSidebarOpened,
+      setOpened: setLeftSidebarOpened,
+    },
+    rightSidebar: {
+      opened: rightSidebarOpened,
+      setOpened: setRightSidebarOpened,
+    },
+    isMobile,
+    isTablet,
+    isDesktop,
+    isWideScreen,
+    isUltraWide,
+    isScrolled,
+  };
 
   return (
     <LayoutContext.Provider value={contextValue}>
