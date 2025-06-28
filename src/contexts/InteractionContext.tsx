@@ -154,6 +154,14 @@ export function InteractionProvider({
   const meta = os === "macos";
 
   const {
+    elements: {
+      leftSidebar: {
+        mode: { toggle: toggleLeftSidebar },
+      },
+      rightSidebar: {
+        mode: { toggle: toggleRightSidebar },
+      },
+    },
     leftSidebar: { setOpened: setLeftSidebarOpened, opened: leftSidebarOpened },
     rightSidebar: {
       setOpened: setRightSidebarOpened,

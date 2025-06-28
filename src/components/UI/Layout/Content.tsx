@@ -1,5 +1,4 @@
 import { useLayout } from "../../../contexts/LayoutContext";
-import { extractNumberFromCSSValue } from "../../../utils/dom";
 import styles from "./Content.module.scss";
 
 interface IContentProps {
@@ -18,20 +17,32 @@ const Content = ({ children }: IContentProps) => {
     },
   } = useLayout();
 
-  const leftOpen = leftMode === "open";
-  const rightOpen = rightMode === "open";
+  console.log("Left mode: ", leftMode);
+  console.log("Right mode: ", rightMode);
 
-  const rootElement = document.documentElement;
+  const leftModeToClass: Record<typeof leftMode, string> = {
+    open: styles.leftOpen,
+    collapsed: styles.leftCollapsed,
+    compact: styles.leftCompact,
+  };
 
-  const computedRootStyle = window.getComputedStyle(rootElement);
+  const rightModeToClass: Record<typeof rightMode, string> = {
+    open: styles.rightOpen,
+    collapsed: styles.rightCollapsed,
+    compact: styles.rightCompact,
+  };
 
-  const sidebarWidth = computedRootStyle.getPropertyValue("--sidebar-width");
-  const contentWidth = computedRootStyle.getPropertyValue("--content-width");
+  const leftModeClass = leftModeToClass[leftMode];
+  const rightModeClass = rightModeToClass[rightMode];
 
-  console.log("Sidebar Width:", sidebarWidth);
-  console.log("Content Width:", contentWidth);
+  console.log("Left class: ", leftModeClass);
+  console.log("Right class: ", rightModeClass);
 
-  return <div className={styles.content}>{children}</div>;
+  return (
+    <div className={`${styles.content} ${leftModeClass} ${rightModeClass}`}>
+      {children}
+    </div>
+  );
 };
 
 export default Content;

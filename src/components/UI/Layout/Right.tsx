@@ -2,26 +2,25 @@ import React, { useEffect } from "react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
+  ArrowLineLeftIcon,
   ArrowLineRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
-  HouseIcon,
-  HouseSimpleIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 import { ActionIcon, Flex, Group, Stack } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
-import { Link, useLocation } from "react-router";
+import ProfileButton from "./ProfileButton";
 
-interface ILeftSidebarProps {
+interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
 }
 
-const LeftSidebar = ({ children }: ILeftSidebarProps) => {
+const RightSidebar = ({ children }: IRightSidebarProps) => {
   const {
     elements: {
-      leftSidebar: {
+      rightSidebar: {
         mode: { get: mode, set: setMode, toggle: toggleMode },
         content: { setHasContent },
       },
@@ -33,10 +32,12 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     setHasContent(!!children);
   }, [children]);
 
+  const openable = !!children;
+
   useShortcuts({
     shortcuts: [
       {
-        keys: { ctrl: true, key: "q" },
+        keys: { ctrl: true, key: "l" },
         run: () => {
           toggleMode();
         },
@@ -44,53 +45,44 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     ],
   });
 
-  const { pathname } = useLocation();
-  const isHome = pathname === "/";
-
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
-      <Group justify="end">
-        {!isHome && (
-          <Link to="/">
-            <ActionIcon variant="subtle">
-              <HouseIcon />
-            </ActionIcon>
-          </Link>
+      <Group justify="space-between">
+        {openable && (
+          <ActionIcon
+            onClick={() => {
+              setMode("collapsed");
+            }}
+            variant="subtle"
+            size={isMobile ? "sm" : "md"}
+          >
+            <CaretRightIcon />
+          </ActionIcon>
         )}
-        <ActionIcon
-          onClick={() => {
-            setMode("collapsed");
-          }}
-          variant="subtle"
-          size={isMobile ? "sm" : "md"}
-        >
-          <SidebarSimpleIcon />
-        </ActionIcon>
+        <Group>
+          <ProfileButton />
+        </Group>
       </Group>
     ),
     collapsed: (
       <Stack>
-        <ActionIcon
-          onClick={() => {
-            setMode("open");
-          }}
-          variant="subtle"
-          size={"md"}
-        >
-          <SidebarSimpleIcon />
-        </ActionIcon>
-        {!isHome && (
-          <Link to="/">
-            <ActionIcon variant="subtle">
-              <HouseIcon />
-            </ActionIcon>
-          </Link>
+        {openable && (
+          <ActionIcon
+            onClick={() => {
+              setMode("open");
+            }}
+            variant="subtle"
+            size={"md"}
+          >
+            <CaretLeftIcon />
+          </ActionIcon>
         )}
+        <ProfileButton />
       </Stack>
     ),
     compact: (
       <div>
-        <ArrowLineRightIcon />
+        <ArrowLineLeftIcon />
       </div>
     ),
   };
@@ -102,23 +94,23 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
   };
 
   return (
-    <aside className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}>
+    <aside className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}>
       <div className={styles.global}>{Global[mode]}</div>
-      <div className={styles.content}>{children}</div>
+      {children && <div className={styles.content}>{children}</div>}
     </aside>
   );
 };
 
-export default LeftSidebar;
+export default RightSidebar;
 
 type IContentProps = {
   children: React.ReactNode | React.ReactNode[];
 };
 
-LeftSidebar.Open = ({ children }: IContentProps) => {
+RightSidebar.Open = ({ children }: IContentProps) => {
   const {
     elements: {
-      leftSidebar: {
+      rightSidebar: {
         mode: { get: mode },
       },
     },
@@ -129,10 +121,10 @@ LeftSidebar.Open = ({ children }: IContentProps) => {
   return <div>{children}</div>;
 };
 
-LeftSidebar.Collapsed = ({ children }: IContentProps) => {
+RightSidebar.Collapsed = ({ children }: IContentProps) => {
   const {
     elements: {
-      leftSidebar: {
+      rightSidebar: {
         mode: { get: mode },
       },
     },
@@ -144,10 +136,10 @@ LeftSidebar.Collapsed = ({ children }: IContentProps) => {
   return <div>{children}</div>;
 };
 
-LeftSidebar.Compact = ({ children }: IContentProps) => {
+RightSidebar.Compact = ({ children }: IContentProps) => {
   const {
     elements: {
-      leftSidebar: {
+      rightSidebar: {
         mode: { get: mode },
       },
     },

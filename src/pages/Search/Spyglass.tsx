@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/RightSidebar";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
 import { useEffect, useRef, useState } from "react";
@@ -348,159 +348,157 @@ export default function Spyglass() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <Container
-          w="100%"
-          py="lg"
-          className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}
+        <Flex
+          direction="column"
+          gap="0"
+          h="100%"
+          justify={initialized ? "space-between" : "center"}
         >
-          <Flex
-            direction="column"
-            gap="0"
-            h="100%"
-            justify={initialized ? "space-between" : "center"}
+          <div
+            className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
-            <div
-              className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
-            >
-              {!initialized && (
-                <Title
-                  ta={initialized ? "left" : "center"}
-                  className={`${styles.header} ${initialized ? styles.initialized : ""}`}
-                  order={initialized ? 2 : 1}
-                  mb="lg"
-                >
-                  Spyglass
-                </Title>
-              )}
-              {(!!initialized || !!initializing) && (
-                <Text
-                  className={styles.queryHeader}
-                  size="lg"
-                  mb="lg"
-                  fs="italic"
-                >
-                  {capitalize(queryToShow())}
-                </Text>
-              )}
-              {initialized && (
-                <div
-                  className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
-                >
-                  {results.length <= 0 && (
-                    <Text mb="lg">
-                      {!!intent && intent.queries?.length > 0 ? (
-                        <span>
-                          Running{" "}
-                          <CountUp targetNumber={intent.queries.length} />{" "}
-                          search{intent.queries.length === 1 ? "" : "es"}...
-                        </span>
-                      ) : (
-                        "Searching your ideas..."
-                      )}
-                    </Text>
-                  )}
-                  {results.length > 0 && (
-                    <Text mb="lg">
-                      Reading{" "}
-                      <Badge variant="light">
-                        {<CountUp targetNumber={results.length} />}
-                      </Badge>{" "}
-                      resource{results.length === 1 ? "" : "s"}...
-                    </Text>
-                  )}
-                  {Object.entries(citationMap).map(([sourceId, citation]) => {
-                    const { excerpts, index } = citation;
-                    const result = resultMap[sourceId];
-                    return (
-                      <Group
-                        gap="xs"
-                        className={styles.previewItem}
-                        key={sourceId}
-                      >
-                        <ActionIcon variant="subtle" size="md">
-                          <Text size="md">({index.toString()})</Text>
-                        </ActionIcon>
-                        <Text component="p" inline fw="bold">
-                          <Badge variant="light">
-                            {result ? getNodeTitle(result) : "Unknown source"}
-                          </Badge>
-                        </Text>
-                        <Text component="span" inline size="xs">
-                          {excerpts.length} excerpt
-                          {excerpts.length > 1 ? "s" : ""}
-                        </Text>
-                      </Group>
-                    );
-                  })}
-                  {overview.findings.length > 0 && (
-                    <>
-                      <Text className={styles.previewItem} mt="lg">
-                        Analyzing results...
+            {!initialized && (
+              <Title
+                ta={initialized ? "left" : "center"}
+                className={`${styles.header} ${initialized ? styles.initialized : ""}`}
+                order={initialized ? 2 : 1}
+                mb="lg"
+              >
+                Spyglass
+              </Title>
+            )}
+            {(!!initialized || !!initializing) && (
+              <Text
+                className={styles.queryHeader}
+                size="lg"
+                mb="lg"
+                fs="italic"
+              >
+                {capitalize(queryToShow())}
+              </Text>
+            )}
+            {initialized && (
+              <div
+                className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
+              >
+                {results.length <= 0 && (
+                  <Text mb="lg">
+                    {!!intent && intent.queries?.length > 0 ? (
+                      <span>
+                        Running <CountUp targetNumber={intent.queries.length} />{" "}
+                        search{intent.queries.length === 1 ? "" : "es"}...
+                      </span>
+                    ) : (
+                      "Searching your ideas..."
+                    )}
+                  </Text>
+                )}
+                {results.length > 0 && (
+                  <Text mb="lg">
+                    Reading{" "}
+                    <Badge variant="light">
+                      {<CountUp targetNumber={results.length} />}
+                    </Badge>{" "}
+                    resource{results.length === 1 ? "" : "s"}...
+                  </Text>
+                )}
+                {Object.entries(citationMap).map(([sourceId, citation]) => {
+                  const { excerpts, index } = citation;
+                  const result = resultMap[sourceId];
+                  return (
+                    <Group
+                      gap="xs"
+                      className={styles.previewItem}
+                      key={sourceId}
+                    >
+                      <ActionIcon variant="subtle" size="md">
+                        <Text size="md">({index.toString()})</Text>
+                      </ActionIcon>
+                      <Text component="p" inline fw="bold">
+                        <Badge variant="light">
+                          {result ? getNodeTitle(result) : "Unknown source"}
+                        </Badge>
                       </Text>
-                      <Text className={styles.previewItem}>
-                        {overview.findings.length} finding
-                        {overview.findings.length === 1 ? "" : "s"}...
+                      <Text component="span" inline size="xs">
+                        {excerpts.length} excerpt
+                        {excerpts.length > 1 ? "s" : ""}
                       </Text>
-                    </>
-                  )}
-                </div>
-              )}
-              {overview && overview.overview && (
-                <>
-                  <div className={styles.overviewDisplay}>
-                    <DisplayOverview
-                      overview={overview}
-                      resultsMap={resultMap ?? {}}
-                      citationMap={citationMap ?? {}}
-                      query={baseQuery}
-                      results={results}
-                      loading={loading}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-            {!loading && (
+                    </Group>
+                  );
+                })}
+                {overview.findings.length > 0 && (
+                  <>
+                    <Text className={styles.previewItem} mt="lg">
+                      Analyzing results...
+                    </Text>
+                    <Text className={styles.previewItem}>
+                      {overview.findings.length} finding
+                      {overview.findings.length === 1 ? "" : "s"}...
+                    </Text>
+                  </>
+                )}
+              </div>
+            )}
+            {overview && overview.overview && (
               <>
-                <div
-                  className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-                >
-                  <Textbox
-                    onSubmit={() => {
-                      clear();
-                      initialize();
-                    }}
-                    onChange={(v) => {
-                      setQuery(v);
-                    }}
-                    placeholder="Ask your thoughts anything..."
-                    placeholderIfInitialized="Ask another question..."
-                    initialized={initialized}
+                <div className={styles.overviewDisplay}>
+                  <DisplayOverview
+                    overview={overview}
+                    resultsMap={resultMap ?? {}}
+                    citationMap={citationMap ?? {}}
+                    query={baseQuery}
+                    results={results}
+                    loading={loading}
                   />
                 </div>
-                {!initialized && (
-                  <Group mt="lg" justify="center">
-                    <Link to="/spyglass/history">
-                      <Button
-                        // leftSection={
-                        //   <ClockCounterClockwiseIcon weight="bold" size={14} />
-                        // }
-                        radius="lg"
-                        variant="light"
-                        color="dark.4"
-                        c="dark.2"
-                      >
-                        History
-                      </Button>
-                    </Link>
-                  </Group>
-                )}
               </>
             )}
-          </Flex>
-        </Container>
+          </div>
+          {!loading && (
+            <>
+              <div
+                className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+              >
+                <Textbox
+                  onSubmit={() => {
+                    clear();
+                    initialize();
+                  }}
+                  onChange={(v) => {
+                    setQuery(v);
+                  }}
+                  placeholder="Ask your thoughts anything..."
+                  placeholderIfInitialized="Ask another question..."
+                  initialized={initialized}
+                />
+              </div>
+              {!initialized && (
+                <Group mt="lg" justify="center">
+                  <Link to="/spyglass/history">
+                    <Button
+                      // leftSection={
+                      //   <ClockCounterClockwiseIcon weight="bold" size={14} />
+                      // }
+                      radius="lg"
+                      variant="light"
+                      color="dark.4"
+                      c="dark.2"
+                    >
+                      History
+                    </Button>
+                  </Link>
+                </Group>
+              )}
+            </>
+          )}
+        </Flex>
       </Content>
-      <RightSidebar></RightSidebar>
+      {/* <RightSidebar></RightSidebar> */}
+      <RightSidebar>
+        <RightSidebar.Open>
+          <Text>This is a test</Text>
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }
