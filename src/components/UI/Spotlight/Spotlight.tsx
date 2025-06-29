@@ -35,6 +35,7 @@ import { api } from "../../../server/api";
 import type { IIdea } from "../../../../app/database/models/ideas";
 import { Option } from "./Option";
 import type {
+  ISpotlightAction,
   ISubviewDefinition,
   IUnifiedSearchItem,
   SpotlightMainItem,

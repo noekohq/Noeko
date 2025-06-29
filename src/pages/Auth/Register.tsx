@@ -174,7 +174,7 @@ export default function Register() {
         }}
       >
         <Flex justify="center" align="center" h="100%">
-          <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
+          <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg" radius="lg">
             <Grid>
               <Grid.Col span={12}>
                 <Group>
@@ -245,7 +245,7 @@ export default function Register() {
       }}
     >
       <Flex justify="center" align="center" h="100%">
-        <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
+        <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg" radius="lg">
           <Grid>
             {loadingRegister && (
               <Grid.Col span={12}>

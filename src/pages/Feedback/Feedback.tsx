@@ -21,8 +21,9 @@ import { showNotification } from "@mantine/notifications";
 import { IFeedback } from "../../../app/database/models/feedback";
 import { api } from "../../server/api";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Feedback() {
   const {
@@ -105,13 +106,7 @@ export default function Feedback() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container
-        p="lg"
-        style={{
-          overflowY: "scroll",
-          scrollbarWidth: "thin",
-        }}
-      >
+      <Content>
         <Modal
           opened={!!toDelete}
           title="Delete Feedback"
@@ -239,7 +234,7 @@ export default function Feedback() {
             </Table>
           </Grid.Col>
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

@@ -3,11 +3,13 @@ import { ActionIcon, Group } from "@mantine/core";
 import {
   CaretLeftIcon,
   HouseIcon,
+  ListMagnifyingGlassIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import ProfileButton from "./ProfileButton";
 import { Link, useLocation } from "react-router";
+import { useInteraction } from "../../../contexts/InteractionContext";
 
 export default function MobileBar() {
   const {
@@ -43,6 +45,14 @@ export default function MobileBar() {
   const { pathname } = useLocation();
   const isHome = pathname === "/";
 
+  const {
+    actions: {
+      layout: {
+        spotlight: { open: openSpotlight },
+      },
+    },
+  } = useInteraction();
+
   return (
     <div
       className={`${styles.mobileBar} ${isScrolled ? styles.scrolled : ""} ${leftModeClass} ${rightModeClass}`}
@@ -77,6 +87,9 @@ export default function MobileBar() {
             <CaretLeftIcon />
           </ActionIcon>
         )}
+        <ActionIcon variant="subtle" onClick={openSpotlight}>
+          <ListMagnifyingGlassIcon />
+        </ActionIcon>
         <ProfileButton />
       </Group>
     </div>

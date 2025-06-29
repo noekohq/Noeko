@@ -17,9 +17,9 @@ import { triggerDownload } from "../../utils/helpers";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import { ArrowLeft } from "@phosphor-icons/react";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
+import Content from "../../components/UI/Layout/Content";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -86,8 +86,8 @@ export default function UserFile() {
 
   return (
     <PageWrapper>
-      <LeftSidebar forceCollapsed />
-      <div className={styles.file}>
+      <LeftSidebar />
+      <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Viewing file</Title>
@@ -115,7 +115,7 @@ export default function UserFile() {
             </Card>
           </Grid.Col>
         </Grid>
-      </div>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

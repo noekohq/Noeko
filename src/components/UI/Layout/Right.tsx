@@ -6,18 +6,27 @@ import {
   ArrowLineRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  ChatCircleDots,
+  ChatCircleDotsIcon,
+  ListMagnifyingGlassIcon,
   SidebarSimpleIcon,
+  UsersIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Flex, Group, Stack } from "@mantine/core";
+import { ActionIcon, Flex, Group, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import ProfileButton from "./ProfileButton";
+import { useAuth } from "../../../contexts/AuthContext";
+import { userIsSuperuser } from "../../../utils/user";
+import { useInteraction } from "../../../contexts/InteractionContext";
+import { useNavigate } from "react-router";
 
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
 }
 
 const RightSidebar = ({ children }: IRightSidebarProps) => {
+  const navigate = useNavigate();
   const {
     elements: {
       rightSidebar: {
@@ -27,6 +36,8 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
     },
     isMobile,
   } = useLayout();
+  const { user } = useAuth();
+  const isSuperuser = userIsSuperuser(user);
 
   useEffect(() => {
     setHasContent(!!children);
@@ -34,16 +45,32 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
 
   const openable = !!children;
 
+  useEffect(() => {
+    if (!openable) {
+      setMode("collapsed");
+    }
+  }, [openable]);
+
   useShortcuts({
-    shortcuts: [
-      {
-        keys: { ctrl: true, key: "l" },
-        run: () => {
-          toggleMode();
-        },
-      },
-    ],
+    shortcuts: openable
+      ? [
+          {
+            keys: { ctrl: true, key: "l" },
+            run: () => {
+              toggleMode();
+            },
+          },
+        ]
+      : [],
   });
+
+  const {
+    actions: {
+      layout: {
+        spotlight: { open: openSpotlight },
+      },
+    },
+  } = useInteraction();
 
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
@@ -60,12 +87,21 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
           </ActionIcon>
         )}
         <Group>
+          {isSuperuser && (
+            <>
+              <Tooltip label="Open spotlight">
+                <ActionIcon variant="light" onClick={openSpotlight}>
+                  <ListMagnifyingGlassIcon />
+                </ActionIcon>
+              </Tooltip>
+            </>
+          )}
           <ProfileButton />
         </Group>
       </Group>
     ),
     collapsed: (
-      <Stack>
+      <Stack align="center">
         {openable && (
           <ActionIcon
             onClick={() => {
@@ -78,6 +114,31 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
           </ActionIcon>
         )}
         <ProfileButton />
+        <ActionIcon variant="light" onClick={openSpotlight} size="sm">
+          <ListMagnifyingGlassIcon size={16} />
+        </ActionIcon>
+        {isSuperuser && (
+          <>
+            <ActionIcon
+              variant="subtle"
+              onClick={() => {
+                navigate("/admin/users");
+              }}
+              size="sm"
+            >
+              <UsersIcon size={16} />
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              onClick={() => {
+                navigate("/admin/users");
+              }}
+              size="sm"
+            >
+              <ChatCircleDotsIcon size={16} />
+            </ActionIcon>
+          </>
+        )}
       </Stack>
     ),
     compact: (
@@ -118,7 +179,7 @@ RightSidebar.Open = ({ children }: IContentProps) => {
   if (mode !== "open") {
     return null;
   }
-  return <div>{children}</div>;
+  return children;
 };
 
 RightSidebar.Collapsed = ({ children }: IContentProps) => {
@@ -133,7 +194,7 @@ RightSidebar.Collapsed = ({ children }: IContentProps) => {
   if (mode !== "collapsed" || isMobile) {
     return null;
   }
-  return <div>{children}</div>;
+  return children;
 };
 
 RightSidebar.Compact = ({ children }: IContentProps) => {
@@ -147,5 +208,5 @@ RightSidebar.Compact = ({ children }: IContentProps) => {
   if (mode !== "compact") {
     return null;
   }
-  return <div>{children}</div>;
+  return children;
 };

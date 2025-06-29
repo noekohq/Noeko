@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Button,
   Card,
   Container,
@@ -14,8 +15,8 @@ import {
   Title,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { useAuth } from "../../contexts/AuthContext";
 import { getCurrentTimeOfDay } from "../../utils/datetime";
 import useFetch from "../../hooks/useFetch";
@@ -28,13 +29,20 @@ import {
 import { getOS } from "../../utils/platform";
 import Search from "../../components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
-import { ArrowRight, HandWaving, Plus, Scroll } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  HandWaving,
+  MagnifyingGlassIcon,
+  Plus,
+  Scroll,
+} from "@phosphor-icons/react";
 import { handleCreateNewIdea } from "../../utils/ideas";
 import { Link, useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
 import { userIsSuperuser } from "../../utils/user";
 import { useInteraction } from "../../contexts/InteractionContext";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -52,6 +60,11 @@ export default function Dashboard() {
   });
 
   const {
+    elements: {
+      rightSidebar: {
+        mode: { set: setRightSidebar },
+      },
+    },
     leftSidebar: { opened: leftSidebarOpened },
     rightSidebar: { opened: rightSidebarOpened },
   } = useLayout();
@@ -115,44 +128,37 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
-      <LeftSidebar forceCollapsed={isMobile}>
-        {!isMobile && (
-          <>
-            <Text c="dimmed" size="sm">
-              {getStatusText()}
-            </Text>
-            <Space my="md" />
-            {leftSidebarOpened && (
-              <Stack>
-                <Group align="baseline" gap="sm">
-                  <Title order={3}>Recent Ideas</Title>
-                  <Link
-                    to="/ideas"
-                    style={{
-                      textDecoration: "none",
-                    }}
-                  >
-                    <Text c="dimmed" size="xs" fw="bold">
-                      VIEW ALL
-                    </Text>
-                  </Link>
-                </Group>
-                {dashboardData?.recentIdeas &&
-                  dashboardData.recentIdeas.map((idea) => {
-                    return (
-                      <CompactIdeaCard
-                        idea={idea}
-                        key={idea.id.toString()}
-                        link
-                      />
-                    );
-                  })}
-              </Stack>
-            )}
-          </>
-        )}
+      <LeftSidebar>
+        <LeftSidebar.Open>
+          <Text c="dimmed" size="sm">
+            {getStatusText()}
+          </Text>
+          <Space my="lg" />
+          <Group align="baseline" gap="sm">
+            <Title order={3}>Recent Ideas</Title>
+            <Link
+              to="/ideas"
+              style={{
+                textDecoration: "none",
+              }}
+            >
+              <Text c="dimmed" size="xs" fw="bold">
+                VIEW ALL
+              </Text>
+            </Link>
+          </Group>
+          <Space my="sm" />
+          <Stack gap="xs">
+            {dashboardData?.recentIdeas &&
+              dashboardData.recentIdeas.map((idea) => {
+                return (
+                  <CompactIdeaCard idea={idea} key={idea.id.toString()} link />
+                );
+              })}
+          </Stack>
+        </LeftSidebar.Open>
       </LeftSidebar>
-      <Container py="lg" w="100%">
+      <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Group>
@@ -200,21 +206,10 @@ export default function Dashboard() {
                       </Group>
                     </Button>
                   </Link>
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      toggleRightSidebar();
-                    }}
-                  >
-                    <Group>
-                      <Text>Find an idea</Text>
-                      <Kbd>{primaryKey} + /</Kbd>
-                    </Group>
-                  </Button>
                   <Link to="/graph">
                     <Button variant="default">
                       <Group>
-                        <Text>Graph view</Text>
+                        <Text>Your Constellation</Text>
                         <Kbd>{primaryKey} + G</Kbd>
                       </Group>
                     </Button>
@@ -304,8 +299,23 @@ export default function Dashboard() {
             )}
           </Grid.Col>
         </Grid>
-      </Container>
-      <RightSidebar openOnShortcut={[{ key: "/" }]} />
+      </Content>
+      <RightSidebar>
+        <RightSidebar.Collapsed>
+          <ActionIcon
+            onClick={() => {
+              setRightSidebar("open");
+            }}
+            variant="subtle"
+            size="sm"
+          >
+            <MagnifyingGlassIcon size={16} />
+          </ActionIcon>
+        </RightSidebar.Collapsed>
+        <RightSidebar.Open>
+          <Search />
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }

@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/RightSidebar";
 import useFetch from "../../hooks/useFetch"; // Adjust the import path as needed
 import { useForm } from "@mantine/form";
@@ -29,6 +29,7 @@ import {
 import { InlineTag } from "../../components/Tags/TagDisplay";
 import { Link } from "react-router";
 import styles from "./Tags.module.scss";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Tags() {
   const {
@@ -108,7 +109,7 @@ export default function Tags() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" pt="lg" className={styles.tags}>
+      <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Your tags</Title>
@@ -194,7 +195,6 @@ export default function Tags() {
               </Table.Tbody>
             </Table>
           </Grid.Col>
-          {/* Display errors below the table */}
           {createTagErrors.length > 0 && (
             <Grid.Col span={12}>
               <Text c="red" size="sm" mt="sm">
@@ -203,13 +203,12 @@ export default function Tags() {
             </Grid.Col>
           )}
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );
 }
 
-// Define TagRowProps interface and TagRow component below the Tags component
 interface TagRowProps {
   tag: ITag;
   onTagUpdated: () => void;
@@ -217,10 +216,9 @@ interface TagRowProps {
 
 const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [deleteModalOpened, setDeleteModalOpened] = useState(false); // State for delete modal
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
 
   const editForm = useForm<Partial<ITagForm>>({
-    // Use Partial<ITagForm> for flexibility
     initialValues: {
       name: tag.name,
       description: tag.description || "",
@@ -238,14 +236,13 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     url: `/tags/${tag.id.toString()}`,
     method: "PUT",
     body: editForm.getTransformedValues(),
-    dependencies: [editForm], // This should be editForm.values or specific fields if you want to control re-fetch more precisely
+    dependencies: [editForm],
     onSuccess: (data) => {
-      onTagUpdated(); // This will trigger loadTags in the parent
+      onTagUpdated();
       setIsEditing(false);
     },
     onError: (error) => {
       console.error("Failed to update tag:", error);
-      // Errors are in updateTagErrors and can be displayed
     },
   });
 
@@ -257,12 +254,11 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     url: `/tags/${tag.id.toString()}`,
     method: "DELETE",
     onSuccess: () => {
-      onTagUpdated(); // Refresh the tags list
-      setDeleteModalOpened(false); // Close modal on success
+      onTagUpdated();
+      setDeleteModalOpened(false);
     },
     onError: (error) => {
       console.error("Failed to delete tag:", error);
-      // Errors are in deleteTagErrors and can be displayed in the modal
     },
   });
 
@@ -275,42 +271,31 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     const currentValues = editForm.getTransformedValues();
     const valuesToUpdate: Partial<ITagForm> = {};
 
-    // Only include changed values to send in the PUT request
     if (currentValues.name !== tag.name) {
       valuesToUpdate.name = currentValues.name;
     }
     if (currentValues.description !== (tag.description || "")) {
       valuesToUpdate.description = currentValues.description;
     }
-
-    // If valuesToUpdate is empty, it means no actual changes were made to be saved
-    // However, useFetch body is already set to editForm.getTransformedValues()
-    // We trigger updateTag which will send the current form values regardless
-    // Consider changing the logic to only call updateTag if Object.keys(valuesToUpdate).length > 0
-    // and then pass valuesToUpdate as the body. For now, it sends all fields on save.
     if (Object.keys(valuesToUpdate).length > 0) {
-      await updateTag(); // This will use the body defined in useFetch, which is fine
+      await updateTag();
     } else {
-      setIsEditing(false); // No changes, just exit edit mode
+      setIsEditing(false);
     }
   };
 
   const handleCancel = () => {
-    editForm.reset(); // Resets to initialValues defined in useForm for this row
+    editForm.reset();
     setIsEditing(false);
   };
 
   const openDeleteModal = () => setDeleteModalOpened(true);
   const closeDeleteModal = () => {
     setDeleteModalOpened(false);
-    // It might be good practice to clear deleteTagErrors when closing the modal manually
-    // if useFetch doesn't clear them automatically on subsequent non-error calls.
-    // For now, we assume errors are cleared or irrelevant if the modal is simply closed.
   };
 
   const handleDeleteConfirm = async () => {
     await deleteTag();
-    // Modal will be closed on success by deleteTag's onSuccess handler
   };
 
   if (isEditing) {

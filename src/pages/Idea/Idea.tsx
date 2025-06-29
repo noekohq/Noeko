@@ -18,25 +18,26 @@ import {
   Flex,
   Menu,
   CopyButton,
+  Stack,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import {
-  ArrowRight,
-  BracketsAngle,
-  Check,
-  CopySimple,
-  CursorText,
-  MarkdownLogo,
-  Sparkle,
-  TrashSimple,
+  BookOpenIcon,
+  BracketsAngleIcon,
+  CheckIcon,
+  CopySimpleIcon,
+  CursorTextIcon,
+  MarkdownLogoIcon,
+  SparkleIcon,
+  TrashSimpleIcon,
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import Connections from "./Connections";
 import Overview from "./Overview";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { useLayout } from "../../contexts/LayoutContext";
 import { getTextProcessed } from "../../utils/processing";
 import { htmlToPlainText } from "../../utils/formatting";
@@ -45,6 +46,7 @@ import { api } from "../../server/api";
 import TagsManager from "./TagsManager";
 import { downloadTextAsFile } from "../../utils/files";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -201,45 +203,6 @@ export default function Idea() {
 
   const showStatusBlock = statusText().length > 0;
 
-  const [toolbarStyles, setToolbarStyles] = useState<{
-    left: string;
-    width: string;
-  }>();
-
-  const ideaRef = useRef<HTMLDivElement>(null);
-
-  const updateFixedStyle = useCallback(() => {
-    if (isMobile) {
-      return;
-    }
-    if (ideaRef.current) {
-      const parentRect = ideaRef.current.getBoundingClientRect();
-
-      setToolbarStyles({
-        width: `${parentRect.width}px`,
-        left: `${parentRect.left}px`,
-      });
-    }
-  }, [isMobile]);
-
-  useEffect(() => {
-    const parentElement = ideaRef.current;
-    if (!parentElement) {
-      return;
-    }
-
-    updateFixedStyle();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateFixedStyle();
-    });
-    resizeObserver.observe(parentElement);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [updateFixedStyle, leftSidebarOpened, rightSidebarOpened]);
-
   const updateContent = async (newContent: string) => {
     setLoadingSaveChanges(true);
     await api
@@ -380,10 +343,7 @@ export default function Idea() {
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (loadingSaveChanges) {
-        // Standard way to show a confirmation dialog
-        // Most browsers will show a generic message, not the one you provide.
         event.preventDefault();
-        // Required for Chrome
         event.returnValue = "";
       }
     };
@@ -394,20 +354,18 @@ export default function Idea() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     }
 
-    // Cleanup function to remove the event listener when the component unmounts
-    // or before the effect runs again if hasUnsavedChanges changes.
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [loadingSaveChanges]); // Re-run the effect if loadingSaveChanges changes
+  }, [loadingSaveChanges]);
 
   return (
     <PageWrapper>
       <LeftSidebar>
-        <>
+        <LeftSidebar.Open>
           <Card radius="md" withBorder shadow="xs" p="md">
             <Text fw={500} c="dimmed" size="sm" mb={4}>
-              <Sparkle
+              <SparkleIcon
                 weight="bold"
                 style={{
                   verticalAlign: "middle",
@@ -448,26 +406,23 @@ export default function Idea() {
               />
             </>
           )}
-        </>
+        </LeftSidebar.Open>
       </LeftSidebar>
-      <div className={styles.idea} ref={ideaRef}>
-        {/* {loadingIdea && <Loading size="md" />} */}
-        <>
-          <Grid>
-            <Grid.Col span={{ base: 12 }}>
+      <Content>
+        <div className={styles.ideaContainer}>
+          <div className={styles.topbox}>
+            <Stack gap="md">
               <Title
                 order={1}
+                m="0"
                 contentEditable
                 suppressContentEditableWarning
                 onBlur={(e) => {
                   updateTitle(e.currentTarget.innerText);
                 }}
                 dangerouslySetInnerHTML={{ __html: title || "" }}
-                className={styles.editableTitle} // Add custom style for focus/blur
+                className={styles.editableTitle}
               />
-            </Grid.Col>
-
-            <Grid.Col span={{ base: 12 }}>
               {idea && (
                 <IdeaProvider
                   idea={idea}
@@ -487,105 +442,98 @@ export default function Idea() {
                   />
                 </IdeaProvider>
               )}
-            </Grid.Col>
-          </Grid>
+            </Stack>
+          </div>
           {showStatusBlock && (
-            <div
-              className={`${styles.toolbar} ${rightSidebarOpened ? styles.rightSidebarOpen : ""}`}
-              style={{
-                width:
-                  toolbarStyles && !isMobile ? toolbarStyles.width : undefined,
-                left:
-                  toolbarStyles && !isMobile ? toolbarStyles.left : undefined,
-              }}
-            >
+            <div className={`${styles.toolbar}`}>
               <Group justify="space-between" align="center">
-                <Text size="sm">{statusText()}</Text>
+                <Text size="xs" c="dimmed">
+                  {statusText()}
+                </Text>
               </Group>
             </div>
           )}
-        </>
-      </div>
+        </div>
+      </Content>
       <RightSidebar>
-        {rightSidebarOpened && (
-          <>
-            <Flex gap="sm" justify="">
-              <Tooltip label="Delete Idea">
-                <ActionIcon
-                  variant="light"
-                  color="red"
-                  size="md"
-                  onClick={handleDeleteIdea}
-                  disabled={loadingDelete}
-                >
-                  {loadingDelete ? <Loader size="xs" /> : <TrashSimple />}
+        <RightSidebar.Open>
+          <Divider mb="md" />
+          <Flex gap="sm" justify="space-between">
+            <Tooltip label="Delete Idea">
+              <ActionIcon
+                variant="light"
+                color="red"
+                size="md"
+                onClick={handleDeleteIdea}
+                disabled={loadingDelete}
+              >
+                {loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Viewonly">
+              <Link to="view">
+                <ActionIcon variant="default" size="md">
+                  <BookOpenIcon />
                 </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Viewonly">
-                <Link to="view">
+              </Link>
+            </Tooltip>
+            <Tooltip label="Export as HTML">
+              <ActionIcon variant="default" size="md" onClick={downloadAsHTML}>
+                <BracketsAngleIcon />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Export as Markdown">
+              <ActionIcon
+                variant="default"
+                size="md"
+                onClick={downloadAsMarkdown}
+              >
+                <MarkdownLogoIcon />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Copy as Markdown">
+              <Menu trigger="hover">
+                <Menu.Target>
                   <ActionIcon variant="default" size="md">
-                    <ArrowRight />
+                    <CopySimpleIcon />
                   </ActionIcon>
-                </Link>
-              </Tooltip>
-              <Tooltip label="Export as HTML">
-                <ActionIcon
-                  variant="default"
-                  size="md"
-                  onClick={downloadAsHTML}
-                >
-                  <BracketsAngle />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Export as Markdown">
-                <ActionIcon
-                  variant="default"
-                  size="md"
-                  onClick={downloadAsMarkdown}
-                >
-                  <MarkdownLogo />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Copy as Markdown">
-                <Menu trigger="hover">
-                  <Menu.Target>
-                    <ActionIcon variant="default" size="md">
-                      <CopySimple />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <CopyButton value={getMarkdownContent()}>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <CopyButton value={getMarkdownContent()}>
+                    {({ copied, copy }) => {
+                      return (
+                        <Menu.Item
+                          leftSection={
+                            copied ? <CheckIcon /> : <MarkdownLogoIcon />
+                          }
+                          onClick={copy}
+                        >
+                          Copy as Markdown
+                        </Menu.Item>
+                      );
+                    }}
+                  </CopyButton>
+                  {idea?.content && (
+                    <CopyButton value={htmlToPlainText(idea?.content)}>
                       {({ copied, copy }) => {
                         return (
                           <Menu.Item
-                            leftSection={copied ? <Check /> : <MarkdownLogo />}
+                            leftSection={
+                              copied ? <CheckIcon /> : <CursorTextIcon />
+                            }
                             onClick={copy}
                           >
-                            Copy as Markdown
+                            Copy as Text
                           </Menu.Item>
                         );
                       }}
                     </CopyButton>
-                    {idea?.content && (
-                      <CopyButton value={htmlToPlainText(idea?.content)}>
-                        {({ copied, copy }) => {
-                          return (
-                            <Menu.Item
-                              leftSection={copied ? <Check /> : <CursorText />}
-                              onClick={copy}
-                            >
-                              Copy as Text
-                            </Menu.Item>
-                          );
-                        }}
-                      </CopyButton>
-                    )}
-                  </Menu.Dropdown>
-                </Menu>
-              </Tooltip>
-            </Flex>
-          </>
-        )}
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            </Tooltip>
+          </Flex>
+        </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>
   );
