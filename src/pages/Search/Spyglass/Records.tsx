@@ -15,13 +15,14 @@ import {
   Button,
 } from "@mantine/core";
 import PageWrapper from "../../../components/Layout/PageWrapper";
-import LeftSidebar from "../../../components/UI/LeftSidebar";
-import RightSidebar from "../../../components/UI/RightSidebar";
+import LeftSidebar from "../../../components/UI/Layout/Left";
+import RightSidebar from "../../../components/UI/Layout/Right";
 import styles from "./Records.module.scss";
 import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  CaretLeftIcon,
   DotsThreeIcon,
 } from "@phosphor-icons/react";
 import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
@@ -29,6 +30,7 @@ import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { Link } from "react-router";
+import Content from "../../../components/UI/Layout/Content";
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();
@@ -145,21 +147,24 @@ export default function SpyglassHistory() {
       </Drawer>
       <PageWrapper>
         <LeftSidebar />
-        <Container className={styles.container} py="lg" fluid>
+        <Content>
           <Stack>
-            <Group>
-              <Link to="/spyglass">
-                <Button
-                  radius="lg"
-                  leftSection={<ArrowLeftIcon />}
-                  size="sm"
-                  variant="subtle"
-                >
-                  Back to Spyglass
-                </Button>
+            <Group mb="lg">
+              <Link
+                to="/spyglass"
+                style={{
+                  textDecoration: "none",
+                }}
+              >
+                <Group c="dark.3" gap="xs">
+                  <CaretLeftIcon weight="bold" size={13} />
+                  <Text c="dark.3" size="sm">
+                    Back to Spyglass
+                  </Text>
+                </Group>
               </Link>
             </Group>
-            <Title order={2} mb="md">
+            <Title order={2} mb="sm">
               Your Spyglass History
             </Title>
 
@@ -271,7 +276,7 @@ export default function SpyglassHistory() {
               </Center>
             )}
           </Stack>
-        </Container>
+        </Content>
         <RightSidebar />
       </PageWrapper>
     </>

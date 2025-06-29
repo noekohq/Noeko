@@ -16,8 +16,8 @@ import {
   TextInput,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import { Link, useNavigate, useParams } from "react-router";

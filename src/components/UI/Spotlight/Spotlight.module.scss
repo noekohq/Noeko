@@ -7,7 +7,7 @@
     right: 0;
     bottom: 0;
     backdrop-filter: blur(4px) brightness(0.45);
-    z-index: 100;
+    z-index: 600;
     text-align: center;
     padding-top: 15vh;
     display: flex;
@@ -52,7 +52,7 @@
         background-color: transparent;
         border: none;
         transition: all 0.2s ease-in-out;
-        z-index: 105;
+        z-index: 605;
         font-size: 22px;
         padding: 8px 8px;
 
@@ -78,7 +78,7 @@
         width: var(--spotlight-width);
         transition: all 0.2s ease-in-out;
         color: var(--mantine-color-dark-1);
-        z-index: 110;
+        z-index: 610;
 
         &:focus {
             outline: none;

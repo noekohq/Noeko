@@ -14,8 +14,10 @@ import { validateEmail } from "../../utils/data";
 import useFetch from "../../hooks/useFetch";
 import { IUser, IUserForm } from "../../../app/database/models/user";
 import { showNotification } from "@mantine/notifications";
-import RightSidebar from "../../components/UI/RightSidebar";
 import PageWrapper from "../../components/Layout/PageWrapper";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Profile() {
   const { user, reload: reloadUser } = useAuth();
@@ -86,7 +88,8 @@ export default function Profile() {
 
   return (
     <PageWrapper>
-      <Container p="lg">
+      <LeftSidebar />
+      <Content>
         <Grid>
           <Grid.Col span={12}>
             <Title order={1}>Profile</Title>
@@ -156,7 +159,7 @@ export default function Profile() {
             </Group>
           </Grid.Col>
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

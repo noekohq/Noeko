@@ -9,8 +9,8 @@ import { GraphToolbar } from "./GraphToolbar";
 import { dbGraphToLocalGraph } from "../../utils/graph";
 import { Group, Loader, Text } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { GraphNavigation } from "./GraphHeavyNavigation";
 import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 
@@ -55,7 +55,9 @@ export default function GraphHeavy() {
   return (
     <PageWrapper>
       <LeftSidebar>
-        {localData && <GraphNavigation graph={localData} />}
+        <LeftSidebar.Open>
+          {localData && <GraphNavigation graph={localData} />}
+        </LeftSidebar.Open>
       </LeftSidebar>
       <div ref={containerRef} className={styles.container}>
         {isLoaded ? (
@@ -93,11 +95,13 @@ export default function GraphHeavy() {
           </Group>
         )}
       </div>
-      <RightSidebar openOnShortcut={[{ key: "/" }]} omitDefaults>
-        {!isLoaded && <Loader size="sm" />}
-        {isLoaded && (
-          <GraphToolbar nodes={localData.nodes} flags={graphData.flags} />
-        )}
+      <RightSidebar>
+        <RightSidebar.Open>
+          {!isLoaded && <Loader size="sm" />}
+          {isLoaded && (
+            <GraphToolbar nodes={localData.nodes} flags={graphData.flags} />
+          )}
+        </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>
   );

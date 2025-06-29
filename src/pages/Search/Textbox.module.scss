@@ -5,10 +5,10 @@
     height: 100%;
     box-sizing: border-box;
     background-color: var(--mantine-color-dark-8);
-    border-radius: var(--mantine-radius-lg);
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
-    border: 1.5px solid transparent;
+    border: 1.5px solid var(--mantine-color-dark-7);
     transition: width 0.2s ease-out;
 
     &.initialized {
@@ -29,7 +29,7 @@
     }
 
     &:focus-within {
-        border-color: var(--mantine-color-dark-7);
+        border-color: var(--mantine-color-dark-6);
     }
 
     textarea {
@@ -40,7 +40,7 @@
         color: var(--mantine-color-dark-1);
         background-color: transparent;
         border: none;
-        padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+        padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
         box-sizing: border-box;
         transition:
             padding 0.2s ease-out,
@@ -48,11 +48,11 @@
         scrollbar-width: none;
 
         &:focus {
-            padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
+            padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
         }
 
         &::placeholder {
-            color: var(--mantine-color-dark-5);
+            color: var(--mantine-color-dark-4);
         }
     }
 
