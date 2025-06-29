@@ -94,3 +94,13 @@ export function getCssVariableValue(
   );
   return "";
 }
+
+export const extractNumberFromCSSValue = (
+  variableName: string,
+  element: HTMLElement = document.documentElement,
+): number => {
+  const value = getCssVariableValue(variableName, element);
+  // 20px -> 20, 50vw -> 50
+  const match = value.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+};

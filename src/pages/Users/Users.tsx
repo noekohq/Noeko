@@ -42,9 +42,10 @@ import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { validateEmail } from "../../utils/data";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import styles from "./Users.module.scss";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Users() {
   const {
@@ -328,7 +329,7 @@ export default function Users() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container p="lg" className={styles.users}>
+      <Content>
         <Modal
           opened={!!toDisable}
           title="Disable user"
@@ -830,7 +831,7 @@ export default function Users() {
             </Table>
           </Grid.Col>
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

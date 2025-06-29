@@ -1,3 +1,5 @@
+import { useLayout } from "../../contexts/LayoutContext";
+import MobileBar from "../UI/Layout/MobileBar";
 import styles from "./PageWrapper.module.scss";
 
 type PageWrapperProps = {
@@ -5,5 +7,12 @@ type PageWrapperProps = {
 };
 
 export default function PageWrapper({ children }: PageWrapperProps) {
-  return <div className={styles.pageWrapper}>{children}</div>;
+  const { isMobile } = useLayout();
+  return (
+    <div className={styles.pageWrapper}>
+      {children}
+
+      {isMobile && <MobileBar />}
+    </div>
+  );
 }

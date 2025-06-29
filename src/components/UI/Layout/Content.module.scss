@@ -1,0 +1,95 @@
+@use "../../../styles/mixins.scss" as *;
+
+:root {
+    --content-space: calc(var(--layout-spacing) * 2);
+}
+
+.content {
+    display: block;
+    width: var(--content-width);
+    height: 100vh;
+    padding-top: var(--mobile-bar-height);
+    padding-inline: var(--content-space);
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--mantine-color-dark-7) transparent;
+    transition:
+        margin-left 0.2s ease-in-out,
+        margin-right 0.2s ease-in-out;
+
+    @include tablet {
+        padding-inline: initial;
+        padding-top: var(--mantine-spacing-sm);
+        margin-top: 0;
+        height: calc(100vh);
+    }
+
+    @include desktop {
+    }
+}
+
+@keyframes leftOpened {
+    0% {
+    }
+    100% {
+    }
+}
+
+@keyframes leftClosed {
+    0% {
+    }
+    100% {
+    }
+}
+
+.leftOpen {
+    @include tablet {
+        margin-left: calc(var(--sidebar-width) + (var(--layout-spacing) * 2));
+        overflow-x: hidden;
+    }
+
+    @include desktop {
+        padding-left: var(--content-space);
+        margin-left: 0;
+    }
+}
+
+.leftCollapsed {
+    @include tablet {
+        padding-left: calc(
+            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
+        );
+    }
+
+    @include desktop {
+        padding-left: var(--content-space);
+        margin-left: 0;
+    }
+}
+
+.rightOpen {
+    @include tablet {
+        margin-right: calc(var(--sidebar-width) + (var(--layout-spacing) * 2));
+        overflow-x: hidden;
+    }
+
+    @include desktop {
+        padding-right: var(--content-space);
+        margin-right: 0;
+    }
+}
+
+.rightCollapsed {
+    @include tablet {
+        padding-right: calc(
+            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
+        );
+    }
+
+    @include desktop {
+        padding-right: var(--content-space);
+        margin-right: 0;
+    }
+}

@@ -115,7 +115,7 @@ export default function ResetPassword() {
       }}
     >
       <Flex direction="column" justify="center" align="center" h="100%">
-        <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg">
+        <Card w={{ xs: "90vw", sm: "50vw", lg: "30vw" }} p="lg" radius="lg">
           <Grid>
             {loadingReset && (
               <Grid.Col span={12}>

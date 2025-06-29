@@ -15,13 +15,14 @@ import {
   Title,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { Link } from "react-router";
 import React, { useState } from "react";
 import { useInteraction } from "../../contexts/InteractionContext";
-import { MegaphoneSimple } from "@phosphor-icons/react";
+import { MegaphoneSimple, MegaphoneSimpleIcon } from "@phosphor-icons/react";
 import { capitalize, formatDate } from "../../utils/formatting";
+import Content from "../../components/UI/Layout/Content";
 
 type IUpdate = {
   title: string;
@@ -239,14 +240,7 @@ export default function Updates() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container
-        w="100%"
-        pt="lg"
-        style={{
-          overflowY: "auto",
-          scrollbarWidth: "none",
-        }}
-      >
+      <Content>
         <Stack>
           <Title>Qwest Updates</Title>
           <Text c="dimmed" size="sm">
@@ -257,7 +251,7 @@ export default function Updates() {
           <Group>
             <Button
               variant="light"
-              leftSection={<MegaphoneSimple />}
+              leftSection={<MegaphoneSimpleIcon />}
               onClick={() => {
                 openFeedbackModal();
               }}
@@ -288,7 +282,7 @@ export default function Updates() {
             <Group>
               <Button
                 variant="light"
-                leftSection={<MegaphoneSimple />}
+                leftSection={<MegaphoneSimpleIcon />}
                 onClick={() => {
                   openFeedbackModal();
                 }}
@@ -368,7 +362,7 @@ export default function Updates() {
             {openedUpdate?.details}
           </Drawer>
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

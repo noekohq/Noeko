@@ -44,17 +44,40 @@
         padding: 0 0.4rem;
         margin: 0 0.2rem;
     }
-}
 
-html {
+    --sidebar-width: 90vw;
+    --sidebar-width-collapsed: 24px;
+    --content-width: 100%;
+    --mobile-bar-height: 48px;
+    --layout-spacing: 8px;
+
+    @include tablet {
+        --sidebar-width: 40vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 100%;
+        --mobile-bar-height: 48px;
+    }
+
     @include desktop {
-        --sidebar-width: 36vw;
+        --sidebar-width: 22vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 56vw;
     }
 
     @include widescreen {
-        --sidebar-width: 34vw;
+        --sidebar-width: 20vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 55vw;
     }
 
+    @include ultrawide {
+        --sidebar-width: 20vw;
+        --sidebar-width-collapsed: 48px;
+        --content-width: 55vw;
+    }
+}
+
+html {
     scrollbar-width: thin;
     scrollbar-color: var(--mantine-color-dark-5) transparent;
 }
