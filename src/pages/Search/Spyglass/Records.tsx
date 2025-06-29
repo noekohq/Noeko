@@ -15,8 +15,8 @@ import {
   Button,
 } from "@mantine/core";
 import PageWrapper from "../../../components/Layout/PageWrapper";
-import LeftSidebar from "../../../components/UI/LeftSidebar";
-import RightSidebar from "../../../components/UI/RightSidebar";
+import LeftSidebar from "../../../components/UI/Layout/Left";
+import RightSidebar from "../../../components/UI/Layout/Right";
 import styles from "./Records.module.scss";
 import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
@@ -30,6 +30,7 @@ import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { Link } from "react-router";
+import Content from "../../../components/UI/Layout/Content";
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();
@@ -146,7 +147,7 @@ export default function SpyglassHistory() {
       </Drawer>
       <PageWrapper>
         <LeftSidebar />
-        <Container className={styles.container} py="lg" fluid>
+        <Content>
           <Stack>
             <Group mb="lg">
               <Link
@@ -275,7 +276,7 @@ export default function SpyglassHistory() {
               </Center>
             )}
           </Stack>
-        </Container>
+        </Content>
         <RightSidebar />
       </PageWrapper>
     </>

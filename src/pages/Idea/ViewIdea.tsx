@@ -13,10 +13,11 @@ import { IIdeaForm } from "../../../app/database/models/ideas";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./ViewIdea.module.scss";
 import { useAuth } from "../../contexts/AuthContext";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { Pencil } from "@phosphor-icons/react";
 import { useEffect } from "react";
+import Content from "../../components/UI/Layout/Content";
 
 export default function ViewIdea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -56,14 +57,18 @@ export default function ViewIdea() {
   return (
     <PageWrapper>
       {loggedIn && <LeftSidebar />}
-      <Container className={styles.viewIdea} pt="lg">
+      <Content>
         <Stack>
           <Group>
             <Title>{idea?.title}</Title>
             <Group>
               <Tooltip label="Edit Idea">
-                <ActionIcon onClick={() => navigate(`/idea/${ideaId}`)}>
-                  <Pencil />
+                <ActionIcon
+                  variant="subtle"
+                  onClick={() => navigate(`/idea/${ideaId}`)}
+                  c="dark.6"
+                >
+                  <Pencil size={24} />
                 </ActionIcon>
               </Tooltip>
             </Group>
@@ -74,7 +79,7 @@ export default function ViewIdea() {
             }}
           />
         </Stack>
-      </Container>
+      </Content>
       {loggedIn && <RightSidebar />}
     </PageWrapper>
   );

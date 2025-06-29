@@ -59,21 +59,21 @@
     }
 
     @include desktop {
-        --sidebar-width: 20vw;
+        --sidebar-width: 22vw;
         --sidebar-width-collapsed: 48px;
-        --content-width: 60vw;
+        --content-width: 56vw;
     }
 
     @include widescreen {
-        --sidebar-width: 18vw;
+        --sidebar-width: 20vw;
         --sidebar-width-collapsed: 48px;
-        --content-width: 64vw;
+        --content-width: 55vw;
     }
 
     @include ultrawide {
-        --sidebar-width: 18vw;
+        --sidebar-width: 20vw;
         --sidebar-width-collapsed: 48px;
-        --content-width: 64vw;
+        --content-width: 55vw;
     }
 }
 

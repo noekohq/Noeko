@@ -34,6 +34,7 @@ import CountUp from "../../components/Utils/Animations/Countup";
 import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import Content from "../../components/UI/Layout/Content";
+import Search from "../../components/Search/Search";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -346,6 +347,13 @@ export default function Spyglass() {
             </Stack>
           )}
         </LeftSidebar.Open>
+        <LeftSidebar.Collapsed>
+          {overview.findings.length > 0 && (
+            <ActionIcon variant="light" size="sm" radius="md">
+              <Text size="xs">{overview.findings.length}</Text>
+            </ActionIcon>
+          )}
+        </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
         <Flex
@@ -496,7 +504,7 @@ export default function Spyglass() {
       {/* <RightSidebar></RightSidebar> */}
       <RightSidebar>
         <RightSidebar.Open>
-          <Text>This is a test</Text>
+          <Search />
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

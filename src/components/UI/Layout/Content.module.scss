@@ -12,10 +12,9 @@
     padding-inline: var(--content-space);
     box-sizing: border-box;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--mantine-color-dark-7) transparent;
-    scrollbar-gutter: stable both-edges;
     transition:
         margin-left 0.2s ease-in-out,
         margin-right 0.2s ease-in-out;

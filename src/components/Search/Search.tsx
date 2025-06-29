@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
-import styles from "./Search.module.scss";
 import { SearchBar } from "./SearchBar";
 import { Container, Space, Stack, Text } from "@mantine/core";
 import { getNodeAsIdeaOrNull } from "../../utils/graph";
@@ -9,6 +8,7 @@ import { getSearchResultPreview } from "../../utils/search";
 import { CompactIdeaCard } from "../Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
+import styles from "./Search.module.scss";
 
 export default function Search() {
   const [loading, setLoading] = useState(false);

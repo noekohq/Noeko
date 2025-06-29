@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react"; // Added useEf
 import useFetch from "../../hooks/useFetch";
 import { IIdea } from "../../../app/database/models/ideas";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import {
   Container,
   Loader,
@@ -18,10 +18,11 @@ import {
 } from "@mantine/core"; // Added Loader and Center for UX
 import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import styles from "./Ideas.module.scss";
-import { MagnifyingGlass, Plus } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, PlusIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { useLayout } from "../../contexts/LayoutContext";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Ideas() {
   const { isMobile } = useLayout();
@@ -92,7 +93,7 @@ export default function Ideas() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container className={styles.ideas} w="100%">
+      <Content>
         <Stack>
           <Title mt="md">All your great ideas...</Title>
           <Group justify="start">
@@ -106,7 +107,7 @@ export default function Ideas() {
             </Link>
             <Button
               variant="filled"
-              leftSection={<Plus weight="bold" />}
+              leftSection={<PlusIcon weight="bold" />}
               onClick={() => {
                 newIdea();
               }}
@@ -139,7 +140,7 @@ export default function Ideas() {
             </Text>
           </Center>
         )}
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

@@ -11,12 +11,13 @@ import {
   Title,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import RightSidebar from "../../components/UI/RightSidebar";
-import LeftSidebar from "../../components/UI/LeftSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import styles from "./Settings.module.scss";
 import { useSettings } from "../../contexts/SettingsContext";
 import { IThemeSpec } from "../../declarations/themes";
 import { Link } from "react-router";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Settings() {
   const {
@@ -32,7 +33,7 @@ export default function Settings() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container p="lg" w="100%" className={styles.settings}>
+      <Content>
         <Grid>
           <Grid.Col span={12}>
             <Title>Settings</Title>
@@ -153,7 +154,7 @@ export default function Settings() {
             </Card>
           </Grid.Col>
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

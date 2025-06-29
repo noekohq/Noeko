@@ -9,7 +9,7 @@ import {
   HouseSimpleIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Flex, Group, Stack } from "@mantine/core";
+import { ActionIcon, Divider, Flex, Group, Stack } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
@@ -29,23 +29,33 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     isMobile,
   } = useLayout();
 
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
+
+  const openable = !!children;
+
   useEffect(() => {
     setHasContent(!!children);
   }, [children]);
 
-  useShortcuts({
-    shortcuts: [
-      {
-        keys: { ctrl: true, key: "q" },
-        run: () => {
-          toggleMode();
-        },
-      },
-    ],
-  });
+  useEffect(() => {
+    if (!openable) {
+      setMode("collapsed");
+    }
+  }, [openable]);
 
-  const { pathname } = useLocation();
-  const isHome = pathname === "/";
+  useShortcuts({
+    shortcuts: openable
+      ? [
+          {
+            keys: { ctrl: true, key: "q" },
+            run: () => {
+              toggleMode();
+            },
+          },
+        ]
+      : [],
+  });
 
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
@@ -70,15 +80,17 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     ),
     collapsed: (
       <Stack>
-        <ActionIcon
-          onClick={() => {
-            setMode("open");
-          }}
-          variant="subtle"
-          size={"md"}
-        >
-          <SidebarSimpleIcon />
-        </ActionIcon>
+        {openable && (
+          <ActionIcon
+            onClick={() => {
+              setMode("open");
+            }}
+            variant="subtle"
+            size={"md"}
+          >
+            <SidebarSimpleIcon />
+          </ActionIcon>
+        )}
         {!isHome && (
           <Link to="/">
             <ActionIcon variant="subtle">
@@ -104,7 +116,11 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
   return (
     <aside className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}>
       <div className={styles.global}>{Global[mode]}</div>
-      <div className={styles.content}>{children}</div>
+      {!!children && (
+        <>
+          <div className={styles.content}>{children}</div>
+        </>
+      )}
     </aside>
   );
 };
@@ -126,7 +142,7 @@ LeftSidebar.Open = ({ children }: IContentProps) => {
   if (mode !== "open") {
     return null;
   }
-  return <div>{children}</div>;
+  return children;
 };
 
 LeftSidebar.Collapsed = ({ children }: IContentProps) => {
@@ -141,7 +157,7 @@ LeftSidebar.Collapsed = ({ children }: IContentProps) => {
   if (mode !== "collapsed" || isMobile) {
     return null;
   }
-  return <div>{children}</div>;
+  return children;
 };
 
 LeftSidebar.Compact = ({ children }: IContentProps) => {
@@ -155,5 +171,5 @@ LeftSidebar.Compact = ({ children }: IContentProps) => {
   if (mode !== "compact") {
     return null;
   }
-  return <div>{children}</div>;
+  return children;
 };

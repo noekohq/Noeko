@@ -11,8 +11,8 @@ import {
   Text,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import {
@@ -24,6 +24,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
+import Content from "../../components/UI/Layout/Content";
 
 export default function Admin() {
   const { referralLink } = useAuth();
@@ -50,7 +51,7 @@ export default function Admin() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <Container w="100%" mt="lg">
+      <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Admin Panel</Title>
@@ -132,7 +133,7 @@ export default function Admin() {
             </Card>
           </Grid.Col>
         </Grid>
-      </Container>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );
