@@ -30,6 +30,7 @@ import {
   Trash,
   FloppyDisk,
   X,
+  MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Tags/TagDisplay";
 import {
@@ -41,6 +42,10 @@ import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
 import { useState, useEffect } from "react";
 import { useForm } from "@mantine/form";
+import Content from "../../components/UI/Layout/Content";
+import Search from "../../components/Search/Search";
+import { useLayout } from "../../contexts/LayoutContext";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -288,71 +293,98 @@ export default function ViewTag() {
     await deleteTag();
   };
 
+  const {
+    elements: {
+      rightSidebar: {
+        mode: { set: setRightSidebar },
+      },
+    },
+  } = useLayout();
+
   return (
     <PageWrapper>
-      <LeftSidebar>
-        {!!tag && (
-          <Stack gap="md">
-            <Group>
-              <Title order={3}>Suggested Ideas</Title>
-              {loadingRelatedIdeas && <Loader size="md" />}
-            </Group>
-            {relatedIdeaErrors && relatedIdeaErrors.length > 0 && (
-              <Alert
-                icon={<WarningCircle size={24} />} // Updated icon
-                title="Error!"
-                color="red"
-                mt="md"
-              >
-                Failed to load suggested ideas: {relatedIdeaErrors.join(", ")}
-              </Alert>
-            )}
-            {!(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
-            filteredRelatedIdeas &&
-            filteredRelatedIdeas.length > 0 ? (
-              <Stack gap="md">
-                {filteredRelatedIdeas.map((idea) => (
-                  <StandardIdeaCard
-                    onCardClick={() => {
-                      navigate(`/idea/${idea.id.toString()}`);
-                    }}
-                    idea={idea}
-                    key={idea.id.toString()}
-                    actions={[
-                      {
-                        icon: <Tag />,
-                        id: "apply_tag",
-                        label: `Apply "${tag.name}"`,
-                        onClick: () => {
-                          handleAddTag(idea);
-                        },
-                        tooltip: `Apply tag ${tag.name} to ${idea.title}`,
-                      },
-                    ]}
-                  />
-                ))}
-              </Stack>
-            ) : (
-              !loadingRelatedIdeas &&
-              !(relatedIdeaErrors && relatedIdeaErrors.length > 0) && (
-                <Text c="dimmed">No similar ideas found for this tag.</Text>
-              )
-            )}
-          </Stack>
-        )}
-      </LeftSidebar>
-      <Container
-        w="100%"
-        py="xl"
-        style={{ position: "relative" }}
-        className={styles.viewtag}
-        onDragOver={() => {
-          setDraggingOver(true);
-        }}
-        onDragLeave={() => {
-          setDraggingOver(false);
-        }}
+      <Modal
+        opened={deleteModalOpened}
+        onClose={closeDeleteModal}
+        title={`Delete Tag: "${tag?.name}"`}
+        centered
       >
+        <Text size="sm">
+          Are you sure you want to delete this tag? This action cannot be undone
+          and will remove the tag from all associated ideas.
+        </Text>
+        {deleteTagErrors.length > 0 && (
+          <Text c="red" size="xs" mt="sm">
+            Failed to delete tag: {deleteTagErrors.join(", ")}
+          </Text>
+        )}
+        <Group mt="lg" justify="flex-end">
+          <Button variant="default" onClick={closeDeleteModal}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={handleDeleteConfirm}
+            loading={deleteTagLoading}
+          >
+            Delete Tag
+          </Button>
+        </Group>
+      </Modal>
+      <LeftSidebar>
+        <LeftSidebar.Open>
+          {!!tag && (
+            <Stack gap="md">
+              <Group>
+                <Title order={3}>Suggested Ideas</Title>
+                {loadingRelatedIdeas && <Loader size="md" />}
+              </Group>
+              {relatedIdeaErrors && relatedIdeaErrors.length > 0 && (
+                <Alert
+                  icon={<WarningCircle size={24} />} // Updated icon
+                  title="Error!"
+                  color="red"
+                  mt="md"
+                >
+                  Failed to load suggested ideas: {relatedIdeaErrors.join(", ")}
+                </Alert>
+              )}
+              {!(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
+              filteredRelatedIdeas &&
+              filteredRelatedIdeas.length > 0 ? (
+                <Stack gap="md">
+                  {filteredRelatedIdeas.map((idea) => (
+                    <StandardIdeaCard
+                      onCardClick={() => {
+                        navigate(`/idea/${idea.id.toString()}`);
+                      }}
+                      idea={idea}
+                      key={idea.id.toString()}
+                      actions={[
+                        {
+                          icon: <Tag />,
+                          id: "apply_tag",
+                          label: `Apply "${tag.name}"`,
+                          onClick: () => {
+                            handleAddTag(idea);
+                          },
+                          tooltip: `Apply tag ${tag.name} to ${idea.title}`,
+                        },
+                      ]}
+                    />
+                  ))}
+                </Stack>
+              ) : (
+                !loadingRelatedIdeas &&
+                !(relatedIdeaErrors && relatedIdeaErrors.length > 0) && (
+                  <Text c="dimmed">No similar ideas found for this tag.</Text>
+                )
+              )}
+            </Stack>
+          )}
+        </LeftSidebar.Open>
+      </LeftSidebar>
+      <Content>
         {draggingOver && (
           <Overlay
             backgroundOpacity={0}
@@ -519,37 +551,23 @@ export default function ViewTag() {
             </Stack>
           </Stack>
         )}
-      </Container>
-      <RightSidebar />
-
-      <Modal
-        opened={deleteModalOpened}
-        onClose={closeDeleteModal}
-        title={`Delete Tag: "${tag?.name}"`}
-        centered
-      >
-        <Text size="sm">
-          Are you sure you want to delete this tag? This action cannot be undone
-          and will remove the tag from all associated ideas.
-        </Text>
-        {deleteTagErrors.length > 0 && (
-          <Text c="red" size="xs" mt="sm">
-            Failed to delete tag: {deleteTagErrors.join(", ")}
-          </Text>
-        )}
-        <Group mt="lg" justify="flex-end">
-          <Button variant="default" onClick={closeDeleteModal}>
-            Cancel
-          </Button>
-          <Button
-            color="red"
-            onClick={handleDeleteConfirm}
-            loading={deleteTagLoading}
+      </Content>
+      <RightSidebar>
+        <RightSidebar.Collapsed>
+          <ActionIcon
+            onClick={() => {
+              setRightSidebar("open");
+            }}
+            variant="subtle"
+            size="sm"
           >
-            Delete Tag
-          </Button>
-        </Group>
-      </Modal>
+            <MagnifyingGlassIcon size={16} />
+          </ActionIcon>
+        </RightSidebar.Collapsed>
+        <RightSidebar.Open>
+          <Search />
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }
