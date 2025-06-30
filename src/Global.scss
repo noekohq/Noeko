@@ -28,6 +28,10 @@
     }
     .mantine-Menu-dropdown {
         background-color: var(--mantine-color-dark-8) !important;
+        z-index: 700 !important;
+    }
+    .mantine-HoverCard-dropdown	{
+        z-index: 800 !important;
     }
 
     --color-code-background: var(--mantine-color-dark-8);

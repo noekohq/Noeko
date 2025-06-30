@@ -171,7 +171,7 @@ export default function Dashboard() {
           <Grid.Col span={{ sm: 12 }} />
           <Grid.Col>
             {!isMobile && (
-              <Card withBorder radius="lg">
+              <Card radius="lg">
                 <Flex wrap="wrap" direction="column" align="center" gap="md">
                   <Link to="/updates">
                     <Button variant="default">
