@@ -49,7 +49,8 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
       ? [
           {
             keys: { ctrl: true, key: "q" },
-            run: () => {
+            run: (e) => {
+              e.preventDefault();
               toggleMode();
             },
           },

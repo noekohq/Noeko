@@ -27,6 +27,8 @@ import {
 import styles from "./Overview.module.scss";
 import {
   ArrowLeftIcon,
+  ArrowLineRightIcon,
+  ArrowLineUpLeftIcon,
   ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
@@ -71,6 +73,11 @@ export function DisplayOverview({
   const [showFindings, setShowFindings] = useState(false);
 
   const {
+    elements: {
+      leftSidebar: {
+        mode: { toggle: toggleLeftSidebar, get: leftSidebarMode },
+      },
+    },
     leftSidebar: { setOpened: setLeftSidebarOpened, opened: leftSidebarOpened },
   } = useLayout();
 
@@ -105,14 +112,14 @@ export function DisplayOverview({
             size="xs"
             variant="subtle"
             leftSection={
-              leftSidebarOpened ? (
-                <ArrowRightIcon weight="bold" />
+              leftSidebarMode === "collapsed" ? (
+                <ArrowLineUpLeftIcon weight="bold" />
               ) : (
-                <ArrowLeftIcon weight="bold" />
+                <ArrowLineRightIcon weight="bold" />
               )
             }
             onClick={() => {
-              setLeftSidebarOpened(!leftSidebarOpened);
+              toggleLeftSidebar();
             }}
           >
             Read {results?.length} Result{results?.length === 1 ? "" : "s"}

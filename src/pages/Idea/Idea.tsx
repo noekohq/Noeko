@@ -19,6 +19,7 @@ import {
   Menu,
   CopyButton,
   Stack,
+  Space,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import {
@@ -47,6 +48,7 @@ import TagsManager from "./TagsManager";
 import { downloadTextAsFile } from "../../utils/files";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
 import Content from "../../components/UI/Layout/Content";
+import Search from "../../components/Search/Search";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -533,6 +535,8 @@ export default function Idea() {
               </Menu>
             </Tooltip>
           </Flex>
+          <Space my="lg" />
+          <Search />
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

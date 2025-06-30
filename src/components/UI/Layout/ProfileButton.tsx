@@ -1,4 +1,4 @@
-import { Avatar, Menu, Text, Tooltip } from "@mantine/core";
+import { Avatar, Menu, Text } from "@mantine/core";
 import { useAuth } from "../../../contexts/AuthContext";
 import { userInitials, userIsSuperuser } from "../../../utils/user";
 import { useNavigate } from "react-router";
@@ -42,20 +42,26 @@ export default function ProfileButton() {
   const { isMobile } = useLayout();
 
   return (
-    <Menu width={220} shadow="md" position="bottom-end">
+    <Menu
+      width={220}
+      shadow="md"
+      position="bottom-end"
+      radius="lg"
+      withArrow
+      arrowOffset={14}
+      zIndex={700}
+    >
       <Menu.Target>
-        <Tooltip label={user?.email || "User Menu"} position="left" withArrow>
-          <Avatar
-            color={isSuperuser ? "red" : "blue"}
-            variant="filled"
-            radius="xl"
-            style={{ cursor: "pointer" }}
-            onDoubleClick={() => navigate("/")}
-            size={isMobile ? "sm" : "sm"}
-          >
-            {initials}
-          </Avatar>
-        </Tooltip>
+        <Avatar
+          color={isSuperuser ? "red" : "blue"}
+          variant="filled"
+          radius="xl"
+          style={{ cursor: "pointer" }}
+          onDoubleClick={() => navigate("/")}
+          size={isMobile ? "sm" : "sm"}
+        >
+          {initials}
+        </Avatar>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>Views</Menu.Label>

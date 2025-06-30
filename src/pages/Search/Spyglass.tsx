@@ -129,6 +129,14 @@ export default function Spyglass() {
     return displayQuery.current ?? baseQuery ?? query;
   };
 
+  const {
+    elements: {
+      leftSidebar: {
+        mode: { set: setLeftSidebar },
+      },
+    },
+  } = useLayout();
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -349,7 +357,14 @@ export default function Spyglass() {
         </LeftSidebar.Open>
         <LeftSidebar.Collapsed>
           {overview.findings.length > 0 && (
-            <ActionIcon variant="light" size="sm" radius="md">
+            <ActionIcon
+              variant="light"
+              size="sm"
+              radius="md"
+              onClick={() => {
+                setLeftSidebar("open");
+              }}
+            >
               <Text size="xs">{overview.findings.length}</Text>
             </ActionIcon>
           )}

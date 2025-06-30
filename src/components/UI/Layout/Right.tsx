@@ -19,7 +19,7 @@ import ProfileButton from "./ProfileButton";
 import { useAuth } from "../../../contexts/AuthContext";
 import { userIsSuperuser } from "../../../utils/user";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -56,7 +56,8 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
       ? [
           {
             keys: { ctrl: true, key: "l" },
-            run: () => {
+            run: (e) => {
+              e.preventDefault();
               toggleMode();
             },
           },
@@ -71,6 +72,8 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
       },
     },
   } = useInteraction();
+
+  const { pathname } = useLocation();
 
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
@@ -119,24 +122,28 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
         </ActionIcon>
         {isSuperuser && (
           <>
-            <ActionIcon
-              variant="subtle"
-              onClick={() => {
-                navigate("/admin/users");
-              }}
-              size="sm"
-            >
-              <UsersIcon size={16} />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              onClick={() => {
-                navigate("/admin/users");
-              }}
-              size="sm"
-            >
-              <ChatCircleDotsIcon size={16} />
-            </ActionIcon>
+            {pathname !== "/admin/users" && (
+              <ActionIcon
+                variant="subtle"
+                onClick={() => {
+                  navigate("/admin/users");
+                }}
+                size="sm"
+              >
+                <UsersIcon size={16} />
+              </ActionIcon>
+            )}
+            {pathname !== "/admin/feedback" && (
+              <ActionIcon
+                variant="subtle"
+                onClick={() => {
+                  navigate("/admin/feedback");
+                }}
+                size="sm"
+              >
+                <ChatCircleDotsIcon size={16} />
+              </ActionIcon>
+            )}
           </>
         )}
       </Stack>
