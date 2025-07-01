@@ -419,7 +419,7 @@ export default function Spyglass() {
                 {results.length > 0 && (
                   <Text mb="lg">
                     Reading{" "}
-                    <Badge variant="light">
+                    <Badge variant="light" color="redLight">
                       {<CountUp targetNumber={results.length} />}
                     </Badge>{" "}
                     resource{results.length === 1 ? "" : "s"}...
@@ -438,7 +438,15 @@ export default function Spyglass() {
                         <Text size="md">({index.toString()})</Text>
                       </ActionIcon>
                       <Text component="p" inline fw="bold">
-                        <Badge variant="light">
+                        <Badge
+                          variant="light"
+                          color="redLight"
+                          styles={{
+                            label: {
+                              textTransform: "none",
+                            },
+                          }}
+                        >
                           {result ? getNodeTitle(result) : "Unknown source"}
                         </Badge>
                       </Text>
