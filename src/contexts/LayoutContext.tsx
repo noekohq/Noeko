@@ -14,7 +14,7 @@ type SidebarState = {
   setOpened: Dispatch<SetStateAction<boolean>>;
 };
 
-type ISidebarMode = "open" | "collapsed" | "compact";
+type ISidebarMode = "open" | "collapsed" | "compact" | "hovering";
 
 type ILayoutContext = {
   elements: {
@@ -128,11 +128,16 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     );
   const [leftSidebarHasContent, setLeftSidebarHasContent] =
     useState<boolean>(false);
+  const [leftSidebarHovering, setLeftSidebarHovering] =
+    useState<boolean>(false);
+
   const [rightSidebarMode, setRightSidebarMode] =
     useState<ILayoutContext["elements"]["rightSidebar"]["mode"]["get"]>(
       "collapsed",
     );
   const [rightSidebarHasContent, setRightSidebarHasContent] =
+    useState<boolean>(false);
+  const [rightSidebarHovering, setRightSidebarHovering] =
     useState<boolean>(false);
 
   const [isScrolled, setIsScrolled] = useState<boolean>(false);

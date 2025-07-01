@@ -21,6 +21,22 @@
         format("truetype");
 }
 
+/* Besley */
+
+@font-face {
+    font-family: "Besley";
+    src: url("./assets/fonts/Besley/Variable.ttf")
+        format("truetype");
+}
+
+@font-face {
+    font-family: "Besley";
+    src: url("./assets/fonts/Besley/VariableItalic.ttf")
+        format("truetype");
+    font-style: italic;
+}
+
+
 /* IBM Plex Serif */
 @font-face {
   font-family: 'IBMPlexSerif';

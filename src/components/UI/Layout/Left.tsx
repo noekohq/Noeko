@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
@@ -13,6 +13,7 @@ import { ActionIcon, Divider, Flex, Group, Stack } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
+import useSidebarHover from "../../../hooks/useSidebarHover";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -79,6 +80,26 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
         </ActionIcon>
       </Group>
     ),
+    hovering: (
+      <Group justify="end">
+        {!isHome && (
+          <Link to="/">
+            <ActionIcon variant="subtle">
+              <HouseIcon />
+            </ActionIcon>
+          </Link>
+        )}
+        <ActionIcon
+          onClick={() => {
+            setMode("collapsed");
+          }}
+          variant="subtle"
+          size={isMobile ? "sm" : "md"}
+        >
+          <SidebarSimpleIcon />
+        </ActionIcon>
+      </Group>
+    ),
     collapsed: (
       <Stack>
         {openable && (
@@ -112,11 +133,23 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     open: styles.open,
     collapsed: styles.collapsed,
     compact: styles.compact,
+    hovering: `${styles.open} ${styles.hovering}`,
   };
 
+  const { sidebarProps, globalElementProps } = useSidebarHover({
+    mode,
+    setMode,
+    openable,
+  });
+
   return (
-    <aside className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}>
-      <div className={styles.global}>{Global[mode]}</div>
+    <aside
+      className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}
+      {...sidebarProps}
+    >
+      <div className={styles.global} {...globalElementProps}>
+        {Global[mode]}
+      </div>
       {!!children && (
         <>
           <div className={styles.content}>{children}</div>
@@ -140,7 +173,7 @@ LeftSidebar.Open = ({ children }: IContentProps) => {
       },
     },
   } = useLayout();
-  if (mode !== "open") {
+  if (!["open", "hovering"].includes(mode)) {
     return null;
   }
   return children;

@@ -17,26 +17,22 @@ const Content = ({ children }: IContentProps) => {
     },
   } = useLayout();
 
-  console.log("Left mode: ", leftMode);
-  console.log("Right mode: ", rightMode);
-
   const leftModeToClass: Record<typeof leftMode, string> = {
     open: styles.leftOpen,
     collapsed: styles.leftCollapsed,
     compact: styles.leftCompact,
+    hovering: `${styles.leftOpen} ${styles.leftHovering}`,
   };
 
   const rightModeToClass: Record<typeof rightMode, string> = {
     open: styles.rightOpen,
     collapsed: styles.rightCollapsed,
     compact: styles.rightCompact,
+    hovering: `${styles.rightOpen} ${styles.rightHovering}`,
   };
 
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
-
-  console.log("Left class: ", leftModeClass);
-  console.log("Right class: ", rightModeClass);
 
   return (
     <div className={`${styles.content} ${leftModeClass} ${rightModeClass}`}>

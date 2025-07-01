@@ -7,6 +7,7 @@ import { useLayout } from "../../contexts/LayoutContext";
 interface ITextboxProps {
   onSubmit: (query: string) => void;
   onChange?: (value: string) => void;
+  defaultText?: string;
   placeholder?: string;
   placeholderIfInitialized?: string;
   initialized?: boolean;
@@ -15,6 +16,7 @@ interface ITextboxProps {
 export default function Textbox({
   onSubmit,
   onChange,
+  defaultText,
   placeholder,
   placeholderIfInitialized,
   initialized,
@@ -22,6 +24,13 @@ export default function Textbox({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [value, setValue] = useState("");
   const [sendingAnimation, setSendingAnimation] = useState(false);
+
+  useEffect(() => {
+    if (defaultText) {
+      setValue(defaultText);
+    }
+  }, [defaultText]);
+
   const send = () => {
     setSendingAnimation(true);
     onSubmit(value);

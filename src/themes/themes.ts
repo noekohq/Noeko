@@ -246,7 +246,7 @@ export const qwest: IOverrideResolver = (t) => {
   };
 
   return createTheme({
-    fontFamily: t.bodyFont === "sans-serif" ? "Geist" : "IBMPlexSerif",
+    fontFamily: t.bodyFont === "sans-serif" ? "Geist" : "Besley",
     fontFamilyMonospace: "Geist Mono",
     headings: {
       fontFamily: "Bricolage Grotesque",
