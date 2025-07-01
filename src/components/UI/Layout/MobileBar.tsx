@@ -31,12 +31,14 @@ export default function MobileBar() {
     open: styles.leftOpen,
     collapsed: styles.leftCollapsed,
     compact: styles.leftCompact,
+    hovering: `${styles.leftOpen} ${styles.leftHovering}`,
   };
 
   const rightModeToClass: Record<typeof rightMode, string> = {
     open: styles.rightOpen,
     collapsed: styles.rightCollapsed,
     compact: styles.rightCompact,
+    hovering: `${styles.rightOpen} ${styles.rightHovering}`,
   };
 
   const leftModeClass = leftModeToClass[leftMode];
