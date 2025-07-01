@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import styles from "./Import.module.scss";
 import { Grid, Select, Text, Title } from "@mantine/core";
 import MarkdownFileImporter from "./importers/MarkdownFile";
 import TextFileImporter from "./importers/TextFile";
 import DirectoryImporter from "./importers/Directory";
+import Content from "../../components/UI/Layout/Content";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
@@ -22,7 +23,7 @@ export default function Import() {
   return (
     <PageWrapper>
       <LeftSidebar />
-      <div className={styles.import}>
+      <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Import</Title>
@@ -57,7 +58,7 @@ export default function Import() {
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>{typeToComponent[importType]}</Grid.Col>
         </Grid>
-      </div>
+      </Content>
       <RightSidebar />
     </PageWrapper>
   );

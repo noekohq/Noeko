@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
-import { Container, Space, Stack, Text } from "@mantine/core";
+import { Button, Container, Group, Space, Stack, Text } from "@mantine/core";
 import { getNodeAsIdeaOrNull } from "../../utils/graph";
 import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
@@ -9,6 +9,8 @@ import { CompactIdeaCard } from "../Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
+import { Link } from "react-router";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,7 @@ export default function Search() {
   const {
     global: {
       results: { get: searchResults, set: setResults },
+      query: { get: searchQuery },
     },
   } = useSearch();
 
@@ -44,7 +47,18 @@ export default function Search() {
           isMobile ? "Search..." : `Press ${primaryKey} + / to focus...`
         }
       />
-      {!searchResults && !loading && (
+      {!!searchQuery && !searchResults && !loading && (
+        <>
+          <Space my="lg" />
+          <Link to={`/spyglass?q=${encodeURIComponent(searchQuery)}`}>
+            <Group>
+              <Text size="xs">Open in Spyglass</Text>
+              <ArrowRightIcon size={14} />
+            </Group>
+          </Link>
+        </>
+      )}
+      {!searchQuery && !searchResults && !loading && (
         <>
           <Space my="lg" />
           <Text c="dimmed" size="xs">

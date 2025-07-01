@@ -15,7 +15,7 @@
 // Heading styles without color variables remain unchanged
 .heading {
     margin: 0;
-    font-family: "Bricolage Grotesque", sans-serif;
+    font-family: var(--mantine-font-family-headings), sans-serif;
     font-weight: 550;
 }
 

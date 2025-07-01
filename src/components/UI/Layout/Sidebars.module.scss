@@ -97,6 +97,10 @@
         display: flex;
         flex-direction: column;
 
+        &.hovering {
+            /* animation: none; */
+        }
+
         .global {
             width: 100%;
             margin-bottom: var(--mantine-spacing-md);

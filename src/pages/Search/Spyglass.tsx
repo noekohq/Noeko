@@ -483,6 +483,7 @@ export default function Spyglass() {
                 className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
               >
                 <Textbox
+                  defaultText={query}
                   onSubmit={() => {
                     clear();
                     initialize();

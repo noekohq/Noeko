@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from "react"; // Import React
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./Idea.module.scss";
-import useFetch from "../../hooks/useFetch"; // Your custom hook
+import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { IIdea } from "../../../app/database/models/ideas";
 import { Editor as IEditor } from "@tiptap/react";
 import {
@@ -62,6 +63,8 @@ export default function Idea() {
     rightSidebar: { opened: rightSidebarOpened },
     isMobile,
   } = useLayout();
+
+  useDocumentTitle(`${title || "Loading..."} - Qwest`);
 
   const {
     data: idea,

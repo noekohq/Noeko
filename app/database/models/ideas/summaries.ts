@@ -83,7 +83,7 @@ export const GenerativeSummarySchema: LMSchema = {
       type: LMSchemaType.ARRAY,
       items: { type: LMSchemaType.STRING },
       description:
-        "Tasks that exist in the content, implicitly or explicitly, things that need to be done according to the content.",
+        "Defines an array of tasks, action items, or obligations that are identified within the content. This includes tasks that are explicitly stated (e.g., 'You need to send the report by Friday') as well as those that are implicitly suggested by the context (e.g., an upcoming meeting implies a need to prepare for it). The list should only contain tasks that are pending or yet to be completed. Do not include any tasks that the content describes as already finished.",
     },
   },
   required: ["sentenceOverview", "sentenceSummary"],

@@ -1,25 +1,22 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
   ArrowLineLeftIcon,
-  ArrowLineRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
-  ChatCircleDots,
   ChatCircleDotsIcon,
   ListMagnifyingGlassIcon,
-  SidebarSimpleIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Flex, Group, Stack, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
-import { useHotkeys } from "@mantine/hooks";
 import ProfileButton from "./ProfileButton";
 import { useAuth } from "../../../contexts/AuthContext";
 import { userIsSuperuser } from "../../../utils/user";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLocation, useNavigate } from "react-router";
+import useSidebarHover from "../../../hooks/useSidebarHover";
 
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -103,6 +100,33 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
         </Group>
       </Group>
     ),
+    hovering: (
+      <Group justify="space-between">
+        {openable && (
+          <ActionIcon
+            onClick={() => {
+              setMode("collapsed");
+            }}
+            variant="subtle"
+            size={isMobile ? "sm" : "md"}
+          >
+            <CaretRightIcon />
+          </ActionIcon>
+        )}
+        <Group>
+          {isSuperuser && (
+            <>
+              <Tooltip label="Open spotlight">
+                <ActionIcon variant="light" onClick={openSpotlight}>
+                  <ListMagnifyingGlassIcon />
+                </ActionIcon>
+              </Tooltip>
+            </>
+          )}
+          <ProfileButton />
+        </Group>
+      </Group>
+    ),
     collapsed: (
       <Stack align="center">
         {openable && (
@@ -159,11 +183,23 @@ const RightSidebar = ({ children }: IRightSidebarProps) => {
     open: styles.open,
     collapsed: styles.collapsed,
     compact: styles.compact,
+    hovering: `${styles.open} ${styles.hovering}`,
   };
 
+  const { sidebarProps, globalElementProps } = useSidebarHover({
+    mode,
+    setMode,
+    openable,
+  });
+
   return (
-    <aside className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}>
-      <div className={styles.global}>{Global[mode]}</div>
+    <aside
+      className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}
+      {...sidebarProps}
+    >
+      <div className={styles.global} {...globalElementProps}>
+        {Global[mode]}
+      </div>
       {children && <div className={styles.content}>{children}</div>}
     </aside>
   );
@@ -183,7 +219,7 @@ RightSidebar.Open = ({ children }: IContentProps) => {
       },
     },
   } = useLayout();
-  if (mode !== "open") {
+  if (!["open", "hovering"].includes(mode)) {
     return null;
   }
   return children;
