@@ -53,6 +53,18 @@ export const qwest: IOverrideResolver = (t) => {
         "#721410", // 8
         "#450c09", // 9 (darkest)
       ],
+      redLight: [
+        "#ffd29c",
+        "#ffd3ce",
+        "#ffa79c",
+        "#fd7667",
+        "#fb4934",
+        "#fb341c",
+        "#FB4934",
+        "#e01702",
+        "#c80e00",
+        "#af0000",
+      ],
       blue: [
         "#d9e7e7", // 0 (lightest)
         "#bcddde", // 1
@@ -162,6 +174,18 @@ export const qwest: IOverrideResolver = (t) => {
       "#991b16", // 7
       "#66120f", // 8
       "#330907", // 9 (darkest)
+    ],
+    redLight: [
+      "#ffebeb",
+      "#f9d2d3",
+      "#f89fa2",
+      "#f86a6e",
+      "#f84142",
+      "#f92b27",
+      "#fa211a",
+      "#df1810",
+      "#c7100c",
+      "#9d0006",
     ],
     blue: [
       "#d9e7e7", // 0 (lightest)
