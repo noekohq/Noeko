@@ -10,6 +10,7 @@ import {
   Divider,
   Flex,
   Badge,
+  Space,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -141,6 +142,20 @@ export default function Spyglass() {
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
+          <Link to="/spyglass/history">
+            <Button
+              // leftSection={
+              //   <ClockCounterClockwiseIcon weight="bold" size={14} />
+              // }
+              radius="lg"
+              variant="light"
+              color="dark.4"
+              c="dark.2"
+            >
+              History
+            </Button>
+          </Link>
+          <Space my="lg" />
           {citations.length < 1 && results.length > 0 && (
             <Text c="dimmed" size="sm">
               No findings yet...
@@ -356,18 +371,25 @@ export default function Spyglass() {
           )}
         </LeftSidebar.Open>
         <LeftSidebar.Collapsed>
-          {overview.findings.length > 0 && (
-            <ActionIcon
-              variant="light"
-              size="sm"
-              radius="md"
-              onClick={() => {
-                setLeftSidebar("open");
-              }}
-            >
-              <Text size="xs">{overview.findings.length}</Text>
-            </ActionIcon>
-          )}
+          <Stack>
+            {overview.findings.length > 0 && (
+              <ActionIcon
+                variant="light"
+                size="sm"
+                radius="md"
+                onClick={() => {
+                  setLeftSidebar("open");
+                }}
+              >
+                <Text size="xs">{overview.findings.length}</Text>
+              </ActionIcon>
+            )}
+            <Link to="/spyglass/history">
+              <ActionIcon variant="light" size="sm">
+                <ClockCounterClockwiseIcon />
+              </ActionIcon>
+            </Link>
+          </Stack>
         </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
@@ -418,8 +440,8 @@ export default function Spyglass() {
                 )}
                 {results.length > 0 && (
                   <Text mb="lg">
-                    Reading{" "}
-                    <Badge variant="light" color="redLight">
+                    Found{" "}
+                    <Badge variant="light" color="gray">
                       {<CountUp targetNumber={results.length} />}
                     </Badge>{" "}
                     resource{results.length === 1 ? "" : "s"}...
@@ -434,13 +456,11 @@ export default function Spyglass() {
                       className={styles.previewItem}
                       key={sourceId}
                     >
-                      <ActionIcon variant="subtle" size="md">
-                        <Text size="md">({index.toString()})</Text>
-                      </ActionIcon>
+                      <Text size="md">Reading</Text>
                       <Text component="p" inline fw="bold">
                         <Badge
                           variant="light"
-                          color="redLight"
+                          color="gray"
                           styles={{
                             label: {
                               textTransform: "none",
@@ -449,10 +469,6 @@ export default function Spyglass() {
                         >
                           {result ? getNodeTitle(result) : "Unknown source"}
                         </Badge>
-                      </Text>
-                      <Text component="span" inline size="xs">
-                        {excerpts.length} excerpt
-                        {excerpts.length > 1 ? "s" : ""}
                       </Text>
                     </Group>
                   );
