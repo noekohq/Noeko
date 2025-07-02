@@ -156,17 +156,14 @@ export default function Connections({
     <Grid>
       {computeOutOfDate && (
         <Grid.Col span={{ sm: 12 }}>
-          <Text c="dimmed" size="sm" mb="sm">
-            These may be out of date...
-          </Text>
-          <Button
-            onClick={triggerCompute}
-            variant="light"
-            size="xs"
-            leftSection={computing ? <Loader size="xs" /> : <ArrowsClockwise />}
-          >
-            Refresh
-          </Button>
+          <Group align="center">
+            <Text c="dimmed" size="sm">
+              These may be out of date...
+            </Text>
+            <ActionIcon onClick={triggerCompute} variant="light" size="sm">
+              {computing ? <Loader size="xs" /> : <ArrowsClockwise />}
+            </ActionIcon>
+          </Group>
         </Grid.Col>
       )}
       <Grid.Col span={{ sm: 12 }}>
@@ -209,9 +206,9 @@ export default function Connections({
               )}
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                {loadingIdea && <Loader size="sm" />}
+              <Group align="center">
                 <Text size="sm">Ideas you've connected...</Text>
+                {loadingIdea && <Loader size="xs" color="gray" />}
               </Group>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>

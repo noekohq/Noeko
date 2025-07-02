@@ -199,9 +199,7 @@ export default function Idea() {
     text += `${characterCount} character${characterCount === 1 ? "" : "s"}. `;
     text += `${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}. `;
     if (loadingEmbeddings) {
-      text += "Generating embeddings... ";
-    } else if (embeddingsOutOfDate()) {
-      text += "Embeddings might be out of date. ";
+      text += "Indexing... ";
     }
     return text.trim();
   }, [idea, ideaId, loadingEmbeddings, embeddingsOutOfDate]);
@@ -389,11 +387,11 @@ export default function Idea() {
                 )}
             </Text>
           </Card>
-          {leftSidebarOpened && <Divider my="md" />}
+          {leftSidebarOpened && <Divider my="sm" />}
           {leftSidebarOpened && !!idea && <TagsManager idea={idea} />}
           {!!idea && (
             <>
-              <Divider my="lg" />
+              <Divider my="sm" />
               <Connections
                 loadingIdea={loadingIdea}
                 idea={idea}
@@ -402,7 +400,7 @@ export default function Idea() {
                 triggerCompute={triggerComputeIfNeeded}
                 computing={loadingEmbeddings || loadingDerivedCascade}
               />
-              <Divider my="lg" />
+              <Divider my="sm" />
 
               <Overview
                 loadingIdea={loadingIdea}
