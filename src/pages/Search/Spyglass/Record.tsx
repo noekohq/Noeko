@@ -30,6 +30,7 @@ import styles from "./Record.module.scss";
 import OverviewParser from "../../../components/Utils/Spyglass/OverviewParser";
 import { DisplayOverview } from "../../../components/Utils/Spyglass/Overview";
 import Content from "../../../components/UI/Layout/Content";
+import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -75,6 +76,8 @@ export default function SpyglassRecord() {
     });
 
   const navigate = useNavigate();
+
+  useDocumentTitle(baseQuery ? `${baseQuery} - Qwest` : "Qwest");
 
   return (
     <PageWrapper>

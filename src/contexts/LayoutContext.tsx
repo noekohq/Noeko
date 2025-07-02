@@ -14,7 +14,7 @@ type SidebarState = {
   setOpened: Dispatch<SetStateAction<boolean>>;
 };
 
-type ISidebarMode = "open" | "collapsed" | "compact" | "hovering";
+export type ISidebarMode = "open" | "collapsed" | "compact" | "hovering";
 
 type ILayoutContext = {
   elements: {

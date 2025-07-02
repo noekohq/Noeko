@@ -33,9 +33,13 @@ import Textbox from "./Textbox";
 import { useLayout } from "../../contexts/LayoutContext";
 import CountUp from "../../components/Utils/Animations/Countup";
 import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  ClockCounterClockwiseIcon,
+} from "@phosphor-icons/react";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
@@ -130,6 +134,8 @@ export default function Spyglass() {
     return displayQuery.current ?? baseQuery ?? query;
   };
 
+  useDocumentTitle(queryToShow() ? `${queryToShow()} - Qwest` : `Qwest`);
+
   const {
     elements: {
       leftSidebar: {
@@ -140,25 +146,23 @@ export default function Spyglass() {
 
   return (
     <PageWrapper>
-      <LeftSidebar>
+      <LeftSidebar
+        topLevel={{
+          open: (
+            <>
+              <Link to="/spyglass/history">
+                <ActionIcon radius="lg" variant="light">
+                  <ClockCounterClockwiseIcon />
+                </ActionIcon>
+              </Link>
+            </>
+          ),
+        }}
+      >
         <LeftSidebar.Open>
-          <Link to="/spyglass/history">
-            <Button
-              // leftSection={
-              //   <ClockCounterClockwiseIcon weight="bold" size={14} />
-              // }
-              radius="lg"
-              variant="light"
-              color="dark.4"
-              c="dark.2"
-            >
-              History
-            </Button>
-          </Link>
-          <Space my="lg" />
-          {citations.length < 1 && results.length > 0 && (
+          {citations.length < 1 && (
             <Text c="dimmed" size="sm">
-              No findings yet...
+              No findings here yet, try asking something!
             </Text>
           )}
           {citations.length > 0 && (
@@ -250,124 +254,7 @@ export default function Spyglass() {
                   })}
                 </Group>
               </div>
-              <Divider my="lg" />
             </>
-          )}
-          {results.length < 1 && (
-            <Text c="dimmed" size="sm">
-              No results yet...
-            </Text>
-          )}
-          {results.length > 0 && (
-            <Stack>
-              <Title order={3}>All Results...</Title>
-              <Accordion>
-                {sortedSearchResults.map((s, i) => {
-                  if (!s.value) {
-                    return;
-                  }
-                  const hasExcerpts = !!citationMap[s.id.toString()];
-                  const citation = hasExcerpts
-                    ? citationMap[s.id.toString()]
-                    : null;
-                  const excerpts = hasExcerpts
-                    ? citationMap[s.id.toString()].excerpts
-                    : [];
-                  const idea = getNodeAsIdeaOrNull(s.value);
-
-                  if (!idea) {
-                    return null;
-                  }
-
-                  return (
-                    <Accordion.Item value={idea.id.toString()}>
-                      <Accordion.Control p="0">
-                        <Group wrap="wrap">
-                          <Text
-                            fw={500}
-                            size="sm"
-                            lineClamp={2}
-                            title={idea.title}
-                          >
-                            {idea.title}
-                            {hasExcerpts && (
-                              <ActionIcon
-                                variant="light"
-                                size="xs"
-                                onClick={() => {
-                                  navigate(`/idea/${idea.id.toString()}`);
-                                }}
-                                ml="xs"
-                              >
-                                <Text size="xs">
-                                  {citationMap[
-                                    s.id.toString()
-                                  ].index.toString()}
-                                </Text>
-                              </ActionIcon>
-                            )}
-                          </Text>
-                        </Group>
-                      </Accordion.Control>
-                      <Accordion.Panel p="0">
-                        {hasExcerpts ? (
-                          <Stack gap="xs">
-                            {excerpts.map((excerpt, i) => {
-                              return (
-                                <Group wrap="nowrap" align="flex-start">
-                                  <ActionIcon
-                                    variant="subtle"
-                                    size="xs"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigate(
-                                        `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
-                                      );
-                                    }}
-                                    style={{ cursor: "pointer" }}
-                                  >
-                                    <Text size="xs">
-                                      {citation?.index}
-                                      {numberToLetter(i).toLowerCase()}
-                                    </Text>
-                                  </ActionIcon>
-                                  <Text size="xs" c="dimmed">
-                                    <Match
-                                      opener="->"
-                                      closer="<-"
-                                      match={(m) => {
-                                        return (
-                                          <span className="highlight">{m}</span>
-                                        );
-                                      }}
-                                    >
-                                      {sanitizeMarkdownForDescription(excerpt)}
-                                    </Match>
-                                  </Text>
-                                </Group>
-                              );
-                            })}
-                          </Stack>
-                        ) : (
-                          <Text size="xs" c="dimmed">
-                            <Match
-                              opener="->"
-                              closer="<-"
-                              match={(m) => {
-                                return <span className="highlight">{m}</span>;
-                              }}
-                            >
-                              {getSearchResultPreview(s) ||
-                                "No preview available."}
-                            </Match>
-                          </Text>
-                        )}
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  );
-                })}
-              </Accordion>
-            </Stack>
           )}
         </LeftSidebar.Open>
         <LeftSidebar.Collapsed>
@@ -541,10 +428,134 @@ export default function Spyglass() {
           )}
         </Flex>
       </Content>
-      {/* <RightSidebar></RightSidebar> */}
       <RightSidebar>
         <RightSidebar.Open>
-          <Search />
+          {results.length < 1 && (
+            <Text c="dimmed" size="sm">
+              No results yet... Try searching for something!
+            </Text>
+          )}
+          {results.length > 0 && (
+            <Stack>
+              <Title order={3}>
+                {sortedSearchResults.length} Resource
+                {sortedSearchResults.length === 1 ? "" : "s"}...
+              </Title>
+              <Accordion>
+                {sortedSearchResults.map((s, i) => {
+                  if (!s.value) {
+                    return;
+                  }
+                  const hasExcerpts = !!citationMap[s.id.toString()];
+                  const citation = hasExcerpts
+                    ? citationMap[s.id.toString()]
+                    : null;
+                  const excerpts = hasExcerpts
+                    ? citationMap[s.id.toString()].excerpts
+                    : [];
+                  const idea = getNodeAsIdeaOrNull(s.value);
+
+                  if (!idea) {
+                    return null;
+                  }
+
+                  return (
+                    <Accordion.Item value={idea.id.toString()}>
+                      <Accordion.Control p="0">
+                        <Group wrap="wrap">
+                          <Text
+                            fw={500}
+                            size="sm"
+                            lineClamp={2}
+                            title={idea.title}
+                          >
+                            {idea.title}
+                            {hasExcerpts && (
+                              <ActionIcon
+                                variant="light"
+                                size="xs"
+                                onClick={() => {
+                                  navigate(`/idea/${idea.id.toString()}`);
+                                }}
+                                ml="xs"
+                              >
+                                <Text size="xs">
+                                  {citationMap[
+                                    s.id.toString()
+                                  ].index.toString()}
+                                </Text>
+                              </ActionIcon>
+                            )}
+                          </Text>
+                        </Group>
+                      </Accordion.Control>
+                      <Accordion.Panel p="0">
+                        <Group mb="sm">
+                          <Link to={`/idea/${idea.id.toString()}`}>
+                            <ActionIcon variant="subtle" size="xs">
+                              <ArrowRightIcon size={14} />
+                            </ActionIcon>
+                          </Link>
+                        </Group>
+                        {hasExcerpts ? (
+                          <Stack gap="xs">
+                            {excerpts.map((excerpt, i) => {
+                              return (
+                                <Group wrap="nowrap" align="flex-start">
+                                  <ActionIcon
+                                    variant="subtle"
+                                    size="xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(
+                                        `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
+                                      );
+                                    }}
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    <Text size="xs">
+                                      {citation?.index}
+                                      {numberToLetter(i).toLowerCase()}
+                                    </Text>
+                                  </ActionIcon>
+                                  <Text size="xs" c="dimmed">
+                                    <Match
+                                      opener="->"
+                                      closer="<-"
+                                      match={(m) => {
+                                        return (
+                                          <span className="highlight">{m}</span>
+                                        );
+                                      }}
+                                    >
+                                      {sanitizeMarkdownForDescription(excerpt)}
+                                    </Match>
+                                  </Text>
+                                </Group>
+                              );
+                            })}
+                          </Stack>
+                        ) : (
+                          <Text size="xs" c="dimmed">
+                            <Match
+                              opener="->"
+                              closer="<-"
+                              match={(m) => {
+                                return <span className="highlight">{m}</span>;
+                              }}
+                            >
+                              {getSearchResultPreview(s) ||
+                                "No preview available."}
+                            </Match>
+                          </Text>
+                        )}
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  );
+                })}
+              </Accordion>
+            </Stack>
+          )}
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>
