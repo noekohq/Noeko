@@ -277,6 +277,7 @@ export default function Connections({
                       style={{
                         width: "100%",
                       }}
+                      draggable
                       onCardClick={() => {
                         navigate(`/idea/${relatedIdea.id.toString()}`);
                       }}
