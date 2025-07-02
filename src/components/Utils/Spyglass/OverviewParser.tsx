@@ -4,7 +4,7 @@ import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
   ICitationMap,
   IResultsMap,
-} from "../../../pages/Search/hooks/useSpyglass";
+} from "../../../pages/Spyglass/hooks/useSpyglass";
 import styles from "./OverviewParser.module.scss";
 import { QuotesIcon } from "@phosphor-icons/react";
 import parse, {
