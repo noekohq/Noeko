@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useLayout } from "../../../contexts/LayoutContext";
+import { ISidebarMode, useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
   ArrowLineRightIcon,
@@ -17,9 +17,10 @@ import useSidebarHover from "../../../hooks/useSidebarHover";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
+  topLevel?: { [key in ISidebarMode]?: React.ReactNode | React.ReactNode[] };
 }
 
-const LeftSidebar = ({ children }: ILeftSidebarProps) => {
+const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
   const {
     elements: {
       leftSidebar: {
@@ -62,6 +63,7 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
       <Group justify="end">
+        {!!topLevel?.open && topLevel.open}
         {!isHome && (
           <Link to="/">
             <ActionIcon variant="subtle">
@@ -82,6 +84,7 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     ),
     hovering: (
       <Group justify="end">
+        {!!topLevel?.hovering && topLevel.hovering}
         {!isHome && (
           <Link to="/">
             <ActionIcon variant="subtle">
@@ -102,6 +105,7 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     ),
     collapsed: (
       <Stack>
+        {!!topLevel?.collapsed && topLevel.collapsed}
         {openable && (
           <ActionIcon
             onClick={() => {
@@ -124,6 +128,7 @@ const LeftSidebar = ({ children }: ILeftSidebarProps) => {
     ),
     compact: (
       <div>
+        {!!topLevel?.compact && topLevel.compact}
         <ArrowLineRightIcon />
       </div>
     ),
