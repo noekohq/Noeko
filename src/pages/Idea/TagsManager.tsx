@@ -15,8 +15,18 @@ import {
   Grid,
   TextInput,
   LoadingOverlay,
+  Collapse,
+  Transition,
 } from "@mantine/core";
-import { X, Plus, ArrowRight } from "@phosphor-icons/react"; // Corrected icon import
+import {
+  X,
+  Plus,
+  ArrowRight,
+  CaretDownIcon,
+  CaretUpIcon,
+  PlusIcon,
+  ArrowRightIcon,
+} from "@phosphor-icons/react"; // Corrected icon import
 import { IIdea } from "../../../app/database/models/ideas";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import useFetch from "../../hooks/useFetch";
@@ -182,6 +192,8 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
 
   const navigate = useNavigate();
 
+  const [managing, setManaging] = useState(false);
+
   if (existingTagsLoading || relatedTagsLoading) {
     return (
       <Card withBorder radius="lg" p="md">
@@ -262,7 +274,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
           </Stack>
         </Modal>
       )}
-      <Stack w="100%">
+      <Stack w="100%" gap="xs">
         {processedTags.length === 0 &&
           !existingTagsLoading &&
           !relatedTagsLoading &&
@@ -331,32 +343,64 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
             );
           })}
         </Group>
-        <SuggestTags
-          onSelect={handleSuggestedTagSelect}
-          omit={omitTagIds}
-          placeholder="Find a tag..."
-          limit={10}
-        />
-        <Group>
-          <ActionIcon
+        {!managing && (
+          <Button
+            leftSection={<CaretDownIcon />}
             onClick={() => {
-              setCreatingTag(true);
+              setManaging(true);
             }}
-            variant="subtle"
-            size={"sm"}
+            size="xs"
+            variant="light"
+            color="gray"
+            c="dark.3"
           >
-            <Plus weight="bold" />
-          </ActionIcon>
-          <Link to="/tags" style={{ textDecoration: "none" }}>
-            <Text c="dark.4" size="xs" fw="bold">
-              MANAGE TAGS{" "}
-              <ArrowRight
-                style={{ position: "relative", top: "2px" }}
-                weight="bold"
+            More
+          </Button>
+        )}
+        {!!managing && (
+          <Stack gap="xs">
+            <Group align="baseline" gap="xs">
+              <ActionIcon
+                onClick={() => {
+                  setManaging(false);
+                }}
+                size="xs"
+                variant="light"
+                color="gray"
+              >
+                <CaretUpIcon size={14} />
+              </ActionIcon>
+              <ActionIcon
+                onClick={() => {
+                  setCreatingTag(true);
+                }}
+                variant="light"
+                size={"xs"}
+                color="blue"
+                title="Create a new tag."
+              >
+                <PlusIcon size={14} />
+              </ActionIcon>
+              <Link
+                to="/tags"
+                style={{ textDecoration: "none" }}
+                title="Go to tags management page."
+              >
+                <ActionIcon variant="light" size="xs" color={"blue"}>
+                  <ArrowRightIcon size={14} />
+                </ActionIcon>
+              </Link>
+            </Group>
+            <Group>
+              <SuggestTags
+                onSelect={handleSuggestedTagSelect}
+                omit={omitTagIds}
+                placeholder="Find a tag..."
+                limit={10}
               />
-            </Text>
-          </Link>
-        </Group>
+            </Group>
+          </Stack>
+        )}
       </Stack>
     </Container>
   );

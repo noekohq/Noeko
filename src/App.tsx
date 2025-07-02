@@ -23,7 +23,7 @@ import Users from "./pages/Users/Users";
 import Feedback from "./pages/Feedback/Feedback";
 import Import from "./pages/Import/Import";
 import Admin from "./pages/Admin/Admin";
-import Spyglass from "./pages/Search/Spyglass";
+import Spyglass from "./pages/Spyglass/Spyglass";
 import Ideas from "./pages/Idea/Ideas";
 import Tags from "./pages/Tags/Tags";
 import { useEffect } from "react";
@@ -34,8 +34,9 @@ import ViewIdea from "./pages/Idea/ViewIdea";
 import PublicIdea from "./pages/Idea/PublicIdea";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
-import SpyglassRecords from "./pages/Search/Spyglass/Records";
-import SpyglassRecord from "./pages/Search/Spyglass/Record";
+import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
+import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
+import SearchPage from "./pages/Search/Search";
 
 export default function App() {
   const navigate = useNavigate();
@@ -148,6 +149,9 @@ export default function App() {
                   </Route>
                   <Route path="import">
                     <Route index element={<Import />} />
+                  </Route>
+                  <Route path="search">
+                    <Route index element={<SearchPage />} />
                   </Route>
                   <Route path="spyglass">
                     <Route index element={<Spyglass />} />

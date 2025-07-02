@@ -7,6 +7,7 @@ import {
   CaretRightIcon,
   ChatCircleDotsIcon,
   ListMagnifyingGlassIcon,
+  SidebarSimpleIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
 import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
@@ -85,7 +86,11 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
             variant="subtle"
             size={isMobile ? "sm" : "md"}
           >
-            <CaretRightIcon />
+            <SidebarSimpleIcon
+              style={{
+                transform: "rotate(180deg)",
+              }}
+            />
           </ActionIcon>
         )}
         <Group>
@@ -113,7 +118,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
             variant="subtle"
             size={isMobile ? "sm" : "md"}
           >
-            <CaretRightIcon />
+            <SidebarSimpleIcon />
           </ActionIcon>
         )}
         <Group>
@@ -141,7 +146,11 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
             variant="subtle"
             size={"md"}
           >
-            <CaretLeftIcon />
+            <SidebarSimpleIcon
+              style={{
+                transform: "rotate(180deg)",
+              }}
+            />
           </ActionIcon>
         )}
         <ProfileButton />

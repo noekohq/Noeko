@@ -4,7 +4,7 @@ import { ISearchOverview } from "../../../../app/services/Search";
 import {
   ICitationMap,
   IResultsMap,
-} from "../../../pages/Search/hooks/useSpyglass";
+} from "../../../pages/Spyglass/hooks/useSpyglass";
 import { useCallback, useState } from "react";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import { useLayout } from "../../../contexts/LayoutContext";
