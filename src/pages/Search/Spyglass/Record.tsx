@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
 import RightSidebar from "../../../components/UI/Layout/Right";
@@ -31,6 +31,8 @@ import OverviewParser from "../../../components/Utils/Spyglass/OverviewParser";
 import { DisplayOverview } from "../../../components/Utils/Spyglass/Overview";
 import Content from "../../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
+import { useLayout } from "../../../contexts/LayoutContext";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -47,6 +49,18 @@ export default function SpyglassRecord() {
     const hasCitation = !!citationMap[r.id.toString()];
     return hasCitation;
   });
+
+  const navigate = useNavigate();
+
+  useDocumentTitle(baseQuery ? `${baseQuery} - Qwest` : "Qwest");
+
+  const {
+    elements: {
+      leftSidebar: {
+        mode: { get: leftSidebar, set: setLeftSidebar },
+      },
+    },
+  } = useLayout();
 
   const sortedSearchResults = results
     // .filter((r) => {
@@ -75,22 +89,15 @@ export default function SpyglassRecord() {
       return 0;
     });
 
-  const navigate = useNavigate();
-
-  useDocumentTitle(baseQuery ? `${baseQuery} - Qwest` : "Qwest");
-
   return (
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
-          {citations &&
-            citations.length < 1 &&
-            results &&
-            results.length > 0 && (
-              <Text c="dimmed" size="sm">
-                No findings yet...
-              </Text>
-            )}
+          {citations && citations?.length < 1 && (
+            <Text c="dimmed" size="sm">
+              No findings here yet, try asking something!
+            </Text>
+          )}
           {citations && citations.length > 0 && (
             <>
               <Title order={3} mb="lg">
@@ -180,17 +187,71 @@ export default function SpyglassRecord() {
                   })}
                 </Group>
               </div>
-              <Divider my="lg" />
             </>
           )}
+        </LeftSidebar.Open>
+        <LeftSidebar.Collapsed>
+          <Stack>
+            {overview && overview.findings.length > 0 && (
+              <ActionIcon
+                variant="light"
+                size="sm"
+                radius="md"
+                onClick={() => {
+                  setLeftSidebar("open");
+                }}
+              >
+                <Text size="xs">{overview.findings.length}</Text>
+              </ActionIcon>
+            )}
+          </Stack>
+        </LeftSidebar.Collapsed>
+      </LeftSidebar>
+      <Content>
+        <Grid>
+          <Grid.Col>
+            <Text className={styles.queryHeader} size="lg" mb="lg" fs="italic">
+              {spyglass?.baseQuery
+                ? capitalize(spyglass?.baseQuery)
+                : "No title"}
+            </Text>
+          </Grid.Col>
+          {overview && (
+            <Grid.Col>
+              {overview &&
+                overview.overview &&
+                baseQuery &&
+                results && ( // Ensure overview and overview.overview exist
+                  <>
+                    <div className={styles.overviewDisplay}>
+                      <DisplayOverview
+                        overview={overview}
+                        resultsMap={resultMap ?? {}}
+                        citationMap={citationMap ?? {}}
+                        query={baseQuery}
+                        results={results}
+                        loading={loading}
+                      />
+                    </div>
+                  </>
+                )}
+            </Grid.Col>
+          )}
+        </Grid>
+      </Content>
+      <RightSidebar>
+        <RightSidebar.Open>
           {results && results.length < 1 && (
             <Text c="dimmed" size="sm">
-              No results yet...
+              No results yet... Try searching for something!
             </Text>
           )}
           {results && results.length > 0 && (
             <Stack>
-              <Title order={3}>All Results...</Title>
+              <Title order={3}>
+                {sortedSearchResults?.length ?? 0} Resource
+                {sortedSearchResults?.length === 1 ? "" : "s"}...
+              </Title>
               <Accordion>
                 {sortedSearchResults &&
                   sortedSearchResults.map((s, i) => {
@@ -241,6 +302,13 @@ export default function SpyglassRecord() {
                           </Group>
                         </Accordion.Control>
                         <Accordion.Panel p="0">
+                          <Group mb="sm">
+                            <Link to={`/idea/${idea.id.toString()}`}>
+                              <ActionIcon variant="subtle" size="xs">
+                                <ArrowRightIcon size={14} />
+                              </ActionIcon>
+                            </Link>
+                          </Group>
                           {hasExcerpts ? (
                             <Stack gap="xs">
                               {excerpts.map((excerpt, i) => {
@@ -304,41 +372,8 @@ export default function SpyglassRecord() {
               </Accordion>
             </Stack>
           )}
-        </LeftSidebar.Open>
-      </LeftSidebar>
-      <Content>
-        <Grid>
-          <Grid.Col>
-            <Text className={styles.queryHeader} size="lg" mb="lg" fs="italic">
-              {spyglass?.baseQuery
-                ? capitalize(spyglass?.baseQuery)
-                : "No title"}
-            </Text>
-          </Grid.Col>
-          {overview && (
-            <Grid.Col>
-              {overview &&
-                overview.overview &&
-                baseQuery &&
-                results && ( // Ensure overview and overview.overview exist
-                  <>
-                    <div className={styles.overviewDisplay}>
-                      <DisplayOverview
-                        overview={overview}
-                        resultsMap={resultMap ?? {}}
-                        citationMap={citationMap ?? {}}
-                        query={baseQuery}
-                        results={results}
-                        loading={loading}
-                      />
-                    </div>
-                  </>
-                )}
-            </Grid.Col>
-          )}
-        </Grid>
-      </Content>
-      <RightSidebar />
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }
