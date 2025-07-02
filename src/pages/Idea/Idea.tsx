@@ -71,7 +71,7 @@ export default function Idea() {
     load: reloadIdea,
     loading: loadingIdea,
   } = useFetch<undefined, IIdea>({
-    url: `/graph/ideas/${ideaId}`,
+    url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
     query: {
       withRelatedIdeas: "true",

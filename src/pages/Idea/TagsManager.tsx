@@ -342,21 +342,19 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
               />
             );
           })}
+          {!managing && (
+            <ActionIcon
+              onClick={() => {
+                setManaging(true);
+              }}
+              size="xs"
+              variant="light"
+              color="gray"
+            >
+              <CaretDownIcon size={14} />
+            </ActionIcon>
+          )}
         </Group>
-        {!managing && (
-          <Button
-            leftSection={<CaretDownIcon />}
-            onClick={() => {
-              setManaging(true);
-            }}
-            size="xs"
-            variant="light"
-            color="gray"
-            c="dark.3"
-          >
-            More
-          </Button>
-        )}
         {!!managing && (
           <Stack gap="xs">
             <Group align="baseline" gap="xs">
