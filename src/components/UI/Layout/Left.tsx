@@ -7,6 +7,7 @@ import {
   CaretRightIcon,
   HouseIcon,
   HouseSimpleIcon,
+  MegaphoneIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 import { ActionIcon, Divider, Flex, Group, Stack } from "@mantine/core";
@@ -14,6 +15,7 @@ import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
 import useSidebarHover from "../../../hooks/useSidebarHover";
+import { useInteraction } from "../../../contexts/InteractionContext";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -60,6 +62,12 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
       : [],
   });
 
+  const {
+    actions: {
+      feedback: { openFeedbackModal },
+    },
+  } = useInteraction();
+
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
       <Group justify="end">
@@ -71,6 +79,14 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             </ActionIcon>
           </Link>
         )}
+        <ActionIcon
+          onClick={() => {
+            openFeedbackModal();
+          }}
+          variant="subtle"
+        >
+          <MegaphoneIcon />
+        </ActionIcon>
         <ActionIcon
           onClick={() => {
             setMode("collapsed");
@@ -92,6 +108,14 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             </ActionIcon>
           </Link>
         )}
+        <ActionIcon
+          onClick={() => {
+            openFeedbackModal();
+          }}
+          variant="light"
+        >
+          <MegaphoneIcon />
+        </ActionIcon>
         <ActionIcon
           onClick={() => {
             setMode("collapsed");
@@ -124,6 +148,14 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             </ActionIcon>
           </Link>
         )}
+        <ActionIcon
+          onClick={() => {
+            openFeedbackModal();
+          }}
+          variant="subtle"
+        >
+          <MegaphoneIcon />
+        </ActionIcon>
       </Stack>
     ),
     compact: (

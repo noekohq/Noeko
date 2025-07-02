@@ -32,6 +32,33 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("July 3, 2025"),
+    title: "Layout updates and Spyglass Continues to Improve",
+    details: (
+      <>
+        <Stack>
+          <List>
+            <List.Item>
+              Sidebars will no longer have jerky movements, and are cleaner in
+              nature
+            </List.Item>
+            <List.Item>
+              Mobile and Tablet platforms now work responsively
+            </List.Item>
+            <List.Item>
+              Generally, the UI has improved substantially, though more updates
+              are always underway
+            </List.Item>
+            <List.Item>
+              Continued work on Spyglass has brought improvements to accuracy,
+              speed, and flow
+            </List.Item>
+          </List>
+        </Stack>
+      </>
+    ),
+  },
+  {
     date: new Date("June 21, 2025"),
     title: "Even more Spyglass updates",
     details: (
