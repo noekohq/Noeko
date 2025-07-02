@@ -7,7 +7,7 @@
     right: 0;
     bottom: 0;
     backdrop-filter: blur(4px) brightness(0.45);
-    z-index: 600;
+    z-index: 300;
     text-align: center;
     padding-top: 15vh;
     display: flex;
@@ -52,7 +52,7 @@
         background-color: transparent;
         border: none;
         transition: all 0.2s ease-in-out;
-        z-index: 605;
+        z-index: 305;
         font-size: 22px;
         padding: 8px 8px;
 

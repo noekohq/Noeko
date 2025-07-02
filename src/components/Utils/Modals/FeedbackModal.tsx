@@ -8,6 +8,7 @@ import {
   IFeedbackForm,
 } from "../../../../app/database/models/feedback"; // Adjust path
 import { useAuth } from "../../../contexts/AuthContext"; // Adjust path
+import { useLocation } from "react-router";
 
 type FeedbackModalProps = {
   opened: boolean;
@@ -17,10 +18,11 @@ type FeedbackModalProps = {
 export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
   const { user } = useAuth();
 
+  const { pathname } = useLocation();
+
   const feedbackForm = useForm<Partial<IFeedbackForm>>({
-    // Using Partial for initialValues
     initialValues: {
-      content: "",
+      content: ``,
       consentToContact: true,
     },
     validate: {
@@ -29,22 +31,16 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
     },
   });
 
-  // --- Custom useFetch Hook Usage ---
-  // Preserving your original pattern for useFetch initialization and execution
   const { load: createFeedback, loading: loadingFeedback } = useFetch<
-    Omit<IFeedbackForm, "status">, // Payload type (matches the body structure)
-    IFeedback // Response type
+    Omit<IFeedbackForm, "status">,
+    IFeedback
   >({
     url: "/feedback",
     method: "POST",
-    // Body and dependencies are part of the hook's options, as per your original usage
     body: {
       ...feedbackForm.values,
-      // Ensure all necessary fields for Omit<IFeedbackForm, "status"> are here
-      // If feedbackForm.values directly matches Omit<IFeedbackForm, "status">,
-      // then just `...feedbackForm.values` is fine.
-    } as Omit<IFeedbackForm, "status">, // Type assertion for the body
-    dependencies: [feedbackForm.values], // Dependency array as in your original code
+    } as Omit<IFeedbackForm, "status">,
+    dependencies: [feedbackForm.values],
     onSuccess: () => {
       showNotification({
         title: "Success",
@@ -68,12 +64,8 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
   // --- End Custom useFetch Hook Usage ---
 
   const handleSubmitFeedback = async () => {
-    // Retaining async, assuming createFeedback might be
     const validationResult = feedbackForm.validate();
     if (validationResult.hasErrors) {
-      // Optional: focus first invalid field if your form setup allows
-      // const firstErrorField = Object.keys(validationResult.errors)[0];
-      // if (firstErrorField) feedbackForm.getInputRef(firstErrorField)?.focus();
       showNotification({
         title: "Validation Error",
         message:
@@ -84,8 +76,6 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
       return;
     }
 
-    // Call createFeedback without arguments, assuming it uses the body/dependencies
-    // defined in its hook initialization, as per your custom hook's design.
     await createFeedback();
   };
 
@@ -102,7 +92,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
             <Textarea
               label="Your Feedback"
               placeholder="We'd love to hear your thoughts..."
-              minRows={4}
+              minRows={10}
               required
               data-autofocus
               {...feedbackForm.getInputProps("content")}
