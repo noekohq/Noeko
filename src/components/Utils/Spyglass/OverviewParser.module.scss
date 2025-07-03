@@ -17,15 +17,20 @@
 
 .findingNumber {
     .content {
-        --border-color: var(--mantine-color-dark-4);
+        --border-color: var(--mantine-color-dark-3);
         transition:
             padding-inline 0.5s ease-in-out,
             background-color 0.5s ease-in-out,
-            border 0.2s ease-in-out;
+            border 0.2s ease-in-out,
+            color 0.2s ease-in-out,
+            font-weight 0.2s ease-in-out;
         border: 1px solid transparent;
         border-radius: 7px;
+        transition-delay: 0.1s;
 
         &.hovering {
+            font-weight: 550;
+            color: var(--mantine-color-dark-1);
             background-color: var(--color-highlight);
             border-left: 3px solid var(--border-color);
             border-right: 3px solid var(--border-color);
@@ -42,9 +47,11 @@
     .citationIcon {
         border: 1.5px solid var(--mantine-color-dark-6);
         display: flex;
-        alignitems: center;
-        justifycontent: center;
-        transition: border-color 0.2s ease-in-out;
+        align-items: center;
+        justify-content: center;
+        transition:
+            border-color 0.2s ease-in-out,
+            width 0.2s ease-in-out;
         font-size: var(--mantine-font-size-xs);
         text-transform: none;
 
