@@ -93,7 +93,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             openFeedbackModal();
           }}
           variant="subtle"
-          color={defaultColor}
+          color={"blue"}
         >
           <MegaphoneIcon />
         </ActionIcon>
@@ -166,7 +166,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           onClick={() => {
             openFeedbackModal();
           }}
-          color={defaultColor}
+          color={"blue"}
           variant="subtle"
         >
           <MegaphoneIcon />
