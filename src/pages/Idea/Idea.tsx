@@ -58,11 +58,7 @@ export default function Idea() {
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
   const [originalIdea, setOriginalIdea] = useState<IIdea>();
 
-  const {
-    leftSidebar: { opened: leftSidebarOpened },
-    rightSidebar: { opened: rightSidebarOpened },
-    isMobile,
-  } = useLayout();
+  const { isMobile } = useLayout();
 
   useDocumentTitle(`${title || "Loading..."} - Qwest`);
 
@@ -387,8 +383,8 @@ export default function Idea() {
                 )}
             </Text>
           </Card>
-          {leftSidebarOpened && <Divider my="sm" />}
-          {leftSidebarOpened && !!idea && <TagsManager idea={idea} />}
+          <Divider my="sm" />
+          {!!idea && <TagsManager idea={idea} />}
           {!!idea && (
             <>
               <Divider my="sm" />
