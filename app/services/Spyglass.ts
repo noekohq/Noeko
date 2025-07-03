@@ -673,7 +673,6 @@ export default class Spyglass {
           - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
           - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
           - **NEVER** start your answer with a heading.
-          - **NEVER** nest multiple citations within eachother.
           `,
         )
         .addBlock(

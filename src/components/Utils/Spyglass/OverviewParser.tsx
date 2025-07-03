@@ -25,6 +25,7 @@ import { getNodeTitle } from "../../../utils/graph";
 import { Link, useNavigate } from "react-router";
 import { markdownToHtml } from "../../../utils/formatting";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
+import { hasVisibleChildren } from "../../../utils/helpers";
 
 interface IOverviewParserProps {
   html: string;
@@ -126,6 +127,26 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
     [navigate],
   );
 
+  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const target = e.target as HTMLElement;
+    const currentTarget = e.currentTarget;
+
+    // Only set hover(true) if the element this handler is attached to
+    // is the closest ancestor with the .findingNumber class. This ensures
+    // that for nested elements, only the innermost one gets highlighted.
+    if (target.closest(`.${styles.findingNumber}`) === currentTarget) {
+      setHoveringCitation(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // onMouseLeave fires when the cursor leaves the element's bounds,
+    // which is exactly what we want.
+    setHoveringCitation(false);
+  };
+
+  const hasChildren = hasVisibleChildren(children);
+
   if (!finding) {
     return children;
   }
@@ -159,14 +180,10 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
       <HoverCard.Target>
         <span
           className={`${styles.findingNumber} ${hoveringCitation ? styles.hovering : ""}`}
-          onMouseEnter={() => {
-            setHoveringCitation(true);
-          }}
-          onMouseLeave={() => {
-            setHoveringCitation(false);
-          }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
-          {!!children && (
+          {hasChildren && (
             <span
               className={`${styles.content} ${hoveringCitation ? styles.hovering : ""}`}
             >
