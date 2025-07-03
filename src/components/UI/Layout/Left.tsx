@@ -10,7 +10,14 @@ import {
   MegaphoneIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Divider, Flex, Group, Stack } from "@mantine/core";
+import {
+  ActionIcon,
+  Divider,
+  Flex,
+  Group,
+  MantineColor,
+  Stack,
+} from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
@@ -68,13 +75,15 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
     },
   } = useInteraction();
 
+  const defaultColor: MantineColor = "dark.3";
+
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
       <Group justify="end">
         {!!topLevel?.open && topLevel.open}
         {!isHome && (
           <Link to="/">
-            <ActionIcon variant="subtle">
+            <ActionIcon variant="subtle" color={defaultColor}>
               <HouseIcon />
             </ActionIcon>
           </Link>
@@ -84,6 +93,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             openFeedbackModal();
           }}
           variant="subtle"
+          color={defaultColor}
         >
           <MegaphoneIcon />
         </ActionIcon>
@@ -93,6 +103,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           }}
           variant="subtle"
           size={isMobile ? "sm" : "md"}
+          color={defaultColor}
         >
           <SidebarSimpleIcon />
         </ActionIcon>
@@ -103,7 +114,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
         {!!topLevel?.hovering && topLevel.hovering}
         {!isHome && (
           <Link to="/">
-            <ActionIcon variant="subtle">
+            <ActionIcon variant="subtle" color={defaultColor}>
               <HouseIcon />
             </ActionIcon>
           </Link>
@@ -113,6 +124,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             openFeedbackModal();
           }}
           variant="light"
+          color={defaultColor}
         >
           <MegaphoneIcon />
         </ActionIcon>
@@ -122,6 +134,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           }}
           variant="subtle"
           size={isMobile ? "sm" : "md"}
+          color={defaultColor}
         >
           <SidebarSimpleIcon />
         </ActionIcon>
@@ -137,13 +150,14 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             }}
             variant="subtle"
             size={"md"}
+            color={defaultColor}
           >
             <SidebarSimpleIcon />
           </ActionIcon>
         )}
         {!isHome && (
           <Link to="/">
-            <ActionIcon variant="subtle">
+            <ActionIcon variant="subtle" color={defaultColor}>
               <HouseIcon />
             </ActionIcon>
           </Link>
@@ -152,6 +166,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           onClick={() => {
             openFeedbackModal();
           }}
+          color={defaultColor}
           variant="subtle"
         >
           <MegaphoneIcon />
