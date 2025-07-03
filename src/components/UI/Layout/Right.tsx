@@ -10,7 +10,7 @@ import {
   SidebarSimpleIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import ProfileButton from "./ProfileButton";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -74,6 +74,8 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
 
   const { pathname } = useLocation();
 
+  const defaultColor: MantineColor = "dark.3";
+
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
       <Group justify="space-between">
@@ -85,6 +87,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
             }}
             variant="subtle"
             size={isMobile ? "sm" : "md"}
+            color={defaultColor}
           >
             <SidebarSimpleIcon
               style={{
@@ -97,7 +100,11 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
           {isSuperuser && (
             <>
               <Tooltip label="Open spotlight">
-                <ActionIcon variant="light" onClick={openSpotlight}>
+                <ActionIcon
+                  variant="light"
+                  onClick={openSpotlight}
+                  color={defaultColor}
+                >
                   <ListMagnifyingGlassIcon />
                 </ActionIcon>
               </Tooltip>
@@ -117,6 +124,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
             }}
             variant="subtle"
             size={isMobile ? "sm" : "md"}
+            color={defaultColor}
           >
             <SidebarSimpleIcon />
           </ActionIcon>
@@ -125,7 +133,11 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
           {isSuperuser && (
             <>
               <Tooltip label="Open spotlight">
-                <ActionIcon variant="light" onClick={openSpotlight}>
+                <ActionIcon
+                  variant="light"
+                  onClick={openSpotlight}
+                  color={defaultColor}
+                >
                   <ListMagnifyingGlassIcon />
                 </ActionIcon>
               </Tooltip>
@@ -145,6 +157,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
             }}
             variant="subtle"
             size={"md"}
+            color={defaultColor}
           >
             <SidebarSimpleIcon
               style={{
@@ -154,7 +167,12 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
           </ActionIcon>
         )}
         <ProfileButton />
-        <ActionIcon variant="light" onClick={openSpotlight} size="sm">
+        <ActionIcon
+          variant="light"
+          onClick={openSpotlight}
+          size="sm"
+          color={defaultColor}
+        >
           <ListMagnifyingGlassIcon size={16} />
         </ActionIcon>
         {isSuperuser && (
@@ -166,6 +184,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
                   navigate("/admin/users");
                 }}
                 size="sm"
+                color={defaultColor}
               >
                 <UsersIcon size={16} />
               </ActionIcon>
@@ -177,6 +196,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
                   navigate("/admin/feedback");
                 }}
                 size="sm"
+                color={defaultColor}
               >
                 <ChatCircleDotsIcon size={16} />
               </ActionIcon>
