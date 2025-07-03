@@ -14,7 +14,7 @@ services:
       - $DB_PASSWORD
       - file:///data/database.db # Updated to use file:// for clarity with volume path
     ports:
-      - "$DB_PORT:8000"
+      - "127.0.0.1:$DB_PORT:8000"
     networks:
       - app
     volumes:
@@ -25,7 +25,8 @@ services:
     env_file:
       - ./.env # Assuming .env is in the project root
     ports:
-      - "$REDIS_PORT:6379" # Expose Redis port to your local machine for debugging
+      - "127.0.0.1:$REDIS_PORT:6379" # Expose Redis port to your local machine for debugging
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     networks:
       - app
     volumes:
