@@ -647,12 +647,19 @@ export default class Spyglass {
           Good:
           <p>This is a very good answer</p>
 
-
           Use <span> tags with data-finding-number attributes to reference findings, for example:
 
           <span data-finding-number="1">
             this is some content that sources finding number 2
           </span>
+
+          **DO NOT** use standalone finding spans, **ALWAYS** wrap content in a citation.
+
+          **Unexpected**:
+          This is a verifiable fact.<span data-finding-number="1"></span>.
+
+          **Expected Behavior**:
+          <span data-finding-number="1">This is a verifiable fact.</span>
           `,
         )
         .addBlock("User Query", query)
@@ -661,10 +668,12 @@ export default class Spyglass {
           "Strict Rules",
           `
           - **ALWAYS** cite relevant findings for statements made to ensure accuracy and verifiability.
+          - **ALWAYS** follow the specified formatting rules
           - **NEVER** use information that is not explicitly present in the Findings. If the Findings do not contain the answer, state that you cannot answer based on the information provided.
           - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
           - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
           - **NEVER** start your answer with a heading.
+          - **NEVER** nest multiple citations within eachother.
           `,
         )
         .addBlock(
@@ -870,6 +879,7 @@ export default class Spyglass {
       });
 
       const lm = getLM().withModel("simple");
+      console.log("Model being used: ", lm.model);
       const result = await lm.generateJSON<ISearchOverview["overview"]>(
         overviewPrompt.get(),
         {

@@ -7,9 +7,10 @@
     /* --button-bg: var(--mantine-color-dark-8) !important; */
     --color-code-background: var(--mantine-color-dark-8);
     --color-code-foreground: var(--mantine-color-dark-1);
+    --color-highlight: var(--mantine-color-highlight-6);
 
     .highlight {
-        background-color: var(--mantine-color-highlight-6);
+        background-color: var(--color-highlight);
         /* color: var(--mantine-color-dark-9); */
         /* font-weight: 500; */
     }
@@ -36,9 +37,10 @@
 
     --color-code-background: var(--mantine-color-dark-8);
     --color-code-foreground: var(--mantine-color-dark-1);
+    --color-highlight: var(--mantine-color-highlight-9);
 
     .highlight {
-        background-color: var(--mantine-color-highlight-9);
+        background-color: var(--color-highlight);
         color: var(--mantine-color-dark-0);
     }
 }

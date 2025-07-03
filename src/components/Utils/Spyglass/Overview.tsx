@@ -112,6 +112,7 @@ export function DisplayOverview({
             radius="lg"
             size="xs"
             variant="subtle"
+            color="gray"
             leftSection={
               rightSidebarMode === "collapsed" ? (
                 <ArrowLineUpRightIcon weight="bold" />
@@ -161,12 +162,15 @@ export function DisplayOverview({
                 return (
                   <Accordion.Item value={findingNumber.toString()}>
                     <Accordion.Control>
-                      <Group align="center">
-                        <ActionIcon variant="light" size="xs">
-                          <Text size="xs" fw="bold">
-                            {findingNumber + 1}
-                          </Text>
-                        </ActionIcon>
+                      <Group align="center" justify="space-between">
+                        <Group>
+                          <ActionIcon variant="light" size="xs">
+                            <Text size="xs" fw="bold">
+                              {findingNumber + 1}
+                            </Text>
+                          </ActionIcon>
+                          <Text>{title}</Text>
+                        </Group>
                         <Badge variant="light" color="gray">
                           {finding.findingType.replaceAll(/_/g, " ")}
                         </Badge>
@@ -189,7 +193,9 @@ export function DisplayOverview({
                                 cursor: "pointer",
                               }}
                             >
-                              {title}
+                              <Group gap="xs">
+                                {title} <ArrowRightIcon />
+                              </Group>
                             </Text>
                           }
                           p="xs"

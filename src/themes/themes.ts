@@ -126,16 +126,16 @@ export const qwest: IOverrideResolver = (t) => {
         "#441e05", // 9 (darkest)
       ],
       highlight: [
-        "#fcfce6",
-        "#f6f7d5",
-        "#edeeac",
-        "#e3e580",
-        "#dadd5b",
-        "#d5d843",
-        "#d2d535",
-        "#b8bb26",
-        "#a4a81d",
-        "#8d910c",
+        "#fdfce4",
+        "#f8f6d3",
+        "#f0eca9",
+        "#e9e384",
+        "#e0d856",
+        "#dcd23d",
+        "#dad02e",
+        "#c0b720",
+        "#aba316",
+        "#938c02",
       ],
     };
   const darkColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> = {
@@ -248,16 +248,16 @@ export const qwest: IOverrideResolver = (t) => {
       "#351703", // 9 (darkest)
     ],
     highlight: [
-      "#fdfced",
-      "#faf8da",
-      "#f4f1ae",
-      "#efe97f",
-      "#eae259",
-      "#e7de42",
-      "#e6dc36",
-      "#ccc32a",
-      "#b5ad21",
-      "#79740e",
+      "#fcfbed",
+      "#f8f6dc",
+      "#f1edb2",
+      "#e9e384",
+      "#e3db5f",
+      "#dfd648",
+      "#ddd33c",
+      "#c4ba2f",
+      "#aea626",
+      "#44410b",
     ],
   };
 

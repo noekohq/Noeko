@@ -187,6 +187,7 @@ export default function Spyglass() {
 
                     return (
                       <CompactIdeaCard
+                        key={idea.id.toString()}
                         idea={idea}
                         maxTitleLines={2}
                         withBorder
@@ -460,7 +461,10 @@ export default function Spyglass() {
                   }
 
                   return (
-                    <Accordion.Item value={idea.id.toString()}>
+                    <Accordion.Item
+                      value={idea.id.toString()}
+                      key={idea.id.toString()}
+                    >
                       <Accordion.Control p="0">
                         <Group wrap="wrap">
                           <Text
