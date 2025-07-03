@@ -210,7 +210,7 @@ export default function SpyglassRecord() {
       <Content>
         <Grid>
           <Grid.Col>
-            <Text className={styles.queryHeader} size="lg" mb="lg" fs="italic">
+            <Text className={styles.queryHeader} size="lg" fs="italic">
               {spyglass?.baseQuery
                 ? capitalize(spyglass?.baseQuery)
                 : "No title"}
@@ -285,7 +285,7 @@ export default function SpyglassRecord() {
                               {hasExcerpts && (
                                 <ActionIcon
                                   variant="light"
-                                  size="xs"
+                                  size="sm"
                                   onClick={() => {
                                     navigate(`/idea/${idea.id.toString()}`);
                                   }}

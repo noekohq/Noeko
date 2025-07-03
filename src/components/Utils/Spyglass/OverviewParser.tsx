@@ -1,5 +1,12 @@
-import React, { useCallback } from "react";
-import { ActionIcon, Badge, Blockquote, HoverCard, Text } from "@mantine/core";
+import React, { useCallback, useState } from "react";
+import {
+  ActionIcon,
+  Badge,
+  Blockquote,
+  Group,
+  HoverCard,
+  Text,
+} from "@mantine/core";
 import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
   ICitationMap,
@@ -99,6 +106,8 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
   resultsMap,
   analysis,
 }) => {
+  const [hoveringCitation, setHoveringCitation] = useState(false);
+  console.log("Hovering citation: ", hoveringCitation);
   const fn = Number(findingNumber);
   const finding = analysis?.findings[fn];
 
@@ -125,66 +134,89 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
   const citation = citationMap[finding.sourceId];
 
   const title = getNodeTitle(result);
+  const titleLink = (sourceId: string, excerpt?: string) => {
+    if (!excerpt) {
+      return `/idea/${sourceId}`;
+    } else {
+      return `/idea/${sourceId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`;
+    }
+  };
 
   return (
-    <span className={styles.findingNumber}>
-      {children}
-      {finding && (
-        <HoverCard
-          width="400px"
-          withArrow
-          shadow="lg"
-          openDelay={500}
-          styles={{
-            dropdown: {
-              maxHeight: "calc(50vh - 200px)",
-              overflow: "auto",
-              overflowX: "hidden",
-            },
+    <HoverCard
+      width="400px"
+      withArrow
+      shadow="lg"
+      openDelay={500}
+      styles={{
+        dropdown: {
+          maxHeight: "calc(50vh - 200px)",
+          overflow: "auto",
+          overflowX: "hidden",
+        },
+      }}
+    >
+      <HoverCard.Target>
+        <span
+          className={`${styles.findingNumber} ${hoveringCitation ? styles.hovering : ""}`}
+          onMouseEnter={() => {
+            setHoveringCitation(true);
+          }}
+          onMouseLeave={() => {
+            setHoveringCitation(false);
           }}
         >
-          <HoverCard.Target>
-            <ActionIcon variant="light" size="xs" mx="2px">
-              <Text size="xs">{fn + 1}</Text>
-            </ActionIcon>
-          </HoverCard.Target>
-          <HoverCard.Dropdown>
-            <Badge variant="light" mb="sm">
-              {finding.findingType.replaceAll(/_/g, " ")}
-            </Badge>
-            <Blockquote
-              color="gray"
-              cite={
-                <Text
-                  size="sm"
-                  onClick={() => {
-                    navigateWithTextFragment(
-                      finding.sourceId.toString(),
-                      finding.excerpt,
-                    );
-                  }}
-                  style={{
-                    cursor: "pointer",
-                  }}
-                >
-                  {title}
-                </Text>
-              }
-              p="xs"
-              mb="sm"
+          {!!children && (
+            <span
+              className={`${styles.content} ${hoveringCitation ? styles.hovering : ""}`}
             >
-              <Text
-                size="sm"
-                p="0"
-                dangerouslySetInnerHTML={{
-                  __html: markdownToHtml(finding.excerpt),
-                }}
-              />
-            </Blockquote>
-            <Text>{finding.analysis}</Text>
-          </HoverCard.Dropdown>
-        </HoverCard>
-      )}
-    </span>
+              {children}
+            </span>
+          )}
+          <span className={`${styles.number}`}>
+            <Badge
+              variant="light"
+              size="sm"
+              mx="2px"
+              p="xs"
+              radius="lg"
+              color="gray"
+              classNames={{
+                root: `${styles.citationIcon} ${hoveringCitation ? styles.hovering : ""}`,
+              }}
+            >
+              {hoveringCitation ? title || fn + 1 : fn + 1}
+            </Badge>
+          </span>
+        </span>
+      </HoverCard.Target>
+      <HoverCard.Dropdown>
+        <Group align="baseline" justify="space-between">
+          <Link to={titleLink(finding.sourceId.toString(), finding.excerpt)}>
+            <Text
+              size="md"
+              style={{
+                cursor: "pointer",
+              }}
+            >
+              {title}
+            </Text>
+          </Link>
+          <Badge variant="light" mb="sm" color="gray">
+            {finding.findingType.replaceAll(/_/g, " ")}
+          </Badge>
+        </Group>
+        <Blockquote color="gray" p="xs" mb="sm">
+          <Text
+            size="sm"
+            p="0"
+            dangerouslySetInnerHTML={{
+              __html: markdownToHtml(finding.excerpt),
+            }}
+          />
+        </Blockquote>
+        <Text>{finding.analysis}</Text>
+      </HoverCard.Dropdown>
+    </HoverCard>
   );
 };
