@@ -5,6 +5,7 @@ import { IIdea } from "../database/models/ideas";
 import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
+import { ISpyglassSearch } from "../database/models/search";
 
 interface ISpyglassMode {
   intent: {
@@ -429,8 +430,8 @@ export default class Spyglass {
     return allResults;
   }
 
-  static intentPromptBuilder(query: string) {
-    return new PromptBuilder()
+  static intentPromptBuilder(query: string, parent?: ISpyglassSearch | null) {
+    const builder = new PromptBuilder()
       .addText(
         "You are an intelligent user query parser called Spyglass Q, responsible for understanding the user's intent, and deciding how to respond.",
       )
@@ -446,7 +447,29 @@ export default class Spyglass {
         It is currently ${getFormattedDateTimeToday()}.
         You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
         `,
-      )
+      );
+
+    if (parent && parent.intent) {
+      builder.addBlock(
+        "Follow-Up Context",
+        `
+        Crucially, this is a follow-up to a previous query. Thus, your response should be based on the previous query and the user's intent.
+
+        Keep the fact that this is a follow-up question in mind, as it should influence your sources and the way you approach the query.
+
+        <previousQuery>
+        ${parent.baseQuery}
+        </previousQuery>
+
+        The user's intent was classified as:
+        <previousIntent>
+        ${parent.intent.intent}
+        </previousIntent>
+      `,
+      );
+    }
+
+    builder
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
         "Instructions",
@@ -508,6 +531,8 @@ export default class Spyglass {
         </userquery>
         `,
       );
+
+    return builder;
   }
 
   static findingsPromptBuilder(query: string, mode: ISpyglassMode) {
@@ -594,25 +619,59 @@ export default class Spyglass {
     };
   }
 
-  static overviewPromptBuilder(query: string, mode: ISpyglassMode) {
-    return (
-      new PromptBuilder()
-        // --- Insight: Adopting the more polished persona we discussed.
-        .addText(
-          "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
-        )
-        .addBlock(
-          "Context",
-          `
+  static overviewPromptBuilder(
+    query: string,
+    mode: ISpyglassMode,
+    parent?: ISpyglassSearch | null,
+  ) {
+    const builder = new PromptBuilder()
+      // --- Insight: Adopting the more polished persona we discussed.
+      .addText(
+        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
+      )
+      .addBlock(
+        "Context",
+        `
           It is currently ${getFormattedDateTimeToday()}.
           You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           `,
-        )
-        .addBlock("Mission Statement", spyglassMissionStatement)
-        .addText(mode.response.prompt(query).get())
-        .addBlock(
-          "How to Format",
-          `
+      );
+
+    if (parent) {
+      let parentContext = `
+      Crucially, this question is a follow-up to a previous query.
+      The response should flow from the previous query and response.
+      Previous Query:
+      <previousQuery>
+        ${parent.baseQuery}
+      </previousQuery>
+
+      `;
+
+      if (parent.analysis?.findings && parent.analysis.findings.length > 0) {
+        const findingsText = parent.analysis?.findings
+          .map((f, i) => `* Finding ${i + 1}: ${f.analysis}`)
+          .join("\n");
+        parentContext += `\n\nHere are the findings from the previous query:\n${findingsText}`;
+      }
+
+      if (parent.analysis) {
+        parentContext += `
+        And here was the final response based on those findings:
+        <previousResponse>
+          ${parent.analysis?.overview}
+        </previousResponse>
+        `;
+      }
+      builder.addBlock("Follow-Up Context", parentContext);
+    }
+
+    builder
+      .addBlock("Mission Statement", spyglassMissionStatement)
+      .addText(mode.response.prompt(query).get())
+      .addBlock(
+        "How to Format",
+        `
           You **MUST** write all of your responses as semantic HTML
           **DO NOT** use Markdown directly
 
@@ -664,11 +723,11 @@ export default class Spyglass {
 
           This is CRITICAL for user experience and accessibility.
           `,
-        )
-        .addBlock("User Query", query)
-        .addBlock(
-          "Strict Rules",
-          `
+      )
+      .addBlock("User Query", query)
+      .addBlock(
+        "Strict Rules",
+        `
           - **ALWAYS** cite relevant findings for statements made to ensure accuracy and verifiability.
           - **ALWAYS** follow the specified formatting rules
           - **NEVER** use information that is not explicitly present in the Findings. If the Findings do not contain the answer, state that you cannot answer based on the information provided.
@@ -676,12 +735,12 @@ export default class Spyglass {
           - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
           - **NEVER** start your answer with a heading.
           `,
-        )
-        .addBlock(
-          "Findings",
-          "The findings to use for your answer are as follows:\n",
-        )
-    );
+      )
+      .addBlock(
+        "Findings",
+        "The findings to use for your answer are as follows:\n",
+      );
+    return builder;
   }
 
   static intentSchema(): ResponseSchema {
@@ -714,13 +773,15 @@ export default class Spyglass {
 
   static async getIntentFromQuery(
     query: string,
+    parent?: ISpyglassSearch | null,
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
         return undefined;
       }
+      console.log("Getting intent w/ parent: ", parent?.analysis);
       const lm = getLM().withModel("simple");
-      const prompt = this.intentPromptBuilder(query).get();
+      const prompt = this.intentPromptBuilder(query, parent).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
@@ -903,6 +964,7 @@ export default class Spyglass {
     query: string,
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
+    parent?: ISpyglassSearch,
   ): AsyncGenerator<string, void, unknown> {
     try {
       if (findings.length === 0) {
@@ -924,6 +986,7 @@ export default class Spyglass {
       const overviewPrompt = this.overviewPromptBuilder(
         query,
         Modes[intent.mode],
+        parent,
       );
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size

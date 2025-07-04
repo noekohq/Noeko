@@ -62,7 +62,7 @@ export default function Textbox({
         }
       }
     });
-  }, []);
+  }, [initialized]);
 
   const showUI = () => {
     if (initialized && !isFocused) {
