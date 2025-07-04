@@ -3,7 +3,7 @@ import {
   Idea,
   IIdea,
   IIdeaAsRelation,
-  IIdeadMap,
+  IIdeaDerivedMap,
   IIdeaForm,
   IPublicIdea,
 } from "../database/models/ideas";
