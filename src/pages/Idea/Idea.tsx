@@ -94,6 +94,7 @@ export default function Idea() {
       });
     },
     onError: (error: any) => {
+      console.error("Error deleting idea: ", error);
       showNotification({
         title: "Error Deleting",
         message: `There was an error deleting the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
@@ -119,15 +120,11 @@ export default function Idea() {
   }, [loadingDelete, triggerDeleteIdea, ideaId]);
 
   const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
-    url: `/graph/ideas/${ideaId}/embed`,
+    url: `/ideas/${ideaId}/embed`,
     method: "POST",
     onSuccess: () => {},
     onError: (error: any) => {
-      showNotification({
-        title: "Embedding Error",
-        message: `Failed to start embedding generation: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
-        color: "red",
-      });
+      console.error("Error generating embeddings: ", error);
     },
     onFinally: () => {
       reloadIdea();
@@ -136,16 +133,26 @@ export default function Idea() {
 
   const { load: triggerDerivedCascade, loading: loadingDerivedCascade } =
     useFetch({
-      url: `/graph/ideas/${ideaId}/cascade`,
+      url: `/ideas/${ideaId}/cascade`,
       dependencies: [ideaId],
       method: "POST",
       onSuccess: () => {},
       onError: (error: any) => {
-        showNotification({
-          title: "Error",
-          message: `Failed to run some updates on idea.`,
-          color: "red",
-        });
+        console.error("Error generating derived cascade: ", error);
+      },
+      onFinally: () => {
+        reloadIdea();
+      },
+    });
+
+  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } =
+    useFetch({
+      url: `/ideas/${ideaId}/entitle`,
+      dependencies: [ideaId],
+      method: "POST",
+      onSuccess: () => {},
+      onError: (error: any) => {
+        console.error("Error generating title: ", error);
       },
       onFinally: () => {
         reloadIdea();
@@ -176,6 +183,13 @@ export default function Idea() {
       new Date(idea.contentUpdatedAt) >
       new Date(idea.derived.generative_summary.createdAt)
     );
+  }, [ideaId, idea]);
+
+  const titleNeedsGeneration = useCallback(() => {
+    if (idea?.title === "Untitled Idea") {
+      return true;
+    }
+    return false;
   }, [ideaId, idea]);
 
   const statusText = useCallback(() => {
@@ -259,10 +273,13 @@ export default function Idea() {
     }
 
     if (embeddingsOutOfDate() && !loadingEmbeddings) {
-      await triggerEmbedIdea();
+      triggerEmbedIdea();
     }
     if (derivedOutOfDate() && !loadingDerivedCascade) {
-      await triggerDerivedCascade();
+      triggerDerivedCascade();
+    }
+    if (titleNeedsGeneration() && !loadingTitleGeneration) {
+      triggerTitleGeneration();
     }
   }, [
     idea,
@@ -411,17 +428,27 @@ export default function Idea() {
         <div className={styles.ideaContainer}>
           <div className={styles.topbox}>
             <Stack gap="md">
-              <Title
-                order={1}
-                m="0"
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={(e) => {
-                  updateTitle(e.currentTarget.innerText);
-                }}
-                dangerouslySetInnerHTML={{ __html: title || "" }}
-                className={styles.editableTitle}
-              />
+              <Group>
+                <Title
+                  order={1}
+                  m="0"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    updateTitle(e.currentTarget.innerText);
+                  }}
+                  dangerouslySetInnerHTML={{ __html: title || "" }}
+                  className={styles.editableTitle}
+                />
+                {idea?.titleGeneratedAt && (
+                  <div
+                    className={styles.generatedIndicator}
+                    title={"This title was generated automatically."}
+                  >
+                    <SparkleIcon />
+                  </div>
+                )}
+              </Group>
               {idea && (
                 <IdeaProvider
                   idea={idea}

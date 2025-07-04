@@ -122,6 +122,7 @@ export default function SpyglassHistory() {
               <Link to={`/spyglass/records/${viewing.id}`}>
                 <Button
                   variant="light"
+                  color={"gray"}
                   size="xs"
                   rightSection={<ArrowRightIcon weight="bold" />}
                 >
@@ -131,7 +132,7 @@ export default function SpyglassHistory() {
             </Group>
             <Title order={4}>{viewing.baseQuery}</Title>
             {viewing.analysis?.overview && (
-              <Blockquote>
+              <Blockquote color="gray">
                 <Text fw="bold" c="dimmed" size="xs" mb="sm">
                   ANSWER
                 </Text>

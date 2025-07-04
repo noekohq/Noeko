@@ -24,6 +24,7 @@ export type IIdea = {
   contentUpdatedAt: Date;
   contentPlainUpdatedAt: Date;
   embeddingsUpdatedAt: Date;
+  titleGeneratedAt?: Date;
   connections?: IIdea[];
   relatedIdeas?: IIdeaAsRelation[];
   derived?: IIdeaDerivedMap;
@@ -857,6 +858,9 @@ export class Idea {
           : "";
         updater.contentPlainUpdatedAt = new Date();
       }
+      if ("title" in form && !("titleGeneratedAt" in form)) {
+        updater.titleGeneratedAt = undefined;
+      }
       const result = await db?.merge<
         IIdea,
         Partial<IIdeaForm> & { updatedAt: Date }
@@ -1291,15 +1295,44 @@ export class Idea {
     }
   }
 
-  static async generateSummary(content: string) {
+  static async generateTitle(content: string) {
     try {
       const lm = getLM();
-      const summary = await lm.utils.summarize(content, "sentence");
+      const title = await lm.utils.entitle(
+        content,
+        "short, descriptive, and succinct",
+      );
 
-      return summary;
+      return title;
     } catch (err) {
       console.error(`Error during generateSummary`, err);
       return null;
+    }
+  }
+
+  static async giveGenerativeTitle(ideaId: string | RecordId) {
+    try {
+      const idea = await Idea.get(ideaId);
+      if (!idea) {
+        throw new Error("Error getting idea");
+      }
+      if (!idea.content) {
+        return await Idea.update(ideaId, {
+          title: "Untitled Idea",
+          titleGeneratedAt: undefined,
+        });
+      }
+      const title = await Idea.generateTitle(idea.contentPlain || idea.content);
+      if (!title) {
+        throw new Error("Error getting the title");
+      }
+      return await Idea.update(ideaId, {
+        title,
+        titleGeneratedAt: new Date(),
+      });
+    } catch (error) {
+      console.error("Error generating title for idea");
+      return undefined;
     }
   }
 

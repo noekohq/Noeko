@@ -15,12 +15,14 @@ export type ISpyglassSearch = {
   id: string | RecordId;
   baseQuery: string;
   intent?: ISpyglassIntent;
-  results?: ISearchResultValue[];
-  resultConnections?: ISearchConnection[];
-  fullResults?: ISearchResult[];
   analysis: ISearchOverview | null;
   createdAt: Date;
   updatedAt: Date;
+  // Computed fields
+  results?: ISearchResultValue[];
+  resultConnections?: ISearchConnection[];
+  fullResults?: ISearchResult[];
+  previous?: ISpyglassSearch | null;
 };
 
 export type ISpyglassSearchForm = Omit<
@@ -65,6 +67,12 @@ export type ISearchConnection = {
   updatedAt: Date;
 };
 
+export type ISpyglassSearchFollowUpConnection = {
+  in: string | RecordId;
+  out: string | RecordId;
+  createdAt: Date;
+};
+
 export class SpyglassSearch {
   constructor() {}
 
@@ -83,9 +91,10 @@ export class SpyglassSearch {
             SELECT
               *,
               (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
-              (SELECT * OMIT embeddings FROM ->found->idea) as results
+              (SELECT * OMIT embeddings FROM ->found->idea) as results,
+              ->follows_up_on->spyglass as parent
             FROM ONLY <record> $spyglassRecord
-            FETCH results;
+            FETCH results, parent;
           RETURN $search;
         }
         `;
@@ -202,6 +211,25 @@ export class SpyglassSearch {
       return search;
     } catch (error) {
       logger.error("Error getting spyglass search", { id, error });
+    }
+  }
+
+  public static async attachParent(
+    to: string | RecordId,
+    from: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const result = db.query<[ISpyglassSearchFollowUpConnection[]]>(``, {
+        child: to,
+        parent: from,
+      });
+    } catch (error) {
+      logger.error("Error attaching parent", { to, from, error });
+      return undefined;
     }
   }
 
