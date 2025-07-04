@@ -35,6 +35,7 @@ import CountUp from "../../components/Utils/Animations/Countup";
 import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
 import {
   ArrowRightIcon,
+  ArrowsClockwiseIcon,
   ClockCounterClockwiseIcon,
 } from "@phosphor-icons/react";
 import Content from "../../components/UI/Layout/Content";
@@ -43,7 +44,9 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 export default function Spyglass() {
   const [query, setQuery] = useState<string>("");
+  const [parentId, setParentId] = useState<string | null>(null);
   const {
+    spyglassId,
     initialize,
     intent,
     results,
@@ -56,7 +59,7 @@ export default function Spyglass() {
     citationMap,
     baseQuery,
     loading,
-  } = useSpyglass({ query });
+  } = useSpyglass({ query, parentId });
 
   const hasInitialized = useRef(false);
   useEffect(() => {
@@ -106,10 +109,11 @@ export default function Spyglass() {
   const { isMobile } = useLayout();
 
   useEffect(() => {
-    if (complete) {
+    if (complete && spyglassId) {
       setQuery("");
+      setParentId(spyglassId);
     }
-  }, [complete]);
+  }, [complete, spyglassId]);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -404,9 +408,23 @@ export default function Spyglass() {
                     setQuery(v);
                   }}
                   placeholder="Ask your thoughts anything..."
-                  placeholderIfInitialized="Ask another question..."
+                  placeholderIfInitialized="Ask a follow-up question..."
                   initialized={initialized}
                 />
+                {initialized && (
+                  <ActionIcon
+                    onClick={() => {
+                      hasInitialized.current = false;
+                      clear(true);
+                      setParentId(null);
+                    }}
+                    size="md"
+                    variant="light"
+                    radius="lg"
+                  >
+                    <ArrowsClockwiseIcon />
+                  </ActionIcon>
+                )}
               </div>
               {!initialized && (
                 <Group mt="lg" justify="center">
@@ -431,13 +449,31 @@ export default function Spyglass() {
       </Content>
       <RightSidebar>
         <RightSidebar.Open>
+          {intent?.queries.length && (
+            <>
+              <Title order={3}>
+                {intent.queries.length} Search
+                {intent.queries.length === 1 ? "" : "es"}...
+              </Title>
+              <Stack mt="xs" gap="xs">
+                {intent.queries.map((q) => {
+                  return (
+                    <Text key={q} size="xs" fs="italic" c="dimmed">
+                      {q}
+                    </Text>
+                  );
+                })}
+              </Stack>
+              <Space my="lg" />
+            </>
+          )}
           {results.length < 1 && (
             <Text c="dimmed" size="sm">
               No results yet... Try searching for something!
             </Text>
           )}
           {results.length > 0 && (
-            <Stack>
+            <Stack gap="xs">
               <Title order={3}>
                 {sortedSearchResults.length} Resource
                 {sortedSearchResults.length === 1 ? "" : "s"}...

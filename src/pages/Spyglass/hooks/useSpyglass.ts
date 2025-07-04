@@ -21,6 +21,7 @@ const initialAnalysis: ISearchOverview = {
 
 interface IUseSpyglassArgs {
   query: string;
+  parentId?: string | null;
   onResultsChange?: (results: ISearchResultValue[]) => void;
   onAnalysisChange?: (analysis: ISearchOverview | null) => void;
 }
@@ -36,6 +37,7 @@ export type ICitationMap = Record<
 >;
 
 interface IUseSpyglassReturn {
+  spyglassId: string | null;
   timings: {
     startTime: number;
     resultsTime: number;
@@ -64,6 +66,7 @@ interface IUseSpyglassReturn {
 
 export default function useSpyglass({
   query,
+  parentId,
   onResultsChange = () => {},
   onAnalysisChange = () => {},
 }: IUseSpyglassArgs) {
@@ -294,7 +297,10 @@ export default function useSpyglass({
 
     try {
       setStatusText("Searching your ideas...");
-      const response = await api.post("/search/spyglass/initialize", { query });
+      const response = await api.post("/search/spyglass/initialize", {
+        query,
+        parentId,
+      });
       setInitialized(true);
       setInitializing(false);
       const id = response.data.data.id;
@@ -304,7 +310,7 @@ export default function useSpyglass({
       setInitializing(false);
       setError("Failed to initialize search.");
     }
-  }, [query]);
+  }, [query, parentId]);
 
   const refetch = useCallback(async () => {
     try {
@@ -335,7 +341,20 @@ export default function useSpyglass({
     } catch (error) {
       console.error(error);
     }
-  }, [spyglassId]);
+  }, [
+    spyglassId,
+    setConnected,
+    setListening,
+    setSpyglassId,
+    setSpyglass,
+    setAnalysis,
+    setLoadingResults,
+    setLoadingFindings,
+    setLoadingOverview,
+    setComplete,
+    setInitialized,
+    setError,
+  ]);
 
   const getResultsMap = () => {
     return spyglass?.fullResults?.reduce((acc, curr, i) => {
@@ -377,6 +396,7 @@ export default function useSpyglass({
   const citationMap = buildCitationMap();
 
   return {
+    spyglassId,
     baseQuery: spyglass?.baseQuery,
     intent: spyglass?.intent,
     results: spyglass?.fullResults || [],

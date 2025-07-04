@@ -22,7 +22,7 @@ export type ISpyglassSearch = {
   results?: ISearchResultValue[];
   resultConnections?: ISearchConnection[];
   fullResults?: ISearchResult[];
-  previous?: ISpyglassSearch | null;
+  parent?: ISpyglassSearch;
 };
 
 export type ISpyglassSearchForm = Omit<
@@ -92,7 +92,7 @@ export class SpyglassSearch {
               *,
               (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
               (SELECT * OMIT embeddings FROM ->found->idea) as results,
-              ->follows_up_on->spyglass as parent
+              (SELECT * FROM ->is_followup_to->spyglass)[0] AS parent
             FROM ONLY <record> $spyglassRecord
             FETCH results, parent;
           RETURN $search;
@@ -223,10 +223,19 @@ export class SpyglassSearch {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const result = db.query<[ISpyglassSearchFollowUpConnection[]]>(``, {
-        child: to,
-        parent: from,
-      });
+      console.log(`Following up ${from} with ${to}`);
+      const result = db.query<[ISpyglassSearchFollowUpConnection[]]>(
+        `RELATE $child->is_followup_to->$parent CONTENT { createdAt: $now, }`,
+        {
+          child: new StringRecordId(to),
+          parent: new StringRecordId(from),
+        },
+      );
+      if (!result) {
+        console.error("No link created.");
+        return undefined;
+      }
+      return result;
     } catch (error) {
       logger.error("Error attaching parent", { to, from, error });
       return undefined;
@@ -306,13 +315,14 @@ export class SpyglassSearch {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const search = await db.select<ISpyglassSearch>(
-        new StringRecordId(searchId),
-      );
+      const search = await SpyglassSearch.get(searchId);
       if (!search) {
         throw new Error("Search not found");
       }
-      const intent = await Spyglass.getIntentFromQuery(search.baseQuery);
+      const intent = await Spyglass.getIntentFromQuery(
+        search.baseQuery,
+        search.parent,
+      );
       if (!intent) {
         throw new Error("Failed to load intent");
       }
@@ -594,6 +604,7 @@ export class SpyglassSearch {
 
       const getSpyglass = async () => await SpyglassSearch.get(spyglassId);
       let spyglass = await getSpyglass();
+      console.log("Got spyglass: ", spyglass);
       if (!spyglass) {
         const errorMessage = "Search not found";
         logger.error(errorMessage, { spyglassId });
@@ -752,6 +763,7 @@ export class SpyglassSearch {
             spyglass.baseQuery,
             spyglass.analysis.findings,
             spyglass.intent,
+            spyglass.parent,
           )) {
             completeOverview += chunk;
             yield {

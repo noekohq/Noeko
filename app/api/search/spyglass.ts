@@ -41,11 +41,23 @@ router.post("/initialize", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const { query } = req.body;
+    const { query, parentId } = req.body;
     if (!query) {
       res.status(400).json({ error: "Query is required" });
       return;
     }
+
+    if (parentId) {
+      const canAccess = await SpyglassSearch.checkUserOwnership(
+        parentId,
+        user.id,
+      );
+      if (!canAccess) {
+        res.status(403).json({ error: "Unauthorized access to parent search" });
+        return;
+      }
+    }
+
     const newSpyglass = await SpyglassSearch.create(user.id, {
       baseQuery: query,
     });
@@ -53,12 +65,17 @@ router.post("/initialize", checkToken, async (req, res) => {
       res.status(500).json({ error: "Couldn't initiate spyglass" });
       return;
     }
+
+    if (parentId) {
+      await SpyglassSearch.attachParent(newSpyglass.id, parentId);
+    }
+
     res.status(201).json({
       message: "Spyglass initiated successfully",
       data: newSpyglass,
     });
   } catch (err) {
-    logger.error("Something went wrong getting user", {
+    logger.error("Something went wrong attaching parent", {
       error: err,
     });
     res.status(500).json({ error: "Internal Server Error" });
