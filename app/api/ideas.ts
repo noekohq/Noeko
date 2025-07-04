@@ -106,7 +106,7 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
     }
     const i = await Idea.create(
       {
-        title: "New Title",
+        title: "Untitled Idea",
         content: "",
         embeddings: null,
         visibility: "private",
@@ -277,6 +277,107 @@ router.post(
       res.status(500).json({
         message: "Internal Server Error",
       });
+    }
+  },
+);
+
+router.post(
+  "/:ideaId/entitle",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res.status(401).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const { ideaId } = req.params;
+      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const entitledIdea = await Idea.giveGenerativeTitle(ideaId);
+      if (!entitledIdea) {
+        res.status(500).json({
+          message: "Internal Server Error.",
+        });
+        return;
+      }
+      res.json({
+        message: `Successfully entitled from idea`,
+        data: entitledIdea,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: "Internal Server Error",
+      });
+    }
+  },
+);
+
+router.post(
+  "/:ideaId/cascade",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { ideaId } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized",
+        });
+        return;
+      }
+      await Idea.runDerivedCascade(ideaId);
+      res.send({ message: "Successfully loaded embeddings.", data: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+);
+
+router.post(
+  "/:ideaId/embed",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { ideaId } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      if (!hasAccess) {
+        res.status(403).json({
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const embedded = await Idea.loadEmbeddings(ideaId);
+      if (embedded === undefined) {
+        res.status(400).json({ error: "Could not embed idea." });
+        return;
+      }
+      res.send({ message: "Successfully loaded embeddings.", data: embedded });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   },
 );

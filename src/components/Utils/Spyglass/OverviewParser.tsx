@@ -13,7 +13,7 @@ import {
   IResultsMap,
 } from "../../../pages/Spyglass/hooks/useSpyglass";
 import styles from "./OverviewParser.module.scss";
-import { QuotesIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, QuotesIcon } from "@phosphor-icons/react";
 import parse, {
   HTMLReactParserOptions,
   Text as ReactParserText,
@@ -176,6 +176,7 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
           overflowX: "hidden",
         },
       }}
+      radius="lg"
     >
       <HoverCard.Target>
         <span
@@ -202,21 +203,31 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
                 root: `${styles.citationIcon} ${hoveringCitation ? styles.hovering : ""}`,
               }}
             >
-              {hoveringCitation ? title || fn + 1 : fn + 1}
+              {fn + 1}
             </Badge>
           </span>
         </span>
       </HoverCard.Target>
       <HoverCard.Dropdown>
         <Group align="baseline" justify="space-between">
-          <Link to={titleLink(finding.sourceId.toString(), finding.excerpt)}>
+          <Link
+            to={titleLink(finding.sourceId.toString(), finding.excerpt)}
+            style={{
+              textDecoration: "none",
+            }}
+          >
             <Text
               size="md"
+              c="dark.1"
+              fw="bold"
               style={{
                 cursor: "pointer",
               }}
             >
-              {title}
+              <Group gap="xs">
+                {title}
+                <ArrowRightIcon weight="bold" />
+              </Group>
             </Text>
           </Link>
           <Badge variant="light" mb="sm" color="gray">

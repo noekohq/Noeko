@@ -85,7 +85,7 @@ export function DisplayOverview({
   return (
     <div>
       <OverviewParser
-        html={overview.overview}
+        html={markdownToHtml(overview.overview)}
         citationMap={citationMap}
         resultsMap={resultsMap}
         analysis={overview}
@@ -106,7 +106,8 @@ export function DisplayOverview({
             radius="lg"
             size="xs"
           >
-            {overview.findings.length} Findings
+            {overview.findings.length} Finding
+            {overview.findings.length === 1 ? "" : "s"}
           </Button>
           <Button
             radius="lg"
@@ -164,14 +165,21 @@ export function DisplayOverview({
                     <Accordion.Control>
                       <Group align="center" justify="space-between">
                         <Group>
-                          <ActionIcon variant="light" size="xs">
+                          <Badge
+                            variant="light"
+                            size="sm"
+                            mx="2px"
+                            p="xs"
+                            radius="lg"
+                            color="gray"
+                          >
                             <Text size="xs" fw="bold">
                               {findingNumber + 1}
                             </Text>
-                          </ActionIcon>
+                          </Badge>
                           <Text>{title}</Text>
                         </Group>
-                        <Badge variant="light" color="gray">
+                        <Badge variant="light" color="gray" size="xs">
                           {finding.findingType.replaceAll(/_/g, " ")}
                         </Badge>
                       </Group>

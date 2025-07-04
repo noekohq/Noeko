@@ -93,7 +93,7 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
     Database.db = undefined; // Clear the stale instance
   }
 
-  console.info("Attempting to establish a new database connection...");
+  // console.info("Attempting to establish a new database connection...");
   const newDbInstance = new Surreal();
   try {
     const config = getDbConfig(); // Reads env vars each time, as per original design
@@ -113,9 +113,9 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
       database: database,
     });
 
-    console.info(
-      `Successfully connected to database ${database} in namespace ${namespace}. Storing instance.`,
-    );
+    // console.info(
+    //   `Successfully connected to database ${database} in namespace ${namespace}. Storing instance.`,
+    // );
 
     Database.db = newDbInstance; // Store the new, successfully connected and configured instance
     return Database.db;
@@ -129,9 +129,9 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
     ) {
       try {
         await newDbInstance.close();
-        console.info(
-          "Closed partially opened database instance after connection failure.",
-        );
+        // console.info(
+        //   "Closed partially opened database instance after connection failure.",
+        // );
       } catch (closeErr) {
         console.error(
           "Error closing newDbInstance after connection failure:",
@@ -175,11 +175,11 @@ export const initDatabase = async () => {
 // Optional: Add a function to gracefully close the connection on application shutdown
 export const closeDatabaseConnection = async () => {
   if (Database.db) {
-    console.info("Attempting to close database connection...");
+    // console.info("Attempting to close database connection...");
     try {
       await Database.db.close();
       Database.db = undefined;
-      console.info("Database connection closed successfully.");
+      // console.info("Database connection closed successfully.");
     } catch (err) {
       console.error("Error closing database connection:", err);
     }
