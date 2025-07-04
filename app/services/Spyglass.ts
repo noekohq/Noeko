@@ -535,21 +535,21 @@ export default class Spyglass {
     return builder;
   }
 
-  static findingsPromptBuilder(query: string, mode: ISpyglassMode) {
+  static findingsPromptBuilder(intent: string, mode: ISpyglassMode) {
     return (
       new PromptBuilder()
         // --- Insight: Stronger, more specific persona.
         .addText(
-          "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user query.",
+          "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
         )
         .addBlock(
           "Purpose and Goal",
           `
-            Your goal is to provide the most relevant excerpts to the query from the provided results.
+            Your goal is to provide the most relevant excerpts to the intent from the provided results.
             Quality of analysis is paramount for quality search experience for your users, you exist to provide an additional layer of intelligence and context.
-            Your analysis will be built upon by other systems, so it's crucial to be reliable, precise, and foreward-thinking.
-            Your primary source of context is the user's query. Use it to inform each finding directly. If something isn't relevant
-            to the query's intent, don't include it.
+            Your analysis will be built upon by other systems, so it's crucial to be reliable, precise, and forward-thinking.
+            Your primary source of context is the user's intent. Use it to inform each finding directly. If something isn't relevant
+            to the intent, don't include it.
             `,
         )
         .addBlock(
@@ -560,8 +560,8 @@ export default class Spyglass {
           `,
         )
         .addBlock("Mission Statement", spyglassMissionStatement)
-        .addBlock("User Query", query)
-        .addText(mode.analysis.prompt(query).get())
+        .addBlock("User Intent", intent)
+        .addText(mode.analysis.prompt(intent).get())
         .addBlock(
           "Strict Rules",
           `
@@ -582,11 +582,11 @@ export default class Spyglass {
     return {
       type: SchemaType.ARRAY,
       description:
-        "An array of structured findings extracted from the source results that are relevant to the user's query.",
+        "An array of structured findings extracted from the source results that are relevant to the user's intent.",
       items: {
         type: SchemaType.OBJECT,
         description:
-          "A single, discrete finding that helps answer the user's query.",
+          "A single, discrete finding that helps answer the user's intent.",
         properties: {
           sourceId: {
             type: SchemaType.STRING,
@@ -603,13 +603,13 @@ export default class Spyglass {
           analysis: {
             type: SchemaType.STRING,
             description:
-              "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's query.",
+              "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's intent.",
           },
           // --- Updated the enum with the new, more detailed taxonomy for qwest.
           findingType: {
             type: SchemaType.STRING,
             description:
-              "Categorize the nature of the finding in relation to the query, based on the nature of personal knowledge-bases.",
+              "Categorize the nature of the finding in relation to the intent, based on the nature of personal knowledge-bases.",
             enum: [...FindingTypes],
             format: "enum",
           },
@@ -822,7 +822,7 @@ export default class Spyglass {
           return r;
         });
       const overviewPrompt = this.findingsPromptBuilder(
-        query,
+        intent.intent,
         Modes[intent.mode],
       );
 
