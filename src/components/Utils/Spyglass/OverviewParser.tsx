@@ -166,12 +166,13 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
   return (
     <HoverCard
       width="400px"
+      position="bottom-end"
       withArrow
       shadow="lg"
       openDelay={500}
       styles={{
         dropdown: {
-          maxHeight: "calc(50vh - 200px)",
+          maxHeight: "calc(80vh - 200px)",
           overflow: "auto",
           overflowX: "hidden",
         },

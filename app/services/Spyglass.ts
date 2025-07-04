@@ -609,6 +609,7 @@ export default class Spyglass {
           `,
         )
         .addBlock("Mission Statement", spyglassMissionStatement)
+        .addText(mode.response.prompt(query).get())
         .addBlock(
           "How to Format",
           `
@@ -655,15 +656,16 @@ export default class Spyglass {
 
           **DO NOT** use standalone finding spans, **ALWAYS** wrap content in a citation.
 
-          **Unexpected**:
+          **Bad Formatting**:
           This is a verifiable fact.<span data-finding-number="1"></span>.
 
-          **Expected Behavior**:
+          **Good Formatting**:
           <span data-finding-number="1">This is a verifiable fact.</span>
+
+          This is CRITICAL for user experience and accessibility.
           `,
         )
         .addBlock("User Query", query)
-        .addText(mode.response.prompt(query).get())
         .addBlock(
           "Strict Rules",
           `
