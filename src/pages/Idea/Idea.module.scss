@@ -11,6 +11,14 @@
     position: relative;
 }
 
+.editableTitle {
+    border-bottom: 1px solid transparent;
+
+    &:hover {
+        border-bottom: 1px solid var(--mantine-color-dark-7);
+    }
+}
+
 .topbox {
     flex-grow: 1;
     height: calc(100% - 10vh);

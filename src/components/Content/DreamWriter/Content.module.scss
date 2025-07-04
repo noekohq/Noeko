@@ -164,7 +164,7 @@ table {
 :global {
     .selectedCell:after {
         background: var(--mantine-color-gray-9);
-        opacity: .25;
+        opacity: 0.25;
         content: "";
         left: 0;
         right: 0;
@@ -174,4 +174,9 @@ table {
         position: absolute;
         z-index: 2;
     }
+}
+
+.youtube {
+    width: 100%;
+    height: auto;
 }

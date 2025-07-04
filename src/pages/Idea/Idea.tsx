@@ -186,7 +186,11 @@ export default function Idea() {
   }, [ideaId, idea]);
 
   const titleNeedsGeneration = useCallback(() => {
-    if (idea?.title === "Untitled Idea") {
+    if (!idea) {
+      return false;
+    }
+    const cleanTitle = idea.title.replaceAll(/_/g, "").replaceAll(/\n/g, "");
+    if (!cleanTitle || cleanTitle === "Untitled Idea") {
       return true;
     }
     return false;
@@ -432,6 +436,7 @@ export default function Idea() {
                 <Title
                   order={1}
                   m="0"
+                  pr="md"
                   contentEditable
                   suppressContentEditableWarning
                   onBlur={(e) => {
@@ -446,6 +451,11 @@ export default function Idea() {
                     title={"This title was generated automatically."}
                   >
                     <SparkleIcon />
+                  </div>
+                )}
+                {loadingTitleGeneration && (
+                  <div className={styles.loadingIndicator}>
+                    <Loader size="xs" color="gray" />
                   </div>
                 )}
               </Group>
