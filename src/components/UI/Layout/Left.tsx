@@ -93,7 +93,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             openFeedbackModal();
           }}
           variant="subtle"
-          color={"blue"}
+          color={defaultColor}
         >
           <MegaphoneIcon />
         </ActionIcon>
@@ -166,7 +166,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           onClick={() => {
             openFeedbackModal();
           }}
-          color={"blue"}
+          color={defaultColor}
           variant="subtle"
         >
           <MegaphoneIcon />
@@ -224,6 +224,7 @@ LeftSidebar.Open = ({ children }: IContentProps) => {
         mode: { get: mode },
       },
     },
+    isMobile,
   } = useLayout();
   if (!["open", "hovering"].includes(mode)) {
     return null;

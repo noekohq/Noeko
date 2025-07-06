@@ -19,6 +19,7 @@ import {
   CopyButton,
   Group,
   HoverCard,
+  Popover,
   Space,
   Stack,
   Text,
@@ -37,7 +38,7 @@ import {
   CheckIcon,
   CopyIcon,
 } from "@phosphor-icons/react";
-import { markdownToHtml } from "../../../utils/formatting";
+import { htmlToMarkdown, markdownToHtml } from "../../../utils/formatting";
 
 export type IDisplayOverview = {
   overview: ISearchOverview;
@@ -131,15 +132,45 @@ export function DisplayOverview({
         <Group justify="end">
           {!loading && (
             <Group>
-              <CopyButton value={overview.overview}>
-                {({ copied, copy }) => {
-                  return (
-                    <ActionIcon variant="light" size="sm" onClick={copy}>
-                      {!copied ? <CopyIcon /> : <CheckIcon />}
-                    </ActionIcon>
-                  );
-                }}
-              </CopyButton>
+              <HoverCard position="bottom-end" withArrow>
+                <HoverCard.Target>
+                  <ActionIcon variant="default" size="md">
+                    <CopyIcon />
+                  </ActionIcon>
+                </HoverCard.Target>
+                <HoverCard.Dropdown p="0">
+                  <Stack gap="0">
+                    <CopyButton value={overview.overview}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            onClick={copy}
+                            leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
+                          >
+                            Copy as HTML
+                          </Button>
+                        );
+                      }}
+                    </CopyButton>
+                    <CopyButton value={htmlToMarkdown(overview.overview)}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            onClick={copy}
+                            leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
+                          >
+                            Copy as Markdown
+                          </Button>
+                        );
+                      }}
+                    </CopyButton>
+                  </Stack>
+                </HoverCard.Dropdown>
+              </HoverCard>
             </Group>
           )}
         </Group>

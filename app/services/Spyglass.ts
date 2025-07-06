@@ -721,7 +721,23 @@ export default class Spyglass {
           **Good Formatting**:
           <span data-finding-number="1">This is a verifiable fact.</span>
 
-          This is CRITICAL for user experience and accessibility.
+          Also, to cite multiple sources for the same text, simply provide an array for the number like so:
+
+          <span data-finding-number="[1, 2]">
+            this is some content that sources finding numbers 1 and 2
+          </span>
+
+          **DO NOT** wrap the same text in multiple SPAN tags to accomplish this effect.
+
+          **Bad Formatting**:
+          <span data-finding-number="2">
+            <span data-finding-number="1">This is a verifiable fact.</span>
+          </span>
+
+          **Good Formatting**:
+          <span data-finding-number="[1, 2]">This is a verifiable fact.</span>
+
+          This is CRITICAL for user experience and reliability!
           `,
       )
       .addBlock("User Query", query)

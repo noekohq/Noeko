@@ -6,8 +6,8 @@ import { useLayout } from "../../contexts/LayoutContext";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
-  onChange?: (value: string) => void;
-  defaultText?: string;
+  onChange: (value: string) => void;
+  value: string;
   placeholder?: string;
   placeholderIfInitialized?: string;
   initialized?: boolean;
@@ -16,26 +16,18 @@ interface ITextboxProps {
 export default function Textbox({
   onSubmit,
   onChange,
-  defaultText,
+  value,
   placeholder,
   placeholderIfInitialized,
   initialized,
 }: ITextboxProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [value, setValue] = useState("");
   const [sendingAnimation, setSendingAnimation] = useState(false);
-
-  useEffect(() => {
-    if (defaultText) {
-      setValue(defaultText);
-    }
-  }, [defaultText]);
 
   const send = () => {
     setSendingAnimation(true);
     onSubmit(value);
     inputRef.current?.blur();
-    setValue("");
   };
 
   useEffect(() => {
@@ -43,10 +35,6 @@ export default function Textbox({
       setTimeout(() => setSendingAnimation(false), 1000);
     }
   }, [sendingAnimation]);
-
-  useEffect(() => {
-    onChange?.(value);
-  }, [value]);
 
   const [isFocused, setIsFocused] = useState(false);
 
@@ -86,7 +74,7 @@ export default function Textbox({
         placeholder={initialized ? placeholderIfInitialized : placeholder}
         value={value}
         onChange={(e) => {
-          setValue(e.currentTarget.value);
+          onChange(e.currentTarget.value);
         }}
         ref={inputRef}
         onKeyDown={(e) => {

@@ -1,19 +1,12 @@
-import React, { useCallback, useState } from "react";
-import {
-  ActionIcon,
-  Badge,
-  Blockquote,
-  Group,
-  HoverCard,
-  Text,
-} from "@mantine/core";
+import React, { useState } from "react";
+import { Badge, Blockquote, Group, HoverCard, Text } from "@mantine/core";
 import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
   ICitationMap,
   IResultsMap,
 } from "../../../pages/Spyglass/hooks/useSpyglass";
 import styles from "./OverviewParser.module.scss";
-import { ArrowRightIcon, QuotesIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import parse, {
   HTMLReactParserOptions,
   Text as ReactParserText,
@@ -22,7 +15,7 @@ import parse, {
   DOMNode,
 } from "html-react-parser";
 import { getNodeTitle } from "../../../utils/graph";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { markdownToHtml } from "../../../utils/formatting";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import { hasVisibleChildren } from "../../../utils/helpers";
@@ -34,125 +27,29 @@ interface IOverviewParserProps {
   analysis: ISpyglassSearch["analysis"];
 }
 
-const OverviewParser: React.FC<IOverviewParserProps> = ({
-  html,
-  citationMap,
-  resultsMap,
-  analysis,
-}) => {
-  const options: HTMLReactParserOptions = {
-    replace: (domNode) => {
-      if (domNode instanceof ReactParserText) {
-        if (domNode.data.trim().length === 0) {
-          return <>{domNode.data}</>;
-        }
-
-        const wordsAndSpaces = domNode.data.split(/(\s+)/);
-
-        return (
-          <>
-            {wordsAndSpaces.map((chunk, index) =>
-              chunk.trim().length > 0 ? (
-                <span key={index} className={styles.word}>
-                  {chunk}
-                </span>
-              ) : (
-                <React.Fragment key={index}>{chunk}</React.Fragment>
-              ),
-            )}
-          </>
-        );
-      }
-      if (domNode instanceof ReactParserElement) {
-        if (
-          domNode.name === "span" &&
-          domNode.attribs &&
-          domNode.attribs["data-finding-number"]
-        ) {
-          // It's a match! Replace it with our custom component.
-          return (
-            <FindingNumberSpan
-              findingNumber={domNode.attribs["data-finding-number"]}
-              citationMap={citationMap}
-              resultsMap={resultsMap}
-              analysis={analysis}
-            >
-              {/* It's important to parse the children so their text also gets wrapped in words */}
-              {domToReact(domNode.children as DOMNode[], options)}
-            </FindingNumberSpan>
-          );
-        }
-      }
-    },
-  };
-
-  return <div className={styles.overviewText}>{parse(html, options)}</div>;
-};
-
-export default OverviewParser;
-
-interface IFindingNumberSpanProps {
-  findingNumber: string;
-  children: React.ReactNode;
+interface IFindingBadgeProps {
+  findingNumber: number;
   citationMap: ICitationMap;
   resultsMap: IResultsMap;
   analysis: ISpyglassSearch["analysis"];
+  hovering?: boolean;
 }
 
-// Your custom component that you can style and tune
-const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
+const FindingBadge: React.FC<IFindingBadgeProps> = ({
   findingNumber,
-  children,
   citationMap,
   resultsMap,
   analysis,
+  hovering,
 }) => {
-  const [hoveringCitation, setHoveringCitation] = useState(false);
-  console.log("Hovering citation: ", hoveringCitation);
-  const fn = Number(findingNumber);
+  const fn = findingNumber;
   const finding = analysis?.findings[fn];
 
-  const navigate = useNavigate();
-
-  const navigateWithTextFragment = useCallback(
-    (ideaId: string, excerpt?: string) => {
-      if (!excerpt) {
-        let url = `/idea/${ideaId}`;
-        navigate(url);
-      } else {
-        let url = `/idea/${ideaId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`;
-        navigate(url);
-      }
-    },
-    [navigate],
-  );
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
-    const target = e.target as HTMLElement;
-    const currentTarget = e.currentTarget;
-
-    // Only set hover(true) if the element this handler is attached to
-    // is the closest ancestor with the .findingNumber class. This ensures
-    // that for nested elements, only the innermost one gets highlighted.
-    if (target.closest(`.${styles.findingNumber}`) === currentTarget) {
-      setHoveringCitation(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    // onMouseLeave fires when the cursor leaves the element's bounds,
-    // which is exactly what we want.
-    setHoveringCitation(false);
-  };
-
-  const hasChildren = hasVisibleChildren(children);
-
   if (!finding) {
-    return children;
+    return null;
   }
 
   const result = resultsMap[finding.sourceId];
-  const citation = citationMap[finding.sourceId];
 
   const title = getNodeTitle(result);
   const titleLink = (sourceId: string, excerpt?: string) => {
@@ -172,42 +69,26 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
       openDelay={500}
       styles={{
         dropdown: {
-          maxHeight: "calc(80vh - 200px)",
-          overflow: "auto",
-          overflowX: "hidden",
+          maxHeight: "calc(50vh - 200px)",
+          overflowY: "scroll",
         },
       }}
       radius="lg"
     >
       <HoverCard.Target>
-        <span
-          className={`${styles.findingNumber} ${hoveringCitation ? styles.hovering : ""}`}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+        <Badge
+          variant="light"
+          size="sm"
+          mx="2px"
+          p="xs"
+          radius="lg"
+          color="gray"
+          classNames={{
+            root: `${styles.citationIcon} ${hovering ? styles.hovering : ""}`,
+          }}
         >
-          {hasChildren && (
-            <span
-              className={`${styles.content} ${hoveringCitation ? styles.hovering : ""}`}
-            >
-              {children}
-            </span>
-          )}
-          <span className={`${styles.number}`}>
-            <Badge
-              variant="light"
-              size="sm"
-              mx="2px"
-              p="xs"
-              radius="lg"
-              color="gray"
-              classNames={{
-                root: `${styles.citationIcon} ${hoveringCitation ? styles.hovering : ""}`,
-              }}
-            >
-              {fn + 1}
-            </Badge>
-          </span>
-        </span>
+          {fn + 1}
+        </Badge>
       </HoverCard.Target>
       <HoverCard.Dropdown>
         <Group align="baseline" justify="space-between">
@@ -249,3 +130,143 @@ const FindingNumberSpan: React.FC<IFindingNumberSpanProps> = ({
     </HoverCard>
   );
 };
+
+interface IFindingNumbersSpanProps {
+  findingNumbers: number[];
+  children: React.ReactNode;
+  citationMap: ICitationMap;
+  resultsMap: IResultsMap;
+  analysis: ISpyglassSearch["analysis"];
+}
+
+const FindingNumbersSpan: React.FC<IFindingNumbersSpanProps> = ({
+  findingNumbers,
+  children,
+  citationMap,
+  resultsMap,
+  analysis,
+}) => {
+  const [hoveringCitation, setHoveringCitation] = useState(false);
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const target = e.target as HTMLElement;
+    const currentTarget = e.currentTarget;
+
+    if (target.closest(`.${styles.findingNumber}`) === currentTarget) {
+      setHoveringCitation(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveringCitation(false);
+  };
+
+  const hasChildren = hasVisibleChildren(children);
+
+  if (findingNumbers.length === 0) {
+    return <>{children}</>;
+  }
+
+  return (
+    <span
+      className={`${styles.findingNumber} ${hoveringCitation ? styles.hovering : ""}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {hasChildren && (
+        <span
+          className={`${styles.content} ${hoveringCitation ? styles.hovering : ""}`}
+        >
+          {children}
+        </span>
+      )}
+      <span className={`${styles.number}`}>
+        {findingNumbers.map((fn) => (
+          <FindingBadge
+            key={fn}
+            findingNumber={fn}
+            citationMap={citationMap}
+            resultsMap={resultsMap}
+            analysis={analysis}
+            hovering={hoveringCitation}
+          />
+        ))}
+      </span>
+    </span>
+  );
+};
+
+const OverviewParser: React.FC<IOverviewParserProps> = ({
+  html,
+  citationMap,
+  resultsMap,
+  analysis,
+}) => {
+  const options: HTMLReactParserOptions = {
+    replace: (domNode) => {
+      if (domNode instanceof ReactParserText) {
+        if (domNode.data.trim().length === 0) {
+          return <>{domNode.data}</>;
+        }
+
+        const wordsAndSpaces = domNode.data.split(/(\s+)/);
+
+        return (
+          <>
+            {wordsAndSpaces.map((chunk, index) =>
+              chunk.trim().length > 0 ? (
+                <span key={index} className={styles.word}>
+                  {chunk}
+                </span>
+              ) : (
+                <React.Fragment key={index}>{chunk}</React.Fragment>
+              ),
+            )}
+          </>
+        );
+      }
+      if (domNode instanceof ReactParserElement) {
+        if (
+          domNode.name === "span" &&
+          domNode.attribs &&
+          domNode.attribs["data-finding-number"]
+        ) {
+          const findingNumberAttr = domNode.attribs["data-finding-number"];
+          let findingNumbers: number[] = [];
+          try {
+            const parsedData = JSON.parse(findingNumberAttr);
+            findingNumbers = Array.isArray(parsedData)
+              ? parsedData
+              : [parsedData];
+          } catch (error) {
+            const num = parseInt(findingNumberAttr, 10);
+            if (!isNaN(num)) {
+              findingNumbers = [num];
+            } else {
+              console.warn(
+                `Could not parse finding number(s): "${findingNumberAttr}"`,
+              );
+            }
+          }
+
+          if (findingNumbers.length > 0) {
+            return (
+              <FindingNumbersSpan
+                findingNumbers={findingNumbers}
+                citationMap={citationMap}
+                resultsMap={resultsMap}
+                analysis={analysis}
+              >
+                {domToReact(domNode.children as DOMNode[], options)}
+              </FindingNumbersSpan>
+            );
+          }
+        }
+      }
+    },
+  };
+
+  return <div className={styles.overviewText}>{parse(html, options)}</div>;
+};
+
+export default OverviewParser;
