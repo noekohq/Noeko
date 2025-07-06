@@ -1,6 +1,8 @@
 @use "../../styles/mixins.scss" as *;
 
 .spyglass {
+    overflow-y: scroll;
+    scrollbar-width: none;
     display: flex;
     flex-direction: column;
     justify-content: center;

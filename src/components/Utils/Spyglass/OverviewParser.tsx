@@ -181,16 +181,18 @@ const FindingNumbersSpan: React.FC<IFindingNumbersSpanProps> = ({
         </span>
       )}
       <span className={`${styles.number}`}>
-        {findingNumbers.map((fn) => (
-          <FindingBadge
-            key={fn}
-            findingNumber={fn}
-            citationMap={citationMap}
-            resultsMap={resultsMap}
-            analysis={analysis}
-            hovering={hoveringCitation}
-          />
-        ))}
+        <Group gap="xs">
+          {findingNumbers.map((fn) => (
+            <FindingBadge
+              key={fn}
+              findingNumber={fn}
+              citationMap={citationMap}
+              resultsMap={resultsMap}
+              analysis={analysis}
+              hovering={hoveringCitation}
+            />
+          ))}
+        </Group>
       </span>
     </span>
   );
