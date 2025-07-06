@@ -32,7 +32,7 @@ import { DisplayOverview } from "../../../components/Utils/Spyglass/Overview";
 import Content from "../../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import { useLayout } from "../../../contexts/LayoutContext";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, CaretLeftIcon } from "@phosphor-icons/react";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -209,6 +209,21 @@ export default function SpyglassRecord() {
       </LeftSidebar>
       <Content>
         <Grid>
+          <Grid.Col>
+            <Link
+              to="/spyglass"
+              style={{
+                textDecoration: "none",
+              }}
+            >
+              <Group c="dark.3" gap="xs">
+                <CaretLeftIcon weight="bold" size={13} />
+                <Text c="dark.3" size="sm">
+                  Back to Spyglass
+                </Text>
+              </Group>
+            </Link>
+          </Grid.Col>
           <Grid.Col>
             <Text className={styles.queryHeader} size="lg" fs="italic">
               {spyglass?.baseQuery
