@@ -1,5 +1,5 @@
 import styles from "./MobileBar.module.scss";
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Group, MantineColor } from "@mantine/core";
 import {
   CaretLeftIcon,
   HouseIcon,
