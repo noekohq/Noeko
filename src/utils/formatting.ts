@@ -1,4 +1,7 @@
 import showdown from "showdown";
+import TurndownService from "turndown";
+
+const turndownService = new TurndownService();
 
 export const formatDate = (d: Date) => {
   const date = new Date(d);
@@ -80,6 +83,10 @@ export const htmlToPlainText = (html: string) => {
 export const markdownToHtml = (markdown: string) => {
   const converter = new showdown.Converter();
   return converter.makeHtml(markdown);
+};
+
+export const htmlToMarkdown = (html: string): string => {
+  return turndownService.turndown(html);
 };
 
 export const formatFileSize = (size: number) => {

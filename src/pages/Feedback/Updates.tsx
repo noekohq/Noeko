@@ -32,6 +32,28 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("July 5, 2025"),
+    title: "Spyglass follow-ups, better highlighting",
+    details: (
+      <>
+        <Stack>
+          <Text>
+            We are continuing to work on Spyglass, working to constantly improve
+            it. Now we are also moving towards a project-creation flow which
+            will allow for more streamlined thought.
+          </Text>
+
+          <List>
+            <List.Item>Spyglass Follow-up questions</List.Item>
+            <List.Item>
+              Spyglass highlighting and more robust citations.
+            </List.Item>
+          </List>
+        </Stack>
+      </>
+    ),
+  },
+  {
     date: new Date("July 3, 2025"),
     title: "Layout updates and Spyglass Continues to Improve",
     details: (

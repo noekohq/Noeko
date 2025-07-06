@@ -7,6 +7,7 @@ import apiRouter from "./api";
 import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
 import { initSearch } from "./services/Search";
+import { initInsights } from "./services/Insights";
 
 config();
 

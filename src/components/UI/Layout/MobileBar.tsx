@@ -1,5 +1,5 @@
 import styles from "./MobileBar.module.scss";
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Group, MantineColor } from "@mantine/core";
 import {
   CaretLeftIcon,
   HouseIcon,
@@ -55,6 +55,8 @@ export default function MobileBar() {
     },
   } = useInteraction();
 
+  const defaultColor: MantineColor = "dark.3";
+
   return (
     <div
       className={`${styles.mobileBar} ${isScrolled ? styles.scrolled : ""} ${leftModeClass} ${rightModeClass}`}
@@ -66,13 +68,14 @@ export default function MobileBar() {
               setLeftMode("open");
             }}
             variant="subtle"
+            color={defaultColor}
           >
-            <SidebarSimpleIcon weight="fill" />
+            <SidebarSimpleIcon />
           </ActionIcon>
         )}
         {!isHome && (
           <Link to="/">
-            <ActionIcon variant="subtle">
+            <ActionIcon variant="subtle" color={defaultColor}>
               <HouseIcon />
             </ActionIcon>
           </Link>
@@ -85,11 +88,16 @@ export default function MobileBar() {
               setRightMode("open");
             }}
             variant="subtle"
+            color={defaultColor}
           >
             <CaretLeftIcon />
           </ActionIcon>
         )}
-        <ActionIcon variant="subtle" onClick={openSpotlight}>
+        <ActionIcon
+          variant="subtle"
+          onClick={openSpotlight}
+          color={defaultColor}
+        >
           <ListMagnifyingGlassIcon />
         </ActionIcon>
         <ProfileButton />

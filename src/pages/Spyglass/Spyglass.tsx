@@ -330,7 +330,10 @@ export default function Spyglass() {
                   <Text mb="lg">
                     {!!intent && intent.queries?.length > 0 ? (
                       <span>
-                        Running <CountUp targetNumber={intent.queries.length} />{" "}
+                        Running{" "}
+                        <Badge variant="light" color="gray">
+                          <CountUp targetNumber={intent.queries.length} />
+                        </Badge>{" "}
                         search{intent.queries.length === 1 ? "" : "es"}...
                       </span>
                     ) : (
@@ -407,7 +410,7 @@ export default function Spyglass() {
                 className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
               >
                 <Textbox
-                  defaultText={query}
+                  value={query}
                   onSubmit={() => {
                     clear();
                     initialize();

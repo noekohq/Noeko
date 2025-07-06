@@ -39,7 +39,12 @@ export default class Rabbithole {
       }
       const [rabbithole] = result;
       await db?.query(
-        "RELATE $userId->owns->$rabbitholeId SET createdAt = $now;",
+        "RELATE $userId->owns->$rabbitholeId CONTENT { createdAt: $now, }",
+        {
+          userId,
+          rabbitholeId: rabbithole.id,
+          now: new Date(),
+        },
       );
       return rabbithole;
     } catch (error) {

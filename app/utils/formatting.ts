@@ -1,4 +1,3 @@
-import Showdown from "showdown";
 import MarkdownIt from "markdown-it";
 import TurndownService from "turndown";
 import * as cheerio from "cheerio";
