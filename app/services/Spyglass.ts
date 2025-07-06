@@ -721,8 +721,6 @@ export default class Spyglass {
           **Good Formatting**:
           <span data-finding-number="1">This is a verifiable fact.</span>
 
-          This is CRITICAL for user experience and accessibility.
-
           Also, to cite multiple sources for the same text, simply provide an array for the number like so:
 
           <span data-finding-number="[1, 2]">
@@ -738,6 +736,8 @@ export default class Spyglass {
 
           **Good Formatting**:
           <span data-finding-number="[1, 2]">This is a verifiable fact.</span>
+
+          This is CRITICAL for user experience and accessibility!
           `,
       )
       .addBlock("User Query", query)
