@@ -134,7 +134,7 @@ export function DisplayOverview({
             <Group>
               <HoverCard position="bottom-end" withArrow>
                 <HoverCard.Target>
-                  <ActionIcon variant="default" size="md">
+                  <ActionIcon variant="light" size="md">
                     <CopyIcon />
                   </ActionIcon>
                 </HoverCard.Target>

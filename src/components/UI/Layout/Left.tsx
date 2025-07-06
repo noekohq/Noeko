@@ -224,7 +224,6 @@ LeftSidebar.Open = ({ children }: IContentProps) => {
         mode: { get: mode },
       },
     },
-    isMobile,
   } = useLayout();
   if (!["open", "hovering"].includes(mode)) {
     return null;

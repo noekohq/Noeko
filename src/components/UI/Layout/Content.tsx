@@ -9,13 +9,12 @@ const Content = ({ children }: IContentProps) => {
   const {
     elements: {
       leftSidebar: {
-        mode: { get: leftMode, set: setLeftMode },
+        mode: { get: leftMode },
       },
       rightSidebar: {
-        mode: { get: rightMode, set: setRightMode },
+        mode: { get: rightMode },
       },
     },
-    isMobile,
   } = useLayout();
 
   const leftModeToClass: Record<typeof leftMode, string> = {
@@ -36,15 +35,7 @@ const Content = ({ children }: IContentProps) => {
   const rightModeClass = rightModeToClass[rightMode];
 
   return (
-    <div
-      className={`${styles.content} ${leftModeClass} ${rightModeClass}`}
-      onClick={() => {
-        if (isMobile) {
-          setLeftMode("collapsed");
-          setRightMode("collapsed");
-        }
-      }}
-    >
+    <div className={`${styles.content} ${leftModeClass} ${rightModeClass}`}>
       {children}
     </div>
   );
