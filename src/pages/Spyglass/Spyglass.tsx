@@ -148,14 +148,6 @@ export default function Spyglass() {
     },
   } = useLayout();
 
-  useEffect(() => {
-    console.log("Query changed: ", query);
-  }, [query]);
-
-  useEffect(() => {
-    console.log("Base query changed: ", baseQuery);
-  }, [baseQuery]);
-
   return (
     <PageWrapper>
       <LeftSidebar

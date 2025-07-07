@@ -223,7 +223,6 @@ export class SpyglassSearch {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      console.log(`Following up ${from} with ${to}`);
       const result = db.query<[ISpyglassSearchFollowUpConnection[]]>(
         `RELATE $child->is_followup_to->$parent CONTENT { createdAt: $now, }`,
         {
@@ -604,7 +603,6 @@ export class SpyglassSearch {
 
       const getSpyglass = async () => await SpyglassSearch.get(spyglassId);
       let spyglass = await getSpyglass();
-      console.log("Got spyglass: ", spyglass);
       if (!spyglass) {
         const errorMessage = "Search not found";
         logger.error(errorMessage, { spyglassId });
