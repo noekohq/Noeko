@@ -38,6 +38,8 @@ import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
 import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
 import SearchPage from "./pages/Search/Search";
 import Rabbithole from "./pages/Rabbithole/Rabbithole";
+import SharedIdeas from "./pages/Idea/Shared/Shared";
+import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
 
 export default function App() {
   const navigate = useNavigate();
@@ -75,14 +77,6 @@ export default function App() {
     );
   }
 
-  const PublicRoutes = (
-    <Route path="/shared">
-      <Route path="idea">
-        <Route path=":ideaId" element={<PublicIdea />} />
-      </Route>
-    </Route>
-  );
-
   return (
     <>
       <Routes>
@@ -92,7 +86,6 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            {PublicRoutes}
             <Route
               path="/*"
               element={
@@ -109,7 +102,6 @@ export default function App() {
               <div className={styles.app}>
                 <Routes>
                   <Route path="login" element={<Navigate to="/" replace />} />
-                  {PublicRoutes}
                   <Route
                     path="register"
                     element={<Navigate to="/" replace />}
@@ -139,6 +131,12 @@ export default function App() {
                   </Route>
                   <Route path="ideas">
                     <Route index element={<Ideas />} />
+                    <Route path="shared">
+                      <Route index element={<SharedIdeas />} />
+                      <Route path=":ideaId">
+                        <Route path="viewonly" element={<ViewonlyIdea />} />
+                      </Route>
+                    </Route>
                   </Route>
                   <Route path="tags">
                     <Route index element={<Tags />} />

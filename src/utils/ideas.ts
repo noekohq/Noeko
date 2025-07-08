@@ -296,3 +296,82 @@ export const getIdeaSummaryItemIfExists = (
   }
   return i;
 };
+
+export const createIdeaShare = async (ideaId: string, userId: string) => {
+  try {
+    return await api
+      .post(`/ideas/${ideaId}/share`, {
+        userId,
+      })
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong creating share between ${ideaId} and ${userId}`,
+          error,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong sharing the idea",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error sharing idea: ", error);
+  }
+};
+
+export const removeIdeaShare = async (ideaId: string, userId: string) => {
+  try {
+    return await api
+      .post(`/ideas/${ideaId}/unshare`, {
+        userId,
+      })
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong removing share between ${ideaId} and ${userId}`,
+          error,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong unsharing the idea",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error unsharing idea: ", error);
+  }
+};
+
+export const createIdeaShareFromEmail = async (
+  ideaId: string,
+  email: string,
+) => {
+  try {
+    return await api
+      .post(`/ideas/${ideaId}/share/by_email`, {
+        email,
+      })
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong creating share between ${ideaId} and ${email}`,
+          error,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong sharing the idea",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Something went wrong.");
+    return undefined;
+  }
+};

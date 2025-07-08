@@ -27,7 +27,7 @@ import {
   PlusIcon,
   ArrowRightIcon,
 } from "@phosphor-icons/react"; // Corrected icon import
-import { IIdea } from "../../../app/database/models/ideas";
+import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import useFetch from "../../hooks/useFetch";
 import { useState, useMemo, useEffect } from "react";
@@ -45,7 +45,7 @@ import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 
 type ITagsManagerProps = {
-  idea: IIdea;
+  idea: ISafeIdea;
 };
 
 export default function TagsManager({ idea }: ITagsManagerProps) {

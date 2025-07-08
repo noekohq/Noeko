@@ -1,5 +1,5 @@
 import { Button, Grid, Group, Loader, Text } from "@mantine/core";
-import { IIdea } from "../../../app/database/models/ideas";
+import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import {
   IGenerativeSummary,
   IGenerativeSummaryForm,
@@ -10,7 +10,7 @@ import { openConfirmModal } from "@mantine/modals";
 import OverviewAccordion from "../../components/Display/Ideas/OverviewAccordion";
 
 type IOverviewProps = {
-  idea: IIdea | undefined;
+  idea: ISafeIdea | undefined;
   loadingIdea: boolean;
   reloadIdea: () => void;
 };

@@ -4,7 +4,7 @@ import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
-import { IIdea } from "../../../app/database/models/ideas";
+import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
@@ -22,6 +22,7 @@ import {
   Stack,
   Space,
 } from "@mantine/core";
+import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import { modals } from "@mantine/modals";
 import {
   BookOpenIcon,
@@ -29,9 +30,13 @@ import {
   CheckIcon,
   CopySimpleIcon,
   CursorTextIcon,
+  EyeIcon,
   MarkdownLogoIcon,
   SparkleIcon,
+  StarIcon,
   TrashSimpleIcon,
+  UserCirclePlusIcon,
+  WrenchIcon,
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import Connections from "./Connections";
@@ -50,13 +55,15 @@ import { downloadTextAsFile } from "../../utils/files";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
+import Access from "./Access";
+import Loading from "../../components/Display/Loading/Loading";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
   const [title, setTitle] = useState<string>("");
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
-  const [originalIdea, setOriginalIdea] = useState<IIdea>();
+  const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
 
   const { isMobile } = useLayout();
 
@@ -66,7 +73,7 @@ export default function Idea() {
     data: idea,
     load: reloadIdea,
     loading: loadingIdea,
-  } = useFetch<undefined, IIdea>({
+  } = useFetch<undefined, ISafeIdea>({
     url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
     query: {
@@ -383,49 +390,67 @@ export default function Idea() {
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
-          <Card radius="md" withBorder shadow="xs" p="md">
-            <Text fw={500} c="dimmed" size="sm" mb={4}>
-              <SparkleIcon
-                weight="bold"
-                style={{
-                  verticalAlign: "middle",
-                  marginRight: "6px",
-                  fontSize: "1.1em",
-                }}
-              />
-              Content Overview
-            </Text>
-            <Text size="sm" lineClamp={3}>
-              {idea?.derived?.generative_summary?.sentenceSummary ||
-                idea?.derived?.generative_summary?.sentenceOverview || (
-                  <Text span c="dimmed" fs="italic">
-                    No overview available.
-                  </Text>
-                )}
-            </Text>
-          </Card>
-          <Divider my="sm" />
-          {!!idea && <TagsManager idea={idea} />}
-          {!!idea && (
-            <>
+          <Tabs defaultValue="overview">
+            <Tabs.List>
+              <Tabs.Tab value="overview">
+                <Group gap="xs">
+                  <StarIcon weight="fill" size={14} />
+                  Overview
+                </Group>
+              </Tabs.Tab>
+              <Tabs.Tab value="insights">
+                <Group gap="xs">
+                  <EyeIcon weight="bold" />
+                  Insights
+                </Group>
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="overview">
+              <Card radius="md" withBorder shadow="xs" p="md">
+                <Text fw={500} c="dimmed" size="sm" mb={4}>
+                  <SparkleIcon
+                    weight="bold"
+                    style={{
+                      verticalAlign: "middle",
+                      marginRight: "6px",
+                      fontSize: "1.1em",
+                    }}
+                  />
+                  Content Overview
+                </Text>
+                <Text size="sm" lineClamp={3}>
+                  {idea?.derived?.generative_summary?.sentenceSummary ||
+                    idea?.derived?.generative_summary?.sentenceOverview || (
+                      <Text span c="dimmed" fs="italic">
+                        No overview available.
+                      </Text>
+                    )}
+                </Text>
+              </Card>
               <Divider my="sm" />
-              <Connections
-                loadingIdea={loadingIdea}
-                idea={idea}
-                reloadIdea={reloadIdea}
-                computeOutOfDate={embeddingsOutOfDate()}
-                triggerCompute={triggerComputeIfNeeded}
-                computing={loadingEmbeddings || loadingDerivedCascade}
-              />
-              <Divider my="sm" />
-
+              {!!idea && <TagsManager idea={idea} />}
+              {!!idea && (
+                <>
+                  <Divider my="sm" />
+                  <Connections
+                    loadingIdea={loadingIdea}
+                    idea={idea}
+                    reloadIdea={reloadIdea}
+                    computeOutOfDate={embeddingsOutOfDate()}
+                    triggerCompute={triggerComputeIfNeeded}
+                    computing={loadingEmbeddings || loadingDerivedCascade}
+                  />
+                </>
+              )}
+            </Tabs.Panel>
+            <Tabs.Panel value="insights">
               <Overview
                 loadingIdea={loadingIdea}
                 idea={idea}
                 reloadIdea={reloadIdea}
               />
-            </>
-          )}
+            </Tabs.Panel>
+          </Tabs>
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
@@ -493,84 +518,115 @@ export default function Idea() {
       </Content>
       <RightSidebar>
         <RightSidebar.Open>
-          <Divider mb="md" />
-          <Flex gap="sm" justify="space-between">
-            <Tooltip label="Delete Idea">
-              <ActionIcon
-                variant="light"
-                color="red"
-                size="md"
-                onClick={handleDeleteIdea}
-                disabled={loadingDelete}
-              >
-                {loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Viewonly">
-              <Link to="view">
-                <ActionIcon variant="default" size="md">
-                  <BookOpenIcon />
-                </ActionIcon>
-              </Link>
-            </Tooltip>
-            <Tooltip label="Export as HTML">
-              <ActionIcon variant="default" size="md" onClick={downloadAsHTML}>
-                <BracketsAngleIcon />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Export as Markdown">
-              <ActionIcon
-                variant="default"
-                size="md"
-                onClick={downloadAsMarkdown}
-              >
-                <MarkdownLogoIcon />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Copy as Markdown">
-              <Menu trigger="hover">
-                <Menu.Target>
-                  <ActionIcon variant="default" size="md">
-                    <CopySimpleIcon />
+          <Tabs defaultValue="tools">
+            <Tabs.List>
+              <Tabs.Tab value="tools">
+                <Group gap="xs">
+                  <WrenchIcon weight="fill" size={14} />
+                  Tools
+                </Group>
+              </Tabs.Tab>
+              <Tabs.Tab value="access">
+                <Group gap="xs">
+                  <UserCirclePlusIcon weight="fill" size={14} />
+                  Access
+                </Group>
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="tools">
+              <Flex gap="sm" justify="space-between">
+                <Tooltip label="Delete Idea">
+                  <ActionIcon
+                    variant="light"
+                    color="red"
+                    size="md"
+                    onClick={handleDeleteIdea}
+                    disabled={loadingDelete}
+                  >
+                    {loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
                   </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <CopyButton value={getMarkdownContent()}>
-                    {({ copied, copy }) => {
-                      return (
-                        <Menu.Item
-                          leftSection={
-                            copied ? <CheckIcon /> : <MarkdownLogoIcon />
-                          }
-                          onClick={copy}
-                        >
-                          Copy as Markdown
-                        </Menu.Item>
-                      );
-                    }}
-                  </CopyButton>
-                  {idea?.content && (
-                    <CopyButton value={htmlToPlainText(idea?.content)}>
-                      {({ copied, copy }) => {
-                        return (
-                          <Menu.Item
-                            leftSection={
-                              copied ? <CheckIcon /> : <CursorTextIcon />
-                            }
-                            onClick={copy}
-                          >
-                            Copy as Text
-                          </Menu.Item>
-                        );
-                      }}
-                    </CopyButton>
-                  )}
-                </Menu.Dropdown>
-              </Menu>
-            </Tooltip>
-          </Flex>
-          <Space my="lg" />
-          <Search />
+                </Tooltip>
+                <Tooltip label="Viewonly">
+                  <Link to="view">
+                    <ActionIcon variant="default" size="md">
+                      <BookOpenIcon />
+                    </ActionIcon>
+                  </Link>
+                </Tooltip>
+                <Tooltip label="Export as HTML">
+                  <ActionIcon
+                    variant="default"
+                    size="md"
+                    onClick={downloadAsHTML}
+                  >
+                    <BracketsAngleIcon />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Export as Markdown">
+                  <ActionIcon
+                    variant="default"
+                    size="md"
+                    onClick={downloadAsMarkdown}
+                  >
+                    <MarkdownLogoIcon />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Copy as Markdown">
+                  <Menu trigger="hover">
+                    <Menu.Target>
+                      <ActionIcon variant="default" size="md">
+                        <CopySimpleIcon />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <CopyButton value={getMarkdownContent()}>
+                        {({ copied, copy }) => {
+                          return (
+                            <Menu.Item
+                              leftSection={
+                                copied ? <CheckIcon /> : <MarkdownLogoIcon />
+                              }
+                              onClick={copy}
+                            >
+                              Copy as Markdown
+                            </Menu.Item>
+                          );
+                        }}
+                      </CopyButton>
+                      {idea?.content && (
+                        <CopyButton value={htmlToPlainText(idea?.content)}>
+                          {({ copied, copy }) => {
+                            return (
+                              <Menu.Item
+                                leftSection={
+                                  copied ? <CheckIcon /> : <CursorTextIcon />
+                                }
+                                onClick={copy}
+                              >
+                                Copy as Text
+                              </Menu.Item>
+                            );
+                          }}
+                        </CopyButton>
+                      )}
+                    </Menu.Dropdown>
+                  </Menu>
+                </Tooltip>
+              </Flex>
+              <Space my="lg" />
+              <Search />
+            </Tabs.Panel>
+            <Tabs.Panel value="access">
+              {!!idea && (
+                <Access
+                  idea={idea}
+                  loadingIdea={loadingIdea}
+                  reloadIdea={reloadIdea}
+                />
+              )}
+              {!idea && <Loading size="sm" />}
+            </Tabs.Panel>
+          </Tabs>
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

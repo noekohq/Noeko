@@ -30,7 +30,7 @@ export default function ViewIdea() {
     load: reloadIdea,
     loading: loadingIdea,
   } = useFetch<undefined, IIdeaForm>({
-    url: `/graph/ideas/${ideaId}`,
+    url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
     query: {
       withRelatedIdeas: "true",

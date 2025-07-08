@@ -35,6 +35,12 @@
         background-color: var(--mantine-color-dark-9) !important;
         z-index: 210 !important;
     }
+    .mantine-Modal-header {
+        background-color: var(--mantine-color-dark-9) !important;
+    }
+    .mantine-Modal-body {
+        background-color: var(--mantine-color-dark-9) !important;
+    }
 
     --color-code-background: var(--mantine-color-dark-8);
     --color-code-foreground: var(--mantine-color-dark-1);
