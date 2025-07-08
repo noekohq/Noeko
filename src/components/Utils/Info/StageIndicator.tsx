@@ -1,11 +1,11 @@
 import { Badge, Tooltip } from "@mantine/core";
 
-const STAGE = "Alpha";
+const STAGE = "Early Access";
 
 export default function StageIndicator() {
   return (
     <Tooltip label={`Qwest is currently in ${STAGE}`}>
-      <Badge color="gray" size="md">
+      <Badge color="orange" size="md" variant="light">
         {STAGE}
       </Badge>
     </Tooltip>
