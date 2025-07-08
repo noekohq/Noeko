@@ -81,8 +81,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const [nodes, setNodes] = useState<INode[]>([]);
   const [edges, setEdges] = useState<IEdge[]>(graph.edges);
-  const alphaRef = useRef(SIMULATION_CONFIG.alpha);
-  const simulationRef = useRef<number | null>(null); // requestAnimationFrame ID
+  const workerRef = useRef<Worker | null>(null);
 
   const [isDraggingNode, setIsDraggingNode] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -162,305 +161,74 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     };
   }, []);
 
-  const runSimulationTick = useCallback(() => {
-    if (isNavigating) {
-      if (simulationRef.current) {
-        cancelAnimationFrame(simulationRef.current);
-      }
-      simulationRef.current = null;
-      alphaRef.current = 0;
-      return;
+  // Effect to initialize and manage the web worker
+  useEffect(() => {
+    if (isNavigating || !graph.nodes.length) {
+      return; // Do nothing if navigating or if there's no data
     }
+
+    // Create a new worker. The `new URL(...)` syntax is a standard way
+    // to let bundlers like Vite or Next.js know how to handle the worker file.
+    const worker = new Worker(
+      new URL("../../workers/graph.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+    workerRef.current = worker;
+
     const currentWidth = propWidth ?? dimensions.width;
     const currentHeight = propHeight ?? dimensions.height;
-    if (currentWidth === 0 || currentHeight === 0) {
-      simulationRef.current = null; // Stop the loop
-      return;
-    }
 
-    const centerX = currentWidth / 2;
-    const centerY = currentHeight / 2;
+    // Center the view transform on initialization
+    setTransform({ k: 1, x: currentWidth / 2, y: currentHeight / 2 });
 
-    // setNodes((currentNodes) => {
-    //   if (currentNodes.length === 0) {
-    //     simulationRef.current = null; // Stop the loop
-    //     return [];
-    //   }
+    // Initialize nodes state. The worker will take over positioning from here.
+    const initialNodes = graph.nodes.map((node) => ({
+      ...node,
+      // Let d3-force handle initial positioning if x/y are not defined
+      x: node.x,
+      y: node.y,
+    }));
+    setNodes(initialNodes);
 
-    //   let newNodes = currentNodes.map((n) => ({ ...n }));
-
-    //   for (let i = 0; i < newNodes.length; i++) {
-    //     const nodeA = newNodes[i];
-    //     const nodeAx = nodeA.x ?? 0;
-    //     const nodeAy = nodeA.y ?? 0;
-
-    //     for (let j = i + 1; j < newNodes.length; j++) {
-    //       const nodeB = newNodes[j];
-    //       const nodeBx = nodeB.x ?? 0;
-    //       const nodeBy = nodeB.y ?? 0;
-
-    //       const { dx, dy, dist } = getVector(
-    //         { x: nodeAx, y: nodeAy },
-    //         { x: nodeBx, y: nodeBy },
-    //       );
-
-    //       if (dist > 0) {
-    //         const force =
-    //           (SIMULATION_CONFIG.forceStrength * alphaRef.current) /
-    //           (dist * dist);
-    //         const forceX = dx * force;
-    //         const forceY = dy * force;
-
-    //         if (!nodeA.fx) {
-    //           nodeA.vx = (nodeA.vx ?? 0) + forceX;
-    //           nodeA.vy = (nodeA.vy ?? 0) + forceY;
-    //         }
-    //         if (!nodeB.fx) {
-    //           nodeB.vx = (nodeB.vx ?? 0) - forceX;
-    //           nodeB.vy = (nodeB.vy ?? 0) - forceY;
-    //         }
-    //       }
-    //     }
-
-    //     if (!nodeA.fx) {
-    //       const dxCenter = centerX - nodeAx;
-    //       const dyCenter = centerY - nodeAy;
-    //       nodeA.vx =
-    //         (nodeA.vx ?? 0) +
-    //         dxCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
-    //       nodeA.vy =
-    //         (nodeA.vy ?? 0) +
-    //         dyCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
-    //     }
-    //   }
-
-    //   for (const edge of graph.edges) {
-    //     const sourceNode = newNodes.find((n) => n.id === edge.source);
-    //     const targetNode = newNodes.find((n) => n.id === edge.target);
-
-    //     if (sourceNode && targetNode) {
-    //       const { dx, dy, dist } = getVector(sourceNode, targetNode);
-
-    //       if (dist > 0) {
-    //         const diff = dist - edge.distance;
-    //         const edgeStrengthMultiplier = edge.strength ?? 1.0;
-    //         const effectiveLinkStrength =
-    //           SIMULATION_CONFIG.linkStrength * edgeStrengthMultiplier;
-
-    //         const force =
-    //           (diff * effectiveLinkStrength * alphaRef.current) / dist; // Use effective strength
-    //         const forceX = dx * force;
-    //         const forceY = dy * force;
-
-    //         if (!sourceNode.fx) {
-    //           sourceNode.vx = (sourceNode.vx ?? 0) + forceX;
-    //           sourceNode.vy = (sourceNode.vy ?? 0) + forceY;
-    //         }
-    //         if (!targetNode.fx) {
-    //           targetNode.vx = (targetNode.vx ?? 0) - forceX;
-    //           targetNode.vy = (targetNode.vy ?? 0) - forceY;
-    //         }
-    //       }
-    //     }
-    //   }
-
-    //   newNodes = newNodes.map((node) => {
-    //     if (node.fx !== null && node.fy !== null) {
-    //       return { ...node, x: node.fx, y: node.fy, vx: 0, vy: 0 };
-    //     }
-
-    //     const vx = (node.vx ?? 0) * SIMULATION_CONFIG.velocityDecay;
-    //     const vy = (node.vy ?? 0) * SIMULATION_CONFIG.velocityDecay;
-    //     const x = (node.x ?? 0) + vx;
-    //     const y = (node.y ?? 0) + vy;
-
-    //     return { ...node, x, y, vx, vy };
-    //   });
-
-    //   return newNodes;
-    // });
-    setNodes((currentNodes) => {
-      const currentWidth = propWidth ?? dimensions.width; // Ensure these are available
-      const currentHeight = propHeight ?? dimensions.height;
-      const centerX = currentWidth / 2;
-      const centerY = currentHeight / 2;
-
-      if (
-        currentNodes.length === 0 ||
-        currentWidth === 0 ||
-        currentHeight === 0
-      ) {
-        simulationRef.current = null;
-        return [];
-      }
-
-      // 1. Create mutable copies for simulation. Initialize/ensure essential properties.
-      const simNodes = currentNodes.map((n) => ({
-        ...n,
-        x: n.x ?? centerX + (Math.random() - 0.5) * 0.1, // Ensure x is defined
-        y: n.y ?? centerY + (Math.random() - 0.5) * 0.1, // Ensure y is defined
-        vx: n.vx ?? 0,
-        vy: n.vy ?? 0,
-      }));
-
-      // 2. Create a map for efficient node lookup during edge processing (CRITICAL FOR PERFORMANCE)
-      const simNodeMap = new Map(simNodes.map((n) => [n.id, n]));
-
-      // --- Repulsion Forces (Node-Node) ---
-      for (let i = 0; i < simNodes.length; i++) {
-        const nodeA = simNodes[i];
-        // Ensure nodeA.x and nodeA.y are numbers
-        const nodeAx = nodeA.x!;
-        const nodeAy = nodeA.y!;
-
-        for (let j = i + 1; j < simNodes.length; j++) {
-          const nodeB = simNodes[j];
-          const nodeBx = nodeB.x!;
-          const nodeBy = nodeB.y!;
-
-          const { dx, dy, dist } = getVector(
-            { x: nodeAx, y: nodeAy },
-            { x: nodeBx, y: nodeBy },
-          );
-
-          if (dist > 0) {
-            const force =
-              (SIMULATION_CONFIG.forceStrength * alphaRef.current) /
-              (dist * dist);
-            const forceX = dx * force;
-            const forceY = dy * force;
-
-            if (!nodeA.fx) {
-              nodeA.vx += forceX; // Mutate copy
-              nodeA.vy += forceY; // Mutate copy
-            }
-            if (!nodeB.fx) {
-              nodeB.vx -= forceX; // Mutate copy
-              nodeB.vy -= forceY; // Mutate copy
-            }
-          }
-        }
-
-        // --- Centering Force --- (Applied to nodeA)
-        if (!nodeA.fx) {
-          const dxCenter = centerX - nodeAx;
-          const dyCenter = centerY - nodeAy;
-          nodeA.vx +=
-            dxCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
-          nodeA.vy +=
-            dyCenter * SIMULATION_CONFIG.centerForceStrength * alphaRef.current;
-        }
-      }
-
-      // --- Link Forces (Edge) ---
-      for (const edge of graph.edges) {
-        // graph.edges is from the component's props/state
-        const sourceNode = simNodeMap.get(edge.source); // O(1) lookup
-        const targetNode = simNodeMap.get(edge.target); // O(1) lookup
-
-        if (sourceNode && targetNode) {
-          const { dx, dy, dist } = getVector(sourceNode, targetNode);
-
-          if (dist > 0) {
-            const diff = dist - edge.distance;
-            const edgeStrengthMultiplier = edge.strength ?? 1.0;
-            const effectiveLinkStrength =
-              SIMULATION_CONFIG.linkStrength * edgeStrengthMultiplier;
-
-            const force =
-              (diff * effectiveLinkStrength * alphaRef.current) / dist;
-            const forceX = dx * force;
-            const forceY = dy * force;
-
-            if (!sourceNode.fx) {
-              sourceNode.vx += forceX; // Mutate copy
-              sourceNode.vy += forceY; // Mutate copy
-            }
-            if (!targetNode.fx) {
-              targetNode.vx -= forceX; // Mutate copy
-              targetNode.vy -= forceY; // Mutate copy
-            }
-          }
-        }
-      }
-
-      // --- Update positions based on velocities ---
-      // This final map creates the new objects for React state.
-      return simNodes.map((node) => {
-        if (node.fx !== null && node.fy !== null) {
-          // Node is fixed, ensure vx/vy are reset
-          return { ...node, x: node.fx, y: node.fy, vx: 0, vy: 0 };
-        }
-
-        const newVx = node.vx * SIMULATION_CONFIG.velocityDecay;
-        const newVy = node.vy * SIMULATION_CONFIG.velocityDecay;
-        const newX = node.x! + newVx; // node.x is guaranteed by now
-        const newY = node.y! + newVy; // node.y is guaranteed by now
-
-        return { ...node, x: newX, y: newY, vx: newVx, vy: newVy };
-      });
+    // Send the initial data to the worker to start the simulation.
+    worker.postMessage({
+      type: "update_data",
+      payload: { nodes: initialNodes, edges: graph.edges },
     });
 
-    alphaRef.current *= 1 - SIMULATION_CONFIG.alphaDecay;
-
-    if (alphaRef.current < SIMULATION_CONFIG.alphaMin) {
-      alphaRef.current = 0;
-      simulationRef.current = null;
-    } else if (!isNavigating) {
-      // Ensure not to restart if navigating
-      simulationRef.current = requestAnimationFrame(runSimulationTick);
-    }
-  }, [edges, dimensions, propWidth, propHeight, isNavigating]);
-
-  useEffect(() => {
-    if (isNavigating) {
-      if (simulationRef.current) {
-        cancelAnimationFrame(simulationRef.current);
+    // Define the message handler for updates from the worker.
+    worker.onmessage = (event) => {
+      const { type, nodes: updatedNodes } = event.data;
+      if (type === "tick") {
+        // When the worker sends updated positions, update the component's state.
+        // This will trigger a re-render and move the SVG elements.
+        setNodes((currentNodes) => {
+          const nodePositionMap = new Map<string, { x: number; y: number }>(
+            updatedNodes.map((n: INode) => [n.id, { x: n.x, y: n.y }]),
+          );
+          return currentNodes.map((node) => {
+            const updatedPosition = nodePositionMap.get(node.id.toString());
+            if (updatedPosition) {
+              return { ...node, x: updatedPosition.x, y: updatedPosition.y };
+            }
+            return node;
+          });
+        });
       }
-      simulationRef.current = null;
-      alphaRef.current = 0;
-      return; // Stop if navigating
-    }
-    const currentWidth = propWidth ?? dimensions.width;
-    const currentHeight = propHeight ?? dimensions.height;
+    };
 
-    if (currentWidth === 0 || currentHeight === 0) return;
-
-    const initializedNodes = graph.nodes.map((node) => ({
-      ...node,
-      x: node.x ?? currentWidth / 2 + (Math.random() - 0.5) * 50,
-      y: node.y ?? currentHeight / 2 + (Math.random() - 0.5) * 50,
-      vx: node.vx ?? 0,
-      vy: node.vy ?? 0,
-      fx: node.fx !== undefined ? node.fx : null,
-      fy: node.fy !== undefined ? node.fy : null,
-    })) as INode[];
-    setNodes([...initializedNodes]);
-
-    alphaRef.current = SIMULATION_CONFIG.alpha;
-    setTransform({ k: 1, x: 0, y: 0 });
-
-    if (
-      !isNavigating &&
-      simulationRef.current === null &&
-      initializedNodes.length > 0
-    ) {
-      simulationRef.current = requestAnimationFrame(runSimulationTick);
-    } else {
-    }
-
+    // The cleanup function is critical: it terminates the worker when the component unmounts
+    // or when dependencies change, causing the effect to re-run.
     return () => {
-      if (simulationRef.current) {
-        cancelAnimationFrame(simulationRef.current);
-      }
-      simulationRef.current = null;
+      worker.terminate();
+      workerRef.current = null;
     };
   }, [
     graph.nodes,
+    graph.edges,
     dimensions,
     propWidth,
     propHeight,
-    runSimulationTick,
     isNavigating,
   ]);
 
@@ -516,25 +284,24 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   // REVISED: handleMouseMove (Checks pointerId to distinguish mouse move)
   const handleMouseMove = (event: MouseEvent) => {
     // Only proceed if a mouse drag (pointerId null) is active
-    if (isDraggingNode && dragStartPosRef.current?.pointerId === null) {
+    if (
+      isDraggingNode &&
+      dragStartPosRef.current?.pointerId === null &&
+      workerRef.current
+    ) {
       const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(
         event.clientX,
         event.clientY,
       );
-      // Use the stored offset to calculate the new fixed position (fx, fy)
       const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
       const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
 
-      setNodes((prevNodes) =>
-        prevNodes.map((n) =>
-          n.id === isDraggingNode ? { ...n, fx: newFx, fy: newFy } : n,
-        ),
-      );
-      // Keep simulation active during drag
-      alphaRef.current = Math.max(alphaRef.current, 0.1);
-      if (simulationRef.current === null && nodes.length > 0) {
-        simulationRef.current = requestAnimationFrame(runSimulationTick);
-      }
+      // Instead of setting state directly, post the updated position to the worker.
+      // The worker will update the simulation, and the `onmessage` handler will update the React state.
+      workerRef.current.postMessage({
+        type: "update_node_position",
+        payload: { id: isDraggingNode, fx: newFx, fy: newFy },
+      });
     } else if (isPanning && panStartPosRef.current?.pointerId === null) {
       // Handle mouse pan
       // Calculate delta movement from the stored start screen position
@@ -564,7 +331,13 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       let dragJustEnded = false; // Separate check if drag ended *this event*
 
       if (wasDragging) {
-        // ... (node release logic) ...
+        if (isDraggingNode && workerRef.current) {
+          // Tell the worker to release the node, allowing it to move freely again.
+          workerRef.current.postMessage({
+            type: "end_node_drag",
+            payload: { id: isDraggingNode },
+          });
+        }
         dragJustEnded = true; // Mark drag end
         setIsDraggingNode(null);
         dragStartPosRef.current = null;
@@ -792,7 +565,8 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       // --- Handle Active Drag ---
       if (
         isDraggingNode &&
-        dragStartPosRef.current?.pointerId === touch.identifier
+        dragStartPosRef.current?.pointerId === touch.identifier &&
+        workerRef.current
       ) {
         event.preventDefault(); // Prevent scroll during active drag
         const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(
@@ -803,15 +577,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
         const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
 
-        setNodes((prevNodes) =>
-          prevNodes.map((n) =>
-            n.id === isDraggingNode ? { ...n, fx: newFx, fy: newFy } : n,
-          ),
-        );
-        alphaRef.current = Math.max(alphaRef.current, 0.1); // Keep sim active
-        if (simulationRef.current === null && nodes.length > 0) {
-          simulationRef.current = requestAnimationFrame(runSimulationTick);
-        }
+        // Post the updated position to the worker
+        workerRef.current.postMessage({
+          type: "update_node_position",
+          payload: { id: isDraggingNode, fx: newFx, fy: newFy },
+        });
       }
       // --- Handle Active Pan ---
       else if (
@@ -892,6 +662,13 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           currentDraggingNodeId &&
           dragStartPosRef.current?.pointerId === touch.identifier
         ) {
+          if (workerRef.current) {
+            // Tell the worker to release the dragged node
+            workerRef.current.postMessage({
+              type: "end_node_drag",
+              payload: { id: currentDraggingNodeId },
+            });
+          }
           // ... release node fixation ...
           wasDragging = true;
           dragJustEnded = true;
@@ -1014,41 +791,29 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       setIsDraggingNode(nodeId);
       setIsPanning(false); // Ensure panning stops
       const node = nodeMap[nodeId]; // Get node data using the memoized map
-      if (!node) return;
+      if (!node || !workerRef.current) return;
 
       // Use screenToSVGCoords to find where the drag *started* in the graph's coordinate system
-      // Note: We calculate the initial offset from the node's *current* center for smoother dragging
-      // This replaces storing nodeStartX/Y directly.
       const { x: svgX, y: svgY } = screenToSVGCoords(screenX, screenY);
-      const initialOffsetX = (node.x ?? 0) - svgX;
-      const initialOffsetY = (node.y ?? 0) - svgY;
 
-      setNodes((prevNodes) =>
-        prevNodes.map((n) => {
-          if (n.id === nodeId) {
-            // Store screen coords for movement calculation AND the offset
-            dragStartPosRef.current = {
-              pointerId,
-              screenX, // Store screen coords for delta calculation in move handlers
-              screenY,
-              // Instead of nodeStartX/Y, store the offset from the pointer to the node center
-              nodeStartX: initialOffsetX, // Re-using fields, but meaning changed slightly
-              nodeStartY: initialOffsetY,
-            };
-            return { ...n, fx: n.x, fy: n.y }; // Fix the node
-          }
-          return n;
-        }),
-      );
-      // Restart simulation
-      alphaRef.current = Math.max(alphaRef.current, 0.1);
-      if (simulationRef.current === null && nodes.length > 0) {
-        // Check nodes length
-        simulationRef.current = requestAnimationFrame(runSimulationTick);
-      }
+      // Store initial drag information. The offset helps keep the drag smooth.
+      dragStartPosRef.current = {
+        pointerId,
+        screenX,
+        screenY,
+        nodeStartX: (node.x ?? 0) - svgX,
+        nodeStartY: (node.y ?? 0) - svgY,
+      };
+
+      // Notify the worker to fix the node's position.
+      // The worker will now hold the `fx` and `fy` state for the dragged node.
+      workerRef.current.postMessage({
+        type: "update_node_position",
+        payload: { id: nodeId, fx: node.x, fy: node.y },
+      });
     },
-    [screenToSVGCoords, runSimulationTick, nodeMap, nodes],
-  ); // Add nodeMap, nodes dependencies
+    [screenToSVGCoords, nodeMap],
+  );
 
   // NEW: Unified function to start panning
   const startPan = useCallback(
