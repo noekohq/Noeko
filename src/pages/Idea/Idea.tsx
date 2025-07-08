@@ -58,9 +58,14 @@ import Search from "../../components/Search/Search";
 import Access from "./Access";
 import Loading from "../../components/Display/Loading/Loading";
 
+import { Alert } from "@mantine/core";
+import { WarningCircleIcon } from "@phosphor-icons/react";
+import { useMultiTabWarning } from "../../hooks/useMultiTabWarning";
+
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
+  const isDuplicateTab = useMultiTabWarning(ideaId);
   const [title, setTitle] = useState<string>("");
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
   const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
@@ -454,6 +459,18 @@ export default function Idea() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
+        {isDuplicateTab && (
+          <Alert
+            variant="light"
+            color="orange"
+            title="Editing in multiple tabs is not supported"
+            icon={<WarningCircleIcon />}
+            mb="md"
+          >
+            To avoid losing your work, please close this tab and continue
+            editing in the original one.
+          </Alert>
+        )}
         <div className={styles.ideaContainer}>
           <div className={styles.topbox}>
             <Stack gap="md">
@@ -462,7 +479,7 @@ export default function Idea() {
                   order={1}
                   m="0"
                   pr="md"
-                  contentEditable
+                  contentEditable={!isDuplicateTab}
                   suppressContentEditableWarning
                   onBlur={(e) => {
                     updateTitle(e.currentTarget.innerText);
@@ -500,6 +517,7 @@ export default function Idea() {
                     onContentReady={handleContentReady}
                     dependencies={[ideaId, idea.id]}
                     ref={editorRef}
+                    readOnly={isDuplicateTab}
                   />
                 </IdeaProvider>
               )}

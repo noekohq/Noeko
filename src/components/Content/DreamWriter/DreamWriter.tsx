@@ -87,6 +87,7 @@ interface EditorProps {
   onBlur?: (output: string) => void;
   onContentReady?: () => void;
   dependencies?: any[];
+  readOnly?: boolean;
 }
 
 const defaultContent = ``;
@@ -105,6 +106,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       onBlur,
       onContentReady,
       dependencies,
+      readOnly,
     },
     ref,
   ) => {
@@ -283,7 +285,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           },
         },
         onPaste: (e) => {},
-        editable: true,
+        editable: !readOnly,
         injectCSS: false,
         autofocus: true,
       },

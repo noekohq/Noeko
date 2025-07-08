@@ -32,6 +32,30 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("July 8, 2025"),
+    title: "Sharing notes with other users",
+    details: (
+      <>
+        <Stack>
+          <Text>
+            We got tired of copy-pasting, or having to export notes to share
+            them with others, so we decided to add access controls to ideas. YOu
+            can now manage access to specific ideas, and allow other users to
+            view them form the right sidebar in an idea.
+          </Text>
+
+          <List>
+            <List.Item>
+              Access controls for ideas, share with other users
+            </List.Item>
+            <List.Item>Minor UI updates</List.Item>
+            <List.Item>Improvements to Spyglass</List.Item>
+          </List>
+        </Stack>
+      </>
+    ),
+  },
+  {
     date: new Date("July 5, 2025"),
     title: "Spyglass follow-ups, better highlighting",
     details: (
@@ -315,8 +339,8 @@ export default function Updates() {
             <Divider my="md" />
             <Text fw="bold">In progress</Text>
             <Text>
-              Currently we are working on the Spotlight feature, and next we'll
-              be tackling a new project concept called "Rabbitholes".
+              Currently we are working on Rabbitholes, an organizational feature
+              to make knowledge-aggregation in specific subject-areas easier.
             </Text>
             <Divider my="md" />
             <Text fw="bold">Up next</Text>
@@ -324,8 +348,11 @@ export default function Updates() {
               *(Potentially not in this order)
             </Text>
             <List>
-              <List.Item>Idea editor improvements</List.Item>
-              <List.Item>Search improvements</List.Item>
+              <List.Item>Tooling to learn from resources</List.Item>
+              <List.Item>
+                Better resource management, creating a threshold between your
+                ideas and external information
+              </List.Item>
             </List>
             <Divider my="md" />
             <Group>
