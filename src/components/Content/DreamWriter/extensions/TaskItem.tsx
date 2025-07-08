@@ -11,7 +11,6 @@ export const taskItemInputRegex = /^\s*(\[ \])\s$/;
 
 export const DreamTaskItem = TaskItem.extend({
   addInputRules() {
-    console.log("Initializing input rule for: ", this.type);
     return [
       wrappingInputRule({
         find: taskItemInputRegex,

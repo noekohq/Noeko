@@ -5,7 +5,7 @@ import {
   IIdeaAsRelation,
   IIdeaDerivedMap,
   IIdeaForm,
-  IPublicIdea,
+  ISafeIdea,
 } from "../database/models/ideas";
 import { getLM } from "../semantics/lm";
 import {
@@ -114,7 +114,7 @@ router.get("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    const toSend: IPublicIdea & {
+    const toSend: ISafeIdea & {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;

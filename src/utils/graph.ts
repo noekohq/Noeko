@@ -1,4 +1,4 @@
-import { IDBGraph, IIdea } from "../../app/database/models/ideas";
+import { IDBGraph, IIdea, ISafeIdea } from "../../app/database/models/ideas";
 import { ISearchResult, ISearchResultValue } from "../../app/services/Search";
 import { htmlToMarkdown } from "../../app/utils/formatting";
 import {
@@ -183,7 +183,10 @@ export const getNodeDescription = (
   }
 };
 
-export const ideasAreConnected = (first: IIdea, second: IIdea | string) => {
+export const ideasAreConnected = (
+  first: IIdea | ISafeIdea,
+  second: IIdea | string,
+) => {
   if (!first.connections && !second) {
     return undefined;
   }

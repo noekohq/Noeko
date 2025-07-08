@@ -222,13 +222,6 @@ export default function Dashboard() {
                       </Group>
                     </Button>
                   </Link>
-                  <Link to="/tags">
-                    <Button variant="default">
-                      <Group>
-                        <Text>Manage Tags</Text>
-                      </Group>
-                    </Button>
-                  </Link>
                   <Link to="/settings">
                     <Button variant="default">
                       <Group>
@@ -247,6 +240,20 @@ export default function Dashboard() {
                       </Button>
                     </Link>
                   )}
+                  <Link to="/ideas/shared">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Shared ideas</Text>
+                      </Group>
+                    </Button>
+                  </Link>
+                  <Link to="/tags">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Manage Tags</Text>
+                      </Group>
+                    </Button>
+                  </Link>
                 </Flex>
               </Card>
             )}

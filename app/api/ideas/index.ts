@@ -1,15 +1,16 @@
 import { Router } from "express";
-import { checkToken, disallowDisabled } from "../middleware/auth";
-import { getFromReq } from "../utils/requests";
-import { ISafeUser, IUser, User } from "../database/models/user";
+import { checkToken, disallowDisabled } from "../../middleware/auth";
+import { getFromReq } from "../../utils/requests";
+import { ISafeUser, IUser, User } from "../../database/models/user";
 import {
   Idea,
   IIdea,
   IIdeaAsRelation,
   IIdeaDerivedMap,
-  IPublicIdea,
-} from "../database/models/ideas";
-import { Tag } from "../database/models/tag";
+  ISafeIdea,
+} from "../../database/models/ideas";
+import { Tag } from "../../database/models/tag";
+import shareRouter from "./share";
 
 const router = Router();
 
@@ -38,6 +39,8 @@ router.get("/:ideaId/public", async (req, res) => {
 
 router.use(checkToken);
 router.use(disallowDisabled);
+
+router.use(shareRouter);
 
 router.get("/", checkToken, disallowDisabled, async (req, res) => {
   try {
@@ -151,7 +154,7 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    const toSend: IPublicIdea & {
+    const toSend: ISafeIdea & {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;

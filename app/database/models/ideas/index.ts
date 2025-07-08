@@ -34,7 +34,7 @@ export type IIdea = {
 
 export type IIdeaVisibility = "private" | "public";
 
-export type IIdeaWithComputedFields = (IIdea | IPublicIdea) & {
+export type IIdeaWithComputedFields = (IIdea | ISafeIdea) & {
   embeddingsOutOfDate: boolean;
 };
 
@@ -57,6 +57,20 @@ export type IIdeaConnection = {
   id: string;
   in: string;
   out: string;
+};
+
+export type IIdeaShareAccess = "editor" | "viewonly";
+
+export type IIdeaShare = {
+  id: string;
+  in: string;
+  out: string;
+  accessLevel: IIdeaShareAccess;
+};
+
+export type IIdeaShareDetails = {
+  user: IPublicUser;
+  accessLevel: IIdeaShareAccess;
 };
 
 export type IDerivedType = "generative_summary";
@@ -104,13 +118,18 @@ export type IUserIdeaStats = {
   total: number;
 };
 
-export type IPublicIdea = Omit<IIdea, "embeddings">;
+export type ISafeIdea = Omit<IIdea, "embeddings">;
+
+export type IViewOnlyIdea = Pick<
+  ISafeIdea,
+  "id" | "title" | "content" | "createdAt" | "updatedAt"
+>;
 
 export class Idea {
   constructor() {}
 
   static attachComputedFields(
-    idea: IIdea | IPublicIdea,
+    idea: IIdea | ISafeIdea,
   ): IIdeaWithComputedFields {
     return {
       ...idea,
@@ -273,7 +292,7 @@ export class Idea {
   }
 
   static attachComputedFieldsToCollection(
-    ideas: (IIdea | IPublicIdea)[],
+    ideas: (IIdea | ISafeIdea)[],
   ): IIdeaWithComputedFields[] {
     return ideas.map(Idea.attachComputedFields);
   }
@@ -622,15 +641,15 @@ export class Idea {
   static async getIdeaOwners(
     ideaId: string,
     safety: "safe",
-  ): Promise<ISafeUser | undefined>;
+  ): Promise<ISafeUser[] | undefined>;
   static async getIdeaOwners(
     ideaId: string,
     safety: "public",
-  ): Promise<IPublicUser | undefined>;
+  ): Promise<IPublicUser[] | undefined>;
   static async getIdeaOwners(
     ideaId: string,
     safety: "none",
-  ): Promise<IUser | undefined>;
+  ): Promise<IUser[] | undefined>;
   static async getIdeaOwners(
     ideaId: string,
     safety: "public" | "safe" | "none" = "safe",
@@ -638,7 +657,19 @@ export class Idea {
     try {
       const db = await getDatabase();
       const results = await db?.query<[IUser & { id: RecordId }[]]>(
-        `SELECT VALUE <-owns<-user OMIT password FROM ONLY $ideaId;`,
+        `
+        SELECT VALUE
+          <-owns<-user.{
+            id,
+            firstName,
+            lastName,
+            email,
+            createdAt,
+            updatedAt
+        } as user
+        FROM ONLY <record> $ideaId
+        FETCH user;
+        `,
         {
           ideaId,
         },
@@ -664,27 +695,198 @@ export class Idea {
     }
   }
 
-  static filterPublicFields(idea: IIdea): IPublicIdea;
-  static filterPublicFields(idea: IIdea[]): IPublicIdea[];
-  static filterPublicFields(
-    idea: IIdea | IIdea[],
-  ): IPublicIdea | IPublicIdea[] {
+  static filterSafeFields(idea: IIdea): ISafeIdea;
+  static filterSafeFields(idea: IIdea[]): ISafeIdea[];
+  static filterSafeFields(idea: IIdea | IIdea[]): ISafeIdea | ISafeIdea[] {
     if (Array.isArray(idea)) {
-      return idea.map((u) => this.filterPublicFields(u)) as IPublicIdea[];
+      return idea.map((u) => this.filterSafeFields(u)) as ISafeIdea[];
     }
     const { embeddings, ...safeUser } = idea;
-    return safeUser as IPublicIdea;
+    return safeUser as ISafeIdea;
+  }
+
+  static filterViewOnlyFields(idea: IIdea): IViewOnlyIdea;
+  static filterViewOnlyFields(idea: IIdea[]): IViewOnlyIdea[];
+  static filterViewOnlyFields(
+    idea: IIdea | IIdea[],
+  ): IViewOnlyIdea | IViewOnlyIdea[] {
+    if (Array.isArray(idea)) {
+      return idea.map((i) => this.filterViewOnlyFields(i));
+    }
+
+    const { id, title, content, createdAt, updatedAt } = idea;
+
+    return {
+      id,
+      title,
+      content,
+      createdAt,
+      updatedAt,
+    };
+  }
+
+  static async share(
+    ideaId: string,
+    userId: string,
+    accessLevel: IIdeaShareAccess = "viewonly",
+  ): Promise<boolean> {
+    const query = `
+      RELATE $ideaId->shared_with->$userId CONTENT {
+        accessLevel: $accessLevel,
+        createdAt: $now,
+      };
+    `;
+
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IIdeaShare[]]>(query, {
+        ideaId: new StringRecordId(ideaId),
+        userId: new StringRecordId(userId),
+        accessLevel,
+        now: new Date(),
+      });
+      return !!(result && result[0] && result[0].length > 0);
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  static async unshare(ideaId: string, userId: string): Promise<boolean> {
+    const query = `
+      DELETE shared_with WHERE in = $ideaId AND out = $userId;
+    `;
+
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IIdeaShare[]]>(query, {
+        ideaId: new StringRecordId(ideaId),
+        userId: new StringRecordId(userId),
+      });
+      return !!(result && result[0] && result[0].length > 0);
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  static async checkShareAccess(
+    ideaId: string,
+    userId: string,
+  ): Promise<IIdeaShareAccess | null> {
+    const query = `
+      SELECT
+          accessLevel
+      FROM shared_with
+      WHERE in = $ideaId AND out = $userId;
+    `;
+
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[{ accessLevel: IIdeaShareAccess }[]]>(
+        query,
+        {
+          ideaId: new StringRecordId(ideaId),
+          userId: new StringRecordId(userId),
+        },
+      );
+
+      if (result && result[0] && result[0].length > 0) {
+        return result[0][0].accessLevel;
+      }
+
+      return null;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
+
+  static async getShares(
+    ideaId: string,
+  ): Promise<IIdeaShareDetails[] | undefined> {
+    const query = `
+      SELECT
+          accessLevel,
+          out.{
+              id,
+              firstName,
+              lastName,
+              email,
+              createdAt,
+              updatedAt
+          } AS user
+      FROM shared_with
+      WHERE in = $ideaId
+      FETCH user;
+    `;
+
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<
+        [{ accessLevel: IIdeaShareAccess; user: IPublicUser }[]]
+      >(query, {
+        ideaId: new StringRecordId(ideaId),
+      });
+
+      if (result && result[0]) {
+        const shares = result[0];
+        return shares.map((share) => ({
+          accessLevel: share.accessLevel,
+          user: share.user,
+        }));
+      }
+
+      return [];
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }
+
+  static async getSharedWithUser(
+    userId: string,
+  ): Promise<IViewOnlyIdea[] | undefined> {
+    try {
+      const db = await getDatabase();
+      const query = `
+        SELECT VALUE
+          <-shared_with<-idea.{
+            id,
+            title,
+            content,
+            createdAt,
+            updatedAt
+          } as idea
+        FROM ONLY
+          <record> $userId
+        FETCH idea;
+      `;
+
+      const result = await db?.query<[IIdea[]]>(query, {
+        userId,
+      });
+
+      if (result && result[0]) {
+        return this.filterViewOnlyFields(result[0]);
+      }
+
+      return [];
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
   }
 
   static async get(
     id: string | RecordId,
     safety?: "public",
-  ): Promise<IPublicIdea>;
+  ): Promise<ISafeIdea>;
   static async get(id: string | RecordId, safety?: "full"): Promise<IIdea>;
   static async get(
     id: string | RecordId,
     safety: "public" | "full" = "public",
-  ): Promise<IPublicIdea | IIdea | undefined> {
+  ): Promise<ISafeIdea | IIdea | undefined> {
     try {
       const db = await getDatabase();
       const recordId = typeof id === "string" ? new StringRecordId(id) : id;
@@ -694,7 +896,7 @@ export class Idea {
         return;
       }
       if (safety === "public") {
-        return this.filterPublicFields(result);
+        return this.filterSafeFields(result);
       }
       if (safety === "full") {
         return result;
@@ -705,11 +907,72 @@ export class Idea {
       return undefined;
     }
   }
-  static async all(safety: "public"): Promise<IPublicIdea[]>;
+
+  static async getAccessible(
+    id: string | RecordId,
+    userId: string,
+  ): Promise<IIdea | ISafeIdea | IViewOnlyIdea | undefined>;
+  static async getAccessible(
+    id: string | RecordId,
+  ): Promise<ISafeIdea | undefined>;
+  static async getAccessible(
+    id: string | RecordId,
+    userId?: string,
+  ): Promise<IIdea | ISafeIdea | IViewOnlyIdea | undefined> {
+    try {
+      const db = await getDatabase();
+      const recordId = typeof id === "string" ? new StringRecordId(id) : id;
+      const idea = await db?.select<IIdea>(recordId);
+
+      if (!idea) {
+        console.error(`Idea with id ${id} not found.`);
+        return undefined;
+      }
+
+      const ideaIdStr = idea.id.toString();
+
+      if (userId) {
+        const isOwner = await Idea.checkUserOwnership(ideaIdStr, userId);
+        if (isOwner) {
+          return idea;
+        }
+
+        const shareAccess = await Idea.checkShareAccess(ideaIdStr, userId);
+        if (shareAccess === "viewonly") {
+          return this.filterViewOnlyFields(idea);
+        }
+        // In the future, 'editor' access would be handled here
+      }
+
+      if (idea.visibility === "public") {
+        return this.filterViewOnlyFields(idea);
+      }
+
+      return undefined;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  static async getFull(id: string | RecordId): Promise<IIdea | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database.");
+      }
+      return db.select<IIdea>(new StringRecordId(id));
+    } catch (error) {
+      logger.error("Error getting full idea", { error });
+      return undefined;
+    }
+  }
+
+  static async all(safety: "public"): Promise<ISafeIdea[]>;
   static async all(safety: "full"): Promise<IIdea[]>;
   static async all(
     safety: "public" | "full" = "public",
-  ): Promise<IPublicIdea[] | IIdea[] | undefined> {
+  ): Promise<ISafeIdea[] | IIdea[] | undefined> {
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea>("idea");
@@ -718,7 +981,7 @@ export class Idea {
         return undefined;
       }
       if (safety === "public") {
-        return this.filterPublicFields(result);
+        return this.filterSafeFields(result);
       }
       if (safety === "full") {
         return result;
@@ -757,7 +1020,7 @@ export class Idea {
       };
       const ideasWithDerived = ideas.map((i) => {
         return {
-          ...this.filterPublicFields(i),
+          ...this.filterSafeFields(i),
           derived: Idea.mapDerived(i.derivedList),
         };
       });
@@ -819,7 +1082,7 @@ export class Idea {
       };
       const ideasWithDerived = ideas.map((i) => {
         return {
-          ...this.filterPublicFields(i),
+          ...this.filterSafeFields(i),
           derived: Idea.mapDerived(i.derivedList),
         };
       });
@@ -1552,12 +1815,12 @@ export class Idea {
 
 class IdeaDerivedCascade {
   private _ideaId: string | RecordId;
-  private _idea: IIdea | undefined;
+  private _idea: IIdea | ISafeIdea | undefined;
 
   constructor(ideaId: string | RecordId) {
     this._ideaId = ideaId;
     (async () => {
-      this._idea = await Idea.get(ideaId, "full");
+      this._idea = await Idea.getFull(ideaId);
       if (!this._idea) {
         throw new Error(
           `Idea not found when constructing DerivedCascade: ${ideaId}`,

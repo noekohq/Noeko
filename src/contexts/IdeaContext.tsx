@@ -5,12 +5,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { IIdea } from "../../app/database/models/ideas";
+import { IIdea, ISafeIdea } from "../../app/database/models/ideas";
 import { createIdeaConnection } from "../utils/ideas";
 import { ideasAreConnected } from "../utils/graph";
 
 type IIdeaContext = {
-  idea?: IIdea;
+  idea?: ISafeIdea;
   ensureConnected: (target: string) => void;
 };
 
@@ -23,7 +23,7 @@ const IdeaContext = createContext<IIdeaContext>(initialContext);
 
 type IIdeaProviderProps = {
   children: React.ReactNode;
-  idea: IIdea | undefined;
+  idea: ISafeIdea | undefined;
   reloadIdea: () => Promise<void> | void;
 };
 

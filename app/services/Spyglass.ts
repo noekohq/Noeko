@@ -405,7 +405,6 @@ export default class Spyglass {
     userId: string,
     queries: string[],
   ): Promise<ISearchResult[]> {
-    console.log("Running ", queries);
     const searchPromises = queries.map((query) =>
       Search.comprehensiveSearch(userId, query),
     );

@@ -1,0 +1,52 @@
+.tabsContainer {
+}
+
+.tabsList {
+    display: flex;
+    gap: var(--mantine-spacing-xs);
+    margin-bottom: var(--mantine-spacing-md);
+}
+
+.tab {
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    font-size: var(--mantine-font-size-xs);
+    color: var(--mantine-color-dark-3);
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: var(--mantine-spacing-xs);
+
+    &:hover {
+        color: var(--mantine-color-dark-2);
+    }
+}
+
+.tabActive {
+    font-weight: bold;
+    color: var(--mantine-color-dark-2);
+    background-color: var(--mantine-color-dark-7);
+    padding: 2px var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-sm);
+}
+
+.tabLeftSection {
+    display: flex;
+    align-items: center;
+}
+
+@keyframes panelIn {
+    0% {
+        opacity: 0.50;
+        transform: translateY(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tabPanel {
+    animation: panelIn 0.2s ease-in-out;
+}

@@ -1,4 +1,4 @@
-import { ISafeUser, IUser } from "../../app/database/models/user";
+import { IPublicUser, ISafeUser, IUser } from "../../app/database/models/user";
 
 export const userInitials = (user: ISafeUser | undefined) => {
   if (!user) return "";
@@ -9,4 +9,11 @@ export const userInitials = (user: ISafeUser | undefined) => {
 export const userIsSuperuser = (user: ISafeUser | undefined) => {
   if (!user) return false;
   return !!user.roles.find((role) => role.toString() === "role:superuser");
+};
+
+export const userFormattedName = (
+  user: ISafeUser | IPublicUser | undefined,
+) => {
+  if (!user) return "";
+  return `${user.firstName} ${user.lastName}`;
 };

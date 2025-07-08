@@ -10,7 +10,11 @@ import {
   Box,
   Button,
 } from "@mantine/core";
-import { IIdea, IIdeaConnection } from "../../../app/database/models/ideas";
+import {
+  IIdea,
+  IIdeaConnection,
+  ISafeIdea,
+} from "../../../app/database/models/ideas";
 import { Link, useNavigate } from "react-router";
 import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
 import { useState } from "react";
@@ -33,7 +37,7 @@ import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
 
 type IConnectionsProps = {
   loadingIdea: boolean;
-  idea: IIdea;
+  idea: ISafeIdea;
   reloadIdea: () => void;
   computeOutOfDate: boolean;
   triggerCompute: () => void;
