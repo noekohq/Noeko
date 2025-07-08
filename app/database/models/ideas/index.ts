@@ -656,7 +656,7 @@ export class Idea {
   ) {
     try {
       const db = await getDatabase();
-      const results = await db?.query<[IUser & { id: RecordId }[]]>(
+      const results = await db?.query<[IUser[]]>(
         `
         SELECT VALUE
           <-owns<-user.{
