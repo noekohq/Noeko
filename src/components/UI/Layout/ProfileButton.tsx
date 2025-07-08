@@ -26,6 +26,7 @@ export default function ProfileButton() {
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
     { label: "Graph", icon: GraphIcon, path: "/graph" },
     { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
+    { label: "Shared Ideas", icon: LightbulbIcon, path: "/ideas/shared" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
     { label: "Tags", icon: TagIcon, path: "/tags" },
     { label: "Updates", icon: ScrollIcon, path: "/updates" },

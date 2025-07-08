@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  IIdeaShareAccess,
   IIdeaShareDetails,
   ISafeIdea,
 } from "../../../app/database/models/ideas";
@@ -8,6 +9,7 @@ import {
   ActionIcon,
   Box,
   Button,
+  CopyButton,
   Group,
   Loader,
   Modal,
@@ -21,6 +23,8 @@ import { userFormattedName } from "../../utils/user";
 import { useForm } from "@mantine/form";
 import { validateEmail } from "../../utils/data";
 import {
+  CheckIcon,
+  CopyIcon,
   DotsThreeVerticalIcon,
   ShareNetworkIcon,
   XCircleIcon,
@@ -28,6 +32,14 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { createIdeaShareFromEmail, removeIdeaShare } from "../../utils/ideas";
 import { showNotification } from "@mantine/notifications";
+
+const { VITE_DEPLOYED_URL } = import.meta.env;
+
+if (!VITE_DEPLOYED_URL) {
+  throw new Error("VITE_DEPLOYED_URL is not defined");
+}
+
+const deployedURL = VITE_DEPLOYED_URL;
 
 interface IAccessProps {
   loadingIdea: boolean;
@@ -54,8 +66,6 @@ export default function Access({
       loadShared();
     }
   }, [idea]);
-
-  console.log("Shared: ", shared);
 
   const form = useForm({
     initialValues: {
@@ -127,6 +137,13 @@ export default function Access({
     }
   };
 
+  const getShareLink = (mode: IIdeaShareAccess) => {
+    if (mode === "viewonly") {
+      return `${VITE_DEPLOYED_URL}/ideas/shared/${idea.id.toString()}/viewonly`;
+    }
+    return `${VITE_DEPLOYED_URL}/ideas/${idea.id.toString()}`;
+  };
+
   return (
     <div>
       <Stack>
@@ -177,16 +194,34 @@ export default function Access({
                     </ActionIcon>
                   </Popover.Target>
                   <Popover.Dropdown p="0">
-                    <Button
-                      leftSection={<XCircleIcon />}
-                      onClick={() => {
-                        handleStopSharing(share.user.id.toString());
-                      }}
-                      size="xs"
-                      color="red"
-                    >
-                      Stop Sharing
-                    </Button>
+                    <Stack gap="0">
+                      <Button
+                        leftSection={<XCircleIcon />}
+                        onClick={() => {
+                          handleStopSharing(share.user.id.toString());
+                        }}
+                        size="xs"
+                        color="red"
+                      >
+                        Stop Sharing
+                      </Button>
+                      <CopyButton value={getShareLink(share.accessLevel)}>
+                        {({ copy, copied }) => {
+                          return (
+                            <Button
+                              leftSection={
+                                copied ? <CheckIcon /> : <CopyIcon />
+                              }
+                              onClick={copy}
+                              size="xs"
+                              variant="light"
+                            >
+                              {copied ? "Copied" : "Copy Share Link"}
+                            </Button>
+                          );
+                        }}
+                      </CopyButton>
+                    </Stack>
                   </Popover.Dropdown>
                 </Popover>
               </Group>
