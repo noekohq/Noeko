@@ -174,7 +174,10 @@ export function InteractionProvider({
   const value: IInteractionContext = {
     actions: {
       newIdea: async () => {
-        if (user && user.totalIdeas < max_notes && max_notes !== -1) {
+        if (
+          (user && user.totalIdeas < max_notes && max_notes !== -1) ||
+          userIsSuperuser(user)
+        ) {
           handleNewIdea();
         } else {
           showNotification({
