@@ -33,6 +33,7 @@ import { useLayout } from "./LayoutContext";
 import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 import Spotlight from "../components/UI/Spotlight/Spotlight";
 import { useHotkeys } from "@mantine/hooks";
+import { handleCreateNewRabbithole } from "../utils/rabbitholes";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -41,6 +42,7 @@ const max_notes = Number(VITE_MAX_USER_NOTES) || 500;
 type IInteractionContext = {
   actions: {
     newIdea: () => void;
+    newRabbithole: () => void;
     layout: {
       leftSidebar: {
         open: () => void;
@@ -67,11 +69,13 @@ type IInteractionContext = {
     graph: () => void;
     spyglass: () => void;
     ideas: () => void;
+    rabbitholes: () => void;
     settings: () => void;
     profile: () => void;
     tags: () => void;
     updates: () => void;
     admin: () => void;
+    sharedIdeas: () => void;
   };
   state: {
     spotlightOpened: boolean;
@@ -81,6 +85,7 @@ type IInteractionContext = {
 const initialContext: IInteractionContext = {
   actions: {
     newIdea: () => {},
+    newRabbithole: () => {},
     layout: {
       leftSidebar: {
         open: () => {},
@@ -107,11 +112,13 @@ const initialContext: IInteractionContext = {
     graph: () => {},
     spyglass: () => {},
     ideas: () => {},
+    rabbitholes: () => {},
     settings: () => {},
     profile: () => {},
     tags: () => {},
     updates: () => {},
     admin: () => {},
+    sharedIdeas: () => {},
   },
   state: {
     spotlightOpened: false,
@@ -142,7 +149,25 @@ export function InteractionProvider({
       (err) => {
         showNotification({
           title: "Something went wrong",
-          message: "Something went wrong adding the note",
+          message: "Something went wrong adding the idea.",
+          color: "red",
+        });
+      },
+    );
+    setLoadingSomething(false);
+  };
+
+  const handleNewRabbithole = async () => {
+    setLoadingSomething(true);
+    await handleCreateNewRabbithole(
+      (r) => {
+        navigate(`rabbitholes/${r.id.toString()}`);
+      },
+      (err) => {
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong adding the rabbithole.",
+          color: "red",
         });
       },
     );
@@ -186,6 +211,9 @@ export function InteractionProvider({
             color: "red",
           });
         }
+      },
+      newRabbithole: async () => {
+        handleNewRabbithole();
       },
       layout: {
         leftSidebar: {
@@ -247,6 +275,9 @@ export function InteractionProvider({
       ideas: () => {
         navigate("/ideas");
       },
+      rabbitholes: () => {
+        navigate("/rabbitholes");
+      },
       tags: () => {
         navigate("/tags");
       },
@@ -255,6 +286,9 @@ export function InteractionProvider({
       },
       admin: () => {
         navigate("/admin");
+      },
+      sharedIdeas: () => {
+        navigate("/ideas/shared");
       },
     },
     state: {

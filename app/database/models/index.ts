@@ -5,6 +5,7 @@ import { Import } from "./import";
 import { Tag } from "./tag";
 import { Log } from "./log";
 import { SpyglassSearch } from "./search";
+import Rabbithole from "./rabbithole";
 
 export const modelsUp = async () => {
   try {
@@ -18,6 +19,7 @@ export const modelsUp = async () => {
     await Tag.up();
     await Log.up();
     await SpyglassSearch.up();
+    await Rabbithole.up();
   } catch (error) {
     console.error("There was an error updating models: ", error);
   }
