@@ -153,9 +153,16 @@ export default function Login() {
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group justify="center">
-                <Text size="sm">
-                  <Link to="/forgot-password">Forgot password?</Link>
-                </Text>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    textDecoration: "none",
+                  }}
+                >
+                  <Text size="xs" c="dimmed">
+                    Forgot password?
+                  </Text>
+                </Link>
               </Group>
             </Grid.Col>
           </Grid>

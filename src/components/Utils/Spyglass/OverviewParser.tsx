@@ -181,7 +181,7 @@ const FindingNumbersSpan: React.FC<IFindingNumbersSpanProps> = ({
         </span>
       )}
       <span className={`${styles.number}`}>
-        <Group gap="xs">
+        <Group gap="xs" wrap="wrap">
           {findingNumbers.map((fn) => (
             <FindingBadge
               key={fn}
