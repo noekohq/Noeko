@@ -238,7 +238,7 @@ const updates: IUpdate[] = [
   },
   {
     date: new Date("May 29, 2025"),
-    title: "Graph improvements, better shortcuts",
+    title: "Constellation improvements, better shortcuts",
     details: (
       <List>
         <List.Item>

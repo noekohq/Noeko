@@ -432,10 +432,10 @@ export default function Idea() {
                     )}
                 </Text>
               </Card>
-              <Divider my="sm" />
-              {!!idea && <TagsManager idea={idea} />}
               {!!idea && (
                 <>
+                  <Divider my="sm" />
+                  <TagsManager idea={idea} />
                   <Divider my="sm" />
                   <Connections
                     loadingIdea={loadingIdea}
