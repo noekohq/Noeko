@@ -97,19 +97,6 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
           </ActionIcon>
         )}
         <Group>
-          {isSuperuser && (
-            <>
-              <Tooltip label="Open spotlight">
-                <ActionIcon
-                  variant="light"
-                  onClick={openSpotlight}
-                  color={defaultColor}
-                >
-                  <ListMagnifyingGlassIcon />
-                </ActionIcon>
-              </Tooltip>
-            </>
-          )}
           <ProfileButton />
         </Group>
       </Group>
@@ -130,19 +117,6 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
           </ActionIcon>
         )}
         <Group>
-          {isSuperuser && (
-            <>
-              <Tooltip label="Open spotlight">
-                <ActionIcon
-                  variant="light"
-                  onClick={openSpotlight}
-                  color={defaultColor}
-                >
-                  <ListMagnifyingGlassIcon />
-                </ActionIcon>
-              </Tooltip>
-            </>
-          )}
           <ProfileButton />
         </Group>
       </Group>
@@ -175,34 +149,6 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
         >
           <ListMagnifyingGlassIcon size={16} />
         </ActionIcon>
-        {isSuperuser && (
-          <>
-            {pathname !== "/admin/users" && (
-              <ActionIcon
-                variant="subtle"
-                onClick={() => {
-                  navigate("/admin/users");
-                }}
-                size="sm"
-                color={defaultColor}
-              >
-                <UsersIcon size={16} />
-              </ActionIcon>
-            )}
-            {pathname !== "/admin/feedback" && (
-              <ActionIcon
-                variant="subtle"
-                onClick={() => {
-                  navigate("/admin/feedback");
-                }}
-                size="sm"
-                color={defaultColor}
-              >
-                <ChatCircleDotsIcon size={16} />
-              </ActionIcon>
-            )}
-          </>
-        )}
       </Stack>
     ),
     compact: (
@@ -231,10 +177,21 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
       className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}
       {...sidebarProps}
     >
-      <div className={styles.global} {...globalElementProps}>
-        {Global[mode]}
-      </div>
-      {children && <div className={styles.content}>{children}</div>}
+      {["open", "hovering"].includes(mode) ? (
+        <>
+          {children && <div className={styles.content}>{children}</div>}
+          <div className={styles.global} {...globalElementProps}>
+            {Global[mode]}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={styles.global} {...globalElementProps}>
+            {Global[mode]}
+          </div>
+          {children && <div className={styles.content}>{children}</div>}
+        </>
+      )}
     </aside>
   );
 };

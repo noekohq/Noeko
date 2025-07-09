@@ -126,4 +126,56 @@ router.get("/:rabbitholeId", async (req, res) => {
   }
 });
 
+router.put("/:rabbitholeId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { name } = req.body as { name: string };
+    if (!(typeof name === "string")) {
+      res.status(400).send({
+        message: "Invalid name. Name must be a string",
+      });
+      return;
+    }
+    const rabbithole = await Rabbithole.update(req.params.rabbitholeId, {
+      name,
+    });
+    if (!rabbithole) {
+      res.status(404).send({
+        message: "Rabbithole not found",
+      });
+      return;
+    }
+    res.send({
+      message: "Successfully updated rabbithole",
+      data: rabbithole,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
+router.get("/similar-ideas", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
 export default router;

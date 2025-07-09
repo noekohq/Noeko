@@ -1,0 +1,10 @@
+.rabbitholeIndicator {
+    background-color: var(--mantine-color-green-8);
+    padding: 2px var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-xl);
+    font-size: var(--mantine-font-size-sm);
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--mantine-spacing-xs);
+    align-items: center;
+}

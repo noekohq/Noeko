@@ -50,8 +50,13 @@ export default function Search() {
       {!!searchQuery && !searchResults && !loading && (
         <>
           <Space my="lg" />
-          <Link to={`/spyglass?q=${encodeURIComponent(searchQuery)}`}>
-            <Group>
+          <Link
+            to={`/spyglass?q=${encodeURIComponent(searchQuery)}`}
+            style={{
+              textDecoration: "none",
+            }}
+          >
+            <Group c="dark.3" gap="xs">
               <Text size="xs">Open in Spyglass</Text>
               <ArrowRightIcon size={14} />
             </Group>

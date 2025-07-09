@@ -12,11 +12,13 @@ import {
   Group,
   Stack,
   Badge,
+  MantineSize,
 } from "@mantine/core";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, TagIcon } from "@phosphor-icons/react";
 import { ITag } from "../../../app/database/models/tag";
 import { InlineTag } from "../Tags/TagDisplay";
 import { useSettings } from "../../contexts/SettingsContext";
+import styles from "./SuggestTags.module.scss";
 
 interface SuggestTagsProps {
   onSelect: (tag: ITag) => void;
@@ -24,6 +26,7 @@ interface SuggestTagsProps {
   placeholder?: string;
   omit?: string[];
   debounce?: number;
+  size?: MantineSize;
 }
 
 const SuggestTags: React.FC<SuggestTagsProps> = ({
@@ -32,6 +35,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
   placeholder = "Search or add tags...",
   omit = [],
   debounce = 300,
+  size = "xs",
 }) => {
   const {
     ui: {
@@ -40,6 +44,8 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
       },
     },
   } = useSettings();
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>("");
@@ -133,9 +139,18 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
     >
       <Combobox.Target>
         <TextInput
+          ref={inputRef}
           placeholder={placeholder}
           value={searchQuery}
-          size="xs"
+          size={size}
+          classNames={{
+            input: styles.input,
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              inputRef.current?.blur();
+            }
+          }}
           onChange={(event) => {
             setSearchQuery(event.currentTarget.value);
             combobox.openDropdown();
@@ -150,7 +165,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
               }
             }, 150);
           }}
-          leftSection={<MagnifyingGlass size={16} />}
+          leftSection={<TagIcon size={16} />}
           rightSection={rightSection}
           rightSectionWidth={40}
           error={errors && errors.length > 0 ? errors.join(", ") : false}

@@ -8,21 +8,31 @@ import {
   HouseIcon,
   HouseSimpleIcon,
   MegaphoneIcon,
+  RabbitIcon,
   SidebarSimpleIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import {
   ActionIcon,
+  Badge,
+  Box,
+  Button,
+  Card,
   Divider,
   Flex,
   Group,
   MantineColor,
+  Paper,
   Stack,
+  Text,
 } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
 import useSidebarHover from "../../../hooks/useSidebarHover";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import { useLandscape } from "../../../contexts/LandscapeContext";
+import { RabbitholeIndicator } from "../../Display/Rabbitholes/RabbitholeIndicator";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -39,6 +49,12 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
     },
     isMobile,
   } = useLayout();
+
+  const {
+    rabbitholes: {
+      entered: { get: currentRabbithole, set: setRabbithole },
+    },
+  } = useLandscape();
 
   const { pathname } = useLocation();
   const isHome = pathname === "/";
@@ -79,65 +95,72 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
 
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
-      <Group justify="end">
-        {!!topLevel?.open && topLevel.open}
-        {!isHome && (
-          <Link to="/">
-            <ActionIcon variant="subtle" color={defaultColor}>
-              <HouseIcon />
-            </ActionIcon>
-          </Link>
-        )}
-        <ActionIcon
-          onClick={() => {
-            openFeedbackModal();
-          }}
-          variant="subtle"
-          color={defaultColor}
-        >
-          <MegaphoneIcon />
-        </ActionIcon>
-        <ActionIcon
-          onClick={() => {
-            setMode("collapsed");
-          }}
-          variant="subtle"
-          size={isMobile ? "sm" : "md"}
-          color={defaultColor}
-        >
-          <SidebarSimpleIcon />
-        </ActionIcon>
+      <Group justify="space-between">
+        {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
+        <Group gap="xs">
+          {!isHome && (
+            <Link to="/">
+              <ActionIcon variant="subtle" color={defaultColor}>
+                <HouseIcon />
+              </ActionIcon>
+            </Link>
+          )}
+          <ActionIcon
+            onClick={() => {
+              openFeedbackModal();
+            }}
+            variant="subtle"
+            color={defaultColor}
+          >
+            <MegaphoneIcon />
+          </ActionIcon>
+          <ActionIcon
+            onClick={() => {
+              setMode("collapsed");
+            }}
+            variant="subtle"
+            size={isMobile ? "sm" : "md"}
+            color={defaultColor}
+          >
+            <SidebarSimpleIcon />
+          </ActionIcon>
+        </Group>
       </Group>
     ),
     hovering: (
-      <Group justify="end">
-        {!!topLevel?.hovering && topLevel.hovering}
-        {!isHome && (
-          <Link to="/">
-            <ActionIcon variant="subtle" color={defaultColor}>
-              <HouseIcon />
-            </ActionIcon>
-          </Link>
+      <Group justify="space-between">
+        {!!topLevel?.hovering && <Group gap="xs">topLevel.hovering</Group>}
+        {!!topLevel?.open && !topLevel.hovering && (
+          <Group gap="xs">{topLevel.open}</Group>
         )}
-        <ActionIcon
-          onClick={() => {
-            openFeedbackModal();
-          }}
-          variant="light"
-          color={defaultColor}
-        >
-          <MegaphoneIcon />
-        </ActionIcon>
-        <ActionIcon
-          onClick={() => {
-            setMode("collapsed");
-          }}
-          variant="subtle"
-          size={isMobile ? "sm" : "md"}
-          color={defaultColor}
-        >
-          <SidebarSimpleIcon />
-        </ActionIcon>
+        <Group gap="xs">
+          {!isHome && (
+            <Link to="/">
+              <ActionIcon variant="subtle" color={defaultColor}>
+                <HouseIcon />
+              </ActionIcon>
+            </Link>
+          )}
+          <ActionIcon
+            onClick={() => {
+              openFeedbackModal();
+            }}
+            variant="light"
+            color={defaultColor}
+          >
+            <MegaphoneIcon />
+          </ActionIcon>
+          <ActionIcon
+            onClick={() => {
+              setMode("collapsed");
+            }}
+            variant="subtle"
+            size={isMobile ? "sm" : "md"}
+            color={defaultColor}
+          >
+            <SidebarSimpleIcon />
+          </ActionIcon>
+        </Group>
       </Group>
     ),
     collapsed: (
@@ -199,12 +222,32 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
       className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}
       {...sidebarProps}
     >
-      <div className={styles.global} {...globalElementProps}>
-        {Global[mode]}
-      </div>
-      {!!children && (
+      {["open", "hovering"].includes(mode) ? (
         <>
-          <div className={styles.content}>{children}</div>
+          {!!children && (
+            <>
+              <div className={styles.content}>{children}</div>
+            </>
+          )}
+          <div className={styles.global} {...globalElementProps}>
+            {Global[mode]}
+          </div>
+          {!!currentRabbithole && (
+            <div className={styles.rabbitholeIndicator}>
+              <RabbitholeIndicator />
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className={styles.global} {...globalElementProps}>
+            {Global[mode]}
+          </div>
+          {!!children && (
+            <>
+              <div className={styles.content}>{children}</div>
+            </>
+          )}
         </>
       )}
     </aside>

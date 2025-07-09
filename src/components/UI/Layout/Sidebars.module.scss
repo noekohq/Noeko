@@ -89,7 +89,7 @@
         top: 0;
         bottom: 0;
         max-height: calc(100vh);
-        padding: var(--mantine-spacing-sm);
+        padding: var(--layout-spacing);
         background-color: var(--background-color);
         width: calc(var(--sidebar-width) - 24px);
         backdrop-filter: blur(10px) brightness(0.9);
@@ -107,6 +107,12 @@
         }
 
         .content {
+            height: 100%;
+            scrollbar-width: none;
+        }
+
+        .rabbitholeIndicator {
+            margin-top: var(--mantine-spacing-xs);
         }
 
         @include tablet {
@@ -118,6 +124,13 @@
             border: 1px solid var(--mantine-color-dark-7);
             border-radius: var(--mantine-radius-lg);
             animation-duration: 0.1s;
+
+            .global {
+                margin-top: auto;
+                margin-bottom: 0;
+                border-top: 2px solid var(--mantine-color-dark-7);
+                padding-top: 8px;
+            }
         }
 
         @include widescreen {
@@ -126,7 +139,7 @@
 
     &.collapsed {
         height: calc(100vh - (var(--padding-unit) * 2));
-        animation: collapseIt 0.2s ease-in-out forwards;
+        animation: collapseIt 0.2s ease-out forwards;
         display: none;
         bottom: auto;
 
