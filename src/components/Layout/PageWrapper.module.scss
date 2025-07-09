@@ -26,7 +26,19 @@
     }
 }
 
+@keyframes rabbitholeIn {
+    from {
+        opacity: .5;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .rabbitholeIndicator {
     position: fixed;
     bottom: calc(var(--layout-spacing) * 2);
+    animation: rabbitholeIn 0.2s ease-in-out forwards;
 }
