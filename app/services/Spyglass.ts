@@ -2,7 +2,7 @@ import { ResponseSchema, SchemaType } from "@google/generative-ai";
 import { getLM, PromptBuilder } from "../semantics/lm";
 import { ISearchOverview, ISearchResult, Search } from "./Search";
 import { IIdea } from "../database/models/ideas";
-import { htmlToMarkdown } from "../utils/formatting";
+import { formatDate, htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISpyglassSearch } from "../database/models/search";
@@ -38,10 +38,10 @@ const Modes: Record<string, ISpyglassMode> = {
         new PromptBuilder().addBlock(
           "Instructions",
           `
-          Directly answer the user's query in a single, concise paragraph.
-          If the necessary information is not available in the analysis, state that.
+          Directly answer the user's query in a single, concise HTML paragraph (\`<p>\`).
+          If the necessary information is not available, state that.
 
-          **DO NOT** write more than one paragraph.
+          **DO NOT** write more than one paragraph or use other tags.
           `,
         ),
     },
@@ -77,9 +77,9 @@ const Modes: Record<string, ISpyglassMode> = {
           "Instructions",
           `
           Generate a list of the identified items.
-          - Use a bulleted list (\`-\`) unless the items have a natural order (e.g., steps).
-          - If categories are present in the analysis, use bold text for category titles.
-          - Conclude with a single, brief summary paragraph.
+          - Use an unordered HTML list (\`<ul>\` and \`<li>\`). If the items have a natural order, use a numbered list (\`<ol>\`).
+          - If categories are present, use \`<strong>\` tags for category titles.
+          - Conclude with a single, brief summary paragraph in \`<p>\` tags.
 
           **DO NOT** use Markdown headings (#).
           `,
@@ -117,7 +117,7 @@ const Modes: Record<string, ISpyglassMode> = {
           `
           Follow this structure precisely:
           1.  **Introduction**: Write a brief introductory paragraph.
-          2.  **List Items**: For each item, create a Markdown heading (e.g., \`## Item Title\`). Under each heading, write a single, detailed descriptive paragraph.
+          2.  **List Items**: For each item, create an HTML heading (e.g., \`<h2>Item Title</h2>\`). Under each heading, write a single, detailed descriptive paragraph.
           3.  **Conclusion**: Conclude with a brief summary paragraph.
           `,
         ),
@@ -140,8 +140,12 @@ const Modes: Record<string, ISpyglassMode> = {
   breakdown: {
     intent: {
       bestFor:
-        "Broad queries where the user wants to understand a complex concept or topic in detail.",
-      examples: ["What is the history of the internet?", "How does DNS work?"],
+        "Broad queries where the user wants to understand a complex concept, learn a process, or follow a tutorial.",
+      examples: [
+        "What is the history of the internet?",
+        "How does DNS work?",
+        "Explain the steps for making sourdough bread from my notes.",
+      ],
     },
     response: {
       description:
@@ -150,9 +154,11 @@ const Modes: Record<string, ISpyglassMode> = {
         new PromptBuilder().addBlock(
           "Instructions",
           `
-          Compose an article explaining the topic. Follow this structure:
+          Compose an article or guide explaining the topic. Follow this structure:
           1.  **Introduction**: A paragraph providing a high-level overview.
-          2.  **Body**: Multiple sections with clear Markdown headings (\`##\`) that break down the core concepts in a logical progression.
+          2.  **Body**:
+              - For conceptual topics, use multiple sections with clear HTML headings (\`<h2>\`) that break down the core concepts.
+              - For processes or steps, use a numbered list (\`<ol>\`) with detailed \`<li>\` elements for each step.
           3.  **Conclusion**: A summary paragraph.
           `,
         ),
@@ -182,17 +188,16 @@ const Modes: Record<string, ISpyglassMode> = {
     },
     response: {
       description:
-        "A detailed comparison of two or more items, highlighting similarities and differences, presented in a Markdown table.",
+        "A detailed comparison of two or more items, highlighting similarities and differences, presented in an HTML table.",
       prompt: () =>
         new PromptBuilder().addBlock(
           "Instructions",
           `
-          1.  Write a brief introductory paragraph that names the items being compared.
-          2.  Generate a Markdown table to compare the items.
-              - The first column should be the 'Feature' or 'Aspect' being compared.
-              - Subsequent columns should be for each item.
-          3.  Populate the table with concise points.
-          4.  Conclude with a summary paragraph highlighting the most important similarities and differences.
+          1.  Write a brief introductory paragraph.
+          2.  Generate an HTML \`<table>\` to compare the items.
+              - The first row (\`<tr>\`) should be table headers (\`<th>\`) for 'Feature' and each item being compared.
+              - Subsequent rows should have the feature in the first cell (\`<td>\`) and the corresponding details for each item in the following cells.
+          3.  Conclude with a summary paragraph.
           `,
         ),
     },
@@ -207,6 +212,74 @@ const Modes: Record<string, ISpyglassMode> = {
           From the source material, extract a list of common features or points of comparison (e.g., cost, function, pros, cons).
           Then, for each item, find the specific details corresponding to each of those features.
           Structure the output by item, listing its features and the corresponding details.
+          `,
+        ),
+    },
+  },
+  proConAnalysis: {
+    intent: {
+      bestFor:
+        "Queries asking for the advantages and disadvantages of a single subject.",
+      examples: [
+        "What are the pros and cons of using TypeScript?",
+        "Should I move to a new city? Lay out the good and the bad.",
+      ],
+    },
+    response: {
+      description:
+        "A two-column HTML table laying out the pros and cons of a subject.",
+      prompt: () =>
+        new PromptBuilder().addBlock(
+          "Instructions",
+          `
+          1.  Write a brief introductory paragraph.
+          2.  Generate a two-column HTML \`<table>\`. The headers should be "Pros" and "Cons".
+          3.  Populate each column with the relevant points using \`<li>\` elements within the table cells for readability.
+          4.  Conclude with a summary paragraph.
+          `,
+        ),
+    },
+    analysis: {
+      description: "Extracts all pros and cons related to a query.",
+      prompt: () =>
+        new PromptBuilder().addBlock(
+          "Instructions",
+          `
+          From the source material, extract all statements that represent an advantage, benefit, or positive aspect (Pro) and all statements that represent a disadvantage, risk, or negative aspect (Con) related to the user's query. Group them accordingly.
+          `,
+        ),
+    },
+  },
+  timeline: {
+    intent: {
+      bestFor:
+        "Queries about the history or chronological progression of a topic.",
+      examples: [
+        "Give me the history of my 'Project X' notes.",
+        "What is the timeline of the development of the internet?",
+      ],
+    },
+    response: {
+      description:
+        "A chronological list of events with dates and descriptions.",
+      prompt: () =>
+        new PromptBuilder().addBlock(
+          "Instructions",
+          `
+          1.  Start with a brief introductory paragraph.
+          2.  Generate an HTML \`<ul>\` list representing the timeline.
+          3.  For each event, create an \`<li>\` element. Inside, use a \`<strong>\` tag for the date/time period followed by the event description.
+          4.  End with a concluding summary paragraph.
+          `,
+        ),
+    },
+    analysis: {
+      description: "Extracts dated or sequential events to build a timeline.",
+      prompt: () =>
+        new PromptBuilder().addBlock(
+          "Instructions",
+          `
+          Extract all events, dates, and key milestones from the source material. For each event, capture the date or time period and a concise description of what happened. Ensure the events are ordered chronologically.
           `,
         ),
     },
@@ -247,8 +320,8 @@ const Modes: Record<string, ISpyglassMode> = {
             "Instructions",
             `
             Your task is two-fold:
-            1.  **Identify Format**: Carefully read the user's query below and determine the specific output format they have requested.
-            2.  **Extract Content**: From the provided source material, extract all information necessary to populate the format identified in step 1.
+            1.  **Identify Format**: Carefully read the user's query and state the specific output format they have requested (e.g., 'JSON object', 'HTML table', 'single paragraph').
+            2.  **Extract Content**: From the source material, extract all key information, facts, and data points necessary to populate the format you identified in step 1.
 
             Provide the identified format and the extracted content as separate, clearly-labeled pieces of information.
             `,
@@ -392,6 +465,7 @@ const spyglassMissionStatement = `
   1. Accuracy: our answers only include information that is supported by our sources.
   2. Clarity: our answers are clear and easy to understand.
   3. Completeness: our answers are comprehensive and directly cover all relevant aspects of the user's query.
+  4. Journalistic Integrity: our answers are unbiased and truthful, and we **ALWAYS** cite our sources.
 `;
 
 export default class Spyglass {
@@ -508,19 +582,29 @@ export default class Spyglass {
       .addBlock(
         "Search Queries",
         `
-        Search queries can utilize both semantic and FTS search, the system utilizes cosine similarity on embeddings vectors to offer semantic search, and uses an FTS search index with BM25 ranking, as well as Jaro Winkler string distance on titles.
+        # Search Queries
 
-        Given that information, you should build queries that are optimized to fetch relevant results to the user's intent. These queries can be short or long, and rich in intent or specifics.
-
-        Optimize the queries heavily towards the user's intent, but don't go overboard.
-        You are looking to cherry-pick the highest possible quality results from the user's knowledge-base.
-
-        Search Queries will be used to search all of the information in the user's knowledge-base, and thus should be optimized to fetch relevant results to the user's intent.
-
-        **DO NOT** write too many Search Queries, rather design for quality not quantity, but ultimately adhere to the user's intent.
-        **DO** write extremely optimized queries designed to find the most relevant notes to the user's intent.
+        - Your goal is to draft high-quality search queries to find the most relevant notes from the user's knowledge base.
+        - The queries should be optimized to reflect the user's core intent.
+        - Focus on quality over quantity. A few well-crafted queries are better than many broad ones.
         `,
       )
+      // .addBlock(
+      //   "Search Queries",
+      //   `
+      //   Search queries can utilize both semantic and FTS search, the system utilizes cosine similarity on embeddings vectors to offer semantic search, and uses an FTS search index with BM25 ranking, as well as Jaro Winkler string distance on titles.
+
+      //   Given that information, you should build queries that are optimized to fetch relevant results to the user's intent. These queries can be short or long, and rich in intent or specifics.
+
+      //   Optimize the queries heavily towards the user's intent, but don't go overboard.
+      //   You are looking to cherry-pick the highest possible quality results from the user's knowledge-base.
+
+      //   Search Queries will be used to search all of the information in the user's knowledge-base, and thus should be optimized to fetch relevant results to the user's intent.
+
+      //   **DO NOT** write too many Search Queries, rather design for quality not quantity, but ultimately adhere to the user's intent.
+      //   **DO** write extremely optimized queries designed to find the most relevant notes to the user's intent.
+      //   `,
+      // )
       .addBlock(
         "User Query",
         `
@@ -669,76 +753,88 @@ export default class Spyglass {
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addText(mode.response.prompt(query).get())
       .addBlock(
-        "How to Format",
+        "Output Format: HTML Only",
         `
-          You **MUST** write all of your responses as semantic HTML
-          **DO NOT** use Markdown directly
-
-          **DO NOT** wrap your response in a code-block, or any other top-level element.
-          Instead, YOU MUST write your response as if it will directly become the child of an existing element.
-
-          **For example**
-          Bad:
-          \`\`\`html
-          <ul>
-            <li>Item 1</li>
-            <li>Item 2</li>
-            <li>Item 3</li>
-          </ul>
-          \`\`\`
-
-          Bad:
-          <div>
-            <ul>
-              <li>Item 1</li>
-              <li>Item 2</li>
-              <li>Item 3</li>
-            </ul>
-          </div>
-
-          Good:
-          <ul>
-            <li>Item 1</li>
-            <li>Item 2</li>
-            <li>Item 3</li>
-          </ul>
-
-          Good:
-          <p>This is a very good answer</p>
-
-          Use <span> tags with data-finding-number attributes to reference findings, for example:
-
-          <span data-finding-number="1">
-            this is some content that sources finding number 2
-          </span>
-
-          **DO NOT** use standalone finding spans, **ALWAYS** wrap content in a citation.
-
-          **Bad Formatting**:
-          This is a verifiable fact.<span data-finding-number="1"></span>.
-
-          **Good Formatting**:
-          <span data-finding-number="1">This is a verifiable fact.</span>
-
-          Also, to cite multiple sources for the same text, simply provide an array for the number like so:
-
-          <span data-finding-number="[1, 2]">
-            this is some content that sources finding numbers 1 and 2
-          </span>
-
-          **DO NOT** wrap the same text in multiple SPAN tags to accomplish this effect.
-
-          **Bad Formatting**:
-          <span data-finding-number="2">
-            <span data-finding-number="1">This is a verifiable fact.</span>
-          </span>
-
-          **Good Formatting**:
-          <span data-finding-number="[1, 2]">This is a verifiable fact.</span>
-
-          This is CRITICAL for user experience and accessibility!
-          `,
+        - **Primary Rule:** Your entire response MUST be valid HTML. Do not use Markdown.
+        - **No Wrappers:** Do not wrap your response in \`<div>\`, \`<html>\`, \`<body>\`, or markdown code fences (\`\`\`). Your output should start directly with the first HTML tag (e.g., \`<p>\` or \`<ul>\`).
+        - **Citations:** To cite a source, wrap the entire statement in a \`<span>\` with a \`data-finding-number\` attribute.
+          - For a single source: \`<span data-finding-number="1">This statement is from finding 1.</span>\`
+          - For multiple sources: \`<span data-finding-number="[1, 2]">This statement is from findings 1 and 2.</span>\`
+        - **Critical:** Never nest citation spans or leave them empty.
+        - **Styling**: Use HTML elements for styling, such as but not limited to \`<h1>\`, \`<h2>\`, \`<h3>\`, \`<h4>\`, \`<h5>\`, \`<h6>\` for headings, \`<p>\` for paragraphs, \`<ul>\` and \`<li>\` for lists, \`<a>\` for links, \`<pre>\` and \`<code>\` for code snippets, and \`<strong>\` for emphasis.
+        `,
       )
+      // .addBlock(
+      //   "How to Format",
+      //   `
+      //     You **MUST** write all of your responses as semantic HTML
+      //     **DO NOT** use Markdown directly
+
+      //     **DO NOT** wrap your response in a code-block, or any other top-level element.
+      //     Instead, YOU MUST write your response as if it will directly become the child of an existing element.
+
+      //     **For example**
+      //     Bad:
+      //     \`\`\`html
+      //     <ul>
+      //       <li>Item 1</li>
+      //       <li>Item 2</li>
+      //       <li>Item 3</li>
+      //     </ul>
+      //     \`\`\`
+
+      //     Bad:
+      //     <div>
+      //       <ul>
+      //         <li>Item 1</li>
+      //         <li>Item 2</li>
+      //         <li>Item 3</li>
+      //       </ul>
+      //     </div>
+
+      //     Good:
+      //     <ul>
+      //       <li>Item 1</li>
+      //       <li>Item 2</li>
+      //       <li>Item 3</li>
+      //     </ul>
+
+      //     Good:
+      //     <p>This is a very good answer</p>
+
+      //     Use <span> tags with data-finding-number attributes to reference findings, for example:
+
+      //     <span data-finding-number="1">
+      //       this is some content that sources finding number 2
+      //     </span>
+
+      //     **DO NOT** use standalone finding spans, **ALWAYS** wrap content in a citation.
+
+      //     **Bad Formatting**:
+      //     This is a verifiable fact.<span data-finding-number="1"></span>.
+
+      //     **Good Formatting**:
+      //     <span data-finding-number="1">This is a verifiable fact.</span>
+
+      //     Also, to cite multiple sources for the same text, simply provide an array for the number like so:
+
+      //     <span data-finding-number="[1, 2]">
+      //       this is some content that sources finding numbers 1 and 2
+      //     </span>
+
+      //     **DO NOT** wrap the same text in multiple SPAN tags to accomplish this effect.
+
+      //     **Bad Formatting**:
+      //     <span data-finding-number="2">
+      //       <span data-finding-number="1">This is a verifiable fact.</span>
+      //     </span>
+
+      //     **Good Formatting**:
+      //     <span data-finding-number="[1, 2]">This is a verifiable fact.</span>
+
+      //     This is CRITICAL for user experience and accessibility!
+      //     `,
+      // )
       .addBlock("User Query", query)
       .addBlock(
         "Strict Rules",
@@ -830,6 +926,7 @@ export default class Spyglass {
           const { highlightText, value } = result;
           const ideaValue = value as IIdea;
           r += `**${ideaValue.title}** | ID: ${ideaValue.id.toString()}`;
+          r += `**Created: ${formatDate(ideaValue.createdAt)} | Updated: ${formatDate(ideaValue.updatedAt)}**`;
           if (highlightText) {
             r += `System Highlighted Text: ${highlightText}`;
           }
