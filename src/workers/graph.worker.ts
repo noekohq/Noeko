@@ -79,12 +79,23 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
   nodeMap.clear();
   nodes.forEach((n) => nodeMap.set(n.id.toString(), n));
 
+  // Create a set of all valid node IDs for quick lookups.
+  const nodeIds = new Set(nodes.map((n) => n.id.toString()));
+
+  // Filter out any "orphan" edges whose source or target node doesn't exist.
+  // This prevents d3-force from throwing a "node not found" error.
+  const validEdges = edges.filter(
+    (edge) =>
+      nodeIds.has(edge.source.toString()) &&
+      nodeIds.has(edge.target.toString()),
+  );
+
   simulation = d3
     .forceSimulation(nodes)
     .force(
       "link",
       d3
-        .forceLink<SimNode, SimEdge>(edges)
+        .forceLink<SimNode, SimEdge>(validEdges)
         .id((d) => d.id.toString())
         .distance((e) => e.distance || 120)
         .strength((e) => e.strength || 0.1),
