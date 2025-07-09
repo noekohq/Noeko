@@ -2,8 +2,9 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { IIdea } from "./ideas";
 import { getDatabase } from "../db";
 import { logger } from "../../services/Logger";
+import { ITag } from "./tag";
 
-export type IRabbitholeIncludes = IIdea;
+export type IRabbitholeIncludes = IIdea | ITag;
 
 export type IRabbithole = {
   id: string | RecordId;
@@ -72,6 +73,30 @@ export default class Rabbithole {
           now: new Date(),
         },
       );
+      return rabbithole;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  static async update(
+    id: string | RecordId,
+    form: Partial<IRabbitholeCreator>,
+  ) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.merge<IRabbithole, Partial<IRabbitholeCreator>>(
+        new StringRecordId(id),
+        {
+          ...form,
+          updatedAt: new Date(),
+        },
+      );
+      if (!result) {
+        throw new Error("Something went wrong updating rabbithole: ", result);
+      }
+      const rabbithole = result;
       return rabbithole;
     } catch (error) {
       console.error(error);

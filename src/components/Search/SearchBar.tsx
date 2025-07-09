@@ -3,7 +3,7 @@ import { ISearchOverview, ISearchResult } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
-import { MagnifyingGlass, X } from "@phosphor-icons/react";
+import { MagnifyingGlass, MagnifyingGlassIcon, X } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useSearch } from "../../contexts/SearchContext";
 
@@ -123,13 +123,12 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
           minRows={1}
           maxRows={4}
           autosize
+          radius={"md"}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          styles={{
-            input: {
-              scrollbarWidth: "none",
-            },
+          classNames={{
+            input: styles.input,
           }}
           onKeyDown={(e) => {
             if (!e.shiftKey && e.key === "Enter") {
@@ -137,26 +136,23 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
               searchIdeas();
             }
           }}
-          leftSection={
-            <Flex direction="column" h="100%" pt="8px">
-              {loadingIdeas ? (
-                <Loader size="xs" />
-              ) : (
-                <MagnifyingGlass weight="bold" />
-              )}
-            </Flex>
-          }
           rightSection={
-            <Flex direction="column" h="100%" justify="center">
-              <ActionIcon
-                variant="light"
-                size="sm"
-                color="gray"
-                onClick={clearResults}
-              >
-                <X weight="bold" />
-              </ActionIcon>
-            </Flex>
+            loadingIdeas ? (
+              <Loader size="xs" />
+            ) : query.length > 0 ? (
+              <Flex direction="column" h="100%" justify="center">
+                <ActionIcon
+                  variant="light"
+                  size="sm"
+                  color="gray"
+                  onClick={clearResults}
+                >
+                  <X weight="bold" />
+                </ActionIcon>
+              </Flex>
+            ) : (
+              <MagnifyingGlassIcon />
+            )
           }
           ref={inputRef}
           onBlur={() => {

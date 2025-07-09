@@ -18,6 +18,7 @@ import { SearchProvider } from "./contexts/SearchContext.tsx";
 import { SettingsProvider } from "./contexts/SettingsContext.tsx";
 import { useSettings } from "./contexts/SettingsContext.tsx";
 import { InteractionProvider } from "./contexts/InteractionContext.tsx";
+import { LandscapeProvider } from "./contexts/LandscapeContext.tsx";
 
 const Client = () => {
   return (
@@ -26,13 +27,15 @@ const Client = () => {
         <SettingsProvider>
           <SearchProvider>
             <LayoutProvider>
-              <GraphProvider>
-                <WrapTheme>
-                  <InteractionProvider>
-                    <App />
-                  </InteractionProvider>
-                </WrapTheme>
-              </GraphProvider>
+              <LandscapeProvider>
+                <GraphProvider>
+                  <WrapTheme>
+                    <InteractionProvider>
+                      <App />
+                    </InteractionProvider>
+                  </WrapTheme>
+                </GraphProvider>
+              </LandscapeProvider>
             </LayoutProvider>
           </SearchProvider>
         </SettingsProvider>

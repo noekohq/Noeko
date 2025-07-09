@@ -1,14 +1,32 @@
 @use "../../styles/mixins.scss" as *;
 
 .pageWrapper {
+    --rabbithole-indicator-width: 3px;
     display: flex;
-    height: 100vh;
     overflow: auto;
+    height: calc(100vh - calc(var(--rabbithole-indicator-width) * 2));
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
+    transition: border 0.2s ease-in-out;
+    box-sizing: border-box;
+    scrollbar-width: none;
+    border: var(--rabbithole-indicator-width) solid
+        transparent;
 
     @include tablet {
         flex-direction: row;
     }
+
+    &.hasRabbithole {
+        border: var(--rabbithole-indicator-width) solid
+            var(--mantine-color-green-8);
+        /* box-shadow: inset 2px 2px 10px 0 var(--mantine-primary-color-6); */
+        border-radius: 2px;
+    }
+}
+
+.rabbitholeIndicator {
+    position: fixed;
+    bottom: calc(var(--layout-spacing) * 2);
 }
