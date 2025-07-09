@@ -209,7 +209,7 @@ export default function Dashboard() {
                   <Link to="/graph">
                     <Button variant="default">
                       <Group>
-                        <Text>Your Constellation</Text>
+                        <Text>Constellation</Text>
                         <Kbd>{primaryKey} + G</Kbd>
                       </Group>
                     </Button>
@@ -244,6 +244,13 @@ export default function Dashboard() {
                     <Button variant="default">
                       <Group>
                         <Text>Shared ideas</Text>
+                      </Group>
+                    </Button>
+                  </Link>
+                  <Link to="/rabbitholes">
+                    <Button variant="default">
+                      <Group>
+                        <Text>Rabbitholes</Text>
                       </Group>
                     </Button>
                   </Link>

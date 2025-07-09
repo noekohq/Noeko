@@ -37,9 +37,10 @@ import ForgotPassword from "./pages/Auth/ForgotPassword";
 import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
 import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
 import SearchPage from "./pages/Search/Search";
-import Rabbithole from "./pages/Rabbithole/Rabbithole";
 import SharedIdeas from "./pages/Idea/Shared/Shared";
 import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
+import Rabbithole from "./pages/Rabbitholes/Rabbithole";
+import Rabbitholes from "./pages/Rabbitholes/List";
 
 export default function App() {
   const navigate = useNavigate();
@@ -152,8 +153,9 @@ export default function App() {
                   <Route path="search">
                     <Route index element={<SearchPage />} />
                   </Route>
-                  <Route path="rabbithole">
-                    <Route path="create" element={<Rabbithole />} />
+                  <Route path="rabbitholes">
+                    <Route index element={<Rabbitholes />} />
+                    <Route path=":rabbitholeId" element={<Rabbithole />} />
                   </Route>
                   <Route path="spyglass">
                     <Route index element={<Spyglass />} />
