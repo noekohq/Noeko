@@ -186,7 +186,7 @@ function RightSidebarHeader({
 
   const menuNavItems = [
     { label: "Home", icon: HouseSimple, path: "/" },
-    { label: "Graph", icon: Graph, path: "/graph" },
+    { label: "Constellation", icon: Graph, path: "/constellation" },
     { label: "All Ideas", icon: Lightbulb, path: "/ideas" },
     { label: "Spyglass", icon: MagnifyingGlass, path: "/spyglass" },
     { label: "Tags", icon: Tag, path: "/tags" },

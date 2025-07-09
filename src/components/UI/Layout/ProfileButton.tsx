@@ -1,4 +1,4 @@
-import { Avatar, Menu, Text } from "@mantine/core";
+import { Avatar, Button, Menu, Text } from "@mantine/core";
 import { useAuth } from "../../../contexts/AuthContext";
 import { userInitials, userIsSuperuser } from "../../../utils/user";
 import { useNavigate } from "react-router";
@@ -9,12 +9,14 @@ import {
   HouseSimpleIcon,
   LightbulbIcon,
   MagnifyingGlassIcon,
+  RabbitIcon,
   ScrollIcon,
   ShieldStarIcon,
   TagIcon,
   UserIcon,
 } from "@phosphor-icons/react";
 import { useLayout } from "../../../contexts/LayoutContext";
+import { useInteraction } from "../../../contexts/InteractionContext";
 
 export default function ProfileButton() {
   const { user, logout } = useAuth();
@@ -22,12 +24,17 @@ export default function ProfileButton() {
   const isSuperuser = user ? (userIsSuperuser(user) ?? false) : false;
   const navigate = useNavigate();
 
+  const {
+    actions: { newIdea, newRabbithole },
+  } = useInteraction();
+
   const menuNavItems = [
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
-    { label: "Graph", icon: GraphIcon, path: "/graph" },
     { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
     { label: "Shared Ideas", icon: LightbulbIcon, path: "/ideas/shared" },
+    { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
+    { label: "Constellation", icon: GraphIcon, path: "/graph" },
     { label: "Tags", icon: TagIcon, path: "/tags" },
     { label: "Updates", icon: ScrollIcon, path: "/updates" },
     ...(isSuperuser
@@ -86,6 +93,24 @@ export default function ProfileButton() {
             <Text size="sm">{item.label}</Text>
           </Menu.Item>
         ))}
+        <Menu.Divider />
+        <Menu.Label>Actions</Menu.Label>
+        <Menu.Item
+          leftSection={<LightbulbIcon />}
+          onClick={() => {
+            newIdea();
+          }}
+        >
+          New Idea
+        </Menu.Item>
+        <Menu.Item
+          leftSection={<RabbitIcon />}
+          onClick={() => {
+            newRabbithole();
+          }}
+        >
+          New Rabbithole
+        </Menu.Item>
         <Menu.Divider />
         <Menu.Item
           color="red"

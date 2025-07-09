@@ -68,16 +68,16 @@
     .input {
         font-family: var(--mantine-font-family);
         /* font-stretch: 80%; */
-        font-size: 22px;
-        border-radius: var(--mantine-radius-lg);
+        font-size: var(--mantine-font-size-lg);
+        border-radius: var(--mantine-radius-xl);
         background-color: var(--mantine-color-body);
         border: none;
         border: 1px solid var(--mantine-color-dark-6);
-        box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-gray-6);
-        padding: 8px 24px;
+        box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-dark-7);
+        padding: var(--mantine-spacing-xs) var(--mantine-spacing-xl);
         width: var(--spotlight-width);
         transition: all 0.2s ease-in-out;
-        color: var(--mantine-color-dark-1);
+        color: var(--mantine-color-dark-2);
         z-index: 610;
 
         &:focus {
@@ -96,7 +96,7 @@
     .results {
         text-align: left;
         background-color: var(--mantine-color-body);
-        border-radius: var(--mantine-radius-md);
+        border-radius: var(--mantine-radius-lg);
         overflow: hidden;
 
         .result {

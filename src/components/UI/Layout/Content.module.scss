@@ -4,6 +4,17 @@
     --content-space: calc(var(--layout-spacing) * 2);
 }
 
+@keyframes contentIn {
+    0% {
+        opacity: .25;
+        transform: translateY(5px) scale(.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .content {
     display: block;
     width: var(--content-width);
@@ -18,6 +29,7 @@
     transition:
         margin-left 0.2s ease-in-out,
         margin-right 0.2s ease-in-out;
+    animation: contentIn 0.2s ease-in-out forwards;
 
     @include tablet {
         padding-inline: initial;

@@ -89,7 +89,7 @@ export default function GraphPage() {
         ) : (
           <Group align="center" justify="center" h="100vh" mt="md">
             <Text c="dimmed">
-              Loading your graph... This could take a little while :)
+              Loading your constellation... This could take a little while :)
             </Text>
             <LangtonsAntLoader withOverlay />
             {/* <Loader size="sm" />

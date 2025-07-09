@@ -24,6 +24,9 @@ import {
   MoonIcon,
   SunIcon,
   TextAaIcon,
+  ShareNetworkIcon,
+  HouseIcon,
+  RabbitIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -116,236 +119,9 @@ export default function Spotlight() {
     setSpotlightValue("");
   }, [contextCloseSpotlight]);
 
-  const mainSpotlightItems = useMemo<SpotlightMainItem[]>(
-    () => [
-      {
-        id: "closeCmd",
-        title: "Close",
-        icon: <ArrowLeftIcon />,
-        action: closeSpotlightAndResetView,
-      },
-      {
-        id: "ideaSwitcher",
-        title: "Find idea",
-        subviewId: "ideaSwitcherSubview",
-        icon: <MagnifyingGlassIcon />,
-      },
-      {
-        id: "ideas",
-        title: "Ideas",
-        icon: <LightbulbIcon />,
-        subviewId: "ideasSubview",
-      },
-      {
-        id: "homeCmd",
-        title: "Home",
-        icon: <HouseSimpleIcon />,
-        action: () => {
-          dashboard();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "graphCmd",
-        title: "Graph View",
-        icon: <GraphIcon />,
-        action: () => {
-          viewGraph();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "spyglassCmd",
-        title: "Spyglass",
-        icon: <MagnifyingGlassIcon />,
-        action: () => {
-          spyglass();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "tagsCmd",
-        title: "Tags",
-        icon: <TagIcon />,
-        action: () => {
-          tags();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "updatesCmd",
-        title: "Updates",
-        icon: <ScrollIcon />,
-        action: () => {
-          updates();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "settingsCmd",
-        title: "Settings",
-        icon: <GearIcon />,
-        action: () => {
-          settings();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "profileCmd",
-        title: "Profile",
-        icon: <UserIcon />,
-        action: () => {
-          profile();
-          closeSpotlightAndResetView();
-        },
-      },
-      {
-        id: "themeCmd",
-        title: "Theme",
-        icon: <SunIcon />,
-        subviewId: "themeSelectorSubview",
-        keywords: "light dark",
-      },
-      {
-        id: "fontCmd",
-        title: "Font",
-        icon: <TextAaIcon />,
-        subviewId: "fontSelectorSubview",
-        keywords: "serif sans-serif",
-      },
-    ],
-    [
-      closeSpotlightAndResetView,
-      newIdea,
-      dashboard,
-      viewGraph,
-      spyglass,
-      ideas,
-      tags,
-      updates,
-      settings,
-      profile,
-    ],
-  );
-
-  const subviewDefinitions = useMemo<Map<string, ISubviewDefinition>>(
-    () =>
-      new Map([
-        [
-          "themeSelectorSubview",
-          {
-            id: "themeSelectorSubview",
-            title: "Theme",
-            items: [
-              {
-                id: "light",
-                title: "Light",
-                icon: <SunIcon />,
-                action: (close) => {
-                  setScheme("light");
-                  close();
-                },
-              },
-              {
-                id: "dark",
-                title: "Dark",
-                icon: <MoonIcon />,
-                action: (close) => {
-                  setScheme("dark");
-                  close();
-                },
-              },
-            ],
-          },
-        ],
-        [
-          "fontSelectorSubview",
-          {
-            id: "fontSelectorSubview",
-            title: "Font",
-            items: [
-              {
-                id: "sans-serif",
-                title: "Sans Serif",
-                icon: <TextAaIcon />,
-                action: (close) => {
-                  setBodyFont("sans-serif");
-                  close();
-                },
-              },
-              {
-                id: "serif",
-                title: "Serif",
-                icon: <TextAaIcon />,
-                action: (close) => {
-                  setBodyFont("serif");
-                  close();
-                },
-              },
-            ],
-          },
-        ],
-        [
-          "ideasSubview",
-          {
-            id: "ideas",
-            title: "Ideas",
-            items: [
-              {
-                id: "newIdeaCmd",
-                title: "New Idea",
-                icon: <LightbulbIcon />,
-                action: () => {
-                  newIdea();
-                  closeSpotlightAndResetView();
-                },
-              },
-              {
-                id: "ideasCmd",
-                title: "Ideas List",
-                icon: <LightbulbIcon />,
-                action: () => {
-                  ideas();
-                  closeSpotlightAndResetView();
-                },
-              },
-            ],
-          },
-        ],
-        [
-          "ideaSwitcherSubview",
-          {
-            id: "ideaSwitcherSubview",
-            title: "Idea Switcher",
-            placeholder: "Search for an idea to switch to...",
-            dynamicItems: async ({ searchText, closeSpotlight }) => {
-              const suggestedItems = await fetchSuggestedIdeas(searchText);
-
-              return suggestedItems.map((idea) => ({
-                id: idea.id.toString(),
-                title: idea.title,
-                description: getNodeDescription(
-                  {
-                    ...idea,
-                    type: "idea",
-                  },
-                  {
-                    sentences: 1,
-                    maxLength: 256,
-                  },
-                ),
-                icon: <LightbulbIcon />,
-                action: () => {
-                  navigate(`/idea/${idea.id}`);
-                  closeSpotlight();
-                },
-              }));
-            },
-          },
-        ],
-      ]),
-    [setScheme, setBodyFont],
-  );
+  const { mainSpotlightItems, subviewDefinitions } = useSpotlightConfig({
+    onClose: closeSpotlightAndResetView,
+  });
 
   const unifiedSearchItems = useMemo<IUnifiedSearchItem[]>(() => {
     const items: IUnifiedSearchItem[] = [];
@@ -663,3 +439,328 @@ export default function Spotlight() {
     document.body,
   );
 }
+
+type IUseSpotlightConfig = {
+  onClose: () => void;
+};
+
+type IUseSpotlightReturn = {
+  mainSpotlightItems: SpotlightMainItem[];
+  subviewDefinitions: Map<string, ISubviewDefinition>;
+};
+
+const useSpotlightConfig = ({
+  onClose,
+}: IUseSpotlightConfig): IUseSpotlightReturn => {
+  const {
+    ui: {
+      theme: {
+        scheme: { set: setScheme },
+        bodyFont: { set: setBodyFont },
+      },
+    },
+  } = useSettings();
+
+  const {
+    state: { spotlightOpened },
+    actions: {
+      layout: {
+        spotlight: { close: contextCloseSpotlight },
+      },
+      newIdea,
+      newRabbithole,
+    },
+    views: {
+      dashboard,
+      graph: viewGraph,
+      spyglass,
+      ideas,
+      rabbitholes,
+      settings,
+      profile,
+      tags,
+      updates,
+      sharedIdeas,
+    },
+  } = useInteraction();
+
+  const navigate = useNavigate();
+
+  const subviewDefinitions = useMemo<Map<string, ISubviewDefinition>>(
+    () =>
+      new Map([
+        [
+          "themeSelectorSubview",
+          {
+            id: "themeSelectorSubview",
+            title: "Theme",
+            items: [
+              {
+                id: "light",
+                title: "Light",
+                icon: <SunIcon />,
+                action: (close) => {
+                  setScheme("light");
+                  close();
+                },
+              },
+              {
+                id: "dark",
+                title: "Dark",
+                icon: <MoonIcon />,
+                action: (close) => {
+                  setScheme("dark");
+                  close();
+                },
+              },
+            ],
+          },
+        ],
+        [
+          "fontSelectorSubview",
+          {
+            id: "fontSelectorSubview",
+            title: "Font",
+            items: [
+              {
+                id: "sans-serif",
+                title: "Sans Serif",
+                icon: <TextAaIcon />,
+                action: (close) => {
+                  setBodyFont("sans-serif");
+                  close();
+                },
+              },
+              {
+                id: "serif",
+                title: "Serif",
+                icon: <TextAaIcon />,
+                action: (close) => {
+                  setBodyFont("serif");
+                  close();
+                },
+              },
+            ],
+          },
+        ],
+        [
+          "ideasSubview",
+          {
+            id: "ideas",
+            title: "Ideas",
+            items: [
+              {
+                id: "newIdeaCmd",
+                title: "New Idea",
+                icon: <LightbulbIcon />,
+                action: () => {
+                  newIdea();
+                  onClose();
+                },
+              },
+              {
+                id: "ideasCmd",
+                title: "Ideas List",
+                icon: <LightbulbIcon />,
+                action: () => {
+                  ideas();
+                  onClose();
+                },
+              },
+              {
+                id: "sharedIdeasCmd",
+                title: "Shared Ideas",
+                icon: <ShareNetworkIcon />,
+                action: () => {
+                  sharedIdeas();
+                  onClose();
+                },
+              },
+            ],
+          },
+        ],
+        [
+          "rabbitholesSubview",
+          {
+            id: "rabbitholes",
+            title: "Rabbitholes",
+            items: [
+              {
+                id: "newRabbitholeCmd",
+                title: "New Rabbithole",
+                icon: <RabbitIcon />,
+                action: () => {
+                  newRabbithole();
+                  onClose();
+                },
+              },
+              {
+                id: "rabbitholesCmd",
+                title: "Rabbitholes List",
+                icon: <RabbitIcon />,
+                action: () => {
+                  rabbitholes();
+                  onClose();
+                },
+              },
+            ],
+          },
+        ],
+        [
+          "ideaSwitcherSubview",
+          {
+            id: "ideaSwitcherSubview",
+            title: "Idea Switcher",
+            placeholder: "Search for an idea to switch to...",
+            dynamicItems: async ({ searchText, closeSpotlight }) => {
+              const suggestedItems = await fetchSuggestedIdeas(searchText);
+
+              return suggestedItems.map((idea) => ({
+                id: idea.id.toString(),
+                title: idea.title,
+                description: getNodeDescription(
+                  {
+                    ...idea,
+                    type: "idea",
+                  },
+                  {
+                    sentences: 1,
+                    maxLength: 256,
+                  },
+                ),
+                icon: <LightbulbIcon />,
+                action: () => {
+                  navigate(`/idea/${idea.id}`);
+                  closeSpotlight();
+                },
+              }));
+            },
+          },
+        ],
+      ]),
+    [setScheme, setBodyFont],
+  );
+
+  const mainSpotlightItems = useMemo<SpotlightMainItem[]>(
+    () => [
+      {
+        id: "closeCmd",
+        title: "Close",
+        icon: <ArrowLeftIcon />,
+        action: onClose,
+      },
+      {
+        id: "ideaSwitcher",
+        title: "Find idea",
+        subviewId: "ideaSwitcherSubview",
+        icon: <MagnifyingGlassIcon />,
+      },
+      {
+        id: "ideas",
+        title: "Ideas",
+        icon: <LightbulbIcon />,
+        subviewId: "ideasSubview",
+      },
+      {
+        id: "rabbitholes",
+        title: "Rabbitholes",
+        icon: <RabbitIcon />,
+        subviewId: "rabbitholesSubview",
+      },
+      {
+        id: "homeCmd",
+        title: "Home",
+        icon: <HouseIcon />,
+        action: () => {
+          dashboard();
+          onClose();
+        },
+      },
+      {
+        id: "graphCmd",
+        title: "Constellation",
+        icon: <GraphIcon />,
+        action: () => {
+          viewGraph();
+          onClose();
+        },
+      },
+      {
+        id: "spyglassCmd",
+        title: "Spyglass",
+        icon: <MagnifyingGlassIcon />,
+        action: () => {
+          spyglass();
+          onClose();
+        },
+      },
+      {
+        id: "tagsCmd",
+        title: "Tags",
+        icon: <TagIcon />,
+        action: () => {
+          tags();
+          onClose();
+        },
+      },
+      {
+        id: "updatesCmd",
+        title: "Updates",
+        icon: <ScrollIcon />,
+        action: () => {
+          updates();
+          onClose();
+        },
+      },
+      {
+        id: "settingsCmd",
+        title: "Settings",
+        icon: <GearIcon />,
+        action: () => {
+          settings();
+          onClose();
+        },
+      },
+      {
+        id: "profileCmd",
+        title: "Profile",
+        icon: <UserIcon />,
+        action: () => {
+          profile();
+          onClose();
+        },
+      },
+      {
+        id: "themeCmd",
+        title: "Theme",
+        icon: <SunIcon />,
+        subviewId: "themeSelectorSubview",
+        keywords: "light dark",
+      },
+      {
+        id: "fontCmd",
+        title: "Font",
+        icon: <TextAaIcon />,
+        subviewId: "fontSelectorSubview",
+        keywords: "serif sans-serif",
+      },
+    ],
+    [
+      onClose,
+      newIdea,
+      dashboard,
+      viewGraph,
+      spyglass,
+      ideas,
+      tags,
+      updates,
+      settings,
+      profile,
+    ],
+  );
+
+  return {
+    mainSpotlightItems,
+    subviewDefinitions,
+  };
+};
