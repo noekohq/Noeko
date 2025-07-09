@@ -5,8 +5,8 @@ import { IIdeaForm } from "../../../app/database/models/ideas";
 import { useNavigate, useParams } from "react-router";
 import styles from "./ViewIdea.module.scss";
 import { useAuth } from "../../contexts/AuthContext";
-import LeftSidebar from "../../components/UI/LeftSidebar";
-import RightSidebar from "../../components/UI/RightSidebar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
 import { showNotification } from "@mantine/notifications";
 
 export default function PublicIdea() {
