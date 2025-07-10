@@ -4,7 +4,7 @@ import { User } from "./user";
 import { Idea, IIdea } from "./ideas"; // Assuming Idea model is in this path
 import { Embeddings } from "../../semantics/embeddings";
 import { logger } from "../../services/Logger";
-import { getLM, PromptBuilder } from "../../semantics/lm";
+import { getLM, LMSchemaType, PromptBuilder } from "../../semantics/lm";
 import { SchemaType } from "@google/generative-ai";
 
 export type ITag = {
@@ -528,17 +528,17 @@ export class Tag {
       const tags = await lm.generateJSON<
         { name: string; description: string }[]
       >(prompt.get(), {
-        type: SchemaType.ARRAY,
+        type: LMSchemaType.ARRAY,
         items: {
-          type: SchemaType.OBJECT,
+          type: LMSchemaType.OBJECT,
           description: "The specific tag in question",
           properties: {
             name: {
-              type: SchemaType.STRING,
+              type: LMSchemaType.STRING,
               description: "The name of the tag",
             },
             description: {
-              type: SchemaType.STRING,
+              type: LMSchemaType.STRING,
               description: "What the tag describes about the content",
             },
           },

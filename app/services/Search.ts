@@ -3,7 +3,7 @@ import { getDatabase } from "../database/db";
 import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
 import { Embeddings } from "../semantics/embeddings";
-import { getLM, PromptBuilder } from "../semantics/lm";
+import { getLM, LMSchema, LMSchemaType, PromptBuilder } from "../semantics/lm";
 import { htmlToMarkdown } from "../utils/formatting";
 import { ResponseSchema, SchemaType } from "@google/generative-ai";
 import { max_lm_prompt_size } from "../settings";
@@ -839,25 +839,25 @@ export class Search {
       const result = await lm.generateJSON<ISearchOverview>(
         overviewPrompt.get(),
         {
-          type: SchemaType.OBJECT,
+          type: LMSchemaType.OBJECT,
           properties: {
             findings: {
-              type: SchemaType.ARRAY,
+              type: LMSchemaType.ARRAY,
               description: "Your findings directly from the source results",
               items: {
-                type: SchemaType.OBJECT,
+                type: LMSchemaType.OBJECT,
                 description: "An individual finding from the source results",
                 properties: {
                   sourceId: {
-                    type: SchemaType.STRING,
+                    type: LMSchemaType.STRING,
                     description: "The id of the result you're sourcing",
                   },
                   excerpt: {
-                    type: SchemaType.STRING,
+                    type: LMSchemaType.STRING,
                     description: "The relevant portion of the source result",
                   },
                   analysis: {
-                    type: SchemaType.STRING,
+                    type: LMSchemaType.STRING,
                     description:
                       "Your finding from this excerpt, how it relates to the query",
                   },
@@ -866,7 +866,7 @@ export class Search {
               },
             },
             overview: {
-              type: SchemaType.STRING,
+              type: LMSchemaType.STRING,
               description:
                 "A direct response to the user's query based on the findings.",
             },
@@ -941,34 +941,34 @@ export class Search {
     );
   }
 
-  static findingsSchema(): ResponseSchema {
+  static findingsSchema(): LMSchema {
     return {
-      type: SchemaType.ARRAY,
+      type: LMSchemaType.ARRAY,
       description:
         "An array of structured findings extracted from the source results that are relevant to the user's query.",
       items: {
-        type: SchemaType.OBJECT,
+        type: LMSchemaType.OBJECT,
         description:
           "A single, discrete finding that helps answer the user's query.",
         properties: {
           sourceId: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "The unique ID of the source result from which the excerpt is taken.",
           },
           excerpt: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "The verbatim, direct quote from the source text that supports the finding. This must not be altered or summarized.",
           },
           analysis: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's query.",
           },
           // --- Updated the enum with the new, more detailed taxonomy for qwest.
           findingType: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "Categorize the nature of the finding in relation to the query, based on the nature of personal knowledge-bases.",
             enum: [
@@ -1196,7 +1196,7 @@ export class Search {
       const result = await lm.generateJSON<ISearchOverview["overview"]>(
         overviewPrompt.get(),
         {
-          type: SchemaType.STRING,
+          type: LMSchemaType.STRING,
           description:
             "A direct response to the user's query based on the findings.",
         },
