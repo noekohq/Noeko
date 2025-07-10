@@ -9,3 +9,6 @@ I haven't tracked down the cause of this yet, but I'm guessing it has to do with
 - `./scripts/rebuild.sh`
 
 And that usually works to resolve it.
+
+THE REASON FOR THIS:
+is the that server was full, the disk space was completely filled, and this was leading to the error.

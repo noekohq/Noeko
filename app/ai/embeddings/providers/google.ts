@@ -4,6 +4,7 @@ import {
   default_embeddings_dimension,
   default_google_embeddings_model,
 } from "../../../settings";
+import { getLevenshteinDistance } from "../../../utils/strings";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
@@ -19,6 +20,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
     this.client = new GoogleGenAI(
       GCP_PROJECT_ID
         ? {
+            vertexai: true,
             project: GCP_PROJECT_ID,
             location: GCP_LOCATION,
           }
@@ -28,7 +30,6 @@ export default class GoogleProvider implements EmbeddingsProvider {
     );
     this._model =
       GOOGLE_EMBEDDING_MODEL_NAME ?? default_google_embeddings_model;
-    this.checkModelAvailability();
   }
 
   get model() {
@@ -36,10 +37,21 @@ export default class GoogleProvider implements EmbeddingsProvider {
   }
 
   async checkModelAvailability() {
+    // Note: there seems to be an inconsistency between what is returned from this list and what is actually available :/
     const listModels = await this.listAvailableModels();
     const currentModelExists = listModels.includes(this.model);
     if (!currentModelExists) {
       console.error("Current model not available: ", this.model);
+      console.info(
+        "Available models: ",
+        listModels
+          .sort((a, b) => {
+            const distA = getLevenshteinDistance(a, this.model);
+            const distB = getLevenshteinDistance(b, this.model);
+            return distA - distB;
+          })
+          .join(", "),
+      );
       return false;
     }
     return true;
@@ -47,7 +59,11 @@ export default class GoogleProvider implements EmbeddingsProvider {
 
   async listAvailableModels(): Promise<string[]> {
     try {
-      const models = await this.client.models.list();
+      const models = await this.client.models.list({
+        config: {
+          pageSize: 100,
+        },
+      });
       const modelsFound = models.page;
       const modelStrings = modelsFound.map((model) => {
         return (
