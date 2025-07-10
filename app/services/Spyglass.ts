@@ -1,5 +1,5 @@
 import { ResponseSchema, SchemaType } from "@google/generative-ai";
-import { getLM, PromptBuilder } from "../semantics/lm";
+import { getLM, LMSchema, LMSchemaType, PromptBuilder } from "../semantics/lm";
 import { ISearchOverview, ISearchResult, Search } from "./Search";
 import { IIdea } from "../database/models/ideas";
 import { formatDate, htmlToMarkdown } from "../utils/formatting";
@@ -661,36 +661,36 @@ export default class Spyglass {
     );
   }
 
-  static findingsSchema(sourceIds: string[]): ResponseSchema {
+  static findingsSchema(sourceIds: string[]): LMSchema {
     return {
-      type: SchemaType.ARRAY,
+      type: LMSchemaType.ARRAY,
       description:
         "An array of structured findings extracted from the source results that are relevant to the user's intent.",
       items: {
-        type: SchemaType.OBJECT,
+        type: LMSchemaType.OBJECT,
         description:
           "A single, discrete finding that helps answer the user's intent.",
         properties: {
           sourceId: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "The unique ID of the source result from which the excerpt is taken.",
             enum: sourceIds,
             format: "enum",
           },
           excerpt: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "The verbatim, direct quote from the source text that supports the finding. This must not be altered or summarized.",
           },
           analysis: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's intent.",
           },
           // --- Updated the enum with the new, more detailed taxonomy for qwest.
           findingType: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "Categorize the nature of the finding in relation to the intent, based on the nature of personal knowledge-bases.",
             enum: [...FindingTypes],
@@ -854,24 +854,24 @@ export default class Spyglass {
     return builder;
   }
 
-  static intentSchema(): ResponseSchema {
+  static intentSchema(): LMSchema {
     return {
-      type: SchemaType.OBJECT,
+      type: LMSchemaType.OBJECT,
       properties: {
         intent: {
-          type: SchemaType.STRING,
+          type: LMSchemaType.STRING,
           description: "The intent of the user's query.",
         },
         mode: {
-          type: SchemaType.STRING,
+          type: LMSchemaType.STRING,
           description: "The spyglassModeId of the mode to use",
           enum: [...Object.keys(Modes)],
           format: "enum",
         },
         queries: {
-          type: SchemaType.ARRAY,
+          type: LMSchemaType.ARRAY,
           items: {
-            type: SchemaType.STRING,
+            type: LMSchemaType.STRING,
             description:
               "A search query related to the user's intent to fetch results.",
           },
@@ -1053,11 +1053,10 @@ export default class Spyglass {
       });
 
       const lm = getLM().withModel("simple");
-      console.log("Model being used: ", lm.model);
       const result = await lm.generateJSON<ISearchOverview["overview"]>(
         overviewPrompt.get(),
         {
-          type: SchemaType.STRING,
+          type: LMSchemaType.STRING,
           description:
             "A direct response to the user's query based on the findings.",
         },

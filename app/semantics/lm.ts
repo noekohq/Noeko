@@ -1,9 +1,12 @@
 import {
-  GenerateContentResult,
-  GoogleGenerativeAI,
-  ResponseSchema,
-  SchemaType,
-} from "@google/generative-ai";
+  GenerateContentResponse,
+  GoogleGenAI,
+  Schema,
+  HarmCategory,
+  HarmBlockThreshold,
+  GenerateContentConfig,
+  Type,
+} from "@google/genai";
 
 const apiKeyName = "GEMINI_API_KEY";
 
@@ -13,16 +16,16 @@ if (!API_KEY) {
   throw new Error(`${apiKeyName} is not defined. Is it set in ".env"?`);
 }
 
-export type LMSchema = ResponseSchema;
-export const LMSchemaType = SchemaType;
+export type LMSchema = Schema;
+export const LMSchemaType = Type;
 
 type ModelTypes = "simple" | "advanced" | "fast-accurate" | "general";
 
 const ModelMapper: Record<ModelTypes, string> = {
-  simple: "models/gemini-2.5-flash-lite-preview-06-17",
-  advanced: "gemini-2.5-pro",
-  "fast-accurate": "models/gemini-2.5-flash",
-  general: "gemini-2.5-flash",
+  simple: "gemini-1.5-flash-latest",
+  advanced: "gemini-1.5-pro-latest",
+  "fast-accurate": "gemini-1.5-flash-latest",
+  general: "gemini-1.5-flash-latest",
 };
 
 export class PromptBuilder {
@@ -56,29 +59,32 @@ export type LanguageModelConfig = {
 };
 
 export default class LM {
-  private client: GoogleGenerativeAI;
+  private client: GoogleGenAI;
   private _utils: LMUtils;
   private _model: string;
 
   constructor({ apiKey }: LanguageModelConfig) {
-    this.client = new GoogleGenerativeAI(apiKey);
+    this.client = new GoogleGenAI({ apiKey });
     this._utils = new LMUtils(this);
-    this._model = "models/gemini-2.0-flash-lite";
+    this._model = "simple"; // Default model
   }
 
-  getModel(options?: Partial<{ model: string; schema: ResponseSchema }>) {
-    try {
-      return this.client.getGenerativeModel({
-        model: options?.model ?? this._model,
-        generationConfig: {
-          responseMimeType: options?.schema ? "application/json" : "text/plain",
-          responseSchema: options?.schema,
+  private getGenerationConfig(schema?: Schema): GenerateContentConfig {
+    const config: GenerateContentConfig = {
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
         },
-      });
-    } catch (error) {
-      console.error("Error getting model:", error);
-      throw error;
+      ],
+    };
+
+    if (schema) {
+      config.responseMimeType = "application/json";
+      config.responseSchema = schema;
     }
+
+    return config;
   }
 
   get utils() {
@@ -86,38 +92,40 @@ export default class LM {
   }
 
   get model() {
-    return this.getModel();
+    return this._model;
   }
 
   public withModel(model: string | ModelTypes) {
-    if (model in ModelMapper) {
-      const existingModel = ModelMapper[model as ModelTypes];
-      this._model = existingModel;
-      return this;
-    }
-    this._model = model;
+    this._model = ModelMapper[model as ModelTypes] ?? model;
     return this;
   }
 
-  async generate(
-    prompt: string,
-  ): Promise<GenerateContentResult["response"] | null> {
+  async generate(prompt: string): Promise<GenerateContentResponse | null> {
     try {
-      const result = await this.model.generateContent(prompt);
-      return result.response;
+      const result = await this.client.models.generateContent({
+        model: this._model,
+        contents: prompt,
+        config: this.getGenerationConfig(),
+      });
+      return result;
     } catch (err) {
       console.error("Error generating content:", err);
       return null;
     }
   }
 
-  async generateJSON<T>(
-    prompt: string,
-    schema: ResponseSchema,
-  ): Promise<T | null> {
+  async generateJSON<T>(prompt: string, schema: LMSchema): Promise<T | null> {
     try {
-      const result = await this.getModel({ schema }).generateContent(prompt);
-      const parsed = JSON.parse(result.response.text()) as T;
+      const result = await this.client.models.generateContent({
+        model: this._model,
+        contents: prompt,
+        config: this.getGenerationConfig(schema),
+      });
+      if (!result || !result.text) {
+        console.error("Invalid response");
+        return null;
+      }
+      const parsed = JSON.parse(result.text) as T;
       if (!parsed) {
         console.error("Invalid JSON response");
         return null;
@@ -131,15 +139,17 @@ export default class LM {
 
   async *generateJSONStream(
     prompt: string,
-    schema: ResponseSchema,
+    schema: Schema,
   ): AsyncGenerator<string, void, unknown> {
     try {
-      const result = await this.getModel({ schema }).generateContentStream(
-        prompt,
-      );
+      const result = await this.client.models.generateContentStream({
+        model: this._model,
+        contents: prompt,
+        config: this.getGenerationConfig(schema),
+      });
 
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
+      for await (const chunk of result) {
+        const chunkText = chunk.text;
         if (chunkText) {
           yield chunkText;
         }
@@ -152,9 +162,13 @@ export default class LM {
 
   async *generateStream(prompt: string): AsyncGenerator<string, void, unknown> {
     try {
-      const result = await this.model.generateContentStream(prompt);
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
+      const result = await this.client.models.generateContentStream({
+        model: this._model,
+        contents: prompt,
+        config: this.getGenerationConfig(),
+      });
+      for await (const chunk of result) {
+        const chunkText = chunk.text;
         if (chunkText) {
           yield chunkText;
         }
@@ -190,10 +204,10 @@ export class LMUtils {
         .addText(text)
         .get();
       const result = await this.lm.generateJSON<{ text: string }>(prompt, {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
           text: {
-            type: SchemaType.STRING,
+            type: Type.STRING,
             description: "The summary of the text",
           },
         },
@@ -212,7 +226,7 @@ export class LMUtils {
     }
   }
 
-  async entitle(content: string, description: string) {
+  async entitle(content: string, description: string): Promise<string | null> {
     try {
       const prompt = new PromptBuilder()
         .addText(
@@ -221,10 +235,10 @@ export class LMUtils {
         .addText(content)
         .get();
       const result = await this.lm.generateJSON<{ text: string }>(prompt, {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
           text: {
-            type: SchemaType.STRING,
+            type: Type.STRING,
             description: "The entitle of the text",
           },
         },
