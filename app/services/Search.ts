@@ -2,10 +2,11 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
 import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
-import { Embeddings } from "../semantics/embeddings";
-import { getLM, LMSchema, LMSchemaType, PromptBuilder } from "../semantics/lm";
+import { getEmbedder } from "../ai/embeddings/embeddings";
+import { getLM } from "../ai/lms/lm";
+import { LMSchema, LMSchemaType } from "../ai/lms";
+import { PromptBuilder } from "../ai/lms/utils";
 import { htmlToMarkdown } from "../utils/formatting";
-import { ResponseSchema, SchemaType } from "@google/generative-ai";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ITag } from "../database/models/tag";
@@ -661,10 +662,10 @@ export class Search {
 
     try {
       // 1. Attempt to generate query embedding
-      const embeddingProcessor = new Embeddings();
+      const embeddingProcessor = getEmbedder();
       let queryEmbedding: number[] | null = null;
       try {
-        queryEmbedding = await embeddingProcessor.generateEmbeddings(query);
+        queryEmbedding = await embeddingProcessor.embedContent(query);
       } catch (embeddingError) {
         console.warn(
           `Failed to generate query embedding for query "${query}":`,
@@ -1331,8 +1332,8 @@ export class Search {
     try {
       const limit = options?.limit ?? 10;
 
-      const embeddingProcessor = new Embeddings();
-      const embedding = await embeddingProcessor.generateEmbeddings(query);
+      const embeddingProcessor = getEmbedder();
+      const embedding = await embeddingProcessor.embedContent(query);
 
       const ftsResults = await Search.ftsSearchTags(userId, query, { limit });
       let semanticResults: ITagSearchResult[] = [];

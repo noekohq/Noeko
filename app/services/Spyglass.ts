@@ -1,5 +1,6 @@
-import { ResponseSchema, SchemaType } from "@google/generative-ai";
-import { getLM, LMSchema, LMSchemaType, PromptBuilder } from "../semantics/lm";
+import { getLM } from "../ai/lms/lm";
+import { LMSchema, LMSchemaType } from "../ai/lms";
+import { PromptBuilder } from "../ai/lms/utils";
 import { ISearchOverview, ISearchResult, Search } from "./Search";
 import { IIdea } from "../database/models/ideas";
 import { formatDate, htmlToMarkdown } from "../utils/formatting";

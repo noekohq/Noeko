@@ -2,9 +2,11 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { User } from "./user";
 import { Idea, IIdea } from "./ideas"; // Assuming Idea model is in this path
-import { Embeddings } from "../../semantics/embeddings";
+import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { logger } from "../../services/Logger";
-import { getLM, LMSchemaType, PromptBuilder } from "../../semantics/lm";
+import { getLM } from "../../ai/lms/lm";
+import { LMSchemaType } from "../../ai/lms";
+import { PromptBuilder } from "../../ai/lms/utils";
 import { SchemaType } from "@google/generative-ai";
 
 export type ITag = {
@@ -386,12 +388,12 @@ export class Tag {
       ) {
         return undefined;
       }
-      const embedding = new Embeddings();
+      const embedding = getEmbedder();
       const embeddableContent = `${tag.name}:${tag.description}`;
       if (!embeddableContent) {
         return undefined;
       }
-      const vector = await embedding.generateEmbeddings(embeddableContent);
+      const vector = await embedding.embedContent(embeddableContent);
       if (!vector) {
         throw new Error("Couldn't get embeddings");
       }
