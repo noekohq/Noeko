@@ -20,4 +20,5 @@ export interface LMProvider {
     schema: LMSchema,
   ): AsyncGenerator<string, void, unknown>;
   withModel(model: string | IModelTypes): LMProvider;
+  withThinking(budget?: number): LMProvider;
 }
