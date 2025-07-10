@@ -18,8 +18,8 @@ if (!isValidProvider(LM_PROVIDER)) {
 
 type IProviderKey = (typeof SupportedProviders)[number];
 
-const PROVIDER_MAP: Record<IProviderKey, LMProvider> = {
-  google: new GeminiProvider(),
+const PROVIDER_MAP: Record<IProviderKey, () => LMProvider> = {
+  google: () => new GeminiProvider(),
 };
 
 export const getLM = (): LMProvider => {
@@ -30,5 +30,5 @@ export const getLM = (): LMProvider => {
     throw new Error(`LM_PROVIDER is not supported`);
   }
   const LM = PROVIDER_MAP[LM_PROVIDER];
-  return LM;
+  return LM();
 };

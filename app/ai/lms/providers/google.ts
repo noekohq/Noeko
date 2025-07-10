@@ -23,6 +23,8 @@ export default class GeminiProvider implements LMProvider {
   private _utils: LMUtils;
   private _model: string;
   private _modelMap: IModelMap = ModelMap;
+  private _thinking: boolean = false;
+  private _thinkingBudget: number = -1;
 
   constructor() {
     this.client = new GoogleGenAI(
@@ -38,6 +40,7 @@ export default class GeminiProvider implements LMProvider {
     );
     this._utils = new LMUtils(this);
     this._model = "simple"; // Default model
+    this._thinking = false;
   }
 
   get utils() {
@@ -51,9 +54,30 @@ export default class GeminiProvider implements LMProvider {
   get modelMap() {
     return this._modelMap;
   }
+  private get canThink() {
+    const thinkingModels = [
+      "gemini-2.5-pro",
+      "gemini-2.5-flash",
+      "gemini-2.5-flash-lite",
+    ];
+    if (thinkingModels.includes(this.model)) {
+      return true;
+    }
+    return false;
+  }
 
   public withModel(model: string | IModelTypes) {
     this._model = this.modelMap[model as IModelTypes] ?? model;
+    return this;
+  }
+
+  public withThinking(thinkingBudget?: number) {
+    if (thinkingBudget) {
+      this._thinkingBudget = thinkingBudget;
+    } else {
+      this._thinkingBudget = -1;
+    }
+    this._thinking = true;
     return this;
   }
 
@@ -65,6 +89,14 @@ export default class GeminiProvider implements LMProvider {
           threshold: HarmBlockThreshold.BLOCK_NONE,
         },
       ],
+      ...(this.canThink
+        ? {
+            thinkingConfig: {
+              thinkingBudget: this._thinkingBudget,
+              includeThoughts: this._thinking,
+            },
+          }
+        : {}),
     };
 
     if (schema) {
