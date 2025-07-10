@@ -385,172 +385,184 @@ export default function ViewTag() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        {draggingOver && (
-          <Overlay
-            backgroundOpacity={0}
-            blur={4}
-            onDragOver={(e) => {
-              e.preventDefault();
-            }}
-            onDrop={(e) => {
-              handleConnectionDrop(e);
-            }}
-            radius={"lg"}
-          >
-            <Group align="center" justify="center" style={{ height: "100%" }}>
-              <Text c="white" mx="lg" size="sm">
-                Drop here to create a connection
-              </Text>
-            </Group>
-          </Overlay>
-        )}
-        {!!tag && (
-          <Stack gap="xl">
-            <Group>
-              <Link to="/tags">
-                <Button variant="subtle" leftSection={<ArrowLeft />}>
-                  All Tags
-                </Button>
-              </Link>
-            </Group>
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
-              {isEditing ? (
-                <Stack gap="md">
-                  <Group justify="space-between">
-                    <Title order={4}>Edit Tag</Title>
-                    <Group gap="xs">
-                      <ActionIcon
-                        variant="filled"
-                        onClick={handleSave}
-                        loading={updateTagLoading}
-                        title="Save Tag"
-                      >
-                        <FloppyDisk weight="bold" />
-                      </ActionIcon>
-                      <ActionIcon
-                        variant="outline"
-                        color="gray"
-                        onClick={handleCancel}
-                        title="Cancel Edit"
-                      >
-                        <X weight="bold" />
-                      </ActionIcon>
-                    </Group>
-                  </Group>
-                  <TextInput
-                    label="Tag Name"
-                    placeholder="Tag name"
-                    {...editForm.getInputProps("name")}
-                    required
-                  />
-                  <TextInput
-                    label="Description"
-                    placeholder="Tag description (optional)"
-                    {...editForm.getInputProps("description")}
-                  />
-                  {updateTagErrors.length > 0 && (
-                    <Text c="red" size="sm">
-                      {updateTagErrors.join(", ")}
-                    </Text>
-                  )}
-                </Stack>
-              ) : (
-                <Stack gap="md">
-                  <Group justify="space-between" align="flex-start">
-                    <Stack gap="xs" style={{ flex: 1 }}>
-                      <Group gap="lg">
-                        <BlockTag tag={tag} color="blue" />
+        <div
+          onDragOver={() => {
+            setDraggingOver(true);
+          }}
+          onDrop={(e) => {
+            handleConnectionDrop(e);
+          }}
+          onDragLeave={(e) => {
+            setDraggingOver(false);
+          }}
+        >
+          {draggingOver && (
+            <Overlay
+              backgroundOpacity={0}
+              blur={4}
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={(e) => {
+                handleConnectionDrop(e);
+              }}
+              radius={"lg"}
+            >
+              <Group align="center" justify="center" style={{ height: "100%" }}>
+                <Text c="white" mx="lg" size="sm">
+                  Drop here to create a connection
+                </Text>
+              </Group>
+            </Overlay>
+          )}
+          {!!tag && (
+            <Stack gap="xl">
+              <Group>
+                <Link to="/tags">
+                  <Button variant="subtle" leftSection={<ArrowLeft />}>
+                    All Tags
+                  </Button>
+                </Link>
+              </Group>
+              <Card shadow="sm" padding="lg" radius="md" withBorder>
+                {isEditing ? (
+                  <Stack gap="md">
+                    <Group justify="space-between">
+                      <Title order={4}>Edit Tag</Title>
+                      <Group gap="xs">
+                        <ActionIcon
+                          variant="filled"
+                          onClick={handleSave}
+                          loading={updateTagLoading}
+                          title="Save Tag"
+                        >
+                          <FloppyDisk weight="bold" />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="outline"
+                          color="gray"
+                          onClick={handleCancel}
+                          title="Cancel Edit"
+                        >
+                          <X weight="bold" />
+                        </ActionIcon>
                       </Group>
-                      {tag.description && (
-                        <Text size="sm" c="dimmed">
-                          {tag.description}
-                        </Text>
-                      )}
-                      <Group gap="md">
-                        <Text size="xs" c="dimmed">
-                          Created:{" "}
-                          {new Date(tag.createdAt).toLocaleDateString()}
-                        </Text>
-                        {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
-                          <Text size="xs" c="dimmed">
-                            Last Updated:{" "}
-                            {new Date(tag.updatedAt).toLocaleDateString()}
+                    </Group>
+                    <TextInput
+                      label="Tag Name"
+                      placeholder="Tag name"
+                      {...editForm.getInputProps("name")}
+                      required
+                    />
+                    <TextInput
+                      label="Description"
+                      placeholder="Tag description (optional)"
+                      {...editForm.getInputProps("description")}
+                    />
+                    {updateTagErrors.length > 0 && (
+                      <Text c="red" size="sm">
+                        {updateTagErrors.join(", ")}
+                      </Text>
+                    )}
+                  </Stack>
+                ) : (
+                  <Stack gap="md">
+                    <Group justify="space-between" align="flex-start">
+                      <Stack gap="xs" style={{ flex: 1 }}>
+                        <Group gap="lg">
+                          <BlockTag tag={tag} color="blue" />
+                        </Group>
+                        {tag.description && (
+                          <Text size="sm" c="dimmed">
+                            {tag.description}
                           </Text>
                         )}
+                        <Group gap="md">
+                          <Text size="xs" c="dimmed">
+                            Created:{" "}
+                            {new Date(tag.createdAt).toLocaleDateString()}
+                          </Text>
+                          {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
+                            <Text size="xs" c="dimmed">
+                              Last Updated:{" "}
+                              {new Date(tag.updatedAt).toLocaleDateString()}
+                            </Text>
+                          )}
+                        </Group>
+                      </Stack>
+                      <Group gap="xs">
+                        <ActionIcon
+                          variant="subtle"
+                          onClick={() => setIsEditing(true)}
+                          title="Edit Tag"
+                        >
+                          <PencilSimple />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="subtle"
+                          color="red"
+                          onClick={openDeleteModal}
+                          title="Delete Tag"
+                        >
+                          <Trash />
+                        </ActionIcon>
                       </Group>
-                    </Stack>
-                    <Group gap="xs">
-                      <ActionIcon
-                        variant="subtle"
-                        onClick={() => setIsEditing(true)}
-                        title="Edit Tag"
-                      >
-                        <PencilSimple />
-                      </ActionIcon>
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        onClick={openDeleteModal}
-                        title="Delete Tag"
-                      >
-                        <Trash />
-                      </ActionIcon>
                     </Group>
-                  </Group>
-                </Stack>
-              )}
-            </Card>
+                  </Stack>
+                )}
+              </Card>
 
-            {/* Ideas with this Tag */}
-            <Stack gap="md">
-              <Group>
-                <Title order={3}>Ideas with this tag</Title>
-                {loadingIdeas && <Loader size="md" />}
-              </Group>
-              {ideaErrors && ideaErrors.length > 0 && (
-                <Alert
-                  icon={<WarningCircle size={24} />} // Updated icon
-                  title="Error!"
-                  color="red"
-                  mt="md"
-                >
-                  Failed to load ideas for this tag: {ideaErrors.join(", ")}
-                </Alert>
-              )}
-              {ideas && ideas.length > 0 ? (
-                <SimpleGrid cols={2} spacing="lg">
-                  {ideas.map((idea) => (
-                    <CompactIdeaCard
-                      idea={idea}
-                      key={idea.id.toString()}
-                      onCardClick={() => {
-                        navigate(`/idea/${idea.id.toString()}`);
-                      }}
-                      actions={[
-                        {
-                          icon: <Tag />,
-                          id: "remove_tag",
-                          label: `Remove tag`,
-                          onClick: () => {
-                            handleRemoveTag(idea);
+              {/* Ideas with this Tag */}
+              <Stack gap="md">
+                <Group>
+                  <Title order={3}>Ideas with this tag</Title>
+                  {loadingIdeas && <Loader size="md" />}
+                </Group>
+                {ideaErrors && ideaErrors.length > 0 && (
+                  <Alert
+                    icon={<WarningCircle size={24} />} // Updated icon
+                    title="Error!"
+                    color="red"
+                    mt="md"
+                  >
+                    Failed to load ideas for this tag: {ideaErrors.join(", ")}
+                  </Alert>
+                )}
+                {ideas && ideas.length > 0 ? (
+                  <SimpleGrid cols={2} spacing="lg">
+                    {ideas.map((idea) => (
+                      <CompactIdeaCard
+                        idea={idea}
+                        key={idea.id.toString()}
+                        onCardClick={() => {
+                          navigate(`/idea/${idea.id.toString()}`);
+                        }}
+                        actions={[
+                          {
+                            icon: <Tag />,
+                            id: "remove_tag",
+                            label: `Remove tag`,
+                            onClick: () => {
+                              handleRemoveTag(idea);
+                            },
+                            tooltip: `Remove tag ${tag.name} from ${idea.title}`,
                           },
-                          tooltip: `Remove tag ${tag.name} from ${idea.title}`,
-                        },
-                      ]}
-                    />
-                  ))}
-                </SimpleGrid>
-              ) : (
-                !loadingIdeas &&
-                !(ideaErrors && ideaErrors.length > 0) && (
-                  <Text c="dimmed">
-                    No ideas are currently associated with this tag.
-                  </Text>
-                )
-              )}
+                        ]}
+                      />
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  !loadingIdeas &&
+                  !(ideaErrors && ideaErrors.length > 0) && (
+                    <Text c="dimmed">
+                      No ideas are currently associated with this tag.
+                    </Text>
+                  )
+                )}
+              </Stack>
             </Stack>
-          </Stack>
-        )}
+          )}
+        </div>
       </Content>
       <RightSidebar>
         <RightSidebar.Collapsed>

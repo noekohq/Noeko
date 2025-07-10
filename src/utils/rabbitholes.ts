@@ -1,3 +1,4 @@
+import { showNotification } from "@mantine/notifications";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 import { api } from "../server/api";
 
@@ -25,5 +26,55 @@ export const handleCreateNewRabbithole = async (
   } catch (error) {
     console.error("Error creating new rabbithole: ", error);
     return undefined;
+  }
+};
+
+export const includeThing = async (rabbitholeId: string, thingId: string) => {
+  try {
+    return await api
+      .post(`/rabbitholes/${rabbitholeId}/include`, {
+        thingId,
+      })
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong including ${thingId} in ${rabbitholeId}`,
+          error,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong including the idea",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error creating idea connection: ", error);
+  }
+};
+
+export const unIncludeThing = async (rabbitholeId: string, thingId: string) => {
+  try {
+    return await api
+      .post(`/rabbitholes/${rabbitholeId}/uninclude`, {
+        thingId,
+      })
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong unincluding between ${rabbitholeId} and ${thingId}`,
+          error,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong deleting the connection",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error creating idea connection: ", error);
   }
 };

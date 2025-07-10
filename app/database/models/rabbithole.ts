@@ -3,6 +3,7 @@ import { IIdea } from "./ideas";
 import { getDatabase } from "../db";
 import { logger } from "../../services/Logger";
 import { ITag } from "./tag";
+import { averageEmbeddings } from "../../utils/math";
 
 export type IRabbitholeIncludes = IIdea | ITag;
 
@@ -21,6 +22,13 @@ export type IRabbitholeForm = Omit<
   "createdAt" | "updatedAt"
 >;
 
+export type IRabbitholeInclusion = {
+  id: string | RecordId;
+  in: string | RecordId;
+  out: string | RecordId;
+  createdAt: Date;
+};
+
 export default class Rabbithole {
   public static async up() {
     const rabbitholeGetFunction = () => {
@@ -30,7 +38,7 @@ export default class Rabbithole {
       ) {
         LET $rabbithole = SELECT
           *,
-          ->includes->idea as includes
+          ->includes->(?) as includes
         FROM ONLY $rabbitholeId
         FETCH includes;
 
@@ -139,40 +147,43 @@ export default class Rabbithole {
     }
   }
 
-  static async addIdea(
+  static async addThing(
     rabbitholeId: string | RecordId,
-    ideaId: string | RecordId,
+    thingId: string | RecordId,
   ) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const result = await db?.query(
-        "RELATE $rabbitholeId->includes->$ideaId SET createdAt = $now;",
+      const result = await db?.query<[IRabbitholeInclusion]>(
+        "RELATE $rabbitholeId->includes->$thingId SET createdAt = $now;",
         {
           rabbitholeId: new StringRecordId(rabbitholeId),
-          ideaId: new StringRecordId(ideaId),
+          thingId: new StringRecordId(thingId),
           now: new Date(),
         },
       );
       if (!result) {
         throw new Error(
-          "Something went wrong adding idea to rabbithole: ",
+          "Something went wrong adding thing to rabbithole: ",
           result,
         );
       }
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {
-      logger.error("Error adding idea to rabbithole: ", [rabbitholeId, ideaId]);
+      logger.error("Error adding thing to rabbithole: ", [
+        rabbitholeId,
+        thingId,
+      ]);
       return undefined;
     }
   }
 
-  static async deleteIdea(
+  static async removeThing(
     rabbitholeId: string | RecordId,
-    ideaId: string | RecordId,
+    thingId: string | RecordId,
   ) {
     try {
       const db = await getDatabase();
@@ -183,22 +194,87 @@ export default class Rabbithole {
         "DELETE FROM (SELECT VALUE <->includes FROM ONLY <record> $source) WHERE out = <record> $target OR in = <record> $target;",
         {
           source: new StringRecordId(rabbitholeId),
-          target: new StringRecordId(ideaId),
+          target: new StringRecordId(thingId),
         },
       );
       if (!result) {
         throw new Error(
-          "Something went wrong deleting idea from rabbithole: ",
+          "Something went wrong deleting thing from rabbithole: ",
           result,
         );
       }
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {
-      logger.error("Error deleting idea from rabbithole: ", [
+      logger.error("Error deleting thing from rabbithole: ", [
         rabbitholeId,
-        ideaId,
+        thingId,
       ]);
+      return undefined;
+    }
+  }
+
+  static async findSimilarIdeas(
+    rabbitholeId: string | RecordId,
+    userId: string | RecordId,
+    options?: {
+      limit?: number;
+      threshold?: number;
+    },
+  ): Promise<IIdea[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+      const rabbithole = await Rabbithole.get(rabbitholeId);
+      if (!rabbithole) {
+        throw new Error(
+          `Rabbithole with id ${rabbitholeId.toString()} not found.`,
+        );
+      }
+      const rEmbeddings = !!rabbithole.includes?.length
+        ? averageEmbeddings(
+            rabbithole.includes
+              ?.map((idea) => idea.embeddings)
+              .filter((e) => !!e),
+          )
+        : Array(768).fill(0);
+      console.log("Got average embeddings: ", rEmbeddings.slice(0, 10));
+      if (!rEmbeddings || rEmbeddings.length === 0) {
+        console.warn(
+          `Rabbithole with id ${rabbitholeId.toString()} has no embeddings.`,
+        );
+        return [];
+      }
+
+      const results = await db.run<IIdea[]>(
+        "fn::search_similar_to_embeddings",
+        [rEmbeddings, userId, options?.limit || 25, options?.threshold || 0.4],
+      );
+
+      console.log(
+        "Got results: ",
+        results
+          .slice(0, 5)
+          .map((r) => {
+            return r.title;
+          })
+          .join(", "),
+      );
+
+      if (!results) {
+        console.warn(
+          `No similar ideas found for rabbithole ${rabbitholeId.toString()} for user ${userId.toString()}.`,
+        );
+        return [];
+      }
+      return results;
+    } catch (error) {
+      console.error(
+        `Error getting similar ideas for rabbithole ${rabbitholeId.toString()}: `,
+        error,
+      );
       return undefined;
     }
   }
