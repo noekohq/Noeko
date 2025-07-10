@@ -1,7 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
-import { Embeddings } from "../../../semantics/embeddings";
-import { getLM } from "../../../semantics/lm";
+import { getEmbedder } from "../../../ai/embeddings/embeddings";
+import { getLM } from "../../../ai/lms/lm";
 import { IPublicUser, ISafeUser, IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
@@ -1485,8 +1485,8 @@ export class Idea {
         return undefined;
       }
 
-      const embeddingProcessor = new Embeddings();
-      const queryEmbedding = await embeddingProcessor.generateEmbeddings(query);
+      const embeddingProcessor = getEmbedder();
+      const queryEmbedding = await embeddingProcessor.embedContent(query);
 
       if (!queryEmbedding) {
         console.error("searchIdeas: Failed to generate query embedding.");
@@ -1650,7 +1650,7 @@ export class Idea {
       ) {
         return false;
       }
-      const embedding = new Embeddings();
+      const embedding = getEmbedder();
       const embeddableContent = Idea.getEmbeddableContent(idea);
       if (
         !embeddableContent ||
@@ -1662,7 +1662,7 @@ export class Idea {
         });
         return undefined;
       }
-      const vector = await embedding.generateEmbeddings(embeddableContent);
+      const vector = await embedding.embedContent(embeddableContent);
       return await Idea.update(idea.id, {
         embeddings: vector,
         embeddingsUpdatedAt: new Date(),
@@ -1677,7 +1677,7 @@ export class Idea {
 
   static async updateManyEmbeddings(ideas: IIdea[], force = false) {
     try {
-      const e = new Embeddings();
+      const e = getEmbedder();
       const ideasAndContent = ideas
         .filter((idea) => {
           if (force) {
@@ -1702,7 +1702,10 @@ export class Idea {
       }
 
       const justContent = ideasAndContent.map((i) => i[1]);
-      const embeddings = await e.generateEmbeddingsBatch(justContent);
+      const embeddings = await e.embedContents(justContent);
+      if (!embeddings) {
+        throw new Error("No embeddings generated");
+      }
       const withEmbeddings = ideasAndContent.map(
         (i, index) => [...i, embeddings[index]] as [string, string, number[]],
       );

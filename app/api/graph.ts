@@ -7,7 +7,7 @@ import {
   IIdeaForm,
   ISafeIdea,
 } from "../database/models/ideas";
-import { getLM } from "../semantics/lm";
+import { getLM } from "../ai/lms/lm";
 import {
   checkIsSuperuser,
   checkToken,
