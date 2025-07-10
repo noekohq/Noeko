@@ -45,9 +45,9 @@ const Client = () => {
 };
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <Client />
-  </React.StrictMode>,
+  // <React.StrictMode>
+  <Client />,
+  // </React.StrictMode>,
 );
 
 type IWrapThemeProps = {

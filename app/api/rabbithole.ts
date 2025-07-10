@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser, User } from "../database/models/user";
 import Rabbithole from "../database/models/rabbithole";
+import { Idea } from "../database/models/ideas";
 
 const router = Router();
 
@@ -162,7 +163,7 @@ router.put("/:rabbitholeId", async (req, res) => {
   }
 });
 
-router.get("/similar-ideas", async (req, res) => {
+router.get("/:rabbitholeId/similar-ideas", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -171,7 +172,90 @@ router.get("/similar-ideas", async (req, res) => {
       });
       return;
     }
+    console.log("Hitting api");
+    const similarIdeas = await Rabbithole.findSimilarIdeas(
+      req.params.rabbitholeId,
+      user.id,
+    );
+    res.send({
+      message: "Successfully retrieved similar ideas",
+      data: similarIdeas,
+    });
   } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
+router.post("/:rabbitholeId/include", async (req, res) => {
+  try {
+    const { rabbitholeId } = req.params;
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { thingId } = req.body as { thingId: string | null };
+    if (!thingId) {
+      res.status(400).send({
+        message: "No thingId included",
+      });
+      return;
+    }
+    const hasAccess = await User.checkOwns(user.id, thingId);
+    if (!hasAccess) {
+      res.status(400).send({
+        message: "You do not have access to this thing.",
+      });
+      return;
+    }
+    const result = await Rabbithole.addThing(rabbitholeId, thingId);
+    res.send({
+      message: "Successfully included thing",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error including rabbitholes: ", error);
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
+router.post("/:rabbitholeId/uninclude", async (req, res) => {
+  try {
+    const { rabbitholeId } = req.params;
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { thingId } = req.body as { thingId: string | null };
+    if (!thingId) {
+      res.status(400).send({
+        message: "No thingId included",
+      });
+      return;
+    }
+    const hasAccess = await User.checkOwns(user.id, thingId);
+    if (!hasAccess) {
+      res.status(400).send({
+        message: "You do not have access to this thing.",
+      });
+      return;
+    }
+    const result = await Rabbithole.removeThing(rabbitholeId, thingId);
+    res.send({
+      message: "Successfully unincluded thing",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error unincluding rabbitholes: ", error);
     res.status(500).send({
       message: "Internal Server Error",
     });
