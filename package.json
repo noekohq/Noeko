@@ -18,7 +18,7 @@
     "@floating-ui/react": "^0.27.12",
     "@google-cloud/aiplatform": "^4.2.0",
     "@google-cloud/vertexai": "^1.10.0",
-    "@google/genai": "^0.14.1",
+    "@google/genai": "^1.9.0",
     "@google/generative-ai": "^0.24.1",
     "@mantine/core": "^7.17.8",
     "@mantine/form": "^7.17.8",
