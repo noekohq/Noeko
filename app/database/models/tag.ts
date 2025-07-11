@@ -3,11 +3,11 @@ import { getDatabase } from "../db";
 import { User } from "./user";
 import { Idea, IIdea } from "./ideas"; // Assuming Idea model is in this path
 import { getEmbedder } from "../../ai/embeddings/embeddings";
-import { logger } from "../../services/Logger";
 import { getLM } from "../../ai/lms/lm";
 import { LMSchemaType } from "../../ai/lms";
 import { PromptBuilder } from "../../ai/lms/utils";
-import { SchemaType } from "@google/generative-ai";
+
+type ITagDescribes = IIdea;
 
 export type ITag = {
   id: string | RecordId;
@@ -15,6 +15,7 @@ export type ITag = {
   description: string;
   color?: string; // Optional: hex code for tag color
   embeddings: number[] | null;
+  describes: ITagDescribes;
   embeddingsUpdatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -22,7 +23,12 @@ export type ITag = {
 
 export type ITagForm = Omit<
   ITag,
-  "id" | "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt"
+  | "id"
+  | "embeddings"
+  | "describes"
+  | "embeddingsUpdatedAt"
+  | "createdAt"
+  | "updatedAt"
 >;
 
 export type ITagUserOwnership = {
@@ -45,6 +51,20 @@ export class Tag {
     if (!db) {
       throw new Error("Something went wrong getting the database");
     }
+
+    const getTagFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_tag(
+        $tag: record
+      ) {
+        RETURN SELECT
+          *,
+          ->describes->(?) as describes
+        FROM ONLY $tag
+        FETCH describes;
+      }
+      `;
+    };
 
     const getUserTagsFunction = () => {
       return `
@@ -74,6 +94,7 @@ export class Tag {
       `;
     };
 
+    await db.query(getTagFunction());
     await db.query(getUserTagsFunction());
     await db.query(getIdeasForTagFunction());
     await db.query(getTagsForIdeaFunction());
@@ -130,7 +151,9 @@ export class Tag {
       if (!db) {
         throw new Error("Error getting database");
       }
-      const result = await db.select<ITag>(new StringRecordId(id));
+      const result = await db.run<ITag>("fn::get_tag", [
+        new StringRecordId(id),
+      ]);
       if (!result) {
         console.warn("Could not find tag with id: " + id.toString());
         return undefined;
@@ -434,6 +457,7 @@ export class Tag {
         ],
       );
       if (!results) {
+        throw new Error("No similar tags found.");
       }
       return results;
     } catch (error) {
@@ -486,6 +510,35 @@ export class Tag {
         `Error getting similar ideas for tag ${tagId.toString()}: `,
         error,
       );
+      return undefined;
+    }
+  }
+
+  static async getFirstKDescribed(id: string | RecordId, k = 3) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+      const results = await db.query<[ITagDescribes]>(
+        `
+        SELECT
+          ->describes->(?) AS describes
+        FROM ONLY $tag
+        FETCH describes;
+        `,
+        {
+          tag: id,
+          limit: k,
+        },
+      );
+      if (!results) {
+        throw new Error("Error getting first n described");
+      }
+      const [firstN] = results;
+      return firstN;
+    } catch (error) {
+      console.error(`Error fetching first k: `, k);
       return undefined;
     }
   }

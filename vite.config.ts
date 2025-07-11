@@ -7,6 +7,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+      },
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
@@ -25,6 +28,12 @@ export default defineConfig({
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
           },
         ],
       },

@@ -3,7 +3,7 @@ import { Tag, ITag, ITagForm } from "../database/models/tag";
 import { Idea } from "../database/models/ideas"; // For type hinting
 import { checkToken, disallowDisabled } from "../middleware/auth"; // Assuming auth middleware
 import { getFromReq } from "../utils/requests"; // Assuming request utility
-import { ISafeUser } from "../database/models/user"; // Assuming user type
+import { ISafeUser, User } from "../database/models/user"; // Assuming user type
 
 const router = Router();
 
@@ -445,6 +445,36 @@ router.get("/similar_to/idea/:ideaId", async (req, res) => {
     });
   } catch (error) {
     console.error("Error finding similar tags to idea:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/:tagId/firstN", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+    const tagId = req.params.tagId;
+    const userOwns = User.checkOwns(user.id, tagId);
+    if (!userOwns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { k = 3 } = req.query as { k: number | undefined };
+    const firstK = await Tag.getFirstKDescribed(tagId, k);
+    if (!firstK) {
+      throw new Error("Couldn't get first n.");
+    }
+    res.send({
+      message: "Got first n tags",
+      data: firstK,
+    });
+  } catch (error) {
+    console.error("Error finding first n tags:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

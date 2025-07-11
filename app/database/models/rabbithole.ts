@@ -31,6 +31,7 @@ export type IRabbitholeInclusion = {
 
 export default class Rabbithole {
   public static async up() {
+    // TODO: make sure this doesn't return embeddings
     const rabbitholeGetFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::get_rabbithole(

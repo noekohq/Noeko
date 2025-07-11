@@ -199,13 +199,13 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               class: contentStyles.taskItem,
             },
           }),
-          Markdown.configure({
-            linkify: true,
-            transformPastedText: true,
-            html: true,
-            bulletListMarker: "-",
-            breaks: true,
-          }),
+          // Markdown.configure({
+          //   linkify: true,
+          //   transformPastedText: true,
+          //   html: true,
+          //   bulletListMarker: "-",
+          //   breaks: true,
+          // }),
           DreamTable.configure({
             HTMLAttributes: {
               class: contentStyles.table,
