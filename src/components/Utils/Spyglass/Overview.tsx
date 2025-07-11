@@ -86,7 +86,7 @@ export function DisplayOverview({
   return (
     <div>
       <OverviewParser
-        html={markdownToHtml(overview.overview)}
+        markdown={overview.overview}
         citationMap={citationMap}
         resultsMap={resultsMap}
         analysis={overview}
@@ -140,7 +140,7 @@ export function DisplayOverview({
                 </HoverCard.Target>
                 <HoverCard.Dropdown p="0">
                   <Stack gap="0">
-                    <CopyButton value={overview.overview}>
+                    <CopyButton value={markdownToHtml(overview.overview)}>
                       {({ copied, copy }) => {
                         return (
                           <Button
@@ -154,7 +154,7 @@ export function DisplayOverview({
                         );
                       }}
                     </CopyButton>
-                    <CopyButton value={htmlToMarkdown(overview.overview)}>
+                    <CopyButton value={overview.overview}>
                       {({ copied, copy }) => {
                         return (
                           <Button
