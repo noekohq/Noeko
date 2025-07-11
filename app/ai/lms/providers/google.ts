@@ -24,7 +24,7 @@ export default class GeminiProvider implements LMProvider {
   private _model: string;
   private _modelMap: IModelMap = ModelMap;
   private _thinking: boolean = false;
-  private _thinkingBudget: number = -1;
+  private _thinkingBudget: number = 0;
 
   constructor() {
     this.client = new GoogleGenAI(

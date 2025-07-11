@@ -15,6 +15,8 @@ export default defineConfig({
       manifest: {
         name: "Qwest",
         short_name: "Qwest",
+        display: "standalone",
+        start_url: "/",
         description:
           "A Knowledge Base The second brain that thinks with you, not for you.",
         theme_color: "#282828",
@@ -33,7 +35,7 @@ export default defineConfig({
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "maskable",
           },
         ],
       },
