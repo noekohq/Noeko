@@ -39,10 +39,10 @@ const Modes: Record<string, ISpyglassMode> = {
         new PromptBuilder().addBlock(
           "Instructions",
           `
-          Directly answer the user's query in a single, concise HTML paragraph (\`<p>\`).
+          Directly answer the user's query in a single, concise paragraph.
           If the necessary information is not available, state that.
 
-          **DO NOT** write more than one paragraph or use other tags.
+          **DO NOT** write more than one paragraph.
           `,
         ),
     },
@@ -77,12 +77,10 @@ const Modes: Record<string, ISpyglassMode> = {
         new PromptBuilder().addBlock(
           "Instructions",
           `
-          Generate a list of the identified items.
-          - Use an unordered HTML list (\`<ul>\` and \`<li>\`). If the items have a natural order, use a numbered list (\`<ol>\`).
-          - If categories are present, use \`<strong>\` tags for category titles.
-          - Conclude with a single, brief summary paragraph in \`<p>\` tags.
-
-          **DO NOT** use Markdown headings (#).
+          Generate a list of the identified items using Markdown.
+          - Use a bulleted list (\`-\` or \`*\`). If the items have a natural order, use a numbered list (\`1.\`).
+          - If categories are present, use bold text (\`**Category**\`) for category titles.
+          - Conclude with a single, brief summary paragraph.
           `,
         ),
     },
@@ -118,7 +116,7 @@ const Modes: Record<string, ISpyglassMode> = {
           `
           Follow this structure precisely:
           1.  **Introduction**: Write a brief introductory paragraph.
-          2.  **List Items**: For each item, create an HTML heading (e.g., \`<h2>Item Title</h2>\`). Under each heading, write a single, detailed descriptive paragraph.
+          2.  **List Items**: For each item, create a Markdown heading (e.g., \`## Item Title\`). Under each heading, write a single, detailed descriptive paragraph.
           3.  **Conclusion**: Conclude with a brief summary paragraph.
           `,
         ),
@@ -158,8 +156,8 @@ const Modes: Record<string, ISpyglassMode> = {
           Compose an article or guide explaining the topic. Follow this structure:
           1.  **Introduction**: A paragraph providing a high-level overview.
           2.  **Body**:
-              - For conceptual topics, use multiple sections with clear HTML headings (\`<h2>\`) that break down the core concepts.
-              - For processes or steps, use a numbered list (\`<ol>\`) with detailed \`<li>\` elements for each step.
+              - For conceptual topics, use multiple sections with clear Markdown headings (\`##\`) that break down the core concepts.
+              - For processes or steps, use a numbered list (\`1.\`, \`2.\`, etc.) with detailed list items for each step.
           3.  **Conclusion**: A summary paragraph.
           `,
         ),
@@ -195,9 +193,9 @@ const Modes: Record<string, ISpyglassMode> = {
           "Instructions",
           `
           1.  Write a brief introductory paragraph.
-          2.  Generate an HTML \`<table>\` to compare the items.
-              - The first row (\`<tr>\`) should be table headers (\`<th>\`) for 'Feature' and each item being compared.
-              - Subsequent rows should have the feature in the first cell (\`<td>\`) and the corresponding details for each item in the following cells.
+          2.  Generate a Markdown \`<table>\` to compare the items.
+              - The first row should be table headers for 'Feature' and each item being compared.
+              - Subsequent rows should have the feature in the first column and the corresponding details for each item in the following columns.
           3.  Conclude with a summary paragraph.
           `,
         ),
@@ -234,8 +232,8 @@ const Modes: Record<string, ISpyglassMode> = {
           "Instructions",
           `
           1.  Write a brief introductory paragraph.
-          2.  Generate a two-column HTML \`<table>\`. The headers should be "Pros" and "Cons".
-          3.  Populate each column with the relevant points using \`<li>\` elements within the table cells for readability.
+          2.  Generate a two-column Markdown \`<table>\`. The headers should be "Pros" and "Cons".
+          3.  Populate each column with the relevant points. Use bulleted lists within cells if needed for readability.
           4.  Conclude with a summary paragraph.
           `,
         ),
@@ -268,8 +266,8 @@ const Modes: Record<string, ISpyglassMode> = {
           "Instructions",
           `
           1.  Start with a brief introductory paragraph.
-          2.  Generate an HTML \`<ul>\` list representing the timeline.
-          3.  For each event, create an \`<li>\` element. Inside, use a \`<strong>\` tag for the date/time period followed by the event description.
+          2.  Generate a Markdown bulleted list (\`-\` or \`*\`) representing the timeline.
+          3.  For each event, create a list item. Use bold text (\`**Date/Time**\`) for the date/time period followed by the event description.
           4.  End with a concluding summary paragraph.
           `,
         ),
@@ -754,88 +752,18 @@ export default class Spyglass {
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addText(mode.response.prompt(query).get())
       .addBlock(
-        "Output Format: HTML Only",
+        "Output Format: Markdown Only",
         `
-        - **Primary Rule:** Your entire response MUST be valid HTML. Do not use Markdown.
-        - **No Wrappers:** Do not wrap your response in \`<div>\`, \`<html>\`, \`<body>\`, or markdown code fences (\`\`\`). Your output should start directly with the first HTML tag (e.g., \`<p>\` or \`<ul>\`).
-        - **Citations:** To cite a source, wrap the entire statement in a \`<span>\` with a \`data-finding-number\` attribute.
-          - For a single source: \`<span data-finding-number="1">This statement is from finding 1.</span>\`
-          - For multiple sources: \`<span data-finding-number="[1, 2]">This statement is from findings 1 and 2.</span>\`
-        - **Critical:** Never nest citation spans or leave them empty.
-        - **Styling**: Use HTML elements for styling, such as but not limited to \`<h1>\`, \`<h2>\`, \`<h3>\`, \`<h4>\`, \`<h5>\`, \`<h6>\` for headings, \`<p>\` for paragraphs, \`<ul>\` and \`<li>\` for lists, \`<a>\` for links, \`<pre>\` and \`<code>\` for code snippets, and \`<strong>\` for emphasis.
+        - **Primary Rule:** Your entire response MUST be valid Markdown.
+        - **Citations:** To cite a source, use a Markdown link with a special \`finding:\` protocol. The link text should be the statement you are citing, and the URL will contain the finding number(s).
+          - For example, with a single source: \`[A very useful and important statement.](finding:1)\`
+          - For example, with multiple sources for a statement: \`[A very useful and informative statement.](finding:1,2)\`
+          - **Important**: The finding numbers are 1-based.
+          - **Important**: Try to keep citations granular.
+        - **Critical:** Never nest citation links.
+        - **Styling**: Use standard Markdown for styling: \`#\`, \`##\` for headings, \`*\` or \`_\` for emphasis, \`**\` or \`__\` for strong emphasis, lists with \`*\` or \`-\`, etc.
         `,
       )
-      // .addBlock(
-      //   "How to Format",
-      //   `
-      //     You **MUST** write all of your responses as semantic HTML
-      //     **DO NOT** use Markdown directly
-
-      //     **DO NOT** wrap your response in a code-block, or any other top-level element.
-      //     Instead, YOU MUST write your response as if it will directly become the child of an existing element.
-
-      //     **For example**
-      //     Bad:
-      //     \`\`\`html
-      //     <ul>
-      //       <li>Item 1</li>
-      //       <li>Item 2</li>
-      //       <li>Item 3</li>
-      //     </ul>
-      //     \`\`\`
-
-      //     Bad:
-      //     <div>
-      //       <ul>
-      //         <li>Item 1</li>
-      //         <li>Item 2</li>
-      //         <li>Item 3</li>
-      //       </ul>
-      //     </div>
-
-      //     Good:
-      //     <ul>
-      //       <li>Item 1</li>
-      //       <li>Item 2</li>
-      //       <li>Item 3</li>
-      //     </ul>
-
-      //     Good:
-      //     <p>This is a very good answer</p>
-
-      //     Use <span> tags with data-finding-number attributes to reference findings, for example:
-
-      //     <span data-finding-number="1">
-      //       this is some content that sources finding number 2
-      //     </span>
-
-      //     **DO NOT** use standalone finding spans, **ALWAYS** wrap content in a citation.
-
-      //     **Bad Formatting**:
-      //     This is a verifiable fact.<span data-finding-number="1"></span>.
-
-      //     **Good Formatting**:
-      //     <span data-finding-number="1">This is a verifiable fact.</span>
-
-      //     Also, to cite multiple sources for the same text, simply provide an array for the number like so:
-
-      //     <span data-finding-number="[1, 2]">
-      //       this is some content that sources finding numbers 1 and 2
-      //     </span>
-
-      //     **DO NOT** wrap the same text in multiple SPAN tags to accomplish this effect.
-
-      //     **Bad Formatting**:
-      //     <span data-finding-number="2">
-      //       <span data-finding-number="1">This is a verifiable fact.</span>
-      //     </span>
-
-      //     **Good Formatting**:
-      //     <span data-finding-number="[1, 2]">This is a verifiable fact.</span>
-
-      //     This is CRITICAL for user experience and accessibility!
-      //     `,
-      // )
       .addBlock("User Query", query)
       .addBlock(
         "Strict Rules",

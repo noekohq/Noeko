@@ -7,13 +7,7 @@ import {
 } from "../../../pages/Spyglass/hooks/useSpyglass";
 import styles from "./OverviewParser.module.scss";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import parse, {
-  HTMLReactParserOptions,
-  Text as ReactParserText,
-  Element as ReactParserElement,
-  domToReact,
-  DOMNode,
-} from "html-react-parser";
+import ReactMarkdown from "react-markdown";
 import { getNodeTitle } from "../../../utils/graph";
 import { Link } from "react-router";
 import { markdownToHtml } from "../../../utils/formatting";
@@ -21,7 +15,7 @@ import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import { hasVisibleChildren } from "../../../utils/helpers";
 
 interface IOverviewParserProps {
-  html: string;
+  markdown: string;
   citationMap: ICitationMap;
   resultsMap: IResultsMap;
   analysis: ISpyglassSearch["analysis"];
@@ -50,6 +44,10 @@ const FindingBadge: React.FC<IFindingBadgeProps> = ({
   }
 
   const result = resultsMap[finding.sourceId];
+  if (!result) {
+    console.warn(`Could not find result for source ID: ${finding.sourceId}`);
+    return null;
+  }
 
   const title = getNodeTitle(result);
   const titleLink = (sourceId: string, excerpt?: string) => {
@@ -148,13 +146,8 @@ const FindingNumbersSpan: React.FC<IFindingNumbersSpanProps> = ({
 }) => {
   const [hoveringCitation, setHoveringCitation] = useState(false);
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
-    const target = e.target as HTMLElement;
-    const currentTarget = e.currentTarget;
-
-    if (target.closest(`.${styles.findingNumber}`) === currentTarget) {
-      setHoveringCitation(true);
-    }
+  const handleMouseEnter = () => {
+    setHoveringCitation(true);
   };
 
   const handleMouseLeave = () => {
@@ -199,76 +192,66 @@ const FindingNumbersSpan: React.FC<IFindingNumbersSpanProps> = ({
 };
 
 const OverviewParser: React.FC<IOverviewParserProps> = ({
-  html,
+  markdown,
   citationMap,
   resultsMap,
   analysis,
 }) => {
-  const options: HTMLReactParserOptions = {
-    replace: (domNode) => {
-      if (domNode instanceof ReactParserText) {
-        if (domNode.data.trim().length === 0) {
-          return <>{domNode.data}</>;
-        }
-
-        const wordsAndSpaces = domNode.data.split(/(\s+)/);
-
-        return (
-          <>
-            {wordsAndSpaces.map((chunk, index) =>
-              chunk.trim().length > 0 ? (
-                <span key={index} className={styles.word}>
-                  {chunk}
-                </span>
-              ) : (
-                <React.Fragment key={index}>{chunk}</React.Fragment>
-              ),
-            )}
-          </>
-        );
-      }
-      if (domNode instanceof ReactParserElement) {
-        if (
-          domNode.name === "span" &&
-          domNode.attribs &&
-          domNode.attribs["data-finding-number"]
-        ) {
-          const findingNumberAttr = domNode.attribs["data-finding-number"];
-          let findingNumbers: number[] = [];
-          try {
-            const parsedData = JSON.parse(findingNumberAttr);
-            findingNumbers = Array.isArray(parsedData)
-              ? parsedData
-              : [parsedData];
-          } catch (error) {
-            const num = parseInt(findingNumberAttr, 10);
-            if (!isNaN(num)) {
-              findingNumbers = [num];
-            } else {
-              console.warn(
-                `Could not parse finding number(s): "${findingNumberAttr}"`,
-              );
-            }
-          }
-
-          if (findingNumbers.length > 0) {
-            return (
-              <FindingNumbersSpan
-                findingNumbers={findingNumbers}
-                citationMap={citationMap}
-                resultsMap={resultsMap}
-                analysis={analysis}
-              >
-                {domToReact(domNode.children as DOMNode[], options)}
-              </FindingNumbersSpan>
-            );
-          }
-        }
-      }
-    },
+  console.log("Recieved markdown: ", markdown);
+  const urlTransform = (url: string) => {
+    const supportedProtocols = [
+      "http:",
+      "https:",
+      "ftp:",
+      "mailto:",
+      "finding:",
+    ];
+    if (!supportedProtocols.some((protocol) => url.startsWith(protocol))) {
+      return "";
+    }
+    return url;
   };
 
-  return <div className={styles.overviewText}>{parse(html, options)}</div>;
+  return (
+    <div className={styles.overviewText}>
+      <ReactMarkdown
+        urlTransform={urlTransform}
+        components={{
+          a: ({ node, ...props }) => {
+            console.log("Got a link node: ", node, props);
+            if (props.href?.startsWith("finding:")) {
+              const findingNumberStr = props.href.substring(8);
+              const findingNumbers = findingNumberStr
+                .split(",")
+                .map((s) => parseInt(s.trim(), 10) - 1) // Convert from 1-based to 0-based
+                .filter((n) => !isNaN(n));
+
+              if (findingNumbers.length > 0) {
+                return (
+                  <FindingNumbersSpan
+                    findingNumbers={findingNumbers}
+                    citationMap={citationMap}
+                    resultsMap={resultsMap}
+                    analysis={analysis}
+                  >
+                    {props.children}
+                  </FindingNumbersSpan>
+                );
+              }
+            }
+            // Render regular links as standard anchor tags
+            return (
+              <a href={props.href} target="_blank" rel="noopener noreferrer">
+                {props.children}
+              </a>
+            );
+          },
+        }}
+      >
+        {markdown}
+      </ReactMarkdown>
+    </div>
+  );
 };
 
 export default OverviewParser;
