@@ -1,10 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import LM, {
-  getLM,
-  LMSchema,
-  LMSchemaType,
-  PromptBuilder,
-} from "../../../semantics/lm";
+import { getLM } from "../../../ai/lms/lm";
+import { PromptBuilder } from "../../../ai/lms/utils";
+import { LMSchema, LMSchemaType } from "../../../ai/lms";
 import { Idea, IIdea } from ".";
 import { getDatabase } from "../../db";
 
