@@ -25,13 +25,19 @@ import styles from "./Rabbithole.module.scss";
 import SuggestTags from "../../components/Search/SuggestTags";
 import { ITag } from "../../../app/database/models/tag";
 import { useLandscape } from "../../contexts/LandscapeContext";
-import { DoorOpenIcon, InfoIcon, RabbitIcon } from "@phosphor-icons/react";
+import {
+  DoorIcon,
+  DoorOpenIcon,
+  InfoIcon,
+  RabbitIcon,
+} from "@phosphor-icons/react";
 import { IIdea } from "../../../app/database/models/ideas";
 import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import Search from "../../components/Search/Search";
 import { includeThing, unIncludeThing } from "../../utils/rabbitholes";
 import { BlockTag } from "../../components/Tags/TagDisplay";
 import { RecordId } from "surrealdb";
+import TagCard from "../../components/Tags/TagCard";
 
 export default function Rabbithole() {
   const { rabbitholeId } = useParams();
@@ -49,10 +55,6 @@ export default function Rabbithole() {
       });
     },
   });
-
-  useEffect(() => {
-    console.log("Mounting!");
-  }, []);
 
   useEffect(() => {
     loadRabbithole();
@@ -120,7 +122,6 @@ export default function Rabbithole() {
   const handleAddTag = async (tag: ITag) => {
     try {
       if (currentlyAddingTag.current) {
-        console.log("Not adding when currently adding...");
         return false;
       }
       if (thingIsConnected(tag.id.toString()) || !rabbitholeId) {
@@ -166,16 +167,10 @@ export default function Rabbithole() {
   const currentlyAdding = useRef(false);
   const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     try {
-      console.log(
-        "Handling drop: ",
-        e.dataTransfer.getData("application/json"),
-      );
       if (!rabbithole) {
-        console.log("Rabbithole gone");
         return;
       }
       if (currentlyAdding.current) {
-        console.log("Currently adding is true");
         return;
       }
       const jData = e.dataTransfer.getData("application/json");
@@ -187,6 +182,7 @@ export default function Rabbithole() {
           message: "Can't connect this idea again.",
           color: "yellow",
         });
+        currentlyAdding.current = false;
         return;
       }
       currentlyAdding.current = true;
@@ -221,18 +217,24 @@ export default function Rabbithole() {
         <LeftSidebar.Open>
           <Stack>
             <Title order={3}>Suggested Ideas</Title>
-            {relatedIdeas?.map((idea) => {
-              return (
-                <CompactIdeaCard
-                  key={idea.id.toString()}
-                  onCardClick={() => {
-                    navigate(`/idea/${idea.id.toString()}`);
-                  }}
-                  idea={idea}
-                  draggable
-                />
-              );
-            })}
+            {relatedIdeas
+              ?.filter((r) => {
+                return rabbithole?.includes?.find(
+                  (i) => i.id.toString() === r.id.toString(),
+                );
+              })
+              ?.map((idea) => {
+                return (
+                  <CompactIdeaCard
+                    key={idea.id.toString()}
+                    onCardClick={() => {
+                      navigate(`/idea/${idea.id.toString()}`);
+                    }}
+                    idea={idea}
+                    draggable
+                  />
+                );
+              })}
           </Stack>
         </LeftSidebar.Open>
       </LeftSidebar>
@@ -281,6 +283,19 @@ export default function Rabbithole() {
               dangerouslySetInnerHTML={{ __html: rabbithole?.name || "" }}
               className={styles.editableTitle}
             />
+            {isEntered && (
+              <Group justify="center">
+                <Button
+                  leftSection={<DoorOpenIcon />}
+                  variant="default"
+                  onClick={() => {
+                    handleExitRabbithole();
+                  }}
+                >
+                  Exit Rabbithole
+                </Button>
+              </Group>
+            )}
             <SuggestTags onSelect={handleAddTag} size="sm" />
             <Card
               withBorder
@@ -337,28 +352,31 @@ export default function Rabbithole() {
                       if (thing.id.toString().startsWith("tag")) {
                         const tag = thing as ITag;
                         return (
-                          <Card key={tag.id.toString()} withBorder radius="lg">
-                            <BlockTag tag={tag} />
-                          </Card>
+                          <TagCard
+                            key={tag.id.toString()}
+                            tag={tag}
+                            actions={[
+                              {
+                                icon: <DoorOpenIcon />,
+                                id: "uninclude",
+                                label: `Uninclude`,
+                                onClick: () => {
+                                  handleUninclude(thing.id.toString());
+                                },
+                                tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
+                                color: "red",
+                              },
+                            ]}
+                          />
                         );
                       }
                     })
                     .filter((i) => !!i)
-                    .slice(0, 8)}
+                    .slice(0, isEntered ? rabbithole.includes.length : 8)}
                 </SimpleGrid>
               )}
-              <Group justify="center">
-                {isEntered ? (
-                  <Button
-                    variant="default"
-                    leftSection={<DoorOpenIcon />}
-                    onClick={() => {
-                      handleExitRabbithole();
-                    }}
-                  >
-                    Exit Rabbithole
-                  </Button>
-                ) : (
+              {!isEntered && (
+                <Group justify="center" mt="lg">
                   <Button
                     variant="light"
                     leftSection={<RabbitIcon />}
@@ -369,8 +387,8 @@ export default function Rabbithole() {
                   >
                     Enter Rabbithole
                   </Button>
-                )}
-              </Group>
+                </Group>
+              )}
             </Card>
           </Stack>
         </div>
