@@ -8,7 +8,7 @@ import {
   Search,
   ITagSearchResult, // Added for tag search results
 } from "../../services/Search";
-import { Embeddings } from "../../semantics/embeddings";
+import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { ITag } from "../../database/models/tag";
 import spyglassRouter from "./spyglass";
 
@@ -79,8 +79,8 @@ router.post("/semantic", checkToken, async (req, res) => {
       return;
     }
     const query = req.body.query as string;
-    const embeddingProcessor = new Embeddings();
-    const embedding = await embeddingProcessor.generateEmbeddings(query);
+    const embeddingProcessor = getEmbedder();
+    const embedding = await embeddingProcessor.embedContent(query);
     if (!embedding) {
       res
         .json({
@@ -208,8 +208,8 @@ router.post("/tags/semantic", checkToken, async (req, res) => {
     const limit = req.body.options?.limit as number | undefined;
     const threshold = req.body.options?.threshold as number | undefined;
 
-    const embeddingProcessor = new Embeddings();
-    const embedding = await embeddingProcessor.generateEmbeddings(query);
+    const embeddingProcessor = getEmbedder();
+    const embedding = await embeddingProcessor.embedContent(query);
     if (!embedding) {
       res
         .status(500)

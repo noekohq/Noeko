@@ -1,5 +1,6 @@
-import { ResponseSchema, SchemaType } from "@google/generative-ai";
-import { getLM, LMSchema, LMSchemaType, PromptBuilder } from "../semantics/lm";
+import { getLM } from "../ai/lms/lm";
+import { LMSchema, LMSchemaType } from "../ai/lms";
+import { PromptBuilder } from "../ai/lms/utils";
 import { ISearchOverview, ISearchResult, Search } from "./Search";
 import { IIdea } from "../database/models/ideas";
 import { formatDate, htmlToMarkdown } from "../utils/formatting";
@@ -947,7 +948,7 @@ export default class Spyglass {
         overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("fast-accurate");
       const result = await lm.generateJSON<ISearchOverview["findings"]>(
         overviewPrompt.get(),
         this.findingsSchema(results.map((r) => r.id.toString())),
@@ -1001,7 +1002,7 @@ export default class Spyglass {
         findingsPrompt.addBlock(`Result ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("fast-accurate");
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
         this.findingsSchema(results.map((r) => r.id.toString())),
