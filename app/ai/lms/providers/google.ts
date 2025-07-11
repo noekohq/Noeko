@@ -39,7 +39,7 @@ export default class GeminiProvider implements LMProvider {
           },
     );
     this._utils = new LMUtils(this);
-    this._model = "simple"; // Default model
+    this._model = ModelMap.simple;
     this._thinking = false;
   }
 
