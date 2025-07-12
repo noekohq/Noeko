@@ -8,6 +8,8 @@ import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISpyglassSearch } from "../database/models/search";
 
+type ICitationMap = Record<string, ISearchResult>;
+
 interface ISpyglassMode {
   intent: {
     bestFor: string;
@@ -23,7 +25,7 @@ interface ISpyglassMode {
   };
 }
 
-const Modes: Record<string, ISpyglassMode> = {
+export const Modes: Record<string, ISpyglassMode> = {
   briefAnswer: {
     intent: {
       bestFor: `Simple, factual queries, definition requests, and other Q&A type questions where the user wants a specific, short answer.`,
@@ -283,6 +285,43 @@ const Modes: Record<string, ISpyglassMode> = {
         ),
     },
   },
+  quickFind: {
+    intent: {
+      bestFor: "When the user is trying to find a specific resource quickly",
+      examples: [
+        "Do I have any notes on <topic>",
+        "What is my idea about <thing>",
+      ],
+    },
+    analysis: {
+      description:
+        "Quickly scans for relevant information, skipping anything that doesn't directly match the intent",
+      prompt: (query) =>
+        new PromptBuilder().addBlock(
+          "Instructions",
+          `
+          Your job is to find and extract only the most directly relevant information.
+          You should prioritize speed and efficiency, only including most useful information in your analysis.
+          The goal is to comprehensively but succinctly analyze results in accordance with the user's intent.
+          `,
+        ),
+    },
+    response: {
+      description:
+        "Outputs a quick result, giving the user a concise response with the information found.",
+      prompt: (query) =>
+        new PromptBuilder()
+          .addBlock(
+            "Instructions",
+            `
+            Output a brief response directly to the user's query based on the analysis provided.
+            **DO** provide the user with a direct and relevant answer to their query.
+            **DO NOT** include unnecessary details or information that is not directly relevant to the user's query.
+            `,
+          )
+          .addBlock("User Query", query ?? "No query provided."),
+    },
+  },
   specifiedFormat: {
     intent: {
       bestFor:
@@ -502,6 +541,13 @@ export default class Spyglass {
     return allResults;
   }
 
+  static getCitationMap(results: ISearchResult[]): ICitationMap {
+    return results.reduce((map, result) => {
+      map[result.id.toString()] = result;
+      return map;
+    }, {} as ICitationMap);
+  }
+
   static intentPromptBuilder(query: string, parent?: ISpyglassSearch | null) {
     const builder = new PromptBuilder()
       .addText(
@@ -637,8 +683,11 @@ export default class Spyglass {
         .addBlock(
           "Context",
           `
-          It is currently ${getFormattedDateTimeToday()}.
-          You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          Here is some context for you to use in formation of your analysis:
+          <context>
+            It is currently ${getFormattedDateTimeToday()}.
+            You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          </context>
           `,
         )
         .addBlock("Mission Statement", spyglassMissionStatement)
@@ -752,19 +801,18 @@ export default class Spyglass {
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addText(mode.response.prompt(query).get())
       .addBlock(
-        "Output Format: Markdown Only",
+        "Output and Citation Rules",
         `
-        - **Primary Rule:** Your entire response MUST be valid Markdown.
-        - **Citations:** To cite a source, use a Markdown link with a special \`finding:\` protocol. The link text should be the statement you are citing, and the URL will contain the finding number(s).
-          - For example, with a single source: \`[A very useful and important statement.](finding:1)\`
-          - For example, with multiple sources for a statement: \`[A very useful and informative statement.](finding:1,2)\`
-          - **Important**: The finding numbers are 1-based.
-          - **Important**: Try to keep citations granular.
-        - **Critical:** Never nest citation links.
-        - **Styling**: Use standard Markdown for styling: \`#\`, \`##\` for headings, \`*\` or \`_\` for emphasis, \`**\` or \`__\` for strong emphasis, lists with \`*\` or \`-\`, etc.
-        `,
+          - Your entire response MUST be valid Markdown.
+          - At the end of any sentence that uses information from the findings, you MUST add a citation.
+          - Place the citation immediately after the last word of the sentence, with no space.
+          - The format is a single, 1-based finding number inside brackets, like \`[1]\`.
+          - If multiple findings support a sentence, list each citation in its own separate brackets, like \`[1][2]\`.
+
+          ## Example:
+          "Qwest is a knowledge management application designed to provide natural language answers from a user's notes[1]. Its core philosophy is to help users organize their thoughts and curate knowledge effectively[2][3]."
+          `,
       )
-      .addBlock("User Query", query)
       .addBlock(
         "Strict Rules",
         `
@@ -775,6 +823,15 @@ export default class Spyglass {
           - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
           - **NEVER** start your answer with a heading.
           `,
+      )
+      .addBlock(
+        "User Query",
+        `
+        The user's query is:
+        <userQuery>
+          ${query}
+        </userQuery>
+        `,
       )
       .addBlock(
         "Findings",
@@ -819,14 +876,12 @@ export default class Spyglass {
       if (!query.length) {
         return undefined;
       }
-      console.log("Getting intent w/ parent: ", parent?.analysis);
       const lm = getLM().withModel("simple");
       const prompt = this.intentPromptBuilder(query, parent).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
       );
-      console.log("GOT INTENT: ", intent);
       if (!intent) {
         throw new Error("Did not get intent from LM");
       }
@@ -835,6 +890,21 @@ export default class Spyglass {
       console.error("Error in getIntentFromQuery:", error);
       return undefined;
     }
+  }
+
+  static resultToString(result: ISearchResult) {
+    let r = "";
+    const { highlightText, value } = result;
+    const ideaValue = value as IIdea;
+    r += "<result>";
+    r += ` <title>${ideaValue.title}</title>`;
+    r += ` <id>${ideaValue.id}</id>`;
+    if (highlightText) {
+      r += `  <systemHighlightedText>${highlightText}</systemHighlightedText>`;
+    }
+    r += `  <content>${htmlToMarkdown(ideaValue.content)}</content>`;
+    r += "</result>";
+    return r;
   }
 
   static async getFindingsFromResults(
@@ -851,16 +921,7 @@ export default class Spyglass {
           return r.value?.type === "idea";
         })
         .map((result) => {
-          let r = "";
-          const { highlightText, value } = result;
-          const ideaValue = value as IIdea;
-          r += `**${ideaValue.title}** | ID: ${ideaValue.id.toString()}`;
-          r += `**Created: ${formatDate(ideaValue.createdAt)} | Updated: ${formatDate(ideaValue.updatedAt)}**`;
-          if (highlightText) {
-            r += `System Highlighted Text: ${highlightText}`;
-          }
-          r += `${htmlToMarkdown(ideaValue.content)}`;
-          return r;
+          return this.resultToString(result);
         });
       const overviewPrompt = this.findingsPromptBuilder(
         intent.intent,
@@ -906,15 +967,7 @@ export default class Spyglass {
           return r.value?.type === "idea";
         })
         .map((result) => {
-          let r = "";
-          const { highlightText, value } = result;
-          const ideaValue = value as IIdea;
-          r += `**${ideaValue.title}** | ID: ${ideaValue.id.toString()}`;
-          if (highlightText) {
-            r += `System Highlighted Text: ${highlightText}`;
-          }
-          r += `${htmlToMarkdown(ideaValue.content)}`;
-          return r;
+          return this.resultToString(result);
         });
       const findingsPrompt = this.findingsPromptBuilder(
         query,
@@ -946,27 +999,44 @@ export default class Spyglass {
     }
   }
 
+  static findingToString(
+    finding: IFinding,
+    citationMap: ICitationMap,
+    index: number,
+  ) {
+    let t = "";
+    const { excerpt, analysis, sourceId, findingType } = finding;
+    const source = citationMap[sourceId];
+    t += "<finding>";
+    t += `  <sourceId>${sourceId}</sourceId>`;
+    if (source.value.type === "idea") {
+      t += `  <sourceTitle>${source.value.title}</sourceTitle>`;
+    }
+    t += `  <findingNumber>${index}</findingNumber>`;
+    t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
+    t += `  <type>${findingType}</type>`;
+    t += `  <analysis>${htmlToMarkdown(analysis)}</analysis>`;
+    t += "</finding>";
+    return t;
+  }
+
   static async getOverviewFromFindings(
     query: string,
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
+    results: ISearchResult[],
   ): Promise<ISearchOverview["overview"] | undefined> {
     try {
       if (findings.length === 0) {
         return "There were no results to analyze.";
       }
-      const findingsString = findings.map((finding, index) => {
-        let t = "";
-        const { excerpt, analysis, sourceId, findingType } = finding;
-        t += "<finding>";
-        t += `  <sourceId>${sourceId}</sourceId>`;
-        t += `  <findingNumber>${index}</findingNumber>`;
-        t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
-        t += `  <type>${findingType}</type>`;
-        t += `  <analysis>${htmlToMarkdown(analysis)}</analysis>`;
-        t += "</finding>";
-        return t;
-      });
+      const findingsString: string[] = [];
+      let index = 0;
+      const citationMap = this.getCitationMap(results);
+      for (const finding of findings) {
+        findingsString.push(this.findingToString(finding, citationMap, index));
+        index++;
+      }
       const overviewPrompt = this.overviewPromptBuilder(
         query,
         Modes[intent.mode],
@@ -978,7 +1048,7 @@ export default class Spyglass {
         if (totalSize + s.length > max_lm_prompt_size) {
           return;
         }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
+        overviewPrompt.addBlock(`Finding ${i + 1}`, s, 2);
       });
 
       const lm = getLM().withModel("simple");
@@ -1004,6 +1074,7 @@ export default class Spyglass {
     query: string,
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
+    results: ISearchResult[],
     parent?: ISpyglassSearch,
   ): AsyncGenerator<string, void, unknown> {
     try {
@@ -1011,18 +1082,13 @@ export default class Spyglass {
         yield "There were no results to analyze.";
         return;
       }
-      const findingsString = findings.map((finding, index) => {
-        let t = "";
-        const { excerpt, analysis, sourceId, findingType } = finding;
-        t += "<finding>";
-        t += `  <sourceId>${sourceId}</sourceId>`;
-        t += `  <findingNumber>${index}</findingNumber>`;
-        t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
-        t += `  <type>${findingType}</type>`;
-        t += `  <analysis>${htmlToMarkdown(analysis)}</analysis>`;
-        t += "</finding>";
-        return t;
-      });
+      const findingsString: string[] = [];
+      const citationMap = this.getCitationMap(results);
+      let index = 0;
+      for (const finding of findings) {
+        findingsString.push(this.findingToString(finding, citationMap, index));
+        index++;
+      }
       const overviewPrompt = this.overviewPromptBuilder(
         query,
         Modes[intent.mode],

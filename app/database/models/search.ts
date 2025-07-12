@@ -533,6 +533,7 @@ export class SpyglassSearch {
         search.baseQuery,
         search.analysis.findings,
         search.intent,
+        search.fullResults || [],
       );
       if (!overview) {
         throw new Error("No overview found");
@@ -761,6 +762,7 @@ export class SpyglassSearch {
             spyglass.baseQuery,
             spyglass.analysis.findings,
             spyglass.intent,
+            spyglass.fullResults || [],
             spyglass.parent,
           )) {
             completeOverview += chunk;

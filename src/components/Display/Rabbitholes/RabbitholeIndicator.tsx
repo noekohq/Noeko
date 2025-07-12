@@ -25,7 +25,7 @@ export function RabbitholeIndicator() {
       }}
     >
       <div className={styles.rabbitholeIndicator}>
-        <RabbitIcon weight="bold" />
+        <RabbitIcon weight="bold" size={16} />
         <Text
           w={"100%"}
           truncate={"end"}
