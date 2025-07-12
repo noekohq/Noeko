@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
   Title,
+  Transition,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import Content from "../../components/UI/Layout/Content";
@@ -18,7 +19,7 @@ import useFetch from "../../hooks/useFetch";
 import { IRabbithole } from "../../../app/database/models/rabbithole";
 import { useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { api } from "../../server/api";
 import styles from "./Rabbithole.module.scss";
@@ -29,15 +30,26 @@ import {
   DoorIcon,
   DoorOpenIcon,
   InfoIcon,
+  PlusIcon,
   RabbitIcon,
 } from "@phosphor-icons/react";
 import { IIdea } from "../../../app/database/models/ideas";
-import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
+import {
+  CompactIdeaCard,
+  StandardIdeaCard,
+} from "../../components/Display/Ideas/IdeaCards";
 import Search from "../../components/Search/Search";
-import { includeThing, unIncludeThing } from "../../utils/rabbitholes";
+import {
+  includeThingInRabbithole,
+  unIncludeThingInRabbithole,
+} from "../../utils/rabbitholes";
 import { BlockTag } from "../../components/Tags/TagDisplay";
 import { RecordId } from "surrealdb";
 import TagCard from "../../components/Tags/TagCard";
+import { useLayout } from "../../contexts/LayoutContext";
+import { SearchBar } from "../../components/Search/SearchBar";
+import { useSearch } from "../../contexts/SearchContext";
+import { IdeaAction } from "../../components/Display/Ideas/IdeaCardTypes";
 
 export default function Rabbithole() {
   const { rabbitholeId } = useParams();
@@ -70,13 +82,10 @@ export default function Rabbithole() {
     dependencies: [rabbitholeId],
   });
 
-  const sendingRequest = useRef(false);
   useEffect(() => {
-    if (rabbitholeId && !sendingRequest.current) {
+    if (rabbitholeId) {
       (async () => {
-        sendingRequest.current = true;
         await loadRelatedIdeas();
-        sendingRequest.current = false;
       })();
     }
   }, [rabbitholeId]);
@@ -114,7 +123,7 @@ export default function Rabbithole() {
       });
   };
 
-  const thingIsConnected = (thingId: string) => {
+  const isIncluded = (thingId: string) => {
     return !!rabbithole?.includes?.find((i) => i.id.toString() === thingId);
   };
 
@@ -124,7 +133,7 @@ export default function Rabbithole() {
       if (currentlyAddingTag.current) {
         return false;
       }
-      if (thingIsConnected(tag.id.toString()) || !rabbitholeId) {
+      if (isIncluded(tag.id.toString()) || !rabbitholeId) {
         showNotification({
           title: "Can't connect again",
           message: "Can't connect this idea again.",
@@ -133,7 +142,7 @@ export default function Rabbithole() {
         return;
       }
       currentlyAddingTag.current = true;
-      await includeThing(rabbitholeId, tag.id.toString());
+      await includeThingInRabbithole(rabbitholeId, tag.id.toString());
     } catch (error) {
       console.error("Error adding tag: ", error);
       showNotification({
@@ -143,6 +152,7 @@ export default function Rabbithole() {
       });
     } finally {
       currentlyAddingTag.current = false;
+      handleRefresh();
     }
   };
 
@@ -164,49 +174,85 @@ export default function Rabbithole() {
 
   const [draggingOver, setDraggingOver] = useState(false);
 
-  const currentlyAdding = useRef(false);
-  const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    try {
-      if (!rabbithole) {
-        return;
+  const handleConnectionDrop = useCallback(
+    async (e: React.DragEvent<HTMLDivElement>) => {
+      console.log("Trying to drop");
+      try {
+        if (!rabbithole) {
+          return;
+        }
+        const jData = e.dataTransfer.getData("application/json");
+        const data = JSON.parse(jData) as { ideaId: string };
+        const { ideaId } = data;
+        if (isIncluded(ideaId)) {
+          showNotification({
+            title: "Can't connect again",
+            message: "Can't connect this idea again.",
+            color: "yellow",
+          });
+          return;
+        }
+        await includeThingInRabbithole(rabbithole.id.toString(), ideaId);
+        handleRefresh();
+      } catch (error) {
+        console.error("Error creating connection: ", error);
+      } finally {
+        setDraggingOver(false);
       }
-      if (currentlyAdding.current) {
-        return;
-      }
-      const jData = e.dataTransfer.getData("application/json");
-      const data = JSON.parse(jData) as { ideaId: string };
-      const { ideaId } = data;
-      if (thingIsConnected(ideaId)) {
-        showNotification({
-          title: "Can't connect again",
-          message: "Can't connect this idea again.",
-          color: "yellow",
-        });
-        currentlyAdding.current = false;
-        return;
-      }
-      currentlyAdding.current = true;
-      await includeThing(rabbithole.id.toString(), ideaId);
-      currentlyAddingTag.current = false;
-      handleRefresh();
-    } catch (error) {
-      console.error("Error creating connection: ", error);
-    } finally {
-      setDraggingOver(false);
-      currentlyAddingTag.current = false;
-    }
-  };
+    },
+    [rabbithole],
+  );
 
-  const handleUninclude = (thingId: string | RecordId) => {
+  const [includingThing, setIsIncludingThing] = useState<string>();
+  const handleInclude = (thingId: string | RecordId) => {
     if (!rabbithole?.id.toString()) {
       return;
     }
-    unIncludeThing(rabbithole?.id.toString(), thingId.toString()).then(() => {
+    setIsIncludingThing(thingId.toString());
+    includeThingInRabbithole(
+      rabbithole?.id.toString(),
+      thingId.toString(),
+    ).finally(() => {
       handleRefresh();
+      setIsIncludingThing(undefined);
     });
   };
 
+  const isIncludingThing = (thingId: string) => {
+    return includingThing === thingId;
+  };
+
+  const [unincluding, setUnincluding] = useState<string>();
+  const handleUninclude = (thingId: string | RecordId) => {
+    if (!rabbithole?.id.toString()) {
+      showNotification({
+        title: "Something went wrong.",
+        message: "Something went wrong unincluding this item.",
+      });
+      return;
+    }
+    setUnincluding(thingId.toString());
+    unIncludeThingInRabbithole(
+      rabbithole?.id.toString(),
+      thingId.toString(),
+    ).finally(() => {
+      handleRefresh();
+      setUnincluding(undefined);
+    });
+  };
+  const isUnincluding = (thingId: string) => {
+    return unincluding === thingId;
+  };
+
   const navigate = useNavigate();
+
+  const { isMobile } = useLayout();
+
+  const {
+    global: {
+      results: { get: searchResults },
+    },
+  } = useSearch();
 
   return (
     <PageWrapper>
@@ -217,24 +263,77 @@ export default function Rabbithole() {
         <LeftSidebar.Open>
           <Stack>
             <Title order={3}>Suggested Ideas</Title>
-            {relatedIdeas
-              ?.filter((r) => {
-                return rabbithole?.includes?.find(
-                  (i) => i.id.toString() === r.id.toString(),
-                );
-              })
-              ?.map((idea) => {
+            {!relatedIdeas?.length && (
+              <Text>No currently suggested ideas.</Text>
+            )}
+            <Transition
+              mounted={!includingThing && !loadingRelatedIdeas}
+              transition="fade-up"
+            >
+              {(style) => {
                 return (
-                  <CompactIdeaCard
-                    key={idea.id.toString()}
-                    onCardClick={() => {
-                      navigate(`/idea/${idea.id.toString()}`);
-                    }}
-                    idea={idea}
-                    draggable
-                  />
+                  <Stack style={style}>
+                    {relatedIdeas
+                      ?.filter((r) => {
+                        return !isIncluded(r.id.toString());
+                      })
+                      ?.map((idea) => {
+                        if (isMobile) {
+                          return (
+                            <StandardIdeaCard
+                              key={idea.id.toString()}
+                              onCardClick={() => {
+                                navigate(`/idea/${idea.id.toString()}`);
+                              }}
+                              idea={idea}
+                              draggable
+                              actions={[
+                                {
+                                  id: "connect",
+                                  icon: isIncludingThing(idea.id.toString()) ? (
+                                    <Loader size="sm" />
+                                  ) : (
+                                    <PlusIcon />
+                                  ),
+                                  label: "Include",
+                                  onClick: () => {
+                                    handleInclude(idea.id.toString());
+                                  },
+                                },
+                              ]}
+                            />
+                          );
+                        }
+                        return (
+                          <CompactIdeaCard
+                            key={idea.id.toString()}
+                            onCardClick={() => {
+                              navigate(`/idea/${idea.id.toString()}`);
+                            }}
+                            idea={idea}
+                            draggable
+                          />
+                        );
+                      })}
+                  </Stack>
                 );
-              })}
+              }}
+            </Transition>
+            <Transition
+              mounted={!!includingThing || loadingRelatedIdeas}
+              transition="fade-up"
+            >
+              {(styles) => {
+                return (
+                  <div style={styles}>
+                    <Group gap="xs" align="center">
+                      <Loader size="xs" />
+                      <Text>Looking for related ideas...</Text>
+                    </Group>
+                  </div>
+                );
+              }}
+            </Transition>
           </Stack>
         </LeftSidebar.Open>
       </LeftSidebar>
@@ -242,9 +341,6 @@ export default function Rabbithole() {
         <div
           onDragOver={() => {
             setDraggingOver(true);
-          }}
-          onDrop={(e) => {
-            handleConnectionDrop(e);
           }}
           onDragLeave={(e) => {
             setDraggingOver(false);
@@ -259,6 +355,7 @@ export default function Rabbithole() {
               }}
               onDrop={(e) => {
                 handleConnectionDrop(e);
+                setDraggingOver(false);
               }}
               radius={"lg"}
             >
@@ -283,119 +380,296 @@ export default function Rabbithole() {
               dangerouslySetInnerHTML={{ __html: rabbithole?.name || "" }}
               className={styles.editableTitle}
             />
-            {isEntered && (
-              <Group justify="center">
+            {!isEntered && isMobile && (
+              <Group justify="center" mt="lg">
                 <Button
-                  leftSection={<DoorOpenIcon />}
-                  variant="default"
+                  variant="light"
+                  leftSection={<RabbitIcon />}
                   onClick={() => {
-                    handleExitRabbithole();
+                    handleEnterRabbithole();
                   }}
+                  color="green"
                 >
-                  Exit Rabbithole
+                  Enter Rabbithole
                 </Button>
               </Group>
             )}
             <SuggestTags onSelect={handleAddTag} size="sm" />
-            <Card
-              withBorder
-              radius="lg"
-              classNames={{
-                root: styles.contentArea,
-              }}
+            <Transition
+              mounted={isEntered}
+              transition="fade-up"
+              duration={300}
+              enterDelay={300}
             >
-              {!rabbithole?.includes?.length && (
-                <Text size="sm" ta="center">
-                  Start by adding tags or ideas to your rabbithole!
-                </Text>
-              )}
-              {!rabbithole?.includes?.length && (
-                <Alert color="gray" title="Tip" icon={<InfoIcon />} radius="lg">
-                  You can drag and drop ideas from the search results into this
-                  area to include them!
-                </Alert>
-              )}
-              {!!rabbithole?.includes?.length && (
-                <SimpleGrid
-                  cols={{
-                    sm: 1,
-                    md: 2,
-                    lg: 3,
-                  }}
-                >
-                  {rabbithole.includes
-                    .map((thing) => {
-                      if (thing.id.toString().startsWith("idea")) {
-                        const idea = thing as IIdea;
-                        return (
-                          <CompactIdeaCard
-                            key={idea.id.toString()}
-                            onCardClick={() => {
-                              navigate(`/idea/${idea.id.toString()}`);
-                            }}
-                            idea={idea}
-                            actions={[
-                              {
-                                icon: <DoorOpenIcon />,
-                                id: "uninclude",
-                                label: `Uninclude`,
-                                onClick: () => {
-                                  handleUninclude(thing.id.toString());
-                                },
-                                tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                color: "red",
-                              },
-                            ]}
-                          />
-                        );
-                      }
-                      if (thing.id.toString().startsWith("tag")) {
-                        const tag = thing as ITag;
-                        return (
-                          <TagCard
-                            key={tag.id.toString()}
-                            tag={tag}
-                            actions={[
-                              {
-                                icon: <DoorOpenIcon />,
-                                id: "uninclude",
-                                label: `Uninclude`,
-                                onClick: () => {
-                                  handleUninclude(thing.id.toString());
-                                },
-                                tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
-                                color: "red",
-                              },
-                            ]}
-                          />
-                        );
-                      }
-                    })
-                    .filter((i) => !!i)
-                    .slice(0, isEntered ? rabbithole.includes.length : 8)}
-                </SimpleGrid>
-              )}
-              {!isEntered && (
-                <Group justify="center" mt="lg">
-                  <Button
-                    variant="light"
-                    leftSection={<RabbitIcon />}
-                    onClick={() => {
-                      handleEnterRabbithole();
+              {(style) => {
+                if (
+                  !(isEntered && !!rabbithole && !!rabbithole.includes?.length)
+                ) {
+                  return (
+                    <Text style={style} size="sm" ta="center">
+                      There is no content in this rabbithole.
+                    </Text>
+                  );
+                }
+                return (
+                  <SimpleGrid
+                    cols={{
+                      sm: 1,
+                      md: 2,
+                      lg: 3,
                     }}
-                    color="green"
+                    style={style}
                   >
-                    Enter Rabbithole
-                  </Button>
-                </Group>
-              )}
-            </Card>
+                    {rabbithole.includes
+                      .map((thing) => {
+                        if (thing.id.toString().startsWith("idea")) {
+                          const idea = thing as IIdea;
+                          if (isMobile) {
+                            return (
+                              <StandardIdeaCard
+                                key={idea.id.toString()}
+                                onCardClick={() => {
+                                  navigate(`/idea/${idea.id.toString()}`);
+                                }}
+                                idea={idea}
+                                actions={[
+                                  {
+                                    icon: <DoorOpenIcon />,
+                                    id: "uninclude",
+                                    label: `Remove`,
+                                    onClick: () => {
+                                      handleUninclude(thing.id.toString());
+                                    },
+                                    tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
+                                    color: "gray",
+                                  },
+                                ]}
+                              />
+                            );
+                          }
+                          return (
+                            <CompactIdeaCard
+                              key={idea.id.toString()}
+                              onCardClick={() => {
+                                navigate(`/idea/${idea.id.toString()}`);
+                              }}
+                              idea={idea}
+                              actions={[
+                                {
+                                  icon: <DoorOpenIcon />,
+                                  id: "uninclude",
+                                  label: `Uninclude`,
+                                  onClick: () => {
+                                    handleUninclude(thing.id.toString());
+                                  },
+                                  tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
+                                  color: "red",
+                                },
+                              ]}
+                            />
+                          );
+                        }
+                        if (thing.id.toString().startsWith("tag")) {
+                          const tag = thing as ITag;
+                          return (
+                            <TagCard
+                              key={tag.id.toString()}
+                              tag={tag}
+                              actions={[
+                                {
+                                  icon: <DoorOpenIcon />,
+                                  id: "uninclude",
+                                  label: `Uninclude`,
+                                  onClick: () => {
+                                    handleUninclude(thing.id.toString());
+                                  },
+                                  tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
+                                  color: "red",
+                                },
+                              ]}
+                            />
+                          );
+                        }
+                      })
+                      .filter((i) => !!i)
+                      .slice(0, isEntered ? rabbithole.includes.length : 8)}
+                  </SimpleGrid>
+                );
+              }}
+            </Transition>
+            <Transition
+              mounted={!isEntered}
+              transition="fade-up"
+              duration={300}
+              enterDelay={300}
+            >
+              {(style) => {
+                return (
+                  <Card
+                    withBorder={!isEntered}
+                    radius="lg"
+                    classNames={{
+                      root: styles.contentArea,
+                    }}
+                    style={style}
+                  >
+                    {!rabbithole?.includes?.length && (
+                      <Text size="sm" ta="center">
+                        Start by adding tags or ideas to your rabbithole!
+                      </Text>
+                    )}
+                    {!rabbithole?.includes?.length && !isMobile && (
+                      <Alert
+                        color="gray"
+                        title="Tip"
+                        icon={<InfoIcon />}
+                        radius="lg"
+                      >
+                        You can drag and drop ideas from the search results into
+                        this area to include them!
+                      </Alert>
+                    )}
+                    {!!rabbithole?.includes?.length && (
+                      <SimpleGrid
+                        cols={{
+                          sm: 1,
+                          md: 2,
+                          lg: 3,
+                        }}
+                      >
+                        {rabbithole.includes
+                          .map((thing) => {
+                            if (thing.id.toString().startsWith("idea")) {
+                              const idea = thing as IIdea;
+                              if (isMobile) {
+                                return (
+                                  <StandardIdeaCard
+                                    key={idea.id.toString()}
+                                    onCardClick={() => {
+                                      navigate(`/idea/${idea.id.toString()}`);
+                                    }}
+                                    idea={idea}
+                                    actions={[
+                                      {
+                                        icon: <DoorOpenIcon />,
+                                        id: "uninclude",
+                                        label: `Remove`,
+                                        onClick: () => {
+                                          handleUninclude(thing.id.toString());
+                                        },
+                                        tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
+                                        color: "gray",
+                                      },
+                                    ]}
+                                  />
+                                );
+                              }
+                              return (
+                                <CompactIdeaCard
+                                  key={idea.id.toString()}
+                                  onCardClick={() => {
+                                    navigate(`/idea/${idea.id.toString()}`);
+                                  }}
+                                  idea={idea}
+                                  actions={[
+                                    {
+                                      icon: <DoorOpenIcon />,
+                                      id: "uninclude",
+                                      label: `Uninclude`,
+                                      onClick: () => {
+                                        handleUninclude(thing.id.toString());
+                                      },
+                                      tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
+                                      color: "red",
+                                    },
+                                  ]}
+                                />
+                              );
+                            }
+                            if (thing.id.toString().startsWith("tag")) {
+                              const tag = thing as ITag;
+                              return (
+                                <TagCard
+                                  key={tag.id.toString()}
+                                  tag={tag}
+                                  actions={[
+                                    {
+                                      icon: <DoorOpenIcon />,
+                                      id: "uninclude",
+                                      label: `Uninclude`,
+                                      onClick: () => {
+                                        handleUninclude(thing.id.toString());
+                                      },
+                                      tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
+                                      color: "red",
+                                    },
+                                  ]}
+                                />
+                              );
+                            }
+                          })
+                          .filter((i) => !!i)
+                          .slice(0, isEntered ? rabbithole.includes.length : 8)}
+                      </SimpleGrid>
+                    )}
+                    <Transition
+                      mounted={!isEntered && !isMobile}
+                      transition="fade-up"
+                      timingFunction="ease-out"
+                      duration={200}
+                    >
+                      {(style) => {
+                        return (
+                          <Group justify="center" mt="lg" style={style}>
+                            <Button
+                              variant="light"
+                              leftSection={<RabbitIcon />}
+                              onClick={() => {
+                                handleEnterRabbithole();
+                              }}
+                              color="green"
+                            >
+                              Enter Rabbithole
+                            </Button>
+                          </Group>
+                        );
+                      }}
+                    </Transition>
+                  </Card>
+                );
+              }}
+            </Transition>
           </Stack>
         </div>
       </Content>
       <RightSidebar>
         <RightSidebar.Open>
-          <Search />
+          <Search
+            resultFilter={(id) => {
+              return !isIncluded(id);
+            }}
+            resultSize={isMobile ? "standard" : undefined}
+            resultActions={
+              isMobile
+                ? [
+                    (idea) => {
+                      return {
+                        id: "connect",
+                        icon: isIncludingThing(idea.id.toString()) ? (
+                          <Loader size="sm" />
+                        ) : (
+                          <PlusIcon />
+                        ),
+                        label: "Include",
+                        onClick: () => {
+                          handleInclude(idea.id.toString());
+                        },
+                      };
+                    },
+                  ]
+                : undefined
+            }
+          />
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

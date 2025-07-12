@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Button,
   Card,
   Group,
@@ -40,8 +41,19 @@ export default function Rabbitholes() {
       <Content>
         <Stack>
           <Group>
-            <RabbitIcon size="36px" weight="bold" />
-            <Title>Your Rabbitholes</Title>
+            <Group>
+              <RabbitIcon size="36px" weight="bold" />
+              <Title>Your Rabbitholes</Title>
+              <ActionIcon
+                variant="light"
+                color="green"
+                onClick={() => {
+                  newRabbithole();
+                }}
+              >
+                <PlusIcon weight="bold" />
+              </ActionIcon>
+            </Group>
           </Group>
           {!rabbitholes?.length && (
             <>

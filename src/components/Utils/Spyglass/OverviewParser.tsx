@@ -197,7 +197,6 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
   resultsMap,
   analysis,
 }) => {
-  console.log("Recieved markdown: ", markdown);
   const urlTransform = (url: string) => {
     const supportedProtocols = [
       "http:",
@@ -218,7 +217,6 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
         urlTransform={urlTransform}
         components={{
           a: ({ node, ...props }) => {
-            console.log("Got a link node: ", node, props);
             if (props.href?.startsWith("finding:")) {
               const findingNumberStr = props.href.substring(8);
               const findingNumbers = findingNumberStr

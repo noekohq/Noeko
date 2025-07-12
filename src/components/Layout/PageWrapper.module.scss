@@ -39,6 +39,7 @@
 
 .rabbitholeIndicator {
     position: fixed;
+    max-width: 50vw;
     bottom: calc(var(--layout-spacing) * 2);
     animation: rabbitholeIn 0.2s ease-in-out forwards;
 }

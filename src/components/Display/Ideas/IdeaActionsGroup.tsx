@@ -50,6 +50,7 @@ export function IdeaActionsGroup({
             variant={action.variant || "light"}
             color={action.color}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               action.onClick(e, idea);
             }}

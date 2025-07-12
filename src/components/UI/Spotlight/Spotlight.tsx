@@ -1,11 +1,4 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-  useCallback,
-  ReactNode,
-} from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { createPortal } from "react-dom";
 import styles from "./Spotlight.module.scss";
@@ -27,6 +20,7 @@ import {
   ShareNetworkIcon,
   HouseIcon,
   RabbitIcon,
+  DoorOpenIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -44,6 +38,7 @@ import type {
   SpotlightMainItem,
 } from "./spotlight.d";
 import { getNodeDescription } from "../../../utils/graph";
+import useRabbithole from "../../../hooks/useRabbithole";
 
 const minisearch = new MiniSearch<IUnifiedSearchItem>({
   fields: ["title", "keywords"],
@@ -461,6 +456,9 @@ const useSpotlightConfig = ({
     },
   } = useSettings();
 
+  const { exitRabbithole, isDownRabbithole } = useRabbithole();
+  const { isSuperuser } = useAuth();
+
   const {
     state: { spotlightOpened },
     actions: {
@@ -485,6 +483,124 @@ const useSpotlightConfig = ({
   } = useInteraction();
 
   const navigate = useNavigate();
+
+  const mainSpotlightItems = useMemo<SpotlightMainItem[]>(
+    () => [
+      {
+        id: "closeCmd",
+        title: "Close",
+        icon: <ArrowLeftIcon />,
+        action: onClose,
+      },
+      {
+        id: "ideaSwitcher",
+        title: "Find idea",
+        subviewId: "ideaSwitcherSubview",
+        icon: <MagnifyingGlassIcon />,
+      },
+      {
+        id: "ideas",
+        title: "Ideas",
+        icon: <LightbulbIcon />,
+        subviewId: "ideasSubview",
+      },
+      {
+        id: "rabbitholes",
+        title: "Rabbitholes",
+        icon: <RabbitIcon />,
+        subviewId: "rabbitholesSubview",
+      },
+      {
+        id: "homeCmd",
+        title: "Home",
+        icon: <HouseIcon />,
+        action: () => {
+          dashboard();
+          onClose();
+        },
+      },
+      {
+        id: "graphCmd",
+        title: "Constellation",
+        icon: <GraphIcon />,
+        action: () => {
+          viewGraph();
+          onClose();
+        },
+      },
+      {
+        id: "spyglassCmd",
+        title: "Spyglass",
+        icon: <MagnifyingGlassIcon />,
+        action: () => {
+          spyglass();
+          onClose();
+        },
+      },
+      {
+        id: "tagsCmd",
+        title: "Tags",
+        icon: <TagIcon />,
+        action: () => {
+          tags();
+          onClose();
+        },
+      },
+      {
+        id: "updatesCmd",
+        title: "Updates",
+        icon: <ScrollIcon />,
+        action: () => {
+          updates();
+          onClose();
+        },
+      },
+      {
+        id: "settingsCmd",
+        title: "Settings",
+        icon: <GearIcon />,
+        action: () => {
+          settings();
+          onClose();
+        },
+      },
+      {
+        id: "profileCmd",
+        title: "Profile",
+        icon: <UserIcon />,
+        action: () => {
+          profile();
+          onClose();
+        },
+      },
+      {
+        id: "themeCmd",
+        title: "Theme",
+        icon: <SunIcon />,
+        subviewId: "themeSelectorSubview",
+        keywords: "light dark",
+      },
+      {
+        id: "fontCmd",
+        title: "Font",
+        icon: <TextAaIcon />,
+        subviewId: "fontSelectorSubview",
+        keywords: "serif sans-serif",
+      },
+    ],
+    [
+      onClose,
+      newIdea,
+      dashboard,
+      viewGraph,
+      spyglass,
+      ideas,
+      tags,
+      updates,
+      settings,
+      profile,
+    ],
+  );
 
   const subviewDefinitions = useMemo<Map<string, ISubviewDefinition>>(
     () =>
@@ -603,6 +719,19 @@ const useSpotlightConfig = ({
                   onClose();
                 },
               },
+              ...(isDownRabbithole
+                ? [
+                    {
+                      id: "exitRabbithole",
+                      title: "Exit Rabbithole",
+                      icon: <DoorOpenIcon />,
+                      action: () => {
+                        exitRabbithole();
+                        onClose();
+                      },
+                    },
+                  ]
+                : []),
             ],
           },
         ],
@@ -639,124 +768,6 @@ const useSpotlightConfig = ({
         ],
       ]),
     [setScheme, setBodyFont],
-  );
-
-  const mainSpotlightItems = useMemo<SpotlightMainItem[]>(
-    () => [
-      {
-        id: "closeCmd",
-        title: "Close",
-        icon: <ArrowLeftIcon />,
-        action: onClose,
-      },
-      {
-        id: "ideaSwitcher",
-        title: "Find idea",
-        subviewId: "ideaSwitcherSubview",
-        icon: <MagnifyingGlassIcon />,
-      },
-      {
-        id: "ideas",
-        title: "Ideas",
-        icon: <LightbulbIcon />,
-        subviewId: "ideasSubview",
-      },
-      {
-        id: "rabbitholes",
-        title: "Rabbitholes",
-        icon: <RabbitIcon />,
-        subviewId: "rabbitholesSubview",
-      },
-      {
-        id: "homeCmd",
-        title: "Home",
-        icon: <HouseIcon />,
-        action: () => {
-          dashboard();
-          onClose();
-        },
-      },
-      {
-        id: "graphCmd",
-        title: "Constellation",
-        icon: <GraphIcon />,
-        action: () => {
-          viewGraph();
-          onClose();
-        },
-      },
-      {
-        id: "spyglassCmd",
-        title: "Spyglass",
-        icon: <MagnifyingGlassIcon />,
-        action: () => {
-          spyglass();
-          onClose();
-        },
-      },
-      {
-        id: "tagsCmd",
-        title: "Tags",
-        icon: <TagIcon />,
-        action: () => {
-          tags();
-          onClose();
-        },
-      },
-      {
-        id: "updatesCmd",
-        title: "Updates",
-        icon: <ScrollIcon />,
-        action: () => {
-          updates();
-          onClose();
-        },
-      },
-      {
-        id: "settingsCmd",
-        title: "Settings",
-        icon: <GearIcon />,
-        action: () => {
-          settings();
-          onClose();
-        },
-      },
-      {
-        id: "profileCmd",
-        title: "Profile",
-        icon: <UserIcon />,
-        action: () => {
-          profile();
-          onClose();
-        },
-      },
-      {
-        id: "themeCmd",
-        title: "Theme",
-        icon: <SunIcon />,
-        subviewId: "themeSelectorSubview",
-        keywords: "light dark",
-      },
-      {
-        id: "fontCmd",
-        title: "Font",
-        icon: <TextAaIcon />,
-        subviewId: "fontSelectorSubview",
-        keywords: "serif sans-serif",
-      },
-    ],
-    [
-      onClose,
-      newIdea,
-      dashboard,
-      viewGraph,
-      spyglass,
-      ideas,
-      tags,
-      updates,
-      settings,
-      profile,
-    ],
   );
 
   return {

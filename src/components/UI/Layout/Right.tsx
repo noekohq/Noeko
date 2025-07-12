@@ -50,6 +50,12 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
     }
   }, [openable]);
 
+  useEffect(() => {
+    if (isMobile) {
+      setMode("collapsed");
+    }
+  }, []);
+
   useShortcuts({
     shortcuts: openable
       ? [
@@ -177,7 +183,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
       className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}
       {...sidebarProps}
     >
-      {["open", "hovering"].includes(mode) ? (
+      {["open", "hovering"].includes(mode) && !isMobile ? (
         <>
           {children && <div className={styles.content}>{children}</div>}
           <div className={styles.global} {...globalElementProps}>

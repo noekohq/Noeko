@@ -29,7 +29,10 @@ export const handleCreateNewRabbithole = async (
   }
 };
 
-export const includeThing = async (rabbitholeId: string, thingId: string) => {
+export const includeThingInRabbithole = async (
+  rabbitholeId: string,
+  thingId: string,
+) => {
   try {
     return await api
       .post(`/rabbitholes/${rabbitholeId}/include`, {
@@ -54,7 +57,10 @@ export const includeThing = async (rabbitholeId: string, thingId: string) => {
   }
 };
 
-export const unIncludeThing = async (rabbitholeId: string, thingId: string) => {
+export const unIncludeThingInRabbithole = async (
+  rabbitholeId: string,
+  thingId: string,
+) => {
   try {
     return await api
       .post(`/rabbitholes/${rabbitholeId}/uninclude`, {

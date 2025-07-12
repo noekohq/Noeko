@@ -10,6 +10,7 @@ import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { getReferralLinkFromCode } from "../vars/users";
 import { handleLogout } from "../server/auth";
+import { userIsSuperuser } from "../utils/user";
 
 type AuthState = {
   user: (ISafeUser & { totalIdeas: number }) | undefined;
@@ -24,6 +25,7 @@ type AuthActions = {
   logout: () => void;
   reload: () => Promise<void>;
   loggedIn: boolean;
+  isSuperuser: boolean;
 };
 
 type IAuthContext = AuthState & AuthActions;
@@ -41,6 +43,7 @@ const initialAuthActions: AuthActions = {
   logout: () => {},
   reload: async () => {},
   loggedIn: false,
+  isSuperuser: false,
 };
 
 const AuthContext = createContext<IAuthContext>({
@@ -145,6 +148,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         referralLink: user?.referralCode
           ? getReferralLinkFromCode(user.referralCode)
           : undefined,
+        isSuperuser: userIsSuperuser(user),
       }) satisfies IAuthContext,
     [user, loading, setTokens, clearTokens, login, logout, reload],
   );

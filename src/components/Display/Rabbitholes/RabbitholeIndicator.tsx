@@ -37,7 +37,11 @@ export function RabbitholeIndicator() {
           {currentRabbithole?.name}
         </Text>
         <ActionIcon
-          onClick={() => setRabbithole(null)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setRabbithole(null);
+          }}
           variant="subtle"
           size="sm"
           color="gray"

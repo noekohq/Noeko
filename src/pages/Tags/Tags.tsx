@@ -30,6 +30,7 @@ import { InlineTag } from "../../components/Tags/TagDisplay";
 import { Link } from "react-router";
 import styles from "./Tags.module.scss";
 import Content from "../../components/UI/Layout/Content";
+import useRabbithole from "../../hooks/useRabbithole";
 
 export default function Tags() {
   const {
@@ -68,6 +69,8 @@ export default function Tags() {
     },
   });
 
+  const { isDownRabbithole, includeThing } = useRabbithole();
+
   const {
     load: createTag,
     loading: createTagLoading,
@@ -82,6 +85,9 @@ export default function Tags() {
     onSuccess: (data) => {
       loadTags();
       tagForm.reset();
+      if (isDownRabbithole) {
+        includeThing(data.id.toString());
+      }
     },
     onError: (error) => {
       console.error("Failed to create tag:", error);

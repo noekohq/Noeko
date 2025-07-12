@@ -11,6 +11,8 @@ import type { IIdea } from "../../../../app/database/models/ideas"; // ENSURE TH
 // Re-export IIdea if you want it to be part of this module's public API
 export type { IIdea };
 
+export type IIdeaCardsTypes = "compact" | "standard" | "detailed";
+
 export type PhosphorIcon = React.ForwardRefExoticComponent<
   IconProps & React.RefAttributes<SVGSVGElement>
 >;

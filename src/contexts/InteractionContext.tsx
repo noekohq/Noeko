@@ -34,6 +34,8 @@ import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 import Spotlight from "../components/UI/Spotlight/Spotlight";
 import { useHotkeys } from "@mantine/hooks";
 import { handleCreateNewRabbithole } from "../utils/rabbitholes";
+import { useLandscape } from "./LandscapeContext";
+import useRabbithole from "../hooks/useRabbithole";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -140,11 +142,22 @@ export function InteractionProvider({
 
   const [uploadingFile, setUploadingFile] = useState(false);
 
+  const {
+    rabbitholes: {
+      entered: { get: currentRabbithole },
+    },
+  } = useLandscape();
+
+  const { includeThing } = useRabbithole();
+
   const handleNewIdea = async () => {
     setLoadingSomething(true);
     await handleCreateNewIdea(
       (i) => {
         navigate(`idea/${i.id.toString()}`);
+        if (currentRabbithole) {
+          includeThing(i.id.toString());
+        }
       },
       (err) => {
         showNotification({
