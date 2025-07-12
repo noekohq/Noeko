@@ -18,26 +18,17 @@ export default function PageWrapper({ children }: PageWrapperProps) {
 
   const hasEnteredRabbithole = enteredRabbithole !== null;
 
-  const {
-    elements: {
-      leftSidebar: {
-        mode: { get: leftSidebarMode },
-      },
-    },
-  } = useLayout();
-
   return (
     <div
       className={`${styles.pageWrapper} ${hasEnteredRabbithole ? styles.hasRabbithole : ""}`}
     >
       {children}
       {isMobile && <MobileBar />}
-      {hasEnteredRabbithole &&
-        !["open", "hovering"].includes(leftSidebarMode) && (
-          <div className={styles.rabbitholeIndicator}>
-            <RabbitholeIndicator />
-          </div>
-        )}
+      {hasEnteredRabbithole && (
+        <div className={styles.rabbitholeIndicator}>
+          <RabbitholeIndicator />
+        </div>
+      )}
     </div>
   );
 }

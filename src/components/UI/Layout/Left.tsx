@@ -50,11 +50,11 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
     isMobile,
   } = useLayout();
 
-  const {
-    rabbitholes: {
-      entered: { get: currentRabbithole, set: setRabbithole },
-    },
-  } = useLandscape();
+  useEffect(() => {
+    if (isMobile) {
+      setMode("collapsed");
+    }
+  }, []);
 
   const { pathname } = useLocation();
   const isHome = pathname === "/";
@@ -128,8 +128,8 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
       </Group>
     ),
     hovering: (
-      <Group justify="space-between">
-        {!!topLevel?.hovering && <Group gap="xs">topLevel.hovering</Group>}
+      <Group justify={"space-between"}>
+        {!!topLevel?.hovering && <Group gap="xs">{topLevel.hovering}</Group>}
         {!!topLevel?.open && !topLevel.hovering && (
           <Group gap="xs">{topLevel.open}</Group>
         )}
@@ -222,7 +222,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
       className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}
       {...sidebarProps}
     >
-      {["open", "hovering"].includes(mode) ? (
+      {["open", "hovering"].includes(mode) && !isMobile ? (
         <>
           {!!children && (
             <>
@@ -232,11 +232,6 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           <div className={styles.global} {...globalElementProps}>
             {Global[mode]}
           </div>
-          {!!currentRabbithole && (
-            <div className={styles.rabbitholeIndicator}>
-              <RabbitholeIndicator />
-            </div>
-          )}
         </>
       ) : (
         <>

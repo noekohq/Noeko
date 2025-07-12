@@ -1,18 +1,42 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
-import { Button, Container, Group, Space, Stack, Text } from "@mantine/core";
+import {
+  Button,
+  Container,
+  Group,
+  MantineColor,
+  Space,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { getNodeAsIdeaOrNull } from "../../utils/graph";
 import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
-import { CompactIdeaCard } from "../Display/Ideas/IdeaCards";
+import {
+  CompactIdeaCard,
+  DetailedIdeaCard,
+  StandardIdeaCard,
+} from "../Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
 import { Link } from "react-router";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
+import { IdeaAction, IIdeaCardsTypes } from "../Display/Ideas/IdeaCardTypes";
+import { IIdea } from "../../../app/database/models/ideas";
 
-export default function Search() {
+interface ISearchProps {
+  resultActions?: ((idea: IIdea) => IdeaAction)[];
+  resultSize?: IIdeaCardsTypes;
+  resultFilter?: (id: string) => boolean;
+}
+
+export default function Search({
+  resultActions,
+  resultSize,
+  resultFilter,
+}: ISearchProps) {
   const [loading, setLoading] = useState(false);
   const os = getOS();
   const ctrl = os !== "macos";
@@ -31,6 +55,14 @@ export default function Search() {
   const handleResultsClear = useCallback(() => {
     setResults(null);
   }, []);
+
+  const filteredResults = useMemo(() => {
+    if (!searchResults) return null;
+    if (!resultFilter) return searchResults;
+    return searchResults.filter((r) => {
+      return resultFilter(r.id.toString());
+    });
+  }, [searchResults, resultFilter]);
 
   return (
     <div className={styles.searchWrapper}>
@@ -63,51 +95,120 @@ export default function Search() {
           </Link>
         </>
       )}
-      {!searchQuery && !searchResults && !loading && (
-        <>
-          <Space my="lg" />
-          <Text c="dimmed" size="xs">
-            Search anything...
-          </Text>
-        </>
-      )}
-      {searchResults && (
+      {!searchQuery &&
+        (!searchResults || !filteredResults?.length) &&
+        !loading && (
+          <>
+            <Space my="lg" />
+            <Text c="dimmed" size="xs">
+              Search anything...
+            </Text>
+          </>
+        )}
+      {filteredResults && (
         <Container w="100%" className={styles.results} p="0">
           <Space my="lg" />
           <Text c="dimmed" size="sm">
-            Found {searchResults.length} result
-            {searchResults.length === 1 ? "" : "s"}...
+            Found {filteredResults.length} result
+            {filteredResults.length === 1 ? "" : "s"}...
           </Text>
           <Space my="sm" />
           <Stack>
-            {searchResults
+            {filteredResults
               ?.map((s, i) => {
                 const isBest = i === 0;
                 const idea = getNodeAsIdeaOrNull(s.value);
                 if (!idea) {
                   return null;
                 }
-                return (
-                  <CompactIdeaCard
-                    key={s.id.toString()}
-                    idea={idea}
-                    draggable
-                    link
-                    detailsForHoverCard={
-                      <Match
-                        opener="->"
-                        closer="<-"
-                        match={(content) => {
-                          return (
-                            <span className={styles.highlight}>{content}</span>
-                          );
-                        }}
-                      >
-                        {getSearchResultPreview(s) || "No preview available."}
-                      </Match>
-                    }
-                  />
-                );
+                switch (resultSize) {
+                  case "standard":
+                    return (
+                      <StandardIdeaCard
+                        key={s.id.toString()}
+                        idea={idea}
+                        draggable
+                        link
+                        detailsForHoverCard={
+                          <Match
+                            opener="->"
+                            closer="<-"
+                            match={(content) => {
+                              return (
+                                <span className={styles.highlight}>
+                                  {content}
+                                </span>
+                              );
+                            }}
+                          >
+                            {getSearchResultPreview(s) ||
+                              "No preview available."}
+                          </Match>
+                        }
+                        actions={resultActions?.map((r) => {
+                          return r(idea);
+                        })}
+                      />
+                    );
+                  case "detailed":
+                    return (
+                      <DetailedIdeaCard
+                        key={s.id.toString()}
+                        idea={idea}
+                        draggable
+                        link
+                        description={
+                          <Match
+                            opener="->"
+                            closer="<-"
+                            match={(content) => {
+                              return (
+                                <span className={styles.highlight}>
+                                  {content}
+                                </span>
+                              );
+                            }}
+                          >
+                            {getSearchResultPreview(s) ||
+                              "No preview available."}
+                          </Match>
+                        }
+                        actions={resultActions?.map((r) => {
+                          return r(idea);
+                        })}
+                      />
+                    );
+
+                  case "compact":
+                  default:
+                    return (
+                      <CompactIdeaCard
+                        key={s.id.toString()}
+                        idea={idea}
+                        draggable
+                        link
+                        detailsForHoverCard={
+                          <Match
+                            opener="->"
+                            closer="<-"
+                            match={(content) => {
+                              return (
+                                <span className={styles.highlight}>
+                                  {content}
+                                </span>
+                              );
+                            }}
+                          >
+                            {getSearchResultPreview(s) ||
+                              "No preview available."}
+                          </Match>
+                        }
+                        actions={resultActions?.map((r) => {
+                          return r(idea);
+                        })}
+                      />
+                    );
+                }
               })
               .filter((r) => !!r)}
           </Stack>

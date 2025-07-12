@@ -34,6 +34,7 @@ import {
   HandWaving,
   MagnifyingGlassIcon,
   Plus,
+  PlusIcon,
   Scroll,
 } from "@phosphor-icons/react";
 import { handleCreateNewIdea } from "../../utils/ideas";
@@ -92,26 +93,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const [loadingNewIdea, setLoadingNewIdea] = useState(false);
-
-  const handleNewIdea = async () => {
-    setLoadingNewIdea(true);
-    await handleCreateNewIdea(
-      (i) => {
-        navigate(`idea/${i.id.toString()}`);
-      },
-      (err) => {
-        showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong adding the note",
-        });
-      },
-    );
-    showNotification({
-      title: "Idea created",
-      message: "Created a new note",
-    });
-    setLoadingNewIdea(false);
-  };
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -266,18 +247,19 @@ export default function Dashboard() {
             )}
             {isMobile && (
               <>
-                <Group justify="right">
+                <Group justify="center">
                   <Button
                     variant="light"
-                    rightSection={<Plus />}
+                    rightSection={<PlusIcon weight="bold" />}
                     onClick={() => {
-                      handleNewIdea();
+                      newIdea();
                     }}
+                    fullWidth
                   >
-                    New Idea
+                    Idea
                   </Button>
                 </Group>
-                <Divider my="md" />
+                <Space my="md" />
                 <Text c="dimmed" size="sm">
                   {getStatusText()}
                 </Text>

@@ -172,7 +172,6 @@ router.get("/:rabbitholeId/similar-ideas", async (req, res) => {
       });
       return;
     }
-    console.log("Hitting api");
     const similarIdeas = await Rabbithole.findSimilarIdeas(
       req.params.rabbitholeId,
       user.id,

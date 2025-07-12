@@ -39,9 +39,14 @@ export default class Rabbithole {
       ) {
         LET $rabbithole = SELECT
           *,
-          ->includes->(?) as includes
-        FROM ONLY $rabbitholeId
-        FETCH includes;
+          (
+              SELECT
+                  *
+              FROM $parent->includes
+              ORDER BY createdAt DESC
+              FETCH out
+          ).out as includes
+        FROM ONLY $rabbitholeId;
 
         RETURN $rabbithole;
       }
@@ -241,7 +246,6 @@ export default class Rabbithole {
               .filter((e) => !!e),
           )
         : Array(768).fill(0);
-      console.log("Got average embeddings: ", rEmbeddings.slice(0, 10));
       if (!rEmbeddings || rEmbeddings.length === 0) {
         console.warn(
           `Rabbithole with id ${rabbitholeId.toString()} has no embeddings.`,
@@ -252,16 +256,6 @@ export default class Rabbithole {
       const results = await db.run<IIdea[]>(
         "fn::search_similar_to_embeddings",
         [rEmbeddings, userId, options?.limit || 25, options?.threshold || 0.4],
-      );
-
-      console.log(
-        "Got results: ",
-        results
-          .slice(0, 5)
-          .map((r) => {
-            return r.title;
-          })
-          .join(", "),
       );
 
       if (!results) {
