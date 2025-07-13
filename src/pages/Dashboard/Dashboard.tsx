@@ -129,6 +129,14 @@ export default function Dashboard() {
             </Link>
           </Group>
           <Space my="sm" />
+          {!dashboardData?.recentIdeas?.length && (
+            <>
+              <Text size="sm" c="gray" mb="md">
+                You have no ideas yet!
+              </Text>
+              <Button variant="light">Add an idea!</Button>
+            </>
+          )}
           <Stack gap="xs">
             {dashboardData?.recentIdeas &&
               dashboardData.recentIdeas.map((idea) => {
@@ -142,11 +150,17 @@ export default function Dashboard() {
       <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
-            <Group>
+            <Group mb="sm">
               <HandWaving weight="bold" size="36px" />
               <Title>
                 Good {getCurrentTimeOfDay()}, {user?.firstName}
               </Title>
+            </Group>
+            <Group>
+              <Text size="sm" c="dimmed">
+                Poke around, have fun, enjoy your time and don't be afraid to
+                give us feedback!
+              </Text>
             </Group>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }} />
@@ -154,6 +168,17 @@ export default function Dashboard() {
             {!isMobile && (
               <Card radius="lg">
                 <Flex wrap="wrap" direction="column" align="center" gap="md">
+                  <Button
+                    variant="filled"
+                    onClick={() => {
+                      newIdea();
+                    }}
+                  >
+                    <Group>
+                      <Text>Add an idea</Text>
+                      <Kbd>{primaryKey} + shift + i</Kbd>
+                    </Group>
+                  </Button>
                   <Link to="/updates">
                     <Button variant="default">
                       <Group>
@@ -166,17 +191,6 @@ export default function Dashboard() {
                     <Group>
                       <Text>Dashboard view</Text>
                       <Kbd>{primaryKey} + H</Kbd>
-                    </Group>
-                  </Button>
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      newIdea();
-                    }}
-                  >
-                    <Group>
-                      <Text>Add an idea</Text>
-                      <Kbd>{primaryKey} + I</Kbd>
                     </Group>
                   </Button>
                   <Link to="/ideas">

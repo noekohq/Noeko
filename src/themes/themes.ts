@@ -278,7 +278,7 @@ export const qwest: IOverrideResolver = (t) => {
     },
     colors: colorsToUse()?.colors,
     primaryColor: "blue",
-    primaryShade: 6,
+    primaryShade: 7,
     white: colorsToUse()?.white,
     black: colorsToUse()?.black,
     components: {
