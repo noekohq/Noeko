@@ -61,6 +61,7 @@ import { Indent } from "./extensions/Indent";
 import { DreamTaskItem } from "./extensions/TaskItem";
 import { DreamCode } from "./nodes/DreamCode";
 import YouTube from "@tiptap/extension-youtube";
+import { DreamMarkdown } from "./extensions/DreamMarkdown";
 
 // import "highlight.js/styles/github-dark-dimmed.css";
 import "./lib/qwest-highlight.scss";
@@ -206,6 +207,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           //   bulletListMarker: "-",
           //   breaks: true,
           // }),
+          DreamMarkdown.configure(),
           DreamTable.configure({
             HTMLAttributes: {
               class: contentStyles.table,
