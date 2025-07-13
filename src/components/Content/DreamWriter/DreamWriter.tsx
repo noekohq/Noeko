@@ -200,34 +200,12 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               class: contentStyles.taskItem,
             },
           }),
-          // Markdown.configure({
-          //   linkify: true,
-          //   transformPastedText: true,
-          //   html: true,
-          //   bulletListMarker: "-",
-          //   breaks: true,
-          // }),
           DreamMarkdown.configure(),
           DreamTable.configure({
             HTMLAttributes: {
               class: contentStyles.table,
             },
           }),
-          // TableRow.configure({
-          //   HTMLAttributes: {
-          //     class: contentStyles.tableRow,
-          //   },
-          // }),
-          // TableHeader.configure({
-          //   HTMLAttributes: {
-          //     class: contentStyles.tableHeader,
-          //   },
-          // }),
-          // TableCell.configure({
-          //   HTMLAttributes: {
-          //     class: contentStyles.tableCell,
-          //   },
-          // }),
           Indent.configure({
             types: [
               "paragraph",
