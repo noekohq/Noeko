@@ -5,8 +5,10 @@ import {
   unIncludeThingInRabbithole,
 } from "../utils/rabbitholes";
 import { useState } from "react";
+import { IRabbithole } from "../../app/database/models/rabbithole";
 
 interface IUseRabbitholeReturn {
+  currentRabbithole: IRabbithole | null;
   includeThing: (thingId: string | RecordId) => Promise<boolean>;
   unIncludeThing: (thingId: string | RecordId) => Promise<boolean>;
   exitRabbithole: () => void;
@@ -80,6 +82,7 @@ export default function useRabbithole(): IUseRabbitholeReturn {
   };
 
   return {
+    currentRabbithole: currentlyEntered,
     includeThing,
     unIncludeThing,
     exitRabbithole,

@@ -66,7 +66,7 @@ export default function ProfileButton() {
           radius="xl"
           style={{ cursor: "pointer" }}
           onDoubleClick={() => navigate("/")}
-          size={isMobile ? "sm" : "sm"}
+          size={isMobile ? "md" : "sm"}
         >
           {initials}
         </Avatar>
