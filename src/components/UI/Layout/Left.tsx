@@ -33,6 +33,8 @@ import useSidebarHover from "../../../hooks/useSidebarHover";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 import { RabbitholeIndicator } from "../../Display/Rabbitholes/RabbitholeIndicator";
+import useRabbithole from "../../../hooks/useRabbithole";
+import HomeButton from "./HomeButton";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -57,7 +59,12 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
   }, []);
 
   const { pathname } = useLocation();
-  const isHome = pathname === "/";
+
+  const { isDownRabbithole, currentRabbithole } = useRabbithole();
+
+  const isHome = isDownRabbithole
+    ? pathname === `/rabbitholes/${currentRabbithole?.id.toString()}`
+    : pathname === "/";
 
   const openable = !!children;
 
@@ -98,22 +105,6 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
       <Group justify="space-between">
         {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
         <Group gap="xs">
-          {!isHome && (
-            <Link to="/">
-              <ActionIcon variant="subtle" color={defaultColor}>
-                <HouseIcon />
-              </ActionIcon>
-            </Link>
-          )}
-          <ActionIcon
-            onClick={() => {
-              openFeedbackModal();
-            }}
-            variant="subtle"
-            color={defaultColor}
-          >
-            <MegaphoneIcon />
-          </ActionIcon>
           <ActionIcon
             onClick={() => {
               setMode("collapsed");
@@ -123,6 +114,16 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             color={defaultColor}
           >
             <SidebarSimpleIcon />
+          </ActionIcon>
+          <HomeButton />
+          <ActionIcon
+            onClick={() => {
+              openFeedbackModal();
+            }}
+            variant="subtle"
+            color={defaultColor}
+          >
+            <MegaphoneIcon />
           </ActionIcon>
         </Group>
       </Group>
@@ -134,13 +135,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
           <Group gap="xs">{topLevel.open}</Group>
         )}
         <Group gap="xs">
-          {!isHome && (
-            <Link to="/">
-              <ActionIcon variant="subtle" color={defaultColor}>
-                <HouseIcon />
-              </ActionIcon>
-            </Link>
-          )}
+          <HomeButton />
           <ActionIcon
             onClick={() => {
               openFeedbackModal();
@@ -178,13 +173,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             <SidebarSimpleIcon />
           </ActionIcon>
         )}
-        {!isHome && (
-          <Link to="/">
-            <ActionIcon variant="subtle" color={defaultColor}>
-              <HouseIcon />
-            </ActionIcon>
-          </Link>
-        )}
+        <HomeButton />
         <ActionIcon
           onClick={() => {
             openFeedbackModal();

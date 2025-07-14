@@ -1,4 +1,12 @@
 import { MantineColor } from "@mantine/core";
+import {
+  CircleHalfIcon,
+  IconProps,
+  WifiHighIcon,
+  WifiMediumIcon,
+  WifiSlash,
+  WifiSlashIcon,
+} from "@phosphor-icons/react";
 
 export type ISimilarityLevel =
   | "identical" // ~1.0

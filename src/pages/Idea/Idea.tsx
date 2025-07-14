@@ -435,7 +435,7 @@ export default function Idea() {
               {!!idea && (
                 <>
                   <Divider my="sm" />
-                  <TagsManager idea={idea} />
+                  <TagsManager maxSuggested={2} idea={idea} />
                   <Divider my="sm" />
                   <Connections
                     loadingIdea={loadingIdea}
@@ -501,26 +501,28 @@ export default function Idea() {
                   </div>
                 )}
               </Group>
-              {idea && (
-                <IdeaProvider
-                  idea={idea}
-                  reloadIdea={async () => {
-                    await reloadIdea();
-                  }}
-                >
-                  <DreamWriter
-                    key={ideaId}
-                    initialContent={editorContent}
-                    stickyMenu={false}
-                    onChange={handleContentChange}
-                    onBlur={handleEditorBlur}
-                    onContentReady={handleContentReady}
-                    dependencies={[ideaId, idea.id]}
-                    ref={editorRef}
-                    readOnly={isDuplicateTab}
-                  />
-                </IdeaProvider>
-              )}
+              <div className={styles.contentArea}>
+                {idea && (
+                  <IdeaProvider
+                    idea={idea}
+                    reloadIdea={async () => {
+                      await reloadIdea();
+                    }}
+                  >
+                    <DreamWriter
+                      key={ideaId}
+                      initialContent={editorContent}
+                      stickyMenu={false}
+                      onChange={handleContentChange}
+                      onBlur={handleEditorBlur}
+                      onContentReady={handleContentReady}
+                      dependencies={[ideaId, idea.id]}
+                      ref={editorRef}
+                      readOnly={isDuplicateTab}
+                    />
+                  </IdeaProvider>
+                )}
+              </div>
             </Stack>
           </div>
           {showStatusBlock && (

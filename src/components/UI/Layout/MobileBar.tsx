@@ -10,6 +10,7 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import ProfileButton from "./ProfileButton";
 import { Link, useLocation } from "react-router";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import HomeButton from "./HomeButton";
 
 export default function MobileBar() {
   const {
@@ -70,16 +71,10 @@ export default function MobileBar() {
             variant="subtle"
             color={defaultColor}
           >
-            <SidebarSimpleIcon weight="fill" />
+            <SidebarSimpleIcon />
           </ActionIcon>
         )}
-        {!isHome && (
-          <Link to="/">
-            <ActionIcon variant="subtle" color={defaultColor}>
-              <HouseIcon />
-            </ActionIcon>
-          </Link>
-        )}
+        <HomeButton />
       </Group>
       <Group>
         {rightHasContent && (

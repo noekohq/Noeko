@@ -23,7 +23,6 @@ import {
   Text,
   Loader,
   Button,
-  LoadingOverlay,
   Drawer,
   FileInput,
   Code,
@@ -36,6 +35,7 @@ import { useHotkeys } from "@mantine/hooks";
 import { handleCreateNewRabbithole } from "../utils/rabbitholes";
 import { useLandscape } from "./LandscapeContext";
 import useRabbithole from "../hooks/useRabbithole";
+import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -394,7 +394,8 @@ export function InteractionProvider({
         opened={feedbackModalOpened}
         onClose={() => setFeedbackModalOpened(false)}
       />
-      <LoadingOverlay visible={loadingSomething} />
+      <LoadingOverlay loading={false} />
+
       {spotlightOpened && <Spotlight />}
     </InteractionContext.Provider>
   );

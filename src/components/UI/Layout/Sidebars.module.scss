@@ -8,12 +8,12 @@
 
 @keyframes openIt {
     0% {
-        transform: translateX(-5px);
-        width: var(--sidebar-width-collapsed);
+        opacity: 0;
+        transform: translateY(-10px) scale(.99);
     }
     100% {
-        transform: translateX(0);
-        width: var(--sidebar-width);
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
@@ -86,8 +86,8 @@
 
     &.open {
         animation: openIt 0.4s ease-in-out forwards;
-        top: 0;
-        bottom: 0;
+        top: var(--padding-unit);
+        bottom: var(--padding-unit);
         max-height: calc(100vh);
         padding: var(--layout-spacing);
         background-color: var(--background-color);
@@ -96,6 +96,7 @@
         border-right: 1px solid var(--mantine-color-dark-7);
         display: flex;
         flex-direction: column;
+        border-radius: var(--mantine-radius-lg);
 
         &.hovering {
             /* animation: none; */
@@ -180,7 +181,7 @@
 
 .left {
     &.open {
-        left: 0;
+        left: var(--padding-unit);
 
         @include desktop {
             left: var(--padding-unit);
@@ -201,7 +202,7 @@
 
 .right {
     &.open {
-        right: 0;
+        right: var(--padding-unit);
 
         @include desktop {
             right: var(--padding-unit);

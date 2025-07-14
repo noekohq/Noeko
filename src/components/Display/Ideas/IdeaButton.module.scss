@@ -1,0 +1,19 @@
+.ideaButton {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    font-size: var(--mantine-font-size-xs);
+    border-width: 1px;
+    border-style: solid;
+    border-radius: var(--mantine-radius-md);
+    background-color: var(--mantine-color-dark-8);
+    padding: 4px var(--mantine-spacing-sm);
+    margin: 0;
+    border: 2px solid var(--mantine-color-dark-7);
+;
+    transition: border-color 0.3s ease;
+
+    &:hover {
+        border-color: var(--mantine-color-dark-6);
+    }
+}

@@ -26,6 +26,8 @@ import {
   CaretUpIcon,
   PlusIcon,
   ArrowRightIcon,
+  XIcon,
+  DotsThreeIcon,
 } from "@phosphor-icons/react"; // Corrected icon import
 import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
@@ -46,9 +48,10 @@ import { showNotification } from "@mantine/notifications";
 
 type ITagsManagerProps = {
   idea: ISafeIdea;
+  maxSuggested?: number;
 };
 
-export default function TagsManager({ idea }: ITagsManagerProps) {
+export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
   const [actingTagId, setActingTagId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false); // Local loading state for add/remove
 
@@ -61,7 +64,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
   } = useFetch<undefined, ITag[]>({
     url: `/ideas/${ideaIdStr}/tags`,
     dependencies: [ideaIdStr],
-    runOnDependencies: [ideaIdStr], // Ensures ideaIdStr is truthy
+    runOnDependencies: [ideaIdStr],
   });
   const existingTags: ITag[] = existingTagsData || [];
   const omitTagIds = useMemo(
@@ -137,6 +140,10 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
     }
   };
 
+  const [allSuggested, setAllSuggested] = useState(false);
+
+  const suggestedTruncated = relatedTagsData?.slice(0, maxSuggested);
+
   const processedTags = useMemo(() => {
     const existingTagIds = new Set(existingTags.map((t) => t.id.toString()));
 
@@ -146,7 +153,10 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
       idStr: tag.id.toString(),
     }));
 
-    const currentRelatedTags = relatedTagsRaw
+    const relatedToUse = allSuggested
+      ? relatedTagsData || []
+      : suggestedTruncated;
+    const currentRelatedTags = [...(relatedToUse || [])]
       .filter((tag) => !existingTagIds.has(tag.id.toString()))
       .map((tag) => ({
         tag,
@@ -155,7 +165,7 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
       }));
 
     return [...currentExistingTags, ...currentRelatedTags];
-  }, [existingTags, relatedTagsRaw]);
+  }, [existingTags, relatedTagsRaw, allSuggested]);
 
   const [createTagLoading, setCreateTagLoading] = useState(false);
   const handleCreateAndAddTag = async (
@@ -218,14 +228,14 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
           <LoadingOverlay visible={createTagLoading} />
           <Stack>
             <Grid>
-              <Grid.Col span={4}>
+              <Grid.Col span={12}>
                 <TextInput
                   size="xs"
                   placeholder="Name"
                   {...tagForm.getInputProps("name")}
                 />
               </Grid.Col>
-              <Grid.Col span={8}>
+              <Grid.Col span={12}>
                 <TextInput
                   size="xs"
                   placeholder="Description"
@@ -342,6 +352,24 @@ export default function TagsManager({ idea }: ITagsManagerProps) {
               />
             );
           })}
+          {suggestedTruncated &&
+            relatedTagsData &&
+            suggestedTruncated.length < relatedTagsData?.length && (
+              <ActionIcon
+                onClick={() => {
+                  setAllSuggested(!allSuggested);
+                }}
+                size="xs"
+                color="currentColor"
+                radius="xl"
+                variant="transparent"
+                aria-label={`Show ${allSuggested ? "less" : "more"} suggested tags`}
+                title={`Show ${allSuggested ? "less" : "more"} suggested tags`}
+                disabled={actionLoading}
+              >
+                {allSuggested ? <XIcon /> : <DotsThreeIcon />}
+              </ActionIcon>
+            )}
           {!managing && (
             <ActionIcon
               onClick={() => {
