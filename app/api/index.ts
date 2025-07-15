@@ -9,9 +9,11 @@ import dashboardRouter from "./dashboard";
 import ideasRouter from "./ideas";
 import tagRouter from "./tags";
 import rabbitholeRouter from "./rabbithole";
+import healthCheckRouter from "./healthcheck";
 
 const router = Router();
 
+router.use("/healthcheck", healthCheckRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/graph", graphRouter);
 router.use("/ideas", ideasRouter);

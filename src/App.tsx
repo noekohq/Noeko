@@ -6,7 +6,8 @@ import {
   useNavigate,
 } from "react-router";
 import styles from "./App.module.scss";
-import { Loader, useMantineColorScheme } from "@mantine/core";
+import { Alert, Loader, useMantineColorScheme } from "@mantine/core";
+import { WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -41,10 +42,13 @@ import SharedIdeas from "./pages/Idea/Shared/Shared";
 import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
 import Rabbithole from "./pages/Rabbitholes/Rabbithole";
 import Rabbitholes from "./pages/Rabbitholes/List";
+import { useConnection } from "./hooks/useConnection";
+import { Warning } from "@phosphor-icons/react/dist/ssr";
 
 export default function App() {
   const navigate = useNavigate();
   const { loggedIn, loading: loadingAuth, user } = useAuth();
+  const { isOnline, isLoading: loadingConnection } = useConnection();
   const location = useLocation();
 
   const isSuperuser = userIsSuperuser(user);
@@ -63,7 +67,7 @@ export default function App() {
     setColorScheme(scheme);
   }, [scheme]);
 
-  if (loadingAuth) {
+  if (loadingAuth || loadingConnection) {
     return (
       <div
         style={{
@@ -74,6 +78,25 @@ export default function App() {
         }}
       >
         <Loader size="lg" />
+      </div>
+    );
+  }
+
+  if (!isOnline) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          padding: "20px",
+        }}
+      >
+        <Alert icon={<WarningIcon />} title="Connection Error" color="red">
+          Could not connect to the server. It may be down for maintenance or you
+          may need to check your internet connection.
+        </Alert>
       </div>
     );
   }
