@@ -24,6 +24,7 @@ import {
   ArrowRight,
   ArrowsClockwise,
   Graph,
+  GraphIcon,
   TrashSimple,
 } from "@phosphor-icons/react";
 import { api } from "../../server/api";
@@ -34,6 +35,7 @@ import {
   StandardIdeaCard,
 } from "../../components/Display/Ideas/IdeaCards";
 import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
+import IdeaButton from "../../components/Display/Ideas/IdeaButton";
 
 type IConnectionsProps = {
   loadingIdea: boolean;
@@ -268,56 +270,39 @@ export default function Connections({
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             {idea?.relatedIdeas && idea.relatedIdeas?.length > 0 ? (
-              <Stack>
+              <Stack gap="xs">
                 {idea.relatedIdeas?.map((relatedIdea) => {
                   const distance = relatedIdea.distance;
                   const level = similarityToLevel(distance);
                   const color = similarityToColor[level];
+                  const isConnected = ideaIsConnected(
+                    relatedIdea.id.toString(),
+                  );
 
                   return (
-                    <CompactIdeaCard
+                    <IdeaButton
                       key={relatedIdea.id.toString()}
                       idea={relatedIdea}
-                      style={{
-                        width: "100%",
-                      }}
-                      draggable
-                      onCardClick={() => {
-                        navigate(`/idea/${relatedIdea.id.toString()}`);
-                      }}
-                      onMouseEnterCard={() => {
-                        setSelectedIdea(relatedIdea.id.toString());
-                      }}
-                      onMouseLeaveCard={() => {
-                        setSelectedIdea(undefined);
-                      }}
+                      // bg={color}
                       actions={[
-                        {
-                          id: "View",
-                          label: "View",
-                          icon: <ArrowRight />,
-                          onClick: (e) => {
-                            e.stopPropagation();
-                            navigate(`/idea/${relatedIdea.id.toString()}`);
-                          },
-                        },
-                        {
-                          disabled: ideaIsConnected(relatedIdea.id.toString()),
-                          icon: <Graph />,
-                          id: "create_connection",
-                          label: "Connect",
-                          onClick: (e) => {
-                            e.stopPropagation();
-                            handleCreateConnection(relatedIdea.id.toString());
-                          },
-                        },
-                      ]}
-                      tags={[
-                        {
-                          id: "level",
-                          label: level,
-                          color,
-                        },
+                        ...(isConnected
+                          ? []
+                          : [
+                              {
+                                id: "connect",
+                                icon: <GraphIcon />,
+                                onClick: () => {
+                                  console.log("Hitting on click!");
+                                  createIdeaConnection(
+                                    idea.id.toString(),
+                                    relatedIdea.id.toString(),
+                                  ).then(() => {
+                                    reloadIdea();
+                                  });
+                                },
+                                color,
+                              },
+                            ]),
                       ]}
                     />
                   );

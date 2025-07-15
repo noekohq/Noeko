@@ -21,6 +21,7 @@ import {
   CopyButton,
   Stack,
   Space,
+  Button,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import { modals } from "@mantine/modals";
@@ -66,6 +67,8 @@ export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
   const isDuplicateTab = useMultiTabWarning(ideaId);
+  const [overrideDuplicateTab, setOverrideDuplicateTab] = useState(false);
+  const editingDisabled = isDuplicateTab && !overrideDuplicateTab;
   const [title, setTitle] = useState<string>("");
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
   const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
@@ -459,7 +462,7 @@ export default function Idea() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        {isDuplicateTab && (
+        {editingDisabled && (
           <Alert
             variant="light"
             color="orange"
@@ -467,8 +470,19 @@ export default function Idea() {
             icon={<WarningCircleIcon />}
             mb="md"
           >
-            To avoid losing your work, please close this tab and continue
-            editing in the original one.
+            <Group justify="space-between">
+              <Text>
+                To avoid losing your work, please close this tab and continue
+                editing in the original one.
+              </Text>
+              <Button
+                variant="light"
+                color="orange"
+                onClick={() => setOverrideDuplicateTab(true)}
+              >
+                Edit Anyway
+              </Button>
+            </Group>
           </Alert>
         )}
         <div className={styles.ideaContainer}>
@@ -479,7 +493,7 @@ export default function Idea() {
                   order={1}
                   m="0"
                   pr="md"
-                  contentEditable={!isDuplicateTab}
+                  contentEditable={!editingDisabled}
                   suppressContentEditableWarning
                   onBlur={(e) => {
                     updateTitle(e.currentTarget.innerText);
@@ -518,7 +532,7 @@ export default function Idea() {
                       onContentReady={handleContentReady}
                       dependencies={[ideaId, idea.id]}
                       ref={editorRef}
-                      readOnly={isDuplicateTab}
+                      readOnly={editingDisabled}
                     />
                   </IdeaProvider>
                 )}
