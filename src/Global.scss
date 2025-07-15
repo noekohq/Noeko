@@ -31,7 +31,7 @@
         background-color: var(--mantine-color-dark-9) !important;
         z-index: 200 !important;
     }
-    .mantine-HoverCard-dropdown	{
+    .mantine-HoverCard-dropdown {
         background-color: var(--mantine-color-dark-9) !important;
         z-index: 210 !important;
     }
@@ -87,6 +87,17 @@
         --sidebar-width: 20vw;
         --sidebar-width-collapsed: 48px;
         --content-width: 55vw;
+    }
+
+    .mantine-Accordion-item {
+        transition: all 0.2s ease-in-out;
+        --item-filled-color: var(--mantine-color-dark-8) !important;
+
+        &[data-active="true"] {
+            padding: var(--mantine-spacing-xs);
+            border-radius: var(--mantine-radius-lg);
+            border: 1px solid var(--mantine-color-dark-5);
+        }
     }
 }
 
