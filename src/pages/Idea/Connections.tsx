@@ -9,6 +9,8 @@ import {
   Stack,
   Box,
   Button,
+  HoverCard,
+  Accordion,
 } from "@mantine/core";
 import {
   IIdea,
@@ -22,9 +24,11 @@ import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import {
   ArrowRight,
+  ArrowRightIcon,
   ArrowsClockwise,
   Graph,
   GraphIcon,
+  InfoIcon,
   TrashSimple,
 } from "@phosphor-icons/react";
 import { api } from "../../server/api";
@@ -215,6 +219,24 @@ export default function Connections({
               <Group align="center">
                 <Text size="sm">Ideas you've connected...</Text>
                 {loadingIdea && <Loader size="xs" color="gray" />}
+                {!loadingIdea && (
+                  <HoverCard width="400px">
+                    <HoverCard.Target>
+                      <ActionIcon variant="subtle" size={"xs"} color="gray">
+                        <InfoIcon />
+                      </ActionIcon>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Text size="sm">
+                        Explicit connections between ideas are only made by you,
+                        and they are persistent even if the content changes,
+                        unlike similar ideas. You can drag and drop ideas to
+                        this area, or click the associated buttons to make
+                        connections.
+                      </Text>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                )}
               </Group>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
@@ -270,7 +292,14 @@ export default function Connections({
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             {idea?.relatedIdeas && idea.relatedIdeas?.length > 0 ? (
-              <Stack gap="xs">
+              <Accordion
+                variant="filled"
+                styles={{
+                  content: {
+                    padding: "0px",
+                  },
+                }}
+              >
                 {idea.relatedIdeas?.map((relatedIdea) => {
                   const distance = relatedIdea.distance;
                   const level = similarityToLevel(distance);
@@ -280,18 +309,25 @@ export default function Connections({
                   );
 
                   return (
-                    <IdeaButton
-                      key={relatedIdea.id.toString()}
-                      idea={relatedIdea}
-                      // bg={color}
-                      actions={[
-                        ...(isConnected
-                          ? []
-                          : [
-                              {
-                                id: "connect",
-                                icon: <GraphIcon />,
-                                onClick: () => {
+                    <Accordion.Item value={relatedIdea.id.toString()}>
+                      <Accordion.Control p={0}>
+                        <Group mr="xs" p={0}>
+                          <IdeaButton
+                            key={relatedIdea.id.toString()}
+                            idea={relatedIdea}
+                            fullWidth
+                          />
+                        </Group>
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Stack gap="xs">
+                          <Group gap="xs" align="center">
+                            {!ideaIsConnected(relatedIdea.id.toString()) && (
+                              <ActionIcon
+                                variant="light"
+                                size="sm"
+                                color={"dark.3"}
+                                onClick={() => {
                                   console.log("Hitting on click!");
                                   createIdeaConnection(
                                     idea.id.toString(),
@@ -299,15 +335,35 @@ export default function Connections({
                                   ).then(() => {
                                     reloadIdea();
                                   });
-                                },
-                                color,
-                              },
-                            ]),
-                      ]}
-                    />
+                                }}
+                                title="Connect this idea"
+                              >
+                                <GraphIcon size={14} weight="bold" />
+                              </ActionIcon>
+                            )}
+                            <ActionIcon
+                              variant="light"
+                              size="sm"
+                              onClick={() => {
+                                navigate(`/ideas/${relatedIdea.id.toString()}`);
+                              }}
+                              title="View related idea"
+                            >
+                              <ArrowRightIcon size={14} weight="bold" />
+                            </ActionIcon>
+                          </Group>
+                          <Text size="sm">
+                            {
+                              relatedIdea.derived?.generative_summary
+                                ?.sentenceOverview
+                            }
+                          </Text>
+                        </Stack>
+                      </Accordion.Panel>
+                    </Accordion.Item>
                   );
                 })}
-              </Stack>
+              </Accordion>
             ) : (
               <Text>No related ideas yet.</Text>
             )}

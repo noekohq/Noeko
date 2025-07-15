@@ -20,6 +20,7 @@ interface IIdeaButton {
   actions?: IIdeaButtonAction[];
   link?: boolean;
   draggable?: boolean;
+  fullWidth?: boolean;
 }
 
 function IdeaButton({
@@ -29,29 +30,37 @@ function IdeaButton({
   draggable,
   bg,
   color,
+  fullWidth = false,
 }: IIdeaButton) {
   const [hovering, setHovering] = useState(false);
+  const [isInternallyDragging, setIsInternallyDragging] = useState(false);
+
+  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
+    setIsInternallyDragging(true);
+    e.dataTransfer.setData("application/json", JSON.stringify(idea));
+  };
+
+  const handleDragEnd = (e: React.DragEvent<HTMLButtonElement>) => {
+    setIsInternallyDragging(false);
+  };
 
   return (
-    <div
+    <button
       data-idea-id={idea.id.toString()}
-      className={styles.ideaButton}
+      className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
       draggable={draggable}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onMouseEnter={() => {
         setHovering(true);
       }}
       onMouseLeave={() => {
         setHovering(false);
       }}
+      disabled={isInternallyDragging}
     >
       <Group justify="space-between" wrap="nowrap" w="100%">
-        <Text
-          className={styles.title}
-          fw="bold"
-          c="dark.2"
-          size="sm"
-          truncate="end"
-        >
+        <Text className={styles.title} c="dark.1" size="sm" truncate="end">
           {idea.title}
         </Text>
         {hovering && (
@@ -80,7 +89,7 @@ function IdeaButton({
           </Group>
         )}
       </Group>
-    </div>
+    </button>
   );
 }
 

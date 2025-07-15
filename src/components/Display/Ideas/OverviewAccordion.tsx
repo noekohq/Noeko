@@ -32,9 +32,11 @@ export default function OverviewAccordion({
   } = overview;
 
   return (
-    <Accordion>
+    <Accordion variant="filled">
       <Accordion.Item value={"overview"}>
-        <Accordion.Control icon={<Sparkle />}>Overview</Accordion.Control>
+        <Accordion.Control icon={<Sparkle />}>
+          Sentence Overview
+        </Accordion.Control>
         <Accordion.Panel>{sentenceOverview}</Accordion.Panel>
       </Accordion.Item>
       <Accordion.Item value="summary">
