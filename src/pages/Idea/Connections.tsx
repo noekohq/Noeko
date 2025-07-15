@@ -322,35 +322,42 @@ export default function Connections({
                       <Accordion.Panel>
                         <Stack gap="xs">
                           <Group gap="xs" align="center">
-                            {!ideaIsConnected(relatedIdea.id.toString()) && (
+                            <Group gap="xs" align="center">
+                              {!ideaIsConnected(relatedIdea.id.toString()) && (
+                                <ActionIcon
+                                  variant="light"
+                                  size="sm"
+                                  color={"dark.3"}
+                                  onClick={() => {
+                                    console.log("Hitting on click!");
+                                    createIdeaConnection(
+                                      idea.id.toString(),
+                                      relatedIdea.id.toString(),
+                                    ).then(() => {
+                                      reloadIdea();
+                                    });
+                                  }}
+                                  title="Connect this idea"
+                                >
+                                  <GraphIcon size={14} weight="bold" />
+                                </ActionIcon>
+                              )}
                               <ActionIcon
                                 variant="light"
                                 size="sm"
-                                color={"dark.3"}
                                 onClick={() => {
-                                  console.log("Hitting on click!");
-                                  createIdeaConnection(
-                                    idea.id.toString(),
-                                    relatedIdea.id.toString(),
-                                  ).then(() => {
-                                    reloadIdea();
-                                  });
+                                  navigate(
+                                    `/idea/${relatedIdea.id.toString()}`,
+                                  );
                                 }}
-                                title="Connect this idea"
+                                title="View related idea"
                               >
-                                <GraphIcon size={14} weight="bold" />
+                                <ArrowRightIcon size={14} weight="bold" />
                               </ActionIcon>
-                            )}
-                            <ActionIcon
-                              variant="light"
-                              size="sm"
-                              onClick={() => {
-                                navigate(`/ideas/${relatedIdea.id.toString()}`);
-                              }}
-                              title="View related idea"
-                            >
-                              <ArrowRightIcon size={14} weight="bold" />
-                            </ActionIcon>
+                            </Group>
+                            <Badge color={color} variant="light" size="xs">
+                              {level}
+                            </Badge>
                           </Group>
                           <Text size="sm">
                             {
