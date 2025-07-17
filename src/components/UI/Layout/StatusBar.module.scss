@@ -30,6 +30,11 @@
 
 .message {
     animation: messageIn 0.3s ease-in-out;
+    background-color: var(--mantine-color-body);
+    box-shadow: var(--mantine-shadow-lg);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-lg);
+    font-size: var(--mantine-font-size-sm);
 }
 
 .global {
