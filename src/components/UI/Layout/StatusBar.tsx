@@ -17,6 +17,8 @@ export default function StatusBar() {
 
   const { isDownRabbithole } = useRabbithole();
 
+  const hasGlobalContext = isDownRabbithole;
+
   if (mode == "hidden") {
     return null;
   }
@@ -36,15 +38,17 @@ export default function StatusBar() {
           </Text>
         </div>
       )}
-      <div
-        className={`${styles.global} ${StatusMessage ? styles.hasMessage : ""}`}
-      >
-        {isDownRabbithole && (
-          <div className={styles.rabbitholeIndicatorWrapper}>
-            <RabbitholeIndicator />
-          </div>
-        )}
-      </div>
+      {hasGlobalContext && (
+        <div
+          className={`${styles.global} ${StatusMessage ? styles.hasMessage : ""}`}
+        >
+          {isDownRabbithole && (
+            <div className={styles.rabbitholeIndicatorWrapper}>
+              <RabbitholeIndicator />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

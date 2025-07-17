@@ -4,7 +4,7 @@
     --rabbithole-indicator-width: 3px;
     display: flex;
     overflow: auto;
-    height: calc(100vh - calc(var(--rabbithole-indicator-width) * 2));
+    height: calc(100vh);
     flex-direction: column;
     justify-content: space-around;
     align-items: center;

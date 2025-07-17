@@ -71,6 +71,7 @@
         border-radius: 0;
         width: 100%;
         padding: 0 var(--mantine-spacing-md);
+        box-shadow: none;
     }
 }
 
@@ -80,7 +81,7 @@
 
     &.hasMessage {
         @include tablet {
-            max-width: 50%;
+            width: 100%;
         }
     }
 
