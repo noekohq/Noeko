@@ -29,6 +29,7 @@ import {
   Graph,
   GraphIcon,
   InfoIcon,
+  NotePencilIcon,
   TrashSimple,
 } from "@phosphor-icons/react";
 import { api } from "../../server/api";
@@ -40,6 +41,7 @@ import {
 } from "../../components/Display/Ideas/IdeaCards";
 import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
 import IdeaButton from "../../components/Display/Ideas/IdeaButton";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 type IConnectionsProps = {
   loadingIdea: boolean;
@@ -162,6 +164,10 @@ export default function Connections({
 
   const navigate = useNavigate();
 
+  const {
+    actions: { newConnectedIdea },
+  } = useInteraction();
+
   return (
     <Grid>
       {computeOutOfDate && (
@@ -216,28 +222,43 @@ export default function Connections({
               )}
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
-              <Group align="center">
-                <Text size="sm">Ideas you've connected...</Text>
-                {loadingIdea && <Loader size="xs" color="gray" />}
-                {!loadingIdea && (
-                  <HoverCard width="400px">
-                    <HoverCard.Target>
-                      <ActionIcon variant="subtle" size={"xs"} color="gray">
-                        <InfoIcon />
-                      </ActionIcon>
-                    </HoverCard.Target>
-                    <HoverCard.Dropdown>
-                      <Text size="sm">
-                        Explicit connections between ideas are only made by you,
-                        and they are persistent even if the content changes,
-                        unlike similar ideas. You can drag and drop ideas to
-                        this area, or click the associated buttons to make
-                        connections.
-                      </Text>
-                    </HoverCard.Dropdown>
-                  </HoverCard>
-                )}
-              </Group>
+              <Stack>
+                <Group align="center">
+                  <Text size="sm">Ideas you've connected...</Text>
+                  {loadingIdea && <Loader size="xs" color="gray" />}
+                </Group>
+                <Group>
+                  <ActionIcon
+                    variant="light"
+                    size={"sm"}
+                    onClick={() => newConnectedIdea(idea.id.toString())}
+                  >
+                    <NotePencilIcon size={14} />
+                  </ActionIcon>
+                  {!loadingIdea && (
+                    <HoverCard width="400px">
+                      <HoverCard.Target>
+                        <ActionIcon variant="subtle" size="sm" color="gray">
+                          <InfoIcon />
+                        </ActionIcon>
+                      </HoverCard.Target>
+                      <HoverCard.Dropdown>
+                        <Text size="sm" mb="xs">
+                          Explicit connections between ideas are only made by
+                          you, and they are persistent even if the content
+                          changes, unlike similar ideas. You can drag and drop
+                          ideas to this area, or click the associated buttons to
+                          make connections.
+                        </Text>
+                        <Text c="dimmed" size="xs">
+                          Click the <NotePencilIcon /> button to create a new
+                          connected note.
+                        </Text>
+                      </HoverCard.Dropdown>
+                    </HoverCard>
+                  )}
+                </Group>
+              </Stack>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group>

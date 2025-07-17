@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { handleCreateNewIdea } from "../utils/ideas";
+import {
+  handleCreateNewConnectedIdea,
+  handleCreateNewIdea,
+} from "../utils/ideas";
 import { showNotification } from "@mantine/notifications";
 import { getOS } from "../utils/platform";
 import { useAuth } from "./AuthContext";
@@ -44,6 +47,7 @@ const max_notes = Number(VITE_MAX_USER_NOTES) || 500;
 type IInteractionContext = {
   actions: {
     newIdea: () => void;
+    newConnectedIdea: (source: string) => void;
     newRabbithole: () => void;
     layout: {
       leftSidebar: {
@@ -87,6 +91,7 @@ type IInteractionContext = {
 const initialContext: IInteractionContext = {
   actions: {
     newIdea: () => {},
+    newConnectedIdea: () => {},
     newRabbithole: () => {},
     layout: {
       leftSidebar: {
@@ -170,6 +175,27 @@ export function InteractionProvider({
     setLoadingSomething(false);
   };
 
+  const handleNewConnectedIdea = async (source: string) => {
+    setLoadingSomething(true);
+    await handleCreateNewConnectedIdea(
+      source,
+      (i) => {
+        navigate(`idea/${i.id.toString()}`);
+        if (currentRabbithole) {
+          includeThing(i.id.toString());
+        }
+      },
+      (err) => {
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong adding the idea.",
+          color: "red",
+        });
+      },
+    );
+    setLoadingSomething(false);
+  };
+
   const handleNewRabbithole = async () => {
     setLoadingSomething(true);
     await handleCreateNewRabbithole(
@@ -220,6 +246,21 @@ export function InteractionProvider({
           });
         }
       },
+      newConnectedIdea: async (source: string) => {
+        if (
+          (user && user.totalIdeas < max_notes && max_notes !== -1) ||
+          userIsSuperuser(user)
+        ) {
+          handleNewConnectedIdea(source);
+        } else {
+          showNotification({
+            title: "Too many notes",
+            message: `You have reached your limit of ${max_notes} ideas!`,
+            color: "red",
+          });
+        }
+      },
+
       newRabbithole: async () => {
         handleNewRabbithole();
       },
