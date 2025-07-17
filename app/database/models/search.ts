@@ -427,40 +427,6 @@ export class SpyglassSearch {
     );
   }
 
-  public static async loadAnalysis(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
-    try {
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
-      const search = await SpyglassSearch.get(searchId);
-      if (!search) {
-        throw new Error("Search not found");
-      }
-      if (!search.results) {
-        throw new Error("Tried to run analysis on an empty search");
-      }
-      if (!search.resultConnections) {
-        throw new Error("Did not load result relations");
-      }
-      if (!search.fullResults) {
-        throw new Error("Did not load full results");
-      }
-      const analysis = await Search.getOverviewFromResults(
-        search.baseQuery,
-        search.fullResults,
-      );
-      await db.merge<ISpyglassSearch>(searchId, { analysis });
-      return analysis;
-    } catch (error) {
-      logger.error("Error loading analysis", { searchId, error });
-      throw error;
-    }
-  }
-
   public static async loadFindings(
     userId: string | RecordId,
     searchId: string | RecordId,
@@ -547,27 +513,6 @@ export class SpyglassSearch {
       return overview;
     } catch (error) {
       logger.error("Error loading overview", { searchId, error });
-      throw error;
-    }
-  }
-
-  public static async runSpyglass(userId: string, query: string) {
-    try {
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
-      const search = await SpyglassSearch.create(userId, {
-        baseQuery: query,
-      });
-      if (!search) {
-        throw new Error("Failed to create search");
-      }
-      await SpyglassSearch.loadResults(userId, search.id);
-      await SpyglassSearch.loadAnalysis(userId, search.id);
-      return await SpyglassSearch.get(search.id);
-    } catch (error) {
-      logger.error("Error running spyglass", { query, error });
       throw error;
     }
   }

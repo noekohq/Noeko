@@ -7,33 +7,6 @@ import { ISafeUser } from "../../database/models/user";
 
 const router = Router();
 
-router.post("/", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const query = req.body.query as string;
-    const spyglass = await SpyglassSearch.runSpyglass(user.id, query);
-    if (!spyglass) {
-      throw new Error("Could not get results.");
-    }
-    const toSend: {
-      data: ISpyglassSearch;
-    } = {
-      data: spyglass,
-    };
-    res.json({
-      message: "Spyglass ran successfully",
-      data: toSend,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 router.post("/initialize", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
