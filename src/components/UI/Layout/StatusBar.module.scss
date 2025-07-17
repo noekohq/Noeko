@@ -35,6 +35,11 @@
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
     border-radius: var(--mantine-radius-lg);
     font-size: var(--mantine-font-size-sm);
+    border: 1px solid var(--mantine-color-dark-8);
+
+    @include tablet {
+        padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+    }
 }
 
 .global {
