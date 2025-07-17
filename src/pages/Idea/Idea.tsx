@@ -62,6 +62,9 @@ import Loading from "../../components/Display/Loading/Loading";
 import { Alert } from "@mantine/core";
 import { WarningCircleIcon } from "@phosphor-icons/react";
 import { useMultiTabWarning } from "../../hooks/useMultiTabWarning";
+import { useLandscape } from "../../contexts/LandscapeContext";
+import { createIdeaConnection } from "../../utils/ideas";
+import { ideasAreConnected } from "../../utils/graph";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -73,7 +76,14 @@ export default function Idea() {
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
   const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
 
-  const { isMobile } = useLayout();
+  const {
+    elements: {
+      statusBar: {
+        message: { set: setStatusMessage },
+      },
+    },
+    isMobile,
+  } = useLayout();
 
   useDocumentTitle(`${title || "Loading..."} - Qwest`);
 
@@ -174,6 +184,22 @@ export default function Idea() {
       },
     });
 
+  const {
+    idea: {
+      viewing: { set: setViewing },
+    },
+  } = useLandscape();
+
+  useEffect(() => {
+    if (idea) {
+      setViewing(idea);
+    }
+
+    return () => {
+      setViewing(null);
+    };
+  }, [idea]);
+
   const embeddingsOutOfDate = useCallback(() => {
     if (!idea) {
       return false;
@@ -233,7 +259,15 @@ export default function Idea() {
     return text.trim();
   }, [idea, ideaId, loadingEmbeddings, embeddingsOutOfDate]);
 
-  const showStatusBlock = statusText().length > 0;
+  useEffect(() => {
+    if (statusText()) {
+      setStatusMessage(statusText());
+    }
+
+    return () => {
+      setStatusMessage("");
+    };
+  }, [statusText()]);
 
   const updateContent = async (newContent: string) => {
     setLoadingSaveChanges(true);
@@ -394,16 +428,41 @@ export default function Idea() {
     };
   }, [loadingSaveChanges]);
 
+  const handleConnectIdea = async (ideaId: string) => {
+    try {
+      if (!ideaId || !idea) {
+        return;
+      }
+      await createIdeaConnection(idea.id.toString(), ideaId);
+      reloadIdea();
+    } catch (error) {
+      console.error("Error creating idea connection: ", error);
+      showNotification({
+        message: "Something went wrong creating the connection",
+      });
+    }
+  };
+
+  const isConnected = useCallback(
+    (ideaId: string) => {
+      if (!idea) {
+        return false;
+      }
+      return ideasAreConnected(idea, ideaId);
+    },
+    [ideaId, idea],
+  );
+
   return (
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
-          <Tabs defaultValue="overview">
+          <Tabs defaultValue="context">
             <Tabs.List>
-              <Tabs.Tab value="overview">
+              <Tabs.Tab value="context">
                 <Group gap="xs">
                   <StarIcon weight="fill" size={14} />
-                  Overview
+                  Context
                 </Group>
               </Tabs.Tab>
               <Tabs.Tab value="insights">
@@ -413,7 +472,7 @@ export default function Idea() {
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel value="overview">
+            <Tabs.Panel value="context">
               <Card radius="md" withBorder shadow="xs" p="md">
                 <Text fw={500} c="dimmed" size="sm" mb={4}>
                   <SparkleIcon
@@ -539,15 +598,6 @@ export default function Idea() {
               </div>
             </Stack>
           </div>
-          {showStatusBlock && (
-            <div className={`${styles.toolbar}`}>
-              <Group justify="space-between" align="center">
-                <Text size="xs" c="dimmed">
-                  {statusText()}
-                </Text>
-              </Group>
-            </div>
-          )}
         </div>
       </Content>
       <RightSidebar>
@@ -568,12 +618,12 @@ export default function Idea() {
               </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="tools">
-              <Flex gap="sm" justify="space-between">
+              <Flex gap="sm" justify="flex-start">
                 <Tooltip label="Delete Idea">
                   <ActionIcon
                     variant="light"
                     color="red"
-                    size="md"
+                    size="sm"
                     onClick={handleDeleteIdea}
                     disabled={loadingDelete}
                   >
@@ -582,15 +632,16 @@ export default function Idea() {
                 </Tooltip>
                 <Tooltip label="Viewonly">
                   <Link to="view">
-                    <ActionIcon variant="default" size="md">
+                    <ActionIcon variant="light" size="sm" color="gray">
                       <BookOpenIcon />
                     </ActionIcon>
                   </Link>
                 </Tooltip>
                 <Tooltip label="Export as HTML">
                   <ActionIcon
-                    variant="default"
-                    size="md"
+                    variant="light"
+                    size="sm"
+                    color="gray"
                     onClick={downloadAsHTML}
                   >
                     <BracketsAngleIcon />
@@ -598,8 +649,9 @@ export default function Idea() {
                 </Tooltip>
                 <Tooltip label="Export as Markdown">
                   <ActionIcon
-                    variant="default"
-                    size="md"
+                    variant="light"
+                    size="sm"
+                    color="gray"
                     onClick={downloadAsMarkdown}
                   >
                     <MarkdownLogoIcon />
@@ -608,7 +660,7 @@ export default function Idea() {
                 <Tooltip label="Copy as Markdown">
                   <Menu trigger="hover">
                     <Menu.Target>
-                      <ActionIcon variant="default" size="md">
+                      <ActionIcon variant="light" size="sm" color="gray">
                         <CopySimpleIcon />
                       </ActionIcon>
                     </Menu.Target>
@@ -648,7 +700,25 @@ export default function Idea() {
                 </Tooltip>
               </Flex>
               <Space my="lg" />
-              <Search />
+              <Search
+                resultSize="standard"
+                resultActions={
+                  isMobile
+                    ? [
+                        (idea) => {
+                          return {
+                            id: "connect",
+                            label: "Connect",
+                            onClick: () => {
+                              handleConnectIdea(idea.id.toString());
+                            },
+                            disabled: isConnected(idea.id.toString()),
+                          };
+                        },
+                      ]
+                    : undefined
+                }
+              />
             </Tabs.Panel>
             <Tabs.Panel value="access">
               {!!idea && (

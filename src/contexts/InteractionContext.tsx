@@ -194,16 +194,11 @@ export function InteractionProvider({
   const {
     elements: {
       leftSidebar: {
-        mode: { toggle: toggleLeftSidebar },
+        mode: { toggle: toggleLeftSidebar, set: setLeftSidebar },
       },
       rightSidebar: {
-        mode: { toggle: toggleRightSidebar },
+        mode: { toggle: toggleRightSidebar, set: setRightSidebarMode },
       },
-    },
-    leftSidebar: { setOpened: setLeftSidebarOpened, opened: leftSidebarOpened },
-    rightSidebar: {
-      setOpened: setRightSidebarOpened,
-      opened: rightSidebarOpened,
     },
   } = useLayout();
 
@@ -231,24 +226,24 @@ export function InteractionProvider({
       layout: {
         leftSidebar: {
           open: () => {
-            setLeftSidebarOpened(true);
+            setLeftSidebar("open");
           },
           close: () => {
-            setLeftSidebarOpened(false);
+            setLeftSidebar("collapsed");
           },
           toggle: () => {
-            setLeftSidebarOpened(!leftSidebarOpened);
+            toggleLeftSidebar();
           },
         },
         rightSidebar: {
           open: () => {
-            setRightSidebarOpened(true);
+            setRightSidebarMode("open");
           },
           close: () => {
-            setRightSidebarOpened(false);
+            setRightSidebarMode("collapsed");
           },
           toggle: () => {
-            setRightSidebarOpened(!rightSidebarOpened);
+            toggleRightSidebar();
           },
         },
         spotlight: {

@@ -10,6 +10,7 @@ import {
 } from "../declarations/graph";
 import {
   formatDate,
+  formatDateTime,
   markdownToHtml,
   sanitizeMarkdownForDescription,
 } from "./formatting";
@@ -149,6 +150,9 @@ export const getNodeTitle = (node: INode) => {
   if (node.type === "tag") {
     return node.name;
   }
+  if (node.type === "rabbithole") {
+    return node.name;
+  }
 };
 
 export const getNodeDescription = (
@@ -180,6 +184,9 @@ export const getNodeDescription = (
   }
   if (node.type === "tag") {
     return node.description;
+  }
+  if (node.type === "rabbithole") {
+    return formatDateTime(node.updatedAt);
   }
 };
 

@@ -3,18 +3,14 @@ import React, {
   useState,
   useEffect,
   useContext,
-  useMemo,
   Dispatch,
   SetStateAction,
+  ComponentType,
 } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 
-type SidebarState = {
-  opened: boolean;
-  setOpened: Dispatch<SetStateAction<boolean>>;
-};
-
 export type ISidebarMode = "open" | "collapsed" | "compact" | "hovering";
+export type IStatusBarMode = "hidden" | "showing";
 
 type ILayoutContext = {
   elements: {
@@ -42,9 +38,19 @@ type ILayoutContext = {
         setHasContent: Dispatch<SetStateAction<boolean>>;
       };
     };
+    statusBar: {
+      mode: {
+        get: IStatusBarMode;
+        set: (mode: IStatusBarMode) => void;
+        toggle: () => void;
+        toggleAll: () => void;
+      };
+      message: {
+        get: string | null;
+        set: (message: string | null) => void;
+      };
+    };
   };
-  leftSidebar: SidebarState;
-  rightSidebar: SidebarState;
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
@@ -79,14 +85,18 @@ const initialLayoutContext: ILayoutContext = {
         setHasContent: () => {},
       },
     },
-  },
-  leftSidebar: {
-    opened: false,
-    setOpened: () => {},
-  },
-  rightSidebar: {
-    opened: false,
-    setOpened: () => {},
+    statusBar: {
+      mode: {
+        get: "hidden",
+        set: () => {},
+        toggle: () => {},
+        toggleAll: () => {},
+      },
+      message: {
+        get: null,
+        set: () => {},
+      },
+    },
   },
   isMobile: false,
   isTablet: false,
@@ -139,6 +149,11 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     useState<boolean>(false);
   const [rightSidebarHovering, setRightSidebarHovering] =
     useState<boolean>(false);
+
+  const [statusBarMode, setStatusbarMode] =
+    useState<ILayoutContext["elements"]["statusBar"]["mode"]["get"]>("showing");
+  const [statusBarMessage, setStatusbarMessage] =
+    useState<ILayoutContext["elements"]["statusBar"]["message"]["get"]>(null);
 
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
@@ -273,14 +288,35 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
           setHasContent: setRightSidebarHasContent,
         },
       },
-    },
-    leftSidebar: {
-      opened: leftSidebarOpened,
-      setOpened: setLeftSidebarOpened,
-    },
-    rightSidebar: {
-      opened: rightSidebarOpened,
-      setOpened: setRightSidebarOpened,
+      statusBar: {
+        mode: {
+          get: statusBarMode,
+          set: setStatusbarMode,
+          toggle: () => {
+            setStatusbarMode((prev) => {
+              if (prev === "showing") {
+                return "hidden";
+              } else {
+                return "showing";
+              }
+            });
+          },
+          toggleAll: () => {
+            setStatusbarMode((prev) => {
+              if (prev === "showing") {
+                return "hidden";
+              } else if (prev === "hidden") {
+                return "showing";
+              }
+              return "hidden";
+            });
+          },
+        },
+        message: {
+          get: statusBarMessage,
+          set: setStatusbarMessage,
+        },
+      },
     },
     isMobile,
     isTablet,

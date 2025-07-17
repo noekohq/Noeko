@@ -39,10 +39,25 @@ import {
   ClockCounterClockwiseIcon,
 } from "@phosphor-icons/react";
 import Content from "../../components/UI/Layout/Content";
-import Search from "../../components/Search/Search";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 export default function Spyglass() {
+  const {
+    elements: {
+      statusBar: {
+        mode: { set: setStatusBar },
+      },
+    },
+  } = useLayout();
+
+  useEffect(() => {
+    setStatusBar("hidden");
+
+    return () => {
+      setStatusBar("visible");
+    };
+  }, []);
+
   const [query, setQuery] = useState<string>("");
   const [parentId, setParentId] = useState<string | null>(null);
   const {

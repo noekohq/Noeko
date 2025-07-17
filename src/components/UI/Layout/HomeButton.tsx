@@ -7,9 +7,7 @@ export default function HomeButton() {
   const { pathname } = useLocation();
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
-  const isHome = isDownRabbithole
-    ? pathname === `/rabbitholes/${currentRabbithole?.id.toString()}`
-    : pathname === "/";
+  const isHome = pathname === "/";
 
   const defaultColor: MantineColor = "dark.3";
 
@@ -18,13 +16,7 @@ export default function HomeButton() {
   }
 
   return (
-    <Link
-      to={
-        isDownRabbithole
-          ? `/rabbitholes/${currentRabbithole?.id.toString()}`
-          : "/"
-      }
-    >
+    <Link to={"/"}>
       <ActionIcon variant="subtle" color={defaultColor}>
         <HouseIcon />
       </ActionIcon>

@@ -94,6 +94,26 @@ export const removeIdeaConnection = async (source: string, target: string) => {
   }
 };
 
+export const handleCreateNewConnectedIdea = async (
+  from: string,
+  cb: (idea: IIdea) => void,
+  err: (err: Error) => void,
+) => {
+  try {
+    const idea = await newIdea();
+    if (!idea) {
+      err(new Error("New idea was not created."));
+      return;
+    }
+    await createIdeaConnection(from, idea.id.toString()).then(() => {
+      cb(idea);
+    });
+  } catch (error) {
+    console.error("Error creating new idea: ", error);
+    return undefined;
+  }
+};
+
 export const initializeImport = async (): Promise<string | undefined> => {
   try {
     const result = await api.post("/imports/initialize").then((d) => {

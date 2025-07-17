@@ -269,7 +269,7 @@ export const qwest: IOverrideResolver = (t) => {
     return { colors: darkColors, white: "#fbf1c7", black: "#3c3836" };
   };
 
-  return createTheme({
+  const theme = createTheme({
     fontFamily: t.bodyFont === "sans-serif" ? "Geist" : "Besley",
     fontFamilyMonospace: "Geist Mono",
     headings: {
@@ -278,7 +278,7 @@ export const qwest: IOverrideResolver = (t) => {
     },
     colors: colorsToUse()?.colors,
     primaryColor: "blue",
-    primaryShade: 7,
+    primaryShade: 6,
     white: colorsToUse()?.white,
     black: colorsToUse()?.black,
     components: {
@@ -292,6 +292,7 @@ export const qwest: IOverrideResolver = (t) => {
       }),
     },
   });
+  return theme;
 };
 
 export const overrides: Record<IThemeOption, IOverrideResolver> = {
