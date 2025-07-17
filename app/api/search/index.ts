@@ -40,9 +40,6 @@ router.post("/comprehensive", checkToken, async (req, res) => {
       results,
       overview: undefined,
     };
-    if (withOverview) {
-      toSend.overview = await Search.getOverviewFromResults(query, results);
-    }
     res.json({
       message: "Results fetched successfully",
       data: toSend,
