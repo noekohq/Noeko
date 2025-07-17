@@ -10,6 +10,7 @@ import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ITag } from "../database/models/tag";
+import { IRabbithole } from "../database/models/rabbithole";
 
 export type ISearchResultValue =
   | (IIdea & {
@@ -98,84 +99,14 @@ export type ITagSearchResult = {
   searchType: "fts" | "semantic" | "comprehensive";
 };
 
-const queryModes: {
-  name: string;
-  description: string;
-  specificInstructions: string[];
-}[] = [
-  {
-    name: "Direct Q&A",
-    description:
-      "This mode is for when a user asks a specific, direct question to their knowledge base. The goal is to provide a single, accurate, and concise answer.",
-    specificInstructions: [
-      "Your primary goal is to answer the user's question directly and concisely. Avoid providing broad, unnecessary background information.",
-      "Begin the response with the direct answer in the very first sentence. The rest of the response should only provide essential supporting context.",
-      "Prioritize findings with the types: FACT, DEFINITION, and EXPLANATION to construct your answer.",
-      "Synthesize multiple relevant findings into one cohesive answer. Do not list out different findings separately.",
-      "If the findings do not contain a direct answer to the question, you MUST explicitly state that the information is not available in the knowledge base. Do not attempt to infer or guess the answer.",
-      "Keep the response to 1-2 paragraphs maximum. Use simple sentence and paragraph structure.",
-    ],
-  },
-  {
-    name: "Synthesis Report",
-    description:
-      "This is the standard mode for general knowledge queries, the goal is to provide a comprehensive and detailed answer that covers all aspects of the user's query.",
-    specificInstructions: [
-      "Start with a brief, one-paragraph summary of the key information.",
-      "Structure the main body of the response using headings for sub-topics.",
-      "Prioritize FACT, DEFINITION, and EXPLANATION findings to build the core of the report.",
-      "Weave in PERSONAL_INSIGHT and QUOTE findings to add color and personal context, but they should support the main narrative, not lead it.",
-      "Ensure the report is well-organized, coherent, and easy to follow.",
-    ],
-  },
-  {
-    name: "Insight Review",
-    description:
-      "This mode is for when the user wants to review their own thinking process. The goal is to provide a reflective experience and insight to the user's thought process, in accordance with their query.",
-    specificInstructions: [
-      "You MUST prioritize findings with the PERSONAL_INSIGHT type above all others. Also, give high priority to KEY_TAKEAWAY and OPEN_QUESTION.",
-      "Structure the output as a narrative review. Use blockquotes (>) for direct PERSONAL_INSIGHT excerpts.",
-      "The tone should be more reflective. It is acceptable to frame the answer from the user's perspective, for example: 'Your main insight was that...' or 'You seem to have concluded that...'",
-      "Factual findings (FACT, DEFINITION) should only be used to provide brief context for the personal insights.",
-    ],
-  },
-  {
-    name: "Action Summary",
-    description:
-      "This mode is for when the user is planning or reviewing tasks. The goal is to provide a clear, actionable list of action items.",
-    specificInstructions: [
-      "Start with a concise overview of the user's action items",
-      "Prioritize actionability on the user's behalf, providing only necessary context to take action on an item.",
-      "You MUST only use findings with the ACTION_ITEM type to construct your todo-list",
-      "Group related tasks under subheadings based on their source or topic.",
-      "Prioritize flat text structure, avoid heading tags, use bold text for emphasis or categorization.",
-      "use a standard list format to construct the lists.",
-    ],
-  },
-  {
-    name: "Comparative Analysis",
-    description:
-      "This mode is for when the user wants to understand the relationship between two or more concepts. Your goal is to create a structured comparison of the concepts mentioned in the query.",
-    specificInstructions: [
-      "You MUST format the core of your response as an HTML table with <table>.",
-      "The table columns should be the items being compared (e.g., 'Permaculture', 'Syntropic Agroforestry')",
-      "The table rows should be the criteria for comparison (e.g., 'Core Principles', 'Key Proponents', 'Implementation Challenges').",
-      "Use FACT, DEFINITION, and KEY_TAKEAWAY findings to populate the table. Use CONTRADICTION findings to highlight key differences.",
-      "Conclude with a brief summary paragraph highlighting the most significant similarities and differences.",
-    ],
-  },
-  {
-    name: "Question Drilldown",
-    description:
-      "This mode is for exploring the user's knowledge gaps. Your goal is to help a user understand the gaps in their knowledge, and unanswered questions they have.",
-    specificInstructions: [
-      "The lack of a relevant finding that should be there implies a gap in knowledge",
-      "Only in this mode may you reference content that isn't specifically included in findings.",
-      "Use KNOWLEDGE_GAP findings to identify gaps in the user's knowledge. As well as OPEN_QUESTION findings to identify unanswered questions.",
-      "Conclude with a brief summary paragraph highlighting the most significant knowledge gaps and steps to address them.",
-    ],
-  },
-];
+export type IRabbitholeSearchResultValue = IRabbithole;
+
+export type IRabbitholeSearchResult = {
+  id: string | RecordId;
+  value: IRabbitholeSearchResultValue;
+  score: number;
+  searchType: "fts" | "semantic" | "comprehensive";
+};
 
 export class Search {
   private static readonly COMPREHENSIVE_WEIGHTS = {
@@ -226,7 +157,14 @@ export class Search {
       return `
       DEFINE ANALYZER OVERWRITE tag_analyzer
       TOKENIZERS class
-      FILTERS lowercase;`;
+      FILTERS lowercase, snowball(english);`;
+    };
+
+    const rabbitholeSearchAnalyzer = () => {
+      return `
+      DEFINE ANALYZER OVERWRITE rabbithole_analyzer
+      TOKENIZERS class
+      FILTERS lowercase, snowball(english);`;
     };
 
     const ftsTitleSearchIndex = () => {
@@ -267,6 +205,16 @@ export class Search {
         ON TABLE tag
         FIELDS description
         SEARCH ANALYZER tag_analyzer
+        BM25 HIGHLIGHTS;
+      `;
+    };
+
+    const ftsRabbitholeSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_rabbithole_fts
+        ON TABLE rabbithole
+        FIELDS name
+        SEARCH ANALYZER rabbithole_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -322,6 +270,29 @@ export class Search {
         LIMIT $limit;
 
         return $tags;
+      }`;
+    };
+
+    const ftsSearchRabbitholesFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_user_rabbitholes_fts(
+        $userId: record<user>,
+        $query: string,
+        $limit: int
+      ) {
+        LET $rabbitholes = SELECT
+            *,
+            name,
+            description,
+            search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
+            search::score(0) AS nameScore
+        FROM rabbithole
+        WHERE
+            name @0@ $query
+            AND <-owns<-(user WHERE id = <record> $userId)
+        LIMIT $limit;
+
+        return $rabbitholes;
       }`;
     };
 
@@ -480,14 +451,17 @@ export class Search {
       );
       await db.query(ideaSearchAnalyzer());
       await db.query(tagSearchAnalyzer());
+      await db.query(rabbitholeSearchAnalyzer());
       await db.query(ftsTitleSearchIndex());
       await db.query(ftsContentSearchIndex());
       await db.query(ftsTagNameSearchIndex());
       await db.query(ftsTagDescriptionSearchIndex());
+      await db.query(ftsRabbitholeSearchIndex());
       await db.query(defineVectorIndex());
       await db.query(defineTagVectorIndex());
       await db.query(ftsSearchFunction());
       await db.query(ftsSearchTagsFunction());
+      await db.query(ftsSearchRabbitholesFunction());
       await db.query(searchSimilarToIdea());
       await db.query(searchSimilarToEmbeddings());
       await db.query(searchSimilarTagsToEmbeddings());
@@ -799,457 +773,6 @@ export class Search {
     }
   }
 
-  static async getOverviewFromResults(
-    query: string,
-    results: ISearchResult[],
-  ): Promise<ISearchOverview | undefined> {
-    try {
-      if (results.length === 0) {
-        return {
-          findings: [],
-          overview: "There were no results to analyze.",
-        };
-      }
-      const resultsStrings = results
-        .filter((r) => {
-          return r.value?.type === "idea";
-        })
-        .map((result) => {
-          let r = "";
-          const { highlightText, value } = result;
-          const ideaValue = value as IIdea;
-          r += `**${ideaValue.title}** | ID: ${ideaValue.id.toString()}`;
-          if (highlightText) {
-            r += `System Highlighted Text: ${highlightText}`;
-          }
-          r += `${htmlToMarkdown(ideaValue.content)}`;
-          return r;
-        });
-      const overviewPrompt = this.findingsPromptBuilder(query);
-
-      resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("simple");
-      const result = await lm.generateJSON<ISearchOverview>(
-        overviewPrompt.get(),
-        {
-          type: LMSchemaType.OBJECT,
-          properties: {
-            findings: {
-              type: LMSchemaType.ARRAY,
-              description: "Your findings directly from the source results",
-              items: {
-                type: LMSchemaType.OBJECT,
-                description: "An individual finding from the source results",
-                properties: {
-                  sourceId: {
-                    type: LMSchemaType.STRING,
-                    description: "The id of the result you're sourcing",
-                  },
-                  excerpt: {
-                    type: LMSchemaType.STRING,
-                    description: "The relevant portion of the source result",
-                  },
-                  analysis: {
-                    type: LMSchemaType.STRING,
-                    description:
-                      "Your finding from this excerpt, how it relates to the query",
-                  },
-                },
-                required: ["sourceId", "excerpt", "analysis"],
-              },
-            },
-            overview: {
-              type: LMSchemaType.STRING,
-              description:
-                "A direct response to the user's query based on the findings.",
-            },
-          },
-          required: ["findings", "overview"],
-        },
-      );
-      if (!result) {
-        throw new Error("overview not generated by LM");
-      }
-      return result;
-    } catch (error) {
-      console.error("Error getting overview from results:", error);
-      return undefined;
-    }
-  }
-
-  static findingsPromptBuilder(query: string) {
-    return (
-      new PromptBuilder()
-        // --- Insight: Stronger, more specific persona.
-        .addText(
-          "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user query.",
-        )
-        .addBlock(
-          "Purpose and Goal",
-          `
-          Your goal is to provide the most relevant excerpts to the query from the provided results.
-          Quality of analysis is paramount for quality search experience for your users, you exist to provide an additional layer of intelligence and context.
-          Your analysis will be built upon by other systems, so it's crucial to be reliable, precise, and foreward-thinking.
-          Your primary source of context is the user's query. Use it to inform each finding directly. If something isn't relevant
-          to the query's intent, don't include it.
-          `,
-        )
-        .addBlock(
-          "Instructions",
-          // --- Insight: Mandate a structured, machine-readable output (JSON). This is the most critical improvement.
-          `
-        Analyze the provided search results in relation to the user's query.
-        Extract every relevant portion of a result as a "finding".
-        For each finding, you MUST provide the source ID and the direct excerpt from the source that supports it.
-        The goal is as many strong findings as possible, but strong findings should be prioritized over quantity.
-        `,
-        )
-        .addBlock(
-          "Query-Specific Instructions",
-          `
-          Tune your analyses towards specific instructions below if applicable. However, still follow the Instructions, especially if one of the query types below doesn't fit the user's query.
-
-          ${queryModes
-            .map((query) => {
-              return `
-            ## ${query.name}
-            ${query.description}`;
-            })
-            .join("\n\n")}
-          `,
-        )
-        .addBlock("User Query", query)
-        // --- Insight: Consolidate and strengthen constraints.
-        .addBlock(
-          "Strict Rules",
-          `
-        - **DO NOT** interpret or infer information not present in the results.
-        - **DO NOT** add your own knowledge.
-        - **DO NOT** overanalyze, find the right amount of sources to answer the question, only searching deeply IF SPECIFICALLY REQUESTED.
-        - **DO NOT** split a continuous excerpt into multiple when it could be self-contained.
-        - Your primary goal is to find UNIQUE and DIVERSE findings. If multiple sources mention the same core idea (e.g., 'Chicken Wings'), create only one finding for that idea and list all relevant source IDs."
-        `,
-        )
-        .addBlock("Search Results", "The results to use are as follows:\n")
-    );
-  }
-
-  static findingsSchema(): LMSchema {
-    return {
-      type: LMSchemaType.ARRAY,
-      description:
-        "An array of structured findings extracted from the source results that are relevant to the user's query.",
-      items: {
-        type: LMSchemaType.OBJECT,
-        description:
-          "A single, discrete finding that helps answer the user's query.",
-        properties: {
-          sourceId: {
-            type: LMSchemaType.STRING,
-            description:
-              "The unique ID of the source result from which the excerpt is taken.",
-          },
-          excerpt: {
-            type: LMSchemaType.STRING,
-            description:
-              "The verbatim, direct quote from the source text that supports the finding. This must not be altered or summarized.",
-          },
-          analysis: {
-            type: LMSchemaType.STRING,
-            description:
-              "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's query.",
-          },
-          // --- Updated the enum with the new, more detailed taxonomy for qwest.
-          findingType: {
-            type: LMSchemaType.STRING,
-            description:
-              "Categorize the nature of the finding in relation to the query, based on the nature of personal knowledge-bases.",
-            enum: [
-              // Foundational Evidence
-              "FACT",
-              "CONTRADICTION",
-              "DEFINITION",
-              // Explanatory & Procedural
-              "EXPLANATION",
-              "EXAMPLE",
-              "PROCEDURE",
-              // Personal & Reflective
-              "PERSONAL_INSIGHT",
-              "KEY_TAKEAWAY",
-              "OPEN_QUESTION",
-              "ACTION_ITEM",
-              // Structural & Reference
-              "REFERENCE",
-              "QUOTE",
-            ],
-            format: "enum",
-          },
-        },
-        required: ["sourceId", "excerpt", "analysis", "findingType"],
-      },
-    };
-  }
-
-  static overviewPromptBuilder(query: string) {
-    return (
-      new PromptBuilder()
-        // --- Insight: Adopting the more polished persona we discussed.
-        .addText(
-          "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
-        )
-        .addBlock("User Query", query)
-        .addBlock("Context", `It is currently ${getFormattedDateTimeToday()}.`)
-        .addBlock(
-          "Core Instructions",
-          `
-        - Write a direct and comprehensive answer to the user query using ONLY the information from the "Findings" provided below.
-        - Begin your answer with a concise introductory sentence or paragraph that summarizes the key points.
-        - Structure the rest of your answer logically using headings and lists.
-        - Attend ABOVE ALL ELSE to the user's query, ensuring that your response satisfies the intent of the user.
-        - Prioritize the most useful information first, then elaborate if need be.
-        `,
-        )
-        .addBlock(
-          "Query-Specific Instructions",
-          `
-          You must use different instructions to write your answer based on the type of the user's query. However, be sure to also follow the Core Instructions, especially if the query doesn't match any of the defined types below. Here are the supported types.
-
-          ${queryModes
-            .map((query) => {
-              return `
-            ## ${query.name}
-            ${query.description}
-            ${query.specificInstructions
-              .map((instruction) => {
-                return `- ${instruction}`;
-              })
-              .join("\n")}
-            `;
-            })
-            .join("\n\n")}
-          `,
-        )
-        // --- Insight: Adding the critical citation mandate and strict formatting rules.
-        .addBlock(
-          "Formatting",
-          `
-        - Format your entire response using Markdown, and HTML where applicable.
-        - ALWAYS USE HTML for the following:
-          - Tables with <table>
-          - Lists with <ul> and <li>
-          - Code blocks with <pre> and <code>
-        `,
-        )
-        // --- Insight: Adding the full suite of negative constraints for safety and professionalism.
-        .addBlock(
-          "Strict Rules (NEVER/AVOID)",
-          `
-        - **NEVER** use information that is not explicitly present in the Findings. If the Findings do not contain the answer, state that you cannot answer based on the information provided.
-        - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
-        - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
-        - **NEVER** start your answer with a heading.
-        `,
-        )
-        .addBlock(
-          "Findings",
-          "The findings to use for your answer are as follows:\n",
-        )
-    ); // This will be the JSON from the first step.
-  }
-
-  static async getFindingsFromResults(
-    query: string,
-    results: ISearchResult[],
-  ): Promise<ISearchOverview["findings"] | undefined> {
-    try {
-      if (results.length === 0) {
-        return [];
-      }
-      const resultsStrings = results
-        .filter((r) => {
-          return r.value?.type === "idea";
-        })
-        .map((result) => {
-          let r = "";
-          const { highlightText, value } = result;
-          const ideaValue = value as IIdea;
-          r += `**${ideaValue.title}** | ID: ${ideaValue.id.toString()}`;
-          if (highlightText) {
-            r += `System Highlighted Text: ${highlightText}`;
-          }
-          r += `${htmlToMarkdown(ideaValue.content)}`;
-          return r;
-        });
-      const overviewPrompt = this.findingsPromptBuilder(query);
-
-      resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("simple");
-      const result = await lm.generateJSON<ISearchOverview["findings"]>(
-        overviewPrompt.get(),
-        this.findingsSchema(),
-      );
-      if (!result) {
-        throw new Error("Findings not generated by LM");
-      }
-      return result;
-    } catch (error) {
-      console.error("Error getting findings from results:", error);
-      return undefined;
-    }
-  }
-
-  static async *generateFindingsFromResults(
-    query: string,
-    results: ISearchResult[],
-  ): AsyncGenerator<string, void, unknown> {
-    try {
-      if (results.length === 0) {
-        yield `[]`;
-        return;
-      }
-      const resultsStrings = results
-        .filter((r) => {
-          return r.value?.type === "idea";
-        })
-        .map((result) => {
-          let r = "";
-          const { highlightText, value } = result;
-          const ideaValue = value as IIdea;
-          r += `**${ideaValue.title}** | ID: ${ideaValue.id.toString()}`;
-          if (highlightText) {
-            r += `System Highlighted Text: ${highlightText}`;
-          }
-          r += `${htmlToMarkdown(ideaValue.content)}`;
-          return r;
-        });
-      const overviewPrompt = this.findingsPromptBuilder(query);
-
-      resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("simple");
-      for await (const result of lm.generateJSONStream(
-        overviewPrompt.get(),
-        this.findingsSchema(),
-      )) {
-        if (!result) {
-          throw new Error("Findings not generated by LM");
-        }
-        yield result;
-      }
-    } catch (error) {
-      console.error("Error generating findings from results:", error);
-      throw error;
-    }
-  }
-
-  static async getOverviewFromFindings(
-    query: string,
-    findings: ISearchOverview["findings"],
-  ): Promise<ISearchOverview["overview"] | undefined> {
-    try {
-      if (findings.length === 0) {
-        return "There were no results to analyze.";
-      }
-      const findingsString = findings.map((finding) => {
-        let t = "";
-        const { excerpt, analysis, sourceId, findingType } = finding;
-        t += `**${sourceId}**`;
-        t += `> ${htmlToMarkdown(excerpt)}`;
-        t += `TYPE: ${findingType}`;
-        t += `ANALYSIS: ${htmlToMarkdown(analysis)}`;
-        return t;
-      });
-      const overviewPrompt = this.overviewPromptBuilder(query);
-
-      findingsString.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("simple");
-      const result = await lm.generateJSON<ISearchOverview["overview"]>(
-        overviewPrompt.get(),
-        {
-          type: LMSchemaType.STRING,
-          description:
-            "A direct response to the user's query based on the findings.",
-        },
-      );
-      if (!result) {
-        throw new Error("Findings not generated by LM");
-      }
-      return result;
-    } catch (error) {
-      console.error("Error getting findings from results:", error);
-      return undefined;
-    }
-  }
-
-  static async *generateOverviewFromFindings(
-    query: string,
-    findings: ISearchOverview["findings"],
-  ): AsyncGenerator<string, void, unknown> {
-    try {
-      if (findings.length === 0) {
-        yield "There were no results to analyze.";
-        return;
-      }
-      const findingsString = findings.map((finding) => {
-        let t = "";
-        const { excerpt, analysis, sourceId, findingType } = finding;
-        t += `**${sourceId}**`;
-        t += `> ${htmlToMarkdown(excerpt)}`;
-        t += `TYPE: ${findingType}`;
-        t += `ANALYSIS: ${htmlToMarkdown(analysis)}`;
-        return t;
-      });
-      const overviewPrompt = this.overviewPromptBuilder(query);
-      findingsString.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Finding ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("simple");
-      for await (const chunk of lm.generateStream(overviewPrompt.get())) {
-        yield chunk;
-      }
-    } catch (error) {
-      console.error("Error generating overview stream from findings:", error);
-      throw error;
-    }
-  }
-
   static async ftsSearchTags(
     userId: string,
     query: string,
@@ -1400,6 +923,74 @@ export class Search {
       });
     } catch (error) {
       console.error("Error during tag suggestions search:", error);
+      return [];
+    }
+  }
+
+  static async ftsSearchRabbitholes(
+    userId: string,
+    query: string,
+    options?: { limit?: number },
+  ): Promise<IRabbitholeSearchResult[]> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error(
+          "Database connection not available for FTS rabbithole search.",
+        );
+      }
+      const limit = options?.limit ?? 10;
+
+      const dbResults = await db.run<
+        (IRabbithole & {
+          nameScore: number;
+          preview: string;
+        })[]
+      >("fn::search_user_rabbitholes_fts", [
+        new StringRecordId(userId),
+        query,
+        limit,
+      ]);
+
+      if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
+        throw new Error("Couldn't get results");
+      }
+
+      return dbResults.map((tag) => ({
+        id: tag.id,
+        value: tag,
+        score: tag.nameScore,
+        searchType: "fts",
+      }));
+    } catch (error) {
+      console.error("Error during FTS tag search:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Provides search suggestions for rabbitholes using FTS.
+   * @param userId The ID of the user.
+   * @param query The search query string.
+   * @param options Optional parameters.
+   * @param options.limit The maximum number of suggestions to return (default: 5).
+   * @returns A promise resolving to an array of IRabbitholeSearchResult.
+   */
+  static async suggestRabbitholes(
+    userId: string,
+    query: string,
+    options?: { limit?: number },
+  ): Promise<IRabbithole[]> {
+    try {
+      const limit = options?.limit ?? 5; // Default limit for suggestions
+      const results = await Search.ftsSearchRabbitholes(userId, query, {
+        limit,
+      });
+      return results.map((rabbithole) => {
+        return rabbithole.value;
+      });
+    } catch (error) {
+      console.error("Error during rabbithole suggestions search:", error);
       return [];
     }
   }

@@ -33,6 +33,7 @@ import {
   ArrowRight,
   HandWaving,
   MagnifyingGlassIcon,
+  NotePencilIcon,
   Plus,
   PlusIcon,
   Scroll,
@@ -66,8 +67,6 @@ export default function Dashboard() {
         mode: { set: setRightSidebar },
       },
     },
-    leftSidebar: { opened: leftSidebarOpened },
-    rightSidebar: { opened: rightSidebarOpened },
   } = useLayout();
 
   const isMac = os === "macos";
@@ -169,14 +168,15 @@ export default function Dashboard() {
               <Card radius="lg">
                 <Flex wrap="wrap" direction="column" align="center" gap="md">
                   <Button
-                    variant="filled"
+                    variant="light"
                     onClick={() => {
                       newIdea();
                     }}
                   >
                     <Group>
-                      <Text>Add an idea</Text>
-                      <Kbd>{primaryKey} + shift + i</Kbd>
+                      <NotePencilIcon weight="bold" />
+                      <Text>Add Idea</Text>
+                      <Kbd>{primaryKey} + I</Kbd>
                     </Group>
                   </Button>
                   <Link to="/updates">

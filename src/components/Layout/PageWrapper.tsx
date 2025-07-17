@@ -3,6 +3,8 @@ import { useLayout } from "../../contexts/LayoutContext";
 import { RabbitholeIndicator } from "../Display/Rabbitholes/RabbitholeIndicator";
 import MobileBar from "../UI/Layout/MobileBar";
 import styles from "./PageWrapper.module.scss";
+import StatusBar from "../UI/Layout/StatusBar";
+import { useEffect } from "react";
 
 type PageWrapperProps = {
   children: React.ReactNode;
@@ -24,11 +26,7 @@ export default function PageWrapper({ children }: PageWrapperProps) {
     >
       {children}
       {isMobile && <MobileBar />}
-      {hasEnteredRabbithole && (
-        <div className={styles.rabbitholeIndicator}>
-          <RabbitholeIndicator />
-        </div>
-      )}
+      <StatusBar />
     </div>
   );
 }

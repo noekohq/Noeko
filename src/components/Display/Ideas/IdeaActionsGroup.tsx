@@ -36,7 +36,14 @@ export function IdeaActionsGroup({
   ];
 
   return (
-    <Group justify="flex-start" gap="xs" className={groupClassName}>
+    <Group
+      justify="flex-start"
+      gap="xs"
+      className={groupClassName}
+      onClick={(e) => {
+        e.preventDefault();
+      }}
+    >
       {primaryActions.map((action) => (
         <Tooltip
           key={action.id}

@@ -3,36 +3,16 @@ import { ISidebarMode, useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
   ArrowLineRightIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-  HouseIcon,
-  HouseSimpleIcon,
   MegaphoneIcon,
-  RabbitIcon,
   SidebarSimpleIcon,
-  XIcon,
 } from "@phosphor-icons/react";
-import {
-  ActionIcon,
-  Badge,
-  Box,
-  Button,
-  Card,
-  Divider,
-  Flex,
-  Group,
-  MantineColor,
-  Paper,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { ActionIcon, Group, MantineColor, Stack } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
 import useSidebarHover from "../../../hooks/useSidebarHover";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
-import { RabbitholeIndicator } from "../../Display/Rabbitholes/RabbitholeIndicator";
 import useRabbithole from "../../../hooks/useRabbithole";
 import HomeButton from "./HomeButton";
 
@@ -62,9 +42,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
 
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
-  const isHome = isDownRabbithole
-    ? pathname === `/rabbitholes/${currentRabbithole?.id.toString()}`
-    : pathname === "/";
+  const isHome = pathname === "/";
 
   const openable = !!children;
 

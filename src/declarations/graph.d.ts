@@ -44,6 +44,16 @@ export type IFileNode = IUserFile & {
   fy?: number | null; // Fixed y position (during drag)
 };
 
+export type IRabbitholeNode = IRabbithole & {
+  type: "rabbithole";
+  x?: number; // Current x position
+  y?: number; // Current y position
+  vx?: number; // Velocity x
+  vy?: number; // Velocity y
+  fx?: number | null; // Fixed x position (during drag)
+  fy?: number | null; // Fixed y position (during drag)
+};
+
 // IEdge can remain largely the same, linking node IDs
 export interface IEdge {
   id: string;
@@ -54,7 +64,12 @@ export interface IEdge {
   visibility: "high" | "medium" | "low";
 }
 
-export type INode = IIdeaNode | IFileNode | IDerivedNode | ITagNode;
+export type INode =
+  | IIdeaNode
+  | IFileNode
+  | IDerivedNode
+  | ITagNode
+  | IRabbitholeNode;
 
 // IGraph remains the container for nodes and edges
 export type IGraph = {

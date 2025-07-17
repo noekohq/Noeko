@@ -39,6 +39,8 @@ import type {
 } from "./spotlight.d";
 import { getNodeDescription } from "../../../utils/graph";
 import useRabbithole from "../../../hooks/useRabbithole";
+import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import { useLandscape } from "../../../contexts/LandscapeContext";
 
 const minisearch = new MiniSearch<IUnifiedSearchItem>({
   fields: ["title", "keywords"],
@@ -58,6 +60,20 @@ async function fetchSuggestedIdeas(query: string): Promise<IIdea[]> {
   try {
     const response = await api.get(`/search/ideas/suggest?query=${query}`);
     return response.data.data as IIdea[];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+async function fetchSuggestedRabbitholes(
+  query: string,
+): Promise<IRabbithole[]> {
+  try {
+    const response = await api.get(
+      `/search/rabbitholes/suggest?query=${query}`,
+    );
+    return response.data.data as IRabbithole[];
   } catch (error) {
     console.error(error);
     return [];
@@ -456,6 +472,11 @@ const useSpotlightConfig = ({
     },
   } = useSettings();
 
+  const {
+    rabbitholes: {
+      entered: { set: setEnteredRabbithole },
+    },
+  } = useLandscape();
   const { exitRabbithole, isDownRabbithole } = useRabbithole();
   const { isSuperuser } = useAuth();
 
@@ -509,6 +530,12 @@ const useSpotlightConfig = ({
         title: "Rabbitholes",
         icon: <RabbitIcon />,
         subviewId: "rabbitholesSubview",
+      },
+      {
+        id: "enterRabbithole",
+        title: "Enter Rabbithole",
+        icon: <RabbitIcon />,
+        subviewId: "enterRabbitholeSubview",
       },
       {
         id: "homeCmd",
@@ -702,20 +729,20 @@ const useSpotlightConfig = ({
             title: "Rabbitholes",
             items: [
               {
-                id: "newRabbitholeCmd",
-                title: "New Rabbithole",
-                icon: <RabbitIcon />,
-                action: () => {
-                  newRabbithole();
-                  onClose();
-                },
-              },
-              {
                 id: "rabbitholesCmd",
                 title: "Rabbitholes List",
                 icon: <RabbitIcon />,
                 action: () => {
                   rabbitholes();
+                  onClose();
+                },
+              },
+              {
+                id: "newRabbitholeCmd",
+                title: "New Rabbithole",
+                icon: <RabbitIcon />,
+                action: () => {
+                  newRabbithole();
                   onClose();
                 },
               },
@@ -760,6 +787,32 @@ const useSpotlightConfig = ({
                 icon: <LightbulbIcon />,
                 action: () => {
                   navigate(`/idea/${idea.id}`);
+                  closeSpotlight();
+                },
+              }));
+            },
+          },
+        ],
+        [
+          "enterRabbitholeSubview",
+          {
+            id: "enterRabbitholeSubview",
+            title: "Enter Rabbithole",
+            placeholder: "Search for an rabbithole to enter...",
+            dynamicItems: async ({ searchText, closeSpotlight }) => {
+              const suggestedItems =
+                await fetchSuggestedRabbitholes(searchText);
+
+              return suggestedItems.map((rabbithole) => ({
+                id: rabbithole.id.toString(),
+                title: rabbithole.name,
+                description: getNodeDescription({
+                  ...rabbithole,
+                  type: "rabbithole",
+                }),
+                icon: <LightbulbIcon />,
+                action: () => {
+                  setEnteredRabbithole(rabbithole);
                   closeSpotlight();
                 },
               }));

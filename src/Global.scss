@@ -89,14 +89,41 @@
         --content-width: 55vw;
     }
 
-    .mantine-Accordion-item {
-        transition: all 0.2s ease-in-out;
-        --item-filled-color: var(--mantine-color-dark-8) !important;
+    .mantine-Accordion-root {
+        .mantine-Accordion-item {
+            transition: all 0.2s ease-in-out;
+            --item-filled-color: var(--mantine-color-dark-8) !important;
 
-        &[data-active="true"] {
-            padding: var(--mantine-spacing-xs);
-            border-radius: var(--mantine-radius-lg);
-            border: 1px solid var(--mantine-color-dark-5);
+            .mantine-Accordion-label {
+                padding-block: calc(var(--mantine-spacing-xs) / 2) !important;
+            }
+
+            &[data-active="true"] {
+                padding: var(--mantine-spacing-xs);
+                margin-bottom: var(--mantine-spacing-xs);
+                border-radius: var(--mantine-radius-lg);
+                border: 1px solid var(--mantine-color-dark-5);
+
+                .mantine-Accordion-label {
+                    padding-block: var(--mantine-spacing-xs) !important;
+                }
+            }
+        }
+
+        &[data-variant="contained"] {
+            .mantine-Accordion-item {
+                border-radius: 0;
+
+                &:first-child {
+                    border-top-left-radius: var(--mantine-radius-lg);
+                    border-top-right-radius: var(--mantine-radius-lg);
+                }
+
+                &:last-child {
+                    border-bottom-left-radius: var(--mantine-radius-lg);
+                    border-bottom-right-radius: var(--mantine-radius-lg);
+                }
+            }
         }
     }
 }

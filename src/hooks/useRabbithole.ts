@@ -4,13 +4,14 @@ import {
   includeThingInRabbithole,
   unIncludeThingInRabbithole,
 } from "../utils/rabbitholes";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 
 interface IUseRabbitholeReturn {
   currentRabbithole: IRabbithole | null;
   includeThing: (thingId: string | RecordId) => Promise<boolean>;
   unIncludeThing: (thingId: string | RecordId) => Promise<boolean>;
+  isIncludedThing: (thingId: string | RecordId) => boolean;
   exitRabbithole: () => void;
   loading: boolean;
   isDownRabbithole: boolean;
@@ -19,7 +20,7 @@ interface IUseRabbitholeReturn {
 export default function useRabbithole(): IUseRabbitholeReturn {
   const {
     rabbitholes: {
-      entered: { get: currentlyEntered, set: setCurrentlyEntered },
+      entered: { get: currentlyEntered, set: setCurrentlyEntered, reload },
     },
   } = useLandscape();
 
@@ -39,10 +40,12 @@ export default function useRabbithole(): IUseRabbitholeReturn {
         );
         return false;
       }
+      setLoadingSomething(true);
       await includeThingInRabbithole(
         currentlyEntered.id.toString(),
         thingId.toString(),
       );
+      reload();
       return true;
     } catch (error) {
       console.error(
@@ -52,6 +55,8 @@ export default function useRabbithole(): IUseRabbitholeReturn {
         thingId,
       );
       return false;
+    } finally {
+      setLoadingSomething(false);
     }
   };
 
@@ -69,6 +74,7 @@ export default function useRabbithole(): IUseRabbitholeReturn {
         currentlyEntered.id.toString(),
         thingId.toString(),
       );
+      reload();
       return true;
     } catch (error) {
       console.error(
@@ -78,13 +84,32 @@ export default function useRabbithole(): IUseRabbitholeReturn {
         thingId,
       );
       return false;
+    } finally {
+      setLoadingSomething(false);
     }
   };
+
+  const isIncludedThing = useCallback(
+    (thingId: string | RecordId) => {
+      if (!currentlyEntered) {
+        return false;
+      }
+      console.log("Checking is included: ", currentlyEntered.includes, thingId);
+      const found = currentlyEntered.includes?.find((entry) => {
+        const same = entry.id.toString() === thingId.toString();
+        return same;
+      });
+      console.log("Found: ", found);
+      return !!found;
+    },
+    [currentlyEntered, currentlyEntered?.includes?.length],
+  );
 
   return {
     currentRabbithole: currentlyEntered,
     includeThing,
     unIncludeThing,
+    isIncludedThing,
     exitRabbithole,
     loading: loadingSomething,
     isDownRabbithole,

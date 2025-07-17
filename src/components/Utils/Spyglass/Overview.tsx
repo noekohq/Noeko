@@ -191,7 +191,7 @@ export function DisplayOverview({
       {showFindings && (
         <>
           <Space my="sm" />
-          <Accordion radius="lg">
+          <Accordion radius="lg" variant="contained">
             {Array.from(findingsBySource.entries())
               .filter(([sourceId]) => {
                 return sourceId in resultsMap;

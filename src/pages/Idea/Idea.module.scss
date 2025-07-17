@@ -28,35 +28,6 @@
     padding-bottom: 25vh;
 }
 
-.toolbar {
-    flex-shrink: 0; /* Prevents the textbox from shrinking */
-    width: 100%;
-    padding: 8px 14px;
-    margin-bottom: 8px;
-    box-sizing: border-box;
-    border: 1px solid transparent;
-    border-radius: var(--mantine-radius-lg);
-    background-color: transparent;
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    transition:
-        background-color 0.2s ease-in-out,
-        border-color 0.2s ease-in-out;
-
-    &:hover {
-        background-color: var(--mantine-color-dark-8);
-        border-color: var(--mantine-color-dark-7);
-    }
-
-    @include desktop {
-        border-radius: var(--mantine-radius-md);
-        box-sizing: border-box;
-    }
-}
-
 .generatedIndicator {
     font-size: var(--mantine-font-size-sm);
     color: var(--mantine-color-dark-4);

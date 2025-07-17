@@ -1,0 +1,41 @@
+@use "../../../styles/mixins.scss" as *;
+
+.bottom {
+    position: fixed;
+    bottom: calc(var(--layout-spacing) * 2);
+    max-width: var(--content-width);
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: space-around;
+    gap: var(--mantine-spacing-md);
+    padding: var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-lg);
+
+    @include tablet {
+        flex-direction: row;
+    }
+}
+
+@keyframes messageIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message {
+    animation: messageIn 0.3s ease-in-out;
+}
+
+.global {
+    &.rabbitholeIndicatorWrapper {
+    }
+}
+
+.content {
+}
