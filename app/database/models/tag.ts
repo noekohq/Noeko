@@ -373,26 +373,8 @@ export class Tag {
       }
 
       const tagIdObject = new StringRecordId(id);
-
-      // 1. Delete 'owns_tag' relationships pointing to this tag
-      // We need to find users who own this tag first, or use a more general query if SurrealDB supports it.
-      // A simple way for now is to assume we don't need to find users first if the relation query is general enough.
-      // DELETE owns_tag WHERE out = $tagId;
-      await db.query(`DELETE owns_tag WHERE out = $tagId;`, {
-        tagId: tagIdObject,
-      });
-
-      // 2. Delete 'describes' relationships originating from this tag
-      await db.query(`DELETE describes WHERE in = $tagId;`, {
-        tagId: tagIdObject,
-      });
-
-      // 3. Delete the tag itself
       const result = await db.delete<ITag>(tagIdObject);
 
-      // db.delete returns the deleted record or an array of them.
-      // If it's successful and the record existed, result will be the record.
-      // If the record didn't exist, it might return undefined or an empty array depending on SurrealDB client version.
       return (
         result !== undefined && (!Array.isArray(result) || result.length > 0)
       );

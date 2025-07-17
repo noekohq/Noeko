@@ -1,19 +1,42 @@
 @use "../../../styles/mixins.scss" as *;
 
+@keyframes bottomIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .bottom {
+    animation: bottomIn 0.3s ease-in-out;
     position: fixed;
     bottom: calc(var(--layout-spacing));
     max-width: var(--content-width);
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
     align-items: center;
     justify-content: space-around;
-    gap: var(--mantine-spacing-md);
-    padding: var(--mantine-spacing-xs);
-    border-radius: var(--mantine-radius-lg);
+    gap: var(--mantine-spacing-xs);
+    padding: var(--layout-spacing);
+    border-radius: var(--mantine-radius-xl);
 
     @include tablet {
         flex-direction: row;
+        justify-content: center;
+
+        &.hasMessage {
+            background-color: var(--mantine-color-dark-8);
+            border: 1px solid var(--mantine-color-dark-7);
+        }
+    }
+
+    @include desktop {
+        flex-direction: row;
+        justify-content: space-around;
     }
 }
 
@@ -33,17 +56,36 @@
     background-color: var(--mantine-color-body);
     box-shadow: var(--mantine-shadow-lg);
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
-    border-radius: var(--mantine-radius-lg);
-    font-size: var(--mantine-font-size-sm);
-    border: 1px solid var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-xl);
+    font-size: var(--mantine-font-size-xs);
+    border: 1px solid var(--mantine-color-dark-6);
+    display: flex;
+    align-items: center;
+    text-align: center;
+    height: 100%;
 
     @include tablet {
-        padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+        padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+        background-color: transparent;
+        border: none;
+        border-radius: 0;
+        width: 100%;
+        padding: 0 var(--mantine-spacing-md);
     }
 }
 
 .global {
-    &.rabbitholeIndicatorWrapper {
+    max-width: calc(var(--content-width));
+    height: 100%;
+
+    &.hasMessage {
+        @include tablet {
+            max-width: 50%;
+        }
+    }
+
+    .rabbitholeIndicatorWrapper {
+        height: 100%;
     }
 }
 

@@ -84,3 +84,23 @@ export const unIncludeThingInRabbithole = async (
     console.error("Error creating idea connection: ", error);
   }
 };
+
+export const deleteRabbithole = async (rabbitholeId: string) => {
+  try {
+    return await api
+      .delete(`/rabbitholes/${rabbitholeId}`)
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(`Something went wrong deleting ${rabbitholeId}`, error);
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong deleting the rabbithole",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error creating idea connection: ", error);
+  }
+};

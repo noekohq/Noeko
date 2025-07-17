@@ -3,7 +3,6 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser, User } from "../database/models/user";
 import Rabbithole from "../database/models/rabbithole";
-import { Idea } from "../database/models/ideas";
 
 const router = Router();
 
@@ -109,7 +108,15 @@ router.get("/:rabbitholeId", async (req, res) => {
       });
       return;
     }
-    const rabbithole = await Rabbithole.get(req.params.rabbitholeId);
+    const rabbitholeId = req.params.rabbitholeId;
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccessToRabbithole) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const rabbithole = await Rabbithole.get(rabbitholeId);
     if (!rabbithole) {
       res.status(404).send({
         message: "Rabbithole not found",
@@ -136,6 +143,14 @@ router.put("/:rabbitholeId", async (req, res) => {
       });
       return;
     }
+    const rabbitholeId = req.params.rabbitholeId;
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccessToRabbithole) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
     const { name } = req.body as { name: string };
     if (!(typeof name === "string")) {
       res.status(400).send({
@@ -143,7 +158,7 @@ router.put("/:rabbitholeId", async (req, res) => {
       });
       return;
     }
-    const rabbithole = await Rabbithole.update(req.params.rabbitholeId, {
+    const rabbithole = await Rabbithole.update(rabbitholeId, {
       name,
     });
     if (!rabbithole) {
@@ -163,6 +178,33 @@ router.put("/:rabbitholeId", async (req, res) => {
   }
 });
 
+router.delete("/:rabbitholeId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const rabbitholeId = req.params.rabbitholeId;
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccessToRabbithole) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    await Rabbithole.delete(rabbitholeId);
+    res.send({
+      message: "Successfully deleted rabbithole",
+    });
+  } catch (error) {
+    console.error("Error deleting rabbithole: ", error);
+    res.send({ message: "Something went wrong." });
+  }
+});
+
 router.get("/:rabbitholeId/similar-ideas", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -172,8 +214,16 @@ router.get("/:rabbitholeId/similar-ideas", async (req, res) => {
       });
       return;
     }
+    const { rabbitholeId } = req.params;
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccessToRabbithole) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
     const similarIdeas = await Rabbithole.findSimilarIdeas(
-      req.params.rabbitholeId,
+      rabbitholeId,
       user.id,
     );
     res.send({
@@ -205,7 +255,8 @@ router.post("/:rabbitholeId/include", async (req, res) => {
       return;
     }
     const hasAccess = await User.checkOwns(user.id, thingId);
-    if (!hasAccess) {
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccess || !hasAccessToRabbithole) {
       res.status(400).send({
         message: "You do not have access to this thing.",
       });
@@ -242,7 +293,8 @@ router.post("/:rabbitholeId/uninclude", async (req, res) => {
       return;
     }
     const hasAccess = await User.checkOwns(user.id, thingId);
-    if (!hasAccess) {
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccess || !hasAccessToRabbithole) {
       res.status(400).send({
         message: "You do not have access to this thing.",
       });

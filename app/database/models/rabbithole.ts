@@ -139,7 +139,7 @@ export default class Rabbithole {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IRabbithole[]]>(
-        "SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId)",
+        "SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt DESC",
         { userId: new StringRecordId(userId) },
       );
       if (!result) {
@@ -149,6 +149,26 @@ export default class Rabbithole {
       return rabbithole;
     } catch (error) {
       logger.error("Error getting user rabbitholes: ", [userId]);
+      return undefined;
+    }
+  }
+
+  static async delete(rabbitholeId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const result = await db?.delete<IRabbithole>(
+        new StringRecordId(rabbitholeId),
+      );
+      if (!result) {
+        throw new Error("Something went wrong deleting rabbithole: ", result);
+      }
+      const rabbithole = result;
+      return rabbithole;
+    } catch (error) {
+      logger.error("Error deleting rabbithole: ", [error]);
       return undefined;
     }
   }
@@ -170,6 +190,7 @@ export default class Rabbithole {
           now: new Date(),
         },
       );
+      this.update(rabbitholeId, { updatedAt: new Date() });
       if (!result) {
         throw new Error(
           "Something went wrong adding thing to rabbithole: ",
@@ -203,6 +224,7 @@ export default class Rabbithole {
           target: new StringRecordId(thingId),
         },
       );
+      this.update(rabbitholeId, { updatedAt: new Date() });
       if (!result) {
         throw new Error(
           "Something went wrong deleting thing from rabbithole: ",
