@@ -26,7 +26,9 @@ export default function StatusBar() {
   }
 
   return (
-    <div className={styles.bottom}>
+    <div
+      className={`${styles.bottom} ${StatusMessage ? styles.hasMessage : ""}`}
+    >
       {StatusMessage && (
         <div className={styles.message}>
           <Text c="gray" size="xs">
@@ -34,7 +36,9 @@ export default function StatusBar() {
           </Text>
         </div>
       )}
-      <div className={styles.global}>
+      <div
+        className={`${styles.global} ${StatusMessage ? styles.hasMessage : ""}`}
+      >
         {isDownRabbithole && (
           <div className={styles.rabbitholeIndicatorWrapper}>
             <RabbitholeIndicator />

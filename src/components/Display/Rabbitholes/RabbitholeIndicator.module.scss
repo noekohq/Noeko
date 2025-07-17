@@ -1,5 +1,5 @@
 .rabbitholeIndicator {
-    background-color: var(--mantine-color-dark-8);
+    background-color: var(--mantine-color-body);
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
     border-radius: var(--mantine-radius-xl);
     font-size: var(--mantine-font-size-sm);
@@ -10,6 +10,10 @@
     color: var(--mantine-color-dark-4);
     transition: transform 0.2s ease-in-out;
     box-shadow: var(--mantine-shadow-lg);
+    border: 1px solid var(--mantine-color-green-8);
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
 
     &:hover {
         transform: scale(1.01);

@@ -19,7 +19,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
 import { IRabbithole } from "../../../app/database/models/rabbithole";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -29,11 +29,13 @@ import SuggestTags from "../../components/Search/SuggestTags";
 import { ITag } from "../../../app/database/models/tag";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import {
+  CaretLeftIcon,
   DoorIcon,
   DoorOpenIcon,
   InfoIcon,
   PlusIcon,
   RabbitIcon,
+  TrashIcon,
 } from "@phosphor-icons/react";
 import { IIdea } from "../../../app/database/models/ideas";
 import {
@@ -42,6 +44,7 @@ import {
 } from "../../components/Display/Ideas/IdeaCards";
 import Search from "../../components/Search/Search";
 import {
+  deleteRabbithole,
   includeThingInRabbithole,
   unIncludeThingInRabbithole,
 } from "../../utils/rabbitholes";
@@ -52,8 +55,10 @@ import { useLayout } from "../../contexts/LayoutContext";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { useSearch } from "../../contexts/SearchContext";
 import { IdeaAction } from "../../components/Display/Ideas/IdeaCardTypes";
+import { modals } from "@mantine/modals";
 
 export default function Rabbithole() {
+  const [error, setError] = useState("");
   const { rabbitholeId } = useParams();
   const { data: rabbithole, load: loadRabbithole } = useFetch<
     undefined,
@@ -62,6 +67,7 @@ export default function Rabbithole() {
     url: `/rabbitholes/${rabbitholeId}`,
     onError: (error) => {
       console.error("Something went wrong fetching rabbithole", error);
+      setError("Something went wrong fetching rabbithole.");
       showNotification({
         title: "Something went wrong",
         message: "Please try again later",
@@ -248,6 +254,35 @@ export default function Rabbithole() {
 
   const navigate = useNavigate();
 
+  const handleDeleteRabbithole = () => {
+    modals.openConfirmModal({
+      title: "Are you sure?",
+      children: <Text>Are you sure you want to delete this Rabbithole?</Text>,
+      labels: { confirm: "Yes, Delete", cancel: "No, nevermind" },
+      confirmProps: {
+        color: "red",
+      },
+      onConfirm: async () => {
+        try {
+          if (rabbithole) {
+            await deleteRabbithole(rabbithole.id.toString());
+            navigate("/");
+            showNotification({
+              title: "Rabbithole Deleted",
+              message: "Rabbithole deleted successfully.",
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification({
+            title: "Something went wrong",
+            message: "Something went wrong deleting this rabbithole.",
+          });
+        }
+      },
+    });
+  };
+
   const { isMobile } = useLayout();
 
   const {
@@ -259,6 +294,56 @@ export default function Rabbithole() {
   const rabbitholeEnterInfo = () => {
     return `When you enter a rabbithole, every new idea or tag that you create will automatically be included. An indicator will appear to tell you which rabbithole you're in, and you can include things as you go.`;
   };
+
+  const ActionCenter = (
+    <Group justify="center" mt="lg">
+      <Button
+        variant="light"
+        leftSection={<RabbitIcon />}
+        onClick={() => {
+          handleEnterRabbithole();
+        }}
+        color="green"
+      >
+        Enter Rabbithole
+      </Button>
+      <HoverCard width="300px">
+        <HoverCard.Target>
+          <ActionIcon variant="subtle" size="xs" color="gray">
+            <InfoIcon />
+          </ActionIcon>
+        </HoverCard.Target>
+        <HoverCard.Dropdown>
+          <Text size="sm">{rabbitholeEnterInfo()}</Text>
+        </HoverCard.Dropdown>
+      </HoverCard>
+      <ActionIcon
+        variant="subtle"
+        size="xs"
+        color="gray"
+        onClick={() => {
+          handleDeleteRabbithole();
+        }}
+      >
+        <TrashIcon />
+      </ActionIcon>
+    </Group>
+  );
+
+  if (!!error.length) {
+    return (
+      <PageWrapper>
+        <LeftSidebar />
+        <Content>
+          <Text>
+            An unexpected error occured loading this Rabbithole. Please try
+            again or <Link to="/">Return home.</Link>
+          </Text>
+        </Content>
+        <RightSidebar />
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper>
@@ -344,6 +429,21 @@ export default function Rabbithole() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
+        <Group mb="lg">
+          <Link
+            to="/rabbitholes"
+            style={{
+              textDecoration: "none",
+            }}
+          >
+            <Group c="dark.3" gap="xs">
+              <CaretLeftIcon weight="bold" size={13} />
+              <Text c="dark.3" size="sm">
+                Back to Rabbitholes
+              </Text>
+            </Group>
+          </Link>
+        </Group>
         <div
           onDragOver={() => {
             setDraggingOver(true);
@@ -386,30 +486,7 @@ export default function Rabbithole() {
               dangerouslySetInnerHTML={{ __html: rabbithole?.name || "" }}
               className={styles.editableTitle}
             />
-            {!isEntered && isMobile && (
-              <Group justify="center" mt="lg">
-                <Button
-                  variant="light"
-                  leftSection={<RabbitIcon />}
-                  onClick={() => {
-                    handleEnterRabbithole();
-                  }}
-                  color="green"
-                >
-                  Enter Rabbithole
-                </Button>
-                <HoverCard width="300px">
-                  <HoverCard.Target>
-                    <ActionIcon variant="subtle" size="xs" color="gray">
-                      <InfoIcon />
-                    </ActionIcon>
-                  </HoverCard.Target>
-                  <HoverCard.Dropdown>
-                    <Text size="sm">{rabbitholeEnterInfo()}</Text>
-                  </HoverCard.Dropdown>
-                </HoverCard>
-              </Group>
-            )}
+            {!isEntered && isMobile && ActionCenter}
             <SuggestTags onSelect={handleAddTag} size="sm" />
             <Transition
               mounted={isEntered}
@@ -635,34 +712,7 @@ export default function Rabbithole() {
                       duration={200}
                     >
                       {(style) => {
-                        return (
-                          <Group justify="center" mt="lg" style={style}>
-                            <Button
-                              variant="light"
-                              leftSection={<RabbitIcon />}
-                              onClick={() => {
-                                handleEnterRabbithole();
-                              }}
-                              color="green"
-                            >
-                              Enter Rabbithole
-                            </Button>
-                            <HoverCard width="300px">
-                              <HoverCard.Target>
-                                <ActionIcon
-                                  variant="subtle"
-                                  size="xs"
-                                  color="gray"
-                                >
-                                  <InfoIcon />
-                                </ActionIcon>
-                              </HoverCard.Target>
-                              <HoverCard.Dropdown>
-                                <Text size="sm">{rabbitholeEnterInfo()}</Text>
-                              </HoverCard.Dropdown>
-                            </HoverCard>
-                          </Group>
-                        );
+                        return <div style={style}>{ActionCenter}</div>;
                       }}
                     </Transition>
                   </Card>

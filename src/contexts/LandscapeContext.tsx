@@ -55,7 +55,11 @@ export const LandscapeProvider = ({
   });
 
   useEffect(() => {
-    if (rabbithole?.includes === undefined) {
+    if (
+      !!rabbithole &&
+      rabbithole?.includes === undefined &&
+      rabbithole.id !== undefined
+    ) {
       reloadRabbithole();
     }
   }, [rabbithole]);

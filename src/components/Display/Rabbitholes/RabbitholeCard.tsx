@@ -41,7 +41,9 @@ export default function RabbitholeCard({
             {rabbithole.name}
           </Text>
         </Group>
-        <Text size="sm">{formatDateTime(rabbithole.createdAt)}</Text>
+        <Text size="xs" c="dimmed">
+          Updated {formatDateTime(rabbithole.updatedAt)}
+        </Text>
       </Stack>
     </Card>
   );

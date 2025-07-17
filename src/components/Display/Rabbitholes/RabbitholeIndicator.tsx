@@ -50,7 +50,7 @@ export function RabbitholeIndicator() {
       }}
     >
       <div className={styles.rabbitholeIndicator}>
-        <Group gap="2px" wrap="nowrap">
+        <Group gap="2px" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
           <RabbitIcon weight="fill" />
           <Text
             w={"100%"}
@@ -75,6 +75,7 @@ export function RabbitholeIndicator() {
               size="sm"
               color="dark.4"
               loading={loading}
+              title="Add this thing to the current rabbithole"
             >
               <PlusIcon weight="bold" />
             </ActionIcon>
@@ -90,6 +91,7 @@ export function RabbitholeIndicator() {
               size="sm"
               color="dark.4"
               loading={loading}
+              title="Remove this thing from the current rabbithole"
             >
               <MinusIcon weight="bold" />
             </ActionIcon>
@@ -104,6 +106,7 @@ export function RabbitholeIndicator() {
             variant="subtle"
             size="sm"
             color="dark.4"
+            title="Exit the current rabbithole"
           >
             <XIcon weight="bold" />
           </ActionIcon>
