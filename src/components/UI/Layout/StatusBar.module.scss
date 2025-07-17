@@ -2,7 +2,7 @@
 
 .bottom {
     position: fixed;
-    bottom: calc(var(--layout-spacing) * 2);
+    bottom: calc(var(--layout-spacing));
     max-width: var(--content-width);
     display: flex;
     flex-direction: column-reverse;

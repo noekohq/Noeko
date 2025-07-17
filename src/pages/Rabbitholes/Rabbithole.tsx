@@ -1,8 +1,10 @@
 import {
+  ActionIcon,
   Alert,
   Button,
   Card,
   Group,
+  HoverCard,
   Loader,
   Overlay,
   SimpleGrid,
@@ -254,6 +256,10 @@ export default function Rabbithole() {
     },
   } = useSearch();
 
+  const rabbitholeEnterInfo = () => {
+    return `When you enter a rabbithole, every new idea or tag that you create will automatically be included. An indicator will appear to tell you which rabbithole you're in, and you can include things as you go.`;
+  };
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -392,6 +398,16 @@ export default function Rabbithole() {
                 >
                   Enter Rabbithole
                 </Button>
+                <HoverCard width="300px">
+                  <HoverCard.Target>
+                    <ActionIcon variant="subtle" size="xs" color="gray">
+                      <InfoIcon />
+                    </ActionIcon>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Text size="sm">{rabbitholeEnterInfo()}</Text>
+                  </HoverCard.Dropdown>
+                </HoverCard>
               </Group>
             )}
             <SuggestTags onSelect={handleAddTag} size="sm" />
@@ -631,6 +647,20 @@ export default function Rabbithole() {
                             >
                               Enter Rabbithole
                             </Button>
+                            <HoverCard width="300px">
+                              <HoverCard.Target>
+                                <ActionIcon
+                                  variant="subtle"
+                                  size="xs"
+                                  color="gray"
+                                >
+                                  <InfoIcon />
+                                </ActionIcon>
+                              </HoverCard.Target>
+                              <HoverCard.Dropdown>
+                                <Text size="sm">{rabbitholeEnterInfo()}</Text>
+                              </HoverCard.Dropdown>
+                            </HoverCard>
                           </Group>
                         );
                       }}
