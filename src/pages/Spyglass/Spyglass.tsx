@@ -54,7 +54,7 @@ export default function Spyglass() {
     setStatusBar("hidden");
 
     return () => {
-      setStatusBar("visible");
+      setStatusBar("showing");
     };
   }, []);
 
