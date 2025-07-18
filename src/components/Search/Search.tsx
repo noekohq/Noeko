@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
 import {
@@ -25,6 +25,8 @@ import { Link } from "react-router";
 import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
 import { IdeaAction, IIdeaCardsTypes } from "../Display/Ideas/IdeaCardTypes";
 import { IIdea } from "../../../app/database/models/ideas";
+import { useAuth } from "../../contexts/AuthContext";
+import { formatDateTime } from "../../utils/formatting";
 
 interface ISearchProps {
   resultActions?: ((idea: IIdea) => IdeaAction)[];
@@ -43,6 +45,8 @@ export default function Search({
   const meta = os === "macos";
   const primaryKey = os === "macos" ? "⌘" : "Ctrl";
 
+  const { isSuperuser } = useAuth();
+
   const { isMobile } = useLayout();
 
   const {
@@ -56,6 +60,9 @@ export default function Search({
     setResults(null);
   }, []);
 
+  const startTimeRef = useRef<number | null>(null);
+  const resultsTimeRef = useRef<number | null>(null);
+
   const filteredResults = useMemo(() => {
     if (!searchResults) return null;
     if (!resultFilter) return searchResults;
@@ -64,14 +71,23 @@ export default function Search({
     });
   }, [searchResults, resultFilter]);
 
+  const timeTaken = useMemo(() => {
+    if (!startTimeRef.current || !resultsTimeRef.current) return null;
+    return ((resultsTimeRef.current - startTimeRef.current) / 1000).toFixed(2);
+  }, [startTimeRef.current, resultsTimeRef.current]);
+
+  console.log("Results: ", searchResults);
+
   return (
     <div className={styles.searchWrapper}>
       <SearchBar
         onResultsClear={handleResultsClear}
         onSearchStart={() => {
+          startTimeRef.current = Date.now();
           setLoading(true);
         }}
         onSearchEnd={() => {
+          resultsTimeRef.current = Date.now();
           setLoading(false);
         }}
         onShortcuts={[{ key: "/", ctrl, meta }]}
@@ -110,7 +126,8 @@ export default function Search({
           <Space my="lg" />
           <Text c="dimmed" size="sm">
             Found {filteredResults.length} result
-            {filteredResults.length === 1 ? "" : "s"}...
+            {filteredResults.length === 1 ? "" : "s"}
+            {isSuperuser ? ` in ${timeTaken}s` : "..."}
           </Text>
           <Space my="sm" />
           <Stack>
