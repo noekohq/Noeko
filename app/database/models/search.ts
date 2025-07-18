@@ -467,6 +467,9 @@ export class SpyglassSearch {
       if (!search.resultConnections) {
         throw new Error("Did not load result relations");
       }
+      if (!search.fullResults) {
+        throw new Error("Did not load full results");
+      }
       if (!search.intent) {
         throw new Error("Search intent not found");
       }
