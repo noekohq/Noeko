@@ -26,9 +26,10 @@ router.post("/comprehensive", checkToken, async (req, res) => {
     }
     const query = req.body.query as string;
     const limit = req.body.options as number;
-    const withOverview = req.body.withOverview as boolean;
+    const rabbitholeId = req.body.rabbitholeId as string | undefined;
     const results = await Search.comprehensiveSearch(user.id, query, {
       limit,
+      rabbitholeId,
     });
     if (!results) {
       throw new Error("Could not get results.");
@@ -58,7 +59,10 @@ router.post("/fts", checkToken, async (req, res) => {
       return;
     }
     const query = req.body.query as string;
-    const results = await Search.ftsSearch(user.id, query);
+    const rabbitholeId = req.body.rabbitholeId as string | undefined;
+    const results = await Search.ftsSearch(user.id, query, {
+      rabbitholeId,
+    });
     res.json({
       message: "Suggestions fetched successfully",
       data: results,
@@ -77,6 +81,7 @@ router.post("/semantic", checkToken, async (req, res) => {
       return;
     }
     const query = req.body.query as string;
+    const rabbitholeId = req.body.rabbitholeId as string | undefined;
     const embeddingProcessor = getEmbedder();
     const embedding = await embeddingProcessor.embedContent(query);
     if (!embedding) {
@@ -88,7 +93,9 @@ router.post("/semantic", checkToken, async (req, res) => {
         .status(500);
       return;
     }
-    const results = await Search.semanticSearch(user.id, embedding);
+    const results = await Search.semanticSearch(user.id, embedding, {
+      rabbitholeId,
+    });
     res.json({
       message: "Results fetched successfully",
       data: results,
@@ -107,7 +114,10 @@ router.get("/ideas/suggest", checkToken, async (req, res) => {
       return;
     }
     const query = req.query.query as string;
-    const suggestions = await Search.suggest(user.id, query);
+    const rabbitholeId = req.query.rabbitholeId as string;
+    const suggestions = await Search.suggest(user.id, query, {
+      rabbitholeId,
+    });
     res.json({
       message: "Suggestions fetched successfully",
       data: suggestions,
@@ -126,7 +136,10 @@ router.post("/ideas/suggest", checkToken, async (req, res) => {
       return;
     }
     const query = req.body.query as string;
-    const suggestions = await Search.suggest(user.id, query);
+    const rabbitholeId = req.body.rabbitholeId as string | undefined;
+    const suggestions = await Search.suggest(user.id, query, {
+      rabbitholeId,
+    });
     res.json({
       message: "Suggestions fetched successfully",
       data: suggestions,
@@ -286,7 +299,6 @@ router.get("/rabbitholes/suggest", checkToken, async (req, res) => {
         limit,
       },
     );
-    console.log("Loaded suggestions: ", suggestions);
     res.json({
       message: "Rabbithole suggestions fetched successfully",
       data: suggestions,

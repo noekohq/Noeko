@@ -44,6 +44,8 @@ import Rabbithole from "./pages/Rabbitholes/Rabbithole";
 import Rabbitholes from "./pages/Rabbitholes/List";
 import { useConnection } from "./hooks/useConnection";
 import { Warning } from "@phosphor-icons/react/dist/ssr";
+import PageWrapper from "./components/Layout/PageWrapper";
+import Content from "./components/UI/Layout/Content";
 
 export default function App() {
   const navigate = useNavigate();
@@ -84,20 +86,31 @@ export default function App() {
 
   if (!isOnline) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          padding: "20px",
-        }}
-      >
-        <Alert icon={<WarningIcon />} title="Connection Error" color="red">
-          Could not connect to the server. It may be down for maintenance or you
-          may need to check your internet connection.
-        </Alert>
-      </div>
+      <PageWrapper>
+        <Content>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "50vh",
+              padding: "20px",
+            }}
+          >
+            <Alert
+              icon={<WarningIcon />}
+              title="Connection Interrupted"
+              color="gray"
+            >
+              Could not connect to the server. It may be down for maintenance or
+              there could be a connectivity problem. For any inquiries or
+              support, please contact{" "}
+              <a href="mailto:aidan@qwest.so">aidan@qwest.so</a>. Qwest will try
+              to automatically re-establish a connection.
+            </Alert>
+          </div>
+        </Content>
+      </PageWrapper>
     );
   }
 

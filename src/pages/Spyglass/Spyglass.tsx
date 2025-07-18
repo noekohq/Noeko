@@ -11,6 +11,7 @@ import {
   Flex,
   Badge,
   Space,
+  HoverCard,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -37,9 +38,13 @@ import {
   ArrowRightIcon,
   ArrowsClockwiseIcon,
   ClockCounterClockwiseIcon,
+  InfoIcon,
+  MegaphoneIcon,
 } from "@phosphor-icons/react";
 import Content from "../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+import useRabbithole from "../../hooks/useRabbithole";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 export default function Spyglass() {
   const {
@@ -58,6 +63,8 @@ export default function Spyglass() {
     };
   }, []);
 
+  const { isDownRabbithole, currentRabbithole } = useRabbithole();
+
   const [query, setQuery] = useState<string>("");
   const [parentId, setParentId] = useState<string | null>(null);
   const {
@@ -74,6 +81,7 @@ export default function Spyglass() {
     citationMap,
     baseQuery,
     loading,
+    error,
   } = useSpyglass({ query, parentId });
 
   const hasInitialized = useRef(false);
@@ -162,6 +170,45 @@ export default function Spyglass() {
       },
     },
   } = useLayout();
+
+  const {
+    actions: {
+      feedback: { openFeedbackModal },
+    },
+  } = useInteraction();
+
+  if (error) {
+    return (
+      <PageWrapper>
+        <LeftSidebar></LeftSidebar>
+        <Content>
+          <Stack>
+            <Title>Something went wrong :/</Title>
+            <Text size="sm">{error}</Text>
+            <Group>
+              <Button
+                size="sm"
+                variant="light"
+                onClick={() => clear(true)}
+                rightSection={<ArrowsClockwiseIcon weight="bold" />}
+              >
+                Start Over
+              </Button>
+              <Button
+                size="sm"
+                variant="light"
+                rightSection={<MegaphoneIcon weight="bold" />}
+                color="gray"
+              >
+                Leave Feedback
+              </Button>
+            </Group>
+          </Stack>
+        </Content>
+        <RightSidebar></RightSidebar>
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper>
@@ -459,6 +506,33 @@ export default function Spyglass() {
                       History
                     </Button>
                   </Link>
+                  <HoverCard width="300px" openDelay={200}>
+                    <HoverCard.Target>
+                      <ActionIcon variant="subtle" color="gray" size="sm">
+                        <InfoIcon />
+                      </ActionIcon>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Text size="sm">
+                        Ask your thoughts anything with Spyglass. Given a
+                        prompt, Spyglass will search and analyze your notes for
+                        relevant excerpts, then generate a response based on
+                        those findings, with citations.
+                      </Text>
+                      {isDownRabbithole && (
+                        <Text size="xs" c="dimmed" mt="md">
+                          Since you have entered a Rabbithole, Spyglass will
+                          only search within "{currentRabbithole?.name}".
+                        </Text>
+                      )}
+                      {!isDownRabbithole && (
+                        <Text size="xs" c="dimmed" mt="md">
+                          Tip: If you enter a Rabbithole, Spyglass will only
+                          search within that Rabbithole.
+                        </Text>
+                      )}
+                    </HoverCard.Dropdown>
+                  </HoverCard>
                 </Group>
               )}
             </>
@@ -496,7 +570,7 @@ export default function Spyglass() {
                 {sortedSearchResults.length} Resource
                 {sortedSearchResults.length === 1 ? "" : "s"}...
               </Title>
-              <Accordion>
+              <Accordion variant="filled">
                 {sortedSearchResults.map((s, i) => {
                   if (!s.value) {
                     return;
@@ -519,7 +593,7 @@ export default function Spyglass() {
                       value={idea.id.toString()}
                       key={idea.id.toString()}
                     >
-                      <Accordion.Control p="0">
+                      <Accordion.Control>
                         <Group wrap="wrap">
                           <Text
                             fw={500}

@@ -57,6 +57,10 @@
     }
 
     .ui {
+        display: flex;
+        align-items: flex-end;
+        width: 100%;
+        justify-content: space-between;
         padding: var(--mantine-spacing-xs) var(--mantine-spacing-md) 14px
             var(--mantine-spacing-md);
     }

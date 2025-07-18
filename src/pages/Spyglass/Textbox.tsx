@@ -1,8 +1,14 @@
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Button, Group, Text } from "@mantine/core";
 import styles from "./Textbox.module.scss";
-import { PaperPlaneIcon, PaperPlaneRightIcon } from "@phosphor-icons/react";
+import {
+  PaperPlaneIcon,
+  PaperPlaneRightIcon,
+  RabbitIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLayout } from "../../contexts/LayoutContext";
+import useRabbithole from "../../hooks/useRabbithole";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -59,6 +65,9 @@ export default function Textbox({
     return true;
   };
 
+  const { isDownRabbithole, currentRabbithole, exitRabbithole } =
+    useRabbithole();
+
   return (
     <div
       className={`${styles.textbox} ${isFocused ? styles.focused : ""} ${initialized ? styles.initialized : ""}`}
@@ -91,6 +100,45 @@ export default function Textbox({
       />
       {showUI() && (
         <div className={styles.ui}>
+          <Group justify="start">
+            {isDownRabbithole && (
+              <Button
+                radius="xl"
+                size="xs"
+                variant="light"
+                color="green"
+                rightSection={
+                  <>
+                    <ActionIcon
+                      variant="subtle"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exitRabbithole();
+                      }}
+                      size="sm"
+                      color="green"
+                    >
+                      <XIcon weight="bold" />
+                    </ActionIcon>
+                  </>
+                }
+              >
+                <Group gap="2px" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                  <RabbitIcon weight="fill" />
+                  <Text
+                    w={"100%"}
+                    truncate={"end"}
+                    size="xs"
+                    tt="uppercase"
+                    fw="bold"
+                    title={currentRabbithole?.name}
+                  >
+                    {currentRabbithole?.name}
+                  </Text>
+                </Group>
+              </Button>
+            )}
+          </Group>
           <Group justify="end">
             <ActionIcon
               variant="subtle"

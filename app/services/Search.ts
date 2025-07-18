@@ -3,14 +3,9 @@ import { getDatabase } from "../database/db";
 import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
 import { getEmbedder } from "../ai/embeddings/embeddings";
-import { getLM } from "../ai/lms/lm";
-import { LMSchema, LMSchemaType } from "../ai/lms";
-import { PromptBuilder } from "../ai/lms/utils";
-import { htmlToMarkdown } from "../utils/formatting";
-import { max_lm_prompt_size } from "../settings";
-import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ITag } from "../database/models/tag";
 import { IRabbithole } from "../database/models/rabbithole";
+import { IFinding } from "./Spyglass";
 
 export type ISearchResultValue =
   | (IIdea & {
@@ -41,49 +36,6 @@ export type IFTSIdeaResult = IIdea & {
 };
 
 export type ISemanticIdeaResult = IIdeaAsRelation & {};
-
-export type IFindingType =
-  // FOUNDATIONAL
-  | "FACT"
-  | "CONTRADICTION"
-  | "DEFINITION"
-  // DIRECT ANSWER TYPES
-  | "EXPLANATION"
-  | "EXAMPLE"
-  | "PROCEDURE"
-  // PERSONAL & REFLECTIVE
-  | "PERSONAL_INSIGHT"
-  | "TAKEAWAY"
-  | "OPEN_QUESTION"
-  | "ACTION_ITEM"
-  | "KNOWLEDGE_GAP"
-  // STRUCTURAL AND REFERENCE TYPES
-  | "REFERENCE"
-  | "QUOTE"
-  | "COMPARISON";
-
-export const FindingTypes = [
-  "FACT",
-  "CONTRADICTION",
-  "DEFINITION",
-  "EXPLANATION",
-  "EXAMPLE",
-  "PROCEDURE",
-  "PERSONAL_INSIGHT",
-  "TAKEAWAY",
-  "OPEN_QUESTION",
-  "ACTION_ITEM",
-  "REFERENCE",
-  "QUOTE",
-  "COMPARISON",
-] as IFindingType[];
-
-export type IFinding = {
-  excerpt: string;
-  sourceId: string;
-  analysis: string;
-  findingType: IFindingType;
-};
 
 export type ISearchOverview = {
   findings: IFinding[];
@@ -150,7 +102,7 @@ export class Search {
       return `
       DEFINE ANALYZER OVERWRITE idea_analyzer
       TOKENIZERS class
-      FILTERS lowercase;`;
+      FILTERS lowercase, snowball(english);`;
     };
 
     const tagSearchAnalyzer = () => {
@@ -233,16 +185,53 @@ export class Search {
             search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
             search::score(0) AS contentScore,
             search::score(1) AS titleScore,
-            string::similarity::jaro_winkler($query, title) AS titleSimilarity
+            ->is_source_for->(?).* as derivedList -- Includes derivedList
+        OMIT embeddings
         FROM idea
         WHERE
-            ((contentPlain @0@ $query OR title @1@ $query)
-            OR string::similarity::jaro_winkler($query, title) > 0.7f)
+            (contentPlain @0@ $query OR title @1@ $query)
             AND <-owns<-(user WHERE id = <record> $userId)
         ORDER BY
-            titleSimilarity DESC,
-            contentScore DESC,
-            titleScore DESC;
+            titleScore DESC,
+            contentScore DESC;
+
+        return $ideas;
+      }`;
+    };
+
+    const ftsSearchWithinRabbitholeFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_rabbithole_ideas_fts(
+        $query: string,
+        $rabbitholeId: string
+      ) {
+        LET $ideas = SELECT
+            *,
+            contentPlain,
+            title,
+            search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
+            search::score(0) AS contentScore,
+            search::score(1) AS titleScore,
+            ->is_source_for->(?).* as derivedList -- Includes derivedList
+        OMIT embeddings
+        FROM idea
+        WHERE
+            (contentPlain @0@ $query OR title @1@ $query) AND
+            (
+              id IN (
+                SELECT VALUE
+                  ->includes.out
+                FROM ONLY <record> $rabbitholeId
+              ) OR
+              id IN (
+                SELECT VALUE
+                  ->includes->tag->describes.out
+                FROM ONLY <record> $rabbitholeId
+              )
+            )
+        ORDER BY
+            titleScore DESC,
+            contentScore DESC;
 
         return $ideas;
       }`;
@@ -262,6 +251,7 @@ export class Search {
             search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
             search::score(0) AS nameScore,
             search::score(1) AS descriptionScore
+        OMIT embeddings
         FROM tag
         WHERE
             (name @0@ $query OR
@@ -317,6 +307,7 @@ export class Search {
                 *,
                 vector::similarity::cosine(embeddings, $embeddings) AS distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
+            OMIT embeddings
             FROM idea
             WHERE
               <-owns<-(user WHERE id = <record> $userId)
@@ -353,6 +344,51 @@ export class Search {
             FROM idea
             WHERE
               <-owns<-(user WHERE id = <record> $userId)
+              AND !!content
+              AND !!embeddings
+              AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
+            ORDER BY distance DESC
+            LIMIT $got_limit;
+
+        RETURN $results;
+      }
+          `;
+    };
+
+    const searchSimilarToEmbeddingsWithinRabbithole = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings_within_rabbithole(
+        $provided_embeddings: array<float>,
+        $userId: string,
+        $limit: option<int>,
+        $threshold: option<float>,
+        $rabbitholeId: string
+      ) {
+        IF !$provided_embeddings THEN return [] END;
+        LET $got_limit = IF !!$limit THEN $limit ELSE 100 END;
+        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
+
+        LET $results =
+            SELECT
+                *,
+                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
+                ->is_source_for->(?).* as derivedList -- Includes derivedList
+            OMIT embeddings
+            FROM idea
+            WHERE
+              <-owns<-(user WHERE id = <record> $userId)
+              AND (
+                id IN (
+                  SELECT VALUE
+                    ->includes.out
+                  FROM ONLY <record> $rabbitholeId
+                ) OR
+                id IN (
+                  SELECT VALUE
+                    ->includes->tag->describes.out
+                  FROM ONLY <record> $rabbitholeId
+                )
+              )
               AND !!content
               AND !!embeddings
               AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
@@ -464,6 +500,8 @@ export class Search {
       await db.query(ftsSearchRabbitholesFunction());
       await db.query(searchSimilarToIdea());
       await db.query(searchSimilarToEmbeddings());
+      await db.query(ftsSearchWithinRabbitholeFunction());
+      await db.query(searchSimilarToEmbeddingsWithinRabbithole());
       await db.query(searchSimilarTagsToEmbeddings());
       await db.query(searchSimilarIdeasToTag());
     } catch (error) {
@@ -488,26 +526,26 @@ export class Search {
   static async ftsSearch(
     userId: string,
     query: string,
+    options?: {
+      rabbitholeId?: string;
+    },
   ): Promise<ISearchResult[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      // Call the original function by name
-      // It expects userId as a string like "user:id"
-      const results = await db.run<IFTSIdeaResult[]>(
-        "fn::search_user_ideas_fts",
-        [
-          userId, // Pass the user ID string directly as the function expects
-          query,
-        ],
-      );
+      const isRabbithole = options?.rabbitholeId !== undefined;
+      const fn = isRabbithole
+        ? "fn::search_rabbithole_ideas_fts"
+        : "fn::search_user_ideas_fts";
+      const args = isRabbithole
+        ? [query, options?.rabbitholeId]
+        : [userId, query];
+      const results = await db.run<IFTSIdeaResult[]>(fn, args);
 
       if (!results) return [];
 
-      // Map raw FTS results to the standard ISearchResult format
       return results.map((idea): ISearchResult => {
-        // Simple FTS score combination (can be refined)
         const combinedFtsScore =
           (idea.titleScore ?? 0) + (idea.contentScore ?? 0);
         return {
@@ -516,8 +554,8 @@ export class Search {
           value: {
             ...idea,
             type: "idea",
-          }, // The full object as returned by the function
-          highlightText: idea.preview, // Use the 'preview' field with -> <- markers
+          },
+          highlightText: idea.preview,
           debug: {
             ftsContentScore: idea.contentScore,
             ftsTitleScore: idea.titleScore,
@@ -538,47 +576,62 @@ export class Search {
   static async semanticSearch(
     userId: string,
     embedding: number[],
-    limit: number = 10,
+    options: {
+      limit?: number;
+      threshold?: number;
+      rabbitholeId?: string;
+    },
   ): Promise<ISearchResult[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      // Call the original function by name
-      // It expects userId as a string like "user:id"
-      const results = await db.run<ISemanticIdeaResult[]>( // Type includes distance and derivedList
-        "fn::search_similar_to_embeddings",
-        [embedding, userId, limit], // Pass userId string directly
-      );
+      const fn =
+        options.rabbitholeId !== undefined
+          ? "fn::search_similar_to_embeddings_within_rabbithole"
+          : "fn::search_similar_to_embeddings";
+      const args =
+        options.rabbitholeId !== undefined
+          ? [
+              embedding,
+              userId,
+              options.limit || 100,
+              options.threshold || this.SEMANTIC_THRESHOLD,
+              options.rabbitholeId,
+            ]
+          : [
+              embedding,
+              userId,
+              options.limit || 100,
+              options.threshold || this.SEMANTIC_THRESHOLD,
+            ];
+
+      // console.log("Running function and args for semantic search: ", fn, args);
+      // Bun.file("test-search-output.json").write(
+      //   JSON.stringify({
+      //     fn,
+      //     args,
+      //   }),
+      // );
+      const results = await db.run<ISemanticIdeaResult[]>(fn, args);
+      // console.log("Got results: ", results);
 
       if (!results) return [];
 
-      // Map semantic results to the standard ISearchResult format
       return results.map((idea): ISearchResult => {
-        // Generate a simple preview if FTS isn't involved
-        // Use contentPlain if available, otherwise title
         const preview = idea.contentPlain
           ? idea.contentPlain.substring(0, 150) +
             (idea.contentPlain.length > 150 ? "..." : "")
           : (idea.title ?? "No Content");
 
-        // **Important**: Decide how to handle `derivedList` from the function results.
-        // Option 1: Include it in the `value` object (as it is now).
-        // Option 2: Process it into the `IIdeaDerivedMap` and add to `value`.
-        // Option 3: Ignore it in the search result and fetch separately if needed.
-        // Current implementation keeps it within the `value` object as returned.
-        // If you need the mapped version:
-        // const mappedDerived = Search.mapDerived(idea.derivedList);
-        // const valueWithMappedDerived = { ...idea, derived: mappedDerived };
-
         return {
           id: idea.id,
-          score: idea.distance ?? 0, // Use cosine similarity as the score
+          score: idea.distance ?? 0,
           value: {
             ...idea,
             type: "idea",
-          }, // The full object as returned by the function (includes derivedList)
-          highlightText: preview, // Basic preview for semantic-only
+          },
+          highlightText: preview,
           debug: {
             semanticScore: idea.distance,
             source: "semantic",
@@ -599,13 +652,18 @@ export class Search {
   static async suggest(
     userId: string,
     query: string,
+    options?: {
+      rabbitholeId?: string;
+    },
   ): Promise<IIdea[] | undefined> {
     if (!query || query.trim().length < 2) {
       return [];
     }
 
     try {
-      const suggestions = await Search.ftsSearch(userId, query);
+      const suggestions = await Search.ftsSearch(userId, query, {
+        rabbitholeId: options?.rabbitholeId,
+      });
       const ideas = suggestions?.map((i) => {
         return {
           ...(i.value as IIdea),
@@ -626,16 +684,15 @@ export class Search {
    * Returns results in the standardized ISearchResult format, ranked by a combined score.
    */
   static async comprehensiveSearch(
-    userId: string, // Expecting 'user:id' format here now, consistent with function calls
+    userId: string,
     query: string,
-    options: { limit?: number } = {},
+    options: { limit?: number; rabbitholeId?: string } = {},
   ): Promise<ISearchResult[] | undefined> {
     const limit = options.limit ?? 50;
-    const initialFetchLimit = Math.max(limit * 2, 20); // Fetch more for ranking
+    const initialFetchLimit = Math.max(limit * 2, 20);
     const queryLower = query.toLowerCase().trim();
 
     try {
-      // 1. Attempt to generate query embedding
       const embeddingProcessor = getEmbedder();
       let queryEmbedding: number[] | null = null;
       try {
@@ -645,34 +702,34 @@ export class Search {
           `Failed to generate query embedding for query "${query}":`,
           embeddingError,
         );
-        // Continue with FTS fallback
       }
 
-      // 2. Fetch Results (using the standardized methods)
       let ftsResults: ISearchResult[] | undefined;
       let semanticResults: ISearchResult[] | undefined;
 
-      // Always perform FTS search
-      ftsResults = await Search.ftsSearch(userId, query);
+      ftsResults = await Search.ftsSearch(userId, query, {
+        rabbitholeId: options.rabbitholeId,
+      });
       if (ftsResults === undefined) {
         console.error(
           "Comprehensive Search: FTS search phase failed critically.",
         );
-        return undefined; // FTS error is critical for fallback too
+        return undefined;
       }
 
-      // Perform semantic search *only if* query embedding was successful
       if (queryEmbedding) {
-        semanticResults = await Search.semanticSearch(
-          userId,
-          queryEmbedding,
-          initialFetchLimit,
+        console.log(
+          "Running semantic search with rabbithole: ",
+          options.rabbitholeId,
         );
+        semanticResults = await Search.semanticSearch(userId, queryEmbedding, {
+          limit: initialFetchLimit,
+          rabbitholeId: options.rabbitholeId,
+        });
         if (semanticResults === undefined) {
           console.warn(
             "Comprehensive Search: Semantic search phase failed. Proceeding with FTS results only.",
           );
-          // Non-fatal: proceed without semantic results
         }
       } else {
         console.warn(
@@ -680,22 +737,18 @@ export class Search {
         );
       }
 
-      // 3. Merge and Score Results
       const combinedResults: Map<string, ISearchResult> = new Map();
 
-      // Process FTS results first (these provide base + highlights)
       for (const ftsRes of ftsResults) {
-        const id = ftsRes.id.toString(); // Use string ID for Map key consistency
-        const idea = ftsRes.value as IIdea; // Asserting type for access
+        const id = ftsRes.id.toString();
+        const idea = ftsRes.value as IIdea;
 
-        // Base score from FTS weights
         let score =
           (ftsRes.debug?.ftsTitleScore ?? 0) *
             Search.COMPREHENSIVE_WEIGHTS.FTS_TITLE +
           (ftsRes.debug?.ftsContentScore ?? 0) *
             Search.COMPREHENSIVE_WEIGHTS.FTS_CONTENT;
 
-        // Apply exact title bonus
         const exactTitleBonus =
           idea.title?.toLowerCase().trim() === queryLower
             ? Search.EXACT_TITLE_BONUS
@@ -705,18 +758,15 @@ export class Search {
 
         combinedResults.set(id, {
           ...ftsRes,
-          // highlightText already set by ftsSearch from 'preview'
-          score: score, // Score based on FTS + title bonus
+          score: score,
           debug: {
-            ...ftsRes.debug, // Includes fts scores and 'fts' source
+            ...ftsRes.debug,
             exactTitleBonus: exactTitleBonus,
-            // Source will be updated to 'hybrid' if semantic match found
             source: queryEmbedding ? "hybrid" : "fts",
           },
         });
       }
 
-      // Merge Semantic results (if available and above threshold)
       if (semanticResults) {
         for (const semRes of semanticResults) {
           const id = semRes.id.toString();
@@ -726,32 +776,28 @@ export class Search {
             const existing = combinedResults.get(id);
             const semanticContribution =
               semanticScore * Search.COMPREHENSIVE_WEIGHTS.SEMANTIC;
-            const idea = semRes.value as IIdea; // Assert type
+            const idea = semRes.value as IIdea;
 
             if (existing) {
-              // Found by both: Add semantic score, update debug info
               existing.score += semanticContribution;
               existing.debug = {
                 ...existing.debug,
                 semanticScore: semanticScore,
-                source: "hybrid", // Mark clearly as hybrid
+                source: "hybrid",
               };
-              // Keep FTS highlightText from existing entry
             } else {
-              // Found only by Semantic (above threshold): Add as new entry
               const exactTitleBonus =
                 idea.title?.toLowerCase().trim() === queryLower
                   ? Search.EXACT_TITLE_BONUS
                   : 0;
 
               combinedResults.set(id, {
-                ...semRes, // Use semantic result as base
-                // highlightText will be the basic preview generated by semanticSearch
+                ...semRes,
                 score: semanticContribution + exactTitleBonus,
                 debug: {
-                  ...semRes.debug, // Includes semantic score
+                  ...semRes.debug,
                   exactTitleBonus: exactTitleBonus,
-                  source: "hybrid", // Found semantically in hybrid search context
+                  source: "hybrid",
                 },
               });
             }
@@ -759,9 +805,8 @@ export class Search {
         }
       }
 
-      // 4. Final Ranking and Selection
       const finalResults = Array.from(combinedResults.values());
-      finalResults.sort((a, b) => b.score - a.score); // Sort descending by score
+      finalResults.sort((a, b) => b.score - a.score);
 
       return finalResults.slice(0, limit);
     } catch (error) {
@@ -795,7 +840,7 @@ export class Search {
         })[]
       >("fn::search_user_tags_fts", [new StringRecordId(userId), query, limit]);
 
-      if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
+      if (!dbResults) {
         throw new Error("Couldn't get results");
       }
 
@@ -831,7 +876,7 @@ export class Search {
         [new StringRecordId(userId), embedding, limit, threshold],
       );
 
-      if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
+      if (!dbResults) {
         throw new Error("Couldn't get results");
       }
 
@@ -952,7 +997,7 @@ export class Search {
         limit,
       ]);
 
-      if (!dbResults || dbResults.length === 0 || !dbResults[0]) {
+      if (!dbResults) {
         throw new Error("Couldn't get results");
       }
 

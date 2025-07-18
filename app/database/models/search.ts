@@ -10,6 +10,7 @@ import { Search } from "../../services/Search";
 import { parseIncompleteJsonArray } from "../../utils/processing";
 import { max_spyglass_finding_amount } from "../../settings";
 import Spyglass, { ISpyglassIntent } from "../../services/Spyglass";
+import { IRabbithole } from "./rabbithole";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
@@ -23,11 +24,18 @@ export type ISpyglassSearch = {
   resultConnections?: ISearchConnection[];
   fullResults?: ISearchResult[];
   parent?: ISpyglassSearch;
+  rabbithole?: IRabbithole;
 };
 
 export type ISpyglassSearchForm = Omit<
   ISpyglassSearch,
-  "id" | "results" | "analysis" | "intent" | "createdAt" | "updatedAt"
+  | "id"
+  | "results"
+  | "rabbithole"
+  | "analysis"
+  | "intent"
+  | "createdAt"
+  | "updatedAt"
 >;
 
 export type ISpyglassSearchCreator = Omit<ISpyglassSearch, "id">;
@@ -92,7 +100,8 @@ export class SpyglassSearch {
               *,
               (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
               (SELECT * OMIT embeddings FROM ->found->idea) as results,
-              (SELECT * FROM ->is_followup_to->spyglass)[0] AS parent
+              (SELECT * FROM ->is_followup_to->spyglass)[0] AS parent,
+              (SELECT * FROM <-includes<-rabbithole)[0] AS rabbithole
             FROM ONLY <record> $spyglassRecord
             FETCH results, parent;
           RETURN $search;
@@ -157,6 +166,9 @@ export class SpyglassSearch {
   public static async create(
     userId: string | RecordId,
     form: ISpyglassSearchForm,
+    options?: {
+      rabbitholeId?: string;
+    },
   ) {
     try {
       const db = await getDatabase();
@@ -180,6 +192,12 @@ export class SpyglassSearch {
         userId: new StringRecordId(userId),
         spyglassId: new StringRecordId(spyglassSearch.id),
       });
+      if (options?.rabbitholeId) {
+        await db.query(`RELATE $rabbitholeId->includes->$spyglassId;`, {
+          rabbitholeId: new StringRecordId(options.rabbitholeId),
+          spyglassId: new StringRecordId(spyglassSearch.id),
+        });
+      }
       return spyglassSearch;
     } catch (error) {
       logger.error("Error creating spyglass search", { userId, form, error });
@@ -203,10 +221,12 @@ export class SpyglassSearch {
         search.results &&
         search.results.length > 0
       ) {
-        search.fullResults = await SpyglassSearch.mapMultipleConnections(
-          search.resultConnections,
-          search.results,
-        );
+        search.fullResults = !!search.results.length
+          ? await SpyglassSearch.mapMultipleConnections(
+              search.resultConnections,
+              search.results,
+            )
+          : [];
       }
       return search;
     } catch (error) {
@@ -341,9 +361,7 @@ export class SpyglassSearch {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const search = await db.select<ISpyglassSearch>(
-        new StringRecordId(searchId),
-      );
+      const search = await SpyglassSearch.get(searchId);
       if (!search) {
         throw new Error("Search not found");
       }
@@ -352,6 +370,9 @@ export class SpyglassSearch {
         const r = await Spyglass.getResultsFromQueries(
           userId.toString(),
           search.intent.queries,
+          {
+            rabbitholeId: search.rabbithole?.id.toString(),
+          },
         );
         results.push(...r);
       } else {
@@ -445,9 +466,6 @@ export class SpyglassSearch {
       }
       if (!search.resultConnections) {
         throw new Error("Did not load result relations");
-      }
-      if (!search.fullResults) {
-        throw new Error("Did not load full results");
       }
       if (!search.intent) {
         throw new Error("Search intent not found");
