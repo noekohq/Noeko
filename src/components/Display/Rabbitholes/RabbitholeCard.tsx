@@ -35,7 +35,7 @@ export default function RabbitholeCard({
       }}
     >
       <Stack gap="xs">
-        <Group>
+        <Group gap="xs">
           <RabbitIcon />
           <Text fw={500} c="dimmed" size="sm">
             {rabbithole.name}

@@ -509,16 +509,27 @@ const spyglassMissionStatement = `
 export default class Spyglass {
   constructor() {}
 
-  static async getResults(userId: string, query: string) {
-    return await Search.comprehensiveSearch(userId, query);
+  static async getResults(
+    userId: string,
+    query: string,
+    options?: {
+      rabbitholeId?: string;
+    },
+  ) {
+    return await Search.comprehensiveSearch(userId, query, options);
   }
 
   static async getResultsFromQueries(
     userId: string,
     queries: string[],
+    options?: {
+      rabbitholeId?: string;
+    },
   ): Promise<ISearchResult[]> {
     const searchPromises = queries.map((query) =>
-      Search.comprehensiveSearch(userId, query),
+      Search.comprehensiveSearch(userId, query, {
+        rabbitholeId: options?.rabbitholeId,
+      }),
     );
 
     const allResultSets = await Promise.all(searchPromises);

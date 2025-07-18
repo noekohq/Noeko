@@ -13,6 +13,7 @@ import { parseIncompleteJsonArray } from "../../../utils/processing";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { ISpyglassIntent } from "../../../../app/services/Spyglass";
+import useRabbithole from "../../../hooks/useRabbithole";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -62,6 +63,7 @@ interface IUseSpyglassReturn {
   initialize: () => Promise<void>;
   refetch: () => Promise<void>;
   clear: (uninitialize?: boolean) => Promise<void>;
+  error: string;
 }
 
 export default function useSpyglass({
@@ -99,6 +101,8 @@ export default function useSpyglass({
   useEffect(() => {
     onAnalysisChange?.(spyglass?.analysis || null);
   }, [spyglass?.analysis]);
+
+  const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   const getEndStatusText = () => {
     if (
@@ -159,6 +163,11 @@ export default function useSpyglass({
         const type = parsedData.type;
         switch (type) {
           case "error":
+            console.log(
+              "Parsed error data: ",
+              parsedData.data,
+              typeof parsedData.data,
+            );
             setError(parsedData.data as string);
             setStatusText("Something went wrong.");
             console.error(parsedData.data);
@@ -259,8 +268,6 @@ export default function useSpyglass({
         // We only treat it as an error if the stream wasn't closed cleanly.
         // The `readyState` will be 2 (CLOSED) if we called .close() ourselves.
         if (eventSource.readyState !== EventSource.CLOSED) {
-          setError(String(error));
-          setStatusText("Error connecting to the server");
           console.error("EventSource error:", error);
         }
         // In any error/end case, we should ensure we stop listening.
@@ -300,6 +307,7 @@ export default function useSpyglass({
       const response = await api.post("/search/spyglass/initialize", {
         query,
         parentId,
+        rabbitholeId: currentRabbithole?.id.toString(),
       });
       setInitialized(true);
       setInitializing(false);
@@ -415,6 +423,7 @@ export default function useSpyglass({
     clear: resetState,
     resultMap,
     citationMap,
+    error,
     timings: {
       startTime: startTime.current || 0,
       resultsTime: resultsTime.current || 0,
