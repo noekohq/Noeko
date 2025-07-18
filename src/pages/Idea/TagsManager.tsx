@@ -17,6 +17,7 @@ import {
   LoadingOverlay,
   Collapse,
   Transition,
+  Textarea,
 } from "@mantine/core";
 import {
   X,
@@ -230,15 +231,13 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
             <Grid>
               <Grid.Col span={12}>
                 <TextInput
-                  size="xs"
-                  placeholder="Name"
+                  placeholder="Name your tag"
                   {...tagForm.getInputProps("name")}
                 />
               </Grid.Col>
               <Grid.Col span={12}>
-                <TextInput
-                  size="xs"
-                  placeholder="Description"
+                <Textarea
+                  placeholder="What does this tag describe?"
                   {...tagForm.getInputProps("description")}
                 />
               </Grid.Col>
