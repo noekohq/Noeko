@@ -78,7 +78,7 @@ export class Search {
   static async up() {
     const defineVectorIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_idea_embeddings
+      DEFINE INDEX IF NOT EXISTS idx_idea_embeddings
         ON TABLE idea
         FIELDS embeddings
         HNSW DIMENSION 768
@@ -89,7 +89,7 @@ export class Search {
 
     const defineTagVectorIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_tag_embeddings
+      DEFINE INDEX IF NOT EXISTS idx_tag_embeddings
         ON TABLE tag
         FIELDS embeddings
         HNSW DIMENSION 768
