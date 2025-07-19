@@ -473,8 +473,6 @@ export class Tag {
       const results = await db.run<Idea[]>("fn::search_ideas_similar_to_tag", [
         new StringRecordId(tagId),
         new StringRecordId(userId),
-        options?.limit,
-        options?.threshold || 0.4, // Default threshold
       ]);
 
       if (!results) {

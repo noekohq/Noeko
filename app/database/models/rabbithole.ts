@@ -277,7 +277,7 @@ export default class Rabbithole {
 
       const results = await db.run<IIdea[]>(
         "fn::search_similar_to_embeddings",
-        [rEmbeddings, userId, options?.limit || 25, options?.threshold || 0.4],
+        [rEmbeddings, userId],
       );
 
       if (!results) {

@@ -94,6 +94,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
 
   async embedContent(content: string): Promise<number[] | null> {
     try {
+      const startTime = Date.now();
       const response = await this.client.models.embedContent({
         model: this.model,
         contents: [content],
@@ -101,6 +102,10 @@ export default class GoogleProvider implements EmbeddingsProvider {
           outputDimensionality: default_embeddings_dimension,
         },
       });
+      const endTime = Date.now();
+      console.log(
+        `Embedding content took ${(endTime - startTime).toFixed(2)}ms`,
+      );
       if (!response.embeddings?.length) {
         throw new Error("No embeddings returned from model");
       }

@@ -49,10 +49,7 @@ router.post("/heavy", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const options = req.body.options;
-    const graph = await Idea.graphHeavy(user.id, {
-      similarThreshold: options?.similarityThreshold,
-      similarityLimit: options?.similarityLimit,
-    });
+    const graph = await Idea.graphHeavy(user.id);
     if (!graph) {
       res.status(404).json({ message: "Graph not found" });
       return;
