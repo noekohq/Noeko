@@ -300,7 +300,7 @@ export class Search {
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $embeddings) AS distance,
+                vector::similarity::cosine(embeddings, $embedding) AS distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
             OMIT embeddings
             FROM idea
@@ -432,7 +432,6 @@ export class Search {
                 embeddings <|20, 300|> $tag_embeddings AND
                 embeddings != NONE
             ORDER BY distance DESC
-            LIMIT $actual_limit
         );
 
         RETURN $results;
