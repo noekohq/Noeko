@@ -173,18 +173,13 @@ export class Idea {
     const userHeavyGraphFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::user_graph_heavy(
-          $userId: string,
-          $semanticLimit: option<int>,
-          $semanticThreshold: option<float>
+          $userId: string
       ) {
-        LET $got_limit = $semanticLimit ?? 5;
-        LET $got_threshold = $threshold ?? 0.4;
-
         LET $processedIdeas = SELECT
             *,
             ->is_source_for->(?).* as derivedList,
             IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
-                fn::search_similar_to_embeddings(embeddings, $userId, $got_limit, $got_threshold)
+                fn::search_similar_to_embeddings(embeddings, $userId)
             ELSE
                 []
             END AS similar
@@ -1050,19 +1045,12 @@ export class Idea {
     }
   }
 
-  static async graphHeavy(
-    userId: string,
-    options?: { similarityLimit?: number; similarThreshold?: number },
-  ): Promise<IDBGraph | undefined> {
+  static async graphHeavy(userId: string): Promise<IDBGraph | undefined> {
     try {
       const db = await getDatabase();
       const graph = await db?.run<Omit<IDBGraph, "flags">>(
         "fn::user_graph_heavy",
-        [
-          userId,
-          options?.similarityLimit || 3,
-          options?.similarThreshold || 0.45,
-        ],
+        [userId],
       );
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
@@ -1400,14 +1388,12 @@ export class Idea {
   static async findSimilar(
     userId: string | RecordId,
     rootNodeId: string | RecordId,
-    options: { limit?: number } = { limit: 3 },
   ) {
     try {
       const db = await getDatabase();
-      const limit = options.limit;
       const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_idea",
-        [rootNodeId, userId, limit],
+        [rootNodeId, userId],
       );
       if (!ideas) {
         console.error(`No ideas found.`);
@@ -1432,19 +1418,12 @@ export class Idea {
     }
   }
 
-  static async semanticSearch(
-    userId: string | RecordId,
-    embedding: number[],
-    options?: {
-      limit?: number;
-      threshold?: number;
-    },
-  ) {
+  static async semanticSearch(userId: string | RecordId, embedding: number[]) {
     try {
       const db = await getDatabase();
       const ideas = await db?.run<IIdeaAsRelation[]>(
         "fn::search_similar_to_embeddings",
-        [embedding, userId, options?.limit || 100, options?.threshold ?? 0.4],
+        [embedding, userId],
       );
       if (!ideas) {
         console.error(`No ideas found.`);

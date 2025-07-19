@@ -291,16 +291,11 @@ export class Search {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
         $ideaId: string,
-        $userId: string,
-        $limit: option<int>,
-        $threshold: option<float>
+        $userId: string
       ) {
-        LET $embeddings = SELECT VALUE embeddings FROM ONLY <record> $ideaId;
+        LET $embedding = SELECT VALUE embeddings FROM ONLY <record> $ideaId;
 
-        IF !$embeddings THEN RETURN [] END;
-
-        LET $got_limit = IF !!$limit THEN $limit ELSE 100 END;
-        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
+        IF !$embedding THEN RETURN [] END;
 
         LET $results =
             SELECT
@@ -310,12 +305,11 @@ export class Search {
             OMIT embeddings
             FROM idea
             WHERE
-              <-owns<-(user WHERE id = <record> $userId)
-              AND !!content
-              AND !!embeddings
-              AND vector::similarity::cosine(embeddings, $embeddings) >= $got_threshold
-            ORDER BY distance DESC
-            LIMIT <int> $got_limit;
+              <-owns<-(user WHERE id = <record> $userId) AND
+              embeddings <|5, 300|> $embedding AND
+              embeddings != NONE AND
+              content != NONE
+            ORDER BY distance DESC;
 
         RETURN $results;
       }
@@ -326,29 +320,24 @@ export class Search {
     const searchSimilarToEmbeddings = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
-        $provided_embeddings: array<float>,
-        $userId: string,
-        $limit: option<int>,
-        $threshold: option<float>
+        $embedding: array<float>,
+        $userId: string
       ) {
-        IF !$provided_embeddings THEN return [] END;
-        LET $got_limit = IF !!$limit THEN $limit ELSE 100 END;
-        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
+        IF !$embedding THEN return [] END;
 
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
+                vector::similarity::cosine(embeddings, $embedding) as distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
             OMIT embeddings
             FROM idea
             WHERE
-              <-owns<-(user WHERE id = <record> $userId)
-              AND !!content
-              AND !!embeddings
-              AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
-            ORDER BY distance DESC
-            LIMIT $got_limit;
+                <-owns<-(user WHERE id = <record> $userId) AND
+                embeddings <|20, 300|> $embedding AND
+                embeddings != NONE AND
+                content != NONE
+            ORDER BY distance DESC;
 
         RETURN $results;
       }
@@ -358,26 +347,25 @@ export class Search {
     const searchSimilarToEmbeddingsWithinRabbithole = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings_within_rabbithole(
-        $provided_embeddings: array<float>,
+        $embedding: array<float>,
         $userId: string,
-        $limit: option<int>,
-        $threshold: option<float>,
         $rabbitholeId: string
       ) {
-        IF !$provided_embeddings THEN return [] END;
-        LET $got_limit = IF !!$limit THEN $limit ELSE 100 END;
-        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
+        IF !$embedding THEN return [] END;
 
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance,
+                vector::similarity::cosine(embeddings, $embedding) AS distance,
                 ->is_source_for->(?).* as derivedList -- Includes derivedList
             OMIT embeddings
             FROM idea
             WHERE
-              <-owns<-(user WHERE id = <record> $userId)
-              AND (
+              <-owns<-(user WHERE id = <record> $userId) AND
+              embeddings <|20, 400|> $embedding AND
+              embeddings != NONE AND
+              content != NONE AND
+              (
                 id IN (
                   SELECT VALUE
                     ->includes.out
@@ -389,11 +377,7 @@ export class Search {
                   FROM ONLY <record> $rabbitholeId
                 )
               )
-              AND !!content
-              AND !!embeddings
-              AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
-            ORDER BY distance DESC
-            LIMIT $got_limit;
+            ORDER BY distance DESC;
 
         RETURN $results;
       }
@@ -403,28 +387,21 @@ export class Search {
     const searchSimilarTagsToEmbeddings = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_similar_tags_to_embeddings(
-        $provided_embeddings: array<float>,
-        $userId: record,
-        $limit: option<int>,
-        $threshold: option<float>
+        $embedding: array<float>,
+        $userId: record
       ) {
-        IF !$provided_embeddings THEN return [] END;
-        LET $got_limit = IF !!$limit THEN $limit ELSE count(fn::get_user_tags($userId)) END;
-        LET $got_threshold = IF !!$threshold THEN $threshold ELSE 0.4 END;
+        IF !$embedding THEN return [] END;
 
         LET $results =
             SELECT
                 *,
-                vector::similarity::cosine(embeddings, $provided_embeddings) AS distance
+                vector::similarity::cosine(embeddings, $embedding) AS distance
             FROM tag
             WHERE
-              <-owns<-(user WHERE id = <record> $userId)
-              AND (
-                !!embeddings
-                AND vector::similarity::cosine(embeddings, $provided_embeddings) >= $got_threshold
-              )
-            ORDER BY distance DESC
-            LIMIT $got_limit;
+              <-owns<-(user WHERE id = <record> $userId) AND
+              embeddings <|20, 400|> $embedding AND
+              embeddings != NONE
+            ORDER BY distance DESC;
 
         RETURN $results;
       }
@@ -435,41 +412,25 @@ export class Search {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_ideas_similar_to_tag(
         $tagId: record<tag>,
-        $userId: record<user>,
-        $limit: option<int>,
-        $threshold: option<float>
+        $userId: record<user>
       ) {
-        -- Description: Finds ideas semantically similar to a given tag's embeddings for a specific user.
-        -- Parameters:
-        --   $tagId: The record ID of the tag.
-        --   $userId: The record ID of the user.
-        --   $limit: Max number of similar ideas (default: 10).
-        --   $threshold: Min similarity threshold (default: ${Search.SEMANTIC_THRESHOLD}).
-
         LET $tag_embeddings = SELECT VALUE embeddings FROM ONLY $tagId;
 
         IF !$tag_embeddings THEN
           RETURN []; -- No embeddings for the tag, return empty
         END;
 
-        LET $default_limit = 10;
-        LET $default_threshold = ${Search.SEMANTIC_THRESHOLD};
-
-        LET $actual_limit = IF $limit != NONE THEN $limit ELSE $default_limit END;
-        LET $actual_threshold = IF $threshold != NONE THEN $threshold ELSE $default_threshold END;
-
         LET $results = (
             SELECT
-                *, -- Select all fields from the idea
+                *,
                 vector::similarity::cosine(embeddings, $tag_embeddings) AS distance,
-                ->is_source_for->(? WHERE <-owns<-(user WHERE id = $userId)).* as derivedList -- Get derived ideas owned by the user
-            OMIT embeddings -- Don't return the idea's own embeddings in the result
+                ->is_source_for->(? WHERE <-owns<-(user WHERE id = $userId)).* as derivedList
+            OMIT embeddings
             FROM idea
             WHERE
-                <-owns<-(user WHERE id = $userId) -- Idea must be owned by the specified user
-                AND !!content     -- Idea must have content
-                AND !!embeddings  -- Idea must have embeddings
-                AND vector::similarity::cosine(embeddings, $tag_embeddings) >= $actual_threshold
+                <-owns<-(user WHERE id = $userId) AND
+                embeddings <|20, 300|> $tag_embeddings AND
+                embeddings != NONE
             ORDER BY distance DESC
             LIMIT $actual_limit
         );
@@ -586,25 +547,14 @@ export class Search {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const fn =
-        options.rabbitholeId !== undefined
-          ? "fn::search_similar_to_embeddings_within_rabbithole"
-          : "fn::search_similar_to_embeddings";
-      const args =
-        options.rabbitholeId !== undefined
-          ? [
-              embedding,
-              userId,
-              options.limit || 100,
-              options.threshold || this.SEMANTIC_THRESHOLD,
-              options.rabbitholeId,
-            ]
-          : [
-              embedding,
-              userId,
-              options.limit || 100,
-              options.threshold || this.SEMANTIC_THRESHOLD,
-            ];
+      const inRabbithole = options.rabbitholeId !== undefined;
+
+      const fn = inRabbithole
+        ? "fn::search_similar_to_embeddings_within_rabbithole"
+        : "fn::search_similar_to_embeddings";
+      const args = inRabbithole
+        ? [embedding, userId, options.rabbitholeId]
+        : [embedding, userId];
 
       // console.log("Running function and args for semantic search: ", fn, args);
       // Bun.file("test-search-output.json").write(
@@ -718,10 +668,6 @@ export class Search {
       }
 
       if (queryEmbedding) {
-        console.log(
-          "Running semantic search with rabbithole: ",
-          options.rabbitholeId,
-        );
         semanticResults = await Search.semanticSearch(userId, queryEmbedding, {
           limit: initialFetchLimit,
           rabbitholeId: options.rabbitholeId,
@@ -768,7 +714,9 @@ export class Search {
       }
 
       if (semanticResults) {
+        console.log("Semantic results: ", semanticResults.slice(0, 1));
         for (const semRes of semanticResults) {
+          // console.log("Semantic result: ", semRes);
           const id = semRes.id.toString();
           const semanticScore = semRes.debug?.semanticScore ?? 0;
 
@@ -869,11 +817,11 @@ export class Search {
         );
       }
       const limit = options?.limit ?? 10;
-      const threshold = options?.threshold ?? Search.SEMANTIC_THRESHOLD; // Use existing threshold or define a new one for tags
+      const threshold = options?.threshold ?? Search.SEMANTIC_THRESHOLD;
 
       const dbResults = await db.run<(ITag & { score: number })[]>(
         "fn::search_similar_tags_to_embeddings",
-        [new StringRecordId(userId), embedding, limit, threshold],
+        [new StringRecordId(userId), embedding],
       );
 
       if (!dbResults) {
