@@ -1476,9 +1476,6 @@ export class Idea {
       const semanticCandidates = await Idea.semanticSearch(
         userId,
         queryEmbedding,
-        {
-          limit: initialFetchLimit,
-        },
       );
 
       if (semanticCandidates === undefined) {
