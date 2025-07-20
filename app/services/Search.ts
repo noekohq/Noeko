@@ -1,6 +1,6 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import { IIdea, IIdeaAsRelation } from "../database/models/ideas";
+import { IIdea, IIdeaAsRelation, IIdeaDerived } from "../database/models/ideas";
 import { IUserFile } from "../database/models/userfile";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { ITag } from "../database/models/tag";
@@ -420,7 +420,8 @@ export class Search {
         SELECT * FROM (
           SELECT
             *,
-            vector::similarity::cosine(embeddings, $embedding) AS distance
+            vector::similarity::cosine(embeddings, $embedding) AS distance,
+            ->is_source_for->(?).* as derivedList
           OMIT embeddings
           FROM idea
           WHERE ${subqueryWhere.join(" AND ")}
@@ -430,16 +431,15 @@ export class Search {
         LIMIT ${limit};
       `;
 
-      const [results] = await db.query<(IIdea & { distance: number })[][]>(
-        query,
-        {
-          userId: new StringRecordId(userId),
-          embedding: embedding,
-          ...(options.rabbitholeId && {
-            rabbitholeId: new StringRecordId(options.rabbitholeId),
-          }),
-        },
-      );
+      const [results] = await db.query<
+        (IIdea & { distance: number; derivedList: IIdeaDerived[] })[][]
+      >(query, {
+        userId: new StringRecordId(userId),
+        embedding: embedding,
+        ...(options.rabbitholeId && {
+          rabbitholeId: new StringRecordId(options.rabbitholeId),
+        }),
+      });
 
       if (!results) return [];
 

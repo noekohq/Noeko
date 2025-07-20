@@ -9,6 +9,7 @@ import { htmlToMarkdown } from "../../../utils/formatting";
 import { max_user_notes } from "../../../settings";
 import { ITag, ITagIdeaRelationship } from "../tag";
 import { logger } from "../../../services/Logger";
+import { Search } from "../../../services/Search";
 
 export const embeddableContentLimit = 20000;
 
@@ -226,6 +227,7 @@ export class Idea {
         LET $connections = SELECT
             *,
             ->is_source_for->(?).* as derivedList
+            OMIT embeddings
         FROM
             (SELECT VALUE array::complement(<->connected<->idea.id, [id]) FROM ONLY <record> $ideaId);
 
@@ -1403,21 +1405,43 @@ export class Idea {
   ) {
     try {
       const db = await getDatabase();
-      const ideas = await db?.run<IIdeaAsRelation[]>(
-        "fn::search_similar_to_idea",
-        [rootNodeId, userId],
-      );
-      if (!ideas) {
-        console.error(`No ideas found.`);
-        return;
+      const idea = await Idea.get(rootNodeId, "full");
+      if (!idea) {
+        throw new Error(`Idea not found.`);
       }
+      if (!idea.embeddings) {
+        await Idea.loadEmbeddings(rootNodeId);
+      }
+      if (!idea.embeddings) {
+        throw new Error(
+          "Idea has no embedding vector and couldn't be computed.",
+        );
+      }
+      // TODO: this should only return ideas, nothing else.
+      const results = await Search.searchByEmbedding(userId, idea.embeddings, {
+        limit: 10,
+      });
+      if (!results) {
+        throw new Error("Search failed findings similar ideas.");
+      }
+      const ideas: (IIdea & {
+        distance: number;
+        derivedList: IIdeaDerived[];
+      })[] = results
+        .map((r) => {
+          if (r.value.type === "idea") {
+            return r.value as IIdea & {
+              type: string;
+              distance: number;
+              derivedList: IIdeaDerived[];
+            };
+          }
+        })
+        .filter((v) => !!v);
       const filteredIdeas = ideas.filter((idea) => {
         return idea.id.toString() !== rootNodeId;
       });
-      const withLimit = filteredIdeas.filter((idea) => {
-        return idea.distance > 0.5;
-      });
-      const withDerivedMapped = withLimit.map((idea) => {
+      const withDerivedMapped = filteredIdeas.map((idea) => {
         return {
           ...idea,
           derived: Idea.mapDerived(idea.derivedList),
