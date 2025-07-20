@@ -145,7 +145,13 @@ const NodeComponent = ({
           width={text.width}
           height={text.height}
         >
-          <Text className={styles.nodeText} size="sm" ta="center">
+          <Text
+            className={styles.nodeText}
+            size="xs"
+            ta="center"
+            tt="capitalize"
+            c={iAmSelected ? "dark.1" : "dimmed"}
+          >
             {getNodeTitle(node)}
           </Text>
         </foreignObject>

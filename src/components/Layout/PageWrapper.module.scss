@@ -1,18 +1,17 @@
 @use "../../styles/mixins.scss" as *;
 
 .pageWrapper {
-    --rabbithole-indicator-width: 3px;
+    --rabbithole-indicator-width: 1px;
     display: flex;
     overflow: auto;
     height: calc(100vh);
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    transition: border 0.2s ease-in-out;
+    transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     box-sizing: border-box;
     scrollbar-width: none;
-    border: var(--rabbithole-indicator-width) solid
-        transparent;
+    border: var(--rabbithole-indicator-width) solid transparent;
 
     @include tablet {
         flex-direction: row;
@@ -21,14 +20,14 @@
     &.hasRabbithole {
         border: var(--rabbithole-indicator-width) solid
             var(--mantine-color-green-7);
-        /* box-shadow: inset 2px 2px 10px 0 var(--mantine-primary-color-6); */
-        border-radius: 2px;
+        box-shadow: inset 0px 0px 15px 0px var(--mantine-color-green-7);
+        border-radius: 0;
     }
 }
 
 @keyframes rabbitholeIn {
     from {
-        opacity: .5;
+        opacity: 0.5;
         transform: translateY(5px);
     }
     to {

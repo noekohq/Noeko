@@ -4,6 +4,7 @@ import { getDatabase } from "../db";
 import { logger } from "../../services/Logger";
 import { ITag } from "./tag";
 import { averageEmbeddings } from "../../utils/math";
+import { Search } from "../../services/Search";
 
 export type IRabbitholeIncludes = IIdea | ITag;
 
@@ -275,10 +276,7 @@ export default class Rabbithole {
         return [];
       }
 
-      const results = await db.run<IIdea[]>(
-        "fn::search_similar_to_embeddings",
-        [rEmbeddings, userId],
-      );
+      const results = await Search.searchByEmbedding(userId, rEmbeddings);
 
       if (!results) {
         console.warn(
@@ -286,7 +284,9 @@ export default class Rabbithole {
         );
         return [];
       }
-      return results;
+      return results.map((m) => {
+        return m.value as IIdea;
+      });
     } catch (error) {
       console.error(
         `Error getting similar ideas for rabbithole ${rabbitholeId.toString()}: `,

@@ -1,10 +1,29 @@
-// --- NodePanel.tsx ---
-import React, { forwardRef } from "react"; // Import forwardRef
-import { ActionIcon, Grid, Group, Text /* Title */ } from "@mantine/core"; // Title not used?
+import React, { forwardRef, useState } from "react";
+import {
+  ActionIcon,
+  Box,
+  Card,
+  Grid,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { IDerivedNode, INode } from "../../declarations/graph";
 import styles from "./NodePanel.module.scss";
-import { ArrowRight, X } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  ArrowsOutSimpleIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
+import {
+  getNodeContent,
+  getNodeDescription,
+  getNodeTitle,
+} from "../../utils/graph";
+import Content from "../UI/Layout/Content";
 
 export type NodePanelProps = {
   node: INode | IDerivedNode;
@@ -12,52 +31,97 @@ export type NodePanelProps = {
   onClose: () => void;
 };
 
-// Wrap the component definition in forwardRef
 const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
   ({ node, position, onClose }, ref) => {
-    // Add ref to the destructured props
-    const navigate = useNavigate(); // Ensure this hook works here
+    const navigate = useNavigate();
+
+    const [expanded, setExpanded] = useState(false);
+
+    const title = getNodeTitle(node);
+    const description = getNodeDescription(node);
+    const content = getNodeContent(node);
 
     return (
       <div
-        ref={ref} // <-- Assign the forwarded ref to the root div
+        ref={ref}
         style={{
           position: "absolute",
           left: position.x + 4,
           top: position.y + 4,
-          zIndex: 10, // Optional: Ensure panel is visually on top
+          zIndex: 10,
         }}
         className={styles.nodePanel}
-        // This helps, but the main fix is checking the ref in the container's handlers
-        onClickCapture={(e) => {
-          e.stopPropagation();
-        }}
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
       >
+        <Modal
+          opened={expanded}
+          onClose={() => {
+            setExpanded(false);
+          }}
+          size="lg"
+        >
+          <Group justify="center">
+            <Content>
+              <Stack>
+                <Title order={3}>{title}</Title>
+                <Card radius="lg" shadow="lg" withBorder>
+                  <Text size="sm">{description}</Text>
+                </Card>
+                {content && (
+                  <Box
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                  </Box>
+                )}
+              </Stack>
+            </Content>
+          </Group>
+        </Modal>
         <Grid gutter="sm">
           <Grid.Col span={{ sm: 12 }}>
-            <Group>
-              {/* <ActionIcon variant="subtle" c="gray" onClick={onClose}>
-                <X weight="bold" />
-              </ActionIcon> */}
-              <Link to={`/${node.type}/${node.id}`}>
-                <ActionIcon variant="default" size="md">
-                  <ArrowRight weight="bold" />
-                </ActionIcon>
-              </Link>
+            <Group justify="space-between">
+              <Text tt="uppercase" fw="bold" size="sm">
+                {title}
+              </Text>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+              >
+                <XIcon />
+              </ActionIcon>
             </Group>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
-            <Text>{"title" in node ? node.title : node.id.toString()}</Text>
+            <Text size="sm">{description}</Text>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
-            <Text c="dimmed" size="sm">
-              {"derived" in node &&
-              node.derived?.generative_summary?.abstractSummary
-                ? node.derived.generative_summary.abstractSummary
-                : ""}
-            </Text>
+            <Group>
+              <Link to={`/${node.type}/${node.id.toString()}`}>
+                <ActionIcon variant="light" radius="lg" size={"lg"}>
+                  <ArrowRightIcon weight="bold" />
+                </ActionIcon>
+              </Link>
+              <ActionIcon
+                variant="light"
+                radius="lg"
+                size={"lg"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded(true);
+                }}
+              >
+                <ArrowsOutSimpleIcon weight="bold" />
+              </ActionIcon>
+            </Group>
           </Grid.Col>
         </Grid>
       </div>
@@ -65,7 +129,6 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
   },
 );
 
-// Set display name for React DevTools
 NodePanel.displayName = "NodePanel";
 
 export default NodePanel;

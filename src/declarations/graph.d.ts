@@ -2,6 +2,7 @@
 import { IIdea, IIdeaDerived } from "../../app/database/models/ideas";
 import { ITag } from "../../app/database/models/tag";
 import { IUserFile } from "../../app/database/models/userfile";
+import { IRabbithole } from "../../app/database/models/rabbithole";}
 
 // Add simulation properties directly to INode
 export type IIdeaNode = IIdea & {
