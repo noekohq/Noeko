@@ -32,6 +32,37 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("July 20, 2025"),
+    title: "Rabbitholes, Faster Search, and other improvements",
+    details: (
+      <>
+        <Stack>
+          <Text>
+            Introducing Rabbitholes! When you get that urge to go deep into a
+            subject and really chew on it, you can create and then enter a
+            Rabbithole. Once in a Rabbithole, every new note or tag that you add
+            will be automatically added to your Rabbithole, and searches will be
+            limited. This functionality is still in active development, so
+            please report any bugs if you find them!
+          </Text>
+
+          <List>
+            <List.Item>Rabbitholes! Try them out!</List.Item>
+            <List.Item>
+              Graph should feel faster now, and should be more user friendly
+              (but we still have a lot of planned improvements here.)
+            </List.Item>
+            <List.Item>
+              Search is now faster, rather than waiting seconds to find what
+              you're looking for, you should be looking at sub-second search
+              times.
+            </List.Item>
+          </List>
+        </Stack>
+      </>
+    ),
+  },
+  {
     date: new Date("July 8, 2025"),
     title: "Sharing notes with other users",
     details: (
