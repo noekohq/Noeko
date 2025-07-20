@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   Flex,
   Group,
@@ -57,9 +58,11 @@ export const GraphNavigation = ({
   return (
     <div>
       <Stack justify="end">
-        <HoverCard width="30vw">
+        <HoverCard width="300px" openDelay={200}>
           <HoverCard.Target>
-            <Link to="heavy">Heavy mode.</Link>
+            <Link to="heavy">
+              <Button variant="light">Enter Heavy Mode</Button>
+            </Link>
           </HoverCard.Target>
           <HoverCard.Dropdown>
             <Text>

@@ -435,7 +435,10 @@ router.get("/similar_to/idea/:ideaId", async (req, res) => {
       });
       return;
     }
-    const similar = await Tag.getSimilarToIdea(user.id, ideaId);
+    const similar: ITag[] | undefined = await Tag.getSimilarToIdea(
+      user.id,
+      ideaId,
+    );
     if (!similar) {
       throw new Error("Couldn't get similar.");
     }

@@ -160,7 +160,7 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
     const currentRelatedTags = [...(relatedToUse || [])]
       .filter((tag) => !existingTagIds.has(tag.id.toString()))
       .map((tag) => ({
-        tag,
+        tag: tag,
         type: "related" as const,
         idStr: tag.id.toString(),
       }));

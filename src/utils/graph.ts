@@ -190,6 +190,13 @@ export const getNodeDescription = (
   }
 };
 
+export const getNodeContent = (node: INode) => {
+  if (node.type === "idea") {
+    return node.content;
+  }
+  return undefined;
+};
+
 export const ideasAreConnected = (
   first: IIdea | ISafeIdea,
   second: IIdea | string,

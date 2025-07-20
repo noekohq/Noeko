@@ -6,6 +6,7 @@ import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { getLM } from "../../ai/lms/lm";
 import { LMSchemaType } from "../../ai/lms";
 import { PromptBuilder } from "../../ai/lms/utils";
+import { Search } from "../../services/Search";
 
 type ITagDescribes = IIdea;
 
@@ -419,7 +420,7 @@ export class Tag {
       limit?: number;
       threshold?: number;
     },
-  ) {
+  ): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -429,19 +430,20 @@ export class Tag {
       if (!idea) {
         throw new Error("Idea not found.");
       }
-      const results = await db.run<ITag[]>(
-        "fn::search_similar_tags_to_embeddings",
-        [
-          idea.embeddings,
-          new StringRecordId(userId),
-          options?.limit,
-          options?.threshold || 0.5,
-        ],
+      if (!idea.embeddings) {
+        return;
+      }
+      const results = await Search.searchTagsByEmbedding(
+        userId,
+        idea.embeddings,
       );
       if (!results) {
         throw new Error("No similar tags found.");
       }
-      return results;
+      const mapped = results.map((r) => {
+        return r.value as ITag;
+      });
+      return mapped;
     } catch (error) {
       console.error("Error getting similar tags to idea: ", error);
       return undefined;

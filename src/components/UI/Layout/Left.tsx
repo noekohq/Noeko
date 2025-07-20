@@ -82,17 +82,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
     open: (
       <Group justify="space-between">
         {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
-        <Group gap="xs">
-          <ActionIcon
-            onClick={() => {
-              setMode("collapsed");
-            }}
-            variant="subtle"
-            size={isMobile ? "sm" : "md"}
-            color={defaultColor}
-          >
-            <SidebarSimpleIcon />
-          </ActionIcon>
+        <Group gap="xs" justify="flex-end" w="100%">
           <HomeButton />
           <ActionIcon
             onClick={() => {
@@ -102,6 +92,16 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
             color={defaultColor}
           >
             <MegaphoneIcon />
+          </ActionIcon>
+          <ActionIcon
+            onClick={() => {
+              setMode("collapsed");
+            }}
+            variant="subtle"
+            size={isMobile ? "sm" : "md"}
+            color={defaultColor}
+          >
+            <SidebarSimpleIcon />
           </ActionIcon>
         </Group>
       </Group>

@@ -179,9 +179,21 @@ export class Idea {
             *,
             ->is_source_for->(?).* as derivedList,
             IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
-                fn::search_similar_to_embeddings(embeddings, $userId)
-            ELSE
-                []
+            (
+              SELECT
+                  *,
+                  vector::similarity::cosine(embeddings, $parent.embeddings) as distance
+              OMIT embeddings
+              FROM idea
+              WHERE
+                  <-owns<-(user WHERE id = <record> $userId) AND
+                  embeddings <|3, 300|> $parent.embeddings AND
+                  ($parent.embeddings != NONE AND $parent.embeddings != NULL) AND
+                  (embeddings != NONE AND embeddings != NULL) AND
+                  content != NONE AND
+                  id != $parent.id
+              ORDER BY distance DESC
+            ) ELSE []
             END AS similar
             OMIT embeddings
         FROM idea

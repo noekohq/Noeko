@@ -286,159 +286,6 @@ export class Search {
       }`;
     };
 
-    // Uses the exact function definition from the initial prompt
-    const searchSimilarToIdea = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_similar_to_idea(
-        $ideaId: string,
-        $userId: string
-      ) {
-        LET $embedding = SELECT VALUE embeddings FROM ONLY <record> $ideaId;
-
-        IF !$embedding THEN RETURN [] END;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $embedding) AS distance,
-                ->is_source_for->(?).* as derivedList -- Includes derivedList
-            OMIT embeddings
-            FROM idea
-            WHERE
-              <-owns<-(user WHERE id = <record> $userId) AND
-              embeddings <|5, 300|> $embedding AND
-              embeddings != NONE AND
-              content != NONE
-            ORDER BY distance DESC;
-
-        RETURN $results;
-      }
-          `;
-    };
-
-    // Uses the exact function definition from the initial prompt
-    const searchSimilarToEmbeddings = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings(
-        $embedding: array<float>,
-        $userId: string
-      ) {
-        IF !$embedding THEN return [] END;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $embedding) as distance,
-                ->is_source_for->(?).* as derivedList -- Includes derivedList
-            OMIT embeddings
-            FROM idea
-            WHERE
-                <-owns<-(user WHERE id = <record> $userId) AND
-                embeddings <|20, 300|> $embedding AND
-                embeddings != NONE AND
-                content != NONE
-            ORDER BY distance DESC;
-
-        RETURN $results;
-      }
-          `;
-    };
-
-    const searchSimilarToEmbeddingsWithinRabbithole = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_similar_to_embeddings_within_rabbithole(
-        $embedding: array<float>,
-        $userId: string,
-        $rabbitholeId: string
-      ) {
-        IF !$embedding THEN return [] END;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $embedding) AS distance,
-                ->is_source_for->(?).* as derivedList -- Includes derivedList
-            OMIT embeddings
-            FROM idea
-            WHERE
-              <-owns<-(user WHERE id = <record> $userId) AND
-              embeddings <|20, 400|> $embedding AND
-              embeddings != NONE AND
-              content != NONE AND
-              (
-                id IN (
-                  SELECT VALUE
-                    ->includes.out
-                  FROM ONLY <record> $rabbitholeId
-                ) OR
-                id IN (
-                  SELECT VALUE
-                    ->includes->tag->describes.out
-                  FROM ONLY <record> $rabbitholeId
-                )
-              )
-            ORDER BY distance DESC;
-
-        RETURN $results;
-      }
-          `;
-    };
-
-    const searchSimilarTagsToEmbeddings = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_similar_tags_to_embeddings(
-        $embedding: array<float>,
-        $userId: record
-      ) {
-        IF !$embedding THEN return [] END;
-
-        LET $results =
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $embedding) AS distance
-            FROM tag
-            WHERE
-              <-owns<-(user WHERE id = <record> $userId) AND
-              embeddings <|20, 400|> $embedding AND
-              embeddings != NONE
-            ORDER BY distance DESC;
-
-        RETURN $results;
-      }
-          `;
-    };
-
-    const searchSimilarIdeasToTag = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::search_ideas_similar_to_tag(
-        $tagId: record<tag>,
-        $userId: record<user>
-      ) {
-        LET $tag_embeddings = SELECT VALUE embeddings FROM ONLY $tagId;
-
-        IF !$tag_embeddings THEN
-          RETURN []; -- No embeddings for the tag, return empty
-        END;
-
-        LET $results = (
-            SELECT
-                *,
-                vector::similarity::cosine(embeddings, $tag_embeddings) AS distance,
-                ->is_source_for->(? WHERE <-owns<-(user WHERE id = $userId)).* as derivedList
-            OMIT embeddings
-            FROM idea
-            WHERE
-                <-owns<-(user WHERE id = $userId) AND
-                embeddings <|20, 300|> $tag_embeddings AND
-                embeddings != NONE
-            ORDER BY distance DESC
-        );
-
-        RETURN $results;
-      }
-      `;
-    };
-
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized for Search.up");
@@ -458,12 +305,7 @@ export class Search {
       await db.query(ftsSearchFunction());
       await db.query(ftsSearchTagsFunction());
       await db.query(ftsSearchRabbitholesFunction());
-      await db.query(searchSimilarToIdea());
-      await db.query(searchSimilarToEmbeddings());
       await db.query(ftsSearchWithinRabbitholeFunction());
-      await db.query(searchSimilarToEmbeddingsWithinRabbithole());
-      await db.query(searchSimilarTagsToEmbeddings());
-      await db.query(searchSimilarIdeasToTag());
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;
@@ -529,16 +371,13 @@ export class Search {
     }
   }
 
-  /**
-   * Performs Semantic (Vector) Search using the original `fn::search_similar_to_embeddings`.
-   * Returns results mapped to the standardized ISearchResult format.
-   */
   static async semanticSearch(
-    userId: string,
+    userId: string | RecordId,
     embedding: number[],
     options: {
       limit?: number;
       threshold?: number;
+      candidates?: number;
       rabbitholeId?: string;
     },
   ): Promise<ISearchResult[] | undefined> {
@@ -546,24 +385,61 @@ export class Search {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const inRabbithole = options.rabbitholeId !== undefined;
+      const limit = Math.min(
+        Math.max(1, Number.parseInt(String(options.limit ?? 20), 10)),
+        100,
+      );
+      const defaultCandidates = Math.max(limit * 15, 300);
+      const candidates = Math.min(
+        Math.max(
+          limit,
+          Number.parseInt(String(options.candidates ?? defaultCandidates), 10),
+        ),
+        2000,
+      );
+      const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
+      if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
+        throw new Error("Invalid similarity threshold provided.");
+      }
 
-      const fn = inRabbithole
-        ? "fn::search_similar_to_embeddings_within_rabbithole"
-        : "fn::search_similar_to_embeddings";
-      const args = inRabbithole
-        ? [embedding, userId, options.rabbitholeId]
-        : [embedding, userId];
+      const subqueryWhere = [
+        `<-owns<-(user WHERE id = $userId)`,
+        `embeddings <|${candidates}, ${candidates * 2}|> $embedding`,
+      ];
 
-      // console.log("Running function and args for semantic search: ", fn, args);
-      // Bun.file("test-search-output.json").write(
-      //   JSON.stringify({
-      //     fn,
-      //     args,
-      //   }),
-      // );
-      const results = await db.run<ISemanticIdeaResult[]>(fn, args);
-      // console.log("Got results: ", results);
+      if (options.rabbitholeId) {
+        subqueryWhere.push(`
+          (
+            id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+          )
+        `);
+      }
+
+      const query = `
+        SELECT * FROM (
+          SELECT
+            *,
+            vector::similarity::cosine(embeddings, $embedding) AS distance
+          OMIT embeddings
+          FROM idea
+          WHERE ${subqueryWhere.join(" AND ")}
+        )
+        WHERE distance >= ${threshold}
+        ORDER BY distance DESC
+        LIMIT ${limit};
+      `;
+
+      const [results] = await db.query<(IIdea & { distance: number })[][]>(
+        query,
+        {
+          userId: new StringRecordId(userId),
+          embedding: embedding,
+          ...(options.rabbitholeId && {
+            rabbitholeId: new StringRecordId(options.rabbitholeId),
+          }),
+        },
+      );
 
       if (!results) return [];
 
@@ -589,6 +465,31 @@ export class Search {
       });
     } catch (error) {
       console.error("Error during semantic search:", error);
+      return undefined;
+    }
+  }
+
+  static async searchByEmbedding(
+    userId: string | RecordId,
+    embedding: number[],
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+      rabbitholeId?: string;
+    } = {},
+  ): Promise<ISearchResult[] | undefined> {
+    try {
+      const semanticResults = await Search.semanticSearch(userId, embedding, {
+        limit: options.limit ?? 50,
+        threshold: options.threshold,
+        candidates: options.candidates,
+        rabbitholeId: options.rabbitholeId,
+      });
+
+      return semanticResults;
+    } catch (error) {
+      console.error(`Error during search by embedding:`, error);
       return undefined;
     }
   }
@@ -804,9 +705,13 @@ export class Search {
   }
 
   static async semanticSearchTags(
-    userId: string,
+    userId: string | RecordId,
     embedding: number[],
-    options?: { limit?: number; threshold?: number },
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+    },
   ): Promise<ITagSearchResult[]> {
     try {
       const db = await getDatabase();
@@ -815,26 +720,90 @@ export class Search {
           "Database connection not available for semantic tag search.",
         );
       }
-      const limit = options?.limit ?? 10;
-      const threshold = options?.threshold ?? Search.SEMANTIC_THRESHOLD;
 
-      const dbResults = await db.run<(ITag & { score: number })[]>(
-        "fn::search_similar_tags_to_embeddings",
-        [new StringRecordId(userId), embedding],
+      const limit = Math.min(
+        Math.max(1, Number.parseInt(String(options.limit ?? 10), 10)),
+        50,
+      );
+      const defaultCandidates = Math.max(limit * 15, 200);
+      const candidates = Math.min(
+        Math.max(
+          limit,
+          Number.parseInt(String(options.candidates ?? defaultCandidates), 10),
+        ),
+        1000,
+      );
+      const threshold = Number.parseFloat(
+        String(options.threshold ?? Search.SEMANTIC_THRESHOLD),
       );
 
-      if (!dbResults) {
-        throw new Error("Couldn't get results");
+      if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
+        throw new Error("Invalid similarity threshold provided.");
       }
+
+      const subqueryWhere = [
+        `<-owns<-(user WHERE id = $userId)`,
+        `embeddings <|${candidates}, ${candidates * 2}|> $embedding`,
+      ];
+
+      const query = `
+        SELECT * FROM (
+          SELECT
+            *,
+            vector::similarity::cosine(embeddings, $embedding) AS distance
+          FROM tag
+          WHERE ${subqueryWhere.join(" AND ")}
+        )
+        WHERE distance >= ${threshold}
+        ORDER BY distance DESC
+        LIMIT ${limit};
+      `;
+
+      const [dbResults] = await db.query<(ITag & { distance: number })[][]>(
+        query,
+        {
+          userId: new StringRecordId(userId),
+          embedding: embedding,
+        },
+      );
+
+      if (!dbResults) return [];
 
       return dbResults.map((tag) => ({
         id: tag.id.toString(),
         value: tag,
-        score: tag.score,
+        score: tag.distance,
         searchType: "semantic",
       }));
     } catch (error) {
       console.error("Error during semantic tag search:", error);
+      return [];
+    }
+  }
+
+  static async searchTagsByEmbedding(
+    userId: string | RecordId,
+    embedding: number[],
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+    } = {},
+  ): Promise<ITagSearchResult[] | undefined> {
+    try {
+      const semanticResults = await Search.semanticSearchTags(
+        userId,
+        embedding,
+        {
+          limit: options.limit ?? 10,
+          threshold: options.threshold,
+          candidates: options.candidates,
+        },
+      );
+
+      return semanticResults;
+    } catch (error) {
+      console.error(`Error during tag search by embedding:`, error);
       return [];
     }
   }
@@ -852,28 +821,27 @@ export class Search {
 
       const ftsResults = await Search.ftsSearchTags(userId, query, { limit });
       let semanticResults: ITagSearchResult[] = [];
+
       if (embedding) {
         semanticResults = await Search.semanticSearchTags(userId, embedding, {
           limit,
+          threshold: Search.SEMANTIC_THRESHOLD,
         });
       }
 
       const combinedResultsMap = new Map<string, ITagSearchResult>();
 
-      // Process FTS results
       for (const result of ftsResults) {
         combinedResultsMap.set(result.id.toString(), {
           ...result,
           score: result.score * 0.4,
-        }); // Weight FTS score
+        });
       }
 
-      // Process Semantic results
       for (const result of semanticResults) {
         if (combinedResultsMap.has(result.id.toString())) {
           const existing = combinedResultsMap.get(result.id.toString())!;
-          existing.score += result.score * 0.6; // Add weighted semantic score
-          // Potentially mark as 'comprehensive' or note both sources
+          existing.score += result.score * 0.6;
           existing.searchType = "comprehensive";
         } else {
           combinedResultsMap.set(result.id.toString(), {
