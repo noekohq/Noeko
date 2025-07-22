@@ -31,8 +31,10 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   HandWavingIcon,
+  MegaphoneIcon,
   MoonStarsIcon,
   NotificationIcon,
+  ScrollIcon,
   Sun,
   SunIcon,
 } from "@phosphor-icons/react";
@@ -48,6 +50,7 @@ import { IDashboard } from "../../../app/services/Dashboard";
 import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import { useDisclosure } from "@mantine/hooks";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
+import { Link } from "react-router";
 
 type ILoadedWidget = {
   id: string;
@@ -116,6 +119,13 @@ export default function Dashboard() {
   const [recentOpened, { toggle: toggleRecent }] = useDisclosure(false);
   const latestIdea = dashboardData?.recentIdeas?.[0];
 
+  const {
+    actions: {
+      newIdea,
+      feedback: { openFeedbackModal },
+    },
+  } = useInteraction();
+
   return (
     <PageWrapper>
       <LeftSidebar startOpened>
@@ -171,14 +181,45 @@ export default function Dashboard() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <Grid grow>
+        <TopBar />
+        <Flex
+          justify={"center"}
+          align="center"
+          direction="column"
+          gap="md"
+          h="50vh"
+        >
+          <Text c="dimmed">A new dashboard is coming soon...</Text>
+          <Group justify="space-around">
+            <Link to="/updates">
+              <Button variant="default">
+                <Group>
+                  <ScrollIcon />
+                  <Text>Latest Updates</Text>
+                </Group>
+              </Button>
+            </Link>
+            <Button variant="default" onClick={openFeedbackModal}>
+              <Group>
+                <MegaphoneIcon />
+                <Text>Leave Feedback</Text>
+              </Group>
+            </Button>
+          </Group>
+        </Flex>
+        {/* <Grid grow>
           <Grid.Col span={12}>
             <TopBar />
           </Grid.Col>
-          <Flex justify={"center"} align="center" w="100%" h="100%">
-            <Text c="dimmed">A new dashboard is coming soon...</Text>
-          </Flex>
-          {/* {LoadedWidgets.map(({ id, Component, config }) => {
+          <Grid.Col
+            span={12}
+            style={{
+              outline: "1px solid red",
+              height: "100%",
+            }}
+          >
+          </Grid.Col>
+          {LoadedWidgets.map(({ id, Component, config }) => {
             return (
               <Grid.Col
                 span={{
@@ -192,8 +233,8 @@ export default function Dashboard() {
                 </WidgetWrapper>
               </Grid.Col>
             );
-          })} */}
-        </Grid>
+          })}
+        </Grid> */}
       </Content>
       <StatusBar>
         <StatusBar.Showing>

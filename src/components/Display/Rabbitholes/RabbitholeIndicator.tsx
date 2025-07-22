@@ -1,5 +1,6 @@
 import {
   ArrowRightIcon,
+  DoorOpenIcon,
   MinusIcon,
   PlusIcon,
   PlusSquareIcon,
@@ -51,6 +52,11 @@ export function RabbitholeIndicator() {
   const {
     actions: { newRabbithole },
   } = useInteraction();
+  const {
+    rabbitholes: {
+      entered: { set: enterRabbithole },
+    },
+  } = useLandscape();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -95,8 +101,21 @@ export function RabbitholeIndicator() {
                     color={"var(--mantine-color-dimmed)"}
                   />
                 }
+                rightSection={
+                  <ActionIcon
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      enterRabbithole(r);
+                    }}
+                    size="sm"
+                    variant="light"
+                    color="green"
+                  >
+                    <DoorOpenIcon weight="bold" />
+                  </ActionIcon>
+                }
                 onClick={() => {
-                  navigate(`/rabbithole/${r.id.toString()}`);
+                  navigate(`/rabbitholes/${r.id.toString()}`);
                 }}
               >
                 {r.name}
