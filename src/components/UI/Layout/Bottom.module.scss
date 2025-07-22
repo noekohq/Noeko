@@ -1,0 +1,111 @@
+@use "../../../styles/mixins.scss" as *;
+
+@keyframes bottomIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bottom {
+    animation: bottomIn 0.3s ease-in-out forwards;
+    position: fixed;
+    padding: 0;
+    bottom: calc(var(--layout-spacing));
+    width: var(--content-width);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    gap: var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-xl);
+    height: var(--status-bar-height);
+
+    @include tablet {
+        flex-direction: row;
+        justify-content: center;
+
+        /* &.hasChildren {
+            background-color: var(--mantine-color-dark-8);
+            border: 1px solid var(--mantine-color-dark-7);
+        } */
+    }
+
+    @include desktop {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+}
+
+@keyframes hide {
+    0% {
+        opacity: 1;
+    }
+    99% {
+        opacity: 0;
+    }
+    100% {
+        display: none;
+    }
+}
+
+.hidden {
+    animation: hide 0.2s ease-in-out forwards;
+}
+
+@keyframes contentIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content {
+    flex-grow: 1;
+    background-color: transparent;
+    animation: contentIn 0.3s ease-in-out;
+    box-shadow: var(--mantine-shadow-lg);
+    font-size: var(--mantine-font-size-xs);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    gap: var(--mantine-spacing-sm);
+    height: 100%;
+    width: 100%;
+
+    @include tablet {
+        border: none;
+        border-radius: 0;
+        width: 100%;
+        box-shadow: none;
+    }
+
+    .item {
+        height: 100%;
+    }
+}
+
+.global {
+    max-width: calc(var(--content-width));
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--mantine-spacing-sm);
+    width: 100%;
+    height: 100%;
+    padding: 0;
+
+    &.hasChildren {
+        @include tablet {
+            width: 100%;
+        }
+    }
+}

@@ -81,7 +81,8 @@ router.get("/", async (req, res) => {
       });
       return;
     }
-    const rabbitholes = await Rabbithole.getAll(user.id.toString());
+    const limit = parseInt(req.query.limit as string) || 10;
+    const rabbitholes = await Rabbithole.getAll(user.id.toString(), { limit });
     if (!rabbitholes) {
       res.status(500).send({
         message: "Internal Server Error",

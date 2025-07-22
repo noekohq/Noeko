@@ -1,4 +1,5 @@
 import {
+  ArrowRightIcon,
   MinusIcon,
   PlusIcon,
   PlusSquareIcon,
@@ -6,11 +7,16 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import styles from "./RabbitholeIndicator.module.scss";
-import { ActionIcon, Group, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, Text } from "@mantine/core";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 import { Link, useNavigate } from "react-router";
 import useRabbithole from "../../../hooks/useRabbithole";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { RabbitholeIcon } from "../../Utils/Icons/Icons";
+import useFetch from "../../../hooks/useFetch";
+import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import StatusButton from "../Interactions/StatusButton";
+import { useInteraction } from "../../../contexts/InteractionContext";
 
 export function RabbitholeIndicator() {
   const {
@@ -35,11 +41,89 @@ export function RabbitholeIndicator() {
     return isIncludedThing(currentIdea.id.toString());
   }, [currentIdea, isIncludedThing]);
 
-  console.log("idea is included: ", ideaIsIncluded());
-  console.log("idea: ", currentIdea);
+  const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<
+    undefined,
+    IRabbithole[]
+  >({
+    url: `/rabbitholes?limit=10`,
+  });
+
+  const {
+    actions: { newRabbithole },
+  } = useInteraction();
+
+  const [menuOpen, setMenuOpen] = useState(false);
 
   if (!currentRabbithole) {
-    return null;
+    return (
+      <Menu
+        onOpen={() => {
+          loadRabbitholes();
+          setMenuOpen(true);
+        }}
+        onClose={() => {
+          setMenuOpen(false);
+        }}
+        position="top-end"
+        withArrow
+        radius="md"
+      >
+        <Menu.Target>
+          <div
+            style={{
+              height: "100%",
+            }}
+          >
+            <StatusButton>
+              {menuOpen ? (
+                <XIcon size={16} weight="bold" />
+              ) : (
+                <RabbitholeIcon size={16} />
+              )}
+            </StatusButton>
+          </div>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Label>Recent Rabbitholes...</Menu.Label>
+          {recentRabbitholes?.map((r) => {
+            return (
+              <Menu.Item
+                key={r.id.toString()}
+                leftSection={
+                  <RabbitholeIcon
+                    size={14}
+                    color={"var(--mantine-color-dimmed)"}
+                  />
+                }
+                onClick={() => {
+                  navigate(`/rabbithole/${r.id.toString()}`);
+                }}
+              >
+                {r.name}
+              </Menu.Item>
+            );
+          })}
+          <Menu.Item
+            onClick={() => {
+              navigate("/rabbitholes");
+            }}
+            rightSection={<ArrowRightIcon weight="bold" />}
+          >
+            See the rest...
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Label>Actions</Menu.Label>
+          <Menu.Item
+            rightSection={<PlusIcon weight="bold" />}
+            onClick={() => {
+              newRabbithole();
+            }}
+          >
+            New Rabbithole
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    );
   }
 
   return (

@@ -35,6 +35,10 @@
         background-color: var(--mantine-color-dark-9) !important;
         z-index: 210 !important;
     }
+    .mantine-Popover-dropdown {
+        background-color: var(--mantine-color-dark-9) !important;
+        z-index: 210 !important;
+    }
     .mantine-Modal-header {
         background-color: var(--mantine-color-dark-9) !important;
     }
@@ -61,14 +65,14 @@
     --sidebar-width: 80vw;
     --sidebar-width-collapsed: 24px;
     --content-width: 100%;
-    --mobile-bar-height: 48px;
     --layout-spacing: 8px;
+    --mobile-bar-height: 48px;
+    --status-bar-height: 36px;
 
     @include tablet {
         --sidebar-width: 40vw;
         --sidebar-width-collapsed: 48px;
         --content-width: 100%;
-        --mobile-bar-height: 48px;
     }
 
     @include desktop {

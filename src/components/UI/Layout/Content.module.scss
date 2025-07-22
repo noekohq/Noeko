@@ -1,7 +1,7 @@
 @use "../../../styles/mixins.scss" as *;
 
 :root {
-    --content-space: calc(var(--layout-spacing) * 2);
+    --content-space: calc(var(--layout-spacing));
 }
 
 @keyframes contentIn {

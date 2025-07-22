@@ -7,10 +7,10 @@ import {
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 import { useLayout } from "../../../contexts/LayoutContext";
-import ProfileButton from "./ProfileButton";
+import ProfileButton from "../../Display/Interactions/ProfileButton";
 import { Link, useLocation } from "react-router";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import HomeButton from "./HomeButton";
+import HomeButton from "../../Display/Interactions/HomeButton";
 
 export default function MobileBar() {
   const {

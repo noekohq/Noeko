@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
-import ProfileButton from "./ProfileButton";
+import ProfileButton from "../../Display/Interactions/ProfileButton";
 import { useAuth } from "../../../contexts/AuthContext";
 import { userIsSuperuser } from "../../../utils/user";
 import { useInteraction } from "../../../contexts/InteractionContext";

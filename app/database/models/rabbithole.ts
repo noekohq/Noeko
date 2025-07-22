@@ -136,12 +136,12 @@ export default class Rabbithole {
     }
   }
 
-  static async getAll(userId: string | RecordId) {
+  static async getAll(userId: string | RecordId, options?: { limit: number }) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IRabbithole[]]>(
-        "SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt DESC",
-        { userId: new StringRecordId(userId) },
+        "SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt DESC LIMIT $limit",
+        { userId: new StringRecordId(userId), limit: options?.limit ?? "NONE" },
       );
       if (!result) {
         throw new Error("Something went wrong getting rabbithole: ", result);
