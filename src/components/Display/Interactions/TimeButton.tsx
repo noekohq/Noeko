@@ -55,7 +55,14 @@ export default function TimeButton() {
   const currentDayIndex = now.getDay();
 
   return (
-    <Popover width={300} trapFocus position="bottom" withArrow shadow="md">
+    <Popover
+      width={300}
+      trapFocus
+      position="bottom"
+      withArrow
+      shadow="md"
+      radius="lg"
+    >
       <Popover.Target>
         <div style={{ height: "100%" }}>
           <StatusButton>{formatButtonTime(now)}</StatusButton>

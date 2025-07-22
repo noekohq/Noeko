@@ -23,6 +23,7 @@ import { Link } from "react-router";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { useLayout } from "../../contexts/LayoutContext";
 import Content from "../../components/UI/Layout/Content";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function Ideas() {
   const { isMobile } = useLayout();
@@ -141,6 +142,7 @@ export default function Ideas() {
           </Center>
         )}
       </Content>
+      <StatusBar />
       <RightSidebar />
     </PageWrapper>
   );

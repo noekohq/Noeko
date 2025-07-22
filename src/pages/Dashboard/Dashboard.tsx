@@ -1,4 +1,15 @@
-import { Button, Grid, Group, Text } from "@mantine/core";
+import {
+  Button,
+  Card,
+  Center,
+  Collapse,
+  Flex,
+  Grid,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
@@ -17,6 +28,8 @@ import { IIdea, IUserIdeaStats } from "../../../app/database/models/ideas";
 import {
   ArticleIcon,
   BellIcon,
+  CaretDownIcon,
+  CaretUpIcon,
   HandWavingIcon,
   MoonStarsIcon,
   NotificationIcon,
@@ -31,6 +44,10 @@ import StatusBar from "../../components/UI/Layout/Bottom";
 import { getCurrentTimeFormatted } from "../../utils/datetime";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
 import TimeButton from "../../components/Display/Interactions/TimeButton";
+import { IDashboard } from "../../../app/services/Dashboard";
+import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
+import { useDisclosure } from "@mantine/hooks";
+import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 
 type ILoadedWidget = {
   id: string;
@@ -71,10 +88,7 @@ export default function Dashboard() {
   }, []);
 
   console.log("Loaded widgets: ", LoadedWidgets);
-  const { data: dashboardData } = useFetch<
-    undefined,
-    { recentIdeas: IIdea[]; ideaStats: IUserIdeaStats; totalUsers: number }
-  >({
+  const { data: dashboardData } = useFetch<undefined, IDashboard>({
     url: "/dashboard",
     runOnMount: true,
     onError: (err) => {
@@ -82,7 +96,7 @@ export default function Dashboard() {
     },
   });
 
-  const totalIdeas = dashboardData?.ideaStats.total;
+  const totalIdeas = dashboardData?.ideaStats?.total;
   const totalUsers = dashboardData?.totalUsers;
 
   const getStatusText = () => {
@@ -99,13 +113,61 @@ export default function Dashboard() {
     return text;
   };
 
+  const [recentOpened, { toggle: toggleRecent }] = useDisclosure(false);
+  const latestIdea = dashboardData?.recentIdeas?.[0];
+
   return (
     <PageWrapper>
-      <LeftSidebar>
+      <LeftSidebar startOpened>
         <LeftSidebar.Open>
-          <Text size="sm" c="dark.2">
+          <Text size="sm" c="dark.2" mb="lg">
             {getStatusText()}
           </Text>
+          {!dashboardData?.recentIdeas?.length && (
+            <>
+              <Text size="sm" c="gray" mb="md">
+                You have no ideas yet!
+              </Text>
+              <Button variant="light">Add an idea!</Button>
+            </>
+          )}
+          <Stack gap="xs">
+            {latestIdea && (
+              <Card withBorder radius="lg">
+                <Stack>
+                  <Text size="xs" c="dimmed">
+                    Latest idea...
+                  </Text>
+                  <IdeaCard idea={latestIdea} />
+                  <Button
+                    onClick={() => {
+                      toggleRecent();
+                    }}
+                    size="xs"
+                    variant="subtle"
+                    color="gray"
+                    rightSection={
+                      recentOpened ? <CaretUpIcon /> : <CaretDownIcon />
+                    }
+                  >
+                    {recentOpened ? "Hide" : "Show"} Recent
+                  </Button>
+                </Stack>
+              </Card>
+            )}
+            <Collapse in={recentOpened}>
+              <Stack gap="xs">
+                {dashboardData?.recentIdeas &&
+                  dashboardData.recentIdeas
+                    .filter(
+                      (i) => i.id.toString() !== latestIdea?.id.toString(),
+                    )
+                    .map((idea) => {
+                      return <IdeaCard idea={idea} key={idea.id.toString()} />;
+                    })}
+              </Stack>
+            </Collapse>
+          </Stack>
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
@@ -113,7 +175,10 @@ export default function Dashboard() {
           <Grid.Col span={12}>
             <TopBar />
           </Grid.Col>
-          {LoadedWidgets.map(({ id, Component, config }) => {
+          <Flex justify={"center"} align="center" w="100%" h="100%">
+            <Text c="dimmed">A new dashboard is coming soon...</Text>
+          </Flex>
+          {/* {LoadedWidgets.map(({ id, Component, config }) => {
             return (
               <Grid.Col
                 span={{
@@ -127,7 +192,7 @@ export default function Dashboard() {
                 </WidgetWrapper>
               </Grid.Col>
             );
-          })}
+          })} */}
         </Grid>
       </Content>
       <StatusBar>
@@ -135,7 +200,7 @@ export default function Dashboard() {
           <TimeButton />
         </StatusBar.Showing>
       </StatusBar>
-      <RightSidebar>
+      <RightSidebar startOpened>
         <RightSidebar.Open>
           <Search />
         </RightSidebar.Open>

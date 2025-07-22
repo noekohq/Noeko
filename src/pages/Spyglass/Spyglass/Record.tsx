@@ -33,6 +33,7 @@ import Content from "../../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { ArrowRightIcon, CaretLeftIcon } from "@phosphor-icons/react";
+import StatusBar from "../../../components/UI/Layout/Bottom";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -254,6 +255,7 @@ export default function SpyglassRecord() {
           )}
         </Grid>
       </Content>
+      <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
           {results && results.length < 1 && (

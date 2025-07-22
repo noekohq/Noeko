@@ -18,6 +18,7 @@ import { IRabbithole } from "../../../app/database/models/rabbithole";
 import { useEffect } from "react";
 import { useInteraction } from "../../contexts/InteractionContext";
 import RabbitholeCard from "../../components/Display/Rabbitholes/RabbitholeCard";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function Rabbitholes() {
   const { load: loadRabbitholes, data: rabbitholes } = useFetch<
@@ -93,6 +94,7 @@ export default function Rabbitholes() {
           )}
         </Stack>
       </Content>
+      <StatusBar />
       <RightSidebar></RightSidebar>
     </PageWrapper>
   );

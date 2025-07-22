@@ -47,22 +47,6 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 
 export default function Spyglass() {
-  const {
-    elements: {
-      statusBar: {
-        mode: { set: setStatusBar },
-      },
-    },
-  } = useLayout();
-
-  useEffect(() => {
-    setStatusBar("hidden");
-
-    return () => {
-      setStatusBar("showing");
-    };
-  }, []);
-
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   const [query, setQuery] = useState<string>("");

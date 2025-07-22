@@ -12,13 +12,14 @@ import {
   Group,
 } from "@mantine/core";
 import { DotsSixVertical, Info } from "@phosphor-icons/react";
-import type { IdeaCardSharedProps, IIdea } from "./IdeaCardTypes"; // Ensure IIdea is imported if not re-exported
+import type { IdeaCardSharedProps } from "./IdeaCardTypes"; // Ensure IIdea is imported if not re-exported
 import { IdeaActionsGroup } from "./IdeaActionsGroup";
 import { IdeaTagsDisplay } from "./IdeaTagsDisplay";
 import { IdeaArtifactsDisplay } from "./IdeaArtifactsDisplay"; // Could be used for a single key artifact
 import styles from "./IdeaCards.module.scss";
 import { getNodeDescription } from "../../../utils/graph";
 import { Link, useNavigate } from "react-router";
+import { ISafeIdea } from "../../../../app/database/models/ideas";
 
 export interface CompactIdeaCardProps extends IdeaCardSharedProps {
   detailsForHoverCard?: React.ReactNode;
@@ -31,7 +32,7 @@ export interface CompactIdeaCardProps extends IdeaCardSharedProps {
 }
 
 // Helper to get summary or a default
-const getIdeaDefaultSummary = (idea: IIdea): string | undefined => {
+const getIdeaDefaultSummary = (idea: ISafeIdea): string | undefined => {
   const desc = getNodeDescription({
     ...idea,
     type: "idea",

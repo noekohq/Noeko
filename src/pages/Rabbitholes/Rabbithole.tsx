@@ -56,6 +56,7 @@ import { SearchBar } from "../../components/Search/SearchBar";
 import { useSearch } from "../../contexts/SearchContext";
 import { IdeaAction } from "../../components/Display/Ideas/IdeaCardTypes";
 import { modals } from "@mantine/modals";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function Rabbithole() {
   const [error, setError] = useState("");
@@ -722,6 +723,7 @@ export default function Rabbithole() {
           </Stack>
         </div>
       </Content>
+      <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
           <Search

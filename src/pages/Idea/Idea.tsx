@@ -66,6 +66,7 @@ import { useLandscape } from "../../contexts/LandscapeContext";
 import { createIdeaConnection } from "../../utils/ideas";
 import { ideasAreConnected } from "../../utils/graph";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import StatusButton from "../../components/Display/Interactions/StatusButton";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -96,8 +97,6 @@ export default function Idea() {
     url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
     query: {
-      withRelatedIdeas: "true",
-      withConnections: "true",
       withDerived: "true",
     },
     method: "GET",
@@ -604,9 +603,11 @@ export default function Idea() {
       <StatusBar>
         <StatusBar.Showing>
           <StatusBar.Item>
-            <Text c="gray" size="xs">
-              {statusText()}
-            </Text>
+            <StatusButton>
+              <Text c="gray" size="xs">
+                {statusText()}
+              </Text>
+            </StatusButton>
           </StatusBar.Item>
         </StatusBar.Showing>
       </StatusBar>

@@ -23,6 +23,7 @@ import { useInteraction } from "../../contexts/InteractionContext";
 import { MegaphoneSimple, MegaphoneSimpleIcon } from "@phosphor-icons/react";
 import { capitalize, formatDate } from "../../utils/formatting";
 import Content from "../../components/UI/Layout/Content";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 type IUpdate = {
   title: string;
@@ -470,6 +471,7 @@ export default function Updates() {
           </Drawer>
         </Grid>
       </Content>
+      <StatusBar />
       <RightSidebar />
     </PageWrapper>
   );

@@ -201,6 +201,7 @@ export const ideasAreConnected = (
   first: IIdea | ISafeIdea,
   second: IIdea | string,
 ) => {
+  console.log("Checking ideas are connected: ", first.id, second);
   if (!first.connections && !second) {
     return undefined;
   }
@@ -208,6 +209,7 @@ export const ideasAreConnected = (
   const firstHasSecond = !!first.connections?.find(
     (c) => c.id.toString() === secondId,
   );
+  console.log("First has second: ", firstHasSecond);
   return firstHasSecond;
 };
 

@@ -8,6 +8,7 @@ import MarkdownFileImporter from "./importers/MarkdownFile";
 import TextFileImporter from "./importers/TextFile";
 import DirectoryImporter from "./importers/Directory";
 import Content from "../../components/UI/Layout/Content";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
@@ -59,6 +60,7 @@ export default function Import() {
           <Grid.Col span={{ sm: 12 }}>{typeToComponent[importType]}</Grid.Col>
         </Grid>
       </Content>
+      <StatusBar />
       <RightSidebar />
     </PageWrapper>
   );
