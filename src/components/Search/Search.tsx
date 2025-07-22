@@ -24,12 +24,12 @@ import styles from "./Search.module.scss";
 import { Link } from "react-router";
 import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
 import { IdeaAction, IIdeaCardsTypes } from "../Display/Ideas/IdeaCardTypes";
-import { IIdea } from "../../../app/database/models/ideas";
+import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { useAuth } from "../../contexts/AuthContext";
 import { formatDateTime } from "../../utils/formatting";
 
 interface ISearchProps {
-  resultActions?: ((idea: IIdea) => IdeaAction)[];
+  resultActions?: ((idea: ISafeIdea) => IdeaAction)[];
   resultSize?: IIdeaCardsTypes;
   resultFilter?: (id: string) => boolean;
 }

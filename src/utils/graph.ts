@@ -213,14 +213,14 @@ export const ideasAreConnected = (
   return firstHasSecond;
 };
 
-export const getNodeAsIdeaOrNull = (node: INode): IIdea | null => {
+export const getNodeAsIdeaOrNull = (node: INode): ISafeIdea | null => {
   if (node.type === "idea") {
     return node;
   }
   return null;
 };
 
-export const getNodesAsIdeas = (nodes: INode[]): IIdea[] => {
+export const getNodesAsIdeas = (nodes: INode[]): ISafeIdea[] => {
   return nodes.filter((n) => {
     return n.type === "idea";
   });
