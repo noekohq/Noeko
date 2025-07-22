@@ -18,6 +18,7 @@ import { useSettings } from "../../contexts/SettingsContext";
 import { IThemeSpec } from "../../declarations/themes";
 import { Link } from "react-router";
 import Content from "../../components/UI/Layout/Content";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function Settings() {
   const {
@@ -155,6 +156,7 @@ export default function Settings() {
           </Grid.Col>
         </Grid>
       </Content>
+      <StatusBar />
       <RightSidebar />
     </PageWrapper>
   );

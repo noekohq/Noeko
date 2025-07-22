@@ -14,23 +14,26 @@ import {
 } from "@mantine/core";
 import {
   IIdea,
+  IIdeaAsRelation,
   IIdeaConnection,
   ISafeIdea,
 } from "../../../app/database/models/ideas";
 import { Link, useNavigate } from "react-router";
 import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import {
   ArrowRight,
   ArrowRightIcon,
   ArrowsClockwise,
+  ArrowsClockwiseIcon,
   Graph,
   GraphIcon,
   InfoIcon,
   NotePencilIcon,
   TrashSimple,
+  TrashSimpleIcon,
 } from "@phosphor-icons/react";
 import { api } from "../../server/api";
 import { similarityToColor, similarityToLevel } from "../../vars/ideas";
@@ -42,6 +45,7 @@ import {
 import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
 import IdeaButton from "../../components/Display/Ideas/IdeaButton";
 import { useInteraction } from "../../contexts/InteractionContext";
+import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 
 type IConnectionsProps = {
   loadingIdea: boolean;
@@ -60,83 +64,52 @@ export default function Connections({
   triggerCompute,
   computing,
 }: IConnectionsProps) {
-  const [selectedIdea, setSelectedIdea] = useState<string>();
+  const { load: loadConnections, data: connections } = useFetch<
+    undefined,
+    ISafeIdea[]
+  >({
+    url: `/ideas/${idea.id.toString()}/connections`,
+  });
+  const { load: loadRelated, data: related } = useFetch<
+    undefined,
+    IIdeaAsRelation[]
+  >({
+    url: `/ideas/${idea.id.toString()}/related`,
+  });
 
-  const formattedDistance = (distance: number) => {
-    return distance.toFixed(2);
+  useEffect(() => {
+    loadConnections();
+    loadRelated();
+  }, [idea.id.toString()]);
+
+  const handleReload = async () => {
+    await loadConnections();
+    await loadRelated();
+    reloadIdea();
   };
 
   const ideaIsConnected = (ideaId: string) => {
-    // check idea.connections both incoming and outgoing
     if (!idea) {
+      console.log("Not testing connection on unconnected idea");
       return false;
     }
-    return ideasAreConnected(idea, ideaId);
+    return connections?.find(
+      (connection) => connection.id.toString() === ideaId,
+    );
   };
 
-  const [draggedIdea, setDraggedIdea] = useState<IIdea>();
   const [draggingRelatedIdea, setDraggingRelatedIdea] = useState(false);
   const [draggingOverConnectionDrop, setDraggingOverConnectionDrop] =
     useState(false);
 
-  const { load: createConnection, loading: loadingNewConnection } = useFetch<
-    { source: string; target: string },
-    IIdeaConnection
-  >({
-    url: "/graph/connection",
-    method: "POST",
-    body: {
-      source: idea?.id.toString(),
-      target: draggedIdea?.id.toString() || "",
-    },
-    dependencies: [idea, draggedIdea],
-    onSuccess: async (data) => {
-      showNotification({
-        title: "Connection created",
-        message: "The connection was successfully created.",
-      });
-      reloadIdea();
-    },
-    onError: async (error) => {
-      showNotification({
-        title: "Connection creation failed",
-        message: "The connection could not be created.",
-        color: "red",
-      });
-    },
-  });
-
-  const { load: removeConnection } = useFetch({
-    url: `/graph/connection`,
-    method: "DELETE",
-    body: {
-      source: idea?.id.toString(),
-      target: selectedIdea,
-    },
-    dependencies: [idea, selectedIdea],
-    onSuccess: async (data) => {
-      showNotification({
-        title: "Connection removed",
-        message: "The connection was successfully removed.",
-      });
-      reloadIdea();
-    },
-    onError: async (error) => {
-      showNotification({
-        title: "Connection removal failed",
-        message: "The connection could not be removed.",
-        color: "red",
-      });
-    },
-  });
-
   const handleRemoveConnection = (target: string) => {
     removeIdeaConnection(idea.id.toString(), target);
+    handleReload();
   };
 
   const handleCreateConnection = (target: string) => {
     createIdeaConnection(idea.id.toString(), target);
-    reloadIdea();
+    handleReload();
   };
 
   const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -154,7 +127,7 @@ export default function Connections({
       }
       console.log("Dropped connection id: ", ideaId);
       await createIdeaConnection(idea.id.toString(), ideaId);
-      reloadIdea();
+      handleReload();
     } catch (error) {
       console.log("Error creating connection: ", error);
     } finally {
@@ -177,7 +150,7 @@ export default function Connections({
               These may be out of date...
             </Text>
             <ActionIcon onClick={triggerCompute} variant="light" size="sm">
-              {computing ? <Loader size="xs" /> : <ArrowsClockwise />}
+              {computing ? <Loader size="xs" /> : <ArrowsClockwiseIcon />}
             </ActionIcon>
           </Group>
         </Grid.Col>
@@ -262,29 +235,17 @@ export default function Connections({
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group>
-                {idea?.connections && idea.connections?.length > 0 ? (
-                  idea.connections?.map((connection, i) => {
+                {connections && connections?.length > 0 ? (
+                  connections?.map((connection, i) => {
                     return (
-                      <CompactIdeaCard
+                      <IdeaCard
                         key={connection.id.toString()}
-                        style={{
-                          width: "100%",
-                        }}
                         idea={connection}
-                        onMouseEnterCard={() => {
-                          setSelectedIdea(connection.id.toString());
-                        }}
-                        onMouseLeaveCard={() => {
-                          setSelectedIdea(undefined);
-                        }}
-                        onCardClick={() => {
-                          navigate(`/idea/${connection.id.toString()}`);
-                        }}
                         actions={[
                           {
                             id: "remove_connection",
                             label: "Remove",
-                            icon: <TrashSimple />,
+                            icon: <TrashSimpleIcon />,
                             onClick: (e) => {
                               e.stopPropagation();
                               handleRemoveConnection(connection.id.toString());
@@ -296,8 +257,8 @@ export default function Connections({
                     );
                   })
                 ) : (
-                  <Text c="dimmed" size="sm">
-                    No connections yet. Try dragging a related idea!
+                  <Text c="dimmed" size="xs">
+                    No connections yet. Try connecting a related idea!
                   </Text>
                 )}
               </Group>
@@ -312,7 +273,7 @@ export default function Connections({
             <Text size="sm">Some similar ideas to this one...</Text>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
-            {idea?.relatedIdeas && idea.relatedIdeas?.length > 0 ? (
+            {related && related?.length > 0 ? (
               <Accordion
                 variant="filled"
                 styles={{
@@ -321,7 +282,7 @@ export default function Connections({
                   },
                 }}
               >
-                {idea.relatedIdeas?.map((relatedIdea) => {
+                {related?.map((relatedIdea) => {
                   const distance = relatedIdea.distance;
                   const level = similarityToLevel(distance);
                   const color = similarityToColor[level];
@@ -330,7 +291,10 @@ export default function Connections({
                   );
 
                   return (
-                    <Accordion.Item value={relatedIdea.id.toString()}>
+                    <Accordion.Item
+                      value={relatedIdea.id.toString()}
+                      key={relatedIdea.id.toString()}
+                    >
                       <Accordion.Control p={0}>
                         <Group mr="xs" p={0}>
                           <IdeaButton
@@ -344,7 +308,7 @@ export default function Connections({
                         <Stack gap="xs">
                           <Group gap="xs" align="center">
                             <Group gap="xs" align="center">
-                              {!ideaIsConnected(relatedIdea.id.toString()) && (
+                              {!isConnected && (
                                 <ActionIcon
                                   variant="light"
                                   size="sm"
@@ -393,7 +357,9 @@ export default function Connections({
                 })}
               </Accordion>
             ) : (
-              <Text>No related ideas yet.</Text>
+              <Text size="xs" c="dimmed">
+                No related ideas yet.
+              </Text>
             )}
           </Grid.Col>
         </Grid>

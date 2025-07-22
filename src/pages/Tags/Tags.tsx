@@ -31,6 +31,7 @@ import { Link } from "react-router";
 import styles from "./Tags.module.scss";
 import Content from "../../components/UI/Layout/Content";
 import useRabbithole from "../../hooks/useRabbithole";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function Tags() {
   const {
@@ -210,6 +211,7 @@ export default function Tags() {
           )}
         </Grid>
       </Content>
+      <StatusBar />
       <RightSidebar />
     </PageWrapper>
   );

@@ -22,9 +22,14 @@ import useSidebarHover from "../../../hooks/useSidebarHover";
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
   topLevel?: Record<ISidebarMode, React.ReactNode | React.ReactNode[]>;
+  startOpened?: boolean;
 }
 
-const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
+const RightSidebar = ({
+  children,
+  topLevel,
+  startOpened,
+}: IRightSidebarProps) => {
   const navigate = useNavigate();
   const {
     elements: {
@@ -41,6 +46,12 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
   useEffect(() => {
     setHasContent(!!children);
   }, [children]);
+
+  useEffect(() => {
+    if (startOpened) {
+      setMode("open");
+    }
+  }, [startOpened]);
 
   const openable = !!children;
 
@@ -84,7 +95,7 @@ const RightSidebar = ({ children, topLevel }: IRightSidebarProps) => {
 
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
-      <Group justify="space-between">
+      <Group justify="space-between" align="center" wrap="nowrap">
         {!!topLevel?.open && topLevel.open}
         {openable && (
           <ActionIcon

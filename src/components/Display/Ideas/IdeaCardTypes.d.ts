@@ -52,7 +52,7 @@ export type IdeaArtifact = {
 };
 
 export interface IdeaCardSharedProps {
-  idea: IIdea;
+  idea: ISafeIIdea;
   artifacts?: IdeaArtifact[];
   tags?: IdeaTag[];
   actions?: IdeaAction[];

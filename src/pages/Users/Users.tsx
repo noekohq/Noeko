@@ -46,6 +46,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import styles from "./Users.module.scss";
 import Content from "../../components/UI/Layout/Content";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function Users() {
   const {
@@ -832,6 +833,7 @@ export default function Users() {
           </Grid.Col>
         </Grid>
       </Content>
+      <StatusBar />
       <RightSidebar />
     </PageWrapper>
   );

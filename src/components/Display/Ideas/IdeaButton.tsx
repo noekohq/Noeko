@@ -4,6 +4,7 @@ import { IIdea, PhosphorIcon } from "./IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
 import { IconProps } from "@phosphor-icons/react";
+import { ISafeIdea } from "../../../../app/database/models/ideas";
 
 type IIdeaButtonAction = {
   id: string;
@@ -14,7 +15,7 @@ type IIdeaButtonAction = {
 };
 
 interface IIdeaButton {
-  idea: IIdea;
+  idea: IIdea | ISafeIdea;
   bg?: MantineColor | string;
   color?: MantineColor | string;
   actions?: IIdeaButtonAction[];

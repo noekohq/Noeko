@@ -39,7 +39,7 @@ export type IIdeaWithComputedFields = (IIdea | ISafeIdea) & {
   embeddingsOutOfDate: boolean;
 };
 
-export type IIdeaAsRelation = IIdea & {
+export type IIdeaAsRelation = ISafeIdea & {
   distance: number;
   derivedList: IIdeaDerived[];
 };
@@ -280,7 +280,7 @@ export class Idea {
     const getUserIdeaStats = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::get_user_idea_stats(
-        $userId: string
+        $userId: record
       ) {
         LET $total = count(SELECT VALUE id FROM idea WHERE <-owns<-(user WHERE id = <record> $userId));
         return {
@@ -599,12 +599,12 @@ export class Idea {
     }
   }
 
-  static async getUserRecentIdeas(userId: string, limit: number) {
+  static async getUserRecentIdeas(userId: string | RecordId, limit: number) {
     try {
       const db = await getDatabase();
-      const results = await db?.query<[IIdea[]]>(
+      const results = await db?.query<[ISafeIdea[]]>(
         `
-        SELECT * FROM idea
+        SELECT * OMIT embeddings FROM idea
         WHERE
           <-owns<-(user WHERE id = <record> $userId)
         ORDER BY
@@ -612,7 +612,7 @@ export class Idea {
         LIMIT <int> $limit;
           `,
         {
-          userId,
+          userId: new StringRecordId(userId),
           limit,
         },
       );
@@ -629,12 +629,12 @@ export class Idea {
   }
 
   static async getUserIdeaStats(
-    userId: string,
+    userId: string | RecordId,
   ): Promise<IUserIdeaStats | undefined> {
     try {
       const db = await getDatabase();
       const results = await db?.run<IUserIdeaStats>("fn::get_user_idea_stats", [
-        String(userId),
+        new StringRecordId(userId),
       ]);
       if (!results) {
         console.error("Something went wrong, no results found.");

@@ -19,9 +19,14 @@ import HomeButton from "../../Display/Interactions/HomeButton";
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
   topLevel?: { [key in ISidebarMode]?: React.ReactNode | React.ReactNode[] };
+  startOpened?: boolean;
 }
 
-const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
+const LeftSidebar = ({
+  children,
+  topLevel,
+  startOpened,
+}: ILeftSidebarProps) => {
   const {
     elements: {
       leftSidebar: {
@@ -37,6 +42,12 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
       setMode("collapsed");
     }
   }, []);
+
+  useEffect(() => {
+    if (startOpened) {
+      setMode("open");
+    }
+  }, [startOpened]);
 
   const { pathname } = useLocation();
 
@@ -80,7 +91,7 @@ const LeftSidebar = ({ children, topLevel }: ILeftSidebarProps) => {
 
   const Global: Record<typeof mode, JSX.Element> = {
     open: (
-      <Group justify="space-between">
+      <Group justify="space-between" align="center" wrap="nowrap">
         {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
         <Group gap="xs" justify="flex-end" w="100%">
           <HomeButton />

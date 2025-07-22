@@ -46,6 +46,7 @@ import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
 import { useLayout } from "../../contexts/LayoutContext";
 import { useInteraction } from "../../contexts/InteractionContext";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -564,6 +565,7 @@ export default function ViewTag() {
           )}
         </div>
       </Content>
+      <StatusBar />
       <RightSidebar>
         <RightSidebar.Collapsed>
           <ActionIcon

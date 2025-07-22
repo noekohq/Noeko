@@ -25,6 +25,7 @@ import {
   sanitizeMarkdownForDescription,
 } from "../../../utils/formatting";
 import { splitBySentences } from "../../../utils/processing";
+import StatusBar from "../../../components/UI/Layout/Bottom";
 
 export default function SharedIdeas() {
   const {
@@ -117,6 +118,7 @@ export default function SharedIdeas() {
           </SimpleGrid>
         </Stack>
       </Content>
+      <StatusBar />
       <RightSidebar></RightSidebar>
     </PageWrapper>
   );

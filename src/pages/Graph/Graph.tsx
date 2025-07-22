@@ -13,6 +13,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import { GraphNavigation } from "./GraphNavigation";
 import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
+import StatusBar from "../../components/UI/Layout/Bottom";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,7 @@ export default function GraphPage() {
           </Group>
         )}
       </div>
+      <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
           {!isLoaded && <Loader size="sm" />}

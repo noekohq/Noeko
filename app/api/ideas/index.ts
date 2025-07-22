@@ -178,6 +178,74 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
+router.get(
+  "/:ideaId/connections",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { ideaId } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(500).json({ message: "Internal Server Error" });
+        return;
+      }
+      const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
+      const isSuperuser = await User.checkUserHasRole(
+        user.id,
+        "role:superuser",
+      );
+      if (!isOwner) {
+        if (!isSuperuser) {
+          res.status(403).json({
+            message: "Unauthorized.",
+          });
+          return;
+        }
+      }
+      const i = await Idea.getConnections(ideaId);
+      res.send({ message: "Successfully retrieved idea.", data: i });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
+router.get(
+  "/:ideaId/related",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const { ideaId } = req.params;
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(500).json({ message: "Internal Server Error" });
+        return;
+      }
+      const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
+      const isSuperuser = await User.checkUserHasRole(
+        user.id,
+        "role:superuser",
+      );
+      if (!isOwner) {
+        if (!isSuperuser) {
+          res.status(403).json({
+            message: "Unauthorized.",
+          });
+          return;
+        }
+      }
+      const r = await Idea.findSimilar(user.id, ideaId);
+      res.send({ message: "Successfully retrieved idea.", data: r });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+);
+
 router.get("/:ideaId/tags", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<IUser>(req, "user");

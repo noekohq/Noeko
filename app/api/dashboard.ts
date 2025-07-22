@@ -4,6 +4,7 @@ import { getFromReq } from "../utils/requests";
 import { ISafeUser } from "../database/models/user";
 import { Idea } from "../database/models/ideas";
 import { AnalysisService } from "../services/Analysis";
+import Dashboard from "../services/Dashboard";
 
 const router = Router();
 
@@ -16,17 +17,11 @@ router.get("/", async (req, res) => {
       throw new Error("User is not logged in.");
     }
 
-    const recentIdeas = await Idea.getUserRecentIdeas(user.id, 10);
-    const ideaStats = await Idea.getUserIdeaStats(user.id);
-    const totalUsers = await AnalysisService.getTotalUsers();
+    const dashboard = await Dashboard.get(user.id);
 
     res.send({
       message: "Got Dashboard Successfully...",
-      data: {
-        recentIdeas,
-        ideaStats,
-        totalUsers,
-      },
+      data: dashboard,
     });
   } catch (error) {
     console.error("Error getting user dashboard: ", error);
