@@ -34,6 +34,7 @@ import {
   ArrowLineRightIcon,
   ArrowLineUpLeftIcon,
   ArrowLineUpRightIcon,
+  ArrowRight,
   ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
@@ -100,8 +101,6 @@ export function DisplayOverview({
     },
     new Map<string, (IFinding & { index: number })[]>([]),
   );
-
-  console.log("Findings by source: ", findingsBySource);
 
   return (
     <div>
@@ -229,10 +228,37 @@ export function DisplayOverview({
                     </Accordion.Control>
                     <Accordion.Panel>
                       <Stack>
+                        <Text>
+                          <Link
+                            to={`/idea/${sourceId}`}
+                            target="_blank"
+                            style={{
+                              textDecoration: "none",
+                            }}
+                          >
+                            <Group gap="xs" c="dimmed">
+                              <Text size="sm">Go to idea</Text>
+                              <ArrowRightIcon size={14} />
+                            </Group>
+                          </Link>
+                        </Text>
                         {findings.map((finding) => {
                           return (
                             <Box mb="sm">
                               <Blockquote color="gray" p="xs" mb="xs">
+                                <Badge
+                                  key={finding.index}
+                                  variant="light"
+                                  size="sm"
+                                  mx="2px"
+                                  p="xs"
+                                  radius="lg"
+                                  color="gray"
+                                >
+                                  <Text size="xs" fw="bold">
+                                    {finding.index + 1}
+                                  </Text>
+                                </Badge>
                                 <Text
                                   size="sm"
                                   p="0"

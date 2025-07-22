@@ -26,7 +26,6 @@ export default function PageWrapper({ children }: PageWrapperProps) {
     >
       {children}
       {isMobile && <MobileBar />}
-      <StatusBar />
     </div>
   );
 }

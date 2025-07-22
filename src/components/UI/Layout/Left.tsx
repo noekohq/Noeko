@@ -14,7 +14,7 @@ import useSidebarHover from "../../../hooks/useSidebarHover";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 import useRabbithole from "../../../hooks/useRabbithole";
-import HomeButton from "./HomeButton";
+import HomeButton from "../../Display/Interactions/HomeButton";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];

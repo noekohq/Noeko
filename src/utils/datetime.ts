@@ -15,3 +15,17 @@ export const getCurrentTimeOfDay = (): ITimeOfDay => {
   const hour = now.getHours();
   return getTimeOfDay(hour);
 };
+
+export const getCurrentTime = (): Date => {
+  return new Date();
+};
+
+export const getCurrentTimeFormatted = (): string => {
+  const now = new Date();
+  const hour = now.getHours();
+  const hourOf = hour % 12 || 12;
+  const minute = now.getMinutes();
+  const minuteFormatted = minute < 10 ? `0${minute}` : `${minute}`;
+  const meridiem = hour >= 12 ? "PM" : "AM";
+  return `${hourOf}:${minuteFormatted} ${meridiem}`;
+};
