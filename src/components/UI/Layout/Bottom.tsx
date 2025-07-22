@@ -69,6 +69,9 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
         className={`${styles.global} ${hasChildren ? styles.hasChildren : ""}`}
       >
         <StatusBar.Item>
+          <RabbitholeIndicator />
+        </StatusBar.Item>
+        <StatusBar.Item>
           <StatusButton
             onClick={() => {
               spyglass();
@@ -76,9 +79,6 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
           >
             <SpyglassIcon size={16} />
           </StatusButton>
-        </StatusBar.Item>
-        <StatusBar.Item>
-          <RabbitholeIndicator />
         </StatusBar.Item>
         <StatusBar.Item>
           <CreateButton />
