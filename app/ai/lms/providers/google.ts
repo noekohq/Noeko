@@ -12,7 +12,7 @@ const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
 const GCP_LOCATION = process.env.GCP_LOCATION || "us-west1";
 
 const ModelMap: IModelMap = {
-  simple: "gemini-2.0-flash-lite-001",
+  simple: "gemini-2.5-flash-lite",
   advanced: "gemini-2.5-pro",
   "fast-accurate": "gemini-2.5-flash",
   general: "gemini-2.5-flash",

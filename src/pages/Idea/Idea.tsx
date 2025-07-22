@@ -545,59 +545,57 @@ export default function Idea() {
           </Alert>
         )}
         <div className={styles.ideaContainer}>
-          <div className={styles.topbox}>
-            <Stack gap="md">
-              <Group>
-                <Title
-                  order={1}
-                  m="0"
-                  pr="md"
-                  contentEditable={!editingDisabled}
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    updateTitle(e.currentTarget.innerText);
+          <Stack gap="md">
+            <Group>
+              <Title
+                order={1}
+                m="0"
+                pr="md"
+                contentEditable={!editingDisabled}
+                suppressContentEditableWarning
+                onBlur={(e) => {
+                  updateTitle(e.currentTarget.innerText);
+                }}
+                dangerouslySetInnerHTML={{ __html: title || "" }}
+                className={styles.editableTitle}
+              />
+              {idea?.titleGeneratedAt && (
+                <div
+                  className={styles.generatedIndicator}
+                  title={"This title was generated automatically."}
+                >
+                  <SparkleIcon />
+                </div>
+              )}
+              {loadingTitleGeneration && (
+                <div className={styles.loadingIndicator}>
+                  <Loader size="xs" color="gray" />
+                </div>
+              )}
+            </Group>
+            <div className={styles.contentArea}>
+              {idea && (
+                <IdeaProvider
+                  idea={idea}
+                  reloadIdea={async () => {
+                    await reloadIdea();
                   }}
-                  dangerouslySetInnerHTML={{ __html: title || "" }}
-                  className={styles.editableTitle}
-                />
-                {idea?.titleGeneratedAt && (
-                  <div
-                    className={styles.generatedIndicator}
-                    title={"This title was generated automatically."}
-                  >
-                    <SparkleIcon />
-                  </div>
-                )}
-                {loadingTitleGeneration && (
-                  <div className={styles.loadingIndicator}>
-                    <Loader size="xs" color="gray" />
-                  </div>
-                )}
-              </Group>
-              <div className={styles.contentArea}>
-                {idea && (
-                  <IdeaProvider
-                    idea={idea}
-                    reloadIdea={async () => {
-                      await reloadIdea();
-                    }}
-                  >
-                    <DreamWriter
-                      key={ideaId}
-                      initialContent={editorContent}
-                      stickyMenu={false}
-                      onChange={handleContentChange}
-                      onBlur={handleEditorBlur}
-                      onContentReady={handleContentReady}
-                      dependencies={[ideaId, idea.id]}
-                      ref={editorRef}
-                      readOnly={editingDisabled}
-                    />
-                  </IdeaProvider>
-                )}
-              </div>
-            </Stack>
-          </div>
+                >
+                  <DreamWriter
+                    key={ideaId}
+                    initialContent={editorContent}
+                    stickyMenu={false}
+                    onChange={handleContentChange}
+                    onBlur={handleEditorBlur}
+                    onContentReady={handleContentReady}
+                    dependencies={[ideaId, idea.id]}
+                    ref={editorRef}
+                    readOnly={editingDisabled}
+                  />
+                </IdeaProvider>
+              )}
+            </div>
+          </Stack>
         </div>
       </Content>
       <StatusBar>

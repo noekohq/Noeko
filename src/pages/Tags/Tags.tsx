@@ -26,7 +26,7 @@ import {
   Trash,
   ArrowRight,
 } from "@phosphor-icons/react"; // Added new icons, including Trash
-import { InlineTag } from "../../components/Tags/TagDisplay";
+import { InlineTag } from "../../components/Display/Tags/TagDisplay";
 import { Link } from "react-router";
 import styles from "./Tags.module.scss";
 import Content from "../../components/UI/Layout/Content";

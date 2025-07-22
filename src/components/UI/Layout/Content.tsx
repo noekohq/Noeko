@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Content.module.scss";
+import useScroll from "../../../hooks/useScroll";
 
 interface IContentProps {
   children: React.ReactNode | React.ReactNode[];
@@ -17,6 +19,9 @@ const Content = ({ children }: IContentProps) => {
     },
     isMobile,
   } = useLayout();
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  useScroll({ ref: contentRef });
 
   const leftModeToClass: Record<typeof leftMode, string> = {
     open: styles.leftOpen,
@@ -44,6 +49,7 @@ const Content = ({ children }: IContentProps) => {
           setRightMode("collapsed");
         }
       }}
+      ref={contentRef}
     >
       {children}
     </div>

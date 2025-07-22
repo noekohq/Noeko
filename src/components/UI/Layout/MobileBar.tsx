@@ -12,6 +12,7 @@ import ProfileButton from "../../Display/Interactions/ProfileButton";
 import { Link, useLocation } from "react-router";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import HomeButton from "../../Display/Interactions/HomeButton";
+import { useEffect } from "react";
 
 export default function MobileBar() {
   const {
@@ -25,8 +26,8 @@ export default function MobileBar() {
         content: { hasContent: rightHasContent },
       },
     },
+    scroll: { isScrolled, scrollDirection },
     isMobile,
-    isScrolled,
   } = useLayout();
 
   const leftModeToClass: Record<typeof leftMode, string> = {
@@ -61,7 +62,7 @@ export default function MobileBar() {
 
   return (
     <div
-      className={`${styles.mobileBar} ${isScrolled ? styles.scrolled : ""} ${leftModeClass} ${rightModeClass}`}
+      className={`${styles.mobileBar} ${isScrolled ? styles.scrolled : ""} ${scrollDirection === "up" ? styles.scrollUp : styles.scrollDown} ${leftModeClass} ${rightModeClass}`}
     >
       <Group gap="xs">
         {leftHasContent && (

@@ -48,9 +48,9 @@ import {
   includeThingInRabbithole,
   unIncludeThingInRabbithole,
 } from "../../utils/rabbitholes";
-import { BlockTag } from "../../components/Tags/TagDisplay";
+import { BlockTag } from "../../components/Display/Tags/TagDisplay";
 import { RecordId } from "surrealdb";
-import TagCard from "../../components/Tags/TagCard";
+import TagCard from "../../components/Display/Tags/TagCard";
 import { useLayout } from "../../contexts/LayoutContext";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { useSearch } from "../../contexts/SearchContext";

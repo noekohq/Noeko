@@ -42,7 +42,7 @@ import {
 } from "../../utils/ideas"; // Import new utility functions
 import { Link, useNavigate } from "react-router";
 import { useSettings } from "../../contexts/SettingsContext";
-import { InlineTag } from "../../components/Tags/TagDisplay";
+import { InlineTag } from "../../components/Display/Tags/TagDisplay";
 import SuggestTags from "../../components/Search/SuggestTags"; // Import the SuggestTags component
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
@@ -207,12 +207,10 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
 
   if (existingTagsLoading || relatedTagsLoading) {
     return (
-      <Card withBorder radius="lg" p="md">
-        <Group>
-          <Loader size="sm" />
-          <Text size="sm">Loading tags...</Text>
-        </Group>
-      </Card>
+      <Group>
+        <Loader size="sm" />
+        <Text size="sm">Loading tags...</Text>
+      </Group>
     );
   }
 

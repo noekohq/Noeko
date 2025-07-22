@@ -1,11 +1,9 @@
 @use "../../styles/mixins.scss" as *;
 
 .ideaContainer {
-    overflow-y: scroll;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow: hidden;
     max-width: 100%;
     height: 100%;
     position: relative;
@@ -17,15 +15,6 @@
     &:hover {
         border-bottom: 1px solid var(--mantine-color-dark-7);
     }
-}
-
-.topbox {
-    flex-grow: 1;
-    height: calc(100% - 10vh);
-    overflow-y: auto;
-    scrollbar-width: none;
-    min-height: 0;
-    padding-bottom: 25vh;
 }
 
 .generatedIndicator {

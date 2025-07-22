@@ -11,6 +11,7 @@ import {
   Button,
   HoverCard,
   Accordion,
+  Transition,
 } from "@mantine/core";
 import {
   IIdea,
@@ -64,23 +65,25 @@ export default function Connections({
   triggerCompute,
   computing,
 }: IConnectionsProps) {
-  const { load: loadConnections, data: connections } = useFetch<
-    undefined,
-    ISafeIdea[]
-  >({
+  const {
+    load: loadConnections,
+    data: connections,
+    loading: loadingConnections,
+  } = useFetch<undefined, ISafeIdea[]>({
     url: `/ideas/${idea.id.toString()}/connections`,
   });
-  const { load: loadRelated, data: related } = useFetch<
-    undefined,
-    IIdeaAsRelation[]
-  >({
+  const {
+    load: loadRelated,
+    data: related,
+    loading: loadingRelated,
+  } = useFetch<undefined, IIdeaAsRelation[]>({
     url: `/ideas/${idea.id.toString()}/related`,
   });
 
   useEffect(() => {
     loadConnections();
     loadRelated();
-  }, [idea.id.toString()]);
+  }, [idea.id.toString(), idea.embeddingsUpdatedAt]);
 
   const handleReload = async () => {
     await loadConnections();
@@ -273,94 +276,124 @@ export default function Connections({
             <Text size="sm">Some similar ideas to this one...</Text>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
-            {related && related?.length > 0 ? (
-              <Accordion
-                variant="filled"
-                styles={{
-                  content: {
-                    padding: "0px",
-                  },
-                }}
-              >
-                {related?.map((relatedIdea) => {
-                  const distance = relatedIdea.distance;
-                  const level = similarityToLevel(distance);
-                  const color = similarityToColor[level];
-                  const isConnected = ideaIsConnected(
-                    relatedIdea.id.toString(),
-                  );
+            <Transition
+              mounted={!!related && related?.length > 0}
+              transition="fade-up"
+            >
+              {(styles) => {
+                return (
+                  <Accordion
+                    variant="filled"
+                    style={styles}
+                    styles={{
+                      content: {
+                        padding: "0px",
+                      },
+                    }}
+                  >
+                    {related?.map((relatedIdea) => {
+                      const distance = relatedIdea.distance;
+                      const level = similarityToLevel(distance);
+                      const color = similarityToColor[level];
+                      const isConnected = ideaIsConnected(
+                        relatedIdea.id.toString(),
+                      );
 
-                  return (
-                    <Accordion.Item
-                      value={relatedIdea.id.toString()}
-                      key={relatedIdea.id.toString()}
-                    >
-                      <Accordion.Control p={0}>
-                        <Group mr="xs" p={0}>
-                          <IdeaButton
-                            key={relatedIdea.id.toString()}
-                            idea={relatedIdea}
-                            fullWidth
-                          />
-                        </Group>
-                      </Accordion.Control>
-                      <Accordion.Panel>
-                        <Stack gap="xs">
-                          <Group gap="xs" align="center">
-                            <Group gap="xs" align="center">
-                              {!isConnected && (
-                                <ActionIcon
-                                  variant="light"
-                                  size="sm"
-                                  color={"dark.3"}
-                                  onClick={() => {
-                                    console.log("Hitting on click!");
-                                    createIdeaConnection(
-                                      idea.id.toString(),
-                                      relatedIdea.id.toString(),
-                                    ).then(() => {
-                                      reloadIdea();
-                                    });
-                                  }}
-                                  title="Connect this idea"
-                                >
-                                  <GraphIcon size={14} weight="bold" />
-                                </ActionIcon>
-                              )}
-                              <ActionIcon
-                                variant="light"
-                                size="sm"
-                                onClick={() => {
-                                  navigate(
-                                    `/idea/${relatedIdea.id.toString()}`,
-                                  );
-                                }}
-                                title="View related idea"
-                              >
-                                <ArrowRightIcon size={14} weight="bold" />
-                              </ActionIcon>
+                      return (
+                        <Accordion.Item
+                          value={relatedIdea.id.toString()}
+                          key={relatedIdea.id.toString()}
+                        >
+                          <Accordion.Control p={0}>
+                            <Group mr="xs" p={0}>
+                              <IdeaButton
+                                key={relatedIdea.id.toString()}
+                                idea={relatedIdea}
+                                fullWidth
+                              />
                             </Group>
-                            <Badge color={color} variant="light" size="xs">
-                              {level}
-                            </Badge>
-                          </Group>
-                          <Text size="sm">
-                            {
-                              relatedIdea.derived?.generative_summary
-                                ?.sentenceOverview
-                            }
-                          </Text>
-                        </Stack>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  );
-                })}
-              </Accordion>
-            ) : (
-              <Text size="xs" c="dimmed">
-                No related ideas yet.
-              </Text>
-            )}
+                          </Accordion.Control>
+                          <Accordion.Panel>
+                            <Stack gap="xs">
+                              <Group gap="xs" align="center">
+                                <Group gap="xs" align="center">
+                                  {!isConnected && (
+                                    <ActionIcon
+                                      variant="light"
+                                      size="sm"
+                                      color={"dark.3"}
+                                      onClick={() => {
+                                        console.log("Hitting on click!");
+                                        createIdeaConnection(
+                                          idea.id.toString(),
+                                          relatedIdea.id.toString(),
+                                        ).then(() => {
+                                          handleReload();
+                                        });
+                                      }}
+                                      title="Connect this idea"
+                                    >
+                                      <GraphIcon size={14} weight="bold" />
+                                    </ActionIcon>
+                                  )}
+                                  <ActionIcon
+                                    variant="light"
+                                    size="sm"
+                                    onClick={() => {
+                                      navigate(
+                                        `/idea/${relatedIdea.id.toString()}`,
+                                      );
+                                    }}
+                                    title="View related idea"
+                                  >
+                                    <ArrowRightIcon size={14} weight="bold" />
+                                  </ActionIcon>
+                                </Group>
+                                <Badge color={color} variant="light" size="xs">
+                                  {level}
+                                </Badge>
+                              </Group>
+                              <Text size="sm">
+                                {
+                                  relatedIdea.derived?.generative_summary
+                                    ?.sentenceOverview
+                                }
+                              </Text>
+                            </Stack>
+                          </Accordion.Panel>
+                        </Accordion.Item>
+                      );
+                    })}
+                  </Accordion>
+                );
+              }}
+            </Transition>
+            <Transition
+              mounted={
+                !related || (related && related.length <= 0 && !loadingRelated)
+              }
+              transition="fade-up"
+            >
+              {(styles) => {
+                return (
+                  <Text style={styles} size="xs" c="dimmed" mb="md">
+                    No related ideas yet.
+                  </Text>
+                );
+              }}
+            </Transition>
+            <Transition mounted={loadingRelated} transition="fade-up">
+              {(styles) => {
+                return (
+                  <Group style={styles}>
+                    <Loader size="sm" color="gray" />
+                    <Text size="sm" c="dimmed">
+                      Loading tags...
+                    </Text>
+                  </Group>
+                );
+              }}
+            </Transition>
           </Grid.Col>
         </Grid>
       </Grid.Col>

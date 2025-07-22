@@ -1,16 +1,15 @@
 import { ActionIcon, Group, MantineColor, Menu, Text } from "@mantine/core";
-import { IRabbithole } from "../../../../app/database/models/rabbithole";
-import { formatDateTime } from "../../../utils/formatting";
+import { ITag } from "../../../../app/database/models/tag";
 import { useNavigate } from "react-router";
 import { IconProps } from "../../Utils/Icons/Icon";
-import styles from "./RabbitholeCard.module.scss";
+import styles from "./TagCard.module.scss";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 
-export type IRabbitholeAction = {
+export type ITagAction = {
   id: string;
   label: string;
   icon?: React.ReactElement<IconProps>;
-  onClick: (event: React.MouseEvent, rabbithole: IRabbithole) => void;
+  onClick: (event: React.MouseEvent, tag: ITag) => void;
   color?: MantineColor;
   variant?:
     | "filled"
@@ -25,38 +24,36 @@ export type IRabbitholeAction = {
   isOverflow?: boolean; // If true, primarily for the overflow menu
 };
 
-interface IRabbitholeCardProps {
-  rabbithole: IRabbithole;
+interface ITagCardProps {
+  tag: ITag;
   description?: string;
   titleIcon?: React.ReactNode;
-  onClick?: (rabbithole: IRabbithole) => void;
-  actions?: IRabbitholeAction[];
+  onClick?: (tag: ITag) => void;
+  actions?: ITagAction[];
 }
 
-const getRabbitholeDefaultSummary = (
-  rabbithole: IRabbithole,
-): string | undefined => {
-  return `Updated ${formatDateTime(rabbithole.updatedAt)}`;
+const getTagDefaultSummary = (tag: ITag): string | undefined => {
+  return tag.description;
 };
 
-export default function RabbitholeCard({
-  rabbithole,
+export default function TagCard({
+  tag,
   description,
   onClick,
   titleIcon,
   actions,
-}: IRabbitholeCardProps) {
+}: ITagCardProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {
     if (onClick) {
-      onClick(rabbithole);
+      onClick(tag);
     } else {
-      navigate(`/rabbitholes/${rabbithole.id.toString()}`);
+      navigate(`/tags/${tag.id.toString()}`);
     }
   };
 
-  const desc = description || getRabbitholeDefaultSummary(rabbithole);
+  const desc = description || getTagDefaultSummary(tag);
 
   return (
     <div
@@ -64,13 +61,12 @@ export default function RabbitholeCard({
       onClick={() => {
         handleClick();
       }}
-      className={styles.rabbitholeCard}
+      className={styles.tagCard}
     >
       <Group justify="space-between">
         <Group gap="xs">
-          {titleIcon}
           <Text size="sm" fw="bold">
-            {rabbithole.name}
+            {tag.name}
           </Text>
         </Group>
         <Group>
@@ -95,7 +91,7 @@ export default function RabbitholeCard({
                       key={action.id}
                       leftSection={action.icon}
                       onClick={(e) => {
-                        action.onClick(e, rabbithole);
+                        action.onClick(e, tag);
                       }}
                       color={action.color}
                     >
