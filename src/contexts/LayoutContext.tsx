@@ -51,12 +51,17 @@ type ILayoutContext = {
       };
     };
   };
+  scroll: {
+    isScrolled: boolean;
+    setIsScrolled: Dispatch<SetStateAction<boolean>>;
+    scrollDirection: "up" | "down";
+    setScrollDirection: Dispatch<SetStateAction<"up" | "down">>;
+  };
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
   isWideScreen: boolean;
   isUltraWide: boolean;
-  isScrolled: boolean;
 };
 
 const initialLayoutContext: ILayoutContext = {
@@ -98,12 +103,17 @@ const initialLayoutContext: ILayoutContext = {
       },
     },
   },
+  scroll: {
+    isScrolled: false,
+    setIsScrolled: () => {},
+    scrollDirection: "up",
+    setScrollDirection: () => {},
+  },
   isMobile: false,
   isTablet: false,
   isDesktop: false,
   isWideScreen: false,
   isUltraWide: false,
-  isScrolled: false,
 };
 
 const LayoutContext = createContext<ILayoutContext>(initialLayoutContext);
@@ -156,15 +166,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     useState<ILayoutContext["elements"]["statusBar"]["message"]["get"]>(null);
 
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -318,12 +320,17 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
         },
       },
     },
+    scroll: {
+      isScrolled: isScrolled,
+      setIsScrolled: setIsScrolled,
+      scrollDirection: scrollDirection,
+      setScrollDirection: setScrollDirection,
+    },
     isMobile,
     isTablet,
     isDesktop,
     isWideScreen,
     isUltraWide,
-    isScrolled,
   };
 
   return (

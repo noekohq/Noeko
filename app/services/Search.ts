@@ -614,7 +614,6 @@ export class Search {
       }
 
       if (semanticResults) {
-        console.log("Semantic results: ", semanticResults.slice(0, 1));
         for (const semRes of semanticResults) {
           // console.log("Semantic result: ", semRes);
           const id = semRes.id.toString();

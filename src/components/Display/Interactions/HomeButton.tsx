@@ -2,10 +2,12 @@ import { ActionIcon, MantineColor } from "@mantine/core";
 import { HouseIcon } from "@phosphor-icons/react";
 import { Link, useLocation } from "react-router";
 import useRabbithole from "../../../hooks/useRabbithole";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 export default function HomeButton() {
   const { pathname } = useLocation();
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
+  const { isMobile } = useLayout();
 
   const isHome = pathname === "/";
 
@@ -17,7 +19,7 @@ export default function HomeButton() {
 
   return (
     <Link to={"/"}>
-      <ActionIcon variant="subtle" color={defaultColor}>
+      <ActionIcon variant={isMobile ? "light" : "subtle"} color={defaultColor}>
         <HouseIcon />
       </ActionIcon>
     </Link>

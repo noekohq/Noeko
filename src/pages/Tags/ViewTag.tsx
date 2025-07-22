@@ -32,7 +32,7 @@ import {
   X,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import { BlockTag } from "../../components/Tags/TagDisplay";
+import { BlockTag } from "../../components/Display/Tags/TagDisplay";
 import {
   CompactIdeaCard,
   StandardIdeaCard,

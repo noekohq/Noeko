@@ -19,6 +19,7 @@
     width: var(--content-width);
     display: flex;
     flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: space-around;
     gap: var(--mantine-spacing-xs);
@@ -73,7 +74,6 @@
     flex-grow: 1;
     background-color: transparent;
     animation: contentIn 0.3s ease-in-out;
-    box-shadow: var(--mantine-shadow-lg);
     font-size: var(--mantine-font-size-xs);
     padding: 0;
     display: flex;
@@ -87,11 +87,11 @@
         border: none;
         border-radius: 0;
         width: 100%;
-        box-shadow: none;
     }
 
     .item {
         height: 100%;
+        width: 100%;
     }
 }
 

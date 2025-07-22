@@ -86,7 +86,6 @@ export default function Rabbitholes() {
                   <RabbitholeCard
                     key={rabbithole.id.toString()}
                     rabbithole={rabbithole}
-                    navigateOnCardClick
                   />
                 );
               })}

@@ -1,10 +1,11 @@
+import { useEffect, useRef } from "react";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useLayout } from "../../contexts/LayoutContext";
 import { RabbitholeIndicator } from "../Display/Rabbitholes/RabbitholeIndicator";
 import MobileBar from "../UI/Layout/MobileBar";
 import styles from "./PageWrapper.module.scss";
 import StatusBar from "../UI/Layout/StatusBar";
-import { useEffect } from "react";
+import useScroll from "../../hooks/useScroll";
 
 type PageWrapperProps = {
   children: React.ReactNode;
@@ -12,6 +13,9 @@ type PageWrapperProps = {
 
 export default function PageWrapper({ children }: PageWrapperProps) {
   const { isMobile } = useLayout();
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
   const {
     rabbitholes: {
       entered: { get: enteredRabbithole },
@@ -23,6 +27,7 @@ export default function PageWrapper({ children }: PageWrapperProps) {
   return (
     <div
       className={`${styles.pageWrapper} ${hasEnteredRabbithole ? styles.hasRabbithole : ""}`}
+      ref={wrapperRef}
     >
       {children}
       {isMobile && <MobileBar />}
