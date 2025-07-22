@@ -125,10 +125,11 @@ export default function Dashboard() {
       feedback: { openFeedbackModal },
     },
   } = useInteraction();
+  const { isMobile } = useLayout();
 
   return (
     <PageWrapper>
-      <LeftSidebar startOpened>
+      <LeftSidebar startOpened={!isMobile}>
         <LeftSidebar.Open>
           <Text size="sm" c="dark.2" mb="lg">
             {getStatusText()}

@@ -24,6 +24,7 @@
     gap: var(--mantine-spacing-xs);
     border-radius: var(--mantine-radius-xl);
     height: var(--status-bar-height);
+    padding: 0 var(--layout-spacing);
 
     @include tablet {
         flex-direction: row;
