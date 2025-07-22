@@ -4,6 +4,7 @@ import {
   CaretLeftIcon,
   HouseIcon,
   ListMagnifyingGlassIcon,
+  SidebarIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 import { useLayout } from "../../../contexts/LayoutContext";
@@ -68,7 +69,7 @@ export default function MobileBar() {
             onClick={() => {
               setLeftMode("open");
             }}
-            variant="subtle"
+            variant="light"
             color={defaultColor}
           >
             <SidebarSimpleIcon />
@@ -82,15 +83,15 @@ export default function MobileBar() {
             onClick={() => {
               setRightMode("open");
             }}
-            variant="subtle"
+            variant="light"
             color={defaultColor}
           >
-            <CaretLeftIcon />
+            <SidebarSimpleIcon style={{ transform: "rotate(180deg)" }} />
           </ActionIcon>
         )}
         <ActionIcon
-          variant="subtle"
           onClick={openSpotlight}
+          variant="light"
           color={defaultColor}
         >
           <ListMagnifyingGlassIcon />
