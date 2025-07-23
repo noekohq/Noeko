@@ -117,6 +117,7 @@ router.post("/register-referred", async (req, res) => {
       password: hashedPassword,
       firstName: form.firstName,
       lastName: form.lastName,
+      scratchpadContent: `<h1>Hello and welcome to Qwest!</h1>`,
     });
 
     if (!newUser) {
@@ -439,6 +440,44 @@ router.put("/me", checkToken, async (req, res) => {
     });
   } catch (error) {
     console.error("User update error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/me/scratchpad", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+    const u = await User.get(user.id.toString());
+    res.send({
+      message: "Scratchpad updated successfully",
+      data: u.scratchpadContent,
+    });
+  } catch (error) {
+    console.error("User scratchpad error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+router.put("/me/scratchpad", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+    const { content } = req.body;
+    const updated = await User.update(user.id.toString(), {
+      scratchpadContent: content,
+    });
+    res.send({
+      message: "Scratchpad updated successfully",
+      data: updated?.scratchpadContent,
+    });
+  } catch (error) {
+    console.error("User scratchpad error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

@@ -32,7 +32,16 @@
     --node-radius: 24;
     --node-radius-selected: 36;
 
+    &.tag {
+        --node-radius: 36;
+        --node-radius-selected: 48;
+    }
+
     cursor: pointer;
+
+    circle {
+        r: var(--node-radius);
+    }
 
     &:hover {
         circle {

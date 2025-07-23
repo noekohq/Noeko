@@ -20,6 +20,7 @@ export type IUser = {
   lastName: string;
   email: string;
   password: string;
+  scratchpadContent: string;
   roles: RecordId[];
   disabled: boolean;
   referralCode?: string; // Added referral code
@@ -99,6 +100,7 @@ export class User {
         DEFINE FIELD IF NOT EXISTS lastName ON TABLE user TYPE string;
         DEFINE FIELD IF NOT EXISTS email ON TABLE user TYPE string;
         DEFINE FIELD IF NOT EXISTS password ON TABLE user TYPE string;
+        DEFINE FIELD IF NOT EXISTS scratchpadContent ON TABLE user TYPE string;
         DEFINE FIELD IF NOT EXISTS createdAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS updatedAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS roles ON TABLE user TYPE array<record<role>>;
@@ -192,6 +194,7 @@ export class User {
         lastName: form.lastName,
         email: form.email,
         password: form.password,
+        scratchpadContent: form.scratchpadContent,
         referralCode: Bun.randomUUIDv7(),
         roles: withRoles.map((r) => new StringRecordId(r)),
         createdAt: new Date(),

@@ -604,7 +604,10 @@ export class Idea {
       const db = await getDatabase();
       const results = await db?.query<[ISafeIdea[]]>(
         `
-        SELECT * OMIT embeddings FROM idea
+        SELECT
+          *
+        OMIT embeddings
+        FROM idea
         WHERE
           <-owns<-(user WHERE id = <record> $userId)
         ORDER BY

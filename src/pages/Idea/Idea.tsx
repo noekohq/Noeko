@@ -666,7 +666,7 @@ export default function Idea() {
                     <MarkdownLogoIcon />
                   </ActionIcon>
                 </Tooltip>
-                <Tooltip label="Copy as Markdown">
+                <Tooltip label="Copy">
                   <Menu trigger="hover">
                     <Menu.Target>
                       <ActionIcon variant="light" size="sm" color="gray">

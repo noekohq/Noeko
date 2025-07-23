@@ -11,6 +11,7 @@ import "@mantine/tiptap/styles.css";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/spotlight/styles.css";
+import "@mantine/charts/styles.css";
 import "./Global.css";
 import "./Global.scss";
 import { LayoutProvider } from "./contexts/LayoutContext.tsx";

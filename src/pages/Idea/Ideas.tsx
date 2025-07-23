@@ -97,7 +97,7 @@ export default function Ideas() {
         <Stack>
           <Title mt="md">All your great ideas...</Title>
           <Group justify="start">
-            <Link to="/spyglass">
+            <Link to="/search">
               <Button
                 variant="light"
                 leftSection={<MagnifyingGlassIcon weight="bold" />}

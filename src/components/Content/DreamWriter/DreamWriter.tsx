@@ -269,7 +269,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         injectCSS: false,
         autofocus: true,
       },
-      [...(dependencies ?? []), initialContent, readOnly],
+      [...(dependencies ?? []), initialContent, readOnly, content],
     );
 
     const [droppingOver, setDroppingOver] = useState(false);
