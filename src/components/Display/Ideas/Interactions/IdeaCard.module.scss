@@ -6,14 +6,23 @@
     border: 2px solid var(--mantine-color-dark-7);
     border-radius: var(--mantine-radius-md);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: var(--mantine-spacing-sm);
     width: 100%;
+    height: 100%;
 
     &:hover {
         transform: translateY(-2px);
     }
+
     &:active {
         transform: scale(0.98) translateY(2px);
+    }
+
+    .content {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: var(--mantine-spacing-sm);
     }
 }

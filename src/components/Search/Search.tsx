@@ -23,22 +23,17 @@ import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
 import { Link } from "react-router";
 import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
-import { IdeaAction, IIdeaCardsTypes } from "../Display/Ideas/IdeaCardTypes";
 import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { useAuth } from "../../contexts/AuthContext";
 import { formatDateTime } from "../../utils/formatting";
+import IdeaCard, { IIdeaAction } from "../Display/Ideas/Interactions/IdeaCard";
 
 interface ISearchProps {
-  resultActions?: ((idea: ISafeIdea) => IdeaAction)[];
-  resultSize?: IIdeaCardsTypes;
+  resultActions?: ((idea: ISafeIdea) => IIdeaAction)[];
   resultFilter?: (id: string) => boolean;
 }
 
-export default function Search({
-  resultActions,
-  resultSize,
-  resultFilter,
-}: ISearchProps) {
+export default function Search({ resultActions, resultFilter }: ISearchProps) {
   const [loading, setLoading] = useState(false);
   const os = getOS();
   const ctrl = os !== "macos";
@@ -75,8 +70,6 @@ export default function Search({
     if (!startTimeRef.current || !resultsTimeRef.current) return null;
     return ((resultsTimeRef.current - startTimeRef.current) / 1000).toFixed(2);
   }, [startTimeRef.current, resultsTimeRef.current]);
-
-  console.log("Results: ", searchResults);
 
   return (
     <div className={styles.searchWrapper}>
@@ -138,94 +131,29 @@ export default function Search({
                 if (!idea) {
                   return null;
                 }
-                switch (resultSize) {
-                  case "standard":
-                    return (
-                      <StandardIdeaCard
-                        key={s.id.toString()}
-                        idea={idea}
-                        draggable
-                        link
-                        detailsForHoverCard={
-                          <Match
-                            opener="->"
-                            closer="<-"
-                            match={(content) => {
-                              return (
-                                <span className={styles.highlight}>
-                                  {content}
-                                </span>
-                              );
-                            }}
-                          >
-                            {getSearchResultPreview(s) ||
-                              "No preview available."}
-                          </Match>
-                        }
-                        actions={resultActions?.map((r) => {
-                          return r(idea);
-                        })}
-                      />
-                    );
-                  case "detailed":
-                    return (
-                      <DetailedIdeaCard
-                        key={s.id.toString()}
-                        idea={idea}
-                        draggable
-                        link
-                        description={
-                          <Match
-                            opener="->"
-                            closer="<-"
-                            match={(content) => {
-                              return (
-                                <span className={styles.highlight}>
-                                  {content}
-                                </span>
-                              );
-                            }}
-                          >
-                            {getSearchResultPreview(s) ||
-                              "No preview available."}
-                          </Match>
-                        }
-                        actions={resultActions?.map((r) => {
-                          return r(idea);
-                        })}
-                      />
-                    );
-
-                  case "compact":
-                  default:
-                    return (
-                      <CompactIdeaCard
-                        key={s.id.toString()}
-                        idea={idea}
-                        draggable
-                        link
-                        detailsForHoverCard={
-                          <Match
-                            opener="->"
-                            closer="<-"
-                            match={(content) => {
-                              return (
-                                <span className={styles.highlight}>
-                                  {content}
-                                </span>
-                              );
-                            }}
-                          >
-                            {getSearchResultPreview(s) ||
-                              "No preview available."}
-                          </Match>
-                        }
-                        actions={resultActions?.map((r) => {
-                          return r(idea);
-                        })}
-                      />
-                    );
-                }
+                return (
+                  <IdeaCard
+                    key={s.id.toString()}
+                    idea={idea}
+                    details={
+                      <Match
+                        opener="->"
+                        closer="<-"
+                        match={(content) => {
+                          return (
+                            <span className={styles.highlight}>{content}</span>
+                          );
+                        }}
+                      >
+                        {getSearchResultPreview(s) || "No preview available."}
+                      </Match>
+                    }
+                    actions={resultActions?.map((r) => {
+                      return r(idea);
+                    })}
+                    actionsVisible={isMobile ? 1 : undefined}
+                  />
+                );
               })
               .filter((r) => !!r)}
           </Stack>

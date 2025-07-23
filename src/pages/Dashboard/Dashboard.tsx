@@ -47,7 +47,6 @@ import { getCurrentTimeFormatted } from "../../utils/datetime";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
 import TimeButton from "../../components/Display/Interactions/TimeButton";
 import { IDashboard } from "../../../app/services/Dashboard";
-import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import { useDisclosure } from "@mantine/hooks";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { Link } from "react-router";
@@ -284,9 +283,17 @@ function TopBar() {
           )}
         </StatusButton>
         {isMobile && (
-          <StatusButton leftSection={<ArticleIcon />}>
-            {user?.totalIdeas}
-          </StatusButton>
+          <Link
+            to="/ideas"
+            style={{
+              height: "100%",
+              textDecoration: "none",
+            }}
+          >
+            <StatusButton leftSection={<ArticleIcon />}>
+              {user?.totalIdeas}
+            </StatusButton>
+          </Link>
         )}
       </Group>
       <Group gap="xs" h="100%">

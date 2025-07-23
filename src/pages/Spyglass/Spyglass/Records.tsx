@@ -25,7 +25,6 @@ import {
   CaretLeftIcon,
   DotsThreeIcon,
 } from "@phosphor-icons/react";
-import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
 import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";

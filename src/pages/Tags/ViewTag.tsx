@@ -23,20 +23,16 @@ import { ITag, ITagForm } from "../../../app/database/models/tag";
 import { Link, useNavigate, useParams } from "react-router";
 import { IIdea } from "../../../app/database/models/ideas";
 import {
-  ArrowLeft,
-  Tag,
-  WarningCircle,
-  PencilSimple,
-  Trash,
-  FloppyDisk,
-  X,
+  ArrowLeftIcon,
+  FloppyDiskIcon,
   MagnifyingGlassIcon,
+  PencilSimpleIcon,
+  TagIcon,
+  TrashIcon,
+  WarningCircleIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Display/Tags/TagDisplay";
-import {
-  CompactIdeaCard,
-  StandardIdeaCard,
-} from "../../components/Display/Ideas/IdeaCards";
 import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
@@ -47,6 +43,7 @@ import Search from "../../components/Search/Search";
 import { useLayout } from "../../contexts/LayoutContext";
 import { useInteraction } from "../../contexts/InteractionContext";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -342,7 +339,7 @@ export default function ViewTag() {
               </Group>
               {relatedIdeaErrors && relatedIdeaErrors.length > 0 && (
                 <Alert
-                  icon={<WarningCircle size={24} />} // Updated icon
+                  icon={<WarningCircleIcon size={24} />} // Updated icon
                   title="Error!"
                   color="red"
                   mt="md"
@@ -355,15 +352,13 @@ export default function ViewTag() {
               filteredRelatedIdeas.length > 0 ? (
                 <Stack gap="md">
                   {filteredRelatedIdeas.map((idea) => (
-                    <StandardIdeaCard
-                      onCardClick={() => {
-                        navigate(`/idea/${idea.id.toString()}`);
-                      }}
+                    <IdeaCard
                       idea={idea}
                       key={idea.id.toString()}
+                      actionsVisible={1}
                       actions={[
                         {
-                          icon: <Tag />,
+                          icon: <TagIcon />,
                           id: "apply_tag",
                           label: `Apply "${tag.name}"`,
                           onClick: () => {
@@ -389,9 +384,6 @@ export default function ViewTag() {
         <div
           onDragOver={() => {
             setDraggingOver(true);
-          }}
-          onDrop={(e) => {
-            handleConnectionDrop(e);
           }}
           onDragLeave={(e) => {
             setDraggingOver(false);
@@ -420,7 +412,11 @@ export default function ViewTag() {
             <Stack gap="xl">
               <Group>
                 <Link to="/tags">
-                  <Button variant="subtle" leftSection={<ArrowLeft />}>
+                  <Button
+                    variant="subtle"
+                    leftSection={<ArrowLeftIcon />}
+                    color="gray"
+                  >
                     All Tags
                   </Button>
                 </Link>
@@ -437,7 +433,7 @@ export default function ViewTag() {
                           loading={updateTagLoading}
                           title="Save Tag"
                         >
-                          <FloppyDisk weight="bold" />
+                          <FloppyDiskIcon weight="bold" />
                         </ActionIcon>
                         <ActionIcon
                           variant="outline"
@@ -445,7 +441,7 @@ export default function ViewTag() {
                           onClick={handleCancel}
                           title="Cancel Edit"
                         >
-                          <X weight="bold" />
+                          <XIcon weight="bold" />
                         </ActionIcon>
                       </Group>
                     </Group>
@@ -497,7 +493,7 @@ export default function ViewTag() {
                           onClick={() => setIsEditing(true)}
                           title="Edit Tag"
                         >
-                          <PencilSimple />
+                          <PencilSimpleIcon />
                         </ActionIcon>
                         <ActionIcon
                           variant="subtle"
@@ -505,7 +501,7 @@ export default function ViewTag() {
                           onClick={openDeleteModal}
                           title="Delete Tag"
                         >
-                          <Trash />
+                          <TrashIcon />
                         </ActionIcon>
                       </Group>
                     </Group>
@@ -521,7 +517,7 @@ export default function ViewTag() {
                 </Group>
                 {ideaErrors && ideaErrors.length > 0 && (
                   <Alert
-                    icon={<WarningCircle size={24} />} // Updated icon
+                    icon={<WarningCircleIcon size={24} />} // Updated icon
                     title="Error!"
                     color="red"
                     mt="md"
@@ -532,15 +528,13 @@ export default function ViewTag() {
                 {ideas && ideas.length > 0 ? (
                   <SimpleGrid cols={2} spacing="lg">
                     {ideas.map((idea) => (
-                      <CompactIdeaCard
+                      <IdeaCard
                         idea={idea}
                         key={idea.id.toString()}
-                        onCardClick={() => {
-                          navigate(`/idea/${idea.id.toString()}`);
-                        }}
+                        actionsVisible={1}
                         actions={[
                           {
-                            icon: <Tag />,
+                            icon: <TagIcon />,
                             id: "remove_tag",
                             label: `Remove tag`,
                             onClick: () => {

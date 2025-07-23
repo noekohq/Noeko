@@ -1,7 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { User } from "./user";
-import { Idea, IIdea } from "./ideas"; // Assuming Idea model is in this path
+import { Idea, IIdea, IIdeaDerived } from "./ideas"; // Assuming Idea model is in this path
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { getLM } from "../../ai/lms/lm";
 import { LMSchemaType } from "../../ai/lms";
@@ -95,10 +95,36 @@ export class Tag {
       `;
     };
 
+    const searchSimilarToTagFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_ideas_similar_to_tag(
+        $tag: record<tag>,
+        $user: record<user>
+      ) {
+        LET $tag_embeddings = SELECT VALUE embeddings FROM ONLY $tag;
+
+        LET $ideas =
+          SELECT
+            *,
+            ->is_source_for->(?) as derivedList,
+            vector::similarity::cosine(embeddings, $tag_embeddings) as similarity
+          FROM idea
+          WHERE
+            <-owns<-(user WHERE id = $user) AND
+            embeddings <|10, 400|> $tag_embeddings AND
+            embeddings != NONE
+          ORDER BY similarity DESC;
+
+        RETURN $ideas;
+      }
+      `;
+    };
+
     await db.query(getTagFunction());
     await db.query(getUserTagsFunction());
     await db.query(getIdeasForTagFunction());
     await db.query(getTagsForIdeaFunction());
+    await db.query(searchSimilarToTagFunction());
   }
 
   static async create(
@@ -472,21 +498,28 @@ export class Tag {
         return [];
       }
 
-      const results = await db.run<Idea[]>("fn::search_ideas_similar_to_tag", [
-        new StringRecordId(tagId),
-        new StringRecordId(userId),
-      ]);
+      const results = await db.run<(IIdea & { derivedList: IIdeaDerived[] })[]>(
+        "fn::search_ideas_similar_to_tag",
+        [new StringRecordId(tagId), new StringRecordId(userId)],
+      );
 
       if (!results) {
-        // This handles cases where db.run might return null/undefined for no results,
-        // or if the function itself returns an explicit null/undefined.
-        // Returning an empty array for "no results found" is consistent with other methods.
         console.warn(
           `No similar ideas found for tag ${tagId.toString()} for user ${userId.toString()}.`,
         );
         return [];
       }
-      return results;
+
+      const withDerived = results.map((idea) => {
+        return {
+          ...idea,
+          derived: Idea.mapDerived(idea.derivedList),
+        } as Idea;
+      });
+
+      const final = withDerived;
+
+      return final;
     } catch (error) {
       console.error(
         `Error getting similar ideas for tag ${tagId.toString()}: `,

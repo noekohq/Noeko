@@ -1,5 +1,5 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import { IIdea } from "./ideas";
+import { IIdea, ISafeIdea } from "./ideas";
 import { getDatabase } from "../db";
 import { logger } from "../../services/Logger";
 import { ITag } from "./tag";
@@ -54,11 +54,56 @@ export default class Rabbithole {
       `;
     };
 
+    const searchSimilarToRabbitholeFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_ideas_similar_to_rabbithole(
+        $rabbithole: record<rabbithole>,
+        $user: record<user>
+      ) {
+        LET $includes =
+          SELECT VALUE
+            ->includes->(?) as includes
+          FROM ONLY $rabbithole
+          FETCH includes;
+        LET $count = count($includes);
+
+        IF ($count = 0) THEN
+          RETURN [];
+        END;
+
+        LET $vectors = SELECT VALUE embeddings FROM $includes;
+
+        LET $average = array::fold(
+            $vectors,
+            array::repeat(0, array::len(array::first($vectors))),
+            |$accumulator, $current_vector| vector::add($accumulator, $current_vector)
+        );
+
+        LET $ideas =
+          SELECT
+            *,
+            ->is_source_for->(?) as derivedList,
+            vector::similarity::cosine(embeddings, $average) as similarity
+          OMIT embeddings
+          FROM idea
+          WHERE
+            <-owns<-(user WHERE id = $user) AND
+            id NOT IN $includes.id AND
+            embeddings <|10, 400|> $average AND
+            embeddings != NONE
+          ORDER BY similarity DESC;
+
+        RETURN $ideas;
+      }
+      `;
+    };
+
     const db = await getDatabase();
     if (!db) {
       console.error("Error running Rabbithole up method!");
     }
-    db?.query(rabbitholeGetFunction());
+    await db?.query(rabbitholeGetFunction());
+    await db?.query(searchSimilarToRabbitholeFunction());
   }
 
   public static async down() {}
@@ -250,7 +295,7 @@ export default class Rabbithole {
       limit?: number;
       threshold?: number;
     },
-  ): Promise<IIdea[] | undefined> {
+  ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -262,21 +307,10 @@ export default class Rabbithole {
           `Rabbithole with id ${rabbitholeId.toString()} not found.`,
         );
       }
-      const rEmbeddings = !!rabbithole.includes?.length
-        ? averageEmbeddings(
-            rabbithole.includes
-              ?.map((idea) => idea.embeddings)
-              .filter((e) => !!e),
-          )
-        : Array(768).fill(0);
-      if (!rEmbeddings || rEmbeddings.length === 0) {
-        console.warn(
-          `Rabbithole with id ${rabbitholeId.toString()} has no embeddings.`,
-        );
-        return [];
-      }
-
-      const results = await Search.searchByEmbedding(userId, rEmbeddings);
+      const results = await db.run<ISafeIdea[]>(
+        "fn::search_ideas_similar_to_rabbithole",
+        [new StringRecordId(rabbitholeId), new StringRecordId(userId)],
+      );
 
       if (!results) {
         console.warn(
@@ -284,9 +318,7 @@ export default class Rabbithole {
         );
         return [];
       }
-      return results.map((m) => {
-        return m.value as IIdea;
-      });
+      return results;
     } catch (error) {
       console.error(
         `Error getting similar ideas for rabbithole ${rabbitholeId.toString()}: `,
