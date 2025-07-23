@@ -45,6 +45,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
+import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -235,52 +236,7 @@ export default function Spyglass() {
                       return null;
                     }
 
-                    return (
-                      <IdeaCard
-                        key={idea.id.toString()}
-                        idea={idea}
-                        description={`${citation.excerpts.length} reference${citation.excerpts.length > 1 ? "s" : ""} - ${idea.contentPlain?.slice(0, 24)}...`}
-                        details={
-                          <Stack gap="xs">
-                            {citation.excerpts.map((excerpt, i) => {
-                              return (
-                                <Group wrap="nowrap" align="flex-start">
-                                  <ActionIcon
-                                    variant="subtle"
-                                    size="xs"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigate(
-                                        `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
-                                      );
-                                    }}
-                                    style={{ cursor: "pointer" }}
-                                  >
-                                    <Text size="xs">
-                                      {citation?.index}
-                                      {numberToLetter(i).toLowerCase()}
-                                    </Text>
-                                  </ActionIcon>
-                                  <Text>
-                                    <Match
-                                      opener="->"
-                                      closer="<-"
-                                      match={(m) => {
-                                        return (
-                                          <span className="highlight">{m}</span>
-                                        );
-                                      }}
-                                    >
-                                      {sanitizeMarkdownForDescription(excerpt)}
-                                    </Match>
-                                  </Text>
-                                </Group>
-                              );
-                            })}
-                          </Stack>
-                        }
-                      />
-                    );
+                    return <IdeaCard key={idea.id.toString()} idea={idea} />;
                   })}
                 </Group>
               </div>
@@ -327,6 +283,7 @@ export default function Spyglass() {
                 mb="lg"
               >
                 Spyglass
+                <SpyglassIcon size={36} />
               </Title>
             )}
             {(!!initialized || !!initializing) && (
