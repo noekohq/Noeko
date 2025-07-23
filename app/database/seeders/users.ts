@@ -39,6 +39,7 @@ export const seedUsers = async () => {
             email: user,
             firstName: "Super",
             lastName: "User",
+            scratchpadContent: "",
             password: await hashPassword(userPassword),
           },
           ["role:superuser", "role:user"],
