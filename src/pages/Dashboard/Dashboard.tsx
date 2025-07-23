@@ -89,7 +89,6 @@ export default function Dashboard() {
     loadWidgets();
   }, []);
 
-  console.log("Loaded widgets: ", LoadedWidgets);
   const { data: dashboardData } = useFetch<undefined, IDashboard>({
     url: "/dashboard",
     runOnMount: true,
