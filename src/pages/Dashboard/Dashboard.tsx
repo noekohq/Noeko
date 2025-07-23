@@ -238,8 +238,11 @@ export default function Dashboard() {
                 size="xs"
                 variant="light"
                 leftSection={<MegaphoneIcon />}
+                onClick={() => {
+                  openFeedbackModal();
+                }}
               >
-                Suggest one!
+                Suggest a widget!
               </Button>
             </Stack>
           </Grid.Col>

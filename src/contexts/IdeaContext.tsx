@@ -2,12 +2,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
 import { IIdea, ISafeIdea } from "../../app/database/models/ideas";
 import { createIdeaConnection } from "../utils/ideas";
-import { ideasAreConnected } from "../utils/graph";
+import { ideasAreConnected, isIncluded } from "../utils/graph";
+import useFetch from "../hooks/useFetch";
 
 type IIdeaContext = {
   idea?: ISafeIdea;
@@ -36,6 +38,18 @@ export const IdeaProvider = ({
   const runningConnection = useRef(false);
   const ranConnection = useRef(false);
 
+  const {
+    load: loadConnections,
+    data: connections,
+    loading: loadingConnections,
+  } = useFetch<undefined, ISafeIdea[]>({
+    url: `/ideas/${idea?.id.toString()}/connections`,
+  });
+
+  useEffect(() => {
+    loadConnections();
+  }, [idea]);
+
   const connectIdeas = useCallback(
     async (target: string) => {
       if (!idea || loadingConnection) {
@@ -48,7 +62,7 @@ export const IdeaProvider = ({
       await reloadIdea();
       setLoadingConnection(false);
     },
-    [idea, loadingConnection],
+    [idea, loadingConnection, connections],
   );
 
   const ensureConnected = useCallback(
@@ -61,7 +75,10 @@ export const IdeaProvider = ({
       ) {
         return false;
       }
-      const areConnected = ideasAreConnected(idea, target);
+      if (!connections) {
+        return;
+      }
+      const areConnected = isIncluded(connections, target);
       if (areConnected === undefined) {
         return;
       }
@@ -69,7 +86,7 @@ export const IdeaProvider = ({
         await connectIdeas(target);
       }
     },
-    [idea?.id, loadingConnection],
+    [idea?.id, loadingConnection, connections],
   );
 
   return (

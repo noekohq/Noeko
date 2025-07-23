@@ -96,6 +96,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
               required
               data-autofocus
               {...feedbackForm.getInputProps("content")}
+              resize="vertical"
             />
           </Grid.Col>
           <Grid.Col span={12}>
