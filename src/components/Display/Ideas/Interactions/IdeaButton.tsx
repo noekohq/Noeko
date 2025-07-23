@@ -1,10 +1,30 @@
 import React from "react";
-import { ActionIcon, Group, MantineColor, Text, Tooltip } from "@mantine/core";
+import {
+  ActionIcon,
+  Group,
+  HoverCard,
+  MantineColor,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import { IIdea, PhosphorIcon } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
-import { IconProps } from "@phosphor-icons/react";
+import { IconProps, ArrowRightIcon } from "@phosphor-icons/react";
+import { Link } from "react-router";
+import { getNodeDescription } from "../../../../utils/graph";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
+
+const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
+  if (idea.content) {
+    return <div dangerouslySetInnerHTML={{ __html: idea.content }} />;
+  }
+  return (
+    <Text size="sm" c="dimmed">
+      No preview available.
+    </Text>
+  );
+};
 
 type IIdeaButtonAction = {
   id: string;
@@ -45,52 +65,76 @@ function IdeaButton({
     setIsInternallyDragging(false);
   };
 
+  const hoverDetails = getIdeaDefaultDetails(idea);
+
   return (
-    <button
-      data-idea-id={idea.id.toString()}
-      className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
-      draggable={draggable}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onMouseEnter={() => {
-        setHovering(true);
-      }}
-      onMouseLeave={() => {
-        setHovering(false);
-      }}
-      disabled={isInternallyDragging}
-    >
-      <Group justify="space-between" wrap="nowrap" w="100%">
-        <Text className={styles.title} c="dark.1" size="sm" truncate="end">
-          {idea.title}
-        </Text>
-        {hovering && (
-          <Group>
-            {actions?.map((action) => {
-              return (
-                <ActionIcon
-                  size="xs"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    action.onClick(e);
-                  }}
-                  variant="subtle"
-                  color={action.color ? action.color : "dark.4"}
-                  title={action.tooltip}
-                >
-                  {action.icon
-                    ? React.cloneElement(action.icon, {
-                        size: 12,
-                      })
-                    : undefined}
-                </ActionIcon>
-              );
-            })}
+    <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
+      <HoverCard.Target>
+        <button
+          data-idea-id={idea.id.toString()}
+          className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
+          draggable={draggable}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onMouseEnter={() => {
+            setHovering(true);
+          }}
+          onMouseLeave={() => {
+            setHovering(false);
+          }}
+          disabled={isInternallyDragging}
+        >
+          <Group justify="space-between" wrap="nowrap" w="100%">
+            <Text className={styles.title} c="dark.1" size="sm" truncate="end">
+              {idea.title}
+            </Text>
+            {hovering && (
+              <Group>
+                {actions?.map((action) => {
+                  return (
+                    <ActionIcon
+                      size="xs"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        action.onClick(e);
+                      }}
+                      variant="subtle"
+                      color={action.color ? action.color : "dark.4"}
+                      title={action.tooltip}
+                    >
+                      {action.icon
+                        ? React.cloneElement(action.icon, {
+                            size: 12,
+                          })
+                        : undefined}
+                    </ActionIcon>
+                  );
+                })}
+              </Group>
+            )}
           </Group>
-        )}
-      </Group>
-    </button>
+        </button>
+      </HoverCard.Target>
+      <HoverCard.Dropdown
+        style={{
+          overflowY: "scroll",
+          maxHeight: "400px",
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        <Group>
+          <Link to={`/idea/${idea.id.toString()}`}>
+            <ActionIcon size="sm" color="dark.3" variant="light">
+              <ArrowRightIcon weight="bold" />
+            </ActionIcon>
+          </Link>
+        </Group>
+        {hoverDetails}
+      </HoverCard.Dropdown>
+    </HoverCard>
   );
 }
 
