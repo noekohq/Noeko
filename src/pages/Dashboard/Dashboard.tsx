@@ -180,8 +180,8 @@ export default function Dashboard() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <TopBar />
-        <Flex
+        {/* <TopBar /> */}
+        {/* <Flex
           justify={"center"}
           align="center"
           direction="column"
@@ -205,19 +205,17 @@ export default function Dashboard() {
               </Group>
             </Button>
           </Group>
-        </Flex>
-        {/* <Grid grow>
+        </Flex> */}
+        <Grid grow>
           <Grid.Col span={12}>
             <TopBar />
           </Grid.Col>
           <Grid.Col
             span={12}
             style={{
-              outline: "1px solid red",
               height: "100%",
             }}
-          >
-          </Grid.Col>
+          ></Grid.Col>
           {LoadedWidgets.map(({ id, Component, config }) => {
             return (
               <Grid.Col
@@ -233,7 +231,7 @@ export default function Dashboard() {
               </Grid.Col>
             );
           })}
-        </Grid> */}
+        </Grid>
       </Content>
       <StatusBar>
         <StatusBar.Showing>
@@ -264,8 +262,12 @@ function TopBar() {
   } = useSettings();
 
   return (
-    <Group justify="space-between" h="var(--status-bar-height)">
-      <Group h="100%">
+    <Group justify="space-between" py="md">
+      <Group
+        h="var(--status-bar-height)"
+        justify={isMobile ? "space-between" : "flex-start"}
+        w={isMobile ? "100%" : undefined}
+      >
         <StatusButton
           onClick={() => {
             if (currentScheme === "dark") {
@@ -295,17 +297,25 @@ function TopBar() {
           </Link>
         )}
       </Group>
-      <Group gap="xs" h="100%">
-        <HandWavingIcon weight="bold" />
-        <Text size="md">
+      <Title order={2}>
+        <Group gap="xs" h="100%">
+          <HandWavingIcon weight="bold" />
           Welcome back {user?.firstName}, your Qwest continues.
-        </Text>
-      </Group>
+        </Group>
+      </Title>
       {!isMobile && (
-        <Group h="100%">
-          <StatusButton leftSection={<ArticleIcon />}>
-            {user?.totalIdeas}
-          </StatusButton>
+        <Group h="var(--status-bar-height)">
+          <Link
+            to="/ideas"
+            style={{
+              height: "100%",
+              textDecoration: "none",
+            }}
+          >
+            <StatusButton leftSection={<ArticleIcon />}>
+              {user?.totalIdeas}
+            </StatusButton>
+          </Link>
         </Group>
       )}
     </Group>

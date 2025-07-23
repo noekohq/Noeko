@@ -23,6 +23,18 @@ export const newIdea = async () => {
   }
 };
 
+export const createIdea = async (content: string) => {
+  try {
+    const results = await api.post("/ideas", {
+      content,
+    });
+    return results.data.data as IIdea;
+  } catch (error) {
+    console.error("Error creating new idea.");
+    return undefined;
+  }
+};
+
 export const handleCreateNewIdea = async (
   cb: (idea: IIdea) => void,
   err: (err: Error) => void,

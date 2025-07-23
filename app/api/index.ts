@@ -10,6 +10,7 @@ import ideasRouter from "./ideas";
 import tagRouter from "./tags";
 import rabbitholeRouter from "./rabbithole";
 import healthCheckRouter from "./healthcheck";
+import analysisRouter from "./analysis";
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use("/feedback", feedbackRouter);
 router.use("/imports", importRouter);
 router.use("/tags", tagRouter);
 router.use("/rabbitholes", rabbitholeRouter);
+router.use("/analysis", analysisRouter);
 
 export default router;

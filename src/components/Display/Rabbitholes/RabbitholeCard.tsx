@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { IconProps } from "../../Utils/Icons/Icon";
 import styles from "./RabbitholeCard.module.scss";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
+import { RabbitholeIcon } from "../../Utils/Icons/Icons";
 
 export type IRabbitholeAction = {
   id: string;
@@ -28,7 +29,6 @@ export type IRabbitholeAction = {
 interface IRabbitholeCardProps {
   rabbithole: IRabbithole;
   description?: string;
-  titleIcon?: React.ReactNode;
   onClick?: (rabbithole: IRabbithole) => void;
   actions?: IRabbitholeAction[];
 }
@@ -43,7 +43,6 @@ export default function RabbitholeCard({
   rabbithole,
   description,
   onClick,
-  titleIcon,
   actions,
 }: IRabbitholeCardProps) {
   const navigate = useNavigate();
@@ -67,12 +66,12 @@ export default function RabbitholeCard({
       className={styles.rabbitholeCard}
     >
       <Group justify="space-between">
-        <Group gap="xs">
-          {titleIcon}
-          <Text size="sm" fw="bold">
+        <Text size="sm" fw="bold">
+          <Group gap="xs" wrap="nowrap">
+            <RabbitholeIcon size={16} />
             {rabbithole.name}
-          </Text>
-        </Group>
+          </Group>
+        </Text>
         <Group>
           {!!actions?.length && (
             <Menu position="bottom-end">

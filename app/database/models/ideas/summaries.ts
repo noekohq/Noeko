@@ -273,13 +273,13 @@ export class GenerativeSummary {
         throw new Error("Failed to fetch derived summaries");
       }
       const [derivedSummaries] = derivedSummariesResults;
-      if (!derivedSummaries || derivedSummaries.length < 1) {
-        const newSummary = await this.create(ideaId);
-        if (!newSummary) {
-          return false;
-        }
-        return true;
-      }
+      // if (!derivedSummaries || derivedSummaries.length < 1) {
+      //   const newSummary = await this.create(ideaId);
+      //   if (!newSummary) {
+      //     return false;
+      //   }
+      //   return true;
+      // }
       for (const summary of derivedSummaries) {
         await this.refreshGenerativeSummary(summary.id);
       }
