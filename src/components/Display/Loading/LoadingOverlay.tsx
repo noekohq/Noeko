@@ -11,7 +11,6 @@ export default function LoadingOverlay({
   loading,
   children,
 }: ILoadingOverlayProps) {
-  console.log("Visible");
   return (
     <div
       className={`${styles.overlay} ${loading ? styles.loading : styles.gone}`}

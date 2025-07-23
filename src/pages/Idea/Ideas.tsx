@@ -5,7 +5,6 @@ import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import {
-  Container,
   Loader,
   Center,
   Grid,
@@ -16,14 +15,14 @@ import {
   Stack,
   Button,
 } from "@mantine/core"; // Added Loader and Center for UX
-import { CompactIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import styles from "./Ideas.module.scss";
-import { MagnifyingGlass, Plus, PlusIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { useLayout } from "../../contexts/LayoutContext";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 
 export default function Ideas() {
   const { isMobile } = useLayout();
@@ -101,7 +100,7 @@ export default function Ideas() {
             <Link to="/spyglass">
               <Button
                 variant="light"
-                leftSection={<MagnifyingGlass weight="bold" />}
+                leftSection={<MagnifyingGlassIcon weight="bold" />}
               >
                 Search your ideas...
               </Button>
@@ -121,7 +120,7 @@ export default function Ideas() {
         <Grid>
           {allIdeas.map((idea, i) => (
             <Grid.Col key={idea.id.toString()} span={{ sm: 6 }}>
-              <CompactIdeaCard idea={idea} link />
+              <IdeaCard idea={idea} />
             </Grid.Col>
           ))}
         </Grid>

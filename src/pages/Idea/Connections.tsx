@@ -38,13 +38,9 @@ import {
 } from "@phosphor-icons/react";
 import { api } from "../../server/api";
 import { similarityToColor, similarityToLevel } from "../../vars/ideas";
-import { ideasAreConnected } from "../../utils/graph";
-import {
-  CompactIdeaCard,
-  StandardIdeaCard,
-} from "../../components/Display/Ideas/IdeaCards";
+
 import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
-import IdeaButton from "../../components/Display/Ideas/IdeaButton";
+import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
 import { useInteraction } from "../../contexts/InteractionContext";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 

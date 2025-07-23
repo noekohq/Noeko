@@ -38,10 +38,6 @@ import {
   TrashIcon,
 } from "@phosphor-icons/react";
 import { IIdea } from "../../../app/database/models/ideas";
-import {
-  CompactIdeaCard,
-  StandardIdeaCard,
-} from "../../components/Display/Ideas/IdeaCards";
 import Search from "../../components/Search/Search";
 import {
   deleteRabbithole,
@@ -57,6 +53,7 @@ import { useSearch } from "../../contexts/SearchContext";
 import { IdeaAction } from "../../components/Display/Ideas/IdeaCardTypes";
 import { modals } from "@mantine/modals";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 
 export default function Rabbithole() {
   const [error, setError] = useState("");
@@ -185,7 +182,6 @@ export default function Rabbithole() {
 
   const handleConnectionDrop = useCallback(
     async (e: React.DragEvent<HTMLDivElement>) => {
-      console.log("Trying to drop");
       try {
         if (!rabbithole) {
           return;
@@ -370,40 +366,25 @@ export default function Rabbithole() {
                         return !isIncluded(r.id.toString());
                       })
                       ?.map((idea) => {
-                        if (isMobile) {
-                          return (
-                            <StandardIdeaCard
-                              key={idea.id.toString()}
-                              onCardClick={() => {
-                                navigate(`/idea/${idea.id.toString()}`);
-                              }}
-                              idea={idea}
-                              draggable
-                              actions={[
-                                {
-                                  id: "connect",
-                                  icon: isIncludingThing(idea.id.toString()) ? (
-                                    <Loader size="sm" />
-                                  ) : (
-                                    <PlusIcon />
-                                  ),
-                                  label: "Include",
-                                  onClick: () => {
-                                    handleInclude(idea.id.toString());
-                                  },
-                                },
-                              ]}
-                            />
-                          );
-                        }
                         return (
-                          <CompactIdeaCard
+                          <IdeaCard
                             key={idea.id.toString()}
-                            onCardClick={() => {
-                              navigate(`/idea/${idea.id.toString()}`);
-                            }}
                             idea={idea}
-                            draggable
+                            actionsVisible={isMobile ? 1 : undefined}
+                            actions={[
+                              {
+                                id: "connect",
+                                icon: isIncludingThing(idea.id.toString()) ? (
+                                  <Loader size="sm" />
+                                ) : (
+                                  <PlusIcon />
+                                ),
+                                label: "Include",
+                                onClick: () => {
+                                  handleInclude(idea.id.toString());
+                                },
+                              },
+                            ]}
                           />
                         );
                       })}
@@ -518,46 +499,20 @@ export default function Rabbithole() {
                       .map((thing) => {
                         if (thing.id.toString().startsWith("idea")) {
                           const idea = thing as IIdea;
-                          if (isMobile) {
-                            return (
-                              <StandardIdeaCard
-                                key={idea.id.toString()}
-                                onCardClick={() => {
-                                  navigate(`/idea/${idea.id.toString()}`);
-                                }}
-                                idea={idea}
-                                actions={[
-                                  {
-                                    icon: <DoorOpenIcon />,
-                                    id: "uninclude",
-                                    label: `Remove`,
-                                    onClick: () => {
-                                      handleUninclude(thing.id.toString());
-                                    },
-                                    tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                    color: "gray",
-                                  },
-                                ]}
-                              />
-                            );
-                          }
                           return (
-                            <CompactIdeaCard
+                            <IdeaCard
                               key={idea.id.toString()}
-                              onCardClick={() => {
-                                navigate(`/idea/${idea.id.toString()}`);
-                              }}
                               idea={idea}
                               actions={[
                                 {
                                   icon: <DoorOpenIcon />,
                                   id: "uninclude",
-                                  label: `Uninclude`,
+                                  label: `Remove`,
                                   onClick: () => {
                                     handleUninclude(thing.id.toString());
                                   },
                                   tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                  color: "red",
+                                  color: "gray",
                                 },
                               ]}
                             />
@@ -635,46 +590,20 @@ export default function Rabbithole() {
                           .map((thing) => {
                             if (thing.id.toString().startsWith("idea")) {
                               const idea = thing as IIdea;
-                              if (isMobile) {
-                                return (
-                                  <StandardIdeaCard
-                                    key={idea.id.toString()}
-                                    onCardClick={() => {
-                                      navigate(`/idea/${idea.id.toString()}`);
-                                    }}
-                                    idea={idea}
-                                    actions={[
-                                      {
-                                        icon: <DoorOpenIcon />,
-                                        id: "uninclude",
-                                        label: `Remove`,
-                                        onClick: () => {
-                                          handleUninclude(thing.id.toString());
-                                        },
-                                        tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                        color: "gray",
-                                      },
-                                    ]}
-                                  />
-                                );
-                              }
                               return (
-                                <CompactIdeaCard
+                                <IdeaCard
                                   key={idea.id.toString()}
-                                  onCardClick={() => {
-                                    navigate(`/idea/${idea.id.toString()}`);
-                                  }}
                                   idea={idea}
                                   actions={[
                                     {
                                       icon: <DoorOpenIcon />,
                                       id: "uninclude",
-                                      label: `Uninclude`,
+                                      label: `Remove`,
                                       onClick: () => {
                                         handleUninclude(thing.id.toString());
                                       },
                                       tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                      color: "red",
+                                      color: "gray",
                                     },
                                   ]}
                                 />

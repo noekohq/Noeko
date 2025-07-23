@@ -8,7 +8,6 @@ import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
 import RightSidebar from "../../../components/UI/Layout/Right";
 import Content from "../../../components/UI/Layout/Content";
-import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
 import {
   Card,
   Flex,

@@ -26,16 +26,3 @@ export function averageEmbeddings(vectors: number[][]): number[] {
 
   return averageVector;
 }
-
-// --- Example Usage ---
-
-const embeddings: number[][] = [
-  [0.1, 0.2, 0.3],
-  [0.4, 0.5, 0.6],
-  [0.7, 0.8, 0.9],
-];
-
-const avgVector = averageEmbeddings(embeddings);
-
-console.log(avgVector);
-// Expected output: [0.4, 0.5, 0.6]

@@ -22,7 +22,6 @@ import {
 } from "../../../utils/formatting";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import { getNodeAsIdeaOrNull } from "../../../utils/graph";
-import { CompactIdeaCard } from "../../../components/Display/Ideas/IdeaCards";
 import Match from "../../../components/Utils/Match";
 import { getSearchResultPreview } from "../../../utils/search";
 
@@ -34,6 +33,7 @@ import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { ArrowRightIcon, CaretLeftIcon } from "@phosphor-icons/react";
 import StatusBar from "../../../components/UI/Layout/Bottom";
+import IdeaCard from "../../../components/Display/Ideas/Interactions/IdeaCard";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -120,21 +120,10 @@ export default function SpyglassRecord() {
                     }
 
                     return (
-                      <CompactIdeaCard
+                      <IdeaCard
                         idea={idea}
-                        maxTitleLines={2}
-                        withBorder
-                        cardShadow="none"
-                        maxDescriptionLines={3}
-                        style={{
-                          width: "100%",
-                        }}
                         description={`${citation.excerpts.length} reference${citation.excerpts.length > 1 ? "s" : ""} - ${idea.contentPlain?.slice(0, 24)}...`}
-                        onCardClick={(e) => {
-                          e.preventDefault();
-                          navigate(`/idea/${idea.id.toString()}`);
-                        }}
-                        detailsForHoverCard={
+                        details={
                           <Stack gap="xs">
                             {citation.excerpts.map((excerpt, i) => {
                               return (
@@ -173,16 +162,6 @@ export default function SpyglassRecord() {
                             })}
                           </Stack>
                         }
-                        artifacts={[
-                          {
-                            id: "index",
-                            content: (
-                              <ActionIcon variant="light" size="xs" radius="lg">
-                                <Text size="xs">{citation.index}</Text>
-                              </ActionIcon>
-                            ),
-                          },
-                        ]}
                       />
                     );
                   })}

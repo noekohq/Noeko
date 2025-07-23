@@ -321,12 +321,8 @@ export class Search {
     );
   }
 
-  /**
-   * Performs Full-Text Search (FTS) using the original `fn::search_user_ideas_fts`.
-   * Returns results mapped to the standardized ISearchResult format.
-   */
   static async ftsSearch(
-    userId: string,
+    userId: string | RecordId,
     query: string,
     options?: {
       rabbitholeId?: string;
@@ -534,7 +530,7 @@ export class Search {
    * Returns results in the standardized ISearchResult format, ranked by a combined score.
    */
   static async comprehensiveSearch(
-    userId: string,
+    userId: string | RecordId,
     query: string,
     options: { limit?: number; rabbitholeId?: string } = {},
   ): Promise<ISearchResult[] | undefined> {
