@@ -21,6 +21,7 @@ import {
   HouseIcon,
   RabbitIcon,
   DoorOpenIcon,
+  ShieldStarIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -500,6 +501,7 @@ const useSpotlightConfig = ({
       tags,
       updates,
       sharedIdeas,
+      admin,
     },
   } = useInteraction();
 
@@ -614,6 +616,19 @@ const useSpotlightConfig = ({
         subviewId: "fontSelectorSubview",
         keywords: "serif sans-serif",
       },
+      ...(isSuperuser
+        ? [
+            {
+              id: "admin",
+              title: "Admin",
+              icon: <ShieldStarIcon />,
+              action: () => {
+                admin();
+                onClose();
+              },
+            },
+          ]
+        : []),
     ],
     [
       onClose,

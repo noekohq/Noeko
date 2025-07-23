@@ -32,9 +32,6 @@ const getIdeaDefaultSummary = (idea: ISafeIdea): string | undefined => {
 };
 
 const getIdeaDefaultDetails = (idea: ISafeIdea): React.ReactNode => {
-  if (idea.derived?.generative_summary) {
-    return <OverviewAccordion overview={idea.derived.generative_summary} />;
-  }
   if (idea.content) {
     return <div dangerouslySetInnerHTML={{ __html: idea.content }} />;
   }
@@ -134,7 +131,7 @@ export default function IdeaCard({
       onDragEnd={handleDragEnd}
       draggable={true}
     >
-      <HoverCard radius="lg" openDelay={200} width={"400px"} withArrow>
+      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
         <HoverCard.Target>
           <div className={styles.content}>
             <Group gap="xs">
@@ -174,6 +171,9 @@ export default function IdeaCard({
           style={{
             overflowY: "scroll",
             maxHeight: "400px",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
           }}
         >
           <Group>
