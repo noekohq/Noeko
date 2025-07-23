@@ -474,18 +474,10 @@ export default function Idea() {
             </Tabs.List>
             <Tabs.Panel value="context">
               <Card radius="md" withBorder shadow="xs" p="md">
-                <Text fw={500} c="dimmed" size="sm" mb={4}>
-                  <SparkleIcon
-                    weight="bold"
-                    style={{
-                      verticalAlign: "middle",
-                      marginRight: "6px",
-                      fontSize: "1.1em",
-                    }}
-                  />
-                  Content Overview
+                <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+                  The Gist
                 </Text>
-                <Text size="sm" lineClamp={3}>
+                <Text size="sm">
                   {idea?.derived?.generative_summary?.sentenceSummary ||
                     idea?.derived?.generative_summary?.sentenceOverview || (
                       <Text span c="dimmed" fs="italic">

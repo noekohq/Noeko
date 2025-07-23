@@ -201,7 +201,6 @@ export const ideasAreConnected = (
   first: IIdea | ISafeIdea,
   second: IIdea | string,
 ) => {
-  console.log("Checking ideas are connected: ", first.id, second);
   if (!first.connections && !second) {
     return undefined;
   }
@@ -209,8 +208,19 @@ export const ideasAreConnected = (
   const firstHasSecond = !!first.connections?.find(
     (c) => c.id.toString() === secondId,
   );
-  console.log("First has second: ", firstHasSecond);
   return firstHasSecond;
+};
+
+export const isIncluded = (
+  connections: (IIdea | ISafeIdea)[],
+  check: IIdea | string,
+) => {
+  if (!connections && !check) {
+    return undefined;
+  }
+  const secondId = typeof check === "string" ? check : check.id.toString();
+  const isIn = !!connections?.find((c) => c.id.toString() === secondId);
+  return isIn;
 };
 
 export const getNodeAsIdeaOrNull = (node: INode): ISafeIdea | null => {
