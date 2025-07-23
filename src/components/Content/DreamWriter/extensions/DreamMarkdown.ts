@@ -12,6 +12,10 @@ export const DreamMarkdown = Extension.create({
         key: new PluginKey("dream-markdown"),
         props: {
           handlePaste: (view, event) => {
+            if (event.clipboardData?.getData("text/html")) {
+              return false;
+            }
+
             const text = event.clipboardData?.getData("text/plain");
 
             if (!text) {
