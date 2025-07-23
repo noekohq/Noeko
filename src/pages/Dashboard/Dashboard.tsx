@@ -292,17 +292,6 @@ function TopBar() {
               <MoonStarsIcon weight="bold" />
             )}
           </StatusButton>
-          <Link
-            to="/ideas"
-            style={{
-              height: "100%",
-              textDecoration: "none",
-            }}
-          >
-            <StatusButton leftSection={<ArticleIcon />}>
-              {user?.totalIdeas}
-            </StatusButton>
-          </Link>
         </Group>
       )}
       <Title order={2}>
