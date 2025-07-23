@@ -1,10 +1,10 @@
 import React from "react";
 import { ActionIcon, Group, MantineColor, Text, Tooltip } from "@mantine/core";
-import { IIdea, PhosphorIcon } from "./IdeaCardTypes";
+import { IIdea, PhosphorIcon } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
 import { IconProps } from "@phosphor-icons/react";
-import { ISafeIdea } from "../../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../../../app/database/models/ideas";
 
 type IIdeaButtonAction = {
   id: string;

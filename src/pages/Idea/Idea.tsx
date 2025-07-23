@@ -710,7 +710,6 @@ export default function Idea() {
               </Flex>
               <Space my="lg" />
               <Search
-                resultSize="standard"
                 resultActions={
                   isMobile
                     ? [

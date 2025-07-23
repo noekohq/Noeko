@@ -659,7 +659,6 @@ export default function Rabbithole() {
             resultFilter={(id) => {
               return !isIncluded(id);
             }}
-            resultSize={isMobile ? "standard" : undefined}
             resultActions={
               isMobile
                 ? [
