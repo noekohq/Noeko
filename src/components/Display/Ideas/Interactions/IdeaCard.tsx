@@ -63,7 +63,7 @@ export type IIdeaAction = {
 
 export interface IIdeaCardProps {
   idea: ISafeIdea | IIdea;
-  description?: string;
+  description?: string | React.ReactNode;
   titleIcon?: React.ReactNode;
   onClick?: (idea: ISafeIdea) => void;
   actions?: IIdeaAction[];
