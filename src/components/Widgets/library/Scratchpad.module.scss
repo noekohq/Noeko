@@ -1,7 +1,11 @@
 .scratchpad {
     height: 100%;
-    overflow-y: scroll;
 
     .toolbar {
+    }
+
+    .editor {
+        height: 100%;
+        overflow-y: scroll;
     }
 }

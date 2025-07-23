@@ -159,16 +159,18 @@ export default function Scratchpad() {
           </Menu>
         </Group>
       </div>
-      <DreamWriter
-        ref={editorRef}
-        onBlur={() => {
-          postContent();
-        }}
-        onChange={(v) => {
-          setContent(v);
-        }}
-        initialContent={originalContent}
-      />
+      <div className={styles.editor}>
+        <DreamWriter
+          ref={editorRef}
+          onBlur={() => {
+            postContent();
+          }}
+          onChange={(v) => {
+            setContent(v);
+          }}
+          initialContent={originalContent}
+        />
+      </div>
     </div>
   );
 }

@@ -94,6 +94,10 @@ export class AnalysisService {
 
   public static async getUserHeatmap(
     userId: string | RecordId,
+    options?: {
+      yearStart: string;
+      yearEnd: string;
+    },
   ): Promise<IHeatmapDataPoint[] | undefined> {
     const source = "AnalysisService.getTotalUsers";
     try {
@@ -105,32 +109,30 @@ export class AnalysisService {
 
       const currentYear = new Date().getFullYear();
 
-      const startOfYearStr = `${currentYear}-01-01T00:00:00Z`;
-      const endOfYearStr = `${currentYear + 1}-01-01T00:00:00Z`;
+      const startOfYearStr =
+        options?.yearStart ?? `${currentYear}-01-01T00:00:00Z`;
+      const endOfYearStr =
+        options?.yearEnd ?? `${currentYear + 1}-01-01T00:00:00Z`;
 
       const queryResult = await db.query<[IHeatmapDataPoint[]]>(
         `
-          -- Step 2: Select from the subquery's results and format the date.
-          SELECT
-            time::format(day, '%Y-%m-%d') AS date,
-            total AS count
-          FROM (
-            -- Step 1: Filter and group the raw data first.
+        SELECT
+            time::format(day, '%Y-%m-%d') as date,
+            count
+        FROM (
             SELECT
-              time::floor(createdAt, 1d) AS day,
-              count() AS total
+                time::floor(createdAt, 1d) AS day,
+                count() as count
             FROM idea
             WHERE
-              <-owns<-(user WHERE id = $userId) AND
-              createdAt >= $startOfYear AND
-              createdAt < $endOfYear
+                <-owns<-(user WHERE id = <record> $userId) AND
+                createdAt >= d'${startOfYearStr}' AND
+                createdAt <= d'${endOfYearStr}'
             GROUP BY day
-          );
+        );
         `,
         {
-          userId: userId,
-          startOfYear: startOfYearStr,
-          endOfYear: endOfYearStr,
+          userId: new StringRecordId(userId),
         },
       );
 
