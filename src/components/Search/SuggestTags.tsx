@@ -14,9 +14,8 @@ import {
   Badge,
   MantineSize,
 } from "@mantine/core";
-import { MagnifyingGlass, TagIcon } from "@phosphor-icons/react";
+import { TagIcon } from "@phosphor-icons/react";
 import { ITag } from "../../../app/database/models/tag";
-import { InlineTag } from "../Tags/TagDisplay";
 import { useSettings } from "../../contexts/SettingsContext";
 import styles from "./SuggestTags.module.scss";
 
