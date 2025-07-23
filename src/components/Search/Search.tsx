@@ -3,6 +3,7 @@ import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
 import {
   Button,
+  Card,
   Container,
   Group,
   MantineColor,
@@ -135,7 +136,7 @@ export default function Search({ resultActions, resultFilter }: ISearchProps) {
                   <IdeaCard
                     key={s.id.toString()}
                     idea={idea}
-                    details={
+                    description={
                       <Match
                         opener="->"
                         closer="<-"
@@ -147,6 +148,32 @@ export default function Search({ resultActions, resultFilter }: ISearchProps) {
                       >
                         {getSearchResultPreview(s) || "No preview available."}
                       </Match>
+                    }
+                    details={
+                      <>
+                        <Card withBorder radius="lg">
+                          <Text size="xs" fw="bold" c="dimmed">
+                            Matching Content
+                          </Text>
+                          <Match
+                            opener="->"
+                            closer="<-"
+                            match={(content) => {
+                              return (
+                                <span className={styles.highlight}>
+                                  {content}
+                                </span>
+                              );
+                            }}
+                          >
+                            {getSearchResultPreview(s) ||
+                              "No preview available."}
+                          </Match>
+                        </Card>
+                        <div
+                          dangerouslySetInnerHTML={{ __html: idea.content }}
+                        />
+                      </>
                     }
                     actions={resultActions?.map((r) => {
                       return r(idea);
