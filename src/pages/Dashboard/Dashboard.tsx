@@ -59,13 +59,11 @@ type ILoadedWidget = {
 
 export default function Dashboard() {
   const [LoadedWidgets, setLoadedWidgets] = useState<ILoadedWidget[]>([]);
+  const { isMobile } = useLayout();
 
-  const defaultWidgets: IAvailableWidgets[] = [
-    "scratchpad",
-    "taskList",
-    "rabbitholeList",
-    "heatmap",
-  ];
+  const defaultWidgets: IAvailableWidgets[] = isMobile
+    ? ["scratchpad", "rabbitholeList"]
+    : ["scratchpad", "rabbitholeList", "heatmap"];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
     const loaded: ILoadedWidget[] = [];
@@ -123,7 +121,6 @@ export default function Dashboard() {
       feedback: { openFeedbackModal },
     },
   } = useInteraction();
-  const { isMobile } = useLayout();
 
   return (
     <PageWrapper>
@@ -231,6 +228,21 @@ export default function Dashboard() {
               </Grid.Col>
             );
           })}
+          <Grid.Col span={12}>
+            <Stack align="center">
+              <Text size="sm" ta="center">
+                More widgets coming soon...{" "}
+              </Text>
+              <Button
+                color="gray"
+                size="xs"
+                variant="light"
+                leftSection={<MegaphoneIcon />}
+              >
+                Suggest one!
+              </Button>
+            </Stack>
+          </Grid.Col>
         </Grid>
       </Content>
       <StatusBar>
@@ -263,48 +275,23 @@ function TopBar() {
 
   return (
     <Group justify="space-between" py="md">
-      <Group
-        h="var(--status-bar-height)"
-        justify={isMobile ? "space-between" : "flex-start"}
-        w={isMobile ? "100%" : undefined}
-      >
-        <StatusButton
-          onClick={() => {
-            if (currentScheme === "dark") {
-              setScheme("light");
-            } else {
-              setScheme("dark");
-            }
-          }}
-        >
-          {currentScheme === "light" ? (
-            <SunIcon weight="bold" />
-          ) : (
-            <MoonStarsIcon weight="bold" />
-          )}
-        </StatusButton>
-        {isMobile && (
-          <Link
-            to="/ideas"
-            style={{
-              height: "100%",
-              textDecoration: "none",
-            }}
-          >
-            <StatusButton leftSection={<ArticleIcon />}>
-              {user?.totalIdeas}
-            </StatusButton>
-          </Link>
-        )}
-      </Group>
-      <Title order={2}>
-        <Group gap="xs" h="100%">
-          <HandWavingIcon weight="bold" />
-          Welcome back {user?.firstName}, your Qwest continues.
-        </Group>
-      </Title>
       {!isMobile && (
         <Group h="var(--status-bar-height)">
+          <StatusButton
+            onClick={() => {
+              if (currentScheme === "dark") {
+                setScheme("light");
+              } else {
+                setScheme("dark");
+              }
+            }}
+          >
+            {currentScheme === "light" ? (
+              <SunIcon weight="bold" />
+            ) : (
+              <MoonStarsIcon weight="bold" />
+            )}
+          </StatusButton>
           <Link
             to="/ideas"
             style={{
@@ -318,6 +305,46 @@ function TopBar() {
           </Link>
         </Group>
       )}
+      <Title order={2}>
+        <Group gap="xs">
+          <HandWavingIcon weight="bold" />
+          Welcome back {user?.firstName}, your Qwest continues.
+        </Group>
+      </Title>
+      <Group
+        h="var(--status-bar-height)"
+        justify={isMobile ? "space-between" : "flex-start"}
+        w={isMobile ? "100%" : undefined}
+      >
+        {isMobile && (
+          <StatusButton
+            onClick={() => {
+              if (currentScheme === "dark") {
+                setScheme("light");
+              } else {
+                setScheme("dark");
+              }
+            }}
+          >
+            {currentScheme === "light" ? (
+              <SunIcon weight="bold" />
+            ) : (
+              <MoonStarsIcon weight="bold" />
+            )}
+          </StatusButton>
+        )}
+        <Link
+          to="/ideas"
+          style={{
+            height: "100%",
+            textDecoration: "none",
+          }}
+        >
+          <StatusButton leftSection={<ArticleIcon />}>
+            {user?.totalIdeas}
+          </StatusButton>
+        </Link>
+      </Group>
     </Group>
   );
 }

@@ -1,10 +1,12 @@
-import { Stack, Title } from "@mantine/core";
+import { Button, Group, Stack, Title } from "@mantine/core";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { IWidgetConfig } from "../index.d";
 import styles from "./RabbitholeList.module.scss";
 import useFetch from "../../../hooks/useFetch";
 import RabbitholeCard from "../../Display/Rabbitholes/RabbitholeCard";
 import { useEffect } from "react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
+import { Link } from "react-router";
 
 export default function RabbitholeList() {
   const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<
@@ -21,7 +23,18 @@ export default function RabbitholeList() {
   return (
     <div className={styles.rabbitholeList}>
       <Stack>
-        <Title order={3}>Recent Rabbitholes</Title>
+        <Group>
+          <Title order={3}>Recent Rabbitholes</Title>
+          <Link to="/rabbitholes">
+            <Button
+              variant="subtle"
+              color="gray"
+              rightSection={<ArrowRightIcon />}
+            >
+              See all
+            </Button>
+          </Link>
+        </Group>
         {recentRabbitholes?.map((rabbithole) => {
           return <RabbitholeCard rabbithole={rabbithole} />;
         })}
