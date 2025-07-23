@@ -384,7 +384,7 @@ export default function Connections({
                   <Group style={styles}>
                     <Loader size="sm" color="gray" />
                     <Text size="sm" c="dimmed">
-                      Loading tags...
+                      Finding similar ideas...
                     </Text>
                   </Group>
                 );
