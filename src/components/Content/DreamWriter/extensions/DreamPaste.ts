@@ -3,16 +3,26 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { DOMParser } from "@tiptap/pm/model";
 import { marked } from "marked";
 
-export const DreamMarkdown = Extension.create({
-  name: "dreamMarkdown",
+export const DreamPaste = Extension.create({
+  name: "dreamPaste",
 
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey("dream-markdown"),
+        key: new PluginKey("dream-paste"),
         props: {
           handlePaste: (view, event) => {
+            const { selection } = view.state;
+
+            if (selection.$from.parent.type.spec.code) {
+              return false;
+            }
+
             if (event.clipboardData?.getData("text/html")) {
+              return false;
+            }
+
+            if (event.defaultPrevented) {
               return false;
             }
 

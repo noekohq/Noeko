@@ -283,7 +283,6 @@ export default function Spyglass() {
                 mb="lg"
               >
                 Spyglass
-                <SpyglassIcon size={36} />
               </Title>
             )}
             {(!!initialized || !!initializing) && (
