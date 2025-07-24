@@ -25,7 +25,7 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
 
   return (
     <NodeViewWrapper
-      as="div"
+      as="pre"
       className={styles.container}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
@@ -34,20 +34,16 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
         <div className={styles.ui}>
           <Group justify="right">
             <CopyButton value={node.textContent}>
-              {({ copy, copied }) => {
-                return (
-                  <ActionIcon onClick={copy} size="md" variant="default">
-                    {copied ? <CheckIcon /> : <CopyIcon />}
-                  </ActionIcon>
-                );
-              }}
+              {({ copied, copy }) => (
+                <ActionIcon onClick={copy} size="md" variant="default">
+                  {copied ? <CheckIcon /> : <CopyIcon />}
+                </ActionIcon>
+              )}
             </CopyButton>
           </Group>
         </div>
       )}
-      <pre className={styles.code}>
-        <NodeViewContent as="code" />
-      </pre>
+      <NodeViewContent as="code" className={styles.code} />
     </NodeViewWrapper>
   );
 };
