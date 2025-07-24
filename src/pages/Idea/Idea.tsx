@@ -41,7 +41,7 @@ import {
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import Connections from "./Connections";
-import Overview from "./Overview";
+import Insights from "./Insights";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -503,7 +503,7 @@ export default function Idea() {
               )}
             </Tabs.Panel>
             <Tabs.Panel value="insights">
-              <Overview
+              <Insights
                 loadingIdea={loadingIdea}
                 idea={idea}
                 reloadIdea={reloadIdea}

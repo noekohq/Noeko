@@ -6,6 +6,7 @@ import {
 } from "@google/genai";
 import { IModelMap, LMProvider, IModelTypes, LMSchema } from "..";
 import { LMUtils } from "../utils";
+import { max_lm_prompt_size } from "../../../settings";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const GCP_PROJECT_ID = process.env.GCP_PROJECT_ID;
@@ -25,6 +26,7 @@ export default class GeminiProvider implements LMProvider {
   private _modelMap: IModelMap = ModelMap;
   private _thinking: boolean = false;
   private _thinkingBudget: number = 0;
+  public static maxCharacters: number = max_lm_prompt_size;
 
   constructor() {
     this.client = new GoogleGenAI(
@@ -54,6 +56,7 @@ export default class GeminiProvider implements LMProvider {
   get modelMap() {
     return this._modelMap;
   }
+
   private get canThink() {
     const thinkingModels = [
       "gemini-2.5-pro",
@@ -64,6 +67,13 @@ export default class GeminiProvider implements LMProvider {
       return true;
     }
     return false;
+  }
+
+  public static truncate(content: string) {
+    return content.length > GeminiProvider.maxCharacters
+      ? content.slice(0, GeminiProvider.maxCharacters) +
+          "...[FURTHER CONTENT TRUNCATED]..."
+      : content;
   }
 
   public withModel(model: string | IModelTypes) {
@@ -109,9 +119,10 @@ export default class GeminiProvider implements LMProvider {
 
   async generate(prompt: string): Promise<string | null> {
     try {
+      const truncatedPrompt = GeminiProvider.truncate(prompt);
       const result = await this.client.models.generateContent({
         model: this._model,
-        contents: prompt,
+        contents: truncatedPrompt,
         config: this.getGenerationConfig(),
       });
       const text = result.text;
