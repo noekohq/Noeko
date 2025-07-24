@@ -86,6 +86,32 @@ async function initializeScheduledJobs() {
   }
 }
 
+async function ensureAllUsersHaveScratchpadContent() {
+  const db = await getDatabase();
+  if (!db) {
+    console.info(
+      "Cannot run ensureAllUsersHaveScratchpadContent due to lack of db.",
+    );
+    return;
+  }
+
+  const results = await db.query<[IUser[]]>(`SELECT * FROM user`);
+  if (!results) {
+    throw new Error("Failed to fetch users");
+  }
+  const [users] = results;
+  let numUpdated = 0;
+  for (const user of users) {
+    if (!user.scratchpadContent) {
+      await db.query(
+        `UPDATE user MERGE { scratchpadContent: '' } WHERE id = ${user.id}`,
+      );
+      numUpdated++;
+    }
+  }
+  console.info(`Updated ${numUpdated} users to include scratchpad content`);
+}
+
 export class User {
   constructor() {}
 
@@ -139,6 +165,7 @@ export class User {
 
       const kernel = getKernel();
       initializeScheduledJobs();
+      ensureAllUsersHaveScratchpadContent();
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;

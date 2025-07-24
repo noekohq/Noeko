@@ -9,17 +9,17 @@ import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
 import OverviewAccordion from "../../components/Display/Ideas/OverviewAccordion";
 
-type IOverviewProps = {
+type IInsightsProps = {
   idea: ISafeIdea | undefined;
   loadingIdea: boolean;
   reloadIdea: () => void;
 };
 
-export default function Overview({
+export default function Insights({
   idea,
   loadingIdea,
   reloadIdea,
-}: IOverviewProps) {
+}: IInsightsProps) {
   const { load: generateSummary, loading: loadingOverview } = useFetch<
     { type: "generative_summary" },
     IGenerativeSummary

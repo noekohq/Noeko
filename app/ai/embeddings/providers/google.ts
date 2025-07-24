@@ -3,6 +3,7 @@ import type { EmbeddingsProvider } from "..";
 import {
   default_embeddings_dimension,
   default_google_embeddings_model,
+  max_embeddable_characters,
 } from "../../../settings";
 import { getLevenshteinDistance } from "../../../utils/strings";
 import { sleep } from "bun";
@@ -19,6 +20,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
   private lastRequestTimestamp: number = 0;
   private readonly minIntervalMs: number;
   private readonly rpm: number;
+  private readonly maxCharacters: number = max_embeddable_characters;
 
   constructor() {
     this.client = new GoogleGenAI(
@@ -47,6 +49,10 @@ export default class GoogleProvider implements EmbeddingsProvider {
 
   get model() {
     return this._model;
+  }
+
+  async truncate(content: string): Promise<string> {
+    return content.slice(0, this.maxCharacters);
   }
 
   async checkModelAvailability() {
@@ -95,9 +101,10 @@ export default class GoogleProvider implements EmbeddingsProvider {
   async embedContent(content: string): Promise<number[] | null> {
     try {
       const startTime = Date.now();
+      const truncatedContent = await this.truncate(content);
       const response = await this.client.models.embedContent({
         model: this.model,
-        contents: [content],
+        contents: [truncatedContent],
         config: {
           outputDimensionality: default_embeddings_dimension,
         },

@@ -6,12 +6,12 @@ import { IPublicUser, ISafeUser, IUser, User } from "../user";
 import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToMarkdown } from "../../../utils/formatting";
-import { max_user_notes } from "../../../settings";
+import { max_embeddable_characters, max_user_notes } from "../../../settings";
 import { ITag, ITagIdeaRelationship } from "../tag";
 import { logger } from "../../../services/Logger";
 import { Search } from "../../../services/Search";
 
-export const embeddableContentLimit = 20000;
+export const embeddableContentLimit = max_embeddable_characters;
 
 export type IIdea = {
   id: string | RecordId;
@@ -1413,7 +1413,7 @@ export class Idea {
         throw new Error(`Idea not found.`);
       }
       if (!idea.embeddings) {
-        await Idea.loadEmbeddings(rootNodeId);
+        await Idea.loadEmbeddings(rootNodeId, true);
       }
       if (!idea.embeddings) {
         throw new Error(
@@ -1620,7 +1620,7 @@ export class Idea {
     return withTitle;
   }
 
-  static async loadEmbeddings(id: string | RecordId) {
+  static async loadEmbeddings(id: string | RecordId, force = false) {
     try {
       const db = await getDatabase();
       const result = await db?.select<IIdea & { id: RecordId }>(
@@ -1630,7 +1630,8 @@ export class Idea {
         console.error(`Idea with id ${id} not found.`);
         return undefined;
       }
-      return await Idea.updateEmbeddings(result);
+      console.log("Attempting to update embeddings for idea: ", id);
+      return await Idea.updateEmbeddings(result, force);
     } catch (error) {
       console.error(error);
       return undefined;
@@ -1663,20 +1664,25 @@ export class Idea {
         idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
         idea.embeddings?.length !== 0
       ) {
+        console.log("Not computing embedding for idea: ", idea.id.toString());
         return false;
       }
       const embedding = getEmbedder();
       const embeddableContent = Idea.getEmbeddableContent(idea);
-      if (
-        !embeddableContent ||
-        embeddableContent.length > embeddableContentLimit
-      ) {
-        await Idea.update(idea.id, {
-          embeddings: [],
-          embeddingsUpdatedAt: new Date(),
-        });
-        return undefined;
-      }
+      // if (
+      //   !embeddableContent ||
+      //   embeddableContent.length > embeddableContentLimit
+      // ) {
+      //   console.log("Not embedding over the content limit...")
+      //   await Idea.update(idea.id, {
+      //     embeddings: [],
+      //     embeddingsUpdatedAt: new Date(),
+      //   });
+      //   return undefined;
+      // }
+      // ^^ This can probably be deleted the next time someone comes by, but it's here for safe keeping
+      // The idea is that now the embedContent will automatically truncate the characters based on model considerations
+      // So we tune there instead
       const vector = await embedding.embedContent(embeddableContent);
       return await Idea.update(idea.id, {
         embeddings: vector,

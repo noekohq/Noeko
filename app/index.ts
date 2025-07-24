@@ -21,7 +21,7 @@ await initDatabase();
 await initSearch();
 
 const app = Express();
-app.use(Express.json());
+app.use(Express.json({ limit: "10mb" }));
 app.use(Express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
