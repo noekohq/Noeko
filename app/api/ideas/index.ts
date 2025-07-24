@@ -1,4 +1,4 @@
-import { Router } from "express";
+import Express, { Router } from "express";
 import { checkToken, disallowDisabled } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
 import { ISafeUser, IUser, User } from "../../database/models/user";
@@ -7,10 +7,12 @@ import {
   IIdea,
   IIdeaAsRelation,
   IIdeaDerivedMap,
+  IIdeaForm,
   ISafeIdea,
 } from "../../database/models/ideas";
 import { Tag } from "../../database/models/tag";
 import shareRouter from "./share";
+import { max_idea_size } from "../../settings";
 
 const router = Router();
 
@@ -39,7 +41,6 @@ router.get("/:ideaId/public", async (req, res) => {
 
 router.use(checkToken);
 router.use(disallowDisabled);
-
 router.use(shareRouter);
 
 router.get("/", checkToken, disallowDisabled, async (req, res) => {
@@ -122,6 +123,41 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     res.send({ message: "Successfully created idea.", data: i });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.put("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const { ideaId } = req.params;
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+    if (!hasAccess) {
+      res.status(403).json({
+        message: "Unauthorized",
+      });
+      return;
+    }
+    const { title, content, withComputations } = req.body;
+    const updater: Partial<IIdeaForm> = {};
+    if (title !== undefined) {
+      updater.title = title;
+    }
+    if (content !== undefined) {
+      updater.content = content;
+    }
+    const i = await Idea.update(ideaId, updater, withComputations === true);
+    if (!i) {
+      res.status(404).json({ error: "Idea not updated" });
+      return;
+    }
+    res.send({ message: "Successfully updated idea.", data: i });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
