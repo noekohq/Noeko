@@ -8,6 +8,7 @@ import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
 import { initSearch } from "./services/Search";
 import { initInsights } from "./services/Insights";
+import { max_idea_size } from "./settings";
 
 config();
 
@@ -21,7 +22,7 @@ await initDatabase();
 await initSearch();
 
 const app = Express();
-app.use(Express.json({ limit: "10mb" }));
+app.use(Express.json({ limit: max_idea_size }));
 app.use(Express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

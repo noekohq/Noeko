@@ -272,11 +272,24 @@ export default function Idea() {
   const updateContent = async (newContent: string) => {
     setLoadingSaveChanges(true);
     await api
-      .put(`/graph/ideas/${ideaId}`, {
+      .put(`/ideas/${ideaId}`, {
         content: newContent,
       })
       .then(() => {
         reloadIdea();
+      })
+      .catch((error) => {
+        if (error.response.status === 413) {
+          showNotification({
+            title: "Error",
+            message: "Content is too large",
+          });
+          return;
+        }
+        showNotification({
+          title: "Error",
+          message: "Something went wrong saving the content",
+        });
       })
       .finally(() => {
         setLoadingSaveChanges(false);
@@ -286,7 +299,7 @@ export default function Idea() {
   const updateTitle = async (newTitle: string) => {
     setLoadingSaveChanges(true);
     await api
-      .put(`/graph/ideas/${ideaId}`, {
+      .put(`/ideas/${ideaId}`, {
         title: newTitle,
       })
       .then(() => {

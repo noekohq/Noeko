@@ -1,9 +1,12 @@
 const {
+  MAX_IDEA_SIZE,
   MAX_LM_PROMPT_SIZE,
   MAX_USER_NOTES,
   MAX_SPYGLASS_FINDING_AMOUNT,
   MAX_EMBEDDABLE_CHARACTERS,
 } = process.env;
+
+export const max_idea_size = Number(MAX_IDEA_SIZE) ?? "1mb";
 
 export const default_embeddings_dimension = 768;
 
