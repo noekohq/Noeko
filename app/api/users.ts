@@ -236,6 +236,7 @@ router.post("/login", async (req, res) => {
     }
     await addAccessTokenToRes(res, accessToken);
     await addRefreshTokenToRes(res, refreshToken);
+    console.log("Sending back: ", { accessToken, refreshToken });
     res.json({
       message: "User logged in successfully",
       data: { accessToken, refreshToken },
