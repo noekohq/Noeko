@@ -9,6 +9,15 @@ export default defineConfig({
     VitePWA({
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith("/api"),
+            handler: "NetworkOnly",
+          },
+        ],
+        // This is a safety net. It prevents the service worker from
+        // serving index.html for your API routes.
+        navigateFallbackDenylist: [/^\/api/],
       },
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],

@@ -218,6 +218,8 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findByEmail(email, true);
+    const { password: _, ...rest } = user;
+    console.log("Found user by email: ", rest);
     if (!user) {
       res.status(404).json({ message: "User not found." });
       return;
