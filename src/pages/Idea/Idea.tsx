@@ -35,6 +35,7 @@ import {
   MarkdownLogoIcon,
   SparkleIcon,
   StarIcon,
+  TagIcon,
   TrashSimpleIcon,
   UserCirclePlusIcon,
   WrenchIcon,
@@ -501,9 +502,15 @@ export default function Idea() {
               </Card>
               {!!idea && (
                 <>
-                  <Space my="sm" />
+                  <Space my="lg" />
+                  <Text size="sm" fw="bold" c="dimmed">
+                    <Group gap="xs">
+                      <TagIcon weight="fill" />
+                      TAGS
+                    </Group>
+                  </Text>
                   <TagsManager maxSuggested={2} idea={idea} />
-                  <Space my="sm" />
+                  <Space my="lg" />
                   <Connections
                     loadingIdea={loadingIdea}
                     idea={idea}

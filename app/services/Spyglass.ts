@@ -677,20 +677,12 @@ export default class Spyglass {
   static findingsPromptBuilder(intent: string, mode: ISpyglassMode) {
     return (
       new PromptBuilder()
-        // --- Insight: Stronger, more specific persona.
+        // This persona-setting is great. Keep it.
         .addText(
           "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
         )
-        .addBlock(
-          "Purpose and Goal",
-          `
-            Your goal is to provide the most relevant excerpts to the intent from the provided results.
-            Quality of analysis is paramount for quality search experience for your users, you exist to provide an additional layer of intelligence and context.
-            Your analysis will be built upon by other systems, so it's crucial to be reliable, precise, and forward-thinking.
-            Your primary source of context is the user's intent. Use it to inform each finding directly. If something isn't relevant
-            to the intent, don't include it.
-            `,
-        )
+
+        // The Context block is also excellent. Keep it.
         .addBlock(
           "Context",
           `
@@ -701,21 +693,44 @@ export default class Spyglass {
           </context>
           `,
         )
-        .addBlock("Mission Statement", spyglassMissionStatement)
-        .addBlock("User Intent", intent)
-        .addText(mode.analysis.prompt(intent).get())
-        .addBlock(
-          "Strict Rules",
-          `
-          - YOU MUST process results sequentially, after analyzing one result, you MUST move onto the next.
 
-          - **DO NOT** interpret or infer information not present in the results.
-          - **DO NOT** add your own knowledge.
-          - **DO NOT** split a continuous excerpt into multiple when it could be self-contained.
-          - **DO NOT** analyze results out of order.
-          - **DO NOT** go back to a result after recording findings on that result.
+        // Keep the Mission Statement if it adds unique value not covered elsewhere.
+        .addBlock("Mission Statement", spyglassMissionStatement)
+
+        // --- MODIFICATION START ---
+        // We replace the "Purpose and Goal" and "Analyzing Results" blocks
+        // with this single, comprehensive block.
+
+        .addBlock(
+          "Core Workflow and Strict Rules",
+          `
+          Your goal is to build a report of findings that are directly and positively relevant to the "User Intent". Your analysis is crucial and will be used by other systems, so precision is mandatory.
+
+          Follow this workflow for EACH search result provided:
+
+          **1. Evaluate Relevance:**
+          Compare the result against the "User Intent". Make a simple, binary decision: Is this result directly relevant?
+
+          **2. Execute Based on Decision:**
+          * **If YES (the result is relevant):**
+              * Create a finding. Extract the single, most relevant, continuous excerpt.
+              * Write a concise analysis explaining *why* this excerpt is relevant to the intent.
+
+          * **If NO (the result is irrelevant):**
+              * You MUST discard this result silently and completely.
+              * Produce NO output, NO analysis, and NO comment for this result.
+              * IMMEDIATELY move on to the next result.
+
+          **Universal Strict Rules:**
+          - **Negative analysis is FORBIDDEN.** Never report that a result was irrelevant or that information was missing. Your final report must only contain positive, relevant findings.
+          - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided results. DO NOT add your own knowledge or infer information not explicitly present.
+          - **Process Sequentially:** You MUST process results in the order they are given and never return to a previous result.
           `,
         )
+        // --- MODIFICATION END ---
+
+        .addBlock("User Intent", intent)
+        .addText(mode.analysis.prompt(intent).get()) // This dynamic prompt remains
         .addBlock("Search Results", "The results to use are as follows:\n")
     );
   }

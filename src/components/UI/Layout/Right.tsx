@@ -23,12 +23,14 @@ interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
   topLevel?: Record<ISidebarMode, React.ReactNode | React.ReactNode[]>;
   startOpened?: boolean;
+  startClosed?: boolean;
 }
 
 const RightSidebar = ({
   children,
   topLevel,
   startOpened,
+  startClosed,
 }: IRightSidebarProps) => {
   const navigate = useNavigate();
   const {
@@ -52,6 +54,12 @@ const RightSidebar = ({
       setMode("open");
     }
   }, [startOpened]);
+
+  useEffect(() => {
+    if (startClosed) {
+      setMode("collapsed");
+    }
+  }, [startClosed]);
 
   const openable = !!children;
 
