@@ -15,8 +15,6 @@ export default defineConfig({
             handler: "NetworkOnly",
           },
         ],
-        // This is a safety net. It prevents the service worker from
-        // serving index.html for your API routes.
         navigateFallbackDenylist: [/^\/api/],
       },
       registerType: "autoUpdate",
