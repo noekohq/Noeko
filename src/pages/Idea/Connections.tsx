@@ -32,9 +32,11 @@ import {
   Graph,
   GraphIcon,
   InfoIcon,
+  IntersectSquareIcon,
   NotePencilIcon,
   TrashSimple,
   TrashSimpleIcon,
+  UniteSquareIcon,
 } from "@phosphor-icons/react";
 import { api } from "../../server/api";
 import { similarityToColor, similarityToLevel } from "../../vars/ideas";
@@ -142,22 +144,6 @@ export default function Connections({
 
   return (
     <Grid>
-      <Transition mounted={computeOutOfDate} transition="fade-up">
-        {(styles) => {
-          return (
-            <Grid.Col span={{ sm: 12 }} style={styles}>
-              <Group align="center">
-                <Text c="dimmed" size="sm">
-                  These may be out of date...
-                </Text>
-                <ActionIcon onClick={triggerCompute} variant="light" size="sm">
-                  {computing ? <Loader size="xs" /> : <ArrowsClockwiseIcon />}
-                </ActionIcon>
-              </Group>
-            </Grid.Col>
-          );
-        }}
-      </Transition>
       <Grid.Col span={{ sm: 12 }}>
         <Box
           onDragOver={() => {
@@ -200,7 +186,12 @@ export default function Connections({
             <Grid.Col span={{ sm: 12 }}>
               <Stack>
                 <Group align="center">
-                  <Text size="sm">Ideas you've connected...</Text>
+                  <Text size="sm" c="dimmed" fw="bold">
+                    <Group gap="xs">
+                      <UniteSquareIcon weight="bold" />
+                      CONNECTED IDEAS
+                    </Group>
+                  </Text>
                   <Transition mounted={loadingIdea} transition="fade-up">
                     {(styles) => (
                       <Loader style={styles} size="xs" color="gray" />
@@ -215,34 +206,39 @@ export default function Connections({
                   >
                     <NotePencilIcon size={14} />
                   </ActionIcon>
-                  {!loadingIdea && (
-                    <HoverCard width="400px">
-                      <HoverCard.Target>
-                        <ActionIcon variant="subtle" size="sm" color="gray">
-                          <InfoIcon />
-                        </ActionIcon>
-                      </HoverCard.Target>
-                      <HoverCard.Dropdown>
-                        <Text size="sm" mb="xs">
-                          Explicit connections between ideas are only made by
-                          you, and they are persistent even if the content
-                          changes, unlike similar ideas. You can drag and drop
-                          ideas to this area, or click the associated buttons to
-                          make connections.
-                        </Text>
+                  <HoverCard width="400px">
+                    <HoverCard.Target>
+                      <ActionIcon variant="subtle" size="sm" color="gray">
+                        <InfoIcon />
+                      </ActionIcon>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Text size="sm" mb="xs">
+                        Explicit connections between ideas are only made by you,
+                        and they are persistent even if the content changes,
+                        unlike similar ideas. You can drag and drop ideas to
+                        this area, or click the associated buttons to make
+                        connections.
+                      </Text>
+                      <Text c="dimmed" size="xs" mb="xs">
+                        Click the <NotePencilIcon /> button to create a new
+                        connected note.
+                      </Text>
+                      {connections && connections?.length <= 0 && (
                         <Text c="dimmed" size="xs">
-                          Click the <NotePencilIcon /> button to create a new
-                          connected note.
+                          No connections yet. Try connecting (
+                          <UniteSquareIcon size={12} />) a related idea!
                         </Text>
-                      </HoverCard.Dropdown>
-                    </HoverCard>
-                  )}
+                      )}
+                    </HoverCard.Dropdown>
+                  </HoverCard>
                 </Group>
               </Stack>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group>
-                {connections && connections?.length > 0 ? (
+                {connections &&
+                  connections?.length > 0 &&
                   connections?.map((connection, i) => {
                     return (
                       <IdeaCard
@@ -262,12 +258,7 @@ export default function Connections({
                         ]}
                       />
                     );
-                  })
-                ) : (
-                  <Text c="dimmed" size="xs">
-                    No connections yet. Try connecting a related idea!
-                  </Text>
-                )}
+                  })}
               </Group>
             </Grid.Col>
           </Grid>
@@ -277,7 +268,29 @@ export default function Connections({
       <Grid.Col span={{ sm: 12 }}>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
-            <Text size="sm">Some similar ideas to this one...</Text>
+            <Group>
+              <Text size="sm" c="dimmed" fw="bold">
+                <Group gap="xs">
+                  <IntersectSquareIcon weight="bold" />
+                  RELATED IDEAS
+                </Group>
+              </Text>
+              <Group>
+                <Transition mounted={computeOutOfDate} transition="fade-up">
+                  {(styles) => {
+                    return (
+                      <ActionIcon variant="light" size="sm" style={styles}>
+                        {computing ? (
+                          <Loader size="xs" />
+                        ) : (
+                          <ArrowsClockwiseIcon />
+                        )}
+                      </ActionIcon>
+                    );
+                  }}
+                </Transition>
+              </Group>
+            </Group>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Transition
@@ -337,12 +350,16 @@ export default function Connections({
                                       }}
                                       title="Connect this idea"
                                     >
-                                      <GraphIcon size={14} weight="bold" />
+                                      <UniteSquareIcon
+                                        size={14}
+                                        weight="bold"
+                                      />
                                     </ActionIcon>
                                   )}
                                   <ActionIcon
                                     variant="light"
                                     size="sm"
+                                    color="dark.3"
                                     onClick={() => {
                                       navigate(
                                         `/idea/${relatedIdea.id.toString()}`,

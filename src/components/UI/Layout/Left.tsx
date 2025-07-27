@@ -20,12 +20,14 @@ interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
   topLevel?: { [key in ISidebarMode]?: React.ReactNode | React.ReactNode[] };
   startOpened?: boolean;
+  startClosed?: boolean;
 }
 
 const LeftSidebar = ({
   children,
   topLevel,
   startOpened,
+  startClosed,
 }: ILeftSidebarProps) => {
   const {
     elements: {
@@ -48,6 +50,12 @@ const LeftSidebar = ({
       setMode("open");
     }
   }, [startOpened]);
+
+  useEffect(() => {
+    if (startClosed) {
+      setMode("collapsed");
+    }
+  }, [startClosed]);
 
   const { pathname } = useLocation();
 

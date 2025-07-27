@@ -165,7 +165,7 @@ export default function Spyglass() {
   if (error) {
     return (
       <PageWrapper>
-        <LeftSidebar></LeftSidebar>
+        <LeftSidebar startClosed></LeftSidebar>
         <Content>
           <Stack>
             <Title>Something went wrong :/</Title>
@@ -190,7 +190,7 @@ export default function Spyglass() {
             </Group>
           </Stack>
         </Content>
-        <RightSidebar></RightSidebar>
+        <RightSidebar startClosed></RightSidebar>
       </PageWrapper>
     );
   }
