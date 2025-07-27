@@ -230,12 +230,15 @@ router.post("/login", async (req, res) => {
       return;
     }
     const accessToken = await User.generateAccessToken(user);
+    if (!accessToken) {
+      throw new Error("Failed to generate access token");
+    }
     const refreshToken = await User.generateRefreshToken(user);
     if (!refreshToken) {
       throw new Error("Failed to generate refresh token");
     }
-    await addAccessTokenToRes(res, accessToken);
-    await addRefreshTokenToRes(res, refreshToken);
+    // await addAccessTokenToRes(res, accessToken);
+    // await addRefreshTokenToRes(res, refreshToken);
     console.log("Sending back: ", { accessToken, refreshToken });
     res.json({
       message: "User logged in successfully",
