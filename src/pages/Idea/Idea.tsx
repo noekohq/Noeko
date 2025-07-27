@@ -501,9 +501,9 @@ export default function Idea() {
               </Card>
               {!!idea && (
                 <>
-                  <Divider my="sm" />
+                  <Space my="sm" />
                   <TagsManager maxSuggested={2} idea={idea} />
-                  <Divider my="sm" />
+                  <Space my="sm" />
                   <Connections
                     loadingIdea={loadingIdea}
                     idea={idea}
@@ -704,6 +704,22 @@ export default function Idea() {
                                 onClick={copy}
                               >
                                 Copy as Text
+                              </Menu.Item>
+                            );
+                          }}
+                        </CopyButton>
+                      )}
+                      {idea?.content && (
+                        <CopyButton value={idea?.content}>
+                          {({ copied, copy }) => {
+                            return (
+                              <Menu.Item
+                                leftSection={
+                                  copied ? <CheckIcon /> : <CursorTextIcon />
+                                }
+                                onClick={copy}
+                              >
+                                Copy as HTML
                               </Menu.Item>
                             );
                           }}

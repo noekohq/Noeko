@@ -142,18 +142,22 @@ export default function Connections({
 
   return (
     <Grid>
-      {computeOutOfDate && (
-        <Grid.Col span={{ sm: 12 }}>
-          <Group align="center">
-            <Text c="dimmed" size="sm">
-              These may be out of date...
-            </Text>
-            <ActionIcon onClick={triggerCompute} variant="light" size="sm">
-              {computing ? <Loader size="xs" /> : <ArrowsClockwiseIcon />}
-            </ActionIcon>
-          </Group>
-        </Grid.Col>
-      )}
+      <Transition mounted={computeOutOfDate} transition="fade-up">
+        {(styles) => {
+          return (
+            <Grid.Col span={{ sm: 12 }} style={styles}>
+              <Group align="center">
+                <Text c="dimmed" size="sm">
+                  These may be out of date...
+                </Text>
+                <ActionIcon onClick={triggerCompute} variant="light" size="sm">
+                  {computing ? <Loader size="xs" /> : <ArrowsClockwiseIcon />}
+                </ActionIcon>
+              </Group>
+            </Grid.Col>
+          );
+        }}
+      </Transition>
       <Grid.Col span={{ sm: 12 }}>
         <Box
           onDragOver={() => {
@@ -197,7 +201,11 @@ export default function Connections({
               <Stack>
                 <Group align="center">
                   <Text size="sm">Ideas you've connected...</Text>
-                  {loadingIdea && <Loader size="xs" color="gray" />}
+                  <Transition mounted={loadingIdea} transition="fade-up">
+                    {(styles) => (
+                      <Loader style={styles} size="xs" color="gray" />
+                    )}
+                  </Transition>
                 </Group>
                 <Group>
                   <ActionIcon
@@ -381,9 +389,9 @@ export default function Connections({
             <Transition mounted={loadingRelated} transition="fade-up">
               {(styles) => {
                 return (
-                  <Group style={styles}>
-                    <Loader size="sm" color="gray" />
-                    <Text size="sm" c="dimmed">
+                  <Group style={styles} mt="md">
+                    <Loader size="xs" color="gray" />
+                    <Text size="xs" c="dimmed">
                       Finding similar ideas...
                     </Text>
                   </Group>
