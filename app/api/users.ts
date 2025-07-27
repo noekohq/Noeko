@@ -218,12 +218,12 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findByEmail(email, true);
-    const { password: _, ...rest } = user;
-    console.log("Found user by email: ", rest);
     if (!user) {
       res.status(404).json({ message: "User not found." });
       return;
     }
+    const { password: _, ...rest } = user;
+    console.log("Found user by email: ", rest);
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
       res.status(400).json({ message: "Incorrect password." });
