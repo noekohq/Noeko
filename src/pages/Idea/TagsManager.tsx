@@ -285,10 +285,9 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
         {processedTags.length === 0 &&
           !existingTagsLoading &&
           !relatedTagsLoading &&
-          omitTagIds.length === 0 && ( // Also check if there are no existing tags to show a more relevant message
+          omitTagIds.length === 0 && (
             <Text c="dimmed" size="sm">
-              No tags currently associated. Suggested tags will appear here if
-              available.
+              No tags currently associated.
             </Text>
           )}
         <Group gap="xs" wrap="wrap" w="100%">

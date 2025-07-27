@@ -177,76 +177,52 @@ export default function Dashboard() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        {/* <TopBar /> */}
-        {/* <Flex
-          justify={"center"}
-          align="center"
-          direction="column"
-          gap="md"
-          h="50vh"
-        >
-          <Text c="dimmed">A new dashboard is coming soon...</Text>
-          <Group justify="space-around">
-            <Link to="/updates">
-              <Button variant="default">
-                <Group>
-                  <ScrollIcon />
-                  <Text>Latest Updates</Text>
-                </Group>
-              </Button>
-            </Link>
-            <Button variant="default" onClick={openFeedbackModal}>
-              <Group>
-                <MegaphoneIcon />
-                <Text>Leave Feedback</Text>
-              </Group>
-            </Button>
-          </Group>
-        </Flex> */}
-        <Grid grow>
-          <Grid.Col span={12}>
-            <TopBar />
-          </Grid.Col>
-          <Grid.Col
-            span={12}
-            style={{
-              height: "100%",
-            }}
-          ></Grid.Col>
-          {LoadedWidgets.map(({ id, Component, config }) => {
-            return (
-              <Grid.Col
-                span={{
-                  sm: 12,
-                  md: config.columns.default,
-                }}
-                key={id}
-              >
-                <WidgetWrapper>
-                  <Component />
-                </WidgetWrapper>
-              </Grid.Col>
-            );
-          })}
-          <Grid.Col span={12}>
-            <Stack align="center">
-              <Text size="sm" ta="center">
-                More widgets coming soon...{" "}
-              </Text>
-              <Button
-                color="gray"
-                size="xs"
-                variant="light"
-                leftSection={<MegaphoneIcon />}
-                onClick={() => {
-                  openFeedbackModal();
-                }}
-              >
-                Suggest a widget!
-              </Button>
-            </Stack>
-          </Grid.Col>
-        </Grid>
+        <div className={styles.dashboard}>
+          <Grid grow>
+            <Grid.Col span={12}>
+              <TopBar />
+            </Grid.Col>
+            <Grid.Col
+              span={12}
+              style={{
+                height: "100%",
+              }}
+            ></Grid.Col>
+            {LoadedWidgets.map(({ id, Component, config }) => {
+              return (
+                <Grid.Col
+                  span={{
+                    sm: 12,
+                    md: config.columns.default,
+                  }}
+                  key={id}
+                >
+                  <WidgetWrapper>
+                    <Component />
+                  </WidgetWrapper>
+                </Grid.Col>
+              );
+            })}
+            <Grid.Col span={12}>
+              <Stack align="center">
+                <Text size="sm" ta="center">
+                  More widgets coming soon...{" "}
+                </Text>
+                <Button
+                  color="gray"
+                  size="xs"
+                  variant="light"
+                  leftSection={<MegaphoneIcon />}
+                  onClick={() => {
+                    openFeedbackModal();
+                  }}
+                >
+                  Suggest a widget!
+                </Button>
+              </Stack>
+            </Grid.Col>
+          </Grid>
+        </div>
       </Content>
       <StatusBar>
         <StatusBar.Showing>
