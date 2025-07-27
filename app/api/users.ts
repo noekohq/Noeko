@@ -230,8 +230,7 @@ router.post("/login", async (req, res) => {
     const accessToken = await User.generateAccessToken(user);
     const refreshToken = await User.generateRefreshToken(user);
     if (!refreshToken) {
-      res.status(500).json({ message: "Internal Server Error" });
-      return;
+      throw new Error("Failed to generate refresh token");
     }
     await addAccessTokenToRes(res, accessToken);
     await addRefreshTokenToRes(res, refreshToken);
