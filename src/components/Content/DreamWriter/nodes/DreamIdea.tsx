@@ -213,35 +213,44 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
           onClick={(e) => {
             e.stopPropagation();
           }}
+          style={{
+            overflowY: "scroll",
+            maxHeight: "400px",
+          }}
         >
           {idea ? (
             <Stack>
-              <Text fw={500}>{idea.title}</Text>
-              <Text size="xs" c="dimmed">
-                {getNodeDescription({ ...idea, type: "idea" })}
-              </Text>
+              <Group justify="space-between">
+                <Text fw={500} c="dimmed">
+                  {idea.title}
+                </Text>
+                <Group justify="flex-end">
+                  <ActionIcon
+                    className={styles.deleteButton}
+                    onClick={handleDelete}
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                  >
+                    <XIcon weight="bold" />
+                  </ActionIcon>
+                  <ActionIcon
+                    component={Link}
+                    to={`/idea/${ideaId}`}
+                    variant="light"
+                    color="gray"
+                    title="Go to idea page"
+                    onClick={(e) => e.stopPropagation()}
+                    size="sm"
+                  >
+                    <ArrowRightIcon weight="bold" />
+                  </ActionIcon>
+                </Group>
+              </Group>
               {idea?.derived?.generative_summary && (
                 <OverviewAccordion overview={idea.derived.generative_summary} />
               )}
-              <Group justify="flex-end">
-                <ActionIcon
-                  className={styles.deleteButton}
-                  onClick={handleDelete}
-                  variant="light"
-                  color="red"
-                >
-                  <XIcon weight="bold" />
-                </ActionIcon>
-                <ActionIcon
-                  component={Link}
-                  to={`/idea/${ideaId}`}
-                  variant="light"
-                  title="Go to idea page"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ArrowRightIcon weight="bold" />
-                </ActionIcon>
-              </Group>
+              <div dangerouslySetInnerHTML={{ __html: idea.content }} />
             </Stack>
           ) : (
             <Text c="dimmed" size="xs">

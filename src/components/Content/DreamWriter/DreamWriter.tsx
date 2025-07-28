@@ -39,6 +39,7 @@ import {
   ExtraButton,
   TaskListButton,
   TaskItemButton,
+  NewIdea,
 } from "./Options";
 import {
   FileIcon,
@@ -499,7 +500,11 @@ function BubbleMenu({ editor }: { editor: IEditor | null }) {
     </>
   );
 
-  const GenerativeFeatures = <></>;
+  const GenerativeFeatures = (
+    <>
+      <NewIdea editor={editor} />
+    </>
+  );
 
   const frames: {
     name: string;
