@@ -78,12 +78,14 @@ export class Search {
   static async up() {
     const defineVectorIndex = () => {
       return `
-      DEFINE INDEX IF NOT EXISTS idx_idea_embeddings
+      DEFINE INDEX OVERWRITE idx_idea_embeddings
         ON TABLE idea
         FIELDS embeddings
         HNSW DIMENSION 768
         DIST COSINE
-        TYPE F32;
+        TYPE F32
+        M 32
+        EFC 400;
       `;
     };
 
@@ -381,18 +383,10 @@ export class Search {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const limit = Math.min(
-        Math.max(1, Number.parseInt(String(options.limit ?? 20), 10)),
-        100,
-      );
-      const defaultCandidates = Math.max(limit * 15, 300);
-      const candidates = Math.min(
-        Math.max(
-          limit,
-          Number.parseInt(String(options.candidates ?? defaultCandidates), 10),
-        ),
-        2000,
-      );
+      const limit = options.limit ?? 100;
+      const defaultCandidates = 300;
+      const candidates = options.candidates ?? defaultCandidates;
+
       const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
       if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
         throw new Error("Invalid similarity threshold provided.");
@@ -400,7 +394,7 @@ export class Search {
 
       const subqueryWhere = [
         `<-owns<-(user WHERE id = $userId)`,
-        `embeddings <|${candidates}, ${candidates * 2}|> $embedding`,
+        `embeddings <|${limit}, ${candidates}|> $embedding`,
       ];
 
       if (options.rabbitholeId) {
@@ -426,6 +420,7 @@ export class Search {
         ORDER BY distance DESC
         LIMIT ${limit};
       `;
+      console.log("Built query: ", query);
 
       const [results] = await db.query<
         (IIdea & { distance: number; derivedList: IIdeaDerived[] })[][]
