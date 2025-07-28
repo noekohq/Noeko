@@ -269,11 +269,12 @@ export class GenerativeSummary {
         `SELECT VALUE ->is_source_for->generative_summary as derivedSummaries FROM ONLY $ideaId FETCH derivedSummaries;`,
         { ideaId },
       );
-      if (!derivedSummariesResults || derivedSummariesResults === undefined) {
-        throw new Error(
-          "Failed to fetch derived summaries",
-          derivedSummariesResults,
-        );
+      if (
+        !derivedSummariesResults ||
+        derivedSummariesResults === undefined ||
+        !derivedSummariesResults[0]
+      ) {
+        throw new Error("Failed to fetch derived summaries");
       }
       const [derivedSummaries] = derivedSummariesResults;
       // if (!derivedSummaries || derivedSummaries.length < 1) {
