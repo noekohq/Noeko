@@ -349,18 +349,21 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       <div
         ref={editorContainerRef}
         className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
-        onDragOver={(e) => {
+        onContextMenuCapture={(e) => {
           e.preventDefault();
         }}
-        onDragEnterCapture={(e) => {
-          setDroppingOver(true);
-        }}
-        onDragLeaveCapture={(e) => {
-          setDroppingOver(false);
-        }}
-        onDropCapture={(e) => {
-          setDroppingOver(false);
-        }}
+        // onDragOver={(e) => {
+        //   e.preventDefault();
+        // }}
+        // onDragEnterCapture={(e) => {
+        //   setDroppingOver(true);
+        // }}
+        // onDragLeaveCapture={(e) => {
+        //   setDroppingOver(false);
+        // }}
+        // onDropCapture={(e) => {
+        //   setDroppingOver(false);
+        // }}
       >
         {droppingOver && (
           <Overlay
