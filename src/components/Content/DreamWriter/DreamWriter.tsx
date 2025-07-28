@@ -38,26 +38,8 @@ import {
   CodeInlineButton,
   StrikeThroughButton,
   ExtraButton,
-  TaskListButton,
-  TaskItemButton,
-  NewIdea,
-  CopySelectionButton,
-  CutButton,
-  PasteButton,
-  SelectAllButton,
-  OrderedListButton,
-  BulletListButton,
-  MathInlineButton,
-  MathBlockButton,
 } from "./Options";
-import {
-  FileIcon,
-  MagicWandIcon,
-  PlusIcon,
-  TextAUnderlineIcon,
-  TextIndentIcon,
-  TextboxIcon,
-} from "@phosphor-icons/react";
+import { FileIcon, PlusIcon } from "@phosphor-icons/react";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { DreamImage } from "./nodes/DreamImage";
 import { DreamFile } from "./nodes/DreamFile";
@@ -79,6 +61,7 @@ import "./lib/qwest-highlight.scss";
 import { all, createLowlight } from "lowlight";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { DreamTable } from "./nodes/DreamTable";
+import BubbleMenu from "./BubbleMenu";
 
 const lowlight = createLowlight(all);
 
@@ -480,158 +463,5 @@ function FloatingMenu({ editor }: { editor: IEditor | null }) {
         <PlusIcon weight="regular" />
       </button>
     </TippyFloatingMenu>
-  );
-}
-
-export function BubbleMenu({ editor }: { editor: IEditor | null }) {
-  const isImage = editor?.isActive("image");
-  const hidden = isImage;
-
-  return (
-    <TippyBubbleMenu
-      editor={editor}
-      className={styles.bubbleMenu}
-      tippyOptions={{ duration: 100, placement: "bottom" }}
-    >
-      {!hidden && (
-        <Group gap="xs" align="center">
-          <CopySelectionButton editor={editor} />
-          <CutButton editor={editor} />
-          <PasteButton editor={editor} />
-          <SelectAllButton editor={editor} />
-
-          <div className={styles.divider} />
-
-          <BoldButton editor={editor} />
-          <ItalicButton editor={editor} />
-          <UnderlineButton editor={editor} />
-          <StrikeThroughButton editor={editor} />
-          <CodeInlineButton editor={editor} />
-          <MathInlineButton editor={editor} />
-
-          <div className={styles.divider} />
-
-          <ParagraphButton editor={editor} />
-          <HeadingButton editor={editor} level={1} />
-          <HeadingButton editor={editor} level={2} />
-          <HeadingButton editor={editor} level={3} />
-          <BlockquoteButton editor={editor} />
-          <CodeBlockButton editor={editor} />
-          <TaskListButton editor={editor} />
-          <OrderedListButton editor={editor} />
-          <BulletListButton editor={editor} />
-          <MathBlockButton editor={editor} />
-
-          <div className={styles.divider} />
-
-          <LinkButton editor={editor} />
-          <NewIdea editor={editor} />
-        </Group>
-      )}
-    </TippyBubbleMenu>
-  );
-}
-
-function BubbleMenuOld({ editor }: { editor: IEditor | null }) {
-  const isImage = editor?.isActive("image");
-
-  const hidden = isImage;
-
-  const BasicText = (
-    <>
-      <BoldButton editor={editor} />
-      <StrikeThroughButton editor={editor} />
-      <ItalicButton editor={editor} />
-      <UnderlineButton editor={editor} />
-      <ParagraphButton editor={editor} />
-      <CodeInlineButton editor={editor} />
-      <TaskItemButton editor={editor} />
-    </>
-  );
-
-  const BlockEditing = (
-    <>
-      <HeadingButton editor={editor} level={1} />
-      <HeadingButton editor={editor} level={2} />
-      <HeadingButton editor={editor} level={3} />
-      <BlockquoteButton editor={editor} />
-      <CodeBlockButton editor={editor} />
-      <TaskListButton editor={editor} />
-    </>
-  );
-
-  const FancyFeatures = (
-    <>
-      <LinkButton editor={editor} />
-    </>
-  );
-
-  const GenerativeFeatures = (
-    <>
-      <NewIdea editor={editor} />
-    </>
-  );
-
-  const frames: {
-    name: string;
-    icon: JSX.Element;
-    frame: JSX.Element;
-  }[] = [
-    {
-      icon: <TextAUnderlineIcon weight="regular" />,
-      frame: BasicText,
-      name: "Text editing",
-    },
-    {
-      icon: <TextIndentIcon weight="regular" />,
-      frame: BlockEditing,
-      name: "Change block",
-    },
-    {
-      icon: <TextboxIcon weight="regular" />,
-      frame: FancyFeatures,
-      name: "Add features",
-    },
-    {
-      icon: <MagicWandIcon weight="regular" />,
-      frame: GenerativeFeatures,
-      name: "Generate content",
-    },
-  ];
-  const [currentFrame, setCurrentFrame] = useState(0);
-
-  const FrameToRender = (
-    <div className={styles.frame}>{frames[currentFrame].frame}</div>
-  );
-
-  return (
-    <TippyBubbleMenu editor={editor} className={styles.bubbleMenu}>
-      {!hidden && (
-        <>
-          <div className={styles.content}>
-            <div className={styles.frameContainer}>{FrameToRender}</div>
-          </div>
-          <div className={styles.frameIndicator}>
-            {frames.map((frame, index) => {
-              return (
-                <button
-                  key={index}
-                  className={`${styles.indicatorItem} ${
-                    currentFrame === index ? styles.active : ""
-                  }`}
-                  onClick={() => setCurrentFrame(index)}
-                  title={frame.name}
-                  style={{
-                    animationDelay: `${index * 0.05}s`,
-                  }}
-                >
-                  {frame.icon}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-    </TippyBubbleMenu>
   );
 }
