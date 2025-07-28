@@ -503,13 +503,15 @@ export default function Idea() {
               {!!idea && (
                 <>
                   <Space my="lg" />
-                  <Text size="sm" fw="bold" c="dimmed">
-                    <Group gap="xs">
-                      <TagIcon weight="fill" />
-                      TAGS
-                    </Group>
-                  </Text>
-                  <TagsManager maxSuggested={2} idea={idea} />
+                  <Stack>
+                    <Text size="sm" fw="bold" c="dimmed">
+                      <Group gap="xs">
+                        <TagIcon weight="fill" />
+                        TAGS
+                      </Group>
+                    </Text>
+                    <TagsManager maxSuggested={2} idea={idea} />
+                  </Stack>
                   <Space my="lg" />
                   <Connections
                     loadingIdea={loadingIdea}

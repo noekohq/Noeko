@@ -62,8 +62,8 @@ export type IRabbitholeSearchResult = {
 
 export class Search {
   private static readonly COMPREHENSIVE_WEIGHTS = {
-    SEMANTIC: 1.5,
-    FTS_TITLE: 1.0,
+    SEMANTIC: 2,
+    FTS_TITLE: 1.5,
     FTS_CONTENT: 0.5,
   };
   private static readonly EXACT_TITLE_BONUS = 2.0;

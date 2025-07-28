@@ -101,117 +101,35 @@
 }
 
 .bubbleMenu {
-    box-sizing: border-box;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-start;
-    gap: 8px;
-    // Replaced rgba(var(--color-background-alt-rgb), 1) with --mantine-color-default
-    // This is often used for card/paper-like backgrounds in Mantine.
+    gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    /* width: calc(var(--content-width) - 36px); */
+
     background-color: var(--mantine-color-dark-8);
     border-radius: var(--mantine-radius-md);
     border: 1px solid var(--mantine-color-default-border);
-    padding: 8px 14px;
-    // Non-color variable kept
-    overflow: hidden;
-    position: relative;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    box-shadow: var(--mantine-shadow-md); // Adds a subtle shadow for depth.
+    transition: opacity 0.1s ease-in-out;
+}
 
-    .frameIndicator {
-        width: 100%;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 4px;
+.divider {
+    width: 1px;
+    height: 14px;
+    align-self: center;
+    background-color: var(
+        --mantine-color-dark-7
+    );
+}
 
-        .indicatorItem {
-            background-color: transparent;
-            border: none;
-            // Non-color variable kept
-            border-radius: var(--border-radius-small);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            // Replaced rgba(var(--color-text-rgb), 0.5) with --mantine-color-dimmed
-            color: var(--mantine-color-dimmed);
-            opacity: 0; // Opacity handled by animation potentially
-
-            @keyframes itemIn {
-                0% {
-                    transform: translateY(-5px);
-                    opacity: 0.5; // Adjust opacity animation if needed
-                }
-                100% {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
-            animation: itemIn 0.3s ease forwards;
-
-            &:hover {
-                // Replaced rgba(var(--color-text-rgb), 0.75) - maybe default text is fine for hover? Or a slightly less dim gray?
-                // Let's try default text color on hover.
-                color: var(--mantine-color-text);
-            }
-
-            &.active {
-                // Replaced rgba(var(--color-text-rgb), 1) with --mantine-color-text
-                color: var(--mantine-color-text);
-            }
-        }
-    }
-
-    .content {
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        width: 100%;
-    }
-
-    .frameContainer {
-        // Replaced rgba(var(--color-background-contrast-rgb), 0.5)
-        // Using a light gray shade directly instead of relying on alpha. Adjust gray shade (0, 1, 2) as needed.
-        background-color: var(--mantine-color-body);
-        padding: 8px 8px;
-        // Non-color variable kept
-        border-radius: var(--mantine-radius-md);
-        overflow: hidden;
-    }
-
-    .frame {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 8px;
-        // Animation kept
-    }
-
-    .switch {
-        display: flex;
-        align-items: center;
+/* Optional: For very small screens, you might want the groups
+  to be centered when they wrap.
+*/
+@media (max-width: 480px) {
+    .bubbleMenu {
         justify-content: center;
-        gap: 4px;
-        border: none;
-        height: 36px;
-        // Replaced --color-text with --mantine-color-text
-        color: var(--mantine-color-text);
-        transition: all 0.2s ease-in-out;
-        cursor: pointer;
-        font-size: 1.4rem;
-        font-weight: 600;
-        background-color: transparent;
-
-        svg {
-            font-size: 1.4rem;
-        }
-
-        &:hover {
-            // Replaced rgba(var(--color-background-alt-rgb), 0.65) with standard hover variable
-            background-color: var(--mantine-color-default-hover);
-            // Replaced rgba(var(--color-text-rgb), 0.65) - dimmed or default text? Let's try default.
-            color: var(--mantine-color-text);
-        }
     }
 }
 
@@ -279,4 +197,8 @@
         border-radius: var(--border-radius-small);
         overflow: hidden;
     }
+}
+
+:global(.ProseMirror) {
+    -webkit-touch-callout: none;
 }

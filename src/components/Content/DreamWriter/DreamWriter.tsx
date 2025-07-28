@@ -23,6 +23,7 @@ import Link from "@tiptap/extension-link";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Typography from "@tiptap/extension-typography";
 import TaskList from "@tiptap/extension-task-list";
+import { Mathematics } from "@tiptap/extension-mathematics";
 import {
   BlockquoteButton,
   BoldButton,
@@ -40,6 +41,14 @@ import {
   TaskListButton,
   TaskItemButton,
   NewIdea,
+  CopySelectionButton,
+  CutButton,
+  PasteButton,
+  SelectAllButton,
+  OrderedListButton,
+  BulletListButton,
+  MathInlineButton,
+  MathBlockButton,
 } from "./Options";
 import {
   FileIcon,
@@ -64,7 +73,7 @@ import { DreamCode } from "./nodes/DreamCode";
 import YouTube from "@tiptap/extension-youtube";
 import { DreamPaste } from "./extensions/DreamPaste";
 
-// import "highlight.js/styles/github-dark-dimmed.css";
+import "katex/dist/katex.min.css";
 import "./lib/qwest-highlight.scss";
 
 import { all, createLowlight } from "lowlight";
@@ -241,6 +250,11 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             HTMLAttributes: {
               class: contentStyles.youtube,
             },
+          }),
+          Mathematics.configure({
+            inlineOptions: {},
+            blockOptions: {},
+            katexOptions: {},
           }),
           DreamSlash.configure({}),
           DreamPaste.configure(),
@@ -466,7 +480,56 @@ function FloatingMenu({ editor }: { editor: IEditor | null }) {
   );
 }
 
-function BubbleMenu({ editor }: { editor: IEditor | null }) {
+export function BubbleMenu({ editor }: { editor: IEditor | null }) {
+  const isImage = editor?.isActive("image");
+  const hidden = isImage;
+
+  return (
+    <TippyBubbleMenu
+      editor={editor}
+      className={styles.bubbleMenu}
+      tippyOptions={{ duration: 100, placement: "bottom" }}
+    >
+      {!hidden && (
+        <Group gap="xs" align="center">
+          <CopySelectionButton editor={editor} />
+          <CutButton editor={editor} />
+          <PasteButton editor={editor} />
+          <SelectAllButton editor={editor} />
+
+          <div className={styles.divider} />
+
+          <BoldButton editor={editor} />
+          <ItalicButton editor={editor} />
+          <UnderlineButton editor={editor} />
+          <StrikeThroughButton editor={editor} />
+          <CodeInlineButton editor={editor} />
+          <MathInlineButton editor={editor} />
+
+          <div className={styles.divider} />
+
+          <ParagraphButton editor={editor} />
+          <HeadingButton editor={editor} level={1} />
+          <HeadingButton editor={editor} level={2} />
+          <HeadingButton editor={editor} level={3} />
+          <BlockquoteButton editor={editor} />
+          <CodeBlockButton editor={editor} />
+          <TaskListButton editor={editor} />
+          <OrderedListButton editor={editor} />
+          <BulletListButton editor={editor} />
+          <MathBlockButton editor={editor} />
+
+          <div className={styles.divider} />
+
+          <LinkButton editor={editor} />
+          <NewIdea editor={editor} />
+        </Group>
+      )}
+    </TippyBubbleMenu>
+  );
+}
+
+function BubbleMenuOld({ editor }: { editor: IEditor | null }) {
   const isImage = editor?.isActive("image");
 
   const hidden = isImage;
