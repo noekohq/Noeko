@@ -96,16 +96,22 @@ export default function Rabbithole() {
     }
   }, [rabbitholeId]);
 
+  const {
+    rabbitholes: {
+      entered: {
+        set: setEntered,
+        get: currentlyEntered,
+        reload: reloadRabbitholeContext,
+      },
+    },
+  } = useLandscape();
+
   const handleRefresh = () => {
     loadRabbithole();
     loadRelatedIdeas();
+    reloadRabbitholeContext();
   };
 
-  const {
-    rabbitholes: {
-      entered: { set: setEntered, get: currentlyEntered },
-    },
-  } = useLandscape();
   const isEntered =
     currentlyEntered?.id.toString() === rabbithole?.id.toString();
 
@@ -656,6 +662,7 @@ export default function Rabbithole() {
       <RightSidebar>
         <RightSidebar.Open>
           <Search
+            ignoreRabbithole
             resultFilter={(id) => {
               return !isIncluded(id);
             }}

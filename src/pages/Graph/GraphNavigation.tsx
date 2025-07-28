@@ -58,7 +58,7 @@ export const GraphNavigation = ({
   return (
     <div>
       <Stack justify="end">
-        <HoverCard width="300px" openDelay={200}>
+        {/* <HoverCard width="300px" openDelay={200}>
           <HoverCard.Target>
             <Link to="heavy">
               <Button variant="light">Enter Heavy Mode</Button>
@@ -72,7 +72,7 @@ export const GraphNavigation = ({
               cooler.
             </Text>
           </HoverCard.Dropdown>
-        </HoverCard>
+        </HoverCard> */}
         <Text c="dimmed" size="sm">
           {statusText()}
         </Text>
