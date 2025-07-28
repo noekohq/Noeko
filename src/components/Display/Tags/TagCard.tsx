@@ -1,9 +1,16 @@
-import { ActionIcon, Group, MantineColor, Menu, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Badge,
+  Group,
+  MantineColor,
+  Menu,
+  Text,
+} from "@mantine/core";
 import { ITag } from "../../../../app/database/models/tag";
 import { useNavigate } from "react-router";
 import { IconProps } from "../../Utils/Icons/Icon";
 import styles from "./TagCard.module.scss";
-import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
+import { DotsThreeVerticalIcon, TagIcon } from "@phosphor-icons/react";
 
 export type ITagAction = {
   id: string;
@@ -65,9 +72,13 @@ export default function TagCard({
     >
       <Group justify="space-between">
         <Group gap="xs">
-          <Text size="sm" fw="bold">
+          <Badge
+            size="lg"
+            color="dark.9"
+            leftSection={<TagIcon weight="bold" />}
+          >
             {tag.name}
-          </Text>
+          </Badge>
         </Group>
         <Group>
           {!!actions?.length && (

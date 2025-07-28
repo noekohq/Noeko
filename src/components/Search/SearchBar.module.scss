@@ -1,8 +1,13 @@
 .searchBar {
-   position: relative;
-   width: 100%;
+    position: relative;
+    width: 100%;
 }
 
 .input {
     border: 1px solid var(--mantine-color-dark-7) !important;
+
+    &.withinRabbithole {
+        border-color: var(--mantine-color-green-7) !important;
+        box-shadow: 0.2px 0.2px 5px 0 var(--mantine-color-green-7);
+    }
 }

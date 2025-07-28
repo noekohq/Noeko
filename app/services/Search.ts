@@ -78,7 +78,7 @@ export class Search {
   static async up() {
     const defineVectorIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_idea_embeddings
+      DEFINE INDEX IF NOT EXISTS idx_idea_embeddings
         ON TABLE idea
         FIELDS embeddings
         HNSW DIMENSION 768
@@ -392,10 +392,12 @@ export class Search {
         throw new Error("Invalid similarity threshold provided.");
       }
 
-      const subqueryWhere = [
-        `<-owns<-(user WHERE id = $userId)`,
-        `embeddings <|${limit}, ${candidates}|> $embedding`,
-      ];
+      const subqueryWhere = [`<-owns<-(user WHERE id = $userId)`];
+
+      // Don't use index when within rabbithole
+      if (!options.rabbitholeId) {
+        subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
+      }
 
       if (options.rabbitholeId) {
         subqueryWhere.push(`
@@ -420,7 +422,6 @@ export class Search {
         ORDER BY distance DESC
         LIMIT ${limit};
       `;
-      console.log("Built query: ", query);
 
       const [results] = await db.query<
         (IIdea & { distance: number; derivedList: IIdeaDerived[] })[][]

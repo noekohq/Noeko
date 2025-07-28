@@ -6,6 +6,7 @@ import styles from "./SearchBar.module.scss";
 import { MagnifyingGlass, MagnifyingGlassIcon, X } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useSearch } from "../../contexts/SearchContext";
+import useRabbithole from "../../hooks/useRabbithole";
 
 type ISearchBarProps = {
   placeholder?: string;
@@ -18,6 +19,7 @@ type ISearchBarProps = {
   helpText?: string;
   omit?: string[];
   withOverview?: boolean;
+  ignoreRabbithole?: boolean;
 };
 
 export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
@@ -31,6 +33,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
       onSearchEnd,
       onShortcuts,
       withOverview,
+      ignoreRabbithole,
     },
     ref,
   ) => {
@@ -43,19 +46,24 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
       },
     } = useSearch();
 
+    const { currentRabbithole } = useRabbithole();
+    const withinRabbithole = ignoreRabbithole ? false : !!currentRabbithole;
+
     const {
       data: rawResults,
       load: searchIdeas,
       loading: loadingIdeas,
     } = useFetch<
-      { query: string; withOverview: boolean },
+      { query: string; rabbitholeId: string | undefined },
       { results: ISearchResult[]; overview: ISearchOverview }
     >({
       url: "/search/comprehensive",
       method: "POST",
       body: {
         query,
-        withOverview: !!withOverview,
+        rabbitholeId: withinRabbithole
+          ? currentRabbithole?.id.toString()
+          : undefined,
       },
       dependencies: [query, withOverview],
       onBefore: () => {
@@ -128,7 +136,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
           classNames={{
-            input: styles.input,
+            input: `${styles.input} ${withinRabbithole ? styles.withinRabbithole : ""}`,
           }}
           onKeyDown={(e) => {
             if (!e.shiftKey && e.key === "Enter") {

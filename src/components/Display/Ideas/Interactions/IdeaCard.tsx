@@ -168,10 +168,7 @@ export default function IdeaCard({
           </div>
         </HoverCard.Target>
         <HoverCard.Dropdown
-          style={{
-            overflowY: "scroll",
-            maxHeight: "400px",
-          }}
+          style={{ overflowY: "scroll", maxHeight: "400px" }}
           onClick={(e) => {
             e.stopPropagation();
           }}

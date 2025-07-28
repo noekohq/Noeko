@@ -14,27 +14,28 @@ import {
 import { getNodeAsIdeaOrNull } from "../../utils/graph";
 import Match from "../Utils/Match";
 import { getSearchResultPreview } from "../../utils/search";
-import {
-  CompactIdeaCard,
-  DetailedIdeaCard,
-  StandardIdeaCard,
-} from "../Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
 import { Link } from "react-router";
-import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
-import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
+import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ISafeIdea } from "../../../app/database/models/ideas";
 import { useAuth } from "../../contexts/AuthContext";
-import { formatDateTime } from "../../utils/formatting";
 import IdeaCard, { IIdeaAction } from "../Display/Ideas/Interactions/IdeaCard";
+import useRabbithole from "../../hooks/useRabbithole";
+import { RabbitholeIcon } from "../Utils/Icons/Icons";
 
 interface ISearchProps {
   resultActions?: ((idea: ISafeIdea) => IIdeaAction)[];
   resultFilter?: (id: string) => boolean;
+  ignoreRabbithole?: boolean;
 }
 
-export default function Search({ resultActions, resultFilter }: ISearchProps) {
+export default function Search({
+  resultActions,
+  resultFilter,
+  ignoreRabbithole,
+}: ISearchProps) {
   const [loading, setLoading] = useState(false);
   const os = getOS();
   const ctrl = os !== "macos";
@@ -44,6 +45,9 @@ export default function Search({ resultActions, resultFilter }: ISearchProps) {
   const { isSuperuser } = useAuth();
 
   const { isMobile } = useLayout();
+
+  const { currentRabbithole } = useRabbithole();
+  const withinRabbithole = ignoreRabbithole ? false : !!currentRabbithole;
 
   const {
     global: {
@@ -75,6 +79,7 @@ export default function Search({ resultActions, resultFilter }: ISearchProps) {
   return (
     <div className={styles.searchWrapper}>
       <SearchBar
+        ignoreRabbithole={ignoreRabbithole}
         onResultsClear={handleResultsClear}
         onSearchStart={() => {
           startTimeRef.current = Date.now();
@@ -110,9 +115,20 @@ export default function Search({ resultActions, resultFilter }: ISearchProps) {
         !loading && (
           <>
             <Space my="lg" />
-            <Text c="dimmed" size="xs">
-              Search anything...
-            </Text>
+            <Group gap="xs">
+              {withinRabbithole && (
+                <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
+              )}
+              <Text c="dimmed" size="xs">
+                Search{" "}
+                {withinRabbithole ? (
+                  <>"{currentRabbithole?.name}"</>
+                ) : (
+                  "anything..."
+                )}
+              </Text>
+              <Text c="dimmed" size="xs"></Text>
+            </Group>
           </>
         )}
       {filteredResults && (
@@ -122,8 +138,10 @@ export default function Search({ resultActions, resultFilter }: ISearchProps) {
             Found {filteredResults.length} result
             {filteredResults.length === 1 ? "" : "s"}
             {isSuperuser ? ` in ${timeTaken}s` : "..."}
+            {withinRabbithole ? ` in "${currentRabbithole?.name}"` : ""}
           </Text>
           <Space my="sm" />
+          {!filteredResults.length && <Text size="sm">No results :(</Text>}
           <Stack>
             {filteredResults
               ?.map((s, i) => {
