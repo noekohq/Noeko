@@ -46,7 +46,7 @@ export const checkIsSuperuser = async (
 ) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user || !user.roles) {
+    if (!user) {
       res.status(403).json({
         message: "Forbidden",
       });
