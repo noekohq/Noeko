@@ -13,6 +13,7 @@ import {
 import { Tag } from "../../database/models/tag";
 import shareRouter from "./share";
 import { max_idea_size } from "../../settings";
+import { getLM } from "../../ai/lms/lm";
 
 const router = Router();
 
@@ -95,6 +96,39 @@ router.get("/page", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     res.send({ message: "Successfully retrieved user ideas.", data: ideas });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const body = req.body;
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const form = { ...body };
+    if (body.generateTitle) {
+      const lm = getLM();
+      form.title = await lm.utils.entitle(
+        form.content,
+        "short and concise, fewly worded",
+      );
+    }
+    const i = await Idea.create(
+      {
+        ...form,
+      },
+      user.id,
+    );
+    if (!i) {
+      res.status(404).json({ error: "Idea not created" });
+      return;
+    }
+    res.send({ message: "Successfully created idea.", data: i });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });

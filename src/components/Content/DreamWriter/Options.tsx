@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   BracketsAngle,
+  CheckIcon,
   CheckSquare,
   Code,
   CodeSimple,
   DotsThreeVertical,
   Download,
+  InfoIcon,
+  LightbulbIcon,
   Link,
   ListBullets,
   ListChecks,
@@ -17,6 +20,7 @@ import {
   TextStrikethrough,
   TextUnderline,
   X,
+  XIcon,
 } from "@phosphor-icons/react";
 import {
   ActionIcon,
@@ -24,9 +28,17 @@ import {
   Flex,
   Group,
   Popover,
+  Stack,
+  Text,
   TextInput,
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
+import { useForm } from "@mantine/form";
+import DreamWriter from "./DreamWriter";
+import { useInteraction } from "../../../contexts/InteractionContext";
+import { useLandscape } from "../../../contexts/LandscapeContext";
+import { createIdea, createIdeaConnection } from "../../../utils/ideas";
+import { useDisclosure } from "@mantine/hooks";
 
 interface OptionProps {
   editor: IEditor | null;
@@ -541,7 +553,108 @@ export function BulletListButton({ editor }: OptionProps) {
 /* MAGIC FEATURES */
 
 export function NewIdea({ editor }: OptionProps) {
-  const isCurrentIdea = editor?.isActive("dreamIdea");
+  const [opened, { toggle, close }] = useDisclosure();
+  const [loading, setLoading] = useState(false);
 
-  return <Button></Button>;
+  // Unused hooks from previous example, kept for context
+  const {
+    actions: { newConnectedIdea },
+  } = useInteraction();
+  const {
+    idea: {
+      viewing: { get: viewingIdea },
+    },
+  } = useLandscape();
+
+  const newIdeaForm = useForm({
+    initialValues: { content: "" },
+  });
+
+  // ✨ The key change: Use useEffect for cleanup logic
+  useEffect(() => {
+    // This side effect runs whenever the popover's `opened` state changes.
+    if (!opened) {
+      newIdeaForm.reset(); // Centralized reset logic
+      setLoading(false); // Also ensures loading state is reset
+    }
+  }, [opened]); // The dependency array ensures this runs only when 'opened' changes
+
+  const handleCreateNewIdea = async () => {
+    if (newIdeaForm.validate().hasErrors) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const newIdea = await createIdea(newIdeaForm.values.content);
+
+      if (newIdea) {
+        editor
+          ?.chain()
+          .focus()
+          .setDreamIdea({
+            ideaId: newIdea.id.toString(),
+            ideaAlias: newIdea.title,
+          })
+          .run();
+
+        if (viewingIdea) {
+          await createIdeaConnection(
+            viewingIdea.toString(),
+            newIdea.id.toString(),
+          );
+        }
+      }
+
+      close();
+    } catch (error) {
+      console.error("Error creating new idea: ", error);
+      showNotification({
+        title: "Creation Error",
+        message: "Failed to create the new idea.",
+        color: "red",
+      });
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Popover opened={opened} width={"400px"} radius="lg" withArrow>
+      <Popover.Target>
+        <Button
+          leftSection={<LightbulbIcon width={16} />}
+          variant="light"
+          size="xs"
+          onClick={toggle}
+          loading={loading}
+        >
+          Idea
+        </Button>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Stack>
+          <DreamWriter
+            onChange={(v) => {
+              newIdeaForm.setFieldValue("content", v);
+            }}
+          />
+          <Group justify="flex-end">
+            {/* The cancel button now only needs to call close() */}
+            <ActionIcon onClick={close} variant="light" color="gray">
+              <XIcon width={16} />
+            </ActionIcon>
+            <ActionIcon
+              onClick={handleCreateNewIdea}
+              variant="light"
+              color="gray"
+              disabled={!newIdeaForm.values.content}
+              loading={loading}
+            >
+              <CheckIcon width={16} />
+            </ActionIcon>
+          </Group>
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
+  );
 }

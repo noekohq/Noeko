@@ -26,6 +26,7 @@ export const newIdea = async () => {
 export const createIdea = async (content: string) => {
   try {
     const results = await api.post("/ideas", {
+      generateTitle: true,
       content,
     });
     return results.data.data as IIdea;
