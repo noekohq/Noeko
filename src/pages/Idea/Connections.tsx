@@ -201,6 +201,7 @@ export default function Connections({
                 <Group>
                   <ActionIcon
                     variant="light"
+                    color="gray"
                     size={"sm"}
                     onClick={() => newConnectedIdea(idea.id.toString())}
                   >

@@ -1,30 +1,37 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import {
-  BracketsAngle,
+  BracketsAngleIcon,
   CheckIcon,
-  CheckSquare,
-  Code,
-  CodeSimple,
-  DotsThreeVertical,
-  Download,
+  CheckSquareIcon,
+  ClipboardTextIcon,
+  CodeIcon,
+  CodeSimpleIcon,
+  CopyIcon,
+  DotsThreeVerticalIcon,
+  DownloadIcon,
+  FunctionIcon,
   InfoIcon,
   LightbulbIcon,
-  Link,
-  ListBullets,
-  ListChecks,
-  ListNumbers,
-  Quotes,
-  TextB,
-  TextItalic,
-  TextStrikethrough,
-  TextUnderline,
-  X,
+  LinkIcon,
+  ListBulletsIcon,
+  ListChecksIcon,
+  ListNumbersIcon,
+  MathOperationsIcon,
+  QuotesIcon,
+  ScissorsIcon,
+  SelectionAll,
+  SelectionAllIcon,
+  TextBIcon,
+  TextItalicIcon,
+  TextStrikethroughIcon,
+  TextUnderlineIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import {
   ActionIcon,
   Button,
+  CopyButton,
   Flex,
   Group,
   Popover,
@@ -44,18 +51,123 @@ interface OptionProps {
   editor: IEditor | null;
 }
 
-export function BoldButton({ editor }: OptionProps) {
-  const makeBold = () => editor?.chain().focus().toggleBold().run();
+interface IGetButtonPropsArgs {
+  isActive: boolean;
+}
+const getButtonProps = ({ isActive }: IGetButtonPropsArgs) => ({
+  color: isActive ? "blue.7" : "dark.1",
+  variant: isActive ? "filled" : "light",
+});
 
-  const isBold = editor?.isActive("bold");
+export function CopySelectionButton({ editor }: OptionProps) {
+  const getCopyText = () => {
+    if (!editor || editor.state.selection.empty) return "";
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    return selectedText;
+  };
+
+  const isDisabled = !editor || editor.state.selection.empty;
+
+  return (
+    <CopyButton value={getCopyText()}>
+      {({ copied, copy }) => {
+        return (
+          <ActionIcon
+            {...getButtonProps({ isActive: false })}
+            onClick={copy}
+            title="Copy"
+            disabled={isDisabled}
+          >
+            {copied ? <CheckIcon weight="bold" /> : <CopyIcon weight="bold" />}
+          </ActionIcon>
+        );
+      }}
+    </CopyButton>
+  );
+}
+
+export function CutButton({ editor }: OptionProps) {
+  const handleCut = () => {
+    if (!editor || editor.state.selection.empty) return;
+
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+
+    if (selectedText) {
+      navigator.clipboard.writeText(selectedText);
+      editor.chain().focus().deleteSelection().run();
+    }
+  };
+
+  const isDisabled = !editor || editor.state.selection.empty;
 
   return (
     <ActionIcon
-      variant={isBold ? "filled" : "light"}
+      {...getButtonProps({ isActive: false })}
+      onClick={handleCut}
+      title="Cut"
+      disabled={isDisabled}
+    >
+      <ScissorsIcon weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function PasteButton({ editor }: OptionProps) {
+  const handlePaste = async () => {
+    if (!editor) return;
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        editor.chain().focus().insertContent(text).run();
+      }
+    } catch (error) {
+      console.error("Failed to paste text: ", error);
+    }
+  };
+
+  return (
+    <ActionIcon
+      {...getButtonProps({ isActive: false })}
+      onClick={handlePaste}
+      title="Paste"
+      disabled={!editor}
+    >
+      <ClipboardTextIcon weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function SelectAllButton({ editor }: OptionProps) {
+  const handleSelectAll = () => {
+    editor?.chain().focus().selectAll().run();
+  };
+
+  return (
+    <ActionIcon
+      {...getButtonProps({ isActive: false })}
+      onClick={handleSelectAll}
+      title="Select All"
+      disabled={!editor}
+    >
+      <SelectionAllIcon weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function BoldButton({ editor }: OptionProps) {
+  const makeBold = () => editor?.chain().focus().toggleBold().run();
+
+  const isBold = !!editor?.isActive("bold");
+
+  return (
+    <ActionIcon
+      {...getButtonProps({ isActive: isBold })}
       onClick={makeBold}
       title="Toggle Bold"
     >
-      <TextB weight="bold" />
+      <TextBIcon weight="bold" />
     </ActionIcon>
   );
 }
@@ -63,29 +175,29 @@ export function BoldButton({ editor }: OptionProps) {
 export function ItalicButton({ editor }: OptionProps) {
   const makeItalic = () => editor?.chain().focus().toggleItalic().run();
 
-  const isItalic = editor?.isActive("italic");
+  const isItalic = !!editor?.isActive("italic");
 
   return (
     <ActionIcon
-      variant={isItalic ? "filled" : "light"}
+      {...getButtonProps({ isActive: isItalic })}
       onClick={makeItalic}
       title="Toggle Italic"
     >
-      <TextItalic weight="bold" />
+      <TextItalicIcon weight="bold" />
     </ActionIcon>
   );
 }
 
 export function StrikeThroughButton({ editor }: OptionProps) {
-  const isStrike = editor?.isActive("strike");
+  const isStrike = !!editor?.isActive("strike");
 
   return (
     <ActionIcon
-      variant={isStrike ? "filled" : "light"}
+      {...getButtonProps({ isActive: isStrike })}
       onClick={() => editor?.chain().focus().toggleStrike().run()}
       title="Toggle Strike Through"
     >
-      <TextStrikethrough weight="bold" />
+      <TextStrikethroughIcon weight="bold" />
     </ActionIcon>
   );
 }
@@ -93,15 +205,15 @@ export function StrikeThroughButton({ editor }: OptionProps) {
 export function UnderlineButton({ editor }: OptionProps) {
   const makeUnderline = () => editor?.chain().focus().toggleUnderline().run();
 
-  const isUnderline = editor?.isActive("underline");
+  const isUnderline = !!editor?.isActive("underline");
 
   return (
     <ActionIcon
-      variant={isUnderline ? "filled" : "light"}
+      {...getButtonProps({ isActive: isUnderline })}
       onClick={makeUnderline}
       title="Toggle Underline"
     >
-      <TextUnderline weight="bold" />
+      <TextUnderlineIcon weight="bold" />
     </ActionIcon>
   );
 }
@@ -109,11 +221,11 @@ export function UnderlineButton({ editor }: OptionProps) {
 export function ParagraphButton({ editor }: OptionProps) {
   const toggleParagraph = () => editor?.chain().focus().setParagraph().run();
 
-  const isActive = editor?.isActive("paragraph");
+  const isActive = !!editor?.isActive("paragraph");
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"}
+      {...getButtonProps({ isActive })}
       onClick={toggleParagraph}
       title="Toggle Paragraph"
     >
@@ -129,11 +241,11 @@ export function HeadingButton({ editor, level }: HeadingProps) {
   const toggleHeading = () =>
     editor?.chain().focus().toggleHeading({ level }).run();
 
-  const isActive = editor?.isActive("heading", { level });
+  const isActive = !!editor?.isActive("heading", { level });
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"}
+      {...getButtonProps({ isActive })}
       onClick={toggleHeading}
       title="Toggle Heading"
     >
@@ -146,15 +258,15 @@ export function BlockquoteButton({ editor }: OptionProps) {
   const toggleBlockquote = () =>
     editor?.chain().focus().toggleBlockquote().run();
 
-  const isActive = editor?.isActive("blockquote");
+  const isActive = !!editor?.isActive("blockquote");
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"}
+      {...getButtonProps({ isActive })}
       onClick={toggleBlockquote}
       title="Toggle Blockquote"
     >
-      <Quotes weight="bold" />
+      <QuotesIcon weight="bold" />
     </ActionIcon>
   );
 }
@@ -198,8 +310,12 @@ export function ExportAsHTMLButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon variant="default" onClick={exportAsHTML} title="Export as HTML">
-      <Download weight="bold" />
+    <ActionIcon
+      {...getButtonProps({ isActive: false })}
+      onClick={exportAsHTML}
+      title="Export as HTML"
+    >
+      <DownloadIcon weight="bold" />
     </ActionIcon>
   );
 }
@@ -249,14 +365,18 @@ export function CopyAsHTMLButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon variant="default" onClick={copyAsHTML} title="Copy as HTML">
-      <BracketsAngle weight="bold" />
+    <ActionIcon
+      {...getButtonProps({ isActive: false })}
+      onClick={copyAsHTML}
+      title="Copy as HTML"
+    >
+      <BracketsAngleIcon weight="bold" />
     </ActionIcon>
   );
 }
 
 export function CodeBlockButton({ editor }: OptionProps) {
-  const isCode = editor?.isActive("codeBlock");
+  const isCode = !!editor?.isActive("codeBlock");
 
   const toggleCode = () => {
     editor?.chain().focus().toggleCodeBlock().run();
@@ -264,17 +384,17 @@ export function CodeBlockButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant={isCode ? "filled" : "light"}
+      {...getButtonProps({ isActive: isCode })}
       onClick={() => toggleCode()}
       title="Toggle Code Block"
     >
-      <Code weight="bold" />
+      <CodeIcon weight="bold" />
     </ActionIcon>
   );
 }
 
 export function CodeInlineButton({ editor }: OptionProps) {
-  const isCode = editor?.isActive("code");
+  const isCode = !!editor?.isActive("code");
 
   const toggleCode = () => {
     if (isCode) {
@@ -286,11 +406,87 @@ export function CodeInlineButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant={isCode ? "filled" : "light"}
+      {...getButtonProps({ isActive: isCode })}
       onClick={() => toggleCode()}
       title="Toggle Code"
     >
-      <CodeSimple weight="bold" />
+      <CodeSimpleIcon weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function MathInlineButton({ editor }: OptionProps) {
+  if (!editor) {
+    return null;
+  }
+
+  const isMathInline = !!editor.isActive("math-inline");
+
+  const handleMathClick = () => {
+    if (isMathInline) {
+      // If the cursor is in a math node, delete it as per the docs.
+      // This will remove the node entirely.
+      editor.chain().focus().deleteInlineMath().run();
+    } else {
+      // Get the currently selected text.
+      const { from, to } = editor.state.selection;
+      const selectedText = editor.state.doc.textBetween(from, to);
+
+      // Insert an inline math node, using the selected text as the latex.
+      // If no text is selected, it inserts an empty math node to be filled out.
+      editor
+        .chain()
+        .focus()
+        .deleteSelection()
+        .insertInlineMath({ latex: selectedText })
+        .run();
+    }
+  };
+
+  return (
+    <ActionIcon
+      {...getButtonProps({ isActive: isMathInline })}
+      onClick={handleMathClick}
+      title={isMathInline ? "Delete Inline Math" : "Create Inline Math"}
+    >
+      <FunctionIcon weight="bold" />
+    </ActionIcon>
+  );
+}
+
+export function MathBlockButton({ editor }: OptionProps) {
+  if (!editor) {
+    return null;
+  }
+
+  const isMathBlock = !!editor.isActive("math-display");
+
+  const handleMathClick = () => {
+    if (isMathBlock) {
+      // If inside a math block, delete it.
+      editor.chain().focus().deleteBlockMath().run();
+    } else {
+      // Use the selected text for the new math block.
+      const { from, to } = editor.state.selection;
+      const selectedText = editor.state.doc.textBetween(from, to);
+
+      // This command replaces the current selection with a math block.
+      editor
+        .chain()
+        .focus()
+        .deleteSelection()
+        .insertBlockMath({ latex: selectedText })
+        .run();
+    }
+  };
+
+  return (
+    <ActionIcon
+      {...getButtonProps({ isActive: isMathBlock })}
+      onClick={handleMathClick}
+      title={isMathBlock ? "Delete Math Block" : "Create Math Block"}
+    >
+      <MathOperationsIcon weight="bold" />
     </ActionIcon>
   );
 }
@@ -309,11 +505,15 @@ export function ExtraButton({
       <Popover opened={opened} onClose={() => setOpened(false)}>
         <Popover.Target>
           <ActionIcon
-            variant="default"
+            {...getButtonProps({ isActive: false })}
             title="Extra"
             onClick={() => setOpened(!opened)}
           >
-            {opened ? <X weight="bold" /> : <DotsThreeVertical weight="bold" />}
+            {opened ? (
+              <XIcon weight="bold" />
+            ) : (
+              <DotsThreeVerticalIcon weight="bold" />
+            )}
           </ActionIcon>
         </Popover.Target>
         <Popover.Dropdown>
@@ -328,75 +528,51 @@ export function ExtraButton({
 
 export function LinkButton({ editor }: OptionProps) {
   const [popoverOpened, setPopoverOpened] = useState(false);
-  // Initialize href from current selection if it's already a link
   const [href, setHREF] = useState(
     () => editor?.getAttributes("link").href || "",
   );
 
-  // Check if the current selection/cursor is within a link
-  const isLink = editor?.isActive("link");
+  const isLink = !!editor?.isActive("link");
 
-  // Update href state if the link attribute changes externally or on selection change
-  // This helps pre-fill the input when the cursor moves into an existing link
   useEffect(() => {
     if (isLink && editor) {
       const currentHref = editor.getAttributes("link").href;
       setHREF(currentHref);
     }
-    // We only want to re-run this when `isLink` or `editor` changes specifically
-    // related to the link state, not on every editor update.
   }, [isLink, editor]);
 
-  // Function to set or update the link
   const setLink = useCallback(() => {
     if (!editor) return;
 
-    // If URL is empty, unset the link
     if (href === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      setPopoverOpened(false); // Close popover
+      setPopoverOpened(false);
       return;
     }
 
-    // Set the link mark
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange("link") // Ensure the range covers the link mark
-      .setLink({ href })
-      .run();
+    editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
 
-    setPopoverOpened(false); // Close popover after setting link
+    setPopoverOpened(false);
   }, [editor, href]);
 
-  // Function to handle the main button click
   const handleButtonClick = () => {
     if (!editor) return;
 
     if (isLink) {
-      // If it's already a link, unset it directly
       editor.chain().focus().unsetLink().run();
-      setHREF(""); // Clear the href state
+      setHREF("");
     } else {
-      // If not a link, open the popover to add one
-      // Potentially pre-fill href based on selection or clipboard? (optional)
-      // For now, just ensure it's cleared or uses the last value
-      // setHREF(""); // Optionally clear href state when opening for a new link
-      setPopoverOpened((o) => !o); // Toggle popover open/closed
+      setPopoverOpened((o) => !o);
     }
   };
 
-  // Handle closing the popover
   const handleClosePopover = () => {
     setPopoverOpened(false);
-    // Optionally reset href if you don't want it to persist
-    // setHREF(editor?.getAttributes("link").href || "");
   };
 
-  // Handle Enter key press in the TextInput
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Prevent potential form submission
+      event.preventDefault();
       setLink();
     }
   };
@@ -404,40 +580,34 @@ export function LinkButton({ editor }: OptionProps) {
   return (
     <Popover
       opened={popoverOpened}
-      onClose={handleClosePopover} // Use the handler
+      onClose={handleClosePopover}
       position="bottom"
       withArrow
       shadow="md"
-      trapFocus // Keep focus within the popover
+      trapFocus
     >
       <Popover.Target>
         <ActionIcon
-          variant={isLink ? "filled" : "light"}
+          {...getButtonProps({ isActive: isLink })}
           onClick={handleButtonClick}
           title={isLink ? "Remove Link" : "Set Link"}
-          disabled={!editor} // Disable if editor is null
+          disabled={!editor}
         >
-          <Link weight="bold" />
+          <LinkIcon weight="bold" />
         </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown>
         <Flex direction="column" gap="xs">
-          {" "}
-          {/* Use Flex for layout */}
           <TextInput
             placeholder="Enter URL"
             type="url"
             value={href}
             onChange={(e) => setHREF(e.target.value)}
-            onKeyDown={handleKeyDown} // Add keydown handler
-            data-autofocus // Focus input when popover opens
+            onKeyDown={handleKeyDown}
+            data-autofocus
           />
           <Group justify="right">
-            {" "}
-            {/* Align button to the right */}
             <Button onClick={setLink} size="xs">
-              {" "}
-              {/* Use smaller button */}
               {href === "" ? "Remove Link" : "Set Link"}
             </Button>
           </Group>
@@ -449,7 +619,7 @@ export function LinkButton({ editor }: OptionProps) {
 
 export function TaskListButton({ editor }: OptionProps) {
   // This check correctly reflects if the context is a task list
-  const isActive = editor?.isActive("taskList");
+  const isActive = !!editor?.isActive("taskList");
 
   // This command works correctly on paragraphs, bullet lists,
   // ordered lists, and existing task lists.
@@ -461,74 +631,60 @@ export function TaskListButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"}
+      {...getButtonProps({ isActive })}
       onClick={toggleTaskList}
       title="Toggle Task List"
       disabled={isDisabled}
     >
-      <ListChecks weight="bold" />
+      <ListChecksIcon weight="bold" />
     </ActionIcon>
   );
 }
 
 export function TaskItemButton({ editor }: OptionProps) {
-  // Check if the current selection or node is part of a task list.
-  // We check 'taskList' because toggling an item affects the entire list's state.
-  const isActive = editor?.isActive("taskList");
+  const isActive = !!editor?.isActive("taskList");
 
-  // Function to toggle the task list format.
-  // This command handles paragraphs, other lists, and existing task lists correctly.
   const toggleTask = () => {
     editor?.chain().focus().toggleTaskList().run();
   };
 
-  // Disable button if the editor instance is not available
   const isDisabled = !editor;
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"}
+      {...getButtonProps({ isActive })}
       onClick={toggleTask}
-      title="Toggle Task Item / List" // Title reflects it toggles list state
+      title="Toggle Task"
       disabled={isDisabled}
     >
-      {/* Using a checkmark icon to signify "item" */}
-      <CheckSquare weight="bold" />
+      <CheckSquareIcon weight="bold" />
     </ActionIcon>
   );
 }
 
 export function OrderedListButton({ editor }: OptionProps) {
-  // Check if the current selection or node is an ordered list
-  const isActive = editor?.isActive("orderedList");
+  const isActive = !!editor?.isActive("orderedList");
 
-  // Function to toggle the ordered list format
   const toggleOrderedList = () => {
     editor?.chain().focus().toggleOrderedList().run();
   };
 
-  // Disable button if the editor instance is not available
   const isDisabled = !editor;
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"} // Style based on active state
+      {...getButtonProps({ isActive })}
       onClick={toggleOrderedList}
       title="Toggle Ordered List"
       disabled={isDisabled}
     >
-      <ListNumbers weight="bold" /> {/* Icon for ordered list */}
+      <ListNumbersIcon weight="bold" />
     </ActionIcon>
   );
 }
 
-/**
- * Button to toggle Bullet List formatting (e.g., •, •, •)
- */
 export function BulletListButton({ editor }: OptionProps) {
-  // Check if the current selection or node is a bullet list
-  // Tiptap typically calls this 'bulletList' internally
-  const isActive = editor?.isActive("bulletList");
+  const isActive = !!editor?.isActive("bulletList");
 
   // Function to toggle the bullet list format
   const toggleBulletList = () => {
@@ -540,12 +696,12 @@ export function BulletListButton({ editor }: OptionProps) {
 
   return (
     <ActionIcon
-      variant={isActive ? "filled" : "light"} // Style based on active state
+      {...getButtonProps({ isActive })}
       onClick={toggleBulletList}
       title="Toggle Bullet List"
       disabled={isDisabled}
     >
-      <ListBullets weight="bold" /> {/* Icon for bullet list */}
+      <ListBulletsIcon weight="bold" /> {/* Icon for bullet list */}
     </ActionIcon>
   );
 }
@@ -553,10 +709,10 @@ export function BulletListButton({ editor }: OptionProps) {
 /* MAGIC FEATURES */
 
 export function NewIdea({ editor }: OptionProps) {
+  const isIdea = !!editor?.isActive("dreamIdea");
   const [opened, { toggle, close }] = useDisclosure();
   const [loading, setLoading] = useState(false);
 
-  // Unused hooks from previous example, kept for context
   const {
     actions: { newConnectedIdea },
   } = useInteraction();
@@ -570,14 +726,12 @@ export function NewIdea({ editor }: OptionProps) {
     initialValues: { content: "" },
   });
 
-  // ✨ The key change: Use useEffect for cleanup logic
   useEffect(() => {
-    // This side effect runs whenever the popover's `opened` state changes.
     if (!opened) {
-      newIdeaForm.reset(); // Centralized reset logic
-      setLoading(false); // Also ensures loading state is reset
+      newIdeaForm.reset();
+      setLoading(false);
     }
-  }, [opened]); // The dependency array ensures this runs only when 'opened' changes
+  }, [opened]);
 
   const handleCreateNewIdea = async () => {
     if (newIdeaForm.validate().hasErrors) {
@@ -621,15 +775,13 @@ export function NewIdea({ editor }: OptionProps) {
   return (
     <Popover opened={opened} width={"400px"} radius="lg" withArrow>
       <Popover.Target>
-        <Button
-          leftSection={<LightbulbIcon width={16} />}
-          variant="light"
-          size="xs"
+        <ActionIcon
+          {...getButtonProps({ isActive: isIdea })}
           onClick={toggle}
           loading={loading}
         >
-          Idea
-        </Button>
+          <LightbulbIcon weight="bold" />
+        </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown>
         <Stack>
@@ -639,18 +791,17 @@ export function NewIdea({ editor }: OptionProps) {
             }}
           />
           <Group justify="flex-end">
-            {/* The cancel button now only needs to call close() */}
-            <ActionIcon onClick={close} variant="light" color="gray">
-              <XIcon width={16} />
+            <ActionIcon onClick={close} variant="light" color="dark.1">
+              <XIcon />
             </ActionIcon>
             <ActionIcon
               onClick={handleCreateNewIdea}
               variant="light"
-              color="gray"
+              color="dark.1"
               disabled={!newIdeaForm.values.content}
               loading={loading}
             >
-              <CheckIcon width={16} />
+              <CheckIcon />
             </ActionIcon>
           </Group>
         </Stack>
