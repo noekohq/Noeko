@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   BracketsAngleIcon,
+  CaretDownIcon,
   CheckIcon,
   CheckSquareIcon,
   ClipboardTextIcon,
@@ -16,6 +17,7 @@ import {
   LinkIcon,
   ListBulletsIcon,
   ListChecksIcon,
+  ListIcon,
   ListNumbersIcon,
   MathOperationsIcon,
   QuotesIcon,
@@ -23,6 +25,7 @@ import {
   SelectionAll,
   SelectionAllIcon,
   TextBIcon,
+  TextHIcon,
   TextItalicIcon,
   TextStrikethroughIcon,
   TextUnderlineIcon,
@@ -34,6 +37,7 @@ import {
   CopyButton,
   Flex,
   Group,
+  Menu,
   Popover,
   Stack,
   Text,
@@ -703,6 +707,120 @@ export function BulletListButton({ editor }: OptionProps) {
     >
       <ListBulletsIcon weight="bold" /> {/* Icon for bullet list */}
     </ActionIcon>
+  );
+}
+
+export function HeadingMenuButton({ editor }: OptionProps) {
+  if (!editor) return null;
+
+  const menuItems = [
+    {
+      name: "Paragraph",
+      action: () => editor.chain().focus().setParagraph().run(),
+      isActive: editor.isActive("paragraph"),
+    },
+    {
+      name: "Heading 1",
+      action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+      isActive: editor.isActive("heading", { level: 1 }),
+    },
+    {
+      name: "Heading 2",
+      action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+      isActive: editor.isActive("heading", { level: 2 }),
+    },
+    {
+      name: "Heading 3",
+      action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+      isActive: editor.isActive("heading", { level: 3 }),
+    },
+  ];
+
+  const currentlyActive = menuItems.find((item) => item.isActive);
+
+  return (
+    <Menu shadow="md" withArrow position="bottom-start">
+      <Menu.Target>
+        <Button
+          size="xs"
+          {...getButtonProps({ isActive: false })}
+          title="Change style"
+          rightSection={<CaretDownIcon weight="bold" />}
+        >
+          {currentlyActive?.name || "Text Styles"}
+        </Button>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Label>Text Styles</Menu.Label>
+        {menuItems.map((item) => (
+          <Menu.Item
+            key={item.name}
+            onClick={item.action}
+            rightSection={item.isActive ? <CheckIcon weight="bold" /> : null}
+          >
+            {item.name}
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
+  );
+}
+
+export function ListMenuButton({ editor }: OptionProps) {
+  if (!editor) return null;
+
+  const menuItems = [
+    {
+      name: "Bullets",
+      icon: <ListBulletsIcon />,
+      action: () => editor.chain().focus().toggleBulletList().run(),
+      isActive: editor.isActive("bulletList"),
+    },
+    {
+      name: "Numbered",
+      icon: <ListNumbersIcon />,
+      action: () => editor.chain().focus().toggleOrderedList().run(),
+      isActive: editor.isActive("orderedList"),
+    },
+    {
+      name: "Tasks",
+      icon: <ListChecksIcon />,
+      action: () => editor.chain().focus().toggleTaskList().run(),
+      isActive: editor.isActive("taskList"),
+    },
+  ];
+
+  const currentlyActive = menuItems.find((item) => item.isActive);
+
+  return (
+    <Menu shadow="md" withArrow position="bottom-start">
+      <Menu.Target>
+        <Button
+          size="xs"
+          {...getButtonProps({ isActive: false })}
+          title="Change list type"
+          rightSection={<CaretDownIcon weight="bold" />}
+          leftSection={<ListIcon weight="bold" />}
+        >
+          {currentlyActive?.name || "List"}
+        </Button>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Label>List Types</Menu.Label>
+        {menuItems.map((item) => (
+          <Menu.Item
+            key={item.name}
+            leftSection={item.icon}
+            onClick={item.action}
+            rightSection={item.isActive ? <CheckIcon weight="bold" /> : null}
+          >
+            {item.name}
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
   );
 }
 

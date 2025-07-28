@@ -160,7 +160,13 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
       className={styles.dreamIdeaInline}
       data-selected={selected || undefined}
     >
-      <HoverCard width={300} shadow="md" position="top" openDelay={300}>
+      <HoverCard
+        width={"400px"}
+        shadow="md"
+        position="top"
+        openDelay={300}
+        radius="lg"
+      >
         <HoverCard.Target>
           <span className={styles.dreamIdeaTarget}>
             {editing ? (

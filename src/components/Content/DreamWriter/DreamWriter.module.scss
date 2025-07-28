@@ -100,39 +100,6 @@
     }
 }
 
-.bubbleMenu {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    /* width: calc(var(--content-width) - 36px); */
-
-    background-color: var(--mantine-color-dark-8);
-    border-radius: var(--mantine-radius-md);
-    border: 1px solid var(--mantine-color-default-border);
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    box-shadow: var(--mantine-shadow-md); // Adds a subtle shadow for depth.
-    transition: opacity 0.1s ease-in-out;
-}
-
-.divider {
-    width: 1px;
-    height: 14px;
-    align-self: center;
-    background-color: var(
-        --mantine-color-dark-7
-    );
-}
-
-/* Optional: For very small screens, you might want the groups
-  to be centered when they wrap.
-*/
-@media (max-width: 480px) {
-    .bubbleMenu {
-        justify-content: center;
-    }
-}
-
 .floatingMenu {
     position: relative;
     left: -48px; // Kept positioning
