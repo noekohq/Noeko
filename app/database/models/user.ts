@@ -36,7 +36,12 @@ export type IUserForm = Omit<
 export type ISafeUser = Omit<IUser, "password">;
 export type IPublicUser = Omit<
   IUser,
-  "password" | "email" | "roles" | "disabled" | "referralCode"
+  | "password"
+  | "email"
+  | "roles"
+  | "disabled"
+  | "referralCode"
+  | "scratchpadContent"
 >;
 
 export type IToken = {
@@ -192,16 +197,22 @@ export class User {
     return safeUser as ISafeUser;
   }
 
-  static filterPublicFields(user: IUser): IPublicUser;
-  static filterPublicFields(user: IUser[]): IPublicUser[];
+  static filterPublicFields(user: IUser | ISafeUser): IPublicUser;
+  static filterPublicFields(user: (IUser | ISafeUser)[]): IPublicUser[];
   static filterPublicFields(
-    user: IUser | IUser[],
+    user: (IUser | ISafeUser) | (IUser | ISafeUser)[],
   ): IPublicUser | IPublicUser[] {
     if (Array.isArray(user)) {
       return user.map((u) => this.filterPublicFields(u)) as IPublicUser[];
     }
-    const { password, email, roles, referralCode, disabled, ...publicUser } =
-      user;
+    const { id, createdAt, updatedAt, firstName, lastName } = user;
+    const publicUser: IPublicUser = {
+      id,
+      createdAt,
+      updatedAt,
+      firstName,
+      lastName,
+    };
     return publicUser as IPublicUser;
   }
 
@@ -454,9 +465,9 @@ export class User {
     }
   }
 
-  static async generateAccessToken(user: ISafeUser) {
+  static async generateAccessToken(user: ISafeUser | IPublicUser) {
     try {
-      const token = generateToken<ISafeUser>(user, {
+      const token = generateToken<ISafeUser | IPublicUser>(user, {
         expiresIn: "1hr",
       });
       return token;
@@ -466,9 +477,9 @@ export class User {
     }
   }
 
-  static async generateRefreshToken(user: ISafeUser) {
+  static async generateRefreshToken(user: ISafeUser | IPublicUser) {
     try {
-      const token = generateToken<ISafeUser>(user, {
+      const token = generateToken<ISafeUser | IPublicUser>(user, {
         expiresIn: "7d",
       });
       const fullUser = await User.get(user.id, true);

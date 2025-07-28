@@ -537,3 +537,11 @@ export function BulletListButton({ editor }: OptionProps) {
     </ActionIcon>
   );
 }
+
+/* MAGIC FEATURES */
+
+export function NewIdea({ editor }: OptionProps) {
+  const isCurrentIdea = editor?.isActive("dreamIdea");
+
+  return <Button></Button>;
+}

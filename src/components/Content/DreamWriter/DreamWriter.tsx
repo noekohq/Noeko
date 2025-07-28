@@ -499,7 +499,7 @@ function BubbleMenu({ editor }: { editor: IEditor | null }) {
     </>
   );
 
-  const GenerativeFeatures = <>Coming soon...</>;
+  const GenerativeFeatures = <></>;
 
   const frames: {
     name: string;

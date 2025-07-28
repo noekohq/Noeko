@@ -56,6 +56,7 @@ router.post("/register", async (req, res) => {
     //   res.status(400).json({ message: "User already exists" }); // This might be incorrect, create usually returns the user or throws
     //   return;
     // }
+    // IMPORTANT: THIS MUST USE THE PUBLIC USER NOT THE FULL USER
     // const accessToken = await User.generateAccessToken(user);
     // const refreshToken = await User.generateRefreshToken(user);
     // if (!refreshToken) {
@@ -141,8 +142,9 @@ router.post("/register-referred", async (req, res) => {
       );
     }
 
-    const accessToken = await User.generateAccessToken(newUser);
-    const refreshToken = await User.generateRefreshToken(newUser);
+    const filteredUser = User.filterPublicFields(newUser);
+    const accessToken = await User.generateAccessToken(filteredUser);
+    const refreshToken = await User.generateRefreshToken(filteredUser);
 
     if (!refreshToken) {
       // This indicates an issue with token generation or saving the refresh token
@@ -222,24 +224,22 @@ router.post("/login", async (req, res) => {
       res.status(404).json({ message: "User not found." });
       return;
     }
-    const { password: _, ...rest } = user;
-    console.log("Found user by email: ", rest);
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
       res.status(400).json({ message: "Incorrect password." });
       return;
     }
-    const accessToken = await User.generateAccessToken(user);
+    const publicUser = User.filterPublicFields(user);
+    const accessToken = await User.generateAccessToken(publicUser);
     if (!accessToken) {
       throw new Error("Failed to generate access token");
     }
-    const refreshToken = await User.generateRefreshToken(user);
+    const refreshToken = await User.generateRefreshToken(publicUser);
     if (!refreshToken) {
       throw new Error("Failed to generate refresh token");
     }
-    // await addAccessTokenToRes(res, accessToken);
-    // await addRefreshTokenToRes(res, refreshToken);
-    console.log("Sending back: ", { accessToken, refreshToken });
+    await addAccessTokenToRes(res, accessToken);
+    await addRefreshTokenToRes(res, refreshToken);
     res.json({
       message: "User logged in successfully",
       data: { accessToken, refreshToken },
