@@ -36,7 +36,7 @@ export default function ExpandableCardStack({
             <>
               <Button
                 onClick={toggle}
-                color="gray"
+                color="dark.3"
                 variant="subtle"
                 size="xs"
                 fw="bold"
