@@ -219,6 +219,7 @@ export class AnalysisService {
 
   public static async getUserCentralIdeas(
     userId: string | RecordId,
+    limit: number = 10,
   ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -229,13 +230,16 @@ export class AnalysisService {
         SELECT
           *,
           count(<-connected) AS incoming,
-          count(->connected) AS outgoing
+          count(->connected) AS outgoing,
+          count(<-connected) + count(->connected) as total
         FROM idea
         WHERE <-owns<-(user WHERE id = <record>$userId)
-        ORDER BY incoming DESC, outgoing DESC;
+        ORDER BY total DESC
+        LIMIT $limit;
         `;
       const results = await db.query<[ISafeIdea[]]>(query, {
         userId: new StringRecordId(userId),
+        limit,
       });
       if (!results || !results[0]) {
         throw new Error("Could not get results");

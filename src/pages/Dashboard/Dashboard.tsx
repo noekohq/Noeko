@@ -123,8 +123,6 @@ export default function Dashboard() {
     loadCentral();
   }, []);
 
-  console.log("Central ideas: ", centralIdeas);
-
   const { data: semanticCentralIdeas, load: loadSemanticCentral } = useFetch<
     undefined,
     ISafeIdea[]
@@ -139,8 +137,6 @@ export default function Dashboard() {
   useEffect(() => {
     loadSemanticCentral();
   }, []);
-
-  console.log("Semantic central ideas: ", semanticCentralIdeas);
 
   const getStatusText = () => {
     if (totalIdeas === undefined) {
@@ -209,7 +205,7 @@ export default function Dashboard() {
                       }
                       expandLabel="Highest connected..."
                       cards={
-                        dashboardData?.recentIdeas?.map((idea) => (
+                        centralIdeas?.map((idea) => (
                           <IdeaCard key={idea.id.toString()} idea={idea} />
                         )) ?? []
                       }
