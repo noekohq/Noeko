@@ -1,13 +1,12 @@
 .dreamIdeaInline {
     display: inline-flex;
     align-items: center;
-    gap: var(--mantine-spacing-xs);
+    gap: 2px;
 
-    background-color: var(--mantine-color-dark-8);
     box-shadow: var(--mantine-shadow-xs);
-    padding: 2px var(--mantine-spacing-xs);
+    padding: 0 2px;
     border-radius: var(--mantine-radius-md);
-    border: 1px solid var(--mantine-color-dark-4);
+    border: 1px solid var(--mantine-color-dark-8);
     cursor: text;
     transition: all 0.2s ease;
 
@@ -16,21 +15,23 @@
         outline-offset: 1px;
         background-color: var(--mantine-color-dark-7);
     }
+
 }
 
 .dreamIdeaContent {
     font-family: var(--mantine-font-family-headings);
     font-weight: 565;
     font-stretch: 90%;
+    padding: 0 var(--layout-spacing) 0 0;
 
     &:empty::before {
-      content: attr(data-placeholder);
+        content: attr(data-placeholder);
 
-      color: var(--mantine-color-dimmed);
-      font-style: italic;
+        color: var(--mantine-color-dimmed);
+        font-style: italic;
 
-      float: left;
-      pointer-events: none;
+        float: left;
+        pointer-events: none;
     }
 }
 

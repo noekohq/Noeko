@@ -48,6 +48,7 @@ import { Group, Overlay, Text } from "@mantine/core";
 import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
 import { DreamSlash } from "./extensions/DreamSlash";
+import { AutoPairedBrackets } from "./extensions/DreamBrackets";
 import { Markdown } from "tiptap-markdown";
 import { Indent } from "./extensions/Indent";
 import { DreamTaskItem } from "./extensions/TaskItem";
@@ -242,6 +243,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }),
           DreamSlash.configure({}),
           DreamPaste.configure(),
+          AutoPairedBrackets.configure(),
         ],
         content,
         onUpdate: ({ editor: e }) => {

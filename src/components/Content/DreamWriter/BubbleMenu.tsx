@@ -3,7 +3,6 @@ import {
   Editor as IEditor,
 } from "@tiptap/react";
 import styles from "./BubbleMenu.module.scss";
-import { Group } from "@mantine/core";
 import {
   BlockquoteButton,
   BoldButton,
@@ -24,12 +23,11 @@ import {
   ListMenuButton,
   SpyglassButton,
 } from "./Options";
-import { DreamIdeaMenu } from "./nodes/DreamIdea";
 
 export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
   const isImage = editor?.isActive("image");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
-  const hidden = isImage || isDreamIdeaActive;
+  const hidden = isImage;
 
   if (!editor) {
     return null;
@@ -41,13 +39,6 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
       className={styles.bubbleMenu}
       tippyOptions={{ duration: 100, placement: "bottom" }}
     >
-      {isDreamIdeaActive && (
-        <div className={styles.row}>
-          <div className={styles.buttonGroup}>
-            <DreamIdeaMenu editor={editor} />
-          </div>
-        </div>
-      )}
       {!hidden && (
         <>
           <div className={styles.row}>
