@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   BracketsAngleIcon,
@@ -29,6 +29,7 @@ import {
   TextItalicIcon,
   TextStrikethroughIcon,
   TextUnderlineIcon,
+  UniteSquareIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import {
@@ -50,6 +51,12 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 import { createIdea, createIdeaConnection } from "../../../utils/ideas";
 import { useDisclosure } from "@mantine/hooks";
+import { RecordId } from "surrealdb";
+import { SearchBar } from "../../Search/SearchBar";
+import { useSearch } from "../../../contexts/SearchContext";
+import { getNodeAsIdeaOrNull } from "../../../utils/graph";
+import IdeaButton from "../../Display/Ideas/Interactions/IdeaButton";
+import { ISafeIdea } from "../../../../app/database/models/ideas";
 
 interface OptionProps {
   editor: IEditor | null;
@@ -866,7 +873,7 @@ export function NewIdea({ editor }: OptionProps) {
           .focus()
           .setDreamIdea({
             ideaId: newIdea.id.toString(),
-            ideaAlias: newIdea.title,
+            content: newIdea.title,
           })
           .run();
 
@@ -920,6 +927,115 @@ export function NewIdea({ editor }: OptionProps) {
               loading={loading}
             >
               <CheckIcon />
+            </ActionIcon>
+          </Group>
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
+
+export function ConnectIdea({ editor }: OptionProps) {
+  const isIdea = !!editor?.isActive("dreamIdea");
+  const [opened, { toggle, close }] = useDisclosure();
+  const [loading, setLoading] = useState(false);
+
+  const getSelection = () => {
+    if (!editor) {
+      showNotification({
+        title: "Something went wrong",
+        message: "Please try again later, or report this error",
+        color: "red",
+      });
+      return;
+    }
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    return selectedText;
+  };
+
+  const {
+    idea: {
+      viewing: { get: viewingIdea },
+    },
+  } = useLandscape();
+
+  const {
+    global: {
+      results: { get: searchResults, set: setResults },
+      query: { get: searchQuery, set: setQuery },
+    },
+  } = useSearch();
+
+  useEffect(() => {
+    const selectionText = getSelection();
+    if (selectionText) {
+      setQuery(selectionText);
+    }
+  }, [getSelection()]);
+
+  const filteredResults = useMemo(() => {
+    if (!searchResults) return null;
+    return searchResults.filter((r) => {
+      return r.id.toString() !== viewingIdea?.id.toString();
+    });
+  }, [searchResults, viewingIdea]);
+
+  const clearResults = useCallback(() => {
+    setQuery("");
+  }, []);
+
+  const handleConnectIdea = (idea: ISafeIdea) => {
+    const selectedText = getSelection();
+    editor
+      ?.chain()
+      .focus()
+      .setDreamIdea({
+        content: selectedText || idea.title,
+        ideaId: idea.id.toString(),
+      })
+      .run();
+    close();
+    clearResults();
+  };
+
+  return (
+    <Popover opened={opened} width={"400px"} radius="lg" withArrow>
+      <Popover.Target>
+        <ActionIcon
+          {...getButtonProps({ isActive: isIdea })}
+          onClick={toggle}
+          loading={loading}
+        >
+          <UniteSquareIcon weight="bold" />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Stack>
+          <SearchBar placeholder="Search for an idea to connect" />
+          <Stack>
+            {filteredResults
+              ?.map((s, i) => {
+                const isBest = i === 0;
+                const idea = getNodeAsIdeaOrNull(s.value);
+                if (!idea) {
+                  return null;
+                }
+                return (
+                  <IdeaButton
+                    key={s.id.toString()}
+                    idea={idea}
+                    onClick={(idea) => {
+                      handleConnectIdea(idea);
+                    }}
+                  />
+                );
+              })
+              .filter((r) => !!r)}
+          </Stack>
+          <Group justify="flex-end">
+            <ActionIcon onClick={close} variant="light" color="dark.1">
+              <XIcon />
             </ActionIcon>
           </Group>
         </Stack>

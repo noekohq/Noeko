@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ISearchOverview, ISearchResult } from "../../app/services/Search";
 
 type ISearchContext = {
@@ -56,6 +56,10 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
   );
   const [loading, setLoading] = useState(false);
   const [overview, setOverview] = useState<ISearchOverview | null>(null);
+
+  useEffect(() => {
+    setSearchResults(null);
+  }, [query]);
 
   const value: ISearchContext = {
     global: {
