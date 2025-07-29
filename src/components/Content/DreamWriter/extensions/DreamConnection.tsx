@@ -1,7 +1,8 @@
 import { createRoot } from "react-dom/client";
-import { Extension } from "@tiptap/core";
+import { Extension, Range } from "@tiptap/core";
 import Suggestion, {
   SuggestionKeyDownProps,
+  SuggestionMatch,
   SuggestionOptions,
   SuggestionProps,
 } from "@tiptap/suggestion";
@@ -12,7 +13,7 @@ import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
 import { Lightbulb } from "@phosphor-icons/react";
 import { getNodeTitle } from "../../../../utils/graph";
-import { PluginKey } from "@tiptap/pm/state";
+import { EditorState, PluginKey } from "@tiptap/pm/state";
 
 const suggestionKey = new PluginKey("dream-connection");
 
@@ -45,8 +46,35 @@ const suggestionOptionsDefinition = (
   styles: Record<string, string>,
 ): Omit<SuggestionOptions<IDreamConnectionItem>, "editor"> => {
   return {
-    char: "$",
-    allowSpaces: true,
+    findSuggestionMatch: (config): SuggestionMatch => {
+      const { $position } = config;
+      const textBefore = $position.nodeBefore?.text;
+
+      if (!textBefore) {
+        return null;
+      }
+
+      const suggestionRegex = /(?:^|\s)\[\[([^\]]*)$/;
+      const match = textBefore.match(suggestionRegex);
+
+      if (!match) {
+        return null;
+      }
+
+      const [fullMatch, query] = match[0].startsWith(" ")
+        ? [match[0].substring(1), match[1]]
+        : [match[0], match[1]];
+
+      const from = $position.pos - fullMatch.length;
+      const to = $position.pos;
+      const range: Range = { from, to };
+
+      return {
+        range,
+        query,
+        text: fullMatch,
+      };
+    },
     items: async ({ query }) => {
       return await fetchDreamConnectionItems(query);
     },
@@ -153,12 +181,19 @@ const suggestionOptionsDefinition = (
       };
     },
     command: ({ editor, range, props }) => {
+      const textAfter = editor.state.doc.textBetween(range.to, range.to + 2);
+
+      const finalRange = {
+        from: range.from,
+        to: textAfter === "]]" ? range.to + 2 : range.to,
+      };
+
       const commandMap: Record<string, () => boolean> = {
         idea: () =>
           editor
             .chain()
             .focus()
-            .deleteRange(range)
+            .deleteRange(finalRange) // <-- Use the corrected range
             .setDreamIdea({
               ideaId: props.id.toString(),
               content: (props as IIdea).title,
@@ -168,7 +203,7 @@ const suggestionOptionsDefinition = (
           editor
             .chain()
             .focus()
-            .deleteRange(range)
+            .deleteRange(finalRange) // <-- Use the corrected range
             .setDreamFile({
               fileId: props.id.toString(),
               fileName: (props as IUserFile).originalFileName,

@@ -153,12 +153,12 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
         openDelay={300}
         radius="lg"
       >
-        {/* ✨ TARGET IS NOW ONLY THE ICON */}
         <HoverCard.Target>
-          <LightbulbIcon className={styles.dreamIdeaIcon} weight="regular" />
+          <ActionIcon variant="subtle" size="sm" color="gray" radius="md">
+            <LightbulbIcon className={styles.dreamIdeaIcon} weight="regular" />
+          </ActionIcon>
         </HoverCard.Target>
 
-        {/* The dropdown content remains the same */}
         <HoverCard.Dropdown
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
@@ -170,11 +170,21 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
                   {idea.title}
                 </Text>
                 <Group justify="flex-end">
-                  <ActionIcon onClick={deleteNode}>
+                  <ActionIcon
+                    onClick={deleteNode}
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                  >
                     <XIcon weight="bold" />
                   </ActionIcon>
                   <Link to={`/idea/${ideaId}`}>
-                    <ActionIcon title="Open Idea">
+                    <ActionIcon
+                      title="Open Idea"
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                    >
                       <ArrowRightIcon weight="bold" />
                     </ActionIcon>
                   </Link>

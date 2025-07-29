@@ -25,10 +25,11 @@ import { htmlToMarkdown, htmlToPlainText } from "../../../utils/formatting";
 export default function Scratchpad() {
   const [content, setContent] = useState("");
 
-  const { data: originalContent, load: loadContent } = useFetch<
-    undefined,
-    string
-  >({
+  const {
+    data: originalContent,
+    load: loadContent,
+    loading: loadingContent,
+  } = useFetch<undefined, string>({
     url: "/users/me/scratchpad",
     onSuccess: (c) => {
       setContent(c);
@@ -169,6 +170,7 @@ export default function Scratchpad() {
             setContent(v);
           }}
           initialContent={originalContent}
+          readOnly={loadingContent}
         />
       </div>
     </div>
