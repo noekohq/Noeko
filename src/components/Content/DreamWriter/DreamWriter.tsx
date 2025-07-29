@@ -62,6 +62,7 @@ import { all, createLowlight } from "lowlight";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { DreamTable } from "./nodes/DreamTable";
 import BubbleMenu from "./BubbleMenu";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 const lowlight = createLowlight(all);
 
@@ -299,14 +300,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       },
     } = useInteraction();
 
-    // useHotkeys([
-    //   [
-    //     "mod+k",
-    //     () => {
-    //       openSpotlight();
-    //     },
-    //   ],
-    // ]);
     useShortcuts({
       shortcuts: [
         {
@@ -316,25 +309,15 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             openSpotlight();
           },
         },
-        {
-          keys: {
-            key: "Tab",
-          },
-          run: (e) => {
-            // e.preventDefault();
-            // editor?.commands.insertContent("\t");
-          },
-        },
       ],
     });
+
+    const { isMobile } = useLayout();
 
     return (
       <div
         ref={editorContainerRef}
         className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
-        onContextMenuCapture={(e) => {
-          e.preventDefault();
-        }}
         // onDragOver={(e) => {
         //   e.preventDefault();
         // }}
@@ -368,7 +351,15 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         <StickyMenu editor={editor} show={!!stickyMenu} devTools={devTools} />
         {/* <FloatingMenu editor={editor} /> */}
         <BubbleMenu editor={editor} />
-        <EditorContent className={styles.tippyContent} editor={editor} />
+        <EditorContent
+          onContextMenuCapture={(e) => {
+            if (isMobile) {
+              e.preventDefault();
+            }
+          }}
+          className={styles.tippyContent}
+          editor={editor}
+        />
       </div>
     );
   },
