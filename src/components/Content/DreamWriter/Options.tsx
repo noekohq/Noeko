@@ -881,7 +881,7 @@ export function NewIdea({ editor }: OptionProps) {
 
         if (viewingIdea) {
           await createIdeaConnection(
-            viewingIdea.toString(),
+            viewingIdea.id.toString(),
             newIdea.id.toString(),
           );
         }
