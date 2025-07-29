@@ -48,11 +48,13 @@ export default function OverviewAccordion({
       {paragraphSummary && (
         <Accordion.Item value="paragraph_summary">
           <Accordion.Control icon={<TextAlignLeftIcon />}>
-            <Text size="sm" mb="md">
-              Summary
-            </Text>
+            Summary
           </Accordion.Control>
-          <Accordion.Panel>{paragraphSummary}</Accordion.Panel>
+          <Accordion.Panel>
+            <Text size="sm" mb="md">
+              {paragraphSummary}
+            </Text>
+          </Accordion.Panel>
         </Accordion.Item>
       )}
       {paragraphOverview && (
