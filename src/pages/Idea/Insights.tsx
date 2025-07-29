@@ -8,6 +8,7 @@ import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
 import OverviewAccordion from "../../components/Display/Ideas/OverviewAccordion";
+import { BookIcon } from "@phosphor-icons/react";
 
 type IInsightsProps = {
   idea: ISafeIdea | undefined;
@@ -99,7 +100,12 @@ export default function Insights({
         ) : (
           <>
             <Grid.Col span={12}>
-              <Text>Insights into your idea...</Text>
+              <Text size="sm" c="dimmed" fw="bold">
+                <Group gap="xs">
+                  <BookIcon weight="bold" />
+                  UNDERSTANDING
+                </Group>
+              </Text>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <OverviewAccordion overview={idea.derived.generative_summary} />
@@ -128,7 +134,7 @@ export default function Insights({
                       },
                     });
                   }}
-                  color="red"
+                  color="gray"
                   disabled={loadingDelete || loadingOverview}
                   leftSection={
                     loadingDelete ? <Loader size="sm" color="white" /> : ""
@@ -143,6 +149,7 @@ export default function Insights({
                   onClick={() => {
                     generateSummary();
                   }}
+                  color="gray"
                   disabled={loadingOverview || loadingDelete}
                   leftSection={
                     loadingOverview ? <Loader size="sm" color="white" /> : ""

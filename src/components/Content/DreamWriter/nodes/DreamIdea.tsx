@@ -173,9 +173,11 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
                   <ActionIcon onClick={deleteNode}>
                     <XIcon weight="bold" />
                   </ActionIcon>
-                  <ActionIcon /* ... link button ... */>
-                    <ArrowRightIcon weight="bold" />
-                  </ActionIcon>
+                  <Link to={`/idea/${ideaId}`}>
+                    <ActionIcon title="Open Idea">
+                      <ArrowRightIcon weight="bold" />
+                    </ActionIcon>
+                  </Link>
                 </Group>
               </Group>
               {idea.derived?.generative_summary && (
@@ -219,15 +221,11 @@ export const DreamIdeaMenu = ({ editor }: IDreamIdeaMenuProps) => {
 
   return (
     <>
-      <ActionIcon
-        component={Link}
-        to={`/idea/${ideaId}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        title="Open Idea"
-      >
-        <ArrowSquareOutIcon />
-      </ActionIcon>
+      <Link to={`/idea/${ideaId}`}>
+        <ActionIcon title="Open Idea">
+          <ArrowSquareOutIcon />
+        </ActionIcon>
+      </Link>
       <ActionIcon title="Delete Idea" color="red" onClick={deleteSelectedNode}>
         <TrashIcon />
       </ActionIcon>
