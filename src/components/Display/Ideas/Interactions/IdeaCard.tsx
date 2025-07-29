@@ -125,6 +125,12 @@ export default function IdeaCard({
       onClick={() => {
         handleClick();
       }}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleClick();
+        }
+      }}
       className={styles.ideaCard}
       data-idea-id={idea.id.toString()}
       onDragStart={handleDragStart}

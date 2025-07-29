@@ -63,6 +63,12 @@ export default function RabbitholeCard({
       onClick={() => {
         handleClick();
       }}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleClick();
+        }
+      }}
       className={styles.rabbitholeCard}
     >
       <Group justify="space-between">
