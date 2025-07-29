@@ -57,6 +57,8 @@ import { useSearch } from "../../../contexts/SearchContext";
 import { getNodeAsIdeaOrNull } from "../../../utils/graph";
 import IdeaButton from "../../Display/Ideas/Interactions/IdeaButton";
 import { ISafeIdea } from "../../../../app/database/models/ideas";
+import { useNavigate } from "react-router";
+import { SpyglassIcon } from "../../Utils/Icons/Icons";
 
 interface OptionProps {
   editor: IEditor | null;
@@ -904,11 +906,12 @@ export function NewIdea({ editor }: OptionProps) {
           {...getButtonProps({ isActive: isIdea })}
           onClick={toggle}
           loading={loading}
+          title="Create a new idea"
         >
           <LightbulbIcon weight="bold" />
         </ActionIcon>
       </Popover.Target>
-      <Popover.Dropdown>
+      <Popover.Dropdown style={{ overflowY: "scroll", maxHeight: "400px" }}>
         <Stack>
           <DreamWriter
             onChange={(v) => {
@@ -971,6 +974,7 @@ export function ConnectIdea({ editor }: OptionProps) {
     const selectionText = getSelection();
     if (selectionText) {
       setQuery(selectionText);
+      setResults(null);
     }
   }, [getSelection()]);
 
@@ -1000,19 +1004,32 @@ export function ConnectIdea({ editor }: OptionProps) {
   };
 
   return (
-    <Popover opened={opened} width={"400px"} radius="lg" withArrow>
+    <Popover
+      opened={opened}
+      width={"400px"}
+      radius="lg"
+      withArrow
+      closeOnClickOutside
+      onClose={() => close()}
+    >
       <Popover.Target>
         <ActionIcon
           {...getButtonProps({ isActive: isIdea })}
           onClick={toggle}
           loading={loading}
+          title="Search and connect an idea"
         >
           <UniteSquareIcon weight="bold" />
         </ActionIcon>
       </Popover.Target>
-      <Popover.Dropdown>
+      <Popover.Dropdown style={{ overflowY: "scroll", maxHeight: "400px" }}>
         <Stack>
-          <SearchBar placeholder="Search for an idea to connect" />
+          <Group justify="flex-end" wrap="nowrap">
+            <SearchBar placeholder="Search for an idea to connect" />
+            <ActionIcon onClick={close} variant="light" color="dark.1">
+              <XIcon />
+            </ActionIcon>
+          </Group>
           <Stack>
             {filteredResults
               ?.map((s, i) => {
@@ -1033,13 +1050,36 @@ export function ConnectIdea({ editor }: OptionProps) {
               })
               .filter((r) => !!r)}
           </Stack>
-          <Group justify="flex-end">
-            <ActionIcon onClick={close} variant="light" color="dark.1">
-              <XIcon />
-            </ActionIcon>
-          </Group>
         </Stack>
       </Popover.Dropdown>
     </Popover>
+  );
+}
+
+export function SpyglassButton({ editor }: OptionProps) {
+  const getSelection = () => {
+    if (!editor) {
+      showNotification({
+        title: "Something went wrong",
+        message: "Please try again later, or report this error",
+        color: "red",
+      });
+      return;
+    }
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    return selectedText;
+  };
+
+  const navigate = useNavigate();
+
+  const handleOpen = () => {
+    navigate(`/spyglass?q=${getSelection()}`);
+  };
+
+  return (
+    <ActionIcon {...getButtonProps({ isActive: false })} onClick={handleOpen}>
+      <SpyglassIcon size={16} />
+    </ActionIcon>
   );
 }

@@ -57,10 +57,6 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
   const [loading, setLoading] = useState(false);
   const [overview, setOverview] = useState<ISearchOverview | null>(null);
 
-  useEffect(() => {
-    setSearchResults(null);
-  }, [query]);
-
   const value: ISearchContext = {
     global: {
       query: {

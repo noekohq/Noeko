@@ -22,6 +22,7 @@ import {
   MathBlockButton,
   HeadingMenuButton,
   ListMenuButton,
+  SpyglassButton,
 } from "./Options";
 import { DreamIdeaMenu } from "./nodes/DreamIdea";
 
@@ -68,9 +69,10 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
             <div className={styles.buttonGroup}>
               <NewIdea editor={editor} />
               <ConnectIdea editor={editor} />
-              <LinkButton editor={editor} />
+              <SpyglassButton editor={editor} />
             </div>
             <div className={styles.buttonGroup}>
+              <LinkButton editor={editor} />
               <BlockquoteButton editor={editor} />
               <CodeBlockButton editor={editor} />
               <MathInlineButton editor={editor} />
