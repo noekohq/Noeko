@@ -183,7 +183,7 @@ export default function Dashboard() {
                       }
                       expandLabel="All recent..."
                       cards={
-                        centralIdeas?.map((idea) => (
+                        dashboardData?.recentIdeas?.map((idea) => (
                           <IdeaCard key={idea.id.toString()} idea={idea} />
                         )) ?? []
                       }
