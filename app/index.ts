@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import { initSearch } from "./services/Search";
 import { initInsights } from "./services/Insights";
 import { max_idea_size } from "./settings";
+import { initAnalysis } from "./services/Analysis";
 
 config();
 
@@ -20,6 +21,7 @@ if (!PORT) throw new Error("PORT is not defined");
 
 await initDatabase();
 await initSearch();
+await initAnalysis();
 
 const app = Express();
 app.use(Express.json({ limit: max_idea_size }));

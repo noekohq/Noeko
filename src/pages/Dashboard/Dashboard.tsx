@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
   Title,
+  Transition,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -24,19 +25,23 @@ import Content from "../../components/UI/Layout/Content";
 import WidgetWrapper from "../../components/Widgets/Wrapper";
 import Search from "../../components/Search/Search";
 import useFetch from "../../hooks/useFetch";
-import { IIdea, IUserIdeaStats } from "../../../app/database/models/ideas";
+import {
+  IIdea,
+  ISafeIdea,
+  IUserIdeaStats,
+} from "../../../app/database/models/ideas";
 import {
   ArticleIcon,
   BellIcon,
   CaretDownIcon,
   CaretUpIcon,
+  ClockClockwiseIcon,
   HandWavingIcon,
+  IntersectSquareIcon,
   MegaphoneIcon,
   MoonStarsIcon,
-  NotificationIcon,
-  ScrollIcon,
-  Sun,
   SunIcon,
+  UniteSquareIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useInteraction } from "../../contexts/InteractionContext";
@@ -47,9 +52,9 @@ import { getCurrentTimeFormatted } from "../../utils/datetime";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
 import TimeButton from "../../components/Display/Interactions/TimeButton";
 import { IDashboard } from "../../../app/services/Dashboard";
-import { useDisclosure } from "@mantine/hooks";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { Link } from "react-router";
+import ExpandableCardStack from "../../components/Display/Interactions/ExpandableCardStack";
 
 type ILoadedWidget = {
   id: string;
@@ -87,16 +92,55 @@ export default function Dashboard() {
     loadWidgets();
   }, []);
 
-  const { data: dashboardData } = useFetch<undefined, IDashboard>({
+  const { data: dashboardData, load: loadDashboard } = useFetch<
+    undefined,
+    IDashboard
+  >({
     url: "/dashboard",
-    runOnMount: true,
     onError: (err) => {
       console.error("Error getting dashboard data: ", err);
     },
   });
 
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
   const totalIdeas = dashboardData?.ideaStats?.total;
   const totalUsers = dashboardData?.totalUsers;
+
+  const { data: centralIdeas, load: loadCentral } = useFetch<
+    undefined,
+    ISafeIdea[]
+  >({
+    url: "/dashboard/central-ideas",
+    onError: (err) => {
+      console.error("Error getting central ideas: ", err);
+    },
+  });
+
+  useEffect(() => {
+    loadCentral();
+  }, []);
+
+  console.log("Central ideas: ", centralIdeas);
+
+  const { data: semanticCentralIdeas, load: loadSemanticCentral } = useFetch<
+    undefined,
+    ISafeIdea[]
+  >({
+    url: "/dashboard/semantic-central-ideas",
+    runOnMount: true,
+    onError: (err) => {
+      console.error("Error getting central ideas: ", err);
+    },
+  });
+
+  useEffect(() => {
+    loadSemanticCentral();
+  }, []);
+
+  console.log("Semantic central ideas: ", semanticCentralIdeas);
 
   const getStatusText = () => {
     if (totalIdeas === undefined) {
@@ -112,9 +156,6 @@ export default function Dashboard() {
     return text;
   };
 
-  const [recentOpened, { toggle: toggleRecent }] = useDisclosure(false);
-  const latestIdea = dashboardData?.recentIdeas?.[0];
-
   const {
     actions: {
       newIdea,
@@ -129,50 +170,79 @@ export default function Dashboard() {
           <Text size="sm" c="dark.2" mb="lg">
             {getStatusText()}
           </Text>
-          {!dashboardData?.recentIdeas?.length && (
-            <>
-              <Text size="sm" c="gray" mb="md">
-                You have no ideas yet!
-              </Text>
-              <Button variant="light">Add an idea!</Button>
-            </>
-          )}
-          <Stack gap="xs">
-            {latestIdea && (
-              <Card withBorder radius="lg">
-                <Stack>
-                  <Text size="xs" c="dimmed">
-                    Latest idea...
-                  </Text>
-                  <IdeaCard idea={latestIdea} />
-                  <Button
-                    onClick={() => {
-                      toggleRecent();
-                    }}
-                    size="xs"
-                    variant="subtle"
-                    color="gray"
-                    rightSection={
-                      recentOpened ? <CaretUpIcon /> : <CaretDownIcon />
-                    }
-                  >
-                    {recentOpened ? "Hide" : "Show"} Recent
-                  </Button>
-                </Stack>
-              </Card>
-            )}
-            <Collapse in={recentOpened}>
-              <Stack gap="xs">
-                {dashboardData?.recentIdeas &&
-                  dashboardData.recentIdeas
-                    .filter(
-                      (i) => i.id.toString() !== latestIdea?.id.toString(),
-                    )
-                    .map((idea) => {
-                      return <IdeaCard idea={idea} key={idea.id.toString()} />;
-                    })}
-              </Stack>
-            </Collapse>
+          <Stack>
+            <Transition
+              mounted={!!dashboardData?.recentIdeas}
+              transition="fade-up"
+            >
+              {(styles) => {
+                return (
+                  <div style={styles}>
+                    <ExpandableCardStack
+                      topLabel={
+                        <Group gap="xs">
+                          <ClockClockwiseIcon weight="bold" />
+                          Latest idea...
+                        </Group>
+                      }
+                      expandLabel="All recent..."
+                      cards={
+                        centralIdeas?.map((idea) => (
+                          <IdeaCard key={idea.id.toString()} idea={idea} />
+                        )) ?? []
+                      }
+                    />
+                  </div>
+                );
+              }}
+            </Transition>
+            <Transition mounted={!!centralIdeas?.length} transition="fade-up">
+              {(styles) => {
+                return (
+                  <div style={styles}>
+                    <ExpandableCardStack
+                      topLabel={
+                        <Group gap="xs">
+                          <UniteSquareIcon weight="bold" />
+                          Most Connected Idea...
+                        </Group>
+                      }
+                      expandLabel="Highest connected..."
+                      cards={
+                        dashboardData?.recentIdeas?.map((idea) => (
+                          <IdeaCard key={idea.id.toString()} idea={idea} />
+                        )) ?? []
+                      }
+                    />
+                  </div>
+                );
+              }}
+            </Transition>
+            <Transition
+              mounted={!!semanticCentralIdeas?.length}
+              transition="fade-up"
+            >
+              {(styles) => {
+                return (
+                  <div style={styles}>
+                    <ExpandableCardStack
+                      topLabel={
+                        <Group gap="xs">
+                          <IntersectSquareIcon weight="bold" />
+                          Most Relevant Idea...
+                        </Group>
+                      }
+                      expandLabel="Most relevant..."
+                      cards={
+                        semanticCentralIdeas?.map((idea) => (
+                          <IdeaCard key={idea.id.toString()} idea={idea} />
+                        )) ?? []
+                      }
+                    />
+                  </div>
+                );
+              }}
+            </Transition>
           </Stack>
         </LeftSidebar.Open>
       </LeftSidebar>
