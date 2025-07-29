@@ -42,6 +42,7 @@ interface IIdeaButton {
   link?: boolean;
   draggable?: boolean;
   fullWidth?: boolean;
+  onClick?: (idea: IIdea | ISafeIdea, e: React.MouseEvent) => void;
 }
 
 function IdeaButton({
@@ -52,6 +53,7 @@ function IdeaButton({
   bg,
   color,
   fullWidth = false,
+  onClick,
 }: IIdeaButton) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
@@ -65,6 +67,12 @@ function IdeaButton({
     setIsInternallyDragging(false);
   };
 
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onClick) {
+      onClick(idea, e);
+    }
+  };
+
   const hoverDetails = getIdeaDefaultDetails(idea);
 
   return (
@@ -76,6 +84,7 @@ function IdeaButton({
           draggable={draggable}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onClick={handleClick}
           onMouseEnter={() => {
             setHovering(true);
           }}

@@ -1,32 +1,27 @@
 import {
   ArrowRightIcon,
+  ArrowSquareOutIcon,
   CheckIcon,
   LightbulbIcon,
+  PencilSimpleIcon,
+  TrashIcon,
   XIcon,
 } from "@phosphor-icons/react";
-// Keep other imports...
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes, Editor as IEditor } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewProps,
   NodeViewWrapper,
+  NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import {
-  ActionIcon,
-  Group,
-  HoverCard,
-  Stack,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { ActionIcon, Group, HoverCard, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../app/database/models/ideas";
-import { useIdea } from "../../../../contexts/IdeaContext";
-import { getNodeDescription } from "../../../../utils/graph";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
-import { useState } from "react";
+import { DOMParser, Fragment } from "@tiptap/pm/model";
+import { useIdea } from "../../../../contexts/IdeaContext";
 
 export interface IDreamIdeaOptions {
   HTMLAttributes: Record<string, any>;
@@ -37,7 +32,7 @@ declare module "@tiptap/core" {
     dreamIdea: {
       setDreamIdea: (options: {
         ideaId: string;
-        ideaAlias: string;
+        content: string;
       }) => ReturnType;
     };
   }
@@ -47,8 +42,8 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   name: "dreamIdea",
   group: "inline",
   inline: true,
-  atom: true,
   draggable: true,
+  content: "text*",
 
   addOptions() {
     return {
@@ -63,62 +58,57 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
         parseHTML: (element) => element.getAttribute("data-idea-id"),
         renderHTML: (attributes) => ({ "data-idea-id": attributes.ideaId }),
       },
-      ideaAlias: {
-        default: "Idea",
-        // CHANGED: Parse the alias from its own data attribute.
-        parseHTML: (element) => element.getAttribute("data-idea-alias"),
-        // This was correct: it renders the 'data-idea-alias' attribute.
-        renderHTML: (attributes) => ({
-          "data-idea-alias": attributes.ideaAlias,
-        }),
-      },
     };
   },
 
   parseHTML() {
     return [
       {
-        // CHANGED: The tag selector now requires the data-idea-alias attribute to match.
-        // This makes parsing more specific and reliable.
-        tag: "span[data-dream-idea][data-idea-id][data-idea-alias]",
-        // We no longer need a custom `getAttrs` function here, as Tiptap will
-        // automatically use the `parseHTML` function from each attribute above.
+        tag: "span[data-dream-idea][data-idea-alias]",
+        getContent: (node, schema) => {
+          const dom = node as HTMLElement;
+          const alias = dom.getAttribute("data-idea-alias");
+
+          if (alias) {
+            return Fragment.from(schema.text(alias));
+          }
+
+          return Fragment.empty;
+        },
+      },
+
+      {
+        tag: "span[data-dream-idea][data-idea-id]",
+        getContent: (node, schema) => {
+          const dom = node as HTMLElement;
+          return DOMParser.fromSchema(schema).parseSlice(dom).content;
+        },
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    // CHANGED: The node's content is now explicitly empty.
-    // The `HTMLAttributes` object, automatically populated by the attribute-level
-    // `renderHTML` functions, contains all the data we need (`data-idea-id` and `data-idea-alias`).
-    // The saved HTML will look like: <span data-idea-id="..." data-idea-alias="..."></span>
     return [
       "span",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         "data-dream-idea": "",
       }),
+      0,
     ];
   },
 
   addCommands() {
-    // This function remains the same as the previous refactor. It works perfectly.
     return {
       setDreamIdea:
         (options) =>
         ({ commands }) => {
-          if (!options.ideaId || !options.ideaAlias) {
-            console.error("Cannot set idea without ideaId and ideaAlias");
+          if (!options.ideaId || !options.content) {
             return false;
           }
-          const sanitizedAlias = options.ideaAlias
-            .replace(/(\r\n|\n|\r)/gm, " ")
-            .trim();
           return commands.insertContent({
             type: this.name,
-            attrs: {
-              ideaId: options.ideaId,
-              ideaAlias: sanitizedAlias,
-            },
+            attrs: { ideaId: options.ideaId },
+            content: [{ type: "text", text: options.content }],
           });
         },
     };
@@ -129,29 +119,25 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   },
 });
 
-const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
-  const { node, deleteNode, selected, updateAttributes } = props;
-  // Get both attributes
-  const { ideaId, ideaAlias } = node.attrs;
-  const [updatedAlias, setUpdatedAlias] = useState(ideaAlias);
+export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
+  node,
+  deleteNode,
+  selected,
+}) => {
+  const { ideaId } = node.attrs;
 
-  const { ensureConnected } = useIdea();
-  ensureConnected(ideaId);
+  const isEmpty = node.content.size === 0;
 
   const { data: idea } = useFetch<undefined, IIdea>({
     url: `/graph/ideas/${ideaId}?withDerived=true`,
     runOnMount: !!ideaId,
   });
 
-  const handleDelete = (event: React.MouseEvent) => {
-    event.preventDefault();
-    deleteNode();
-  };
-
-  const [editing, setEditing] = useState(false);
+  const { ensureConnected } = useIdea();
+  ensureConnected(ideaId);
 
   if (!ideaId) {
-    return <span className={styles.dreamIdeaError}>Error: Missing ID</span>;
+    return <span className={styles.dreamIdeaError}>[ERROR]</span>;
   }
 
   return (
@@ -167,62 +153,15 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
         openDelay={300}
         radius="lg"
       >
+        {/* ✨ TARGET IS NOW ONLY THE ICON */}
         <HoverCard.Target>
-          <span className={styles.dreamIdeaTarget}>
-            {editing ? (
-              <ActionIcon
-                onClick={() => {
-                  updateAttributes({ ideaAlias: updatedAlias });
-                  setEditing(false);
-                }}
-                variant="subtle"
-                size="xs"
-              >
-                <CheckIcon size={16} />
-              </ActionIcon>
-            ) : (
-              <LightbulbIcon
-                className={styles.dreamIdeaIcon}
-                weight="regular"
-              />
-            )}
-            {editing ? (
-              <TextInput
-                value={updatedAlias}
-                onChange={(e) => setUpdatedAlias(e.target.value)}
-                onBlur={() => {
-                  updateAttributes({ ideaAlias: updatedAlias });
-                  setEditing(false);
-                }}
-                size="xs"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    updateAttributes({ ideaAlias: updatedAlias });
-                    setEditing(false);
-                  }
-                  if (e.key === "Escape") {
-                    setEditing(false);
-                  }
-                }}
-              />
-            ) : (
-              <span
-                className={styles.dreamIdeaContent}
-                onClick={() => setEditing(true)}
-              >
-                {ideaAlias}
-              </span>
-            )}
-          </span>
+          <LightbulbIcon className={styles.dreamIdeaIcon} weight="regular" />
         </HoverCard.Target>
+
+        {/* The dropdown content remains the same */}
         <HoverCard.Dropdown
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          style={{
-            overflowY: "scroll",
-            maxHeight: "400px",
-          }}
+          onClick={(e) => e.stopPropagation()}
+          style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
           {idea ? (
             <Stack>
@@ -231,32 +170,22 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
                   {idea.title}
                 </Text>
                 <Group justify="flex-end">
-                  <ActionIcon
-                    className={styles.deleteButton}
-                    onClick={handleDelete}
-                    variant="light"
-                    color="gray"
-                    size="sm"
-                  >
+                  <ActionIcon onClick={deleteNode}>
                     <XIcon weight="bold" />
                   </ActionIcon>
-                  <ActionIcon
-                    component={Link}
-                    to={`/idea/${ideaId}`}
-                    variant="light"
-                    color="gray"
-                    title="Go to idea page"
-                    onClick={(e) => e.stopPropagation()}
-                    size="sm"
-                  >
+                  <ActionIcon /* ... link button ... */>
                     <ArrowRightIcon weight="bold" />
                   </ActionIcon>
                 </Group>
               </Group>
-              {idea?.derived?.generative_summary && (
+              {idea.derived?.generative_summary && (
                 <OverviewAccordion overview={idea.derived.generative_summary} />
               )}
-              <div dangerouslySetInnerHTML={{ __html: idea.content }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: idea.content,
+                }}
+              />
             </Stack>
           ) : (
             <Text c="dimmed" size="xs">
@@ -265,6 +194,43 @@ const DreamIdeaComponent: React.FC<NodeViewProps> = (props) => {
           )}
         </HoverCard.Dropdown>
       </HoverCard>
+
+      <NodeViewContent
+        as="span"
+        className={styles.dreamIdeaContent}
+        data-placeholder={
+          isEmpty ? idea?.title || "Loading title..." : undefined
+        }
+      />
     </NodeViewWrapper>
+  );
+};
+
+interface IDreamIdeaMenuProps {
+  editor: IEditor;
+}
+
+export const DreamIdeaMenu = ({ editor }: IDreamIdeaMenuProps) => {
+  const deleteSelectedNode = () => {
+    editor.chain().focus().deleteNode("dreamIdea").run();
+  };
+
+  const ideaId = editor.getAttributes("dreamIdea").ideaId;
+
+  return (
+    <>
+      <ActionIcon
+        component={Link}
+        to={`/idea/${ideaId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Open Idea"
+      >
+        <ArrowSquareOutIcon />
+      </ActionIcon>
+      <ActionIcon title="Delete Idea" color="red" onClick={deleteSelectedNode}>
+        <TrashIcon />
+      </ActionIcon>
+    </>
   );
 };

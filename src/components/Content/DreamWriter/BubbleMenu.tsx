@@ -13,6 +13,7 @@ import {
   CodeBlockButton,
   StrikeThroughButton,
   NewIdea,
+  ConnectIdea,
   CopySelectionButton,
   CutButton,
   PasteButton,
@@ -22,10 +23,16 @@ import {
   HeadingMenuButton,
   ListMenuButton,
 } from "./Options";
+import { DreamIdeaMenu } from "./nodes/DreamIdea";
 
 export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
   const isImage = editor?.isActive("image");
-  const hidden = isImage;
+  const isDreamIdeaActive = editor?.isActive("dreamIdea");
+  const hidden = isImage || isDreamIdeaActive;
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <TippyBubbleMenu
@@ -33,6 +40,13 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
       className={styles.bubbleMenu}
       tippyOptions={{ duration: 100, placement: "bottom" }}
     >
+      {isDreamIdeaActive && (
+        <div className={styles.row}>
+          <div className={styles.buttonGroup}>
+            <DreamIdeaMenu editor={editor} />
+          </div>
+        </div>
+      )}
       {!hidden && (
         <>
           <div className={styles.row}>
@@ -53,12 +67,13 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
           <div className={styles.row}>
             <div className={styles.buttonGroup}>
               <NewIdea editor={editor} />
+              <ConnectIdea editor={editor} />
               <LinkButton editor={editor} />
-              <MathInlineButton editor={editor} />
             </div>
             <div className={styles.buttonGroup}>
               <BlockquoteButton editor={editor} />
               <CodeBlockButton editor={editor} />
+              <MathInlineButton editor={editor} />
               <MathBlockButton editor={editor} />
             </div>
           </div>

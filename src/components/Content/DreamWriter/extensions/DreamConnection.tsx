@@ -161,7 +161,7 @@ const suggestionOptionsDefinition = (
             .deleteRange(range)
             .setDreamIdea({
               ideaId: props.id.toString(),
-              ideaAlias: (props as IIdea).title,
+              content: (props as IIdea).title,
             })
             .run(),
         file: () =>

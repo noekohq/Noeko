@@ -1,21 +1,41 @@
 .dreamIdeaInline {
-    & .dreamIdeaTarget {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--mantine-spacing-xs);
-        background-color: var(--mantine-color-body);
-        box-shadow: var(--mantine-shadow-xs);
-        padding: 2px var(--mantine-spacing-xs);
-        border-radius: var(--mantine-radius-md);
-        border: .5px solid var(--mantine-color-gray-9);
-        cursor: pointer;
-        font-family: var(--mantine-font-family-headings);
-        font-weight: 565;
-        font-stretch: 90%;
-    }
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mantine-spacing-xs);
 
-    & .dreamIdeaIcon {
-        color: var(--mantine-color-gray-6);
-        font-size: var(--mantine-font-size-sm);
+    background-color: var(--mantine-color-dark-8);
+    box-shadow: var(--mantine-shadow-xs);
+    padding: 2px var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-dark-4);
+    cursor: text;
+    transition: all 0.2s ease;
+
+    &[data-selected="true"] {
+        outline: 2px solid var(--mantine-primary-color-7);
+        outline-offset: 1px;
+        background-color: var(--mantine-color-dark-7);
     }
+}
+
+.dreamIdeaContent {
+    font-family: var(--mantine-font-family-headings);
+    font-weight: 565;
+    font-stretch: 90%;
+
+    &:empty::before {
+      content: attr(data-placeholder);
+
+      color: var(--mantine-color-dimmed);
+      font-style: italic;
+
+      float: left;
+      pointer-events: none;
+    }
+}
+
+.dreamIdeaIcon {
+    color: var(--mantine-color-gray-6);
+    font-size: var(--mantine-font-size-sm);
+    pointer-events: all;
 }
