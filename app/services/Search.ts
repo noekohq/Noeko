@@ -503,7 +503,7 @@ export class Search {
     }
 
     try {
-      const suggestions = await Search.ftsSearch(userId, query, {
+      const suggestions = await Search.comprehensiveSearch(userId, query, {
         rabbitholeId: options?.rabbitholeId,
       });
       const ideas = suggestions?.map((i) => {

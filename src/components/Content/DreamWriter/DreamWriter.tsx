@@ -361,6 +361,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }}
           className={styles.tippyContent}
           editor={editor}
+          spellCheck={false}
         />
       </div>
     );

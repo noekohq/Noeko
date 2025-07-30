@@ -59,6 +59,7 @@ import IdeaButton from "../../Display/Ideas/Interactions/IdeaButton";
 import { ISafeIdea } from "../../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
 import { SpyglassIcon } from "../../Utils/Icons/Icons";
+import useRabbithole from "../../../hooks/useRabbithole";
 
 interface OptionProps {
   editor: IEditor | null;
@@ -848,6 +849,7 @@ export function NewIdea({ editor }: OptionProps) {
       viewing: { get: viewingIdea },
     },
   } = useLandscape();
+  const { includeThing, isDownRabbithole } = useRabbithole();
 
   const newIdeaForm = useForm({
     initialValues: { content: "" },
@@ -879,11 +881,8 @@ export function NewIdea({ editor }: OptionProps) {
           })
           .run();
 
-        if (viewingIdea) {
-          await createIdeaConnection(
-            viewingIdea.id.toString(),
-            newIdea.id.toString(),
-          );
+        if (isDownRabbithole) {
+          includeThing(newIdea.id.toString());
         }
       }
 

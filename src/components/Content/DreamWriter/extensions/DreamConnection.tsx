@@ -12,7 +12,7 @@ import { IUserFile } from "../../../../../app/database/models/userfile";
 import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
 import { Lightbulb } from "@phosphor-icons/react";
-import { getNodeTitle } from "../../../../utils/graph";
+import { getNodeDescription, getNodeTitle } from "../../../../utils/graph";
 import { EditorState, PluginKey } from "@tiptap/pm/state";
 
 const suggestionKey = new PluginKey("dream-connection");

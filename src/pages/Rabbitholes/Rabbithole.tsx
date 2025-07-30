@@ -154,7 +154,10 @@ export default function Rabbithole() {
         return;
       }
       currentlyAddingTag.current = true;
-      await includeThingInRabbithole(rabbitholeId, tag.id.toString());
+      await includeThingInRabbithole(
+        rabbitholeId.toString(),
+        tag.id.toString(),
+      );
     } catch (error) {
       console.error("Error adding tag: ", error);
       showNotification({
