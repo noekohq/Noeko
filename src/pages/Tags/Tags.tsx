@@ -9,7 +9,9 @@ import {
   TextInput,
   Title,
   ActionIcon,
-  Modal, // Added Modal for delete confirmation
+  Modal,
+  Stack,
+  SimpleGrid, // Added Modal for delete confirmation
 } from "@mantine/core";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -25,6 +27,11 @@ import {
   X,
   Trash,
   ArrowRight,
+  TrashIcon,
+  PencilIcon,
+  FloppyDiskIcon,
+  XIcon,
+  PlusIcon,
 } from "@phosphor-icons/react"; // Added new icons, including Trash
 import { InlineTag } from "../../components/Display/Tags/TagDisplay";
 import { Link } from "react-router";
@@ -32,6 +39,7 @@ import styles from "./Tags.module.scss";
 import Content from "../../components/UI/Layout/Content";
 import useRabbithole from "../../hooks/useRabbithole";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import TagCard from "../../components/Display/Tags/TagCard";
 
 export default function Tags() {
   const {
@@ -113,116 +121,125 @@ export default function Tags() {
     );
   }, [tags, filterQuery]);
 
+  const [addingTag, setAddingTag] = useState(false);
+
   return (
-    <PageWrapper>
-      <LeftSidebar />
-      <Content>
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            <Title>Your tags</Title>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              placeholder="Filter tags by name, description, or color"
-              value={filterQuery}
-              onChange={(event) => setFilterQuery(event.currentTarget.value)}
-              mb="md" // Added margin bottom for spacing
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            {loading && <p>Loading tags...</p>}
-            {!!errors.length && <p>Error loading tags: {errors}</p>}
-            {/* Always render table structure to include form in header */}
-            <Table withRowBorders={false}>
-              <Table.Thead>
-                {/* Form row for adding new tags */}
-                {/* Standard table headers */}
-                <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>Description</Table.Th>
-                  <Table.Th>Actions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {/* Form Row */}
-                <Table.Tr>
-                  <Table.Td>
-                    <TextInput
-                      placeholder="New Tag Name"
-                      size="xs"
-                      {...tagForm.getInputProps("name")}
-                      required
-                      style={{ flexGrow: 1 }}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <TextInput
-                      placeholder="New Tag Description (Optional)"
-                      size="xs"
-                      {...tagForm.getInputProps("description")}
-                      style={{ flexGrow: 1 }}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <ActionIcon
-                      variant="filled"
-                      onClick={() => {
-                        const { hasErrors } = tagForm.validate(); // Run validation to display errors
-                        if (!hasErrors) {
-                          // Check the form's hasErrors state after validating
-                          handleCreateTagSubmit();
-                        }
-                      }}
-                      loading={createTagLoading}
-                      title="Add Tag"
-                    >
-                      <Plus weight="bold" />
-                    </ActionIcon>
-                  </Table.Td>
-                </Table.Tr>
-                {/* Display Existing Tags */}
-                {filteredTags &&
-                  filteredTags.map((tag) => (
-                    <TagRow
-                      key={tag.id.toString()}
-                      tag={tag}
+    <>
+      <PageWrapper>
+        <LeftSidebar />
+        <Content>
+          <Grid>
+            <Grid.Col span={{ sm: 12 }}>
+              <Group>
+                <Title>Your tags</Title>
+                <ActionIcon
+                  variant="light"
+                  color="blue"
+                  onClick={() => {
+                    setAddingTag(true);
+                  }}
+                >
+                  <PlusIcon />
+                </ActionIcon>
+              </Group>
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <TextInput
+                placeholder="Filter tags by name, description, or color"
+                value={filterQuery}
+                onChange={(event) => setFilterQuery(event.currentTarget.value)}
+                mb="md" // Added margin bottom for spacing
+              />
+            </Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              {loading && (
+                <Text size="sm" c="dimmed">
+                  Loading tags...
+                </Text>
+              )}
+              <SimpleGrid
+                cols={{
+                  xs: 1,
+                  sm: 2,
+                  md: 3,
+                }}
+              >
+                {filteredTags.map((t) => {
+                  return (
+                    <TagItem
+                      key={t.id.toString()}
+                      tag={t}
                       onTagUpdated={loadTags}
                     />
-                  ))}
-                {/* Display "No tags found" or "No matching tags" */}
-                {!loading && filteredTags && filteredTags.length === 0 && (
-                  <Table.Tr>
-                    <Table.Td colSpan={4} style={{ textAlign: "center" }}>
-                      {filterQuery.trim() !== ""
-                        ? "No tags match your filter."
-                        : "No tags found. Add one above!"}
-                    </Table.Td>
-                  </Table.Tr>
-                )}
-              </Table.Tbody>
-            </Table>
-          </Grid.Col>
-          {createTagErrors.length > 0 && (
-            <Grid.Col span={12}>
-              <Text c="red" size="sm" mt="sm">
-                {createTagErrors.join(", ")}
-              </Text>
+                  );
+                })}
+              </SimpleGrid>
             </Grid.Col>
-          )}
+            {createTagErrors.length > 0 && (
+              <Grid.Col span={12}>
+                <Text c="red" size="sm" mt="sm">
+                  {createTagErrors.join(", ")}
+                </Text>
+              </Grid.Col>
+            )}
+          </Grid>
+        </Content>
+        <StatusBar />
+        <RightSidebar />
+      </PageWrapper>
+      <Modal
+        opened={addingTag}
+        onClose={() => {
+          setAddingTag(false);
+        }}
+        title="Add a tag"
+      >
+        <Grid>
+          <Grid.Col span={12}>
+            <TextInput
+              placeholder="New Tag Name"
+              size="xs"
+              {...tagForm.getInputProps("name")}
+              required
+              style={{ flexGrow: 1 }}
+            />
+          </Grid.Col>
+          <Grid.Col>
+            <TextInput
+              placeholder="New Tag Description (Optional)"
+              size="xs"
+              {...tagForm.getInputProps("description")}
+              style={{ flexGrow: 1 }}
+            />
+          </Grid.Col>
+          <Grid.Col>
+            <ActionIcon
+              variant="filled"
+              onClick={() => {
+                const { hasErrors } = tagForm.validate(); // Run validation to display errors
+                if (!hasErrors) {
+                  // Check the form's hasErrors state after validating
+                  handleCreateTagSubmit();
+                }
+              }}
+              loading={createTagLoading}
+              title="Add Tag"
+            >
+              <PlusIcon weight="bold" />
+            </ActionIcon>
+          </Grid.Col>
         </Grid>
-      </Content>
-      <StatusBar />
-      <RightSidebar />
-    </PageWrapper>
+      </Modal>
+    </>
   );
 }
 
-interface TagRowProps {
+interface ITagItemProps {
   tag: ITag;
   onTagUpdated: () => void;
 }
 
-const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
+const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
 
@@ -297,7 +314,9 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
     setIsEditing(false);
   };
 
-  const openDeleteModal = () => setDeleteModalOpened(true);
+  const openDeleteModal = () => {
+    setDeleteModalOpened(true);
+  };
   const closeDeleteModal = () => {
     setDeleteModalOpened(false);
   };
@@ -308,14 +327,14 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
 
   if (isEditing) {
     return (
-      <Table.Tr>
-        <Table.Td>
+      <Grid>
+        <Grid.Col>
           <TextInput size="xs" {...editForm.getInputProps("name")} required />
-        </Table.Td>
-        <Table.Td>
+        </Grid.Col>
+        <Grid.Col>
           <TextInput size="xs" {...editForm.getInputProps("description")} />
-        </Table.Td>
-        <Table.Td>
+        </Grid.Col>
+        <Grid.Col>
           <Group gap="xs" wrap="nowrap">
             <ActionIcon
               variant="filled"
@@ -323,7 +342,7 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
               loading={updateTagLoading}
               title="Save Tag"
             >
-              <FloppyDisk weight="bold" />
+              <FloppyDiskIcon weight="bold" />
             </ActionIcon>
             <ActionIcon
               variant="outline"
@@ -331,7 +350,7 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
               onClick={handleCancel}
               title="Cancel Edit"
             >
-              <X weight="bold" />
+              <XIcon weight="bold" />
             </ActionIcon>
           </Group>
           {updateTagErrors.length > 0 && (
@@ -339,43 +358,38 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
               {updateTagErrors.join(", ")}
             </Text>
           )}
-        </Table.Td>
-      </Table.Tr>
+        </Grid.Col>
+      </Grid>
     );
   }
 
   return (
-    <React.Fragment>
-      <Table.Tr>
-        <Table.Td>
-          <InlineTag tag={tag} />
-        </Table.Td>
-        <Table.Td>{tag.description || ""}</Table.Td>
-        <Table.Td>
-          <Group gap="xs" wrap="nowrap">
-            <ActionIcon
-              variant="subtle"
-              onClick={() => setIsEditing(true)}
-              title="Edit Tag"
-            >
-              <PencilSimple />
-            </ActionIcon>
-            <ActionIcon
-              variant="subtle"
-              color="red"
-              onClick={openDeleteModal}
-              title="Delete Tag"
-            >
-              <Trash />
-            </ActionIcon>
-            <Link to={`/tags/${tag.id.toString()}`}>
-              <ActionIcon variant="subtle" title="View Tag">
-                <ArrowRight />
-              </ActionIcon>
-            </Link>
-          </Group>
-        </Table.Td>
-      </Table.Tr>
+    <>
+      <TagCard
+        tag={tag}
+        actions={[
+          {
+            id: "delete",
+            label: "Delete",
+            onClick: (e) => {
+              e.stopPropagation();
+              openDeleteModal();
+            },
+            icon: <TrashIcon />,
+            color: "red",
+          },
+          {
+            id: "update",
+            label: "Update",
+            onClick: (e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            },
+            icon: <PencilIcon />,
+            color: "blue",
+          },
+        ]}
+      />
       <Modal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
@@ -404,6 +418,6 @@ const TagRow: React.FC<TagRowProps> = ({ tag, onTagUpdated }) => {
           </Button>
         </Group>
       </Modal>
-    </React.Fragment>
+    </>
   );
 };
