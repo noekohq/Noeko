@@ -116,8 +116,7 @@ export default function Tags() {
     return tags.filter(
       (tag) =>
         tag.name.toLowerCase().includes(query) ||
-        (tag.description && tag.description.toLowerCase().includes(query)) ||
-        (tag.color && tag.color.toLowerCase().includes(query)),
+        (tag.description && tag.description.toLowerCase().includes(query)),
     );
   }, [tags, filterQuery]);
 
@@ -145,7 +144,7 @@ export default function Tags() {
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                placeholder="Filter tags by name, description, or color"
+                placeholder="Filter tags by name or description"
                 value={filterQuery}
                 onChange={(event) => setFilterQuery(event.currentTarget.value)}
                 mb="md" // Added margin bottom for spacing

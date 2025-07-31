@@ -1,0 +1,10 @@
+.createTask {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.suggestions {
+    border: 1px solid var(--mantine-color-dark-7);
+}
