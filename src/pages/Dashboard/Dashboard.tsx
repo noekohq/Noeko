@@ -319,54 +319,43 @@ function TopBar() {
   } = useSettings();
 
   return (
-    <Group justify="space-between" py="md">
-      {!isMobile && (
-        <Group h="var(--status-bar-height)">
-          <StatusButton
-            onClick={() => {
-              if (currentScheme === "dark") {
-                setScheme("light");
-              } else {
-                setScheme("dark");
-              }
-            }}
-          >
-            {currentScheme === "light" ? (
-              <SunIcon weight="bold" />
-            ) : (
-              <MoonStarsIcon weight="bold" />
-            )}
-          </StatusButton>
-        </Group>
-      )}
-      <Title order={2}>
-        <Group gap="xs">
-          <HandWavingIcon weight="bold" />
-          Welcome back {user?.firstName}, your Qwest continues.
-        </Group>
-      </Title>
-      <Group
-        h="var(--status-bar-height)"
-        justify={isMobile ? "space-between" : "flex-start"}
-        w={isMobile ? "100%" : undefined}
+    <Group justify="space-between" py="md" wrap="nowrap">
+      <Stack gap="0" align="flex-start" justify="center" w="100%">
+        <Title order={2} ta="center">
+          <Group gap="xs">
+            Welcome back {user?.firstName}!
+            <HandWavingIcon weight="bold" />
+          </Group>
+        </Title>
+        <Title p={0} m={0} order={4} c="dimmed">
+          Your Qwest continues.
+        </Title>
+      </Stack>
+      <Flex
+        wrap={"nowrap"}
+        h={
+          isMobile
+            ? "calc(var(--status-bar-height) * 2)"
+            : "var(--status-bar-height)"
+        }
+        direction={isMobile ? "column" : "row"}
+        gap="xs"
       >
-        {isMobile && (
-          <StatusButton
-            onClick={() => {
-              if (currentScheme === "dark") {
-                setScheme("light");
-              } else {
-                setScheme("dark");
-              }
-            }}
-          >
-            {currentScheme === "light" ? (
-              <SunIcon weight="bold" />
-            ) : (
-              <MoonStarsIcon weight="bold" />
-            )}
-          </StatusButton>
-        )}
+        <StatusButton
+          onClick={() => {
+            if (currentScheme === "dark") {
+              setScheme("light");
+            } else {
+              setScheme("dark");
+            }
+          }}
+        >
+          {currentScheme === "light" ? (
+            <SunIcon weight="bold" />
+          ) : (
+            <MoonStarsIcon weight="bold" />
+          )}
+        </StatusButton>
         <Link
           to="/ideas"
           style={{
@@ -378,7 +367,7 @@ function TopBar() {
             {user?.totalIdeas}
           </StatusButton>
         </Link>
-      </Group>
+      </Flex>
     </Group>
   );
 }

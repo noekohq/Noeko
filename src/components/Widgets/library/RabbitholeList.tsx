@@ -36,7 +36,12 @@ export default function RabbitholeList() {
           </Link>
         </Group>
         {recentRabbitholes?.map((rabbithole) => {
-          return <RabbitholeCard rabbithole={rabbithole} />;
+          return (
+            <RabbitholeCard
+              key={rabbithole.id.toString()}
+              rabbithole={rabbithole}
+            />
+          );
         })}
       </Stack>
     </div>

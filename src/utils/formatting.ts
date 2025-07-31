@@ -62,6 +62,8 @@ function formatDateRelative(date: Date): string {
     return "today";
   } else if (diffDays === 1) {
     return "yesterday";
+  } else if (diffDays === -1) {
+    return "tomorrow";
   } else if (diffDays > 1 && diffDays <= 7) {
     return `${diffDays} days ago`;
   } else {

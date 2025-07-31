@@ -113,7 +113,7 @@ export default function Idea() {
     dependencies: [ideaId],
     method: "DELETE",
     onSuccess: () => {
-      navigate("/");
+      navigate(-1);
       showNotification({
         title: "Success",
         message: "Idea deleted successfully",
