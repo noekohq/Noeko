@@ -20,8 +20,6 @@ export default function TaskList() {
     getDailyTasks();
   }, []);
 
-  console.log("Daily tasks: ", tasks);
-
   const {
     actions: { newTask },
   } = useInteraction();
