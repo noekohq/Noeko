@@ -67,8 +67,8 @@ export default function Dashboard() {
   const { isMobile } = useLayout();
 
   const defaultWidgets: IAvailableWidgets[] = isMobile
-    ? ["scratchpad", "rabbitholeList"]
-    : ["scratchpad", "rabbitholeList", "heatmap"];
+    ? ["scratchpad", "taskList", "rabbitholeList"]
+    : ["scratchpad", "taskList", "rabbitholeList", "heatmap"];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
     const loaded: ILoadedWidget[] = [];
@@ -262,6 +262,9 @@ export default function Dashboard() {
                     md: config.columns.default,
                   }}
                   key={id}
+                  style={{
+                    height: "fit-content",
+                  }}
                 >
                   <WidgetWrapper>
                     <Component />

@@ -42,6 +42,8 @@ import { showNotification } from "@mantine/notifications";
 import { createTask } from "../../utils/tasks";
 import DreamWriter from "../Content/DreamWriter/DreamWriter";
 import { useNavigate } from "react-router";
+import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
+import useRabbithole from "../../hooks/useRabbithole";
 
 interface ICreateTaskFormProps {
   onSubmit?: (task: ITask) => void;
@@ -50,8 +52,8 @@ interface ICreateTaskFormProps {
 export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
   const initialTaskDate = () => {
     const d = new Date();
-    d.setHours(d.getHours() + 36);
-    return d;
+    d.setHours(d.getHours() + 24);
+    return toYYYYMMDD(d);
   };
 
   const taskForm = useForm({
@@ -74,9 +76,14 @@ export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
       },
       dueDate: (value) => {
         if (!value) return "Due date is required";
-        if (value < new Date()) return "Due date must be in the future";
         return null;
       },
+    },
+    transformValues: (v) => {
+      return {
+        ...v,
+        completedAt: null,
+      };
     },
   });
 
@@ -85,7 +92,7 @@ export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
   };
   const formattedDueDate = () => {
     if (!taskForm.values.dueDate) return "No due date.";
-    return capitalize(formatDate(taskForm.values.dueDate));
+    return capitalize(formatDate(fromYYYYMMDD(taskForm.values.dueDate)));
   };
 
   const [settingEstimatedTime, setSettingEstimatedTime] = useState(false);
@@ -107,6 +114,8 @@ export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
 
   const navigate = useNavigate();
 
+  const { isDownRabbithole, includeThing } = useRabbithole();
+
   const handleSubmit = async () => {
     const { errors, hasErrors } = taskForm.validate();
     if (hasErrors) {
@@ -124,6 +133,9 @@ export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
       }
       navigate(`/tasks/${task.id.toString()}`);
       onSubmit?.(task);
+      if (isDownRabbithole) {
+        includeThing(task.id.toString());
+      }
     } catch (error) {
       console.error("Error submitting task: ", error);
       showNotification({

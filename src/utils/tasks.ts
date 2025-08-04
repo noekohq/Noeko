@@ -19,11 +19,12 @@ export const createTask = async (
   }
 };
 
-export const completeTask = async (
+export const updateTask = async (
   taskId: string | RecordId,
-): Promise<boolean, undefined> => {
+  form: Partial<ITaskForm>,
+) => {
   try {
-    const result = await api.post(`/tasks/${taskId.toString()}/complete`);
+    const result = await api.put(`/tasks/${taskId.toString()}`, form);
     return result.data.data as boolean;
   } catch (error) {
     console.error("Error completing task: ", error);

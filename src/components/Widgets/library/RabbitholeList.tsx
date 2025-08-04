@@ -7,6 +7,7 @@ import RabbitholeCard from "../../Display/Rabbitholes/RabbitholeCard";
 import { useEffect } from "react";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
+import RabbitholeButton from "../../Display/Rabbitholes/RabbitholeButton";
 
 export default function RabbitholeList() {
   const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<
@@ -37,7 +38,7 @@ export default function RabbitholeList() {
         </Group>
         {recentRabbitholes?.map((rabbithole) => {
           return (
-            <RabbitholeCard
+            <RabbitholeButton
               key={rabbithole.id.toString()}
               rabbithole={rabbithole}
             />
@@ -50,7 +51,7 @@ export default function RabbitholeList() {
 
 export const config: IWidgetConfig = {
   columns: {
-    default: 4,
+    default: 6,
     min: 4,
     max: 6,
   },

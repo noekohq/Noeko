@@ -46,6 +46,7 @@ import { Warning } from "@phosphor-icons/react/dist/ssr";
 import PageWrapper from "./components/Layout/PageWrapper";
 import Content from "./components/UI/Layout/Content";
 import Task from "./pages/Tasks/Task";
+import Tasks from "./pages/Tasks/Tasks";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
@@ -177,7 +178,7 @@ export default function App() {
                     </Route>
                   </Route>
                   <Route path="tasks">
-                    {/*<Route index element={<Tasks />} />*/}
+                    <Route index element={<Tasks />} />
                     <Route path=":taskId">
                       <Route index element={<Task key={location.pathname} />} />
                     </Route>
