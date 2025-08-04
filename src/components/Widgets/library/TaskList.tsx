@@ -9,6 +9,7 @@ import { ActionIcon, Button, Group, Stack, Text } from "@mantine/core";
 import styles from "./TaskList.module.scss";
 import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import { Link } from "react-router";
 
 export default function TaskList() {
   const todayDate = toYYYYMMDD(new Date());
@@ -32,17 +33,28 @@ export default function TaskList() {
   return (
     <div className={styles.taskList}>
       <Stack gap="xs">
-        <Text size="sm" fw="bold">
-          <Group>
+        <Text size="sm" fw="bold" c="dimmed">
+          <Group gap="xs">
             Today's Tasks
-            <ActionIcon
-              size="sm"
-              color="gray"
-              variant="light"
+            <Button
+              leftSection={<PlusIcon weight="bold" />}
               onClick={newTask}
+              size="xs"
+              color="gray"
+              variant="subtle"
             >
-              <PlusIcon />
-            </ActionIcon>
+              New
+            </Button>
+            <Link to="/tasks">
+              <Button
+                variant="subtle"
+                color="gray"
+                rightSection={<ArrowRightIcon />}
+                size="xs"
+              >
+                All
+              </Button>
+            </Link>
           </Group>
         </Text>
         {!tasks?.length && (

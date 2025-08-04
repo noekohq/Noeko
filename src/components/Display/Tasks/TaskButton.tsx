@@ -70,6 +70,7 @@ export default function TaskButton({
         <HoverCard.Target>
           <div className={styles.content}>
             <Checkbox
+              variant="outline"
               defaultChecked={isCompleted}
               onClick={(e) => {
                 e.stopPropagation();
