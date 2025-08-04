@@ -65,32 +65,6 @@ export type IComputedUser = IUser & IComputedProperties;
 
 export type ISafeComputedUsers = ISafeUser & IComputedProperties;
 
-async function initializeScheduledJobs() {
-  const kernel = getKernel();
-
-  // 1. Register the job handler
-  const JOB_NAME = "refresh-all-user-referral-codes";
-
-  kernel.registerJob<void>(JOB_NAME, async () => {
-    console.log(`[Kernel] Starting job: ${JOB_NAME}`);
-    await User.refreshAllUserReferralCodes();
-    console.log(`[Kernel] Finished job: ${JOB_NAME}`);
-  });
-
-  // 2. Schedule the job to run daily (e.g., at midnight)
-  // CRON format: minute hour day-of-month month day-of-week
-  // '0 0 * * *' means at 00:00 (midnight) every day
-  try {
-    await kernel.scheduleRecurring<void>(JOB_NAME, undefined, "0 0 * * *");
-    console.log(`[Kernel] Successfully scheduled recurring job: ${JOB_NAME}`);
-  } catch (error) {
-    console.error(
-      `[Kernel] Failed to schedule recurring job: ${JOB_NAME}`,
-      error,
-    );
-  }
-}
-
 async function ensureAllUsersHaveScratchpadContent() {
   const db = await getDatabase();
   if (!db) {
@@ -169,7 +143,6 @@ export class User {
       );
 
       const kernel = getKernel();
-      initializeScheduledJobs();
       ensureAllUsersHaveScratchpadContent();
     } catch (error) {
       console.error("Error creating user table:", error);
