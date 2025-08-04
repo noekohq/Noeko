@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { ITask, ITaskForm } from "../../../app/database/models/task";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import useFetch from "../../hooks/useFetch";
@@ -26,11 +26,13 @@ import {
 import {
   ArrowArcRightIcon,
   CalendarCheckIcon,
+  CaretLeftIcon,
   CheckIcon,
   CloudArrowUpIcon,
   CloudCheckIcon,
   CloudSlashIcon,
   TimerIcon,
+  XCircleIcon,
 } from "@phosphor-icons/react";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import { useForm } from "@mantine/form";
@@ -149,7 +151,6 @@ export default function Task() {
     const isInOptions = timePickerOptions.some(
       (o) => taskForm.values.estimatedTime.toString() === o.value.toString(),
     );
-    console.log("Is in options: ", isInOptions);
     if (isInOptions) {
       setTimeOptionMode("options");
     } else {
@@ -215,11 +216,36 @@ export default function Task() {
     });
   };
 
+  const handleMarkTask = async (complete: boolean) => {
+    if (!taskId) return;
+    await updateTask(taskId, {
+      completedAt: complete ? new Date() : null,
+    });
+    loadTask();
+  };
+
+  const isComplete = task?.completedAt !== null;
+
   return (
     <PageWrapper>
       <LeftSidebar></LeftSidebar>
       <Content>
         <Stack>
+          <Group mb="lg">
+            <Link
+              to="/tasks"
+              style={{
+                textDecoration: "none",
+              }}
+            >
+              <Group c="dark.3" gap="xs">
+                <CaretLeftIcon weight="bold" size={13} />
+                <Text c="dark.3" size="sm">
+                  All Tasks
+                </Text>
+              </Group>
+            </Link>
+          </Group>
           <Title
             contentEditable
             onBlur={(e) => {
@@ -362,9 +388,7 @@ export default function Task() {
                               value={taskForm.values.dueDate}
                               onChange={(date) => {
                                 if (date) {
-                                  console.log("Date: ", date);
                                   const formattedDate = date;
-                                  console.log("Formatted: ", formattedDate);
                                   handleFieldUpdate("dueDate", formattedDate);
                                   setDueDatePopoverOpened(false);
                                 }
@@ -374,6 +398,29 @@ export default function Task() {
                         </Popover.Dropdown>
                       </Popover>
                     </Stack>
+                  </Card>
+                </Grid.Col>
+                <Grid.Col span={12}>
+                  <Card radius="lg">
+                    <Group>
+                      <Button
+                        radius="lg"
+                        leftSection={
+                          isComplete ? (
+                            <XCircleIcon weight="bold" />
+                          ) : (
+                            <CheckIcon weight="bold" />
+                          )
+                        }
+                        variant={isComplete ? "light" : "filled"}
+                        onClick={() => {
+                          handleMarkTask(!isComplete);
+                        }}
+                        color="dark.1"
+                      >
+                        Mark {isComplete ? "Incomplete" : "Complete"}
+                      </Button>
+                    </Group>
                   </Card>
                 </Grid.Col>
                 <Grid.Col span={12}>

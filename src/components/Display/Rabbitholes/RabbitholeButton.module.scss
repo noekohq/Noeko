@@ -2,8 +2,7 @@
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    background-color: var(--mantine-color-dark-8);
-    border: 2px solid var(--mantine-color-dark-7);
+    background-color: transparent;
     border-radius: var(--mantine-radius-md);
     display: flex;
     flex-direction: column;
@@ -12,6 +11,7 @@
 
     &:hover {
         transform: translateY(-2px);
+        box-shadow: var(--mantine-shadow-lg);
     }
     &:active {
         transform: scale(0.98) translateY(2px);
