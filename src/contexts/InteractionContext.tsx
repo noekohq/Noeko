@@ -43,8 +43,6 @@ import { handleCreateNewRabbithole } from "../utils/rabbitholes";
 import { useLandscape } from "./LandscapeContext";
 import useRabbithole from "../hooks/useRabbithole";
 import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
-import { ITask } from "../../app/database/models/task";
-import { Duration } from "surrealdb";
 import CreateTaskForm from "../components/Forms/CreateTask";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
@@ -87,6 +85,7 @@ type IInteractionContext = {
     settings: () => void;
     profile: () => void;
     tags: () => void;
+    tasks: () => void;
     updates: () => void;
     admin: () => void;
     sharedIdeas: () => void;
@@ -132,6 +131,7 @@ const initialContext: IInteractionContext = {
     settings: () => {},
     profile: () => {},
     tags: () => {},
+    tasks: () => {},
     updates: () => {},
     admin: () => {},
     sharedIdeas: () => {},
@@ -345,6 +345,9 @@ export function InteractionProvider({
       },
       tags: () => {
         navigate("/tags");
+      },
+      tasks: () => {
+        navigate("/tasks");
       },
       updates: () => {
         navigate("/updates");

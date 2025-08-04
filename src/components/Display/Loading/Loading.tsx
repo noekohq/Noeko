@@ -1,13 +1,14 @@
-import { Loader } from "@mantine/core";
+import { Loader, MantineColor, MantineSize } from "@mantine/core";
 
 type ILoaderProps = {
-  size: "sm" | "md" | "lg";
+  size?: MantineSize;
+  color?: MantineColor;
 };
 
-export default function Loading({ size }: ILoaderProps) {
+export default function Loading({ size, color }: ILoaderProps) {
   return (
     <div>
-      <Loader size={size} />
+      <Loader size={size} color={color} />
     </div>
   );
 }

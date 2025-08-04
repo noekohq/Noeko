@@ -26,6 +26,8 @@ export default function CreateButton() {
       withArrow
       radius="md"
       width={"200px"}
+      trigger="click-hover"
+      openDelay={100}
     >
       <Menu.Target>
         <div style={{ height: "100%" }}>
@@ -33,7 +35,7 @@ export default function CreateButton() {
             {menuOpen ? (
               <XIcon weight="bold" size={16} />
             ) : (
-              <PlusSquareIcon weight="bold" size={16} />
+              <PlusIcon weight="bold" size={16} />
             )}
           </StatusButton>
         </div>

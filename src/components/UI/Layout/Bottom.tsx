@@ -62,11 +62,11 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
 
   return (
     <div
-      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : ""}`}
+      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren}`}
     >
       {hasChildren && <div className={styles.content}>{children}</div>}
       <div
-        className={`${styles.global} ${hasChildren ? styles.hasChildren : ""}`}
+        className={`${styles.global} ${hasChildren ? styles.hasChildren : styles.noChildren}`}
       >
         <StatusBar.Item>
           <RabbitholeIndicator />
