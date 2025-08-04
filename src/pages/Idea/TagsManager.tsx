@@ -101,6 +101,10 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
     loadRelatedTags();
   };
 
+  useEffect(() => {
+    refresh();
+  }, [idea.embeddingsUpdatedAt]);
+
   const [creatingTag, setCreatingTag] = useState(false);
 
   const handleAddTag = async (tagId: string) => {

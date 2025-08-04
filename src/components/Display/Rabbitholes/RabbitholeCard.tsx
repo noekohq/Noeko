@@ -6,25 +6,7 @@ import { IconProps } from "../../Utils/Icons/Icon";
 import styles from "./RabbitholeCard.module.scss";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../../Utils/Icons/Icons";
-
-export type IRabbitholeAction = {
-  id: string;
-  label: string;
-  icon?: React.ReactElement<IconProps>;
-  onClick: (event: React.MouseEvent, rabbithole: IRabbithole) => void;
-  color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
-  disabled?: boolean;
-  tooltip?: string;
-  isOverflow?: boolean; // If true, primarily for the overflow menu
-};
+import { IRabbitholeAction } from "./rabbitholes";
 
 interface IRabbitholeCardProps {
   rabbithole: IRabbithole;

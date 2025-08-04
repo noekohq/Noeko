@@ -42,7 +42,6 @@ export function RabbitholeIndicator() {
         setMenuOpen(false);
       }}
       position="top"
-      withArrow
       radius="md"
       shadow="lg"
       width={"300px"}

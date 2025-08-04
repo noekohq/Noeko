@@ -109,4 +109,8 @@
             width: 100%;
         }
     }
+
+    &.noChildren {
+        justify-content: center;
+    }
 }

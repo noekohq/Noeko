@@ -29,3 +29,17 @@ export const getCurrentTimeFormatted = (): string => {
   const meridiem = hour >= 12 ? "PM" : "AM";
   return `${hourOf}:${minuteFormatted} ${meridiem}`;
 };
+
+export const toYYYYMMDD = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // getMonth() is zero-based
+  const day = date.getDate();
+
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+
+export const fromYYYYMMDD = (dateString: string): Date => {
+  if (!dateString) return new Date();
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};

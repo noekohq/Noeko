@@ -12,6 +12,7 @@ import rabbitholeRouter from "./rabbithole";
 import healthCheckRouter from "./healthcheck";
 import analysisRouter from "./analysis";
 import spellsRouter from "./spells";
+import taskRouter from "./tasks";
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use("/tags", tagRouter);
 router.use("/rabbitholes", rabbitholeRouter);
 router.use("/analysis", analysisRouter);
 router.use("/spells", spellsRouter);
+router.use("/tasks", taskRouter);
 
 export default router;

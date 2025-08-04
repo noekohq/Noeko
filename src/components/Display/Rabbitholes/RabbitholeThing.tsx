@@ -9,9 +9,11 @@ import { RecordId } from "surrealdb";
 import { useState } from "react";
 import { includeThingInRabbithole } from "../../../utils/rabbitholes";
 import TagCard from "../Tags/TagCard";
+import TaskCard from "../Tasks/TaskCard";
+import { ITask } from "../../../../app/database/models/task";
 
 interface IRabbitholeThingProps {
-  thing: IIdea | ITag;
+  thing: IIdea | ITag | ITask;
   rabbithole: IRabbithole;
   handleRemove?: (thingId: string) => void;
 }
@@ -63,6 +65,30 @@ export default function RabbitholeThing({
                     handleRemove(thing.id.toString());
                   },
                   tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
+                  color: "red",
+                },
+              ]
+            : []),
+        ]}
+      />
+    );
+  }
+  if (thing.id.toString().startsWith("task")) {
+    return (
+      <TaskCard
+        key={thing.id.toString()}
+        task={thing as ITask}
+        actions={[
+          ...(handleRemove
+            ? [
+                {
+                  icon: <DoorOpenIcon />,
+                  id: "uninclude",
+                  label: `Uninclude`,
+                  onClick: () => {
+                    handleRemove(thing.id.toString());
+                  },
+                  tooltip: `Uninclude task from ${rabbithole?.name}`,
                   color: "red",
                 },
               ]

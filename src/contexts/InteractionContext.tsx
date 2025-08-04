@@ -12,6 +12,7 @@ import useShortcuts from "../hooks/useShortcuts";
 import { useForm } from "@mantine/form";
 import useFetch from "../hooks/useFetch";
 import {
+  CheckIcon,
   FileCode,
   FileCsv,
   FilePdf,
@@ -29,6 +30,9 @@ import {
   Drawer,
   FileInput,
   Code,
+  Stack,
+  TextInput,
+  Space,
 } from "@mantine/core";
 import { formatFileSize } from "../utils/formatting";
 import { useLayout } from "./LayoutContext";
@@ -39,6 +43,7 @@ import { handleCreateNewRabbithole } from "../utils/rabbitholes";
 import { useLandscape } from "./LandscapeContext";
 import useRabbithole from "../hooks/useRabbithole";
 import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
+import CreateTaskForm from "../components/Forms/CreateTask";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -49,6 +54,7 @@ type IInteractionContext = {
     newIdea: () => void;
     newConnectedIdea: (source: string) => void;
     newRabbithole: () => void;
+    newTask: () => void;
     layout: {
       leftSidebar: {
         open: () => void;
@@ -79,6 +85,7 @@ type IInteractionContext = {
     settings: () => void;
     profile: () => void;
     tags: () => void;
+    tasks: () => void;
     updates: () => void;
     admin: () => void;
     sharedIdeas: () => void;
@@ -93,6 +100,7 @@ const initialContext: IInteractionContext = {
     newIdea: () => {},
     newConnectedIdea: () => {},
     newRabbithole: () => {},
+    newTask: () => {},
     layout: {
       leftSidebar: {
         open: () => {},
@@ -123,6 +131,7 @@ const initialContext: IInteractionContext = {
     settings: () => {},
     profile: () => {},
     tags: () => {},
+    tasks: () => {},
     updates: () => {},
     admin: () => {},
     sharedIdeas: () => {},
@@ -146,6 +155,7 @@ export function InteractionProvider({
   const [spotlightOpened, setSpotlightOpened] = useState(false);
 
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [creatingTask, setCreatingTask] = useState(false);
 
   const {
     rabbitholes: {
@@ -213,6 +223,10 @@ export function InteractionProvider({
     setLoadingSomething(false);
   };
 
+  const handleNewTask = async () => {
+    setCreatingTask(true);
+  };
+
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
@@ -260,9 +274,11 @@ export function InteractionProvider({
           });
         }
       },
-
       newRabbithole: async () => {
         handleNewRabbithole();
+      },
+      newTask: async () => {
+        handleNewTask();
       },
       layout: {
         leftSidebar: {
@@ -329,6 +345,9 @@ export function InteractionProvider({
       },
       tags: () => {
         navigate("/tags");
+      },
+      tasks: () => {
+        navigate("/tasks");
       },
       updates: () => {
         navigate("/updates");
@@ -426,6 +445,7 @@ export function InteractionProvider({
     <InteractionContext.Provider value={value}>
       {children}
       <UploadFile opened={uploadingFile} setOpened={setUploadingFile} />
+      <CreateTask opened={creatingTask} setOpened={setCreatingTask} />
       <FeedbackModal
         opened={feedbackModalOpened}
         onClose={() => setFeedbackModalOpened(false)}
@@ -446,6 +466,43 @@ export const useInteraction = () => {
   }
   return context;
 };
+
+type ICreateTaskProps = {
+  opened: boolean;
+  setOpened: (opened: boolean) => void;
+};
+
+function CreateTask({ opened, setOpened }: ICreateTaskProps) {
+  const { isMobile } = useLayout();
+
+  return (
+    <Drawer
+      opened={opened}
+      onClose={() => {
+        setOpened(false);
+      }}
+      title={
+        <Text>
+          <Group gap="xs">
+            <CheckIcon weight="bold" />
+            Create a task
+          </Group>
+        </Text>
+      }
+      offset={14}
+      radius="lg"
+      position={isMobile ? "bottom" : "right"}
+    >
+      <Space my="lg" />
+      <CreateTaskForm
+        onSubmit={() => {
+          setOpened(false);
+        }}
+      />
+      <Space my="lg" />
+    </Drawer>
+  );
+}
 
 type IUploadFileProps = {
   opened: boolean;
