@@ -311,6 +311,13 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             openSpotlight();
           },
         },
+        {
+          keys: { key: "Escape" },
+          run: (e) => {
+            e.preventDefault();
+            editor?.commands?.blur();
+          },
+        },
       ],
     });
 

@@ -4,6 +4,7 @@ import { userInitials, userIsSuperuser } from "../../../utils/user";
 import { useNavigate } from "react-router";
 import {
   ArrowLineLeftIcon,
+  CheckIcon,
   GearIcon,
   GraphIcon,
   HouseSimpleIcon,
@@ -32,6 +33,7 @@ export default function ProfileButton() {
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
     { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
     { label: "Shared Ideas", icon: LightbulbIcon, path: "/ideas/shared" },
+    { label: "Tasks", icon: CheckIcon, path: "/tasks" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
     { label: "Constellation", icon: GraphIcon, path: "/graph" },

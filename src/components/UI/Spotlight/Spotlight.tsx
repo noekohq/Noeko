@@ -22,6 +22,7 @@ import {
   RabbitIcon,
   DoorOpenIcon,
   ShieldStarIcon,
+  CheckIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -489,6 +490,7 @@ const useSpotlightConfig = ({
       },
       newIdea,
       newRabbithole,
+      newTask,
     },
     views: {
       dashboard,
@@ -517,7 +519,7 @@ const useSpotlightConfig = ({
       },
       {
         id: "ideaSwitcher",
-        title: "Find idea",
+        title: "Fast find idea",
         subviewId: "ideaSwitcherSubview",
         icon: <MagnifyingGlassIcon />,
       },
@@ -532,6 +534,12 @@ const useSpotlightConfig = ({
         title: "Rabbitholes",
         icon: <RabbitIcon />,
         subviewId: "rabbitholesSubview",
+      },
+      {
+        id: "tasks",
+        title: "Tasks",
+        icon: <CheckIcon />,
+        subviewId: "tasksSubview",
       },
       {
         id: "enterRabbithole",
@@ -774,6 +782,24 @@ const useSpotlightConfig = ({
                     },
                   ]
                 : []),
+            ],
+          },
+        ],
+        [
+          "tasksSubview",
+          {
+            id: "tasksSubview",
+            title: "Tasks",
+            items: [
+              {
+                id: "newTask",
+                title: "New Task",
+                icon: <CheckIcon />,
+                action: () => {
+                  newTask();
+                  onClose();
+                },
+              },
             ],
           },
         ],

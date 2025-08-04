@@ -10,6 +10,7 @@ import {
   HoverCard,
   Menu,
   Text,
+  Tooltip,
 } from "@mantine/core";
 import {
   ArrowsClockwiseIcon,
@@ -70,13 +71,7 @@ export default function Scratchpad() {
   const editorRef = useRef<Editor>(null);
 
   const handleClear = async () => {
-    await postContent({
-      updatedBody: {
-        content: "",
-      },
-    });
-    loadContent();
-    editorRef.current?.chain().setContent("").run();
+    editorRef.current?.chain().clearContent(true).run();
   };
 
   const getMarkdownContent = () => {
@@ -108,17 +103,19 @@ export default function Scratchpad() {
               </Text>
             </HoverCard.Dropdown>
           </HoverCard>
-          <ActionIcon
-            variant="light"
-            radius="sm"
-            size="sm"
-            color="gray"
-            onClick={() => {
-              handleClear();
-            }}
-          >
-            <ArrowsClockwiseIcon />
-          </ActionIcon>
+          <Tooltip label="Clear scratchpad">
+            <ActionIcon
+              variant="light"
+              radius="sm"
+              size="sm"
+              color="gray"
+              onClick={() => {
+                handleClear();
+              }}
+            >
+              <ArrowsClockwiseIcon />
+            </ActionIcon>
+          </Tooltip>
           <Menu trigger="hover" openDelay={200}>
             <Menu.Target>
               <ActionIcon variant="light" size="sm" color="gray">

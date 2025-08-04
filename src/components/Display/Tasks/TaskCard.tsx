@@ -1,0 +1,192 @@
+import { useNavigate } from "react-router";
+import { ITask } from "../../../../app/database/models/task";
+import styles from "./TaskCard.module.scss";
+import {
+  ActionIcon,
+  Button,
+  Checkbox,
+  Group,
+  HoverCard,
+  MantineColor,
+  Menu,
+  Text,
+  Tooltip,
+} from "@mantine/core";
+import DreamWriter from "../../Content/DreamWriter/DreamWriter";
+import useFetch from "../../../hooks/useFetch";
+import { updateTask } from "../../../utils/tasks";
+import { DotsThreeVerticalIcon, IconProps } from "@phosphor-icons/react";
+
+export type ITaskAction = {
+  id: string;
+  label: string;
+  icon?: React.ReactElement<IconProps>;
+  onClick: (event: React.MouseEvent, task: ITask) => void;
+  color?: MantineColor;
+  variant?:
+    | "filled"
+    | "light"
+    | "outline"
+    | "default"
+    | "subtle"
+    | "transparent"
+    | "white";
+  disabled?: boolean;
+  tooltip?: string;
+};
+
+interface ITaskCard {
+  task: ITask;
+  onClick?: () => void;
+  onMark?: (complete: boolean) => void;
+  link?: boolean;
+  actions?: ITaskAction[];
+  actionsVisible?: number;
+}
+
+export default function TaskCard({
+  task,
+  onClick,
+  onMark,
+  link = true,
+  actions = [],
+  actionsVisible = 0,
+}: ITaskCard) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    onClick?.();
+    if (link) {
+      navigate(`/tasks/${task.id.toString()}`);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        taskId: task.id.toString(),
+      }),
+    );
+  };
+
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {};
+
+  const handleMarkTask = async (complete: boolean) => {
+    await updateTask(task.id, {
+      completedAt: complete ? new Date() : null,
+    });
+    onMark?.(complete);
+  };
+
+  const getHiddenActions = () => {
+    return actions?.slice(actionsVisible);
+  };
+
+  const getVisibleActions = () => {
+    return actions?.slice(0, actionsVisible);
+  };
+
+  const hiddenActions = getHiddenActions() ?? [];
+  const visibleActions = getVisibleActions() ?? [];
+
+  return (
+    <div
+      role="button"
+      onClick={() => {
+        handleClick();
+      }}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleClick();
+        }
+      }}
+      className={styles.taskCard}
+      data-task-id={task.id.toString()}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      draggable={true}
+    >
+      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
+        <HoverCard.Target>
+          <div className={styles.content}>
+            <Checkbox
+              onClick={(e) => {
+                e.stopPropagation();
+                handleMarkTask(e.currentTarget.checked);
+              }}
+            />
+            <Text size="sm" fw="bold" lineClamp={0}>
+              {task.description}
+            </Text>
+            <Group>
+              {visibleActions.map((action) => {
+                return (
+                  <Tooltip label={action.tooltip} key={action.id}>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        action.onClick(e, task);
+                      }}
+                      color={action.color ?? "dark.1"}
+                      disabled={action.disabled}
+                      leftSection={action.icon}
+                      size="xs"
+                      variant="light"
+                    >
+                      {action.label}
+                    </Button>
+                  </Tooltip>
+                );
+              })}
+            </Group>
+          </div>
+        </HoverCard.Target>
+        {/*<HoverCard.Dropdown
+          style={{ overflowY: "scroll", maxHeight: "400px" }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <DreamWriter initialContent={task.scratchpad} />
+        </HoverCard.Dropdown>*/}
+      </HoverCard>
+      <div className={styles.actions}>
+        {!!hiddenActions?.length && (
+          <Menu position="bottom-end" withArrow>
+            <Menu.Target>
+              <ActionIcon
+                size="md"
+                variant="subtle"
+                color="gray"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <DotsThreeVerticalIcon />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {hiddenActions?.map((action) => {
+                return (
+                  <Menu.Item
+                    key={action.id}
+                    leftSection={action.icon}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      action.onClick(e, task);
+                    }}
+                    color={action.color}
+                  >
+                    {action.label}
+                  </Menu.Item>
+                );
+              })}
+            </Menu.Dropdown>
+          </Menu>
+        )}
+      </div>
+    </div>
+  );
+}
