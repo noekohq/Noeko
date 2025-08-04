@@ -33,6 +33,21 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("July 31, 2025"),
+    title: "A Major Dashboard Overhaul!",
+    details: (
+      <>
+        <Stack>
+          <Text>
+            Introducing Widgets! Widgets are the building blocks of your
+            dashboard, providing you a birds eye view and a way to easily
+            interact with your entire knowledge base!
+          </Text>
+        </Stack>
+      </>
+    ),
+  },
+  {
     date: new Date("July 20, 2025"),
     title: "Rabbitholes, Faster Search, and other improvements",
     details: (

@@ -43,11 +43,7 @@ import { handleCreateNewRabbithole } from "../utils/rabbitholes";
 import { useLandscape } from "./LandscapeContext";
 import useRabbithole from "../hooks/useRabbithole";
 import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
-import {
-  ITask,
-  ITaskPriority,
-  ITaskStatus,
-} from "../../app/database/models/task";
+import { ITask } from "../../app/database/models/task";
 import { Duration } from "surrealdb";
 import CreateTaskForm from "../components/Forms/CreateTask";
 
@@ -484,8 +480,8 @@ function CreateTask({ opened, setOpened }: ICreateTaskProps) {
       }}
       title={
         <Text>
-          <Group>
-            <CheckIcon />
+          <Group gap="xs">
+            <CheckIcon weight="bold" />
             Create a task
           </Group>
         </Text>
