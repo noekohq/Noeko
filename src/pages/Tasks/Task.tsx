@@ -416,7 +416,7 @@ export default function Task() {
                         onClick={() => {
                           handleMarkTask(!isComplete);
                         }}
-                        color="dark.1"
+                        color="gray.9"
                       >
                         Mark {isComplete ? "Incomplete" : "Complete"}
                       </Button>
