@@ -27,9 +27,8 @@ import Admin from "./pages/Admin/Admin";
 import Spyglass from "./pages/Spyglass/Spyglass";
 import Ideas from "./pages/Idea/Ideas";
 import Tags from "./pages/Tags/Tags";
-import { useEffect } from "react";
+import { lazy, useEffect } from "react";
 import { useSettings } from "./contexts/SettingsContext";
-import Updates from "./pages/Feedback/Updates";
 import ViewTag from "./pages/Tags/ViewTag";
 import ViewIdea from "./pages/Idea/ViewIdea";
 import PublicIdea from "./pages/Idea/PublicIdea";
@@ -47,6 +46,7 @@ import { Warning } from "@phosphor-icons/react/dist/ssr";
 import PageWrapper from "./components/Layout/PageWrapper";
 import Content from "./components/UI/Layout/Content";
 import Task from "./pages/Tasks/Task";
+const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
   const navigate = useNavigate();

@@ -245,7 +245,7 @@ export default function Dashboard() {
       <Content>
         <div className={styles.dashboard}>
           <Grid grow>
-            <Grid.Col span={12}>
+            <Grid.Col span={12} py={0}>
               <TopBar />
             </Grid.Col>
             <Grid.Col
