@@ -26,6 +26,11 @@ export default function TaskList() {
     actions: { newTask },
   } = useInteraction();
 
+  const incompleteTasks: ITask[] =
+    tasks?.filter((task) => !task.completedAt) ?? [];
+  const completeTasks: ITask[] =
+    tasks?.filter((task) => task.completedAt) ?? [];
+
   return (
     <div className={styles.taskList}>
       <Stack gap="xs">
@@ -47,18 +52,32 @@ export default function TaskList() {
             <Group gap="xs">No tasks. </Group>
           </Text>
         )}
-        {!!tasks?.length &&
-          tasks.map((task) => {
-            return (
-              <TaskButton
-                key={task.id.toString()}
-                task={task}
-                onMark={() => {
-                  getDailyTasks();
-                }}
-              />
-            );
-          })}
+        <>
+          {!!incompleteTasks?.length &&
+            incompleteTasks?.map((task) => {
+              return (
+                <TaskButton
+                  key={task.id.toString()}
+                  task={task}
+                  onMark={() => {
+                    getDailyTasks();
+                  }}
+                />
+              );
+            })}
+          {!!completeTasks?.length &&
+            completeTasks?.map((task) => {
+              return (
+                <TaskButton
+                  key={task.id.toString()}
+                  task={task}
+                  onMark={() => {
+                    getDailyTasks();
+                  }}
+                />
+              );
+            })}
+        </>
       </Stack>
     </div>
   );

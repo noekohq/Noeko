@@ -23,7 +23,7 @@ export default function RabbitholeList() {
 
   return (
     <div className={styles.rabbitholeList}>
-      <Stack>
+      <Stack gap="xs">
         <Group>
           <Title order={3}>Recent Rabbitholes</Title>
           <Link to="/rabbitholes">
