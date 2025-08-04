@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Title } from "@mantine/core";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { IWidgetConfig } from "../index.d";
 import styles from "./RabbitholeList.module.scss";
@@ -25,16 +25,21 @@ export default function RabbitholeList() {
     <div className={styles.rabbitholeList}>
       <Stack gap="xs">
         <Group>
-          <Title order={3}>Recent Rabbitholes</Title>
-          <Link to="/rabbitholes">
-            <Button
-              variant="subtle"
-              color="gray"
-              rightSection={<ArrowRightIcon />}
-            >
-              See all
-            </Button>
-          </Link>
+          <Text size="sm" fw="bold" c="dimmed">
+            <Group gap="xs">
+              Recent Rabbitholes
+              <Link to="/rabbitholes">
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  rightSection={<ArrowRightIcon />}
+                  size="xs"
+                >
+                  All
+                </Button>
+              </Link>
+            </Group>
+          </Text>
         </Group>
         {recentRabbitholes?.map((rabbithole) => {
           return (
