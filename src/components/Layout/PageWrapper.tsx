@@ -1,11 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useLayout } from "../../contexts/LayoutContext";
-import { RabbitholeIndicator } from "../Display/Rabbitholes/RabbitholeIndicator";
 import MobileBar from "../UI/Layout/MobileBar";
 import styles from "./PageWrapper.module.scss";
-import StatusBar from "../UI/Layout/StatusBar";
-import useScroll from "../../hooks/useScroll";
 
 type PageWrapperProps = {
   children: React.ReactNode;
