@@ -33,6 +33,43 @@ type IUpdate = {
 
 const updates: IUpdate[] = [
   {
+    date: new Date("August 5, 2025"),
+    title: "Tasks! And more useful features.",
+    details: (
+      <>
+        <Stack>
+          <Text>
+            Your brain isn't just full of ideas, but also actions to take and
+            goals to pursue. Tasks in Qwest rise to meet these, and we're just
+            getting started! We also are making consistent updates to the editor
+            and the dashboard, working constantly to make the entire Qwest
+            experience significantly more user friendly and cohesive. Please
+            don't hesitate to leave feedback as we build features!
+          </Text>
+          <List>
+            <List.Item>Added tasks to Qwest</List.Item>
+            <List.Item>
+              A new "today's tasks" widget on your dashboard, letting you see
+              all of the tasks scheduled for today.
+            </List.Item>
+            <List.Item>
+              Making connections within the editor now supports both semantic
+              and text-based search
+            </List.Item>
+            <List.Item>
+              Use familiar <code>[[]]</code> syntax to make connections instead
+              of <code>$</code>
+            </List.Item>
+            <List.Item>
+              A significantly better selection menu, highlight some text and
+              work with it from the menu.
+            </List.Item>
+          </List>
+        </Stack>
+      </>
+    ),
+  },
+  {
     date: new Date("July 31, 2025"),
     title: "A Major Dashboard Overhaul!",
     details: (
@@ -354,6 +391,7 @@ export default function Updates() {
   const {
     actions: {
       feedback: { openFeedbackModal },
+      newTask,
     },
   } = useInteraction();
 
@@ -368,17 +406,6 @@ export default function Updates() {
             However, we couldn't do it without your valuable input! Don't
             hesitate to submit an idea or a bug report :)
           </Text>
-          <Group>
-            <Button
-              variant="light"
-              leftSection={<MegaphoneSimpleIcon />}
-              onClick={() => {
-                openFeedbackModal();
-              }}
-            >
-              Give us feedback!
-            </Button>
-          </Group>
           <Card withBorder radius={"lg"}>
             <Title fw="bold" order={3}>
               Roadmap
@@ -386,20 +413,23 @@ export default function Updates() {
             <Divider my="md" />
             <Text fw="bold">In progress</Text>
             <Text>
-              Currently we are working on Rabbitholes, an organizational feature
-              to make knowledge-aggregation in specific subject-areas easier.
+              Currently we are working on integrating tasks with the rest of
+              Qwest, as well as general user-experience updates. In the
+              background, we're also laying the ground work for a big
+              integration of your own sources into Qwest, so that you can deeply
+              integrate outside sources of information into the application.
             </Text>
             <Divider my="md" />
             <Text fw="bold">Up next</Text>
             <Text c="dimmed" size="xs" fs="italic">
-              *(Potentially not in this order)
+              *(Potentially not exactly in this order)
             </Text>
             <List>
-              <List.Item>Tooling to learn from resources</List.Item>
               <List.Item>
-                Better resource management, creating a threshold between your
-                ideas and external information
+                Add your owns sources (PDFs, Websites, YouTube videos, etc)
               </List.Item>
+              <List.Item>Improvements to latency and speed.</List.Item>
+              <List.Item>Better knowledge capture (voice mode, etc)</List.Item>
             </List>
             <Divider my="md" />
             <Group>
@@ -412,6 +442,7 @@ export default function Updates() {
               >
                 What do you think?
               </Button>
+              <Button onClick={newTask}>Add a task!</Button>
             </Group>
           </Card>
         </Stack>
