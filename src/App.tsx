@@ -92,7 +92,7 @@ export default function App() {
     );
   }
 
-  if (!isOnline || true) {
+  if (!isOnline) {
     return (
       <PageWrapper>
         <Content>
