@@ -1578,7 +1578,10 @@ export class Idea {
       const lm = getLM();
       const title = await lm.utils.entitle(
         content,
-        "short, descriptive, and succinct",
+        `
+        A short, descriptive, and expressive title which properly conveys the content of the note.
+        Keep in mind that the note in question may be in an incomplete state, and the title should describe future developments.
+        `,
       );
 
       return title;
