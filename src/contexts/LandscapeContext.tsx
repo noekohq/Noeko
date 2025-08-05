@@ -53,8 +53,7 @@ export const LandscapeProvider = ({
       setRabbithole(d);
     },
   });
-
-  useEffect(() => {
+  const handleReloadRabbithole = () => {
     if (
       !!rabbithole &&
       rabbithole?.includes === undefined &&
@@ -62,6 +61,10 @@ export const LandscapeProvider = ({
     ) {
       reloadRabbithole();
     }
+  };
+
+  useEffect(() => {
+    handleReloadRabbithole();
   }, [rabbithole]);
 
   const value = {
@@ -69,7 +72,7 @@ export const LandscapeProvider = ({
       entered: {
         get: rabbithole,
         set: setRabbithole,
-        reload: () => reloadRabbithole(),
+        reload: () => handleReloadRabbithole(),
       },
     },
     idea: {
