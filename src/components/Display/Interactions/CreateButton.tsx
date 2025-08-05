@@ -10,11 +10,13 @@ import { Menu } from "@mantine/core";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useState } from "react";
 import { RabbitholeIcon } from "../../Utils/Icons/Icons";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 export default function CreateButton() {
   const {
     actions: { newIdea, newRabbithole, newTask },
   } = useInteraction();
+  const { isMobile, isTablet } = useLayout();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -26,7 +28,7 @@ export default function CreateButton() {
       withArrow
       radius="md"
       width={"200px"}
-      trigger="click-hover"
+      trigger={isMobile || isTablet ? "click" : "hover"}
       openDelay={100}
     >
       <Menu.Target>
