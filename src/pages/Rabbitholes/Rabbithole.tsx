@@ -63,6 +63,7 @@ export default function Rabbithole() {
     IRabbithole
   >({
     url: `/rabbitholes/${rabbitholeId}`,
+    dependencies: [rabbitholeId],
     onError: (error) => {
       console.error("Something went wrong fetching rabbithole", error);
       setError("Something went wrong fetching rabbithole.");
@@ -206,7 +207,10 @@ export default function Rabbithole() {
           });
           return;
         }
-        await includeThingInRabbithole(rabbithole.id.toString(), ideaId);
+        await includeThingInRabbithole(
+          rabbithole.id.toString(),
+          ideaId.toString(),
+        );
         handleRefresh();
       } catch (error) {
         console.error("Error creating connection: ", error);
