@@ -6,7 +6,13 @@ import {
   useNavigate,
 } from "react-router";
 import styles from "./App.module.scss";
-import { Alert, Loader, useMantineColorScheme } from "@mantine/core";
+import {
+  Alert,
+  Loader,
+  Stack,
+  Text,
+  useMantineColorScheme,
+} from "@mantine/core";
 import { WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";
@@ -86,7 +92,7 @@ export default function App() {
     );
   }
 
-  if (!isOnline) {
+  if (!isOnline || true) {
     return (
       <PageWrapper>
         <Content>
@@ -104,11 +110,22 @@ export default function App() {
               title="Connection Interrupted"
               color="gray"
             >
-              Could not connect to the server. It may be down for maintenance or
-              there could be a connectivity problem. For any inquiries or
-              support, please contact{" "}
-              <a href="mailto:aidan@qwest.so">aidan@qwest.so</a>. Qwest will try
-              to automatically re-establish a connection.
+              <Stack gap="xs">
+                <Text size="sm">
+                  Could not connect to Qwest. It may be down for maintenance or
+                  there could be a connectivity problem.
+                </Text>
+                <Text size="sm">
+                  <strong>Your changes up to this time are saved</strong>, and
+                  Qwest will automatically re-establish a connection once
+                  available. Thank you for your patience as we improve the
+                  reliability of our systems :)
+                </Text>
+                <Text size="sm">
+                  For any inquiries or support, please feel free to contact{" "}
+                  <a href="mailto:support@qwest.so">support@qwest.so</a>.
+                </Text>
+              </Stack>
             </Alert>
           </div>
         </Content>
