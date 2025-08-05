@@ -86,8 +86,6 @@ const suggestionOptionsDefinition = (
 
       const renderListItems = () => {
         if (!currentProps || !root) return;
-        console.log("Rendering list items!", root, currentProps);
-
         root.render(
           <SuggestionMenu
             items={currentProps.items.map((s) => {
@@ -149,7 +147,6 @@ const suggestionOptionsDefinition = (
 
           if (event.key === "ArrowDown") {
             activeIndex = (activeIndex + 1) % itemCount;
-            // FIX: Re-render the component to show the new active index.
             renderListItems();
             return true;
           }
@@ -181,8 +178,12 @@ const suggestionOptionsDefinition = (
       };
     },
     command: ({ editor, range, props }) => {
-      const textAfter = editor.state.doc.textBetween(range.to, range.to + 2);
+      const triggerText = editor.state.doc.textBetween(range.from, range.to);
 
+      const queryStartIndex = triggerText.lastIndexOf("[[");
+      const originalQuery = triggerText.substring(queryStartIndex + 2);
+
+      const textAfter = editor.state.doc.textBetween(range.to, range.to + 2);
       const finalRange = {
         from: range.from,
         to: textAfter === "]]" ? range.to + 2 : range.to,
@@ -193,20 +194,20 @@ const suggestionOptionsDefinition = (
           editor
             .chain()
             .focus()
-            .deleteRange(finalRange) // <-- Use the corrected range
+            .deleteRange(finalRange)
             .setDreamIdea({
               ideaId: props.id.toString(),
-              content: (props as IIdea).title,
+              content: originalQuery,
             })
             .run(),
         file: () =>
           editor
             .chain()
             .focus()
-            .deleteRange(finalRange) // <-- Use the corrected range
+            .deleteRange(finalRange)
             .setDreamFile({
               fileId: props.id.toString(),
-              fileName: (props as IUserFile).originalFileName,
+              fileName: originalQuery,
               fileType: (props as IUserFile).mimeType,
             })
             .run(),
