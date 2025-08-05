@@ -345,9 +345,6 @@ export default function Idea() {
     if (derivedOutOfDate() && !loadingDerivedCascade) {
       triggerDerivedCascade();
     }
-    if (titleNeedsGeneration() && !loadingTitleGeneration) {
-      triggerTitleGeneration();
-    }
   }, [
     idea,
     ideaId,
@@ -467,6 +464,10 @@ export default function Idea() {
     [ideaId, idea],
   );
 
+  const handleTitleGen = () => {
+    triggerTitleGeneration();
+  };
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -560,7 +561,7 @@ export default function Idea() {
         )}
         <div className={styles.ideaContainer}>
           <Stack gap="md">
-            <Group>
+            <Group gap="xs">
               <Title
                 order={1}
                 m="0"
@@ -573,6 +574,18 @@ export default function Idea() {
                 dangerouslySetInnerHTML={{ __html: title || "" }}
                 className={styles.editableTitle}
               />
+              {titleNeedsGeneration() && !loadingTitleGeneration && (
+                <ActionIcon
+                  onClick={() => {
+                    handleTitleGen();
+                  }}
+                  variant="light"
+                  size="sm"
+                  color="gray"
+                >
+                  <SparkleIcon />
+                </ActionIcon>
+              )}
               {idea?.titleGeneratedAt && (
                 <div
                   className={styles.generatedIndicator}

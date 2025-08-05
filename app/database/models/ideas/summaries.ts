@@ -274,7 +274,7 @@ export class GenerativeSummary {
         derivedSummariesResults === undefined ||
         !derivedSummariesResults[0]
       ) {
-        throw new Error("Failed to fetch derived summaries");
+        return undefined;
       }
       const [derivedSummaries] = derivedSummariesResults;
       // if (!derivedSummaries || derivedSummaries.length < 1) {

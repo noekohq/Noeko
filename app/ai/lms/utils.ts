@@ -70,9 +70,15 @@ export class LMUtils {
     try {
       const prompt = new PromptBuilder()
         .addText(
-          `Please write a ${description} title for the following content`,
+          `Please write a title for the following content, in accordance with the following title instruction:
+          <titleInstructions>
+          ${description}
+          </titleInstructions>
+          `,
         )
+        .addText(`<content>`)
         .addText(content)
+        .addText(`</content>`)
         .get();
       const result = await this.lm.generateJSON<{ text: string }>(prompt, {
         type: LMSchemaType.OBJECT,
