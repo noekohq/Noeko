@@ -47,6 +47,7 @@ import { DreamFileHandler } from "./extensions/DreamFileHandler";
 import { Group, Overlay, Text } from "@mantine/core";
 import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
+import { DreamTask } from "./nodes/DreamTask";
 import { DreamSlash } from "./extensions/DreamSlash";
 import { AutoPairedBrackets } from "./extensions/DreamBrackets";
 import { Markdown } from "tiptap-markdown";
@@ -227,6 +228,11 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           DreamIdea.configure({
             HTMLAttributes: {
               class: contentStyles.idea,
+            },
+          }),
+          DreamTask.configure({
+            HTMLAttributes: {
+              class: contentStyles.task,
             },
           }),
           DreamFileHandler.configure({}),

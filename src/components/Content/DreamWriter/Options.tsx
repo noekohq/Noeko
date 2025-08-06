@@ -794,7 +794,7 @@ export function ListMenuButton({ editor }: OptionProps) {
       isActive: editor.isActive("orderedList"),
     },
     {
-      name: "Tasks",
+      name: "Checkboxes",
       icon: <ListChecksIcon />,
       action: () => editor.chain().focus().toggleTaskList().run(),
       isActive: editor.isActive("taskList"),
@@ -819,6 +819,57 @@ export function ListMenuButton({ editor }: OptionProps) {
 
       <Menu.Dropdown>
         <Menu.Label>List Types</Menu.Label>
+        {menuItems.map((item) => (
+          <Menu.Item
+            key={item.name}
+            leftSection={item.icon}
+            onClick={item.action}
+            rightSection={item.isActive ? <CheckIcon weight="bold" /> : null}
+          >
+            {item.name}
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
+  );
+}
+
+export function CodeMenuButton({ editor }: OptionProps) {
+  if (!editor) return null;
+
+  const menuItems = [
+    {
+      name: "Inline",
+      icon: <CodeSimpleIcon weight="bold" />,
+      action: () => editor.chain().focus().toggleCode().run(),
+      isActive: editor.isActive("code"),
+    },
+    {
+      name: "Block",
+      icon: <CodeIcon weight="bold" />,
+      action: () => editor.chain().focus().toggleCodeBlock().run(),
+      isActive: editor.isActive("codeBlock"),
+    },
+  ];
+
+  const currentlyActive = menuItems.find((item) => item.isActive);
+
+  return (
+    <Menu shadow="md" withArrow position="bottom-start">
+      <Menu.Target>
+        <Button
+          size="xs"
+          {...getButtonProps({ isActive: false })}
+          title="Code options"
+          rightSection={<CaretDownIcon weight="bold" />}
+          leftSection={<CodeSimpleIcon weight="bold" />}
+        >
+          {currentlyActive?.name || "Code"}
+        </Button>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Label>Code Options</Menu.Label>
         {menuItems.map((item) => (
           <Menu.Item
             key={item.name}
@@ -1079,6 +1130,38 @@ export function SpyglassButton({ editor }: OptionProps) {
   return (
     <ActionIcon {...getButtonProps({ isActive: false })} onClick={handleOpen}>
       <SpyglassIcon size={16} />
+    </ActionIcon>
+  );
+}
+
+export function TaskButton({ editor }: OptionProps) {
+  const getSelection = () => {
+    if (!editor) {
+      showNotification({
+        title: "Something went wrong",
+        message: "Please try again later, or report this error",
+        color: "red",
+      });
+      return;
+    }
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    return selectedText;
+  };
+
+  const navigate = useNavigate();
+
+  const {
+    actions: { newTask },
+  } = useInteraction();
+
+  const handleOpen = () => {
+    newTask(getSelection());
+  };
+
+  return (
+    <ActionIcon {...getButtonProps({ isActive: false })} onClick={handleOpen}>
+      <CheckIcon weight="bold" />
     </ActionIcon>
   );
 }

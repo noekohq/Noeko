@@ -23,6 +23,7 @@ type ISuggestionMenuProps = {
   items: ISuggestionItem[];
   activeIndex: number;
   onSelectionMade: (index: number) => void;
+  isLoading?: boolean;
 };
 
 const SuggestionMenu = ({
@@ -30,6 +31,7 @@ const SuggestionMenu = ({
   items,
   activeIndex,
   onSelectionMade,
+  isLoading,
 }: ISuggestionMenuProps) => {
   // Create a virtual element so Floating UI can position the menu
   // relative to the DOMRect provided by the parent.
@@ -41,9 +43,6 @@ const SuggestionMenu = ({
   );
   const listRef = useRef<HTMLDivElement>(null); // Ref for the scrollable list container
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]); // Refs for each item
-
-  console.log("Virtual element:", virtualElement);
-  console.log("Rect in react: ", virtualElement.getBoundingClientRect());
 
   const { refs, floatingStyles, context } = useFloating({
     whileElementsMounted: autoUpdate,
@@ -64,7 +63,6 @@ const SuggestionMenu = ({
     ],
   });
 
-  console.log("Floating styles:", floatingStyles);
   const transform = getTransformFromDomRect(
     virtualElement.getBoundingClientRect(),
   );
@@ -95,8 +93,6 @@ const SuggestionMenu = ({
     }
   }, [refs, virtualElement, listRef]);
 
-  console.log("Active index: ", activeIndex);
-
   return (
     <FloatingPortal>
       {/* Manages focus, making the menu accessible */}
@@ -108,7 +104,12 @@ const SuggestionMenu = ({
           role="listbox" // ARIA role for a list of options
           aria-activedescendant={items[activeIndex]?.id} // Points to the active item's ID
         >
-          {!items.length && (
+          {isLoading && (
+            <div className={styles.item}>
+              <div className={styles.label}>Loading suggestions...</div>
+            </div>
+          )}
+          {!items.length && !isLoading && (
             <div className={styles.item}>
               <div className={styles.label}>No suggestions available</div>
             </div>

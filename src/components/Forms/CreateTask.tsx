@@ -47,9 +47,13 @@ import useRabbithole from "../../hooks/useRabbithole";
 
 interface ICreateTaskFormProps {
   onSubmit?: (task: ITask) => void;
+  initialDescription?: ITask["description"];
 }
 
-export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
+export default function CreateTaskForm({
+  onSubmit,
+  initialDescription,
+}: ICreateTaskFormProps) {
   const initialTaskDate = () => {
     const d = new Date();
     d.setHours(d.getHours() + 24);
@@ -58,7 +62,7 @@ export default function CreateTaskForm({ onSubmit }: ICreateTaskFormProps) {
 
   const taskForm = useForm({
     initialValues: {
-      description: "" as ITask["description"],
+      description: (initialDescription ?? "") as ITask["description"],
       estimatedTime: Duration.hours(1) as ITask["estimatedTime"],
       dueDate: initialTaskDate() as ITask["dueDate"],
       scratchpad: "" as ITask["scratchpad"],

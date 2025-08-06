@@ -54,7 +54,7 @@ type IInteractionContext = {
     newIdea: () => void;
     newConnectedIdea: (source: string) => void;
     newRabbithole: () => void;
-    newTask: () => void;
+    newTask: (description?: string) => void;
     layout: {
       leftSidebar: {
         open: () => void;
@@ -156,6 +156,7 @@ export function InteractionProvider({
 
   const [uploadingFile, setUploadingFile] = useState(false);
   const [creatingTask, setCreatingTask] = useState(false);
+  const [initialTaskDescription, setInitialTaskDescription] = useState("");
 
   const {
     rabbitholes: {
@@ -223,8 +224,11 @@ export function InteractionProvider({
     setLoadingSomething(false);
   };
 
-  const handleNewTask = async () => {
+  const handleNewTask = async (description?: string) => {
     setCreatingTask(true);
+    if (description) {
+      setInitialTaskDescription(description);
+    }
   };
 
   const os = getOS();
@@ -277,8 +281,8 @@ export function InteractionProvider({
       newRabbithole: async () => {
         handleNewRabbithole();
       },
-      newTask: async () => {
-        handleNewTask();
+      newTask: async (description?: string) => {
+        handleNewTask(description);
       },
       layout: {
         leftSidebar: {
@@ -445,7 +449,11 @@ export function InteractionProvider({
     <InteractionContext.Provider value={value}>
       {children}
       <UploadFile opened={uploadingFile} setOpened={setUploadingFile} />
-      <CreateTask opened={creatingTask} setOpened={setCreatingTask} />
+      <CreateTask
+        opened={creatingTask}
+        setOpened={setCreatingTask}
+        initialDescription={initialTaskDescription}
+      />
       <FeedbackModal
         opened={feedbackModalOpened}
         onClose={() => setFeedbackModalOpened(false)}
@@ -470,9 +478,14 @@ export const useInteraction = () => {
 type ICreateTaskProps = {
   opened: boolean;
   setOpened: (opened: boolean) => void;
+  initialDescription: string;
 };
 
-function CreateTask({ opened, setOpened }: ICreateTaskProps) {
+function CreateTask({
+  opened,
+  setOpened,
+  initialDescription,
+}: ICreateTaskProps) {
   const { isMobile } = useLayout();
 
   return (
@@ -498,6 +511,7 @@ function CreateTask({ opened, setOpened }: ICreateTaskProps) {
         onSubmit={() => {
           setOpened(false);
         }}
+        initialDescription={initialDescription}
       />
       <Space my="lg" />
     </Drawer>
