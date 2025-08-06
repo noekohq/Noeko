@@ -54,6 +54,7 @@ import { IdeaAction } from "../../components/Display/Ideas/IdeaCardTypes";
 import { modals } from "@mantine/modals";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
+import RabbitholeThing from "../../components/Display/Rabbitholes/RabbitholeThing";
 
 export default function Rabbithole() {
   const [error, setError] = useState("");
@@ -510,48 +511,13 @@ export default function Rabbithole() {
                   >
                     {rabbithole.includes
                       .map((thing) => {
-                        if (thing.id.toString().startsWith("idea")) {
-                          const idea = thing as IIdea;
-                          return (
-                            <IdeaCard
-                              key={idea.id.toString()}
-                              idea={idea}
-                              actions={[
-                                {
-                                  icon: <DoorOpenIcon />,
-                                  id: "uninclude",
-                                  label: `Remove`,
-                                  onClick: () => {
-                                    handleUninclude(thing.id.toString());
-                                  },
-                                  tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                  color: "gray",
-                                },
-                              ]}
-                            />
-                          );
-                        }
-                        if (thing.id.toString().startsWith("tag")) {
-                          const tag = thing as ITag;
-                          return (
-                            <TagCard
-                              key={tag.id.toString()}
-                              tag={tag}
-                              actions={[
-                                {
-                                  icon: <DoorOpenIcon />,
-                                  id: "uninclude",
-                                  label: `Uninclude`,
-                                  onClick: () => {
-                                    handleUninclude(thing.id.toString());
-                                  },
-                                  tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
-                                  color: "red",
-                                },
-                              ]}
-                            />
-                          );
-                        }
+                        return (
+                          <RabbitholeThing
+                            rabbithole={rabbithole}
+                            key={thing.id.toString()}
+                            thing={thing}
+                          />
+                        );
                       })
                       .filter((i) => !!i)
                       .slice(0, isEntered ? rabbithole.includes.length : 8)}

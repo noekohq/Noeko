@@ -1,27 +1,44 @@
-import { DoorOpenIcon } from "@phosphor-icons/react";
+import { DoorOpenIcon, IconProps } from "@phosphor-icons/react";
 import { ITag } from "../../../../app/database/models/tag";
 import { IIdea } from "../Ideas/IdeaCardTypes";
 import IdeaCard from "../Ideas/Interactions/IdeaCard";
-import { showNotification } from "@mantine/notifications";
-import useRabbithole from "../../../hooks/useRabbithole";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
-import { RecordId } from "surrealdb";
-import { useState } from "react";
-import { includeThingInRabbithole } from "../../../utils/rabbitholes";
 import TagCard from "../Tags/TagCard";
 import TaskCard from "../Tasks/TaskCard";
 import { ITask } from "../../../../app/database/models/task";
+import { MantineColor } from "@mantine/core";
+
+interface IRabbitholeThingAction {
+  id: string;
+  label: string;
+  icon?: React.ReactElement<IconProps>;
+  onClick: (event: React.MouseEvent, rabbithole: IRabbithole) => void;
+  color?: MantineColor;
+  variant?:
+    | "filled"
+    | "light"
+    | "outline"
+    | "default"
+    | "subtle"
+    | "transparent"
+    | "white";
+  disabled?: boolean;
+  tooltip?: string;
+  isOverflow?: boolean; // If true, primarily for the overflow menu
+}
 
 interface IRabbitholeThingProps {
   thing: IIdea | ITag | ITask;
   rabbithole: IRabbithole;
   handleRemove?: (thingId: string) => void;
+  actions?: IRabbitholeThingAction[];
 }
 
 export default function RabbitholeThing({
   thing,
   rabbithole,
   handleRemove,
+  actions,
 }: IRabbitholeThingProps) {
   if (thing.id.toString().startsWith("idea")) {
     const idea = thing as IIdea;
