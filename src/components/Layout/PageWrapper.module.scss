@@ -3,18 +3,22 @@
 .pageWrapper {
     --rabbithole-indicator-width: 1px;
     display: flex;
-    overflow: auto;
     height: calc(100vh);
+    border: 1px solid red;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
     transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     box-sizing: border-box;
-    scrollbar-width: none;
     border: var(--rabbithole-indicator-width) solid transparent;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--mantine-color-dark-7) transparent;
+    scrollbar-gutter: stable;
 
     @include tablet {
-        flex-direction: row;
+        justify-content: flex-start;
     }
 
     &.hasRabbithole {

@@ -6,7 +6,7 @@ import {
   MegaphoneIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Group, MantineColor, Stack } from "@mantine/core";
+import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
@@ -103,15 +103,17 @@ const LeftSidebar = ({
         {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
         <Group gap="xs" justify="flex-end" w="100%">
           <HomeButton />
-          <ActionIcon
-            onClick={() => {
-              openFeedbackModal();
-            }}
-            variant="subtle"
-            color={defaultColor}
-          >
-            <MegaphoneIcon />
-          </ActionIcon>
+          <Tooltip label="Give feedback!">
+            <ActionIcon
+              onClick={() => {
+                openFeedbackModal();
+              }}
+              variant="subtle"
+              color={defaultColor}
+            >
+              <MegaphoneIcon />
+            </ActionIcon>
+          </Tooltip>
           <ActionIcon
             onClick={() => {
               setMode("collapsed");
@@ -133,15 +135,17 @@ const LeftSidebar = ({
         )}
         <Group gap="xs">
           <HomeButton />
-          <ActionIcon
-            onClick={() => {
-              openFeedbackModal();
-            }}
-            variant="light"
-            color={defaultColor}
-          >
-            <MegaphoneIcon />
-          </ActionIcon>
+          <Tooltip label="Give feedback!">
+            <ActionIcon
+              onClick={() => {
+                openFeedbackModal();
+              }}
+              variant="light"
+              color={defaultColor}
+            >
+              <MegaphoneIcon />
+            </ActionIcon>
+          </Tooltip>
           <ActionIcon
             onClick={() => {
               setMode("collapsed");
@@ -171,15 +175,17 @@ const LeftSidebar = ({
           </ActionIcon>
         )}
         <HomeButton />
-        <ActionIcon
-          onClick={() => {
-            openFeedbackModal();
-          }}
-          color={defaultColor}
-          variant="subtle"
-        >
-          <MegaphoneIcon />
-        </ActionIcon>
+        <Tooltip label="Give Feedback!">
+          <ActionIcon
+            onClick={() => {
+              openFeedbackModal();
+            }}
+            color={defaultColor}
+            variant="subtle"
+          >
+            <MegaphoneIcon />
+          </ActionIcon>
+        </Tooltip>
       </Stack>
     ),
     compact: (
