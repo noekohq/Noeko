@@ -210,8 +210,6 @@ router.delete("/:tagId", async (req, res): Promise<void> => {
 router.get("/:tagId/ideas", async (req, res): Promise<void> => {
   try {
     const { tagId } = req.params;
-    // checkToken ensures user is logged in.
-    // Further authorization (e.g., user must own tag to see its ideas) can be added if needed.
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user || !user.id) {
       res.status(401).json({ message: "Unauthorized. User not found." });
