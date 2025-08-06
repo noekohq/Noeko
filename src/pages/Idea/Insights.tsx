@@ -25,7 +25,7 @@ export default function Insights({
     { type: "generative_summary" },
     IGenerativeSummary
   >({
-    url: `/graph/ideas/${idea?.id}/derive`,
+    url: `/ideas/${idea?.id}/derive`,
     method: "POST",
     dependencies: [idea?.id],
     body: {
@@ -50,7 +50,7 @@ export default function Insights({
     { type: "generative_summary" },
     IGenerativeSummary
   >({
-    url: `/graph/ideas/${idea?.id}/derive`,
+    url: `/ideas/${idea?.id}/derive`,
     method: "DELETE",
     dependencies: [idea?.id],
     body: {
