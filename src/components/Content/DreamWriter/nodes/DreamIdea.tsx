@@ -126,7 +126,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   const isEmpty = node.content.size === 0;
 
   const { data: idea } = useFetch<undefined, IIdea>({
-    url: `/graph/ideas/${ideaId}?withDerived=true`,
+    url: `/ideas/${ideaId}?withDerived=true`,
     runOnMount: !!ideaId,
   });
 

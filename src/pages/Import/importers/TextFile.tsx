@@ -56,7 +56,7 @@ export default function TextFileImporter() {
     { title?: string; content: string; generateTitle: boolean },
     IIdea
   >({
-    url: "/graph/ideas",
+    url: "/ideas",
     method: "POST",
     body: {
       title: fileTitle,

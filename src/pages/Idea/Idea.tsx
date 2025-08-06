@@ -109,7 +109,7 @@ export default function Idea() {
   });
 
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
-    url: `/graph/ideas/${ideaId}`,
+    url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
     method: "DELETE",
     onSuccess: () => {
