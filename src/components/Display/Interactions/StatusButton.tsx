@@ -1,4 +1,7 @@
+import { MantineColor } from "@mantine/core";
 import styles from "./StatusButton.module.scss";
+
+type IStatusButtonVariant = "default" | "primary";
 
 interface IStatusButtonProps {
   children: React.ReactNode;
@@ -6,6 +9,7 @@ interface IStatusButtonProps {
   leftSection?: React.ReactNode;
   title?: string;
   style?: React.CSSProperties;
+  variant?: IStatusButtonVariant;
 }
 
 export default function StatusButton({
@@ -14,6 +18,7 @@ export default function StatusButton({
   leftSection,
   title,
   style,
+  variant,
 }: IStatusButtonProps) {
   const handleClick = () => {
     onClick?.();
@@ -21,7 +26,7 @@ export default function StatusButton({
 
   return (
     <button
-      className={styles.statusButton}
+      className={`${styles.statusButton} ${styles[variant ?? "default"]}`}
       onClick={handleClick}
       title={title}
       style={style}

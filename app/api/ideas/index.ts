@@ -206,6 +206,11 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
+    const idea = await Idea.get(ideaId);
+    if (!idea) {
+      res.status(404).json({ message: "Idea not found" });
+      return;
+    }
     const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
     const isSuperuser = await User.checkUserHasRole(user.id, "role:superuser");
     if (!isOwner) {
@@ -219,16 +224,11 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
     const withRelatedIdeas = req.query.withRelatedIdeas === "true";
     const withConnections = req.query.withConnections === "true";
     const withDerived = req.query.withDerived === "true";
-    const i = await Idea.get(ideaId);
-    if (!i) {
-      res.status(404).json({ message: "Idea not found" });
-      return;
-    }
     const toSend: ISafeIdea & {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;
-    } = { ...i };
+    } = { ...idea };
     if (withConnections) {
       const connections = await Idea.getConnections(ideaId);
       toSend.connections = connections;

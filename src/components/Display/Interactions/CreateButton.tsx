@@ -33,7 +33,7 @@ export default function CreateButton() {
     >
       <Menu.Target>
         <div style={{ height: "100%" }}>
-          <StatusButton>
+          <StatusButton variant="primary">
             {menuOpen ? (
               <XIcon weight="bold" size={16} />
             ) : (
