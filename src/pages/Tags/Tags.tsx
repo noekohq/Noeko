@@ -21,21 +21,12 @@ import useFetch from "../../hooks/useFetch"; // Adjust the import path as needed
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react"; // Added React, useState, and useMemo
 import {
-  Plus,
-  PencilSimple,
-  FloppyDisk,
-  X,
-  Trash,
-  ArrowRight,
   TrashIcon,
   PencilIcon,
   FloppyDiskIcon,
   XIcon,
   PlusIcon,
 } from "@phosphor-icons/react"; // Added new icons, including Trash
-import { InlineTag } from "../../components/Display/Tags/TagDisplay";
-import { Link } from "react-router";
-import styles from "./Tags.module.scss";
 import Content from "../../components/UI/Layout/Content";
 import useRabbithole from "../../hooks/useRabbithole";
 import StatusBar from "../../components/UI/Layout/Bottom";

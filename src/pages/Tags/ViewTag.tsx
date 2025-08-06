@@ -27,13 +27,18 @@ import {
   FloppyDiskIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
+  PlusIcon,
   TagIcon,
   TrashIcon,
   WarningCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Display/Tags/TagDisplay";
-import { addTagToIdea, removeTagFromIdea } from "../../utils/ideas"; // Import new utility functions
+import {
+  addTagToIdea,
+  newTaggedIdea,
+  removeTagFromIdea,
+} from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
 import { useState, useEffect } from "react";
@@ -100,7 +105,6 @@ export default function ViewTag() {
       return;
     }
     try {
-      // Assuming addTagToIdea takes ideaId and tagId (as strings)
       await addTagToIdea(idea.id.toString(), tag.id.toString());
       console.log(`Successfully added tag ${tag.name} to idea ${idea.title}`);
       handleRefresh();
@@ -109,7 +113,6 @@ export default function ViewTag() {
         `Failed to add tag ${tag.name} to idea ${idea.title}:`,
         error,
       );
-      // Optionally show an error message to the user
       showNotification({
         title: "Error",
         message: "Something went wrong adding the tag",
@@ -118,15 +121,12 @@ export default function ViewTag() {
     }
   };
 
-  // Handler for a potential "Remove tag" button (not currently in the TSX)
   const handleRemoveTag = async (idea: IIdea) => {
     if (!tag) {
       console.error("Cannot remove tag: Tag data not loaded.");
-      // Optionally show an error message to the user
       return;
     }
     try {
-      // Assuming removeTagFromIdea takes ideaId and tagId (as strings)
       await removeTagFromIdea(idea.id.toString(), tag.id.toString());
       console.log(
         `Successfully removed tag ${tag.name} from idea ${idea.title}`,
@@ -291,6 +291,21 @@ export default function ViewTag() {
     await deleteTag();
   };
 
+  const handleCreateNewTaggedIdea = async () => {
+    if (!tag) {
+      return;
+    }
+    const newIdea = await newTaggedIdea(tag?.id.toString());
+    if (newIdea) {
+      navigate(`/idea/${newIdea.id}`);
+    } else {
+      showNotification({
+        title: "Something went wrong",
+        message: "Something went wrong creating the new idea",
+      });
+    }
+  };
+
   const {
     elements: {
       rightSidebar: {
@@ -382,6 +397,7 @@ export default function ViewTag() {
       </LeftSidebar>
       <Content>
         <div
+          className={styles.viewtag}
           onDragOver={() => {
             setDraggingOver(true);
           }}
@@ -509,10 +525,24 @@ export default function ViewTag() {
                 )}
               </Card>
 
-              {/* Ideas with this Tag */}
               <Stack gap="md">
                 <Group>
-                  <Title order={3}>Ideas with this tag</Title>
+                  <Title order={3}>
+                    <Group gap="md">
+                      Ideas with this tag
+                      <ActionIcon
+                        onClick={() => {
+                          handleCreateNewTaggedIdea();
+                        }}
+                        variant="light"
+                        radius="sm"
+                        size="sm"
+                        color="gray"
+                      >
+                        <PlusIcon weight="bold" />
+                      </ActionIcon>
+                    </Group>
+                  </Title>
                   {loadingIdeas && <Loader size="md" />}
                 </Group>
                 {ideaErrors && ideaErrors.length > 0 && (

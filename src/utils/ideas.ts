@@ -217,6 +217,26 @@ export const removeTagFromIdea = async (ideaId: string, tagId: string) => {
   }
 };
 
+export const newTaggedIdea = async (tagId: string) => {
+  try {
+    const idea = await newIdea();
+    if (idea) {
+      addTagToIdea(idea.id.toString(), tagId);
+    }
+    return idea;
+  } catch (error: any) {
+    console.error(`Error adding tag ${tagId} to new idea:`, error);
+    showNotification({
+      title: "Error Creating Idea",
+      message:
+        error.response?.data?.message ||
+        "Something went wrong while adding the tag.",
+      color: "red",
+    });
+    return undefined;
+  }
+};
+
 export const createTag = async (name: string, description: string) => {
   try {
     const response = await api.post(`/tags`, {
