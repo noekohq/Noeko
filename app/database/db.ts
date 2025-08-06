@@ -74,7 +74,7 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
     Database.db.status === ConnectionStatus.Connected &&
     tested
   ) {
-    console.info("Reusing existing and connected database instance.");
+    // console.info("Reusing existing and connected database instance.");
     return Database.db;
   }
 
