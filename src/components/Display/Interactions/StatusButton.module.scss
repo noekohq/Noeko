@@ -42,7 +42,7 @@
 }
 
 .primary {
-    background-color: var(--mantine-color-dark-1);
-    border: none;
-    color: var(--mantine-color-dark-9);
+    background-color: var(--mantine-primary-color-7);
+    border: 1px solid var(--mantine-color-dark-7);
+    color: var(--mantine-color-white);
 }
