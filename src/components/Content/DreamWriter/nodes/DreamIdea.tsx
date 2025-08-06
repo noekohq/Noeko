@@ -20,6 +20,7 @@ import { IIdea } from "../../../../../app/database/models/ideas";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { DOMParser, Fragment } from "@tiptap/pm/model";
 import { useIdea } from "../../../../contexts/IdeaContext";
+import { useEffect } from "react";
 
 export interface IDreamIdeaOptions {
   HTMLAttributes: Record<string, any>;
@@ -131,7 +132,11 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   });
 
   const { ensureConnected } = useIdea();
-  ensureConnected(ideaId);
+  useEffect(() => {
+    if (idea?.id) {
+      ensureConnected(idea.id.toString());
+    }
+  }, [idea?.id.toString()]);
 
   if (!ideaId) {
     return <span className={styles.dreamIdeaError}>[ERROR]</span>;
@@ -198,7 +203,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
             </Stack>
           ) : (
             <Text c="dimmed" size="xs">
-              Loading preview...
+              Could not find idea :/
             </Text>
           )}
         </HoverCard.Dropdown>

@@ -69,6 +69,7 @@ export const IdeaProvider = ({
     async (target: string) => {
       if (
         !idea ||
+        !target ||
         loadingConnection ||
         runningConnection.current ||
         ranConnection.current
