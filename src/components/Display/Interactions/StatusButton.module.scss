@@ -2,9 +2,6 @@
     display: block;
     height: 100%;
     border-radius: var(--mantine-radius-lg);
-    background-color: var(--mantine-color-dark-8);
-    border: 1px solid var(--mantine-color-dark-7);
-    color: var(--mantine-color-dark-2);
     font-size: var(--mantine-font-size-sm);
     display: flex;
     align-items: center;
@@ -36,4 +33,16 @@
         align-items: center;
         justify-content: center;
     }
+}
+
+.default {
+    background-color: var(--mantine-color-dark-8);
+    border: 1px solid var(--mantine-color-dark-7);
+    color: var(--mantine-color-dark-2);
+}
+
+.primary {
+    background-color: var(--mantine-color-dark-1);
+    border: none;
+    color: var(--mantine-color-dark-9);
 }
