@@ -1579,8 +1579,20 @@ export class Idea {
       const title = await lm.utils.entitle(
         content,
         `
-        A short, descriptive, and expressive title which properly conveys the content of the note.
-        Keep in mind that the note in question may be in an incomplete state, and the title should describe future developments.
+        You are an expert archivist tasked with creating a title for a personal knowledge note.
+        Your goal is to make the note easily findable and understandable at a glance from a list of hundreds of other notes.
+
+        ## Task
+        Generate a title based on the provided note content.
+
+        ## Guiding Principles
+        1.  **Specificity is Key:** The title must be specific. Instead of "Networking Ideas," use "Configuring VLANs for IoT Device Isolation on UniFi."
+        2.  **Concise & Scannable:** Use the fewest words possible without sacrificing specificity. The ideal title length is 3-8 words.
+        3.  **Keyword-Oriented:** Include the primary nouns, technologies, or concepts (e.g., "Permaculture," "TypeScript," "Zod," "VLAN") that someone would use to search for this note.
+        4.  **Reflect the Note's Purpose:**
+            * If the note is a question or an investigation, phrase the title as a concise summary of that question (e.g., "Methods for Improving Soil Compaction").
+            * If the note is a plan or work-in-progress, the title should reflect that goal (e.g., "Design for a 5-Acre Syntropic Agroforestry System").
+            * If the note is a statement of fact or a learned lesson, the title should be a declarative statement (e.g., "Type Inference from Zod Schemas").
         `,
       );
 
