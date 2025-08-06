@@ -516,6 +516,7 @@ export default function Rabbithole() {
                             rabbithole={rabbithole}
                             key={thing.id.toString()}
                             thing={thing}
+                            handleRemove={handleUninclude}
                           />
                         );
                       })
