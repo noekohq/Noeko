@@ -24,7 +24,7 @@ export default function TaskButton({
   const handleClick = () => {
     onClick?.();
     if (link) {
-      navigate(`/tasks/${task.id.toString()}`);
+      navigate(`/task/${task.id.toString()}`);
     }
   };
 
@@ -47,6 +47,10 @@ export default function TaskButton({
   };
 
   const isCompleted = task.completedAt !== null;
+
+  const formattedEstimatedDuration = () => {
+    return task.estimatedTime.toString();
+  };
 
   return (
     <div
@@ -79,15 +83,20 @@ export default function TaskButton({
               color="gray"
               size="sm"
             />
-            <Text
-              size="sm"
-              fw="bold"
-              lineClamp={0}
-              c={isCompleted ? "dimmed" : "inherit"}
-              td={isCompleted ? "line-through" : undefined}
-            >
-              {task.description}
-            </Text>
+            <Group gap="xs" align="baseline" wrap="nowrap">
+              <Text
+                size="xs"
+                fw="bold"
+                lineClamp={0}
+                c={isCompleted ? "dimmed" : "inherit"}
+                td={isCompleted ? "line-through" : undefined}
+              >
+                {task.description}
+              </Text>
+              <Text size="xs" c="dark.5" fw="bold">
+                {formattedEstimatedDuration()}
+              </Text>
+            </Group>
           </div>
         </HoverCard.Target>
         {/*<HoverCard.Dropdown

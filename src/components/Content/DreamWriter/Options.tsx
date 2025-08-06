@@ -1022,11 +1022,11 @@ export function ConnectIdea({ editor }: OptionProps) {
 
   useEffect(() => {
     const selectionText = getSelection();
-    if (selectionText) {
+    if (selectionText && opened) {
       setQuery(selectionText);
       setResults(null);
     }
-  }, [getSelection()]);
+  }, [getSelection(), opened]);
 
   const filteredResults = useMemo(() => {
     if (!searchResults) return null;

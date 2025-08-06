@@ -2,6 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db"; // Assuming getDatabase is exported from Twig/app/database/index.ts
 import { logger } from "./Logger";
 import { ISafeIdea } from "../database/models/ideas";
+import { ITag } from "../database/models/tag";
 
 interface CountQueryResult {
   count: number;
@@ -12,15 +13,20 @@ export interface IHeatmapDataPoint {
   count: number;
 }
 
+export interface ITagBreakdown {
+  mostUsed: ITag[];
+  semanticallyCentral: ITag[];
+  total: number;
+}
+
 export class AnalysisService {
   private constructor() {}
 
   public static async up() {
-    const userSemanticallyCentralIdeas = () => {
+    const userAverageEmbeddingVector = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::find_user_semantically_central_ideas(
-        $userId: record<user>,
-        $limit: int
+      DEFINE FUNCTION OVERWRITE fn::user_average_embedding_vector(
+        $userId: record<user>
       ) {
         LET $ideasOwned =
           SELECT VALUE
@@ -47,6 +53,19 @@ export class AnalysisService {
             |$accumulator, $current_vector| vector::add($accumulator, $current_vector)
         );
 
+        RETURN $average;
+      }
+      `;
+    };
+
+    const userSemanticallyCentralIdeas = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::find_user_semantically_central_ideas(
+        $userId: record<user>,
+        $limit: int
+      ) {
+        LET $average = fn::user_average_embedding_vector($userId);
+
         LET $ideas =
           SELECT
             *,
@@ -66,12 +85,72 @@ export class AnalysisService {
       `;
     };
 
+    const userSemanticallyCentralTags = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::find_user_semantically_central_tags(
+        $userId: record<user>,
+        $limit: int
+      ) {
+        LET $average = fn::user_average_embedding_vector($userId);
+
+        LET $tags =
+          SELECT
+            *,
+            vector::similarity::cosine(embeddings, $average) as similarity
+          OMIT embeddings
+          FROM tag
+          WHERE
+            <-owns<-(user WHERE id = $userId) AND
+            embeddings <|10, 400|> $average AND
+            embeddings != NONE
+          ORDER BY similarity DESC
+          LIMIT $limit;
+
+        RETURN $tags;
+      }
+      `;
+    };
+
+    const userTagBreakdown = () => {
+      return `
+          DEFINE FUNCTION OVERWRITE fn::get_user_tag_breakdown(
+            $userId: record<user>
+          ) {
+            LET $mostUsedTags = SELECT
+                *,
+                count(
+                    SELECT VALUE ->describes->(?) FROM ONLY $parent.id
+                ) as total
+                OMIT embeddings
+                FROM tag
+                WHERE <-owns<-(user WHERE id = $userId)
+                ORDER BY total DESC
+                LIMIT 10;
+
+            LET $semanticallyCentral = fn::find_user_semantically_central_tags($userId, 10);
+
+            LET $totalTags = count(
+              SELECT VALUE id FROM tag WHERE <-owns<-(user WHERE id = $userId)
+            );
+
+            RETURN {
+              mostUsed: $mostUsedTags,
+              semanticallyCentral: $semanticallyCentral,
+              total: $totalTags
+            };
+          }
+          `;
+    };
+
     const db = await getDatabase();
     if (!db) {
       console.error("Could not initialize analysis service!");
       return;
     }
+    await db.query(userAverageEmbeddingVector());
     await db.query(userSemanticallyCentralIdeas());
+    await db.query(userSemanticallyCentralTags());
+    await db.query(userTagBreakdown());
   }
 
   public static async getTotalIdeas(): Promise<number | undefined> {
@@ -270,6 +349,28 @@ export class AnalysisService {
       return results;
     } catch (error) {
       console.error("Error getting semantic central idea: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserTagBreakdown(
+    userId: string | RecordId,
+  ): Promise<ITagBreakdown | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database connection not established");
+      }
+      const results = await db.run<ITagBreakdown>(
+        "fn::get_user_tag_breakdown",
+        [new StringRecordId(userId)],
+      );
+      if (!results) {
+        throw new Error("Could not get results");
+      }
+      return results;
+    } catch (error) {
+      console.error("Error getting tag breakdown: ", error);
       return undefined;
     }
   }

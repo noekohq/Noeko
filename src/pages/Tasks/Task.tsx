@@ -256,6 +256,42 @@ export default function Task() {
           {!!task && (
             <>
               <Grid>
+                <Grid.Col span={12}>
+                  <Text fw="bold" c="dimmed" size="xs">
+                    <Group gap="xs">
+                      SCRATCHPAD{" "}
+                      {scratchpadSaved ? (
+                        <ActionIcon
+                          size="xs"
+                          variant="subtle"
+                          color="gray"
+                          title="This content is saved."
+                        >
+                          <CloudCheckIcon weight="bold" />
+                        </ActionIcon>
+                      ) : (
+                        <ActionIcon
+                          size="xs"
+                          variant="subtle"
+                          color="gray"
+                          title="This content is saving..."
+                        >
+                          <CloudArrowUpIcon weight="bold" />
+                        </ActionIcon>
+                      )}
+                    </Group>
+                  </Text>
+                  <DreamWriter
+                    initialContent={task.scratchpad}
+                    onBlur={() => {
+                      updateScratchpad();
+                    }}
+                    onChange={(v) => {
+                      setScratchpadContent(v);
+                    }}
+                    readOnly={!task}
+                  />
+                </Grid.Col>
                 <Grid.Col
                   span={{
                     sm: 12,
@@ -422,42 +458,6 @@ export default function Task() {
                       </Button>
                     </Group>
                   </Card>
-                </Grid.Col>
-                <Grid.Col span={12}>
-                  <Text fw="bold" c="dimmed" size="xs">
-                    <Group gap="xs">
-                      SCRATCHPAD{" "}
-                      {scratchpadSaved ? (
-                        <ActionIcon
-                          size="xs"
-                          variant="subtle"
-                          color="gray"
-                          title="This content is saved."
-                        >
-                          <CloudCheckIcon weight="bold" />
-                        </ActionIcon>
-                      ) : (
-                        <ActionIcon
-                          size="xs"
-                          variant="subtle"
-                          color="gray"
-                          title="This content is saving..."
-                        >
-                          <CloudArrowUpIcon weight="bold" />
-                        </ActionIcon>
-                      )}
-                    </Group>
-                  </Text>
-                  <DreamWriter
-                    initialContent={task.scratchpad}
-                    onBlur={() => {
-                      updateScratchpad();
-                    }}
-                    onChange={(v) => {
-                      setScratchpadContent(v);
-                    }}
-                    readOnly={!task}
-                  />
                 </Grid.Col>
               </Grid>
             </>

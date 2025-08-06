@@ -6,7 +6,7 @@ import useRabbithole from "../../../hooks/useRabbithole";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { Group, MantineColor } from "@mantine/core";
 import { RabbitholeIndicator } from "../../Display/Rabbitholes/RabbitholeIndicator";
-import { SpyglassIcon } from "../../Utils/Icons/Icons";
+import { ConstellationIcon, SpyglassIcon } from "../../Utils/Icons/Icons";
 import StatusButton from "../../Display/Interactions/StatusButton";
 import { PlusIcon } from "@phosphor-icons/react";
 import CreateButton from "../../Display/Interactions/CreateButton";
@@ -44,7 +44,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
     actions: {
       feedback: { openFeedbackModal },
     },
-    views: { spyglass },
+    views: { spyglass, graph },
   } = useInteraction();
 
   const defaultColor: MantineColor = "dark.3";
@@ -69,6 +69,16 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
         className={`${styles.global} ${hasChildren ? styles.hasChildren : styles.noChildren}`}
       >
         <StatusBar.Item>
+          <StatusButton
+            title="Constellation"
+            onClick={() => {
+              graph();
+            }}
+          >
+            <ConstellationIcon size={16} />
+          </StatusButton>
+        </StatusBar.Item>
+        <StatusBar.Item>
           <RabbitholeIndicator />
         </StatusBar.Item>
         <StatusBar.Item>
@@ -76,6 +86,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
             onClick={() => {
               spyglass();
             }}
+            title="Spyglass"
           >
             <SpyglassIcon size={16} />
           </StatusButton>

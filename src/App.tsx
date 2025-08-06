@@ -196,6 +196,8 @@ export default function App() {
                   </Route>
                   <Route path="tasks">
                     <Route index element={<Tasks />} />
+                  </Route>
+                  <Route path="task">
                     <Route path=":taskId">
                       <Route index element={<Task key={location.pathname} />} />
                     </Route>

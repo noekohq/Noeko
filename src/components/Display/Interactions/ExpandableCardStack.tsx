@@ -28,7 +28,7 @@ export default function ExpandableCardStack({
     <div className={styles.expandableCardStack}>
       <div className={styles.content}>
         <Stack>
-          <Text c="dimmed" fw="bold" tt="uppercase" size="sm">
+          <Text c="dimmed" fw="bold" tt="uppercase" size="xs">
             {topLabel}
           </Text>
           <div className={styles.topCard}>{topCard}</div>

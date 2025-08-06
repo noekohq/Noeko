@@ -65,9 +65,9 @@ export default function RabbitholeButton({
       <HoverCard openDelay={300} width="300px">
         <HoverCard.Target>
           <Group justify="space-between">
-            <Text size="sm" fw="bold">
-              <Group gap="xs" wrap="nowrap">
-                <RabbitholeIcon size={16} />
+            <Text size="xs" fw="bold">
+              <Group gap="xs" wrap="nowrap" align="center">
+                <RabbitholeIcon size={14} />
                 {rabbithole.name}
               </Group>
             </Text>

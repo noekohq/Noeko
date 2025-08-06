@@ -40,7 +40,9 @@ import {
   IntersectSquareIcon,
   MegaphoneIcon,
   MoonStarsIcon,
+  ShareNetworkIcon,
   SunIcon,
+  TagIcon,
   UniteSquareIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -67,8 +69,8 @@ export default function Dashboard() {
   const { isMobile } = useLayout();
 
   const defaultWidgets: IAvailableWidgets[] = isMobile
-    ? ["scratchpad", "taskList", "rabbitholeList"]
-    : ["scratchpad", "taskList", "rabbitholeList", "heatmap"];
+    ? ["scratchpad", "taskList", "rabbitholeList", "tagBreakdown"]
+    : ["scratchpad", "taskList", "rabbitholeList", "tagBreakdown"];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
     const loaded: ILoadedWidget[] = [];
@@ -248,12 +250,6 @@ export default function Dashboard() {
             <Grid.Col span={12} py={0}>
               <TopBar />
             </Grid.Col>
-            <Grid.Col
-              span={12}
-              style={{
-                height: "100%",
-              }}
-            ></Grid.Col>
             {LoadedWidgets.map(({ id, Component, config }) => {
               return (
                 <Grid.Col
@@ -272,30 +268,23 @@ export default function Dashboard() {
                 </Grid.Col>
               );
             })}
-            <Grid.Col span={12}>
-              <Stack align="center">
-                <Text size="sm" ta="center">
-                  More widgets coming soon...{" "}
-                </Text>
-                <Button
-                  color="gray"
-                  size="xs"
-                  variant="light"
-                  leftSection={<MegaphoneIcon />}
-                  onClick={() => {
-                    openFeedbackModal();
-                  }}
-                >
-                  Suggest a widget!
-                </Button>
-              </Stack>
-            </Grid.Col>
           </Grid>
         </div>
       </Content>
       <StatusBar>
         <StatusBar.Showing>
-          <TimeButton />
+          <Group gap="xs" h="100%">
+            <TimeButton />
+            <Link
+              to="/ideas/shared"
+              style={{ height: "100%" }}
+              title="Ideas shared with you"
+            >
+              <StatusButton>
+                <ShareNetworkIcon />
+              </StatusButton>
+            </Link>
+          </Group>
         </StatusBar.Showing>
       </StatusBar>
       <RightSidebar startOpened>
@@ -322,7 +311,7 @@ function TopBar() {
   } = useSettings();
 
   return (
-    <Group justify="space-between" py="md" wrap="nowrap">
+    <Group justify="space-between" py="sm" wrap="nowrap">
       <Stack gap="0" align="flex-start" justify="center" w="100%">
         <Title order={2} ta="center">
           <Group gap="xs">
@@ -344,21 +333,34 @@ function TopBar() {
         direction={isMobile ? "column" : "row"}
         gap="xs"
       >
-        <StatusButton
-          onClick={() => {
-            if (currentScheme === "dark") {
-              setScheme("light");
-            } else {
-              setScheme("dark");
-            }
-          }}
-        >
-          {currentScheme === "light" ? (
-            <SunIcon weight="bold" />
-          ) : (
-            <MoonStarsIcon weight="bold" />
-          )}
-        </StatusButton>
+        <Group gap="xs" wrap="nowrap" h="100%">
+          <StatusButton
+            onClick={() => {
+              if (currentScheme === "dark") {
+                setScheme("light");
+              } else {
+                setScheme("dark");
+              }
+            }}
+          >
+            {currentScheme === "light" ? (
+              <SunIcon weight="bold" />
+            ) : (
+              <MoonStarsIcon weight="bold" />
+            )}
+          </StatusButton>
+          <Link
+            to="/tags"
+            style={{
+              height: "100%",
+              textDecoration: "none",
+            }}
+          >
+            <StatusButton>
+              <TagIcon weight="bold" />
+            </StatusButton>
+          </Link>
+        </Group>
         <Link
           to="/ideas"
           style={{
@@ -366,7 +368,12 @@ function TopBar() {
             textDecoration: "none",
           }}
         >
-          <StatusButton leftSection={<ArticleIcon />}>
+          <StatusButton
+            leftSection={<ArticleIcon />}
+            style={{
+              width: "100%",
+            }}
+          >
             {user?.totalIdeas}
           </StatusButton>
         </Link>

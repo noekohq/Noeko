@@ -625,17 +625,7 @@ export default function Idea() {
           </Stack>
         </div>
       </Content>
-      <StatusBar>
-        <StatusBar.Showing>
-          <StatusBar.Item>
-            <StatusButton>
-              <Text c="gray" size="xs">
-                {statusText()}
-              </Text>
-            </StatusButton>
-          </StatusBar.Item>
-        </StatusBar.Showing>
-      </StatusBar>
+      <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
           <Tabs defaultValue="tools">

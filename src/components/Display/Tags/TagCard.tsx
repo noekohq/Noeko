@@ -80,7 +80,8 @@ export default function TagCard({
         <Group gap="xs">
           <Badge
             size="lg"
-            color="dark.9"
+            c="dark.8"
+            bg="dark.3"
             leftSection={<TagIcon weight="bold" />}
           >
             {tag.name}

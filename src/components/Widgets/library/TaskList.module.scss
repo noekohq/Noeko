@@ -1,4 +1,12 @@
 .taskList {
     overflow-y: scroll;
-    height: 30vh;
+    height: 100%;
+    position: relative;
+}
+
+.progress {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: 0;
 }
