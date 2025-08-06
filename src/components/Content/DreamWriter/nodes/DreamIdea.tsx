@@ -1,9 +1,7 @@
 import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
-  CheckIcon,
   LightbulbIcon,
-  PencilSimpleIcon,
   TrashIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -76,7 +74,6 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
           return Fragment.empty;
         },
       },
-
       {
         tag: "span[data-dream-idea][data-idea-id]",
         getContent: (node, schema) => {

@@ -34,27 +34,28 @@ export default function TaskList() {
     <div className={styles.taskList}>
       <Stack gap="xs">
         <Text size="sm" fw="bold" c="dimmed">
-          <Group gap="xs">
+          <Group gap="xs" justify="space-between">
             Today's Tasks
-            <Button
-              leftSection={<PlusIcon weight="bold" />}
-              onClick={newTask}
-              size="xs"
-              color="gray"
-              variant="subtle"
-            >
-              New
-            </Button>
-            <Link to="/tasks">
-              <Button
-                variant="subtle"
+            <Group gap="xs">
+              <ActionIcon
+                onClick={() => newTask()}
+                size="sm"
                 color="gray"
-                rightSection={<ArrowRightIcon />}
-                size="xs"
+                variant="subtle"
               >
-                All
-              </Button>
-            </Link>
+                <PlusIcon weight="bold" />
+              </ActionIcon>
+              <Link to="/tasks">
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  rightSection={<ArrowRightIcon weight="bold" />}
+                  size="sm"
+                >
+                  All
+                </Button>
+              </Link>
+            </Group>
           </Group>
         </Text>
         {!tasks?.length && (

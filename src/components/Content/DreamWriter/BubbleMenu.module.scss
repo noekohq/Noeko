@@ -35,6 +35,8 @@
     align-items: center;
     gap: var(--layout-spacing);
     flex-wrap: wrap;
+    margin-inline: auto;
+
 
     @include desktop {
         flex-wrap: nowrap;
