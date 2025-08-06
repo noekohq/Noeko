@@ -442,7 +442,7 @@ export default function Updates() {
               >
                 What do you think?
               </Button>
-              <Button onClick={newTask}>Add a task!</Button>
+              <Button onClick={() => newTask()}>Add a task!</Button>
             </Group>
           </Card>
         </Stack>
