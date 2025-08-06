@@ -2,7 +2,9 @@ export type IAvailableWidgets =
   | "scratchpad"
   | "taskList"
   | "heatmap"
-  | "rabbitholeList";
+  | "rabbitholeList"
+  | "miniGraph"
+  | "tagBreakdown";
 
 export type IWidgetConfig = {
   columns: {

@@ -1,0 +1,12 @@
+.container {
+    background-color: var(--mantine-color-dark-8);
+    width: 100%;
+    height: var(--layout-spacing);
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.bar {
+    background-color: var(--mantine-color-dark-5);
+    height: 100%;
+}

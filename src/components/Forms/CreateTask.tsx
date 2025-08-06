@@ -135,7 +135,7 @@ export default function CreateTaskForm({
       if (!task) {
         throw new Error("Task wasn't returned");
       }
-      navigate(`/tasks/${task.id.toString()}`);
+      navigate(`/task/${task.id.toString()}`);
       onSubmit?.(task);
       if (isDownRabbithole) {
         includeThing(task.id.toString());

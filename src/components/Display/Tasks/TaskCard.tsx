@@ -57,7 +57,7 @@ export default function TaskCard({
   const handleClick = () => {
     onClick?.();
     if (link) {
-      navigate(`/tasks/${task.id.toString()}`);
+      navigate(`/task/${task.id.toString()}`);
     }
   };
 

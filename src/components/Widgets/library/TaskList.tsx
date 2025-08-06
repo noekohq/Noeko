@@ -10,6 +10,7 @@ import styles from "./TaskList.module.scss";
 import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { Link } from "react-router";
+import ProgressBar from "../../Utils/Info/ProgressBar";
 
 export default function TaskList() {
   const todayDate = toYYYYMMDD(new Date());
@@ -30,27 +31,30 @@ export default function TaskList() {
   const completeTasks: ITask[] =
     tasks?.filter((task) => task.completedAt) ?? [];
 
+  const progress = tasks ? (completeTasks.length / tasks.length) * 100 : 0;
+
   return (
     <div className={styles.taskList}>
       <Stack gap="xs">
         <Text size="sm" fw="bold" c="dimmed">
           <Group gap="xs" justify="space-between">
             Today's Tasks
-            <Group gap="xs">
+            <Group gap="2px">
               <ActionIcon
                 onClick={() => newTask()}
-                size="sm"
-                color="gray"
+                size="xs"
+                color="dimmed"
                 variant="subtle"
               >
-                <PlusIcon weight="bold" />
+                <PlusIcon weight="bold" size={14} />
               </ActionIcon>
               <Link to="/tasks">
                 <Button
                   variant="subtle"
+                  c="dimmed"
                   color="gray"
-                  rightSection={<ArrowRightIcon weight="bold" />}
-                  size="sm"
+                  rightSection={<ArrowRightIcon weight="bold" size={14} />}
+                  size="xs"
                 >
                   All
                 </Button>
@@ -90,13 +94,16 @@ export default function TaskList() {
             })}
         </>
       </Stack>
+      <div className={styles.progress}>
+        <ProgressBar progress={progress} />
+      </div>
     </div>
   );
 }
 
 export const config: IWidgetConfig = {
   columns: {
-    default: 6,
+    default: 4,
     min: 4,
     max: 6,
   },

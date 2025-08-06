@@ -3,6 +3,7 @@
     overflow: hidden;
     box-shadow: var(--mantine-shadow-sm);
     overflow-y: auto; // Add this line!
+    max-height: 40vh;
 }
 
 .item {

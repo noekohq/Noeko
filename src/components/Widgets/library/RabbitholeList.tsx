@@ -25,19 +25,9 @@ export default function RabbitholeList() {
     <div className={styles.rabbitholeList}>
       <Stack gap="xs">
         <Group>
-          <Text size="sm" fw="bold" c="dimmed">
-            <Group gap="xs">
+          <Text size="sm" fw="bold" c="dimmed" w="100%">
+            <Group gap="xs" justify="space-between">
               Recent Rabbitholes
-              <Link to="/rabbitholes">
-                <Button
-                  variant="subtle"
-                  color="gray"
-                  rightSection={<ArrowRightIcon />}
-                  size="xs"
-                >
-                  All
-                </Button>
-              </Link>
             </Group>
           </Text>
         </Group>
@@ -56,7 +46,7 @@ export default function RabbitholeList() {
 
 export const config: IWidgetConfig = {
   columns: {
-    default: 6,
+    default: 4,
     min: 4,
     max: 6,
   },
