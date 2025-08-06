@@ -167,7 +167,7 @@ export default function Spyglass() {
       <PageWrapper>
         <LeftSidebar startClosed></LeftSidebar>
         <Content>
-          <Stack>
+          <div className={styles.spyglass}>
             <Title>Something went wrong :/</Title>
             <Text size="sm">{error}</Text>
             <Group>
@@ -188,7 +188,7 @@ export default function Spyglass() {
                 Leave Feedback
               </Button>
             </Group>
-          </Stack>
+          </div>
         </Content>
         <RightSidebar startClosed></RightSidebar>
       </PageWrapper>
@@ -266,12 +266,7 @@ export default function Spyglass() {
         </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
-        <Flex
-          direction="column"
-          gap="0"
-          h="100%"
-          justify={initialized ? "space-between" : "center"}
-        >
+        <div className={styles.spyglass}>
           <div
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
@@ -456,7 +451,7 @@ export default function Spyglass() {
               )}
             </>
           )}
-        </Flex>
+        </div>
       </Content>
       <RightSidebar>
         <RightSidebar.Open>

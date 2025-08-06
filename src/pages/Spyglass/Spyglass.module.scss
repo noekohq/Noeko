@@ -10,6 +10,7 @@
     position: relative;
     box-sizing: border-box;
     padding-bottom: 10vh;
+    outline: 1px solid red;
 
     &.initialized {
         /* This is now the flex parent */
