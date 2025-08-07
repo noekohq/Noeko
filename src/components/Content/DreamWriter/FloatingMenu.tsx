@@ -4,6 +4,7 @@ import {
 } from "@tiptap/react";
 import { useState } from "react";
 import styles from "./DreamWriter.module.scss";
+import { PlusIcon } from "@phosphor-icons/react";
 
 export default function FloatingMenu({ editor }: { editor: IEditor | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
