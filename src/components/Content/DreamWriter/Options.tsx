@@ -1,19 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
+import katex from "katex";
 import {
-  BracketsAngleIcon,
   CaretDownIcon,
   CheckIcon,
-  CheckSquareIcon,
   ClipboardTextIcon,
   CodeIcon,
   CodeSimpleIcon,
   CopyIcon,
-  DotsThreeVerticalIcon,
-  DownloadIcon,
   FunctionIcon,
   HighlighterIcon,
-  InfoIcon,
   LightbulbIcon,
   LinkIcon,
   ListBulletsIcon,
@@ -25,11 +21,8 @@ import {
   ParagraphIcon,
   QuotesIcon,
   ScissorsIcon,
-  SelectionAll,
   SelectionAllIcon,
   TextBIcon,
-  TextHIcon,
-  TextHOne,
   TextHOneIcon,
   TextHThreeIcon,
   TextHTwoIcon,
@@ -57,9 +50,8 @@ import { useForm } from "@mantine/form";
 import DreamWriter from "./DreamWriter";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
-import { createIdea, createIdeaConnection } from "../../../utils/ideas";
+import { createIdea } from "../../../utils/ideas";
 import { useDisclosure } from "@mantine/hooks";
-import { RecordId } from "surrealdb";
 import { SearchBar } from "../../Search/SearchBar";
 import { useSearch } from "../../../contexts/SearchContext";
 import { getNodeAsIdeaOrNull } from "../../../utils/graph";
@@ -68,6 +60,7 @@ import { ISafeIdea } from "../../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
 import { SpyglassIcon } from "../../Utils/Icons/Icons";
 import useRabbithole from "../../../hooks/useRabbithole";
+import { NodeSelection } from "@tiptap/pm/state";
 
 interface OptionProps {
   editor: IEditor | null;
@@ -538,42 +531,68 @@ export function CodeMenuButton({ editor }: OptionProps) {
 
 export function MathMenuButton({ editor }: OptionProps) {
   if (!editor) return null;
-  const isMathInline = !!editor.isActive("math-inline");
-  const isMathBlock = !!editor.isActive("math-display");
+  const isMathInline = !!editor.isActive("inlineMath");
+  const isMathBlock = !!editor.isActive("blockMath");
   const handleMathInlineClick = () => {
+    const selection = editor.state.selection as NodeSelection;
     if (isMathInline) {
-      // If inside a math inline, delete it.
-      editor.chain().focus().deleteInlineMath().run();
-    } else {
-      // Use the selected text for the new math inline.
-      const { from, to } = editor.state.selection;
-      const selectedText = editor.state.doc.textBetween(from, to);
-
-      // This command replaces the current selection with a math inline.
+      let replaceText = "";
+      console.log("Selection: ", selection);
+      if ("node" in selection) {
+        replaceText = selection.node.attrs.latex;
+      }
       editor
         .chain()
         .focus()
-        .deleteSelection()
-        .insertInlineMath({ latex: selectedText })
+        .deleteInlineMath()
+        .insertContent(replaceText)
         .run();
+    } else {
+      try {
+        const { from, to } = selection;
+        const selectedText = editor.state.doc.textBetween(from, to);
+
+        editor
+          .chain()
+          .focus()
+          .deleteSelection()
+          .insertInlineMath({ latex: selectedText })
+          .run();
+      } catch (error) {
+        showNotification({
+          title: "Something went wrong",
+          message: "Invalid LaTeX expression",
+          color: "red",
+        });
+      }
     }
   };
   const handleMathBlockClick = () => {
+    const selection = editor.state.selection as NodeSelection;
     if (isMathBlock) {
-      // If inside a math block, delete it.
-      editor.chain().focus().deleteBlockMath().run();
+      let replaceText = "";
+      if ("node" in selection) {
+        replaceText = selection.node.attrs.latex;
+      }
+      editor.chain().focus().deleteBlockMath().insertContent(replaceText).run();
     } else {
-      // Use the selected text for the new math block.
-      const { from, to } = editor.state.selection;
-      const selectedText = editor.state.doc.textBetween(from, to);
+      try {
+        const { from, to } = selection;
+        const selectedText = editor.state.doc.textBetween(from, to);
 
-      // This command replaces the current selection with a math block.
-      editor
-        .chain()
-        .focus()
-        .deleteSelection()
-        .insertBlockMath({ latex: selectedText })
-        .run();
+        editor
+          .chain()
+          .focus()
+          .deleteSelection()
+          .insertBlockMath({ latex: selectedText })
+          .run();
+      } catch (error) {
+        showNotification({
+          title: "Something went wrong",
+          message: "Invalid LaTeX expression",
+          color: "red",
+        });
+      }
     }
   };
 
@@ -582,13 +601,13 @@ export function MathMenuButton({ editor }: OptionProps) {
       name: "Inline",
       icon: <FunctionIcon weight="bold" />,
       action: () => handleMathInlineClick(),
-      isActive: editor.isActive("math-inline"),
+      isActive: editor.isActive("inlineMath"),
     },
     {
       name: "Block",
       icon: <MathOperationsIcon weight="bold" />,
       action: handleMathBlockClick,
-      isActive: editor.isActive("math-display"),
+      isActive: editor.isActive("blockMath"),
     },
   ];
 

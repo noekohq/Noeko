@@ -1,19 +1,17 @@
-import React, {
+import {
   forwardRef,
-  useCallback,
   useEffect,
   useImperativeHandle,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
+import "./DreamWriter.scss";
 import styles from "./DreamWriter.module.scss";
 import contentStyles from "./Content.module.scss";
 import { useEditor, EditorContent, Editor as IEditor } from "@tiptap/react";
 import { FileIcon } from "@phosphor-icons/react";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { getExtensionConfig } from "./extensions";
-
 import { useInteraction } from "../../../contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "../../../contexts/LayoutContext";
@@ -60,10 +58,17 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
   ) => {
     const content = initialContent || defaultContent.trim();
 
+    const { extensions, loader } = getExtensionConfig({ placeholder });
+
     const editor = useEditor(
       {
-        extensions: getExtensionConfig({ placeholder }),
+        extensions,
         content,
+        editorProps: {
+          attributes: {
+            class: `${styles.tippyEditor} ${contentStyles.editor} tippy-editor`,
+          },
+        },
         onUpdate: ({ editor: e }) => {
           if (onChange) {
             const output =
@@ -78,12 +83,10 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             onBlur(output);
           }
         },
-        editorProps: {
-          attributes: {
-            class: `${styles.tippyEditor} ${contentStyles.editor} tippy-editor`,
-          },
-        },
         onPaste: (e) => {},
+        onCreate: (currentEditor) => {
+          loader({ editor: currentEditor.editor });
+        },
         editable: !readOnly,
         injectCSS: false,
         autofocus: true,

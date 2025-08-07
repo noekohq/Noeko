@@ -8,12 +8,10 @@
     border-radius: var(--mantine-radius-md);
     border: 1px solid var(--mantine-color-dark-8);
     cursor: text;
-    transition: all 0.2s ease;
 
     &[data-selected="true"] {
         outline: 2px solid var(--mantine-primary-color-7);
         outline-offset: 1px;
-        background-color: var(--mantine-color-dark-7);
     }
 
 }
