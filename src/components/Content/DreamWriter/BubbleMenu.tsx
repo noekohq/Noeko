@@ -27,10 +27,17 @@ import {
 } from "./Options";
 import { DreamImageMenu } from "./nodes/DreamImage";
 import { useLayout } from "../../../contexts/LayoutContext";
+import { ActionIcon, Group, Stack, Textarea, TextInput } from "@mantine/core";
+import { NodeSelection } from "@tiptap/pm/state";
+import { showNotification } from "@mantine/notifications";
+import { CheckIcon, TrashSimpleIcon, XIcon } from "@phosphor-icons/react";
+import { useState } from "react";
 
 export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
   const isImage = editor?.isActive("dreamImage");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
+  const isInlineMath = editor?.isActive("inlineMath");
+  const isBlockMath = editor?.isActive("blockMath");
   const hidden = isImage;
 
   const { isMobile } = useLayout();
@@ -47,6 +54,29 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
         tippyOptions={{ duration: 100, placement: "bottom" }}
       >
         <DreamImageMenu editor={editor} />
+      </TippyBubbleMenu>
+    );
+  }
+
+  if (isInlineMath) {
+    return (
+      <TippyBubbleMenu
+        editor={editor}
+        className={styles.bubbleMenu}
+        tippyOptions={{ duration: 100, placement: "bottom" }}
+      >
+        <InlineMathMenu editor={editor} />
+      </TippyBubbleMenu>
+    );
+  }
+  if (isBlockMath) {
+    return (
+      <TippyBubbleMenu
+        editor={editor}
+        className={styles.bubbleMenu}
+        tippyOptions={{ duration: 100, placement: "bottom" }}
+      >
+        <BlockMathMenu editor={editor} />
       </TippyBubbleMenu>
     );
   }
@@ -102,3 +132,164 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
     </TippyBubbleMenu>
   );
 }
+
+const InlineMathMenu = ({ editor }: { editor: IEditor }) => {
+  const isMathNode = editor.isActive("inlineMath");
+
+  const getLatex = () => {
+    try {
+      const selection = editor.state.selection as NodeSelection;
+      const node = selection.node;
+      if (!selection || !node) {
+        throw new Error("Selection or node is falsey");
+      }
+      return node.attrs.latex;
+    } catch (error) {
+      console.error(error);
+      showNotification({
+        title: "Error",
+        message: "Error processing math",
+        color: "red",
+      });
+    }
+  };
+
+  const setLatex = (latex: string) => {
+    editor
+      .chain()
+      .focus()
+      .updateInlineMath({
+        latex,
+      })
+      .run();
+  };
+
+  const deleteMathNode = () => {
+    editor.chain().focus().deleteRange(editor.state.selection).run();
+  };
+
+  const [newLatex, setNewLatex] = useState(getLatex());
+
+  if (!isMathNode) return null;
+
+  return (
+    <Group gap="xs">
+      <TextInput
+        defaultValue={newLatex}
+        onChange={(event) => setNewLatex(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            setLatex(newLatex);
+          }
+        }}
+        size="sm"
+        variant="unstyled"
+        radius="md"
+      />
+      <Group gap="xs">
+        <ActionIcon
+          onClick={() => setLatex(newLatex)}
+          size="sm"
+          color="gray"
+          variant="light"
+        >
+          <CheckIcon />
+        </ActionIcon>
+        <ActionIcon
+          onClick={() => deleteMathNode()}
+          size="sm"
+          color="gray"
+          variant="light"
+        >
+          <TrashSimpleIcon />
+        </ActionIcon>
+      </Group>
+    </Group>
+  );
+};
+
+const BlockMathMenu = ({ editor }: { editor: IEditor }) => {
+  const isMathNode = editor.isActive("blockMath");
+
+  const getLatex = () => {
+    try {
+      const selection = editor.state.selection as NodeSelection;
+      const node = selection.node;
+      if (!selection || !node) {
+        throw new Error("Selection or node is falsey");
+      }
+      return node.attrs.latex;
+    } catch (error) {
+      console.error(error);
+      showNotification({
+        title: "Error",
+        message: "Error processing math block",
+        color: "red",
+      });
+    }
+  };
+
+  const setLatex = (latex: string) => {
+    editor
+      .chain()
+      .focus()
+      .updateBlockMath({
+        latex,
+      })
+      .blur()
+      .run();
+  };
+
+  const deleteMathNode = () => {
+    editor.chain().focus().deleteRange(editor.state.selection).run();
+  };
+
+  const [newLatex, setNewLatex] = useState(getLatex());
+
+  if (!isMathNode) return null;
+
+  return (
+    <Stack gap="xs" miw={"300px"}>
+      <Textarea
+        defaultValue={newLatex}
+        onChange={(event) => setNewLatex(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            setLatex(newLatex);
+          }
+        }}
+        size="sm"
+        variant="unstyled"
+        radius="md"
+      />
+      <Group gap="xs">
+        <ActionIcon
+          onClick={() => setLatex(newLatex)}
+          size="sm"
+          color="gray"
+          variant="light"
+        >
+          <CheckIcon />
+        </ActionIcon>
+        <ActionIcon
+          onClick={() => deleteMathNode()}
+          size="sm"
+          color="gray"
+          variant="light"
+        >
+          <TrashSimpleIcon />
+        </ActionIcon>
+        <ActionIcon
+          onClick={() => editor.chain().focus().blur().run()}
+          size="sm"
+          color="gray"
+          variant="light"
+        >
+          <XIcon />
+        </ActionIcon>
+      </Group>
+    </Stack>
+  );
+};

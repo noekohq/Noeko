@@ -1,0 +1,38 @@
+.ProseMirror {
+    -webkit-touch-callout: none;
+}
+
+.tiptap-mathematics-render {
+}
+
+/* This selector only selects editable math nodes */
+.tiptap-mathematics-render--editable {
+}
+
+/** This selector only selects block math nodes */
+.tiptap-mathematics-render[data-type="block-math"] {
+    padding: var(--mantine-spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: var(--mantine-color-dark-8); */
+    border: 1px solid var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-md);
+
+    &.ProseMirror-selectednode {
+        outline: 2px solid var(--mantine-primary-color-7);
+        outline-offset: 1px;
+    }
+}
+
+/** This selector only selects inline math nodes */
+.tiptap-mathematics-render[data-type="inline-math"] {
+    padding: 2px 8px;
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-dark-8);
+
+    &.ProseMirror-selectednode {
+        outline: 2px solid var(--mantine-primary-color-7);
+        outline-offset: 1px;
+    }
+}
