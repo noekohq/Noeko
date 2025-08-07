@@ -14,12 +14,12 @@
     display: flex;
     flex-direction: column;
     gap: var(--layout-spacing);
-    max-width: var(--content-width);
-    z-index: 700;
+    max-width: 100%;
+    overflow-y: auto;
 
     @include desktop {
         width: fit-content;
-        flex-direction: row;
+        /* flex-direction: row; */
     }
 
     background-color: var(--mantine-color-dark-9);
