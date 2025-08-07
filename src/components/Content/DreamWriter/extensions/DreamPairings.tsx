@@ -14,7 +14,7 @@ const createPairedBracketRule = (openChar: string, closeChar: string) => {
   });
 };
 
-export const AutoPairedBrackets = Extension.create({
+export const DreamPairings = Extension.create({
   name: "autoPairedBrackets",
 
   addInputRules() {

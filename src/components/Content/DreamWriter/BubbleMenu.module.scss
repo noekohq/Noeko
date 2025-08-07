@@ -19,6 +19,7 @@
 
     @include desktop {
         width: fit-content;
+        flex-direction: row;
     }
 
     background-color: var(--mantine-color-dark-9);
@@ -36,10 +37,9 @@
     gap: var(--layout-spacing);
     flex-wrap: wrap;
     margin-inline: auto;
-
+    flex-wrap: nowrap;
 
     @include desktop {
-        flex-wrap: nowrap;
     }
 }
 
