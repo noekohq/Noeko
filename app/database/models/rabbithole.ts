@@ -5,8 +5,10 @@ import { logger } from "../../services/Logger";
 import { ITag } from "./tag";
 import { averageEmbeddings } from "../../utils/math";
 import { Search } from "../../services/Search";
+import { ITask } from "./task";
+import { IUserFile } from "./userfile";
 
-export type IRabbitholeIncludes = IIdea | ITag;
+export type IRabbitholeIncludes = IIdea | ITag | ITask | IUserFile;
 
 export type IRabbithole = {
   id: string | RecordId;
@@ -71,7 +73,7 @@ export default class Rabbithole {
           RETURN [];
         END;
 
-        LET $vectors = SELECT VALUE embeddings FROM $includes;
+        LET $vectors = SELECT VALUE embeddings FROM $includes WHERE embeddings != NULL AND embeddings != NONE;
 
         LET $average = array::fold(
             $vectors,

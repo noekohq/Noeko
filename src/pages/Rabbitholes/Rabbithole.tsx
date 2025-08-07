@@ -10,6 +10,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  TextInput,
   Title,
   Transition,
 } from "@mantine/core";
@@ -21,7 +22,7 @@ import useFetch from "../../hooks/useFetch";
 import { IRabbithole } from "../../../app/database/models/rabbithole";
 import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { api } from "../../server/api";
 import styles from "./Rabbithole.module.scss";
@@ -33,14 +34,18 @@ import {
   DoorIcon,
   DoorOpenIcon,
   InfoIcon,
+  LightbulbIcon,
   PlusIcon,
   RabbitIcon,
+  TagIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
 import { IIdea } from "../../../app/database/models/ideas";
 import Search from "../../components/Search/Search";
 import {
   deleteRabbithole,
+  getRabbitholeThingDescription,
+  getRabbitholeThingName,
   includeThingInRabbithole,
   unIncludeThingInRabbithole,
 } from "../../utils/rabbitholes";
@@ -55,6 +60,7 @@ import { modals } from "@mantine/modals";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import RabbitholeThing from "../../components/Display/Rabbitholes/RabbitholeThing";
+import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 
 export default function Rabbithole() {
   const [error, setError] = useState("");
@@ -306,6 +312,21 @@ export default function Rabbithole() {
     return `When you enter a rabbithole, every new idea or tag that you create will automatically be included. An indicator will appear to tell you which rabbithole you're in, and you can include things as you go.`;
   };
 
+  const [filterQuery, setFilterQuery] = useState(""); // State for filter query
+  const filteredThings = useMemo(() => {
+    if (!rabbithole?.includes) return [];
+    if (!filterQuery.trim()) return rabbithole.includes;
+
+    const query = filterQuery.toLowerCase();
+    return rabbithole.includes.filter((thing) => {
+      const name = getRabbitholeThingName(thing);
+      const hasName = !!name?.toLowerCase().includes(query);
+      const description = getRabbitholeThingDescription(thing);
+      const hasDescription = !!description?.toLowerCase().includes(query);
+      return hasName || hasDescription;
+    });
+  }, [rabbithole?.includes, filterQuery]);
+
   const ActionCenter = (
     <Group justify="center" mt="lg">
       <Button
@@ -483,7 +504,15 @@ export default function Rabbithole() {
               className={styles.editableTitle}
             />
             {!isEntered && isMobile && ActionCenter}
-            <SuggestTags onSelect={handleAddTag} size="sm" />
+            {isEntered && (
+              <TextInput
+                placeholder="Filter things..."
+                value={filterQuery}
+                onChange={(event) => setFilterQuery(event.currentTarget.value)}
+                mb="md" // Added margin bottom for spacing
+                radius="md"
+              />
+            )}
             <Transition
               mounted={isEntered}
               transition="fade-up"
@@ -496,7 +525,7 @@ export default function Rabbithole() {
                 ) {
                   return (
                     <Text style={style} size="sm" ta="center">
-                      There is no content in this rabbithole.
+                      There are no things in this rabbithole.
                     </Text>
                   );
                 }
@@ -509,7 +538,7 @@ export default function Rabbithole() {
                     }}
                     style={style}
                   >
-                    {rabbithole.includes
+                    {filteredThings
                       .map((thing) => {
                         return (
                           <RabbitholeThing
@@ -520,8 +549,7 @@ export default function Rabbithole() {
                           />
                         );
                       })
-                      .filter((i) => !!i)
-                      .slice(0, isEntered ? rabbithole.includes.length : 8)}
+                      .filter((i) => !!i)}
                   </SimpleGrid>
                 );
               }}
@@ -568,51 +596,17 @@ export default function Rabbithole() {
                       >
                         {rabbithole.includes
                           .map((thing) => {
-                            if (thing.id.toString().startsWith("idea")) {
-                              const idea = thing as IIdea;
-                              return (
-                                <IdeaCard
-                                  key={idea.id.toString()}
-                                  idea={idea}
-                                  actions={[
-                                    {
-                                      icon: <DoorOpenIcon />,
-                                      id: "uninclude",
-                                      label: `Remove`,
-                                      onClick: () => {
-                                        handleUninclude(thing.id.toString());
-                                      },
-                                      tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                                      color: "gray",
-                                    },
-                                  ]}
-                                />
-                              );
-                            }
-                            if (thing.id.toString().startsWith("tag")) {
-                              const tag = thing as ITag;
-                              return (
-                                <TagCard
-                                  key={tag.id.toString()}
-                                  tag={tag}
-                                  actions={[
-                                    {
-                                      icon: <DoorOpenIcon />,
-                                      id: "uninclude",
-                                      label: `Uninclude`,
-                                      onClick: () => {
-                                        handleUninclude(thing.id.toString());
-                                      },
-                                      tooltip: `Uninclude ${tag?.name} from ${rabbithole?.name}`,
-                                      color: "red",
-                                    },
-                                  ]}
-                                />
-                              );
-                            }
+                            return (
+                              <RabbitholeThing
+                                rabbithole={rabbithole}
+                                key={thing.id.toString()}
+                                thing={thing}
+                                handleRemove={handleUninclude}
+                              />
+                            );
                           })
                           .filter((i) => !!i)
-                          .slice(0, isEntered ? rabbithole.includes.length : 8)}
+                          .slice(0, isEntered ? rabbithole.includes.length : 9)}
                       </SimpleGrid>
                     )}
                     <Transition
@@ -635,32 +629,53 @@ export default function Rabbithole() {
       <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
-          <Search
-            ignoreRabbithole
-            resultFilter={(id) => {
-              return !isIncluded(id);
-            }}
-            resultActions={
-              isMobile
-                ? [
-                    (idea) => {
-                      return {
-                        id: "connect",
-                        icon: isIncludingThing(idea.id.toString()) ? (
-                          <Loader size="sm" />
-                        ) : (
-                          <PlusIcon />
-                        ),
-                        label: "Include",
-                        onClick: () => {
-                          handleInclude(idea.id.toString());
+          <Tabs defaultValue="ideas">
+            <Tabs.List>
+              <Tabs.Tab value="ideas">
+                <Group gap="xs">
+                  <LightbulbIcon />
+                  Ideas
+                </Group>
+              </Tabs.Tab>
+              <Tabs.Tab value="tags">
+                <Group gap="xs">
+                  <TagIcon />
+                  Tags
+                </Group>
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="ideas">
+              <Search
+                ignoreRabbithole
+                resultFilter={(id) => {
+                  return !isIncluded(id);
+                }}
+                resultActions={
+                  isMobile
+                    ? [
+                        (idea) => {
+                          return {
+                            id: "connect",
+                            icon: isIncludingThing(idea.id.toString()) ? (
+                              <Loader size="sm" />
+                            ) : (
+                              <PlusIcon />
+                            ),
+                            label: "Include",
+                            onClick: () => {
+                              handleInclude(idea.id.toString());
+                            },
+                          };
                         },
-                      };
-                    },
-                  ]
-                : undefined
-            }
-          />
+                      ]
+                    : undefined
+                }
+              />
+            </Tabs.Panel>
+            <Tabs.Panel value="tags">
+              <SuggestTags onSelect={handleAddTag} size="sm" />
+            </Tabs.Panel>
+          </Tabs>
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

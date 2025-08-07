@@ -137,7 +137,7 @@ export default function Search({
           <Text c="dimmed" size="sm">
             Found {filteredResults.length} result
             {filteredResults.length === 1 ? "" : "s"}
-            {isSuperuser ? ` in ${timeTaken}s` : "..."}
+            {isSuperuser && !!timeTaken ? ` in ${timeTaken}s` : ""}
             {withinRabbithole ? ` in "${currentRabbithole?.name}"` : ""}
           </Text>
           <Space my="sm" />

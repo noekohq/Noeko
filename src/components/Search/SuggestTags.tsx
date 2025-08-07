@@ -142,6 +142,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
           placeholder={placeholder}
           value={searchQuery}
           size={size}
+          radius="md"
           classNames={{
             input: styles.input,
           }}

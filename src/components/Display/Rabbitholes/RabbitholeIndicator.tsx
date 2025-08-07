@@ -121,25 +121,6 @@ function DropdownForRabbithole() {
       <Menu.Item>
         <RabbitholeCard rabbithole={currentRabbithole} />
       </Menu.Item>
-      <Menu.Label>Included Things</Menu.Label>
-      {truncatedIncludedThings?.map((i) => {
-        return (
-          <Menu.Item>
-            <RabbitholeThing rabbithole={currentRabbithole} thing={i} />
-          </Menu.Item>
-        );
-      })}
-      {hasAdditionalThings && (
-        <Menu.Item
-          onClick={() => {
-            navigate(`/rabbitholes/${currentRabbithole.id.toString()}`);
-          }}
-          rightSection={<ArrowRightIcon weight="bold" />}
-        >
-          See the rest...
-        </Menu.Item>
-      )}
-      <Menu.Label>Actions</Menu.Label>
       <Menu.Item
         onClick={() => {
           exitRabbithole();
@@ -172,6 +153,31 @@ function DropdownForRabbithole() {
             Include {truncatedIdeaTitle()}
           </Menu.Item>
         ))}
+      <Menu.Label>Included Things</Menu.Label>
+      {!truncatedIncludedThings?.length && (
+        <Menu.Item>
+          <Text size="xs" c="dimmed">
+            Nothing included.
+          </Text>
+        </Menu.Item>
+      )}
+      {truncatedIncludedThings?.map((i) => {
+        return (
+          <Menu.Item>
+            <RabbitholeThing rabbithole={currentRabbithole} thing={i} />
+          </Menu.Item>
+        );
+      })}
+      {hasAdditionalThings && (
+        <Menu.Item
+          onClick={() => {
+            navigate(`/rabbitholes/${currentRabbithole.id.toString()}`);
+          }}
+          rightSection={<ArrowRightIcon weight="bold" />}
+        >
+          See the rest...
+        </Menu.Item>
+      )}
     </>
   );
 }
