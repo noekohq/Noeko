@@ -12,6 +12,7 @@ import {
   DotsThreeVerticalIcon,
   DownloadIcon,
   FunctionIcon,
+  HighlighterIcon,
   InfoIcon,
   LightbulbIcon,
   LinkIcon,
@@ -19,15 +20,22 @@ import {
   ListChecksIcon,
   ListIcon,
   ListNumbersIcon,
+  MagicWandIcon,
   MathOperationsIcon,
+  ParagraphIcon,
   QuotesIcon,
   ScissorsIcon,
   SelectionAll,
   SelectionAllIcon,
   TextBIcon,
   TextHIcon,
+  TextHOne,
+  TextHOneIcon,
+  TextHThreeIcon,
+  TextHTwoIcon,
   TextItalicIcon,
   TextStrikethroughIcon,
+  TextTIcon,
   TextUnderlineIcon,
   UniteSquareIcon,
   XIcon,
@@ -216,6 +224,20 @@ export function StrikeThroughButton({ editor }: OptionProps) {
   );
 }
 
+export function HighlightButton({ editor }: OptionProps) {
+  const isHighlighted = !!editor?.isActive("dreamHighlight");
+
+  return (
+    <ActionIcon
+      {...getButtonProps({ isActive: isHighlighted })}
+      onClick={() => editor?.chain().focus().toggleDreamHighlight().run()}
+      title="Toggle Strike Through"
+    >
+      <HighlighterIcon weight="bold" />
+    </ActionIcon>
+  );
+}
+
 export function UnderlineButton({ editor }: OptionProps) {
   const makeUnderline = () => editor?.chain().focus().toggleUnderline().run();
 
@@ -228,42 +250,6 @@ export function UnderlineButton({ editor }: OptionProps) {
       title="Toggle Underline"
     >
       <TextUnderlineIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function ParagraphButton({ editor }: OptionProps) {
-  const toggleParagraph = () => editor?.chain().focus().setParagraph().run();
-
-  const isActive = !!editor?.isActive("paragraph");
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive })}
-      onClick={toggleParagraph}
-      title="Toggle Paragraph"
-    >
-      P
-    </ActionIcon>
-  );
-}
-
-interface HeadingProps extends OptionProps {
-  level: 1 | 2 | 3;
-}
-export function HeadingButton({ editor, level }: HeadingProps) {
-  const toggleHeading = () =>
-    editor?.chain().focus().toggleHeading({ level }).run();
-
-  const isActive = !!editor?.isActive("heading", { level });
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive })}
-      onClick={toggleHeading}
-      title="Toggle Heading"
-    >
-      H{level}
     </ActionIcon>
   );
 }
@@ -282,261 +268,6 @@ export function BlockquoteButton({ editor }: OptionProps) {
     >
       <QuotesIcon weight="bold" />
     </ActionIcon>
-  );
-}
-
-export function ExportAsHTMLButton({ editor }: OptionProps) {
-  const exportAsHTML = () => {
-    const html = editor?.getHTML();
-    if (!html) {
-      return;
-    }
-
-    // Parse the HTML string into a DOM structure
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-
-    // Function to recursively remove unwanted attributes
-    const cleanNode = (node: HTMLElement) => {
-      node.removeAttribute("class");
-      node.removeAttribute("style");
-      Array.from(node.children).forEach((child) =>
-        cleanNode(child as HTMLElement),
-      );
-    };
-
-    // Clean the body of the parsed document
-    cleanNode(doc.body);
-
-    // Serialize the cleaned DOM back into an HTML string
-    const cleanedHTML = doc.body.innerHTML;
-
-    // Create a Blob from the cleaned HTML string and trigger the download
-    const blob = new Blob([cleanedHTML], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "export.html";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive: false })}
-      onClick={exportAsHTML}
-      title="Export as HTML"
-    >
-      <DownloadIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function CopyAsHTMLButton({ editor }: OptionProps) {
-  const copyAsHTML = () => {
-    const html = editor?.getHTML();
-    if (!html) {
-      return;
-    }
-
-    // Parse the HTML string into a DOM structure
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-
-    // Function to recursively remove unwanted attributes
-    const cleanNode = (node: HTMLElement) => {
-      node.removeAttribute("class");
-      node.removeAttribute("style");
-      Array.from(node.children).forEach((child) =>
-        cleanNode(child as HTMLElement),
-      );
-    };
-
-    // Clean the body of the parsed document
-    cleanNode(doc.body);
-
-    // Serialize the cleaned DOM back into an HTML string
-    const cleanedHTML = doc.body.innerHTML;
-
-    // Copy the cleaned HTML to the clipboard
-    navigator.clipboard
-      .writeText(cleanedHTML)
-      .then(() => {
-        showNotification({
-          title: "Success",
-          message: "HTML copied to clipboard",
-        });
-      })
-      .catch(() => {
-        showNotification({
-          title: "Error",
-          message: "Failed to copy HTML to clipboard",
-          color: "red",
-        });
-      });
-  };
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive: false })}
-      onClick={copyAsHTML}
-      title="Copy as HTML"
-    >
-      <BracketsAngleIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function CodeBlockButton({ editor }: OptionProps) {
-  const isCode = !!editor?.isActive("codeBlock");
-
-  const toggleCode = () => {
-    editor?.chain().focus().toggleCodeBlock().run();
-  };
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive: isCode })}
-      onClick={() => toggleCode()}
-      title="Toggle Code Block"
-    >
-      <CodeIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function CodeInlineButton({ editor }: OptionProps) {
-  const isCode = !!editor?.isActive("code");
-
-  const toggleCode = () => {
-    if (isCode) {
-      editor?.chain().focus().unsetCode().run();
-    } else {
-      editor?.chain().focus().setCode().run();
-    }
-  };
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive: isCode })}
-      onClick={() => toggleCode()}
-      title="Toggle Code"
-    >
-      <CodeSimpleIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function MathInlineButton({ editor }: OptionProps) {
-  if (!editor) {
-    return null;
-  }
-
-  const isMathInline = !!editor.isActive("math-inline");
-
-  const handleMathClick = () => {
-    if (isMathInline) {
-      // If the cursor is in a math node, delete it as per the docs.
-      // This will remove the node entirely.
-      editor.chain().focus().deleteInlineMath().run();
-    } else {
-      // Get the currently selected text.
-      const { from, to } = editor.state.selection;
-      const selectedText = editor.state.doc.textBetween(from, to);
-
-      // Insert an inline math node, using the selected text as the latex.
-      // If no text is selected, it inserts an empty math node to be filled out.
-      editor
-        .chain()
-        .focus()
-        .deleteSelection()
-        .insertInlineMath({ latex: selectedText })
-        .run();
-    }
-  };
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive: isMathInline })}
-      onClick={handleMathClick}
-      title={isMathInline ? "Delete Inline Math" : "Create Inline Math"}
-    >
-      <FunctionIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function MathBlockButton({ editor }: OptionProps) {
-  if (!editor) {
-    return null;
-  }
-
-  const isMathBlock = !!editor.isActive("math-display");
-
-  const handleMathClick = () => {
-    if (isMathBlock) {
-      // If inside a math block, delete it.
-      editor.chain().focus().deleteBlockMath().run();
-    } else {
-      // Use the selected text for the new math block.
-      const { from, to } = editor.state.selection;
-      const selectedText = editor.state.doc.textBetween(from, to);
-
-      // This command replaces the current selection with a math block.
-      editor
-        .chain()
-        .focus()
-        .deleteSelection()
-        .insertBlockMath({ latex: selectedText })
-        .run();
-    }
-  };
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive: isMathBlock })}
-      onClick={handleMathClick}
-      title={isMathBlock ? "Delete Math Block" : "Create Math Block"}
-    >
-      <MathOperationsIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function ExtraButton({
-  editor,
-  children,
-}: OptionProps & {
-  children: React.ReactNode;
-}) {
-  // just a bunch of buttons in a dropdown
-  const [opened, setOpened] = useState(false);
-
-  return (
-    <div>
-      <Popover opened={opened} onClose={() => setOpened(false)}>
-        <Popover.Target>
-          <ActionIcon
-            {...getButtonProps({ isActive: false })}
-            title="Extra"
-            onClick={() => setOpened(!opened)}
-          >
-            {opened ? (
-              <XIcon weight="bold" />
-            ) : (
-              <DotsThreeVerticalIcon weight="bold" />
-            )}
-          </ActionIcon>
-        </Popover.Target>
-        <Popover.Dropdown>
-          <Flex direction="row" gap="sm">
-            {children}
-          </Flex>
-        </Popover.Dropdown>
-      </Popover>
-    </div>
   );
 }
 
@@ -631,95 +362,6 @@ export function LinkButton({ editor }: OptionProps) {
   );
 }
 
-export function TaskListButton({ editor }: OptionProps) {
-  // This check correctly reflects if the context is a task list
-  const isActive = !!editor?.isActive("taskList");
-
-  // This command works correctly on paragraphs, bullet lists,
-  // ordered lists, and existing task lists.
-  const toggleTaskList = () => {
-    editor?.chain().focus().toggleTaskList().run();
-  };
-
-  const isDisabled = !editor;
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive })}
-      onClick={toggleTaskList}
-      title="Toggle Task List"
-      disabled={isDisabled}
-    >
-      <ListChecksIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function TaskItemButton({ editor }: OptionProps) {
-  const isActive = !!editor?.isActive("taskList");
-
-  const toggleTask = () => {
-    editor?.chain().focus().toggleTaskList().run();
-  };
-
-  const isDisabled = !editor;
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive })}
-      onClick={toggleTask}
-      title="Toggle Task"
-      disabled={isDisabled}
-    >
-      <CheckSquareIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function OrderedListButton({ editor }: OptionProps) {
-  const isActive = !!editor?.isActive("orderedList");
-
-  const toggleOrderedList = () => {
-    editor?.chain().focus().toggleOrderedList().run();
-  };
-
-  const isDisabled = !editor;
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive })}
-      onClick={toggleOrderedList}
-      title="Toggle Ordered List"
-      disabled={isDisabled}
-    >
-      <ListNumbersIcon weight="bold" />
-    </ActionIcon>
-  );
-}
-
-export function BulletListButton({ editor }: OptionProps) {
-  const isActive = !!editor?.isActive("bulletList");
-
-  // Function to toggle the bullet list format
-  const toggleBulletList = () => {
-    editor?.chain().focus().toggleBulletList().run();
-  };
-
-  // Disable button if the editor instance is not available
-  const isDisabled = !editor;
-
-  return (
-    <ActionIcon
-      {...getButtonProps({ isActive })}
-      onClick={toggleBulletList}
-      title="Toggle Bullet List"
-      disabled={isDisabled}
-    >
-      <ListBulletsIcon weight="bold" /> {/* Icon for bullet list */}
-    </ActionIcon>
-  );
-}
-
 export function HeadingMenuButton({ editor }: OptionProps) {
   if (!editor) return null;
 
@@ -728,21 +370,25 @@ export function HeadingMenuButton({ editor }: OptionProps) {
       name: "Paragraph",
       action: () => editor.chain().focus().setParagraph().run(),
       isActive: editor.isActive("paragraph"),
+      icon: <ParagraphIcon weight="bold" />,
     },
     {
       name: "Heading 1",
       action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
       isActive: editor.isActive("heading", { level: 1 }),
+      icon: <TextHOneIcon weight="bold" />,
     },
     {
       name: "Heading 2",
       action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
       isActive: editor.isActive("heading", { level: 2 }),
+      icon: <TextHTwoIcon weight="bold" />,
     },
     {
       name: "Heading 3",
       action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
       isActive: editor.isActive("heading", { level: 3 }),
+      icon: <TextHThreeIcon weight="bold" />,
     },
   ];
 
@@ -754,10 +400,12 @@ export function HeadingMenuButton({ editor }: OptionProps) {
         <Button
           size="xs"
           {...getButtonProps({ isActive: false })}
-          title="Change style"
-          rightSection={<CaretDownIcon weight="bold" />}
+          title={`Change ${currentlyActive?.name || "style"}`}
+          rightSection={
+            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
+          }
         >
-          {currentlyActive?.name || "Text Styles"}
+          {currentlyActive?.icon || <TextTIcon />}
         </Button>
       </Menu.Target>
 
@@ -768,6 +416,7 @@ export function HeadingMenuButton({ editor }: OptionProps) {
             key={item.name}
             onClick={item.action}
             rightSection={item.isActive ? <CheckIcon weight="bold" /> : null}
+            leftSection={item.icon}
           >
             {item.name}
           </Menu.Item>
@@ -810,10 +459,11 @@ export function ListMenuButton({ editor }: OptionProps) {
           size="xs"
           {...getButtonProps({ isActive: false })}
           title="Change list type"
-          rightSection={<CaretDownIcon weight="bold" />}
-          leftSection={<ListIcon weight="bold" />}
+          rightSection={
+            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
+          }
         >
-          {currentlyActive?.name || "List"}
+          {currentlyActive?.icon || <ListIcon weight="bold" />}
         </Button>
       </Menu.Target>
 
@@ -861,15 +511,106 @@ export function CodeMenuButton({ editor }: OptionProps) {
           size="xs"
           {...getButtonProps({ isActive: false })}
           title="Code options"
-          rightSection={<CaretDownIcon weight="bold" />}
-          leftSection={<CodeSimpleIcon weight="bold" />}
+          rightSection={
+            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
+          }
         >
-          {currentlyActive?.name || "Code"}
+          {currentlyActive?.icon || <CodeSimpleIcon weight="bold" />}
         </Button>
       </Menu.Target>
 
       <Menu.Dropdown>
         <Menu.Label>Code Options</Menu.Label>
+        {menuItems.map((item) => (
+          <Menu.Item
+            key={item.name}
+            leftSection={item.icon}
+            onClick={item.action}
+            rightSection={item.isActive ? <CheckIcon weight="bold" /> : null}
+          >
+            {item.name}
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
+  );
+}
+
+export function MathMenuButton({ editor }: OptionProps) {
+  if (!editor) return null;
+  const isMathInline = !!editor.isActive("math-inline");
+  const isMathBlock = !!editor.isActive("math-display");
+  const handleMathInlineClick = () => {
+    if (isMathInline) {
+      // If inside a math inline, delete it.
+      editor.chain().focus().deleteInlineMath().run();
+    } else {
+      // Use the selected text for the new math inline.
+      const { from, to } = editor.state.selection;
+      const selectedText = editor.state.doc.textBetween(from, to);
+
+      // This command replaces the current selection with a math inline.
+      editor
+        .chain()
+        .focus()
+        .deleteSelection()
+        .insertInlineMath({ latex: selectedText })
+        .run();
+    }
+  };
+  const handleMathBlockClick = () => {
+    if (isMathBlock) {
+      // If inside a math block, delete it.
+      editor.chain().focus().deleteBlockMath().run();
+    } else {
+      // Use the selected text for the new math block.
+      const { from, to } = editor.state.selection;
+      const selectedText = editor.state.doc.textBetween(from, to);
+
+      // This command replaces the current selection with a math block.
+      editor
+        .chain()
+        .focus()
+        .deleteSelection()
+        .insertBlockMath({ latex: selectedText })
+        .run();
+    }
+  };
+
+  const menuItems = [
+    {
+      name: "Inline",
+      icon: <FunctionIcon weight="bold" />,
+      action: () => handleMathInlineClick(),
+      isActive: editor.isActive("math-inline"),
+    },
+    {
+      name: "Block",
+      icon: <MathOperationsIcon weight="bold" />,
+      action: handleMathBlockClick,
+      isActive: editor.isActive("math-display"),
+    },
+  ];
+
+  const currentlyActive = menuItems.find((item) => item.isActive);
+
+  return (
+    <Menu shadow="md" withArrow position="bottom-start">
+      <Menu.Target>
+        <Button
+          size="xs"
+          {...getButtonProps({ isActive: false })}
+          title="Math options"
+          rightSection={
+            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
+          }
+        >
+          {currentlyActive?.icon || <MathOperationsIcon weight="bold" />}
+        </Button>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Label>Math Options</Menu.Label>
         {menuItems.map((item) => (
           <Menu.Item
             key={item.name}
@@ -1053,6 +794,12 @@ export function ConnectIdea({ editor }: OptionProps) {
     clearResults();
   };
 
+  useEffect(() => {
+    return () => {
+      close();
+    };
+  }, []);
+
   return (
     <Popover
       opened={opened}
@@ -1163,5 +910,35 @@ export function TaskButton({ editor }: OptionProps) {
     <ActionIcon {...getButtonProps({ isActive: false })} onClick={handleOpen}>
       <CheckIcon weight="bold" />
     </ActionIcon>
+  );
+}
+
+export function MagicMenuButton({ editor }: OptionProps) {
+  if (!editor) return null;
+
+  return (
+    <Popover
+      shadow="md"
+      withArrow
+      position="bottom-start"
+      closeOnClickOutside={false}
+    >
+      <Popover.Target>
+        <ActionIcon
+          {...getButtonProps({ isActive: false })}
+          title="Magic features"
+        >
+          <MagicWandIcon />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Group gap="xs">
+          <NewIdea editor={editor} />
+          <ConnectIdea editor={editor} />
+          <SpyglassButton editor={editor} />
+          <TaskButton editor={editor} />
+        </Group>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

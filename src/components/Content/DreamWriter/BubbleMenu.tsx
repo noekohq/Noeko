@@ -17,19 +17,23 @@ import {
   CutButton,
   PasteButton,
   SelectAllButton,
-  MathInlineButton,
-  MathBlockButton,
+  MathMenuButton,
   HeadingMenuButton,
   ListMenuButton,
   SpyglassButton,
   TaskButton,
+  MagicMenuButton,
+  HighlightButton,
 } from "./Options";
 import { DreamImageMenu } from "./nodes/DreamImage";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
   const isImage = editor?.isActive("dreamImage");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
   const hidden = isImage;
+
+  const { isMobile } = useLayout();
 
   if (!editor) {
     return null;
@@ -55,33 +59,33 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
     >
       {!hidden && (
         <>
+          {isMobile && (
+            <div className={styles.row}>
+              <div className={styles.buttonGroup}>
+                <CopySelectionButton editor={editor} />
+                <CutButton editor={editor} />
+                <PasteButton editor={editor} />
+                <SelectAllButton editor={editor} />
+              </div>
+              <div className={styles.buttonGroup}>
+                <MagicMenuButton editor={editor} />
+              </div>
+            </div>
+          )}
           <div className={styles.row}>
+            {!isMobile && (
+              <div className={styles.buttonGroup}>
+                <MagicMenuButton editor={editor} />
+              </div>
+            )}
             <div className={styles.buttonGroup}>
               <BoldButton editor={editor} />
               <ItalicButton editor={editor} />
               <UnderlineButton editor={editor} />
               <StrikeThroughButton editor={editor} />
-            </div>
-            <div className={styles.buttonGroup}>
-              <CopySelectionButton editor={editor} />
-              <CutButton editor={editor} />
-              <PasteButton editor={editor} />
-              <SelectAllButton editor={editor} />
-            </div>
-          </div>
-
-          <div className={styles.row}>
-            <div className={styles.buttonGroup}>
-              <NewIdea editor={editor} />
-              <ConnectIdea editor={editor} />
-              <SpyglassButton editor={editor} />
-              <TaskButton editor={editor} />
-            </div>
-            <div className={styles.buttonGroup}>
               <LinkButton editor={editor} />
               <BlockquoteButton editor={editor} />
-              <MathInlineButton editor={editor} />
-              <MathBlockButton editor={editor} />
+              <HighlightButton editor={editor} />
             </div>
           </div>
 
@@ -90,6 +94,7 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
               <HeadingMenuButton editor={editor} />
               <ListMenuButton editor={editor} />
               <CodeMenuButton editor={editor} />
+              <MathMenuButton editor={editor} />
             </div>
           </div>
         </>
