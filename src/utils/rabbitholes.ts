@@ -1,6 +1,14 @@
 import { showNotification } from "@mantine/notifications";
-import { IRabbithole } from "../../app/database/models/rabbithole";
+import {
+  IRabbithole,
+  IRabbitholeIncludes,
+} from "../../app/database/models/rabbithole";
 import { api } from "../server/api";
+import { ISafeIdea } from "../../app/database/models/ideas";
+import { ITag } from "../../app/database/models/tag";
+import { ITask } from "../../app/database/models/task";
+import { getNodeDescription } from "./graph";
+import { IUserFile } from "../../app/database/models/userfile";
 
 export const newRabbithole = async () => {
   try {
@@ -102,5 +110,46 @@ export const deleteRabbithole = async (rabbitholeId: string) => {
       });
   } catch (error) {
     console.error("Error creating idea connection: ", error);
+  }
+};
+
+export const getRabbitholeThingName = (thing: IRabbitholeIncludes) => {
+  if (thing.id.toString().startsWith("idea")) {
+    const idea = thing as ISafeIdea;
+    return idea.title;
+  }
+  if (thing.id.toString().startsWith("tag")) {
+    const tag = thing as ITag;
+    return tag.name;
+  }
+  if (thing.id.toString().startsWith("task")) {
+    const task = thing as ITask;
+    return task.description;
+  }
+  if (thing.id.toString().startsWith("user_file")) {
+    const file = thing as IUserFile;
+    return file.originalFileName;
+  }
+};
+
+export const getRabbitholeThingDescription = (thing: IRabbitholeIncludes) => {
+  if (thing.id.toString().startsWith("idea")) {
+    const idea = thing as ISafeIdea;
+    return getNodeDescription({
+      ...idea,
+      type: "idea",
+    });
+  }
+  if (thing.id.toString().startsWith("tag")) {
+    const tag = thing as ITag;
+    return tag.description;
+  }
+  if (thing.id.toString().startsWith("task")) {
+    const task = thing as ITask;
+    return task.description;
+  }
+  if (thing.id.toString().startsWith("user_file")) {
+    const file = thing as IUserFile;
+    return file.originalFileName;
   }
 };

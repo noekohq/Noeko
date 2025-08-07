@@ -2,7 +2,10 @@ import { DoorOpenIcon, IconProps } from "@phosphor-icons/react";
 import { ITag } from "../../../../app/database/models/tag";
 import { IIdea } from "../Ideas/IdeaCardTypes";
 import IdeaCard from "../Ideas/Interactions/IdeaCard";
-import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import {
+  IRabbithole,
+  IRabbitholeIncludes,
+} from "../../../../app/database/models/rabbithole";
 import TagCard from "../Tags/TagCard";
 import TaskCard from "../Tasks/TaskCard";
 import { ITask } from "../../../../app/database/models/task";
@@ -28,7 +31,7 @@ interface IRabbitholeThingAction {
 }
 
 interface IRabbitholeThingProps {
-  thing: IIdea | ITag | ITask;
+  thing: IRabbitholeIncludes;
   rabbithole: IRabbithole;
   handleRemove?: (thingId: string) => void;
   actions?: IRabbitholeThingAction[];
@@ -57,7 +60,7 @@ export default function RabbitholeThing({
                     handleRemove(thing.id.toString());
                   },
                   tooltip: `Uninclude ${idea?.title} from ${rabbithole?.name}`,
-                  color: "gray",
+                  color: "dark.1",
                 },
               ]
             : []),

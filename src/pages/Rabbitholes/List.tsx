@@ -6,6 +6,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  TextInput,
   Title,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -15,10 +16,15 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import { PlusIcon, RabbitIcon } from "@phosphor-icons/react";
 import useFetch from "../../hooks/useFetch";
 import { IRabbithole } from "../../../app/database/models/rabbithole";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useInteraction } from "../../contexts/InteractionContext";
 import RabbitholeCard from "../../components/Display/Rabbitholes/RabbitholeCard";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import { getNodeTitle } from "../../utils/graph";
+import {
+  getRabbitholeThingDescription,
+  getRabbitholeThingName,
+} from "../../utils/rabbitholes";
 
 export default function Rabbitholes() {
   const { load: loadRabbitholes, data: rabbitholes } = useFetch<
@@ -35,6 +41,25 @@ export default function Rabbitholes() {
   const {
     actions: { newRabbithole },
   } = useInteraction();
+
+  const [filterQuery, setFilterQuery] = useState(""); // State for filter query
+  const filteredRabbitholes = useMemo(() => {
+    if (!rabbitholes) return [];
+    if (!filterQuery.trim()) return rabbitholes;
+
+    const query = filterQuery.toLowerCase();
+    return rabbitholes.filter(
+      (rabbithole) =>
+        rabbithole.name.toLowerCase().includes(query) ||
+        rabbithole.includes?.find((thing) => {
+          const name = getRabbitholeThingName(thing);
+          const hasName = !!name?.toLowerCase().includes(query);
+          const description = getRabbitholeThingDescription(thing);
+          const hasDescription = !!description?.toLowerCase().includes(query);
+          return hasName || hasDescription;
+        }),
+    );
+  }, [rabbitholes, filterQuery]);
 
   return (
     <PageWrapper>
@@ -56,6 +81,13 @@ export default function Rabbitholes() {
               </ActionIcon>
             </Group>
           </Group>
+          <TextInput
+            placeholder="Filter rabbitholes..."
+            value={filterQuery}
+            onChange={(event) => setFilterQuery(event.currentTarget.value)}
+            mb="md" // Added margin bottom for spacing
+            radius="md"
+          />
           {!rabbitholes?.length && (
             <>
               <Text c="gray" size="sm">
@@ -74,14 +106,14 @@ export default function Rabbitholes() {
               </Group>
             </>
           )}
-          {!!rabbitholes?.length && (
+          {!!filteredRabbitholes?.length && (
             <SimpleGrid
               cols={{
                 sm: 1,
                 md: 2,
               }}
             >
-              {rabbitholes.map((rabbithole) => {
+              {filteredRabbitholes.map((rabbithole) => {
                 return (
                   <RabbitholeCard
                     key={rabbithole.id.toString()}

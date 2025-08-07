@@ -41,7 +41,7 @@ import {
 } from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "@mantine/form";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
@@ -49,6 +49,7 @@ import { useLayout } from "../../contexts/LayoutContext";
 import { useInteraction } from "../../contexts/InteractionContext";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
+import { getNodeDescription } from "../../utils/graph";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -314,6 +315,24 @@ export default function ViewTag() {
     },
   } = useLayout();
 
+  const [filterQuery, setFilterQuery] = useState(""); // State for filter query
+  const filteredIdeas = useMemo(() => {
+    if (!ideas) return [];
+    if (!filterQuery.trim()) return ideas;
+
+    const query = filterQuery.toLowerCase();
+    return ideas.filter((idea) => {
+      const name = idea.title;
+      const hasName = !!name?.toLowerCase().includes(query);
+      const description = getNodeDescription({
+        ...idea,
+        type: "idea",
+      });
+      const hasDescription = !!description?.toLowerCase().includes(query);
+      return hasName || hasDescription;
+    });
+  }, [ideas, filterQuery]);
+
   return (
     <PageWrapper>
       <Modal
@@ -545,6 +564,15 @@ export default function ViewTag() {
                   </Title>
                   {loadingIdeas && <Loader size="md" />}
                 </Group>
+                <TextInput
+                  placeholder="Filter ideas..."
+                  value={filterQuery}
+                  onChange={(event) =>
+                    setFilterQuery(event.currentTarget.value)
+                  }
+                  mb="md" // Added margin bottom for spacing
+                  radius="md"
+                />
                 {ideaErrors && ideaErrors.length > 0 && (
                   <Alert
                     icon={<WarningCircleIcon size={24} />} // Updated icon
@@ -555,9 +583,9 @@ export default function ViewTag() {
                     Failed to load ideas for this tag: {ideaErrors.join(", ")}
                   </Alert>
                 )}
-                {ideas && ideas.length > 0 ? (
+                {filteredIdeas && filteredIdeas.length > 0 ? (
                   <SimpleGrid cols={2} spacing="lg">
-                    {ideas.map((idea) => (
+                    {filteredIdeas.map((idea) => (
                       <IdeaCard
                         idea={idea}
                         key={idea.id.toString()}
@@ -571,6 +599,7 @@ export default function ViewTag() {
                               handleRemoveTag(idea);
                             },
                             tooltip: `Remove tag ${tag.name} from ${idea.title}`,
+                            color: "dark.1",
                           },
                         ]}
                       />
