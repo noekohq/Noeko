@@ -46,6 +46,7 @@ import { updateTask } from "../../utils/tasks";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
+import Search from "../../components/Search/Search";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -141,10 +142,6 @@ export default function Task() {
       label: "4hrs",
       value: Duration.hours(4).toString(),
     },
-    {
-      label: "8hrs",
-      value: Duration.hours(8).toString(),
-    },
   ];
 
   useEffect(() => {
@@ -228,7 +225,135 @@ export default function Task() {
 
   return (
     <PageWrapper>
-      <LeftSidebar></LeftSidebar>
+      <LeftSidebar>
+        <LeftSidebar.Open>
+          <Stack>
+            <Stack>
+              <Text size="xs">
+                <Group gap="xs" wrap="nowrap">
+                  <TimerIcon />
+                  How long should this take to complete?
+                </Group>
+              </Text>
+              <Group wrap="nowrap" gap="xs">
+                {timeOptionMode === "options" ? (
+                  <SegmentedControl
+                    data={timePickerOptions}
+                    value={taskForm.values.estimatedTime.toString()}
+                    onChange={(value) => {
+                      handleFieldUpdate("estimatedTime", new Duration(value));
+                    }}
+                    classNames={{ root: styles.suggestions }}
+                    withItemsBorders={false}
+                    size={isMobile ? "xs" : "xs"}
+                    radius="lg"
+                    w="100%"
+                  />
+                ) : (
+                  <TextInput
+                    placeholder={`Example: 2h30m, 90m, or 1d2h.`}
+                    error={taskForm.errors.estimatedTime}
+                    defaultValue={taskForm.values.estimatedTime.toString()}
+                    onChange={(v) => {
+                      try {
+                        const d = new Duration(v.currentTarget.value);
+                        handleFieldUpdate("estimatedTime", d);
+                      } catch (error) {
+                        console.error("Error: ", error);
+                        taskForm.setFieldError(
+                          "estimatedTime",
+                          `Invalid format. Try "2h30m", "90m", or "1.5d".`,
+                        );
+                      }
+                    }}
+                    size="sm"
+                    variant="filled"
+                    errorProps={{
+                      c: "red.4",
+                    }}
+                    radius="lg"
+                    w="100%"
+                  />
+                )}
+                <ActionIcon
+                  onClick={() => {
+                    setTimeOptionMode((prev) => {
+                      if (prev === "manual") {
+                        return "options";
+                      }
+                      return "manual";
+                    });
+                  }}
+                  variant="light"
+                  size="xs"
+                  color="dark.3"
+                >
+                  <ArrowArcRightIcon />
+                </ActionIcon>
+              </Group>
+            </Stack>
+            <Stack>
+              <Text size="xs">
+                <Group gap="xs">
+                  <CalendarCheckIcon />
+                  When should this be done?
+                </Group>
+              </Text>
+
+              <Popover
+                opened={dueDatePopoverOpened}
+                onClose={() => {
+                  setDueDatePopoverOpened(false);
+                }}
+                closeOnClickOutside
+                closeOnEscape
+              >
+                <Popover.Target>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    radius="lg"
+                    fullWidth
+                    onClick={() =>
+                      setDueDatePopoverOpened(!dueDatePopoverOpened)
+                    }
+                  >
+                    {formattedDueDate()}
+                  </Button>
+                </Popover.Target>
+                <Popover.Dropdown
+                  w="300px"
+                  style={{
+                    maxHeight: "400px",
+                    overflowY: "scroll",
+                  }}
+                >
+                  <Stack>
+                    <Text fw="bold" size="sm">
+                      Select Date
+                    </Text>
+                    <DatePicker
+                      styles={{
+                        calendarHeader: {
+                          width: "100%",
+                        },
+                      }}
+                      value={taskForm.values.dueDate}
+                      onChange={(date) => {
+                        if (date) {
+                          const formattedDate = date;
+                          handleFieldUpdate("dueDate", formattedDate);
+                          setDueDatePopoverOpened(false);
+                        }
+                      }}
+                    />
+                  </Stack>
+                </Popover.Dropdown>
+              </Popover>
+            </Stack>
+          </Stack>
+        </LeftSidebar.Open>
+      </LeftSidebar>
       <Content>
         <Stack>
           <Group mb="lg">
@@ -255,217 +380,72 @@ export default function Task() {
           />
           {!!task && (
             <>
-              <Grid>
-                <Grid.Col span={12}>
-                  <Text fw="bold" c="dimmed" size="xs">
-                    <Group gap="xs">
-                      SCRATCHPAD{" "}
-                      {scratchpadSaved ? (
-                        <ActionIcon
-                          size="xs"
-                          variant="subtle"
-                          color="gray"
-                          title="This content is saved."
-                        >
-                          <CloudCheckIcon weight="bold" />
-                        </ActionIcon>
-                      ) : (
-                        <ActionIcon
-                          size="xs"
-                          variant="subtle"
-                          color="gray"
-                          title="This content is saving..."
-                        >
-                          <CloudArrowUpIcon weight="bold" />
-                        </ActionIcon>
-                      )}
-                    </Group>
-                  </Text>
-                  <DreamWriter
-                    initialContent={task.scratchpad}
-                    onBlur={() => {
-                      updateScratchpad();
-                    }}
-                    onChange={(v) => {
-                      setScratchpadContent(v);
-                    }}
-                    readOnly={!task}
-                  />
-                </Grid.Col>
-                <Grid.Col
-                  span={{
-                    sm: 12,
-                    md: 6,
-                  }}
-                >
-                  <Card radius="lg">
-                    <Stack>
-                      <Text size="xs">
-                        <Group gap="xs">
-                          <TimerIcon />
-                          How long should this take to complete?
-                        </Group>
-                      </Text>
-                      <Group wrap="nowrap">
-                        {timeOptionMode === "options" ? (
-                          <SegmentedControl
-                            data={timePickerOptions}
-                            value={taskForm.values.estimatedTime.toString()}
-                            onChange={(value) => {
-                              handleFieldUpdate(
-                                "estimatedTime",
-                                new Duration(value),
-                              );
-                            }}
-                            classNames={{ root: styles.suggestions }}
-                            withItemsBorders={false}
-                            size={isMobile ? "xs" : "sm"}
-                            radius="lg"
-                            w="100%"
-                          />
-                        ) : (
-                          <TextInput
-                            placeholder={`Example: 2h30m, 90m, or 1d2h.`}
-                            error={taskForm.errors.estimatedTime}
-                            defaultValue={taskForm.values.estimatedTime.toString()}
-                            onChange={(v) => {
-                              try {
-                                const d = new Duration(v.currentTarget.value);
-                                handleFieldUpdate("estimatedTime", d);
-                              } catch (error) {
-                                console.error("Error: ", error);
-                                taskForm.setFieldError(
-                                  "estimatedTime",
-                                  `Invalid format. Try "2h30m", "90m", or "1.5d".`,
-                                );
-                              }
-                            }}
-                            size="sm"
-                            variant="filled"
-                            errorProps={{
-                              c: "red.4",
-                            }}
-                            radius="lg"
-                            w="100%"
-                          />
-                        )}
-                        <ActionIcon
-                          onClick={() => {
-                            setTimeOptionMode((prev) => {
-                              if (prev === "manual") {
-                                return "options";
-                              }
-                              return "manual";
-                            });
-                          }}
-                          variant="light"
-                          size="sm"
-                          color="dark.3"
-                        >
-                          <ArrowArcRightIcon />
-                        </ActionIcon>
-                      </Group>
-                    </Stack>
-                  </Card>
-                </Grid.Col>
-                <Grid.Col
-                  span={{
-                    sm: 12,
-                    md: 6,
-                  }}
-                >
-                  <Card radius="lg">
-                    <Stack>
-                      <Text size="xs">
-                        <Group gap="xs">
-                          <CalendarCheckIcon />
-                          When should this be done?
-                        </Group>
-                      </Text>
-
-                      <Popover
-                        opened={dueDatePopoverOpened}
-                        onClose={() => {
-                          setDueDatePopoverOpened(false);
-                        }}
-                        closeOnClickOutside
-                        closeOnEscape
-                      >
-                        <Popover.Target>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            radius="lg"
-                            fullWidth
-                            onClick={() =>
-                              setDueDatePopoverOpened(!dueDatePopoverOpened)
-                            }
-                          >
-                            {formattedDueDate()}
-                          </Button>
-                        </Popover.Target>
-                        <Popover.Dropdown
-                          w="300px"
-                          style={{
-                            maxHeight: "400px",
-                            overflowY: "scroll",
-                          }}
-                        >
-                          <Stack>
-                            <Text fw="bold" size="sm">
-                              Select Date
-                            </Text>
-                            <DatePicker
-                              styles={{
-                                calendarHeader: {
-                                  width: "100%",
-                                },
-                              }}
-                              value={taskForm.values.dueDate}
-                              onChange={(date) => {
-                                if (date) {
-                                  const formattedDate = date;
-                                  handleFieldUpdate("dueDate", formattedDate);
-                                  setDueDatePopoverOpened(false);
-                                }
-                              }}
-                            />
-                          </Stack>
-                        </Popover.Dropdown>
-                      </Popover>
-                    </Stack>
-                  </Card>
-                </Grid.Col>
-                <Grid.Col span={12}>
-                  <Card radius="lg">
-                    <Group>
-                      <Button
-                        radius="lg"
-                        leftSection={
-                          isComplete ? (
-                            <XCircleIcon weight="bold" />
-                          ) : (
-                            <CheckIcon weight="bold" />
-                          )
-                        }
-                        variant={isComplete ? "light" : "filled"}
-                        onClick={() => {
-                          handleMarkTask(!isComplete);
-                        }}
-                        color="gray.9"
-                      >
-                        Mark {isComplete ? "Incomplete" : "Complete"}
-                      </Button>
-                    </Group>
-                  </Card>
-                </Grid.Col>
-              </Grid>
+              <Text fw="bold" c="dimmed" size="xs">
+                <Group gap="xs">
+                  SCRATCHPAD{" "}
+                  {scratchpadSaved ? (
+                    <ActionIcon
+                      size="xs"
+                      variant="subtle"
+                      color="gray"
+                      title="This content is saved."
+                    >
+                      <CloudCheckIcon weight="bold" />
+                    </ActionIcon>
+                  ) : (
+                    <ActionIcon
+                      size="xs"
+                      variant="subtle"
+                      color="gray"
+                      title="This content is saving..."
+                    >
+                      <CloudArrowUpIcon weight="bold" />
+                    </ActionIcon>
+                  )}
+                </Group>
+              </Text>
+              <DreamWriter
+                initialContent={task.scratchpad}
+                onBlur={() => {
+                  updateScratchpad();
+                }}
+                onChange={(v) => {
+                  setScratchpadContent(v);
+                }}
+                readOnly={!task}
+              />
             </>
           )}
         </Stack>
       </Content>
       <StatusBar></StatusBar>
-      <RightSidebar></RightSidebar>
+      <RightSidebar>
+        <RightSidebar.Open>
+          <Stack>
+            <Group>
+              <Button
+                radius="lg"
+                leftSection={
+                  isComplete ? (
+                    <XCircleIcon weight="bold" />
+                  ) : (
+                    <CheckIcon weight="bold" />
+                  )
+                }
+                variant={isComplete ? "light" : "filled"}
+                onClick={() => {
+                  handleMarkTask(!isComplete);
+                }}
+                color="gray.9"
+                fullWidth
+              >
+                Mark {isComplete ? "Incomplete" : "Complete"}
+              </Button>
+            </Group>
+            <Search />
+          </Stack>
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }
