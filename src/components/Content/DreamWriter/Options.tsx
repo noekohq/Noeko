@@ -537,7 +537,6 @@ export function MathMenuButton({ editor }: OptionProps) {
     const selection = editor.state.selection as NodeSelection;
     if (isMathInline) {
       let replaceText = "";
-      console.log("Selection: ", selection);
       if ("node" in selection) {
         replaceText = selection.node.attrs.latex;
       }
