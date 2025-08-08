@@ -34,7 +34,15 @@ import { CheckIcon, TrashSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
 
-export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
+interface IBubbleMenuProps {
+  editor: IEditor | null;
+  onVisibilityChange?: (isVisible: boolean) => void;
+}
+
+export default function BubbleMenu({
+  editor,
+  onVisibilityChange,
+}: IBubbleMenuProps) {
   const isImage = editor?.isActive("dreamImage");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
   const isInlineMath = editor?.isActive("inlineMath");
@@ -43,6 +51,21 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
   const hidden = isImage;
 
   const { isMobile } = useLayout();
+
+  const shouldShowHandler = ({
+    editor: currentEditor,
+    from,
+    to,
+  }: any): boolean => {
+    const { selection } = currentEditor.state;
+    const isTextSelected = from !== to;
+
+    const shouldBeVisible = isTextSelected && selection.content().size > 0;
+
+    onVisibilityChange?.(shouldBeVisible);
+
+    return shouldBeVisible;
+  };
 
   if (!editor) {
     return null;
@@ -54,6 +77,7 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
         editor={editor}
         className={styles.bubbleMenu}
         tippyOptions={{ duration: 100, placement: "bottom" }}
+        shouldShow={shouldShowHandler}
       >
         <DreamImageMenu editor={editor} />
       </TippyBubbleMenu>
@@ -65,6 +89,7 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
         editor={editor}
         className={styles.bubbleMenu}
         tippyOptions={{ duration: 100, placement: "bottom" }}
+        shouldShow={shouldShowHandler}
       >
         <InlineMathMenu editor={editor} />
       </TippyBubbleMenu>
@@ -76,6 +101,7 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
         editor={editor}
         className={styles.bubbleMenu}
         tippyOptions={{ duration: 100, placement: "bottom" }}
+        shouldShow={shouldShowHandler}
       >
         <BlockMathMenu editor={editor} />
       </TippyBubbleMenu>
@@ -87,6 +113,7 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
         editor={editor}
         className={styles.bubbleMenu}
         tippyOptions={{ duration: 100, placement: "bottom" }}
+        shouldShow={shouldShowHandler}
       >
         <DreamYouTubeMenu editor={editor} />
       </TippyBubbleMenu>
@@ -98,6 +125,7 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
       editor={editor}
       className={styles.bubbleMenu}
       tippyOptions={{ duration: 100, placement: "bottom" }}
+      shouldShow={shouldShowHandler}
     >
       {!hidden && (
         <>
