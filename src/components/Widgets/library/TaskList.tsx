@@ -136,7 +136,7 @@ export default function TaskList() {
                   key={task.id.toString()}
                   task={task}
                   onMark={() => {
-                    getDailyTasks();
+                    getTasks();
                   }}
                 />
               );
@@ -148,7 +148,7 @@ export default function TaskList() {
                   key={task.id.toString()}
                   task={task}
                   onMark={() => {
-                    getDailyTasks();
+                    getTasks();
                   }}
                 />
               );

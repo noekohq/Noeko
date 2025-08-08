@@ -7,6 +7,7 @@ import {
   Loader,
   Group,
   Switch,
+  ActionIcon,
 } from "@mantine/core";
 import { useInView } from "react-intersection-observer";
 import dayjs from "dayjs";
@@ -21,6 +22,8 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import Content from "../../components/UI/Layout/Content";
+import { useInteraction } from "../../contexts/InteractionContext";
+import { PlusIcon } from "@phosphor-icons/react";
 
 dayjs.extend(weekOfYear);
 
@@ -117,6 +120,10 @@ export default function TaskTimelineView() {
   let lastRenderedMonth = "";
   let lastRenderedYear = "";
 
+  const {
+    actions: { newTask },
+  } = useInteraction();
+
   return (
     <PageWrapper>
       <LeftSidebar></LeftSidebar>
@@ -124,7 +131,20 @@ export default function TaskTimelineView() {
         <div className={styles.tasks}>
           <Stack gap="xl">
             <Group justify="space-between">
-              <Title order={1}>Your Agenda</Title>
+              <Title order={1}>
+                <Group gap="lg">
+                  Your Agenda
+                  <ActionIcon
+                    variant="light"
+                    color="gray"
+                    onClick={() => {
+                      newTask();
+                    }}
+                  >
+                    <PlusIcon weight="bold" />
+                  </ActionIcon>
+                </Group>
+              </Title>
             </Group>
 
             {undatedTasks.length > 0 && (
@@ -171,11 +191,11 @@ export default function TaskTimelineView() {
                     </Title>
                   )}
                   {showMonthHeader && <Title order={3}>{currentMonth}</Title>}
-                  {showWeekHeader && (
+                  {/*{showWeekHeader && (
                     <Title order={5} c="dimmed">
                       {currentWeek}
                     </Title>
-                  )}
+                  )}*/}
                   <Paper withBorder shadow="none" p="md" radius="md">
                     <Text fw={700}>{date.format("dddd, MMMM D")}</Text>
                     <Stack mt="sm">
