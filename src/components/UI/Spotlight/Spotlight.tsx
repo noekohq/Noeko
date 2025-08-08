@@ -502,6 +502,7 @@ const useSpotlightConfig = ({
       profile,
       tags,
       updates,
+      tasks,
       sharedIdeas,
       admin,
     },
@@ -797,6 +798,15 @@ const useSpotlightConfig = ({
                 icon: <CheckIcon />,
                 action: () => {
                   newTask();
+                  onClose();
+                },
+              },
+              {
+                id: "allTasks",
+                title: "Task List",
+                icon: <CheckIcon />,
+                action: () => {
+                  tasks();
                   onClose();
                 },
               },

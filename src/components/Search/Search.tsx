@@ -18,12 +18,12 @@ import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
 import { Link } from "react-router";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { ISafeIdea } from "../../../app/database/models/ideas";
 import { useAuth } from "../../contexts/AuthContext";
 import IdeaCard, { IIdeaAction } from "../Display/Ideas/Interactions/IdeaCard";
 import useRabbithole from "../../hooks/useRabbithole";
-import { RabbitholeIcon } from "../Utils/Icons/Icons";
+import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
 
 interface ISearchProps {
   resultActions?: ((idea: ISafeIdea) => IIdeaAction)[];
@@ -104,8 +104,12 @@ export default function Search({
             }}
           >
             <Group c="dark.3" gap="xs">
-              <Text size="xs">Open in Spyglass</Text>
-              <ArrowRightIcon size={14} />
+              <Text size="xs">
+                <Group gap="xs">
+                  Open in Spyglass
+                  <SpyglassIcon size={12} color="var(--mantine-color-dark-3)" />
+                </Group>
+              </Text>
             </Group>
           </Link>
         </>
@@ -120,12 +124,14 @@ export default function Search({
                 <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
               )}
               <Text c="dimmed" size="xs">
-                Search{" "}
-                {withinRabbithole ? (
-                  <>"{currentRabbithole?.name}"</>
-                ) : (
-                  "anything..."
-                )}
+                <Group gap="xs">
+                  Search{" "}
+                  {withinRabbithole ? (
+                    <>"{currentRabbithole?.name}"</>
+                  ) : (
+                    "anything..."
+                  )}
+                </Group>
               </Text>
               <Text c="dimmed" size="xs"></Text>
             </Group>

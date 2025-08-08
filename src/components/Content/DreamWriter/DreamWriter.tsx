@@ -16,6 +16,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { Group, Overlay, Text } from "@mantine/core";
+import FloatingMenu from "./FloatingMenu";
 
 interface EditorData {
   comments: [];
@@ -180,7 +181,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             </Group>
           </Overlay>
         )}
-        {/* <FloatingMenu editor={editor} /> */}
+        <FloatingMenu editor={editor} />
         <BubbleMenu
           editor={editor}
           onVisibilityChange={(isVisible) => {

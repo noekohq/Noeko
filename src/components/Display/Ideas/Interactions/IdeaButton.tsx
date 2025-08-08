@@ -10,7 +10,11 @@ import {
 import { IIdea, PhosphorIcon } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
-import { IconProps, ArrowRightIcon } from "@phosphor-icons/react";
+import {
+  IconProps,
+  ArrowRightIcon,
+  LightbulbIcon,
+} from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { getNodeDescription } from "../../../../utils/graph";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
@@ -95,7 +99,10 @@ function IdeaButton({
         >
           <Group justify="space-between" wrap="nowrap" w="100%">
             <Text className={styles.title} c="dark.1" size="sm" truncate="end">
-              {idea.title}
+              <Group gap="xs" wrap="nowrap">
+                <LightbulbIcon color="var(--mantine-color-dimmed)" />
+                {idea.title}
+              </Group>
             </Text>
             {hovering && (
               <Group>

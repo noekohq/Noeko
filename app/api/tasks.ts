@@ -33,6 +33,33 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/range", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { startDate, endDate } = req.query as {
+      startDate: string;
+      endDate: string;
+    };
+    const tasks = await Task.getForDateRange(user.id, startDate, endDate);
+
+    res.send({
+      message: "Tasks retrieved successfully",
+      data: tasks,
+    });
+  } catch (error) {
+    console.error("Error getting tasks from range: ", error);
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
 router.get("/daily", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -43,7 +70,6 @@ router.get("/daily", async (req, res) => {
       return;
     }
     const { date } = req.query as { date: string };
-    console.log("Getting daily tasks for date: ", date);
     const tasks = await Task.getForDate(user.id, date);
 
     res.send({
@@ -164,11 +190,6 @@ router.put("/:taskId", async (req, res) => {
       updater.scratchpad = scratchpad;
     }
     if (estimatedTime !== undefined) {
-      console.log(
-        "Setting estimated time to: ",
-        estimatedTime,
-        new Duration(estimatedTime).toString(),
-      );
       updater.estimatedTime = new Duration(estimatedTime);
     }
     if (dueDate !== undefined) {

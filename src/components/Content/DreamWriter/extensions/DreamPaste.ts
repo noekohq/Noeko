@@ -42,8 +42,6 @@ export const DreamPaste = Extension.create({
                 return false;
               }
 
-              event.preventDefault();
-
               const embedUrl = `https://www.youtube.com/embed/${videoId}`;
               const node = nodeType.create({ src: embedUrl });
 

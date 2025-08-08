@@ -33,6 +33,7 @@ import {
   CursorTextIcon,
   EyeIcon,
   MarkdownLogoIcon,
+  ShareNetworkIcon,
   SparkleIcon,
   StarIcon,
   TagIcon,
@@ -488,7 +489,16 @@ export default function Idea() {
               </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="context">
-              <Card radius="md" withBorder shadow="xs" p="md">
+              <Card
+                radius="lg"
+                p={"sm"}
+                styles={{
+                  root: {
+                    backgroundColor: "var(--mantine-color-dark-8) !important",
+                    border: "1px solid var(--mantine-color-dark-7)",
+                  },
+                }}
+              >
                 <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
                   The Gist
                 </Text>
@@ -644,103 +654,118 @@ export default function Idea() {
               </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="tools">
-              <Flex gap="sm" justify="flex-start">
-                <Tooltip label="Delete Idea">
-                  <ActionIcon
-                    variant="light"
-                    color="red"
-                    size="sm"
-                    onClick={handleDeleteIdea}
-                    disabled={loadingDelete}
-                  >
-                    {loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Viewonly">
-                  <Link to="view">
-                    <ActionIcon variant="light" size="sm" color="gray">
-                      <BookOpenIcon />
+              <Card
+                radius="lg"
+                p={"xs"}
+                styles={{
+                  root: {
+                    backgroundColor: "var(--mantine-color-dark-8) !important",
+                    border: "1px solid var(--mantine-color-dark-7)",
+                  },
+                }}
+              >
+                <Flex gap="sm" justify="flex-start">
+                  <Tooltip label="Delete Idea">
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      radius="md"
+                      onClick={handleDeleteIdea}
+                      disabled={loadingDelete}
+                    >
+                      {loadingDelete ? (
+                        <Loader size="xs" />
+                      ) : (
+                        <TrashSimpleIcon />
+                      )}
                     </ActionIcon>
-                  </Link>
-                </Tooltip>
-                <Tooltip label="Export as HTML">
-                  <ActionIcon
-                    variant="light"
-                    size="sm"
-                    color="gray"
-                    onClick={downloadAsHTML}
-                  >
-                    <BracketsAngleIcon />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Export as Markdown">
-                  <ActionIcon
-                    variant="light"
-                    size="sm"
-                    color="gray"
-                    onClick={downloadAsMarkdown}
-                  >
-                    <MarkdownLogoIcon />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label="Copy">
-                  <Menu trigger="hover">
-                    <Menu.Target>
-                      <ActionIcon variant="light" size="sm" color="gray">
-                        <CopySimpleIcon />
+                  </Tooltip>
+                  <Tooltip label="Viewonly">
+                    <Link to="view">
+                      <ActionIcon variant="light" radius="md" color="gray">
+                        <BookOpenIcon />
                       </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <CopyButton value={getMarkdownContent()}>
-                        {({ copied, copy }) => {
-                          return (
-                            <Menu.Item
-                              leftSection={
-                                copied ? <CheckIcon /> : <MarkdownLogoIcon />
-                              }
-                              onClick={copy}
-                            >
-                              Copy as Markdown
-                            </Menu.Item>
-                          );
-                        }}
-                      </CopyButton>
-                      {idea?.content && (
-                        <CopyButton value={htmlToPlainText(idea?.content)}>
+                    </Link>
+                  </Tooltip>
+                  <Tooltip label="Export as HTML">
+                    <ActionIcon
+                      variant="light"
+                      radius="md"
+                      color="gray"
+                      onClick={downloadAsHTML}
+                    >
+                      <BracketsAngleIcon />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Export as Markdown">
+                    <ActionIcon
+                      variant="light"
+                      radius="md"
+                      color="gray"
+                      onClick={downloadAsMarkdown}
+                    >
+                      <MarkdownLogoIcon />
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Copy">
+                    <Menu trigger="hover">
+                      <Menu.Target>
+                        <ActionIcon variant="light" radius="md" color="gray">
+                          <CopySimpleIcon />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <CopyButton value={getMarkdownContent()}>
                           {({ copied, copy }) => {
                             return (
                               <Menu.Item
                                 leftSection={
-                                  copied ? <CheckIcon /> : <CursorTextIcon />
+                                  copied ? <CheckIcon /> : <MarkdownLogoIcon />
                                 }
                                 onClick={copy}
                               >
-                                Copy as Text
+                                Copy as Markdown
                               </Menu.Item>
                             );
                           }}
                         </CopyButton>
-                      )}
-                      {idea?.content && (
-                        <CopyButton value={idea?.content}>
-                          {({ copied, copy }) => {
-                            return (
-                              <Menu.Item
-                                leftSection={
-                                  copied ? <CheckIcon /> : <CursorTextIcon />
-                                }
-                                onClick={copy}
-                              >
-                                Copy as HTML
-                              </Menu.Item>
-                            );
-                          }}
-                        </CopyButton>
-                      )}
-                    </Menu.Dropdown>
-                  </Menu>
-                </Tooltip>
-              </Flex>
+                        {idea?.content && (
+                          <CopyButton value={htmlToPlainText(idea?.content)}>
+                            {({ copied, copy }) => {
+                              return (
+                                <Menu.Item
+                                  leftSection={
+                                    copied ? <CheckIcon /> : <CursorTextIcon />
+                                  }
+                                  onClick={copy}
+                                >
+                                  Copy as Text
+                                </Menu.Item>
+                              );
+                            }}
+                          </CopyButton>
+                        )}
+                        {idea?.content && (
+                          <CopyButton value={idea?.content}>
+                            {({ copied, copy }) => {
+                              return (
+                                <Menu.Item
+                                  leftSection={
+                                    copied ? <CheckIcon /> : <CursorTextIcon />
+                                  }
+                                  onClick={copy}
+                                >
+                                  Copy as HTML
+                                </Menu.Item>
+                              );
+                            }}
+                          </CopyButton>
+                        )}
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Tooltip>
+                </Flex>
+              </Card>
               <Space my="lg" />
               <Search
                 resultActions={

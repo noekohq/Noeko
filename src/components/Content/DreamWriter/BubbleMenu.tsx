@@ -48,7 +48,8 @@ export default function BubbleMenu({
   const isInlineMath = editor?.isActive("inlineMath");
   const isBlockMath = editor?.isActive("blockMath");
   const isDreamYouTube = editor?.isActive("dreamYouTube");
-  const hidden = isImage;
+  const isDreamTable = editor?.isActive("dreamTable");
+  const hidden = isDreamTable;
 
   const { isMobile } = useLayout();
 
@@ -57,6 +58,9 @@ export default function BubbleMenu({
     from,
     to,
   }: any): boolean => {
+    if (hidden) {
+      return false;
+    }
     const { selection } = currentEditor.state;
     const isTextSelected = from !== to;
 
@@ -69,6 +73,19 @@ export default function BubbleMenu({
 
   if (!editor) {
     return null;
+  }
+
+  if (isDreamTable) {
+    return (
+      <TippyBubbleMenu
+        editor={editor}
+        className={styles.bubbleMenu}
+        tippyOptions={{ duration: 100, placement: "bottom" }}
+        shouldShow={shouldShowHandler}
+      >
+        <div></div>
+      </TippyBubbleMenu>
+    );
   }
 
   if (isImage) {

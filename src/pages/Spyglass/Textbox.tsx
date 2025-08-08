@@ -141,7 +141,9 @@ export default function Textbox({
           </Group>
           <Group justify="end">
             <ActionIcon
-              variant="subtle"
+              variant="light"
+              radius="md"
+              color="gray"
               onClick={(e) => {
                 e.stopPropagation();
                 send();

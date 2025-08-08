@@ -185,49 +185,49 @@ export default function Connections({
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Stack>
-                <Group align="center">
+                <Group align="center" justify="space-between">
                   <Text size="sm" c="dimmed" fw="bold">
                     <Group gap="xs">
                       <UniteSquareIcon weight="bold" />
                       CONNECTED
                     </Group>
                   </Text>
-                </Group>
-                <Group>
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size={"sm"}
-                    onClick={() => newConnectedIdea(idea.id.toString())}
-                  >
-                    <NotePencilIcon size={14} />
-                  </ActionIcon>
-                  <HoverCard width="400px">
-                    <HoverCard.Target>
-                      <ActionIcon variant="subtle" size="sm" color="gray">
-                        <InfoIcon />
-                      </ActionIcon>
-                    </HoverCard.Target>
-                    <HoverCard.Dropdown>
-                      <Text size="sm" mb="xs">
-                        Explicit connections between ideas are only made by you,
-                        and they are persistent even if the content changes,
-                        unlike similar ideas. You can drag and drop ideas to
-                        this area, or click the associated buttons to make
-                        connections.
-                      </Text>
-                      <Text c="dimmed" size="xs" mb="xs">
-                        Click the <NotePencilIcon /> button to create a new
-                        connected note.
-                      </Text>
-                      {connections && connections?.length <= 0 && (
-                        <Text c="dimmed" size="xs">
-                          No connections yet. Try connecting (
-                          <UniteSquareIcon size={12} />) a related idea!
+                  <Group gap="xs">
+                    <ActionIcon
+                      variant="light"
+                      color="gray"
+                      size={"sm"}
+                      onClick={() => newConnectedIdea(idea.id.toString())}
+                    >
+                      <NotePencilIcon size={14} />
+                    </ActionIcon>
+                    <HoverCard width="400px">
+                      <HoverCard.Target>
+                        <ActionIcon variant="subtle" size="sm" color="gray">
+                          <InfoIcon />
+                        </ActionIcon>
+                      </HoverCard.Target>
+                      <HoverCard.Dropdown>
+                        <Text size="sm" mb="xs">
+                          Explicit connections between ideas are only made by
+                          you, and they are persistent even if the content
+                          changes, unlike similar ideas. You can drag and drop
+                          ideas to this area, or click the associated buttons to
+                          make connections.
                         </Text>
-                      )}
-                    </HoverCard.Dropdown>
-                  </HoverCard>
+                        <Text c="dimmed" size="xs" mb="xs">
+                          Click the <NotePencilIcon /> button to create a new
+                          connected note.
+                        </Text>
+                        {connections && connections?.length <= 0 && (
+                          <Text c="dimmed" size="xs">
+                            No connections yet. Try connecting (
+                            <UniteSquareIcon size={12} />) a related idea!
+                          </Text>
+                        )}
+                      </HoverCard.Dropdown>
+                    </HoverCard>
+                  </Group>
                 </Group>
               </Stack>
             </Grid.Col>
@@ -275,7 +275,12 @@ export default function Connections({
                 <Transition mounted={computeOutOfDate} transition="fade-up">
                   {(styles) => {
                     return (
-                      <ActionIcon variant="light" size="sm" style={styles}>
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        size="sm"
+                        style={styles}
+                      >
                         {computing ? (
                           <Loader size="xs" />
                         ) : (

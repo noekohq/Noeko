@@ -1,8 +1,8 @@
 .container {
     position: relative;
-    padding: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-md);
-    border: 1px solid var(--mantine-color-gray-5);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-lg);
+    border: 1px solid var(--mantine-color-dark-7);
     white-space: pre-wrap;
     background-color: var(--color-code-background);
     color: var(--color-code-foreground);

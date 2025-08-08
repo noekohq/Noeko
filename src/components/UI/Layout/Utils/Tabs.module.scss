@@ -24,11 +24,10 @@
 }
 
 .tabActive {
-    font-weight: bold;
-    color: var(--mantine-color-dark-2);
+    color: var(--mantine-color-dark-1);
     background-color: var(--mantine-color-dark-7);
-    padding: 2px var(--mantine-spacing-xs);
-    border-radius: var(--mantine-radius-sm);
+    padding: 4px var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-md);
 }
 
 .tabLeftSection {

@@ -2,7 +2,7 @@ import { mergeAttributes, Node, NodeViewProps } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import { Table, TextInput, Button, Group, ActionIcon } from "@mantine/core";
 import React, { useState, useEffect, useCallback } from "react";
-import { PlusIcon, XIcon } from "@phosphor-icons/react"; // Make sure @tabler/icons-react is installed
+import { PlusIcon, XIcon } from "@phosphor-icons/react";
 import styles from "./styles/DreamTable.module.scss";
 
 export interface IDreamTableOptions {
@@ -256,61 +256,57 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
   }
 
   return (
-    <NodeViewWrapper className={styles.table}>
-      <div style={{ overflowX: "auto" }}>
-        {" "}
-        <Table striped highlightOnHover withColumnBorders>
-          <Table.Thead>
-            <Table.Tr>
+    <NodeViewWrapper className={styles.container}>
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
               {tableState.headers.map((header, index) => (
-                <Table.Th
+                <th
                   key={`header-edit-${index}`}
                   style={{ position: "relative", minWidth: "120px" }}
                 >
-                  <TextInput
-                    value={header}
-                    onChange={(event) =>
-                      handleHeaderChange(index, event.currentTarget.value)
-                    }
-                    variant="unstyled"
-                    styles={{
-                      input: {
-                        fontWeight: "bold",
-                        paddingRight:
-                          tableState.headers.length > 1 ? "28px" : "4px",
-                      },
-                    }}
-                    disabled={!editor.isEditable}
-                  />
-                  {tableState.headers.length > 1 && editor.isEditable && (
-                    <ActionIcon
-                      variant="subtle"
-                      color="dark.4"
-                      onClick={() => removeColumn(index)}
-                      style={{
-                        position: "absolute",
-                        right: "4px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
+                  <Group gap="xs" wrap="nowrap">
+                    {tableState.headers.length > 1 && editor.isEditable && (
+                      <ActionIcon
+                        variant="subtle"
+                        color="dark.4"
+                        size="xs"
+                        onClick={() => removeColumn(index)}
+                        title="Remove column"
+                        disabled={!editor.isEditable}
+                      >
+                        <XIcon weight="bold" size={12} />
+                      </ActionIcon>
+                    )}
+                    <TextInput
+                      value={header}
+                      onChange={(event) =>
+                        handleHeaderChange(index, event.currentTarget.value)
+                      }
+                      variant="unstyled"
+                      styles={{
+                        input: {
+                          fontWeight: "bold",
+                          paddingRight:
+                            tableState.headers.length > 1 ? "28px" : "4px",
+                        },
                       }}
-                      title="Remove column"
                       disabled={!editor.isEditable}
-                    >
-                      <XIcon size={16} />
-                    </ActionIcon>
-                  )}
-                </Table.Th>
+                    />
+                  </Group>
+                </th>
               ))}
               {editor.isEditable && (
-                <Table.Th style={{ width: "50px", padding: 0 }} />
+                <th style={{ width: "50px", padding: 0 }} />
               )}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
+            </tr>
+          </thead>
+          <tbody>
             {tableState.rows.map((row, rowIndex) => (
-              <Table.Tr key={`row-edit-${rowIndex}`}>
+              <tr key={`row-edit-${rowIndex}`}>
                 {row.map((cell, colIndex) => (
-                  <Table.Td
+                  <td
                     key={`cell-edit-${rowIndex}-${colIndex}`}
                     style={{ minWidth: "100px" }}
                   >
@@ -326,10 +322,10 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
                       variant="unstyled"
                       disabled={!editor.isEditable}
                     />
-                  </Table.Td>
+                  </td>
                 ))}
                 {editor.isEditable && (
-                  <Table.Td style={{ padding: "0 4px", textAlign: "center" }}>
+                  <td style={{ padding: "0 4px", textAlign: "center" }}>
                     {tableState.rows.length > 1 && (
                       <ActionIcon
                         variant="subtle"
@@ -338,22 +334,23 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
                         title="Remove row"
                         disabled={!editor.isEditable}
                       >
-                        <XIcon size={16} />
+                        <XIcon size={12} />
                       </ActionIcon>
                     )}
-                  </Table.Td>
+                  </td>
                 )}
-              </Table.Tr>
+              </tr>
             ))}
-          </Table.Tbody>
-        </Table>
+          </tbody>
+        </table>
       </div>
       <div className={styles.options}>
-        <Group justify="flex-start" mt="xs">
+        <Group justify="center" mt="xs">
           <Button
             onClick={addColumn}
             size="xs"
-            variant="default"
+            variant="light"
+            color="gray"
             disabled={!editor.isEditable}
             rightSection={<PlusIcon size={14} />}
           >
@@ -362,7 +359,8 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
           <Button
             onClick={addRow}
             size="xs"
-            variant="default"
+            variant="light"
+            color="gray"
             disabled={!editor.isEditable}
             rightSection={<PlusIcon size={14} />}
           >
