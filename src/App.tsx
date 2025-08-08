@@ -13,7 +13,7 @@ import {
   Text,
   useMantineColorScheme,
 } from "@mantine/core";
-import { WarningIcon } from "@phosphor-icons/react";
+import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -105,24 +105,15 @@ export default function App() {
               padding: "20px",
             }}
           >
-            <Alert
-              icon={<WarningIcon />}
-              title="Connection Interrupted"
-              color="gray"
-            >
+            <Alert icon={<CloudIcon />} title="Connecting..." color="gray">
               <Stack gap="xs">
                 <Text size="sm">
-                  Could not connect to Qwest. It may be down for maintenance or
-                  there could be a connectivity problem.
+                  Attemping to establish a connection to the Qwest server. If
+                  this takes a while, consider refreshing the page.
                 </Text>
                 <Text size="sm">
-                  <strong>Your changes up to this time are saved</strong>, and
-                  Qwest will automatically re-establish a connection once
-                  available. Thank you for your patience as we improve the
-                  reliability of our systems :)
-                </Text>
-                <Text size="sm">
-                  For any inquiries or support, please feel free to contact{" "}
+                  We apologize for any inconvenience. For any inquiries or
+                  support, please feel free to contact{" "}
                   <a href="mailto:support@qwest.so">support@qwest.so</a>.
                 </Text>
               </Stack>

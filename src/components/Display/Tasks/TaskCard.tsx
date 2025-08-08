@@ -90,6 +90,12 @@ export default function TaskCard({
   const hiddenActions = getHiddenActions() ?? [];
   const visibleActions = getVisibleActions() ?? [];
 
+  const isCompleted = task.completedAt !== null;
+
+  const formattedEstimatedDuration = () => {
+    return task.estimatedTime.toString();
+  };
+
   return (
     <div
       role="button"
@@ -116,10 +122,16 @@ export default function TaskCard({
                 e.stopPropagation();
                 handleMarkTask(e.currentTarget.checked);
               }}
+              defaultChecked={isCompleted}
             />
-            <Text size="sm" fw="bold" lineClamp={0}>
-              {task.description}
-            </Text>
+            <Group gap="xs" align="baseline" wrap="nowrap">
+              <Text size="sm" fw="bold" lineClamp={0}>
+                {task.description}
+              </Text>
+              <Text size="xs" c="dark.5" fw="bold">
+                {formattedEstimatedDuration()}
+              </Text>
+            </Group>
             <Group>
               {visibleActions.map((action) => {
                 return (
