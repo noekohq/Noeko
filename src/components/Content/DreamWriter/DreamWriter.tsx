@@ -144,6 +144,8 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
 
     const { isMobile } = useLayout();
 
+    const [bubbleMenuVisible, setBubbleMenuVisible] = useState(false);
+
     return (
       <div
         ref={editorContainerRef}
@@ -179,10 +181,15 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           </Overlay>
         )}
         {/* <FloatingMenu editor={editor} /> */}
-        <BubbleMenu editor={editor} />
+        <BubbleMenu
+          editor={editor}
+          onVisibilityChange={(isVisible) => {
+            setBubbleMenuVisible(isVisible);
+          }}
+        />
         <EditorContent
           onContextMenuCapture={(e) => {
-            if (isMobile) {
+            if (isMobile && bubbleMenuVisible) {
               e.preventDefault();
             }
           }}
