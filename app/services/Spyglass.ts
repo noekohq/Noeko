@@ -8,6 +8,8 @@ import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISpyglassSearch } from "../database/models/search";
 
+export type ISpyglassScopeOption = "web" | "ideas";
+
 type ICitationMap = Record<string, ISearchResult>;
 
 interface ISpyglassMode {
@@ -417,86 +419,6 @@ export type IFinding = {
   analysis: string;
   findingType: IFindingType;
 };
-
-// TODO: This will be absorbed into modes above
-const queryModes: {
-  name: string;
-  description: string;
-  specificInstructions: string[];
-}[] = [
-  {
-    name: "Direct Q&A",
-    description:
-      "This mode is for when a user asks a specific, direct question to their knowledge base. The goal is to provide a single, accurate, and concise answer.",
-    specificInstructions: [
-      "Your primary goal is to answer the user's question directly and concisely. Avoid providing broad, unnecessary background information.",
-      "Begin the response with the direct answer in the very first sentence. The rest of the response should only provide essential supporting context.",
-      "Prioritize findings with the types: FACT, DEFINITION, and EXPLANATION to construct your answer.",
-      "Synthesize multiple relevant findings into one cohesive answer. Do not list out different findings separately.",
-      "If the findings do not contain a direct answer to the question, you MUST explicitly state that the information is not available in the knowledge base. Do not attempt to infer or guess the answer.",
-      "Keep the response to 1-2 paragraphs maximum. Use simple sentence and paragraph structure.",
-    ],
-  },
-  {
-    name: "Synthesis Report",
-    description:
-      "This is the standard mode for general knowledge queries, the goal is to provide a comprehensive and detailed answer that covers all aspects of the user's query.",
-    specificInstructions: [
-      "Start with a brief, one-paragraph summary of the key information.",
-      "Structure the main body of the response using headings for sub-topics.",
-      "Prioritize FACT, DEFINITION, and EXPLANATION findings to build the core of the report.",
-      "Weave in PERSONAL_INSIGHT and QUOTE findings to add color and personal context, but they should support the main narrative, not lead it.",
-      "Ensure the report is well-organized, coherent, and easy to follow.",
-    ],
-  },
-  {
-    name: "Insight Review",
-    description:
-      "This mode is for when the user wants to review their own thinking process. The goal is to provide a reflective experience and insight to the user's thought process, in accordance with their query.",
-    specificInstructions: [
-      "You MUST prioritize findings with the PERSONAL_INSIGHT type above all others. Also, give high priority to KEY_TAKEAWAY and OPEN_QUESTION.",
-      "Structure the output as a narrative review. Use blockquotes (>) for direct PERSONAL_INSIGHT excerpts.",
-      "The tone should be more reflective. It is acceptable to frame the answer from the user's perspective, for example: 'Your main insight was that...' or 'You seem to have concluded that...'",
-      "Factual findings (FACT, DEFINITION) should only be used to provide brief context for the personal insights.",
-    ],
-  },
-  {
-    name: "Action Summary",
-    description:
-      "This mode is for when the user is planning or reviewing tasks. The goal is to provide a clear, actionable list of action items.",
-    specificInstructions: [
-      "Start with a concise overview of the user's action items",
-      "Prioritize actionability on the user's behalf, providing only necessary context to take action on an item.",
-      "You MUST only use findings with the ACTION_ITEM type to construct your todo-list",
-      "Group related tasks under subheadings based on their source or topic.",
-      "Prioritize flat text structure, avoid heading tags, use bold text for emphasis or categorization.",
-      "use a standard list format to construct the lists.",
-    ],
-  },
-  {
-    name: "Comparative Analysis",
-    description:
-      "This mode is for when the user wants to understand the relationship between two or more concepts. Your goal is to create a structured comparison of the concepts mentioned in the query.",
-    specificInstructions: [
-      "You MUST format the core of your response as an HTML table with <table>.",
-      "The table columns should be the items being compared (e.g., 'Permaculture', 'Syntropic Agroforestry')",
-      "The table rows should be the criteria for comparison (e.g., 'Core Principles', 'Key Proponents', 'Implementation Challenges').",
-      "Use FACT, DEFINITION, and KEY_TAKEAWAY findings to populate the table. Use CONTRADICTION findings to highlight key differences.",
-      "Conclude with a brief summary paragraph highlighting the most significant similarities and differences.",
-    ],
-  },
-  {
-    name: "Question Drilldown",
-    description:
-      "This mode is for exploring the user's knowledge gaps. Your goal is to help a user understand the gaps in their knowledge, and unanswered questions they have.",
-    specificInstructions: [
-      "The lack of a relevant finding that should be there implies a gap in knowledge",
-      "Only in this mode may you reference content that isn't specifically included in findings.",
-      "Use KNOWLEDGE_GAP findings to identify gaps in the user's knowledge. As well as OPEN_QUESTION findings to identify unanswered questions.",
-      "Conclude with a brief summary paragraph highlighting the most significant knowledge gaps and steps to address them.",
-    ],
-  },
-];
 
 const spyglassMissionStatement = `
   To answer the user's query with the best possible answer, embodying the following principles:

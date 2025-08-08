@@ -271,14 +271,16 @@ export default function Spyglass() {
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
             {!initialized && (
-              <Title
-                ta={initialized ? "left" : "center"}
-                className={`${styles.header} ${initialized ? styles.initialized : ""}`}
-                order={initialized ? 2 : 1}
-                mb="lg"
-              >
-                Spyglass
-              </Title>
+              <>
+                <Title
+                  ta={initialized ? "left" : "center"}
+                  className={`${styles.header} ${initialized ? styles.initialized : ""}`}
+                  order={initialized ? 2 : 1}
+                  mb="lg"
+                >
+                  Spyglass
+                </Title>
+              </>
             )}
             {(!!initialized || !!initializing) && (
               <Text

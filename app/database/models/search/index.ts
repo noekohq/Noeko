@@ -3,14 +3,18 @@ import {
   ISearchOverview,
   ISearchResult,
   ISearchResultValue,
-} from "../../services/Search";
-import { logger } from "../../services/Logger";
-import { getDatabase } from "../db";
-import { Search } from "../../services/Search";
-import { parseIncompleteJsonArray } from "../../utils/processing";
-import { max_spyglass_finding_amount } from "../../settings";
-import Spyglass, { ISpyglassIntent } from "../../services/Spyglass";
-import { IRabbithole } from "./rabbithole";
+} from "../../../services/Search";
+import { logger } from "../../../services/Logger";
+import { getDatabase } from "../../db";
+import { Search } from "../../../services/Search";
+import { parseIncompleteJsonArray } from "../../../utils/processing";
+import { max_spyglass_finding_amount } from "../../../settings";
+import Spyglass, {
+  ISpyglassIntent,
+  ISpyglassScopeOption,
+} from "../../../services/Spyglass";
+import { IRabbithole } from "../rabbithole";
+import { IWebSearchResultItem } from "../../../services/providers/web_search";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
@@ -19,12 +23,12 @@ export type ISpyglassSearch = {
   analysis: ISearchOverview | null;
   createdAt: Date;
   updatedAt: Date;
-  // Computed fields
   results?: ISearchResultValue[];
   resultConnections?: ISearchConnection[];
   fullResults?: ISearchResult[];
   parent?: ISpyglassSearch;
   rabbithole?: IRabbithole;
+  scopes: ISpyglassScopeOption[];
 };
 
 export type ISpyglassSearchForm = Omit<
@@ -182,6 +186,7 @@ export class SpyglassSearch {
           createdAt: new Date(),
           updatedAt: new Date(),
           analysis: null,
+          scopes: form.scopes,
         },
       );
       if (!result[0]) {

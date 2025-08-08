@@ -9,6 +9,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLayout } from "../../contexts/LayoutContext";
 import useRabbithole from "../../hooks/useRabbithole";
+import { ISpyglassScopeOption } from "../../../app/services/Spyglass";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -67,6 +68,8 @@ export default function Textbox({
 
   const { isDownRabbithole, currentRabbithole, exitRabbithole } =
     useRabbithole();
+
+  const [scopes, setScopes] = useState<ISpyglassScopeOption[]>(["ideas"]);
 
   return (
     <div
@@ -149,7 +152,7 @@ export default function Textbox({
                 send();
               }}
             >
-              <PaperPlaneRightIcon />
+              <PaperPlaneRightIcon weight="bold" />
             </ActionIcon>
           </Group>
         </div>
