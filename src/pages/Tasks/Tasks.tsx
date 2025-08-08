@@ -122,7 +122,7 @@ export default function TaskTimelineView() {
       <LeftSidebar></LeftSidebar>
       <Content>
         <div className={styles.tasks}>
-          <Stack gap="xl" p="md">
+          <Stack gap="xl">
             <Group justify="space-between">
               <Title order={1}>Your Agenda</Title>
             </Group>
