@@ -7,7 +7,6 @@ interface IProgressBarProps {
 export default function ProgressBar({ progress }: IProgressBarProps) {
   const normalizedProgress = Math.min(Math.max(progress, 0), 100);
   const width = `${normalizedProgress}%`;
-  console.log("Progress: ", width);
 
   return (
     <div className={styles.container}>

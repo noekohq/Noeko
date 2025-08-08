@@ -75,7 +75,8 @@ export default class Task {
               FROM task
               WHERE
                 <-owns<-(user WHERE id = <record> $userId) AND
-                (dueDate >= $startDate AND dueDate <= $endDate);
+                (dueDate >= $startDate AND dueDate <= $endDate) AND
+                (completedAt = NONE OR completedAt = NULL);
             RETURN $tasks;
           }
           `;
@@ -268,7 +269,6 @@ export default class Task {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      console.log("Getting for range: ", startDate, endDate, userId);
       const tasks = await db.run<ITask[]>(`fn::get_user_tasks_for_date_range`, [
         new StringRecordId(userId),
         startDate,
@@ -285,7 +285,6 @@ export default class Task {
   }
 
   static async getForDate(userId: string | RecordId, date: string) {
-    console.log("Getting for date: ", date);
     return this.getForDateRange(userId, date, date);
   }
 }

@@ -18,8 +18,6 @@ export default function TagBreakdown() {
     loadBreakdown();
   }, []);
 
-  console.log("Tag breakdown data:", tagBreakdown);
-
   const mostUsed = tagBreakdown?.mostUsed ?? [];
   const mostRelevant = tagBreakdown?.semanticallyCentral ?? [];
   const combinedRaw = [...mostUsed, ...mostRelevant];
