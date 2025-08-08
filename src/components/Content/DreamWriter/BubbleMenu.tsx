@@ -31,13 +31,15 @@ import { ActionIcon, Group, Stack, Textarea, TextInput } from "@mantine/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { showNotification } from "@mantine/notifications";
 import { CheckIcon, TrashSimpleIcon, XIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
 
 export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
   const isImage = editor?.isActive("dreamImage");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
   const isInlineMath = editor?.isActive("inlineMath");
   const isBlockMath = editor?.isActive("blockMath");
+  const isDreamYouTube = editor?.isActive("dreamYouTube");
   const hidden = isImage;
 
   const { isMobile } = useLayout();
@@ -57,7 +59,6 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
       </TippyBubbleMenu>
     );
   }
-
   if (isInlineMath) {
     return (
       <TippyBubbleMenu
@@ -77,6 +78,17 @@ export default function BubbleMenu({ editor }: { editor: IEditor | null }) {
         tippyOptions={{ duration: 100, placement: "bottom" }}
       >
         <BlockMathMenu editor={editor} />
+      </TippyBubbleMenu>
+    );
+  }
+  if (isDreamYouTube) {
+    return (
+      <TippyBubbleMenu
+        editor={editor}
+        className={styles.bubbleMenu}
+        tippyOptions={{ duration: 100, placement: "bottom" }}
+      >
+        <DreamYouTubeMenu editor={editor} />
       </TippyBubbleMenu>
     );
   }

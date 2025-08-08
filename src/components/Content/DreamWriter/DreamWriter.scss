@@ -18,6 +18,7 @@
     /* background-color: var(--mantine-color-dark-8); */
     border: 1px solid var(--mantine-color-dark-8);
     border-radius: var(--mantine-radius-md);
+    font-size: var(--mantine-font-size-xl);
 
     &.ProseMirror-selectednode {
         outline: 2px solid var(--mantine-primary-color-7);

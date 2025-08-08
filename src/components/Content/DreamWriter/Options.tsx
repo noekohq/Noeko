@@ -22,6 +22,7 @@ import {
   QuotesIcon,
   ScissorsIcon,
   SelectionAllIcon,
+  SparkleIcon,
   TextBIcon,
   TextHOneIcon,
   TextHThreeIcon,
@@ -946,7 +947,7 @@ export function MagicMenuButton({ editor }: OptionProps) {
           {...getButtonProps({ isActive: false })}
           title="Magic features"
         >
-          <MagicWandIcon />
+          <MagicWandIcon weight="bold" />
         </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown>

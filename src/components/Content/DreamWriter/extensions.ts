@@ -2,7 +2,14 @@ import contentStyles from "./Content.module.scss";
 import styles from "./DreamWriter.module.scss";
 import "katex/dist/katex.min.css";
 import "./lib/qwest-highlight.scss";
-import { Editor as IEditor, Extension, Node, Mark } from "@tiptap/core";
+import {
+  Editor as IEditor,
+  Extension,
+  Node,
+  Mark,
+  nodePasteRule,
+  markPasteRule,
+} from "@tiptap/core";
 
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -20,7 +27,7 @@ import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
 import { DreamTask } from "./nodes/DreamTask";
 import { DreamSlash } from "./extensions/DreamSlash";
-import { DreamPairings } from "./extensions/DreamPairings";
+import { DreamInputs } from "./extensions/DreamInputs";
 import { Indent } from "./extensions/Indent";
 import { DreamTaskItem } from "./extensions/TaskItem";
 import { DreamCode } from "./nodes/DreamCode";
@@ -28,6 +35,8 @@ import { DreamPaste } from "./extensions/DreamPaste";
 import { DreamTable } from "./nodes/DreamTable";
 import { DreamHighlight } from "./marks/DreamHighlight";
 import { all, createLowlight } from "lowlight";
+import { DreamYouTube } from "./nodes/DreamYouTube";
+import { YOUTUBE_URL_REGEX } from "../../../vars/regex";
 
 const lowlight = createLowlight(all);
 
@@ -108,6 +117,7 @@ export const getExtensionConfig = ({
       HTMLAttributes: {
         class: contentStyles.link,
       },
+      linkOnPaste: true,
     }),
     Dropcursor.configure({}),
     Typography.configure({}),
@@ -130,12 +140,12 @@ export const getExtensionConfig = ({
         "connection",
       ],
     }),
-    YouTube.configure({
-      HTMLAttributes: {
-        class: contentStyles.youtube,
-      },
-    }),
-    Mathematics,
+    // YouTube.configure({
+    //   HTMLAttributes: {
+    //     class: contentStyles.youtube,
+    //   },
+    // }),
+    Mathematics.configure({}),
     DreamCode.configure({
       lowlight,
       HTMLAttributes: {
@@ -177,8 +187,13 @@ export const getExtensionConfig = ({
     DreamConnection.configure({}),
     DreamSlash.configure({}),
     DreamPaste.configure(),
-    DreamPairings.configure(),
     DreamHighlight.configure(),
+    DreamInputs.configure(),
+    DreamYouTube.configure({
+      HTMLAttributes: {
+        class: styles.dreamYouTube,
+      },
+    }),
   ],
   loader: ({ editor }) => {},
 });

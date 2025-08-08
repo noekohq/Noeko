@@ -18,6 +18,7 @@ import {
   CheckSquareIcon,
   TableIcon,
   YoutubeLogoIcon,
+  MathOperationsIcon,
 } from "@phosphor-icons/react";
 import { PluginKey } from "@tiptap/pm/state";
 
@@ -149,8 +150,26 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
         .chain()
         .focus()
         .deleteRange(range)
-        .setYoutubeVideo({
+        .setDreamYouTubeVideo({
           src: url,
+        })
+        .run();
+    },
+  },
+  {
+    id: "math",
+    title: "Math",
+    description: "Create a math block with LaTeX support",
+    icon: <MathOperationsIcon />,
+    command: ({ editor, range }) => {
+      const latex = window.prompt("Enter an equation: ");
+      if (!latex) return;
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertBlockMath({
+          latex,
         })
         .run();
     },

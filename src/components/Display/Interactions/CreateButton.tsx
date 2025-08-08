@@ -28,7 +28,7 @@ export default function CreateButton() {
       withArrow
       radius="md"
       width={"200px"}
-      trigger={isMobile || isTablet ? "click" : "hover"}
+      trigger={isMobile || isTablet ? "click" : "click-hover"}
       openDelay={100}
     >
       <Menu.Target>
@@ -43,7 +43,7 @@ export default function CreateButton() {
         </div>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Label>Create</Menu.Label>
+        <Menu.Label>New</Menu.Label>
         {/* <Menu.Item
           rightSection={<RabbitholeIcon size={16} />}
           onClick={() => {
