@@ -5,7 +5,6 @@ import {
   Editor as IEditor,
 } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { DOMOutputSpec } from "prosemirror-model";
 import { useCallback, useRef } from "react";
 import styles from "./styles/DreamImage.module.scss";
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
@@ -41,7 +40,7 @@ export const DreamImage = Node.create<DreamImageOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        class: "dream-image-wrapper", // Add a class for the wrapper
+        class: styles.dreamImageWrapper,
       },
     };
   },

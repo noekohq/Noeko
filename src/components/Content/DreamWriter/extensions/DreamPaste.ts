@@ -2,6 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { DOMParser } from "@tiptap/pm/model";
 import { marked } from "marked";
+import { YOUTUBE_URL_REGEX } from "../../../../vars/regex";
 
 export const DreamPaste = Extension.create({
   name: "dreamPaste",
@@ -30,6 +31,27 @@ export const DreamPaste = Extension.create({
 
             if (!text) {
               return false;
+            }
+
+            const youtubeMatch = YOUTUBE_URL_REGEX.exec(text.trim());
+            if (youtubeMatch) {
+              const videoId = youtubeMatch[1];
+
+              const nodeType = view.state.schema.nodes.dreamYouTube;
+              if (!videoId || !nodeType) {
+                return false;
+              }
+
+              event.preventDefault();
+
+              const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+              const node = nodeType.create({ src: embedUrl });
+
+              const { tr } = view.state;
+              tr.replaceSelectionWith(node).scrollIntoView();
+              view.dispatch(tr);
+
+              return true;
             }
 
             const html = marked.parse(text, { async: false }) as string;

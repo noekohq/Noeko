@@ -189,14 +189,9 @@ export default function Connections({
                   <Text size="sm" c="dimmed" fw="bold">
                     <Group gap="xs">
                       <UniteSquareIcon weight="bold" />
-                      CONNECTED IDEAS
+                      CONNECTED
                     </Group>
                   </Text>
-                  <Transition mounted={loadingIdea} transition="fade-up">
-                    {(styles) => (
-                      <Loader style={styles} size="xs" color="gray" />
-                    )}
-                  </Transition>
                 </Group>
                 <Group>
                   <ActionIcon
@@ -273,7 +268,7 @@ export default function Connections({
               <Text size="sm" c="dimmed" fw="bold">
                 <Group gap="xs">
                   <IntersectSquareIcon weight="bold" />
-                  RELATED IDEAS
+                  RELATED
                 </Group>
               </Text>
               <Group>
