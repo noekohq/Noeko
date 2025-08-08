@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import DreamWriter from "../../Content/DreamWriter/DreamWriter";
 import { IWidgetConfig } from "../index.d";
@@ -52,12 +52,18 @@ export default function Scratchpad() {
 
   const [typingTimeout, setTypingTimeout] = useState<Timer>();
 
+  const handlePostContent = useCallback(async () => {
+    if (content && !loadingContent) {
+      postContent();
+    }
+  }, [content, loadingContent]);
+
   useEffect(() => {
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
     const timeout = setTimeout(() => {
-      postContent();
+      handlePostContent();
     }, 1000);
     setTypingTimeout(timeout);
 
@@ -161,7 +167,7 @@ export default function Scratchpad() {
         <DreamWriter
           ref={editorRef}
           onBlur={() => {
-            postContent();
+            handlePostContent();
           }}
           onChange={(v) => {
             setContent(v);
