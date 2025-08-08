@@ -248,6 +248,33 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
+router.delete("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const { ideaId } = req.params;
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+    if (!hasAccess) {
+      res.status(403).json({
+        message: "Unauthorized",
+      });
+      return;
+    }
+    const i = await Idea.delete(ideaId);
+    if (!i) {
+      res.status(404).json({ error: "Idea not deleted" });
+      return;
+    }
+    res.send({ message: "Successfully deleted idea.", data: i });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.get(
   "/:ideaId/connections",
   checkToken,

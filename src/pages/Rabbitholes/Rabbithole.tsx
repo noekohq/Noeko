@@ -387,7 +387,9 @@ export default function Rabbithole() {
           <Stack>
             <Title order={3}>Suggested Ideas</Title>
             {!relatedIdeas?.length && (
-              <Text>No currently suggested ideas.</Text>
+              <Text size="xs" c="dimmed">
+                No currently suggested ideas.
+              </Text>
             )}
             <Transition
               mounted={!includingThing && !loadingRelatedIdeas}

@@ -69,11 +69,11 @@
         font-family: var(--mantine-font-family);
         /* font-stretch: 80%; */
         font-size: var(--mantine-font-size-lg);
-        border-radius: var(--mantine-radius-xl);
+        border-radius: var(--mantine-radius-lg);
         background-color: var(--mantine-color-body);
         border: none;
-        border: 1px solid var(--mantine-color-dark-6);
-        box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-dark-7);
+        border: 1px solid var(--mantine-color-dark-7);
+        box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-dark-8);
         padding: var(--mantine-spacing-xs) var(--mantine-spacing-xl);
         width: var(--spotlight-width);
         transition: all 0.2s ease-in-out;

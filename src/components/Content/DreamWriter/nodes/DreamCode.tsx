@@ -41,6 +41,14 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
             <Select
               size="xs"
               placeholder="Auto"
+              variant="filled"
+              styles={{
+                input: {
+                  backgroundColor: "var(--mantine-color-dark-7) !important",
+                  border: "1px solid var(--mantine-color-dark-7)",
+                  borderRadius: "var(--mantine-radius-md)",
+                },
+              }}
               data={[
                 ...languages.map((lang: string) => ({
                   value: lang,
@@ -59,7 +67,13 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
             <CopyButton value={node.textContent}>
               {({ copy, copied }) => {
                 return (
-                  <ActionIcon onClick={copy} size="md" variant="default">
+                  <ActionIcon
+                    onClick={copy}
+                    size="md"
+                    variant="light"
+                    color="gray"
+                    radius="md"
+                  >
                     {copied ? <CheckIcon /> : <CopyIcon />}
                   </ActionIcon>
                 );
