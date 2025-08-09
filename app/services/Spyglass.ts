@@ -7,8 +7,12 @@ import { formatDate, htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISpyglassSearch } from "../database/models/search";
+import {
+  IWebSearchResult,
+  WebSearch,
+} from "../database/models/search/web_search";
 
-export type ISpyglassScopeOption = "web" | "ideas";
+export type ISpyglassScopeOption = "web" | "my-qwest" | "all";
 
 type ICitationMap = Record<string, ISearchResult>;
 
@@ -481,7 +485,7 @@ export default class Spyglass {
     }, {} as ICitationMap);
   }
 
-  static intentPromptBuilder(query: string, parent?: ISpyglassSearch | null) {
+  static intentPromptBuilder(spyglass: ISpyglassSearch) {
     const builder = new PromptBuilder()
       .addText(
         "You are an intelligent user query parser called Spyglass Q, responsible for understanding the user's intent, and deciding how to respond.",
@@ -496,11 +500,31 @@ export default class Spyglass {
         "Context",
         `
         It is currently ${getFormattedDateTimeToday()}.
-        You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+        You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on provided search results.
         `,
       );
 
-    if (parent && parent.intent) {
+    switch (spyglass.scope) {
+      case "all":
+        builder.addBlock(
+          "Scope",
+          `The user has requested a scope that includes all data available to the search service, meaning it can contain their own notes and ideas, as well as sources from their files or the internet. You should therefore dispatch queries which will be run against the internet itself.`,
+        );
+        break;
+      case "my-qwest":
+        builder.addBlock(
+          "Scope",
+          `The user has requested a scope that includes only their own data available to the search service, meaning it can contain their own notes and ideas, but not sources from their files or the internet. You should therefore dispatch queries which will be run against their own notes.`,
+        );
+        break;
+      case "web":
+        builder.addBlock(
+          "Scope",
+          `The user has requested a scope that includes only sources from the internet. You should therefore dispatch queries which will be run against the internet itself.`,
+        );
+    }
+
+    if (parent && spyglass?.parent?.intent) {
       builder.addBlock(
         "Follow-Up Context",
         `
@@ -509,12 +533,12 @@ export default class Spyglass {
         Keep the fact that this is a follow-up question in mind, as it should influence your sources and the way you approach the query.
 
         <previousQuery>
-        ${parent.baseQuery}
+        ${spyglass.parent.baseQuery}
         </previousQuery>
 
         The user's intent was classified as:
         <previousIntent>
-        ${parent.intent.intent}
+        ${spyglass.parent.intent.intent}
         </previousIntent>
       `,
       );
@@ -588,7 +612,7 @@ export default class Spyglass {
         `
         The user's query is as follows:
         <userquery>
-        ${query}
+        ${spyglass.baseQuery}
         </userquery>
         `,
       );
@@ -596,7 +620,7 @@ export default class Spyglass {
     return builder;
   }
 
-  static findingsPromptBuilder(intent: string, mode: ISpyglassMode) {
+  static findingsPromptBuilder(spyglass: ISpyglassSearch, mode: ISpyglassMode) {
     return (
       new PromptBuilder()
         // This persona-setting is great. Keep it.
@@ -649,10 +673,16 @@ export default class Spyglass {
           - **Process Sequentially:** You MUST process results in the order they are given and never return to a previous result.
           `,
         )
-        // --- MODIFICATION END ---
 
-        .addBlock("User Intent", intent)
-        .addText(mode.analysis.prompt(intent).get()) // This dynamic prompt remains
+        .addBlock(
+          "User Intent",
+          spyglass.intent?.intent ?? "No intent provided",
+        )
+        .addText(
+          mode.analysis
+            .prompt(spyglass.intent?.intent ?? "No intent provided")
+            .get(),
+        )
         .addBlock("Search Results", "The results to use are as follows:\n")
     );
   }
@@ -817,15 +847,14 @@ export default class Spyglass {
   }
 
   static async getIntentFromQuery(
-    query: string,
-    parent?: ISpyglassSearch | null,
+    spyglass: ISpyglassSearch,
   ): Promise<ISpyglassIntent | undefined> {
     try {
-      if (!query.length) {
+      if (!spyglass.baseQuery.length) {
         return undefined;
       }
       const lm = getLM().withModel("simple");
-      const prompt = this.intentPromptBuilder(query, parent).get();
+      const prompt = this.intentPromptBuilder(spyglass).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
@@ -844,86 +873,81 @@ export default class Spyglass {
     let r = "";
     const { highlightText, value } = result;
     const ideaValue = value as IIdea;
-    r += "<result>";
+    r += "<ideaResult>";
     r += ` <title>${ideaValue.title}</title>`;
     r += ` <id>${ideaValue.id}</id>`;
     if (highlightText) {
       r += `  <systemHighlightedText>${highlightText}</systemHighlightedText>`;
     }
     r += `  <content>${htmlToMarkdown(ideaValue.content)}</content>`;
-    r += "</result>";
+    r += "</ideaResult>";
     return r;
   }
 
-  static async getFindingsFromResults(
-    query: string,
-    results: ISearchResult[],
-    intent: ISpyglassIntent,
-  ): Promise<ISearchOverview["findings"] | undefined> {
-    try {
-      if (results.length === 0) {
-        return [];
-      }
-      const resultsStrings = results
-        .filter((r) => {
-          return r.value?.type === "idea";
-        })
-        .map((result) => {
-          return this.resultToString(result);
-        });
-      const overviewPrompt = this.findingsPromptBuilder(
-        intent.intent,
-        Modes[intent.mode],
-      );
-
-      resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("fast-accurate");
-      const result = await lm.generateJSON<ISearchOverview["findings"]>(
-        overviewPrompt.get(),
-        this.findingsSchema(results.map((r) => r.id.toString())),
-      );
-      if (!result) {
-        throw new Error("Findings not generated by LM");
-      }
-      return result;
-    } catch (error) {
-      console.error("Error getting findings from results:", error);
-      return undefined;
+  static webResultToString(result: IWebSearchResult) {
+    let r = "";
+    const item = result?.item;
+    r += "<webResult>";
+    r += ` <title>${item.title}</title>`;
+    r += ` <link>${item.link}</link>`;
+    if (item.snippet) {
+      r += `  <systemHighlightedText>${item.snippet}</systemHighlightedText>`;
     }
+    r += "</webResult>";
+    return r;
   }
 
   static async *generateFindingsFromResults(
-    query: string,
-    results: ISearchResult[],
-    intent: ISpyglassIntent,
+    spyglass: ISpyglassSearch,
   ): AsyncGenerator<string, void, unknown> {
     try {
-      if (results.length === 0) {
-        yield `[]`;
-        return;
+      if (!spyglass.intent) {
+        yield "[]";
       }
-      const resultsStrings = results
-        .filter((r) => {
-          return r.value?.type === "idea";
-        })
-        .map((result) => {
-          return this.resultToString(result);
-        });
+      if (spyglass.scope === "all" || spyglass.scope === "my-qwest") {
+        if (spyglass.fullResults?.length === 0) {
+          yield "[]";
+        }
+      }
+      if (spyglass.scope === "all" || spyglass.scope === "web") {
+        if (spyglass.webSearches?.length === 0) {
+          yield "[]";
+        }
+      }
+
+      const resultsStrings: string[] = [];
+      const resultIds: string[] = [];
+
+      if (spyglass.scope === "all" || spyglass.scope === "my-qwest") {
+        const myResults =
+          spyglass.fullResults
+            ?.filter((r) => {
+              return r.value?.type === "idea";
+            })
+            .map((result) => {
+              resultIds.push(result.id.toString());
+              return this.resultToString(result) || "";
+            }) ?? [];
+        resultsStrings.push(...myResults);
+      }
+      if (spyglass.scope === "all" || spyglass.scope === "web") {
+        for (const webSearch of spyglass.webSearches ?? []) {
+          const search = await WebSearch.get(webSearch.id);
+          const webResults =
+            search?.results?.map((result) => {
+              resultIds.push(result.id.toString());
+              return this.webResultToString(result) || "";
+            }) ?? [];
+          resultsStrings.push(...webResults);
+        }
+      }
+
       const findingsPrompt = this.findingsPromptBuilder(
-        query,
-        Modes[intent.mode],
+        spyglass,
+        Modes[spyglass.intent?.mode as keyof typeof Modes],
       );
 
       resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
         const totalSize = findingsPrompt.get().length;
         if (totalSize + s.length > max_lm_prompt_size) {
           return;
@@ -934,7 +958,7 @@ export default class Spyglass {
       const lm = getLM().withModel("fast-accurate");
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
-        this.findingsSchema(results.map((r) => r.id.toString())),
+        this.findingsSchema(resultIds),
       )) {
         if (!result) {
           throw new Error("Findings not generated by LM");

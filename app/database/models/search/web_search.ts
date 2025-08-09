@@ -1,10 +1,12 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { IWebSearchResultItem } from "../../../services/providers/web_search";
 import { getDatabase } from "../../db";
+import WebSearchService from "../../../services/WebSearch";
 
 export type IWebSearch = {
   id: string | RecordId;
   query: string;
+  results?: IWebSearchResult[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -36,7 +38,8 @@ export class WebSearch {
       ) {
         LET $record =
           SELECT
-            *
+            *,
+            ->found->web_result as results
           FROM ONLY web_search_id;
         RETURN $record;
       }
@@ -54,7 +57,7 @@ export class WebSearch {
   }
 
   public static async record(
-    search: IWebSearch,
+    search: IWebSearchForm,
     results: IWebSearchResultForm[],
   ) {
     try {
@@ -135,7 +138,9 @@ export class WebSearch {
     }
   }
 
-  public static async get(webSearchId: string | RecordId) {
+  public static async get(
+    webSearchId: string | RecordId,
+  ): Promise<IWebSearch | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -152,6 +157,56 @@ export class WebSearch {
       return result;
     } catch (error) {
       console.error("Error getting web result record: ", error);
+      return undefined;
+    }
+  }
+
+  public static async search(query: string) {
+    try {
+      const results = await new WebSearchService().search(query);
+      if (!results) {
+        throw new Error("Failed to search the web");
+      }
+      const record = await this.record(
+        { query },
+        results.map((result) => {
+          return {
+            item: result,
+          };
+        }),
+      );
+      return record;
+    } catch (error) {
+      console.error("Error searching the web: ", error);
+      return undefined;
+    }
+  }
+
+  public static async searchMany(queries: string[]) {
+    try {
+      const ranQueries = await Promise.all(
+        queries.map((query) => new WebSearchService().search(query)),
+      );
+      if (!ranQueries) {
+        throw new Error("Failed to search the web");
+      }
+      const records = await Promise.all(
+        ranQueries.map(async (results, index) => {
+          if (!results) return;
+          const record = await this.record(
+            { query: queries[index] },
+            results.map((result) => {
+              return {
+                item: result,
+              };
+            }),
+          );
+          return record;
+        }),
+      );
+      return records;
+    } catch (error) {
+      console.error("Error searching the web: ", error);
       return undefined;
     }
   }

@@ -105,7 +105,11 @@ export default function App() {
               padding: "20px",
             }}
           >
-            <Alert icon={<CloudIcon />} title="Connecting..." color="gray">
+            <Alert
+              icon={<CloudIcon weight="bold" />}
+              title="Connecting..."
+              color="gray"
+            >
               <Stack gap="xs">
                 <Text size="sm">
                   Attemping to establish a connection to the Qwest server. If

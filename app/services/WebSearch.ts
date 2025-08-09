@@ -25,4 +25,19 @@ export default class WebSearch {
       return undefined;
     }
   }
+
+  public async searchMany(
+    queries: string[],
+  ): Promise<IWebSearchResultItem[] | undefined> {
+    try {
+      const results = await Promise.all(
+        queries.map((query) => this.provider.search(query)),
+      );
+      const filteredResults = results.filter((result) => !!result);
+      return filteredResults.flat();
+    } catch (error) {
+      console.error("Error searching the web: ", error);
+      return undefined;
+    }
+  }
 }

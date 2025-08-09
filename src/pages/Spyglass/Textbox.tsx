@@ -1,6 +1,8 @@
-import { ActionIcon, Button, Group, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, Select, Text } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import {
+  GlobeSimpleIcon,
+  LightbulbIcon,
   PaperPlaneIcon,
   PaperPlaneRightIcon,
   RabbitIcon,
@@ -10,6 +12,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLayout } from "../../contexts/LayoutContext";
 import useRabbithole from "../../hooks/useRabbithole";
 import { ISpyglassScopeOption } from "../../../app/services/Spyglass";
+import Selection from "../../components/Display/Interactions/Selection";
+import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -69,7 +73,7 @@ export default function Textbox({
   const { isDownRabbithole, currentRabbithole, exitRabbithole } =
     useRabbithole();
 
-  const [scopes, setScopes] = useState<ISpyglassScopeOption[]>(["ideas"]);
+  const [scope, setScope] = useState<ISpyglassScopeOption>("my-qwest");
 
   return (
     <div
@@ -140,6 +144,35 @@ export default function Textbox({
                   </Text>
                 </Group>
               </Button>
+            )}
+            {!isDownRabbithole && (
+              <Group>
+                <Selection
+                  name="Scope"
+                  icon={<SpyglassIcon size={14} />}
+                  onSelect={(v) => {
+                    setScope(v as ISpyglassScopeOption);
+                  }}
+                  initialValue="all"
+                  options={[
+                    {
+                      label: "Everything",
+                      value: "all" as ISpyglassScopeOption,
+                      icon: <SpyglassIcon size={14} />,
+                    },
+                    {
+                      label: "Ideas",
+                      value: "my-qwest" as ISpyglassScopeOption,
+                      icon: <LightbulbIcon weight="bold" />,
+                    },
+                    {
+                      label: "Web",
+                      value: "web" as ISpyglassScopeOption,
+                      icon: <GlobeSimpleIcon weight="bold" />,
+                    },
+                  ]}
+                />
+              </Group>
             )}
           </Group>
           <Group justify="end">

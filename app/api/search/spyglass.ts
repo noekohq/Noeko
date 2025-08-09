@@ -14,7 +14,7 @@ router.post("/initialize", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const { query, parentId, rabbitholeId } = req.body;
+    const { query, parentId, rabbitholeId, scope } = req.body;
     if (!query) {
       res.status(400).json({ error: "Query is required" });
       return;
@@ -35,6 +35,7 @@ router.post("/initialize", checkToken, async (req, res) => {
       user.id,
       {
         baseQuery: query,
+        scope,
       },
       {
         rabbitholeId,
@@ -99,9 +100,7 @@ router.get("/sse", checkToken, async (req, res) => {
 
     const generator = SpyglassSearch.runSpyglassGenerator(user.id, spyglass.id);
 
-    // Handle client disconnect
     req.on("close", () => {
-      // This will cause the 'finally' block in the generator to be executed.
       generator.return(undefined);
     });
 

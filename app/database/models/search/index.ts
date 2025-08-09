@@ -6,7 +6,6 @@ import {
 } from "../../../services/Search";
 import { logger } from "../../../services/Logger";
 import { getDatabase } from "../../db";
-import { Search } from "../../../services/Search";
 import { parseIncompleteJsonArray } from "../../../utils/processing";
 import { max_spyglass_finding_amount } from "../../../settings";
 import Spyglass, {
@@ -14,21 +13,22 @@ import Spyglass, {
   ISpyglassScopeOption,
 } from "../../../services/Spyglass";
 import { IRabbithole } from "../rabbithole";
-import { IWebSearchResultItem } from "../../../services/providers/web_search";
+import { IWebSearch, IWebSearchResult, WebSearch } from "./web_search";
 
 export type ISpyglassSearch = {
   id: string | RecordId;
   baseQuery: string;
   intent?: ISpyglassIntent;
   analysis: ISearchOverview | null;
-  createdAt: Date;
-  updatedAt: Date;
   results?: ISearchResultValue[];
   resultConnections?: ISearchConnection[];
   fullResults?: ISearchResult[];
+  webSearches?: IWebSearch[];
   parent?: ISpyglassSearch;
   rabbithole?: IRabbithole;
-  scopes: ISpyglassScopeOption[];
+  scope: ISpyglassScopeOption;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type ISpyglassSearchForm = Omit<
@@ -79,6 +79,13 @@ export type ISearchConnection = {
   updatedAt: Date;
 };
 
+export type IWebConnection = {
+  in: string | RecordId;
+  out: string | RecordId;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type ISpyglassSearchFollowUpConnection = {
   in: string | RecordId;
   out: string | RecordId;
@@ -104,6 +111,7 @@ export class SpyglassSearch {
               *,
               (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
               (SELECT * OMIT embeddings FROM ->found->idea) as results,
+              (SELECT * OMIT embeddings FROM ->is_source_for->web_search->found->web_result) as webResults,
               (SELECT * FROM ->is_followup_to->spyglass)[0] AS parent,
               (SELECT * FROM <-includes<-rabbithole)[0] AS rabbithole
             FROM ONLY <record> $spyglassRecord
@@ -124,7 +132,10 @@ export class SpyglassSearch {
               SELECT
                 *,
                 (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
-                (SELECT * OMIT embeddings FROM ->found->idea) as results
+                (SELECT * OMIT embeddings FROM ->found->idea) as results,
+                (SELECT * OMIT embeddings FROM ->is_source_for->web_search->found->web_result) as webResults,
+                (SELECT * FROM ->is_followup_to->spyglass)[0] AS parent,
+                (SELECT * FROM <-includes<-rabbithole)[0] AS rabbithole
               FROM spyglass
               WHERE <-searched<-(user WHERE id = $userId)
               ORDER BY createdAt DESC
@@ -186,7 +197,7 @@ export class SpyglassSearch {
           createdAt: new Date(),
           updatedAt: new Date(),
           analysis: null,
-          scopes: form.scopes,
+          scope: form.scope,
         },
       );
       if (!result[0]) {
@@ -343,13 +354,7 @@ export class SpyglassSearch {
       if (!search) {
         throw new Error("Search not found");
       }
-      const intent = await Spyglass.getIntentFromQuery(
-        search.baseQuery,
-        search.parent,
-      );
-      if (!intent) {
-        throw new Error("Failed to load intent");
-      }
+      const intent = await Spyglass.getIntentFromQuery(search);
       await db.merge<ISpyglassSearch>(searchId, { intent });
     } catch (error) {
       logger.error("Error loading search results", { userId, searchId, error });
@@ -371,15 +376,32 @@ export class SpyglassSearch {
         throw new Error("Search not found");
       }
       const results: ISearchResult[] = [];
+      const webSearches: IWebSearch[] = [];
       if (search.intent) {
-        const r = await Spyglass.getResultsFromQueries(
-          userId.toString(),
-          search.intent.queries,
-          {
-            rabbitholeId: search.rabbithole?.id.toString(),
-          },
-        );
-        results.push(...r);
+        switch (search.scope) {
+          case "all":
+          case "my-qwest":
+            const r = await Spyglass.getResultsFromQueries(
+              userId.toString(),
+              search.intent.queries,
+              {
+                rabbitholeId: search.rabbithole?.id.toString(),
+              },
+            );
+            results.push(...r);
+            break;
+          case "web":
+            const webR = await WebSearch.searchMany(search.intent.queries);
+            if (!webR) {
+              return;
+            }
+            webR.forEach((ws) => {
+              if (ws) {
+                webR.push(ws);
+              }
+            });
+            break;
+        }
       } else {
         const r = await Spyglass.getResults(
           userId.toString(),
@@ -411,8 +433,21 @@ export class SpyglassSearch {
           },
         );
       });
-      const relations = await Promise.all(relationQueries);
-      return relations;
+      const webRelationQueries = webSearches.map(async (webSearch) => {
+        const fromId = new StringRecordId(search.id);
+        const toId = new StringRecordId(webSearch.id);
+        return db.query<[IWebConnection]>(
+          `RELATE $fromId->is_source_for->$toId CONTENT { createdAt: $now };`,
+          {
+            fromId: fromId,
+            toId: toId,
+            now: new Date(),
+          },
+        );
+      });
+      await Promise.all(relationQueries);
+      await Promise.all(webRelationQueries);
+      return search;
     } catch (error) {
       logger.error("Error loading search results", { userId, searchId, error });
       return undefined;
@@ -451,96 +486,6 @@ export class SpyglassSearch {
         return this.mapSearchConnectionToSearchResult(connection, source);
       }),
     );
-  }
-
-  public static async loadFindings(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
-    try {
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
-      const search = await SpyglassSearch.get(searchId);
-      if (!search) {
-        throw new Error("Search not found");
-      }
-      if (!search.results) {
-        throw new Error("Tried to run analysis on an empty search");
-      }
-      if (!search.resultConnections) {
-        throw new Error("Did not load result relations");
-      }
-      if (!search.fullResults) {
-        throw new Error("Did not load full results");
-      }
-      if (!search.intent) {
-        throw new Error("Search intent not found");
-      }
-      const findings = await Spyglass.getFindingsFromResults(
-        search.baseQuery,
-        search.fullResults,
-        search.intent,
-      );
-      if (!findings) {
-        throw new Error("No findings found");
-      }
-      await db.merge<ISpyglassSearch>(searchId, {
-        analysis: {
-          findings,
-          overview: "",
-        },
-      });
-      return findings;
-    } catch (error) {
-      logger.error("Error loading analysis", { searchId, error });
-      throw error;
-    }
-  }
-
-  public static async loadOverview(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
-    try {
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
-      const search = await SpyglassSearch.get(searchId);
-      if (!search) {
-        throw new Error("Search not found");
-      }
-      if (!search.analysis) {
-        throw new Error("No analysis found");
-      }
-      if (!search.analysis.findings) {
-        throw new Error("No findings found");
-      }
-      if (!search.intent) {
-        throw new Error("Intent not found");
-      }
-      const overview = await Spyglass.getOverviewFromFindings(
-        search.baseQuery,
-        search.analysis.findings,
-        search.intent,
-        search.fullResults || [],
-      );
-      if (!overview) {
-        throw new Error("No overview found");
-      }
-      await db.merge<ISpyglassSearch>(searchId, {
-        analysis: {
-          findings: search.analysis.findings,
-          overview,
-        },
-      });
-      return overview;
-    } catch (error) {
-      logger.error("Error loading overview", { searchId, error });
-      throw error;
-    }
   }
 
   public static async *runSpyglassGenerator(
