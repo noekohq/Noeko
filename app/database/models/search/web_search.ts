@@ -34,14 +34,28 @@ export class WebSearch {
     const getWebSearchRecordFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::get_web_search_record(
-        web_search_id: record<web_search>
+        $web_search_id: record<web_search>
       ) {
         LET $record =
           SELECT
             *,
             ->found->web_result as results
-          FROM ONLY web_search_id;
+          FROM ONLY $web_search_id;
         RETURN $record;
+      }
+      `;
+    };
+
+    const getWebSearchRecordResultsFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_results_for_search(
+        $web_search_id: record<web_search>
+      ) {
+        LET $results =
+          SELECT
+            *
+          FROM $web_search_id->found->web_result;
+        RETURN $results;
       }
       `;
     };
@@ -54,6 +68,7 @@ export class WebSearch {
       return;
     }
     await db.query(getWebSearchRecordFunction());
+    await db.query(getWebSearchRecordResultsFunction());
   }
 
   public static async record(
@@ -88,10 +103,13 @@ export class WebSearch {
         const { record, isNew } = response;
         if (record) {
           if (isNew) {
-            db.query("RELATE $webSearch->found->$webResult", {
-              webSearch: new StringRecordId(searchRecord.id),
-              webResult: new StringRecordId(record.id),
-            });
+            await db.query(
+              "RELATE $webSearch->found->$webResult CONTENT { createdAt: $now };",
+              {
+                webSearch: new StringRecordId(searchRecord.id),
+                webResult: new StringRecordId(record.id),
+              },
+            );
           }
           recordsCreated.push(record);
         }
@@ -113,14 +131,15 @@ export class WebSearch {
         throw new Error("Couldn't get database");
       }
       const identifier = form.item.id.toString();
-      const result = await db.query<[IWebSearchResult]>(
+      const result = await db.query<[IWebSearchResult[]]>(
         "SELECT * FROM web_result WHERE item.id = $identifier;",
         {
           identifier,
         },
       );
-      if (result.length > 0) {
-        return { isNew: false, record: result[0] };
+      console.log("Found a result after all: ", result);
+      if (result[0].length > 0) {
+        return { isNew: false, record: result[0][0] };
       }
       const r = await db.create<IWebSearchResult, IWebSearchResultCreator>(
         "web_result",
@@ -130,6 +149,7 @@ export class WebSearch {
           updatedAt: new Date(),
         },
       );
+      console.log("Created result: ", r);
       const record = r[0];
       return { isNew: true, record };
     } catch (error) {
@@ -208,6 +228,55 @@ export class WebSearch {
     } catch (error) {
       console.error("Error searching the web: ", error);
       return undefined;
+    }
+  }
+
+  public static async getResultsForWebSearch(
+    webSearch: IWebSearch,
+  ): Promise<IWebSearchResult[] | undefined> {
+    try {
+      if (webSearch.results) {
+        return webSearch.results;
+      }
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+      const loaded = db.run<IWebSearchResult[]>("fn::get_results_for_search", [
+        new StringRecordId(webSearch.id),
+      ]);
+      return loaded;
+    } catch (error) {
+      console.error("Error getting web search results: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getResultsForWebSearches(
+    webSearches: IWebSearch[],
+  ): Promise<IWebSearchResult[]> {
+    try {
+      const allResultsPromises = webSearches.map((search) =>
+        this.getResultsForWebSearch(search),
+      );
+
+      const resultsArrays = await Promise.all(allResultsPromises);
+
+      const combinedResults: IWebSearchResult[] = [];
+
+      for (const results of resultsArrays) {
+        if (results) {
+          combinedResults.push(...results);
+        }
+      }
+
+      return combinedResults;
+    } catch (error) {
+      console.error(
+        "Error getting web search results for multiple searches: ",
+        error,
+      );
+      return [];
     }
   }
 }

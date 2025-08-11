@@ -46,12 +46,14 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
+import { ISpyglassScopeOption } from "../../../app/services/Spyglass";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   const [query, setQuery] = useState<string>("");
   const [parentId, setParentId] = useState<string | null>(null);
+  const [scope, setScope] = useState<ISpyglassScopeOption>("all");
   const {
     spyglassId,
     initialize,
@@ -67,7 +69,7 @@ export default function Spyglass() {
     baseQuery,
     loading,
     error,
-  } = useSpyglass({ query, parentId });
+  } = useSpyglass({ query, parentId, scope });
 
   const hasInitialized = useRef(false);
   useEffect(() => {
@@ -391,6 +393,9 @@ export default function Spyglass() {
                   placeholder="Ask your thoughts anything..."
                   placeholderIfInitialized="Ask a follow-up question..."
                   initialized={initialized}
+                  onScopeChange={(scope) => {
+                    setScope(scope);
+                  }}
                 />
                 {initialized && (
                   <ActionIcon

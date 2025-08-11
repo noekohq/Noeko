@@ -4,17 +4,36 @@ import { PromptBuilder } from "../ai/lms/utils";
 import { ISearchOverview, ISearchResult, Search } from "./Search";
 import { IIdea } from "../database/models/ideas";
 import { formatDate, htmlToMarkdown } from "../utils/formatting";
-import { max_lm_prompt_size } from "../settings";
+import { max_lm_prompt_size, max_spyglass_finding_amount } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
-import { ISpyglassSearch } from "../database/models/search";
+import {
+  ISpyglassGeneratorType,
+  ISpyglassSearch,
+  SpyglassSearch,
+} from "../database/models/search";
 import {
   IWebSearchResult,
   WebSearch,
 } from "../database/models/search/web_search";
+import { RecordId } from "surrealdb";
+import { getDatabase } from "../database/db";
+import { logger, LoggingService } from "./Logger";
+import { parseIncompleteJsonArray } from "../utils/processing";
+import WebSearchService from "./WebSearch";
 
 export type ISpyglassScopeOption = "web" | "my-qwest" | "all";
 
-type ICitationMap = Record<string, ISearchResult>;
+type ICitationMap = Record<
+  string,
+  | {
+      type: "web";
+      value: IWebSearchResult;
+    }
+  | {
+      type: "internal";
+      value: ISearchResult;
+    }
+>;
 
 interface ISpyglassMode {
   intent: {
@@ -432,8 +451,303 @@ const spyglassMissionStatement = `
   4. Journalistic Integrity: our answers are unbiased and truthful, and we **ALWAYS** cite our sources.
 `;
 
+type IProcessedResult = {
+  id: string;
+  prompt: string;
+};
+
 export default class Spyglass {
   constructor() {}
+
+  public static async *runSpyglassGenerator(
+    userId: string | RecordId,
+    spyglassId: string | RecordId,
+  ): AsyncGenerator<
+    {
+      type: ISpyglassGeneratorType;
+      statusText: string;
+      data: ISpyglassSearch | string;
+    },
+    ISpyglassSearch | undefined,
+    unknown
+  > {
+    let resultsTime: number | null = null;
+    let findingsTime: number | null = null;
+    let overviewTime: number | null = null;
+
+    try {
+      const startTime = Date.now();
+      const db = await getDatabase();
+      if (!db) {
+        const errorMessage = "Database not initialized";
+        logger.error(errorMessage, { spyglassId });
+        yield {
+          type: "error",
+          data: errorMessage,
+          statusText: "There was an error",
+        };
+        return undefined;
+      }
+
+      const getSpyglass = async () => await SpyglassSearch.get(spyglassId);
+      let spyglass = await getSpyglass();
+      console.log("Got initial spyglass: ", spyglass);
+      if (!spyglass) {
+        const errorMessage = "Search not found";
+        logger.error(errorMessage, { spyglassId });
+        yield {
+          type: "error",
+          data: errorMessage,
+          statusText: "Something went wrong...",
+        };
+        return undefined;
+      }
+
+      if (!spyglass.intent) {
+        try {
+          await SpyglassSearch.loadIntent(userId, spyglass.id);
+          spyglass = await getSpyglass();
+          if (!spyglass) {
+            throw new Error("Spyglass not found");
+          }
+          yield {
+            type: "intent_loaded",
+            statusText: "Loading results...",
+            data: spyglass,
+          };
+        } catch (e) {
+          const errorMessage = "Error loading intent";
+          logger.error(errorMessage, {
+            userId,
+            searchId: spyglassId,
+            error: e,
+          });
+          yield {
+            type: "error",
+            data: errorMessage,
+            statusText: "Something went wrong...",
+          };
+          return undefined;
+        }
+      }
+
+      if (!spyglass.results || !spyglass.results.length) {
+        try {
+          await SpyglassSearch.loadResults(userId, spyglass?.id);
+          spyglass = await getSpyglass();
+          if (!spyglass) {
+            throw new Error("Spyglass not found");
+          }
+          yield {
+            type: "results_loaded",
+            statusText: `Reading ${spyglass.results?.length || "some"} results...`,
+            data: spyglass,
+          };
+        } catch (e) {
+          const errorMessage = "Error loading search results";
+          logger.error(errorMessage, {
+            userId,
+            searchId: spyglassId,
+            error: e,
+          });
+          yield {
+            type: "error",
+            statusText: "Something went wrong...",
+            data: errorMessage,
+          };
+          return undefined;
+        }
+        resultsTime = Date.now();
+      }
+
+      try {
+        console.log("Loaded spyglass results web: ", spyglass.webSearches);
+        const scope = spyglass.scope;
+        if (["all", "my-qwest"].includes(scope)) {
+          if (!spyglass.fullResults) {
+            throw new Error("Did not load full results");
+          }
+        }
+        if (["all", "web"].includes(scope)) {
+          if (!spyglass.webSearches) {
+            throw new Error("Did not load web results");
+          }
+        }
+        if (!spyglass.intent) {
+          throw new Error("Spyglass intent not found");
+        }
+
+        yield {
+          type: "findings_generating",
+          statusText: "Generating findings...",
+          data: spyglass,
+        };
+
+        let completeFindingsJSON = "";
+        for await (const findingChunk of Spyglass.generateFindingsFromResults(
+          spyglass,
+        )) {
+          completeFindingsJSON += findingChunk;
+          yield {
+            type: "findings_chunk",
+            statusText: "Generating findings...",
+            data: findingChunk,
+          };
+          const completeFindings =
+            parseIncompleteJsonArray(completeFindingsJSON);
+          if (completeFindings.length > max_spyglass_finding_amount) {
+            throw new Error("Too many findings");
+          }
+        }
+
+        const db = await getDatabase();
+        if (!db) {
+          throw new Error("Database not initialized");
+        }
+        const completeFindings = parseIncompleteJsonArray(completeFindingsJSON);
+        await db.merge<ISpyglassSearch>(spyglass.id, {
+          analysis: {
+            findings: completeFindings,
+            overview: "",
+          },
+        });
+
+        spyglass = await SpyglassSearch.get(spyglass.id);
+        if (!spyglass) {
+          throw new Error("Spyglass not found");
+        }
+
+        yield {
+          type: "findings_loaded",
+          statusText: `Generated ${completeFindings.length} findings from ${spyglass.results?.length || "some"} results...`,
+          data: spyglass,
+        };
+        findingsTime = Date.now();
+      } catch (e) {
+        const errorMessage = "Error generating findings";
+        logger.error(errorMessage, {
+          userId,
+          searchId: spyglass?.id,
+          error: e,
+        });
+        yield {
+          type: "error",
+          data: errorMessage,
+          statusText: "Something went wrong...",
+        };
+        return undefined;
+      }
+
+      // Phase 2: Stream Overview Generation
+      if (
+        spyglass.intent &&
+        spyglass.analysis &&
+        spyglass.analysis.findings.length > 0
+      ) {
+        try {
+          yield {
+            type: "overview_generating",
+            statusText: "Generating overview...",
+            data: spyglass,
+          };
+
+          let completeOverview = "";
+          for await (const chunk of Spyglass.generateOverviewFromFindings(
+            spyglass,
+          )) {
+            completeOverview += chunk;
+            yield {
+              type: "overview_chunk",
+              statusText: "Generating overview...",
+              data: chunk,
+            };
+          }
+
+          const db = await getDatabase();
+          if (!db) {
+            throw new Error("Database not initialized");
+          }
+          await db.merge<ISpyglassSearch>(spyglass.id, {
+            analysis: {
+              findings: spyglass.analysis.findings,
+              overview: completeOverview,
+            },
+          });
+
+          spyglass = await SpyglassSearch.get(spyglass.id);
+          if (!spyglass) {
+            throw new Error("Spyglass not found");
+          }
+
+          yield {
+            type: "overview_completed",
+            statusText: "Overview generated successfully",
+            data: spyglass,
+          };
+          overviewTime = Date.now();
+        } catch (e) {
+          const errorMessage = "Error generating overview";
+          logger.error(errorMessage, {
+            userId,
+            searchId: spyglass?.id,
+            error: e,
+          });
+          yield {
+            type: "error",
+            data: errorMessage,
+            statusText: "Something went wrong...",
+          };
+          return undefined;
+        }
+      }
+
+      // Stage 4: Completion
+      // Fetch the final, complete search record
+      const finalSearch = await SpyglassSearch.get(spyglass.id);
+      if (!finalSearch) {
+        const errorMessage =
+          "Failed to retrieve final search record after completion";
+        logger.error(errorMessage, { userId, searchId: spyglass.id });
+        yield {
+          type: "error",
+          data: errorMessage,
+          statusText: "Something went wrong...",
+        };
+        return undefined;
+      }
+
+      const resultsDuration = resultsTime
+        ? (resultsTime - startTime) / 1000
+        : null;
+      const findingsDuration =
+        findingsTime && resultsTime
+          ? (findingsTime - resultsTime) / 1000
+          : null;
+      const overviewDuration =
+        overviewTime && findingsTime
+          ? (overviewTime - findingsTime) / 1000
+          : null;
+
+      const formatDecimal = (value: number | null) =>
+        value?.toFixed(2) ?? "N/A";
+
+      const totalCitations = finalSearch.analysis?.findings.length;
+
+      const statusText = `Found ${finalSearch.results?.length ?? 0} result${finalSearch.results?.length === 1 ? "" : "s"} in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(findingsDuration)}s and overview in ${formatDecimal(overviewDuration)}s`;
+
+      yield { type: "completed", statusText, data: finalSearch };
+      return finalSearch; // The final value returned by the generator
+    } catch (error) {
+      const errorMessage = "An unexpected error occurred during spyglass run";
+      logger.error(errorMessage, { userId, error });
+      yield {
+        type: "error",
+        data: errorMessage,
+        statusText: "Something went wrong...",
+      };
+      return undefined;
+    }
+  }
 
   static async getResults(
     userId: string,
@@ -478,11 +792,24 @@ export default class Spyglass {
     return allResults;
   }
 
-  static getCitationMap(results: ISearchResult[]): ICitationMap {
-    return results.reduce((map, result) => {
-      map[result.id.toString()] = result;
-      return map;
-    }, {} as ICitationMap);
+  static getCitationMap(results: {
+    internalResults?: ISearchResult[];
+    webResults?: IWebSearchResult[];
+  }): ICitationMap {
+    const citationMap: ICitationMap = {};
+    results.internalResults?.map((result) => {
+      citationMap[result.id.toString()] = {
+        type: "internal",
+        value: result,
+      };
+    });
+    results.webResults?.map((webResult) => {
+      citationMap[webResult.id.toString()] = {
+        type: "web",
+        value: webResult,
+      };
+    });
+    return citationMap;
   }
 
   static intentPromptBuilder(spyglass: ISpyglassSearch) {
@@ -524,7 +851,7 @@ export default class Spyglass {
         );
     }
 
-    if (parent && spyglass?.parent?.intent) {
+    if (spyglass.parent && spyglass?.parent?.intent) {
       builder.addBlock(
         "Follow-Up Context",
         `
@@ -728,13 +1055,8 @@ export default class Spyglass {
     };
   }
 
-  static overviewPromptBuilder(
-    query: string,
-    mode: ISpyglassMode,
-    parent?: ISpyglassSearch | null,
-  ) {
+  static overviewPromptBuilder(spyglass: ISpyglassSearch, mode: ISpyglassMode) {
     const builder = new PromptBuilder()
-      // --- Insight: Adopting the more polished persona we discussed.
       .addText(
         "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
       )
@@ -742,33 +1064,36 @@ export default class Spyglass {
         "Context",
         `
           It is currently ${getFormattedDateTimeToday()}.
-          You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on the provided results. This means that user queries are likely to be reflective and personal, as well as analytical.
           `,
       );
 
-    if (parent) {
+    if (spyglass.parent) {
       let parentContext = `
       Crucially, this question is a follow-up to a previous query.
       The response should flow from the previous query and response.
       Previous Query:
       <previousQuery>
-        ${parent.baseQuery}
+        ${spyglass.parent?.baseQuery}
       </previousQuery>
 
       `;
 
-      if (parent.analysis?.findings && parent.analysis.findings.length > 0) {
-        const findingsText = parent.analysis?.findings
+      if (
+        spyglass.parent.analysis?.findings &&
+        spyglass.parent.analysis.findings.length > 0
+      ) {
+        const findingsText = spyglass.parent.analysis?.findings
           .map((f, i) => `* Finding ${i + 1}: ${f.analysis}`)
           .join("\n");
         parentContext += `\n\nHere are the findings from the previous query:\n${findingsText}`;
       }
 
-      if (parent.analysis) {
+      if (spyglass.parent.analysis) {
         parentContext += `
         And here was the final response based on those findings:
         <previousResponse>
-          ${parent.analysis?.overview}
+          ${spyglass.parent.analysis?.overview}
         </previousResponse>
         `;
       }
@@ -777,7 +1102,7 @@ export default class Spyglass {
 
     builder
       .addBlock("Mission Statement", spyglassMissionStatement)
-      .addText(mode.response.prompt(query).get())
+      .addText(mode.response.prompt(spyglass.baseQuery).get())
       .addBlock(
         "Output and Citation Rules",
         `
@@ -807,7 +1132,7 @@ export default class Spyglass {
         `
         The user's query is:
         <userQuery>
-          ${query}
+          ${spyglass.baseQuery}
         </userQuery>
         `,
       )
@@ -884,7 +1209,7 @@ export default class Spyglass {
     return r;
   }
 
-  static webResultToString(result: IWebSearchResult) {
+  static async webResultToString(result: IWebSearchResult) {
     let r = "";
     const item = result?.item;
     r += "<webResult>";
@@ -893,8 +1218,58 @@ export default class Spyglass {
     if (item.snippet) {
       r += `  <systemHighlightedText>${item.snippet}</systemHighlightedText>`;
     }
+    if (item.loaded.content) {
+      r += `  <content>${htmlToMarkdown(item.loaded.content)}</content>`;
+    } else {
+      r += `  <content>No content loaded.</content>`;
+    }
     r += "</webResult>";
     return r;
+  }
+
+  static processInternalResults(spyglass: ISpyglassSearch): IProcessedResult[] {
+    const internalResults = spyglass.fullResults;
+    const processedResults: IProcessedResult[] = [];
+    for (const result of internalResults ?? []) {
+      const prompt = this.resultToString(result) || "";
+      if (!prompt) {
+        continue;
+      }
+      processedResults.push({
+        id: result.id.toString(),
+        prompt,
+      });
+    }
+    return processedResults;
+  }
+
+  static async processWebResults(
+    spyglass: ISpyglassSearch,
+  ): Promise<IProcessedResult[]> {
+    try {
+      const webSearches = spyglass.webSearches;
+      const processedResults: IProcessedResult[] = [];
+      for (const webSearch of webSearches ?? []) {
+        const search = await WebSearch.get(webSearch.id);
+        if (!search) {
+          continue;
+        }
+        for (const result of search.results ?? []) {
+          const prompt = (await this.webResultToString(result)) || "";
+          if (!prompt) {
+            continue;
+          }
+          processedResults.push({
+            prompt,
+            id: result.id.toString(),
+          });
+        }
+      }
+      return processedResults;
+    } catch (error) {
+      console.error("Error processing web results: ", error);
+      return [];
+    }
   }
 
   static async *generateFindingsFromResults(
@@ -915,31 +1290,15 @@ export default class Spyglass {
         }
       }
 
-      const resultsStrings: string[] = [];
-      const resultIds: string[] = [];
+      const processedResults: IProcessedResult[] = [];
 
       if (spyglass.scope === "all" || spyglass.scope === "my-qwest") {
-        const myResults =
-          spyglass.fullResults
-            ?.filter((r) => {
-              return r.value?.type === "idea";
-            })
-            .map((result) => {
-              resultIds.push(result.id.toString());
-              return this.resultToString(result) || "";
-            }) ?? [];
-        resultsStrings.push(...myResults);
+        const myResults = this.processInternalResults(spyglass);
+        processedResults.push(...myResults);
       }
       if (spyglass.scope === "all" || spyglass.scope === "web") {
-        for (const webSearch of spyglass.webSearches ?? []) {
-          const search = await WebSearch.get(webSearch.id);
-          const webResults =
-            search?.results?.map((result) => {
-              resultIds.push(result.id.toString());
-              return this.webResultToString(result) || "";
-            }) ?? [];
-          resultsStrings.push(...webResults);
-        }
+        const processedWebResults = await this.processWebResults(spyglass);
+        processedResults.push(...processedWebResults);
       }
 
       const findingsPrompt = this.findingsPromptBuilder(
@@ -947,18 +1306,19 @@ export default class Spyglass {
         Modes[spyglass.intent?.mode as keyof typeof Modes],
       );
 
-      resultsStrings.forEach((s, i) => {
+      processedResults.forEach((result, i) => {
         const totalSize = findingsPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
+        const { id, prompt } = result;
+        if (totalSize + prompt.length > max_lm_prompt_size) {
           return;
         }
-        findingsPrompt.addBlock(`Result ${i + 1}`, s, 2);
+        findingsPrompt.addBlock(`Result ${i + 1}`, prompt, 2);
       });
 
       const lm = getLM().withModel("fast-accurate");
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
-        this.findingsSchema(resultIds),
+        this.findingsSchema(processedResults.map((r) => r.id.toString())),
       )) {
         if (!result) {
           throw new Error("Findings not generated by LM");
@@ -981,8 +1341,8 @@ export default class Spyglass {
     const source = citationMap[sourceId];
     t += "<finding>";
     t += `  <sourceId>${sourceId}</sourceId>`;
-    if (source.value.type === "idea") {
-      t += `  <sourceTitle>${source.value.title}</sourceTitle>`;
+    if (source.type === "internal" && source.value.value.type === "idea") {
+      t += `  <sourceTitle>${source.value.value.title}</sourceTitle>`;
     }
     t += `  <findingNumber>${index}</findingNumber>`;
     t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
@@ -992,82 +1352,38 @@ export default class Spyglass {
     return t;
   }
 
-  static async getOverviewFromFindings(
-    query: string,
-    findings: ISearchOverview["findings"],
-    intent: ISpyglassIntent,
-    results: ISearchResult[],
-  ): Promise<ISearchOverview["overview"] | undefined> {
-    try {
-      if (findings.length === 0) {
-        return "There were no results to analyze.";
-      }
-      const findingsString: string[] = [];
-      let index = 0;
-      const citationMap = this.getCitationMap(results);
-      for (const finding of findings) {
-        findingsString.push(this.findingToString(finding, citationMap, index));
-        index++;
-      }
-      const overviewPrompt = this.overviewPromptBuilder(
-        query,
-        Modes[intent.mode],
-      );
-
-      findingsString.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
-        const totalSize = overviewPrompt.get().length;
-        if (totalSize + s.length > max_lm_prompt_size) {
-          return;
-        }
-        overviewPrompt.addBlock(`Finding ${i + 1}`, s, 2);
-      });
-
-      const lm = getLM().withModel("simple");
-      const result = await lm.generateJSON<ISearchOverview["overview"]>(
-        overviewPrompt.get(),
-        {
-          type: LMSchemaType.STRING,
-          description:
-            "A direct response to the user's query based on the findings.",
-        },
-      );
-      if (!result) {
-        throw new Error("Findings not generated by LM");
-      }
-      return result;
-    } catch (error) {
-      console.error("Error getting findings from results:", error);
-      return undefined;
-    }
-  }
-
   static async *generateOverviewFromFindings(
-    query: string,
-    findings: ISearchOverview["findings"],
-    intent: ISpyglassIntent,
-    results: ISearchResult[],
-    parent?: ISpyglassSearch,
+    spyglass: ISpyglassSearch,
   ): AsyncGenerator<string, void, unknown> {
     try {
-      if (findings.length === 0) {
+      const analysis = spyglass.analysis;
+      if (!analysis || analysis?.findings.length === 0) {
         yield "There were no results to analyze.";
         return;
       }
+      const intent = spyglass.intent;
+      if (!intent) {
+        yield "Something went wrong";
+        return;
+      }
       const findingsString: string[] = [];
-      const citationMap = this.getCitationMap(results);
+      const citationMap = this.getCitationMap({
+        internalResults: spyglass.fullResults,
+        webResults: spyglass.webSearches
+          ? ((await WebSearch.getResultsForWebSearches(spyglass.webSearches)) ??
+            [])
+          : [],
+      });
       let index = 0;
-      for (const finding of findings) {
+      for (const finding of analysis.findings) {
         findingsString.push(this.findingToString(finding, citationMap, index));
         index++;
       }
       const overviewPrompt = this.overviewPromptBuilder(
-        query,
+        spyglass,
         Modes[intent.mode],
-        parent,
       );
       findingsString.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
         const totalSize = overviewPrompt.get().length;
         if (totalSize + s.length > max_lm_prompt_size) {
           return;

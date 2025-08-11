@@ -3,6 +3,9 @@ export type IWebSearchResultItem = {
   title: string;
   link: string;
   snippet?: string;
+  loaded: {
+    content: string;
+  };
   details?: {
     thumbnailUrl?: string;
     faviconUrl?: string;

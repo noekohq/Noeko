@@ -22,6 +22,7 @@ interface ITextboxProps {
   placeholder?: string;
   placeholderIfInitialized?: string;
   initialized?: boolean;
+  onScopeChange?: (scope: ISpyglassScopeOption) => void;
 }
 
 export default function Textbox({
@@ -31,6 +32,7 @@ export default function Textbox({
   placeholder,
   placeholderIfInitialized,
   initialized,
+  onScopeChange,
 }: ITextboxProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [sendingAnimation, setSendingAnimation] = useState(false);
@@ -74,6 +76,10 @@ export default function Textbox({
     useRabbithole();
 
   const [scope, setScope] = useState<ISpyglassScopeOption>("my-qwest");
+
+  useEffect(() => {
+    onScopeChange?.(scope);
+  }, [scope]);
 
   return (
     <div

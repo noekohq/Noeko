@@ -4,6 +4,7 @@ import { checkToken } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
 import { ISpyglassSearch, SpyglassSearch } from "../../database/models/search";
 import { ISafeUser } from "../../database/models/user";
+import Spyglass from "../../services/Spyglass";
 
 const router = Router();
 
@@ -29,6 +30,13 @@ router.post("/initialize", checkToken, async (req, res) => {
         res.status(403).json({ error: "Unauthorized access to parent search" });
         return;
       }
+    }
+
+    if (!scope) {
+      res.status(400).send({
+        message: "Scope is required",
+      });
+      return;
     }
 
     const newSpyglass = await SpyglassSearch.create(
@@ -98,7 +106,7 @@ router.get("/sse", checkToken, async (req, res) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    const generator = SpyglassSearch.runSpyglassGenerator(user.id, spyglass.id);
+    const generator = Spyglass.runSpyglassGenerator(user.id, spyglass.id);
 
     req.on("close", () => {
       generator.return(undefined);

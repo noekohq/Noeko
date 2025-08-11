@@ -12,7 +12,10 @@ import {
 import { parseIncompleteJsonArray } from "../../../utils/processing";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { ISpyglassIntent } from "../../../../app/services/Spyglass";
+import {
+  ISpyglassIntent,
+  ISpyglassScopeOption,
+} from "../../../../app/services/Spyglass";
 import useRabbithole from "../../../hooks/useRabbithole";
 
 const initialAnalysis: ISearchOverview = {
@@ -23,6 +26,7 @@ const initialAnalysis: ISearchOverview = {
 interface IUseSpyglassArgs {
   query: string;
   parentId?: string | null;
+  scope?: ISpyglassScopeOption;
   onResultsChange?: (results: ISearchResultValue[]) => void;
   onAnalysisChange?: (analysis: ISearchOverview | null) => void;
 }
@@ -69,6 +73,7 @@ interface IUseSpyglassReturn {
 export default function useSpyglass({
   query,
   parentId,
+  scope,
   onResultsChange = () => {},
   onAnalysisChange = () => {},
 }: IUseSpyglassArgs) {
@@ -307,6 +312,7 @@ export default function useSpyglass({
       const response = await api.post("/search/spyglass/initialize", {
         query,
         parentId,
+        scope,
         rabbitholeId: currentRabbithole?.id.toString(),
       });
       setInitialized(true);

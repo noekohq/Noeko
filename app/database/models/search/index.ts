@@ -378,9 +378,11 @@ export class SpyglassSearch {
       const results: ISearchResult[] = [];
       const webSearches: IWebSearch[] = [];
       if (search.intent) {
+        console.log("Loading for scope: ", search.scope);
         switch (search.scope) {
           case "all":
           case "my-qwest":
+            console.log("Getting queries from ", search.intent.queries);
             const r = await Spyglass.getResultsFromQueries(
               userId.toString(),
               search.intent.queries,
@@ -391,13 +393,15 @@ export class SpyglassSearch {
             results.push(...r);
             break;
           case "web":
+            console.log("Loading search many...");
             const webR = await WebSearch.searchMany(search.intent.queries);
+            console.log("Loaded search many...", webR);
             if (!webR) {
               return;
             }
             webR.forEach((ws) => {
               if (ws) {
-                webR.push(ws);
+                webSearches.push(ws);
               }
             });
             break;
@@ -486,293 +490,5 @@ export class SpyglassSearch {
         return this.mapSearchConnectionToSearchResult(connection, source);
       }),
     );
-  }
-
-  public static async *runSpyglassGenerator(
-    userId: string | RecordId,
-    spyglassId: string | RecordId,
-  ): AsyncGenerator<
-    {
-      type: ISpyglassGeneratorType;
-      statusText: string;
-      data: ISpyglassSearch | string;
-    },
-    ISpyglassSearch | undefined, // The final return type of the generator
-    unknown
-  > {
-    let resultsTime: number | null = null;
-    let findingsTime: number | null = null;
-    let overviewTime: number | null = null;
-
-    try {
-      const startTime = Date.now();
-      const db = await getDatabase();
-      if (!db) {
-        const errorMessage = "Database not initialized";
-        logger.error(errorMessage, { spyglassId });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "There was an error",
-        };
-        return undefined;
-      }
-
-      const getSpyglass = async () => await SpyglassSearch.get(spyglassId);
-      let spyglass = await getSpyglass();
-      if (!spyglass) {
-        const errorMessage = "Search not found";
-        logger.error(errorMessage, { spyglassId });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "Something went wrong...",
-        };
-        return undefined;
-      }
-
-      if (!spyglass.intent) {
-        try {
-          await SpyglassSearch.loadIntent(userId, spyglass.id);
-          spyglass = await getSpyglass();
-          if (!spyglass) {
-            throw new Error("Spyglass not found");
-          }
-          yield {
-            type: "intent_loaded",
-            statusText: "Loading results...",
-            data: spyglass,
-          };
-        } catch (e) {
-          const errorMessage = "Error loading intent";
-          logger.error(errorMessage, {
-            userId,
-            searchId: spyglassId,
-            error: e,
-          });
-          yield {
-            type: "error",
-            data: errorMessage,
-            statusText: "Something went wrong...",
-          };
-          return undefined;
-        }
-      }
-
-      if (!spyglass.results || !spyglass.results.length) {
-        try {
-          await SpyglassSearch.loadResults(userId, spyglass?.id);
-          spyglass = await getSpyglass();
-          if (!spyglass) {
-            throw new Error("Spyglass not found");
-          }
-          yield {
-            type: "results_loaded",
-            statusText: `Reading ${spyglass.results?.length || "some"} results...`,
-            data: spyglass,
-          };
-        } catch (e) {
-          const errorMessage = "Error loading search results";
-          logger.error(errorMessage, {
-            userId,
-            searchId: spyglassId,
-            error: e,
-          });
-          yield {
-            type: "error",
-            statusText: "Something went wrong...",
-            data: errorMessage,
-          };
-          return undefined;
-        }
-        resultsTime = Date.now();
-      }
-
-      try {
-        if (!spyglass.fullResults) {
-          throw new Error("Did not load full results");
-        }
-        if (!spyglass.intent) {
-          throw new Error("Spyglass intent not found");
-        }
-
-        yield {
-          type: "findings_generating",
-          statusText: "Generating findings...",
-          data: spyglass,
-        };
-
-        let completeFindingsJSON = "";
-        for await (const findingChunk of Spyglass.generateFindingsFromResults(
-          spyglass.baseQuery,
-          spyglass.fullResults,
-          spyglass.intent,
-        )) {
-          completeFindingsJSON += findingChunk;
-          yield {
-            type: "findings_chunk",
-            statusText: "Generating findings...",
-            data: findingChunk,
-          };
-          const completeFindings =
-            parseIncompleteJsonArray(completeFindingsJSON);
-          if (completeFindings.length > max_spyglass_finding_amount) {
-            throw new Error("Too many findings");
-          }
-        }
-
-        // Save the complete findings
-        const db = await getDatabase();
-        if (!db) {
-          throw new Error("Database not initialized");
-        }
-        const completeFindings = parseIncompleteJsonArray(completeFindingsJSON);
-        await db.merge<ISpyglassSearch>(spyglass.id, {
-          analysis: {
-            findings: completeFindings,
-            overview: "",
-          },
-        });
-
-        spyglass = await SpyglassSearch.get(spyglass.id);
-        if (!spyglass) {
-          throw new Error("Spyglass not found");
-        }
-
-        yield {
-          type: "findings_loaded",
-          statusText: `Generated ${completeFindings.length} findings from ${spyglass.results?.length || "some"} results...`,
-          data: spyglass,
-        };
-        findingsTime = Date.now();
-      } catch (e) {
-        const errorMessage = "Error generating findings";
-        logger.error(errorMessage, {
-          userId,
-          searchId: spyglass?.id,
-          error: e,
-        });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "Something went wrong...",
-        };
-        return undefined;
-      }
-
-      // Phase 2: Stream Overview Generation
-      if (
-        spyglass.intent &&
-        spyglass.analysis &&
-        spyglass.analysis.findings.length > 0
-      ) {
-        try {
-          yield {
-            type: "overview_generating",
-            statusText: "Generating overview...",
-            data: spyglass,
-          };
-
-          let completeOverview = "";
-          for await (const chunk of Spyglass.generateOverviewFromFindings(
-            spyglass.baseQuery,
-            spyglass.analysis.findings,
-            spyglass.intent,
-            spyglass.fullResults || [],
-            spyglass.parent,
-          )) {
-            completeOverview += chunk;
-            yield {
-              type: "overview_chunk",
-              statusText: "Generating overview...",
-              data: chunk,
-            };
-          }
-
-          // Save the complete overview
-          const db = await getDatabase();
-          if (!db) {
-            throw new Error("Database not initialized");
-          }
-          await db.merge<ISpyglassSearch>(spyglass.id, {
-            analysis: {
-              findings: spyglass.analysis.findings,
-              overview: completeOverview,
-            },
-          });
-
-          spyglass = await SpyglassSearch.get(spyglass.id);
-          if (!spyglass) {
-            throw new Error("Spyglass not found");
-          }
-
-          yield {
-            type: "overview_completed",
-            statusText: "Overview generated successfully",
-            data: spyglass,
-          };
-          overviewTime = Date.now();
-        } catch (e) {
-          const errorMessage = "Error generating overview";
-          logger.error(errorMessage, {
-            userId,
-            searchId: spyglass?.id,
-            error: e,
-          });
-          yield {
-            type: "error",
-            data: errorMessage,
-            statusText: "Something went wrong...",
-          };
-          return undefined;
-        }
-      }
-
-      // Stage 4: Completion
-      // Fetch the final, complete search record
-      const finalSearch = await SpyglassSearch.get(spyglass.id);
-      if (!finalSearch) {
-        const errorMessage =
-          "Failed to retrieve final search record after completion";
-        logger.error(errorMessage, { userId, searchId: spyglass.id });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "Something went wrong...",
-        };
-        return undefined;
-      }
-
-      const resultsDuration = resultsTime
-        ? (resultsTime - startTime) / 1000
-        : null;
-      const findingsDuration =
-        findingsTime && resultsTime
-          ? (findingsTime - resultsTime) / 1000
-          : null;
-      const overviewDuration =
-        overviewTime && findingsTime
-          ? (overviewTime - findingsTime) / 1000
-          : null;
-
-      const formatDecimal = (value: number | null) =>
-        value?.toFixed(2) ?? "N/A";
-
-      const totalCitations = finalSearch.analysis?.findings.length;
-
-      const statusText = `Found ${finalSearch.results?.length ?? 0} result${finalSearch.results?.length === 1 ? "" : "s"} in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(findingsDuration)}s and overview in ${formatDecimal(overviewDuration)}s`;
-
-      yield { type: "completed", statusText, data: finalSearch };
-      return finalSearch; // The final value returned by the generator
-    } catch (error) {
-      const errorMessage = "An unexpected error occurred during spyglass run";
-      logger.error(errorMessage, { userId, error });
-      yield {
-        type: "error",
-        data: errorMessage,
-        statusText: "Something went wrong...",
-      };
-      return undefined;
-    }
   }
 }

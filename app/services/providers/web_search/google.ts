@@ -66,6 +66,7 @@ export default class GoogleSearchProvider implements WebSearchProvider {
       }
 
       const data: GoogleApiResponse = await response.json();
+      console.log("Got search data: ", data);
 
       // If there are no items, return an empty array.
       if (!data.items) {
@@ -87,21 +88,20 @@ export default class GoogleSearchProvider implements WebSearchProvider {
    * @returns A standardized IWebSearchResultItem object.
    */
   private mapItemToStandard(item: GoogleApiItem): IWebSearchResultItem {
-    // Safely access potential date strings from common metadata fields.
     const dateString = item.pagemap?.metatags?.[0]?.["article:published_time"];
 
-    // Safely access the thumbnail URL.
     const thumbnailUrl = item.pagemap?.cse_thumbnail?.[0]?.src;
 
-    // A reliable way to get a favicon URL for any domain.
     const faviconUrl = `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${new URL(item.link).origin}`;
 
     return {
-      // The link is a reliable unique identifier for a search result.
       id: item.link,
       title: item.title,
       link: item.link,
       snippet: item.snippet,
+      loaded: {
+        content: "",
+      },
       details: {
         thumbnailUrl: thumbnailUrl,
         faviconUrl: faviconUrl,
