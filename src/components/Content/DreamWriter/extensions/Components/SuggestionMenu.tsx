@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useRef } from "react";
+import React, { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import {
   useFloating,
   autoUpdate,
@@ -23,7 +23,7 @@ type ISuggestionMenuProps = {
   items: ISuggestionItem[];
   activeIndex: number;
   onSelectionMade: (index: number) => void;
-  isLoading?: boolean;
+  loading?: boolean;
 };
 
 const SuggestionMenu = ({
@@ -31,10 +31,8 @@ const SuggestionMenu = ({
   items,
   activeIndex,
   onSelectionMade,
-  isLoading,
+  loading,
 }: ISuggestionMenuProps) => {
-  // Create a virtual element so Floating UI can position the menu
-  // relative to the DOMRect provided by the parent.
   const virtualElement = useMemo(
     () => ({
       getBoundingClientRect: getReferenceClientRect,
@@ -104,12 +102,12 @@ const SuggestionMenu = ({
           role="listbox" // ARIA role for a list of options
           aria-activedescendant={items[activeIndex]?.id} // Points to the active item's ID
         >
-          {isLoading && (
+          {loading && (
             <div className={styles.item}>
               <div className={styles.label}>Loading suggestions...</div>
             </div>
           )}
-          {!items.length && !isLoading && (
+          {!items.length && !loading && (
             <div className={styles.item}>
               <div className={styles.label}>No suggestions available</div>
             </div>

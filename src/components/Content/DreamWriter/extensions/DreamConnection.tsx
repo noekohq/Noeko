@@ -11,13 +11,12 @@ import { IIdea } from "../../../../../app/database/models/ideas";
 import { IUserFile } from "../../../../../app/database/models/userfile";
 import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
-import { Lightbulb } from "@phosphor-icons/react";
+import { Lightbulb, LightbulbIcon } from "@phosphor-icons/react";
 import { getNodeDescription, getNodeTitle } from "../../../../utils/graph";
 import { EditorState, PluginKey } from "@tiptap/pm/state";
 
 const suggestionKey = new PluginKey("dream-connection");
 
-// --- Type Definitions ---
 export interface IDreamConnectionOptions {
   allowedTypes?: string[];
 }
@@ -26,20 +25,29 @@ export type IDreamConnectionItem =
   | ({ type: "idea" } & IIdea)
   | ({ type: "file" } & IUserFile);
 
-// --- Data Fetching ---
-async function fetchDreamConnectionItems(
+const FETCH_SUGGESTIONS_COOLDOWN = 1000;
+let fetchSuggestionsTimeout: ReturnType<typeof setTimeout>;
+
+function fetchDreamConnectionItems(
   query: string,
 ): Promise<IDreamConnectionItem[]> {
-  try {
-    const response = await api.get(`/search/ideas/suggest?query=${query}`);
-    return response.data.data.map((item: IIdea) => ({
-      ...item,
-      type: "idea",
-    }));
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  return new Promise((resolve) => {
+    clearTimeout(fetchSuggestionsTimeout);
+
+    fetchSuggestionsTimeout = setTimeout(async () => {
+      try {
+        const response = await api.get(`/search/ideas/suggest?query=${query}`);
+        const items = response.data.data.map((item: IIdea) => ({
+          ...item,
+          type: "idea",
+        }));
+        resolve(items);
+      } catch (error) {
+        console.error(error);
+        resolve([]);
+      }
+    }, FETCH_SUGGESTIONS_COOLDOWN);
+  });
 }
 
 const suggestionOptionsDefinition = (
@@ -76,7 +84,8 @@ const suggestionOptionsDefinition = (
       };
     },
     items: async ({ query }) => {
-      return await fetchDreamConnectionItems(query);
+      const items = await fetchDreamConnectionItems(query);
+      return items;
     },
     render: () => {
       let element: HTMLElement | null = null;
@@ -84,24 +93,27 @@ const suggestionOptionsDefinition = (
       let currentProps: SuggestionProps<IDreamConnectionItem> | null = null;
       let activeIndex = 0;
 
-      const renderListItems = () => {
-        if (!currentProps || !root) return;
+      // This helper will render the component with the correct state
+      const renderComponent = (
+        props: SuggestionProps<IDreamConnectionItem>,
+        loading: boolean,
+      ) => {
+        if (!root) return;
         root.render(
           <SuggestionMenu
-            items={currentProps.items.map((s) => {
-              return {
-                id: s.id.toString(),
-                label: getNodeTitle(s) ?? "Unknown",
-                icon: <Lightbulb />,
-              };
-            })}
+            loading={loading} // <-- Pass the loading state
+            items={props.items.map((s) => ({
+              id: s.id.toString(),
+              label: getNodeTitle(s) ?? "Unknown",
+              icon: <LightbulbIcon />,
+            }))}
             activeIndex={activeIndex}
-            getReferenceClientRect={currentProps.clientRect as () => DOMRect}
+            getReferenceClientRect={props.clientRect as () => DOMRect}
             onSelectionMade={(index) => {
-              // Use a guard in case items change.
-              const item = currentProps?.items[index];
-              if (!item) return;
-              currentProps?.command(item);
+              const item = props.items[index];
+              if (item) {
+                props.command(item);
+              }
             }}
           />,
         );
@@ -109,67 +121,58 @@ const suggestionOptionsDefinition = (
 
       return {
         onStart: (props) => {
-          // FIX: Create the element here and append it to the body.
           element = document.createElement("div");
           element.classList.add(styles.suggestionList);
           document.body.appendChild(element);
 
           root = createRoot(element);
           currentProps = props;
-          activeIndex = 0; // Reset on start
-          renderListItems();
+          activeIndex = 0;
+          // Render the component in its loading state
+          renderComponent(props, true);
         },
 
         onUpdate: (props) => {
           currentProps = props;
-          activeIndex = 0; // Reset on update (e.g., new query)
-          renderListItems();
+          activeIndex = 0;
+          // Items have loaded, render with data and loading=false
+          renderComponent(props, false);
         },
 
         onKeyDown: ({ event }: SuggestionKeyDownProps) => {
-          if (
-            !element ||
-            !root ||
-            !currentProps ||
-            currentProps.items.length === 0
-          ) {
+          if (!currentProps || currentProps.items.length === 0) {
             return false;
           }
 
           const itemCount = currentProps.items.length;
+          let handled = false;
 
           if (event.key === "ArrowUp") {
             activeIndex = (activeIndex - 1 + itemCount) % itemCount;
-            // FIX: Re-render the component to show the new active index.
-            renderListItems();
-            return true;
-          }
-
-          if (event.key === "ArrowDown") {
+            handled = true;
+          } else if (event.key === "ArrowDown") {
             activeIndex = (activeIndex + 1) % itemCount;
-            renderListItems();
-            return true;
-          }
-
-          if (event.key === "Enter" || event.key === "Tab") {
+            handled = true;
+          } else if (event.key === "Enter" || event.key === "Tab") {
             event.preventDefault();
             const selectedItem = currentProps.items[activeIndex];
             if (selectedItem) {
               currentProps.command(selectedItem);
             }
-            return true;
+            handled = true;
           }
 
-          return false;
+          if (handled) {
+            // Re-render to update the active index highlight
+            renderComponent(currentProps, false);
+          }
+
+          return handled;
         },
 
         onExit: () => {
-          // The unmount and removal should be robust enough to prevent the race condition.
-          // React's unmount will handle cleanup of hooks like useFloating.
           root?.unmount();
           element?.remove();
-
-          // Reset all state variables
           element = null;
           root = null;
           currentProps = null;
