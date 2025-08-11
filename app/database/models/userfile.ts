@@ -48,10 +48,15 @@ export class UserFile {
   static async up() {
     const getUserFilesFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::user_files(
+      DEFINE FUNCTION OVERWRITE fn::get_user_files(
         $userId: string,
       ) {
-        LET $userFiles = SELECT ->owns->user_file as userFiles FROM ONLY <record> $userId FETCH userFiles;
+        LET $userFiles =
+          SELECT
+            *
+          FROM user_file
+          WHERE <-owns<-(user WHERE id = <record> $userId)
+          ORDER BY updatedAt DESC;
         RETURN $userFiles;
       }
       `;

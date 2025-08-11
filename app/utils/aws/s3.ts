@@ -1,13 +1,25 @@
-import { BunFile, s3, S3File } from "bun";
+import { BunFile, S3File, S3Client } from "bun";
 
-const { S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET } =
-  process.env;
+const {
+  S3_ACCESS_KEY_ID,
+  S3_SECRET_ACCESS_KEY,
+  S3_REGION,
+  S3_BUCKET,
+  S3_ENDPOINT,
+} = process.env;
 
 if (!S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY || !S3_REGION || !S3_BUCKET) {
   throw new Error(
-    "Missing AWS S3 credentials. Required: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET",
+    "Missing S3 credentials. Required: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET",
   );
 }
+
+const client = new S3Client({
+  accessKeyId: S3_ACCESS_KEY_ID,
+  secretAccessKey: S3_SECRET_ACCESS_KEY,
+  endpoint: S3_ENDPOINT,
+  bucket: S3_BUCKET,
+});
 
 export const writeToS3 = async (
   path: string,
@@ -23,7 +35,7 @@ export const writeToS3 = async (
     | File,
 ): Promise<{ written: number; completed: boolean }> => {
   try {
-    const s3File = s3.file(path);
+    const s3File = client.file(path);
     const totalBytes = s3File.size;
     const written = await s3File.write(file as any);
     const completed = totalBytes === written;
@@ -39,7 +51,7 @@ export const writeToS3 = async (
 
 export const deleteFromS3 = async (path: string): Promise<boolean> => {
   try {
-    const s3File = s3.file(path);
+    const s3File = client.file(path);
     await s3File.delete();
     return true;
   } catch (error) {
@@ -50,7 +62,7 @@ export const deleteFromS3 = async (path: string): Promise<boolean> => {
 
 export const existsS3 = async (path: string): Promise<boolean> => {
   try {
-    const s3File = s3.file(path);
+    const s3File = client.file(path);
     return await s3File.exists();
   } catch (error) {
     console.error("Error checking file existence:", error);
@@ -60,7 +72,7 @@ export const existsS3 = async (path: string): Promise<boolean> => {
 
 export const downloadLinkS3 = async (path: string): Promise<string> => {
   try {
-    const url = s3.presign(path, {
+    const url = client.presign(path, {
       expiresIn: 3600,
       method: "GET",
     });
@@ -73,7 +85,7 @@ export const downloadLinkS3 = async (path: string): Promise<string> => {
 
 export const getStreamS3 = (path: string) => {
   try {
-    const s3file = s3.file(path);
+    const s3file = client.file(path);
     const stream = s3file.stream();
     return stream;
   } catch (error) {

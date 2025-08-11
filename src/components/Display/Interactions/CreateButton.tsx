@@ -1,5 +1,6 @@
 import {
   CheckIcon,
+  FileIcon,
   LightbulbIcon,
   PlusIcon,
   PlusSquareIcon,
@@ -14,7 +15,7 @@ import { useLayout } from "../../../contexts/LayoutContext";
 
 export default function CreateButton() {
   const {
-    actions: { newIdea, newRabbithole, newTask },
+    actions: { newIdea, newRabbithole, newTask, newFile },
   } = useInteraction();
   const { isMobile, isTablet } = useLayout();
 
@@ -44,14 +45,22 @@ export default function CreateButton() {
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>New</Menu.Label>
-        {/* <Menu.Item
+        <Menu.Item
+          rightSection={<FileIcon size={16} />}
+          onClick={() => {
+            newFile();
+          }}
+        >
+          File
+        </Menu.Item>
+        <Menu.Item
           rightSection={<RabbitholeIcon size={16} />}
           onClick={() => {
             newRabbithole();
           }}
         >
           Rabbithole
-        </Menu.Item> */}
+        </Menu.Item>
         <Menu.Item
           rightSection={<CheckIcon weight="bold" />}
           onClick={() => {
