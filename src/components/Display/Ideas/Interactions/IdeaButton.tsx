@@ -100,7 +100,6 @@ function IdeaButton({
           <Group justify="space-between" wrap="nowrap" w="100%">
             <Text className={styles.title} c="dark.1" size="sm" truncate="end">
               <Group gap="xs" wrap="nowrap">
-                <LightbulbIcon color="var(--mantine-color-dimmed)" />
                 {idea.title}
               </Group>
             </Text>

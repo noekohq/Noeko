@@ -14,6 +14,7 @@ import SuggestionMenu from "./Components/SuggestionMenu";
 import { Lightbulb, LightbulbIcon } from "@phosphor-icons/react";
 import { getNodeDescription, getNodeTitle } from "../../../../utils/graph";
 import { EditorState, PluginKey } from "@tiptap/pm/state";
+import { debounce } from "lodash";
 
 const suggestionKey = new PluginKey("dream-connection");
 
@@ -25,30 +26,32 @@ export type IDreamConnectionItem =
   | ({ type: "idea" } & IIdea)
   | ({ type: "file" } & IUserFile);
 
-const FETCH_SUGGESTIONS_COOLDOWN = 1000;
-let fetchSuggestionsTimeout: ReturnType<typeof setTimeout>;
-
-function fetchDreamConnectionItems(
+async function fetchDreamConnectionItems(
   query: string,
 ): Promise<IDreamConnectionItem[]> {
-  return new Promise((resolve) => {
-    clearTimeout(fetchSuggestionsTimeout);
-
-    fetchSuggestionsTimeout = setTimeout(async () => {
-      try {
-        const response = await api.get(`/search/ideas/suggest?query=${query}`);
-        const items = response.data.data.map((item: IIdea) => ({
-          ...item,
-          type: "idea",
-        }));
-        resolve(items);
-      } catch (error) {
-        console.error(error);
-        resolve([]);
-      }
-    }, FETCH_SUGGESTIONS_COOLDOWN);
-  });
+  // If the query is empty, don't hit the API
+  if (!query) {
+    return [];
+  }
+  try {
+    console.log("Making query: ", query);
+    const response = await api.get(`/search/ideas/suggest?query=${query}`);
+    const items = response.data.data.map((item: IIdea) => ({
+      ...item,
+      type: "idea",
+    }));
+    console.log("Got items: ", items);
+    return items;
+  } catch (error) {
+    console.error(error);
+    return []; // Return empty array on error
+  }
 }
+
+const debouncedFetchDreamConnectionItems = debounce(
+  fetchDreamConnectionItems,
+  500,
+);
 
 const suggestionOptionsDefinition = (
   styles: Record<string, string>,
@@ -84,7 +87,10 @@ const suggestionOptionsDefinition = (
       };
     },
     items: async ({ query }) => {
-      const items = await fetchDreamConnectionItems(query);
+      const items = await debouncedFetchDreamConnectionItems(query);
+      if (!items) {
+        return [];
+      }
       return items;
     },
     render: () => {
@@ -93,7 +99,7 @@ const suggestionOptionsDefinition = (
       let currentProps: SuggestionProps<IDreamConnectionItem> | null = null;
       let activeIndex = 0;
 
-      // This helper will render the component with the correct state
+      console.log("Rendering with loading state");
       const renderComponent = (
         props: SuggestionProps<IDreamConnectionItem>,
         loading: boolean,
