@@ -8,6 +8,7 @@ import {
 import styles from "./App.module.scss";
 import {
   Alert,
+  Flex,
   Loader,
   Stack,
   Text,
@@ -94,7 +95,7 @@ export default function App() {
 
   if (!isOnline) {
     return (
-      <PageWrapper>
+      <Flex justify="center" align="center" direction="column">
         <Content>
           <div
             style={{
@@ -105,7 +106,12 @@ export default function App() {
               padding: "20px",
             }}
           >
-            <Alert icon={<CloudIcon />} title="Connecting..." color="gray">
+            <Alert
+              icon={<CloudIcon />}
+              title="Connecting..."
+              color="gray"
+              radius="lg"
+            >
               <Stack gap="xs">
                 <Text size="sm">
                   Attemping to establish a connection to the Qwest server. If
@@ -120,7 +126,7 @@ export default function App() {
             </Alert>
           </div>
         </Content>
-      </PageWrapper>
+      </Flex>
     );
   }
 

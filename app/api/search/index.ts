@@ -115,12 +115,17 @@ router.get("/ideas/suggest", checkToken, async (req, res) => {
     }
     const query = req.query.query as string;
     const rabbitholeId = req.query.rabbitholeId as string;
-    const suggestions = await Search.suggest(user.id, query, {
+    const suggestions = await Search.comprehensiveSearch(user.id, query, {
       rabbitholeId,
     });
+    const ideas = suggestions
+      ?.map((suggestion) => {
+        return suggestion.value.type === "idea" ? suggestion.value : null;
+      })
+      .filter((idea) => idea !== null);
     res.json({
       message: "Suggestions fetched successfully",
-      data: suggestions,
+      data: ideas,
     });
   } catch (error) {
     console.error(error);
