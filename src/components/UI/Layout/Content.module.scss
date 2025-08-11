@@ -28,7 +28,6 @@
     min-height: 100%;
 
     @include tablet {
-        padding-inline: initial;
         padding-top: var(--mantine-spacing-sm);
         margin-top: 0;
     }
