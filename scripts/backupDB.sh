@@ -43,12 +43,12 @@ DAY_OF_WEEK=$(date +'%u') # 1-7 (Monday-Sunday)
 DAY_OF_MONTH=$(date +'%d')
 BACKUP_PREFIX="daily_"
 
-# If it's the 1st of the month, it's a 'Grandfather'
-if [[ "$DAY_OF_MONTH" -eq 1 ]]; then
-    BACKUP_PREFIX="monthly_"
 # Else if it's Sunday, it's a 'Father'
-elif [[ "$DAY_OF_WEEK" -eq 7 ]]; then
+if [[ "$DAY_OF_WEEK" -eq 7 ]]; then
     BACKUP_PREFIX="weekly_"
+# If it's the 1st of the month, it's a 'Grandfather'
+elif [[ "$DAY_OF_MONTH" -eq 1 ]]; then
+    BACKUP_PREFIX="monthly_"
 fi
 
 # --- Define Filenames and Paths ---
