@@ -21,6 +21,8 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import { handleFileDownload } from "../../utils/userfiles";
+import { useCallback } from "react";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -38,14 +40,34 @@ export default function UserFile() {
   >({
     url: `/files/${fileId}/download`,
     onSuccess: (downloadLink) => {
-      console.info("Triggering download");
       triggerDownload(
         downloadLink,
         file?.originalFileName ?? "qwest-file",
-        true,
+        false,
       );
     },
   });
+
+  const handleDownload = useCallback(async () => {
+    try {
+      if (file) {
+        handleFileDownload(file);
+      } else {
+        showNotification({
+          title: "No file to download.",
+          message: "Can't download non-existent file.",
+          color: "red",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching file: ", error);
+      showNotification({
+        title: "Something went wrong",
+        message: "Couldn't download file",
+        color: "red",
+      });
+    }
+  }, [file]);
 
   const { load: deleteFile, loading: deletingFile } = useFetch<
     undefined,
@@ -94,7 +116,7 @@ export default function UserFile() {
             <Title>Viewing file</Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
-            <Card radius="md" withBorder shadow="xs" p="md">
+            <Card radius="md" shadow="xs" p="md">
               <Flex justify="space-between">
                 <Group align="center">
                   <Text size="lg" fw="bold">
@@ -105,7 +127,7 @@ export default function UserFile() {
                   </Text>
                 </Group>
                 <Group>
-                  <Button onClick={() => downloadFile()} variant="light">
+                  <Button onClick={() => handleDownload()} variant="light">
                     Download
                   </Button>
                   <Button onClick={handleDelete} variant="light" color="red">

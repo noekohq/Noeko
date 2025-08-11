@@ -44,6 +44,7 @@ import { useLandscape } from "./LandscapeContext";
 import useRabbithole from "../hooks/useRabbithole";
 import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
 import CreateTaskForm from "../components/Forms/CreateTask";
+import AddFileForm from "../components/Forms/AddFile";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -55,6 +56,7 @@ type IInteractionContext = {
     newConnectedIdea: (source: string) => void;
     newRabbithole: () => void;
     newTask: (description?: string) => void;
+    newFile: () => void;
     layout: {
       leftSidebar: {
         open: () => void;
@@ -101,6 +103,7 @@ const initialContext: IInteractionContext = {
     newConnectedIdea: () => {},
     newRabbithole: () => {},
     newTask: () => {},
+    newFile: () => {},
     layout: {
       leftSidebar: {
         open: () => {},
@@ -231,6 +234,10 @@ export function InteractionProvider({
     }
   };
 
+  const handleNewFile = async () => {
+    setUploadingFile(true);
+  };
+
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
@@ -283,6 +290,9 @@ export function InteractionProvider({
       },
       newTask: async (description?: string) => {
         handleNewTask(description);
+      },
+      newFile: async () => {
+        handleNewFile();
       },
       layout: {
         leftSidebar: {
@@ -524,125 +534,6 @@ type IUploadFileProps = {
 };
 
 function UploadFile({ opened, setOpened }: IUploadFileProps) {
-  const fileForm = useForm<{
-    userFile: File | null;
-  }>({
-    initialValues: {
-      userFile: null,
-    },
-    validate: {
-      userFile: (value) => {
-        if (!value) return "File is required";
-        if (value.size > 1024 * 1024 * 10)
-          return "File size should not exceed 10MB";
-        return null;
-      },
-    },
-  });
-
-  const userFile = fileForm.values.userFile;
-
-  const [formData, setFormData] = useState<FormData>();
-  const { load: uploadFile, loading: loadingUpload } = useFetch<
-    FormData,
-    undefined
-  >({
-    url: "/files/",
-    method: "POST",
-    body: formData,
-    dependencies: [formData],
-    onSuccess: async () => {
-      showNotification({
-        title: "File Uploaded",
-        message: "File uploaded successfully",
-      });
-      setFormData(undefined);
-      fileForm.reset();
-      setOpened(false);
-    },
-    onError: async (error) => {
-      showNotification({
-        title: "Upload Error",
-        message: "Failed to upload file",
-        color: "red",
-      });
-    },
-  });
-
-  const handleUploadFile = async () => {
-    try {
-      const { errors, hasErrors } = fileForm.validate();
-      if (hasErrors) {
-        showNotification({
-          title: "Validation Error",
-          message: errors.userFile,
-          color: "red",
-        });
-      }
-      await uploadFile();
-    } catch (error) {
-      showNotification({
-        title: "Upload Error",
-        message: "Failed to upload file",
-        color: "red",
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (!userFile) {
-      return;
-    }
-    const { errors, hasErrors } = fileForm.validate();
-    if (!hasErrors) {
-      const formData = new FormData();
-      formData.append("userFile", userFile);
-      setFormData(formData);
-    }
-    if (hasErrors) {
-      showNotification({
-        title: "Validation Error",
-        message: errors.userFile,
-        color: "red",
-      });
-    }
-  }, [userFile]);
-
-  const typeToPreview: (type: string) =>
-    | {
-        icon: Icon;
-      }
-    | undefined = (type) => {
-    if (type === "application/pdf") {
-      return {
-        icon: FilePdf,
-      };
-    }
-    if (type.startsWith("image/")) {
-      return {
-        icon: Image,
-      };
-    }
-    if (type === "application/json") {
-      return {
-        icon: FileCode,
-      };
-    }
-    if (type === "text/csv") {
-      return {
-        icon: FileCsv,
-      };
-    }
-    if (type === "application/xml") {
-      return {
-        icon: FileCode,
-      };
-    }
-    return;
-  };
-
-  const preview = userFile ? typeToPreview(userFile.type) : null;
-
   return (
     <Drawer
       onClose={() => setOpened(false)}
@@ -653,73 +544,14 @@ function UploadFile({ opened, setOpened }: IUploadFileProps) {
       position="bottom"
       size="70%"
     >
-      <Grid>
-        <Grid.Col span={{ sm: 12 }}>
-          <Text>Start by picking the file you want to upload...</Text>
-        </Grid.Col>
-        <Grid.Col span={{ sm: 12, md: 6 }}>
-          <FileInput
-            placeholder="Choose a file"
-            {...fileForm.getInputProps("userFile")}
-            leftSection={
-              <>
-                {preview ? (
-                  <preview.icon weight="bold" />
-                ) : (
-                  <UploadSimple weight="bold" />
-                )}
-              </>
-            }
-          />
-        </Grid.Col>
-        {userFile && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Text>
-              You want to upload <Code>{userFile.name}</Code>, which is{" "}
-              {formatFileSize(userFile.size)} in size.{" "}
-              {fileForm.isValid()
-                ? "Is that correct?"
-                : "Unfortunately, this file cannot be uploaded."}
-            </Text>
-          </Grid.Col>
-        )}
-        {loadingUpload && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Group>
-              <Loader size="sm" />
-              <Text>Uploading file...</Text>
-            </Group>
-          </Grid.Col>
-        )}
-        {userFile && fileForm.isValid() && (
-          <Grid.Col span={{ sm: 12 }}>
-            <Group>
-              <Button
-                color="red"
-                variant="light"
-                disabled={loadingUpload}
-                onClick={() => {
-                  fileForm.reset();
-                  setOpened(false);
-                }}
-              >
-                No, nevermind.
-              </Button>
-              <Button
-                onClick={() => {
-                  handleUploadFile();
-                }}
-                disabled={loadingUpload}
-                leftSection={
-                  loadingUpload ? <Loader size="sm" color="white" /> : undefined
-                }
-              >
-                Yes, upload.
-              </Button>
-            </Group>
-          </Grid.Col>
-        )}
-      </Grid>
+      <AddFileForm
+        onSubmit={() => {
+          setOpened(false);
+        }}
+        onCancel={() => {
+          setOpened(false);
+        }}
+      />
     </Drawer>
   );
 }

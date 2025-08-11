@@ -3,7 +3,7 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import multer from "multer";
 import { UserFile } from "../database/models/userfile";
 import { getFromReq, multerToStandardFile } from "../utils/requests";
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser, User } from "../database/models/user";
 
 const router = Router();
 
@@ -186,10 +186,9 @@ router.get("/:id/download", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    if (!UserFile.checkUserOwnership(file.id, user.id)) {
+    if (!User.checkOwns(user.id, file.id)) {
       res.status(403).json({
-        error: "Forbidden",
-        message: "You do not have permission to access this file.",
+        message: "Unauthorized.",
       });
       return;
     }
@@ -232,7 +231,7 @@ router.get("/:id/stream", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    if (!UserFile.checkUserOwnership(file.id, user.id)) {
+    if (!User.checkOwns(user.id.toString(), file.id.toString())) {
       res.status(403).json({
         error: "Forbidden",
         message: "You do not have permission to access this file.",

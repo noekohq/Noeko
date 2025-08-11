@@ -54,6 +54,7 @@ import PageWrapper from "./components/Layout/PageWrapper";
 import Content from "./components/UI/Layout/Content";
 import Task from "./pages/Tasks/Task";
 import Tasks from "./pages/Tasks/Tasks";
+import FileList from "./pages/File/FileList";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
@@ -207,6 +208,7 @@ export default function App() {
                     <Route index element={<Navigate to="/" replace />} />
                     <Route path=":fileId" element={<UserFile />} />
                   </Route>
+                  <Route path="files" element={<FileList />} />
                   <Route path="import">
                     <Route index element={<Import />} />
                   </Route>
