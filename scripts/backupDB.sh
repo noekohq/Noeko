@@ -7,14 +7,6 @@ set -u
 # Pipelines fail if any command fails, not just the last one.
 set -o pipefail
 
-# --- Configuration ---
-# Default location if not specified by argument or .env
-DEFAULT_EXPORT_PARENT_DIR="./db_backups"
-# Default connection string if not in .env (adjust if needed)
-DEFAULT_DB_HOST_CONNECTION="http://localhost:8000"
-# Temporary file path inside the container
-CONTAINER_TMP_DIR="/tmp"
-
 # --- Helper Functions ---
 log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO: $@"
@@ -26,23 +18,16 @@ error() {
 }
 
 # --- Pre-checks ---
-if ! command -v docker-compose &> /dev/null; then
-  error "docker-compose command could not be found."
-fi
-if ! command -v gcloud &> /dev/null; then
-  error "gcloud command could not be found. Please ensure it's installed and configured."
-fi
+if ! command -v docker-compose &> /dev/null; then error "docker-compose command could not be found."; fi
+if ! command -v gcloud &> /dev/null; then error "gcloud command could not be found."; fi
 
 # --- Load .env File ---
 ENV_FILE=".env"
 if [[ -f "$ENV_FILE" ]]; then
     log "Loading environment variables from $ENV_FILE..."
-    set -a
-    source "$ENV_FILE"
-    set +a
-    log ".env file loaded."
+    set -a; source "$ENV_FILE"; set +a
 else
-    error "$ENV_FILE not found in the current directory ($(pwd))."
+    error "$ENV_FILE not found."
 fi
 
 # --- Check required variables ---
@@ -50,57 +35,63 @@ fi
 : "${DB_PASSWORD?ERROR: DB_PASSWORD not set}"
 : "${DB_NAMESPACE?ERROR: DB_NAMESPACE not set}"
 : "${DB_DATABASE?ERROR: DB_DATABASE not set}"
-: "${DB_BACKUP_BUCKET_NAME?ERROR: DB_BACKUP_BUCKET_NAME not set in .env file}"
+: "${DB_BACKUP_BUCKET_NAME?ERROR: DB_BACKUP_BUCKET_NAME not set}"
 log "Required variables are present."
 
-# --- Determine Export Location ---
-EXPORT_PARENT_DIR="${DB_EXPORT_LOCATION:-$DEFAULT_EXPORT_PARENT_DIR}"
-log "Using local export directory: '$EXPORT_PARENT_DIR'"
-mkdir -p "$EXPORT_PARENT_DIR" || error "Failed to create export directory: $EXPORT_PARENT_DIR"
+# --- Determine Backup Type (The Core GFS Logic) ---
+DAY_OF_WEEK=$(date +'%u') # 1-7 (Monday-Sunday)
+DAY_OF_MONTH=$(date +'%d')
+BACKUP_PREFIX="daily_"
 
-# --- Define Filenames and Paths (Simplified Logic) ---
-# Use a full ISO 8601 timestamp for unique, sortable filenames
+# If it's the 1st of the month, it's a 'Grandfather'
+if [[ "$DAY_OF_MONTH" -eq 1 ]]; then
+    BACKUP_PREFIX="monthly_"
+# Else if it's Sunday, it's a 'Father'
+elif [[ "$DAY_OF_WEEK" -eq 7 ]]; then
+    BACKUP_PREFIX="weekly_"
+fi
+
+# --- Define Filenames and Paths ---
+EXPORT_PARENT_DIR="${DB_EXPORT_LOCATION:-./db_backups}"
+mkdir -p "$EXPORT_PARENT_DIR"
+
 TIMESTAMP=$(date +'%Y-%m-%dT%H-%M-%S')
-FILENAME_BASE="db_backup_${TIMESTAMP}.surql"
+FILENAME_BASE="${BACKUP_PREFIX}${TIMESTAMP}.surql"
 FILENAME_COMPRESSED="${FILENAME_BASE}.gz"
 
-CONTAINER_TMP_PATH="${CONTAINER_TMP_DIR}/${FILENAME_BASE}"
+CONTAINER_TMP_PATH="/tmp/${FILENAME_BASE}"
 HOST_EXPORT_PATH="${EXPORT_PARENT_DIR}/${FILENAME_BASE}"
 HOST_COMPRESSED_PATH="${EXPORT_PARENT_DIR}/${FILENAME_COMPRESSED}"
+DB_CONNECTION="${DB_HOST_CONNECTION:-http://localhost:8000}"
 
-DB_CONNECTION="${DB_HOST_CONNECTION:-$DEFAULT_DB_HOST_CONNECTION}"
-log "Backup filename: ${FILENAME_COMPRESSED}"
+log "--- Starting Backup ---"
+log "Backup Type: ${BACKUP_PREFIX%_}" # Removes trailing underscore for cleaner log
+log "Filename: ${FILENAME_COMPRESSED}"
 
 # --- Perform Export ---
-log "Starting database export to container path: $CONTAINER_TMP_PATH ..."
+log "Exporting database to container..."
 docker-compose exec -T surrealdb /surreal export \
-  --conn "$DB_CONNECTION" \
-  --user "$DB_USER" \
-  --pass "$DB_PASSWORD" \
-  --namespace "$DB_NAMESPACE" \
-  --database "$DB_DATABASE" \
-  "$CONTAINER_TMP_PATH" || error "Database export command failed."
+  --conn "$DB_CONNECTION" --user "$DB_USER" --pass "$DB_PASSWORD" \
+  --namespace "$DB_NAMESPACE" --database "$DB_DATABASE" \
+  "$CONTAINER_TMP_PATH" || error "Database export failed."
 
 # --- Copy Export File to Host ---
-log "Copying export file from container to host path: $HOST_EXPORT_PATH ..."
-docker-compose cp "surrealdb:${CONTAINER_TMP_PATH}" "$HOST_EXPORT_PATH" || error "Failed to copy export file from container."
+log "Copying export from container..."
+docker-compose cp "surrealdb:${CONTAINER_TMP_PATH}" "$HOST_EXPORT_PATH" || error "Copy from container failed."
 
 # --- Cleanup Container ---
-log "Cleaning up temporary file in container: $CONTAINER_TMP_PATH ..."
-docker-compose exec -T surrealdb rm "$CONTAINER_TMP_PATH" || log "Warning: Failed to remove temporary file from container."
+log "Cleaning up in container..."
+docker-compose exec -T surrealdb rm "$CONTAINER_TMP_PATH" || log "Warning: Failed to remove temp file from container."
 
 # --- Compress, Upload, and Cleanup ---
 log "Compressing backup file..."
-gzip -f "$HOST_EXPORT_PATH" || error "Failed to compress backup file."
-log "File compressed to: $HOST_COMPRESSED_PATH"
+gzip -f "$HOST_EXPORT_PATH" || error "Compression failed."
 
-log "Uploading to Google Cloud Storage bucket: $DB_BACKUP_BUCKET_NAME ..."
-gcloud storage cp "$HOST_COMPRESSED_PATH" "gs://${DB_BACKUP_BUCKET_NAME}/" || error "Failed to upload to GCS."
-log "Upload successful!"
+log "Uploading to GCS..."
+gcloud storage cp "$HOST_COMPRESSED_PATH" "gs://${DB_BACKUP_BUCKET_NAME}/" || error "GCS upload failed."
 
-log "Cleaning up local backup file..."
-rm "$HOST_COMPRESSED_PATH" || error "Failed to remove local backup file."
-log "Local cleanup finished."
+log "Cleaning up local file..."
+rm "$HOST_COMPRESSED_PATH" || error "Local cleanup failed."
 
 # --- Final Success Message ---
 log "-----------------------------------------------------"
