@@ -8,6 +8,7 @@ import {
   Menu,
   Stack,
   Text,
+  Tooltip,
 } from "@mantine/core";
 import { IUserFile } from "../../../../app/database/models/userfile";
 import { getNodeDescription } from "../../../utils/graph";
@@ -16,8 +17,11 @@ import styles from "./FileCard.module.scss";
 import {
   ArrowRightIcon,
   DotsThreeVerticalIcon,
+  DownloadSimpleIcon,
   IconProps,
 } from "@phosphor-icons/react";
+import { handleFileDownload } from "../../../utils/userfiles";
+import { formatDate } from "../../../utils/formatting";
 
 const getFileDefaultSummary = (file: IUserFile): string | undefined => {
   const desc = getNodeDescription({
@@ -32,9 +36,10 @@ const getFileDefaultSummary = (file: IUserFile): string | undefined => {
 
 const getFileDefaultDetails = (file: IUserFile): React.ReactNode => {
   return (
-    <Group>
-      <Button>Download</Button>
-    </Group>
+    <Text size="sm" c="dimmed">
+      Created {formatDate(file.createdAt)}, last updated{" "}
+      {formatDate(file.updatedAt)}
+    </Text>
   );
 };
 
@@ -131,7 +136,13 @@ export default function FileCard({
       onDragEnd={handleDragEnd}
       draggable={true}
     >
-      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
+      <HoverCard
+        radius="lg"
+        openDelay={500}
+        width={"400px"}
+        withArrow
+        position="bottom-start"
+      >
         <HoverCard.Target>
           <div className={styles.content}>
             <Group gap="xs">
@@ -172,14 +183,28 @@ export default function FileCard({
             e.stopPropagation();
           }}
         >
-          <Group>
-            <Link to={`/file/${file.id.toString()}`}>
-              <ActionIcon size="sm" color="dark.3" variant="light">
-                <ArrowRightIcon weight="bold" />
-              </ActionIcon>
-            </Link>
-          </Group>
-          {hoverDetails}
+          <Stack>
+            <Group>
+              <Link to={`/file/${file.id.toString()}`}>
+                <ActionIcon size="sm" color="dark.3" variant="light">
+                  <ArrowRightIcon weight="bold" />
+                </ActionIcon>
+              </Link>
+              <Tooltip label="Download this file.">
+                <ActionIcon
+                  size="sm"
+                  color="dark.3"
+                  variant="light"
+                  onClick={() => {
+                    handleFileDownload(file);
+                  }}
+                >
+                  <DownloadSimpleIcon weight="bold" />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+            {hoverDetails}
+          </Stack>
         </HoverCard.Dropdown>
       </HoverCard>
       <div className={styles.actions}>

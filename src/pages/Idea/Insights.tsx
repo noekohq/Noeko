@@ -1,4 +1,4 @@
-import { Button, Grid, Group, Loader, Text } from "@mantine/core";
+import { Button, Grid, Group, Loader, Stack, Text } from "@mantine/core";
 import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import {
   IGenerativeSummary,
@@ -8,7 +8,7 @@ import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
 import OverviewAccordion from "../../components/Display/Ideas/OverviewAccordion";
-import { BookIcon } from "@phosphor-icons/react";
+import { BookIcon, EyeIcon } from "@phosphor-icons/react";
 
 type IInsightsProps = {
   idea: ISafeIdea | undefined;
@@ -76,10 +76,10 @@ export default function Insights({
       <Grid>
         {!idea?.derived?.generative_summary ? (
           <>
-            <Grid.Col span={{ sm: 12 }}>
-              Would you like an overview for this idea?
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
+            <Stack w="100%">
+              <Text size="sm" c="dimmed">
+                This idea hasn't been analyzed.
+              </Text>
               <Button
                 variant="light"
                 onClick={() => {
@@ -90,12 +90,13 @@ export default function Insights({
                   loadingOverview ? <Loader size="sm" color="white" /> : ""
                 }
                 size="sm"
+                fullWidth
+                color="gray"
+                rightSection={<EyeIcon />}
               >
-                {loadingOverview
-                  ? "Creating overview..."
-                  : "Yes, create overview"}
+                {loadingOverview ? "Analyzing..." : "Analyze idea."}
               </Button>
-            </Grid.Col>
+            </Stack>
           </>
         ) : (
           <>

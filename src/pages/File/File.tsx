@@ -22,7 +22,10 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import { handleFileDownload } from "../../utils/userfiles";
-import { useCallback } from "react";
+import { lazy, Suspense, useCallback, useMemo } from "react";
+import { ViewerMap } from "./Viewers";
+import { map } from "lodash";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -107,37 +110,64 @@ export default function UserFile() {
     });
   };
 
+  const Viewer = useMemo(() => {
+    if (file?.mimeType && file.mimeType in ViewerMap) {
+      return lazy(ViewerMap[file.mimeType]);
+    }
+    return null;
+  }, [file]); // The dependency array ensures this only runs when `file` changes.
+
   return (
     <PageWrapper>
       <LeftSidebar />
       <Content>
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            <Title>Viewing file</Title>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Card radius="md" shadow="xs" p="md">
-              <Flex justify="space-between">
-                <Group align="center">
-                  <Text size="lg" fw="bold">
-                    {file?.originalFileName}
-                  </Text>
-                  <Text c="dimmed" size="sm">
-                    {file?.mimeType} {file?.sizeBytes} bytes
-                  </Text>
-                </Group>
-                <Group>
-                  <Button onClick={() => handleDownload()} variant="light">
-                    Download
-                  </Button>
-                  <Button onClick={handleDelete} variant="light" color="red">
-                    Delete
-                  </Button>
-                </Group>
-              </Flex>
-            </Card>
-          </Grid.Col>
-        </Grid>
+        <div className={styles.fileView}>
+          <Group mb="lg">
+            <Link
+              to="/files"
+              style={{
+                textDecoration: "none",
+              }}
+            >
+              <Group c="dark.3" gap="xs">
+                <CaretLeftIcon weight="bold" size={13} />
+                <Text c="dark.3" size="sm">
+                  Back to files
+                </Text>
+              </Group>
+            </Link>
+          </Group>
+          <Title>Viewing {file?.originalFileName}</Title>
+          <Card radius="md" shadow="xs" p="md">
+            <Flex justify="space-between">
+              <Group align="center">
+                <Text size="lg" fw="bold">
+                  {file?.originalFileName}
+                </Text>
+                <Text c="dimmed" size="sm">
+                  {file?.mimeType} {file?.sizeBytes} bytes
+                </Text>
+              </Group>
+              <Group>
+                <Button onClick={() => handleDownload()} variant="light">
+                  Download
+                </Button>
+                <Button onClick={handleDelete} variant="light" color="red">
+                  Delete
+                </Button>
+              </Group>
+            </Flex>
+          </Card>
+          {file && (
+            <Suspense fallback={<Text>Loading viewer...</Text>}>
+              {Viewer ? (
+                <Viewer fileId={file.id} />
+              ) : (
+                <Text>No viewer available for this type of file :/</Text>
+              )}
+            </Suspense>
+          )}
+        </div>
       </Content>
       <StatusBar />
       <RightSidebar />

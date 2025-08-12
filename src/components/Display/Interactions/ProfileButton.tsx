@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import {
   ArrowLineLeftIcon,
   CheckIcon,
+  FileIcon,
   GearIcon,
   GraphIcon,
   HouseSimpleIcon,
@@ -34,6 +35,7 @@ export default function ProfileButton() {
     { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
     { label: "Shared Ideas", icon: LightbulbIcon, path: "/ideas/shared" },
     { label: "Tasks", icon: CheckIcon, path: "/tasks" },
+    { label: "Files", icon: FileIcon, path: "/files" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
     { label: "Constellation", icon: GraphIcon, path: "/graph" },

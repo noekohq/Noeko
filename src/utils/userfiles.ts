@@ -30,3 +30,19 @@ export const handleFileDownload = async (file: IUserFile) => {
     return undefined;
   }
 };
+
+export const getFileDownload = async (file: IUserFile | string) => {
+  try {
+    const fileId = typeof file === "string" ? file : file.id.toString();
+    const response = await api.get(`/files/${fileId.toString()}/stream`, {
+      responseType: "blob",
+    });
+
+    const blob = response.data;
+    const objectUrl = URL.createObjectURL(blob);
+    return objectUrl;
+  } catch (error) {
+    console.error("Error downloading file: ", file);
+    return undefined;
+  }
+};

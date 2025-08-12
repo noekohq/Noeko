@@ -165,9 +165,9 @@ export default function Dashboard() {
     <PageWrapper>
       <LeftSidebar startOpened={!isMobile}>
         <LeftSidebar.Open>
-          <Text size="sm" c="dark.2" mb="lg">
+          {/*<Text size="sm" c="dark.2" mb="lg">
             {getStatusText()}
-          </Text>
+          </Text>*/}
           <Stack>
             <Transition
               mounted={!!dashboardData?.recentIdeas}

@@ -1,0 +1,17 @@
+.pdfViewer {
+    padding: var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-md);
+    background-color: var(--mantine-color-dark-8);
+    max-height: 80vh;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+    width: 100%;
+}
+
+.document {
+    width: 100%;
+}
+
+.page {
+    width: 100%;
+}
