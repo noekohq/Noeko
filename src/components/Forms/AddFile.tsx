@@ -10,6 +10,7 @@ import {
   Icon,
   ImageIcon,
   UploadSimple,
+  UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import {
   Button,
@@ -21,6 +22,7 @@ import {
   Text,
 } from "@mantine/core";
 import { formatFileSize } from "../../utils/formatting";
+import useRabbithole from "../../hooks/useRabbithole";
 
 interface IAddFileFormProps {
   onSubmit?: (file: IUserFile) => void;
@@ -28,6 +30,8 @@ interface IAddFileFormProps {
 }
 
 export default function AddFileForm({ onSubmit, onCancel }: IAddFileFormProps) {
+  const { includeThing, isDownRabbithole } = useRabbithole();
+
   const fileForm = useForm<{
     userFile: File | null;
   }>({
@@ -62,7 +66,10 @@ export default function AddFileForm({ onSubmit, onCancel }: IAddFileFormProps) {
       });
       setFormData(undefined);
       fileForm.reset();
-      onSubmit;
+      onSubmit?.(file);
+      if (isDownRabbithole) {
+        includeThing(file.id.toString());
+      }
     },
     onError: async (error) => {
       showNotification({
@@ -161,7 +168,7 @@ export default function AddFileForm({ onSubmit, onCancel }: IAddFileFormProps) {
               {preview ? (
                 <preview.icon weight="bold" />
               ) : (
-                <UploadSimple weight="bold" />
+                <UploadSimpleIcon weight="bold" />
               )}
             </>
           }

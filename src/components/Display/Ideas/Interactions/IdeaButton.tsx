@@ -4,7 +4,9 @@ import {
   Group,
   HoverCard,
   MantineColor,
+  Stack,
   Text,
+  Title,
   Tooltip,
 } from "@mantine/core";
 import { IIdea, PhosphorIcon } from "../IdeaCardTypes";
@@ -21,7 +23,12 @@ import { ISafeIdea } from "../../../../../app/database/models/ideas";
 
 const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
   if (idea.content) {
-    return <div dangerouslySetInnerHTML={{ __html: idea.content }} />;
+    return (
+      <Stack>
+        <Title order={3}>{idea.title}</Title>
+        <div dangerouslySetInnerHTML={{ __html: idea.content }} />
+      </Stack>
+    );
   }
   return (
     <Text size="sm" c="dimmed">

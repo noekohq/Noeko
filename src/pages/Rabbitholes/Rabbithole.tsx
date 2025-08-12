@@ -448,184 +448,199 @@ export default function Rabbithole() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <Group mb="lg">
-          <Link
-            to="/rabbitholes"
-            style={{
-              textDecoration: "none",
-            }}
-          >
-            <Group c="dark.3" gap="xs">
-              <CaretLeftIcon weight="bold" size={13} />
-              <Text c="dark.3" size="sm">
-                Back to Rabbitholes
-              </Text>
-            </Group>
-          </Link>
-        </Group>
-        <div
-          onDragOver={() => {
-            setDraggingOver(true);
-          }}
-          onDragLeave={(e) => {
-            setDraggingOver(false);
-          }}
-        >
-          {draggingOver && (
-            <Overlay
-              backgroundOpacity={0}
-              blur={4}
-              onDragOver={(e) => {
-                e.preventDefault();
+        <div className={styles.rabbithole}>
+          <Group mb="lg">
+            <Link
+              to="/rabbitholes"
+              style={{
+                textDecoration: "none",
               }}
-              onDrop={(e) => {
-                handleConnectionDrop(e);
-                setDraggingOver(false);
-              }}
-              radius={"lg"}
             >
-              <Group align="center" justify="center" style={{ height: "100%" }}>
-                <Text c="white" mx="lg" size="sm">
-                  Drop here to include an idea!
+              <Group c="dark.3" gap="xs">
+                <CaretLeftIcon weight="bold" size={13} />
+                <Text c="dark.3" size="sm">
+                  Back to Rabbitholes
                 </Text>
               </Group>
-            </Overlay>
-          )}
-          <Stack gap="xl">
-            <Title
-              ta="center"
-              order={1}
-              m="0"
-              pr="md"
-              contentEditable={true}
-              suppressContentEditableWarning
-              onBlur={(e) => {
-                updateTitle(e.currentTarget.innerText);
-              }}
-              dangerouslySetInnerHTML={{ __html: rabbithole?.name || "" }}
-              className={styles.editableTitle}
-            />
-            {!isEntered && isMobile && ActionCenter}
-            {isEntered && (
-              <TextInput
-                placeholder="Filter things..."
-                value={filterQuery}
-                onChange={(event) => setFilterQuery(event.currentTarget.value)}
-                mb="md" // Added margin bottom for spacing
-                radius="md"
-              />
+            </Link>
+          </Group>
+          <div
+            onDragOver={() => {
+              setDraggingOver(true);
+            }}
+            onDragLeave={(e) => {
+              setDraggingOver(false);
+            }}
+          >
+            {draggingOver && (
+              <Overlay
+                backgroundOpacity={0}
+                blur={4}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  handleConnectionDrop(e);
+                  setDraggingOver(false);
+                }}
+                radius={"lg"}
+              >
+                <Group
+                  align="center"
+                  justify="center"
+                  style={{ height: "100%" }}
+                >
+                  <Text c="white" mx="lg" size="sm">
+                    Drop here to include an idea!
+                  </Text>
+                </Group>
+              </Overlay>
             )}
-            <Transition
-              mounted={isEntered}
-              transition="fade-up"
-              duration={300}
-              enterDelay={300}
-            >
-              {(style) => {
-                if (
-                  !(isEntered && !!rabbithole && !!rabbithole.includes?.length)
-                ) {
-                  return (
-                    <Text style={style} size="sm" ta="center">
-                      There are no things in this rabbithole.
-                    </Text>
-                  );
-                }
-                return (
-                  <SimpleGrid
-                    cols={{
-                      sm: 1,
-                      md: 2,
-                      lg: 3,
-                    }}
-                    style={style}
-                  >
-                    {filteredThings
-                      .map((thing) => {
-                        return (
-                          <RabbitholeThing
-                            rabbithole={rabbithole}
-                            key={thing.id.toString()}
-                            thing={thing}
-                            handleRemove={handleUninclude}
-                          />
-                        );
-                      })
-                      .filter((i) => !!i)}
-                  </SimpleGrid>
-                );
-              }}
-            </Transition>
-            <Transition
-              mounted={!isEntered}
-              transition="fade-up"
-              duration={300}
-              enterDelay={300}
-            >
-              {(style) => {
-                return (
-                  <Card
-                    withBorder={!isEntered}
-                    radius="lg"
-                    classNames={{
-                      root: styles.contentArea,
-                    }}
-                    style={style}
-                  >
-                    {!rabbithole?.includes?.length && (
-                      <Text size="sm" ta="center">
-                        Start by adding tags or ideas to your rabbithole!
+            <Stack gap="xl">
+              <Title
+                ta="center"
+                order={1}
+                m="0"
+                pr="md"
+                contentEditable={true}
+                suppressContentEditableWarning
+                onBlur={(e) => {
+                  updateTitle(e.currentTarget.innerText);
+                }}
+                dangerouslySetInnerHTML={{ __html: rabbithole?.name || "" }}
+                className={styles.editableTitle}
+              />
+              {!isEntered && isMobile && ActionCenter}
+              {isEntered && (
+                <TextInput
+                  placeholder="Filter things..."
+                  value={filterQuery}
+                  onChange={(event) =>
+                    setFilterQuery(event.currentTarget.value)
+                  }
+                  mb="md" // Added margin bottom for spacing
+                  radius="md"
+                />
+              )}
+              <Transition
+                mounted={isEntered}
+                transition="fade-up"
+                duration={300}
+                enterDelay={300}
+              >
+                {(style) => {
+                  if (
+                    !(
+                      isEntered &&
+                      !!rabbithole &&
+                      !!rabbithole.includes?.length
+                    )
+                  ) {
+                    return (
+                      <Text style={style} size="sm" ta="center">
+                        There are no things in this rabbithole.
                       </Text>
-                    )}
-                    {!rabbithole?.includes?.length && !isMobile && (
-                      <Alert
-                        color="gray"
-                        title="Tip"
-                        icon={<InfoIcon />}
-                        radius="lg"
-                      >
-                        You can drag and drop ideas from the search results into
-                        this area to include them!
-                      </Alert>
-                    )}
-                    {!!rabbithole?.includes?.length && (
-                      <SimpleGrid
-                        cols={{
-                          sm: 1,
-                          md: 2,
-                          lg: 3,
-                        }}
-                      >
-                        {rabbithole.includes
-                          .map((thing) => {
-                            return (
-                              <RabbitholeThing
-                                rabbithole={rabbithole}
-                                key={thing.id.toString()}
-                                thing={thing}
-                                handleRemove={handleUninclude}
-                              />
-                            );
-                          })
-                          .filter((i) => !!i)
-                          .slice(0, isEntered ? rabbithole.includes.length : 9)}
-                      </SimpleGrid>
-                    )}
-                    <Transition
-                      mounted={!isEntered && !isMobile}
-                      transition="fade-up"
-                      timingFunction="ease-out"
-                      duration={200}
-                    >
-                      {(style) => {
-                        return <div style={style}>{ActionCenter}</div>;
+                    );
+                  }
+                  return (
+                    <SimpleGrid
+                      cols={{
+                        sm: 1,
+                        md: 2,
+                        lg: 3,
                       }}
-                    </Transition>
-                  </Card>
-                );
-              }}
-            </Transition>
-          </Stack>
+                      style={style}
+                    >
+                      {filteredThings
+                        .map((thing) => {
+                          return (
+                            <RabbitholeThing
+                              rabbithole={rabbithole}
+                              key={thing.id.toString()}
+                              thing={thing}
+                              handleRemove={handleUninclude}
+                            />
+                          );
+                        })
+                        .filter((i) => !!i)}
+                    </SimpleGrid>
+                  );
+                }}
+              </Transition>
+              <Transition
+                mounted={!isEntered}
+                transition="fade-up"
+                duration={300}
+                enterDelay={300}
+              >
+                {(style) => {
+                  return (
+                    <Card
+                      withBorder={!isEntered}
+                      radius="lg"
+                      classNames={{
+                        root: styles.contentArea,
+                      }}
+                      style={style}
+                    >
+                      {!rabbithole?.includes?.length && (
+                        <Text size="sm" ta="center">
+                          Start by adding tags or ideas to your rabbithole!
+                        </Text>
+                      )}
+                      {!rabbithole?.includes?.length && !isMobile && (
+                        <Alert
+                          color="gray"
+                          title="Tip"
+                          icon={<InfoIcon />}
+                          radius="lg"
+                        >
+                          You can drag and drop ideas from the search results
+                          into this area to include them!
+                        </Alert>
+                      )}
+                      {!!rabbithole?.includes?.length && (
+                        <SimpleGrid
+                          cols={{
+                            sm: 1,
+                            md: 2,
+                            lg: 3,
+                          }}
+                        >
+                          {rabbithole.includes
+                            .map((thing) => {
+                              return (
+                                <RabbitholeThing
+                                  rabbithole={rabbithole}
+                                  key={thing.id.toString()}
+                                  thing={thing}
+                                  handleRemove={handleUninclude}
+                                />
+                              );
+                            })
+                            .filter((i) => !!i)
+                            .slice(
+                              0,
+                              isEntered ? rabbithole.includes.length : 9,
+                            )}
+                        </SimpleGrid>
+                      )}
+                      <Transition
+                        mounted={!isEntered && !isMobile}
+                        transition="fade-up"
+                        timingFunction="ease-out"
+                        duration={200}
+                      >
+                        {(style) => {
+                          return <div style={style}>{ActionCenter}</div>;
+                        }}
+                      </Transition>
+                    </Card>
+                  );
+                }}
+              </Transition>
+            </Stack>
+          </div>
         </div>
       </Content>
       <StatusBar />

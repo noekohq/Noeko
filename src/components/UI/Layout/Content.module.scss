@@ -25,7 +25,7 @@
     transition:
         margin-left 0.2s ease-in-out,
         margin-right 0.2s ease-in-out;
-    min-height: 100%;
+    margin-bottom: 10vh;
 
     @include tablet {
         padding-top: var(--mantine-spacing-sm);
@@ -35,67 +35,3 @@
     @include desktop {
     }
 }
-
-@keyframes leftOpened {
-    0% {
-    }
-    100% {
-    }
-}
-
-@keyframes leftClosed {
-    0% {
-    }
-    100% {
-    }
-}
-
-/* .leftOpen {
-    @include tablet {
-        margin-left: calc(var(--sidebar-width) + (var(--layout-spacing) * 2));
-        overflow-x: hidden;
-    }
-
-    @include desktop {
-        padding-left: var(--content-space);
-        margin-left: 0;
-    }
-} */
-
-/* .leftCollapsed {
-    @include tablet {
-        padding-left: calc(
-            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
-        );
-    }
-
-    @include desktop {
-        padding-left: var(--content-space);
-        margin-left: 0;
-    }
-} */
-
-/* .rightOpen {
-    @include tablet {
-        margin-right: calc(var(--sidebar-width) + (var(--layout-spacing) * 2));
-        overflow-x: hidden;
-    }
-
-    @include desktop {
-        padding-right: var(--content-space);
-        margin-right: 0;
-    }
-} */
-
-/* .rightCollapsed {
-    @include tablet {
-        padding-right: calc(
-            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
-        );
-    }
-
-    @include desktop {
-        padding-right: var(--content-space);
-        margin-right: 0;
-    }
-} */

@@ -46,7 +46,7 @@ export default function CreateButton() {
       <Menu.Dropdown>
         <Menu.Label>New</Menu.Label>
         <Menu.Item
-          rightSection={<FileIcon size={16} />}
+          rightSection={<FileIcon weight="bold" />}
           onClick={() => {
             newFile();
           }}
