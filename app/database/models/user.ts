@@ -568,8 +568,6 @@ export class User {
           console.info(
             `User ${user.id} missing referral code. Assigning: ${newReferralCode}`,
           );
-          // user.id is the full record ID (e.g., "user:xxxx")
-          // We merge the new referralCode and update the updatedAt timestamp
           await db.merge(user.id, {
             referralCode: newReferralCode,
             updatedAt: new Date(),
@@ -581,7 +579,7 @@ export class User {
       );
     } catch (error) {
       console.error("Error in ensureReferralCodes:", error);
-      throw error; // Re-throw to allow the caller to handle it
+      return undefined;
     }
   }
 

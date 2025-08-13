@@ -1,12 +1,12 @@
 import {
   ActionIcon,
+  Badge,
   Button,
-  Card,
   Group,
   HoverCard,
   MantineColor,
+  MantineSize,
   Menu,
-  Stack,
   Text,
 } from "@mantine/core";
 import { IIdea, ISafeIdea } from "../../../../../app/database/models/ideas";
@@ -61,6 +61,12 @@ export type IIdeaAction = {
   isOverflow?: boolean; // If true, primarily for the overflow menu
 };
 
+export type IIdeaBadge = {
+  label: string;
+  color?: MantineColor;
+  icon?: React.ReactElement<IconProps>;
+};
+
 export interface IIdeaCardProps {
   idea: ISafeIdea | IIdea;
   description?: string | React.ReactNode;
@@ -71,6 +77,7 @@ export interface IIdeaCardProps {
   titleLines?: number;
   descriptionLines?: number;
   details?: React.ReactNode;
+  badges?: IIdeaBadge[];
 }
 
 export default function IdeaCard({
@@ -83,6 +90,7 @@ export default function IdeaCard({
   descriptionLines = 3,
   actionsVisible = 0,
   details,
+  badges,
 }: IIdeaCardProps) {
   const navigate = useNavigate();
   const desc = description ?? getIdeaDefaultSummary(idea);
@@ -151,25 +159,44 @@ export default function IdeaCard({
                 {desc}
               </Text>
             </Group>
-            <Group>
-              {visibleActions.map((action) => {
-                return (
-                  <Button
-                    key={action.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      action.onClick(e, idea);
-                    }}
-                    color={action.color ?? "dark.1"}
-                    disabled={action.disabled}
-                    leftSection={action.icon}
-                    size="xs"
-                    variant="light"
-                  >
-                    {action.label}
-                  </Button>
-                );
-              })}
+            <Group justify="space-between">
+              {badges?.length && (
+                <Group gap="xs">
+                  {badges.map((badge) => {
+                    return (
+                      <Badge
+                        leftSection={badge.icon}
+                        color={badge.color}
+                        size={"sm"}
+                      >
+                        {badge.label}
+                      </Badge>
+                    );
+                  })}
+                </Group>
+              )}
+              {visibleActions.length && (
+                <Group gap="xs">
+                  {visibleActions.map((action) => {
+                    return (
+                      <Button
+                        key={action.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          action.onClick(e, idea);
+                        }}
+                        color={action.color ?? "dark.1"}
+                        disabled={action.disabled}
+                        leftSection={action.icon}
+                        size="xs"
+                        variant="light"
+                      >
+                        {action.label}
+                      </Button>
+                    );
+                  })}
+                </Group>
+              )}
             </Group>
           </div>
         </HoverCard.Target>

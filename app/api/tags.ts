@@ -7,13 +7,9 @@ import { ISafeUser, User } from "../database/models/user"; // Assuming user type
 
 const router = Router();
 
-// Apply common middleware for all tag routes
 router.use(checkToken);
 router.use(disallowDisabled);
 
-// --- Tag CRUD Operations ---
-
-// Create a new tag
 router.post("/", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -24,7 +20,7 @@ router.post("/", async (req, res): Promise<void> => {
       return;
     }
 
-    const { name, description, color } = req.body; // Added color
+    const { name, description, color } = req.body;
     if (typeof name !== "string" || name.trim() === "") {
       res.status(400).json({ message: "Tag name is required." });
       return;
@@ -61,7 +57,6 @@ router.post("/", async (req, res): Promise<void> => {
   }
 });
 
-// Get all tags for the authenticated user
 router.get("/", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -72,7 +67,6 @@ router.get("/", async (req, res): Promise<void> => {
 
     const tags = await Tag.getUserTags(user.id);
     if (tags === undefined) {
-      // Distinguish between error and no tags
       res.status(500).json({ message: "Error fetching user tags." });
       return;
     }
@@ -84,13 +78,9 @@ router.get("/", async (req, res): Promise<void> => {
   }
 });
 
-// Get a specific tag by its ID
 router.get("/:tagId", async (req, res): Promise<void> => {
   try {
     const { tagId } = req.params;
-    // No explicit user check here, as Tag.get itself doesn't require user context
-    // However, checkToken middleware ensures user is logged in.
-    // Ownership for GET can be added if tags are meant to be private.
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user || !user.id) {
       res.status(401).json({ message: "Unauthorized. User not found." });
@@ -116,7 +106,6 @@ router.get("/:tagId", async (req, res): Promise<void> => {
   }
 });
 
-// Update an existing tag
 router.put("/:tagId", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -126,13 +115,13 @@ router.put("/:tagId", async (req, res): Promise<void> => {
     }
 
     const { tagId } = req.params;
-    const { name, description, color } = req.body; // Added color
+    const { name, description, color } = req.body;
 
     if (
       (name !== undefined &&
         (typeof name !== "string" || name.trim() === "")) ||
       (description !== undefined && typeof description !== "string") ||
-      (color !== undefined && typeof color !== "string") // Added color validation
+      (color !== undefined && typeof color !== "string")
     ) {
       res.status(400).json({
         message:
@@ -141,6 +130,7 @@ router.put("/:tagId", async (req, res): Promise<void> => {
       return;
     }
 
+    // TODO: this could use the newer User.owns() method
     const isOwner = await Tag.checkUserOwnership(tagId, user.id);
     if (!isOwner) {
       res.status(403).json({ message: "Forbidden. You do not own this tag." });
@@ -150,7 +140,7 @@ router.put("/:tagId", async (req, res): Promise<void> => {
     const updateData: Partial<ITagForm> = {};
     if (name !== undefined) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description.trim();
-    if (color !== undefined) updateData.color = color.trim(); // Added color
+    if (color !== undefined) updateData.color = color.trim();
 
     if (Object.keys(updateData).length === 0) {
       res.status(400).json({ message: "No update data provided." });
@@ -172,7 +162,6 @@ router.put("/:tagId", async (req, res): Promise<void> => {
   }
 });
 
-// Delete a tag
 router.delete("/:tagId", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -204,9 +193,6 @@ router.delete("/:tagId", async (req, res): Promise<void> => {
   }
 });
 
-// --- Tag-Idea Relationship Operations ---
-
-// Get all ideas associated with a specific tag
 router.get("/:tagId/ideas", async (req, res): Promise<void> => {
   try {
     const { tagId } = req.params;
@@ -241,7 +227,6 @@ router.get("/:tagId/ideas", async (req, res): Promise<void> => {
   }
 });
 
-// Connect a tag to an idea
 router.post("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -283,7 +268,6 @@ router.post("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
   }
 });
 
-// Disconnect a tag from an idea
 router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -324,7 +308,6 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
   }
 });
 
-// Get similar ideas for a given tag
 router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -336,7 +319,6 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     const { tagId } = req.params;
     const { limit, threshold } = req.query;
 
-    // Validate and parse limit
     let parsedLimit: number | undefined = undefined;
     if (limit) {
       parsedLimit = parseInt(limit as string, 10);
@@ -348,7 +330,6 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
       }
     }
 
-    // Validate and parse threshold
     let parsedThreshold: number | undefined = undefined;
     if (threshold) {
       parsedThreshold = parseFloat(threshold as string);

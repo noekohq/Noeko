@@ -2,7 +2,7 @@ import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser, User } from "../database/models/user";
-import Task, { ITaskForm } from "../database/models/task";
+import Task, { ITask, ITaskForm } from "../database/models/task";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { getLM } from "../ai/lms/lm";
 import { Duration } from "surrealdb";
@@ -212,4 +212,151 @@ router.put("/:taskId", async (req, res) => {
   }
 });
 
+router.delete("/:taskId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const taskId = req.params.taskId;
+    const hasAccess = await User.checkOwns(user.id, taskId);
+    if (!hasAccess) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+
+    const deletedTask = await Task.delete(taskId);
+    res.send({ message: "Successfully deleted task", data: deletedTask });
+  } catch (error) {
+    console.error("Error deleting task: ", error);
+    res.status(500).send({
+      message: "Something went wrong.",
+    });
+  }
+});
+
+router.get("/:taskId/similar-ideas", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { taskId } = req.params;
+    const { limit, threshold } = req.query;
+
+    let parsedLimit: number | undefined = undefined;
+    if (limit) {
+      parsedLimit = parseInt(limit as string, 10);
+      if (isNaN(parsedLimit) || parsedLimit <= 0) {
+        res.status(400).json({
+          message: "Invalid limit parameter. Must be a positive integer.",
+        });
+        return;
+      }
+    }
+
+    let parsedThreshold: number | undefined = undefined;
+    if (threshold) {
+      parsedThreshold = parseFloat(threshold as string);
+      if (
+        isNaN(parsedThreshold) ||
+        parsedThreshold < 0 ||
+        parsedThreshold > 1
+      ) {
+        res.status(400).json({
+          message:
+            "Invalid threshold parameter. Must be a float between 0 and 1.",
+        });
+        return;
+      }
+    }
+
+    const isOwner = await User.checkOwns(user.id, taskId);
+    if (!isOwner) {
+      res.status(403).json({ message: "Unauthorized." });
+      return;
+    }
+
+    const taskExists = await Task.get(taskId);
+    if (!taskExists) {
+      res.status(404).json({ message: "Task not found." });
+      return;
+    }
+    if (!taskExists.embeddings || taskExists.embeddings.length === 0) {
+      res.status(200).json({
+        message: "Tag has no embeddings to compare, no similar ideas found.",
+        data: [],
+      });
+      return;
+    }
+
+    const options = {
+      limit: parsedLimit,
+      threshold: parsedThreshold,
+    };
+
+    const similarIdeas = await Task.getSimilarIdeasToTask(
+      taskId,
+      user.id,
+      options,
+    );
+
+    if (similarIdeas === undefined) {
+      res
+        .status(500)
+        .json({ message: "Error fetching similar ideas for the task." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Successfully retrieved similar ideas for the task.",
+      data: similarIdeas,
+    });
+  } catch (error) {
+    console.error(
+      `Error getting similar ideas for task ${req.params.taskId}:`,
+      error,
+    );
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/similar_to/idea/:ideaId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+    const ideaId = req.params.ideaId;
+    const userOwns = User.checkOwns(user.id, ideaId);
+    if (!userOwns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const similar: ITask[] | undefined = await Task.getSimilarToIdea(
+      user.id,
+      ideaId,
+    );
+    if (!similar) {
+      throw new Error("Couldn't get similar.");
+    }
+    res.send({
+      message: "Got similar tasks to idea",
+      data: similar,
+    });
+  } catch (error) {
+    console.error("Error finding similar tasks to idea:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 export default router;

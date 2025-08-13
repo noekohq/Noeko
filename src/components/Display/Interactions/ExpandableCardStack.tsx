@@ -8,6 +8,7 @@ interface IExpandableCardStackProps {
   cards: React.ReactNode[];
   topLabel: string | JSX.Element;
   expandLabel: string | JSX.Element;
+  badges?: React.ReactNode[];
 }
 
 export default function ExpandableCardStack({

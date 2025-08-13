@@ -51,7 +51,7 @@ export default function CreateButton() {
             newFile();
           }}
         >
-          File
+          Source
         </Menu.Item>
         <Menu.Item
           rightSection={<RabbitholeIcon size={16} />}
