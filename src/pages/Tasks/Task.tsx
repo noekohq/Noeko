@@ -1,8 +1,8 @@
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { ITask, ITaskForm } from "../../../app/database/models/task";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import useFetch from "../../hooks/useFetch";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
@@ -11,9 +11,13 @@ import {
   ActionIcon,
   Button,
   Card,
+  Divider,
+  Flex,
   Grid,
   Group,
   HoverCard,
+  Loader,
+  Menu,
   Popover,
   SegmentedControl,
   Stack,
@@ -25,13 +29,16 @@ import {
 } from "@mantine/core";
 import {
   ArrowArcRightIcon,
+  BookOpenIcon,
   CalendarCheckIcon,
   CaretLeftIcon,
   CheckIcon,
   CloudArrowUpIcon,
   CloudCheckIcon,
   CloudSlashIcon,
+  DotsThreeVerticalIcon,
   TimerIcon,
+  TrashSimpleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
@@ -47,6 +54,7 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
 import Search from "../../components/Search/Search";
+import { modals } from "@mantine/modals";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -59,6 +67,45 @@ export default function Task() {
     url: `/tasks/${taskId}`,
     dependencies: [taskId],
   });
+
+  const navigate = useNavigate();
+
+  const { load: triggerDeleteTask, loading: loadingDelete } = useFetch({
+    url: `/tasks/${taskId}`,
+    dependencies: [taskId],
+    method: "DELETE",
+    onSuccess: () => {
+      navigate(-1);
+      showNotification({
+        title: "Success",
+        message: "Task deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting task: ", error);
+      showNotification({
+        title: "Error Deleting",
+        message: `There was an error deleting the task: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
+        color: "red",
+      });
+    },
+  });
+
+  const handleDeleteTask = useCallback(() => {
+    if (loadingDelete) return;
+    modals.openConfirmModal({
+      title: "Are you sure you want to delete this task?",
+      centered: true,
+      children: (
+        <Text size="sm">
+          This action cannot be undone. All associated data will be lost.
+        </Text>
+      ),
+      labels: { confirm: "Delete Task", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => triggerDeleteTask(),
+    });
+  }, [loadingDelete, triggerDeleteTask, taskId]);
 
   useEffect(() => {
     loadTask();
@@ -292,6 +339,7 @@ export default function Task() {
                 </ActionIcon>
               </Group>
             </Stack>
+            <Divider />
             <Stack>
               <Text size="xs">
                 <Group gap="xs">
@@ -355,7 +403,7 @@ export default function Task() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <Stack>
+        <Stack gap="sm">
           <Group mb="lg">
             <Link
               to="/tasks"
@@ -366,44 +414,22 @@ export default function Task() {
               <Group c="dark.3" gap="xs">
                 <CaretLeftIcon weight="bold" size={13} />
                 <Text c="dark.3" size="sm">
-                  All Tasks
+                  Agenda
                 </Text>
               </Group>
             </Link>
           </Group>
-          <Title
-            contentEditable
-            onBlur={(e) => {
-              handleFieldUpdate("description", e.currentTarget.innerText);
-            }}
-            dangerouslySetInnerHTML={{ __html: task?.description || "" }}
-          />
+          <Group>
+            <Title
+              contentEditable
+              onBlur={(e) => {
+                handleFieldUpdate("description", e.currentTarget.innerText);
+              }}
+              dangerouslySetInnerHTML={{ __html: task?.description || "" }}
+            />
+          </Group>
           {!!task && (
             <>
-              <Text fw="bold" c="dimmed" size="xs">
-                <Group gap="xs">
-                  SCRATCHPAD{" "}
-                  {scratchpadSaved ? (
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="gray"
-                      title="This content is saved."
-                    >
-                      <CloudCheckIcon weight="bold" />
-                    </ActionIcon>
-                  ) : (
-                    <ActionIcon
-                      size="xs"
-                      variant="subtle"
-                      color="gray"
-                      title="This content is saving..."
-                    >
-                      <CloudArrowUpIcon weight="bold" />
-                    </ActionIcon>
-                  )}
-                </Group>
-              </Text>
               <DreamWriter
                 initialContent={task.scratchpad}
                 onBlur={() => {
@@ -421,10 +447,10 @@ export default function Task() {
       <StatusBar></StatusBar>
       <RightSidebar>
         <RightSidebar.Open>
-          <Stack>
-            <Group>
+          <Stack gap="lg">
+            <Group gap="xs" wrap="nowrap">
               <Button
-                radius="lg"
+                radius="md"
                 leftSection={
                   isComplete ? (
                     <XCircleIcon weight="bold" />
@@ -436,12 +462,34 @@ export default function Task() {
                 onClick={() => {
                   handleMarkTask(!isComplete);
                 }}
-                color="gray.9"
+                color={isComplete ? "gray.2" : "blue.7"}
+                size="xs"
                 fullWidth
               >
                 Mark {isComplete ? "Incomplete" : "Complete"}
               </Button>
+              <Menu>
+                <Menu.Target>
+                  <ActionIcon variant="subtle" color="gray">
+                    <DotsThreeVerticalIcon weight="bold" />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    variant="light"
+                    color="red"
+                    onClick={handleDeleteTask}
+                    disabled={loadingDelete}
+                    leftSection={
+                      loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
+                    }
+                  >
+                    Delete Task
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             </Group>
+            <Divider />
             <Search />
           </Stack>
         </RightSidebar.Open>

@@ -6,6 +6,7 @@ import { getEmbedder } from "../ai/embeddings/embeddings";
 import { ITag } from "../database/models/tag";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IFinding } from "./Spyglass";
+import { ITask } from "../database/models/task";
 
 export type ISearchResultValue =
   | (IIdea & {
@@ -60,6 +61,15 @@ export type IRabbitholeSearchResult = {
   searchType: "fts" | "semantic" | "comprehensive";
 };
 
+export type ITaskSearchResultValue = ITask;
+
+export type ITaskSearchResult = {
+  id: string | RecordId;
+  value: ITaskSearchResultValue;
+  score: number;
+  searchType: "fts" | "semantic" | "comprehensive";
+};
+
 export class Search {
   private static readonly COMPREHENSIVE_WEIGHTS = {
     SEMANTIC: 2,
@@ -100,6 +110,28 @@ export class Search {
       `;
     };
 
+    const defineRabbitholeVectorIndex = () => {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_rabbithole_embeddings
+        ON TABLE tag
+        FIELDS embeddings
+        HNSW DIMENSION 768
+        DIST COSINE
+        TYPE F32;
+      `;
+    };
+
+    const defineTaskVectorIndex = () => {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_task_embeddings
+        ON TABLE tag
+        FIELDS embeddings
+        HNSW DIMENSION 768
+        DIST COSINE
+        TYPE F32;
+      `;
+    };
+
     const ideaSearchAnalyzer = () => {
       return `
       DEFINE ANALYZER OVERWRITE idea_analyzer
@@ -117,6 +149,13 @@ export class Search {
     const rabbitholeSearchAnalyzer = () => {
       return `
       DEFINE ANALYZER OVERWRITE rabbithole_analyzer
+      TOKENIZERS class
+      FILTERS lowercase, snowball(english);`;
+    };
+
+    const taskSearchAnalyzer = () => {
+      return `
+      DEFINE ANALYZER OVERWRITE task_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
@@ -173,7 +212,16 @@ export class Search {
       `;
     };
 
-    // Uses the exact function definition from the initial prompt
+    const ftsTaskDescriptionSearchIndex = () => {
+      return `
+          DEFINE INDEX OVERWRITE idx_task_description_fts
+            ON TABLE task
+            FIELDS name
+            SEARCH ANALYZER task_analyzer
+            BM25 HIGHLIGHTS;
+          `;
+    };
+
     const ftsSearchFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::search_user_ideas_fts(
@@ -294,20 +342,34 @@ export class Search {
       console.info(
         "Defining search analyzers, indexes, and functions (using original definitions)...",
       );
+
+      /* Ideas */
       await db.query(ideaSearchAnalyzer());
-      await db.query(tagSearchAnalyzer());
-      await db.query(rabbitholeSearchAnalyzer());
       await db.query(ftsTitleSearchIndex());
       await db.query(ftsContentSearchIndex());
+      await db.query(defineVectorIndex());
+
+      /* Tags */
+      await db.query(tagSearchAnalyzer());
       await db.query(ftsTagNameSearchIndex());
       await db.query(ftsTagDescriptionSearchIndex());
-      await db.query(ftsRabbitholeSearchIndex());
-      await db.query(defineVectorIndex());
       await db.query(defineTagVectorIndex());
-      await db.query(ftsSearchFunction());
-      await db.query(ftsSearchTagsFunction());
+
+      /* Rabbitholes */
+      await db.query(rabbitholeSearchAnalyzer());
+      await db.query(ftsRabbitholeSearchIndex());
+      await db.query(defineRabbitholeVectorIndex());
       await db.query(ftsSearchRabbitholesFunction());
       await db.query(ftsSearchWithinRabbitholeFunction());
+
+      /* Tasks */
+      await db.query(taskSearchAnalyzer());
+      await db.query(defineTaskVectorIndex());
+      await db.query(ftsTaskDescriptionSearchIndex());
+
+      /* Search */
+      await db.query(ftsSearchFunction());
+      await db.query(ftsSearchTagsFunction());
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;
@@ -772,6 +834,83 @@ export class Search {
     }
   }
 
+  static async semanticSearchTasks(
+    userId: string | RecordId,
+    embedding: number[],
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+    },
+  ): Promise<ITaskSearchResult[]> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error(
+          "Database connection not available for semantic task search.",
+        );
+      }
+
+      const limit = Math.min(
+        Math.max(1, Number.parseInt(String(options.limit ?? 10), 10)),
+        50,
+      );
+      const defaultCandidates = Math.max(limit * 15, 200);
+      const candidates = Math.min(
+        Math.max(
+          limit,
+          Number.parseInt(String(options.candidates ?? defaultCandidates), 10),
+        ),
+        1000,
+      );
+      const threshold = Number.parseFloat(
+        String(options.threshold ?? Search.SEMANTIC_THRESHOLD),
+      );
+
+      if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
+        throw new Error("Invalid similarity threshold provided.");
+      }
+
+      const subqueryWhere = [
+        `<-owns<-(user WHERE id = $userId)`,
+        `embeddings <|${candidates}, ${candidates * 2}|> $embedding`,
+      ];
+
+      const query = `
+          SELECT * FROM (
+            SELECT
+              *,
+              vector::similarity::cosine(embeddings, $embedding) AS distance
+            FROM task
+            WHERE ${subqueryWhere.join(" AND ")}
+          )
+          WHERE distance >= ${threshold}
+          ORDER BY distance DESC
+          LIMIT ${limit};
+        `;
+
+      const [dbResults] = await db.query<(ITask & { distance: number })[][]>(
+        query,
+        {
+          userId: new StringRecordId(userId),
+          embedding: embedding,
+        },
+      );
+
+      if (!dbResults) return [];
+
+      return dbResults.map((task) => ({
+        id: task.id.toString(),
+        value: task,
+        score: task.distance,
+        searchType: "semantic",
+      }));
+    } catch (error) {
+      console.error("Error during semantic tag search:", error);
+      return [];
+    }
+  }
+
   static async searchTagsByEmbedding(
     userId: string | RecordId,
     embedding: number[],
@@ -942,6 +1081,33 @@ export class Search {
       });
     } catch (error) {
       console.error("Error during rabbithole suggestions search:", error);
+      return [];
+    }
+  }
+
+  static async searchTasksByEmbedding(
+    userId: string | RecordId,
+    embedding: number[],
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+    } = {},
+  ): Promise<ITaskSearchResult[] | undefined> {
+    try {
+      const semanticResults = await Search.semanticSearchTasks(
+        userId,
+        embedding,
+        {
+          limit: options.limit ?? 10,
+          threshold: options.threshold,
+          candidates: options.candidates,
+        },
+      );
+
+      return semanticResults;
+    } catch (error) {
+      console.error(`Error during tag search by embedding:`, error);
       return [];
     }
   }

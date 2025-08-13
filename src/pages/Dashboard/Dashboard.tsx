@@ -113,7 +113,11 @@ export default function Dashboard() {
 
   const { data: centralIdeas, load: loadCentral } = useFetch<
     undefined,
-    ISafeIdea[]
+    (ISafeIdea & {
+      incoming: number;
+      outgoing: number;
+      total: number;
+    })[]
   >({
     url: "/dashboard/central-ideas",
     onError: (err) => {
@@ -208,7 +212,17 @@ export default function Dashboard() {
                       expandLabel="Highest connected..."
                       cards={
                         centralIdeas?.map((idea) => (
-                          <IdeaCard key={idea.id.toString()} idea={idea} />
+                          <IdeaCard
+                            badges={[
+                              {
+                                label: `${idea.total}`,
+                                color: "gray.9",
+                                icon: <UniteSquareIcon />,
+                              },
+                            ]}
+                            key={idea.id.toString()}
+                            idea={idea}
+                          />
                         )) ?? []
                       }
                     />

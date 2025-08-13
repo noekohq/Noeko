@@ -264,7 +264,7 @@ export default function Connections({
       <Grid.Col span={{ sm: 12 }}>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
-            <Group>
+            <Group justify="space-between">
               <Text size="sm" c="dimmed" fw="bold">
                 <Group gap="xs">
                   <IntersectSquareIcon weight="bold" />
@@ -284,7 +284,7 @@ export default function Connections({
                         {computing ? (
                           <Loader size="xs" />
                         ) : (
-                          <ArrowsClockwiseIcon />
+                          <ArrowsClockwiseIcon size={14} />
                         )}
                       </ActionIcon>
                     );

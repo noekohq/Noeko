@@ -483,7 +483,7 @@ export class Tag {
       limit?: number;
       threshold?: number;
     },
-  ): Promise<Idea[] | undefined> {
+  ): Promise<IIdea[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -514,7 +514,7 @@ export class Tag {
         return {
           ...idea,
           derived: Idea.mapDerived(idea.derivedList),
-        } as Idea;
+        } as IIdea;
       });
 
       const final = withDerived;

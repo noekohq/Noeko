@@ -258,17 +258,24 @@ export function InteractionProvider({
   const value: IInteractionContext = {
     actions: {
       newIdea: async () => {
-        if (
-          (user && user.totalIdeas < max_notes && max_notes !== -1) ||
-          userIsSuperuser(user)
-        ) {
-          handleNewIdea();
-        } else {
-          showNotification({
-            title: "Too many notes",
-            message: `You have reached your limit of ${max_notes} ideas!`,
-            color: "red",
-          });
+        try {
+          setLoadingSomething(true);
+          if (
+            (user && user.totalIdeas < max_notes && max_notes !== -1) ||
+            userIsSuperuser(user)
+          ) {
+            handleNewIdea();
+          } else {
+            showNotification({
+              title: "Too many notes",
+              message: `You have reached your limit of ${max_notes} ideas!`,
+              color: "red",
+            });
+          }
+        } catch (error) {
+          console.error("Error creating new idea:", error);
+        } finally {
+          setLoadingSomething(false);
         }
       },
       newConnectedIdea: async (source: string) => {
