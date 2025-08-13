@@ -83,6 +83,7 @@ type IInteractionContext = {
     graph: () => void;
     spyglass: () => void;
     ideas: () => void;
+    sources: () => void;
     rabbitholes: () => void;
     settings: () => void;
     profile: () => void;
@@ -129,6 +130,7 @@ const initialContext: IInteractionContext = {
     dashboard: () => {},
     graph: () => {},
     spyglass: () => {},
+    sources: () => {},
     ideas: () => {},
     rabbitholes: () => {},
     settings: () => {},
@@ -370,6 +372,9 @@ export function InteractionProvider({
       tasks: () => {
         navigate("/tasks");
       },
+      sources: () => {
+        navigate("/sources");
+      },
       updates: () => {
         navigate("/updates");
       },
@@ -447,7 +452,7 @@ export function InteractionProvider({
       },
     ],
     [
-      "mod+k", // Explicitly Ctrl+K on all OSes
+      "mod+k",
       (event) => {
         event.preventDefault();
         setSpotlightOpened((o) => !o);

@@ -35,7 +35,7 @@ export default function ProfileButton() {
     { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
     { label: "Shared Ideas", icon: LightbulbIcon, path: "/ideas/shared" },
     { label: "Tasks", icon: CheckIcon, path: "/tasks" },
-    { label: "Files", icon: FileIcon, path: "/files" },
+    { label: "Sources", icon: FileIcon, path: "/sources" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
     { label: "Constellation", icon: GraphIcon, path: "/graph" },

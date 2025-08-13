@@ -4,11 +4,16 @@ import styles from "./Bottom.module.scss";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import useRabbithole from "../../../hooks/useRabbithole";
 import useShortcuts from "../../../hooks/useShortcuts";
-import { Group, MantineColor } from "@mantine/core";
+import { ActionIcon, Group, MantineColor, Menu, Popover } from "@mantine/core";
 import { RabbitholeIndicator } from "../../Display/Rabbitholes/RabbitholeIndicator";
 import { ConstellationIcon, SpyglassIcon } from "../../Utils/Icons/Icons";
 import StatusButton from "../../Display/Interactions/StatusButton";
-import { PlusIcon } from "@phosphor-icons/react";
+import {
+  CalendarBlankIcon,
+  DotsThreeVerticalIcon,
+  FileTextIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import CreateButton from "../../Display/Interactions/CreateButton";
 
 interface IBottomProps {
@@ -44,7 +49,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
     actions: {
       feedback: { openFeedbackModal },
     },
-    views: { spyglass, graph },
+    views: { spyglass, graph, tasks, sources },
   } = useInteraction();
 
   const defaultColor: MantineColor = "dark.3";
@@ -68,6 +73,58 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
       <div
         className={`${styles.global} ${hasChildren ? styles.hasChildren : styles.noChildren}`}
       >
+        {isMobile ? (
+          <Menu position="top" withArrow radius="md" width={"200px"}>
+            <Menu.Target>
+              <div style={{ height: "100%" }}>
+                <StatusButton>
+                  <DotsThreeVerticalIcon weight="bold" size={16} />
+                </StatusButton>
+              </div>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<FileTextIcon weight="bold" size={16} />}
+                onClick={() => {
+                  sources();
+                }}
+              >
+                Sources
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<CalendarBlankIcon weight="bold" size={16} />}
+                onClick={() => {
+                  tasks();
+                }}
+              >
+                Tasks
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        ) : (
+          <>
+            <StatusBar.Item>
+              <StatusButton
+                title="Sources"
+                onClick={() => {
+                  sources();
+                }}
+              >
+                <FileTextIcon weight="bold" size={16} />
+              </StatusButton>
+            </StatusBar.Item>
+            <StatusBar.Item>
+              <StatusButton
+                title="Agenda"
+                onClick={() => {
+                  tasks();
+                }}
+              >
+                <CalendarBlankIcon weight="bold" size={16} />
+              </StatusButton>
+            </StatusBar.Item>
+          </>
+        )}
         <StatusBar.Item>
           <StatusButton
             title="Constellation"
@@ -75,7 +132,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
               graph();
             }}
           >
-            <ConstellationIcon size={16} />
+            <ConstellationIcon weight="bold" size={16} />
           </StatusButton>
         </StatusBar.Item>
         <StatusBar.Item>
