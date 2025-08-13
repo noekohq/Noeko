@@ -129,7 +129,7 @@ export class User {
         DEFINE FIELD IF NOT EXISTS updatedAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS roles ON TABLE user TYPE array<record<role>>;
         DEFINE FIELD IF NOT EXISTS disabled ON TABLE user TYPE bool DEFAULT false;
-        DEFINE FIELD OVERWRITE scratchpadContent ON TABLE user TYPE string;
+        DEFINE FIELD OVERWRITE scratchpadContent ON TABLE user TYPE option<string>;
         DEFINE FIELD OVERWRITE referralCode ON TABLE user TYPE option<string>;
       `);
       await db?.query(
