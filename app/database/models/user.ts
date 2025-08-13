@@ -65,11 +65,11 @@ export type IComputedUser = IUser & IComputedProperties;
 
 export type ISafeComputedUsers = ISafeUser & IComputedProperties;
 
-async function ensureAllUsersHaveScratchpadContent() {
+async function ensureAllUsersHaveNecessaryFields() {
   const db = await getDatabase();
   if (!db) {
     console.info(
-      "Cannot run ensureAllUsersHaveScratchpadContent due to lack of db.",
+      "Cannot run ensureAllUsersHaveNecessaryFields due to lack of db.",
     );
     return;
   }
@@ -79,16 +79,32 @@ async function ensureAllUsersHaveScratchpadContent() {
     throw new Error("Failed to fetch users");
   }
   const [users] = results;
-  let numUpdated = 0;
+  let numUpdatedScratchpads = 0;
+  let numUpdatedReferralCodes = 0;
   for (const user of users) {
-    if (!user.scratchpadContent) {
+    if (user.scratchpadContent === null) {
       await db.query(
         `UPDATE user MERGE { scratchpadContent: '' } WHERE id = ${user.id}`,
       );
-      numUpdated++;
+      numUpdatedScratchpads++;
+    }
+    if (user.referralCode === null) {
+      const referralCode = Bun.randomUUIDv7();
+      await db.query(
+        `UPDATE user MERGE { referralCode: $referralCode } WHERE id = ${user.id}`,
+        {
+          referralCode,
+        },
+      );
+      numUpdatedReferralCodes++;
     }
   }
-  console.info(`Updated ${numUpdated} users to include scratchpad content`);
+  console.info(
+    `Updated ${numUpdatedScratchpads} users to include scratchpad content`,
+  );
+  console.info(
+    `Updated ${numUpdatedReferralCodes} users to include referral codes`,
+  );
 }
 
 export class User {
@@ -98,7 +114,7 @@ export class User {
     try {
       // Ensure all users have referral codes
       console.info("Ensuring all users have referral codes...");
-      await User.ensureReferralCodes();
+      // await User.ensureReferralCodes();
 
       const db = await getDatabase();
       if (!db) {
@@ -114,7 +130,7 @@ export class User {
         DEFINE FIELD IF NOT EXISTS updatedAt ON TABLE user TYPE datetime;
         DEFINE FIELD IF NOT EXISTS roles ON TABLE user TYPE array<record<role>>;
         DEFINE FIELD IF NOT EXISTS disabled ON TABLE user TYPE bool DEFAULT false;
-        DEFINE FIELD IF NOT EXISTS referralCode ON TABLE user TYPE string;
+        DEFINE FIELD OVERWRITE referralCode ON TABLE user TYPE option<string>;
       `);
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
@@ -144,7 +160,7 @@ export class User {
       );
 
       const kernel = getKernel();
-      ensureAllUsersHaveScratchpadContent();
+      ensureAllUsersHaveNecessaryFields();
     } catch (error) {
       console.error("Error creating user table:", error);
       throw error;
