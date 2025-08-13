@@ -96,6 +96,10 @@ export class User {
 
   static async up() {
     try {
+      // Ensure all users have referral codes
+      console.info("Ensuring all users have referral codes...");
+      await User.ensureReferralCodes();
+
       const db = await getDatabase();
       if (!db) {
         console.info("Cannot run users up due to lack of db.");
@@ -134,9 +138,6 @@ export class User {
       console.info("Running get users function...");
       await db?.query(getUsersFunction());
 
-      // Ensure all users have referral codes
-      console.info("Ensuring all users have referral codes...");
-      await User.ensureReferralCodes();
       console.info("Finished ensuring referral codes.");
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
@@ -683,7 +684,7 @@ export class User {
     try {
       // User.getAll() returns Promise<IComputedUser[]>
       // IComputedUser is compatible with IUser, which User.ensureReferralCodes expects.
-      await User.ensureReferralCodes(true);
+      await User.ensureReferralCodes(false);
       console.log(`[User] Completed referral code refresh for all users.`);
     } catch (error) {
       console.error("[User] Error refreshing all user referral codes:", error);

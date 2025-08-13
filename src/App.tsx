@@ -208,7 +208,7 @@ export default function App() {
                     <Route index element={<Navigate to="/" replace />} />
                     <Route path=":fileId" element={<UserFile />} />
                   </Route>
-                  <Route path="files" element={<FileList />} />
+                  <Route path="sources" element={<FileList />} />
                   <Route path="import">
                     <Route index element={<Import />} />
                   </Route>

@@ -84,7 +84,7 @@ export default function UserFile() {
         title: "File deleted successfully",
         message: "The file has been deleted successfully.",
       });
-      navigate("/files");
+      navigate("/sources");
     },
     onError: (error) => {
       console.error("Error deleting file", error);
@@ -124,7 +124,7 @@ export default function UserFile() {
         <div className={styles.fileView}>
           <Group mb="lg">
             <Link
-              to="/files"
+              to="/sources"
               style={{
                 textDecoration: "none",
               }}

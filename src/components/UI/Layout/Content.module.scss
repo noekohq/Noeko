@@ -18,6 +18,7 @@
 .content {
     animation: contentIn 0.4s ease-out forwards;
     display: block;
+    min-height: 100%;
     width: var(--content-width);
     padding-top: var(--mobile-bar-height);
     padding-inline: var(--content-space);
