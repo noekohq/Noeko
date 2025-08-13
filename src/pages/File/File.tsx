@@ -5,26 +5,23 @@ import { IUserFile } from "../../../app/database/models/userfile";
 import {
   ActionIcon,
   Button,
-  Card,
   Flex,
-  Grid,
   Group,
+  Stack,
   Text,
   Title,
-  Tooltip,
 } from "@mantine/core";
-import { triggerDownload } from "../../utils/helpers";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import Content from "../../components/UI/Layout/Content";
+import ContentWide from "../../components/UI/Layout/ContentWide";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import { handleFileDownload } from "../../utils/userfiles";
 import { lazy, Suspense, useCallback, useMemo } from "react";
 import { ViewerMap } from "./Viewers";
-import { map } from "lodash";
+import { useLayout } from "../../contexts/LayoutContext";
 import { CaretLeftIcon } from "@phosphor-icons/react";
 
 export default function UserFile() {
@@ -35,20 +32,6 @@ export default function UserFile() {
   const { data: file } = useFetch<undefined, IUserFile>({
     url: `/files/${fileId}`,
     runOnMount: true,
-  });
-
-  const { load: downloadFile, loading: downloadingFile } = useFetch<
-    undefined,
-    string
-  >({
-    url: `/files/${fileId}/download`,
-    onSuccess: (downloadLink) => {
-      triggerDownload(
-        downloadLink,
-        file?.originalFileName ?? "qwest-file",
-        false,
-      );
-    },
   });
 
   const handleDownload = useCallback(async () => {
@@ -115,62 +98,110 @@ export default function UserFile() {
       return lazy(ViewerMap[file.mimeType]);
     }
     return null;
-  }, [file]); // The dependency array ensures this only runs when `file` changes.
+  }, [file]);
+
+  const {
+    elements: {
+      leftSidebar: {
+        mode: { get: leftMode },
+      },
+      rightSidebar: {
+        mode: { get: rightMode },
+      },
+    },
+  } = useLayout();
+
+  const leftModeToClass: Record<typeof leftMode, string> = {
+    open: styles.leftOpen,
+    collapsed: styles.leftCollapsed,
+    compact: styles.leftCompact,
+    hovering: `${styles.leftOpen} ${styles.leftHovering}`,
+  };
+
+  const rightModeToClass: Record<typeof rightMode, string> = {
+    open: styles.rightOpen,
+    collapsed: styles.rightCollapsed,
+    compact: styles.rightCompact,
+    hovering: `${styles.rightOpen} ${styles.rightHovering}`,
+  };
+
+  const leftModeClass = leftModeToClass[leftMode];
+  const rightModeClass = rightModeToClass[rightMode];
 
   return (
     <PageWrapper>
-      <LeftSidebar />
-      <Content>
+      <LeftSidebar>
+        <LeftSidebar.Open>Insights and such</LeftSidebar.Open>
+      </LeftSidebar>
+      <ContentWide>
         <div className={styles.fileView}>
-          <Group mb="lg">
-            <Link
-              to="/sources"
-              style={{
-                textDecoration: "none",
+          <Group gap="xs">
+            <ActionIcon
+              onClick={() => {
+                navigate(-1);
               }}
+              color="gray"
+              variant="subtle"
+              size="sm"
             >
-              <Group c="dark.3" gap="xs">
-                <CaretLeftIcon weight="bold" size={13} />
-                <Text c="dark.3" size="sm">
-                  Back to files
-                </Text>
-              </Group>
-            </Link>
+              <CaretLeftIcon weight="bold" />
+            </ActionIcon>
+            <Title order={3}>{file?.originalFileName}</Title>
           </Group>
-          <Title>Viewing {file?.originalFileName}</Title>
-          <Card radius="md" shadow="xs" p="md">
-            <Flex justify="space-between">
-              <Group align="center">
-                <Text size="lg" fw="bold">
-                  {file?.originalFileName}
-                </Text>
-                <Text c="dimmed" size="sm">
-                  {file?.mimeType} {file?.sizeBytes} bytes
-                </Text>
-              </Group>
+          {file && (
+            <div
+              className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
+            >
+              <Suspense
+                fallback={
+                  <Text size="xs" c="dimmed">
+                    Loading viewer...
+                  </Text>
+                }
+              >
+                {Viewer ? (
+                  <Viewer fileId={file.id} />
+                ) : (
+                  <Text>No viewer available for this type of file :/</Text>
+                )}
+              </Suspense>
+            </div>
+          )}
+        </div>
+      </ContentWide>
+      <StatusBar />
+      <RightSidebar>
+        <RightSidebar.Open>
+          <Flex justify="space-between" direction="column">
+            <Stack align="start" gap="xs">
+              <Text size="sm" fw="bold">
+                {file?.originalFileName}
+              </Text>
+              <Text c="dimmed" size="sm">
+                {file?.mimeType} {file?.sizeBytes} bytes
+              </Text>
               <Group>
-                <Button onClick={() => handleDownload()} variant="light">
+                <Button
+                  onClick={() => handleDownload()}
+                  variant="light"
+                  color="gray"
+                  size="xs"
+                >
                   Download
                 </Button>
-                <Button onClick={handleDelete} variant="light" color="red">
+                <Button
+                  onClick={handleDelete}
+                  variant="light"
+                  color="gray"
+                  size="sm"
+                >
                   Delete
                 </Button>
               </Group>
-            </Flex>
-          </Card>
-          {file && (
-            <Suspense fallback={<Text>Loading viewer...</Text>}>
-              {Viewer ? (
-                <Viewer fileId={file.id} />
-              ) : (
-                <Text>No viewer available for this type of file :/</Text>
-              )}
-            </Suspense>
-          )}
-        </div>
-      </Content>
-      <StatusBar />
-      <RightSidebar />
+            </Stack>
+          </Flex>
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }

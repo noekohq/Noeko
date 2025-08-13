@@ -1,20 +1,38 @@
+@keyframes viewerIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .pdfViewer {
-    padding: var(--mantine-spacing-xs);
-    border-radius: var(--mantine-radius-md);
-    background-color: var(--mantine-color-dark-8);
-    max-height: 80vh;
-    overflow-y: scroll;
-    scrollbar-width: thin;
-    width: 100%;
+  animation: viewerIn 0.3s ease-in-out;
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-dark-8);
+  max-height: 100%;
+  overflow-y: scroll; /* Keep this for vertical scrolling */
+  scrollbar-width: thin;
+  padding: var(--mantine-spacing-xs);
+
+  /* This is now the single source of truth for the width */
+  width: calc(var(--content-width) - calc(var(--content-spacing) * 2));
+
+  box-sizing: border-box;
 }
 
 .document {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
 }
 
 .page {
-    width: 100%;
+  box-shadow: var(--mantine-shadow-lg);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
 }
