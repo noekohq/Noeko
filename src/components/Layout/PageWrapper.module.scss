@@ -50,7 +50,9 @@
     }
 
     @include desktop {
-        padding-left: var(--content-space);
+        padding-left: calc(
+            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
+        );
         margin-left: 0;
     }
 }
@@ -75,7 +77,9 @@
     }
 
     @include desktop {
-        padding-right: var(--content-space);
+        padding-right: calc(
+            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
+        );
         margin-right: 0;
     }
 }
