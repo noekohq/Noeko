@@ -132,7 +132,7 @@ export default function SourceCard({
           handleClick();
         }
       }}
-      className={styles.fileCard}
+      className={styles.sourceCard}
       data-file-id={source.id.toString()}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
