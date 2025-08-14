@@ -20,7 +20,7 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import ContentWide from "../../components/UI/Layout/ContentWide";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import { handleFileDownload } from "../../utils/userfiles";
-import { lazy, Suspense, useCallback, useMemo } from "react";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { ViewerMap } from "../../components/Display/Files/Viewers";
 import { useLayout } from "../../contexts/LayoutContext";
 import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
@@ -95,12 +95,14 @@ export default function UserFile() {
     });
   };
 
+  const [loadingSource, setLoadingSource] = useState(false);
   const handleCreateSource = async () => {
     try {
       if (!file) {
         console.error("Tried to create source from nonexistent file");
         return undefined;
       }
+      setLoadingSource(true);
       const source = await createSourceFrom(file.id.toString());
       if (!source) {
         throw new Error("Failed to create source");
@@ -108,6 +110,8 @@ export default function UserFile() {
       navigate(`/source/${source.id.toString()}`);
     } catch (error) {
       return Promise.reject(error);
+    } finally {
+      setLoadingSource(false);
     }
   };
 
@@ -228,6 +232,7 @@ export default function UserFile() {
                   size="xs"
                   leftSection={<FileTextIcon />}
                   fullWidth
+                  loading={loadingSource}
                 >
                   Convert to Source
                 </Button>
