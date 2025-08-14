@@ -193,7 +193,7 @@ export default function UserFile() {
                   onClick={handleDelete}
                   variant="light"
                   color="gray"
-                  size="sm"
+                  size="xs"
                 >
                   Delete
                 </Button>

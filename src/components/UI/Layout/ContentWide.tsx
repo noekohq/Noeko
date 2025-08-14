@@ -23,9 +23,26 @@ const ContentWide = ({ children }: IContentWideProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   useScroll({ ref: contentRef });
 
+  const leftModeToClass: Record<typeof leftMode, string> = {
+    open: styles.leftOpen,
+    collapsed: styles.leftCollapsed,
+    compact: styles.leftCompact,
+    hovering: `${styles.leftOpen} ${styles.leftHovering}`,
+  };
+
+  const rightModeToClass: Record<typeof rightMode, string> = {
+    open: styles.rightOpen,
+    collapsed: styles.rightCollapsed,
+    compact: styles.rightCompact,
+    hovering: `${styles.rightOpen} ${styles.rightHovering}`,
+  };
+
+  const leftModeClass = leftModeToClass[leftMode];
+  const rightModeClass = rightModeToClass[rightMode];
+
   return (
     <div
-      className={`${styles.contentWide}`}
+      className={`${styles.contentWide} ${leftModeClass} ${rightModeClass}`}
       onClick={() => {
         if (isMobile) {
           setLeftMode("collapsed");
