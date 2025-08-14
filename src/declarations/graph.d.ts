@@ -7,6 +7,7 @@ import {
 import { ITag } from "../../app/database/models/tag";
 import { IUserFile } from "../../app/database/models/userfile";
 import { IRabbithole } from "../../app/database/models/rabbithole";
+import { ISource } from "../../app/database/models/source";
 
 // Add simulation properties directly to INode
 export type IIdeaNode = ISafeIdea & {
@@ -59,6 +60,16 @@ export type IRabbitholeNode = IRabbithole & {
   fy?: number | null; // Fixed y position (during drag)
 };
 
+export type ISourceNode = ISource & {
+  type: "source";
+  x?: number; // Current x position
+  y?: number; // Current y position
+  vx?: number; // Velocity x
+  vy?: number; // Velocity y
+  fx?: number | null; // Fixed x position (during drag)
+  fy?: number | null; // Fixed y position (during drag)
+};
+
 // IEdge can remain largely the same, linking node IDs
 export interface IEdge {
   id: string;
@@ -74,7 +85,8 @@ export type INode =
   | IFileNode
   | IDerivedNode
   | ITagNode
-  | IRabbitholeNode;
+  | IRabbitholeNode
+  | ISourceNode;
 
 // IGraph remains the container for nodes and edges
 export type IGraph = {

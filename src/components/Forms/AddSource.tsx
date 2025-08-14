@@ -23,13 +23,19 @@ import {
 } from "@mantine/core";
 import { formatFileSize } from "../../utils/formatting";
 import useRabbithole from "../../hooks/useRabbithole";
+import { ISource } from "../../../app/database/models/source";
+import { createSourceFrom } from "../../utils/sources";
+import { useNavigate } from "react-router";
 
-interface IAddFileFormProps {
-  onSubmit?: (file: IUserFile) => void;
+interface IAddSourceFormProps {
+  onSubmit?: (source: ISource) => void;
   onCancel?: () => void;
 }
 
-export default function AddFileForm({ onSubmit, onCancel }: IAddFileFormProps) {
+export default function AddSourceForm({
+  onSubmit,
+  onCancel,
+}: IAddSourceFormProps) {
   const { includeThing, isDownRabbithole } = useRabbithole();
 
   const fileForm = useForm<{
@@ -50,6 +56,8 @@ export default function AddFileForm({ onSubmit, onCancel }: IAddFileFormProps) {
 
   const userFile = fileForm.values.userFile;
 
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState<FormData>();
   const { load: uploadFile, loading: loadingUpload } = useFetch<
     FormData,
@@ -60,15 +68,23 @@ export default function AddFileForm({ onSubmit, onCancel }: IAddFileFormProps) {
     body: formData,
     dependencies: [formData],
     onSuccess: async (file) => {
-      showNotification({
-        title: "File Uploaded",
-        message: "File uploaded successfully",
-      });
       setFormData(undefined);
       fileForm.reset();
-      onSubmit?.(file);
+      const source = await createSourceFrom(file.id.toString());
+      if (!source) {
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong adding your source",
+          color: "red",
+        });
+        return;
+      }
       if (isDownRabbithole) {
-        includeThing(file.id.toString());
+        includeThing(source.id.toString());
+      }
+      onSubmit?.(source);
+      if (!onSubmit) {
+        navigate(`/source/${source.id.toString()}`);
       }
     },
     onError: async (error) => {

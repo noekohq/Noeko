@@ -15,7 +15,7 @@ import { useLayout } from "../../../contexts/LayoutContext";
 
 export default function CreateButton() {
   const {
-    actions: { newIdea, newRabbithole, newTask, newFile },
+    actions: { newIdea, newRabbithole, newTask, newSource },
   } = useInteraction();
   const { isMobile, isTablet } = useLayout();
 
@@ -48,7 +48,7 @@ export default function CreateButton() {
         <Menu.Item
           rightSection={<FileIcon weight="bold" />}
           onClick={() => {
-            newFile();
+            newSource();
           }}
         >
           Source

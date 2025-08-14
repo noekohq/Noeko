@@ -10,8 +10,8 @@ import {
 } from "../../utils/aws/s3";
 import { getDatabase } from "../db";
 import { Response } from "express";
-import { getEmbedder } from "../../ai/embeddings/embeddings";
-import { ISourceable } from "./source";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
+import { ISource } from "./source";
 
 export type IUserFile = {
   id: RecordId;
@@ -19,9 +19,13 @@ export type IUserFile = {
   originalFileName: string;
   mimeType: string;
   sizeBytes: number;
+  source?: ISource;
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type ISourceableMimeType = "application/pdf";
+export const SourceableMimeTypes = ["application/pdf"];
 
 export type IUserFileForm = Omit<IUserFile, "id" | "createdAt" | "updatedAt">;
 
@@ -64,8 +68,23 @@ export class UserFile {
       `;
     };
 
+    const getUserFileFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_user_file_record(
+        $userFileId: record<user_file>
+      ) {
+        LET $userFile = SELECT
+            *,
+            (SELECT * FROM source WHERE references = $userFileId)[0] as source
+          FROM ONLY $userFileId;
+        RETURN $userFile;
+      }
+      `;
+    };
+
     const db = await getDatabase();
-    db?.query(getUserFilesFunction());
+    await db?.query(getUserFilesFunction());
+    await db?.query(getUserFileFunction());
   }
 
   static async create(userId: string | RecordId, file: File) {
@@ -169,9 +188,9 @@ export class UserFile {
   ): Promise<IUserFile | undefined> {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IUserFile>(
+      const result = await db?.run<IUserFile>("fn::get_user_file_record", [
         new StringRecordId(userFileId),
-      );
+      ]);
       if (!result) {
         throw Error(`No user file found for id "${userFileId}".`);
       }
@@ -268,6 +287,57 @@ export class UserFile {
     } catch (err) {
       console.error(`Error during delete for id "${userFileId}":`, err);
       return undefined;
+    }
+  }
+
+  static async getTextContent(
+    userFileId: string | RecordId,
+  ): Promise<string | undefined> {
+    try {
+      const file = await this.get(userFileId);
+      if (!file) {
+        throw new Error("Error getting text content of the file");
+      }
+      const allowedTypes = [...SourceableMimeTypes];
+      if (!allowedTypes.includes(file.mimeType)) {
+        throw new Error(
+          "Couldn't get text content of file with unsupported mimetype",
+        );
+      }
+
+      const stream = getStreamS3(file.s3key);
+      if (!stream) {
+        throw new Error("Couldn't get s3 stream");
+      }
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream as unknown as Buffer[]) {
+        chunks.push(chunk);
+      }
+      const buffer = Buffer.concat(chunks);
+      const uint8Array = new Uint8Array(buffer);
+
+      switch (file.mimeType) {
+        case "application/pdf":
+          const doc = await pdfjs.getDocument(uint8Array).promise;
+          const pageTexts: string[] = [];
+
+          for (let i = 1; i <= doc.numPages; i++) {
+            const page = await doc.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item) => ("str" in item ? item.str : ""))
+              .join(" ");
+            pageTexts.push(pageText);
+          }
+
+          return pageTexts.join("\n\n");
+        default:
+          throw new Error(
+            "Reached fallthrough case trying to get text of file: " + file.id,
+          );
+      }
+    } catch (error) {
+      throw error;
     }
   }
 }

@@ -1222,7 +1222,7 @@ export default class Spyglass {
         throw new Error("Couldn't get source for findings");
       }
       const findingsSchema = this.sourceFindingsSchema(sourceId.toString());
-      const lm = getLM().withModel("advanced");
+      const lm = getLM().withModel("general");
       const findingsPrompt = this.sourceFindingsPromptBuilder(sourceId, prompt);
       findingsPrompt.addText("<sourceMaterial>");
       findingsPrompt.addText(source.content);
@@ -1308,7 +1308,7 @@ export default class Spyglass {
       analysisPrompt.addText(source.content);
       analysisPrompt.addText("</sourceMaterial>");
       const analysisSchema = this.sourceAnalysisSchema(sourceId);
-      const lm = getLM().withModel("advanced");
+      const lm = getLM().withModel("general");
       const analysis = await lm.generateJSON<Omit<ISourceAnalysis, "findings">>(
         analysisPrompt.get(),
         analysisSchema,
