@@ -7,6 +7,8 @@ import { formatDate, htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISpyglassSearch } from "../database/models/search";
+import { RecordId } from "surrealdb";
+import Source, { ISourceAnalysis } from "../database/models/source";
 
 type ICitationMap = Record<string, ISearchResult>;
 
@@ -388,6 +390,7 @@ export type IFindingType =
   | "PERSONAL_INSIGHT"
   | "TAKEAWAY"
   | "OPEN_QUESTION"
+  | "ANSWERED_QUESTION"
   | "ACTION_ITEM"
   | "KNOWLEDGE_GAP"
   // STRUCTURAL AND REFERENCE TYPES
@@ -405,6 +408,7 @@ export const FindingTypes = [
   "PERSONAL_INSIGHT",
   "TAKEAWAY",
   "OPEN_QUESTION",
+  "ANSWERED_QUESTION",
   "ACTION_ITEM",
   "REFERENCE",
   "QUOTE",
@@ -1136,6 +1140,197 @@ export default class Spyglass {
     } catch (error) {
       console.error("Error generating overview stream from findings:", error);
       throw error;
+    }
+  }
+
+  static sourceFindingsSchema(sourceId: string): LMSchema {
+    return {
+      type: LMSchemaType.ARRAY,
+      description:
+        "An array of structured findings extracted from the source that are relevant to the prompt.",
+      items: {
+        type: LMSchemaType.OBJECT,
+        description: "A single, discrete finding that reflects the prompt.",
+        properties: {
+          excerpt: {
+            type: LMSchemaType.STRING,
+            description:
+              "The verbatim, direct quote from the source text that supports the finding. This must not be altered or summarized.",
+          },
+          analysis: {
+            type: LMSchemaType.STRING,
+            description:
+              "A brief, one-sentence explanation of *why* this excerpt is important and how it's directly relevant to the prompt.",
+          },
+          findingType: {
+            type: LMSchemaType.STRING,
+            description:
+              "Categorize the nature of the finding in relation to the prompt.",
+            enum: [...FindingTypes],
+            format: "enum",
+          },
+        },
+        required: ["excerpt", "analysis", "findingType"],
+      },
+    };
+  }
+
+  static sourceFindingsPromptBuilder(
+    sourceId: string | RecordId,
+    prompt: string,
+  ) {
+    return new PromptBuilder()
+      .addText(
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a given prompt.",
+      )
+
+      .addBlock(
+        "Context",
+        `
+            Here is some context for you to use in formation of your analysis:
+            <context>
+              It is currently ${getFormattedDateTimeToday()}.
+              You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language analysis of given Source Material.
+            </context>
+            `,
+      )
+      .addBlock("Mission Statement", spyglassMissionStatement)
+      .addBlock(
+        "Core Workflow and Strict Rules",
+        `
+            Your goal is to build a report of findings that are directly and positively relevant to the "Prompt". Your analysis is crucial and will be used by other systems, so precision is mandatory.
+
+            **Universal Strict Rules:**
+            - **Negative analysis is FORBIDDEN.** Never report that a result was irrelevant or that information was missing. Your final report must only contain positive, relevant findings.
+            - **Adhere to the Source Material:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
+            `,
+      )
+      .addBlock("Prompt", prompt)
+      .addBlock(
+        "Source Material",
+        "The source material to use is as follows:\n",
+      );
+  }
+
+  static async getFindingsFromSource(
+    sourceId: string | RecordId,
+    prompt: string,
+  ): Promise<IFinding[] | undefined> {
+    try {
+      const source = await Source.get(sourceId);
+      if (!source) {
+        throw new Error("Couldn't get source for findings");
+      }
+      const findingsSchema = this.sourceFindingsSchema(sourceId.toString());
+      const lm = getLM().withModel("advanced");
+      const findingsPrompt = this.sourceFindingsPromptBuilder(sourceId, prompt);
+      findingsPrompt.addText("<sourceMaterial>");
+      findingsPrompt.addText(source.content);
+      findingsPrompt.addText("</sourceMaterial>");
+      const findings = await lm.generateJSON<Omit<IFinding, "sourceId">[]>(
+        findingsPrompt.get(),
+        findingsSchema,
+      );
+      if (!findings) {
+        throw new Error("Couldn't get findings from Spyglass.");
+      }
+      const withSourceId: IFinding[] = findings.map((finding) => ({
+        ...finding,
+        sourceId: sourceId.toString(),
+      }));
+      return withSourceId;
+    } catch (error) {
+      console.error("Error getting findings from source: ", sourceId, error);
+      return undefined;
+    }
+  }
+
+  public static sourceAnalysisPromptBuilder(sourceId: string | RecordId) {
+    return new PromptBuilder()
+      .addText(
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given Source Material based on a given prompt.",
+      )
+      .addBlock("Source Material", "The Source Material is as follows:\n\n");
+  }
+
+  public static sourceAnalysisSchema(sourceId: string | RecordId) {
+    return {
+      type: LMSchemaType.OBJECT,
+      description:
+        "An object containing an analysis of the given source material",
+      properties: {
+        headline: {
+          description:
+            "A single, concise sentence that summarizes the document's absolute core message, finding, or purpose. This should be suitable as a title or headline.",
+          type: LMSchemaType.STRING,
+        },
+        abstract: {
+          description:
+            "A dense, paragraph-length summary of the document's content. This should cover the main arguments, methods (if any), results, and conclusions presented in the text.",
+          type: LMSchemaType.STRING,
+        },
+        outline: {
+          description:
+            "A structured list representing the document's flow. Identify each major section or thematic part of the document and provide a one-sentence summary for each part.",
+          type: LMSchemaType.ARRAY,
+          items: {
+            type: LMSchemaType.OBJECT,
+            properties: {
+              section: {
+                description:
+                  "The title or heading of the document section (e.g., 'Introduction', 'Methodology', 'Chapter 3'). If there are no formal headings, create a logical name for the thematic section.",
+                type: LMSchemaType.STRING,
+              },
+              summary: {
+                description:
+                  "A single sentence summarizing the content and purpose of that specific section.",
+                type: LMSchemaType.STRING,
+              },
+            },
+            required: ["section", "summary"],
+          },
+        },
+      },
+      required: ["headline", "abstract", "outline"],
+    };
+  }
+
+  public static async analyzeSource(
+    sourceId: string | RecordId,
+  ): Promise<ISourceAnalysis | undefined> {
+    try {
+      const source = await Source.get(sourceId);
+      if (!source) {
+        throw new Error("Couldn't get source");
+      }
+      const analysisPrompt = this.sourceAnalysisPromptBuilder(sourceId);
+      analysisPrompt.addText("<sourceMaterial>");
+      analysisPrompt.addText(source.content);
+      analysisPrompt.addText("</sourceMaterial>");
+      const analysisSchema = this.sourceAnalysisSchema(sourceId);
+      const lm = getLM().withModel("advanced");
+      const analysis = await lm.generateJSON<Omit<ISourceAnalysis, "findings">>(
+        analysisPrompt.get(),
+        analysisSchema,
+      );
+      if (!analysis) {
+        throw new Error("Couldn't get analysis");
+      }
+      const findings = await this.getFindingsFromSource(
+        sourceId,
+        `Find the most useful information within this Source Material.`,
+      );
+      if (!findings) {
+        throw new Error("Couldn't get findings...");
+      }
+      const full: ISourceAnalysis = {
+        ...analysis,
+        findings,
+      };
+      return full;
+    } catch (error) {
+      console.error("Error analyzing source: ", sourceId, error);
+      return undefined;
     }
   }
 }

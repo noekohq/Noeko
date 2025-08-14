@@ -10,6 +10,8 @@ import {
 } from "../../utils/aws/s3";
 import { getDatabase } from "../db";
 import { Response } from "express";
+import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { ISourceable } from "./source";
 
 export type IUserFile = {
   id: RecordId;

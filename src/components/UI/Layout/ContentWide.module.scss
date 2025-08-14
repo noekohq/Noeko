@@ -36,3 +36,75 @@
     @include desktop {
     }
 }
+
+@keyframes openRight {
+    0% {
+        opacity: .25;
+        transform: translateX(25vw);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.rightOpen {
+    @include desktop {
+        animation: openRight 0.2s ease-out forwards;
+        padding-right: var(--sidebar-width);
+    }
+}
+
+@keyframes collapseRight {
+    0% {
+        opacity: .25;
+        transform: translateX(-25vw);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.rightCollapsed {
+    @include desktop {
+        animation: collapseRight 0.2s ease-out forwards;
+        padding-right: var(--sidebar-width-collapsed);
+    }
+}
+
+@keyframes openLeft {
+    0% {
+        opacity: .25;
+        transform: translateX(-25vw);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.leftOpen {
+    @include desktop {
+        animation: openLeft 0.2s ease-out forwards;
+        padding-left: var(--sidebar-width);
+    }
+}
+
+@keyframes collapseLeft {
+    0% {
+        opacity: .25;
+        transform: translateX(25vw);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.leftCollapsed {
+    @include desktop {
+        animation: collapseLeft 0.2s ease-out forwards;
+        padding-left: var(--sidebar-width-collapsed);
+    }
+}

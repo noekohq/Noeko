@@ -7,6 +7,7 @@ import { Log } from "./log";
 import { SpyglassSearch } from "./search";
 import Rabbithole from "./rabbithole";
 import Task from "./task";
+import Source from "./source";
 
 export const modelsUp = async () => {
   try {
@@ -22,6 +23,7 @@ export const modelsUp = async () => {
     await SpyglassSearch.up();
     await Rabbithole.up();
     await Task.up();
+    await Source.up();
   } catch (error) {
     console.error("There was an error updating models: ", error);
   }
