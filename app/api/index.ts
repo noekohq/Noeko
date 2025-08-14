@@ -13,6 +13,7 @@ import healthCheckRouter from "./healthcheck";
 import analysisRouter from "./analysis";
 import spellsRouter from "./spells";
 import taskRouter from "./tasks";
+import sourceRouter from "./sources";
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use("/rabbitholes", rabbitholeRouter);
 router.use("/analysis", analysisRouter);
 router.use("/spells", spellsRouter);
 router.use("/tasks", taskRouter);
+router.use("/sources", sourceRouter);
 
 export default router;

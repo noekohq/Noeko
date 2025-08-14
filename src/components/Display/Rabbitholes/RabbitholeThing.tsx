@@ -10,6 +10,8 @@ import TagCard from "../Tags/TagCard";
 import TaskCard from "../Tasks/TaskCard";
 import { ITask } from "../../../../app/database/models/task";
 import { MantineColor } from "@mantine/core";
+import { ISource } from "../../../../app/database/models/source";
+import SourceCard from "../Sources/SourceCard";
 
 interface IRabbitholeThingAction {
   id: string;
@@ -109,6 +111,31 @@ export default function RabbitholeThing({
                     handleRemove(thing.id.toString());
                   },
                   tooltip: `Uninclude task from ${rabbithole?.name}`,
+                  color: "red",
+                },
+              ]
+            : []),
+        ]}
+      />
+    );
+  }
+  if (thing.id.toString().startsWith("source")) {
+    const source = thing as ISource;
+    return (
+      <SourceCard
+        key={source.id.toString()}
+        source={source}
+        actions={[
+          ...(handleRemove
+            ? [
+                {
+                  icon: <DoorOpenIcon />,
+                  id: "uninclude",
+                  label: `Uninclude`,
+                  onClick: () => {
+                    handleRemove(source.id.toString());
+                  },
+                  tooltip: `Uninclude source from ${rabbithole?.name}`,
                   color: "red",
                 },
               ]

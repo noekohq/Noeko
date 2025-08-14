@@ -8,33 +8,8 @@ import { showNotification } from "@mantine/notifications";
 import { getOS } from "../utils/platform";
 import { useAuth } from "./AuthContext";
 import { userIsSuperuser } from "../utils/user";
-import useShortcuts from "../hooks/useShortcuts";
-import { useForm } from "@mantine/form";
-import useFetch from "../hooks/useFetch";
-import {
-  CheckIcon,
-  FileCode,
-  FileCsv,
-  FilePdf,
-  Icon,
-  Image,
-  UploadSimple,
-} from "@phosphor-icons/react";
-import {
-  Checkbox,
-  Grid,
-  Group,
-  Text,
-  Loader,
-  Button,
-  Drawer,
-  FileInput,
-  Code,
-  Stack,
-  TextInput,
-  Space,
-} from "@mantine/core";
-import { formatFileSize } from "../utils/formatting";
+import { CheckIcon } from "@phosphor-icons/react";
+import { Group, Text, Drawer, Space } from "@mantine/core";
 import { useLayout } from "./LayoutContext";
 import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 import Spotlight from "../components/UI/Spotlight/Spotlight";
@@ -44,7 +19,7 @@ import { useLandscape } from "./LandscapeContext";
 import useRabbithole from "../hooks/useRabbithole";
 import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
 import CreateTaskForm from "../components/Forms/CreateTask";
-import AddFileForm from "../components/Forms/AddFile";
+import AddSourceForm from "../components/Forms/AddSource";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -56,7 +31,7 @@ type IInteractionContext = {
     newConnectedIdea: (source: string) => void;
     newRabbithole: () => void;
     newTask: (description?: string) => void;
-    newFile: () => void;
+    newSource: () => void;
     layout: {
       leftSidebar: {
         open: () => void;
@@ -104,7 +79,7 @@ const initialContext: IInteractionContext = {
     newConnectedIdea: () => {},
     newRabbithole: () => {},
     newTask: () => {},
-    newFile: () => {},
+    newSource: () => {},
     layout: {
       leftSidebar: {
         open: () => {},
@@ -159,7 +134,7 @@ export function InteractionProvider({
   const isSuperuser = userIsSuperuser(user);
   const [spotlightOpened, setSpotlightOpened] = useState(false);
 
-  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadingSource, setUploadingSource] = useState(false);
   const [creatingTask, setCreatingTask] = useState(false);
   const [initialTaskDescription, setInitialTaskDescription] = useState("");
 
@@ -236,8 +211,8 @@ export function InteractionProvider({
     }
   };
 
-  const handleNewFile = async () => {
-    setUploadingFile(true);
+  const handleNewSource = async () => {
+    setUploadingSource(true);
   };
 
   const os = getOS();
@@ -300,8 +275,8 @@ export function InteractionProvider({
       newTask: async (description?: string) => {
         handleNewTask(description);
       },
-      newFile: async () => {
-        handleNewFile();
+      newSource: async () => {
+        handleNewSource();
       },
       layout: {
         leftSidebar: {
@@ -439,7 +414,7 @@ export function InteractionProvider({
     ],
     [
       "mod+shift+u",
-      () => setUploadingFile(true),
+      () => setUploadingSource(true),
       {
         preventDefault: true,
       },
@@ -470,7 +445,7 @@ export function InteractionProvider({
   return (
     <InteractionContext.Provider value={value}>
       {children}
-      <UploadFile opened={uploadingFile} setOpened={setUploadingFile} />
+      <AddSource opened={uploadingSource} setOpened={setUploadingSource} />
       <CreateTask
         opened={creatingTask}
         setOpened={setCreatingTask}
@@ -540,23 +515,23 @@ function CreateTask({
   );
 }
 
-type IUploadFileProps = {
+type IAddSourceProps = {
   opened: boolean;
   setOpened: (opened: boolean) => void;
 };
 
-function UploadFile({ opened, setOpened }: IUploadFileProps) {
+function AddSource({ opened, setOpened }: IAddSourceProps) {
   return (
     <Drawer
       onClose={() => setOpened(false)}
       opened={opened}
-      title="Upload a file"
+      title="Add a Source"
       offset={14}
       radius="lg"
       position="bottom"
       size="70%"
     >
-      <AddFileForm
+      <AddSourceForm
         onSubmit={() => {
           setOpened(false);
         }}

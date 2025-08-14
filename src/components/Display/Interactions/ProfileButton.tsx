@@ -41,6 +41,7 @@ export default function ProfileButton() {
     { label: "Constellation", icon: GraphIcon, path: "/graph" },
     { label: "Tags", icon: TagIcon, path: "/tags" },
     { label: "Updates", icon: ScrollIcon, path: "/updates" },
+    { label: "Files", icon: FileIcon, path: "/files" },
     ...(isSuperuser
       ? [{ label: "Admin Panel", icon: ShieldStarIcon, path: "/admin" }]
       : []),

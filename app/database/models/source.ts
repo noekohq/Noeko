@@ -2,7 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { ISpyglassSearch } from "./search";
 import Spyglass, { IFinding } from "../../services/Spyglass";
 import { getDatabase } from "../db";
-import { IUserFile } from "./userfile";
+import { IUserFile, UserFile } from "./userfile";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 
 export interface ISourceable {
@@ -12,6 +12,7 @@ export interface ISourceable {
   name: string;
 }
 
+export const Sourceables = ["user_file"];
 export type ISourceReference = IUserFile;
 
 export type ISourceVisibility = "private" | "unlisted" | "public";
@@ -71,13 +72,30 @@ export default class Source {
         $sourceId: record<source>
       ) {
         LET $source = SELECT
-          *,
-          ->references->(?) as references
-          FROM ONLY $sourceId;
+          *
+          FROM ONLY $sourceId
+          FETCH references;
         RETURN $source;
       }
       `;
     };
+
+    const getSourcesByUserFunction = () => {
+      return `
+          DEFINE FUNCTION OVERWRITE fn::get_sources_by_user(
+            $userId: record<user>
+          ) {
+            LET $sources = SELECT
+              *,
+              ->references->(?) as references
+              FROM source
+              WHERE <-sources<-(user WHERE id = $userId);
+            RETURN $sources;
+          }
+          `;
+    };
+    await db.query(getSourceRecordFunction());
+    await db.query(getSourcesByUserFunction());
   }
 
   public static async from(
@@ -141,6 +159,22 @@ export default class Source {
     }
   }
 
+  public static async all(userId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+      const sources = await db.run<ISource[]>("fn::get_sources_by_user", [
+        new StringRecordId(userId),
+      ]);
+      return sources;
+    } catch (error) {
+      console.error("Error getting sources: ", error);
+      return undefined;
+    }
+  }
+
   public static async update(
     sourceId: string | RecordId,
     updates: Partial<ISourceCreator>,
@@ -151,7 +185,7 @@ export default class Source {
         throw new Error("Couldn't get database");
       }
       const update = await db.merge<ISource, Partial<ISourceCreator>>(
-        sourceId,
+        new StringRecordId(sourceId),
         {
           ...updates,
           updatedAt: new Date(),
@@ -160,11 +194,7 @@ export default class Source {
       if (!update) {
         throw new Error("Couldn't update source");
       }
-      const [source] = update;
-      if (!source) {
-        throw new Error("Couldn't find source");
-      }
-      return source;
+      return update;
     } catch (error) {
       console.error("Error updating source: ", sourceId, updates, error);
       return undefined;
@@ -295,6 +325,51 @@ export default class Source {
       return updated;
     } catch (error) {
       console.error("Error loading source embeddings: ", sourceId, error);
+      return undefined;
+    }
+  }
+
+  public static isSourceable(thingId: string | RecordId) {
+    const tb = thingId.toString().split(":")[0];
+    console.log("From thing got: ", thingId, tb);
+    return Sourceables.includes(tb);
+  }
+
+  public static async fromSourceable(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+    visibility: ISource["visibility"],
+  ) {
+    try {
+      if (!this.isSourceable(thingId)) {
+        throw new Error("Tried to source from unsourceable entity");
+      }
+      const normalized = thingId.toString().split(":")[0];
+      switch (normalized) {
+        case "user_file":
+          const file = await UserFile.get(thingId);
+          if (!file) {
+            throw new Error("Couldn't get the user file");
+          }
+          const textContent = await UserFile.getTextContent(file.id);
+          if (!textContent) {
+            throw new Error("Couldn't get text content of file");
+          }
+          const source = await this.from(
+            {
+              id: file.id,
+              name: file?.originalFileName || "Untitled File",
+              content: textContent,
+              owner: userId,
+            },
+            visibility,
+          );
+          return source;
+        default:
+          throw new Error("No sourcing method for provided record");
+      }
+    } catch (error) {
+      console.error("Error creating source from sourceable: ", thingId, error);
       return undefined;
     }
   }

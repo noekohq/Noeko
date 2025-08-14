@@ -4,7 +4,10 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { useEffect, useRef, useState } from "react";
 import { RecordId } from "surrealdb";
-import { getFileDownload, getFileDownloadLink } from "../../../utils/userfiles";
+import {
+  getFileDownload,
+  getFileDownloadLink,
+} from "../../../../utils/userfiles";
 import {
   Group,
   Loader,
@@ -14,7 +17,7 @@ import {
   Text,
   Transition,
 } from "@mantine/core";
-import Loading from "../../../components/Display/Loading/Loading";
+import Loading from "../../Loading/Loading";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",

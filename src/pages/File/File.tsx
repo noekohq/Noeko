@@ -7,6 +7,7 @@ import {
   Button,
   Flex,
   Group,
+  Paper,
   Stack,
   Text,
   Title,
@@ -20,9 +21,10 @@ import ContentWide from "../../components/UI/Layout/ContentWide";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import { handleFileDownload } from "../../utils/userfiles";
 import { lazy, Suspense, useCallback, useMemo } from "react";
-import { ViewerMap } from "./Viewers";
+import { ViewerMap } from "../../components/Display/Files/Viewers";
 import { useLayout } from "../../contexts/LayoutContext";
-import { CaretLeftIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
+import { createSourceFrom } from "../../utils/sources";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -93,6 +95,22 @@ export default function UserFile() {
     });
   };
 
+  const handleCreateSource = async () => {
+    try {
+      if (!file) {
+        console.error("Tried to create source from nonexistent file");
+        return undefined;
+      }
+      const source = await createSourceFrom(file.id.toString());
+      if (!source) {
+        throw new Error("Failed to create source");
+      }
+      navigate(`/source/${source.id.toString()}`);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+
   const Viewer = useMemo(() => {
     if (file?.mimeType && file.mimeType in ViewerMap) {
       return lazy(ViewerMap[file.mimeType]);
@@ -128,11 +146,11 @@ export default function UserFile() {
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
 
+  console.log("Source: ", file?.source);
+
   return (
     <PageWrapper>
-      <LeftSidebar>
-        <LeftSidebar.Open>Insights and such</LeftSidebar.Open>
-      </LeftSidebar>
+      <LeftSidebar></LeftSidebar>
       <ContentWide>
         <div className={styles.fileView}>
           <Group gap="xs">
@@ -172,34 +190,66 @@ export default function UserFile() {
       <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
-          <Flex justify="space-between" direction="column">
-            <Stack align="start" gap="xs">
+          <Stack gap="lg">
+            <Paper>
               <Text size="sm" fw="bold">
                 {file?.originalFileName}
               </Text>
               <Text c="dimmed" size="sm">
                 {file?.mimeType} {file?.sizeBytes} bytes
               </Text>
+            </Paper>
+            <Group wrap="nowrap" w="100%">
+              <Button
+                onClick={() => handleDownload()}
+                variant="light"
+                color="gray"
+                size="xs"
+                fullWidth
+              >
+                Download
+              </Button>
+              <Button
+                onClick={handleDelete}
+                variant="light"
+                color="gray"
+                size="xs"
+                fullWidth
+              >
+                Delete
+              </Button>
+            </Group>
+            {!file?.source && (
               <Group>
                 <Button
-                  onClick={() => handleDownload()}
+                  onClick={() => handleCreateSource()}
                   variant="light"
                   color="gray"
                   size="xs"
+                  leftSection={<FileTextIcon />}
+                  fullWidth
                 >
-                  Download
-                </Button>
-                <Button
-                  onClick={handleDelete}
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                >
-                  Delete
+                  Convert to Source
                 </Button>
               </Group>
-            </Stack>
-          </Flex>
+            )}
+            {!!file?.source && (
+              <Group>
+                <Button
+                  onClick={() =>
+                    navigate(`/source/${file.source?.id.toString()}`)
+                  }
+                  variant="light"
+                  color="gray"
+                  size="xs"
+                  leftSection={<FileTextIcon />}
+                  fullWidth
+                >
+                  View as Source
+                </Button>
+              </Group>
+            )}
+          </Stack>
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

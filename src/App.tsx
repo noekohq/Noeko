@@ -55,6 +55,8 @@ import Content from "./components/UI/Layout/Content";
 import Task from "./pages/Tasks/Task";
 import Tasks from "./pages/Tasks/Tasks";
 import FileList from "./pages/File/FileList";
+import SourceList from "./pages/Sources/SourceList";
+import Source from "./pages/Sources/Source";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
@@ -205,10 +207,13 @@ export default function App() {
                     <Route path=":tagId" element={<ViewTag />} />
                   </Route>
                   <Route path="file">
-                    <Route index element={<Navigate to="/" replace />} />
                     <Route path=":fileId" element={<UserFile />} />
                   </Route>
-                  <Route path="sources" element={<FileList />} />
+                  <Route path="files" element={<FileList />} />
+                  <Route path="source">
+                    <Route path=":sourceId" element={<Source />} />
+                  </Route>
+                  <Route path="sources" element={<SourceList />} />
                   <Route path="import">
                     <Route index element={<Import />} />
                   </Route>

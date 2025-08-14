@@ -192,6 +192,9 @@ export const getNodeDescription = (
   if (node.type === "rabbithole") {
     return formatDateTime(node.updatedAt);
   }
+  if (node.type === "source") {
+    return node.content.slice(0, 124);
+  }
 };
 
 export const getNodeContent = (node: INode) => {

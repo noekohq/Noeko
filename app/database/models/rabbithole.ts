@@ -7,8 +7,9 @@ import { averageEmbeddings } from "../../utils/math";
 import { Search } from "../../services/Search";
 import { ITask } from "./task";
 import { IUserFile } from "./userfile";
+import { ISource } from "./source";
 
-export type IRabbitholeIncludes = IIdea | ITag | ITask | IUserFile;
+export type IRabbitholeIncludes = IIdea | ITag | ITask | ISource;
 
 export type IRabbithole = {
   id: string | RecordId;
