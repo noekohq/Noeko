@@ -15,6 +15,7 @@ import {
 } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser, IUser, User } from "../database/models/user";
+import GraphService from "../services/Graph";
 
 const router = Router();
 
@@ -41,133 +42,6 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
-router.post("/heavy", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(500).json({ message: "Internal Server Error" });
-      return;
-    }
-    const options = req.body.options;
-    const graph = await Idea.graphHeavy(user.id);
-    if (!graph) {
-      res.status(404).json({ message: "Graph not found" });
-      return;
-    }
-    res.send({
-      message: "Successfully retrieved graph.",
-      data: graph,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-router.get(
-  "/ideas",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const filters = req.body.filters;
-      const ideas = await Idea.all(filters);
-      if (!ideas) {
-        res.status(404).json({ error: "Ideas not found" });
-        return;
-      }
-      res.send({ message: "Successfully retrieved ideas.", data: ideas });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-router.get("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(500).json({ message: "Internal Server Error" });
-      return;
-    }
-    const isOwner = await Idea.checkUserOwnership(id, user.id);
-    const isSuperuser = await User.checkUserHasRole(user.id, "role:superuser");
-    if (!isOwner) {
-      if (!isSuperuser) {
-        res.status(403).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-    }
-    const withRelatedIdeas = req.query.withRelatedIdeas === "true";
-    const withConnections = req.query.withConnections === "true";
-    const withDerived = req.query.withDerived === "true";
-    const i = await Idea.get(id);
-    if (!i) {
-      res.status(404).json({ message: "Idea not found" });
-      return;
-    }
-    const toSend: ISafeIdea & {
-      connections?: IIdea[];
-      relatedIdeas?: IIdeaAsRelation[];
-      derived?: IIdeaDerivedMap;
-    } = { ...i };
-    if (withConnections) {
-      const connections = await Idea.getConnections(id);
-      toSend.connections = connections;
-    }
-    if (withRelatedIdeas) {
-      const relatedIdeas = await Idea.findSimilar(user.id, id);
-      toSend.relatedIdeas = relatedIdeas;
-    }
-    if (withDerived) {
-      const derived = await Idea.getDerivedMap(id);
-      toSend.derived = derived;
-    }
-    res.send({ message: "Successfully retrieved idea.", data: toSend });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-router.post("/ideas", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const body = req.body;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const form = { ...body };
-    if (body.generateTitle) {
-      const lm = getLM();
-      form.title = await lm.utils.entitle(
-        form.content,
-        "short and concise, fewly worded",
-      );
-    }
-    const i = await Idea.create(
-      {
-        ...form,
-      },
-      user.id,
-    );
-    if (!i) {
-      res.status(404).json({ error: "Idea not created" });
-      return;
-    }
-    res.send({ message: "Successfully created idea.", data: i });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 router.post("/connection", checkToken, disallowDisabled, async (req, res) => {
   try {
     const { source, target } = req.body;
@@ -176,17 +50,31 @@ router.post("/connection", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const hasAccessToSource = await Idea.checkUserOwnership(source, user.id);
-    const hasAccessToTarget = await Idea.checkUserOwnership(target, user.id);
+    const hasAccessToSource = await User.checkOwns(user.id, source);
+    const hasAccessToTarget = await User.checkOwns(user.id, source);
     if (!hasAccessToSource || !hasAccessToTarget) {
       res.status(403).json({
         message: "Unauthorized",
       });
       return;
     }
-    const connection = await Idea.connect(source, target);
+    const isSourceConnectable = GraphService.isConnectable(source);
+    if (!isSourceConnectable) {
+      res.status(400).send({
+        message: "Source not connectable",
+      });
+      return;
+    }
+    const isTargetConnectable = GraphService.isConnectable(target);
+    if (!isTargetConnectable) {
+      res.status(400).send({
+        message: "Target not connectable",
+      });
+      return;
+    }
+    const connection = await GraphService.connect(source, target);
     if (!connection) {
-      res.status(404).json({ message: "Connection not created" });
+      res.status(500).json({ message: "Connection not created" });
       return;
     }
     res.send({
@@ -207,17 +95,17 @@ router.delete("/connection", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const hasAccessToSource = await Idea.checkUserOwnership(source, user.id);
-    const hasAccessToTarget = await Idea.checkUserOwnership(target, user.id);
+    const hasAccessToSource = await User.checkOwns(user.id, source);
+    const hasAccessToTarget = await User.checkOwns(user.id, source);
     if (!hasAccessToSource || !hasAccessToTarget) {
       res.status(403).json({
         message: "Unauthorized",
       });
       return;
     }
-    const connection = await Idea.disconnect(source, target);
+    const connection = await GraphService.disconnect(source, target);
     if (!connection) {
-      res.status(404).json({ error: "Connection not deleted" });
+      res.status(500).json({ error: "Connection not deleted" });
       return;
     }
     res.send({
@@ -229,303 +117,6 @@ router.delete("/connection", checkToken, disallowDisabled, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-router.put("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ message: "Unauthorized" });
-      return;
-    }
-    const hasAccess = await Idea.checkUserOwnership(id, user.id);
-    if (!hasAccess) {
-      res.status(403).json({
-        message: "Unauthorized",
-      });
-      return;
-    }
-    const { title, content, withComputations } = req.body;
-    const updater: Partial<IIdeaForm> = {};
-    if (title !== undefined) {
-      updater.title = title;
-    }
-    if (content !== undefined) {
-      updater.content = content;
-    }
-    const i = await Idea.update(id, updater, withComputations === true);
-    if (!i) {
-      res.status(404).json({ error: "Idea not updated" });
-      return;
-    }
-    res.send({ message: "Successfully updated idea.", data: i });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.post(
-  "/ideas/update/:id",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const hasAccess = await Idea.checkUserOwnership(id, user.id);
-      if (!hasAccess) {
-        res.status(403).json({
-          message: "Unauthorized",
-        });
-        return;
-      }
-      const { title, content, withComputations } = req.body;
-      const updater: Partial<IIdeaForm> = {};
-      if (title !== undefined) {
-        updater.title = title;
-      }
-      if (content !== undefined) {
-        updater.content = content;
-      }
-      const i = await Idea.update(id, updater, withComputations === true);
-      if (!i) {
-        res.status(404).json({ error: "Idea not updated" });
-        return;
-      }
-      res.send({ message: "Successfully updated idea.", data: i });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-router.delete("/ideas/:id", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ message: "Unauthorized" });
-      return;
-    }
-    const hasAccess = await Idea.checkUserOwnership(id, user.id);
-    if (!hasAccess) {
-      res.status(403).json({
-        message: "Unauthorized",
-      });
-      return;
-    }
-    const i = await Idea.delete(id);
-    if (!i) {
-      res.status(404).json({ error: "Idea not deleted" });
-      return;
-    }
-    res.send({ message: "Successfully deleted idea.", data: i });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.post(
-  "/ideas/:id/embed",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const hasAccess = await Idea.checkUserOwnership(id, user.id);
-      if (!hasAccess) {
-        res.status(403).json({
-          message: "Unauthorized",
-        });
-        return;
-      }
-      const embedded = await Idea.loadEmbeddings(id);
-      if (embedded === undefined) {
-        res.status(400).json({ error: "Could not embed idea." });
-        return;
-      }
-      res.send({ message: "Successfully loaded embeddings.", data: embedded });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-router.post(
-  "/ideas/:id/cascade",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const hasAccess = await Idea.checkUserOwnership(id, user.id);
-      if (!hasAccess) {
-        res.status(403).json({
-          message: "Unauthorized",
-        });
-        return;
-      }
-      await Idea.runDerivedCascade(id);
-      res.send({ message: "Successfully loaded embeddings.", data: true });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-router.get(
-  "/ideas/:id/similar",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const hasAccess = await Idea.checkUserOwnership(id, user.id);
-      if (!hasAccess) {
-        res.status(403).json({
-          message: "Unauthorized",
-        });
-        return;
-      }
-      const similar = await Idea.findSimilar(user.id, id);
-      res.send({
-        message: "Retrieved similar ideas",
-        data: similar,
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
-router.post("/ideas/search", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const { query } = req.body;
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ message: "Unauthorized" });
-      return;
-    }
-    const similar = await Idea.searchIdeas(user.id, query);
-    if (!similar) {
-      res.status(404).json({ error: "Similar ideas not found" });
-      return;
-    }
-    res.send({ message: "Successfully found similar ideas.", data: similar });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.post(
-  "/ideas/:ideaId/derive",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<ISafeUser>(req, "user");
-      if (!user) {
-        res.status(401).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const { ideaId } = req.params;
-      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
-      if (!hasAccess) {
-        res.status(403).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const { type } = req.body;
-      const derivedResponse = await Idea.derive(ideaId, type);
-      if (!derivedResponse) {
-        res.status(500).json({
-          message: "Internal Server Error.",
-        });
-        return;
-      }
-      res.json({
-        message: `Successfully derived ${type} from idea`,
-        data: derivedResponse,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Internal Server Error",
-      });
-    }
-  },
-);
-
-router.delete(
-  "/ideas/:ideaId/derive",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<ISafeUser>(req, "user");
-      if (!user) {
-        res.status(401).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const { ideaId } = req.params;
-      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
-      if (!hasAccess) {
-        res.status(403).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const { type } = req.body;
-      const derivedResponse = await Idea.removeDerived(ideaId, type);
-      if (!derivedResponse) {
-        res.status(500).json({
-          message: "Internal Server Error.",
-        });
-        return;
-      }
-      res.json({
-        message: `Successfully removed derived ${type} from idea`,
-        data: derivedResponse,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: "Internal Server Error",
-      });
-    }
-  },
-);
 
 router.post(
   "/synchronize",
@@ -545,6 +136,91 @@ router.post(
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+);
+
+router.get(
+  "/:thingId/connections",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const { thingId } = req.params;
+      const hasAccess = await User.checkOwns(user.id, thingId);
+      if (!hasAccess) {
+        res.status(403).send({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const isConnectable = GraphService.isConnectable(thingId);
+      if (!isConnectable) {
+        res.status(400).send({
+          message: "Resource not available for this type of thing",
+        });
+        return;
+      }
+      const connections = await GraphService.getConnections(thingId);
+      res.send({
+        message: "Successfully got connections",
+        data: connections,
+      });
+    } catch (error) {
+      res.status(500).send({
+        message: "Something went wrong",
+      });
+    }
+  },
+);
+
+router.get(
+  "/:thingId/connections",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const { thingId } = req.params;
+      const hasAccess = await User.checkOwns(user.id, thingId);
+      if (!hasAccess) {
+        res.status(403).send({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const isConnectable = GraphService.isConnectable(thingId);
+      const rabbitholeId = req.query.rabbitholeId as string;
+      if (!isConnectable) {
+        res.status(400).send({
+          message: "Resource not available for this type of thing",
+        });
+        return;
+      }
+      const similar = await GraphService.getSimilarConnectables(
+        user.id,
+        thingId,
+        {
+          rabbitholeId,
+        },
+      );
+      res.send({
+        message: "Successfully got similar",
+        data: similar,
+      });
+    } catch (error) {
+      res.status(500).send({
+        message: "Something went wrong",
+      });
     }
   },
 );
