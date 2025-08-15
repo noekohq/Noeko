@@ -6,10 +6,8 @@ import cors from "cors";
 import apiRouter from "./api";
 import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
-import { initSearch } from "./services/Search";
-import { initInsights } from "./services/Insights";
+import { initServices } from "./services";
 import { max_idea_size } from "./settings";
-import { initAnalysis } from "./services/Analysis";
 
 config();
 
@@ -20,8 +18,7 @@ const projectRoot = process.cwd();
 if (!PORT) throw new Error("PORT is not defined");
 
 await initDatabase();
-await initSearch();
-await initAnalysis();
+await initServices();
 
 const app = Express();
 app.use(Express.json({ limit: max_idea_size }));

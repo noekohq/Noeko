@@ -132,6 +132,17 @@ export class Search {
       `;
     };
 
+    const defineSourceVectorIndex = () => {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_source_embeddings
+        ON TABLE source
+        FIELDS embeddings
+        HNSW DIMENSION 768
+        DIST COSINE
+        TYPE F32;
+      `;
+    };
+
     const ideaSearchAnalyzer = () => {
       return `
       DEFINE ANALYZER OVERWRITE idea_analyzer
@@ -156,6 +167,13 @@ export class Search {
     const taskSearchAnalyzer = () => {
       return `
       DEFINE ANALYZER OVERWRITE task_analyzer
+      TOKENIZERS class
+      FILTERS lowercase, snowball(english);`;
+    };
+
+    const sourceSearchAnalyzer = () => {
+      return `
+      DEFINE ANALYZER OVERWRITE source_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
@@ -220,6 +238,26 @@ export class Search {
             SEARCH ANALYZER task_analyzer
             BM25 HIGHLIGHTS;
           `;
+    };
+
+    const ftsSourceDisplayNameSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_source_display_name_fts
+        ON TABLE source
+        FIELDS displayName
+        SEARCH ANALYZER source_analyzer
+        BM25 HIGHLIGHTS;
+      `;
+    };
+
+    const ftsSourceContentSearchIndex = () => {
+      return `
+      DEFINE INDEX OVERWRITE idx_source_content_fts
+        ON TABLE source
+        FIELDS content
+        SEARCH ANALYZER source_analyzer
+        BM25 HIGHLIGHTS;
+      `;
     };
 
     const ftsSearchFunction = () => {
@@ -336,6 +374,53 @@ export class Search {
       }`;
     };
 
+    const ftsSearchTasksFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_user_tasks_fts(
+        $userId: record<user>,
+        $query: string,
+        $limit: int
+      ) {
+        LET $tasks = SELECT
+            *,
+            name,
+            search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
+            search::score(0) AS nameScore
+        FROM task
+        WHERE
+            name @0@ $query
+            AND <-owns<-(user WHERE id = <record> $userId)
+        LIMIT $limit;
+
+        return $tasks;
+      }`;
+    };
+
+    const ftsSearchSourcesFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::search_user_sources_fts(
+        $userId: record<user>,
+        $query: string,
+        $limit: int
+      ) {
+        LET $sources = SELECT
+            *,
+            displayName,
+            content,
+            search::highlight("->", "<-", 0) AS preview, -- Uses -> <- markers
+            search::score(0) AS contentScore,
+            search::score(1) AS displayNameScore
+        OMIT embeddings
+        FROM source
+        WHERE
+            (content @0@ $query OR displayName @1@ $query)
+            AND <-owns<-(user WHERE id = <record> $userId)
+        LIMIT $limit;
+
+        return $sources;
+      }`;
+    };
+
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized for Search.up");
@@ -348,12 +433,14 @@ export class Search {
       await db.query(ftsTitleSearchIndex());
       await db.query(ftsContentSearchIndex());
       await db.query(defineVectorIndex());
+      await db.query(ftsSearchFunction());
 
       /* Tags */
       await db.query(tagSearchAnalyzer());
       await db.query(ftsTagNameSearchIndex());
       await db.query(ftsTagDescriptionSearchIndex());
       await db.query(defineTagVectorIndex());
+      await db.query(ftsSearchTagsFunction());
 
       /* Rabbitholes */
       await db.query(rabbitholeSearchAnalyzer());
@@ -366,10 +453,16 @@ export class Search {
       await db.query(taskSearchAnalyzer());
       await db.query(defineTaskVectorIndex());
       await db.query(ftsTaskDescriptionSearchIndex());
+      await db.query(ftsSearchTasksFunction());
+
+      /* Sources */
+      await db.query(defineSourceVectorIndex());
+      await db.query(sourceSearchAnalyzer());
+      await db.query(ftsSourceDisplayNameSearchIndex());
+      await db.query(ftsSourceContentSearchIndex());
+      await db.query(ftsSearchSourcesFunction());
 
       /* Search */
-      await db.query(ftsSearchFunction());
-      await db.query(ftsSearchTagsFunction());
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;

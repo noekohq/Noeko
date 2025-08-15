@@ -28,6 +28,8 @@ import { useLayout } from "../../contexts/LayoutContext";
 import {
   CaretLeftIcon,
   FileIcon,
+  FileMagnifyingGlassIcon,
+  IntersectSquareIcon,
   MagnifyingGlassIcon,
   Sparkle,
   SparkleIcon,
@@ -36,6 +38,7 @@ import {
 import { ISource, ISourceReference } from "../../../app/database/models/source";
 import Search from "../../components/Search/Search";
 import { markdownToHtml } from "../../utils/formatting";
+import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -90,7 +93,28 @@ export default function Source() {
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
-          {source?.analysis && <AnalysisBlock analysis={source?.analysis} />}
+          <Tabs defaultValue="context">
+            <Tabs.List>
+              <Tabs.Tab value="context">
+                <Group gap="xs">
+                  <IntersectSquareIcon weight="fill" size={14} />
+                  Context
+                </Group>
+              </Tabs.Tab>
+              <Tabs.Tab value="analysis">
+                <Group gap="xs">
+                  <FileMagnifyingGlassIcon />
+                  Analysis
+                </Group>
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="context">This is context</Tabs.Panel>
+            <Tabs.Panel value="analysis">
+              {source?.analysis && (
+                <AnalysisBlock analysis={source?.analysis} />
+              )}
+            </Tabs.Panel>
+          </Tabs>
         </LeftSidebar.Open>
       </LeftSidebar>
       <ContentWide>
