@@ -69,6 +69,7 @@ import { createIdeaConnection } from "../../utils/ideas";
 import { ideasAreConnected } from "../../utils/graph";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
+import ConnectionManager from "../../components/Display/Interactions/ConnectionManager/ConnectionManager";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -531,6 +532,12 @@ export default function Idea() {
                     computeOutOfDate={embeddingsOutOfDate()}
                     triggerCompute={triggerComputeIfNeeded}
                     computing={loadingEmbeddings || loadingDerivedCascade}
+                  />
+                  <ConnectionManager
+                    connectable={{
+                      ...idea,
+                      type: "idea",
+                    }}
                   />
                 </>
               )}

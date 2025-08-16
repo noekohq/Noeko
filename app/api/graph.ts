@@ -44,12 +44,12 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
 
 router.post("/connection", checkToken, disallowDisabled, async (req, res) => {
   try {
-    const { source, target } = req.body;
     const user = await getFromReq<IUser>(req, "user");
     if (!user) {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
+    const { source, target } = req.body;
     const hasAccessToSource = await User.checkOwns(user.id, source);
     const hasAccessToTarget = await User.checkOwns(user.id, source);
     if (!hasAccessToSource || !hasAccessToTarget) {
@@ -89,12 +89,12 @@ router.post("/connection", checkToken, disallowDisabled, async (req, res) => {
 
 router.delete("/connection", checkToken, disallowDisabled, async (req, res) => {
   try {
-    const { source, target } = req.body;
     const user = await getFromReq<IUser>(req, "user");
     if (!user) {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
+    const { source, target } = req.body;
     const hasAccessToSource = await User.checkOwns(user.id, source);
     const hasAccessToTarget = await User.checkOwns(user.id, source);
     if (!hasAccessToSource || !hasAccessToTarget) {
