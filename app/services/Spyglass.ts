@@ -1318,7 +1318,7 @@ export default class Spyglass {
       }
       const findings = await this.getFindingsFromSource(
         sourceId,
-        `Find the most useful information within this Source Material.`,
+        `What stands out in this source material? What is the most useful, novel, or insightful information?`,
       );
       if (!findings) {
         throw new Error("Couldn't get findings...");

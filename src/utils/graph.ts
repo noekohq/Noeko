@@ -1,3 +1,4 @@
+import { RecordId } from "surrealdb";
 import { IDBGraph, IIdea, ISafeIdea } from "../../app/database/models/ideas";
 import { ISearchResult, ISearchResultValue } from "../../app/services/Search";
 import { htmlToMarkdown } from "../../app/utils/formatting";
@@ -15,6 +16,7 @@ import {
   sanitizeMarkdownForDescription,
 } from "./formatting";
 import { splitBySentences } from "./processing";
+import { api } from "../server/api";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
@@ -201,6 +203,12 @@ export const getNodeContent = (node: INode) => {
   if (node.type === "idea") {
     return node.content;
   }
+  if (node.type === "source") {
+    return node.content;
+  }
+  if (node.type === "task") {
+    return node.scratchpad;
+  }
   return undefined;
 };
 
@@ -241,4 +249,46 @@ export const getNodesAsIdeas = (nodes: INode[]): ISafeIdea[] => {
   return nodes.filter((n) => {
     return n.type === "idea";
   });
+};
+
+export const connect = async (
+  sourceId: string | RecordId,
+  targetId: string | RecordId,
+) => {
+  try {
+    const result = await api.post(`/graph/connection`, {
+      source: sourceId.toString(),
+      target: targetId.toString(),
+    });
+    const connection = await result.data.data;
+    if (!connection) {
+      throw new Error("Didn't get data back");
+    }
+    return connection;
+  } catch (error) {
+    console.error("Couldn't connect things: ", sourceId, targetId, error);
+    return undefined;
+  }
+};
+
+export const disconnect = async (
+  sourceId: string | RecordId,
+  targetId: string | RecordId,
+) => {
+  try {
+    const result = await api.delete(`/graph/connection`, {
+      data: {
+        source: sourceId.toString(),
+        target: targetId.toString(),
+      },
+    });
+    const connection = await result.data.data;
+    if (!connection) {
+      throw new Error("Didn't get data back");
+    }
+    return connection;
+  } catch (error) {
+    console.error("Couldn't connect things: ", sourceId, targetId, error);
+    return undefined;
+  }
 };

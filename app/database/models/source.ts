@@ -23,7 +23,7 @@ export type ISource = {
   content: string;
   visibility: ISourceVisibility;
   embeddings: number[];
-  embeddingsGeneratedAt: Date;
+  embeddingsUpdatedAt: Date;
   analysis?: ISourceAnalysis;
   references?: StringRecordId | ISourceReference;
   createdAt: Date;
@@ -111,7 +111,7 @@ export default class Source {
         displayName: sourceable.name,
         content: sourceable.content,
         embeddings: await getEmbedder().getEmptyEmbeddings(),
-        embeddingsGeneratedAt: new Date(),
+        embeddingsUpdatedAt: new Date(),
         visibility,
         references: new StringRecordId(sourceable.id),
         createdAt: new Date(),
@@ -126,8 +126,8 @@ export default class Source {
       }
       await this.establishOwnership(sourceable.owner, source.id);
       await this.sourceForUser(sourceable.owner, source.id);
-      await this.loadAnalysis(source.id);
-      await this.loadEmbeddings(source.id);
+      this.loadAnalysis(source.id);
+      this.loadEmbeddings(source.id);
       return source;
     } catch (error) {
       console.error("Error creating source from: ", sourceable, error);
