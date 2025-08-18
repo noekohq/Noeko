@@ -25,9 +25,6 @@ export default function ViewonlyIdea() {
     loadIdea();
   }, []);
 
-  console.log("Idea: ", data?.idea);
-  console.log("Author: ", data?.authors);
-
   return (
     <PageWrapper>
       <LeftSidebar></LeftSidebar>

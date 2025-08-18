@@ -15,6 +15,8 @@ export type IConnectable =
   | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
   | (ITask & { type: "task"; direction?: "incoming" | "outgoing" });
 
+export type ISimilarConnectable = IConnectable & { similarity: number };
+
 export type IConnection = {
   id: string | RecordId;
   in: string | RecordId;
@@ -219,7 +221,7 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const limit = options.limit ?? 100;
+      const limit = options.limit ?? 10;
       const defaultCandidates = 300;
       const candidates = options.candidates ?? defaultCandidates;
 
@@ -233,7 +235,11 @@ export default class GraphService {
         throw new Error("Invalid similarity threshold provided.");
       }
 
-      const subqueryWhere = [`<-owns<-(user WHERE id = $userId)`];
+      const subqueryWhere = [
+        `<-owns<-(user WHERE id = $userId)`,
+        `id != $sourceId`,
+        `id NOT IN <->connected->(?)`,
+      ];
 
       if (!options.rabbitholeId) {
         subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
@@ -249,50 +255,70 @@ export default class GraphService {
       }
 
       const tableQuery = (table: string) => {
-        return `
+        const tableWhere: string[] = [];
+        if (table === "task") {
+          tableWhere.push(`completedAt = NULL`);
+        }
+        const query = `
           SELECT * FROM (
             SELECT
               *,
-              vector::similarity::cosine(embeddings, $embedding) AS distance
+              vector::similarity::cosine(embeddings, $embedding) AS similarity
             OMIT embeddings
             FROM ${table}
-            WHERE ${subqueryWhere.join(" AND ")}
+            WHERE ${[...subqueryWhere, ...tableWhere].join(" AND ")}
           )
-          WHERE distance >= ${threshold}
-          ORDER BY distance DESC
+          WHERE
+            similarity >= ${threshold} AND
+            similarity != NaN
+          ORDER BY similarity DESC
           LIMIT ${limit};
           `;
+        return query;
       };
 
       const ideaQuery = tableQuery("idea");
       const sourceQuery = tableQuery("source");
       const taskQuery = tableQuery("task");
 
-      const getOfType = async <T extends IConnectable & { distance: number }>(
+      const getOfType = async <T extends ISimilarConnectable>(
         query: string,
-      ): Promise<(IConnectable & { distance: number })[]> => {
+      ): Promise<ISimilarConnectable[]> => {
         const [results] = await db.query<[T[]]>(query, {
           userId: new StringRecordId(userId),
           embedding: embedding,
           ...(options.rabbitholeId && {
             rabbitholeId: new StringRecordId(options.rabbitholeId),
           }),
+          sourceId: new StringRecordId(thingId),
         });
         return results;
       };
 
-      const ideas = await getOfType<IIdea & { type: "idea"; distance: number }>(
-        ideaQuery,
-      );
+      const ideas = await getOfType<
+        IIdea & { type: "idea"; similarity: number }
+      >(ideaQuery);
       const sources = await getOfType<
-        ISource & { type: "source"; distance: number }
+        ISource & { type: "source"; similarity: number }
       >(sourceQuery);
-      const tasks = await getOfType<ITask & { type: "task"; distance: number }>(
-        taskQuery,
-      );
+      const tasks = await getOfType<
+        ITask & { type: "task"; similarity: number }
+      >(taskQuery);
 
       const combined = [...ideas, ...sources, ...tasks];
-      return combined;
+      const sorted = combined.sort((a, b) => {
+        if (a.similarity > b.similarity) {
+          return -1;
+        }
+        if (a.similarity === b.similarity) {
+          return 0;
+        }
+        return 1;
+      });
+
+      const final = sorted;
+
+      return final;
     } catch (error) {
       console.error("Error during semantic search:", error);
       return undefined;
@@ -305,6 +331,10 @@ export default class GraphService {
       if (!db) throw new Error("Database not initialized");
       const isConnectable = this.isConnectable(thingId);
       if (!isConnectable) {
+        console.error(
+          "Can't get connectable embedding for non connectable item: ",
+          thingId,
+        );
         return undefined;
       }
       const table = this.getTable(thingId);
@@ -316,7 +346,7 @@ export default class GraphService {
           const source = await Source.get(thingId);
           return source?.embeddings;
         case "task":
-          const task = await Task.get(thingId);
+          const task = await Task.get(thingId, "full");
           return task?.embeddings;
       }
     } catch (error) {

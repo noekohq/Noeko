@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { IConnectable } from "../../app/services/Graph";
+import { IConnectable, ISimilarConnectable } from "../../app/services/Graph";
 import useFetch from "./useFetch";
 import { connect, disconnect } from "../utils/graph";
 
@@ -14,7 +14,7 @@ type IUseConnectableReturn = {
   loadingSimilar: boolean;
   connect: (target: string | RecordId) => Promise<boolean>;
   disconnect: (target: string | RecordId) => Promise<boolean>;
-  reload: () => void;
+  load: () => void;
   isConnected: (thingId: string | RecordId) => boolean;
 };
 
@@ -26,7 +26,7 @@ export default function useConnectable({
     data: connected = [],
     loading: loadingConnected,
   } = useFetch<undefined, IConnectable[]>({
-    url: `/graph/${connectable.id.toString()}/connected`,
+    url: `/graph/${connectable.id.toString()}/connections`,
     dependencies: [connectable.id.toString()],
   });
 
@@ -34,12 +34,12 @@ export default function useConnectable({
     load: loadSimilar,
     data: similar = [],
     loading: loadingSimilar,
-  } = useFetch<undefined, (IConnectable & { distance: number })[]>({
+  } = useFetch<undefined, ISimilarConnectable[]>({
     url: `/graph/${connectable.id.toString()}/similar`,
     dependencies: [connectable.id.toString()],
   });
 
-  const reload = () => {
+  const load = () => {
     loadConnected();
     loadSimilar();
   };
@@ -52,7 +52,7 @@ export default function useConnectable({
       console.error("Error connecting: ", connectable, target, error);
       return false;
     } finally {
-      loadConnected();
+      load();
     }
   };
 
@@ -64,7 +64,7 @@ export default function useConnectable({
       console.error("Error disconnecting: ", connectable, target, error);
       return false;
     } finally {
-      loadConnected();
+      load();
     }
   };
 
@@ -78,7 +78,7 @@ export default function useConnectable({
     loadingConnected,
     similar,
     loadingSimilar,
-    reload,
+    load,
     connect: handleConnect,
     disconnect: handleDisconnect,
     isConnected,

@@ -184,9 +184,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [override, scheme, bodyFont, headingFont],
   );
 
-  // console.log("Scheme in settings: ", scheme);
-  // console.log("Body font in settings: ", bodyFont);
-
   return (
     <SettingsContext.Provider
       value={{

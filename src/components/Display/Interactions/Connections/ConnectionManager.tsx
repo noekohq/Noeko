@@ -18,16 +18,20 @@ import {
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import {
+  ArrowRightIcon,
   ArrowsClockwiseIcon,
   InfoIcon,
   IntersectSquareIcon,
   NotePencilIcon,
+  SubtractSquareIcon,
   UniteSquareIcon,
 } from "@phosphor-icons/react";
 import { useInteraction } from "../../../../contexts/InteractionContext";
-import ConnectableThing from "./ConnectionThing";
+import ConnectableThing from "./ConnectableThing";
 import { similarityToColor, similarityToLevel } from "../../../../vars/ideas";
 import { getNodeDescription } from "../../../../utils/graph";
+import CollapseButton from "../CollapseButton";
+import { useNavigate } from "react-router";
 
 interface IConnectionManagerProps {
   connectable: IConnectable;
@@ -47,13 +51,17 @@ export default function ConnectionManager({
     loadingSimilar,
     connect,
     disconnect,
-    reload,
+    load,
     isConnected,
   } = useConnectable({ connectable });
 
   useEffect(() => {
+    load();
+  }, []);
+
+  useEffect(() => {
     if (shouldUpdate) {
-      reload();
+      load();
     }
   }, [shouldUpdate]);
 
@@ -73,14 +81,15 @@ export default function ConnectionManager({
         });
         return;
       }
-      console.log("Dropped connection id: ", thingId);
       await connect(thingId);
     } catch (error) {
-      console.log("Error creating connection: ", error);
+      console.error("Error creating connection: ", error);
     } finally {
       setDraggingOverConnectionDrop(false);
     }
   };
+
+  const navigate = useNavigate();
 
   const {
     actions: { newConnectedIdea },
@@ -99,8 +108,8 @@ export default function ConnectionManager({
       >
         {draggingOverConnectionDrop && (
           <Overlay
-            backgroundOpacity={0}
-            blur={4}
+            backgroundOpacity={0.5}
+            blur={10}
             onDragOver={(e) => {
               e.preventDefault();
             }}
@@ -108,21 +117,29 @@ export default function ConnectionManager({
               handleConnectionDrop(e);
             }}
             radius={"lg"}
-            mih={"300px"}
           >
             <Group align="center" justify="center" style={{ height: "100%" }}>
-              <Text c="white" mx="lg" size="sm">
+              <Text c="dark.7" mx="lg" size="sm">
                 Drop here to create a connection
               </Text>
             </Group>
           </Overlay>
         )}
         <Stack>
-          <Group align="center" justify="space-between">
-            <Text size="sm" c="dimmed" fw="bold">
+          <Group align="center" justify="space-between" mt="lg" mb="md">
+            <Text size="sm" c="dark.4" fw="bold">
               <Group gap="xs">
                 <UniteSquareIcon weight="bold" />
                 CONNECTED
+                <Transition mounted={loadingConnected} transition="fade-up">
+                  {(styles) => {
+                    return (
+                      <span style={styles}>
+                        <Loader size="xs" />
+                      </span>
+                    );
+                  }}
+                </Transition>
               </Group>
             </Text>
             <Group gap="xs">
@@ -142,10 +159,10 @@ export default function ConnectionManager({
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Text size="sm" mb="xs">
-                    Explicit connections between ideas are only made by you, and
-                    they are persistent even if the content changes, unlike
-                    similar ideas. You can drag and drop ideas to this area, or
-                    click the associated buttons to make connections.
+                    Explicit connections are only made by you, and they are
+                    persistent even if the content changes, unlike similar
+                    things. You can drag and drop ideas to this area, or click
+                    the associated buttons to make connections.
                   </Text>
                   <Text c="dimmed" size="xs" mb="xs">
                     Click the <NotePencilIcon /> button to create a new
@@ -154,7 +171,7 @@ export default function ConnectionManager({
                   {connected && connected?.length <= 0 && (
                     <Text c="dimmed" size="xs">
                       No connections yet. Try connecting (
-                      <UniteSquareIcon size={12} />) a related idea!
+                      <UniteSquareIcon size={12} />) a related thing!
                     </Text>
                   )}
                 </HoverCard.Dropdown>
@@ -162,47 +179,69 @@ export default function ConnectionManager({
             </Group>
           </Group>
         </Stack>
-        <Group>
+        <Stack>
           {connected &&
             connected?.length > 0 &&
             connected?.map((connection, i) => {
               return (
-                <ConnectableThing
+                <CollapseButton
                   key={connection.id.toString()}
-                  connectable={connectable}
-                  thing={connection}
+                  target={
+                    <>
+                      <ConnectableThing
+                        connectable={connectable}
+                        thing={connection}
+                      />
+                    </>
+                  }
+                  details={
+                    <>
+                      <Group>
+                        <ActionIcon
+                          variant="light"
+                          size="sm"
+                          color={"dark.3"}
+                          onClick={() => {
+                            disconnect(connection.id.toString());
+                          }}
+                          title="Disconnect this thing."
+                        >
+                          <SubtractSquareIcon size={14} weight="bold" />
+                        </ActionIcon>
+                      </Group>
+                    </>
+                  }
                 />
               );
             })}
-        </Group>
+        </Stack>
+        {draggingOverConnectionDrop && <Box mih={"10vh"} />}
       </Box>
-      <Group justify="space-between">
-        <Text size="sm" c="dimmed" fw="bold">
+      <Group justify="space-between" mt="lg" mb="md">
+        <Text size="sm" c="dark.4" fw="bold">
           <Group gap="xs">
             <IntersectSquareIcon weight="bold" />
             RELATED
+            <Transition mounted={loadingSimilar} transition="fade-up">
+              {(styles) => {
+                return (
+                  <ActionIcon
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    style={styles}
+                  >
+                    {loadingSimilar ? (
+                      <Loader size="xs" />
+                    ) : (
+                      <ArrowsClockwiseIcon size={12} />
+                    )}
+                  </ActionIcon>
+                );
+              }}
+            </Transition>
           </Group>
         </Text>
-        <Group>
-          <Transition mounted={loadingSimilar} transition="fade-up">
-            {(styles) => {
-              return (
-                <ActionIcon
-                  variant="light"
-                  color="gray"
-                  size="sm"
-                  style={styles}
-                >
-                  {loadingSimilar ? (
-                    <Loader size="xs" />
-                  ) : (
-                    <ArrowsClockwiseIcon size={14} />
-                  )}
-                </ActionIcon>
-              );
-            }}
-          </Transition>
-        </Group>
       </Group>
       <Transition
         mounted={!!similar && similar?.length > 0}
@@ -210,15 +249,7 @@ export default function ConnectionManager({
       >
         {(styles) => {
           return (
-            <Accordion
-              variant="filled"
-              style={styles}
-              styles={{
-                content: {
-                  padding: "0px",
-                },
-              }}
-            >
+            <Stack gap="md">
               {similar?.map((similar) => {
                 const distance =
                   (similar as IConnectable & { distance: number }).distance ||
@@ -228,30 +259,25 @@ export default function ConnectionManager({
                 const connected = isConnected(similar.id.toString());
 
                 return (
-                  <Accordion.Item
-                    value={similar.id.toString()}
+                  <CollapseButton
                     key={similar.id.toString()}
-                  >
-                    <Accordion.Control p={0}>
-                      <Group mr="xs" p={0}>
-                        <ConnectableThing
-                          key={similar.id.toString()}
-                          connectable={connectable}
-                          thing={similar}
-                        />
-                      </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <Stack gap="xs">
-                        <Group gap="xs" align="center">
+                    target={
+                      <ConnectableThing
+                        key={similar.id.toString()}
+                        connectable={connectable}
+                        thing={similar}
+                      />
+                    }
+                    details={
+                      <>
+                        <Stack gap="md">
                           <Group gap="xs" align="center">
-                            {!isConnected && (
+                            {!connected && (
                               <ActionIcon
                                 variant="light"
                                 size="sm"
                                 color={"dark.3"}
                                 onClick={() => {
-                                  console.log("Hitting on click!");
                                   connect(similar.id.toString());
                                 }}
                                 title="Connect this idea"
@@ -259,18 +285,18 @@ export default function ConnectionManager({
                                 <UniteSquareIcon size={14} weight="bold" />
                               </ActionIcon>
                             )}
+                            <Badge color={color} variant="light" size="xs">
+                              {level}
+                            </Badge>
                           </Group>
-                          <Badge color={color} variant="light" size="xs">
-                            {level}
-                          </Badge>
-                        </Group>
-                        <Text size="sm">{getNodeDescription(similar)}</Text>
-                      </Stack>
-                    </Accordion.Panel>
-                  </Accordion.Item>
+                          <Text size="sm">{getNodeDescription(similar)}</Text>
+                        </Stack>
+                      </>
+                    }
+                  />
                 );
               })}
-            </Accordion>
+            </Stack>
           );
         }}
       </Transition>
@@ -283,7 +309,7 @@ export default function ConnectionManager({
         {(styles) => {
           return (
             <Text style={styles} size="xs" c="dimmed" mb="md">
-              No related ideas yet.
+              No related things yet.
             </Text>
           );
         }}
@@ -294,7 +320,7 @@ export default function ConnectionManager({
             <Group style={styles} mt="md">
               <Loader size="xs" color="gray" />
               <Text size="xs" c="dimmed">
-                Finding similar ideas...
+                Finding similar things...
               </Text>
             </Group>
           );

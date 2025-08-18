@@ -94,12 +94,10 @@ export default function useRabbithole(): IUseRabbitholeReturn {
       if (!currentlyEntered) {
         return false;
       }
-      console.log("Checking is included: ", currentlyEntered.includes, thingId);
       const found = currentlyEntered.includes?.find((entry) => {
         const same = entry.id.toString() === thingId.toString();
         return same;
       });
-      console.log("Found: ", found);
       return !!found;
     },
     [currentlyEntered, currentlyEntered?.includes?.length],

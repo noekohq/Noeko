@@ -148,8 +148,6 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
     [updateAttributes],
   );
 
-  console.log("Rendering node view");
-
   return (
     <NodeViewWrapper
       className={styles.dreamImageWrapper}

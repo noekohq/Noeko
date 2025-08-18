@@ -59,8 +59,6 @@ export default function Source() {
     return null;
   }, [file]);
 
-  console.log("Analysis: ", source?.analysis);
-
   const {
     elements: {
       leftSidebar: {

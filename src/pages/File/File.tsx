@@ -150,8 +150,6 @@ export default function UserFile() {
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
 
-  console.log("Source: ", file?.source);
-
   return (
     <PageWrapper>
       <LeftSidebar></LeftSidebar>

@@ -43,10 +43,6 @@ export default function TaskList() {
     getTasks();
   }, [date]);
 
-  useEffect(() => {
-    console.log("Tasks: ", tasks);
-  }, [tasks]);
-
   const {
     actions: { newTask },
   } = useInteraction();

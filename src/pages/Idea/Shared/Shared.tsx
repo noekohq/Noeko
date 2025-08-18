@@ -35,8 +35,6 @@ export default function SharedIdeas() {
     url: "/ideas/shared",
   });
 
-  console.log("Shared ideas: ", sharedIdeas);
-
   useEffect(() => {
     loadShared();
   }, []);

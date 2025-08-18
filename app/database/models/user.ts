@@ -701,7 +701,7 @@ export class User {
       // User.getAll() returns Promise<IComputedUser[]>
       // IComputedUser is compatible with IUser, which User.ensureReferralCodes expects.
       await User.ensureReferralCodes(false);
-      console.log(`[User] Completed referral code refresh for all users.`);
+      console.info(`[User] Completed referral code refresh for all users.`);
     } catch (error) {
       console.error("[User] Error refreshing all user referral codes:", error);
       // Re-throw the error so the job runner can pick it up

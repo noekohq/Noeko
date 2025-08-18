@@ -409,7 +409,6 @@ export class Embeddings {
     // Add a check here? Or assume provider is always initialized correctly by constructor
     if (!this.provider) throw new Error("Embeddings provider not initialized.");
     const embeddings = await this.provider.embedContent(text);
-    console.log("Embedding generation: ", embeddings?.slice(0, 10));
     if (embeddings && embeddings.length > 0) {
       console.info(
         "Embeddings generation successful...",

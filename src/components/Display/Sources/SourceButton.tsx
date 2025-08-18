@@ -10,36 +10,19 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import { IIdea, PhosphorIcon } from "../IdeaCardTypes";
-import styles from "./IdeaButton.module.scss";
+import styles from "./SourceButton.module.scss";
 import { useState } from "react";
 import {
   IconProps,
   ArrowRightIcon,
   LightbulbIcon,
+  FileTextIcon,
 } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
-import { getNodeDescription } from "../../../../utils/graph";
-import { ISafeIdea } from "../../../../../app/database/models/ideas";
-import { IIdeaAction } from "./IdeaCard";
+import { getNodeDescription } from "../../../utils/graph";
+import { ISource } from "../../../../app/database/models/source";
 
-const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
-  if (idea.content) {
-    return (
-      <Stack>
-        <Title order={3}>{idea.title}</Title>
-        <div dangerouslySetInnerHTML={{ __html: idea.content }} />
-      </Stack>
-    );
-  }
-  return (
-    <Text size="sm" c="dimmed">
-      No preview available.
-    </Text>
-  );
-};
-
-type IIdeaButtonAction = {
+type ISourceButtonAction = {
   id: string;
   onClick: (e: React.MouseEvent) => void;
   icon: React.ReactElement<IconProps>;
@@ -47,19 +30,19 @@ type IIdeaButtonAction = {
   tooltip?: string;
 };
 
-interface IIdeaButton {
-  idea: IIdea | ISafeIdea;
+interface ISourceButtonProps {
+  source: ISource;
   bg?: MantineColor | string;
   color?: MantineColor | string;
-  actions?: IIdeaButtonAction[];
+  actions?: ISourceButtonAction[];
   link?: boolean;
   draggable?: boolean;
   fullWidth?: boolean;
-  onClick?: (idea: IIdea | ISafeIdea, e: React.MouseEvent) => void;
+  onClick?: (source: ISource, e: React.MouseEvent) => void;
 }
 
-function IdeaButton({
-  idea,
+function SourceButton({
+  source,
   actions,
   link = true,
   draggable,
@@ -67,7 +50,7 @@ function IdeaButton({
   color,
   fullWidth = false,
   onClick,
-}: IIdeaButton) {
+}: ISourceButtonProps) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -76,8 +59,8 @@ function IdeaButton({
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({
-        ideaId: idea.id.toString(),
-        thingId: idea.id.toString(),
+        sourceId: source.id.toString(),
+        thingId: source.id.toString(),
       }),
     );
   };
@@ -88,20 +71,18 @@ function IdeaButton({
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (onClick) {
-      onClick(idea, e);
+      onClick(source, e);
     }
   };
 
   const navigate = useNavigate();
 
-  const hoverDetails = getIdeaDefaultDetails(idea);
-
-  const allActions: IIdeaButtonAction[] = [
+  const allActions: ISourceButtonAction[] = [
     ...(actions || []),
     {
       id: "view",
       onClick: () => {
-        navigate(`/idea/${idea.id.toString()}`);
+        navigate(`/source/${source.id.toString()}`);
       },
       icon: <ArrowRightIcon />,
     },
@@ -110,9 +91,9 @@ function IdeaButton({
   return (
     <div
       role="button"
-      data-thing-id={idea.id.toString()}
-      data-idea-id={idea.id.toString()}
-      className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
+      data-thing-id={source.id.toString()}
+      data-source-id={source.id.toString()}
+      className={`${styles.sourceButton} ${fullWidth ? styles["full-width"] : ""}`}
       draggable={true}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -125,11 +106,11 @@ function IdeaButton({
       }}
     >
       <Group justify="space-between" wrap="nowrap" w="100%">
-        <Text className={styles.title} c="dark.1" size="sm" truncate="end">
-          <Group gap="xs" wrap="nowrap">
-            {idea.title}
-          </Group>
-        </Text>
+        <Group gap="xs" wrap="nowrap">
+          <Text className={styles.title} c="dark.1" size="sm" truncate="end">
+            {source.displayName}
+          </Text>
+        </Group>
         {hovering && (
           <Group>
             {allActions?.map((action) => {
@@ -160,4 +141,4 @@ function IdeaButton({
   );
 }
 
-export default IdeaButton;
+export default SourceButton;

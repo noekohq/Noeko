@@ -52,7 +52,6 @@ export default class GoogleProvider implements EmbeddingsProvider {
   }
 
   async truncate(content: string): Promise<string> {
-    console.log("Truncating to max characters: ", this.maxCharacters);
     return content.slice(0, this.maxCharacters);
   }
 
@@ -102,9 +101,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
   async embedContent(content: string): Promise<number[] | null> {
     try {
       const startTime = Date.now();
-      console.log("Content before: ", content);
       const truncatedContent = await this.truncate(content);
-      console.log("Content after: ", truncatedContent);
       const response = await this.client.models.embedContent({
         model: this.model,
         contents: [truncatedContent],

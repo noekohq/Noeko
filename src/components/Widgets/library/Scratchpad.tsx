@@ -37,10 +37,6 @@ export default function Scratchpad() {
     },
   });
 
-  useEffect(() => {
-    loadContent();
-  }, []);
-
   const { load: postContent } = useFetch<{ content: string }, string>({
     url: "/users/me/scratchpad",
     method: "PUT",
@@ -73,6 +69,14 @@ export default function Scratchpad() {
       }
     };
   }, [content]);
+
+  useEffect(() => {
+    loadContent();
+
+    return () => {
+      handlePostContent();
+    };
+  }, []);
 
   const editorRef = useRef<Editor>(null);
 

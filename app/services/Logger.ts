@@ -44,7 +44,7 @@ export class LoggingService {
       source,
     };
 
-    console.log(
+    console.info(
       `[${level.toUpperCase()}] Message: ${message}${source ? ` | Source: ${source}` : ""}.`,
       context,
     );

@@ -1645,7 +1645,6 @@ export class Idea {
         console.error(`Idea with id ${id} not found.`);
         return undefined;
       }
-      console.log("Attempting to update embeddings for idea: ", id);
       return await Idea.updateEmbeddings(result, force);
     } catch (error) {
       console.error(error);
@@ -1679,7 +1678,6 @@ export class Idea {
         idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
         idea.embeddings?.length !== 0
       ) {
-        console.log("Not computing embedding for idea: ", idea.id.toString());
         return false;
       }
       const embedding = getEmbedder();

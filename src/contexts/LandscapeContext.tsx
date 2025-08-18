@@ -49,7 +49,6 @@ export const LandscapeProvider = ({
     url: `/rabbitholes/${rabbithole?.id.toString()}`,
     dependencies: [rabbithole?.id.toString()],
     onSuccess: (d) => {
-      console.log("Setting rabbithole: ", d);
       setRabbithole(d);
     },
   });

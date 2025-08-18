@@ -34,13 +34,11 @@ async function fetchDreamConnectionItems(
     return [];
   }
   try {
-    console.log("Making query: ", query);
     const response = await api.get(`/search/ideas/suggest?query=${query}`);
     const items = response.data.data.map((item: IIdea) => ({
       ...item,
       type: "idea",
     }));
-    console.log("Got items: ", items);
     return items;
   } catch (error) {
     console.error(error);
@@ -99,7 +97,6 @@ const suggestionOptionsDefinition = (
       let currentProps: SuggestionProps<IDreamConnectionItem> | null = null;
       let activeIndex = 0;
 
-      console.log("Rendering with loading state");
       const renderComponent = (
         props: SuggestionProps<IDreamConnectionItem>,
         loading: boolean,

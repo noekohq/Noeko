@@ -36,7 +36,17 @@ fi
 : "${DB_NAMESPACE?ERROR: DB_NAMESPACE not set}"
 : "${DB_DATABASE?ERROR: DB_DATABASE not set}"
 : "${DB_BACKUP_BUCKET_NAME?ERROR: DB_BACKUP_BUCKET_NAME not set}"
+: "${GCLOUD_KEY_FILE_PATH?ERROR: GCLOUD_KEY_FILE_PATH not set in .env}"
+: "${GCLOUD_PROJECT_ID?ERROR: GCLOUD_PROJECT_ID not set in .env}"
 log "Required variables are present."
+
+# --- GCloud Authentication ---
+log "Authenticating with Google Cloud..."
+if [[ ! -f "$GCLOUD_KEY_FILE_PATH" ]]; then
+    error "GCloud key file not found at: $GCLOUD_KEY_FILE_PATH"
+fi
+gcloud auth activate-service-account --key-file="$GCLOUD_KEY_FILE_PATH" || error "GCloud authentication failed."
+gcloud config set project "$GCLOUD_PROJECT_ID" || error "Failed to set GCloud project."
 
 # --- Determine Backup Type (The Core GFS Logic) ---
 DAY_OF_WEEK=$(date +'%u') # 1-7 (Monday-Sunday)

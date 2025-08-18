@@ -326,7 +326,6 @@ export default class Source {
 
   public static isSourceable(thingId: string | RecordId) {
     const tb = thingId.toString().split(":")[0];
-    console.log("From thing got: ", thingId, tb);
     return Sourceables.includes(tb);
   }
 

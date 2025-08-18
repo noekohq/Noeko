@@ -10,6 +10,7 @@ import SourceCard from "../../Sources/SourceCard";
 import { IConnectable } from "../../../../../app/services/Graph";
 import IdeaButton from "../../Ideas/Interactions/IdeaButton";
 import TaskButton from "../../Tasks/TaskButton";
+import SourceButton from "../../Sources/SourceButton";
 
 interface IConnectableThingAction {
   id: string;
@@ -52,6 +53,6 @@ export default function ConnectableThing({
   }
   if (thing.id.toString().startsWith("source")) {
     const source = thing as ISource;
-    return <SourceCard key={source.id.toString()} source={source} />;
+    return <SourceButton key={source.id.toString()} source={source} />;
   }
 }
