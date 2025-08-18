@@ -18,6 +18,8 @@ export type ITask = {
   completedAt: Date | null;
 };
 
+export type IPublicTask = Omit<ITask, "embeddings">;
+
 export type ITaskCreator = Omit<ITask, "id">;
 
 export type ITaskForm = Omit<
@@ -38,6 +40,21 @@ export default class Task {
           SELECT
             *
           OMIT embeddings
+          FROM ONLY
+            <record> $taskId;
+        RETURN $task;
+      }
+      `;
+    };
+
+    const getFullTaskRecordFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_full_task_record(
+        $taskId: record<task>
+      ) {
+        LET $task =
+          SELECT
+            *
           FROM ONLY
             <record> $taskId;
         RETURN $task;
@@ -89,6 +106,7 @@ export default class Task {
       throw new Error("Couldn't run task up method");
     }
     await db.query(getTaskRecordFunction());
+    await db.query(getFullTaskRecordFunction());
     await db.query(getUserTasksFunction());
     await db.query(getUserTasksForDateRangeFunction());
   }
@@ -126,15 +144,25 @@ export default class Task {
     }
   }
 
-  static async get(taskId: string | RecordId) {
+  static async get(taskId: string | RecordId, safety?: "full"): Promise<ITask>;
+  static async get(
+    taskId: string | RecordId,
+    safety?: "public",
+  ): Promise<IPublicTask>;
+  static async get(
+    taskId: string | RecordId,
+    safety: "public" | "full" = "public",
+  ): Promise<ITask | IPublicTask | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const task = await db.run<ITask>(`fn::get_task_record`, [
-        new StringRecordId(taskId),
-      ]);
+      const fn =
+        safety === "public"
+          ? "fn::get_task_record"
+          : "fn::get_full_task_record";
+      const task = await db.run<ITask>(fn, [new StringRecordId(taskId)]);
       if (!task) {
         throw new Error("Task is falsey");
       }

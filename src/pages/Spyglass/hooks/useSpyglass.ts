@@ -163,7 +163,7 @@ export default function useSpyglass({
         const type = parsedData.type;
         switch (type) {
           case "error":
-            console.log(
+            console.error(
               "Parsed error data: ",
               parsedData.data,
               typeof parsedData.data,

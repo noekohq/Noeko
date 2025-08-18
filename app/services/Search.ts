@@ -124,7 +124,7 @@ export class Search {
     const defineTaskVectorIndex = () => {
       return `
       DEFINE INDEX IF NOT EXISTS idx_task_embeddings
-        ON TABLE tag
+        ON TABLE task
         FIELDS embeddings
         HNSW DIMENSION 768
         DIST COSINE
@@ -762,7 +762,7 @@ export class Search {
 
       if (semanticResults) {
         for (const semRes of semanticResults) {
-          // console.log("Semantic result: ", semRes);
+          // console.info("Semantic result: ", semRes);
           const id = semRes.id.toString();
           const semanticScore = semRes.debug?.semanticScore ?? 0;
 

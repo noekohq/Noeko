@@ -107,7 +107,6 @@ export default function ViewTag() {
     }
     try {
       await addTagToIdea(idea.id.toString(), tag.id.toString());
-      console.log(`Successfully added tag ${tag.name} to idea ${idea.title}`);
       handleRefresh();
     } catch (error) {
       console.error(
@@ -129,9 +128,7 @@ export default function ViewTag() {
     }
     try {
       await removeTagFromIdea(idea.id.toString(), tag.id.toString());
-      console.log(
-        `Successfully removed tag ${tag.name} from idea ${idea.title}`,
-      );
+
       handleRefresh();
     } catch (error) {
       console.error(
@@ -241,11 +238,10 @@ export default function ViewTag() {
         });
         return;
       }
-      console.log("Dropped connection id: ", ideaId);
       await addTagToIdea(ideaId, tag.id.toString());
       handleRefresh();
     } catch (error) {
-      console.log("Error creating connection: ", error);
+      console.error("Error creating connection: ", error);
     } finally {
       setDraggingOver(false);
     }

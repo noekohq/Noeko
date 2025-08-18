@@ -89,7 +89,7 @@ function useBeaconOnHide<T>({
           const queued = navigator.sendBeacon(fullUrl, dataBlob);
 
           if (queued) {
-            console.log(`Beacon successfully queued for ${fullUrl}`);
+            console.info(`Beacon successfully queued for ${fullUrl}`);
           } else {
             console.error(
               `Failed to queue beacon for ${fullUrl}. Data might be too large or URL invalid.`,
@@ -100,7 +100,7 @@ function useBeaconOnHide<T>({
           console.error("Error preparing data for sendBeacon:", error);
         }
       } else {
-        console.log("Beacon skipped: getData returned null or undefined.");
+        console.info("Beacon skipped: getData returned null or undefined.");
       }
     };
 

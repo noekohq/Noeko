@@ -143,7 +143,14 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       ],
     });
 
-    const { isMobile } = useLayout();
+    const {
+      isMobile,
+      elements: {
+        leftSidebar: {
+          mode: { get: leftMode },
+        },
+      },
+    } = useLayout();
 
     const [bubbleMenuVisible, setBubbleMenuVisible] = useState(false);
 
@@ -181,7 +188,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             </Group>
           </Overlay>
         )}
-        <FloatingMenu editor={editor} />
+        {/*<FloatingMenu editor={editor} />*/}
         <BubbleMenu
           editor={editor}
           onVisibilityChange={(isVisible) => {

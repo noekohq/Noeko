@@ -128,9 +128,6 @@ export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
     edges: [...ideaEdges, ...tagEdges, ...similarEdges],
   };
 
-  console.log("DB Graph: ", dbGraph);
-  console.log("Computed local data: ", localData);
-
   return localData;
 };
 

@@ -86,16 +86,15 @@ export default function TaskButton({
             <Group gap="xs" align="baseline" wrap="nowrap">
               <Text
                 size="xs"
-                fw="bold"
                 lineClamp={0}
                 c={isCompleted ? "dimmed" : "inherit"}
                 td={isCompleted ? "line-through" : undefined}
               >
                 {task.description}
               </Text>
-              <Text size="xs" c="dark.5" fw="bold">
+              {/*<Text size="xs" c="dark.5" fw="bold">
                 {formattedEstimatedDuration()}
-              </Text>
+              </Text>*/}
             </Group>
           </div>
         </HoverCard.Target>

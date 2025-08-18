@@ -53,7 +53,7 @@ export class MailBabyService {
   async verifyConnection() {
     try {
       await this.transporter.verify();
-      console.log("✅ SMTP connection verified successfully");
+      console.info("✅ SMTP connection verified successfully");
       return true;
     } catch (error) {
       console.error("❌ SMTP connection failed:", error);

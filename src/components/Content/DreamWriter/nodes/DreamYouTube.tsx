@@ -50,7 +50,6 @@ type DreamYouTubeAttributes = {
 const DreamYouTubeComponent: React.FC<NodeViewProps> = ({ node, selected }) => {
   const { src, start } = node.attrs;
 
-  console.log("Constructing: ", src);
   const finalSrc = new URL(src);
   if (start > 0) {
     finalSrc.searchParams.set("start", String(start));

@@ -100,6 +100,7 @@ export default function IdeaCard({
       "application/json",
       JSON.stringify({
         ideaId: idea.id.toString(),
+        thingId: idea.id.toString(),
       }),
     );
   };
@@ -130,6 +131,9 @@ export default function IdeaCard({
   return (
     <div
       role="button"
+      data-idea-id={idea.id.toString()}
+      className={styles.ideaCard}
+      draggable={true}
       onClick={() => {
         handleClick();
       }}
@@ -139,11 +143,8 @@ export default function IdeaCard({
           handleClick();
         }
       }}
-      className={styles.ideaCard}
-      data-idea-id={idea.id.toString()}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      draggable={true}
     >
       <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
         <HoverCard.Target>

@@ -48,7 +48,6 @@ export default function Selection({
     }
     toggle();
   };
-  console.log("Current option: ", currentOption);
 
   return (
     <div className={styles.selection}>

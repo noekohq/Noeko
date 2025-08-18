@@ -118,6 +118,37 @@ router.delete("/connection", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
+router.get("/connection", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const { source, target } = req.body;
+    const hasAccessToSource = await User.checkOwns(user.id, source);
+    const hasAccessToTarget = await User.checkOwns(user.id, source);
+    if (!hasAccessToSource || !hasAccessToTarget) {
+      res.status(403).json({
+        message: "Unauthorized",
+      });
+      return;
+    }
+    const connection = await GraphService.disconnect(source, target);
+    if (!connection) {
+      res.status(500).json({ error: "Connection not deleted" });
+      return;
+    }
+    res.send({
+      message: "Successfully deleted connection.",
+      data: connection,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.post(
   "/synchronize",
   checkToken,
@@ -180,7 +211,7 @@ router.get(
 );
 
 router.get(
-  "/:thingId/connections",
+  "/:thingId/similar",
   checkToken,
   disallowDisabled,
   async (req, res) => {

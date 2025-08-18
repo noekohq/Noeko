@@ -47,7 +47,7 @@ app.use("/assets", Express.static(publicAssetsPath));
 
 if (isProduction) {
   const viteBuildPath = path.join(projectRoot, "dist");
-  console.log(`Serving production build from ${viteBuildPath}`);
+  console.info(`Serving production build from ${viteBuildPath}`);
   app.use(Express.static(viteBuildPath));
 
   app.get("*", (req, res) => {

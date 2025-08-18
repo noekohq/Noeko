@@ -91,7 +91,7 @@ export default function Connections({
 
   const ideaIsConnected = (ideaId: string) => {
     if (!idea) {
-      console.log("Not testing connection on unconnected idea");
+      console.error("Not testing connection on unconnected idea");
       return false;
     }
     return connections?.find(
@@ -126,11 +126,11 @@ export default function Connections({
         });
         return;
       }
-      console.log("Dropped connection id: ", ideaId);
+      console.info("Dropped connection id: ", ideaId);
       await createIdeaConnection(idea.id.toString(), ideaId);
       handleReload();
     } catch (error) {
-      console.log("Error creating connection: ", error);
+      console.info("Error creating connection: ", error);
     } finally {
       setDraggingOverConnectionDrop(false);
     }
@@ -341,7 +341,7 @@ export default function Connections({
                                       size="sm"
                                       color={"dark.3"}
                                       onClick={() => {
-                                        console.log("Hitting on click!");
+                                        console.info("Hitting on click!");
                                         createIdeaConnection(
                                           idea.id.toString(),
                                           relatedIdea.id.toString(),

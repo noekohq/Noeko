@@ -55,6 +55,7 @@ import { showNotification } from "@mantine/notifications";
 import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
 import Search from "../../components/Search/Search";
 import { modals } from "@mantine/modals";
+import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -400,6 +401,14 @@ export default function Task() {
               </Popover>
             </Stack>
           </Stack>
+          {!!task && (
+            <ConnectionManager
+              connectable={{
+                ...task,
+                type: "task",
+              }}
+            />
+          )}
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>

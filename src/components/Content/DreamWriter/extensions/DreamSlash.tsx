@@ -231,7 +231,6 @@ const suggestionOptionsDefinition = (
           // in the top-left corner.
           return;
         }
-        console.log("Client rect:", rect);
 
         root.render(
           <SuggestionMenu

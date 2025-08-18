@@ -19,7 +19,6 @@ import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Graph from "./pages/Graph/Graph";
-import GraphHeavy from "./pages/Graph/GraphHeavy";
 import Idea from "./pages/Idea/Idea";
 import UserFile from "./pages/File/File";
 import Login from "./pages/Auth/Login";
@@ -165,7 +164,6 @@ export default function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="graph">
                     <Route index element={<Graph />} />
-                    <Route path="heavy" element={<GraphHeavy />} />
                   </Route>
                   <Route
                     path="profile"
