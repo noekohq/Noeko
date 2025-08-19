@@ -4,10 +4,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { useEffect, useRef, useState } from "react";
 import { RecordId } from "surrealdb";
-import {
-  getFileDownload,
-  getFileDownloadLink,
-} from "../../../../utils/userfiles";
+import { getFileDownloadLink } from "../../../../utils/userfiles";
 import {
   Group,
   Loader,
@@ -17,12 +14,8 @@ import {
   Text,
   Transition,
 } from "@mantine/core";
-import Loading from "../../Loading/Loading";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface IPDFViewerProps {
   fileId: string | RecordId | undefined;
@@ -41,6 +34,7 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
       try {
         setLoading(true);
         const objectUrl = await getFileDownloadLink(fileId.toString());
+        console.log("Object url: ", objectUrl);
         setFile(objectUrl);
       } catch (error) {
         console.log("Error getting file download:", error);

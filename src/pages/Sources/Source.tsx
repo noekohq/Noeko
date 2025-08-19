@@ -22,7 +22,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import ContentWide from "../../components/UI/Layout/ContentWide";
 import StatusBar from "../../components/UI/Layout/Bottom";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ViewerMap } from "../../components/Display/Files/Viewers";
 import { useLayout } from "../../contexts/LayoutContext";
 import {
@@ -39,6 +39,8 @@ import { ISource, ISourceReference } from "../../../app/database/models/source";
 import Search from "../../components/Search/Search";
 import { markdownToHtml } from "../../utils/formatting";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
+import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
+import { useLandscape } from "../../contexts/LandscapeContext";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -49,6 +51,24 @@ export default function Source() {
     url: `/sources/${sourceId}`,
     runOnMount: true,
   });
+
+  const {
+    connectable: {
+      viewing: { set: setViewing },
+    },
+  } = useLandscape();
+  useEffect(() => {
+    if (source) {
+      setViewing({
+        ...source,
+        type: "source",
+      });
+    }
+
+    return () => {
+      setViewing(null);
+    };
+  }, [source]);
 
   const file = source?.references as ISourceReference;
 
@@ -106,7 +126,16 @@ export default function Source() {
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel value="context">This is context</Tabs.Panel>
+            <Tabs.Panel value="context">
+              {!!source && (
+                <ConnectionManager
+                  connectable={{
+                    ...source,
+                    type: "source",
+                  }}
+                />
+              )}
+            </Tabs.Panel>
             <Tabs.Panel value="analysis">
               {source?.analysis && (
                 <AnalysisBlock analysis={source?.analysis} />
@@ -211,7 +240,15 @@ function AnalysisBlock({ analysis }: IAnalysisBlockProps) {
 
   const Outline = outline.map((item) => {
     return (
-      <Paper key={item.summary}>
+      <Paper
+        key={item.summary}
+        p="md"
+        radius="md"
+        style={{
+          border: "1px solid var(--mantine-color-dark-7)",
+          backgroundColor: "var(--mantine-color-dark-8)",
+        }}
+      >
         <Text fw="bold" c="dimmed" size="xs">
           {item.section}
         </Text>
@@ -222,10 +259,18 @@ function AnalysisBlock({ analysis }: IAnalysisBlockProps) {
 
   const Findings = findings.map((finding) => {
     return (
-      <Paper key={finding.analysis}>
+      <Paper
+        key={finding.analysis}
+        p="md"
+        radius="md"
+        style={{
+          border: "1px solid var(--mantine-color-dark-7)",
+          backgroundColor: "var(--mantine-color-dark-8)",
+        }}
+      >
         <Blockquote color="gray" p="xs" mb="xs">
           <Text
-            size="sm"
+            size="xs"
             p="0"
             dangerouslySetInnerHTML={{
               __html: markdownToHtml(finding.excerpt),
@@ -240,20 +285,9 @@ function AnalysisBlock({ analysis }: IAnalysisBlockProps) {
   return (
     <>
       <Stack>
-        <Card
-          radius="lg"
-          p={"sm"}
-          styles={{
-            root: {
-              backgroundColor: "var(--mantine-color-dark-8) !important",
-              border: "1px solid var(--mantine-color-dark-7)",
-            },
-          }}
-        >
-          <Text fw="bold" c="dimmed" size="xs">
-            {analysis?.headline}
-          </Text>
-        </Card>
+        <Text fw="bold" size="sm">
+          {analysis?.headline}
+        </Text>
         <Card
           radius="lg"
           p={"sm"}

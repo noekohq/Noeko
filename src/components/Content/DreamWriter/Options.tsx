@@ -51,17 +51,18 @@ import { useForm } from "@mantine/form";
 import DreamWriter from "./DreamWriter";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
-import { createIdea } from "../../../utils/ideas";
+import { createIdea, createIdeaConnection } from "../../../utils/ideas";
 import { useDisclosure } from "@mantine/hooks";
 import { SearchBar } from "../../Search/SearchBar";
 import { useSearch } from "../../../contexts/SearchContext";
-import { getNodeAsIdeaOrNull } from "../../../utils/graph";
+import { connect, getNodeAsIdeaOrNull } from "../../../utils/graph";
 import IdeaButton from "../../Display/Ideas/Interactions/IdeaButton";
 import { ISafeIdea } from "../../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
 import { SpyglassIcon } from "../../Utils/Icons/Icons";
 import useRabbithole from "../../../hooks/useRabbithole";
 import { NodeSelection } from "@tiptap/pm/state";
+import useConnectable from "../../../hooks/useConnectable";
 
 interface OptionProps {
   editor: IEditor | null;
@@ -656,8 +657,8 @@ export function NewIdea({ editor }: OptionProps) {
     actions: { newConnectedIdea },
   } = useInteraction();
   const {
-    idea: {
-      viewing: { get: viewingIdea },
+    connectable: {
+      viewing: { get: viewingConnectable },
     },
   } = useLandscape();
   const { includeThing, isDownRabbithole } = useRabbithole();
@@ -691,6 +692,10 @@ export function NewIdea({ editor }: OptionProps) {
             content: newIdea.title,
           })
           .run();
+
+        if (viewingConnectable?.id.toString()) {
+          connect(viewingConnectable.id.toString(), newIdea.id.toString());
+        }
 
         if (isDownRabbithole) {
           includeThing(newIdea.id.toString());
@@ -768,7 +773,7 @@ export function ConnectIdea({ editor }: OptionProps) {
   };
 
   const {
-    idea: {
+    connectable: {
       viewing: { get: viewingIdea },
     },
   } = useLandscape();

@@ -178,6 +178,21 @@ export default function ConnectionManager({
               </HoverCard>
             </Group>
           </Group>
+          <Transition
+            mounted={
+              !connected ||
+              (connected && connected.length <= 0 && !loadingConnected)
+            }
+            transition="fade-up"
+          >
+            {(styles) => {
+              return (
+                <Text style={styles} size="xs" c="dimmed">
+                  No connected things yet.
+                </Text>
+              );
+            }}
+          </Transition>
         </Stack>
         <Stack>
           {connected &&

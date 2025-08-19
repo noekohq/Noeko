@@ -2,26 +2,17 @@ import React from "react";
 import {
   ActionIcon,
   Group,
-  HoverCard,
   MantineColor,
-  Popover,
   Stack,
   Text,
   Title,
-  Tooltip,
 } from "@mantine/core";
-import { IIdea, PhosphorIcon } from "../IdeaCardTypes";
+import { IIdea } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
-import {
-  IconProps,
-  ArrowRightIcon,
-  LightbulbIcon,
-} from "@phosphor-icons/react";
-import { Link, useNavigate } from "react-router";
-import { getNodeDescription } from "../../../../utils/graph";
+import { IconProps, ArrowRightIcon } from "@phosphor-icons/react";
+import { useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
-import { IIdeaAction } from "./IdeaCard";
 
 const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
   if (idea.content) {
@@ -32,6 +23,7 @@ const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
       </Stack>
     );
   }
+
   return (
     <Text size="sm" c="dimmed">
       No preview available.

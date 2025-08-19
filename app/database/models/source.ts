@@ -315,7 +315,7 @@ export default class Source {
       }
       const updated = await this.update(source.id, {
         embeddings: embedding,
-        embeddingsGeneratedAt: new Date(),
+        embeddingsUpdatedAt: new Date(),
       });
       return updated;
     } catch (error) {

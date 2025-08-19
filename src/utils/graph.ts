@@ -156,6 +156,12 @@ export const getNodeTitle = (node: INode) => {
   if (node.type === "rabbithole") {
     return node.name;
   }
+  if (node.type === "task") {
+    return node.description;
+  }
+  if (node.type === "source") {
+    return node.displayName;
+  }
 };
 
 export const getNodeDescription = (
@@ -251,7 +257,7 @@ export const getNodesAsIdeas = (nodes: INode[]): ISafeIdea[] => {
 export const connect = async (
   sourceId: string | RecordId,
   targetId: string | RecordId,
-) => {
+): Promise<boolean> => {
   try {
     const result = await api.post(`/graph/connection`, {
       source: sourceId.toString(),
@@ -261,10 +267,10 @@ export const connect = async (
     if (!connection) {
       throw new Error("Didn't get data back");
     }
-    return connection;
+    return !!connection;
   } catch (error) {
     console.error("Couldn't connect things: ", sourceId, targetId, error);
-    return undefined;
+    return false;
   }
 };
 
