@@ -36,8 +36,6 @@ fi
 : "${DB_NAMESPACE?ERROR: DB_NAMESPACE not set}"
 : "${DB_DATABASE?ERROR: DB_DATABASE not set}"
 : "${DB_BACKUP_BUCKET_NAME?ERROR: DB_BACKUP_BUCKET_NAME not set}"
-: "${GCLOUD_KEY_FILE_PATH?ERROR: GCLOUD_KEY_FILE_PATH not set in .env}"
-: "${GCLOUD_PROJECT_ID?ERROR: GCLOUD_PROJECT_ID not set in .env}"
 log "Required variables are present."
 
 # --- Determine Backup Type (The Core GFS Logic) ---
