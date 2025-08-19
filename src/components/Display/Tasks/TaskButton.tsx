@@ -70,43 +70,28 @@ export default function TaskButton({
       onDragEnd={handleDragEnd}
       draggable={true}
     >
-      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
-        <HoverCard.Target>
-          <div className={styles.content}>
-            <Checkbox
-              variant="outline"
-              defaultChecked={isCompleted}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleMarkTask(e.currentTarget.checked);
-              }}
-              color="gray"
-              size="sm"
-            />
-            <Group gap="xs" align="baseline" wrap="nowrap">
-              <Text
-                size="xs"
-                lineClamp={0}
-                c={isCompleted ? "dimmed" : "inherit"}
-                td={isCompleted ? "line-through" : undefined}
-              >
-                {task.description}
-              </Text>
-              {/*<Text size="xs" c="dark.5" fw="bold">
-                {formattedEstimatedDuration()}
-              </Text>*/}
-            </Group>
-          </div>
-        </HoverCard.Target>
-        {/*<HoverCard.Dropdown
-          style={{ overflowY: "scroll", maxHeight: "400px" }}
+      <div className={styles.content}>
+        <Checkbox
+          variant="outline"
+          defaultChecked={isCompleted}
           onClick={(e) => {
             e.stopPropagation();
+            handleMarkTask(e.currentTarget.checked);
           }}
-        >
-          <DreamWriter initialContent={task.scratchpad} />
-        </HoverCard.Dropdown>*/}
-      </HoverCard>
+          color="gray"
+          size="sm"
+        />
+        <Group gap="xs" align="baseline" wrap="nowrap">
+          <Text
+            size="xs"
+            lineClamp={0}
+            c={isCompleted ? "dimmed" : "inherit"}
+            td={isCompleted ? "line-through" : undefined}
+          >
+            {task.description}
+          </Text>
+        </Group>
+      </div>
     </div>
   );
 }

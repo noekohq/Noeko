@@ -111,14 +111,12 @@ function SourceButton({
             {source.displayName}
           </Group>
         </Text>
-        <FileTextIcon
-          weight="bold"
-          color="var(--mantine-color-dark-3)"
-          size={12}
-        />
-        {hovering && (
-          <Group>
-            {allActions?.map((action) => {
+        <Group wrap="nowrap">
+          <ActionIcon size="xs" color="dark.8">
+            <FileTextIcon weight="bold" color="var(--mantine-color-dark-3)" />
+          </ActionIcon>
+          {hovering &&
+            allActions?.map((action) => {
               return (
                 <ActionIcon
                   size="xs"
@@ -139,8 +137,7 @@ function SourceButton({
                 </ActionIcon>
               );
             })}
-          </Group>
-        )}
+        </Group>
       </Group>
     </div>
   );
