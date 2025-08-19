@@ -187,14 +187,17 @@ export default function Idea() {
     });
 
   const {
-    idea: {
+    connectable: {
       viewing: { set: setViewing },
     },
   } = useLandscape();
 
   useEffect(() => {
     if (idea) {
-      setViewing(idea);
+      setViewing({
+        ...idea,
+        type: "idea",
+      });
     }
 
     return () => {

@@ -105,12 +105,17 @@ function SourceButton({
         setHovering(false);
       }}
     >
-      <Group justify="space-between" wrap="nowrap" w="100%">
-        <Group gap="xs" wrap="nowrap">
-          <Text className={styles.title} c="dark.1" size="sm" truncate="end">
+      <Group justify="space-between" wrap="nowrap" w="100%" gap="xs">
+        <Text className={styles.title} c="dark.1" size="sm" truncate="end">
+          <Group gap="xs" wrap="nowrap">
             {source.displayName}
-          </Text>
-        </Group>
+          </Group>
+        </Text>
+        <FileTextIcon
+          weight="bold"
+          color="var(--mantine-color-dark-3)"
+          size={12}
+        />
         {hovering && (
           <Group>
             {allActions?.map((action) => {

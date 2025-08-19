@@ -40,6 +40,7 @@ export default function useRabbithole(): IUseRabbitholeReturn {
         );
         return false;
       }
+      console.log("Including a thing...", thingId);
       setLoadingSomething(true);
       await includeThingInRabbithole(
         currentlyEntered.id.toString(),
@@ -70,6 +71,7 @@ export default function useRabbithole(): IUseRabbitholeReturn {
         );
         return false;
       }
+      console.log("Unincluding a thing... ", thingId);
       await unIncludeThingInRabbithole(
         currentlyEntered.id.toString(),
         thingId.toString(),

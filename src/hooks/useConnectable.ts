@@ -2,6 +2,7 @@ import { RecordId } from "surrealdb";
 import { IConnectable, ISimilarConnectable } from "../../app/services/Graph";
 import useFetch from "./useFetch";
 import { connect, disconnect } from "../utils/graph";
+import { useEffect } from "react";
 
 type IUseConnectableArgs = {
   connectable: IConnectable;
@@ -43,6 +44,10 @@ export default function useConnectable({
     loadConnected();
     loadSimilar();
   };
+
+  useEffect(() => {
+    load();
+  }, [connectable.embeddingsUpdatedAt]);
 
   const handleConnect = async (target: string | RecordId) => {
     try {

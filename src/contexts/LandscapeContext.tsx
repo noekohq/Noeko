@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { IRabbithole } from "../../app/database/models/rabbithole";
-import { IIdea, ISafeIdea } from "../../app/database/models/ideas";
 import useFetch from "../hooks/useFetch";
+import { IConnectable } from "../../app/services/Graph";
 
 interface ILandscapeContext {
   rabbitholes: {
@@ -11,10 +11,10 @@ interface ILandscapeContext {
       reload: () => void;
     };
   };
-  idea: {
+  connectable: {
     viewing: {
-      get: ISafeIdea | null;
-      set: (idea: ISafeIdea | null) => void;
+      get: IConnectable | null;
+      set: (connectable: IConnectable | null) => void;
     };
   };
 }
@@ -27,7 +27,7 @@ const initialContext: ILandscapeContext = {
       reload: () => {},
     },
   },
-  idea: {
+  connectable: {
     viewing: {
       get: null,
       set: () => {},
@@ -43,7 +43,7 @@ export const LandscapeProvider = ({
   children: React.ReactNode;
 }) => {
   const [rabbithole, setRabbithole] = useState<IRabbithole | null>(null);
-  const [idea, setIdea] = useState<ISafeIdea | null>(null);
+  const [connectable, setConnectable] = useState<IConnectable | null>(null);
 
   const { load: reloadRabbithole } = useFetch<undefined, IRabbithole>({
     url: `/rabbitholes/${rabbithole?.id.toString()}`,
@@ -52,6 +52,7 @@ export const LandscapeProvider = ({
       setRabbithole(d);
     },
   });
+
   const handleReloadRabbithole = () => {
     if (
       !!rabbithole &&
@@ -74,13 +75,13 @@ export const LandscapeProvider = ({
         reload: () => handleReloadRabbithole(),
       },
     },
-    idea: {
+    connectable: {
       viewing: {
-        get: idea,
-        set: setIdea,
+        get: connectable,
+        set: setConnectable,
       },
     },
-  };
+  } satisfies ILandscapeContext;
 
   return (
     <LandscapeContext.Provider value={value}>

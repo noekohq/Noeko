@@ -20,14 +20,12 @@ import StatusButton from "../Interactions/StatusButton";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import RabbitholeCard from "./RabbitholeCard";
 import RabbitholeThing from "./RabbitholeThing";
+import { getNodeTitle } from "../../../utils/graph";
 
 export function RabbitholeIndicator() {
   const {
     rabbitholes: {
-      entered: { get: currentRabbithole, set: setRabbithole },
-    },
-    idea: {
-      viewing: { get: currentIdea },
+      entered: { get: currentRabbithole },
     },
   } = useLandscape();
 
@@ -45,6 +43,7 @@ export function RabbitholeIndicator() {
       radius="md"
       shadow="lg"
       width={"300px"}
+      closeOnItemClick={false}
     >
       <Menu.Target>
         <div
@@ -69,23 +68,17 @@ export function RabbitholeIndicator() {
 }
 
 function DropdownForRabbithole() {
-  const truncatedIdeaTitle = () => {
-    if (!currentIdea) return "";
-    if (currentIdea.title.length > 24)
-      return currentIdea.title.slice(0, 24) + "...";
-    return currentIdea.title;
-  };
-
   const navigate = useNavigate();
 
   const {
     rabbitholes: {
-      entered: { get: currentRabbithole, set: setRabbithole },
+      entered: { get: currentRabbithole, set: setRabbithole, reload },
     },
-    idea: {
-      viewing: { get: currentIdea },
+    connectable: {
+      viewing: { get: currentConnectable },
     },
   } = useLandscape();
+
   const {
     exitRabbithole,
     includeThing,
@@ -94,12 +87,24 @@ function DropdownForRabbithole() {
     loading,
   } = useRabbithole();
 
-  const ideaIsIncluded = useCallback(() => {
-    if (!currentIdea) {
+  const truncatedConnectableTitle = () => {
+    if (!currentConnectable) return "";
+    const name = getNodeTitle({
+      ...currentConnectable,
+    });
+    if (!name) {
+      return "";
+    }
+    if (name.length > 24) return name.slice(0, 24) + "...";
+    return name;
+  };
+
+  const connectableIsIncluded = () => {
+    if (!currentConnectable) {
       return false;
     }
-    return isIncludedThing(currentIdea.id.toString());
-  }, [currentIdea, isIncludedThing]);
+    return isIncludedThing(currentConnectable.id.toString());
+  };
 
   const maxIncludedDisplayed = 5;
   const truncatedIncludedThings = currentRabbithole?.includes?.slice(
@@ -137,20 +142,22 @@ function DropdownForRabbithole() {
       >
         Go to Rabbithole
       </Menu.Item>
-      {currentIdea &&
-        (ideaIsIncluded() ? (
+      {loading && <Menu.Item>Loading...</Menu.Item>}
+      {currentConnectable &&
+        !loading &&
+        (connectableIsIncluded() ? (
           <Menu.Item
-            onClick={() => unIncludeThing(currentIdea.id.toString())}
+            onClick={() => unIncludeThing(currentConnectable.id.toString())}
             leftSection={<XIcon />}
           >
-            Remove {truncatedIdeaTitle()}
+            Remove {truncatedConnectableTitle()}
           </Menu.Item>
         ) : (
           <Menu.Item
-            onClick={() => includeThing(currentIdea.id.toString())}
+            onClick={() => includeThing(currentConnectable.id.toString())}
             leftSection={<PlusIcon />}
           >
-            Include {truncatedIdeaTitle()}
+            Include {truncatedConnectableTitle()}
           </Menu.Item>
         ))}
       <Menu.Label>Included Things</Menu.Label>

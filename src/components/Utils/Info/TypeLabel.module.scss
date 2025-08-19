@@ -1,0 +1,12 @@
+.typeLabel {
+   position: absolute;
+   background-color: var(--mantine-color-dark-7);
+   border-radius: 50%;
+   aspect-ratio: 1/1;
+   height: 12px;
+   padding: 2px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   left: -2px;
+}

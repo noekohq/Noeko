@@ -9,6 +9,7 @@ import { ITag } from "../../app/database/models/tag";
 import { ITask } from "../../app/database/models/task";
 import { getNodeDescription } from "./graph";
 import { IUserFile } from "../../app/database/models/userfile";
+import { ISource } from "../../app/database/models/source";
 
 export const newRabbithole = async () => {
   try {
@@ -126,9 +127,9 @@ export const getRabbitholeThingName = (thing: IRabbitholeIncludes) => {
     const task = thing as ITask;
     return task.description;
   }
-  if (thing.id.toString().startsWith("user_file")) {
-    const file = thing as IUserFile;
-    return file.originalFileName;
+  if (thing.id.toString().startsWith("source")) {
+    const file = thing as ISource;
+    return file.displayName;
   }
 };
 
@@ -148,8 +149,8 @@ export const getRabbitholeThingDescription = (thing: IRabbitholeIncludes) => {
     const task = thing as ITask;
     return task.description;
   }
-  if (thing.id.toString().startsWith("user_file")) {
-    const file = thing as IUserFile;
-    return file.originalFileName;
+  if (thing.id.toString().startsWith("source")) {
+    const file = thing as ISource;
+    return file.displayName;
   }
 };
