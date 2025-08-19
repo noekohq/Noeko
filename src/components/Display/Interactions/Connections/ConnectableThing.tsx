@@ -49,7 +49,13 @@ export default function ConnectableThing({
     return <IdeaButton key={idea.id.toString()} idea={idea} />;
   }
   if (thing.id.toString().startsWith("task")) {
-    return <TaskButton key={thing.id.toString()} task={thing as ITask} />;
+    return (
+      <TaskButton
+        link={false}
+        key={thing.id.toString()}
+        task={thing as ITask}
+      />
+    );
   }
   if (thing.id.toString().startsWith("source")) {
     const source = thing as ISource;
