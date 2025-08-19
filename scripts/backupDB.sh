@@ -40,14 +40,6 @@ fi
 : "${GCLOUD_PROJECT_ID?ERROR: GCLOUD_PROJECT_ID not set in .env}"
 log "Required variables are present."
 
-# --- GCloud Authentication ---
-log "Authenticating with Google Cloud..."
-if [[ ! -f "$GCLOUD_KEY_FILE_PATH" ]]; then
-    error "GCloud key file not found at: $GCLOUD_KEY_FILE_PATH"
-fi
-gcloud auth activate-service-account --key-file="$GCLOUD_KEY_FILE_PATH" || error "GCloud authentication failed."
-gcloud config set project "$GCLOUD_PROJECT_ID" || error "Failed to set GCloud project."
-
 # --- Determine Backup Type (The Core GFS Logic) ---
 DAY_OF_WEEK=$(date +'%u') # 1-7 (Monday-Sunday)
 DAY_OF_MONTH=$(date +'%d')
