@@ -141,7 +141,11 @@ export default function BubbleMenu({
     <TippyBubbleMenu
       editor={editor}
       className={styles.bubbleMenu}
-      tippyOptions={{ duration: 100, placement: "bottom" }}
+      tippyOptions={{
+        duration: 100,
+        placement: "bottom",
+        appendTo: () => document.body,
+      }}
       shouldShow={shouldShowHandler}
     >
       {!hidden && (
