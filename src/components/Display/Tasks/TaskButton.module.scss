@@ -13,7 +13,7 @@
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: var(--mantine-shadow-lg);
+        box-shadow: var(--mantine-shadow-sm);
     }
 
     &:active {
@@ -27,5 +27,6 @@
         flex-direction: row;
         align-items: center;
         gap: var(--mantine-spacing-sm);
+        justify-content: space-between;
     }
 }

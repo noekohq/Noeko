@@ -105,18 +105,20 @@ function SourceButton({
         setHovering(false);
       }}
     >
-      <Group justify="space-between" wrap="nowrap" w="100%" gap="xs">
-        <Text className={styles.title} c="dark.1" size="sm" truncate="end">
-          <Group gap="xs" wrap="nowrap">
+      <div className={styles.content}>
+        <Group gap="xs" align="baseline" wrap="nowrap">
+          <FileTextIcon
+            color="var(--mantine-color-gray-4)"
+            size={16}
+            weight="regular"
+          />
+          <Text size="sm" lineClamp={0}>
             {source.displayName}
-          </Group>
-        </Text>
-        <Group wrap="nowrap">
-          <ActionIcon size="xs" color="dark.8">
-            <FileTextIcon weight="bold" color="var(--mantine-color-dark-3)" />
-          </ActionIcon>
-          {hovering &&
-            allActions?.map((action) => {
+          </Text>
+        </Group>
+        {hovering && (
+          <Group>
+            {allActions?.map((action) => {
               return (
                 <ActionIcon
                   size="xs"
@@ -137,8 +139,9 @@ function SourceButton({
                 </ActionIcon>
               );
             })}
-        </Group>
-      </Group>
+          </Group>
+        )}
+      </div>
     </div>
   );
 }
