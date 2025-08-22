@@ -7,6 +7,8 @@ set -u
 # Pipelines fail if any command fails, not just the last one.
 set -o pipefail
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 # --- Configuration ---
 # Default location if not specified by argument or .env
 DEFAULT_EXPORT_PARENT_DIR="./db_backups"
