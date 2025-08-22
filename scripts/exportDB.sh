@@ -10,11 +10,10 @@ set -o pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # --- Configuration ---
-# Default location if not specified by argument or .env
-DEFAULT_EXPORT_PARENT_DIR="./db_backups"
-# Default connection string if not in .env (adjust if needed)
+PROJECT_ROOT="$SCRIPT_DIR/.."
+DEFAULT_EXPORT_PARENT_DIR="$PROJECT_ROOT/db_backups"
+ENV_FILE="$PROJECT_ROOT/.env"
 DEFAULT_DB_HOST_CONNECTION="http://localhost:8000"
-# Temporary file path inside the container
 CONTAINER_TMP_DIR="/tmp"
 
 # --- Helper Functions ---
@@ -33,7 +32,6 @@ if ! command -v docker-compose &> /dev/null; then
 fi
 
 # --- Load .env File ---
-ENV_FILE=".env"
 if [[ -f "$ENV_FILE" ]]; then
     log "Loading environment variables from $ENV_FILE using grep/export method..."
     # Attempt to export variables from .env file
