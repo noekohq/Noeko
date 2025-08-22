@@ -111,6 +111,7 @@ function SourceButton({
             color="var(--mantine-color-gray-4)"
             size={16}
             weight="regular"
+            className={styles.indicator}
           />
           <Text size="sm" lineClamp={0}>
             {source.displayName}

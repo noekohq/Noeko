@@ -6,7 +6,7 @@
     font-size: var(--mantine-font-size-xs);
     border-width: 1px;
     border-style: solid;
-    border-radius: var(--mantine-radius-xs);
+    border-radius: var(--mantine-radius-md);
     background-color: transparent;
     padding: 4px var(--mantine-spacing-sm);
     margin: 0;
@@ -35,7 +35,7 @@
         justify-content: space-between;
         gap: var(--mantine-spacing-sm);
 
-        svg {
+        svg.indicator {
             position: relative;
             top: 2px;
         }

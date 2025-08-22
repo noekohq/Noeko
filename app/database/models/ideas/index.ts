@@ -140,6 +140,15 @@ export class Idea {
   }
 
   static async up() {
+    const db = await getDatabase();
+    if (!db) {
+      throw new Error("Couldn't get database");
+    }
+
+    await db?.query(
+      `DEFINE INDEX IF NOT EXISTS idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt;`,
+    );
+
     const userGraphFunction = () => {
       return `
         DEFINE FUNCTION OVERWRITE fn::user_graph(
@@ -290,7 +299,6 @@ export class Idea {
       `;
     };
 
-    const db = await getDatabase();
     await db?.query(userGraphFunction());
     await db?.query(userHeavyGraphFunction());
     await db?.query(getIdeaConnections());
