@@ -11,7 +11,7 @@ import {
 import { getDatabase } from "../db";
 import { Response } from "express";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
-import { ISource } from "./source";
+import Source, { ISource } from "./source";
 
 export type IUserFile = {
   id: RecordId;
@@ -278,6 +278,10 @@ export class UserFile {
       const deleted = await deleteFromS3(found.s3key);
       if (!deleted) {
         throw Error(`Error during delete for id "${userFileId}".`);
+      }
+      const source = found.source;
+      if (source) {
+        await Source.delete(source.id.toString());
       }
       const result = await db?.delete(new StringRecordId(userFileId));
       if (!result) {

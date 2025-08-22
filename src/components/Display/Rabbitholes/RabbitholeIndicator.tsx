@@ -71,21 +71,26 @@ function DropdownForRabbithole() {
   const navigate = useNavigate();
 
   const {
-    rabbitholes: {
-      entered: { get: currentRabbithole, set: setRabbithole, reload },
-    },
     connectable: {
       viewing: { get: currentConnectable },
     },
   } = useLandscape();
 
   const {
+    currentRabbithole,
     exitRabbithole,
     includeThing,
     unIncludeThing,
     isIncludedThing,
     loading,
   } = useRabbithole();
+
+  console.log(
+    "Included: ",
+    currentConnectable
+      ? isIncludedThing(currentConnectable.id.toString())
+      : "Unapplicable",
+  );
 
   const truncatedConnectableTitle = () => {
     if (!currentConnectable) return "";

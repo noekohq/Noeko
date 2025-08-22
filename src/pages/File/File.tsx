@@ -193,7 +193,7 @@ export default function UserFile() {
       <RightSidebar>
         <RightSidebar.Open>
           <Stack gap="lg">
-            <Paper>
+            <Paper bg="dark.8">
               <Text size="sm" fw="bold">
                 {file?.originalFileName}
               </Text>
