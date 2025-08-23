@@ -1,6 +1,7 @@
 import {
   BubbleMenu as TippyBubbleMenu,
   Editor as IEditor,
+  BubbleMenuProps,
 } from "@tiptap/react";
 import styles from "./BubbleMenu.module.scss";
 import {
@@ -31,17 +32,19 @@ import { ActionIcon, Group, Stack, Textarea, TextInput } from "@mantine/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { showNotification } from "@mantine/notifications";
 import { CheckIcon, TrashSimpleIcon, XIcon } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
 
 interface IBubbleMenuProps {
   editor: IEditor | null;
   onVisibilityChange?: (isVisible: boolean) => void;
+  boundaryRef?: RefObject<HTMLElement>;
 }
 
 export default function BubbleMenu({
   editor,
   onVisibilityChange,
+  boundaryRef,
 }: IBubbleMenuProps) {
   const isImage = editor?.isActive("dreamImage");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
@@ -71,18 +74,40 @@ export default function BubbleMenu({
     return shouldBeVisible;
   };
 
+  const menuProps = {
+    editor: editor,
+    className: styles.bubbleMenu,
+    tippyOptions: {
+      duration: 100,
+      placement: "bottom" as const,
+      popperOptions: {
+        modifiers: [
+          {
+            name: "preventOverflow",
+            options: {
+              boundary: boundaryRef?.current || "clippingParents",
+            },
+          },
+          {
+            name: "flip",
+            options: {
+              // Also use the same boundary for the flip modifier
+              boundary: boundaryRef?.current || "clippingParents",
+            },
+          },
+        ],
+      },
+    },
+    shouldShow: shouldShowHandler,
+  };
+
   if (!editor) {
     return null;
   }
 
   if (isDreamTable) {
     return (
-      <TippyBubbleMenu
-        editor={editor}
-        className={styles.bubbleMenu}
-        tippyOptions={{ duration: 100, placement: "bottom" }}
-        shouldShow={shouldShowHandler}
-      >
+      <TippyBubbleMenu {...menuProps}>
         <div></div>
       </TippyBubbleMenu>
     );
@@ -90,64 +115,35 @@ export default function BubbleMenu({
 
   if (isImage) {
     return (
-      <TippyBubbleMenu
-        editor={editor}
-        className={styles.bubbleMenu}
-        tippyOptions={{ duration: 100, placement: "bottom" }}
-        shouldShow={shouldShowHandler}
-      >
+      <TippyBubbleMenu {...menuProps}>
         <DreamImageMenu editor={editor} />
       </TippyBubbleMenu>
     );
   }
   if (isInlineMath) {
     return (
-      <TippyBubbleMenu
-        editor={editor}
-        className={styles.bubbleMenu}
-        tippyOptions={{ duration: 100, placement: "bottom" }}
-        shouldShow={shouldShowHandler}
-      >
+      <TippyBubbleMenu {...menuProps}>
         <InlineMathMenu editor={editor} />
       </TippyBubbleMenu>
     );
   }
   if (isBlockMath) {
     return (
-      <TippyBubbleMenu
-        editor={editor}
-        className={styles.bubbleMenu}
-        tippyOptions={{ duration: 100, placement: "bottom" }}
-        shouldShow={shouldShowHandler}
-      >
+      <TippyBubbleMenu {...menuProps}>
         <BlockMathMenu editor={editor} />
       </TippyBubbleMenu>
     );
   }
   if (isDreamYouTube) {
     return (
-      <TippyBubbleMenu
-        editor={editor}
-        className={styles.bubbleMenu}
-        tippyOptions={{ duration: 100, placement: "bottom" }}
-        shouldShow={shouldShowHandler}
-      >
+      <TippyBubbleMenu {...menuProps}>
         <DreamYouTubeMenu editor={editor} />
       </TippyBubbleMenu>
     );
   }
 
   return (
-    <TippyBubbleMenu
-      editor={editor}
-      className={styles.bubbleMenu}
-      tippyOptions={{
-        duration: 100,
-        placement: "bottom",
-        appendTo: () => document.body,
-      }}
-      shouldShow={shouldShowHandler}
-    >
+    <TippyBubbleMenu {...menuProps}>
       {!hidden && (
         <>
           {isMobile && (
