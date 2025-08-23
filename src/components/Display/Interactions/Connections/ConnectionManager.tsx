@@ -126,7 +126,7 @@ export default function ConnectionManager({
           </Overlay>
         )}
         <Stack>
-          <Group align="center" justify="space-between" mt="lg" mb="md">
+          <Group align="center" justify="space-between" mt="lg">
             <Text size="sm" c="dark.4" fw="bold">
               <Group gap="xs">
                 <UniteSquareIcon weight="bold" />

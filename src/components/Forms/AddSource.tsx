@@ -83,6 +83,10 @@ export default function AddSourceForm({
         includeThing(source.id.toString());
       }
       onSubmit?.(source);
+      showNotification({
+        title: "Success!",
+        message: "Source added successfully",
+      });
       if (!onSubmit) {
         navigate(`/source/${source.id.toString()}`);
       }
@@ -178,6 +182,7 @@ export default function AddSourceForm({
       <Grid.Col span={{ sm: 12, md: 6 }}>
         <FileInput
           placeholder="Choose a file"
+          accept="application/pdf"
           {...fileForm.getInputProps("userFile")}
           leftSection={
             <>

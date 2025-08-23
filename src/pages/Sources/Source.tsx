@@ -6,11 +6,9 @@ import {
   Blockquote,
   Button,
   Card,
-  Center,
   Drawer,
-  Flex,
-  Grid,
   Group,
+  Loader,
   Paper,
   ScrollAreaAutosize,
   Stack,
@@ -27,6 +25,7 @@ import { ViewerMap } from "../../components/Display/Files/Viewers";
 import { useLayout } from "../../contexts/LayoutContext";
 import {
   CaretLeftIcon,
+  EyeIcon,
   FileIcon,
   FileMagnifyingGlassIcon,
   IntersectSquareIcon,
@@ -47,16 +46,20 @@ export default function Source() {
 
   const navigate = useNavigate();
 
-  const { data: source } = useFetch<undefined, ISource>({
+  const { data: source, load: loadSource } = useFetch<undefined, ISource>({
     url: `/sources/${sourceId}`,
-    runOnMount: true,
   });
+
+  useEffect(() => {
+    loadSource();
+  }, []);
 
   const {
     connectable: {
       viewing: { set: setViewing },
     },
   } = useLandscape();
+
   useEffect(() => {
     if (source) {
       setViewing({
@@ -127,6 +130,28 @@ export default function Source() {
               </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="context">
+              {!source?.analysis && (
+                <Text size="xs" c="dimmed">
+                  This source has not been analyzed.
+                </Text>
+              )}
+              {source?.analysis && (
+                <Card
+                  radius="lg"
+                  p={"sm"}
+                  styles={{
+                    root: {
+                      backgroundColor: "var(--mantine-color-dark-8) !important",
+                      border: "1px solid var(--mantine-color-dark-7)",
+                    },
+                  }}
+                >
+                  <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+                    The Gist
+                  </Text>
+                  <Text size="sm">{source.analysis.headline}</Text>
+                </Card>
+              )}
               {!!source && (
                 <ConnectionManager
                   connectable={{
@@ -137,9 +162,13 @@ export default function Source() {
               )}
             </Tabs.Panel>
             <Tabs.Panel value="analysis">
-              {source?.analysis && (
-                <AnalysisBlock analysis={source?.analysis} />
-              )}
+              <AnalysisBlock
+                analysis={source?.analysis}
+                source={source}
+                reloadSource={() => {
+                  loadSource();
+                }}
+              />
             </Tabs.Panel>
           </Tabs>
         </LeftSidebar.Open>
@@ -219,9 +248,15 @@ export default function Source() {
 }
 
 interface IAnalysisBlockProps {
-  analysis: ISource["analysis"];
+  analysis?: ISource["analysis"];
+  source?: ISource;
+  reloadSource: () => void;
 }
-function AnalysisBlock({ analysis }: IAnalysisBlockProps) {
+function AnalysisBlock({
+  analysis,
+  source,
+  reloadSource,
+}: IAnalysisBlockProps) {
   const [abstractOpen, setAbstractOpen] = useState(false);
   const [findingsOpen, setFindingsOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
@@ -236,6 +271,17 @@ function AnalysisBlock({ analysis }: IAnalysisBlockProps) {
     return abstract.length > maxLength
       ? `${abstract.slice(0, maxLength)}...`
       : abstract;
+  };
+
+  const { load: requestAnalysis, loading: loadingAnalysis } = useFetch({
+    url: `/sources/${source?.id.toString()}/analyze`,
+    onFinally: () => {
+      reloadSource();
+    },
+  });
+
+  const handleRequestAnalysis = () => {
+    requestAnalysis();
   };
 
   const Outline = outline.map((item) => {
@@ -282,12 +328,52 @@ function AnalysisBlock({ analysis }: IAnalysisBlockProps) {
     );
   });
 
+  if (!analysis) {
+    return (
+      <>
+        <Stack>
+          <Text size="sm" c="dimmed">
+            This source hasn't been analyzed.
+          </Text>
+          <Button
+            variant="light"
+            onClick={() => {
+              handleRequestAnalysis();
+            }}
+            disabled={loadingAnalysis}
+            leftSection={
+              loadingAnalysis ? <Loader size="sm" color="white" /> : ""
+            }
+            size="sm"
+            fullWidth
+            color="gray"
+            rightSection={<EyeIcon />}
+          >
+            {loadingAnalysis ? "Analyzing..." : "Analyze source"}
+          </Button>
+        </Stack>
+      </>
+    );
+  }
+
   return (
     <>
       <Stack>
-        <Text fw="bold" size="sm">
-          {analysis?.headline}
-        </Text>
+        <Card
+          radius="lg"
+          p={"sm"}
+          styles={{
+            root: {
+              backgroundColor: "var(--mantine-color-dark-8) !important",
+              border: "1px solid var(--mantine-color-dark-7)",
+            },
+          }}
+        >
+          <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+            The Gist
+          </Text>
+          <Text size="sm">{analysis.headline}</Text>
+        </Card>
         <Card
           radius="lg"
           p={"sm"}

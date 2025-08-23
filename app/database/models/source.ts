@@ -126,8 +126,9 @@ export default class Source {
       }
       await this.establishOwnership(sourceable.owner, source.id);
       await this.sourceForUser(sourceable.owner, source.id);
-      this.loadAnalysis(source.id);
-      this.loadEmbeddings(source.id);
+      // this.loadAnalysis(source.id).then(() => {
+      //   this.loadEmbeddings(source.id);
+      // });
       return source;
     } catch (error) {
       console.error("Error creating source from: ", sourceable, error);
