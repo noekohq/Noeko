@@ -194,6 +194,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           onVisibilityChange={(isVisible) => {
             setBubbleMenuVisible(isVisible);
           }}
+          boundaryRef={editorContainerRef}
         />
         <EditorContent
           onContextMenuCapture={(e) => {
