@@ -194,7 +194,7 @@ export default function ConnectionManager({
             }}
           </Transition>
         </Stack>
-        <Stack>
+        <Stack mt="sm">
           {connected &&
             connected?.length > 0 &&
             connected?.map((connection, i) => {
