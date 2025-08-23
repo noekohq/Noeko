@@ -521,6 +521,8 @@ type IAddSourceProps = {
 };
 
 function AddSource({ opened, setOpened }: IAddSourceProps) {
+  const navigate = useNavigate();
+
   return (
     <Drawer
       onClose={() => setOpened(false)}
@@ -532,8 +534,9 @@ function AddSource({ opened, setOpened }: IAddSourceProps) {
       size="70%"
     >
       <AddSourceForm
-        onSubmit={() => {
+        onSubmit={(source) => {
           setOpened(false);
+          navigate(`/source/${source.id.toString()}`);
         }}
         onCancel={() => {
           setOpened(false);
