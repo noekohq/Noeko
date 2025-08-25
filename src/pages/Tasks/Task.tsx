@@ -228,6 +228,7 @@ export default function Task() {
       });
     }
   }, 200);
+
   useEffect(() => {
     if (loadingTask || scratchpadContent === "") {
       return;

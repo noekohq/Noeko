@@ -141,4 +141,37 @@ router.get("/:sourceId/analyze", async (req, res) => {
   }
 });
 
+router.put("/:sourceId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(401).json({
+        error: "Unauthorized",
+        message: "User not found.",
+      });
+      return;
+    }
+
+    const sourceId = req.params.sourceId;
+    const owns = await User.checkOwns(user.id, sourceId);
+    if (!owns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+
+    const { ...updates } = req.body;
+    const result = await Source.update(sourceId, updates);
+    res.send({
+      message: "Successfully updated source",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Something went wrong.",
+    });
+  }
+});
+
 export default router;

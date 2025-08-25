@@ -32,6 +32,11 @@ export type ISource = {
 
 export type ISourceCreator = Omit<ISource, "id">;
 
+export type ISourceForm = Omit<
+  ISourceCreator,
+  "createdAt" | "updatedAt" | "embeddings" | "embeddingsGeneratedAt"
+>;
+
 export type ISourceAnalysis = {
   headline: string;
   abstract: string;
@@ -180,11 +185,29 @@ export default class Source {
       if (!db) {
         throw new Error("Couldn't get database");
       }
+      const updater: Partial<ISourceCreator> = {
+        updatedAt: new Date(),
+      };
+      if (updates.analysis) {
+        updater.analysis = updates.analysis;
+      }
+      if (updates.content) {
+        updater.content = updates.content;
+      }
+      if (updates.embeddings) {
+        updater.embeddings = updates.embeddings;
+        updater.embeddingsUpdatedAt = new Date();
+      }
+      if (updates.displayName) {
+        updater.displayName = updates.displayName;
+      }
+      if (updates.visibility) {
+        updater.visibility = updates.visibility;
+      }
       const update = await db.merge<ISource, Partial<ISourceCreator>>(
         new StringRecordId(sourceId),
         {
-          ...updates,
-          updatedAt: new Date(),
+          ...updater,
         },
       );
       if (!update) {

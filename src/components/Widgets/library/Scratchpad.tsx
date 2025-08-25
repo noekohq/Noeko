@@ -96,23 +96,22 @@ export default function Scratchpad() {
 
   return (
     <div className={styles.scratchpad}>
+      <div className={styles.editor}>
+        <DreamWriter
+          autofocus={false}
+          ref={editorRef}
+          onBlur={() => {
+            handlePostContent();
+          }}
+          onChange={(v) => {
+            setContent(v);
+          }}
+          initialContent={originalContent}
+          readOnly={loadingContent}
+        />
+      </div>
       <div className={styles.toolbar}>
         <Group>
-          <HoverCard width="300px" radius="lg" openDelay={200}>
-            <HoverCard.Target>
-              <ActionIcon variant="light" radius="sm" size="sm" color="gray">
-                <InfoIcon />
-              </ActionIcon>
-            </HoverCard.Target>
-            <HoverCard.Dropdown>
-              <Text size="sm">
-                Scratchpad is a place to store content meant to be fleeting. Use
-                it as a distraction pad, a place to jot down stuff you come
-                across, or however you'd like! The suggestion is to clear it
-                often, but use it however makes sense to you.
-              </Text>
-            </HoverCard.Dropdown>
-          </HoverCard>
           <Tooltip label="Clear scratchpad">
             <ActionIcon
               variant="light"
@@ -165,20 +164,22 @@ export default function Scratchpad() {
               )}
             </Menu.Dropdown>
           </Menu>
+          <HoverCard width="300px" radius="lg" openDelay={200}>
+            <HoverCard.Target>
+              <ActionIcon variant="subtle" radius="sm" size="sm" color="gray">
+                <InfoIcon />
+              </ActionIcon>
+            </HoverCard.Target>
+            <HoverCard.Dropdown>
+              <Text size="sm">
+                Scratchpad is a place to store content meant to be fleeting. Use
+                it as a distraction pad, a place to jot down stuff you come
+                across, or however you'd like! The suggestion is to clear it
+                often, but use it however makes sense to you.
+              </Text>
+            </HoverCard.Dropdown>
+          </HoverCard>
         </Group>
-      </div>
-      <div className={styles.editor}>
-        <DreamWriter
-          ref={editorRef}
-          onBlur={() => {
-            handlePostContent();
-          }}
-          onChange={(v) => {
-            setContent(v);
-          }}
-          initialContent={originalContent}
-          readOnly={loadingContent}
-        />
       </div>
     </div>
   );

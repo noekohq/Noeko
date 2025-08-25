@@ -85,13 +85,6 @@ function DropdownForRabbithole() {
     loading,
   } = useRabbithole();
 
-  console.log(
-    "Included: ",
-    currentConnectable
-      ? isIncludedThing(currentConnectable.id.toString())
-      : "Unapplicable",
-  );
-
   const truncatedConnectableTitle = () => {
     if (!currentConnectable) return "";
     const name = getNodeTitle({

@@ -364,7 +364,7 @@ export default function ViewTag() {
           {!!tag && (
             <Stack gap="md">
               <Group>
-                <Title order={3}>Suggested Ideas</Title>
+                <Title order={3}>Suggestions</Title>
                 {loadingRelatedIdeas && <Loader size="md" />}
               </Group>
               {relatedIdeaErrors && relatedIdeaErrors.length > 0 && (
@@ -374,7 +374,7 @@ export default function ViewTag() {
                   color="red"
                   mt="md"
                 >
-                  Failed to load suggested ideas: {relatedIdeaErrors.join(", ")}
+                  Failed to load suggestions: {relatedIdeaErrors.join(", ")}
                 </Alert>
               )}
               {!(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
@@ -403,7 +403,9 @@ export default function ViewTag() {
               ) : (
                 !loadingRelatedIdeas &&
                 !(relatedIdeaErrors && relatedIdeaErrors.length > 0) && (
-                  <Text c="dimmed">No similar ideas found for this tag.</Text>
+                  <Text c="dimmed" size="sm">
+                    No suggestions.
+                  </Text>
                 )
               )}
             </Stack>
@@ -498,7 +500,7 @@ export default function ViewTag() {
                     <Group justify="space-between" align="flex-start">
                       <Stack gap="xs" style={{ flex: 1 }}>
                         <Group gap="lg">
-                          <BlockTag tag={tag} color="blue" />
+                          <BlockTag tag={tag} />
                         </Group>
                         {tag.description && (
                           <Text size="sm" c="dimmed">

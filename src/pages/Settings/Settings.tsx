@@ -2,6 +2,7 @@ import {
   Button,
   Card,
   Container,
+  CopyButton,
   Divider,
   Grid,
   Group,
@@ -19,6 +20,8 @@ import { IThemeSpec } from "../../declarations/themes";
 import { Link } from "react-router";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import { CheckIcon, CopyIcon, LightbulbIcon } from "@phosphor-icons/react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Settings() {
   const {
@@ -30,12 +33,13 @@ export default function Settings() {
       },
     },
   } = useSettings();
+  const { referralLink } = useAuth();
 
   return (
     <PageWrapper>
       <LeftSidebar />
       <Content>
-        <Grid>
+        <Grid className={styles.settings}>
           <Grid.Col span={12}>
             <Title>Settings</Title>
           </Grid.Col>
@@ -151,6 +155,43 @@ export default function Settings() {
                 <Link to="/spyglass/history">
                   <Button variant="default">Spyglass History</Button>
                 </Link>
+              </Stack>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Card withBorder radius="lg">
+              <Stack>
+                <Title order={3}>Sharing</Title>
+                <Group>
+                  {referralLink && (
+                    <CopyButton value={referralLink}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Button
+                            onClick={() => {
+                              copy();
+                            }}
+                            variant="default"
+                            leftSection={
+                              copied ? (
+                                <CheckIcon weight="bold" />
+                              ) : (
+                                <CopyIcon weight="bold" />
+                              )
+                            }
+                          >
+                            <Text>Copy Referral Link</Text>
+                          </Button>
+                        );
+                      }}
+                    </CopyButton>
+                  )}
+                  <Link to="/ideas/shared">
+                    <Button variant="default" leftSection={<LightbulbIcon />}>
+                      Shared Ideas
+                    </Button>
+                  </Link>
+                </Group>
               </Stack>
             </Card>
           </Grid.Col>

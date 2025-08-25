@@ -50,7 +50,10 @@ import { useInteraction } from "../../contexts/InteractionContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import { useLayout } from "../../contexts/LayoutContext";
 import StatusBar from "../../components/UI/Layout/Bottom";
-import { getCurrentTimeFormatted } from "../../utils/datetime";
+import {
+  getCurrentTimeFormatted,
+  getCurrentTimeOfDay,
+} from "../../utils/datetime";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
 import TimeButton from "../../components/Display/Interactions/TimeButton";
 import { IDashboard } from "../../../app/services/Dashboard";
@@ -334,7 +337,7 @@ function TopBar() {
           </Group>
         </Title>
         <Title p={0} m={0} order={4} c="dimmed">
-          Your Qwest continues.
+          Good {getCurrentTimeOfDay()}, it's {getCurrentTimeFormatted()}.
         </Title>
       </Stack>
       <Flex
