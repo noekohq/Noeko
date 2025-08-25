@@ -2,11 +2,11 @@
     height: 100%;
 
     .toolbar {
-        height: 48px;
+        height: 24px;
     }
 
     .editor {
-        height: calc(100% - 48px);
+        height: calc(100% - 24px);
         overflow-y: scroll;
     }
 }

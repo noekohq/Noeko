@@ -32,6 +32,7 @@ import {
   CopySimpleIcon,
   CursorTextIcon,
   EyeIcon,
+  IntersectSquareIcon,
   MarkdownLogoIcon,
   ShareNetworkIcon,
   SparkleIcon,
@@ -480,7 +481,7 @@ export default function Idea() {
             <Tabs.List>
               <Tabs.Tab value="context">
                 <Group gap="xs">
-                  <StarIcon weight="fill" size={14} />
+                  <IntersectSquareIcon weight="fill" size={14} />
                   Context
                 </Group>
               </Tabs.Tab>

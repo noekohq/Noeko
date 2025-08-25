@@ -1,4 +1,4 @@
-.rabbitholeButton {
+.tagButton {
     width: 100%;
     display: flex;
     align-items: center;
@@ -6,9 +6,9 @@
     font-size: var(--mantine-font-size-xs);
     border-width: 1px;
     border-style: solid;
-    border-radius: var(--mantine-radius-md);
+    border-radius: var(--mantine-radius-lg);
     background-color: transparent;
-    padding: 4px var(--mantine-spacing-sm);
+    padding: 8px var(--mantine-spacing-xs);
     margin: 0;
     border: 1px solid var(--mantine-color-dark-7);
     transition:

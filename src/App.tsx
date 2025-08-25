@@ -10,6 +10,7 @@ import {
   Alert,
   Flex,
   Loader,
+  Overlay,
   Stack,
   Text,
   useMantineColorScheme,
@@ -95,45 +96,45 @@ export default function App() {
     );
   }
 
-  if (!isOnline) {
-    return (
-      <Flex justify="center" align="center" direction="column">
-        <Content>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "50vh",
-              padding: "20px",
-            }}
-          >
-            <Alert
-              icon={<CloudIcon />}
-              title="Connecting..."
-              color="gray"
-              radius="lg"
-            >
-              <Stack gap="xs">
-                <Text size="sm">
-                  Attemping to establish a connection to the Qwest server. If
-                  this takes a while, consider refreshing the page.
-                </Text>
-                <Text size="sm">
-                  We apologize for any inconvenience. For any inquiries or
-                  support, please feel free to contact{" "}
-                  <a href="mailto:support@qwest.so">support@qwest.so</a>.
-                </Text>
-              </Stack>
-            </Alert>
-          </div>
-        </Content>
-      </Flex>
-    );
-  }
-
   return (
     <>
+      {!isOnline && (
+        <Overlay backgroundOpacity={0.5} blur={4}>
+          <Flex justify="center" align="center" direction="column">
+            <Content>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "80vh",
+                  padding: "20px",
+                }}
+              >
+                <Alert
+                  icon={<CloudIcon />}
+                  title="Connecting..."
+                  color="dark.2"
+                  radius="lg"
+                  bg="dark.8"
+                >
+                  <Stack gap="xs">
+                    <Text size="sm">
+                      Attemping to establish a connection to the Qwest server.
+                      If this takes a while, consider refreshing the page.
+                    </Text>
+                    <Text size="sm">
+                      We apologize for any inconvenience. For any inquiries or
+                      support, please feel free to contact{" "}
+                      <a href="mailto:support@qwest.so">support@qwest.so</a>.
+                    </Text>
+                  </Stack>
+                </Alert>
+              </div>
+            </Content>
+          </Flex>
+        </Overlay>
+      )}
       <Routes>
         {!loggedIn && (
           <>

@@ -1,5 +1,9 @@
 import { RecordId } from "surrealdb";
-import { ISource, ISourceReference } from "../../app/database/models/source";
+import {
+  ISource,
+  ISourceForm,
+  ISourceReference,
+} from "../../app/database/models/source";
 import { IUserFile } from "../../app/database/models/userfile";
 import { api } from "../server/api";
 
@@ -19,6 +23,19 @@ export const createSourceFrom = async (thingId: string | RecordId) => {
     return response.data.data as ISource;
   } catch (error) {
     console.error("Error creating source from: ", thingId, error);
+    return undefined;
+  }
+};
+
+export const updateSource = async (
+  taskId: string | RecordId,
+  form: Partial<ISourceForm>,
+) => {
+  try {
+    const result = await api.put(`/sources/${taskId.toString()}`, form);
+    return result.data.data as boolean;
+  } catch (error) {
+    console.error("Error completing task: ", error);
     return undefined;
   }
 };

@@ -56,7 +56,7 @@ export default function CreateTaskForm({
 }: ICreateTaskFormProps) {
   const initialTaskDate = () => {
     const d = new Date();
-    d.setHours(d.getHours() + 24);
+    d.setHours(d.getHours());
     return toYYYYMMDD(d);
   };
 

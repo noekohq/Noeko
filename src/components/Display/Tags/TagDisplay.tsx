@@ -10,7 +10,7 @@ import {
 import { ITag } from "../../../../app/database/models/tag";
 import { useSettings } from "../../../contexts/SettingsContext";
 import { Link } from "react-router";
-import { Tag } from "@phosphor-icons/react";
+import { Tag, TagIcon } from "@phosphor-icons/react";
 
 type IInlineTagProps = {
   tag: ITag;
@@ -74,7 +74,6 @@ type IBlockTagProps = {
   rightSection?: React.ReactNode;
   link?: boolean;
   className?: string; // Optional className prop for further customization
-  color?: string;
   onClick?: () => void;
 };
 
@@ -85,7 +84,6 @@ export function BlockTag({
   rightSection,
   link = true,
   className,
-  color,
   onClick,
 }: IBlockTagProps) {
   const {
@@ -103,17 +101,10 @@ export function BlockTag({
           size="xl"
           className={className}
           variant={variant || "light"}
-          color={color ? color : scheme === "dark" ? "dark.5" : "dark.7"}
-          c={!color ? (scheme === "dark" ? "dark.2" : "dark.3") : undefined}
-          styles={{
-            root: {
-              border: !color
-                ? "1px solid var(--mantine-color-dark-6)"
-                : undefined,
-            },
-          }}
+          color="dark.2"
+          c="dark.2"
           leftSection={
-            leftSection ? leftSection : <Tag weight="bold" size={18} />
+            leftSection ? leftSection : <TagIcon weight="bold" size={18} />
           }
           rightSection={rightSection}
           onClick={onClick}

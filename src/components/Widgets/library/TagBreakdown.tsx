@@ -3,8 +3,17 @@ import { ITagBreakdown } from "../../../../app/services/Analysis";
 import useFetch from "../../../hooks/useFetch";
 import { IWidgetConfig } from "../index.d";
 import styles from "./TagBreakdown.module.scss";
-import { Group, SegmentedControl, Stack, Text } from "@mantine/core";
+import {
+  Group,
+  SegmentedControl,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
 import TagCard from "../../Display/Tags/TagCard";
+import TagButton from "../../Display/Tags/TagButton";
+import { Link } from "react-router";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 
 export default function TagBreakdown() {
   const { data: tagBreakdown, load: loadBreakdown } = useFetch<
@@ -55,8 +64,25 @@ export default function TagBreakdown() {
       <Stack gap="xs">
         <Group justify="space-between">
           <Text size="sm" c="dimmed" fw="bold">
-            You have {tagBreakdown?.total} tag
-            {tagBreakdown?.total === 1 ? "" : "s"}.
+            <Group align="baseline" gap="xs">
+              You have {tagBreakdown?.total} tag
+              {tagBreakdown?.total === 1 ? "" : "s"}.{" "}
+              <Link
+                to="/tags"
+                style={{
+                  color: "var(--mantine-color-gray-4)",
+                }}
+              >
+                <Group gap="xs" align="center">
+                  All
+                  <ArrowRightIcon
+                    size={14}
+                    color="var(--mantine-color-gray-4"
+                    weight="bold"
+                  />
+                </Group>
+              </Link>
+            </Group>
           </Text>
           <SegmentedControl
             value={viewMode}
@@ -71,9 +97,16 @@ export default function TagBreakdown() {
             size="xs"
           />
         </Group>
-        {toView().map((tag) => {
-          return <TagCard key={tag.id.toString()} tag={tag} />;
-        })}
+        <SimpleGrid
+          cols={{
+            sm: 1,
+            md: 2,
+          }}
+        >
+          {toView().map((tag) => {
+            return <TagButton key={tag.id.toString()} tag={tag} />;
+          })}
+        </SimpleGrid>
       </Stack>
     </div>
   );

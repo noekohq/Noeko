@@ -35,6 +35,7 @@ interface EditorProps {
   onContentReady?: () => void;
   dependencies?: any[];
   readOnly?: boolean;
+  autofocus?: boolean;
 }
 
 const defaultContent = ``;
@@ -54,6 +55,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       onContentReady,
       dependencies,
       readOnly,
+      autofocus = true,
     },
     ref,
   ) => {
@@ -90,7 +92,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         },
         editable: !readOnly,
         injectCSS: false,
-        autofocus: true,
+        autofocus,
       },
       [...(dependencies ?? []), initialContent, readOnly, content],
     );

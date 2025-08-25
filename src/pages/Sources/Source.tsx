@@ -34,12 +34,19 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { ISource, ISourceReference } from "../../../app/database/models/source";
+import {
+  ISource,
+  ISourceForm,
+  ISourceReference,
+} from "../../../app/database/models/source";
 import Search from "../../components/Search/Search";
 import { markdownToHtml } from "../../utils/formatting";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "../../contexts/LandscapeContext";
+import { useDebouncedCallback } from "@mantine/hooks";
+import { updateSource } from "../../utils/sources";
+import { showNotification } from "@mantine/notifications";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -109,6 +116,29 @@ export default function Source() {
 
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
+
+  const debouncedUpdate = useDebouncedCallback(
+    async (update: Partial<ISourceForm>) => {
+      if (sourceId) {
+        updateSource(sourceId, update);
+      }
+    },
+    200,
+  );
+
+  const handleFieldUpdate = async (field: string, value: any) => {
+    try {
+      debouncedUpdate({
+        [field]: value,
+      });
+    } catch (error) {
+      showNotification({
+        title: "Something went wrong",
+        message: "Something went wrong updating the field...",
+      });
+      console.error("Couldn't update field: ", error);
+    }
+  };
 
   return (
     <PageWrapper>
@@ -186,7 +216,13 @@ export default function Source() {
             >
               <CaretLeftIcon weight="bold" />
             </ActionIcon>
-            <Title order={3}>{source?.displayName}</Title>
+            <Title
+              contentEditable
+              onBlur={(e) => {
+                handleFieldUpdate("displayName", e.currentTarget.innerText);
+              }}
+              dangerouslySetInnerHTML={{ __html: source?.displayName || "" }}
+            />
           </Group>
           {file && (
             <div

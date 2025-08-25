@@ -1,12 +1,9 @@
-import { Button, Group, Stack, Text, Title } from "@mantine/core";
+import { Group, Stack, Text, Title } from "@mantine/core";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { IWidgetConfig } from "../index.d";
 import styles from "./RabbitholeList.module.scss";
 import useFetch from "../../../hooks/useFetch";
-import RabbitholeCard from "../../Display/Rabbitholes/RabbitholeCard";
 import { useEffect } from "react";
-import { ArrowRightIcon } from "@phosphor-icons/react";
-import { Link } from "react-router";
 import RabbitholeButton from "../../Display/Rabbitholes/RabbitholeButton";
 
 export default function RabbitholeList() {

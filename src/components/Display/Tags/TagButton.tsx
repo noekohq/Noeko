@@ -1,6 +1,7 @@
 import React from "react";
 import {
   ActionIcon,
+  Badge,
   Box,
   Group,
   HoverCard,
@@ -11,20 +12,21 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import styles from "./SourceButton.module.scss";
+import styles from "./TagButton.module.scss";
 import { useState } from "react";
 import {
   IconProps,
   ArrowRightIcon,
   LightbulbIcon,
   FileTextIcon,
+  TagIcon,
 } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
 import { getNodeDescription } from "../../../utils/graph";
-import { ISource } from "../../../../app/database/models/source";
+import { ITag } from "../../../../app/database/models/tag";
 import { useDisclosure } from "@mantine/hooks";
 
-type ISourceButtonAction = {
+type ITagButtonAction = {
   id: string;
   onClick: (e: React.MouseEvent) => void;
   icon: React.ReactElement<IconProps>;
@@ -32,27 +34,25 @@ type ISourceButtonAction = {
   tooltip?: string;
 };
 
-interface ISourceButtonProps {
-  source: ISource;
+interface ITagButtonProps {
+  tag: ITag;
   bg?: MantineColor | string;
   color?: MantineColor | string;
-  actions?: ISourceButtonAction[];
+  actions?: ITagButtonAction[];
   link?: boolean;
-  draggable?: boolean;
   fullWidth?: boolean;
-  onClick?: (source: ISource, e: React.MouseEvent) => void;
+  onClick?: (tag: ITag, e: React.MouseEvent) => void;
 }
 
-function SourceButton({
-  source,
+function TagButton({
+  tag,
   actions,
   link = true,
-  draggable,
   bg,
   color,
   fullWidth = false,
   onClick,
-}: ISourceButtonProps) {
+}: ITagButtonProps) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -61,8 +61,8 @@ function SourceButton({
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({
-        sourceId: source.id.toString(),
-        thingId: source.id.toString(),
+        tagId: tag.id.toString(),
+        thingId: tag.id.toString(),
       }),
     );
   };
@@ -73,18 +73,18 @@ function SourceButton({
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (onClick) {
-      onClick(source, e);
+      onClick(tag, e);
     }
   };
 
   const navigate = useNavigate();
 
-  const allActions: ISourceButtonAction[] = [
+  const allActions: ITagButtonAction[] = [
     ...(actions || []),
     {
       id: "view",
       onClick: () => {
-        navigate(`/source/${source.id.toString()}`);
+        navigate(`/tags/${tag.id.toString()}`);
       },
       icon: <ArrowRightIcon />,
     },
@@ -115,10 +115,9 @@ function SourceButton({
       <Popover.Target>
         <div
           role="button"
-          data-thing-id={source.id.toString()}
-          data-source-id={source.id.toString()}
-          className={`${styles.sourceButton} ${fullWidth ? styles["full-width"] : ""}`}
-          draggable={true}
+          data-thing-id={tag.id.toString()}
+          data-tag-id={tag.id.toString()}
+          className={`${styles.tagButton} ${fullWidth ? styles["full-width"] : ""}`}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onClick={handleClick}
@@ -135,17 +134,13 @@ function SourceButton({
         >
           <div className={styles.content}>
             <Group gap="xs" align="baseline" wrap="nowrap">
-              <Box w="16px">
-                <FileTextIcon
-                  color="var(--mantine-color-gray-4)"
-                  size={16}
-                  weight="regular"
-                  className={styles.indicator}
-                />
-              </Box>
-              <Text size="sm" lineClamp={0}>
-                {source.displayName}
-              </Text>
+              <Badge
+                c="dark.8"
+                bg="dark.3"
+                leftSection={<TagIcon weight="bold" />}
+              >
+                {tag.name}
+              </Badge>
             </Group>
             {hovering && (
               <Group>
@@ -186,13 +181,13 @@ function SourceButton({
       >
         <Stack gap="xs">
           <Text c="dimmed" fw="bold" size="sm">
-            {source.displayName}
+            {tag.name}
           </Text>
-          <Text size="sm">{source.analysis?.abstract}</Text>
+          <Text size="sm">{tag.description}</Text>
         </Stack>
       </Popover.Dropdown>
     </Popover>
   );
 }
 
-export default SourceButton;
+export default TagButton;
