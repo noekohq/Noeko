@@ -7,14 +7,9 @@ import { ITag } from "../database/models/tag";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IFinding } from "./Spyglass";
 import { ITask } from "../database/models/task";
+import { IConnectable } from "./Graph";
 
-export type ISearchResultValue =
-  | (IIdea & {
-      type: "idea";
-    })
-  | (IUserFile & {
-      type: "file";
-    });
+export type ISearchResultValue = IConnectable;
 
 export type ISearchResult = {
   id: string | RecordId;
@@ -549,7 +544,6 @@ export class Search {
 
       const subqueryWhere = [`<-owns<-(user WHERE id = $userId)`];
 
-      // Don't use index when within rabbithole
       if (!options.rabbitholeId) {
         subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
       }
