@@ -413,7 +413,7 @@ export default function Task() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <Stack gap="sm">
+        <Stack gap="sm" pb="50vh">
           <Group mb="lg">
             <Link
               to="/tasks"
