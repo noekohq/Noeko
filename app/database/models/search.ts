@@ -423,7 +423,7 @@ export class SpyglassSearch {
         return "idea";
       }
       if (source.id.toString().startsWith("user_file")) {
-        return "file";
+        return "source";
       }
       return "idea";
     };
