@@ -32,6 +32,8 @@ import { similarityToColor, similarityToLevel } from "../../../../vars/ideas";
 import { getNodeDescription } from "../../../../utils/graph";
 import CollapseButton from "../CollapseButton";
 import { useNavigate } from "react-router";
+import useRabbithole from "../../../../hooks/useRabbithole";
+import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
 
 interface IConnectionManagerProps {
   connectable: IConnectable;
@@ -54,6 +56,8 @@ export default function ConnectionManager({
     load,
     isConnected,
   } = useConnectable({ connectable });
+
+  const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   useEffect(() => {
     load();
@@ -134,9 +138,9 @@ export default function ConnectionManager({
                 <Transition mounted={loadingConnected} transition="fade-up">
                   {(styles) => {
                     return (
-                      <span style={styles}>
-                        <Loader size="xs" />
-                      </span>
+                      <div style={styles}>
+                        <Loader color="gray" size="xs" />
+                      </div>
                     );
                   }}
                 </Transition>
@@ -232,13 +236,16 @@ export default function ConnectionManager({
         </Stack>
         {draggingOverConnectionDrop && <Box mih={"10vh"} />}
       </Box>
-      <Group justify="space-between" mt="lg" mb="md">
+      <Stack gap="xs" mb="md" mt="md">
         <Text size="sm" c="dark.4" fw="bold">
           <Group gap="xs">
             <IntersectSquareIcon weight="bold" />
             RELATED
             <Transition mounted={loadingSimilar} transition="fade-up">
               {(styles) => {
+                if (loadingSimilar) {
+                  return <Loader color="gray" size="xs" />;
+                }
                 return (
                   <ActionIcon
                     variant="light"
@@ -246,18 +253,22 @@ export default function ConnectionManager({
                     size="xs"
                     style={styles}
                   >
-                    {loadingSimilar ? (
-                      <Loader size="xs" />
-                    ) : (
-                      <ArrowsClockwiseIcon size={12} />
-                    )}
+                    <ArrowsClockwiseIcon size={12} />
                   </ActionIcon>
                 );
               }}
             </Transition>
           </Group>
         </Text>
-      </Group>
+        {isDownRabbithole && (
+          <Text size="xs" c="dimmed">
+            <Group align="center" gap="xs" wrap="nowrap">
+              In "{currentRabbithole?.name}"{" "}
+              <RabbitholeIcon size={14} color="var(--mantine-color-gray-4)" />
+            </Group>
+          </Text>
+        )}
+      </Stack>
       <Transition
         mounted={!!similar && similar?.length > 0}
         transition="fade-up"
@@ -326,18 +337,6 @@ export default function ConnectionManager({
             <Text style={styles} size="xs" c="dimmed" mb="md">
               No related things yet.
             </Text>
-          );
-        }}
-      </Transition>
-      <Transition mounted={loadingSimilar} transition="fade-up">
-        {(styles) => {
-          return (
-            <Group style={styles} mt="md">
-              <Loader size="xs" color="gray" />
-              <Text size="xs" c="dimmed">
-                Finding similar things...
-              </Text>
-            </Group>
           );
         }}
       </Transition>

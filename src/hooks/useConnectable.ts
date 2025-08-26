@@ -3,6 +3,7 @@ import { IConnectable, ISimilarConnectable } from "../../app/services/Graph";
 import useFetch from "./useFetch";
 import { connect, disconnect } from "../utils/graph";
 import { useEffect } from "react";
+import useRabbithole from "./useRabbithole";
 
 type IUseConnectableArgs = {
   connectable: IConnectable;
@@ -22,6 +23,8 @@ type IUseConnectableReturn = {
 export default function useConnectable({
   connectable,
 }: IUseConnectableArgs): IUseConnectableReturn {
+  const { currentRabbithole, isDownRabbithole } = useRabbithole();
+
   const {
     load: loadConnected,
     data: connected = [],
@@ -37,7 +40,12 @@ export default function useConnectable({
     loading: loadingSimilar,
   } = useFetch<undefined, ISimilarConnectable[]>({
     url: `/graph/${connectable.id.toString()}/similar`,
-    dependencies: [connectable.id.toString()],
+    dependencies: [connectable.id.toString(), currentRabbithole?.id.toString()],
+    query: {
+      rabbitholeId: isDownRabbithole
+        ? currentRabbithole?.id.toString() || ""
+        : "",
+    },
   });
 
   const load = () => {
@@ -46,8 +54,16 @@ export default function useConnectable({
   };
 
   useEffect(() => {
-    load();
+    loadConnected();
+  }, [connectable.updatedAt]);
+
+  useEffect(() => {
+    loadSimilar();
   }, [connectable.embeddingsUpdatedAt]);
+
+  useEffect(() => {
+    loadSimilar();
+  }, [currentRabbithole]);
 
   const handleConnect = async (target: string | RecordId) => {
     try {
