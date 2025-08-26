@@ -3,24 +3,15 @@ import {
   ActionIcon,
   Box,
   Group,
-  HoverCard,
   MantineColor,
   Popover,
   Stack,
   Text,
-  Title,
-  Tooltip,
 } from "@mantine/core";
 import styles from "./SourceButton.module.scss";
 import { useState } from "react";
-import {
-  IconProps,
-  ArrowRightIcon,
-  LightbulbIcon,
-  FileTextIcon,
-} from "@phosphor-icons/react";
-import { Link, useNavigate } from "react-router";
-import { getNodeDescription } from "../../../utils/graph";
+import { IconProps, ArrowRightIcon, FileTextIcon } from "@phosphor-icons/react";
+import { useNavigate } from "react-router";
 import { ISource } from "../../../../app/database/models/source";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -34,11 +25,7 @@ type ISourceButtonAction = {
 
 interface ISourceButtonProps {
   source: ISource;
-  bg?: MantineColor | string;
-  color?: MantineColor | string;
   actions?: ISourceButtonAction[];
-  link?: boolean;
-  draggable?: boolean;
   fullWidth?: boolean;
   onClick?: (source: ISource, e: React.MouseEvent) => void;
 }
@@ -46,10 +33,6 @@ interface ISourceButtonProps {
 function SourceButton({
   source,
   actions,
-  link = true,
-  draggable,
-  bg,
-  color,
   fullWidth = false,
   onClick,
 }: ISourceButtonProps) {

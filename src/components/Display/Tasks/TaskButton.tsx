@@ -7,6 +7,8 @@ import {
   Group,
   HoverCard,
   MantineColor,
+  Popover,
+  Stack,
   Text,
 } from "@mantine/core";
 import DreamWriter from "../../Content/DreamWriter/DreamWriter";
@@ -14,6 +16,9 @@ import useFetch from "../../../hooks/useFetch";
 import { updateTask } from "../../../utils/tasks";
 import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
 import React, { useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
+import { capitalize, formatDate } from "../../../utils/formatting";
+import { fromYYYYMMDD } from "../../../utils/datetime";
 
 type ITaskButtonAction = {
   id: string;
@@ -71,6 +76,11 @@ export default function TaskButton({
     return task.estimatedTime.toString();
   };
 
+  const formattedDueDate = () => {
+    if (!task.dueDate) return "No due date.";
+    return capitalize(formatDate(fromYYYYMMDD(task.dueDate)));
+  };
+
   const [hovering, setHovering] = useState(false);
 
   const allActions: ITaskButtonAction[] = [
@@ -84,77 +94,129 @@ export default function TaskButton({
     },
   ];
 
+  const [opened, { toggle, open, close }] = useDisclosure();
+
   return (
-    <div
-      role="button"
-      onClick={() => {
-        handleClick();
-      }}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          handleClick();
+    <Popover
+      opened={opened}
+      closeOnClickOutside
+      onChange={(o) => {
+        if (o) {
+          open();
+        } else {
+          close();
         }
       }}
-      className={styles.taskButton}
-      data-task-id={task.id.toString()}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      draggable={true}
-      onMouseEnter={() => {
-        setHovering(true);
-      }}
-      onMouseLeave={() => {
-        setHovering(false);
+      width="target"
+      shadow="lg"
+      radius="md"
+      transitionProps={{
+        transition: "fade-down",
+        duration: 200,
+        timingFunction: "ease-out",
       }}
     >
-      <div className={styles.content}>
-        <Group gap="xs" align="center" wrap="nowrap">
-          <Checkbox
-            variant="outline"
-            defaultChecked={isCompleted}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMarkTask(e.currentTarget.checked);
-            }}
-            color="gray"
-            size="xs"
-          />
-          <Text
-            size="sm"
-            lineClamp={0}
-            c={isCompleted ? "dimmed" : "inherit"}
-            td={isCompleted ? "line-through" : undefined}
-          >
-            {task.description}
+      <Popover.Target>
+        <div
+          role="button"
+          onClick={() => {
+            handleClick();
+          }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleClick();
+            }
+          }}
+          className={styles.taskButton}
+          data-task-id={task.id.toString()}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          draggable={true}
+          onMouseEnter={() => {
+            setHovering(true);
+          }}
+          onMouseLeave={() => {
+            setHovering(false);
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            toggle();
+          }}
+        >
+          <div className={styles.content}>
+            <Group gap="xs" align="center" wrap="nowrap">
+              <Checkbox
+                variant="outline"
+                defaultChecked={isCompleted}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMarkTask(e.currentTarget.checked);
+                }}
+                color="gray"
+                size="xs"
+              />
+              <Text
+                size="sm"
+                lineClamp={0}
+                c={isCompleted ? "dimmed" : "inherit"}
+                td={isCompleted ? "line-through" : undefined}
+              >
+                {task.description}
+              </Text>
+            </Group>
+            {hovering && (
+              <Group>
+                {allActions?.map((action) => {
+                  return (
+                    <ActionIcon
+                      size="xs"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        action.onClick(e);
+                      }}
+                      variant="subtle"
+                      color={action.color ? action.color : "dark.4"}
+                      title={action.tooltip}
+                    >
+                      {action.icon
+                        ? React.cloneElement(action.icon, {
+                            size: 12,
+                          })
+                        : undefined}
+                    </ActionIcon>
+                  );
+                })}
+              </Group>
+            )}
+          </div>
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        style={{
+          maxHeight: "400px",
+          overflowY: "scroll",
+        }}
+      >
+        <Stack gap="xs">
+          <Text c="dimmed" fw="bold" size="sm">
+            Due {formattedDueDate()}, estimated to take{" "}
+            {formattedEstimatedDuration()}
           </Text>
-        </Group>
-        {hovering && (
-          <Group>
-            {allActions?.map((action) => {
-              return (
-                <ActionIcon
-                  size="xs"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    action.onClick(e);
-                  }}
-                  variant="subtle"
-                  color={action.color ? action.color : "dark.4"}
-                  title={action.tooltip}
-                >
-                  {action.icon
-                    ? React.cloneElement(action.icon, {
-                        size: 12,
-                      })
-                    : undefined}
-                </ActionIcon>
-              );
-            })}
-          </Group>
-        )}
-      </div>
-    </div>
+          {!!task.scratchpad && (
+            <Text
+              size="sm"
+              dangerouslySetInnerHTML={{
+                __html: task.scratchpad,
+              }}
+            />
+          )}
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }
