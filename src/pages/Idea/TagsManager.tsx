@@ -402,7 +402,7 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
                 }}
                 variant="light"
                 size={"xs"}
-                color="blue"
+                color="gray"
                 title="Create a new tag."
               >
                 <PlusIcon size={14} />
@@ -412,7 +412,7 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
                 style={{ textDecoration: "none" }}
                 title="Go to tags management page."
               >
-                <ActionIcon variant="light" size="xs" color={"blue"}>
+                <ActionIcon variant="light" size="xs" color={"gray"}>
                   <ArrowRightIcon size={14} />
                 </ActionIcon>
               </Link>

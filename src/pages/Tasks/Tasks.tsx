@@ -24,6 +24,7 @@ import StatusBar from "../../components/UI/Layout/Bottom";
 import Content from "../../components/UI/Layout/Content";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { PlusIcon } from "@phosphor-icons/react";
+import TaskButton from "../../components/Display/Tasks/TaskButton";
 
 dayjs.extend(weekOfYear);
 
@@ -155,7 +156,7 @@ export default function TaskTimelineView() {
                 </Text>
                 <Stack mt="sm">
                   {undatedTasks.map((task) => (
-                    <TaskCard key={task.id.toString()} task={task} />
+                    <TaskButton key={task.id.toString()} task={task} />
                   ))}
                 </Stack>
               </Paper>
@@ -200,7 +201,7 @@ export default function TaskTimelineView() {
                     <Text fw={700}>{date.format("dddd, MMMM D")}</Text>
                     <Stack mt="sm">
                       {tasks.map((task) => (
-                        <TaskCard key={task.id.toString()} task={task} />
+                        <TaskButton key={task.id.toString()} task={task} />
                       ))}
                     </Stack>
                   </Paper>

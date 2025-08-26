@@ -17,7 +17,6 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import { Link } from "react-router";
 import ProgressBar from "../../Utils/Info/ProgressBar";
 import { capitalize, formatDate } from "../../../utils/formatting";
-import { getFormattedDate } from "@mantine/dates";
 
 export default function TaskList() {
   const todayDate = toYYYYMMDD(new Date());

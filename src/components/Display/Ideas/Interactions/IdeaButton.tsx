@@ -3,6 +3,7 @@ import {
   ActionIcon,
   Group,
   MantineColor,
+  Popover,
   Stack,
   Text,
   Title,
@@ -13,6 +14,7 @@ import { useState } from "react";
 import { IconProps, ArrowRightIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
+import { useDisclosure } from "@mantine/hooks";
 
 const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
   if (idea.content) {
@@ -41,11 +43,7 @@ type IIdeaButtonAction = {
 
 interface IIdeaButton {
   idea: IIdea | ISafeIdea;
-  bg?: MantineColor | string;
-  color?: MantineColor | string;
   actions?: IIdeaButtonAction[];
-  link?: boolean;
-  draggable?: boolean;
   fullWidth?: boolean;
   onClick?: (idea: IIdea | ISafeIdea, e: React.MouseEvent) => void;
 }
@@ -53,10 +51,6 @@ interface IIdeaButton {
 function IdeaButton({
   idea,
   actions,
-  link = true,
-  draggable,
-  bg,
-  color,
   fullWidth = false,
   onClick,
 }: IIdeaButton) {
@@ -99,56 +93,105 @@ function IdeaButton({
     },
   ];
 
+  const [opened, { open, close, toggle }] = useDisclosure();
+
   return (
-    <div
-      role="button"
-      data-thing-id={idea.id.toString()}
-      data-idea-id={idea.id.toString()}
-      className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
-      draggable={true}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onClick={handleClick}
-      onMouseEnter={() => {
-        setHovering(true);
+    <Popover
+      opened={opened}
+      closeOnClickOutside
+      onChange={(o) => {
+        if (o) {
+          open();
+        } else {
+          close();
+        }
       }}
-      onMouseLeave={() => {
-        setHovering(false);
+      width="target"
+      shadow="lg"
+      radius="md"
+      transitionProps={{
+        transition: "fade-down",
+        duration: 200,
+        timingFunction: "ease-out",
       }}
     >
-      <Group justify="space-between" wrap="nowrap" w="100%">
-        <Text className={styles.title} c="dark.1" size="sm" truncate="end">
-          <Group gap="xs" wrap="nowrap">
+      <Popover.Target>
+        <div
+          role="button"
+          data-thing-id={idea.id.toString()}
+          data-idea-id={idea.id.toString()}
+          className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
+          draggable={true}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onClick={handleClick}
+          onMouseEnter={() => {
+            setHovering(true);
+          }}
+          onMouseLeave={() => {
+            setHovering(false);
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            toggle();
+          }}
+        >
+          <Group justify="space-between" wrap="nowrap" w="100%">
+            <Text className={styles.title} c="dark.1" size="sm" truncate="end">
+              <Group gap="xs" wrap="nowrap">
+                {idea.title}
+              </Group>
+            </Text>
+            {hovering && (
+              <Group>
+                {allActions?.map((action) => {
+                  return (
+                    <ActionIcon
+                      size="xs"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        action.onClick(e);
+                      }}
+                      variant="subtle"
+                      color={action.color ? action.color : "dark.4"}
+                      title={action.tooltip}
+                    >
+                      {action.icon
+                        ? React.cloneElement(action.icon, {
+                            size: 12,
+                          })
+                        : undefined}
+                    </ActionIcon>
+                  );
+                })}
+              </Group>
+            )}
+          </Group>
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        style={{
+          maxHeight: "400px",
+          overflowY: "scroll",
+        }}
+      >
+        <Stack gap="xs">
+          <Text c="dimmed" fw="bold" size="sm">
             {idea.title}
-          </Group>
-        </Text>
-        {hovering && (
-          <Group>
-            {allActions?.map((action) => {
-              return (
-                <ActionIcon
-                  size="xs"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    action.onClick(e);
-                  }}
-                  variant="subtle"
-                  color={action.color ? action.color : "dark.4"}
-                  title={action.tooltip}
-                >
-                  {action.icon
-                    ? React.cloneElement(action.icon, {
-                        size: 12,
-                      })
-                    : undefined}
-                </ActionIcon>
-              );
-            })}
-          </Group>
-        )}
-      </Group>
-    </div>
+          </Text>
+          <Text
+            size="sm"
+            dangerouslySetInnerHTML={{
+              __html: idea.content,
+            }}
+          />
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }
 
