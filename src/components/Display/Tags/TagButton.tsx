@@ -3,24 +3,16 @@ import {
   ActionIcon,
   Badge,
   Box,
+  Flex,
   Group,
-  HoverCard,
   MantineColor,
   Popover,
   Stack,
   Text,
-  Title,
-  Tooltip,
 } from "@mantine/core";
 import styles from "./TagButton.module.scss";
 import { useState } from "react";
-import {
-  IconProps,
-  ArrowRightIcon,
-  LightbulbIcon,
-  FileTextIcon,
-  TagIcon,
-} from "@phosphor-icons/react";
+import { IconProps, ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
 import { getNodeDescription } from "../../../utils/graph";
 import { ITag } from "../../../../app/database/models/tag";
@@ -133,14 +125,11 @@ function TagButton({
           }}
         >
           <div className={styles.content}>
-            <Group gap="xs" align="baseline" wrap="nowrap">
-              <Badge
-                c="dark.8"
-                bg="dark.3"
-                leftSection={<TagIcon weight="bold" />}
-              >
-                {tag.name}
-              </Badge>
+            <Group gap="xs" align="center">
+              <Flex w="14px" h="100%" justify="center" align="center">
+                <TagIcon size={14} />
+              </Flex>
+              {tag.name}
             </Group>
             {hovering && (
               <Group>

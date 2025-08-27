@@ -298,7 +298,7 @@ export default function Dashboard() {
               title="Ideas shared with you"
             >
               <StatusButton>
-                <ShareNetworkIcon />
+                <ShareNetworkIcon weight="bold" />
               </StatusButton>
             </Link>
           </Group>
