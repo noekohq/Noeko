@@ -7,6 +7,8 @@ import {
   MantineColor,
   MantineSize,
   Menu,
+  Popover,
+  Stack,
   Text,
 } from "@mantine/core";
 import { IIdea, ISafeIdea } from "../../../../../app/database/models/ideas";
@@ -19,6 +21,7 @@ import {
   IconProps,
 } from "@phosphor-icons/react";
 import OverviewAccordion from "../OverviewAccordion";
+import { useDisclosure } from "@mantine/hooks";
 
 const getIdeaDefaultSummary = (idea: ISafeIdea): string | undefined => {
   const desc = getNodeDescription({
@@ -128,26 +131,50 @@ export default function IdeaCard({
 
   const hoverDetails = details ?? getIdeaDefaultDetails(idea);
 
+  const [opened, { open, close, toggle }] = useDisclosure();
+
   return (
-    <div
-      role="button"
-      data-idea-id={idea.id.toString()}
-      className={styles.ideaCard}
-      draggable={true}
-      onClick={() => {
-        handleClick();
-      }}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          handleClick();
+    <Popover
+      opened={opened}
+      closeOnClickOutside
+      onChange={(o) => {
+        if (o) {
+          open();
+        } else {
+          close();
         }
       }}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      width="400px"
+      shadow="lg"
+      radius="md"
+      transitionProps={{
+        transition: "fade-down",
+        duration: 200,
+        timingFunction: "ease-out",
+      }}
     >
-      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
-        <HoverCard.Target>
+      <Popover.Target>
+        <div
+          role="button"
+          data-idea-id={idea.id.toString()}
+          className={styles.ideaCard}
+          draggable={true}
+          onClick={() => {
+            handleClick();
+          }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleClick();
+            }
+          }}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            toggle();
+          }}
+        >
           <div className={styles.content}>
             <Group gap="xs">
               {titleIcon}
@@ -200,58 +227,64 @@ export default function IdeaCard({
               )}
             </Group>
           </div>
-        </HoverCard.Target>
-        <HoverCard.Dropdown
-          style={{ overflowY: "scroll", maxHeight: "400px" }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <Group>
-            <Link to={`/idea/${idea.id.toString()}`}>
-              <ActionIcon size="sm" color="dark.3" variant="light">
-                <ArrowRightIcon weight="bold" />
-              </ActionIcon>
-            </Link>
-          </Group>
-          {hoverDetails}
-        </HoverCard.Dropdown>
-      </HoverCard>
-      <div className={styles.actions}>
-        {!!hiddenActions?.length && (
-          <Menu position="bottom-end" withArrow>
-            <Menu.Target>
-              <ActionIcon
-                size="md"
-                variant="subtle"
-                color="gray"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <DotsThreeVerticalIcon />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {hiddenActions?.map((action) => {
-                return (
-                  <Menu.Item
-                    key={action.id}
-                    leftSection={action.icon}
+          <div className={styles.actions}>
+            {!!hiddenActions?.length && (
+              <Menu position="bottom-end" withArrow>
+                <Menu.Target>
+                  <ActionIcon
+                    size="md"
+                    variant="subtle"
+                    color="gray"
                     onClick={(e) => {
                       e.stopPropagation();
-                      action.onClick(e, idea);
                     }}
-                    color={action.color}
                   >
-                    {action.label}
-                  </Menu.Item>
-                );
-              })}
-            </Menu.Dropdown>
-          </Menu>
-        )}
-      </div>
-    </div>
+                    <DotsThreeVerticalIcon />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {hiddenActions?.map((action) => {
+                    return (
+                      <Menu.Item
+                        key={action.id}
+                        leftSection={action.icon}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          action.onClick(e, idea);
+                        }}
+                        color={action.color}
+                      >
+                        {action.label}
+                      </Menu.Item>
+                    );
+                  })}
+                </Menu.Dropdown>
+              </Menu>
+            )}
+          </div>
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        style={{
+          maxHeight: "400px",
+          overflowY: "scroll",
+        }}
+      >
+        <Stack gap="xs">
+          <Text c="dimmed" fw="bold" size="sm">
+            {idea.title}
+          </Text>
+          <Text
+            size="sm"
+            dangerouslySetInnerHTML={{
+              __html: idea.content,
+            }}
+          />
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

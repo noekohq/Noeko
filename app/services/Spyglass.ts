@@ -1316,16 +1316,8 @@ export default class Spyglass {
       if (!analysis) {
         throw new Error("Couldn't get analysis");
       }
-      const findings = await this.getFindingsFromSource(
-        sourceId,
-        `What stands out in this source material? What is the most useful, novel, or insightful information?`,
-      );
-      if (!findings) {
-        throw new Error("Couldn't get findings...");
-      }
       const full: ISourceAnalysis = {
         ...analysis,
-        findings,
       };
       return full;
     } catch (error) {

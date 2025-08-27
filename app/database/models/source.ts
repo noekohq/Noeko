@@ -1,6 +1,5 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import { ISpyglassSearch } from "./search";
-import Spyglass, { IFinding } from "../../services/Spyglass";
+import Spyglass from "../../services/Spyglass";
 import { getDatabase } from "../db";
 import { IUserFile, UserFile } from "./userfile";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
@@ -40,8 +39,6 @@ export type ISourceForm = Omit<
 export type ISourceAnalysis = {
   headline: string;
   abstract: string;
-  outline: ISourceOutlineItem[];
-  findings: IFinding[];
 };
 
 export type ISourceOutlineItem = {
