@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ISource } from "../../../app/database/models/source";
 import useFetch from "../../hooks/useFetch";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -6,7 +6,14 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
-import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Group,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SourceCard from "../../components/Display/Sources/SourceCard";
@@ -23,6 +30,22 @@ export default function SourceList() {
   const {
     actions: { newSource },
   } = useInteraction();
+
+  const [query, setQuery] = useState("");
+
+  const filteredSources = () => {
+    if (!query) {
+      return sources;
+    }
+    const filtered = sources?.filter((source) => {
+      const includes =
+        source.displayName.includes(query) ||
+        source.analysis?.abstract.includes(query) ||
+        source.content.includes(query);
+      return includes;
+    });
+    return filtered;
+  };
 
   return (
     <PageWrapper>
@@ -43,10 +66,17 @@ export default function SourceList() {
               </ActionIcon>
             </Group>
           </Title>
-          {sources?.map((source) => {
+          <TextInput
+            placeholder="Filter sources by name, content, or analysis."
+            onChange={(e) => {
+              setQuery(e.currentTarget.value);
+            }}
+          />
+
+          {filteredSources()?.map((source) => {
             return <SourceCard source={source} key={source.id.toString()} />;
           })}
-          {!sources?.length && <Text size="sm">No sources yet.</Text>}
+          {!filteredSources()?.length && <Text size="sm">No sources.</Text>}
         </Stack>
       </Content>
       <StatusBar />

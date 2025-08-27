@@ -14,11 +14,12 @@ import {
 import DreamWriter from "../../Content/DreamWriter/DreamWriter";
 import useFetch from "../../../hooks/useFetch";
 import { updateTask } from "../../../utils/tasks";
-import { ArrowRightIcon, IconProps } from "@phosphor-icons/react";
+import { ArrowRightIcon, EyeIcon, IconProps } from "@phosphor-icons/react";
 import React, { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { capitalize, formatDate } from "../../../utils/formatting";
 import { fromYYYYMMDD } from "../../../utils/datetime";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 type ITaskButtonAction = {
   id: string;
@@ -83,8 +84,21 @@ export default function TaskButton({
 
   const [hovering, setHovering] = useState(false);
 
+  const { isMobile } = useLayout();
+
   const allActions: ITaskButtonAction[] = [
     ...(actions || []),
+    ...(isMobile
+      ? [
+          {
+            id: "preview",
+            onClick: () => {
+              toggle();
+            },
+            icon: <EyeIcon />,
+          },
+        ]
+      : []),
     {
       id: "view",
       onClick: () => {
@@ -158,7 +172,7 @@ export default function TaskButton({
               />
               <Text
                 size="sm"
-                lineClamp={0}
+                lineClamp={1}
                 c={isCompleted ? "dimmed" : "inherit"}
                 td={isCompleted ? "line-through" : undefined}
               >
@@ -166,7 +180,7 @@ export default function TaskButton({
               </Text>
             </Group>
             {hovering && (
-              <Group>
+              <Group gap="xs" wrap="nowrap">
                 {allActions?.map((action) => {
                   return (
                     <ActionIcon

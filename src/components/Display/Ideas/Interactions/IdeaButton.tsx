@@ -11,10 +11,11 @@ import {
 import { IIdea } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
-import { IconProps, ArrowRightIcon } from "@phosphor-icons/react";
+import { IconProps, ArrowRightIcon, EyeIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
 import { useDisclosure } from "@mantine/hooks";
+import { useLayout } from "../../../../contexts/LayoutContext";
 
 const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
   if (idea.content) {
@@ -82,8 +83,21 @@ function IdeaButton({
 
   const hoverDetails = getIdeaDefaultDetails(idea);
 
+  const { isMobile } = useLayout();
+
   const allActions: IIdeaButtonAction[] = [
     ...(actions || []),
+    ...(isMobile
+      ? [
+          {
+            id: "preview",
+            onClick: () => {
+              toggle();
+            },
+            icon: <EyeIcon />,
+          },
+        ]
+      : []),
     {
       id: "view",
       onClick: () => {
@@ -143,7 +157,7 @@ function IdeaButton({
               </Group>
             </Text>
             {hovering && (
-              <Group>
+              <Group wrap="nowrap" gap="xs">
                 {allActions?.map((action) => {
                   return (
                     <ActionIcon

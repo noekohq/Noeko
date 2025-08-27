@@ -3,7 +3,6 @@ import { IStatusBarMode, useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Bottom.module.scss";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import useRabbithole from "../../../hooks/useRabbithole";
-import useShortcuts from "../../../hooks/useShortcuts";
 import { ActionIcon, Group, MantineColor, Menu, Popover } from "@mantine/core";
 import { RabbitholeIndicator } from "../../Display/Rabbitholes/RabbitholeIndicator";
 import { ConstellationIcon, SpyglassIcon } from "../../Utils/Icons/Icons";
@@ -32,18 +31,6 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
   } = useLayout();
 
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
-
-  useShortcuts({
-    shortcuts: [
-      {
-        keys: { ctrl: true, key: "q" },
-        run: (e) => {
-          e.preventDefault();
-          toggleMode();
-        },
-      },
-    ],
-  });
 
   const {
     actions: {

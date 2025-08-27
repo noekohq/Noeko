@@ -10,10 +10,16 @@ import {
 } from "@mantine/core";
 import styles from "./SourceButton.module.scss";
 import { useState } from "react";
-import { IconProps, ArrowRightIcon, FileTextIcon } from "@phosphor-icons/react";
+import {
+  IconProps,
+  ArrowRightIcon,
+  FileTextIcon,
+  EyeIcon,
+} from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { ISource } from "../../../../app/database/models/source";
 import { useDisclosure } from "@mantine/hooks";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 type ISourceButtonAction = {
   id: string;
@@ -62,8 +68,21 @@ function SourceButton({
 
   const navigate = useNavigate();
 
+  const { isMobile } = useLayout();
+
   const allActions: ISourceButtonAction[] = [
     ...(actions || []),
+    ...(isMobile
+      ? [
+          {
+            id: "preview",
+            onClick: () => {
+              toggle();
+            },
+            icon: <EyeIcon />,
+          },
+        ]
+      : []),
     {
       id: "view",
       onClick: () => {
@@ -126,12 +145,12 @@ function SourceButton({
                   className={styles.indicator}
                 />
               </Box>
-              <Text size="sm" lineClamp={0}>
+              <Text size="sm" lineClamp={1}>
                 {source.displayName}
               </Text>
             </Group>
             {hovering && (
-              <Group>
+              <Group gap="xs" wrap="nowrap">
                 {allActions?.map((action) => {
                   return (
                     <ActionIcon
