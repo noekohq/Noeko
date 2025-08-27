@@ -9,6 +9,8 @@ import {
   HoverCard,
   MantineColor,
   Menu,
+  Popover,
+  Stack,
   Text,
   Tooltip,
 } from "@mantine/core";
@@ -16,6 +18,9 @@ import DreamWriter from "../../Content/DreamWriter/DreamWriter";
 import useFetch from "../../../hooks/useFetch";
 import { updateTask } from "../../../utils/tasks";
 import { DotsThreeVerticalIcon, IconProps } from "@phosphor-icons/react";
+import { useDisclosure } from "@mantine/hooks";
+import { capitalize, formatDate } from "../../../utils/formatting";
+import { fromYYYYMMDD } from "../../../utils/datetime";
 
 export type ITaskAction = {
   id: string;
@@ -96,26 +101,55 @@ export default function TaskCard({
     return task.estimatedTime.toString();
   };
 
+  const formattedDueDate = () => {
+    if (!task.dueDate) return "No due date.";
+    return capitalize(formatDate(fromYYYYMMDD(task.dueDate)));
+  };
+
+  const [opened, { toggle, open, close }] = useDisclosure();
+
   return (
-    <div
-      role="button"
-      onClick={() => {
-        handleClick();
-      }}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          handleClick();
+    <Popover
+      opened={opened}
+      closeOnClickOutside
+      onChange={(o) => {
+        if (o) {
+          open();
+        } else {
+          close();
         }
       }}
-      className={styles.taskCard}
-      data-task-id={task.id.toString()}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      draggable={true}
+      width="target"
+      shadow="lg"
+      radius="md"
+      transitionProps={{
+        transition: "fade-down",
+        duration: 200,
+        timingFunction: "ease-out",
+      }}
     >
-      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow>
-        <HoverCard.Target>
+      <Popover.Target>
+        <div
+          role="button"
+          onClick={() => {
+            handleClick();
+          }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleClick();
+            }
+          }}
+          className={styles.taskCard}
+          data-task-id={task.id.toString()}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          draggable={true}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            toggle();
+          }}
+        >
           <div className={styles.content}>
             <Checkbox
               onClick={(e) => {
@@ -154,51 +188,67 @@ export default function TaskCard({
               })}
             </Group>
           </div>
-        </HoverCard.Target>
-        {/*<HoverCard.Dropdown
-          style={{ overflowY: "scroll", maxHeight: "400px" }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <DreamWriter initialContent={task.scratchpad} />
-        </HoverCard.Dropdown>*/}
-      </HoverCard>
-      <div className={styles.actions}>
-        {!!hiddenActions?.length && (
-          <Menu position="bottom-end" withArrow>
-            <Menu.Target>
-              <ActionIcon
-                size="md"
-                variant="subtle"
-                color="gray"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <DotsThreeVerticalIcon />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {hiddenActions?.map((action) => {
-                return (
-                  <Menu.Item
-                    key={action.id}
-                    leftSection={action.icon}
+          <div className={styles.actions}>
+            {!!hiddenActions?.length && (
+              <Menu position="bottom-end" withArrow>
+                <Menu.Target>
+                  <ActionIcon
+                    size="md"
+                    variant="subtle"
+                    color="gray"
                     onClick={(e) => {
                       e.stopPropagation();
-                      action.onClick(e, task);
                     }}
-                    color={action.color}
                   >
-                    {action.label}
-                  </Menu.Item>
-                );
-              })}
-            </Menu.Dropdown>
-          </Menu>
-        )}
-      </div>
-    </div>
+                    <DotsThreeVerticalIcon />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {hiddenActions?.map((action) => {
+                    return (
+                      <Menu.Item
+                        key={action.id}
+                        leftSection={action.icon}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          action.onClick(e, task);
+                        }}
+                        color={action.color}
+                      >
+                        {action.label}
+                      </Menu.Item>
+                    );
+                  })}
+                </Menu.Dropdown>
+              </Menu>
+            )}
+          </div>
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        style={{
+          maxHeight: "400px",
+          overflowY: "scroll",
+        }}
+      >
+        <Stack gap="xs">
+          <Text c="dimmed" fw="bold" size="sm">
+            Due {formattedDueDate()}, estimated to take{" "}
+            {formattedEstimatedDuration()}
+          </Text>
+          {!!task.scratchpad && (
+            <Text
+              size="sm"
+              dangerouslySetInnerHTML={{
+                __html: task.scratchpad,
+              }}
+            />
+          )}
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

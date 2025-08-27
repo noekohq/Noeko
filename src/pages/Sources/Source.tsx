@@ -298,8 +298,6 @@ function AnalysisBlock({
   const [outlineOpen, setOutlineOpen] = useState(false);
 
   const abstract = analysis?.abstract ?? "";
-  const outline = analysis?.outline ?? [];
-  const findings = analysis?.findings ?? [];
 
   const getTruncatedAbstract = () => {
     if (!abstract) return "";
@@ -319,50 +317,6 @@ function AnalysisBlock({
   const handleRequestAnalysis = () => {
     requestAnalysis();
   };
-
-  const Outline = outline.map((item) => {
-    return (
-      <Paper
-        key={item.summary}
-        p="md"
-        radius="md"
-        style={{
-          border: "1px solid var(--mantine-color-dark-7)",
-          backgroundColor: "var(--mantine-color-dark-8)",
-        }}
-      >
-        <Text fw="bold" c="dimmed" size="xs">
-          {item.section}
-        </Text>
-        <Text size="xs">{item.summary}</Text>
-      </Paper>
-    );
-  });
-
-  const Findings = findings.map((finding) => {
-    return (
-      <Paper
-        key={finding.analysis}
-        p="md"
-        radius="md"
-        style={{
-          border: "1px solid var(--mantine-color-dark-7)",
-          backgroundColor: "var(--mantine-color-dark-8)",
-        }}
-      >
-        <Blockquote color="gray" p="xs" mb="xs">
-          <Text
-            size="xs"
-            p="0"
-            dangerouslySetInnerHTML={{
-              __html: markdownToHtml(finding.excerpt),
-            }}
-          />
-        </Blockquote>
-        <Text size="sm">{finding.analysis}</Text>
-      </Paper>
-    );
-  });
 
   if (!analysis) {
     return (
@@ -441,68 +395,6 @@ function AnalysisBlock({
             )}
           </Stack>
         </Card>
-        <Card
-          radius="lg"
-          p={"sm"}
-          styles={{
-            root: {
-              backgroundColor: "var(--mantine-color-dark-8) !important",
-              border: "1px solid var(--mantine-color-dark-7)",
-            },
-          }}
-        >
-          <Stack gap="md">
-            <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
-              Outline
-            </Text>
-            <ScrollAreaAutosize mah="25vh">
-              <Stack>{Outline}</Stack>
-            </ScrollAreaAutosize>
-            <Group>
-              <Button
-                variant="light"
-                onClick={() => {
-                  setOutlineOpen(true);
-                }}
-                color="gray"
-                size="xs"
-              >
-                More...
-              </Button>
-            </Group>
-          </Stack>
-        </Card>
-        <Card
-          radius="lg"
-          p={"sm"}
-          styles={{
-            root: {
-              backgroundColor: "var(--mantine-color-dark-8) !important",
-              border: "1px solid var(--mantine-color-dark-7)",
-            },
-          }}
-        >
-          <Stack gap="md">
-            <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
-              Findings
-            </Text>
-            <ScrollAreaAutosize mah="25vh">
-              <Stack>{Findings}</Stack>
-            </ScrollAreaAutosize>
-            <Group>
-              <Button
-                variant="light"
-                onClick={() => {
-                  setFindingsOpen(true);
-                }}
-                color="gray"
-                size="xs"
-              >
-                More...
-              </Button>
-            </Group>
-          </Stack>
-        </Card>
       </Stack>
 
       <Drawer
@@ -520,41 +412,7 @@ function AnalysisBlock({
           </Group>
         }
       >
-        <Text size="sm">{analysis?.abstract}</Text>
-      </Drawer>
-      <Drawer
-        opened={outlineOpen}
-        onClose={() => {
-          setOutlineOpen(false);
-        }}
-        position="left"
-        offset="24px"
-        radius="lg"
-        title={
-          <Group gap="xs">
-            <TextAlignLeftIcon />
-            <Text>Outline</Text>
-          </Group>
-        }
-      >
-        <Stack>{Outline}</Stack>
-      </Drawer>
-      <Drawer
-        opened={findingsOpen}
-        onClose={() => {
-          setFindingsOpen(false);
-        }}
-        position="left"
-        offset="24px"
-        radius="lg"
-        title={
-          <Group gap="xs">
-            <MagnifyingGlassIcon />
-            <Text>Findings</Text>
-          </Group>
-        }
-      >
-        <Stack>{Findings}</Stack>
+        <Text size="md">{analysis?.abstract}</Text>
       </Drawer>
     </>
   );

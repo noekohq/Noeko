@@ -6,6 +6,7 @@ import {
   HoverCard,
   MantineColor,
   Menu,
+  Popover,
   Stack,
   Text,
   Tooltip,
@@ -24,6 +25,7 @@ import { handleFileDownload } from "../../../utils/userfiles";
 import { formatDate } from "../../../utils/formatting";
 import { ISource } from "../../../../app/database/models/source";
 import { getSourceName } from "../../../utils/sources";
+import { useDisclosure } from "@mantine/hooks";
 
 const getSourceDefaultSummary = (source: ISource): string | undefined => {
   const desc = getNodeDescription({
@@ -120,32 +122,50 @@ export default function SourceCard({
 
   const hoverDetails = details ?? getSourceDefaultDetails(source);
 
+  const [opened, { toggle, open, close }] = useDisclosure();
+
   return (
-    <div
-      role="button"
-      onClick={() => {
-        handleClick();
-      }}
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          handleClick();
+    <Popover
+      opened={opened}
+      closeOnClickOutside
+      onChange={(o) => {
+        if (o) {
+          open();
+        } else {
+          close();
         }
       }}
-      className={styles.sourceCard}
-      data-file-id={source.id.toString()}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      draggable={true}
+      width="target"
+      shadow="lg"
+      radius="md"
+      transitionProps={{
+        transition: "fade-down",
+        duration: 200,
+        timingFunction: "ease-out",
+      }}
     >
-      <HoverCard
-        radius="lg"
-        openDelay={500}
-        width={"400px"}
-        withArrow
-        position="bottom-start"
-      >
-        <HoverCard.Target>
+      <Popover.Target>
+        <div
+          role="button"
+          onClick={() => {
+            handleClick();
+          }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleClick();
+            }
+          }}
+          className={styles.sourceCard}
+          data-file-id={source.id.toString()}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          draggable={true}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            toggle();
+          }}
+        >
           <div className={styles.content}>
             <Group gap="xs">
               <Text size="sm" fw="bold" lineClamp={titleLines}>
@@ -178,60 +198,59 @@ export default function SourceCard({
               })}
             </Group>
           </div>
-        </HoverCard.Target>
-        <HoverCard.Dropdown
-          style={{ overflowY: "scroll", maxHeight: "400px" }}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          <Stack>
-            <Group>
-              <Link to={`/source/${source.id.toString()}`}>
-                <ActionIcon size="sm" color="dark.3" variant="light">
-                  <ArrowRightIcon weight="bold" />
-                </ActionIcon>
-              </Link>
-            </Group>
-            {hoverDetails}
-          </Stack>
-        </HoverCard.Dropdown>
-      </HoverCard>
-      <div className={styles.actions}>
-        {!!hiddenActions?.length && (
-          <Menu position="bottom-end" withArrow>
-            <Menu.Target>
-              <ActionIcon
-                size="md"
-                variant="subtle"
-                color="gray"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <DotsThreeVerticalIcon />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {hiddenActions?.map((action) => {
-                return (
-                  <Menu.Item
-                    key={action.id}
-                    leftSection={action.icon}
+          <div className={styles.actions}>
+            {!!hiddenActions?.length && (
+              <Menu position="bottom-end" withArrow>
+                <Menu.Target>
+                  <ActionIcon
+                    size="md"
+                    variant="subtle"
+                    color="gray"
                     onClick={(e) => {
                       e.stopPropagation();
-                      action.onClick(e, source);
                     }}
-                    color={action.color}
                   >
-                    {action.label}
-                  </Menu.Item>
-                );
-              })}
-            </Menu.Dropdown>
-          </Menu>
-        )}
-      </div>
-    </div>
+                    <DotsThreeVerticalIcon />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {hiddenActions?.map((action) => {
+                    return (
+                      <Menu.Item
+                        key={action.id}
+                        leftSection={action.icon}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          action.onClick(e, source);
+                        }}
+                        color={action.color}
+                      >
+                        {action.label}
+                      </Menu.Item>
+                    );
+                  })}
+                </Menu.Dropdown>
+              </Menu>
+            )}
+          </div>
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        style={{
+          maxHeight: "400px",
+          overflowY: "scroll",
+        }}
+      >
+        <Stack gap="xs">
+          <Text c="dimmed" fw="bold" size="sm">
+            {source.displayName}
+          </Text>
+          <Text size="sm">{source.analysis?.abstract}</Text>
+        </Stack>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

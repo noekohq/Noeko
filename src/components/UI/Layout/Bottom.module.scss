@@ -16,7 +16,8 @@
     position: fixed;
     padding: 0;
     bottom: calc(var(--layout-spacing));
-    width: var(--content-width);
+    left: var(--sidebar-width-collapsed);
+    right: var(--sidebar-width-collapsed);
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -40,6 +41,8 @@
     @include desktop {
         flex-direction: row;
         justify-content: space-around;
+        left: var(--sidebar-width);
+        right: var(--sidebar-width);
     }
 }
 
@@ -112,5 +115,17 @@
 
     &.noChildren {
         justify-content: center;
+    }
+}
+
+.rightOpen {
+    @include tablet {
+        right: var(--sidebar-width);
+    }
+}
+
+.leftOpen {
+    @include tablet {
+        left: var(--sidebar-width);
     }
 }

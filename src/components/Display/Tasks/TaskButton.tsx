@@ -11,8 +11,6 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import DreamWriter from "../../Content/DreamWriter/DreamWriter";
-import useFetch from "../../../hooks/useFetch";
 import { updateTask } from "../../../utils/tasks";
 import { ArrowRightIcon, EyeIcon, IconProps } from "@phosphor-icons/react";
 import React, { useState } from "react";

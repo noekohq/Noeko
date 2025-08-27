@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useLayout } from "../contexts/LayoutContext";
 
 type ISidebarMode = "open" | "collapsed" | "compact" | "hovering";
 
@@ -17,6 +18,8 @@ const useSidebarHover = ({
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringOverGlobal = useRef(false);
 
+  const { isDesktop } = useLayout();
+
   const sidebarProps = {
     onMouseEnter: () => {
       if (hoverTimeoutRef.current) {
@@ -27,7 +30,8 @@ const useSidebarHover = ({
           mode === "collapsed" &&
           !applyingLayoutChange.current &&
           !isHoveringOverGlobal.current &&
-          openable
+          openable &&
+          isDesktop
         ) {
           setMode("hovering");
           applyingLayoutChange.current = true;

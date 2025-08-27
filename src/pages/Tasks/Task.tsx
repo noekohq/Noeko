@@ -56,6 +56,7 @@ import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
 import Search from "../../components/Search/Search";
 import { modals } from "@mantine/modals";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
+import { useLandscape } from "../../contexts/LandscapeContext";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -111,6 +112,25 @@ export default function Task() {
   useEffect(() => {
     loadTask();
   }, []);
+
+  const {
+    connectable: {
+      viewing: { set: setViewing },
+    },
+  } = useLandscape();
+
+  useEffect(() => {
+    if (task) {
+      setViewing({
+        ...task,
+        type: "task",
+      });
+    }
+
+    return () => {
+      setViewing(null);
+    };
+  }, [task]);
 
   const taskForm = useForm({
     initialValues: {

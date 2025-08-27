@@ -26,6 +26,12 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
       statusBar: {
         mode: { get: mode, set: setMode, toggle: toggleMode },
       },
+      leftSidebar: {
+        mode: { get: leftMode, set: setLeftMode },
+      },
+      rightSidebar: {
+        mode: { get: rightMode, set: setRightMode },
+      },
     },
     isMobile,
   } = useLayout();
@@ -52,9 +58,26 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
 
   const hasChildren = !!React.Children.count(children);
 
+  const leftModeToClass: Record<typeof leftMode, string> = {
+    open: styles.leftOpen,
+    collapsed: styles.leftCollapsed,
+    compact: styles.leftCompact,
+    hovering: `${styles.leftOpen} ${styles.leftHovering}`,
+  };
+
+  const rightModeToClass: Record<typeof rightMode, string> = {
+    open: styles.rightOpen,
+    collapsed: styles.rightCollapsed,
+    compact: styles.rightCompact,
+    hovering: `${styles.rightOpen} ${styles.rightHovering}`,
+  };
+
+  const leftModeClass = leftModeToClass[leftMode];
+  const rightModeClass = rightModeToClass[rightMode];
+
   return (
     <div
-      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren}`}
+      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren} ${leftModeClass} ${rightModeClass}`}
     >
       {hasChildren && <div className={styles.content}>{children}</div>}
       <div
