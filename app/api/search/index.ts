@@ -3,11 +3,11 @@ import { checkToken, disallowDisabled } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
 import { ISafeUser } from "../../database/models/user";
 import {
-  ISearchOverview,
   ISearchResult,
   Search,
   ITagSearchResult, // Added for tag search results
 } from "../../services/Search";
+import { ISearchOverview } from "../../database/models/search";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { ITag } from "../../database/models/tag";
 import spyglassRouter from "./spyglass";
@@ -44,61 +44,6 @@ router.post("/comprehensive", checkToken, async (req, res) => {
     res.json({
       message: "Results fetched successfully",
       data: toSend,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.post("/fts", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const query = req.body.query as string;
-    const rabbitholeId = req.body.rabbitholeId as string | undefined;
-    const results = await Search.ftsSearch(user.id, query, {
-      rabbitholeId,
-    });
-    res.json({
-      message: "Suggestions fetched successfully",
-      data: results,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.post("/semantic", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const query = req.body.query as string;
-    const rabbitholeId = req.body.rabbitholeId as string | undefined;
-    const embeddingProcessor = getEmbedder();
-    const embedding = await embeddingProcessor.embedContent(query);
-    if (!embedding) {
-      res
-        .json({
-          message: "Something went wrong",
-          data: [],
-        })
-        .status(500);
-      return;
-    }
-    const results = await Search.semanticSearch(user.id, embedding, {
-      rabbitholeId,
-    });
-    res.json({
-      message: "Results fetched successfully",
-      data: results,
     });
   } catch (error) {
     console.error(error);
