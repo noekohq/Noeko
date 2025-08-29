@@ -90,7 +90,7 @@ export default function Idea() {
     isMobile,
   } = useLayout();
 
-  useDocumentTitle(`${title || "Loading..."} - Qwest`);
+  useDocumentTitle(`${title || "Loading..."} - Noeko`);
 
   const {
     data: idea,
@@ -493,28 +493,30 @@ export default function Idea() {
               </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="context">
-              <Card
-                radius="lg"
-                p={"sm"}
-                styles={{
-                  root: {
-                    backgroundColor: "var(--mantine-color-dark-8) !important",
-                    border: "1px solid var(--mantine-color-dark-7)",
-                  },
-                }}
-              >
-                <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
-                  The Gist
-                </Text>
-                <Text size="sm">
-                  {idea?.derived?.generative_summary?.sentenceSummary ||
-                    idea?.derived?.generative_summary?.sentenceOverview || (
-                      <Text span c="dimmed" fs="italic">
-                        No overview available.
-                      </Text>
-                    )}
-                </Text>
-              </Card>
+              {!!idea?.derived?.generative_summary && (
+                <Card
+                  radius="lg"
+                  p={"sm"}
+                  styles={{
+                    root: {
+                      backgroundColor: "var(--mantine-color-dark-8) !important",
+                      border: "1px solid var(--mantine-color-dark-7)",
+                    },
+                  }}
+                >
+                  <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+                    The Gist
+                  </Text>
+                  <Text size="sm">
+                    {idea?.derived?.generative_summary?.sentenceSummary ||
+                      idea?.derived?.generative_summary?.sentenceOverview || (
+                        <Text span c="dimmed" fs="italic">
+                          No overview available.
+                        </Text>
+                      )}
+                  </Text>
+                </Card>
+              )}
               {!!idea && (
                 <>
                   <Space my="lg" />
@@ -527,7 +529,6 @@ export default function Idea() {
                     </Text>
                     <TagsManager maxSuggested={2} idea={idea} />
                   </Stack>
-                  <Space my="lg" />
                   <ConnectionManager
                     connectable={{
                       ...idea,

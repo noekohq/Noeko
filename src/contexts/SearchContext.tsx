@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ISearchOverview, ISearchResult } from "../../app/services/Search";
+import { ISearchResult } from "../../app/services/Search";
 
 type ISearchContext = {
   global: {
@@ -10,10 +10,6 @@ type ISearchContext = {
     results: {
       get: ISearchResult[] | null;
       set: (results: ISearchResult[] | null) => void;
-    };
-    overview: {
-      get: ISearchOverview | null;
-      set: (overview: ISearchOverview | null) => void;
     };
     loading: {
       get: boolean;
@@ -31,10 +27,6 @@ const initialSearch: ISearchContext = {
     results: {
       get: null,
       set: (results: ISearchResult[] | null) => {},
-    },
-    overview: {
-      get: null,
-      set: (overview: ISearchOverview | null) => {},
     },
     loading: {
       get: false,
@@ -55,7 +47,6 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [overview, setOverview] = useState<ISearchOverview | null>(null);
 
   const value: ISearchContext = {
     global: {
@@ -67,12 +58,6 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
         get: searchResults,
         set: (r: ISearchResult[] | null) => {
           setSearchResults(r);
-        },
-      },
-      overview: {
-        get: overview,
-        set: (overview: ISearchOverview | null) => {
-          setOverview(overview);
         },
       },
       loading: {

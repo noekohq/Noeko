@@ -87,14 +87,17 @@ export default function Insights({
                 }}
                 disabled={loadingOverview}
                 leftSection={
-                  loadingOverview ? <Loader size="sm" color="white" /> : ""
+                  loadingOverview ? (
+                    <Loader size="xs" color="gray" />
+                  ) : (
+                    <EyeIcon />
+                  )
                 }
-                size="sm"
-                fullWidth
+                size="xs"
                 color="gray"
-                rightSection={<EyeIcon />}
+                radius="md"
               >
-                {loadingOverview ? "Analyzing..." : "Analyze idea."}
+                {loadingOverview ? "Analyzing..." : "Analyze idea"}
               </Button>
             </Stack>
           </>

@@ -2,48 +2,38 @@ import {
   Card,
   Group,
   Text,
-  Badge,
-  HoverCard,
   ActionIcon,
   Loader,
   Stack,
   Container,
-  useMantineTheme,
-  useMantineColorScheme,
   Button,
   Modal,
   Grid,
   TextInput,
   LoadingOverlay,
-  Collapse,
-  Transition,
   Textarea,
 } from "@mantine/core";
 import {
-  X,
-  Plus,
-  ArrowRight,
+  XIcon,
+  PlusIcon,
   CaretDownIcon,
   CaretUpIcon,
-  PlusIcon,
   ArrowRightIcon,
-  XIcon,
   DotsThreeIcon,
-} from "@phosphor-icons/react"; // Corrected icon import
+} from "@phosphor-icons/react";
 import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import useFetch from "../../hooks/useFetch";
 import { useState, useMemo, useEffect } from "react";
 import {
   addTagToIdea,
-  createTag,
   createTagAndAddToIdea,
   removeTagFromIdea,
-} from "../../utils/ideas"; // Import new utility functions
+} from "../../utils/ideas";
 import { Link, useNavigate } from "react-router";
 import { useSettings } from "../../contexts/SettingsContext";
 import { InlineTag } from "../../components/Display/Tags/TagDisplay";
-import SuggestTags from "../../components/Search/SuggestTags"; // Import the SuggestTags component
+import SuggestTags from "../../components/Search/SuggestTags";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 
@@ -54,7 +44,7 @@ type ITagsManagerProps = {
 
 export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
   const [actingTagId, setActingTagId] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState<boolean>(false); // Local loading state for add/remove
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   const ideaIdStr = useMemo(() => idea.id.toString(), [idea.id.toString()]);
 
@@ -308,15 +298,11 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
                 }}
                 rightSection={
                   isLoadingAction ? (
-                    <Loader
-                      size="xs"
-                      color="currentColor"
-                      style={{ marginRight: 5 }}
-                    />
+                    <Loader size="xs" color="gray" style={{ marginRight: 5 }} />
                   ) : type === "existing" ? (
                     <ActionIcon
                       size="xs"
-                      color="currentColor"
+                      color="gray"
                       radius="xl"
                       variant="transparent"
                       onClick={(e) => {
@@ -327,13 +313,13 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
                       title={`Remove tag ${tag.name}`}
                       disabled={actionLoading}
                     >
-                      <X style={{ width: "70%", height: "70%" }} />
+                      <XIcon style={{ width: "70%", height: "70%" }} />
                     </ActionIcon>
                   ) : (
                     // type === "related"
                     <ActionIcon
                       size="xs"
-                      color="currentColor"
+                      color="gray"
                       radius="xl"
                       variant="transparent"
                       onClick={(e) => {
@@ -345,7 +331,7 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
                       title={`Add tag ${tag.name}`}
                       disabled={actionLoading}
                     >
-                      <Plus style={{ width: "70%", height: "70%" }} />
+                      <PlusIcon style={{ width: "70%", height: "70%" }} />
                     </ActionIcon>
                   )
                 }
@@ -360,7 +346,7 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
                   setAllSuggested(!allSuggested);
                 }}
                 size="xs"
-                color="currentColor"
+                color="gray"
                 radius="xl"
                 variant="transparent"
                 aria-label={`Show ${allSuggested ? "less" : "more"} suggested tags`}

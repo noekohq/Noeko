@@ -46,6 +46,8 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
+import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
+import CollapseButton from "../../components/Display/Interactions/CollapseButton";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -146,7 +148,7 @@ export default function Spyglass() {
     return displayQuery.current ?? baseQuery ?? query;
   };
 
-  useDocumentTitle(queryToShow() ? `${queryToShow()} - Qwest` : `Qwest`);
+  useDocumentTitle(queryToShow() ? `${queryToShow()} - Noeko` : `Noeko`);
 
   const {
     elements: {
@@ -162,32 +164,38 @@ export default function Spyglass() {
     },
   } = useInteraction();
 
+  console.log("Results: ", results);
+
   if (error) {
     return (
       <PageWrapper>
         <LeftSidebar startClosed></LeftSidebar>
         <Content>
           <div className={styles.spyglass}>
-            <Title>Something went wrong :/</Title>
-            <Text size="sm">{error}</Text>
-            <Group>
-              <Button
-                size="sm"
-                variant="light"
-                onClick={() => clear(true)}
-                rightSection={<ArrowsClockwiseIcon weight="bold" />}
-              >
-                Start Over
-              </Button>
-              <Button
-                size="sm"
-                variant="light"
-                rightSection={<MegaphoneIcon weight="bold" />}
-                color="gray"
-              >
-                Leave Feedback
-              </Button>
-            </Group>
+            <Stack>
+              <Title>Something went wrong :/</Title>
+              <Text size="sm" c="dimmed">
+                {error}
+              </Text>
+              <Group>
+                <Button
+                  size="sm"
+                  variant="light"
+                  onClick={() => clear(true)}
+                  rightSection={<ArrowsClockwiseIcon weight="bold" />}
+                >
+                  Start Over
+                </Button>
+                <Button
+                  size="sm"
+                  variant="light"
+                  rightSection={<MegaphoneIcon weight="bold" />}
+                  color="gray"
+                >
+                  Leave Feedback
+                </Button>
+              </Group>
+            </Stack>
           </div>
         </Content>
         <RightSidebar startClosed></RightSidebar>
@@ -202,7 +210,7 @@ export default function Spyglass() {
           open: (
             <>
               <Link to="/spyglass/history">
-                <ActionIcon radius="lg" variant="light">
+                <ActionIcon color="gray" radius="lg" variant="light">
                   <ClockCounterClockwiseIcon />
                 </ActionIcon>
               </Link>
@@ -229,14 +237,23 @@ export default function Spyglass() {
                       return null;
                     }
 
-                    const idea = getNodeAsIdeaOrNull(c.value);
                     const citation = citationMap[c.id.toString()];
 
-                    if (!idea) {
-                      return null;
-                    }
-
-                    return <IdeaCard key={idea.id.toString()} idea={idea} />;
+                    return (
+                      <CollapseButton
+                        target={<ConnectableThing thing={c.value} />}
+                        details={
+                          <>
+                            <ActionIcon size="xs" radius="md" color="gray">
+                              <Text size="xs">{citation.index}</Text>
+                            </ActionIcon>
+                            <Text size="sm">
+                              {citation.excerpts.join(" ... ")}
+                            </Text>
+                          </>
+                        }
+                      />
+                    );
                   })}
                 </Group>
               </div>
@@ -473,135 +490,14 @@ export default function Spyglass() {
               <Space my="lg" />
             </>
           )}
-          {results.length < 1 && (
-            <Text c="dimmed" size="sm">
-              No results yet... Try searching for something!
+          <Stack gap="xs">
+            <Text size="sm">
+              {results.length} Result{results.length === 1 ? "" : "s"}...
             </Text>
-          )}
-          {results.length > 0 && (
-            <Stack gap="xs">
-              <Title order={3}>
-                {sortedSearchResults.length} Resource
-                {sortedSearchResults.length === 1 ? "" : "s"}...
-              </Title>
-              <Accordion variant="filled">
-                {sortedSearchResults.map((s, i) => {
-                  if (!s.value) {
-                    return;
-                  }
-                  const hasExcerpts = !!citationMap[s.id.toString()];
-                  const citation = hasExcerpts
-                    ? citationMap[s.id.toString()]
-                    : null;
-                  const excerpts = hasExcerpts
-                    ? citationMap[s.id.toString()].excerpts
-                    : [];
-                  const idea = getNodeAsIdeaOrNull(s.value);
-
-                  if (!idea) {
-                    return null;
-                  }
-
-                  return (
-                    <Accordion.Item
-                      value={idea.id.toString()}
-                      key={idea.id.toString()}
-                    >
-                      <Accordion.Control>
-                        <Group wrap="wrap">
-                          <Text
-                            fw={500}
-                            size="sm"
-                            lineClamp={2}
-                            title={idea.title}
-                          >
-                            {idea.title}
-                            {hasExcerpts && (
-                              <ActionIcon
-                                variant="light"
-                                size="xs"
-                                onClick={() => {
-                                  navigate(`/idea/${idea.id.toString()}`);
-                                }}
-                                ml="xs"
-                              >
-                                <Text size="xs">
-                                  {citationMap[
-                                    s.id.toString()
-                                  ].index.toString()}
-                                </Text>
-                              </ActionIcon>
-                            )}
-                          </Text>
-                        </Group>
-                      </Accordion.Control>
-                      <Accordion.Panel p="0">
-                        <Group mb="sm">
-                          <Link to={`/idea/${idea.id.toString()}`}>
-                            <ActionIcon variant="subtle" size="xs">
-                              <ArrowRightIcon size={14} />
-                            </ActionIcon>
-                          </Link>
-                        </Group>
-                        {hasExcerpts ? (
-                          <Stack gap="xs">
-                            {excerpts.map((excerpt, i) => {
-                              return (
-                                <Group wrap="nowrap" align="flex-start">
-                                  <ActionIcon
-                                    variant="subtle"
-                                    size="xs"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigate(
-                                        `/idea/${idea.id}?highlightText=${generateTextFragmentHashFromText(excerpt)}`,
-                                      );
-                                    }}
-                                    style={{ cursor: "pointer" }}
-                                  >
-                                    <Text size="xs">
-                                      {citation?.index}
-                                      {numberToLetter(i).toLowerCase()}
-                                    </Text>
-                                  </ActionIcon>
-                                  <Text size="xs" c="dimmed">
-                                    <Match
-                                      opener="->"
-                                      closer="<-"
-                                      match={(m) => {
-                                        return (
-                                          <span className="highlight">{m}</span>
-                                        );
-                                      }}
-                                    >
-                                      {sanitizeMarkdownForDescription(excerpt)}
-                                    </Match>
-                                  </Text>
-                                </Group>
-                              );
-                            })}
-                          </Stack>
-                        ) : (
-                          <Text size="xs" c="dimmed">
-                            <Match
-                              opener="->"
-                              closer="<-"
-                              match={(m) => {
-                                return <span className="highlight">{m}</span>;
-                              }}
-                            >
-                              {getSearchResultPreview(s) ||
-                                "No preview available."}
-                            </Match>
-                          </Text>
-                        )}
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  );
-                })}
-              </Accordion>
-            </Stack>
-          )}
+            {results.map((r) => {
+              return <ConnectableThing key={r.id.toString()} thing={r.value} />;
+            })}
+          </Stack>
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

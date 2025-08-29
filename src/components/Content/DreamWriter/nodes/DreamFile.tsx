@@ -144,7 +144,7 @@ export const DreamFileComponent: React.FC<NodeViewProps> = (props) => {
       console.info("Triggering download");
       triggerDownload(
         downloadLink,
-        file?.originalFileName ?? fileName ?? "qwest-file", // Use node fileName as fallback
+        file?.originalFileName ?? fileName ?? "noeko-file", // Use node fileName as fallback
         true,
       );
     },

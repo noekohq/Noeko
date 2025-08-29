@@ -40,14 +40,14 @@ const updates: IUpdate[] = [
         <Stack>
           <Text>
             Your brain isn't just full of ideas, but also actions to take and
-            goals to pursue. Tasks in Qwest rise to meet these, and we're just
+            goals to pursue. Tasks in Noeko rise to meet these, and we're just
             getting started! We also are making consistent updates to the editor
-            and the dashboard, working constantly to make the entire Qwest
+            and the dashboard, working constantly to make the entire Noeko
             experience significantly more user friendly and cohesive. Please
             don't hesitate to leave feedback as we build features!
           </Text>
           <List>
-            <List.Item>Added tasks to Qwest</List.Item>
+            <List.Item>Added tasks to Noeko</List.Item>
             <List.Item>
               A new "today's tasks" widget on your dashboard, letting you see
               all of the tasks scheduled for today.
@@ -250,7 +250,7 @@ const updates: IUpdate[] = [
           <List.Item>Updates to Spotlight usability.</List.Item>
           <List.Item>
             You can now reach us directly at{" "}
-            <a href="mailto:support@qwest.so">support@qwest.so</a>
+            <a href="mailto:support@noeko.app">support@noeko.app</a>
           </List.Item>
         </List>
       </Stack>
@@ -400,9 +400,9 @@ export default function Updates() {
       <LeftSidebar />
       <Content>
         <Stack>
-          <Title>Qwest Updates</Title>
+          <Title>Noeko Updates</Title>
           <Text c="dimmed" size="sm">
-            We are constantly working to make Qwest a better app for you.
+            We are constantly working to make Noeko a better app for you.
             However, we couldn't do it without your valuable input! Don't
             hesitate to submit an idea or a bug report :)
           </Text>
@@ -414,9 +414,9 @@ export default function Updates() {
             <Text fw="bold">In progress</Text>
             <Text>
               Currently we are working on integrating tasks with the rest of
-              Qwest, as well as general user-experience updates. In the
+              Noeko, as well as general user-experience updates. In the
               background, we're also laying the ground work for a big
-              integration of your own sources into Qwest, so that you can deeply
+              integration of your own sources into Noeko, so that you can deeply
               integrate outside sources of information into the application.
             </Text>
             <Divider my="md" />

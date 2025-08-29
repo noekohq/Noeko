@@ -3,7 +3,6 @@ import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
 import {
   Button,
-  Card,
   Container,
   Group,
   MantineColor,
@@ -11,22 +10,38 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { getNodeAsIdeaOrNull } from "../../utils/graph";
-import Match from "../Utils/Match";
-import { getSearchResultPreview } from "../../utils/search";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
-import { Link } from "react-router";
-import { ArrowRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { Link, useNavigate } from "react-router";
 import { ISafeIdea } from "../../../app/database/models/ideas";
 import { useAuth } from "../../contexts/AuthContext";
-import IdeaCard, { IIdeaAction } from "../Display/Ideas/Interactions/IdeaCard";
 import useRabbithole from "../../hooks/useRabbithole";
 import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
+import { IconProps } from "@phosphor-icons/react";
+import ConnectableThing from "../Display/Interactions/Connections/ConnectableThing";
+import CollapseButton from "../Display/Interactions/CollapseButton";
+import { ISearchResultValue } from "../../../app/services/Search";
+
+export type ISearchResultAction = {
+  id: string;
+  label: string;
+  icon?: React.ReactElement<IconProps>;
+  onClick: (event: React.MouseEvent, thing: ISearchResultValue) => void;
+  color?: MantineColor;
+  variant?:
+    | "filled"
+    | "light"
+    | "outline"
+    | "default"
+    | "subtle"
+    | "transparent"
+    | "white";
+  disabled?: boolean;
+};
 
 interface ISearchProps {
-  resultActions?: ((idea: ISafeIdea) => IIdeaAction)[];
+  resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
   resultFilter?: (id: string) => boolean;
   ignoreRabbithole?: boolean;
 }
@@ -75,6 +90,8 @@ export default function Search({
     if (!startTimeRef.current || !resultsTimeRef.current) return null;
     return ((resultsTimeRef.current - startTimeRef.current) / 1000).toFixed(2);
   }, [startTimeRef.current, resultsTimeRef.current]);
+
+  const navigate = useNavigate();
 
   return (
     <div className={styles.searchWrapper}>
@@ -151,58 +168,48 @@ export default function Search({
           <Stack>
             {filteredResults
               ?.map((s, i) => {
-                const isBest = i === 0;
-                const idea = getNodeAsIdeaOrNull(s.value);
-                if (!idea) {
-                  return null;
+                const actions = resultActions?.map((action) => {
+                  return action(s.value);
+                });
+
+                if (!actions) {
+                  return (
+                    <ConnectableThing
+                      thing={s.value}
+                      onClick={(thing) => {
+                        navigate(`/${thing.type}/${thing.id.toString()}`);
+                      }}
+                    />
+                  );
                 }
+
                 return (
-                  <IdeaCard
+                  <CollapseButton
                     key={s.id.toString()}
-                    idea={idea}
-                    description={
-                      <Match
-                        opener="->"
-                        closer="<-"
-                        match={(content) => {
-                          return (
-                            <span className={styles.highlight}>{content}</span>
-                          );
-                        }}
-                      >
-                        {getSearchResultPreview(s) || "No preview available."}
-                      </Match>
-                    }
+                    target={<ConnectableThing thing={s.value} />}
                     details={
                       <>
-                        <Card withBorder radius="lg">
-                          <Text size="xs" fw="bold" c="dimmed">
-                            Matching Content
-                          </Text>
-                          <Match
-                            opener="->"
-                            closer="<-"
-                            match={(content) => {
-                              return (
-                                <span className={styles.highlight}>
-                                  {content}
-                                </span>
-                              );
-                            }}
-                          >
-                            {getSearchResultPreview(s) ||
-                              "No preview available."}
-                          </Match>
-                        </Card>
-                        <div
-                          dangerouslySetInnerHTML={{ __html: idea.content }}
-                        />
+                        <Group>
+                          {actions.map((a) => {
+                            return (
+                              <Button
+                                variant={a.variant || "light"}
+                                size="xs"
+                                color={a.color || "gray"}
+                                onClick={(e) => {
+                                  a.onClick(e, s.value);
+                                }}
+                                title={a.label}
+                                leftSection={a.icon}
+                                radius="md"
+                              >
+                                {a.label}
+                              </Button>
+                            );
+                          })}
+                        </Group>
                       </>
                     }
-                    actions={resultActions?.map((r) => {
-                      return r(idea);
-                    })}
-                    actionsVisible={isMobile ? 1 : undefined}
                   />
                 );
               })

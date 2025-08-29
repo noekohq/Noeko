@@ -20,8 +20,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "Qwest",
-        short_name: "Qwest",
+        name: "Noeko",
+        short_name: "Noeko",
         display: "standalone",
         start_url: "/",
         description:

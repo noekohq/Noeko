@@ -8,8 +8,9 @@ import { Search } from "../../services/Search";
 import { ITask } from "./task";
 import { IUserFile } from "./userfile";
 import { ISource } from "./source";
+import GraphService, { IConnectable } from "../../services/Graph";
 
-export type IRabbitholeIncludes = IIdea | ITag | ITask | ISource;
+export type IRabbitholeIncludes = IConnectable | (ITag & { type: "tag" });
 
 export type IRabbithole = {
   id: string | RecordId;
@@ -46,6 +47,7 @@ export default class Rabbithole {
           (
               SELECT
                   *
+              OMIT embeddings
               FROM $parent->includes
               ORDER BY createdAt DESC
               FETCH out
@@ -327,6 +329,64 @@ export default class Rabbithole {
         `Error getting similar ideas for rabbithole ${rabbitholeId.toString()}: `,
         error,
       );
+      return undefined;
+    }
+  }
+
+  static async getSimilarThings(
+    userId: string | RecordId,
+    rabbitholeId: string | RecordId,
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+    },
+  ): Promise<IRabbitholeIncludes[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const limit = options.limit || 25;
+      const threshold = Number(options.threshold) || 0.45;
+
+      const results = await db.query<
+        [(IRabbitholeIncludes & { embeddings: number[] })[]]
+      >(
+        `
+        SELECT VALUE
+          ->includes->(?) as included
+        FROM ONLY $rabbitholeId
+        FETCH included;
+        `,
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+        },
+      );
+
+      if (!results) {
+        throw new Error("Couldn't get results");
+      }
+
+      const [included] = results;
+      const vectors = included.map((i) => i.embeddings).filter((i) => !!i);
+      const averageEmbedding = averageEmbeddings(vectors);
+
+      const similarThings = await GraphService.searchSimilarConnectables(
+        userId,
+        averageEmbedding,
+        {
+          limit,
+          threshold,
+        },
+      );
+
+      if (!similarThings) {
+        throw new Error("Couldn't get similar things");
+      }
+
+      return similarThings;
+    } catch (error) {
+      console.error("Error finding rabbithole suggestions:", error);
       return undefined;
     }
   }

@@ -120,13 +120,13 @@ export default function App() {
                 >
                   <Stack gap="xs">
                     <Text size="sm">
-                      Attemping to establish a connection to the Qwest server.
-                      If this takes a while, consider refreshing the page.
+                      Attemping to establish a connection to the server. If this
+                      takes a while, consider refreshing the page.
                     </Text>
                     <Text size="sm">
                       We apologize for any inconvenience. For any inquiries or
                       support, please feel free to contact{" "}
-                      <a href="mailto:support@qwest.so">support@qwest.so</a>.
+                      <a href="mailto:support@noeko.app">support@noeko.app</a>.
                     </Text>
                   </Stack>
                 </Alert>

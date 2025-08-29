@@ -56,6 +56,7 @@ export default function TaskButton({
       "application/json",
       JSON.stringify({
         taskId: task.id.toString(),
+        thingId: task.id.toString(),
       }),
     );
   };
@@ -142,6 +143,7 @@ export default function TaskButton({
           }}
           className={styles.taskButton}
           data-task-id={task.id.toString()}
+          data-thing-id={task.id.toString()}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           draggable={true}
@@ -216,6 +218,9 @@ export default function TaskButton({
       >
         <Stack gap="xs">
           <Text c="dimmed" fw="bold" size="sm">
+            {task.description}
+          </Text>
+          <Text c="dimmed" fs="italic" size="sm">
             Due {formattedDueDate()}, estimated to take{" "}
             {formattedEstimatedDuration()}
           </Text>

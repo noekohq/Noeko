@@ -6,7 +6,7 @@ import styles from "./OverviewParser.module.scss";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm"; // Import the plugin
-import { getNodeTitle } from "../../../utils/graph";
+import { getNodeLink, getNodeTitle } from "../../../utils/graph";
 import { Link } from "react-router";
 import { markdownToHtml } from "../../../utils/formatting";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
@@ -35,11 +35,7 @@ const FindingBadge: React.FC<IFindingBadgeProps> = ({
   if (!result) return null;
 
   const title = getNodeTitle(result);
-  const titleLink = (sourceId: string, excerpt?: string) => {
-    return excerpt
-      ? `/idea/${sourceId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`
-      : `/idea/${sourceId}`;
-  };
+  const titleLink = getNodeLink(result);
 
   return (
     <HoverCard
@@ -65,14 +61,11 @@ const FindingBadge: React.FC<IFindingBadgeProps> = ({
       </HoverCard.Target>
       <HoverCard.Dropdown>
         <Group align="baseline" justify="space-between">
-          <Link
-            to={titleLink(finding.sourceId.toString(), finding.excerpt)}
-            style={{ textDecoration: "none" }}
-          >
+          <Link to={titleLink || ""} style={{ textDecoration: "none" }}>
             <Text size="md" c="dark.1" fw="bold" style={{ cursor: "pointer" }}>
               <Group gap="xs">
                 {title}
-                <ArrowRightIcon weight="bold" />
+                {titleLink && <ArrowRightIcon weight="bold" />}
               </Group>
             </Text>
           </Link>

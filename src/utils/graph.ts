@@ -195,10 +195,15 @@ export const getNodeDescription = (
     return node.description;
   }
   if (node.type === "rabbithole") {
-    return formatDateTime(node.updatedAt);
+    return node.includes
+      ? `${node.includes?.length} thing${node.includes.length === 1 ? "" : "s"} included`
+      : `Created ${formatDate(node.createdAt)}, updated ${formatDate(node.updatedAt)}.`;
   }
   if (node.type === "source") {
-    return node.content.slice(0, 124);
+    return node.analysis?.headline ?? node.content.slice(0, 256);
+  }
+  if (node.type === "task") {
+    return node.description;
   }
 };
 
@@ -213,6 +218,24 @@ export const getNodeContent = (node: INode) => {
     return node.scratchpad;
   }
   return undefined;
+};
+
+export const getNodeLink = (node: INode) => {
+  if (node.type === "idea") {
+    return `/idea/${node.id.toString()}`;
+  }
+  if (node.type === "source") {
+    return `/source/${node.id.toString()}`;
+  }
+  if (node.type === "task") {
+    return `/task/${node.id.toString()}`;
+  }
+  if (node.type === "rabbithole") {
+    return `/rabbitholes/${node.id.toString()}`;
+  }
+  if (node.type === "tag") {
+    return `/tag/${node.id.toString()}`;
+  }
 };
 
 export const ideasAreConnected = (

@@ -175,7 +175,7 @@ export default function Register() {
             <Grid>
               <Grid.Col span={12}>
                 <Group>
-                  <Title>Qwest</Title>
+                  <Title>Noeko</Title>
                   <StageIndicator />
                 </Group>
               </Grid.Col>
@@ -183,7 +183,7 @@ export default function Register() {
                 <Text>
                   Sorry, we are not accepting direct registration during this
                   phase. Please use an invitation link or join the{" "}
-                  <a href="https://waitlist.qwest.so">waitlist</a>.
+                  <a href="https://waitlist.noeko.app">waitlist</a>.
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -211,7 +211,7 @@ export default function Register() {
             <Grid>
               <Grid.Col span={12}>
                 <Group>
-                  <Title>Qwest</Title>
+                  <Title>Noeko</Title>
                   <StageIndicator />
                 </Group>
               </Grid.Col>
@@ -219,7 +219,7 @@ export default function Register() {
                 <Text>
                   Sorry, it looks like this referral code is invalid. Please use
                   a valid code or join the{" "}
-                  <a href="https://waitlist.qwest.so">waitlist</a>.
+                  <a href="https://noeko.neoko.app">waitlist</a>.
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -251,7 +251,7 @@ export default function Register() {
             )}
             <Grid.Col span={12}>
               <Group>
-                <Title>Register to Qwest!</Title>
+                <Title>Register to Noeko!</Title>
                 <StageIndicator />
               </Group>
             </Grid.Col>

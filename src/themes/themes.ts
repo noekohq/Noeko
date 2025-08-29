@@ -14,7 +14,7 @@ export const theme = createTheme({
   spacing: {},
 });
 
-export const qwest: IOverrideResolver = (t) => {
+export const noeko: IOverrideResolver = (t) => {
   const lightColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> =
     {
       dark: [
@@ -296,5 +296,5 @@ export const qwest: IOverrideResolver = (t) => {
 };
 
 export const overrides: Record<IThemeOption, IOverrideResolver> = {
-  qwest: qwest,
+  noeko: noeko,
 };

@@ -1,6 +1,6 @@
 import { MantineColorScheme, MantineThemeOverride } from "@mantine/core";
 
-export type IThemeOption = "qwest";
+export type IThemeOption = "noeko";
 
 export type IThemeSpec = {
   scheme: MantineColorScheme;

@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router";
-import { ISpyglassSearch } from "../../../../app/database/models/search";
-import { ISearchOverview } from "../../../../app/services/Search";
+import {
+  ISpyglassSearch,
+  ISearchOverview,
+} from "../../../../app/database/models/search";
 import {
   ICitationMap,
   IResultsMap,
@@ -11,7 +13,6 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import OverviewParser from "./OverviewParser";
 import {
   Accordion,
-  AccordionItem,
   ActionIcon,
   Badge,
   Blockquote,
@@ -20,28 +21,21 @@ import {
   CopyButton,
   Group,
   HoverCard,
-  Popover,
   Space,
   Stack,
   Text,
-  Transition,
-  UnstyledButton,
 } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import {
-  ArrowLeftIcon,
   ArrowLineLeftIcon,
-  ArrowLineRightIcon,
-  ArrowLineUpLeftIcon,
   ArrowLineUpRightIcon,
-  ArrowRight,
   ArrowRightIcon,
   CaretDownIcon,
   CaretUpIcon,
   CheckIcon,
   CopyIcon,
 } from "@phosphor-icons/react";
-import { htmlToMarkdown, markdownToHtml } from "../../../utils/formatting";
+import { markdownToHtml } from "../../../utils/formatting";
 import { IFinding } from "../../../../app/services/Spyglass";
 
 export type IDisplayOverview = {

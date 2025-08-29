@@ -238,6 +238,42 @@ router.get("/:rabbitholeId/similar-ideas", async (req, res) => {
   }
 });
 
+router.get("/:rabbitholeId/suggestions", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { rabbitholeId } = req.params;
+    const limit = Number(req.query.limit as string) ?? 25;
+    const threshold = Number(req.query.threshold as string);
+
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccessToRabbithole) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const similarThings = await Rabbithole.getSimilarThings(
+      user.id,
+      rabbitholeId,
+      { limit, threshold },
+    );
+    res.send({
+      message: "Successfully retrieved similar ideas",
+      data: similarThings,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
 router.post("/:rabbitholeId/include", async (req, res) => {
   try {
     const { rabbitholeId } = req.params;

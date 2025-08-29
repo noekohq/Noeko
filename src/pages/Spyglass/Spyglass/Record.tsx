@@ -53,7 +53,7 @@ export default function SpyglassRecord() {
 
   const navigate = useNavigate();
 
-  useDocumentTitle(baseQuery ? `${baseQuery} - Qwest` : "Qwest");
+  useDocumentTitle(baseQuery ? `${baseQuery} - Noeko` : "Noeko");
 
   const {
     elements: {

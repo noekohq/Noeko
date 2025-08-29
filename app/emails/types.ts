@@ -13,7 +13,7 @@ export const invitationTemplate = (
   <br />
   <br />
 
-  My name is ${inviter.firstName} w/ Qwest, inviting you to join the app!
+  My name is ${inviter.firstName} w/ Noeko, inviting you to join the app!
   <br />
   <br />
 
@@ -41,7 +41,7 @@ export const invitationTemplate = (
   <br />
   <br />
 
-  Thank you for your interest and for your time, and we hope you enjoy Qwest!
+  Thank you for your interest and for your time, and we hope you enjoy Noeko!
   - ${inviter.firstName}
   `;
 };
@@ -50,7 +50,7 @@ export const passwordResetTemplate = (user: ISafeUser, resetToken: string) => {
   return `
   Hello ${user.firstName}!
 
-  You recently requested to reset your password for your Qwest account. Click the link below to reset your password:
+  You recently requested to reset your password for your Noeko account. Click the link below to reset your password:
 
   <a href="${DEPLOYED_URL}/reset-password/${resetToken}">Reset Your Password</a>
 
@@ -59,5 +59,5 @@ export const passwordResetTemplate = (user: ISafeUser, resetToken: string) => {
   This link will expire in 1 hour for security reasons.
 
   Thanks,
-  The Qwest Team`.trim();
+  The Noeko Team`.trim();
 };
