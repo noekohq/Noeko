@@ -328,35 +328,4 @@ router.get("/:taskId/similar-ideas", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/similar_to/idea/:ideaId", async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user || !user.id) {
-      res.status(401).json({ message: "Unauthorized. User not found." });
-      return;
-    }
-    const ideaId = req.params.ideaId;
-    const userOwns = User.checkOwns(user.id, ideaId);
-    if (!userOwns) {
-      res.status(403).send({
-        message: "Unauthorized.",
-      });
-      return;
-    }
-    const similar: ITask[] | undefined = await Task.getSimilarToIdea(
-      user.id,
-      ideaId,
-    );
-    if (!similar) {
-      throw new Error("Couldn't get similar.");
-    }
-    res.send({
-      message: "Got similar tasks to idea",
-      data: similar,
-    });
-  } catch (error) {
-    console.error("Error finding similar tasks to idea:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
 export default router;

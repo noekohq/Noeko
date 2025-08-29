@@ -318,43 +318,6 @@ export default class Task {
     return this.getForDateRange(userId, date, date);
   }
 
-  static async getSimilarToIdea(
-    userId: string | RecordId,
-    ideaId: string | RecordId,
-    options?: {
-      limit?: number;
-      threshold?: number;
-    },
-  ): Promise<ITask[] | undefined> {
-    try {
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Error getting database");
-      }
-      const idea = await Idea.getFull(ideaId);
-      if (!idea) {
-        throw new Error("Idea not found.");
-      }
-      if (!idea.embeddings) {
-        return;
-      }
-      const results = await Search.searchTasksByEmbedding(
-        userId,
-        idea.embeddings,
-      );
-      if (!results) {
-        throw new Error("No similar tasks found.");
-      }
-      const mapped = results.map((r) => {
-        return r.value as ITask;
-      });
-      return mapped;
-    } catch (error) {
-      console.error("Error getting similar tasks to idea: ", error);
-      return undefined;
-    }
-  }
-
   static async getSimilarIdeasToTask(
     taskId: string | RecordId,
     userId: string | RecordId,

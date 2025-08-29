@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ISearchOverview,
   ISearchResultValue,
   type ISearchResult,
 } from "../../../../app/services/Search";
@@ -8,6 +7,7 @@ import { api, serverLocation } from "../../../server/api";
 import {
   ISpyglassGeneratorType,
   ISpyglassSearch,
+  ISearchOverview,
 } from "../../../../app/database/models/search";
 import { parseIncompleteJsonArray } from "../../../utils/processing";
 import useFetch from "../../../hooks/useFetch";
