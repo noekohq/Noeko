@@ -1,16 +1,17 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import {
-  ISearchOverview,
-  ISearchResult,
-  ISearchResultValue,
-} from "../../services/Search";
+import { ISearchResult, ISearchResultValue } from "../../services/Search";
 import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
 import { parseIncompleteJsonArray } from "../../utils/processing";
 import { max_spyglass_finding_amount } from "../../settings";
-import Spyglass, { ISpyglassIntent } from "../../services/Spyglass";
+import Spyglass, { IFinding, ISpyglassIntent } from "../../services/Spyglass";
 import { IRabbithole } from "./rabbithole";
+
+export type ISearchOverview = {
+  overview: string;
+  findings: IFinding[];
+};
 
 export type ISpyglassSearch = {
   id: string | RecordId;
@@ -99,7 +100,7 @@ export class SpyglassSearch {
             SELECT
               *,
               (SELECT * FROM found WHERE in = $spyglassRecord) as resultConnections,
-              (SELECT * OMIT embeddings FROM ->found->idea) as results,
+              (SELECT * OMIT embeddings FROM ->found->(?)) as results,
               (SELECT * FROM ->is_followup_to->spyglass)[0] AS parent,
               (SELECT * FROM <-includes<-rabbithole)[0] AS rabbithole
             FROM ONLY <record> $spyglassRecord
@@ -418,15 +419,19 @@ export class SpyglassSearch {
     connection: ISearchConnection,
     source: ISearchResultValue,
   ): Promise<ISearchResult> {
-    const getType = () => {
+    const getType = (): ISearchResultValue["type"] => {
       if (source.id.toString().startsWith("idea")) {
         return "idea";
       }
-      if (source.id.toString().startsWith("user_file")) {
+      if (source.id.toString().startsWith("task")) {
+        return "task";
+      }
+      if (source.id.toString().startsWith("source")) {
         return "source";
       }
-      return "idea";
+      return source.type;
     };
+
     source.type = getType();
     return {
       id: connection.out,

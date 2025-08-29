@@ -20,7 +20,7 @@ import { IRabbitholeAction } from "./rabbitholes";
 import RabbitholeThing from "./RabbitholeThing";
 import { useDisclosure } from "@mantine/hooks";
 import React, { useState } from "react";
-import { IRabbitholeSearchResult } from "../../../../app/services/Search";
+import { getNodeDescription } from "../../../utils/graph";
 
 interface IRabbitholeButtonProps {
   rabbithole: IRabbithole;
@@ -33,7 +33,10 @@ interface IRabbitholeButtonProps {
 const getRabbitholeDefaultSummary = (
   rabbithole: IRabbithole,
 ): string | undefined => {
-  return `Updated ${formatDateTime(rabbithole.updatedAt)}`;
+  return getNodeDescription({
+    ...rabbithole,
+    type: "rabbithole",
+  });
 };
 
 export default function RabbitholeButton({

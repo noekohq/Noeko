@@ -118,7 +118,7 @@ router.post("/register-referred", async (req, res) => {
       password: hashedPassword,
       firstName: form.firstName,
       lastName: form.lastName,
-      scratchpadContent: `<h1>Hello and welcome to Qwest!</h1>`,
+      scratchpadContent: `<h1>Hello and welcome to Noeko!</h1>`,
     });
 
     if (!newUser) {

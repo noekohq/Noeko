@@ -4,7 +4,7 @@ const STAGE = "Early Access";
 
 export default function StageIndicator() {
   return (
-    <Tooltip label={`Qwest is currently in ${STAGE}`}>
+    <Tooltip label={`Noeko is currently in ${STAGE}`}>
       <Badge color="orange" size="md" variant="light">
         {STAGE}
       </Badge>

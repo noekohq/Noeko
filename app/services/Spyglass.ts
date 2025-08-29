@@ -1,12 +1,12 @@
 import { getLM } from "../ai/lms/lm";
 import { LMSchema, LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
-import { ISearchOverview, ISearchResult, Search } from "./Search";
+import { ISearchResult, Search } from "./Search";
 import { IIdea } from "../database/models/ideas";
 import { formatDate, htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
-import { ISpyglassSearch } from "../database/models/search";
+import { ISearchOverview, ISpyglassSearch } from "../database/models/search";
 import { RecordId } from "surrealdb";
 import Source, { ISourceAnalysis } from "../database/models/source";
 
@@ -578,7 +578,7 @@ export default class Spyglass {
         "Context",
         `
         It is currently ${getFormattedDateTimeToday()}.
-        You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+        You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
         `,
       );
 
@@ -693,7 +693,7 @@ export default class Spyglass {
           Here is some context for you to use in formation of your analysis:
           <context>
             It is currently ${getFormattedDateTimeToday()}.
-            You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+            You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           </context>
           `,
         )
@@ -766,7 +766,7 @@ export default class Spyglass {
             description:
               "A brief, one-sentence explanation of *why* this excerpt is important and how it directly helps answer the user's intent.",
           },
-          // --- Updated the enum with the new, more detailed taxonomy for qwest.
+          // --- Updated the enum with the new, more detailed taxonomy for noeko.
           findingType: {
             type: LMSchemaType.STRING,
             description:
@@ -794,7 +794,7 @@ export default class Spyglass {
         "Context",
         `
           It is currently ${getFormattedDateTimeToday()}.
-          You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           `,
       );
 
@@ -840,7 +840,7 @@ export default class Spyglass {
           - If multiple findings support a sentence, list each citation in its own separate brackets, like \`[1][2]\`.
 
           ## Example:
-          "Qwest is a knowledge management application designed to provide natural language answers from a user's notes[1]. Its core philosophy is to help users organize their thoughts and curate knowledge effectively[2][3]."
+          "Noeko is a knowledge management application designed to provide natural language answers from a user's notes[1]. Its core philosophy is to help users organize their thoughts and curate knowledge effectively[2][3]."
           `,
       )
       .addBlock(
@@ -925,14 +925,23 @@ export default class Spyglass {
   static resultToString(result: ISearchResult) {
     let r = "";
     const { highlightText, value } = result;
-    const ideaValue = value as IIdea;
     r += "<result>";
-    r += ` <title>${ideaValue.title}</title>`;
-    r += ` <id>${ideaValue.id}</id>`;
+    if (value.type === "idea") {
+      r += `  <title>${value.title}</title>`;
+      r += `  <content>${htmlToMarkdown(value.content)}</content>`;
+    }
+    if (value.type === "task") {
+      r += `  <title>${value.description}</title>`;
+      r += `  <content>${htmlToMarkdown(value.scratchpad)}</content>`;
+    }
+    if (value.type === "source") {
+      r += `  <title>${value.displayName}</title>`;
+      r += `  <content>${htmlToMarkdown(value.content)}</content>`;
+    }
+    r += ` <id>${value.id.toString()}</id>`;
     if (highlightText) {
       r += `  <systemHighlightedText>${highlightText}</systemHighlightedText>`;
     }
-    r += `  <content>${htmlToMarkdown(ideaValue.content)}</content>`;
     r += "</result>";
     return r;
   }
@@ -946,13 +955,9 @@ export default class Spyglass {
       if (results.length === 0) {
         return [];
       }
-      const resultsStrings = results
-        .filter((r) => {
-          return r.value?.type === "idea";
-        })
-        .map((result) => {
-          return this.resultToString(result);
-        });
+      const resultsStrings = results.map((result) => {
+        return this.resultToString(result);
+      });
       const overviewPrompt = this.findingsPromptBuilder(
         intent.intent,
         Modes[intent.mode],
@@ -1005,15 +1010,15 @@ export default class Spyglass {
       );
 
       resultsStrings.forEach((s, i) => {
-        // make sure we don't surpass lm prompt size
         const totalSize = findingsPrompt.get().length;
         if (totalSize + s.length > max_lm_prompt_size) {
+          console.info(`Omitting a result with a size of ${s.length}`);
           return;
         }
         findingsPrompt.addBlock(`Result ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("fast-accurate");
+      const lm = getLM().withModel("simple");
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
         this.findingsSchema(results.map((r) => r.id.toString())),
@@ -1037,10 +1042,18 @@ export default class Spyglass {
     let t = "";
     const { excerpt, analysis, sourceId, findingType } = finding;
     const source = citationMap[sourceId];
+    const type = source.value.type;
     t += "<finding>";
+    t += `  <sourceType>${type}</sourceType>`;
     t += `  <sourceId>${sourceId}</sourceId>`;
     if (source.value.type === "idea") {
       t += `  <sourceTitle>${source.value.title}</sourceTitle>`;
+    }
+    if (source.value.type === "task") {
+      t += `  <sourceTitle>${source.value.description}</sourceTitle>`;
+    }
+    if (source.value.type === "source") {
+      t += `  <sourceTitle>${source.value.displayName}</sourceTitle>`;
     }
     t += `  <findingNumber>${index}</findingNumber>`;
     t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
@@ -1190,7 +1203,7 @@ export default class Spyglass {
             Here is some context for you to use in formation of your analysis:
             <context>
               It is currently ${getFormattedDateTimeToday()}.
-              You are part of a search engine called Spyglass in an app called Qwest. The goal of the system is to provide a natural language analysis of given Source Material.
+              You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language analysis of given Source Material.
             </context>
             `,
       )
@@ -1308,7 +1321,7 @@ export default class Spyglass {
       analysisPrompt.addText(source.content);
       analysisPrompt.addText("</sourceMaterial>");
       const analysisSchema = this.sourceAnalysisSchema(sourceId);
-      const lm = getLM().withModel("general");
+      const lm = getLM().withModel("simple");
       const analysis = await lm.generateJSON<Omit<ISourceAnalysis, "findings">>(
         analysisPrompt.get(),
         analysisSchema,

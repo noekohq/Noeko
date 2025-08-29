@@ -113,7 +113,7 @@ export default function Login() {
             )}
             <Grid.Col span={12}>
               <Group>
-                <Title>Login to Qwest</Title>
+                <Title>Login to Noeko</Title>
                 <StageIndicator />
               </Group>
             </Grid.Col>

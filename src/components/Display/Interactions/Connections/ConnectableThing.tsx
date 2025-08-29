@@ -33,9 +33,10 @@ interface IConnectableThingAction {
 
 interface IConnectableThingProps {
   thing: IConnectable;
-  connectable: IConnectable;
+  connectable?: IConnectable;
   actions?: IConnectableThingAction[];
   connected?: boolean;
+  onClick?: (connectable: IConnectable) => void;
 }
 
 export default function ConnectableThing({
@@ -43,10 +44,23 @@ export default function ConnectableThing({
   actions,
   connectable,
   connected,
+  onClick,
 }: IConnectableThingProps) {
+  const handleClick = (thing: IConnectable) => {
+    onClick?.(thing);
+  };
+
   if (thing.id.toString().startsWith("idea")) {
     const idea = thing as IIdea;
-    return <IdeaButton key={idea.id.toString()} idea={idea} />;
+    return (
+      <IdeaButton
+        key={idea.id.toString()}
+        idea={idea}
+        onClick={() => {
+          handleClick(thing);
+        }}
+      />
+    );
   }
   if (thing.id.toString().startsWith("task")) {
     return (
@@ -54,11 +68,22 @@ export default function ConnectableThing({
         link={false}
         key={thing.id.toString()}
         task={thing as ITask}
+        onClick={() => {
+          handleClick(thing);
+        }}
       />
     );
   }
   if (thing.id.toString().startsWith("source")) {
     const source = thing as ISource;
-    return <SourceButton key={source.id.toString()} source={source} />;
+    return (
+      <SourceButton
+        key={source.id.toString()}
+        source={source}
+        onClick={() => {
+          handleClick(thing);
+        }}
+      />
+    );
   }
 }

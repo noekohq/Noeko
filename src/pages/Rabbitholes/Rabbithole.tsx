@@ -19,7 +19,10 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
-import { IRabbithole } from "../../../app/database/models/rabbithole";
+import {
+  IRabbithole,
+  IRabbitholeIncludes,
+} from "../../../app/database/models/rabbithole";
 import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -31,6 +34,8 @@ import { ITag } from "../../../app/database/models/tag";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import {
   CaretLeftIcon,
+  CirclesThreePlus,
+  CirclesThreePlusIcon,
   DoorIcon,
   DoorOpenIcon,
   InfoIcon,
@@ -61,6 +66,9 @@ import StatusBar from "../../components/UI/Layout/Bottom";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import RabbitholeThing from "../../components/Display/Rabbitholes/RabbitholeThing";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
+import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
+import CollapseButton from "../../components/Display/Interactions/CollapseButton";
+import TagButton from "../../components/Display/Tags/TagButton";
 
 export default function Rabbithole() {
   const [error, setError] = useState("");
@@ -87,19 +95,19 @@ export default function Rabbithole() {
   }, [rabbitholeId]);
 
   const {
-    data: relatedIdeas,
-    loading: loadingRelatedIdeas,
-    errors: relatedIdeaErrors,
-    load: loadRelatedIdeas,
-  } = useFetch<undefined, IIdea[]>({
-    url: `/rabbitholes/${rabbitholeId}/similar-ideas`,
+    data: suggestedThings,
+    loading: loadingSuggestedThings,
+    errors: suggestedThingsErrors,
+    load: loadSuggestedThings,
+  } = useFetch<undefined, IRabbitholeIncludes[]>({
+    url: `/rabbitholes/${rabbitholeId}/suggestions`,
     dependencies: [rabbitholeId],
   });
 
   useEffect(() => {
     if (rabbitholeId) {
       (async () => {
-        await loadRelatedIdeas();
+        await loadSuggestedThings();
       })();
     }
   }, [rabbitholeId]);
@@ -116,14 +124,14 @@ export default function Rabbithole() {
 
   const handleRefresh = () => {
     loadRabbithole();
-    loadRelatedIdeas();
+    loadSuggestedThings();
     reloadRabbitholeContext();
   };
 
   const isEntered =
     currentlyEntered?.id.toString() === rabbithole?.id.toString();
 
-  useDocumentTitle(`${rabbithole?.name || "Loading..."} - Qwest`);
+  useDocumentTitle(`${rabbithole?.name || "Loading..."} - Noeko`);
 
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
 
@@ -204,9 +212,9 @@ export default function Rabbithole() {
           return;
         }
         const jData = e.dataTransfer.getData("application/json");
-        const data = JSON.parse(jData) as { ideaId: string };
-        const { ideaId } = data;
-        if (isIncluded(ideaId)) {
+        const data = JSON.parse(jData) as { thingId: string };
+        const { thingId } = data;
+        if (isIncluded(thingId)) {
           showNotification({
             title: "Can't connect again",
             message: "Can't connect this idea again.",
@@ -216,7 +224,7 @@ export default function Rabbithole() {
         }
         await includeThingInRabbithole(
           rabbithole.id.toString(),
-          ideaId.toString(),
+          thingId.toString(),
         );
         handleRefresh();
       } catch (error) {
@@ -265,6 +273,7 @@ export default function Rabbithole() {
       setUnincluding(undefined);
     });
   };
+
   const isUnincluding = (thingId: string) => {
     return unincluding === thingId;
   };
@@ -385,43 +394,82 @@ export default function Rabbithole() {
         </LeftSidebar.Collapsed>
         <LeftSidebar.Open>
           <Stack>
-            <Title order={3}>Suggested Ideas</Title>
-            {!relatedIdeas?.length && (
+            <Text size="sm" c="dark.4" fw="bold">
+              <Group gap="xs">
+                <LightbulbIcon weight="bold" />
+                SUGGESTED
+              </Group>
+            </Text>
+            {!suggestedThings?.length && (
               <Text size="xs" c="dimmed">
-                No currently suggested ideas.
+                No current suggestions.
               </Text>
             )}
             <Transition
-              mounted={!includingThing && !loadingRelatedIdeas}
+              mounted={!includingThing && !loadingSuggestedThings}
               transition="fade-up"
             >
               {(style) => {
                 return (
                   <Stack style={style}>
-                    {relatedIdeas
+                    {suggestedThings
                       ?.filter((r) => {
                         return !isIncluded(r.id.toString());
                       })
-                      ?.map((idea) => {
+                      ?.map((thing) => {
+                        if (thing.type === "tag") {
+                          const tag = thing as ITag;
+                          return (
+                            <CollapseButton
+                              target={<TagButton tag={tag} />}
+                              details={
+                                <>
+                                  <Group gap="xs">
+                                    <Button
+                                      variant="light"
+                                      radius="md"
+                                      size="xs"
+                                      color="dark.3"
+                                      leftSection={
+                                        <CirclesThreePlusIcon weight="bold" />
+                                      }
+                                      title="Include this thing"
+                                      onClick={() => {
+                                        handleInclude(tag.id.toString());
+                                      }}
+                                    >
+                                      Include
+                                    </Button>
+                                  </Group>
+                                </>
+                              }
+                            />
+                          );
+                        }
                         return (
-                          <IdeaCard
-                            key={idea.id.toString()}
-                            idea={idea}
-                            actionsVisible={isMobile ? 1 : undefined}
-                            actions={[
-                              {
-                                id: "connect",
-                                icon: isIncludingThing(idea.id.toString()) ? (
-                                  <Loader size="sm" />
-                                ) : (
-                                  <PlusIcon />
-                                ),
-                                label: "Include",
-                                onClick: () => {
-                                  handleInclude(idea.id.toString());
-                                },
-                              },
-                            ]}
+                          <CollapseButton
+                            target={<ConnectableThing thing={thing} />}
+                            details={
+                              <>
+                                <Group gap="xs">
+                                  <Button
+                                    variant="light"
+                                    radius="md"
+                                    size="xs"
+                                    color="dark.3"
+                                    leftSection={
+                                      <CirclesThreePlusIcon weight="bold" />
+                                    }
+                                    title="Include this thing"
+                                    onClick={() => {
+                                      handleInclude(thing.id.toString());
+                                    }}
+                                  >
+                                    Include
+                                  </Button>
+                                </Group>
+                              </>
+                            }
                           />
                         );
                       })}
@@ -430,7 +478,7 @@ export default function Rabbithole() {
               }}
             </Transition>
             <Transition
-              mounted={!!includingThing || loadingRelatedIdeas}
+              mounted={!!includingThing || loadingSuggestedThings}
               transition="fade-up"
             >
               {(styles) => {
@@ -438,7 +486,7 @@ export default function Rabbithole() {
                   <div style={styles}>
                     <Group gap="xs" align="center">
                       <Loader size="xs" />
-                      <Text>Looking for related ideas...</Text>
+                      <Text>Looking for suggestions...</Text>
                     </Group>
                   </div>
                 );
@@ -619,11 +667,18 @@ export default function Rabbithole() {
                               );
                             })
                             .filter((i) => !!i)
-                            .slice(
-                              0,
-                              isEntered ? rabbithole.includes.length : 9,
-                            )}
+                            .slice(0, 9)}
                         </SimpleGrid>
+                      )}
+                      {!!(
+                        rabbithole?.includes?.length &&
+                        rabbithole.includes.length > 9
+                      ) && (
+                        <Text size="sm" c="dimmed">
+                          {rabbithole.includes.length - 9} more thing
+                          {rabbithole.includes.length - 9 === 1 ? "" : "s"}{" "}
+                          hidden...
+                        </Text>
                       )}
                       <Transition
                         mounted={!isEntered && !isMobile}
@@ -670,17 +725,17 @@ export default function Rabbithole() {
                 resultActions={
                   isMobile
                     ? [
-                        (idea) => {
+                        (thing) => {
                           return {
                             id: "connect",
-                            icon: isIncludingThing(idea.id.toString()) ? (
-                              <Loader size="sm" />
+                            icon: isIncludingThing(thing.id.toString()) ? (
+                              <Loader size="xs" color="gray" />
                             ) : (
                               <PlusIcon />
                             ),
                             label: "Include",
                             onClick: () => {
-                              handleInclude(idea.id.toString());
+                              handleInclude(thing.id.toString());
                             },
                           };
                         },

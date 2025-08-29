@@ -295,15 +295,23 @@ export default class GraphService {
         return results;
       };
 
-      const ideas = await getOfType<
-        IIdea & { type: "idea"; similarity: number }
-      >(ideaQuery);
-      const sources = await getOfType<
-        ISource & { type: "source"; similarity: number }
-      >(sourceQuery);
-      const tasks = await getOfType<
-        ITask & { type: "task"; similarity: number }
-      >(taskQuery);
+      const ideas = (
+        await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)
+      ).map((i) => ({ ...i, type: "idea" as const }));
+      const sources = (
+        await getOfType<ISource & { type: "source"; similarity: number }>(
+          sourceQuery,
+        )
+      ).map((s) => ({
+        ...s,
+        type: "source" as const,
+      }));
+      const tasks = (
+        await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)
+      ).map((t) => ({
+        ...t,
+        type: "task" as const,
+      }));
 
       const combined = [...ideas, ...sources, ...tasks];
       const sorted = combined.sort((a, b) => {
@@ -318,7 +326,127 @@ export default class GraphService {
 
       const final = sorted;
 
-      return final;
+      return final as IConnectable[];
+    } catch (error) {
+      console.error("Error during semantic search:", error);
+      return undefined;
+    }
+  }
+
+  static async searchSimilarConnectables(
+    userId: string | RecordId,
+    embedding: number[],
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+      rabbitholeId?: string;
+    },
+  ): Promise<IConnectable[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const limit = options.limit ?? 10;
+      const defaultCandidates = 300;
+      const candidates = options.candidates ?? defaultCandidates;
+
+      if (!embedding) {
+        throw new Error("No embedding vector provided for connectable");
+      }
+
+      const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
+      if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
+        throw new Error("Invalid similarity threshold provided.");
+      }
+
+      const subqueryWhere = [`<-owns<-(user WHERE id = $userId)`];
+
+      if (!options.rabbitholeId) {
+        subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
+      }
+
+      if (options.rabbitholeId) {
+        subqueryWhere.push(`
+            (
+              id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+              id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+            )
+          `);
+      }
+
+      const tableQuery = (table: string) => {
+        const tableWhere: string[] = [];
+        if (table === "task") {
+          tableWhere.push(`completedAt = NULL`);
+        }
+        const query = `
+          SELECT * FROM (
+            SELECT
+              *,
+              vector::similarity::cosine(embeddings, $embedding) AS similarity
+            OMIT embeddings
+            FROM ${table}
+            WHERE ${[...subqueryWhere, ...tableWhere].join(" AND ")}
+          )
+          WHERE
+            similarity >= ${threshold} AND
+            similarity != NaN
+          ORDER BY similarity DESC
+          LIMIT ${limit};
+          `;
+        return query;
+      };
+
+      const ideaQuery = tableQuery("idea");
+      const sourceQuery = tableQuery("source");
+      const taskQuery = tableQuery("task");
+
+      const getOfType = async <T extends ISimilarConnectable>(
+        query: string,
+      ): Promise<ISimilarConnectable[]> => {
+        const [results] = await db.query<[T[]]>(query, {
+          userId: new StringRecordId(userId),
+          embedding: embedding,
+          ...(options.rabbitholeId && {
+            rabbitholeId: new StringRecordId(options.rabbitholeId),
+          }),
+        });
+        return results;
+      };
+
+      const ideas = (
+        await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)
+      ).map((i) => ({ ...i, type: "idea" as const }));
+      const sources = (
+        await getOfType<ISource & { type: "source"; similarity: number }>(
+          sourceQuery,
+        )
+      ).map((s) => ({
+        ...s,
+        type: "source" as const,
+      }));
+      const tasks = (
+        await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)
+      ).map((t) => ({
+        ...t,
+        type: "task" as const,
+      }));
+
+      const combined = [...ideas, ...sources, ...tasks];
+      const sorted = combined.sort((a, b) => {
+        if (a.similarity > b.similarity) {
+          return -1;
+        }
+        if (a.similarity === b.similarity) {
+          return 0;
+        }
+        return 1;
+      });
+
+      const final = sorted;
+
+      return final as IConnectable[];
     } catch (error) {
       console.error("Error during semantic search:", error);
       return undefined;

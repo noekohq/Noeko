@@ -29,7 +29,7 @@ export default function FileList() {
             <Group>Your Files</Group>
           </Title>
           <Text c="dimmed" size="xs">
-            All of the files you've uploaded to Qwest...
+            All of the files you've uploaded to Noeko...
           </Text>
           {files?.map((file) => {
             return <FileCard file={file} key={file.id.toString()} />;

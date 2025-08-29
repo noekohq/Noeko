@@ -72,7 +72,7 @@ const SettingsContext = createContext<ISettingsContext>({
   ui: {
     theme: {
       override: {
-        get: "qwest", // Default value
+        get: "noeko", // Default value
         set: () => {},
       },
       bodyFont: {
@@ -104,7 +104,7 @@ const SettingsContext = createContext<ISettingsContext>({
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [override, setOverride] = useState<IThemeSpec["override"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.override, "qwest"),
+    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko"),
   );
   const [scheme, setScheme] = useState<IThemeSpec["scheme"]>(() =>
     getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto"),

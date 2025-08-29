@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useRef } from "react";
-import { ISearchOverview, ISearchResult } from "../../../app/services/Search";
+import { ISearchResult } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
@@ -10,7 +10,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 
 type ISearchBarProps = {
   placeholder?: string;
-  onResults?: (results: ISearchResult[], overview?: ISearchOverview) => void;
+  onResults?: (results: ISearchResult[]) => void;
   onResultsClear?: () => void;
   onBlur?: () => void;
   onSearchStart?: () => void;
@@ -42,7 +42,6 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
         query: { get: query, set: setQuery },
         results: { set: setResults },
         loading: { set: setLoading },
-        overview: { set: setOverview },
       },
     } = useSearch();
 
@@ -55,7 +54,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
       loading: loadingIdeas,
     } = useFetch<
       { query: string; rabbitholeId: string | undefined },
-      { results: ISearchResult[]; overview: ISearchOverview }
+      { results: ISearchResult[] }
     >({
       url: "/search/comprehensive",
       method: "POST",
@@ -71,9 +70,8 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
         setLoading(true);
       },
       onSuccess: (r) => {
-        onResults?.(r.results, r.overview);
+        onResults?.(r.results);
         setResults(r.results);
-        setOverview(r.overview);
       },
       onFinally: () => {
         onSearchEnd?.();

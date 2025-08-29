@@ -8,6 +8,7 @@ import {
   ActionIcon,
   Badge,
   Box,
+  Button,
   Group,
   HoverCard,
   Loader,
@@ -183,10 +184,7 @@ export default function ConnectionManager({
             </Group>
           </Group>
           <Transition
-            mounted={
-              !connected ||
-              (connected && connected.length <= 0 && !loadingConnected)
-            }
+            mounted={connected && connected.length <= 0 && !loadingConnected}
             transition="fade-up"
           >
             {(styles) => {
@@ -215,19 +213,24 @@ export default function ConnectionManager({
                   }
                   details={
                     <>
-                      <Group>
-                        <ActionIcon
-                          variant="light"
-                          size="sm"
-                          color={"dark.3"}
-                          onClick={() => {
-                            disconnect(connection.id.toString());
-                          }}
-                          title="Disconnect this thing."
-                        >
-                          <SubtractSquareIcon size={14} weight="bold" />
-                        </ActionIcon>
-                      </Group>
+                      <Stack gap="xs">
+                        <Group gap="xs">
+                          <Button
+                            variant="light"
+                            size="xs"
+                            color="dark.3"
+                            onClick={() => {
+                              disconnect(connection.id.toString());
+                            }}
+                            title="Disconnect this thing"
+                            leftSection={<SubtractSquareIcon weight="bold" />}
+                            radius="md"
+                          >
+                            Disconnect
+                          </Button>
+                        </Group>
+                        <Text size="sm">{getNodeDescription(connection)}</Text>
+                      </Stack>
                     </>
                   }
                 />
@@ -283,6 +286,7 @@ export default function ConnectionManager({
                 const level = similarityToLevel(distance);
                 const color = similarityToColor[level];
                 const connected = isConnected(similar.id.toString());
+                console.log("Similar: ", similar, getNodeDescription(similar));
 
                 return (
                   <CollapseButton
@@ -297,21 +301,23 @@ export default function ConnectionManager({
                     details={
                       <>
                         <Stack gap="md">
-                          <Group gap="xs" align="center">
+                          <Group gap="xs" align="baseline">
                             {!connected && (
-                              <ActionIcon
+                              <Button
                                 variant="light"
-                                size="sm"
+                                size="xs"
+                                radius="md"
                                 color={"dark.3"}
                                 onClick={() => {
                                   connect(similar.id.toString());
                                 }}
                                 title="Connect this idea"
+                                leftSection={<UniteSquareIcon weight="bold" />}
                               >
-                                <UniteSquareIcon size={14} weight="bold" />
-                              </ActionIcon>
+                                Connect
+                              </Button>
                             )}
-                            <Badge color={color} variant="light" size="xs">
+                            <Badge color={"gray"} variant="light" size="sm">
                               {level}
                             </Badge>
                           </Group>

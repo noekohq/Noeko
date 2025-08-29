@@ -397,7 +397,7 @@ export class User {
       const invitation = invitationTemplate(to, sender);
       const worked = await sendEmail(
         to.email,
-        "Invitation to join Qwest",
+        "Invitation to join Noeko",
         invitation,
         {
           from: "team",
@@ -741,7 +741,7 @@ export class User {
       const emailContent = passwordResetTemplate(user, resetToken);
       const success = await sendEmail(
         user.email,
-        "Reset Your Qwest Password",
+        "Reset Your Noeko Password",
         emailContent,
       );
       return success;

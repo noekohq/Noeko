@@ -75,8 +75,8 @@ export default function Settings() {
                     data={[
                       {
                         label: "Default",
-                        value: "qwest" as const,
-                        disabled: override === "qwest",
+                        value: "noeko" as const,
+                        disabled: override === "noeko",
                       },
                     ]}
                     onChange={(v) => {

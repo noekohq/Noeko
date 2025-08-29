@@ -7,6 +7,7 @@ import styles from "./RabbitholeCard.module.scss";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../../Utils/Icons/Icons";
 import { IRabbitholeAction } from "./rabbitholes";
+import { getNodeDescription } from "../../../utils/graph";
 
 interface IRabbitholeCardProps {
   rabbithole: IRabbithole;
@@ -18,7 +19,10 @@ interface IRabbitholeCardProps {
 const getRabbitholeDefaultSummary = (
   rabbithole: IRabbithole,
 ): string | undefined => {
-  return `Updated ${formatDateTime(rabbithole.updatedAt)}`;
+  return getNodeDescription({
+    ...rabbithole,
+    type: "rabbithole",
+  });
 };
 
 export default function RabbitholeCard({

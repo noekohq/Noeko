@@ -1,7 +1,7 @@
 import contentStyles from "./Content.module.scss";
 import styles from "./DreamWriter.module.scss";
 import "katex/dist/katex.min.css";
-import "./lib/qwest-highlight.scss";
+import "./lib/noeko-highlight.scss";
 import {
   Editor as IEditor,
   Extension,

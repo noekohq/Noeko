@@ -81,7 +81,7 @@ export default function Dashboard() {
     }
     let text = "Hello there!";
     if (totalUsers) {
-      text += ` You are using Qwest with ${totalUsers - 1} other people.`;
+      text += ` You are using Noeko with ${totalUsers - 1} other people.`;
     }
     if (totalIdeas && totalIdeas > 0) {
       text += ` You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
