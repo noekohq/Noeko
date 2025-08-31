@@ -76,13 +76,32 @@ export default class Excerpt {
               *,
               ->references->(?) as references
               FROM excerpt
-              WHERE <-excerpts<-(user WHERE id = $userId);
+              WHERE <-owns<-(user WHERE id = $userId);
             RETURN $excerpts;
           }
           `;
     };
+
+    const getExcerptsByExcerptableFunction = () => {
+      return `
+          DEFINE FUNCTION OVERWRITE fn::get_excerpts_by_excerptable(
+            $userId: record<user>,
+            $recordId: record
+          ) {
+            LET $excerpts = SELECT
+              *
+              FROM excerpt
+              WHERE
+                <-owns<-(user WHERE id = $userId) &&
+                references = $recordId;
+            RETURN $excerpts;
+          }
+          `;
+    };
+
     await db.query(getExcerptRecordFunction());
     await db.query(getExcerptsByUserFunction());
+    await db.query(getExcerptsByExcerptableFunction());
   }
 
   public static async from(source: IExcerptable, form: IExcerptForm) {
@@ -146,6 +165,31 @@ export default class Excerpt {
       return excerpts;
     } catch (error) {
       console.error("Error getting excerpts: ", error);
+      return undefined;
+    }
+  }
+
+  public static async allExcerptable(
+    userId: string | RecordId,
+    excerptableId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        return undefined;
+      }
+      const excerpts = await db.run<IExcerptable[]>(
+        `fn::get_excerpts_by_excerptable`,
+        [new StringRecordId(userId), new StringRecordId(excerptableId)],
+      );
+
+      if (!excerpts) {
+        throw new Error("No excerpts returned");
+      }
+
+      return excerpts;
+    } catch (error) {
+      console.error("Something went wrong getting from excerptable: ", error);
       return undefined;
     }
   }
