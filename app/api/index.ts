@@ -14,6 +14,7 @@ import analysisRouter from "./analysis";
 import spellsRouter from "./spells";
 import taskRouter from "./tasks";
 import sourceRouter from "./sources";
+import excerptsRouter from "./excerpts";
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use("/analysis", analysisRouter);
 router.use("/spells", spellsRouter);
 router.use("/tasks", taskRouter);
 router.use("/sources", sourceRouter);
+router.use("/excerpts", excerptsRouter);
 
 export default router;
