@@ -19,6 +19,7 @@ if (serverLocation === undefined || serverLocation === null) {
 }
 
 const baseURL = `${serverLocation}/api`;
+console.info("Setting API base url to: ", baseURL);
 
 // --- Helper Functions (Simplified) ---
 
