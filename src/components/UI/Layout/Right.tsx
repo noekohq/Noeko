@@ -3,14 +3,19 @@ import { ISidebarMode, useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
   ArrowLineLeftIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-  ChatCircleDotsIcon,
   ListMagnifyingGlassIcon,
   SidebarSimpleIcon,
-  UsersIcon,
+  WifiXIcon,
 } from "@phosphor-icons/react";
-import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
+import {
+  ActionIcon,
+  Group,
+  HoverCard,
+  MantineColor,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import ProfileButton from "../../Display/Interactions/ProfileButton";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -18,6 +23,7 @@ import { userIsSuperuser } from "../../../utils/user";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLocation, useNavigate } from "react-router";
 import useSidebarHover from "../../../hooks/useSidebarHover";
+import { useConnection } from "../../../hooks/useConnection";
 
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -44,6 +50,8 @@ const RightSidebar = ({
   } = useLayout();
   const { user } = useAuth();
   const isSuperuser = userIsSuperuser(user);
+
+  const { isOnline, isLoading: loadingConnection } = useConnection();
 
   useEffect(() => {
     setHasContent(!!children);
@@ -121,7 +129,31 @@ const RightSidebar = ({
             />
           </ActionIcon>
         )}
-        <Group>
+        <Group gap="xs">
+          {!isOnline && !loadingConnection && (
+            <HoverCard width="300px" openDelay={300} radius="lg">
+              <HoverCard.Target>
+                <ActionIcon
+                  size={isMobile ? "sm" : "md"}
+                  color={defaultColor}
+                  variant="subtle"
+                >
+                  <WifiXIcon weight="bold" />
+                </ActionIcon>
+              </HoverCard.Target>
+              <HoverCard.Dropdown>
+                <Text size="sm" c="dimmed" mb="sm">
+                  The connection to the server has been disrupted... Noeko is
+                  attempting to automatically re-connect. If it seems like it's
+                  taking a while, refreshing the page may help.
+                </Text>
+                <Text size="sm" c="dimmed">
+                  For any questions, concerns, or feedback, please contact{" "}
+                  <a href="mailto:support@noeko.app">support@noeko.app</a>.
+                </Text>
+              </HoverCard.Dropdown>
+            </HoverCard>
+          )}
           <ProfileButton />
         </Group>
       </Group>

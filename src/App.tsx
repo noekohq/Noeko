@@ -34,7 +34,7 @@ import Admin from "./pages/Admin/Admin";
 import Spyglass from "./pages/Spyglass/Spyglass";
 import Ideas from "./pages/Idea/Ideas";
 import Tags from "./pages/Tags/Tags";
-import { lazy, useEffect } from "react";
+import { lazy, useEffect, useRef } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 import ViewTag from "./pages/Tags/ViewTag";
 import ViewIdea from "./pages/Idea/ViewIdea";
@@ -57,15 +57,37 @@ import Tasks from "./pages/Tasks/Tasks";
 import FileList from "./pages/File/FileList";
 import SourceList from "./pages/Sources/SourceList";
 import Source from "./pages/Sources/Source";
+import { showNotification } from "@mantine/notifications";
+import { useLayout } from "./contexts/LayoutContext";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
   const navigate = useNavigate();
   const { loggedIn, loading: loadingAuth, user } = useAuth();
   const { isOnline, isLoading: loadingConnection } = useConnection();
+  const { isMobile } = useLayout();
   const location = useLocation();
 
   const isSuperuser = userIsSuperuser(user);
+
+  const previousOnlineState = useRef(isOnline);
+  useEffect(() => {
+    if (!isOnline && !loadingConnection && isMobile) {
+      showNotification({
+        title: "Can't connect to server",
+        message:
+          "Can't connect to the server, Noeko will attempt to automatically reconnect.",
+        color: "yellow",
+      });
+    }
+    if (isOnline && previousOnlineState.current === false) {
+      showNotification({
+        title: "Re-established connection",
+        message: "Successfully re-established a connection with the server.",
+      });
+    }
+    previousOnlineState.current = isOnline;
+  }, [isOnline]);
 
   const {
     ui: {
@@ -98,7 +120,7 @@ export default function App() {
 
   return (
     <>
-      {!isOnline && (
+      {/*{!isOnline && (
         <Overlay backgroundOpacity={0.5} blur={4}>
           <Flex justify="center" align="center" direction="column">
             <Content>
@@ -134,7 +156,7 @@ export default function App() {
             </Content>
           </Flex>
         </Overlay>
-      )}
+      )}*/}
       <Routes>
         {!loggedIn && (
           <>
