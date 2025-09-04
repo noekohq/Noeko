@@ -10,6 +10,7 @@ import { getNodeTitle } from "../../utils/graph";
 type NodeProps = {
   node: INode;
   isDragging: boolean;
+  scaleFactor: number;
   onNodeNavigate?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: INode,
@@ -32,6 +33,7 @@ const NodeComponent = ({
   onNodeSelect,
   onContextMenu,
   "data-node-id": dataNodeId,
+  scaleFactor,
 }: NodeProps) => {
   const gradientId = `gradient-${node.id}`;
 
@@ -42,6 +44,10 @@ const NodeComponent = ({
     query: { get: getQuery },
   } = useGraph();
 
+  // Refs for managing long press (touch hold)
+  const pressTimerRef = useRef<number | null>(null);
+  const longPressTriggered = useRef<boolean>(false);
+
   const iAmSelected = selectedNode() === node.id.toString();
   const iAmUnselected = !iAmSelected && selectedNode();
   const iAmLoading = isLoading();
@@ -51,7 +57,7 @@ const NodeComponent = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const handleContextMenu = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -59,23 +65,38 @@ const NodeComponent = ({
   };
 
   const handleNodeClick = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, // Allow TouchEvent
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
   ) => {
-    if (isMobile) {
-      onNodeSelect?.(event, node);
-      onContextMenu?.(event, node);
-      return;
-    }
+    onNodeSelect?.(event, node);
     if (event.shiftKey) {
-      if (iAmSelected) {
-        onNodeSelect?.(event, node);
-        setSelected(null);
-      } else {
-        setSelected(node.id.toString());
-      }
+      onNodeNavigate?.(event, node);
       return;
     }
-    onNodeNavigate?.(event, node);
+    if (iAmSelected) {
+      onNodeNavigate?.(event, node);
+      return;
+    }
+  };
+
+  const handlePressStart = (event: React.TouchEvent<SVGGElement>) => {
+    longPressTriggered.current = false;
+
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+    }
+
+    pressTimerRef.current = window.setTimeout(() => {
+      if (isMobile) {
+        longPressTriggered.current = true;
+        handleContextMenu(event);
+      }
+    }, 500);
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+    }
   };
 
   const radius = 24;
@@ -94,14 +115,22 @@ const NodeComponent = ({
     opacityInner: 1,
     opacityOuter: 0.2,
   };
-  const shouldShow = filter(node);
   const randomDelay = () => Math.floor(Math.random() * 1400);
   const circleRef = useRef<SVGCircleElement>(null);
   useEffect(() => {
     if (circleRef.current) {
       circleRef.current.style.animationDelay = `${randomDelay()}ms`;
     }
+
+    return () => {
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+      }
+    };
   }, []);
+
+  const shouldShow = filter(node);
+  const showText = shouldShow && scaleFactor > 0.45;
 
   return (
     <g
@@ -109,6 +138,9 @@ const NodeComponent = ({
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onContextMenu={handleContextMenu}
       onClick={handleNodeClick}
+      onTouchStart={handlePressStart}
+      onTouchEnd={handlePressEnd}
+      onTouchMove={handlePressEnd}
       className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${
         iAmUnselected ? styles.unselected : ""
       } ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""} ${
@@ -138,7 +170,7 @@ const NodeComponent = ({
         </radialGradient>
       </defs>
       <circle r={radius} fill={`url(#${gradientId})`} ref={circleRef} />
-      {shouldShow && (
+      {shouldShow && showText && (
         <foreignObject
           x={text.x}
           y={text.y}

@@ -1,153 +1,164 @@
-import { Document, Page, pdfjs } from "react-pdf";
-import styles from "./PDF.module.scss";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-import { useEffect, useRef, useState } from "react";
 import { RecordId } from "surrealdb";
-import { getFileDownloadLink } from "../../../../utils/userfiles";
 import {
-  Group,
-  Loader,
-  Paper,
-  Skeleton,
-  Stack,
-  Text,
-  Transition,
-} from "@mantine/core";
+  IExcerpt,
+  IExcerptForm,
+} from "../../../../../app/database/models/excerpt";
+import { useEffect, useState } from "react";
+import { getFileDownloadLink } from "../../../../utils/userfiles";
+import styles from "./PDF.module.scss";
+import { createPluginRegistration } from "@embedpdf/core";
+import { EmbedPDF } from "@embedpdf/core/react";
+import { usePdfiumEngine } from "@embedpdf/engines/react";
+import { useZoom, ZoomPluginPackage } from "@embedpdf/plugin-zoom/react";
+import {
+  Viewport,
+  ViewportPluginPackage,
+} from "@embedpdf/plugin-viewport/react";
+import { Scroller, ScrollPluginPackage } from "@embedpdf/plugin-scroll/react";
+import { LoaderPluginPackage } from "@embedpdf/plugin-loader/react";
+import {
+  RenderLayer,
+  RenderPluginPackage,
+} from "@embedpdf/plugin-render/react";
+import { ActionIcon, Group, Text } from "@mantine/core";
+import {
+  ArrowsClockwiseIcon,
+  FrameCornersIcon,
+  MagnifyingGlassMinusIcon,
+  MagnifyingGlassPlusIcon,
+} from "@phosphor-icons/react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const defaultZoomLevel = 1;
+const defaultPlugins = [
+  createPluginRegistration(ViewportPluginPackage),
+  createPluginRegistration(ScrollPluginPackage),
+  createPluginRegistration(RenderPluginPackage),
+  createPluginRegistration(ZoomPluginPackage, {
+    defaultZoomLevel,
+  }),
+];
 
 interface IPDFViewerProps {
   fileId: string | RecordId | undefined;
+  excerpts?: IExcerpt[];
+  onExcerpt?: (data: IExcerptForm) => void;
+  editExcerpt?: (id: string | RecordId, newNote: string) => void;
+  deleteExcerpt?: (id: string | RecordId) => void;
 }
 
 export default function PDFViewer({ fileId }: IPDFViewerProps) {
-  const [file, setFile] = useState<string>();
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [numPages, setNumPages] = useState<number>();
-  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
-    if (!fileId) return;
+    if (!fileId) {
+      setFileUrl(null);
+      setLoading(false);
+      return;
+    }
 
-    (async () => {
+    const fetchFile = async () => {
       try {
         setLoading(true);
         const objectUrl = await getFileDownloadLink(fileId.toString());
-        console.log("Object url: ", objectUrl);
-        setFile(objectUrl);
+        setFileUrl(objectUrl);
       } catch (error) {
-        console.log("Error getting file download:", error);
+        console.error("Error getting file download link:", error);
+        setFileUrl(null);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchFile();
   }, [fileId]);
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
-    setNumPages(numPages);
+  const plugins =
+    fileId && fileUrl
+      ? [
+          ...defaultPlugins,
+          createPluginRegistration(LoaderPluginPackage, {
+            loadingOptions: {
+              type: "url",
+              pdfFile: {
+                id: fileId.toString(),
+                url: fileUrl,
+              },
+            },
+          }),
+        ]
+      : [...defaultPlugins];
+
+  const { engine, isLoading } = usePdfiumEngine();
+
+  if (isLoading || !engine || (fileId && loading)) {
+    return <div>Loading PDF...</div>;
   }
 
-  const pdfViewerRef = useRef<HTMLDivElement | null>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-  useEffect(() => {
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    if (pdfViewerRef.current) {
-      observer.observe(pdfViewerRef.current);
-    }
-
-    // Cleanup observer on component unmount
-    return () => {
-      observer.disconnect();
-    };
-  }, []); // Empty dependency array means this runs once on mount
-
   return (
-    <div className={styles.pdfViewer} ref={pdfViewerRef}>
-      <Transition transition="fade-up" mounted={loading}>
-        {(style) => {
-          return (
-            <Text style={style} size="sm" c="dimmed">
-              <Group gap="xs">
-                <Loader />
-                Loading viewer...
-              </Group>
-            </Text>
-          );
-        }}
-      </Transition>
-      <Transition transition="fade-up" mounted={!!file}>
-        {(style) => {
-          return (
-            <div style={style}>
-              <Document
-                file={file}
-                onLoadSuccess={onDocumentLoadSuccess}
-                className={styles.document}
-                loading={() => {
-                  return <PDFPlaceholder width={containerWidth} />;
-                }}
-              >
-                {Array.from(new Array(numPages), (el, index) => (
-                  <Page
-                    key={`page_${index + 1}`}
-                    pageNumber={index + 1}
-                    renderTextLayer
-                    className={styles.page}
-                    width={containerWidth > 0 ? containerWidth : undefined}
-                  />
-                ))}
-              </Document>
-            </div>
-          );
-        }}
-      </Transition>
+    <div className={styles.viewer}>
+      <EmbedPDF engine={engine} plugins={plugins}>
+        <Toolbar />
+
+        <div className={styles.viewportContainer}>
+          <Viewport className={styles.viewPort}>
+            <Scroller
+              renderPage={({ width, height, pageIndex, scale }) => {
+                return (
+                  <div className={styles.page} style={{ width, height }}>
+                    <RenderLayer pageIndex={pageIndex} scaleFactor={scale} />
+                  </div>
+                );
+              }}
+            />
+          </Viewport>
+        </div>
+      </EmbedPDF>
     </div>
   );
 }
 
-const ParagraphSkeleton = () => (
-  <Stack gap="xs">
-    <Skeleton height={8} radius="xl" />
-    <Skeleton height={8} width="95%" radius="xl" />
-    <Skeleton height={8} width="98%" radius="xl" />
-    <Skeleton height={8} width="92%" radius="xl" />
-    <Skeleton height={8} width="80%" radius="xl" />
-  </Stack>
-);
-
-interface IPDFPlaceholderProps {
-  /** The width of the container, used to calculate the height */
-  width: number;
-}
-
-function PDFPlaceholder({ width }: IPDFPlaceholderProps) {
-  const placeholderHeight = width > 0 ? width * (11 / 8.5) : 800;
+// Toolbar component remains the same, but it will now work correctly
+function Toolbar() {
+  const { provides, state } = useZoom();
 
   return (
-    <Paper
-      shadow="md"
-      p="lg"
-      w={width > 0 ? width : "100%"}
-      h={placeholderHeight}
-      withBorder
-    >
-      <Stack>
-        {/* Title Skeleton */}
-        <Skeleton height={20} width="60%" radius="xl" mb="xl" />
-
-        {/* Paragraph Skeletons */}
-        <ParagraphSkeleton />
-        <ParagraphSkeleton />
-        <ParagraphSkeleton />
-        <ParagraphSkeleton />
-      </Stack>
-    </Paper>
+    <div className={styles.toolbar}>
+      <Group>
+        <ActionIcon
+          size="sm"
+          onClick={() => {
+            provides?.zoomOut();
+          }}
+          color="gray"
+          variant="light"
+        >
+          <MagnifyingGlassMinusIcon />
+        </ActionIcon>
+        <Text size="sm" style={{ minWidth: "40px", textAlign: "center" }}>
+          {Math.round(state.currentZoomLevel * 100)}%
+        </Text>
+        <ActionIcon
+          size="sm"
+          onClick={() => {
+            provides?.zoomIn();
+          }}
+          color="gray"
+          variant="light"
+        >
+          <MagnifyingGlassPlusIcon />
+        </ActionIcon>
+        <ActionIcon
+          size="sm"
+          onClick={() => {
+            provides?.requestZoom(defaultZoomLevel);
+          }}
+          color="gray"
+          variant="light"
+        >
+          <FrameCornersIcon />
+        </ActionIcon>
+      </Group>
+    </div>
   );
 }

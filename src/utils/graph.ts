@@ -17,6 +17,13 @@ import {
 } from "./formatting";
 import { splitBySentences } from "./processing";
 import { api } from "../server/api";
+import {
+  CheckIcon,
+  FileTextIcon,
+  LightbulbIcon,
+  TagIcon,
+} from "@phosphor-icons/react";
+import { RabbitholeIcon } from "../components/Utils/Icons/Icons";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
@@ -235,6 +242,24 @@ export const getNodeLink = (node: INode) => {
   }
   if (node.type === "tag") {
     return `/tag/${node.id.toString()}`;
+  }
+};
+
+export const NodeIcon = (node: INode) => {
+  if (node.type === "idea") {
+    return LightbulbIcon;
+  }
+  if (node.type === "source") {
+    return FileTextIcon;
+  }
+  if (node.type === "task") {
+    return CheckIcon;
+  }
+  if (node.type === "rabbithole") {
+    return RabbitholeIcon;
+  }
+  if (node.type === "tag") {
+    return TagIcon;
   }
 };
 

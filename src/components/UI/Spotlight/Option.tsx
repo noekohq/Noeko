@@ -37,8 +37,8 @@ export function Option({
       onClick={onClick}
     >
       <div className={styles.content}>
-        <div className={styles.icon}>{icon}</div>
         <div className={styles.title}>{title}</div>
+        <div className={styles.icon}>{icon}</div>
       </div>
       {description && active && (
         <div className={styles.description}>{description}</div>

@@ -4,6 +4,7 @@ import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
 import Source, { ISource } from "../database/models/source";
 import Task, { ITask } from "../database/models/task";
 import { ISearchResult } from "./Search";
+import { IExcerpt } from "../database/models/excerpt";
 
 export type IConnectableTypes = "idea" | "source" | "task";
 
@@ -13,7 +14,8 @@ export type IConnectable =
       direction?: "incoming" | "outgoing";
     })
   | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
-  | (ITask & { type: "task"; direction?: "incoming" | "outgoing" });
+  | (ITask & { type: "task"; direction?: "incoming" | "outgoing" })
+  | (IExcerpt & { type: "excerpt"; direction?: "incoming" | "outgoing" });
 
 export type ISimilarConnectable = IConnectable & { similarity: number };
 

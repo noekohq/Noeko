@@ -5,6 +5,7 @@ import Edge from "./Edge";
 import styles from "./Graph.module.scss";
 import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
 import NodePanel from "./NodePanel";
+import { useGraph } from "../../contexts/GraphContext";
 
 // --- Simulation Configuration ---
 const SIMULATION_CONFIG = {
@@ -41,7 +42,6 @@ function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-// Helper to get midpoint between two touches
 function getTouchMidpoint(
   touch1: React.Touch,
   touch2: React.Touch,
@@ -87,7 +87,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [isPinching, setIsPinching] = useState(false);
   const pinchStartRef = useRef<{
-    // For touch pinch
     distance: number;
     midpoint: { x: number; y: number };
     initialTransform: { k: number; x: number; y: number };
@@ -95,7 +94,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const longPressTimerRef = useRef<Timer | null>(null);
   const longPressNodeRef = useRef<INode | IDerivedNode | null>(null);
-  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null); // Track start for tap vs drag
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const nodeMap = React.useMemo(() => {
     return nodes.reduce(
@@ -107,37 +106,34 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     );
   }, [nodes]);
 
-  // Modify existing refs to store pointerId (touch identifier or null for mouse)
   const dragStartPosRef = useRef<{
-    pointerId: number | null; // <-- Add this
-    screenX: number; // <-- Use screenX/Y consistently
+    pointerId: number | null;
+    screenX: number;
     screenY: number;
     nodeStartX: number;
     nodeStartY: number;
   } | null>(null);
 
   const panStartPosRef = useRef<{
-    pointerId: number | null; // <-- Add this
-    screenX: number; // <-- Use screenX/Y consistently
+    pointerId: number | null;
+    screenX: number;
     screenY: number;
     vbX: number;
     vbY: number;
   } | null>(null);
 
-  const nodePanelRef = useRef<HTMLDivElement>(null); // Ref for the NodePanel div
+  const nodePanelRef = useRef<HTMLDivElement>(null);
   const [nodePanel, setNodePanel] = useState<{
     node: INode | IDerivedNode;
     position: { x: number; y: number };
     onClose: () => void;
   } | null>(null);
 
-  // Define the function that closes the panel (if not already defined clearly)
   const handleClosePanel = useCallback(() => {
     setNodePanel(null);
   }, []);
 
-  // Define Long Press Duration
-  const LONG_PRESS_DURATION = 500; // ms
+  const LONG_PRESS_DURATION = 500;
   const [transform, setTransform] = useState({ k: 1, x: 0, y: 0 });
 
   useEffect(() => {
@@ -161,14 +157,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     };
   }, []);
 
-  // Effect to initialize and manage the web worker
   useEffect(() => {
     if (isNavigating || !graph.nodes.length) {
-      return; // Do nothing if navigating or if there's no data
+      return;
     }
 
-    // Create a new worker. The `new URL(...)` syntax is a standard way
-    // to let bundlers like Vite or Next.js know how to handle the worker file.
     const worker = new Worker(
       new URL("../../workers/graph.worker.ts", import.meta.url),
       { type: "module" },
@@ -178,30 +171,23 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     const currentWidth = propWidth ?? dimensions.width;
     const currentHeight = propHeight ?? dimensions.height;
 
-    // Center the view transform on initialization
     setTransform({ k: 1, x: currentWidth / 2, y: currentHeight / 2 });
 
-    // Initialize nodes state. The worker will take over positioning from here.
     const initialNodes = graph.nodes.map((node) => ({
       ...node,
-      // Let d3-force handle initial positioning if x/y are not defined
       x: node.x,
       y: node.y,
     }));
     setNodes(initialNodes);
 
-    // Send the initial data to the worker to start the simulation.
     worker.postMessage({
       type: "update_data",
       payload: { nodes: initialNodes, edges: graph.edges },
     });
 
-    // Define the message handler for updates from the worker.
     worker.onmessage = (event) => {
       const { type, nodes: updatedNodes } = event.data;
       if (type === "tick") {
-        // When the worker sends updated positions, update the component's state.
-        // This will trigger a re-render and move the SVG elements.
         setNodes((currentNodes) => {
           const nodePositionMap = new Map<string, { x: number; y: number }>(
             updatedNodes.map((n: INode) => [n.id, { x: n.x, y: n.y }]),
@@ -217,8 +203,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       }
     };
 
-    // The cleanup function is critical: it terminates the worker when the component unmounts
-    // or when dependencies change, causing the effect to re-run.
     return () => {
       worker.terminate();
       workerRef.current = null;
@@ -244,46 +228,37 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       const svgPoint = pt.matrixTransform(ctm.inverse());
       return { x: svgPoint.x, y: svgPoint.y };
     },
-    [], // No dependency on transform needed here
+    [],
   );
 
-  // Add this function to convert screen coordinates to coordinates within the transformed viewbox
   const screenToSVGCoords = useCallback(
     (screenX: number, screenY: number): { x: number; y: number } => {
-      const { x: svgX, y: svgY } = getSVGPoint(screenX, screenY); // Use the raw SVG point
-      // Apply inverse transform to get coordinates *inside* the transformed <g>
+      const { x: svgX, y: svgY } = getSVGPoint(screenX, screenY);
       return {
         x: (svgX - transform.x) / transform.k,
         y: (svgY - transform.y) / transform.k,
       };
     },
     [getSVGPoint, transform],
-  ); // Depends on getSVGPoint and current transform
+  );
 
   const handleMouseDown = (event: React.MouseEvent<SVGSVGElement>) => {
     const target = event.target as SVGElement;
-    // IMPORTANT: Assumes your Node/DerivedNode/FileNode components render a top-level <g data-node-id="...">
     const nodeElement = target.closest("[data-node-id]");
 
     if (event.button === 0) {
-      // Only handle left clicks
       if (nodeElement) {
         const nodeId = nodeElement.getAttribute("data-node-id");
         if (nodeId) {
-          startNodeDrag(nodeId, null, event.clientX, event.clientY); // Use null pointerId for mouse
+          startNodeDrag(nodeId, null, event.clientX, event.clientY);
         }
       } else {
-        // Pan on background click
-        startPan(null, event.clientX, event.clientY); // Use null pointerId for mouse
+        startPan(null, event.clientX, event.clientY);
       }
     }
-    // Prevent default potentially interfering actions
-    // event.preventDefault(); // Uncomment if needed, might interfere with text selection etc.
   };
 
-  // REVISED: handleMouseMove (Checks pointerId to distinguish mouse move)
   const handleMouseMove = (event: MouseEvent) => {
-    // Only proceed if a mouse drag (pointerId null) is active
     if (
       isDraggingNode &&
       dragStartPosRef.current?.pointerId === null &&
@@ -296,49 +271,39 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
       const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
 
-      // Instead of setting state directly, post the updated position to the worker.
-      // The worker will update the simulation, and the `onmessage` handler will update the React state.
       workerRef.current.postMessage({
         type: "update_node_position",
         payload: { id: isDraggingNode, fx: newFx, fy: newFy },
       });
     } else if (isPanning && panStartPosRef.current?.pointerId === null) {
-      // Handle mouse pan
-      // Calculate delta movement from the stored start screen position
       const dx = event.clientX - panStartPosRef.current.screenX;
       const dy = event.clientY - panStartPosRef.current.screenY;
-      // Apply delta to the stored initial viewbox position
       const newTx = panStartPosRef.current.vbX + dx;
       const newTy = panStartPosRef.current.vbY + dy;
       setTransform((prev) => ({ ...prev, x: newTx, y: newTy }));
     }
   };
 
-  // --- Modify handleMouseUp ---
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
-      const target = event.target as Element; // Use Element type
+      const target = event.target as Element;
 
-      // Check if the click occurred INSIDE the NodePanel using the ref
-      // Make sure nodePanelRef.current exists before checking contains
       const isClickInsideNodePanel = nodePanelRef.current?.contains(target);
 
-      // --- Existing drag/pan ending logic ---
       const wasDragging =
         !!isDraggingNode && dragStartPosRef.current?.pointerId === null;
       const wasPanning =
         !!isPanning && panStartPosRef.current?.pointerId === null;
-      let dragJustEnded = false; // Separate check if drag ended *this event*
+      let dragJustEnded = false;
 
       if (wasDragging) {
         if (isDraggingNode && workerRef.current) {
-          // Tell the worker to release the node, allowing it to move freely again.
           workerRef.current.postMessage({
             type: "end_node_drag",
             payload: { id: isDraggingNode },
           });
         }
-        dragJustEnded = true; // Mark drag end
+        dragJustEnded = true;
         setIsDraggingNode(null);
         dragStartPosRef.current = null;
       }
@@ -346,18 +311,10 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         setIsPanning(false);
         panStartPosRef.current = null;
       }
-      // --- End of drag/pan ending logic ---
-
-      // --- Revised Click/Tap Logic ---
-      // Only process clicks if a drag didn't just end on this event
       if (!dragJustEnded && event.button === 0) {
-        // Find node element within SVG context (might be null if click is outside SVG)
         const nodeElement = target.closest("g[data-node-id]"); // Check closest <g>
 
-        if (
-          nodeElement &&
-          !isClickInsideNodePanel /* && onNodeSelect - Add if needed */
-        ) {
+        if (nodeElement && !isClickInsideNodePanel) {
           // Click was on a node, outside the panel
           const nodeId = nodeElement.getAttribute("data-node-id");
           const node = nodeMap[nodeId!];
@@ -393,7 +350,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     ],
   );
 
-  // Ensure the useEffect for mouse listeners uses the correct handlers
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -401,15 +357,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-    // Add handleMouseMove, handleMouseUp to dependency array if they aren't stable (useCallback)
   }, [handleMouseMove, handleMouseUp]);
 
   const handleTouchStart = (event: React.TouchEvent<SVGSVGElement>) => {
-    // event.preventDefault(); // Prevent default only if absolutely needed immediately
-
     const touches = event.touches;
 
-    // --- Clear any existing Long Press Timer ---
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -420,30 +372,26 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       const target = event.target as SVGElement;
       const nodeElement = target.closest("[data-node-id]");
 
-      touchStartPosRef.current = { x: touch.clientX, y: touch.clientY }; // Store for tap vs drag check
+      touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
 
       if (nodeElement) {
         const nodeId = nodeElement.getAttribute("data-node-id");
         const node = nodeMap[nodeId!];
         if (nodeId && node) {
-          longPressNodeRef.current = node; // Store node for potential long press
+          longPressNodeRef.current = node;
 
-          // --- Start Long Press Timer ---
           longPressTimerRef.current = setTimeout(() => {
             if (longPressNodeRef.current) {
-              // Check if still relevant
               handleNodeContextMenu(event as any, longPressNodeRef.current);
-              // Clear states to prevent drag/pan starting after long press
               setIsDraggingNode(null);
               dragStartPosRef.current = null;
               setIsPanning(false);
               panStartPosRef.current = null;
-              longPressNodeRef.current = null; // Clear ref after firing
+              longPressNodeRef.current = null;
             }
             longPressTimerRef.current = null;
           }, LONG_PRESS_DURATION);
 
-          // Store info needed to potentially START a drag (but don't set isDraggingNode yet)
           const { x: svgX, y: svgY } = screenToSVGCoords(
             touch.clientX,
             touch.clientY,
@@ -452,12 +400,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
             pointerId: touch.identifier,
             screenX: touch.clientX,
             screenY: touch.clientY,
-            nodeStartX: (node.x ?? 0) - svgX, // Store offset X
-            nodeStartY: (node.y ?? 0) - svgY, // Store offset Y
+            nodeStartX: (node.x ?? 0) - svgX,
+            nodeStartY: (node.y ?? 0) - svgY,
           };
         }
       } else {
-        // Store info needed to potentially START a pan
         panStartPosRef.current = {
           pointerId: touch.identifier,
           screenX: touch.clientX,
@@ -467,15 +414,13 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         };
       }
     } else if (touches.length === 2) {
-      // --- Start Pinch ---
-      // Immediately cancel any single-touch actions (long press, potential drag/pan)
       if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
-      longPressNodeRef.current = null; // Clear long press candidate
-      dragStartPosRef.current = null; // Clear potential drag start info
-      panStartPosRef.current = null; // Clear potential pan start info
-      setIsDraggingNode(null); // Ensure not dragging
-      setIsPanning(false); // Ensure not panning
+      longPressNodeRef.current = null;
+      dragStartPosRef.current = null;
+      panStartPosRef.current = null;
+      setIsDraggingNode(null);
+      setIsPanning(false);
 
       const touch1 = touches[0];
       const touch2 = touches[1];
@@ -483,11 +428,10 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       pinchStartRef.current = {
         distance: getTouchDistance(touch1, touch2),
         midpoint: getTouchMidpoint(touch1, touch2),
-        initialTransform: { ...transform }, // Store the transform when pinch started
+        initialTransform: { ...transform },
       };
-      event.preventDefault(); // Prevent default actions during pinch
+      event.preventDefault();
     } else {
-      // More than 2 touches - cancel interactions for simplicity
       dragStartPosRef.current = null;
       panStartPosRef.current = null;
       pinchStartRef.current = null;
@@ -500,29 +444,24 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const handleTouchMove = (event: React.TouchEvent<SVGSVGElement>) => {
     const touches = event.touches;
 
-    // --- Clear Long Press if finger moves significantly ---
     if (
       longPressTimerRef.current &&
       touches.length > 0 &&
       touchStartPosRef.current
     ) {
-      const touch = touches[0]; // Check movement of the first finger
+      const touch = touches[0];
       const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
       const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
       if (dx > 5 || dy > 5) {
-        // Movement threshold to cancel long press/tap intent
         clearTimeout(longPressTimerRef.current);
         longPressTimerRef.current = null;
-        longPressNodeRef.current = null; // No longer a long press candidate
+        longPressNodeRef.current = null;
       }
     }
 
     if (touches.length === 1 && !isPinching) {
-      // Single finger move
       const touch = touches[0];
 
-      // --- Decide if starting Drag or Pan ---
-      // Check if we *should* start dragging (if not already dragging, and have drag start info)
       if (
         !isDraggingNode &&
         dragStartPosRef.current?.pointerId === touch.identifier
@@ -530,19 +469,16 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         const dx = Math.abs(touch.clientX - dragStartPosRef.current.screenX);
         const dy = Math.abs(touch.clientY - dragStartPosRef.current.screenY);
         if (dx > 5 || dy > 5) {
-          // Movement threshold to confirm drag start
-          setIsDraggingNode(longPressNodeRef.current?.id.toString() ?? null); // Start the drag state
+          setIsDraggingNode(longPressNodeRef.current?.id.toString() ?? null);
           setIsPanning(false);
-          panStartPosRef.current = null; // Ensure not panning
+          panStartPosRef.current = null;
           if (longPressTimerRef.current)
-            clearTimeout(longPressTimerRef.current); // Cancel long press
+            clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
-          longPressNodeRef.current = null; // Not a long press anymore
-          event.preventDefault(); // Prevent scroll once dragging confirmed
+          longPressNodeRef.current = null;
+          event.preventDefault();
         }
-      }
-      // Check if we *should* start panning (if not already panning, and have pan start info)
-      else if (
+      } else if (
         !isPanning &&
         !isDraggingNode &&
         panStartPosRef.current?.pointerId === touch.identifier
@@ -550,56 +486,47 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         const dx = Math.abs(touch.clientX - panStartPosRef.current.screenX);
         const dy = Math.abs(touch.clientY - panStartPosRef.current.screenY);
         if (dx > 5 || dy > 5) {
-          // Movement threshold to confirm pan start
-          setIsPanning(true); // Start the pan state
+          setIsPanning(true);
           setIsDraggingNode(null);
-          dragStartPosRef.current = null; // Ensure not dragging
+          dragStartPosRef.current = null;
           if (longPressTimerRef.current)
-            clearTimeout(longPressTimerRef.current); // Cancel long press
+            clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
-          longPressNodeRef.current = null; // Not a long press anymore
-          event.preventDefault(); // Prevent scroll once panning confirmed
+          longPressNodeRef.current = null;
+          event.preventDefault();
         }
       }
 
-      // --- Handle Active Drag ---
       if (
         isDraggingNode &&
         dragStartPosRef.current?.pointerId === touch.identifier &&
         workerRef.current
       ) {
-        event.preventDefault(); // Prevent scroll during active drag
+        event.preventDefault();
         const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(
           touch.clientX,
           touch.clientY,
         );
-        // Use stored offset to calculate new fixed position
         const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
         const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
 
-        // Post the updated position to the worker
         workerRef.current.postMessage({
           type: "update_node_position",
           payload: { id: isDraggingNode, fx: newFx, fy: newFy },
         });
-      }
-      // --- Handle Active Pan ---
-      else if (
+      } else if (
         isPanning &&
         panStartPosRef.current?.pointerId === touch.identifier
       ) {
-        event.preventDefault(); // Prevent scroll during active pan
-        // Calculate delta screen movement
+        event.preventDefault();
         const dx = touch.clientX - panStartPosRef.current.screenX;
         const dy = touch.clientY - panStartPosRef.current.screenY;
-        // Apply delta to the initial viewbox position
         const newTx = panStartPosRef.current.vbX + dx;
         const newTy = panStartPosRef.current.vbY + dy;
         setTransform((prev) => ({ ...prev, x: newTx, y: newTy }));
       }
     } else if (touches.length === 2 && isPinching && pinchStartRef.current) {
-      // Two fingers move (pinch)
-      event.preventDefault(); // Prevent default browser pinch zoom/scroll
+      event.preventDefault();
       const touch1 = touches[0];
       const touch2 = touches[1];
       const currentDistance = getTouchDistance(touch1, touch2);
@@ -609,7 +536,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       const initialTransform = pinchStartRef.current.initialTransform;
       const newScaleUnclamped = initialTransform.k * scaleChange;
 
-      // Clamp scale
       const minScale = 0.1;
       const maxScale = 8;
       const newScale = Math.max(
@@ -617,7 +543,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         Math.min(maxScale, newScaleUnclamped),
       );
 
-      // Calculate the SVG point under the initial midpoint *using the initial transform*
       const { x: initialMidpointSVGX, y: initialMidpointSVGY } = getSVGPoint(
         pinchStartRef.current.midpoint.x,
         pinchStartRef.current.midpoint.y,
@@ -627,10 +552,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       const initialViewboxPointY =
         (initialMidpointSVGY - initialTransform.y) / initialTransform.k;
 
-      // Calculate the new translation (tx, ty)
-      // We want the initial SVG point (initialViewboxPointX, Y) to end up under the current screen midpoint (currentMidpoint.x, y)
-      // currentMidpoint (screen) = SVGtoScreen(initialViewboxPoint * newScale + newT)
-      // Use the raw SVG point under the current midpoint for easier calculation:
       const { x: currentMidpointSVGX, y: currentMidpointSVGY } = getSVGPoint(
         currentMidpoint.x,
         currentMidpoint.y,
@@ -643,18 +564,16 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     }
   };
 
-  // --- Modify handleTouchEnd ---
   const handleTouchEnd = useCallback(
     (event: React.TouchEvent<SVGSVGElement>) => {
       const touches = event.touches;
       const changedTouches = event.changedTouches;
 
-      // --- Existing drag/pan/pinch ending logic ---
       let wasDragging = false;
       let dragJustEnded = false;
       let wasPanning = false;
       let pinchJustEnded = isPinching && touches.length < 2;
-      const currentDraggingNodeId = isDraggingNode; // Capture before state change
+      const currentDraggingNodeId = isDraggingNode;
 
       for (let i = 0; i < changedTouches.length; i++) {
         const touch = changedTouches[i];
@@ -663,13 +582,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           dragStartPosRef.current?.pointerId === touch.identifier
         ) {
           if (workerRef.current) {
-            // Tell the worker to release the dragged node
             workerRef.current.postMessage({
               type: "end_node_drag",
               payload: { id: currentDraggingNodeId },
             });
           }
-          // ... release node fixation ...
           wasDragging = true;
           dragJustEnded = true;
           setIsDraggingNode(null);
@@ -689,39 +606,28 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         setIsPinching(false);
         pinchStartRef.current = null;
       }
-      // --- End of drag/pan/pinch ending logic ---
-
-      // --- Revised Tap Logic ---
-      // Check conditions for a valid tap
       if (
         changedTouches.length === 1 &&
         !dragJustEnded &&
         !pinchJustEnded &&
         longPressTimerRef.current === null &&
-        touchStartPosRef.current /* Add other relevant checks */
+        touchStartPosRef.current
       ) {
         const touch = changedTouches[0];
-        // Use elementFromPoint to reliably get the element under the finger at the moment of release
         const target = document.elementFromPoint(
           touch.clientX,
           touch.clientY,
         ) as Element;
 
         if (target) {
-          // Check if the tap occurred INSIDE the NodePanel using the ref
           const isTapInsideNodePanel = nodePanelRef.current?.contains(target);
-
-          // Find node element within SVG context
           const nodeElement = target.closest("g[data-node-id]");
 
-          // Check movement threshold for tap
           const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
           const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
 
           if (dx < 8 && dy < 8) {
-            // Tap movement threshold
             if (nodeElement && !isTapInsideNodePanel /* && onNodeSelect */) {
-              // Tap was on a node, outside the panel
               const nodeId = nodeElement.getAttribute("data-node-id");
               const node = nodeMap[nodeId!];
               // Example: Trigger selection/navigation
@@ -744,14 +650,10 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         }
       }
 
-      // --- Rest of touch end cleanup (resetting refs, handling pinch end transition) ---
-      touchStartPosRef.current = null; // Clear tap start position after check
+      touchStartPosRef.current = null;
       if (touches.length === 0) {
-        longPressNodeRef.current = null; // Clear long press candidate if no fingers left
+        longPressNodeRef.current = null;
       }
-      // ... other cleanup ...
-
-      // Add dependencies
     },
     [
       isDraggingNode,
@@ -760,13 +662,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       handleClosePanel,
       nodeMap,
       onNodeSelect,
-      onNodeNavigate /* , other states/refs */,
+      onNodeNavigate,
     ],
   );
 
-  // Add handler for cancelled touches (e.g., browser interruption)
   const handleTouchCancel = (event: React.TouchEvent<SVGSVGElement>) => {
-    // Treat cancel like touch end - clean up all interaction states
     setIsDraggingNode(null);
     dragStartPosRef.current = null;
     setIsPanning(false);
@@ -789,14 +689,12 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       screenY: number,
     ) => {
       setIsDraggingNode(nodeId);
-      setIsPanning(false); // Ensure panning stops
-      const node = nodeMap[nodeId]; // Get node data using the memoized map
+      setIsPanning(false);
+      const node = nodeMap[nodeId];
       if (!node || !workerRef.current) return;
 
-      // Use screenToSVGCoords to find where the drag *started* in the graph's coordinate system
       const { x: svgX, y: svgY } = screenToSVGCoords(screenX, screenY);
 
-      // Store initial drag information. The offset helps keep the drag smooth.
       dragStartPosRef.current = {
         pointerId,
         screenX,
@@ -805,8 +703,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         nodeStartY: (node.y ?? 0) - svgY,
       };
 
-      // Notify the worker to fix the node's position.
-      // The worker will now hold the `fx` and `fy` state for the dragged node.
       workerRef.current.postMessage({
         type: "update_node_position",
         payload: { id: nodeId, fx: node.x, fy: node.y },
@@ -815,16 +711,15 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     [screenToSVGCoords, nodeMap],
   );
 
-  // NEW: Unified function to start panning
   const startPan = useCallback(
     (pointerId: number | null, screenX: number, screenY: number) => {
-      if (isDraggingNode || isPinching) return; // Don't pan if dragging or pinching
+      if (isDraggingNode || isPinching) return;
       setIsPanning(true);
       panStartPosRef.current = {
         pointerId,
         screenX,
         screenY,
-        vbX: transform.x, // Store initial transform x/y
+        vbX: transform.x,
         vbY: transform.y,
       };
     },
@@ -833,7 +728,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<SVGSVGElement>) => {
-      event.preventDefault(); // Prevent page scroll when zooming graph
+      event.preventDefault();
       const scaleFactor = 1.7;
       const zoomSpeed = 0.1;
       const delta = -event.deltaY * (zoomSpeed / 100);
@@ -849,27 +744,22 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
       if (newScale === currentScale) return;
 
-      // SVG point under the mouse *before* zoom, in the viewbox coordinate system
       const { x: viewboxMouseX, y: viewboxMouseY } = screenToSVGCoords(
         event.clientX,
         event.clientY,
       );
 
-      // Raw SVG coordinate of the mouse (relative to SVG top-left)
       const { x: screenMouseX, y: screenMouseY } = getSVGPoint(
         event.clientX,
         event.clientY,
       );
 
-      // Calculate the new translation (tx, ty) so the point under the mouse stays put
-      // screenMouse = viewboxMouse * newScale + newTransform
-      // newTransform = screenMouse - viewboxMouse * newScale
       const newTx = screenMouseX - viewboxMouseX * newScale;
       const newTy = screenMouseY - viewboxMouseY * newScale;
 
       setTransform({ k: newScale, x: newTx, y: newTy });
     },
-    [transform, screenToSVGCoords, getSVGPoint], // Include updated dependencies
+    [transform, screenToSVGCoords, getSVGPoint],
   );
 
   const currentWidth = propWidth ?? dimensions.width;
@@ -885,30 +775,25 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     let clientX = 0;
     let clientY = 0;
 
-    // Check if it's a touch event first
     if ("touches" in event && event.touches.length > 0) {
       clientX = event.touches[0].clientX;
       clientY = event.touches[0].clientY;
     } else if ("changedTouches" in event && event.changedTouches.length > 0) {
-      // If triggered by long press on touchend, use changedTouches
       clientX = event.changedTouches[0].clientX;
       clientY = event.changedTouches[0].clientY;
     } else if ("clientX" in event) {
-      // Fallback to mouse event
       clientX = event.clientX;
       clientY = event.clientY;
     }
 
-    // Close any existing panel before opening a new one
     setNodePanel(null);
-    // Use setTimeout to ensure the state update happens after potential previous close
     setTimeout(() => {
       setNodePanel({
         node,
         position: { x: clientX || 0, y: clientY || 0 },
         onClose: () => {
           setNodePanel(null);
-        }, // Add onClose callback
+        },
       });
     }, 0);
   };
@@ -938,6 +823,18 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   //     filteredSet.has(e.target.toString())
   //   );
   // });
+  //
+
+  const {
+    selected: { set: setSelected },
+  } = useGraph();
+  const handleNodeSelect = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+    node: INode,
+  ) => {
+    setSelected(node.id.toString());
+    onNodeSelect?.(event, node);
+  };
 
   return (
     <div
@@ -953,8 +850,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           width={currentWidth}
           height={currentHeight}
           onWheel={handleWheel}
-          onMouseDown={handleMouseDown} // Use revised mouse down handler
-          // Add Touch Handlers
+          onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -965,7 +861,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
               : isPanning
                 ? "grabbing"
                 : "grab",
-            // touchAction: 'none' // Recommended to apply via CSS instead
           }}
         >
           <g
@@ -985,8 +880,9 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 <Node
                   key={node.id.toString()}
                   node={node}
+                  scaleFactor={transform.k}
                   isDragging={isDraggingNode === node.id} // Correct check
-                  onNodeSelect={onNodeSelect}
+                  onNodeSelect={handleNodeSelect}
                   onNodeNavigate={onNodeNavigate}
                   onContextMenu={handleNodeContextMenu}
                   data-node-id={node.id.toString()}

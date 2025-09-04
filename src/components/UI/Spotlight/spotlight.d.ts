@@ -21,7 +21,7 @@ export type SpotlightMainItem = ISpotlightAction | ISpotlightSubviewLink;
 
 export interface IUnifiedSearchItem {
   id: string;
-  title: string;
+  title: ReactNode | string;
   displayTitle: ReactNode;
   displayDescription?: ReactNode;
   keywords?: string;
@@ -45,4 +45,5 @@ export interface ISubviewDefinition {
     searchText: string;
     closeSpotlight: () => void;
   }) => Promise<ISpotlightAction[]>;
+  debounceMs?: number;
 }

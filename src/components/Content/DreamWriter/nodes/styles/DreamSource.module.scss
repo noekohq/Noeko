@@ -1,4 +1,5 @@
-.dreamTaskInline {
+
+.dreamSourceInline {
     display: inline-flex;
     align-items: center;
     gap: 2px;
@@ -16,7 +17,7 @@
 
 }
 
-.dreamTaskContent {
+.dreamSourceContent {
     font-family: var(--mantine-font-family-headings);
     font-weight: 565;
     font-stretch: 90%;
@@ -33,7 +34,7 @@
     }
 }
 
-.dreamTaskIcon {
+.dreamSourceIcon {
     color: var(--mantine-color-gray-6);
     font-size: var(--mantine-font-size-sm);
     pointer-events: all;

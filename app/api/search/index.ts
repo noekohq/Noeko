@@ -51,6 +51,50 @@ router.post("/comprehensive", checkToken, async (req, res) => {
   }
 });
 
+router.get("/suggest", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const query = req.query.query as string;
+    const rabbitholeId = req.query.rabbitholeId as string;
+    const suggestions = await Search.suggest(user.id, query, {
+      rabbitholeId,
+    });
+    res.json({
+      message: "Suggestions fetched successfully",
+      data: suggestions,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/smartSuggest", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const query = req.query.query as string;
+    const rabbitholeId = req.query.rabbitholeId as string;
+    const suggestions = await Search.smartSuggest(user.id, query, {
+      rabbitholeId,
+    });
+    res.json({
+      message: "Suggestions fetched successfully",
+      data: suggestions,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 router.get("/ideas/suggest", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -60,7 +104,7 @@ router.get("/ideas/suggest", checkToken, async (req, res) => {
     }
     const query = req.query.query as string;
     const rabbitholeId = req.query.rabbitholeId as string;
-    const suggestions = await Search.comprehensiveSearch(user.id, query, {
+    const suggestions = await Search.ftsSearchIdeas(user.id, query, {
       rabbitholeId,
     });
     const ideas = suggestions

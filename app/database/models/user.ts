@@ -450,7 +450,7 @@ export class User {
       const owns = results[0] > 0;
       return owns;
     } catch (error) {
-      console.error("Error checking user owners: ", userId, thingId);
+      console.error("Error checking user owns: ", userId, thingId, error);
       return undefined;
     }
   }

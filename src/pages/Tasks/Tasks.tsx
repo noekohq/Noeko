@@ -162,6 +162,11 @@ export default function TaskTimelineView() {
               </Paper>
             )}
 
+            {!Array.from(tasksByDay.entries()).length && (
+              <Text size="sm" c="dimmed">
+                No tasks on your agenda.
+              </Text>
+            )}
             {Array.from(tasksByDay.entries()).map(([dateString, tasks]) => {
               const date = dayjs(dateString);
               const currentYear = date.format("YYYY");

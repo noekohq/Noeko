@@ -72,19 +72,21 @@ export default function App() {
 
   const previousOnlineState = useRef(isOnline);
   useEffect(() => {
-    if (!isOnline && !loadingConnection && isMobile) {
-      showNotification({
-        title: "Can't connect to server",
-        message:
-          "Can't connect to the server, Noeko will attempt to automatically reconnect.",
-        color: "yellow",
-      });
-    }
-    if (isOnline && previousOnlineState.current === false) {
-      showNotification({
-        title: "Re-established connection",
-        message: "Successfully re-established a connection with the server.",
-      });
+    if (isMobile) {
+      if (!isOnline && !loadingConnection && isMobile) {
+        showNotification({
+          title: "Can't connect to server",
+          message:
+            "Can't connect to the server, Noeko will attempt to automatically reconnect.",
+          color: "yellow",
+        });
+      }
+      if (isOnline && previousOnlineState.current === false) {
+        showNotification({
+          title: "Connected",
+          message: "Successfully connected to the server.",
+        });
+      }
     }
     previousOnlineState.current = isOnline;
   }, [isOnline]);

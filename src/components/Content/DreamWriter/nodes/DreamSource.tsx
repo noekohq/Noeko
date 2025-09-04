@@ -1,6 +1,7 @@
 import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
+  FileTextIcon,
   LightbulbIcon,
   TrashIcon,
   XIcon,
@@ -12,36 +13,34 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
-import styles from "./styles/DreamIdea.module.scss";
+import styles from "./styles/DreamSource.module.scss";
 import { ActionIcon, Group, HoverCard, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
-import { IIdea } from "../../../../../app/database/models/ideas";
-import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { DOMParser, Fragment } from "@tiptap/pm/model";
-import { useIdea } from "../../../../contexts/IdeaContext";
 import { useEffect } from "react";
-import useConnectable from "../../../../hooks/useConnectable";
+import { ISource } from "../../../../../app/database/models/source";
 import { useLandscape } from "../../../../contexts/LandscapeContext";
+import useConnectable from "../../../../hooks/useConnectable";
 import { IConnectable } from "../../../../../app/services/Graph";
 
-export interface IDreamIdeaOptions {
+export interface IDreamSourceOptions {
   HTMLAttributes: Record<string, any>;
 }
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    dreamIdea: {
-      setDreamIdea: (options: {
-        ideaId: string;
+    dreamSource: {
+      setDreamSource: (options: {
+        sourceId: string;
         content: string;
       }) => ReturnType;
     };
   }
 }
 
-export const DreamIdea = Node.create<IDreamIdeaOptions>({
-  name: "dreamIdea",
+export const DreamSource = Node.create<IDreamSourceOptions>({
+  name: "dreamSource",
   group: "inline",
   inline: true,
   draggable: true,
@@ -55,10 +54,10 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
 
   addAttributes() {
     return {
-      ideaId: {
+      sourceId: {
         default: "",
-        parseHTML: (element) => element.getAttribute("data-idea-id"),
-        renderHTML: (attributes) => ({ "data-idea-id": attributes.ideaId }),
+        parseHTML: (element) => element.getAttribute("data-source-id"),
+        renderHTML: (attributes) => ({ "data-source-id": attributes.sourceId }),
       },
     };
   },
@@ -66,10 +65,10 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   parseHTML() {
     return [
       {
-        tag: "span[data-dream-idea][data-idea-alias]",
+        tag: "span[data-dream-source][data-source-alias]",
         getContent: (node, schema) => {
           const dom = node as HTMLElement;
-          const alias = dom.getAttribute("data-idea-alias");
+          const alias = dom.getAttribute("data-source-alias");
 
           if (alias) {
             return Fragment.from(schema.text(alias));
@@ -79,7 +78,7 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
         },
       },
       {
-        tag: "span[data-dream-idea][data-idea-id]",
+        tag: "span[data-dream-source][data-source-id]",
         getContent: (node, schema) => {
           const dom = node as HTMLElement;
           return DOMParser.fromSchema(schema).parseSlice(dom).content;
@@ -92,7 +91,7 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
     return [
       "span",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-dream-idea": "",
+        "data-dream-source": "",
       }),
       0,
     ];
@@ -100,15 +99,15 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
 
   addCommands() {
     return {
-      setDreamIdea:
+      setDreamSource:
         (options) =>
         ({ commands }) => {
-          if (!options.ideaId || !options.content) {
+          if (!options.sourceId || !options.content) {
             return false;
           }
           return commands.insertContent({
             type: this.name,
-            attrs: { ideaId: options.ideaId },
+            attrs: { sourceId: options.sourceId },
             content: [{ type: "text", text: options.content }],
           });
         },
@@ -116,29 +115,23 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DreamIdeaComponent);
+    return ReactNodeViewRenderer(DreamSourceComponent);
   },
 });
 
-export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
+export const DreamSourceComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
 }) => {
-  const { ideaId } = node.attrs;
+  const { sourceId } = node.attrs;
 
   const isEmpty = node.content.size === 0;
 
-  const { data: idea, load: fetchIdea } = useFetch<undefined, IIdea>({
-    url: `/ideas/${ideaId}?withDerived=true`,
-    onError: (error) => {
-      console.error("Error getting idea to connect: ", error);
-    },
+  const { data: source } = useFetch<undefined, ISource>({
+    url: `/sources/${sourceId}`,
+    runOnMount: !!sourceId,
   });
-
-  useEffect(() => {
-    fetchIdea();
-  }, []);
 
   const {
     connectable: {
@@ -146,22 +139,22 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
     },
   } = useLandscape();
   const { ensureConnected } = useConnectable({
-    connectable: currentConnectable ?? null,
+    connectable: currentConnectable as IConnectable,
   });
   useEffect(() => {
-    if (idea?.id) {
-      ensureConnected(idea.id.toString());
+    if (source?.id) {
+      ensureConnected(source.id.toString());
     }
-  }, [idea?.id.toString()]);
+  }, [source?.id.toString()]);
 
-  if (!ideaId) {
-    return <span className={styles.dreamIdeaError}>[ERROR]</span>;
+  if (!sourceId) {
+    return <span className={styles.dreamSourceError}>[ERROR]</span>;
   }
 
   return (
     <NodeViewWrapper
       as="span"
-      className={styles.dreamIdeaInline}
+      className={styles.dreamSourceInline}
       data-selected={selected || undefined}
     >
       <HoverCard
@@ -173,7 +166,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       >
         <HoverCard.Target>
           <ActionIcon variant="subtle" size="sm" color="gray" radius="md">
-            <LightbulbIcon className={styles.dreamIdeaIcon} weight="regular" />
+            <FileTextIcon className={styles.dreamSourceIcon} weight="regular" />
           </ActionIcon>
         </HoverCard.Target>
 
@@ -181,45 +174,36 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
-          {idea ? (
+          {source ? (
             <Stack>
-              <Group justify="space-between">
-                <Text fw={500} c="dimmed">
-                  {idea.title}
-                </Text>
-                <Group justify="flex-end">
+              <Group justify="flex-end">
+                <ActionIcon
+                  onClick={deleteNode}
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                >
+                  <XIcon weight="bold" />
+                </ActionIcon>
+                <Link to={`/source/${sourceId}`}>
                   <ActionIcon
-                    onClick={deleteNode}
+                    title="Open Source"
                     variant="subtle"
                     color="gray"
                     size="sm"
                   >
-                    <XIcon weight="bold" />
+                    <ArrowRightIcon weight="bold" />
                   </ActionIcon>
-                  <Link to={`/idea/${ideaId}`}>
-                    <ActionIcon
-                      title="Open Idea"
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                    >
-                      <ArrowRightIcon weight="bold" />
-                    </ActionIcon>
-                  </Link>
-                </Group>
+                </Link>
               </Group>
-              {idea.derived?.generative_summary && (
-                <OverviewAccordion overview={idea.derived.generative_summary} />
-              )}
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: idea.content,
-                }}
-              />
+              <Text c="dimmed" fw="bold" size="sm">
+                {source.displayName}
+              </Text>
+              <Text size="sm">{source.analysis?.abstract}</Text>
             </Stack>
           ) : (
             <Text c="dimmed" size="xs">
-              Could not find idea :/
+              Could not find source :/
             </Text>
           )}
         </HoverCard.Dropdown>
@@ -227,34 +211,38 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
 
       <NodeViewContent
         as="span"
-        className={styles.dreamIdeaContent}
+        className={styles.dreamSourceContent}
         data-placeholder={
-          isEmpty ? idea?.title || "Loading title..." : undefined
+          isEmpty ? source?.displayName || "Loading title..." : undefined
         }
       />
     </NodeViewWrapper>
   );
 };
 
-interface IDreamIdeaMenuProps {
+interface IDreamSourceMenuProps {
   editor: IEditor;
 }
 
-export const DreamIdeaMenu = ({ editor }: IDreamIdeaMenuProps) => {
+export const DreamSourceMenu = ({ editor }: IDreamSourceMenuProps) => {
   const deleteSelectedNode = () => {
-    editor.chain().focus().deleteNode("dreamIdea").run();
+    editor.chain().focus().deleteNode("dreamSource").run();
   };
 
-  const ideaId = editor.getAttributes("dreamIdea").ideaId;
+  const sourceId = editor.getAttributes("dreamSource").sourceId;
 
   return (
     <>
-      <Link to={`/idea/${ideaId}`}>
-        <ActionIcon title="Open Idea">
+      <Link to={`/source/${sourceId}`}>
+        <ActionIcon title="Open Source">
           <ArrowSquareOutIcon />
         </ActionIcon>
       </Link>
-      <ActionIcon title="Delete Idea" color="red" onClick={deleteSelectedNode}>
+      <ActionIcon
+        title="Delete Source"
+        color="red"
+        onClick={deleteSelectedNode}
+      >
         <TrashIcon />
       </ActionIcon>
     </>

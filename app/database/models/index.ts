@@ -8,6 +8,7 @@ import { SpyglassSearch } from "./search";
 import Rabbithole from "./rabbithole";
 import Task from "./task";
 import Source from "./source";
+import Excerpt from "./excerpt";
 
 export const modelsUp = async () => {
   try {
@@ -24,6 +25,7 @@ export const modelsUp = async () => {
     await Rabbithole.up();
     await Task.up();
     await Source.up();
+    await Excerpt.up();
   } catch (error) {
     console.error("There was an error updating models: ", error);
   }

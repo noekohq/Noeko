@@ -110,6 +110,7 @@ function TagButton({
           data-thing-id={tag.id.toString()}
           data-tag-id={tag.id.toString()}
           className={`${styles.tagButton} ${fullWidth ? styles["full-width"] : ""}`}
+          tabIndex={0}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onClick={handleClick}

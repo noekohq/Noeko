@@ -127,6 +127,7 @@ export default class Excerpt {
       }
       await this.establishOwnership(source.owner, excerpt.id);
       await this.excerptForUser(source.owner, excerpt.id);
+      this.loadEmbeddings(excerpt.id);
       return excerpt;
     } catch (error) {
       console.error("Error creating excerpt: ", source, form, error);
@@ -225,6 +226,7 @@ export default class Excerpt {
       if (!update) {
         throw new Error("Couldn't update excerpt");
       }
+      this.loadEmbeddings(excerptId);
       return update;
     } catch (error) {
       console.error("Error updating excerpt: ", excerptId, updates, error);

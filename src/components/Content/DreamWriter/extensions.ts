@@ -26,6 +26,7 @@ import { DreamFileHandler } from "./extensions/DreamFileHandler";
 import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
 import { DreamTask } from "./nodes/DreamTask";
+import { DreamSource } from "./nodes/DreamSource";
 import { DreamSlash } from "./extensions/DreamSlash";
 import { DreamInputs } from "./extensions/DreamInputs";
 import { Indent } from "./extensions/Indent";
@@ -181,6 +182,11 @@ export const getExtensionConfig = ({
     DreamTask.configure({
       HTMLAttributes: {
         class: contentStyles.task,
+      },
+    }),
+    DreamSource.configure({
+      HTMLAttributes: {
+        class: contentStyles.source,
       },
     }),
     DreamFileHandler.configure({}),

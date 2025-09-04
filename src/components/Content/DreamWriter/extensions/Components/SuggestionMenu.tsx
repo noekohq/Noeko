@@ -103,12 +103,12 @@ const SuggestionMenu = ({
           aria-activedescendant={items[activeIndex]?.id} // Points to the active item's ID
         >
           {loading && (
-            <div className={styles.item}>
+            <div className={`${styles.item} ${styles.noAnimate}`}>
               <div className={styles.label}>Loading suggestions...</div>
             </div>
           )}
           {!items.length && !loading && (
-            <div className={styles.item}>
+            <div className={`${styles.item} ${styles.noAnimate}`}>
               <div className={styles.label}>No suggestions available</div>
             </div>
           )}
@@ -119,6 +119,7 @@ const SuggestionMenu = ({
               item={item}
               select={() => onSelectionMade(index)}
               active={index === activeIndex}
+              index={index}
             />
           ))}
         </div>
@@ -133,10 +134,13 @@ type ISuggestionProps = {
   item: ISuggestionItem;
   select: () => void;
   active: boolean;
+  index: number;
 };
 
+const delayConstant = 50;
+
 const Suggestion = React.forwardRef<HTMLDivElement, ISuggestionProps>(
-  ({ item, select, active }, ref) => {
+  ({ item, select, active, index }, ref) => {
     return (
       <div
         ref={ref} // Attach the ref here
@@ -145,6 +149,9 @@ const Suggestion = React.forwardRef<HTMLDivElement, ISuggestionProps>(
         aria-selected={active}
         className={`${styles.item} ${active ? styles.active : ""}`}
         onClick={() => select()}
+        style={{
+          animationDelay: `${delayConstant * Math.log(index + 1)}ms`,
+        }}
       >
         {item.icon && <div className={styles.icon}>{item.icon}</div>}
         <div className={styles.details}>

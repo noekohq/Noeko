@@ -10,6 +10,10 @@ import {
 import styles from "./styles/DreamTask.module.scss";
 import { Group, HoverCard, Text } from "@mantine/core";
 import { CheckIcon } from "@phosphor-icons/react";
+import { useLandscape } from "../../../../contexts/LandscapeContext";
+import useConnectable from "../../../../hooks/useConnectable";
+import { IConnectable } from "../../../../../app/services/Graph";
+import { useEffect } from "react";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -111,6 +115,20 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
     url: `/tasks/${taskId}`,
     runOnMount: !!taskId,
   });
+
+  const {
+    connectable: {
+      viewing: { get: currentConnectable },
+    },
+  } = useLandscape();
+  const { ensureConnected } = useConnectable({
+    connectable: currentConnectable as IConnectable,
+  });
+  useEffect(() => {
+    if (task?.id) {
+      ensureConnected(task.id.toString());
+    }
+  }, [task?.id.toString()]);
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;
