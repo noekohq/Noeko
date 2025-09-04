@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import useRabbithole from "./useRabbithole";
 
 type IUseConnectableArgs = {
-  connectable: IConnectable;
+  connectable: IConnectable | null;
 };
 
 type IUseConnectableReturn = {
@@ -18,6 +18,7 @@ type IUseConnectableReturn = {
   disconnect: (target: string | RecordId) => Promise<boolean>;
   load: () => void;
   isConnected: (thingId: string | RecordId) => boolean;
+  ensureConnected: (thingId: string | RecordId) => Promise<void>;
 };
 
 export default function useConnectable({
@@ -30,8 +31,8 @@ export default function useConnectable({
     data: connected = [],
     loading: loadingConnected,
   } = useFetch<undefined, IConnectable[]>({
-    url: `/graph/${connectable.id.toString()}/connections`,
-    dependencies: [connectable.id.toString()],
+    url: `/graph/${connectable?.id.toString()}/connections`,
+    dependencies: [connectable?.id.toString()],
   });
 
   const {
@@ -39,8 +40,11 @@ export default function useConnectable({
     data: similar = [],
     loading: loadingSimilar,
   } = useFetch<undefined, ISimilarConnectable[]>({
-    url: `/graph/${connectable.id.toString()}/similar`,
-    dependencies: [connectable.id.toString(), currentRabbithole?.id.toString()],
+    url: `/graph/${connectable?.id.toString()}/similar`,
+    dependencies: [
+      connectable?.id.toString(),
+      currentRabbithole?.id.toString(),
+    ],
     query: {
       rabbitholeId: isDownRabbithole
         ? currentRabbithole?.id.toString() || ""
@@ -49,24 +53,49 @@ export default function useConnectable({
   });
 
   const load = () => {
+    if (!connectable?.id) {
+      console.error("Attempted to load empty connectable information.");
+      return;
+    }
     loadConnected();
     loadSimilar();
   };
 
   useEffect(() => {
+    if (!connectable?.id) {
+      console.error(
+        "Can't load connected nodes for connectable because it does not exist.",
+      );
+      return;
+    }
     loadConnected();
-  }, [connectable.updatedAt]);
+  }, [connectable?.updatedAt]);
 
   useEffect(() => {
+    if (!connectable?.id) {
+      console.error(
+        "Can't load similar nodes for connectable because it does not exist.",
+      );
+      return;
+    }
     loadSimilar();
-  }, [connectable.embeddingsUpdatedAt]);
+  }, [connectable?.embeddingsUpdatedAt]);
 
   useEffect(() => {
+    if (!connectable?.id) {
+      console.error(
+        "Can't load similar nodes for connectable because it does not exist.",
+      );
+      return;
+    }
     loadSimilar();
   }, [currentRabbithole]);
 
   const handleConnect = async (target: string | RecordId) => {
     try {
+      if (!connectable) {
+        throw new Error("Can't connect to connectable which does not exist.");
+      }
       await connect(connectable.id.toString(), target);
       return true;
     } catch (error) {
@@ -79,6 +108,11 @@ export default function useConnectable({
 
   const handleDisconnect = async (target: string | RecordId) => {
     try {
+      if (!connectable) {
+        throw new Error(
+          "Can't disconnect from connectable that doesn't exist.",
+        );
+      }
       await disconnect(connectable.id.toString(), target);
       return true;
     } catch (error) {
@@ -94,6 +128,15 @@ export default function useConnectable({
     return !!found;
   };
 
+  const ensureConnected = async (thingId: string | RecordId) => {
+    if (!connectable) {
+      return;
+    }
+    if (!isConnected(thingId)) {
+      await handleConnect(thingId);
+    }
+  };
+
   return {
     connected,
     loadingConnected,
@@ -103,5 +146,6 @@ export default function useConnectable({
     connect: handleConnect,
     disconnect: handleDisconnect,
     isConnected,
+    ensureConnected,
   };
 }

@@ -1,7 +1,18 @@
 import { ComponentType } from "react";
+import {
+  IExcerpt,
+  IExcerptForm,
+} from "../../../../../app/database/models/excerpt";
+import { RecordId } from "surrealdb";
 
 export type IDynamicComponentImport = () => Promise<{
-  default: ComponentType<any>;
+  default: ComponentType<{
+    fileId: string | RecordId;
+    excerpts?: IExcerpt[];
+    onExcerpt?: (data: IExcerptForm) => void;
+    editExcerpt?: (id: string | RecordId, newNote: string) => void;
+    deleteExcerpt?: (id: string | RecordId) => void;
+  }>;
 }>;
 
 type IMimeType = "application/pdf" | string;

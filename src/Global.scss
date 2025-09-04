@@ -196,6 +196,10 @@ pre {
     white-space: pre-wrap;
     background-color: var(--color-code-background);
     color: var(--color-code-foreground);
+
+    code {
+        border: none;
+    }
 }
 
 code {
@@ -203,6 +207,8 @@ code {
     background-color: var(--color-code-background);
     border-radius: var(--mantine-radius-md);
     padding: 4px 8px;
+    border: 1px solid var(--mantine-color-dark-7);
+    font-size: var(--mantine-font-size-sm);
 }
 
 table {

@@ -47,6 +47,12 @@ import { useLandscape } from "../../contexts/LandscapeContext";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { updateSource } from "../../utils/sources";
 import { showNotification } from "@mantine/notifications";
+import { IExcerpt } from "../../../app/database/models/excerpt";
+import {
+  createExcerpt,
+  deleteExcerpt,
+  editExcerpt,
+} from "../../utils/excerpts";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -57,8 +63,24 @@ export default function Source() {
     url: `/sources/${sourceId}`,
   });
 
+  const { data: excerpts, load: loadExcerpts } = useFetch<
+    undefined,
+    IExcerpt[]
+  >({
+    url: `/excerpts/${sourceId}/all`,
+    dependencies: [sourceId],
+  });
+
+  console.log("Excerpts: ", excerpts);
+
+  const reload = () => {
+    loadSource();
+    loadExcerpts();
+  };
+
   useEffect(() => {
     loadSource();
+    loadExcerpts();
   }, []);
 
   const {
@@ -236,7 +258,33 @@ export default function Source() {
                 }
               >
                 {Viewer ? (
-                  <Viewer fileId={file.id} />
+                  <Viewer
+                    fileId={file.id.toString()}
+                    excerpts={excerpts}
+                    onExcerpt={(excerpt) => {
+                      if (sourceId) {
+                        createExcerpt(sourceId.toString(), excerpt).then(() => {
+                          loadExcerpts();
+                        });
+                      } else {
+                        showNotification({
+                          title: "Something went wrong",
+                          message:
+                            "Something went wrong creating the excerpt :/",
+                        });
+                      }
+                    }}
+                    deleteExcerpt={(id) => {
+                      deleteExcerpt(id).then(() => {
+                        loadExcerpts();
+                      });
+                    }}
+                    editExcerpt={(id, newNote) => {
+                      editExcerpt(id, {
+                        note: newNote,
+                      });
+                    }}
+                  />
                 ) : (
                   <Text>No viewer available for this type of file :/</Text>
                 )}

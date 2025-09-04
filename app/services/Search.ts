@@ -197,7 +197,7 @@ export class Search {
       FILTERS lowercase, snowball(english);`;
     };
 
-    const ftsTitleSearchIndex = () => {
+    const ftsIdeaTitleSearchIndex = () => {
       return `
       DEFINE INDEX OVERWRITE idx_idea_title_fts
         ON TABLE idea
@@ -207,7 +207,7 @@ export class Search {
       `;
     };
 
-    const ftsContentSearchIndex = () => {
+    const ftsIdeaContentSearchIndex = () => {
       return `
       REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;
 
@@ -253,7 +253,17 @@ export class Search {
       return `
           DEFINE INDEX OVERWRITE idx_task_description_fts
             ON TABLE task
-            FIELDS name
+            FIELDS description
+            SEARCH ANALYZER task_analyzer
+            BM25 HIGHLIGHTS;
+          `;
+    };
+
+    const ftsTaskScratchpadSearchIndex = () => {
+      return `
+          DEFINE INDEX OVERWRITE idx_task_scratchpad_fts
+            ON TABLE task
+            FIELDS scratchpad
             SEARCH ANALYZER task_analyzer
             BM25 HIGHLIGHTS;
           `;
@@ -332,10 +342,11 @@ export class Search {
             LET $tasks = SELECT
                 *,
                 search::highlight("->", "<-", 0) AS preview,
-                search::score(0) AS titleScore
+                search::score(0) AS descriptionScore,
+                search::score(0) AS scratchpadScore
             FROM task
             WHERE
-                name @0@ $query
+                (description @0@ $query OR scratchpad @1@ $query)
                 AND <-owns<-(user WHERE id = <record> $userId);
 
             return $tasks;
@@ -360,6 +371,27 @@ export class Search {
                 AND <-owns<-(user WHERE id = <record> $userId);
 
             return $sources;
+          }`;
+    };
+
+    const ftsSearchExcerptsFunction = () => {
+      return `
+          DEFINE FUNCTION OVERWRITE fn::search_user_excerpts_fts(
+            $userId: record<user>,
+            $query: string
+          ) {
+            LET $excerpts = SELECT
+              *,
+                search::highlight("->", "<-", 0) AS preview,
+                search::score(0) AS noteScore,
+                search::score(1) AS sourceTextScore
+            OMIT embeddings
+            FROM excerpt
+            WHERE
+                (note @0@ $query OR sourceText @1@ $query)
+                AND <-owns<-(user WHERE id = <record> $userId);
+
+            return $excerpts;
           }`;
     };
 
@@ -447,34 +479,47 @@ export class Search {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized for Search.up");
 
+      // ** Ideas **
       await db.query(ideaSearchAnalyzer());
-      await db.query(ftsTitleSearchIndex());
-      await db.query(ftsContentSearchIndex());
+      await db.query(ftsIdeaTitleSearchIndex());
+      await db.query(ftsIdeaContentSearchIndex());
       await db.query(defineVectorIndex());
       await db.query(ftsSearchIdeasFunction());
 
+      // ** Tasks **
+      await db.query(taskSearchAnalyzer());
+      await db.query(defineTaskVectorIndex());
+      await db.query(ftsTaskDescriptionSearchIndex());
+      await db.query(ftsTaskScratchpadSearchIndex());
+      await db.query(ftsSearchTasksFunction());
+
+      // ** Excerpts **
+      await db.query(excerptSearchAnalyzer());
+      await db.query(defineExcerptVectorIndex());
+      await db.query(ftsExcerptNoteSearchIndex());
+      await db.query(ftsExcerptSourceTextSearchIndex());
+      await db.query(ftsSearchExcerptsFunction());
+
+      // ** Sources **
+      await db.query(sourceSearchAnalyzer());
+      await db.query(defineSourceVectorIndex());
+      await db.query(ftsSourceDisplayNameSearchIndex());
+      await db.query(ftsSourceContentSearchIndex());
+      await db.query(ftsSearchSourcesFunction());
+
+      // ** Tags **
       await db.query(tagSearchAnalyzer());
       await db.query(ftsTagNameSearchIndex());
       await db.query(ftsTagDescriptionSearchIndex());
       await db.query(defineTagVectorIndex());
       await db.query(ftsSearchTagsFunction());
 
+      // ** Rabbitholes **
       await db.query(rabbitholeSearchAnalyzer());
       await db.query(ftsRabbitholeSearchIndex());
       await db.query(defineRabbitholeVectorIndex());
       await db.query(ftsSearchRabbitholesFunction());
       await db.query(ftsSearchWithinRabbitholeFunction());
-
-      await db.query(taskSearchAnalyzer());
-      await db.query(defineTaskVectorIndex());
-      await db.query(ftsTaskDescriptionSearchIndex());
-      await db.query(ftsSearchTasksFunction());
-
-      await db.query(sourceSearchAnalyzer());
-      await db.query(defineSourceVectorIndex());
-      await db.query(ftsSourceDisplayNameSearchIndex());
-      await db.query(ftsSourceContentSearchIndex());
-      await db.query(ftsSearchSourcesFunction());
     } catch (error) {
       console.error("Error during Search.up():", error);
       throw error;
@@ -489,7 +534,7 @@ export class Search {
   // FTS Search Methods
   // =================================================================
 
-  private static async ftsSearchIdeas(
+  public static async ftsSearchIdeas(
     userId: string | RecordId,
     query: string,
     options?: { rabbitholeId?: string },
@@ -522,7 +567,7 @@ export class Search {
     );
   }
 
-  private static async ftsSearchSources(
+  public static async ftsSearchSources(
     userId: string | RecordId,
     query: string,
   ): Promise<ISearchResult[]> {
@@ -553,7 +598,38 @@ export class Search {
     );
   }
 
-  private static async ftsSearchTasks(
+  public static async ftsSearchExcerpts(
+    userId: string | RecordId,
+    query: string,
+  ): Promise<ISearchResult[]> {
+    const db = await getDatabase();
+    if (!db) throw new Error("Database not initialized");
+
+    const results = await db.run<
+      (IExcerpt & {
+        noteScore: number;
+        sourceTextScore: number;
+        preview: string;
+      })[]
+    >("fn::search_user_excerpts_fts", [new StringRecordId(userId), query]);
+    if (!results) return [];
+
+    return results.map(
+      (excerpt): ISearchResult => ({
+        id: excerpt.id,
+        score: (excerpt.noteScore ?? 0) + (excerpt.sourceTextScore ?? 0),
+        value: { ...excerpt, type: "excerpt" },
+        highlightText: excerpt.preview,
+        debug: {
+          ftsContentScore: excerpt.noteScore,
+          ftsTitleScore: excerpt.sourceTextScore,
+          source: "fts",
+        },
+      }),
+    );
+  }
+
+  public static async ftsSearchTasks(
     userId: string | RecordId,
     query: string,
   ): Promise<ISearchResult[]> {
@@ -563,6 +639,7 @@ export class Search {
     const results = await db.run<
       (ITask & { titleScore: number; preview: string })[]
     >("fn::search_user_tasks_fts", [new StringRecordId(userId), query]);
+
     if (!results) return [];
 
     return results.map(
@@ -867,13 +944,48 @@ export class Search {
   static async suggest(
     userId: string,
     query: string,
-    options?: { rabbitholeId?: string },
-  ): Promise<ISearchResult[]> {
+    options?: { limit?: number; rabbitholeId?: string },
+  ): Promise<ISearchResultValue[]> {
     if (!query || query.trim().length < 2) {
       return [];
     }
     try {
-      return (await Search.comprehensiveSearch(userId, query, options)) ?? [];
+      const limit = options?.limit ?? 15;
+
+      const [ideaResults, sourceResults, taskResults] = await Promise.all([
+        this.ftsSearchIdeas(userId, query, options),
+        this.ftsSearchSources(userId, query),
+        this.ftsSearchTasks(userId, query),
+      ]);
+
+      const allResults = [...ideaResults, ...sourceResults, ...taskResults];
+      allResults.sort((a, b) => b.score - a.score);
+
+      return allResults.slice(0, limit).map((result) => {
+        return result.value;
+      });
+    } catch (error) {
+      console.error("Error during suggest:", error);
+      return [];
+    }
+  }
+
+  static async smartSuggest(
+    userId: string,
+    query: string,
+    options?: { limit?: number; rabbitholeId?: string },
+  ): Promise<ISearchResultValue[]> {
+    if (!query || query.trim().length < 2) {
+      return [];
+    }
+    try {
+      const limit = options?.limit ?? 15;
+
+      const results = await this.comprehensiveSearch(userId, query, options);
+
+      return results.slice(0, limit).map((result) => {
+        return result.value;
+      });
     } catch (error) {
       console.error("Error during suggest:", error);
       return [];

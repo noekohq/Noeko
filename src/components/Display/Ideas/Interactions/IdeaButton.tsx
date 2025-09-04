@@ -139,6 +139,7 @@ function IdeaButton({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onClick={handleClick}
+          tabIndex={0}
           onMouseEnter={() => {
             setHovering(true);
           }}

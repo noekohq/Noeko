@@ -1,18 +1,46 @@
+@keyframes menuIn {
+    0% {
+    }
+    100% {
+    }
+}
+
 .suggestionMenu {
-    background-color: var(--mantine-color-dark-8);
-    overflow: hidden;
+    animation: menuIn .2s ease-out;
+    background-color: var(--mantine-color-dark-9);
+    /* overflow: hidden; */
     box-shadow: var(--mantine-shadow-sm);
-    overflow-y: auto; // Add this line!
+    overflow-y: auto;
     max-height: 40vh;
+    border: .5px solid var(--mantine-color-gray-9);
+    border-radius: var(--mantine-radius-md);
+}
+
+@keyframes itemIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .item {
+    animation: itemIn 0.3s ease-out;
     display: flex;
     align-items: center;
-    gap: var(--mantine-spacing-sm);
-    padding: 2px var(--mantine-spacing-sm);
-    border: .5px solid var(--mantine-color-gray-9);
+    gap: var(--mantine-spacing-xs);
+    padding: 4px var(--mantine-spacing-sm);
     cursor: pointer;
+
+    &.noAnimate {
+        animation: none;
+    }
 
     // when item is actually selected
     &.active {
@@ -55,7 +83,6 @@
     }
 
     & .icon {
-        font-size: 1rem;
-        color: var(--mantine-color-dimmed);
+        font-size: var(--mantine-font-size-xs);
     }
 }

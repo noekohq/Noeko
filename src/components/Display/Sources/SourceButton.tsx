@@ -121,6 +121,7 @@ function SourceButton({
           data-source-id={source.id.toString()}
           className={`${styles.sourceButton} ${fullWidth ? styles["full-width"] : ""}`}
           draggable={true}
+          tabIndex={0}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onClick={handleClick}

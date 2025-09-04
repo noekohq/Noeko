@@ -24,10 +24,11 @@ import {
   ShieldStarIcon,
   CheckIcon,
   FileTextIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
-import { Text } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useSettings } from "../../../contexts/SettingsContext";
 import { useNavigate } from "react-router";
@@ -35,15 +36,21 @@ import { api } from "../../../server/api";
 import type { IIdea } from "../../../../app/database/models/ideas";
 import { Option } from "./Option";
 import type {
-  ISpotlightAction,
   ISubviewDefinition,
   IUnifiedSearchItem,
   SpotlightMainItem,
 } from "./spotlight.d";
-import { getNodeDescription } from "../../../utils/graph";
+import {
+  getNodeDescription,
+  getNodeLink,
+  getNodeTitle,
+  NodeIcon,
+} from "../../../utils/graph";
 import useRabbithole from "../../../hooks/useRabbithole";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { useLandscape } from "../../../contexts/LandscapeContext";
+import { ISearchResultValue } from "../../../../app/services/Search";
+import { showNotification } from "@mantine/notifications";
 
 const minisearch = new MiniSearch<IUnifiedSearchItem>({
   fields: ["title", "keywords"],
@@ -59,10 +66,20 @@ const createDisplayTitle = (parentTitle: string, childTitle: string) => (
   </>
 );
 
-async function fetchSuggestedIdeas(query: string): Promise<IIdea[]> {
+async function fetchSuggested(query: string): Promise<ISearchResultValue[]> {
   try {
-    const response = await api.get(`/search/ideas/suggest?query=${query}`);
-    return response.data.data as IIdea[];
+    const response = await api.get(`/search/suggest?query=${query}`);
+    return response.data.data as ISearchResultValue[];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+async function fetchSmart(query: string): Promise<ISearchResultValue[]> {
+  try {
+    const response = await api.get(`/search/smartSuggest?query=${query}`);
+    return response.data.data as ISearchResultValue[];
   } catch (error) {
     console.error(error);
     return [];
@@ -107,12 +124,13 @@ export default function Spotlight() {
 
   const spotlightRef = useRef<HTMLInputElement>(null);
   const [spotlightValue, setSpotlightValue] = useState("");
-  const [debouncedSpotlightValue, setDebouncedSpotlightValue] = useState("");
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [currentSubviewId, setCurrentSubviewId] = useState<string | null>(null);
   const [displayedItems, setDisplayedItems] = useState<IUnifiedSearchItem[]>(
     [],
   );
+  const [debouncedSearchText, setDebouncedSearchText] =
+    useState(spotlightValue);
   const currentSearchRef = useRef<number>(0);
 
   const { user } = useAuth();
@@ -188,16 +206,8 @@ export default function Spotlight() {
     minisearch.addAll(unifiedSearchItems);
   }, [unifiedSearchItems]);
 
-  // Debounce spotlight value for idea search
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedSpotlightValue(spotlightValue);
-    }, 300); // 300ms delay
-
-    return () => clearTimeout(timeoutId);
-  }, [spotlightValue]);
-
-  // Handle immediate search (non-debounced)
+  const [loadingDynamicItems, setLoadingDynamicItems] = useState(false);
+  const currentTimeout = useRef<Timer>();
   useEffect(() => {
     if (currentSubviewId) {
       const subview = subviewDefinitions.get(currentSubviewId);
@@ -207,34 +217,55 @@ export default function Spotlight() {
         return;
       }
 
-      // Skip dynamic items for idea switcher - handled by debounced effect
-      if (subview?.dynamicItems && currentSubviewId === "ideaSwitcherSubview") {
-        return;
-      }
-
       if (subview?.dynamicItems) {
         const searchId = ++currentSearchRef.current;
+        if (!spotlightValue) {
+          setDisplayedItems([]);
+          setLoadingDynamicItems(false);
+          return;
+        }
 
-        subview
-          .dynamicItems({
-            searchText: spotlightValue,
-            closeSpotlight: closeSpotlightAndResetView,
-          })
-          .then((actions) => {
-            // Only update if this is still the latest search
-            if (searchId === currentSearchRef.current) {
-              setDisplayedItems(
-                actions.map((item) => ({
-                  ...item,
-                  displayTitle: item.title,
-                  displayDescription: item.description,
-                  isTopLevel: false,
-                })),
-              );
-              setActiveItemIndex(0);
-            }
-          });
-        return;
+        const debounceDelay = subview.debounceMs || 0;
+
+        if (currentTimeout.current) {
+          clearTimeout(currentTimeout.current);
+          setLoadingDynamicItems(false);
+        }
+
+        const timeout = setTimeout(() => {
+          const searchId = ++currentSearchRef.current;
+          if (subview.dynamicItems) {
+            setLoadingDynamicItems(true);
+            subview
+              .dynamicItems({
+                searchText: spotlightValue,
+                closeSpotlight: closeSpotlightAndResetView,
+              })
+              .then((actions) => {
+                if (searchId === currentSearchRef.current) {
+                  setDisplayedItems(
+                    actions.map((item) => ({
+                      ...item,
+                      displayTitle: item.title,
+                      displayDescription: item.description,
+                      isTopLevel: false,
+                    })),
+                  );
+                  setActiveItemIndex(0);
+                }
+              })
+              .finally(() => {
+                if (searchId === currentSearchRef.current) {
+                  setLoadingDynamicItems(false);
+                }
+              });
+          }
+        }, debounceDelay);
+        currentTimeout.current = timeout;
+
+        return () => {
+          clearTimeout(timeout);
+        };
       }
 
       if (subview?.items) {
@@ -279,42 +310,6 @@ export default function Spotlight() {
   }, [
     spotlightValue,
     unifiedSearchItems,
-    currentSubviewId,
-    subviewDefinitions,
-    closeSpotlightAndResetView,
-  ]);
-
-  // Handle debounced search for idea switcher
-  useEffect(() => {
-    if (currentSubviewId === "ideaSwitcherSubview") {
-      const subview = subviewDefinitions.get(currentSubviewId);
-
-      if (subview?.dynamicItems) {
-        const searchId = ++currentSearchRef.current;
-
-        subview
-          .dynamicItems({
-            searchText: debouncedSpotlightValue,
-            closeSpotlight: closeSpotlightAndResetView,
-          })
-          .then((actions) => {
-            // Only update if this is still the latest search
-            if (searchId === currentSearchRef.current) {
-              setDisplayedItems(
-                actions.map((item) => ({
-                  ...item,
-                  displayTitle: item.title,
-                  displayDescription: item.description,
-                  isTopLevel: false,
-                })),
-              );
-              setActiveItemIndex(0);
-            }
-          });
-      }
-    }
-  }, [
-    debouncedSpotlightValue,
     currentSubviewId,
     subviewDefinitions,
     closeSpotlightAndResetView,
@@ -423,6 +418,11 @@ export default function Spotlight() {
           placeholder={currentPlaceholder}
         />
         <div className={styles.resultsContainer}>
+          {loadingDynamicItems && (
+            <Text size="sm" c="white">
+              Loading...
+            </Text>
+          )}
           {currentSubviewDef?.component ? (
             currentSubviewDef.component({
               searchText: spotlightValue,
@@ -522,10 +522,21 @@ const useSpotlightConfig = ({
         action: onClose,
       },
       {
-        id: "ideaSwitcher",
-        title: "Fast find idea",
-        subviewId: "ideaSwitcherSubview",
+        id: "fastFind",
+        title: "Fast Find",
+        subviewId: "fastFindSubview",
         icon: <MagnifyingGlassIcon />,
+      },
+      {
+        id: "smartSearch",
+        title: "Smart Search",
+        subviewId: "smartSearchSubview",
+        icon: (
+          <Group gap="0" align="baseline">
+            <MagnifyingGlassIcon />
+            <SparkleIcon size={12} />
+          </Group>
+        ),
       },
       {
         id: "ideas",
@@ -850,33 +861,76 @@ const useSpotlightConfig = ({
           },
         ],
         [
-          "ideaSwitcherSubview",
+          "fastFindSubview",
           {
-            id: "ideaSwitcherSubview",
-            title: "Idea Switcher",
-            placeholder: "Search for an idea to switch to...",
+            id: "fastFind",
+            title: "Fast Find",
+            placeholder: "Search for an idea, task, or source...",
             dynamicItems: async ({ searchText, closeSpotlight }) => {
-              const suggestedItems = await fetchSuggestedIdeas(searchText);
+              const suggestedItems = await fetchSuggested(searchText);
 
-              return suggestedItems.map((idea) => ({
-                id: idea.id.toString(),
-                title: idea.title,
-                description: getNodeDescription(
-                  {
-                    ...idea,
-                    type: "idea",
+              return suggestedItems.map((node) => {
+                const Icon = NodeIcon(node);
+                const title = getNodeTitle(node);
+                const description = getNodeDescription(node);
+                const link = getNodeLink(node);
+
+                return {
+                  id: node.id.toString(),
+                  title: title || "Unknown",
+                  description: description || "No description provided.",
+                  icon: Icon ? <Icon /> : undefined,
+                  action: () => {
+                    if (link) {
+                      navigate(link);
+                    } else {
+                      showNotification({
+                        title: "Error",
+                        message: "Something went wrong trying to go to link",
+                      });
+                    }
+                    closeSpotlight();
                   },
-                  {
-                    sentences: 1,
-                    maxLength: 256,
+                };
+              });
+            },
+          },
+        ],
+        [
+          "smartSearchSubview",
+          {
+            id: "smartSearch",
+            title: "Smart Search",
+            placeholder:
+              "Search for an idea, task, or source using natural language...",
+            debounceMs: 500,
+            dynamicItems: async ({ searchText, closeSpotlight }) => {
+              const suggestedItems = await fetchSmart(searchText);
+
+              return suggestedItems.map((node) => {
+                const Icon = NodeIcon(node);
+                const title = getNodeTitle(node);
+                const description = getNodeDescription(node);
+                const link = getNodeLink(node);
+
+                return {
+                  id: node.id.toString(),
+                  title: title || "Unknown",
+                  description: description || "No description provided.",
+                  icon: Icon ? <Icon /> : undefined,
+                  action: () => {
+                    if (link) {
+                      navigate(link);
+                    } else {
+                      showNotification({
+                        title: "Error",
+                        message: "Something went wrong trying to go to link",
+                      });
+                    }
+                    closeSpotlight();
                   },
-                ),
-                icon: <LightbulbIcon />,
-                action: () => {
-                  navigate(`/idea/${idea.id}`);
-                  closeSpotlight();
-                },
-              }));
+                };
+              });
             },
           },
         ],

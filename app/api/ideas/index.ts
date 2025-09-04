@@ -206,37 +206,25 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
+    console.log("Idea id: ", ideaId);
+    const isOwner = await User.checkOwns(user.id, ideaId);
+    if (!isOwner) {
+      res.status(403).json({
+        message: "Unauthorized.",
+      });
+      return;
+    }
     const idea = await Idea.get(ideaId);
     if (!idea) {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
-    const isSuperuser = await User.checkUserHasRole(user.id, "role:superuser");
-    if (!isOwner) {
-      if (!isSuperuser) {
-        res.status(403).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-    }
-    const withRelatedIdeas = req.query.withRelatedIdeas === "true";
-    const withConnections = req.query.withConnections === "true";
     const withDerived = req.query.withDerived === "true";
     const toSend: ISafeIdea & {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;
     } = { ...idea };
-    if (withConnections) {
-      const connections = await Idea.getConnections(ideaId);
-      toSend.connections = connections;
-    }
-    if (withRelatedIdeas) {
-      const relatedIdeas = await Idea.findSimilar(user.id, ideaId);
-      toSend.relatedIdeas = relatedIdeas;
-    }
     if (withDerived) {
       const derived = await Idea.getDerivedMap(ideaId);
       toSend.derived = derived;

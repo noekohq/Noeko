@@ -18,13 +18,13 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    const excerptable = req.body.excerptable;
+    const excerptableId = req.body.excerptableId;
     const note = req.body.note;
     const sourceText = req.body.sourceText;
 
     const created = await Excerpt.from(
       {
-        id: excerptable,
+        id: excerptableId,
         owner: user.id,
       },
       {
@@ -43,6 +43,86 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating excerpt: ", error);
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
+
+router.put("/:excerptId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).send({
+        message: "Unauthorized. User not found or ID is missing.",
+      });
+      return;
+    }
+
+    const excerptId = req.params.excerptId;
+    const owns = User.checkOwns(user.id, excerptId);
+    if (!owns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+
+    const note = req.body.note;
+    const sourceText = req.body.sourceText;
+
+    const updated = await Excerpt.update(excerptId, {
+      note,
+      sourceText,
+    });
+
+    if (!updated) {
+      throw new Error("Didn't update excerpt");
+    }
+
+    res.send({
+      message: "Excerpt created successfully",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Error creating excerpt: ", error);
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
+
+router.delete("/:excerptId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).send({
+        message: "Unauthorized. User not found or ID is missing.",
+      });
+      return;
+    }
+
+    const excerptId = req.params.excerptId;
+    const owns = User.checkOwns(user.id, excerptId);
+    if (!owns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+
+    const deleted = await Excerpt.delete(excerptId);
+
+    if (!deleted) {
+      throw new Error("Didn't delete excerpt");
+    }
+
+    res.send({
+      message: "Excerpt deleted successfully",
+      data: deleted,
+    });
+  } catch (error) {
+    console.error("Error deleting excerpt: ", error);
     res.status(500).send({
       message: "Something went wrong",
     });
@@ -70,7 +150,7 @@ router.get("/:excerptable/all", async (req, res) => {
       return;
     }
 
-    const all = Excerpt.allExcerptable(user.id, excerptableId);
+    const all = await Excerpt.allExcerptable(user.id, excerptableId);
 
     res.send({
       message: "Excerpt created successfully",

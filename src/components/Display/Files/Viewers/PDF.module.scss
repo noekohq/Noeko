@@ -1,38 +1,47 @@
 @keyframes viewerIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+    0% {
+        transform: translateY(-10vh);
     }
-    to {
-        opacity: 1;
+    100% {
         transform: translateY(0);
     }
 }
 
-.pdfViewer {
-  animation: viewerIn 0.3s ease-in-out;
-  border-radius: var(--mantine-radius-md);
-  background-color: var(--mantine-color-dark-8);
-  max-height: 100%;
-  overflow-y: scroll; /* Keep this for vertical scrolling */
-  scrollbar-width: thin;
-  padding: var(--mantine-spacing-xs);
-
-  /* This is now the single source of truth for the width */
-  width: calc(var(--content-width) - calc(var(--content-spacing) * 2));
-
-  box-sizing: border-box;
+.viewer {
+    animation: viewerIn .5s ease-out forwards;
+    position: relative;
+    height: 100%;
+    background-color: var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-md);
+    box-shadow: inset var(--mantine-shadow-lg);
 }
 
-.document {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--mantine-spacing-md);
+.toolbar {
+    position: sticky;
+    top: var(--layout-spacing);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: fit-content;
+
+    background-color: var(--mantine-color-dark-9);
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-xs);
+    box-shadow: var(--mantine-shadow-lg);
+}
+
+.viewportContainer {
+    height: 100%;
+    width: 100%;
+}
+
+.viewPort {
+    /* The library component handles its own styling. We usually don't need much here. */
 }
 
 .page {
-  box-shadow: var(--mantine-shadow-lg);
-  border-radius: var(--mantine-radius-sm);
-  overflow: hidden;
+    outline: 1px solid red;
+    margin: 0 auto var(--mantine-spacing-md) auto;
+    width: 100%;
+    box-shadow: var(--mantine-shadow-lg);
 }

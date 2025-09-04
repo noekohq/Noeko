@@ -7,14 +7,18 @@ import Suggestion, {
   SuggestionProps,
 } from "@tiptap/suggestion";
 
-import { IIdea } from "../../../../../app/database/models/ideas";
-import { IUserFile } from "../../../../../app/database/models/userfile";
 import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
-import { Lightbulb, LightbulbIcon } from "@phosphor-icons/react";
-import { getNodeDescription, getNodeTitle } from "../../../../utils/graph";
-import { EditorState, PluginKey } from "@tiptap/pm/state";
+import { LightbulbIcon } from "@phosphor-icons/react";
+import {
+  getNodeDescription,
+  getNodeTitle,
+  NodeIcon,
+} from "../../../../utils/graph";
+import { PluginKey } from "@tiptap/pm/state";
 import { debounce } from "lodash";
+import { IConnectable } from "../../../../../app/services/Graph";
+import { ISearchResultValue } from "../../../../../app/services/Search";
 
 const suggestionKey = new PluginKey("dream-connection");
 
@@ -22,22 +26,18 @@ export interface IDreamConnectionOptions {
   allowedTypes?: string[];
 }
 
-export type IDreamConnectionItem =
-  | ({ type: "idea" } & IIdea)
-  | ({ type: "file" } & IUserFile);
+export type IDreamConnectionItem = IConnectable;
 
 async function fetchDreamConnectionItems(
   query: string,
 ): Promise<IDreamConnectionItem[]> {
-  // If the query is empty, don't hit the API
   if (!query) {
     return [];
   }
   try {
-    const response = await api.get(`/search/ideas/suggest?query=${query}`);
-    const items = response.data.data.map((item: IIdea) => ({
+    const response = await api.get(`/search/suggest?query=${query}`);
+    const items = response.data.data.map((item: ISearchResultValue) => ({
       ...item,
-      type: "idea",
     }));
     return items;
   } catch (error) {
@@ -46,9 +46,11 @@ async function fetchDreamConnectionItems(
   }
 }
 
-const debouncedFetchDreamConnectionItems = debounce(
-  fetchDreamConnectionItems,
-  500,
+const debouncedFetch = debounce(
+  (query: string, resolve: (items: IDreamConnectionItem[]) => void) => {
+    fetchDreamConnectionItems(query).then(resolve);
+  },
+  200,
 );
 
 const suggestionOptionsDefinition = (
@@ -85,11 +87,9 @@ const suggestionOptionsDefinition = (
       };
     },
     items: async ({ query }) => {
-      const items = await debouncedFetchDreamConnectionItems(query);
-      if (!items) {
-        return [];
-      }
-      return items;
+      return new Promise((resolve) => {
+        debouncedFetch(query, resolve);
+      });
     },
     render: () => {
       let element: HTMLElement | null = null;
@@ -101,15 +101,22 @@ const suggestionOptionsDefinition = (
         props: SuggestionProps<IDreamConnectionItem>,
         loading: boolean,
       ) => {
-        if (!root) return;
+        console.log("Rendering with: ", props);
+        if (!root) {
+          console.log("No root to render with...");
+          return;
+        }
         root.render(
           <SuggestionMenu
-            loading={loading} // <-- Pass the loading state
-            items={props.items.map((s) => ({
-              id: s.id.toString(),
-              label: getNodeTitle(s) ?? "Unknown",
-              icon: <LightbulbIcon />,
-            }))}
+            loading={loading}
+            items={props.items.map((s) => {
+              const Icon = NodeIcon(s);
+              return {
+                id: s.id.toString(),
+                label: getNodeTitle(s) ?? "Unknown",
+                icon: Icon ? <Icon /> : undefined,
+              };
+            })}
             activeIndex={activeIndex}
             getReferenceClientRect={props.clientRect as () => DOMRect}
             onSelectionMade={(index) => {
@@ -131,19 +138,24 @@ const suggestionOptionsDefinition = (
           root = createRoot(element);
           currentProps = props;
           activeIndex = 0;
-          // Render the component in its loading state
+          renderComponent(props, true);
+        },
+
+        onBeforeUpdate: (props) => {
+          console.log("Before updating: ", props);
           renderComponent(props, true);
         },
 
         onUpdate: (props) => {
           currentProps = props;
           activeIndex = 0;
-          // Items have loaded, render with data and loading=false
+          console.log("Updating: ", props);
           renderComponent(props, false);
         },
 
         onKeyDown: ({ event }: SuggestionKeyDownProps) => {
           if (!currentProps || currentProps.items.length === 0) {
+            console.log("Not returning...");
             return false;
           }
 
@@ -166,7 +178,6 @@ const suggestionOptionsDefinition = (
           }
 
           if (handled) {
-            // Re-render to update the active index highlight
             renderComponent(currentProps, false);
           }
 
@@ -174,6 +185,7 @@ const suggestionOptionsDefinition = (
         },
 
         onExit: () => {
+          console.log("Exiting...");
           root?.unmount();
           element?.remove();
           element = null;
@@ -206,20 +218,33 @@ const suggestionOptionsDefinition = (
               content: originalQuery,
             })
             .run(),
-        file: () =>
+        source: () =>
           editor
             .chain()
             .focus()
             .deleteRange(finalRange)
-            .setDreamFile({
-              fileId: props.id.toString(),
-              fileName: originalQuery,
-              fileType: (props as IUserFile).mimeType,
+            .setDreamSource({
+              sourceId: props.id.toString(),
+              content: originalQuery,
+            })
+            .run(),
+        task: () =>
+          editor
+            .chain()
+            .focus()
+            .deleteRange(finalRange)
+            .setDreamTask({
+              taskId: props.id.toString(),
+              content: originalQuery,
             })
             .run(),
       };
 
-      if (props.type === "idea" || props.type === "file") {
+      if (
+        props.type === "idea" ||
+        props.type === "source" ||
+        props.type === "task"
+      ) {
         commandMap[props.type]();
       }
     },

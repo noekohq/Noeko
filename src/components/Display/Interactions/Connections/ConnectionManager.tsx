@@ -286,7 +286,6 @@ export default function ConnectionManager({
                 const level = similarityToLevel(distance);
                 const color = similarityToColor[level];
                 const connected = isConnected(similar.id.toString());
-                console.log("Similar: ", similar, getNodeDescription(similar));
 
                 return (
                   <CollapseButton
