@@ -4,6 +4,7 @@ import useFetch from "../../hooks/useFetch";
 import {
   ActionIcon,
   Blockquote,
+  Box,
   Button,
   Card,
   Drawer,
@@ -53,6 +54,7 @@ import {
   deleteExcerpt,
   editExcerpt,
 } from "../../utils/excerpts";
+import { SourceProvider, useSource } from "./SourceContext";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -63,24 +65,8 @@ export default function Source() {
     url: `/sources/${sourceId}`,
   });
 
-  const { data: excerpts, load: loadExcerpts } = useFetch<
-    undefined,
-    IExcerpt[]
-  >({
-    url: `/excerpts/${sourceId}/all`,
-    dependencies: [sourceId],
-  });
-
-  console.log("Excerpts: ", excerpts);
-
-  const reload = () => {
-    loadSource();
-    loadExcerpts();
-  };
-
   useEffect(() => {
     loadSource();
-    loadExcerpts();
   }, []);
 
   const {
@@ -163,34 +149,127 @@ export default function Source() {
   };
 
   return (
-    <PageWrapper>
-      <LeftSidebar>
-        <LeftSidebar.Open>
-          <Tabs defaultValue="context">
-            <Tabs.List>
-              <Tabs.Tab value="context">
-                <Group gap="xs">
-                  <IntersectSquareIcon weight="fill" size={14} />
-                  Context
-                </Group>
-              </Tabs.Tab>
-              <Tabs.Tab value="analysis">
-                <Group gap="xs">
-                  <FileMagnifyingGlassIcon />
-                  Analysis
-                </Group>
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="context">
-              {!source?.analysis && (
-                <Text size="xs" c="dimmed">
-                  This source has not been analyzed.
-                </Text>
-              )}
-              {source?.analysis && (
+    <SourceProvider source={source}>
+      <PageWrapper>
+        <LeftSidebar>
+          <LeftSidebar.Open>
+            <Tabs defaultValue="context">
+              <Tabs.List>
+                <Tabs.Tab value="context">
+                  <Group gap="xs">
+                    <IntersectSquareIcon weight="fill" size={14} />
+                    Context
+                  </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="analysis">
+                  <Group gap="xs">
+                    <FileMagnifyingGlassIcon />
+                    Analysis
+                  </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="excerpts">
+                  <TextAlignLeftIcon />
+                  Excerpts
+                </Tabs.Tab>
+              </Tabs.List>
+              <Tabs.Panel value="context">
+                {!source?.analysis && (
+                  <Text size="xs" c="dimmed">
+                    This source has not been analyzed.
+                  </Text>
+                )}
+                {source?.analysis && (
+                  <Card
+                    radius="lg"
+                    p={"sm"}
+                    styles={{
+                      root: {
+                        backgroundColor:
+                          "var(--mantine-color-dark-8) !important",
+                        border: "1px solid var(--mantine-color-dark-7)",
+                      },
+                    }}
+                  >
+                    <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+                      The Gist
+                    </Text>
+                    <Text size="sm">{source.analysis.headline}</Text>
+                  </Card>
+                )}
+                {!!source && (
+                  <ConnectionManager
+                    connectable={{
+                      ...source,
+                      type: "source",
+                    }}
+                  />
+                )}
+              </Tabs.Panel>
+              <Tabs.Panel value="analysis">
+                <AnalysisBlock
+                  analysis={source?.analysis}
+                  source={source}
+                  reloadSource={() => {
+                    loadSource();
+                  }}
+                />
+              </Tabs.Panel>
+              <Tabs.Panel value="excerpts">
+                <ExcerptsPanel />
+              </Tabs.Panel>
+            </Tabs>
+          </LeftSidebar.Open>
+        </LeftSidebar>
+        <ContentWide>
+          <div className={styles.fileView}>
+            <Group gap="xs">
+              <ActionIcon
+                onClick={() => {
+                  navigate(-1);
+                }}
+                color="gray"
+                variant="subtle"
+                size="sm"
+              >
+                <CaretLeftIcon weight="bold" />
+              </ActionIcon>
+              <Title
+                contentEditable
+                onBlur={(e) => {
+                  handleFieldUpdate("displayName", e.currentTarget.innerText);
+                }}
+                dangerouslySetInnerHTML={{ __html: source?.displayName || "" }}
+              />
+            </Group>
+            {file && (
+              <div
+                className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
+              >
+                <Suspense
+                  fallback={
+                    <Text size="xs" c="dimmed">
+                      Loading viewer...
+                    </Text>
+                  }
+                >
+                  {Viewer ? (
+                    <Viewer fileId={file.id.toString()} />
+                  ) : (
+                    <Text>No viewer available for this type of file :/</Text>
+                  )}
+                </Suspense>
+              </div>
+            )}
+          </div>
+        </ContentWide>
+        <StatusBar />
+        <RightSidebar>
+          <RightSidebar.Open>
+            <Stack>
+              {!!file && (
                 <Card
                   radius="lg"
-                  p={"sm"}
+                  p={"xs"}
                   styles={{
                     root: {
                       backgroundColor: "var(--mantine-color-dark-8) !important",
@@ -198,136 +277,27 @@ export default function Source() {
                     },
                   }}
                 >
-                  <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
-                    The Gist
-                  </Text>
-                  <Text size="sm">{source.analysis.headline}</Text>
+                  <Group>
+                    <Link to={`/file/${file.id.toString()}`}>
+                      <Button
+                        variant="light"
+                        color="gray"
+                        size="xs"
+                        radius="md"
+                        leftSection={<FileIcon />}
+                      >
+                        Go to file
+                      </Button>
+                    </Link>
+                  </Group>
                 </Card>
               )}
-              {!!source && (
-                <ConnectionManager
-                  connectable={{
-                    ...source,
-                    type: "source",
-                  }}
-                />
-              )}
-            </Tabs.Panel>
-            <Tabs.Panel value="analysis">
-              <AnalysisBlock
-                analysis={source?.analysis}
-                source={source}
-                reloadSource={() => {
-                  loadSource();
-                }}
-              />
-            </Tabs.Panel>
-          </Tabs>
-        </LeftSidebar.Open>
-      </LeftSidebar>
-      <ContentWide>
-        <div className={styles.fileView}>
-          <Group gap="xs">
-            <ActionIcon
-              onClick={() => {
-                navigate(-1);
-              }}
-              color="gray"
-              variant="subtle"
-              size="sm"
-            >
-              <CaretLeftIcon weight="bold" />
-            </ActionIcon>
-            <Title
-              contentEditable
-              onBlur={(e) => {
-                handleFieldUpdate("displayName", e.currentTarget.innerText);
-              }}
-              dangerouslySetInnerHTML={{ __html: source?.displayName || "" }}
-            />
-          </Group>
-          {file && (
-            <div
-              className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
-            >
-              <Suspense
-                fallback={
-                  <Text size="xs" c="dimmed">
-                    Loading viewer...
-                  </Text>
-                }
-              >
-                {Viewer ? (
-                  <Viewer
-                    fileId={file.id.toString()}
-                    excerpts={excerpts}
-                    onExcerpt={(excerpt) => {
-                      if (sourceId) {
-                        createExcerpt(sourceId.toString(), excerpt).then(() => {
-                          loadExcerpts();
-                        });
-                      } else {
-                        showNotification({
-                          title: "Something went wrong",
-                          message:
-                            "Something went wrong creating the excerpt :/",
-                        });
-                      }
-                    }}
-                    deleteExcerpt={(id) => {
-                      deleteExcerpt(id).then(() => {
-                        loadExcerpts();
-                      });
-                    }}
-                    editExcerpt={(id, newNote) => {
-                      editExcerpt(id, {
-                        note: newNote,
-                      });
-                    }}
-                  />
-                ) : (
-                  <Text>No viewer available for this type of file :/</Text>
-                )}
-              </Suspense>
-            </div>
-          )}
-        </div>
-      </ContentWide>
-      <StatusBar />
-      <RightSidebar>
-        <RightSidebar.Open>
-          <Stack>
-            {!!file && (
-              <Card
-                radius="lg"
-                p={"xs"}
-                styles={{
-                  root: {
-                    backgroundColor: "var(--mantine-color-dark-8) !important",
-                    border: "1px solid var(--mantine-color-dark-7)",
-                  },
-                }}
-              >
-                <Group>
-                  <Link to={`/file/${file.id.toString()}`}>
-                    <Button
-                      variant="light"
-                      color="gray"
-                      size="xs"
-                      radius="md"
-                      leftSection={<FileIcon />}
-                    >
-                      Go to file
-                    </Button>
-                  </Link>
-                </Group>
-              </Card>
-            )}
-            <Search />
-          </Stack>
-        </RightSidebar.Open>
-      </RightSidebar>
-    </PageWrapper>
+              <Search />
+            </Stack>
+          </RightSidebar.Open>
+        </RightSidebar>
+      </PageWrapper>
+    </SourceProvider>
   );
 }
 
@@ -463,5 +433,34 @@ function AnalysisBlock({
         <Text size="md">{analysis?.abstract}</Text>
       </Drawer>
     </>
+  );
+}
+
+function ExcerptsPanel() {
+  const {
+    excerpts: { all },
+  } = useSource();
+
+  return (
+    <div>
+      <Stack>
+        <Text size="sm" c="dark.4" fw="bold">
+          <Group gap="xs">
+            <TextAlignLeftIcon weight="bold" />
+            EXCERPTS
+          </Group>
+        </Text>
+        {all.map((excerpt) => {
+          return (
+            <Box>
+              <Blockquote color="gray" p="xs">
+                {excerpt.sourceText}
+              </Blockquote>
+              {excerpt.note && <Text size="sm">{excerpt.note}</Text>}
+            </Box>
+          );
+        })}
+      </Stack>
+    </div>
   );
 }

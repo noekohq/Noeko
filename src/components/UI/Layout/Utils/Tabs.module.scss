@@ -5,6 +5,7 @@
     display: flex;
     gap: var(--mantine-spacing-xs);
     margin-bottom: var(--mantine-spacing-md);
+    flex-wrap: wrap;
 }
 
 .tab {

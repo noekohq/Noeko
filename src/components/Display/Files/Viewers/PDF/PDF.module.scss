@@ -28,6 +28,19 @@
     border-radius: var(--mantine-radius-md);
     padding: var(--mantine-spacing-xs);
     box-shadow: var(--mantine-shadow-lg);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
+    .divider {
+        width: 2px;
+        background-color: var(--mantine-color-dark-7);
+        height: 14px;
+        border-radius: 20px;
+        margin-inline: var(--mantine-spacing-md);
+    }
 }
 
 .viewportContainer {
@@ -40,8 +53,15 @@
 }
 
 .page {
-    outline: 1px solid red;
     margin: 0 auto var(--mantine-spacing-md) auto;
-    width: 100%;
     box-shadow: var(--mantine-shadow-lg);
+}
+
+.annotationMenu {
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-xs);
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-dark-7);
+    z-index: 2000;
+    min-width: 200px;
 }

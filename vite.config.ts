@@ -24,8 +24,7 @@ export default defineConfig({
         short_name: "Noeko",
         display: "standalone",
         start_url: "/",
-        description:
-          "A Knowledge Base The second brain that thinks with you, not for you.",
+        description: "The knowledge base that gets smarter with you.",
         theme_color: "#282828",
         icons: [
           {

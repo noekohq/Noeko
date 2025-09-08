@@ -2,12 +2,27 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { ISource } from "./source";
 import { getDatabase } from "../db";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
+import {
+  PdfHighlightAnnoObject,
+  Rect,
+  PdfAnnotationSubtype,
+} from "@embedpdf/models";
 
 type IExcerptReference = ISource;
 
 export type IExcerptable = {
   id: string | RecordId;
   owner: string | RecordId;
+};
+
+export type IPDFMetadata = {
+  pageIndex: number;
+  data: {
+    pageIndex: number;
+    type: PdfAnnotationSubtype;
+    rect: Rect;
+    segmentRects: Rect[];
+  };
 };
 
 export type IExcerpt = {
@@ -17,6 +32,7 @@ export type IExcerpt = {
   embeddings: number[];
   embeddingsUpdatedAt: Date;
   references?: StringRecordId | IExcerptReference;
+  pdfMetadata?: IPDFMetadata;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -60,6 +76,7 @@ export default class Excerpt {
       ) {
         LET $excerpt = SELECT
           *
+          OMIT embeddings
           FROM ONLY $excerptId
           FETCH references;
         RETURN $excerpt;
@@ -75,6 +92,7 @@ export default class Excerpt {
             LET $excerpts = SELECT
               *,
               ->references->(?) as references
+              OMIT embeddings
               FROM excerpt
               WHERE <-owns<-(user WHERE id = $userId);
             RETURN $excerpts;
@@ -90,6 +108,7 @@ export default class Excerpt {
           ) {
             LET $excerpts = SELECT
               *
+              OMIT embeddings
               FROM excerpt
               WHERE
                 <-owns<-(user WHERE id = $userId) &&
@@ -110,10 +129,12 @@ export default class Excerpt {
       if (!db) {
         throw new Error("Couldn't get database");
       }
+      console.log("Creating with form: ", form);
       const created = await db.create<IExcerpt, IExcerptCreator>("excerpt", {
         ...form,
         references: new StringRecordId(source.id),
         embeddings: await getEmbedder().getEmptyEmbeddings(),
+        pdfMetadata: form.pdfMetadata,
         embeddingsUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
