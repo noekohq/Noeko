@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { IExcerptForm } from "../../app/database/models/excerpt";
+import { IExcerpt, IExcerptForm } from "../../app/database/models/excerpt";
 import { api } from "../server/api";
 
 export const createExcerpt = async (
@@ -11,8 +11,10 @@ export const createExcerpt = async (
       note: form.note,
       sourceText: form.sourceText,
       excerptableId: excerptable.toString(),
+      pdfMetadata: form.pdfMetadata,
     });
-    const excerpt = response.data.data;
+    const excerpt = response.data.data as IExcerpt;
+    return excerpt;
   } catch (error) {
     console.error("Error creating excerpt: ", excerptable, form, error);
     return undefined;
@@ -34,7 +36,8 @@ export const editExcerpt = async (
     const response = await api.put(`/excerpts/${excerptId}`, {
       ...updates,
     });
-    const excerpt = response.data.data;
+    const excerpt = response.data.data as IExcerpt;
+    return excerpt;
   } catch (error) {
     console.error("Error editing excerpt: ", excerptId, form, error);
     return undefined;
@@ -44,7 +47,8 @@ export const editExcerpt = async (
 export const deleteExcerpt = async (excerptId: string | RecordId) => {
   try {
     const response = await api.delete(`/excerpts/${excerptId}`);
-    const excerpt = response.data.data;
+    const excerpt = response.data.data as IExcerpt;
+    return excerpt;
   } catch (error) {
     console.error("Error deleting excerpt: ", excerptId, error);
     return undefined;

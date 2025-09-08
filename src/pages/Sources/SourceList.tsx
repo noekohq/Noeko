@@ -71,7 +71,7 @@ export default function SourceList() {
             onChange={(e) => {
               setQuery(e.currentTarget.value);
             }}
-            radius="lg"
+            radius="md"
           />
 
           {filteredSources()?.map((source) => {

@@ -3,6 +3,10 @@ import { IRabbithole } from "../../app/database/models/rabbithole";
 import useFetch from "../hooks/useFetch";
 import { IConnectable } from "../../app/services/Graph";
 
+interface ISelection {
+  content: string;
+}
+
 interface ILandscapeContext {
   rabbitholes: {
     entered: {
@@ -17,6 +21,12 @@ interface ILandscapeContext {
       set: (connectable: IConnectable | null) => void;
     };
   };
+  selection: {
+    current: {
+      get: ISelection | null;
+      set: (selection: ISelection) => void;
+    };
+  };
 }
 
 const initialContext: ILandscapeContext = {
@@ -29,6 +39,12 @@ const initialContext: ILandscapeContext = {
   },
   connectable: {
     viewing: {
+      get: null,
+      set: () => {},
+    },
+  },
+  selection: {
+    current: {
       get: null,
       set: () => {},
     },

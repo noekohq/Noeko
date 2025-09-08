@@ -9,6 +9,7 @@ import { IUserFile } from "../../app/database/models/userfile";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 import { ISource } from "../../app/database/models/source";
 import { ITask } from "../../app/database/models/task";
+import { IExcerpt } from "../../app/database/models/excerpt";
 
 export type IIdeaNode = ISafeIdea & {
   type: "idea";
@@ -80,6 +81,16 @@ export type ITaskNode = ITask & {
   fy?: number | null;
 };
 
+export type IExcerptNode = IExcerpt & {
+  type: "excerpt";
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+  fx?: number | null;
+  fy?: number | null;
+};
+
 export interface IEdge {
   id: string;
   source: string;
@@ -96,6 +107,7 @@ export type INode =
   | ITagNode
   | IRabbitholeNode
   | ITaskNode
+  | IExcerptNode
   | ISourceNode;
 
 export type IGraph = {

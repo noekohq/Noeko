@@ -865,7 +865,7 @@ const useSpotlightConfig = ({
           {
             id: "fastFind",
             title: "Fast Find",
-            placeholder: "Search for an idea, task, or source...",
+            placeholder: "Search ideas, tasks, and sources by text...",
             dynamicItems: async ({ searchText, closeSpotlight }) => {
               const suggestedItems = await fetchSuggested(searchText);
 
