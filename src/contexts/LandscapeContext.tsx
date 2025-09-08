@@ -60,6 +60,7 @@ export const LandscapeProvider = ({
 }) => {
   const [rabbithole, setRabbithole] = useState<IRabbithole | null>(null);
   const [connectable, setConnectable] = useState<IConnectable | null>(null);
+  const [selection, setSelection] = useState<ISelection | null>(null);
 
   const { load: reloadRabbithole } = useFetch<undefined, IRabbithole>({
     url: `/rabbitholes/${rabbithole?.id.toString()}`,
@@ -91,6 +92,12 @@ export const LandscapeProvider = ({
       viewing: {
         get: connectable,
         set: setConnectable,
+      },
+    },
+    selection: {
+      current: {
+        get: selection,
+        set: setSelection,
       },
     },
   } satisfies ILandscapeContext;
