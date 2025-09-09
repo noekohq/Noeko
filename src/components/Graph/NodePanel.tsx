@@ -21,6 +21,7 @@ import { Link, useNavigate } from "react-router";
 import {
   getNodeContent,
   getNodeDescription,
+  getNodeLink,
   getNodeTitle,
 } from "../../utils/graph";
 import Content from "../UI/Layout/Content";
@@ -105,7 +106,7 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Group>
-              <Link to={`/${node.type}/${node.id.toString()}`}>
+              <Link to={getNodeLink(node) || ""}>
                 <ActionIcon variant="light" radius="lg" size={"lg"}>
                   <ArrowRightIcon weight="bold" />
                 </ActionIcon>
