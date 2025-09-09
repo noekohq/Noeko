@@ -1,6 +1,12 @@
 import Graph from "../../components/Graph/Graph";
 import { IGraph, INode } from "../../declarations/graph";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import styles from "./Constellation.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { useNavigate } from "react-router";
@@ -22,7 +28,7 @@ export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphIsLoading = useRef(false);
-  const { data: constellation, load: reloadConstellation } = useFetch<
+  const { data: constellationData, load: reloadConstellation } = useFetch<
     { loader: IConstellationLoader },
     ILoadedConstellation
   >({
@@ -54,9 +60,11 @@ export default function GraphPage() {
     setIsNavigating(false);
   }, []);
 
-  const graphData = constellation
-    ? fromConstellation(constellation)
-    : undefined;
+  const graphData = useMemo(
+    () =>
+      constellationData ? fromConstellation(constellationData) : undefined,
+    [constellationData],
+  );
 
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
@@ -76,7 +84,7 @@ export default function GraphPage() {
     [navigate],
   );
 
-  const isLoaded = !!constellation && graphData;
+  const isLoaded = !!constellationData && graphData;
 
   return (
     <PageWrapper>
