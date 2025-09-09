@@ -10,7 +10,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { IDerivedNode, INode } from "../../declarations/graph";
+import { INode } from "../../declarations/graph";
 import styles from "./NodePanel.module.scss";
 import {
   ArrowRightIcon,
@@ -26,7 +26,7 @@ import {
 import Content from "../UI/Layout/Content";
 
 export type NodePanelProps = {
-  node: INode | IDerivedNode;
+  node: INode;
   position: { x: number; y: number };
   onClose: () => void;
 };
