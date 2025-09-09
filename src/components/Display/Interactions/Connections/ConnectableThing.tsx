@@ -11,6 +11,8 @@ import { IConnectable } from "../../../../../app/services/Graph";
 import IdeaButton from "../../Ideas/Interactions/IdeaButton";
 import TaskButton from "../../Tasks/TaskButton";
 import SourceButton from "../../Sources/SourceButton";
+import { IExcerpt } from "../../../../../app/database/models/excerpt";
+import ExcerptButton from "../../Excerpts/ExcerptButton";
 
 interface IConnectableThingAction {
   id: string;
@@ -80,6 +82,18 @@ export default function ConnectableThing({
       <SourceButton
         key={source.id.toString()}
         source={source}
+        onClick={() => {
+          handleClick(thing);
+        }}
+      />
+    );
+  }
+  if (thing.id.toString().startsWith("excerpt")) {
+    const excerpt = thing as IExcerpt;
+    return (
+      <ExcerptButton
+        key={excerpt.id.toString()}
+        excerpt={excerpt}
         onClick={() => {
           handleClick(thing);
         }}

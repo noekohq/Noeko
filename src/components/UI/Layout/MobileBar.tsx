@@ -56,35 +56,42 @@ export default function MobileBar() {
         spotlight: { open: openSpotlight },
       },
     },
+    state: {
+      zen: { get: isZen },
+    },
   } = useInteraction();
 
-  const defaultColor: MantineColor = "dark.3";
+  const defaultColor: MantineColor = "gray";
 
   return (
     <div
       className={`${styles.mobileBar} ${isScrolled ? styles.scrolled : ""} ${scrollDirection === "up" ? styles.scrollUp : styles.scrollDown} ${leftModeClass} ${rightModeClass}`}
     >
       <Group gap="xs">
-        {leftHasContent && (
+        {leftHasContent && !isZen && (
           <ActionIcon
             onClick={() => {
               setLeftMode("open");
             }}
-            variant="light"
+            variant="filled"
             color={defaultColor}
+            size="lg"
+            radius="lg"
           >
             <SidebarSimpleIcon />
           </ActionIcon>
         )}
-        <HomeButton />
+        <HomeButton size="lg" radius="lg" />
       </Group>
       <Group>
-        {rightHasContent && (
+        {rightHasContent && !isZen && (
           <ActionIcon
             onClick={() => {
               setRightMode("open");
             }}
+            size="lg"
             variant="light"
+            radius="lg"
             color={defaultColor}
           >
             <SidebarSimpleIcon style={{ transform: "rotate(180deg)" }} />
@@ -93,6 +100,8 @@ export default function MobileBar() {
         <ActionIcon
           onClick={openSpotlight}
           variant="light"
+          size="lg"
+          radius="lg"
           color={defaultColor}
         >
           <ListMagnifyingGlassIcon />

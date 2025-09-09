@@ -15,7 +15,10 @@ import {
 } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser, IUser, User } from "../database/models/user";
-import GraphService from "../services/Graph";
+import GraphService, {
+  ConstellationLoader,
+  IConstellationLoader,
+} from "../services/Graph";
 
 const router = Router();
 
@@ -38,6 +41,33 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+    const loader = req.body.loader as IConstellationLoader;
+    const rabbitholeId = req.body.rabbitholeId;
+    const constellationLoader = new ConstellationLoader({
+      userId: user.id,
+      rabbitholeId,
+    });
+    const constellation = await constellationLoader.load(loader);
+    if (!constellation) {
+      throw new Error("Constellation couldn't be retrieved");
+    }
+    res.send({
+      message: "Successfully retrieved constellation.",
+      data: constellation,
+    });
+  } catch (err) {
+    console.error("Error getting user constellation: ", req, err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

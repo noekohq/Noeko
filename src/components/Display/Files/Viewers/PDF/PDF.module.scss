@@ -53,15 +53,16 @@
 }
 
 .page {
-    margin: 0 auto var(--mantine-spacing-md) auto;
+    margin: 0 auto 14px auto;
     box-shadow: var(--mantine-shadow-lg);
 }
 
 .annotationMenu {
-    background-color: var(--mantine-color-dark-8);
+    background-color: var(--mantine-color-body);
     padding: var(--mantine-spacing-xs);
     border-radius: var(--mantine-radius-md);
     border: 1px solid var(--mantine-color-dark-7);
+    box-shadow: var(--mantine-shadow-lg);
     z-index: 2000;
-    min-width: 200px;
+    min-width: 300px;
 }

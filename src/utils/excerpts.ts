@@ -54,3 +54,14 @@ export const deleteExcerpt = async (excerptId: string | RecordId) => {
     return undefined;
   }
 };
+
+export const getExcerpt = async (id: string | RecordId) => {
+  try {
+    const response = await api.get(`/excerpts/${id}`);
+    const excerpt = response.data.data as IExcerpt;
+    return excerpt;
+  } catch (error) {
+    console.error("Error getting excerpt: ", id, error);
+    return undefined;
+  }
+};

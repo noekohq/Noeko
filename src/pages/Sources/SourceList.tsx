@@ -8,13 +8,15 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import {
   ActionIcon,
+  Badge,
   Group,
+  HoverCard,
   Stack,
   Text,
   TextInput,
   Title,
 } from "@mantine/core";
-import { PlusIcon } from "@phosphor-icons/react";
+import { MegaphoneIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SourceCard from "../../components/Display/Sources/SourceCard";
 
@@ -28,7 +30,10 @@ export default function SourceList() {
   }, []);
 
   const {
-    actions: { newSource },
+    actions: {
+      newSource,
+      feedback: { openFeedbackModal },
+    },
   } = useInteraction();
 
   const [query, setQuery] = useState("");
@@ -52,20 +57,48 @@ export default function SourceList() {
       <LeftSidebar></LeftSidebar>
       <Content>
         <Stack>
-          <Title>
-            <Group>
-              Your Sources
-              <ActionIcon
-                variant="light"
-                color="gray"
-                onClick={() => {
-                  newSource();
-                }}
-              >
-                <PlusIcon weight="bold" />
-              </ActionIcon>
-            </Group>
-          </Title>
+          <Group justify="space-between">
+            <Title>
+              <Group>
+                Your Sources
+                <ActionIcon
+                  variant="light"
+                  color="gray"
+                  onClick={() => {
+                    newSource();
+                  }}
+                >
+                  <PlusIcon weight="bold" />
+                </ActionIcon>
+              </Group>
+            </Title>
+            <HoverCard openDelay={400} width="300px">
+              <HoverCard.Target>
+                <Badge color="orange" size="sm" variant="light">
+                  EXPERIMENTAL
+                </Badge>
+              </HoverCard.Target>
+              <HoverCard.Dropdown>
+                <Stack gap="xs">
+                  <Text size="sm">
+                    Sources is currently under active development and some
+                    features might not work as expected. We're looking for
+                    feedback as we learn and grow :)
+                  </Text>
+                  <ActionIcon
+                    size="sm"
+                    variant="light"
+                    color="gray"
+                    onClick={() => {
+                      openFeedbackModal();
+                    }}
+                  >
+                    <MegaphoneIcon />
+                  </ActionIcon>
+                </Stack>
+              </HoverCard.Dropdown>
+            </HoverCard>
+          </Group>
           <TextInput
             placeholder="Filter sources by name, content, or analysis."
             onChange={(e) => {

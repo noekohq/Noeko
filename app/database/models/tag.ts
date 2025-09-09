@@ -39,7 +39,7 @@ export type ITagUserOwnership = {
   createdAt: Date;
 };
 
-export type ITagIdeaRelationship = {
+export type ITagDescriptionRelationship = {
   id: string | RecordId;
   in: string | RecordId; // Tag ID
   out: string | RecordId; // Idea ID
@@ -274,7 +274,7 @@ export class Tag {
   static async connectToIdea(
     tagId: string | RecordId,
     ideaId: string | RecordId,
-  ): Promise<ITagIdeaRelationship | undefined> {
+  ): Promise<ITagDescriptionRelationship | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -287,7 +287,7 @@ export class Tag {
       const idea = await Idea.get(ideaId); // Assuming Idea.get() exists
       if (!idea) throw new Error(`Idea with id ${ideaId} not found.`);
 
-      const result = await db.query<[ITagIdeaRelationship]>(
+      const result = await db.query<[ITagDescriptionRelationship]>(
         `RELATE $tagId ->describes-> $ideaId SET createdAt = $now;`,
         {
           tagId: new StringRecordId(tagId),

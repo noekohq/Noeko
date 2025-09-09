@@ -38,7 +38,12 @@ const NodeComponent = ({
   const gradientId = `gradient-${node.id}`;
 
   const {
-    selected: { set: setSelected, get: selectedNode },
+    selected: {
+      set: setSelected,
+      get: selected,
+      add: addToSelection,
+      remove: removeFromSelection,
+    },
     filter: { get: getFilter },
     loading: { get: isLoading },
     query: { get: getQuery },
@@ -48,13 +53,23 @@ const NodeComponent = ({
   const pressTimerRef = useRef<number | null>(null);
   const longPressTriggered = useRef<boolean>(false);
 
-  const iAmSelected = selectedNode() === node.id.toString();
-  const iAmUnselected = !iAmSelected && selectedNode();
+  const iAmSelected = selected.has(node.id.toString());
+  const iAmUnselected = !iAmSelected && Array.from(selected.entries()).length;
   const iAmLoading = isLoading();
   const { filter } = getFilter();
   const query = getQuery();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const handleToggleSelectNode = (node: INode) => {
+    const nodeId = node.id.toString();
+    if (selected.has(nodeId)) {
+      removeFromSelection(nodeId);
+      return;
+    }
+    addToSelection(nodeId);
+    onNodeSelect;
+  };
 
   const handleContextMenu = (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
@@ -67,7 +82,7 @@ const NodeComponent = ({
   const handleNodeClick = (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
   ) => {
-    onNodeSelect?.(event, node);
+    handleToggleSelectNode(node);
     if (event.shiftKey) {
       onNodeNavigate?.(event, node);
       return;

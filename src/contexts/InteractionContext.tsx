@@ -70,6 +70,10 @@ type IInteractionContext = {
   };
   state: {
     spotlightOpened: boolean;
+    zen: {
+      get: boolean;
+      set: (isZen: boolean) => void;
+    };
   };
 };
 
@@ -118,6 +122,10 @@ const initialContext: IInteractionContext = {
   },
   state: {
     spotlightOpened: false,
+    zen: {
+      get: false,
+      set: () => {},
+    },
   },
 };
 
@@ -137,6 +145,7 @@ export function InteractionProvider({
   const [uploadingSource, setUploadingSource] = useState(false);
   const [creatingTask, setCreatingTask] = useState(false);
   const [initialTaskDescription, setInitialTaskDescription] = useState("");
+  const [isZenMode, setIsZenMode] = useState(false);
 
   const {
     rabbitholes: {
@@ -324,7 +333,7 @@ export function InteractionProvider({
         navigate("/");
       },
       graph: () => {
-        navigate("/graph");
+        navigate("/constellation");
       },
       spyglass: () => {
         navigate("/spyglass");
@@ -362,6 +371,10 @@ export function InteractionProvider({
     },
     state: {
       spotlightOpened,
+      zen: {
+        get: isZenMode,
+        set: setIsZenMode,
+      },
     },
   };
 

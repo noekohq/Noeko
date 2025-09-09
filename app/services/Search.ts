@@ -793,6 +793,46 @@ export class Search {
     );
   }
 
+  private static async semanticSearchExcerpts(
+    userId: string | RecordId,
+    embedding: number[],
+    options: { limit?: number; threshold?: number; candidates?: number },
+  ): Promise<ISearchResult[]> {
+    const db = await getDatabase();
+    if (!db) throw new Error("Database not initialized");
+
+    const limit = options.limit ?? 100;
+    const candidates = options.candidates ?? 300;
+    const threshold = options.threshold ?? this.SEMANTIC_THRESHOLD;
+
+    const query = `
+      SELECT * FROM (
+        SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
+        OMIT embeddings FROM excerpt
+        WHERE <-owns<-(user WHERE id = $userId) AND embeddings <|${limit}, ${candidates}|> $embedding
+      )
+      WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
+
+    const [results] = await db.query<(IExcerpt & { distance: number })[][]>(
+      query,
+      {
+        userId: new StringRecordId(userId),
+        embedding: embedding,
+      },
+    );
+    if (!results) return [];
+
+    return results.map(
+      (excerpt): ISearchResult => ({
+        id: excerpt.id,
+        score: excerpt.distance ?? 0,
+        value: { ...excerpt, type: "excerpt" },
+        highlightText: excerpt.note.substring(0, 150),
+        debug: { semanticScore: excerpt.distance, source: "semantic" },
+      }),
+    );
+  }
+
   // =================================================================
   // Comprehensive (Hybrid) Search
   // =================================================================
@@ -879,34 +919,55 @@ export class Search {
         .embedContent(query)
         .catch(() => null);
 
-      const [ideaResults, sourceResults, taskResults] = await Promise.all([
-        // Ideas
-        (async () => {
-          const fts = await this.ftsSearchIdeas(userId, query, options);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchIdeas(userId, queryEmbedding, options)
-            : [];
-          return this._mergeAndScore(fts, semantic, queryLower, "idea");
-        })(),
-        // Sources
-        (async () => {
-          const fts = await this.ftsSearchSources(userId, query);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchSources(userId, queryEmbedding, options)
-            : [];
-          return this._mergeAndScore(fts, semantic, queryLower, "source");
-        })(),
-        // Tasks
-        (async () => {
-          const fts = await this.ftsSearchTasks(userId, query);
-          const semantic = queryEmbedding
-            ? await this.semanticSearchTasks(userId, queryEmbedding, options)
-            : [];
-          return this._mergeAndScore(fts, semantic, queryLower, "task");
-        })(),
-      ]);
+      const [ideaResults, sourceResults, taskResults, excerptResults] =
+        await Promise.all([
+          // Ideas
+          (async () => {
+            const fts = await this.ftsSearchIdeas(userId, query, options);
+            const semantic = queryEmbedding
+              ? await this.semanticSearchIdeas(userId, queryEmbedding, options)
+              : [];
+            return this._mergeAndScore(fts, semantic, queryLower, "idea");
+          })(),
+          // Sources
+          (async () => {
+            const fts = await this.ftsSearchSources(userId, query);
+            const semantic = queryEmbedding
+              ? await this.semanticSearchSources(
+                  userId,
+                  queryEmbedding,
+                  options,
+                )
+              : [];
+            return this._mergeAndScore(fts, semantic, queryLower, "source");
+          })(),
+          // Tasks
+          (async () => {
+            const fts = await this.ftsSearchTasks(userId, query);
+            const semantic = queryEmbedding
+              ? await this.semanticSearchTasks(userId, queryEmbedding, options)
+              : [];
+            return this._mergeAndScore(fts, semantic, queryLower, "task");
+          })(),
+          (async () => {
+            const fts = await this.ftsSearchExcerpts(userId, query);
+            const semantic = queryEmbedding
+              ? await this.semanticSearchExcerpts(
+                  userId,
+                  queryEmbedding,
+                  options,
+                )
+              : [];
+            return this._mergeAndScore(fts, semantic, queryLower, "task");
+          })(),
+        ]);
 
-      const allResults = [...ideaResults, ...sourceResults, ...taskResults];
+      const allResults = [
+        ...ideaResults,
+        ...sourceResults,
+        ...taskResults,
+        ...excerptResults,
+      ];
       allResults.sort((a, b) => b.score - a.score);
 
       return allResults.slice(0, limit);
@@ -925,13 +986,20 @@ export class Search {
     options: { limit?: number; threshold?: number; candidates?: number } = {},
   ): Promise<ISearchResult[]> {
     try {
-      const [ideaResults, sourceResults, taskResults] = await Promise.all([
-        this.semanticSearchIdeas(userId, embedding, options),
-        this.semanticSearchSources(userId, embedding, options),
-        this.semanticSearchTasks(userId, embedding, options),
-      ]);
+      const [ideaResults, sourceResults, taskResults, excerptResults] =
+        await Promise.all([
+          this.semanticSearchIdeas(userId, embedding, options),
+          this.semanticSearchSources(userId, embedding, options),
+          this.semanticSearchTasks(userId, embedding, options),
+          this.semanticSearchExcerpts(userId, embedding, options),
+        ]);
 
-      const allResults = [...ideaResults, ...sourceResults, ...taskResults];
+      const allResults = [
+        ...ideaResults,
+        ...sourceResults,
+        ...taskResults,
+        ...excerptResults,
+      ];
       allResults.sort((a, b) => b.score - a.score);
 
       return allResults.slice(0, options.limit ?? 50);
@@ -952,13 +1020,20 @@ export class Search {
     try {
       const limit = options?.limit ?? 15;
 
-      const [ideaResults, sourceResults, taskResults] = await Promise.all([
-        this.ftsSearchIdeas(userId, query, options),
-        this.ftsSearchSources(userId, query),
-        this.ftsSearchTasks(userId, query),
-      ]);
+      const [ideaResults, sourceResults, taskResults, excerptResults] =
+        await Promise.all([
+          this.ftsSearchIdeas(userId, query, options),
+          this.ftsSearchSources(userId, query),
+          this.ftsSearchTasks(userId, query),
+          this.ftsSearchExcerpts(userId, query),
+        ]);
 
-      const allResults = [...ideaResults, ...sourceResults, ...taskResults];
+      const allResults = [
+        ...ideaResults,
+        ...sourceResults,
+        ...taskResults,
+        ...excerptResults,
+      ];
       allResults.sort((a, b) => b.score - a.score);
 
       return allResults.slice(0, limit).map((result) => {

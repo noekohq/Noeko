@@ -8,6 +8,7 @@ import {
   IFileNode,
   IGraph,
   INode,
+  ITagNode,
 } from "../declarations/graph";
 import {
   formatDate,
@@ -22,8 +23,10 @@ import {
   FileTextIcon,
   LightbulbIcon,
   TagIcon,
+  TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../components/Utils/Icons/Icons";
+import { ILoadedConstellation } from "../../app/services/Graph";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
@@ -33,6 +36,101 @@ export const DISTANCE_EXPONENT = 1; // > 1 emphasizes closeness
 export const MIN_STRENGTH = 0.1; // Pull strength for similarity = MIN_SIMILARITY_THRESHOLD
 export const MAX_STRENGTH = 0.7; // Pull strength for similarity = 1
 export const STRENGTH_EXPONENT = 2; // > 1 emphasizes stronger links
+
+export const fromConstellation = (
+  constellation: ILoadedConstellation,
+): IGraph => {
+  console.log("Loading from constellation: ", constellation);
+  const graph: IGraph = {
+    nodes: [],
+    edges: [],
+  };
+
+  const { things, connections, tags, descriptions, rabbitholes, inclusions } =
+    constellation;
+
+  if (things) {
+    const connectableNodes: INode[] = things.map((connectable) => {
+      return {
+        ...connectable,
+      } satisfies INode;
+    });
+    graph.nodes.push(...connectableNodes);
+  }
+
+  if (connections) {
+    const connectableEdges: IEdge[] = connections.map((connection) => {
+      return {
+        ...connection,
+        type: "connection",
+        id: connection.id.toString(),
+        source: connection.in.toString(),
+        target: connection.out.toString(),
+        distance: MIN_GRAPH_DIST,
+        strength: 0.5,
+        visibility: "high" as const,
+      };
+    });
+    graph.edges.push(...connectableEdges);
+  }
+
+  if (tags) {
+    const tagNodes: INode[] = tags.map((tag) => {
+      return {
+        ...tag,
+        type: "tag",
+      };
+    });
+    graph.nodes.push(...tagNodes);
+  }
+
+  if (descriptions) {
+    const descriptionEdges: IEdge[] = descriptions.map((description) => {
+      return {
+        ...description,
+        id: description.id.toString(),
+        type: "description",
+        source: description.in.toString(),
+        target: description.out.toString(),
+        distance: MIN_GRAPH_DIST,
+        strength: 0.7,
+        visibility: "high" as const,
+      };
+    });
+
+    graph.edges.push(...descriptionEdges);
+  }
+
+  if (rabbitholes) {
+    const rabbitholeNodes: INode[] = rabbitholes.map((rabbithole) => {
+      return {
+        ...rabbithole,
+        type: "rabbithole",
+      };
+    });
+    graph.nodes.push(...rabbitholeNodes);
+  }
+
+  if (inclusions) {
+    const rabbitholeEdges: IEdge[] = inclusions.map((inclusion) => {
+      return {
+        ...inclusion,
+        id: inclusion.id.toString(),
+        type: "description",
+        source: inclusion.in.toString(),
+        target: inclusion.out.toString(),
+        distance: MIN_GRAPH_DIST,
+        strength: 0.7,
+        visibility: "high" as const,
+      };
+    });
+    graph.edges.push(...rabbitholeEdges);
+  }
+
+  console.log("Loaded from constellation: ", graph);
+
+  return graph;
+};
 
 export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
   const ideaNodes = dbGraph.ideas.map((i) => {
@@ -245,6 +343,27 @@ export const getNodeLink = (node: INode) => {
   }
 };
 
+export const getNodeLinkFromId = (id: string | RecordId) => {
+  const realId = id.toString();
+  console.log("Got realid: ", realId);
+  if (realId.startsWith("idea")) {
+    return `/idea/${realId}`;
+  }
+  if (realId.startsWith("source")) {
+    console.log("Started with source: ", realId);
+    return `/source/${realId}`;
+  }
+  if (realId.startsWith("task")) {
+    return `/task/${realId}`;
+  }
+  if (realId.startsWith("rabbithole")) {
+    return `/rabbitholes/${realId}`;
+  }
+  if (realId.startsWith("tag")) {
+    return `/tag/${realId}`;
+  }
+};
+
 export const NodeIcon = (node: INode) => {
   if (node.type === "idea") {
     return LightbulbIcon;
@@ -260,6 +379,9 @@ export const NodeIcon = (node: INode) => {
   }
   if (node.type === "tag") {
     return TagIcon;
+  }
+  if (node.type === "excerpt") {
+    return TextAlignLeftIcon;
   }
 };
 

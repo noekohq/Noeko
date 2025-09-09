@@ -103,11 +103,23 @@
     --color-nodes: var(--mantine-primary-color-5);
 }
 
-.file {
-    --color-nodes: var(--mantine-color-green-6);
-}
-
 .tag {
     --color-nodes: var(--mantine-color-dark-1);
     stroke: var(--mantine-color-dark-7);
+}
+
+.task {
+    --color-nodes: var(--mantine-color-green-6);
+}
+
+.rabbithole {
+    --color-nodes: var(--mantine-color-red-8);
+}
+
+.source {
+    --color-nodes: var(--mantine-color-dark-7);
+}
+
+.excerpt {
+    --color-nodes: var(--mantine-color-dark-8);
 }

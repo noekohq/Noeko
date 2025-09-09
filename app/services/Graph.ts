@@ -4,7 +4,13 @@ import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
 import Source, { ISource } from "../database/models/source";
 import Task, { ITask } from "../database/models/task";
 import { ISearchResult } from "./Search";
-import { IExcerpt } from "../database/models/excerpt";
+import Excerpt, { IExcerpt } from "../database/models/excerpt";
+import { ITag, ITagDescriptionRelationship, Tag } from "../database/models/tag";
+import Rabbithole, {
+  IRabbithole,
+  IRabbitholeIncludes,
+  IRabbitholeInclusion,
+} from "../database/models/rabbithole";
 
 export type IConnectableTypes = "idea" | "source" | "task";
 
@@ -32,6 +38,7 @@ export default class GraphService {
     idea: { outgoing: "connected", incoming: "connected" },
     source: { outgoing: "connected", incoming: "connected" },
     task: { outgoing: "connected", incoming: "connected" },
+    excerpt: { outgoing: "connected", incoming: "connected" },
   };
 
   static get connectionTypes() {
@@ -207,6 +214,13 @@ export default class GraphService {
         direction: "incoming" as const,
       };
     }
+    if (connectable.id.toString().startsWith("excerpt")) {
+      return {
+        ...(connectable as IExcerpt),
+        type: "excerpt" as const,
+        direction: "incoming" as const,
+      };
+    }
   }
 
   static async getSimilarConnectables(
@@ -261,6 +275,9 @@ export default class GraphService {
         if (table === "task") {
           tableWhere.push(`completedAt = NULL`);
         }
+        if (table === "excerpt") {
+          tableWhere.push(`references != $sourceId`);
+        }
         const query = `
           SELECT * FROM (
             SELECT
@@ -282,6 +299,7 @@ export default class GraphService {
       const ideaQuery = tableQuery("idea");
       const sourceQuery = tableQuery("source");
       const taskQuery = tableQuery("task");
+      const excerptQuery = tableQuery("excerpt");
 
       const getOfType = async <T extends ISimilarConnectable>(
         query: string,
@@ -314,8 +332,16 @@ export default class GraphService {
         ...t,
         type: "task" as const,
       }));
+      const excerpts = (
+        await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(
+          excerptQuery,
+        )
+      ).map((t) => ({
+        ...t,
+        type: "excerpt" as const,
+      }));
 
-      const combined = [...ideas, ...sources, ...tasks];
+      const combined = [...ideas, ...sources, ...tasks, ...excerpts];
       const sorted = combined.sort((a, b) => {
         if (a.similarity > b.similarity) {
           return -1;
@@ -403,6 +429,7 @@ export default class GraphService {
       const ideaQuery = tableQuery("idea");
       const sourceQuery = tableQuery("source");
       const taskQuery = tableQuery("task");
+      const excerptQuery = tableQuery("excerpt");
 
       const getOfType = async <T extends ISimilarConnectable>(
         query: string,
@@ -434,8 +461,16 @@ export default class GraphService {
         ...t,
         type: "task" as const,
       }));
+      const excerpts = (
+        await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(
+          excerptQuery,
+        )
+      ).map((t) => ({
+        ...t,
+        type: "excerpt" as const,
+      }));
 
-      const combined = [...ideas, ...sources, ...tasks];
+      const combined = [...ideas, ...sources, ...tasks, ...excerpts];
       const sorted = combined.sort((a, b) => {
         if (a.similarity > b.similarity) {
           return -1;
@@ -478,6 +513,9 @@ export default class GraphService {
         case "task":
           const task = await Task.get(thingId, "full");
           return task?.embeddings;
+        case "excerpt":
+          const excerpt = await Excerpt.get(thingId, "full");
+          return excerpt?.embeddings;
       }
     } catch (error) {
       console.error(
@@ -488,8 +526,438 @@ export default class GraphService {
       return undefined;
     }
   }
+
+  public static async getUserConnectables(
+    userId: StringRecordId,
+    options?: {
+      rabbitholeId?: StringRecordId;
+    },
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere = [`<->owns<-(user WHERE id = $userId)`];
+
+      if (options?.rabbitholeId) {
+        queryWhere.push(`
+          (
+            id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+          )
+          `);
+      }
+
+      const tableQuery = (table: string) => {
+        const tableWhere: string[] = [];
+        if (table === "task") {
+          tableWhere.push(`completedAt = NULL`);
+        }
+        const query = `
+          SELECT
+            *
+          OMIT embeddings
+          FROM ${table}
+          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          `;
+        return query;
+      };
+
+      const ideaQuery = tableQuery("idea");
+      const sourceQuery = tableQuery("source");
+      const taskQuery = tableQuery("task");
+      const excerptQuery = tableQuery("excerpt");
+
+      const getOfType = async <T extends IConnectable>(
+        query: string,
+      ): Promise<IConnectable[]> => {
+        const [results] = await db.query<[T[]]>(query, {
+          userId: new StringRecordId(userId),
+          ...(options?.rabbitholeId && {
+            rabbitholeId: new StringRecordId(options.rabbitholeId),
+          }),
+        });
+        return results;
+      };
+
+      const ideas = (await getOfType<IIdea & { type: "idea" }>(ideaQuery)).map(
+        (i) => ({ ...i, type: "idea" as const }),
+      );
+      const sources = (
+        await getOfType<ISource & { type: "source" }>(sourceQuery)
+      ).map((s) => ({
+        ...s,
+        type: "source" as const,
+      }));
+      const tasks = (await getOfType<ITask & { type: "task" }>(taskQuery)).map(
+        (t) => ({
+          ...t,
+          type: "task" as const,
+        }),
+      );
+      const excerpts = (
+        await getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery)
+      ).map((t) => ({
+        ...t,
+        type: "excerpt" as const,
+      }));
+
+      const combined = [...ideas, ...sources, ...tasks, ...excerpts];
+
+      return combined as IConnectable[];
+    } catch (error) {
+      console.error("Error getting user connectables: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserEdges(
+    userId: StringRecordId,
+    options?: {
+      rabbitholeId?: StringRecordId;
+    },
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+
+      if (options?.rabbitholeId) {
+        queryWhere.push(`
+          (
+            in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+            out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+          )
+          `);
+      }
+
+      const tableQuery = (table: string) => {
+        const tableWhere: string[] = [];
+        const query = `
+          SELECT
+            *
+          FROM ${table}
+          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          `;
+        return query;
+      };
+
+      const connectedQuery = tableQuery("connected");
+      const describesQuery = tableQuery("describes");
+      const includesQuery = tableQuery("includes");
+
+      const getOfType = async <T extends IConnection>(
+        query: string,
+      ): Promise<IConnection[]> => {
+        const [results] = await db.query<[T[]]>(query, {
+          userId: new StringRecordId(userId),
+          ...(options?.rabbitholeId && {
+            rabbitholeId: new StringRecordId(options.rabbitholeId),
+          }),
+        });
+        return results;
+      };
+
+      const connections = await getOfType<IConnection>(connectedQuery);
+      const descriptions =
+        await getOfType<ITagDescriptionRelationship>(describesQuery);
+      const inclusions = await getOfType<IRabbitholeInclusion>(includesQuery);
+
+      const combined = [...connections, descriptions, inclusions];
+
+      return combined as IConnection[];
+    } catch (error) {
+      console.error("Error getting user connections: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserConnections(
+    userId: StringRecordId,
+    options?: {
+      rabbitholeId?: StringRecordId;
+    },
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+
+      if (options?.rabbitholeId) {
+        queryWhere.push(`
+          (
+            in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+            out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+          )
+          `);
+      }
+
+      const tableWhere: string[] = [];
+      const query = `
+          SELECT
+            *
+          FROM connected
+          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          `;
+
+      const [results] = await db.query<[IConnection[]]>(query, {
+        userId: new StringRecordId(userId),
+        ...(options?.rabbitholeId && {
+          rabbitholeId: new StringRecordId(options.rabbitholeId),
+        }),
+      });
+
+      if (!results) {
+        throw new Error("Couldn't get connections");
+      }
+
+      const connections = results;
+
+      return connections as IConnection[];
+    } catch (error) {
+      console.error("Error getting user connections: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserDescriptions(
+    userId: StringRecordId,
+    options?: {
+      rabbitholeId?: StringRecordId;
+    },
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+
+      if (options?.rabbitholeId) {
+        queryWhere.push(`
+          (
+            in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+            out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+          )
+          `);
+      }
+
+      const tableWhere: string[] = [];
+      const query = `
+          SELECT
+            *
+          FROM describes
+          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          `;
+
+      const [results] = await db.query<[ITagDescriptionRelationship[]]>(query, {
+        userId: new StringRecordId(userId),
+        ...(options?.rabbitholeId && {
+          rabbitholeId: new StringRecordId(options.rabbitholeId),
+        }),
+      });
+
+      if (!results) {
+        throw new Error("Couldn't get tag descriptions");
+      }
+
+      const connections = results;
+
+      return connections as ITagDescriptionRelationship[];
+    } catch (error) {
+      console.error("Error getting user connections: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserInclusions(userId: StringRecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+
+      const tableWhere: string[] = [];
+      const query = `
+          SELECT
+            *
+          FROM includes
+          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          `;
+
+      const [results] = await db.query<[IRabbitholeInclusion[]]>(query, {
+        userId: new StringRecordId(userId),
+      });
+
+      if (!results) {
+        throw new Error("Couldn't get inclusions");
+      }
+
+      const connections = results;
+
+      return connections as IRabbitholeInclusion[];
+    } catch (error) {
+      console.error("Error getting user connections: ", error);
+      return undefined;
+    }
+  }
 }
 
 export const initGraph = async () => {
   await GraphService.up();
 };
+
+export type ILoadedConstellation = Partial<{
+  things: IConnectable[];
+  rabbitholes: IRabbithole[];
+  tags: ITag[];
+  connections: IConnection[];
+  inclusions: IRabbitholeInclusion[];
+  descriptions: ITagDescriptionRelationship[];
+}>;
+
+export type IConstellationLoader = Partial<{
+  things: boolean;
+  rabbitholes: boolean;
+  tags: boolean;
+  connections: boolean;
+  inclusions: boolean;
+  descriptions: boolean;
+}>;
+
+export class ConstellationLoader {
+  private userId: StringRecordId;
+  private rabbitholeId?: StringRecordId;
+
+  constructor(config: {
+    userId: string | RecordId;
+    rabbitholeId?: string | RecordId;
+  }) {
+    const { userId, rabbitholeId } = config;
+    this.userId = new StringRecordId(userId);
+    this.rabbitholeId = rabbitholeId
+      ? new StringRecordId(rabbitholeId)
+      : undefined;
+  }
+
+  public async load(
+    loader: IConstellationLoader,
+  ): Promise<ILoadedConstellation | undefined> {
+    try {
+      const loaded: Partial<ILoadedConstellation> = {};
+      if (loader.things) {
+        loaded.things = await this.connectables();
+      }
+      if (loader.connections) {
+        loaded.connections = await this.connections();
+      }
+      if (loader.rabbitholes) {
+        loaded.rabbitholes = await this.rabbitholes();
+      }
+      if (loader.inclusions) {
+        loaded.inclusions = await this.inclusions();
+      }
+      if (loader.tags) {
+        loaded.tags = await this.tags();
+      }
+      if (loader.descriptions) {
+        loaded.descriptions = await this.descriptions();
+      }
+      return loaded;
+    } catch (error) {
+      console.error("Error loading user constellation: ", error);
+      return undefined;
+    }
+  }
+
+  public async connectables(): Promise<IConnectable[] | undefined> {
+    try {
+      const connectables = await GraphService.getUserConnectables(this.userId);
+      if (!connectables) {
+        throw new Error("Couldn't get connectables");
+      }
+      return connectables;
+    } catch (error) {
+      console.error("Error getting user connectables: ", this.userId, error);
+      return undefined;
+    }
+  }
+
+  public async connections(): Promise<IConnection[] | undefined> {
+    try {
+      const connections = await GraphService.getUserConnections(this.userId);
+      if (!connections) {
+        throw new Error("Couldn't get connections");
+      }
+      return connections;
+    } catch (error) {
+      console.error("Error getting user connections: ", this.userId, error);
+      return undefined;
+    }
+  }
+
+  public async rabbitholes(): Promise<IRabbithole[] | undefined> {
+    try {
+      const rabbitholes = Rabbithole.getAll(this.userId.toString());
+      if (!rabbitholes) {
+        throw new Error("Couldn't get rabbitholes");
+      }
+      return rabbitholes;
+    } catch (error) {
+      console.error("Error getting user rabbitholes: ", this.userId, error);
+      return undefined;
+    }
+  }
+
+  public async inclusions(): Promise<IRabbitholeInclusion[] | undefined> {
+    try {
+      const inclusions = await GraphService.getUserInclusions(this.userId);
+      if (!inclusions) {
+        throw new Error("Couldn't get rabbithole inclusions");
+      }
+      return inclusions;
+    } catch (error) {
+      console.error(
+        "Error getting user rabbithole inclusions: ",
+        this.userId,
+        error,
+      );
+      return undefined;
+    }
+  }
+
+  public async tags(): Promise<ITag[] | undefined> {
+    try {
+      const tags = Tag.getUserTags(this.userId.toString());
+      if (!tags) {
+        throw new Error("Couldn't get tags");
+      }
+      return tags;
+    } catch (error) {
+      console.error("Error getting user tags: ", this.userId, error);
+      return undefined;
+    }
+  }
+
+  public async descriptions(): Promise<
+    ITagDescriptionRelationship[] | undefined
+  > {
+    try {
+      const descriptions = await GraphService.getUserDescriptions(this.userId);
+      if (!descriptions) {
+        throw new Error("Couldn't get descriptions");
+      }
+      return descriptions;
+    } catch (error) {
+      console.error("Error getting user descriptions: ", this.userId, error);
+      return undefined;
+    }
+  }
+}

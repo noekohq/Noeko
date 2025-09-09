@@ -93,6 +93,9 @@ const LeftSidebar = ({
     actions: {
       feedback: { openFeedbackModal },
     },
+    state: {
+      zen: { get: isZen },
+    },
   } = useInteraction();
 
   const defaultColor: MantineColor = "dark.3";
@@ -203,16 +206,20 @@ const LeftSidebar = ({
     hovering: `${styles.open} ${styles.hovering}`,
   };
 
-  const { sidebarProps, globalElementProps } = useSidebarHover({
-    mode,
-    setMode,
-    openable,
-  });
+  // const { sidebarProps, globalElementProps } = useSidebarHover({
+  //   mode,
+  //   setMode,
+  //   openable,
+  // });
+
+  if (isZen) {
+    return null;
+  }
 
   return (
     <aside
       className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}
-      {...sidebarProps}
+      // {...sidebarProps}
     >
       {["open", "hovering"].includes(mode) && !isMobile ? (
         <>
@@ -221,15 +228,11 @@ const LeftSidebar = ({
               <div className={styles.content}>{children}</div>
             </>
           )}
-          <div className={styles.global} {...globalElementProps}>
-            {Global[mode]}
-          </div>
+          <div className={styles.global}>{Global[mode]}</div>
         </>
       ) : (
         <>
-          <div className={styles.global} {...globalElementProps}>
-            {Global[mode]}
-          </div>
+          <div className={styles.global}>{Global[mode]}</div>
           {!!children && (
             <>
               <div className={styles.content}>{children}</div>

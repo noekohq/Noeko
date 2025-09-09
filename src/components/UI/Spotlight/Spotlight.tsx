@@ -25,6 +25,8 @@ import {
   CheckIcon,
   FileTextIcon,
   SparkleIcon,
+  SquareIcon,
+  CircleIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -484,7 +486,10 @@ const useSpotlightConfig = ({
   const { isSuperuser } = useAuth();
 
   const {
-    state: { spotlightOpened },
+    state: {
+      spotlightOpened,
+      zen: { set: setZen, get: isZen },
+    },
     actions: {
       layout: {
         spotlight: { close: contextCloseSpotlight },
@@ -644,6 +649,14 @@ const useSpotlightConfig = ({
         icon: <TextAaIcon />,
         subviewId: "fontSelectorSubview",
         keywords: "serif sans-serif",
+      },
+      {
+        id: "zenCmd",
+        title: isZen ? "Exit Zen mode" : "Activate Zen mode",
+        icon: isZen ? <CircleIcon /> : <SquareIcon />,
+        action: () => {
+          setZen(!isZen);
+        },
       },
       ...(isSuperuser
         ? [

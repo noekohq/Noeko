@@ -44,6 +44,9 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
       feedback: { openFeedbackModal },
     },
     views: { spyglass, graph, tasks, sources },
+    state: {
+      zen: { get: isZen },
+    },
   } = useInteraction();
 
   const defaultColor: MantineColor = "dark.3";
@@ -76,9 +79,13 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
 
+  if (isZen) {
+    return null;
+  }
+
   return (
     <div
-      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren} ${leftModeClass} ${rightModeClass}`}
+      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren} ${leftModeClass} ${rightModeClass} ${isZen ? styles.zen : ""}`}
     >
       {hasChildren && <div className={styles.content}>{children}</div>}
       <div
