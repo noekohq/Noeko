@@ -83,16 +83,6 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const [edges, setEdges] = useState<IEdge[]>(graph.edges);
   const workerRef = useRef<Worker | null>(null);
 
-  useEffect(() => {
-    document.body.style.overscrollBehavior = "none";
-    document.body.style.touchAction = "none";
-
-    return () => {
-      document.body.style.overscrollBehavior = "";
-      document.body.style.touchAction = "";
-    };
-  }, []);
-
   const [isDraggingNode, setIsDraggingNode] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [isPinching, setIsPinching] = useState(false);

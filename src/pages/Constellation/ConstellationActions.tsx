@@ -31,7 +31,7 @@ export default function ConstellationActions({
   const handleResults = useCallback((results: ISearchResult[]) => {
     const filteredResults = results.map((r) => r.value.id.toString());
     setFilter({
-      filter: (result) => filteredResults.includes(result.id.toString()),
+      filter: (result) => filteredResults.includes(result),
     });
     return filteredResults;
   }, []);

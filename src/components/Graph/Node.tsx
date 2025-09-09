@@ -140,7 +140,7 @@ const NodeComponent = ({
     };
   }, []);
 
-  const shouldShow = filter(node);
+  const shouldShow = filter(node.id.toString());
   const showText = shouldShow && scaleFactor > 0.45;
 
   return (

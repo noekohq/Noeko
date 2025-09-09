@@ -21,7 +21,7 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
     return null;
   }
 
-  const strokeWidth = 2;
+  const strokeWidth = 1.5;
 
   const visibilityToStyle: Record<
     IEdge["visibility"],

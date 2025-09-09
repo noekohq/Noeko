@@ -3,7 +3,7 @@ import { IDerivedNode, INode } from "../declarations/graph";
 import { useSet } from "@mantine/hooks";
 
 type FilterConfig = {
-  filter: (node: INode) => boolean;
+  filter: (nodeId: string, node?: INode) => boolean;
 };
 
 type IGraphContext = {
