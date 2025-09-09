@@ -61,7 +61,7 @@ export default function MobileBar() {
     },
   } = useInteraction();
 
-  const defaultColor: MantineColor = "gray";
+  const defaultColor: MantineColor = "dark.2";
 
   return (
     <div
@@ -73,7 +73,7 @@ export default function MobileBar() {
             onClick={() => {
               setLeftMode("open");
             }}
-            variant="filled"
+            variant="light"
             color={defaultColor}
             size="lg"
             radius="lg"
