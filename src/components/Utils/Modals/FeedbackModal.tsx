@@ -90,9 +90,10 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
         <Grid>
           <Grid.Col span={12}>
             <Textarea
-              label="Your Feedback"
+              label="Your thoughts..."
               placeholder="We'd love to hear your thoughts..."
-              minRows={10}
+              minRows={6}
+              autosize
               required
               data-autofocus
               {...feedbackForm.getInputProps("content")}
@@ -102,6 +103,8 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
           <Grid.Col span={12}>
             <Checkbox
               label="May we contact you about this feedback?"
+              size="sm"
+              color="gray"
               description={
                 user?.email
                   ? `If needed, we'll use: ${user.email}`

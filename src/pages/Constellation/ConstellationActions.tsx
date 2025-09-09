@@ -1,20 +1,21 @@
 import { useCallback, useEffect } from "react";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { ISearchResult } from "../../../app/services/Search";
-import styles from "./GraphToolbar.module.scss";
-import { INode } from "../../declarations/graph";
+import styles from "./ConstellationActions.module.scss";
+import { IGraph, INode } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
 
 import { useAuth } from "../../contexts/AuthContext";
 import { useSearch } from "../../contexts/SearchContext";
 import Search from "../../components/Search/Search";
 
-type GraphToolbarProps = {
-  nodes: INode[];
-  flags: IDBGraph["flags"];
+type IConstellationActionsProps = {
+  graphData: IGraph;
 };
 
-export const GraphToolbar = ({ nodes, flags }: GraphToolbarProps) => {
+export default function ConstellationActions({
+  graphData,
+}: IConstellationActionsProps) {
   const { user } = useAuth();
 
   const {
@@ -50,4 +51,4 @@ export const GraphToolbar = ({ nodes, flags }: GraphToolbarProps) => {
       </div>
     </div>
   );
-};
+}

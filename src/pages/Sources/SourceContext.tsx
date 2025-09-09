@@ -7,6 +7,7 @@ import {
   createExcerpt,
   deleteExcerpt,
   editExcerpt,
+  getExcerpt,
 } from "../../utils/excerpts";
 
 interface ISourceContext {
@@ -19,6 +20,7 @@ interface ISourceContext {
     ) => Promise<IExcerpt | undefined>;
     delete: (id: string | RecordId) => void;
     reload: () => Promise<void>;
+    get: (id: string | RecordId) => Promise<IExcerpt | undefined>;
   };
 }
 
@@ -29,6 +31,7 @@ const initialSourceContext: ISourceContext = {
     edit: async () => undefined,
     delete: async () => {},
     reload: async () => {},
+    get: async (id: string | RecordId) => undefined,
   },
 };
 
@@ -95,6 +98,11 @@ export const SourceProvider = ({
       },
       reload: async () => {
         loadExcerpts();
+      },
+      get: async (id) => {
+        const fetched = await getExcerpt(id);
+        loadExcerpts();
+        return fetched;
       },
     },
   };

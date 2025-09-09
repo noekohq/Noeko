@@ -1,16 +1,23 @@
 import { RecordId } from "surrealdb";
-import { IPDFMetadata } from "../../../../../../app/database/models/excerpt";
+import {
+  IExcerpt,
+  IPDFMetadata,
+} from "../../../../../../app/database/models/excerpt";
 import { useCallback, useEffect, useState } from "react";
 import { getFileDownloadLink } from "../../../../../utils/userfiles";
 import {
   ActionIcon,
   Group,
   LoadingOverlay,
+  Stack,
   Text,
+  Textarea,
+  TextInput,
   useMantineTheme,
 } from "@mantine/core";
 import {
   ArrowsClockwiseIcon,
+  CheckIcon,
   FrameCornersIcon,
   HighlighterIcon,
   MagnifyingGlassMinusIcon,
@@ -75,11 +82,13 @@ import Loading from "../../../Loading/Loading";
 import { PDFViewerProvider, usePDFViewer } from "./PDFContext";
 import { showNotification } from "@mantine/notifications";
 import { useSource } from "../../../../../pages/Sources/SourceContext";
+import useFetch from "../../../../../hooks/useFetch";
+import { useForm } from "@mantine/form";
 
 const defaultZoomLevel = ZoomMode.FitPage;
 const defaultPlugins = [
   createPluginRegistration(ViewportPluginPackage, {
-    viewportGap: 10,
+    viewportGap: 14,
   }),
   createPluginRegistration(ScrollPluginPackage, {
     strategy: ScrollStrategy.Vertical,
@@ -88,9 +97,9 @@ const defaultPlugins = [
   createPluginRegistration(ZoomPluginPackage, {
     defaultZoomLevel,
   }),
-  createPluginRegistration(SelectionPluginPackage),
   createPluginRegistration(AnnotationPluginPackage),
   createPluginRegistration(InteractionManagerPluginPackage),
+  createPluginRegistration(SelectionPluginPackage),
   // createPluginRegistration(UIPluginPackage, {
   //   components: defaultComponents,
   // }),
@@ -207,6 +216,11 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
                                     pageIndex={pageIndex}
                                     scaleFactor={scale}
                                   />
+                                  <SelectionLayer
+                                    pageIndex={pageIndex}
+                                    scale={scale}
+                                  />
+                                  <SelectionMenu />
                                   <AnnotationLayer
                                     pageIndex={pageIndex}
                                     scale={scale}
@@ -236,13 +250,6 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
                                       );
                                     }}
                                   />
-                                  <SelectionLayer
-                                    pageIndex={pageIndex}
-                                    scale={scale}
-                                  />
-                                  {pluginsReady && !isInitializing && (
-                                    <SelectionMenu />
-                                  )}
                                 </PagePointerProvider>
                               </div>
                             );
@@ -276,9 +283,8 @@ function Toolbar() {
   const {
     excerpts: { create: createExcerpt, all: allExcerpts },
   } = useSource();
-  const syncAnnotations = useCallback(async () => {
+  const loadAnnotations = useCallback(async () => {
     allExcerpts.forEach(async (excerpt) => {
-      console.log("Attempting to render excerpt: ", excerpt);
       if (!excerpt.pdfMetadata) {
         return;
       }
@@ -298,13 +304,12 @@ function Toolbar() {
         color: colors.highlight[6],
         opacity: 0.25,
       });
-      console.log("Rendered annotation: ", excerpt);
     });
-  }, [allExcerpts]);
+  }, []);
 
   useEffect(() => {
-    syncAnnotations();
-  }, [allExcerpts]);
+    loadAnnotations();
+  }, []);
 
   const { colors } = useMantineTheme();
 
@@ -476,8 +481,26 @@ interface IAnnotationMenuProps {
 
 function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
   const { provides } = useAnnotationCapability();
+  const {
+    excerpts: { edit: updateExcerpt, delete: deleteExcerpt },
+  } = useSource();
 
-  const { contents, author, pageIndex, id } = trackedAnnotation.object;
+  const { contents, pageIndex, id } = trackedAnnotation.object;
+
+  const {
+    load: loadExcerpt,
+    data: excerpt,
+    loading: loadingExcerpt,
+  } = useFetch<undefined, IExcerpt>({
+    url: `/excerpts/${id}`,
+    dependencies: [id],
+  });
+
+  useEffect(() => {
+    if (id) {
+      loadExcerpt();
+    }
+  }, [id]);
 
   const handleDeselectAnnotation = () => {
     provides?.deselectAnnotation();
@@ -485,6 +508,38 @@ function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
 
   const handleRemoveAnnotation = () => {
     provides?.deleteAnnotation(pageIndex, id);
+    deleteExcerpt(id);
+  };
+
+  const form = useForm({
+    initialValues: {
+      note: excerpt?.note ?? "",
+    },
+    validate: {
+      note: (value) =>
+        value.length < 2 ? "Note must be at least 2 characters long" : null,
+    },
+  });
+
+  useEffect(() => {
+    if (excerpt) {
+      form.setDirty({ note: false });
+      form.setValues({
+        note: excerpt.note,
+      });
+    }
+  }, [excerpt]);
+
+  const [updatingNote, setUpdatingNote] = useState(false);
+  const handleUpdateNote = () => {
+    setUpdatingNote(true);
+    updateExcerpt(id, { note: form.values.note })
+      .then(() => {
+        setUpdatingNote(false);
+      })
+      .finally(() => {
+        setUpdatingNote(false);
+      });
   };
 
   return (
@@ -496,35 +551,59 @@ function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
       }}
       className={styles.annotationMenu}
     >
-      <Group gap="xs" justify="space-between">
-        <Text size="xs" fs="italic">
-          {contents}
-        </Text>
-        <ActionIcon
-          size="xs"
-          variant="subtle"
-          color="gray"
-          title="Exit menu"
-          onClick={() => {
-            handleDeselectAnnotation();
-          }}
-        >
-          <XIcon />
-        </ActionIcon>
-      </Group>
-      <Group gap="xs">
-        <ActionIcon
-          onClick={() => {
-            handleRemoveAnnotation();
-          }}
-          size="sm"
-          variant="light"
-          color="gray"
-          title="Remove annotation"
-        >
-          <TrashIcon />
-        </ActionIcon>
-      </Group>
+      <Stack gap="sm">
+        <Group gap="xs" justify="space-between">
+          <Textarea
+            placeholder="Make a note..."
+            minRows={2}
+            autosize
+            {...form.getInputProps("note")}
+            variant="unstyled"
+            w="100%"
+          />
+        </Group>
+        <Group justify="space-between" gap="xs">
+          <Group gap="xs">
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color="gray"
+              title="Exit menu"
+              onClick={() => {
+                handleDeselectAnnotation();
+              }}
+            >
+              <XIcon />
+            </ActionIcon>
+          </Group>
+          <Group gap="xs">
+            <ActionIcon
+              onClick={() => {
+                handleRemoveAnnotation();
+              }}
+              size="sm"
+              variant="light"
+              color="gray"
+              title="Remove annotation"
+            >
+              <TrashIcon />
+            </ActionIcon>
+            <ActionIcon
+              onClick={() => {
+                handleUpdateNote();
+              }}
+              size="sm"
+              variant="light"
+              color="gray"
+              title="Update annotation"
+              loading={updatingNote}
+              disabled={!form.isDirty("note")}
+            >
+              <CheckIcon weight="bold" />
+            </ActionIcon>
+          </Group>
+        </Group>
+      </Stack>
     </div>
   );
 }

@@ -452,12 +452,12 @@ function ExcerptsPanel() {
         </Text>
         {all.map((excerpt) => {
           return (
-            <Box>
+            <Stack gap="xs">
               <Blockquote color="gray" p="xs">
-                {excerpt.sourceText}
+                <Text size="sm">{excerpt.sourceText}</Text>
               </Blockquote>
               {excerpt.note && <Text size="sm">{excerpt.note}</Text>}
-            </Box>
+            </Stack>
           );
         })}
       </Stack>

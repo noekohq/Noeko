@@ -51,6 +51,39 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/:excerptId", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).send({
+        message: "Unauthorized. User not found or ID is missing.",
+      });
+      return;
+    }
+
+    const excerptId = req.params.excerptId;
+    const owns = User.checkOwns(user.id, excerptId);
+    if (!owns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+
+    const excerpt = await Excerpt.get(excerptId);
+
+    res.send({
+      message: "Successfully got excerpt",
+      data: excerpt,
+    });
+  } catch (error) {
+    console.error("Error getting excerpt: ", error);
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
+
 router.put("/:excerptId", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");

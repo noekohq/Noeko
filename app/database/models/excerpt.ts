@@ -8,7 +8,7 @@ import {
   PdfAnnotationSubtype,
 } from "@embedpdf/models";
 
-type IExcerptReference = ISource;
+export type IExcerptReference = ISource;
 
 export type IExcerptable = {
   id: string | RecordId;
@@ -36,6 +36,8 @@ export type IExcerpt = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type IPublicExcerpt = Omit<IExcerpt, "embeddings">;
 
 export type IExcerptCreator = Omit<IExcerpt, "id">;
 export type IExcerptForm = Omit<
@@ -84,6 +86,22 @@ export default class Excerpt {
       `;
     };
 
+    const getFullExcerptRecordFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_full_excerpt_record(
+        $excerptId: record<excerpt>
+      ) {
+        LET $excerpt =
+          SELECT
+            *
+          FROM ONLY
+            <record> $excerptId
+          FETCH references;
+        RETURN $excerpt;
+      }
+      `;
+    };
+
     const getExcerptsByUserFunction = () => {
       return `
           DEFINE FUNCTION OVERWRITE fn::get_excerpts_by_user(
@@ -119,6 +137,7 @@ export default class Excerpt {
     };
 
     await db.query(getExcerptRecordFunction());
+    await db.query(getFullExcerptRecordFunction());
     await db.query(getExcerptsByUserFunction());
     await db.query(getExcerptsByExcerptableFunction());
   }
@@ -129,7 +148,6 @@ export default class Excerpt {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      console.log("Creating with form: ", form);
       const created = await db.create<IExcerpt, IExcerptCreator>("excerpt", {
         ...form,
         references: new StringRecordId(source.id),
@@ -156,13 +174,28 @@ export default class Excerpt {
     }
   }
 
-  public static async get(excerptId: string | RecordId) {
+  static async get(
+    excerptId: string | RecordId,
+    safety?: "full",
+  ): Promise<IExcerpt>;
+  static async get(
+    excerptId: string | RecordId,
+    safety?: "public",
+  ): Promise<IPublicExcerpt>;
+  static async get(
+    excerptId: string | RecordId,
+    safety: "public" | "full" = "public",
+  ): Promise<IExcerpt | IPublicExcerpt | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const excerpt = await db.run<IExcerpt>("fn::get_excerpt_record", [
+      const fn =
+        safety === "public"
+          ? "fn::get_excerpt_record"
+          : "fn::get_full_excerpt_record";
+      const excerpt = await db.run<IExcerpt>(fn, [
         new StringRecordId(excerptId),
       ]);
       if (!excerpt) {

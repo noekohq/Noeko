@@ -1,26 +1,43 @@
 import Graph from "../../components/Graph/Graph";
 import { IGraph, INode } from "../../declarations/graph";
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import styles from "./Graph.module.scss";
+import styles from "./Constellation.module.scss";
 import useFetch from "../../hooks/useFetch";
-import { IDBGraph } from "../../../app/database/models/ideas";
 import { useNavigate } from "react-router";
-import { GraphToolbar } from "./GraphToolbar";
-import { dbGraphToLocalGraph } from "../../utils/graph";
+import ConstellationActions from "./ConstellationActions";
+import ConstellationContext from "./ConstellationContext";
+import { fromConstellation, getNodeLink } from "../../utils/graph";
 import { Group, Loader, Text } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import { GraphNavigation } from "./GraphNavigation";
 import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import {
+  IConstellationLoader,
+  ILoadedConstellation,
+} from "../../../app/services/Graph";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphIsLoading = useRef(false);
-  const { data: graphData, load: reloadGraph } = useFetch<undefined, IDBGraph>({
+  const { data: constellation, load: reloadConstellation } = useFetch<
+    { loader: IConstellationLoader },
+    ILoadedConstellation
+  >({
     url: "/graph",
+    method: "POST",
+    body: {
+      loader: {
+        things: true,
+        rabbitholes: true,
+        tags: true,
+        connections: true,
+        inclusions: true,
+        descriptions: true,
+      },
+    },
     onFinally: () => {
       graphIsLoading.current = false;
     },
@@ -29,15 +46,17 @@ export default function GraphPage() {
   useEffect(() => {
     if (graphIsLoading.current === false) {
       graphIsLoading.current = true;
-      reloadGraph();
+      reloadConstellation();
     }
   }, []);
 
   useEffect(() => {
-    setIsNavigating(false); // Reset on mount/page load
+    setIsNavigating(false);
   }, []);
 
-  const localData = graphData ? dbGraphToLocalGraph(graphData) : undefined;
+  const graphData = constellation
+    ? fromConstellation(constellation)
+    : undefined;
 
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
@@ -48,32 +67,27 @@ export default function GraphPage() {
       node: INode,
     ) => {
       setIsNavigating(true);
-      if (node.type === "idea") {
-        navigate(`/idea/${node.id.toString()}`);
+      const link = getNodeLink(node);
+      if (!link) {
+        return;
       }
-      if (node.type === "file") {
-        navigate(`/file/${node.id.toString()}`);
-      }
-      if (node.type === "tag") {
-        navigate(`/tags/${node.id.toString()}`); // Maintained original navigation target for 'tag'
-      }
+      navigate(link);
     },
     [navigate],
   );
 
-  const isLoaded = !!localData && graphData;
+  const isLoaded = !!constellation && graphData;
 
   return (
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
-          {localData && (
-            <GraphNavigation
-              graph={localData}
+          {!!graphData && (
+            <ConstellationContext
+              graph={graphData}
               reloadGraph={async () => {
-                reloadGraph();
+                reloadConstellation();
               }}
-              flags={graphData?.flags}
             />
           )}
         </LeftSidebar.Open>
@@ -82,7 +96,7 @@ export default function GraphPage() {
         {isLoaded ? (
           <>
             <Graph
-              graph={localData}
+              graph={graphData}
               onNodeNavigate={handleNodeNavigate}
               isNavigating={isNavigating}
             />
@@ -101,8 +115,8 @@ export default function GraphPage() {
       <RightSidebar>
         <RightSidebar.Open>
           {!isLoaded && <Loader size="sm" />}
-          {isLoaded && (
-            <GraphToolbar nodes={localData.nodes} flags={graphData.flags} />
+          {isLoaded && !!graphData && (
+            <ConstellationActions graphData={graphData} />
           )}
         </RightSidebar.Open>
       </RightSidebar>

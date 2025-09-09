@@ -825,14 +825,10 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   // });
   //
 
-  const {
-    selected: { set: setSelected },
-  } = useGraph();
   const handleNodeSelect = (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: INode,
   ) => {
-    setSelected(node.id.toString());
     onNodeSelect?.(event, node);
   };
 

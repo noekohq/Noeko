@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { IDerivedNode, INode } from "../declarations/graph";
+import { useSet } from "@mantine/hooks";
 
 type FilterConfig = {
   filter: (node: INode) => boolean;
@@ -7,12 +8,18 @@ type FilterConfig = {
 
 type IGraphContext = {
   selected: {
-    get: () => string | null;
-    set: (id: string | null) => void;
+    get: Set<string>;
+    set: (ids: string[]) => void;
+    add: (id: string) => void;
+    remove: (id: string) => void;
+    clear: () => void;
   };
   highlighted: {
-    get: () => Set<string>;
+    get: Set<string>;
     set: (ids: string[]) => void;
+    add: (id: string) => void;
+    remove: (id: string) => void;
+    clear: () => void;
   };
   filter: {
     set: (config: FilterConfig) => void;
@@ -31,12 +38,18 @@ type IGraphContext = {
 
 const initialGraphContext: IGraphContext = {
   selected: {
-    get: () => null,
-    set: (id: string | null) => {},
+    get: new Set<string>(),
+    set: (ids: string[] | null) => {},
+    add: (id: string) => {},
+    remove: (id: string) => {},
+    clear: () => {},
   },
   highlighted: {
-    get: () => new Set<string>(),
+    get: new Set<string>(),
     set: (ids: string[]) => {},
+    add: (id: string) => {},
+    remove: (id: string) => {},
+    clear: () => {},
   },
   filter: {
     set: (config: FilterConfig) => {},
@@ -56,8 +69,8 @@ const initialGraphContext: IGraphContext = {
 const GraphContext = React.createContext(initialGraphContext);
 
 export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
+  const selected = useSet<string>();
+  const highlighted = useSet<string>();
   const [filterConfig, setFilterConfig] = useState<FilterConfig>({
     filter: () => true,
   });
@@ -66,12 +79,36 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value: IGraphContext = {
     selected: {
-      get: () => selected,
-      set: (id: string | null) => setSelected(id),
+      get: selected,
+      set: (ids: string[] | null) => {
+        selected.clear();
+        ids?.forEach((id) => selected.add(id));
+      },
+      add: (id: string) => {
+        selected.add(id);
+      },
+      remove: (id: string) => {
+        selected.delete(id);
+      },
+      clear: () => {
+        selected.clear();
+      },
     },
     highlighted: {
-      get: () => highlighted,
-      set: (ids: string[]) => setHighlighted(new Set(ids)),
+      get: highlighted,
+      set: (ids: string[]) => {
+        highlighted.clear();
+        ids.forEach((id) => highlighted.add(id));
+      },
+      add: (id: string) => {
+        highlighted.add(id);
+      },
+      remove: (id: string) => {
+        highlighted.delete(id);
+      },
+      clear: () => {
+        highlighted.clear();
+      },
     },
     filter: {
       set: (config: FilterConfig) => setFilterConfig(config),

@@ -103,6 +103,9 @@ const RightSidebar = ({
         spotlight: { open: openSpotlight },
       },
     },
+    state: {
+      zen: { get: isZen },
+    },
   } = useInteraction();
 
   const { pathname } = useLocation();
@@ -223,29 +226,29 @@ const RightSidebar = ({
     hovering: `${styles.open} ${styles.hovering}`,
   };
 
-  const { sidebarProps, globalElementProps } = useSidebarHover({
-    mode,
-    setMode,
-    openable,
-  });
+  // const { sidebarProps, globalElementProps } = useSidebarHover({
+  //   mode,
+  //   setMode,
+  //   openable,
+  // });
+
+  if (isZen) {
+    return null;
+  }
 
   return (
     <aside
       className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}
-      {...sidebarProps}
+      // {...sidebarProps}
     >
       {["open", "hovering"].includes(mode) && !isMobile ? (
         <>
           {children && <div className={styles.content}>{children}</div>}
-          <div className={styles.global} {...globalElementProps}>
-            {Global[mode]}
-          </div>
+          <div className={styles.global}>{Global[mode]}</div>
         </>
       ) : (
         <>
-          <div className={styles.global} {...globalElementProps}>
-            {Global[mode]}
-          </div>
+          <div className={styles.global}>{Global[mode]}</div>
           {children && <div className={styles.content}>{children}</div>}
         </>
       )}

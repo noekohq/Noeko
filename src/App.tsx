@@ -19,7 +19,7 @@ import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import Graph from "./pages/Graph/Graph";
+import Constellation from "./pages/Constellation/Constellation";
 import Idea from "./pages/Idea/Idea";
 import UserFile from "./pages/File/File";
 import Login from "./pages/Auth/Login";
@@ -71,21 +71,27 @@ export default function App() {
   const isSuperuser = userIsSuperuser(user);
 
   const previousOnlineState = useRef(isOnline);
+  const notificationTimeout = useRef<Timer>();
   useEffect(() => {
+    notificationTimeout.current = undefined;
     if (isMobile) {
       if (!isOnline && !loadingConnection && isMobile) {
-        showNotification({
-          title: "Can't connect to server",
-          message:
-            "Can't connect to the server, Noeko will attempt to automatically reconnect.",
-          color: "yellow",
-        });
+        notificationTimeout.current = setTimeout(() => {
+          showNotification({
+            title: "Can't connect to server",
+            message:
+              "Can't connect to the server, Noeko will attempt to automatically reconnect.",
+            color: "yellow",
+          });
+        }, 2000);
       }
       if (isOnline && previousOnlineState.current === false) {
-        showNotification({
-          title: "Connected",
-          message: "Successfully connected to the server.",
-        });
+        notificationTimeout.current = setTimeout(() => {
+          showNotification({
+            title: "Connected",
+            message: "Successfully connected to the server.",
+          });
+        }, 2000);
       }
     }
     previousOnlineState.current = isOnline;
@@ -187,8 +193,8 @@ export default function App() {
                     element={<Navigate to="/" replace />}
                   />
                   <Route index element={<Dashboard />} />
-                  <Route path="graph">
-                    <Route index element={<Graph />} />
+                  <Route path="constellation">
+                    <Route index element={<Constellation />} />
                   </Route>
                   <Route
                     path="profile"

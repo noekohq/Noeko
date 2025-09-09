@@ -190,7 +190,7 @@ export default class Rabbithole {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IRabbithole[]]>(
-        "SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt DESC LIMIT $limit",
+        "SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt;",
         { userId: new StringRecordId(userId), limit: options?.limit ?? "NONE" },
       );
       if (!result) {
@@ -199,7 +199,7 @@ export default class Rabbithole {
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {
-      logger.error("Error getting user rabbitholes: ", [userId]);
+      logger.error("Error getting user rabbitholes: ", [userId, error]);
       return undefined;
     }
   }
