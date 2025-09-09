@@ -103,8 +103,6 @@ export interface IEdge {
 
 export type INode =
   | IIdeaNode
-  | IFileNode
-  | IDerivedNode
   | ITagNode
   | IRabbitholeNode
   | ITaskNode
@@ -117,3 +115,5 @@ export type IGraph = {
 };
 
 export type NodePositionMap = { [key: string]: { x: number; y: number } };
+
+export type INodeOrganizationType = "rabbithole" | "tag" | "connectable";

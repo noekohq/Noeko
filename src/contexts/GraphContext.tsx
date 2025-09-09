@@ -13,6 +13,7 @@ type IGraphContext = {
     add: (id: string) => void;
     remove: (id: string) => void;
     clear: () => void;
+    empty: () => boolean;
   };
   highlighted: {
     get: Set<string>;
@@ -20,6 +21,7 @@ type IGraphContext = {
     add: (id: string) => void;
     remove: (id: string) => void;
     clear: () => void;
+    empty: () => boolean;
   };
   filter: {
     set: (config: FilterConfig) => void;
@@ -43,6 +45,7 @@ const initialGraphContext: IGraphContext = {
     add: (id: string) => {},
     remove: (id: string) => {},
     clear: () => {},
+    empty: () => false,
   },
   highlighted: {
     get: new Set<string>(),
@@ -50,6 +53,7 @@ const initialGraphContext: IGraphContext = {
     add: (id: string) => {},
     remove: (id: string) => {},
     clear: () => {},
+    empty: () => false,
   },
   filter: {
     set: (config: FilterConfig) => {},
@@ -93,6 +97,7 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
       clear: () => {
         selected.clear();
       },
+      empty: () => selected.size === 0,
     },
     highlighted: {
       get: highlighted,
@@ -109,6 +114,7 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
       clear: () => {
         highlighted.clear();
       },
+      empty: () => highlighted.size === 0,
     },
     filter: {
       set: (config: FilterConfig) => setFilterConfig(config),

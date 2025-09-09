@@ -8,6 +8,7 @@ import {
   IFileNode,
   IGraph,
   INode,
+  INodeOrganizationType,
   ITagNode,
 } from "../declarations/graph";
 import {
@@ -40,7 +41,6 @@ export const STRENGTH_EXPONENT = 2; // > 1 emphasizes stronger links
 export const fromConstellation = (
   constellation: ILoadedConstellation,
 ): IGraph => {
-  console.log("Loading from constellation: ", constellation);
   const graph: IGraph = {
     nodes: [],
     edges: [],
@@ -127,133 +127,29 @@ export const fromConstellation = (
     graph.edges.push(...rabbitholeEdges);
   }
 
-  console.log("Loaded from constellation: ", graph);
-
   return graph;
 };
 
-export const dbGraphToLocalGraph = (dbGraph: IDBGraph): IGraph => {
-  const ideaNodes = dbGraph.ideas.map((i) => {
-    return {
-      ...i,
-      id: i.id,
-      title: i.title,
-      content: i.content,
-      type: "idea" as const,
-    };
-  });
-  const tagNodes = dbGraph.tags.map((tag) => {
-    return {
-      ...tag,
-      type: "tag" as const,
-    };
-  });
-
-  const ideaEdges = dbGraph.ideaConnections
-    .map((i) => {
-      return {
-        id: i.id.toString(),
-        source: i.in.toString(),
-        target: i.out.toString(),
-        distance: MIN_GRAPH_DIST,
-        strength: 0.7,
-        visibility: "high" as const,
-      };
-    })
-    .flat();
-
-  const tagEdges = dbGraph.tagConnections
-    .map((i) => {
-      return {
-        id: i.id.toString(),
-        source: i.in.toString(),
-        target: i.out.toString(),
-        distance: MAX_GRAPH_DIST * 1.5,
-        strength: 0.7,
-        visibility: "high" as const,
-      };
-    })
-    .flat();
-
-  const similarEdges = dbGraph.ideas
-    .map((i) => {
-      return [
-        ...(i.similar
-          ?.filter(
-            (d) => d.distance > MIN_SIMILARITY_THRESHOLD && d.id !== i.id,
-          )
-          .map((d) => {
-            const similarity = d.distance; // clarity: d.distance is the similarity score
-
-            // --- Calculate Target Distance (Non-Linear Inversion) ---
-            const invertedSimilarity = 1 - similarity;
-            const normalizedInverted =
-              invertedSimilarity / (1 - MIN_SIMILARITY_THRESHOLD);
-            const distanceFactor = Math.pow(
-              normalizedInverted,
-              DISTANCE_EXPONENT,
-            );
-            const targetDistance =
-              MIN_GRAPH_DIST +
-              distanceFactor * (MAX_GRAPH_DIST - MIN_GRAPH_DIST);
-
-            // --- Calculate Link Strength (Non-Linear) ---
-            const normalizedSimilarity =
-              (similarity - MIN_SIMILARITY_THRESHOLD) /
-              (1 - MIN_SIMILARITY_THRESHOLD);
-            const strengthFactor = Math.pow(
-              normalizedSimilarity,
-              STRENGTH_EXPONENT,
-            );
-            const linkStrength =
-              MIN_STRENGTH + strengthFactor * (MAX_STRENGTH - MIN_STRENGTH);
-
-            return {
-              id: i.id.toString() + d.id.toString(),
-              source: i.id.toString(),
-              target: d.id.toString(),
-              distance: targetDistance,
-              strength: linkStrength,
-              visibility: "low" as const,
-            };
-          }) ?? []),
-      ] as IEdge[];
-    })
-    .flat();
-
-  const fileNodes = dbGraph.files.map((f) => {
-    return {
-      ...f,
-      type: "file",
-    } as IFileNode;
-  });
-
-  const localData: IGraph = {
-    nodes: [...ideaNodes, ...tagNodes, ...fileNodes],
-    edges: [...ideaEdges, ...tagEdges, ...similarEdges],
-  };
-
-  return localData;
-};
-
-export const getNodeSubtitle = (node: INode) => {
-  if (node.type === "idea") {
-    return formatDate(node.createdAt);
+export const getNodeOrganizationType = (
+  node: INode,
+): INodeOrganizationType | undefined => {
+  switch (node.type) {
+    case "tag":
+      return "tag";
+    case "rabbithole":
+      return "rabbithole";
+    case "task":
+    case "source":
+    case "idea":
+    case "excerpt":
+      return "connectable";
   }
-  if (node.type === "file") {
-    return formatDate(node.createdAt);
-  }
-  if (node.type === "derived") {
-    return node.type;
-  }
+  return undefined;
 };
 
 export const getNodeTitle = (node: INode) => {
   if (node.type === "idea") {
     return node.title;
-  }
-  if (node.type === "file") {
-    return node.originalFileName;
   }
   if (node.type === "tag") {
     return node.name;
@@ -289,12 +185,6 @@ export const getNodeDescription = (
       return desc.slice(0, options.maxLength);
     }
     return desc;
-  }
-  if (node.type === "file") {
-    return node.mimeType;
-  }
-  if (node.type === "derived") {
-    return node.type;
   }
   if (node.type === "tag") {
     return node.description;
@@ -339,7 +229,7 @@ export const getNodeLink = (node: INode) => {
     return `/rabbitholes/${node.id.toString()}`;
   }
   if (node.type === "tag") {
-    return `/tag/${node.id.toString()}`;
+    return `/tags/${node.id.toString()}`;
   }
 };
 
