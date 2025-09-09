@@ -79,11 +79,7 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
   nodeMap.clear();
   nodes.forEach((n) => nodeMap.set(n.id.toString(), n));
 
-  // Create a set of all valid node IDs for quick lookups.
   const nodeIds = new Set(nodes.map((n) => n.id.toString()));
-
-  // Filter out any "orphan" edges whose source or target node doesn't exist.
-  // This prevents d3-force from throwing a "node not found" error.
   const validEdges = edges.filter(
     (edge) =>
       nodeIds.has(edge.source.toString()) &&
@@ -97,17 +93,27 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
       d3
         .forceLink<SimNode, SimEdge>(validEdges)
         .id((d) => d.id.toString())
-        .distance((e) => e.distance || 120)
-        .strength((e) => e.strength || 0.1),
+        .distance((e) => e.distance || 150) // Increased default slightly
+        .strength((e) => e.strength || 0.4), // Increased default slightly
     )
-    .force("charge", d3.forceManyBody().strength(-400))
-    .force("center", d3.forceCenter(0, 0)); // Center around the origin (0,0)
+    // --- CHANGE 1: Reduced the repulsion force ---
+    // From -400 to -200. This makes the graph less "explosive" and more stable.
+    // You can tune this value further.
+    .force("charge", d3.forceManyBody().strength(-200))
+
+    .force("center", d3.forceCenter(0, 0))
+
+    // --- CHANGE 2: Added a collision force ---
+    // This is the most critical change. It prevents nodes from overlapping.
+    // The radius should be large enough to contain your node's visual representation
+    // (the circle AND the text box). Your UI is about 124px wide and ~150px tall,
+    // so a radius of 80 is a good starting point to create a non-overlapping buffer.
+    .force("collide", d3.forceCollide().radius(80).strength(0.8));
 
   // On each "tick", send updated node positions back to the main thread.
   simulation.on("tick", () => {
     self.postMessage({
       type: "tick",
-      // We only send the necessary data to minimize message size.
       nodes: simulation!.nodes().map(({ id, x, y }) => ({ id, x, y })),
     });
   });

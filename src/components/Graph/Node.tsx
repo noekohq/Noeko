@@ -87,10 +87,6 @@ const NodeComponent = ({
       onNodeNavigate?.(event, node);
       return;
     }
-    if (iAmSelected) {
-      onNodeNavigate?.(event, node);
-      return;
-    }
   };
 
   const handlePressStart = (event: React.TouchEvent<SVGGElement>) => {

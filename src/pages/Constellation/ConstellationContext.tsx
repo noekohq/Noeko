@@ -14,13 +14,15 @@ import { IDBGraph } from "../../../app/database/models/ideas";
 import { useGraph } from "../../contexts/GraphContext";
 import { IGraph } from "../../declarations/graph";
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  getNodeDescription,
-  getNodeSubtitle,
-  getNodeTitle,
-} from "../../utils/graph";
 import styles from "./ConstellationContext.module.scss";
-import { LassoIcon, XIcon } from "@phosphor-icons/react";
+import {
+  CompassIcon,
+  LassoIcon,
+  UniteSquareIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
+import { GraphOrganizer } from "../../components/Display/Interactions/GraphOrganizer/GraphOrganizer";
 
 type ConstellationContextProps = {
   graph: IGraph | null;
@@ -54,64 +56,35 @@ export default function ConstellationContext({
 
   return (
     <div className={styles.constellationContext}>
-      <Stack justify="end">
-        <Text c="dimmed" size="sm">
-          {statusText()}
-        </Text>
-      </Stack>
-      <Space h="md" />
-      <Group>
-        {selectedNodes.length && (
-          <>
-            <Group align="center" justify="space-between" w="100%">
-              <Text size="sm" c="dark.4" fw="bold">
-                <Group gap="xs">
-                  <LassoIcon weight="bold" />
-                  SELECTED
-                </Group>
-              </Text>
-              <ActionIcon
-                variant="light"
-                color="gray"
-                size={"sm"}
-                radius="md"
-                onClick={() => {
-                  clearSelected();
-                }}
-                title="Clear selection"
-              >
-                <XIcon size={14} />
-              </ActionIcon>
+      <Tabs defaultValue="organize">
+        <Tabs.List>
+          <Tabs.Tab value="organize">
+            <Group gap="xs">
+              <UniteSquareIcon size={14} weight="duotone" />
+              Organize
             </Group>
-
-            {selectedNodes.map((node) => {
-              return (
-                <Card radius="lg" withBorder shadow="xs" p="xs" w="100%">
-                  <Stack gap="md">
-                    <Group justify="space-between" align="center" wrap="nowrap">
-                      <Text fw="bold" size="sm">
-                        {getNodeTitle(node)}
-                      </Text>
-                      <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size={"sm"}
-                        onClick={() => {
-                          removeSelected(node.id.toString());
-                        }}
-                        title="Unselect this item"
-                      >
-                        <XIcon radius={14} />
-                      </ActionIcon>
-                    </Group>
-                    <Text size="sm">{getNodeDescription(node)}</Text>
-                  </Stack>
-                </Card>
-              );
-            })}
-          </>
-        )}
-      </Group>
+          </Tabs.Tab>
+          <Tabs.Tab value="explore">
+            <Group gap="xs">
+              <CompassIcon size={14} weight="duotone" />
+              Explore
+            </Group>
+          </Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="organize">
+          <Stack>
+            <Text c="dimmed" size="sm">
+              {statusText()}
+            </Text>
+            <GraphOrganizer nodes={nodes} />
+          </Stack>
+        </Tabs.Panel>
+        <Tabs.Panel value="explore">
+          <Text size="sm" c="dimmed">
+            Exploration is coming soon...
+          </Text>
+        </Tabs.Panel>
+      </Tabs>
     </div>
   );
 }

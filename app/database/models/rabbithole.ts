@@ -224,6 +224,14 @@ export default class Rabbithole {
     }
   }
 
+  static async isIncludable(thing: string | RecordId) {
+    const thingId = thing.toString();
+    if (GraphService.isConnectable(thing) || thingId.startsWith("tag")) {
+      return true;
+    }
+    return false;
+  }
+
   static async addThing(
     rabbitholeId: string | RecordId,
     thingId: string | RecordId,
@@ -232,6 +240,10 @@ export default class Rabbithole {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
+      }
+      const isIncludable = await this.isIncludable(thingId);
+      if (!isIncludable) {
+        throw new Error("Thing is not includable");
       }
       const result = await db?.query<[IRabbitholeInclusion]>(
         "RELATE $rabbitholeId->includes->$thingId SET createdAt = $now;",

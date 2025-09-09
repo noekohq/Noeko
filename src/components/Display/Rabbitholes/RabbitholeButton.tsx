@@ -67,7 +67,7 @@ export default function RabbitholeButton({
       id: "view",
       label: "View",
       onClick: () => {
-        navigate(`/rabbithole/${rabbithole.id.toString()}`);
+        navigate(`/rabbitholes/${rabbithole.id.toString()}`);
       },
       icon: <ArrowRightIcon />,
     },
@@ -123,12 +123,12 @@ export default function RabbitholeButton({
             <Group gap="xs" wrap="nowrap" align="center">
               <Box w="16px">
                 <RabbitholeIcon
-                  size={16}
+                  size={14}
                   color="var(--mantine-color-gray-4)"
                   className={styles.indicator}
                 />
               </Box>
-              <Text size="sm" lineClamp={0}>
+              <Text size="xs" lineClamp={0}>
                 {rabbithole.name}
               </Text>
             </Group>
