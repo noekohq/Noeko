@@ -1,11 +1,11 @@
 import * as d3 from "d3-force";
-import { INode, IEdge, IDerivedNode } from "../declarations/graph.d";
+import { INode, IEdge } from "../declarations/graph.d";
 
 // --- Type Definitions for the Worker ---
 
 // A simplified node type for the simulation, compatible with d3.
 // It extends SimulationNodeDatum which includes x, y, vx, vy, fx, fy.
-type SimNode = (INode | IDerivedNode) & d3.SimulationNodeDatum;
+type SimNode = INode & d3.SimulationNodeDatum;
 
 // A simplified edge type, ensuring source/target are strings for d3.
 type SimEdge = IEdge & {
