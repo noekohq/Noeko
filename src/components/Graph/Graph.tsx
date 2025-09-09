@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { IDerivedNode, IEdge, IGraph, INode } from "../../declarations/graph"; // Adjust path as needed
+import { IEdge, IGraph, INode } from "../../declarations/graph"; // Adjust path as needed
 import Node from "./Node";
 import Edge from "./Edge";
 import styles from "./Graph.module.scss";
@@ -93,7 +93,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   } | null>(null);
 
   const longPressTimerRef = useRef<Timer | null>(null);
-  const longPressNodeRef = useRef<INode | IDerivedNode | null>(null);
+  const longPressNodeRef = useRef<INode | null>(null);
   const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
   const nodeMap = React.useMemo(() => {
@@ -102,7 +102,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         acc[node.id.toString()] = node;
         return acc;
       },
-      {} as { [key: string]: INode | IDerivedNode },
+      {} as { [key: string]: INode },
     );
   }, [nodes]);
 
@@ -124,7 +124,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const nodePanelRef = useRef<HTMLDivElement>(null);
   const [nodePanel, setNodePanel] = useState<{
-    node: INode | IDerivedNode;
+    node: INode;
     position: { x: number; y: number };
     onClose: () => void;
   } | null>(null);
@@ -767,7 +767,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const handleNodeContextMenu = (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode | IDerivedNode,
+    node: INode,
   ) => {
     event.preventDefault();
     event.stopPropagation();

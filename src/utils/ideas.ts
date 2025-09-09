@@ -7,7 +7,10 @@ import {
 import { api } from "../server/api";
 import { IChunk } from "../../app/services/Importer";
 import { IGenerativeSummary } from "../../app/database/models/ideas/summaries";
-import { ITag, ITagIdeaRelationship } from "../../app/database/models/tag";
+import {
+  ITag,
+  ITagDescriptionRelationship,
+} from "../../app/database/models/tag";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
@@ -186,7 +189,7 @@ export const getChunkSize = (chunk: IChunk): number => {
 export const addTagToIdea = async (ideaId: string, tagId: string) => {
   try {
     const response = await api.post(`/tags/${tagId}/ideas/${ideaId}`);
-    return response.data.data as ITagIdeaRelationship; // Or a more specific part of the response if needed
+    return response.data.data as ITagDescriptionRelationship; // Or a more specific part of the response if needed
   } catch (error: any) {
     console.error(`Error adding tag ${tagId} to idea ${ideaId}:`, error);
     showNotification({

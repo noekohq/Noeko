@@ -21,13 +21,10 @@ import {
   IconProps,
 } from "@phosphor-icons/react";
 import { handleFileDownload } from "../../../utils/userfiles";
-import { formatDate } from "../../../utils/formatting";
+import { formatDate, formatDateTime } from "../../../utils/formatting";
 
 const getFileDefaultSummary = (file: IUserFile): string | undefined => {
-  const desc = getNodeDescription({
-    ...file,
-    type: "file",
-  });
+  const desc = `Uploaded ${formatDateTime(file.createdAt)}`;
   if (!desc) {
     return "No preview available.";
   }

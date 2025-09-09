@@ -7,7 +7,7 @@ import { GenerativeSummary, IGenerativeSummary } from "./summaries";
 import { IUserFile } from "../userfile";
 import { htmlToMarkdown } from "../../../utils/formatting";
 import { max_embeddable_characters, max_user_notes } from "../../../settings";
-import { ITag, ITagIdeaRelationship } from "../tag";
+import { ITag, ITagDescriptionRelationship } from "../tag";
 import { logger } from "../../../services/Logger";
 import { Search } from "../../../services/Search";
 
@@ -91,7 +91,7 @@ export type IDBGraph = {
   ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
   tags: ITag[];
   ideaConnections: IIdeaConnection[];
-  tagConnections: ITagIdeaRelationship[];
+  tagConnections: ITagDescriptionRelationship[];
   files: IUserFile[];
   flags: {
     embeddings: {
