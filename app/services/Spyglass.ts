@@ -967,6 +967,7 @@ export default class Spyglass {
         // make sure we don't surpass lm prompt size
         const totalSize = overviewPrompt.get().length;
         if (totalSize + s.length > max_lm_prompt_size) {
+          console.warn(`Omitting result ${i + 1} due to prompt size limit`);
           return;
         }
         overviewPrompt.addBlock(`Result ${i + 1}`, s, 2);
