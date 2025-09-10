@@ -6,15 +6,7 @@ import {
   useNavigate,
 } from "react-router";
 import styles from "./App.module.scss";
-import {
-  Alert,
-  Flex,
-  Loader,
-  Overlay,
-  Stack,
-  Text,
-  useMantineColorScheme,
-} from "@mantine/core";
+import { Loader, useMantineColorScheme } from "@mantine/core";
 import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";
@@ -38,7 +30,6 @@ import { lazy, useEffect, useRef } from "react";
 import { useSettings } from "./contexts/SettingsContext";
 import ViewTag from "./pages/Tags/ViewTag";
 import ViewIdea from "./pages/Idea/ViewIdea";
-import PublicIdea from "./pages/Idea/PublicIdea";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
@@ -49,9 +40,6 @@ import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
 import Rabbithole from "./pages/Rabbitholes/Rabbithole";
 import Rabbitholes from "./pages/Rabbitholes/List";
 import { useConnection } from "./hooks/useConnection";
-import { Warning } from "@phosphor-icons/react/dist/ssr";
-import PageWrapper from "./components/Layout/PageWrapper";
-import Content from "./components/UI/Layout/Content";
 import Task from "./pages/Tasks/Task";
 import Tasks from "./pages/Tasks/Tasks";
 import FileList from "./pages/File/FileList";
@@ -72,30 +60,6 @@ export default function App() {
 
   const previousOnlineState = useRef(isOnline);
   const notificationTimeout = useRef<Timer>();
-  useEffect(() => {
-    notificationTimeout.current = undefined;
-    if (isMobile) {
-      if (!isOnline && !loadingConnection && isMobile) {
-        notificationTimeout.current = setTimeout(() => {
-          showNotification({
-            title: "Can't connect to server",
-            message:
-              "Can't connect to the server, Noeko will attempt to automatically reconnect.",
-            color: "yellow",
-          });
-        }, 2000);
-      }
-      if (isOnline && previousOnlineState.current === false) {
-        notificationTimeout.current = setTimeout(() => {
-          showNotification({
-            title: "Connected",
-            message: "Successfully connected to the server.",
-          });
-        }, 2000);
-      }
-    }
-    previousOnlineState.current = isOnline;
-  }, [isOnline]);
 
   const {
     ui: {
