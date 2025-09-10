@@ -21,6 +21,7 @@ export const addRefreshTokenToRes = async (
     httpOnly: true,
     secure: true,
     sameSite: NODE_ENV === "production" ? "lax" : "none",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
   });
 };
 
@@ -32,6 +33,7 @@ export const addAccessTokenToRes = async (
     httpOnly: true,
     secure: true,
     sameSite: NODE_ENV === "production" ? "lax" : "none",
+    maxAge: 900000,
   });
 };
 
