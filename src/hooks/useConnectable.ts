@@ -2,7 +2,7 @@ import { RecordId } from "surrealdb";
 import { IConnectable, ISimilarConnectable } from "../../app/services/Graph";
 import useFetch from "./useFetch";
 import { connect, disconnect } from "../utils/graph";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useRabbithole from "./useRabbithole";
 
 type IUseConnectableArgs = {
@@ -17,13 +17,14 @@ type IUseConnectableReturn = {
   connect: (target: string | RecordId) => Promise<boolean>;
   disconnect: (target: string | RecordId) => Promise<boolean>;
   load: () => void;
-  isConnected: (thingId: string | RecordId) => boolean;
+  isConnected: (thingId: string | RecordId) => boolean | undefined;
   ensureConnected: (thingId: string | RecordId) => Promise<void>;
 };
 
 export default function useConnectable({
   connectable,
 }: IUseConnectableArgs): IUseConnectableReturn {
+  const [isConnecting, setIsConnecting] = useState(false);
   const { currentRabbithole, isDownRabbithole } = useRabbithole();
 
   const {
@@ -92,6 +93,10 @@ export default function useConnectable({
   }, [currentRabbithole]);
 
   const handleConnect = async (target: string | RecordId) => {
+    if (isConnecting) {
+      return false;
+    }
+    setIsConnecting(true);
     try {
       if (!connectable) {
         throw new Error("Can't connect to connectable which does not exist.");
@@ -103,6 +108,7 @@ export default function useConnectable({
       return false;
     } finally {
       load();
+      setIsConnecting(false);
     }
   };
 
@@ -124,15 +130,25 @@ export default function useConnectable({
   };
 
   const isConnected = (thingId: string | RecordId) => {
+    if (!connected) {
+      return undefined;
+    }
     const found = connected.find((c) => c.id.toString() === thingId.toString());
     return !!found;
   };
 
   const ensureConnected = async (thingId: string | RecordId) => {
-    if (!connectable) {
+    if (!connectable || !thingId) {
       return;
     }
-    if (!isConnected(thingId)) {
+    if (loadingConnected) {
+      return;
+    }
+    const connected = isConnected(thingId);
+    if (connected === undefined) {
+      return;
+    }
+    if (!connected) {
       await handleConnect(thingId);
     }
   };

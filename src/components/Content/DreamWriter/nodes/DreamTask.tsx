@@ -121,14 +121,14 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
       viewing: { get: currentConnectable },
     },
   } = useLandscape();
-  const { ensureConnected } = useConnectable({
+  const { ensureConnected, loadingConnected } = useConnectable({
     connectable: currentConnectable as IConnectable,
   });
   useEffect(() => {
     if (task?.id) {
       ensureConnected(task.id.toString());
     }
-  }, [task?.id.toString()]);
+  }, [task?.id.toString(), loadingConnected]);
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;
