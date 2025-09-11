@@ -46,7 +46,10 @@ interface IIdeaButton {
   idea: IIdea | ISafeIdea;
   actions?: IIdeaButtonAction[];
   fullWidth?: boolean;
-  onClick?: (idea: IIdea | ISafeIdea, e: React.MouseEvent) => void;
+  onClick?: (
+    idea: IIdea | ISafeIdea,
+    e: React.MouseEvent | React.KeyboardEvent,
+  ) => void;
 }
 
 function IdeaButton({
@@ -73,7 +76,9 @@ function IdeaButton({
     setIsInternallyDragging(false);
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = (
+    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+  ) => {
     if (onClick) {
       onClick(idea, e);
     }
@@ -140,6 +145,11 @@ function IdeaButton({
           onDragEnd={handleDragEnd}
           onClick={handleClick}
           tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleClick(e);
+            }
+          }}
           onMouseEnter={() => {
             setHovering(true);
           }}

@@ -33,7 +33,10 @@ interface ISourceButtonProps {
   source: ISource;
   actions?: ISourceButtonAction[];
   fullWidth?: boolean;
-  onClick?: (source: ISource, e: React.MouseEvent) => void;
+  onClick?: (
+    source: ISource,
+    e: React.MouseEvent | React.KeyboardEvent,
+  ) => void;
 }
 
 function SourceButton({
@@ -60,7 +63,9 @@ function SourceButton({
     setIsInternallyDragging(false);
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = (
+    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+  ) => {
     if (onClick) {
       onClick(source, e);
     }
@@ -125,6 +130,11 @@ function SourceButton({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onClick={handleClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleClick(e);
+            }
+          }}
           onMouseEnter={() => {
             setHovering(true);
           }}
