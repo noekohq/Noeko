@@ -138,14 +138,14 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
       viewing: { get: currentConnectable },
     },
   } = useLandscape();
-  const { ensureConnected } = useConnectable({
+  const { ensureConnected, loadingConnected } = useConnectable({
     connectable: currentConnectable as IConnectable,
   });
   useEffect(() => {
     if (source?.id) {
       ensureConnected(source.id.toString());
     }
-  }, [source?.id.toString()]);
+  }, [source?.id.toString(), loadingConnected]);
 
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;

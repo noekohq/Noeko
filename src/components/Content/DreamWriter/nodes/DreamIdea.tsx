@@ -145,14 +145,14 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       viewing: { get: currentConnectable },
     },
   } = useLandscape();
-  const { ensureConnected } = useConnectable({
+  const { ensureConnected, loadingConnected } = useConnectable({
     connectable: currentConnectable ?? null,
   });
   useEffect(() => {
     if (idea?.id) {
       ensureConnected(idea.id.toString());
     }
-  }, [idea?.id.toString()]);
+  }, [idea?.id.toString(), loadingConnected]);
 
   if (!ideaId) {
     return <span className={styles.dreamIdeaError}>[ERROR]</span>;
