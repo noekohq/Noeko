@@ -136,7 +136,7 @@ export default function ConnectionManager({
               <Group gap="xs">
                 <UniteSquareIcon weight="bold" />
                 CONNECTED
-                <Transition mounted={loadingConnected} transition="fade-up">
+                {/*<Transition mounted={loadingConnected} transition="fade-up">
                   {(styles) => {
                     return (
                       <div style={styles}>
@@ -144,7 +144,7 @@ export default function ConnectionManager({
                       </div>
                     );
                   }}
-                </Transition>
+                </Transition>*/}
               </Group>
             </Text>
             <Group gap="xs">
@@ -244,7 +244,7 @@ export default function ConnectionManager({
           <Group gap="xs">
             <IntersectSquareIcon weight="bold" />
             RELATED
-            <Transition mounted={loadingSimilar} transition="fade-up">
+            {/*<Transition mounted={loadingSimilar} transition="fade-up">
               {(styles) => {
                 if (loadingSimilar) {
                   return <Loader color="gray" size="xs" />;
@@ -260,7 +260,7 @@ export default function ConnectionManager({
                   </ActionIcon>
                 );
               }}
-            </Transition>
+            </Transition>*/}
           </Group>
         </Text>
         {isDownRabbithole && (
