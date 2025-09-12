@@ -312,6 +312,44 @@ router.post("/:rabbitholeId/include", async (req, res) => {
   }
 });
 
+router.post("/:rabbitholeId/include/many", async (req, res) => {
+  try {
+    const { rabbitholeId } = req.params;
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const { thingIds } = req.body as { thingIds: string[] | null };
+    if (!thingIds) {
+      res.status(400).send({
+        message: "No thingId included",
+      });
+      return;
+    }
+    const hasAccess = await User.checkOwnsMany(user.id, thingIds);
+    const hasAccessToRabbithole = await User.checkOwns(user.id, rabbitholeId);
+    if (!hasAccess || !hasAccessToRabbithole) {
+      res.status(400).send({
+        message: "You do not have access to this thing.",
+      });
+      return;
+    }
+    const result = await Rabbithole.addThings(rabbitholeId, thingIds);
+    res.send({
+      message: "Successfully included thing",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error including rabbitholes: ", error);
+    res.status(500).send({
+      message: "Internal Server Error",
+    });
+  }
+});
+
 router.post("/:rabbitholeId/uninclude", async (req, res) => {
   try {
     const { rabbitholeId } = req.params;

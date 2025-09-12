@@ -17,6 +17,7 @@ import {
   ArrowRightIcon,
   ArrowsOutSimpleIcon,
   GraphIcon,
+  SelectionIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
@@ -51,7 +52,7 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
     const Icon = NodeIcon(node);
 
     const {
-      selected: { get: selected },
+      selected: { get: selected, add: addSelected, remove: removeSelected },
     } = useGraph();
 
     const isSelected = selected.has(node.id.toString());
@@ -120,6 +121,22 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
                 }}
               >
                 <ArrowsOutSimpleIcon weight="bold" />
+              </ActionIcon>
+              <ActionIcon
+                color={isSelected ? "blue" : "gray"}
+                variant="light"
+                radius="lg"
+                size={"md"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isSelected) {
+                    removeSelected(node.id.toString());
+                    return;
+                  }
+                  addSelected(node.id.toString());
+                }}
+              >
+                <SelectionIcon weight="bold" />
               </ActionIcon>
               <ActionIcon
                 color={isSelected ? "blue" : "gray"}

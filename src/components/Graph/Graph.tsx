@@ -7,6 +7,7 @@ import NodePanel from "./NodePanel";
 import { useGraph } from "../../contexts/GraphContext";
 import { getNodeEdgeType } from "../../utils/graph";
 import { useGraphTraversal } from "./useGraphTraversal";
+import { GraphPanel } from "./GraphPanel";
 
 function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   const dx = touch1.clientX - touch2.clientX;
@@ -110,8 +111,14 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   } | null>(null);
 
   const nodePanelRef = useRef<HTMLDivElement>(null);
+  const graphPanelRef = useRef<HTMLDivElement>(null);
+
   const [nodePanel, setNodePanel] = useState<{
     node: INode;
+    position: { x: number; y: number };
+    onClose: () => void;
+  } | null>(null);
+  const [graphPanel, setGraphPanel] = useState<{
     position: { x: number; y: number };
     onClose: () => void;
   } | null>(null);
@@ -843,8 +850,39 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     }, 0);
   };
 
+  const handleGraphContextMenu = (
+    event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    let clientX = 0;
+    let clientY = 0;
+
+    if ("touches" in event && event.touches.length > 0) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    } else if ("changedTouches" in event && event.changedTouches.length > 0) {
+      clientX = event.changedTouches[0].clientX;
+      clientY = event.changedTouches[0].clientY;
+    } else if ("clientX" in event) {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
+
+    setGraphPanel(null);
+    setTimeout(() => {
+      setGraphPanel({
+        position: { x: clientX || 0, y: clientY || 0 },
+        onClose: () => {
+          setGraphPanel(null);
+        },
+      });
+    }, 0);
+  };
+
   const handleBackgroundClick = () => {
     setNodePanel(null);
+    setGraphPanel(null);
   };
 
   const CONNECTABLE_TYPES = new Set(["idea", "task", "source", "excerpt"]);
@@ -889,6 +927,10 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       }}
       className={styles.container}
       onClick={handleBackgroundClick}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        handleGraphContextMenu(event);
+      }}
     >
       {nodePanel && (
         <NodePanel
@@ -899,6 +941,15 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
           }}
           onClusterDeselect={(node) => {
             clusterDeselect(node);
+          }}
+        />
+      )}
+      {graphPanel && (
+        <GraphPanel
+          ref={graphPanelRef}
+          {...graphPanel}
+          onClose={() => {
+            setGraphPanel(null);
           }}
         />
       )}

@@ -271,6 +271,41 @@ export default class Rabbithole {
     }
   }
 
+  static async addThings(
+    rabbitholeId: string | RecordId,
+    thingIds: string[] | RecordId[],
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const result = await db?.query(
+        "RELATE $rabbitholeId->includes->$thingIds SET createdAt = $now;",
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+          thingIds: thingIds.map((id) => new StringRecordId(id)),
+          now: new Date(),
+        },
+      );
+      this.update(rabbitholeId, { updatedAt: new Date() });
+      if (!result) {
+        throw new Error(
+          "Something went wrong adding things to rabbithole: ",
+          result,
+        );
+      }
+      const [rabbithole] = result;
+      return rabbithole;
+    } catch (error) {
+      logger.error("Error adding things to rabbithole: ", [
+        rabbitholeId,
+        thingIds,
+      ]);
+      return undefined;
+    }
+  }
+
   static async removeThing(
     rabbitholeId: string | RecordId,
     thingId: string | RecordId,
