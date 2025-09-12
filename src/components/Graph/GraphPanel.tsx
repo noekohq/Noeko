@@ -67,8 +67,9 @@ export const GraphPanel = forwardRef<HTMLDivElement, IGraphPanelProps>(
         style={{
           position: "absolute",
           left: position.x + 4,
-          top: position.y + 4,
+          top: position.y + 16,
           zIndex: 10,
+          transform: `translateX(-50%)`,
         }}
       >
         <Stack>
