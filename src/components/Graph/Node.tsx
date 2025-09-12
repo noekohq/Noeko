@@ -77,7 +77,7 @@ const NodeComponent = ({
   const { filter } = getFilter();
   const isZoomedIn = scaleFactor > 0.45;
   const shouldShow = filter(node.id.toString());
-  const showText = isZoomedIn;
+  const showText = isZoomedIn && (iAmHighlighted || !iAmUnselected);
 
   // Effects
   useLayoutEffect(() => {
