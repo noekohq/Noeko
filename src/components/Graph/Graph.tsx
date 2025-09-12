@@ -881,7 +881,12 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   return (
     <div
       ref={containerRef}
-      style={{ width: "100%", height: "100%", overflow: "hidden" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        overscrollBehaviorY: "contain",
+      }}
       className={styles.container}
       onClick={handleBackgroundClick}
     >
