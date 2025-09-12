@@ -115,6 +115,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
     const clearResults = useCallback(() => {
       setQuery("");
       onResultsClear?.();
+      setResults(null);
     }, []);
 
     useEffect(() => {

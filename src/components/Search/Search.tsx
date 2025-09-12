@@ -71,10 +71,6 @@ export default function Search({
     },
   } = useSearch();
 
-  const handleResultsClear = useCallback(() => {
-    setResults(null);
-  }, []);
-
   const startTimeRef = useRef<number | null>(null);
   const resultsTimeRef = useRef<number | null>(null);
 
@@ -97,7 +93,6 @@ export default function Search({
     <div className={styles.searchWrapper}>
       <SearchBar
         ignoreRabbithole={ignoreRabbithole}
-        onResultsClear={handleResultsClear}
         onSearchStart={() => {
           startTimeRef.current = Date.now();
           setLoading(true);
@@ -175,6 +170,7 @@ export default function Search({
                 if (!actions) {
                   return (
                     <ConnectableThing
+                      key={s.id.toString()}
                       thing={s.value}
                       onClick={(thing) => {
                         navigate(`/${thing.type}/${thing.id.toString()}`);

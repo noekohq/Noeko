@@ -3,14 +3,32 @@ import { INode, IEdge } from "../declarations/graph.d";
 
 // --- Type Definitions for the Worker ---
 
-// A simplified node type for the simulation, compatible with d3.
-// It extends SimulationNodeDatum which includes x, y, vx, vy, fx, fy.
 type SimNode = INode & d3.SimulationNodeDatum;
-
-// A simplified edge type, ensuring source/target are strings for d3.
 type SimEdge = IEdge & {
   source: string;
   target: string;
+};
+
+// --- Simulation Configuration ---
+
+const SIMULATION_CONFIG = {
+  // Alpha is the simulation's "heat." It decays over time.
+  alpha: {
+    initial: 0.8, // Initial "heat" when the simulation starts.
+    reheat: 0.5, // "Heat" applied when a node is dragged.
+    coolDownTarget: 0, // Target alpha to cool the simulation down to.
+  },
+  link: {
+    distance: 75, // The ideal distance between connected nodes.
+    strength: 0.3, // How strongly the link pulls nodes together.
+  },
+  charge: {
+    strength: -200, // Negative value creates repulsion. Higher absolute value means stronger repulsion.
+  },
+  collide: {
+    radius: 80, // The radius around each node for collision detection.
+    strength: 0.8, // How rigidly nodes bounce off each other.
+  },
 };
 
 // --- Worker State ---
@@ -20,14 +38,10 @@ const nodeMap = new Map<string, SimNode>();
 
 // --- Message Handler ---
 
-/**
- * The main message handler for the worker. It receives commands and data from the main UI thread.
- */
 self.onmessage = (event: MessageEvent) => {
   const { type, payload } = event.data;
 
   switch (type) {
-    // Initializes or updates the simulation with a new set of nodes and edges.
     case "update_data":
       if (simulation) {
         simulation.stop();
@@ -35,33 +49,30 @@ self.onmessage = (event: MessageEvent) => {
       initializeSimulation(payload.nodes, payload.edges);
       break;
 
-    // Updates the fixed position (fx, fy) of a single node during a drag.
     case "update_node_position":
       if (simulation) {
         const node = nodeMap.get(payload.id);
         if (node) {
           node.fx = payload.fx;
           node.fy = payload.fy;
-          // Reheat the simulation to make the graph react to the drag.
-          simulation.alpha(0.5).restart();
+          // Reheat the simulation using the config value.
+          simulation.alpha(SIMULATION_CONFIG.alpha.reheat).restart();
         }
       }
       break;
 
-    // Releases a node's fixed position when a drag operation ends.
     case "end_node_drag":
       if (simulation) {
         const node = nodeMap.get(payload.id);
         if (node) {
           node.fx = null;
           node.fy = null;
-          // Cool the simulation down.
-          simulation.alphaTarget(0);
+          // Cool the simulation down using the config value.
+          simulation.alphaTarget(SIMULATION_CONFIG.alpha.coolDownTarget);
         }
       }
       break;
 
-    // Stops the simulation completely.
     case "stop":
       if (simulation) {
         simulation.stop();
@@ -70,11 +81,8 @@ self.onmessage = (event: MessageEvent) => {
   }
 };
 
-/**
- * Sets up and starts the D3 force simulation.
- * @param {SimNode[]} nodes - The array of node objects.
- * @param {SimEdge[]} edges - The array of edge objects linking the nodes.
- */
+// --- Simulation Initialization ---
+
 function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
   nodeMap.clear();
   nodes.forEach((n) => nodeMap.set(n.id.toString(), n));
@@ -93,33 +101,33 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
       d3
         .forceLink<SimNode, SimEdge>(validEdges)
         .id((d) => d.id.toString())
-        .distance((e) => e.distance || 150) // Increased default slightly
-        .strength((e) => e.strength || 0.4), // Increased default slightly
+        .distance((e) => e.distance || SIMULATION_CONFIG.link.distance)
+        .strength((e) => e.strength || SIMULATION_CONFIG.link.strength),
     )
-    // --- CHANGE 1: Reduced the repulsion force ---
-    // From -400 to -200. This makes the graph less "explosive" and more stable.
-    // You can tune this value further.
-    .force("charge", d3.forceManyBody().strength(-200))
-
+    .force(
+      "charge",
+      d3.forceManyBody().strength(SIMULATION_CONFIG.charge.strength),
+    )
     .force("center", d3.forceCenter(0, 0))
+    .force(
+      "collide",
+      d3
+        .forceCollide()
+        .radius(SIMULATION_CONFIG.collide.radius)
+        .strength(SIMULATION_CONFIG.collide.strength),
+    )
+    .stop();
 
-    // --- CHANGE 2: Added a collision force ---
-    // This is the most critical change. It prevents nodes from overlapping.
-    // The radius should be large enough to contain your node's visual representation
-    // (the circle AND the text box). Your UI is about 124px wide and ~150px tall,
-    // so a radius of 80 is a good starting point to create a non-overlapping buffer.
-    .force("collide", d3.forceCollide().radius(80).strength(0.8));
-
-  // On each "tick", send updated node positions back to the main thread.
-  simulation.on("tick", () => {
-    self.postMessage({
-      type: "tick",
-      nodes: simulation!.nodes().map(({ id, x, y }) => ({ id, x, y })),
+  simulation
+    .on("tick", () => {
+      self.postMessage({
+        type: "tick",
+        nodes: simulation!.nodes().map(({ id, x, y }) => ({ id, x, y })),
+      });
+    })
+    .on("end", () => {
+      self.postMessage({ type: "end" });
     });
-  });
 
-  // Notify the main thread when the simulation has cooled down and stopped.
-  simulation.on("end", () => {
-    self.postMessage({ type: "end" });
-  });
+  simulation.alpha(SIMULATION_CONFIG.alpha.initial).restart();
 }

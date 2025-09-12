@@ -3,6 +3,7 @@ import {
   IIdea,
   IIdeaForm,
   IIdeaDerived,
+  ISafeIdea,
 } from "../../app/database/models/ideas";
 import { api } from "../server/api";
 import { IChunk } from "../../app/services/Importer";
@@ -430,4 +431,18 @@ export const createIdeaShareFromEmail = async (
     console.error("Something went wrong.");
     return undefined;
   }
+};
+
+export const ideasAreConnected = (
+  first: IIdea | ISafeIdea,
+  second: IIdea | string,
+) => {
+  if (!first.connections && !second) {
+    return undefined;
+  }
+  const secondId = typeof second === "string" ? second : second.id.toString();
+  const firstHasSecond = !!first.connections?.find(
+    (c) => c.id.toString() === secondId,
+  );
+  return firstHasSecond;
 };

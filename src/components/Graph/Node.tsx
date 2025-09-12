@@ -1,11 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { IIdeaNode, INode } from "../../declarations/graph.d";
 import styles from "./Node.module.scss";
 import { useGraph } from "../../contexts/GraphContext";
-import { Highlight, Text } from "@mantine/core";
-import { ArrowRight } from "@phosphor-icons/react";
+import { Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { getNodeTitle } from "../../utils/graph";
+import { getNodeTitle, NodeIcon } from "../../utils/graph";
 
 type NodeProps = {
   node: INode;
@@ -23,6 +22,14 @@ type NodeProps = {
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
     node: INode,
   ) => void;
+  onClusterSelect: (
+    event: React.MouseEvent<SVGElement> | React.TouchEvent<SVGElement>,
+    node: INode,
+  ) => void;
+  onClusterDeselect: (
+    event: React.MouseEvent<SVGElement> | React.TouchEvent<SVGElement>,
+    node: INode,
+  ) => void;
   "data-node-id": string;
 };
 
@@ -32,43 +39,79 @@ const NodeComponent = ({
   onNodeNavigate,
   onNodeSelect,
   onContextMenu,
-  "data-node-id": dataNodeId,
+  onClusterSelect,
+  onClusterDeselect,
   scaleFactor,
+  "data-node-id": dataNodeId,
 }: NodeProps) => {
-  const gradientId = `gradient-${node.id}`;
+  // Refs
+  const pressTimerRef = useRef<number | null>(null);
+  const longPressTriggered = useRef<boolean>(false);
+  const textRef = useRef<HTMLDivElement>(null);
+  const circleRef = useRef<SVGCircleElement>(null);
 
+  // State
+  const [textDimensions, setTextDimensions] = useState({ width: 0, height: 0 });
+
+  // Contexts and Hooks
   const {
     selected: {
-      set: setSelected,
       get: selected,
       add: addToSelection,
       remove: removeFromSelection,
     },
+    highlighted: { get: highlighted },
     filter: { get: getFilter },
     loading: { get: isLoading },
     query: { get: getQuery },
   } = useGraph();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // Refs for managing long press (touch hold)
-  const pressTimerRef = useRef<number | null>(null);
-  const longPressTriggered = useRef<boolean>(false);
-
+  // Derived State & Values
+  const nodeTitle = getNodeTitle(node);
   const iAmSelected = selected.has(node.id.toString());
-  const iAmUnselected = !iAmSelected && Array.from(selected.entries()).length;
+  const iAmUnselected = !iAmSelected && selected.size > 0;
+  const iAmHighlighted = highlighted.has(node.id.toString());
+  const iAmUnHighlighted = !iAmHighlighted && highlighted.size > 0;
   const iAmLoading = isLoading();
   const { filter } = getFilter();
-  const query = getQuery();
+  const isZoomedIn = scaleFactor > 0.45;
+  const shouldShow = filter(node.id.toString());
+  const showText = isZoomedIn;
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  // Effects
+  useLayoutEffect(() => {
+    if (textRef.current) {
+      const { scrollWidth, scrollHeight } = textRef.current;
+      const padding = 4;
+      setTextDimensions({
+        width: scrollWidth + padding,
+        height: scrollHeight + padding,
+      });
+    }
+  }, [nodeTitle]);
+
+  useEffect(() => {
+    if (circleRef.current) {
+      const randomDelay = Math.floor(Math.random() * 400);
+      circleRef.current.style.animationDelay = `${randomDelay}ms`;
+    }
+
+    return () => {
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleToggleSelectNode = (node: INode) => {
     const nodeId = node.id.toString();
     if (selected.has(nodeId)) {
       removeFromSelection(nodeId);
-      return;
+    } else {
+      addToSelection(nodeId);
+      onNodeSelect;
     }
-    addToSelection(nodeId);
-    onNodeSelect;
   };
 
   const handleContextMenu = (
@@ -85,8 +128,19 @@ const NodeComponent = ({
     handleToggleSelectNode(node);
     if (event.shiftKey) {
       onNodeNavigate?.(event, node);
+    }
+  };
+
+  const handleNodeDoubleClick = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+  ) => {
+    if (selected.has(node.id.toString())) {
+      console.log("Unselecting cluster from: ", node.id.toString());
+      onClusterDeselect(event, node);
       return;
     }
+    console.log("Selecting cluster from: ", node.id.toString());
+    onClusterSelect(event, node);
   };
 
   const handlePressStart = (event: React.TouchEvent<SVGGElement>) => {
@@ -110,38 +164,30 @@ const NodeComponent = ({
     }
   };
 
-  const radius = 24;
-  const textOffset = 0;
-  const textWidth = 124;
-  const textHeight = 100;
-  const text = {
-    width: textWidth,
-    height: textHeight,
-    x: -textWidth / 2,
-    y: radius + textOffset,
-  };
-  const gradientOptions = {
-    innerColor: "var(--color-nodes)",
-    outerColor: "var(--color-background)",
-    opacityInner: 1,
-    opacityOuter: 0.2,
-  };
-  const randomDelay = () => Math.floor(Math.random() * 1400);
-  const circleRef = useRef<SVGCircleElement>(null);
-  useEffect(() => {
-    if (circleRef.current) {
-      circleRef.current.style.animationDelay = `${randomDelay()}ms`;
-    }
+  // Rendering
+  const textOffset = 8;
 
-    return () => {
-      if (pressTimerRef.current) {
-        clearTimeout(pressTimerRef.current);
-      }
-    };
-  }, []);
+  const nodeClasses = [
+    styles.node,
+    styles[node.type],
+    iAmSelected && styles.selected,
+    iAmUnselected && styles.unselected,
+    !shouldShow && styles.hidden,
+    iAmLoading && styles.loading,
+    isDragging && styles.dragging,
+    isZoomedIn ? styles.zoomedIn : styles.zoomedOut,
+    iAmHighlighted && styles.highlighted,
+    iAmUnHighlighted && styles.unhighlighted,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-  const shouldShow = filter(node.id.toString());
-  const showText = shouldShow && scaleFactor > 0.45;
+  const glowFilterId = `glow-filter-${node.id}`;
+  const mainCircleRadius = parseInt(circleRef.current?.style.r || "24", 10);
+
+  if (iAmHighlighted) {
+    console.log("Highlighted: ", nodeTitle);
+  }
 
   return (
     <g
@@ -149,54 +195,42 @@ const NodeComponent = ({
       transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
       onContextMenu={handleContextMenu}
       onClick={handleNodeClick}
+      onDoubleClick={handleNodeDoubleClick}
       onTouchStart={handlePressStart}
       onTouchEnd={handlePressEnd}
       onTouchMove={handlePressEnd}
-      className={`${styles.node} ${iAmSelected ? styles.selected : ""} ${
-        iAmUnselected ? styles.unselected : ""
-      } ${!shouldShow ? styles.hidden : ""} ${iAmLoading ? styles.loading : ""} ${
-        isDragging ? styles.dragging : ""
-      } ${styles[node.type]}`}
+      className={nodeClasses}
     >
-      <defs>
-        <radialGradient
-          key={node.id.toString()}
-          id={`gradient-${node.id}`}
-          cx="50%"
-          cy="50%"
-          r="50%"
-          fx="50%"
-          fy="50%"
-        >
-          <stop
-            offset="40%"
-            stopColor={gradientOptions.innerColor}
-            stopOpacity={gradientOptions.opacityInner}
-          />
-          <stop
-            offset="100%"
-            stopColor={gradientOptions.outerColor}
-            stopOpacity={gradientOptions.opacityOuter}
-          />
-        </radialGradient>
-      </defs>
-      <circle r={radius} fill={`url(#${gradientId})`} ref={circleRef} />
-      {shouldShow && showText && (
+      {iAmHighlighted && <circle className={styles.highlightRing} />}
+
+      <circle className={styles.mainCircle} ref={circleRef} />
+
+      {showText && (
         <foreignObject
-          x={text.x}
-          y={text.y}
-          width={text.width}
-          height={text.height}
+          width={90}
+          x={-90}
+          height={textDimensions.height}
+          y={mainCircleRadius + textOffset}
+          style={{ pointerEvents: "none", overflow: "visible" }}
         >
-          <Text
-            className={styles.nodeText}
-            size="xs"
-            ta="center"
-            tt="capitalize"
-            c={iAmSelected ? "dark.1" : "dimmed"}
+          <div
+            ref={textRef}
+            style={{
+              pointerEvents: "auto",
+              display: "inline-block",
+              textAlign: "center",
+              minWidth: "180px",
+            }}
           >
-            {getNodeTitle(node)}
-          </Text>
+            <Text
+              className={styles.nodeText}
+              size="xs"
+              tt="capitalize"
+              c={iAmSelected ? "dark.1" : "dimmed"}
+            >
+              {nodeTitle}
+            </Text>
+          </div>
         </foreignObject>
       )}
     </g>
