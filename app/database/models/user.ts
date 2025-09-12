@@ -455,6 +455,28 @@ export class User {
     }
   }
 
+  static async checkOwnsMany(
+    userId: string | RecordId,
+    thingIds: (string | RecordId)[],
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available.");
+      }
+      for (const thing of thingIds) {
+        const owns = await this.checkOwns(userId, thing);
+        if (!owns) {
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error("Error checking user owns: ", userId, thingIds, error);
+      return undefined;
+    }
+  }
+
   static async generateAccessToken(user: ISafeUser | IPublicUser) {
     try {
       const token = generateToken<ISafeUser | IPublicUser>(user, {

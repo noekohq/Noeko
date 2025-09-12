@@ -66,6 +66,35 @@ export const includeThingInRabbithole = async (
   }
 };
 
+export const includeThingsInRabbithole = async (
+  rabbitholeId: string,
+  thingIds: string[],
+) => {
+  try {
+    return await api
+      .post(`/rabbitholes/${rabbitholeId}/include/many`, {
+        thingIds,
+      })
+      .then(() => {
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error(
+          `Something went wrong including ${thingIds.length} things in ${rabbitholeId}`,
+          error,
+          thingIds,
+        );
+        showNotification({
+          title: "Something went wrong",
+          message: "Something went wrong including the thing",
+          color: "red",
+        });
+      });
+  } catch (error) {
+    console.error("Error creating thing: ", error);
+  }
+};
+
 export const unIncludeThingInRabbithole = async (
   rabbitholeId: string,
   thingId: string,
