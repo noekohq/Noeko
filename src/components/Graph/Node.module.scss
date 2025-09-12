@@ -28,29 +28,37 @@
     }
 }
 
-.node {
-    --node-radius: 24;
-    --node-radius-selected: 36;
+.highlightRing {
+    stroke: var(--mantine-color-dark-2);
+    stroke-width: 2px;
+    r: 30;
+    fill: transparent;
+}
 
-    &.tag {
-        --node-radius: 36;
-        --node-radius-selected: 48;
-    }
+.node {
+    --node-radius: 18;
+    --node-radius-selected: 24;
+    --color-nodes: var(--mantine-color-dark-9);
+    --color-stroke: var(--mantine-color-dark-4);
 
     cursor: pointer;
 
-    circle {
+    .mainCircle {
         r: var(--node-radius);
+        fill: var(--color-nodes);
+        stroke: var(--color-stroke);
+        stroke-width: 2px;
+        transition: all 0.2s ease-in-out;
     }
 
     &:hover {
-        circle {
+        .mainCircle {
             r: var(--node-radius-selected);
         }
     }
 
     &.unselected {
-        circle {
+        .mainCircle {
             opacity: 0.25;
             transition:
                 r 0.2s ease-in-out,
@@ -60,16 +68,30 @@
 
         .nodeText {
             opacity: 0.5;
-            white-space: wrap;
-            animation: textIn 0.2s ease-in-out forwards;
+        }
+    }
+
+
+    &.hidden {
+        opacity: 0.25;
+    }
+
+    &.highlighted {
+        .mainCircle {
+        }
+        .mainCircle {
+        }
+    }
+
+    &.unhighlighted {
+        .mainCircle {
+            opacity: 0.5;
         }
     }
 
     &.selected {
-        circle {
+        .mainCircle {
             opacity: 1;
-            stroke: 1px solid var(--mantine-color-yellow-7);
-            r: var(--node-radius-selected);
         }
 
         .nodeText {
@@ -77,17 +99,13 @@
         }
     }
 
-    &.hidden {
-        opacity: 0.25;
-    }
-
     &.loading {
-        circle {
+        .mainCircle {
             animation: pulsing 1s infinite;
         }
     }
 
-    circle {
+    .mainCircle {
         transition:
             r 0.2s ease-in-out,
             opacity 0.2s ease-in-out;
@@ -96,30 +114,62 @@
     .nodeText {
         white-space: wrap;
         animation: textIn 0.2s ease-in-out forwards;
+        font-size: var(--mantine-font-size-sm);
+    }
+
+    .zoomedIn {
+    }
+
+    .zoomedOut {
     }
 }
 
 .idea {
-    --color-nodes: var(--mantine-primary-color-5);
-}
-
-.tag {
-    --color-nodes: var(--mantine-color-dark-1);
-    stroke: var(--mantine-color-dark-7);
-}
-
-.task {
-    --color-nodes: var(--mantine-color-green-6);
-}
-
-.rabbithole {
-    --color-nodes: var(--mantine-color-red-8);
-}
-
-.source {
     --color-nodes: var(--mantine-color-dark-7);
 }
 
-.excerpt {
+.task {
+    --color-nodes: var(--mantine-color-green-5);
+    --color-stroke: var(--mantine-color-green-7);
+}
+
+.source {
+    --color-stroke: var(--mantine-color-blue-7);
     --color-nodes: var(--mantine-color-dark-8);
+}
+
+.excerpt {
+    --color-stroke: var(--mantine-color-blue-5);
+    --color-nodes: var(--mantine-color-dark-7);
+}
+
+.tag {
+    --color-stroke: var(--mantine-color-red-5);
+    --node-radius: 20;
+    --node-radius-selected: 28;
+
+    .mainCircle {
+        stroke-width: 4px;
+    }
+
+    .nodeText {
+        font-size: calc(var(--mantine-font-size-sm) * 1.25);
+    }
+
+    &.selected {
+    }
+}
+
+.rabbithole {
+    --color-stroke: var(--mantine-color-yellow-5);
+    --node-radius: 20;
+    --node-radius-selected: 28;
+
+    .mainCircle {
+        stroke-width: 4px;
+    }
+
+    .nodeText {
+        font-size: calc(var(--mantine-font-size-sm) * 1.25);
+    }
 }

@@ -24,8 +24,8 @@
 
     &.hasRabbithole {
         border: var(--rabbithole-indicator-width) solid
-            var(--mantine-color-green-7);
-        box-shadow: inset 0px 0px 15px 0px var(--mantine-color-green-7);
+            var(--mantine-color-yellow-5);
+        box-shadow: inset 0px 0px 15px 0px var(--mantine-color-yellow-5);
         border-radius: 0;
     }
 }

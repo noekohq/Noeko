@@ -125,7 +125,7 @@ function IdeaButton({
           close();
         }
       }}
-      width="target"
+      width="400px"
       shadow="lg"
       radius="md"
       transitionProps={{
@@ -172,6 +172,7 @@ function IdeaButton({
                 {allActions?.map((action) => {
                   return (
                     <ActionIcon
+                      key={action.id}
                       size="xs"
                       onClick={(e) => {
                         e.preventDefault();

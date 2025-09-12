@@ -67,7 +67,7 @@ import { WarningCircleIcon } from "@phosphor-icons/react";
 import { useMultiTabWarning } from "../../hooks/useMultiTabWarning";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { createIdeaConnection } from "../../utils/ideas";
-import { ideasAreConnected } from "../../utils/graph";
+import { ideasAreConnected } from "../../utils/ideas";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 

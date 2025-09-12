@@ -28,6 +28,7 @@ import {
 } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../components/Utils/Icons/Icons";
 import { ILoadedConstellation } from "../../app/services/Graph";
+import { IExcerptReference } from "../../app/database/models/excerpt";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
@@ -116,7 +117,7 @@ export const fromConstellation = (
       return {
         ...inclusion,
         id: inclusion.id.toString(),
-        type: "description",
+        type: "inclusion",
         source: inclusion.in.toString(),
         target: inclusion.out.toString(),
         distance: MIN_GRAPH_DIST,
@@ -163,6 +164,9 @@ export const getNodeTitle = (node: INode) => {
   if (node.type === "source") {
     return node.displayName;
   }
+  if (node.type === "excerpt") {
+    return node.sourceText.slice(0, 124) + "...";
+  }
 };
 
 export const getNodeDescription = (
@@ -200,6 +204,9 @@ export const getNodeDescription = (
   if (node.type === "task") {
     return node.description;
   }
+  if (node.type === "excerpt") {
+    return node.note.slice(0, 256);
+  }
 };
 
 export const getNodeContent = (node: INode) => {
@@ -211,6 +218,9 @@ export const getNodeContent = (node: INode) => {
   }
   if (node.type === "task") {
     return node.scratchpad;
+  }
+  if (node.type === "excerpt") {
+    return node.note;
   }
   return undefined;
 };
@@ -230,6 +240,9 @@ export const getNodeLink = (node: INode) => {
   }
   if (node.type === "tag") {
     return `/tags/${node.id.toString()}`;
+  }
+  if (node.type === "excerpt") {
+    return `/sources/${typeof node.references === "string" ? node.references : (node.references as IExcerptReference).id.toString()}`;
   }
 };
 
@@ -254,6 +267,18 @@ export const getNodeLinkFromId = (id: string | RecordId) => {
   }
 };
 
+export const getNodeEdgeType = (node: INode): IEdge["type"] => {
+  if (["idea", "task", "source", "excerpt"].includes(node.type)) {
+    return "connection";
+  }
+  if (node.type === "rabbithole") {
+    return "inclusion";
+  }
+  if (node.type === "tag") {
+    return "description";
+  }
+};
+
 export const NodeIcon = (node: INode) => {
   if (node.type === "idea") {
     return LightbulbIcon;
@@ -273,20 +298,6 @@ export const NodeIcon = (node: INode) => {
   if (node.type === "excerpt") {
     return TextAlignLeftIcon;
   }
-};
-
-export const ideasAreConnected = (
-  first: IIdea | ISafeIdea,
-  second: IIdea | string,
-) => {
-  if (!first.connections && !second) {
-    return undefined;
-  }
-  const secondId = typeof second === "string" ? second : second.id.toString();
-  const firstHasSecond = !!first.connections?.find(
-    (c) => c.id.toString() === secondId,
-  );
-  return firstHasSecond;
 };
 
 export const isIncluded = (

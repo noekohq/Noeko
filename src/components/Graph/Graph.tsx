@@ -3,38 +3,10 @@ import { IEdge, IGraph, INode } from "../../declarations/graph"; // Adjust path 
 import Node from "./Node";
 import Edge from "./Edge";
 import styles from "./Graph.module.scss";
-import { Flex, Text } from "@mantine/core"; // Assuming you still use Mantine
 import NodePanel from "./NodePanel";
 import { useGraph } from "../../contexts/GraphContext";
-
-// --- Simulation Configuration ---
-const SIMULATION_CONFIG = {
-  forceStrength: -1000,
-  linkStrength: 0.7,
-  centerForceStrength: 0.06,
-  alpha: 1,
-  alphaDecay: 0.0228,
-  alphaMin: 0.001,
-  velocityDecay: 0.6,
-};
-
-function getVector(
-  p1: { x?: number; y?: number },
-  p2: { x?: number; y?: number },
-) {
-  if (
-    p1.x === undefined ||
-    p1.y === undefined ||
-    p2.x === undefined ||
-    p2.y === undefined
-  ) {
-    return { dx: 0, dy: 0, dist: 0 };
-  }
-  const dx = p2.x - p1.x;
-  const dy = p2.y - p1.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  return { dx, dy, dist };
-}
+import { getNodeEdgeType } from "../../utils/graph";
+import { useGraphTraversal } from "./useGraphTraversal";
 
 function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   const dx = touch1.clientX - touch2.clientX;
@@ -106,6 +78,21 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     );
   }, [nodes]);
 
+  const adjacencyList = React.useMemo(() => {
+    const list: Record<string, IEdge[]> = {};
+
+    nodes.forEach((node) => {
+      list[node.id.toString()] = [];
+    });
+
+    edges.forEach((edge) => {
+      list[edge.source]?.push(edge);
+      list[edge.target]?.push(edge);
+    });
+
+    return list;
+  }, [nodes, edges]);
+
   const dragStartPosRef = useRef<{
     pointerId: number | null;
     screenX: number;
@@ -128,6 +115,11 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     position: { x: number; y: number };
     onClose: () => void;
   } | null>(null);
+
+  const nodePositionsRef = useRef<Map<string, { x: number; y: number }>>(
+    new Map(),
+  );
+  const animationFrameRef = useRef<number>();
 
   const handleClosePanel = useCallback(() => {
     setNodePanel(null);
@@ -171,13 +163,22 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     const currentWidth = propWidth ?? dimensions.width;
     const currentHeight = propHeight ?? dimensions.height;
 
-    setTransform({ k: 1, x: currentWidth / 2, y: currentHeight / 2 });
+    setTransform({ k: 0.4, x: currentWidth / 2, y: currentHeight / 2 });
+    const numNodes = graph.nodes.length;
+    const angleIncrement = Math.PI * (3 - Math.sqrt(5)); // Golden Angle in radians
+    const radiusIncrement = 200; // Controls how spread out the spiral is
 
-    const initialNodes = graph.nodes.map((node) => ({
-      ...node,
-      x: node.x,
-      y: node.y,
-    }));
+    const initialNodes = graph.nodes.map((node, i) => {
+      const radius = radiusIncrement * Math.sqrt(i);
+      const angle = i * angleIncrement;
+
+      return {
+        ...node,
+        x: radius * Math.cos(angle),
+        y: radius * Math.sin(angle),
+      };
+    });
+
     setNodes(initialNodes);
 
     worker.postMessage({
@@ -188,23 +189,39 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     worker.onmessage = (event) => {
       const { type, nodes: updatedNodes } = event.data;
       if (type === "tick") {
-        setNodes((currentNodes) => {
-          const nodePositionMap = new Map<string, { x: number; y: number }>(
-            updatedNodes.map((n: INode) => [n.id, { x: n.x, y: n.y }]),
-          );
-          return currentNodes.map((node) => {
-            const updatedPosition = nodePositionMap.get(node.id.toString());
-            if (updatedPosition) {
-              return { ...node, x: updatedPosition.x, y: updatedPosition.y };
-            }
-            return node;
-          });
+        updatedNodes.forEach((n: { id: string; x: number; y: number }) => {
+          nodePositionsRef.current.set(n.id.toString(), { x: n.x, y: n.y });
         });
+
+        if (!animationFrameRef.current) {
+          animationFrameRef.current = requestAnimationFrame(() => {
+            setNodes((currentNodes) => {
+              const nodePositionMap = new Map<string, { x: number; y: number }>(
+                updatedNodes.map((n: INode) => [n.id, { x: n.x, y: n.y }]),
+              );
+              return currentNodes.map((node) => {
+                const updatedPosition = nodePositionMap.get(node.id.toString());
+                if (updatedPosition) {
+                  return {
+                    ...node,
+                    x: updatedPosition.x,
+                    y: updatedPosition.y,
+                  };
+                }
+                return node;
+              });
+            });
+            animationFrameRef.current = undefined;
+          });
+        }
       }
     };
 
     return () => {
       worker.terminate();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       workerRef.current = null;
     };
   }, [
@@ -242,15 +259,25 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     [getSVGPoint, transform],
   );
 
+  const potentialDragTargetRef = useRef<string | null>(null);
+
   const handleMouseDown = (event: React.MouseEvent<SVGSVGElement>) => {
     const target = event.target as SVGElement;
     const nodeElement = target.closest("[data-node-id]");
 
     if (event.button === 0) {
+      // Primary mouse button
       if (nodeElement) {
         const nodeId = nodeElement.getAttribute("data-node-id");
         if (nodeId) {
-          startNodeDrag(nodeId, null, event.clientX, event.clientY);
+          potentialDragTargetRef.current = nodeId;
+          dragStartPosRef.current = {
+            pointerId: null,
+            screenX: event.clientX,
+            screenY: event.clientY,
+            nodeStartX: 0,
+            nodeStartY: 0,
+          };
         }
       } else {
         startPan(null, event.clientX, event.clientY);
@@ -259,6 +286,43 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   };
 
   const handleMouseMove = (event: MouseEvent) => {
+    // --- CHANGE: This is where we decide if it's a drag ---
+    if (potentialDragTargetRef.current && !isDraggingNode) {
+      const dx = Math.abs(event.clientX - dragStartPosRef.current!.screenX);
+      const dy = Math.abs(event.clientY - dragStartPosRef.current!.screenY);
+
+      // If mouse has moved more than a few pixels, start a proper drag
+      if (dx > 5 || dy > 5) {
+        const nodeId = potentialDragTargetRef.current;
+        setIsDraggingNode(nodeId); // Now it's officially a drag
+
+        // Now we can call the original startNodeDrag logic to set fx/fy and reheat
+        const node = nodeMap[nodeId!];
+        if (!node || !workerRef.current) return;
+
+        const { x: svgX, y: svgY } = screenToSVGCoords(
+          dragStartPosRef.current!.screenX,
+          dragStartPosRef.current!.screenY,
+        );
+
+        // Update the ref with the correct node start offsets
+        dragStartPosRef.current = {
+          ...dragStartPosRef.current!,
+          nodeStartX: (node.x ?? 0) - svgX,
+          nodeStartY: (node.y ?? 0) - svgY,
+        };
+
+        workerRef.current.postMessage({
+          type: "update_node_position",
+          payload: { id: nodeId, fx: node.x, fy: node.y },
+        });
+
+        // Clear the potential target so this block doesn't run again
+        potentialDragTargetRef.current = null;
+      }
+    }
+
+    // This part is for an *active* drag, it remains mostly the same
     if (
       isDraggingNode &&
       dragStartPosRef.current?.pointerId === null &&
@@ -276,78 +340,59 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         payload: { id: isDraggingNode, fx: newFx, fy: newFy },
       });
     } else if (isPanning && panStartPosRef.current?.pointerId === null) {
+      // Panning logic remains the same
       const dx = event.clientX - panStartPosRef.current.screenX;
       const dy = event.clientY - panStartPosRef.current.screenY;
-      const newTx = panStartPosRef.current.vbX + dx;
-      const newTy = panStartPosRef.current.vbY + dy;
-      setTransform((prev) => ({ ...prev, x: newTx, y: newTy }));
+      setTransform((prev) => ({
+        ...prev,
+        x: prev.x + dx,
+        y: prev.y + dy,
+      }));
+      // Update start position for next move event
+      panStartPosRef.current.screenX = event.clientX;
+      panStartPosRef.current.screenY = event.clientY;
     }
+  };
+
+  const handleNodeSelect = (
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+    node: INode,
+  ) => {
+    onNodeSelect?.(event, node);
   };
 
   const handleMouseUp = useCallback(
     (event: MouseEvent) => {
-      const target = event.target as Element;
-
-      const isClickInsideNodePanel = nodePanelRef.current?.contains(target);
-
-      const wasDragging =
-        !!isDraggingNode && dragStartPosRef.current?.pointerId === null;
-      const wasPanning =
-        !!isPanning && panStartPosRef.current?.pointerId === null;
-      let dragJustEnded = false;
-
-      if (wasDragging) {
-        if (isDraggingNode && workerRef.current) {
-          workerRef.current.postMessage({
-            type: "end_node_drag",
-            payload: { id: isDraggingNode },
-          });
-        }
-        dragJustEnded = true;
+      // If a drag was in progress, end it.
+      if (isDraggingNode) {
+        workerRef.current?.postMessage({
+          type: "end_node_drag",
+          payload: { id: isDraggingNode },
+        });
         setIsDraggingNode(null);
-        dragStartPosRef.current = null;
-      }
-      if (wasPanning) {
-        setIsPanning(false);
-        panStartPosRef.current = null;
-      }
-      if (!dragJustEnded && event.button === 0) {
-        const nodeElement = target.closest("g[data-node-id]"); // Check closest <g>
-
-        if (nodeElement && !isClickInsideNodePanel) {
-          // Click was on a node, outside the panel
+      } else if (potentialDragTargetRef.current) {
+        const target = event.target as Element;
+        const nodeElement = target.closest("g[data-node-id]");
+        if (nodeElement) {
           const nodeId = nodeElement.getAttribute("data-node-id");
           const node = nodeMap[nodeId!];
-          if (node && typeof onNodeSelect === "function") {
-            // Example: Trigger selection
-            // onNodeSelect(event as any, node);
+          if (node) {
+            handleNodeSelect(event as any, node);
           }
-          if (node && typeof onNodeNavigate === "function") {
-            // Example: Trigger navigation
-            // onNodeNavigate(event as any, node);
-          }
-        } else if (
-          !nodeElement &&
-          !isClickInsideNodePanel &&
-          typeof handleClosePanel === "function"
-        ) {
-          // Click was NOT on a node AND NOT inside the panel -> treat as background click
-          handleClosePanel(); // Close the panel
-        } else if (isClickInsideNodePanel) {
-          // Click was INSIDE the panel, do nothing here.
-          // Let NodePanel's internal handlers (`onClick` on buttons, `onClickCapture`) manage it.
         }
       }
-      // Add dependencies based on what's used inside (isDraggingNode, isPanning, nodeMap, handleClosePanel, etc.)
+
+      // End panning
+      if (isPanning) {
+        setIsPanning(false);
+      }
+
+      // Cleanup refs
+      potentialDragTargetRef.current = null;
+      dragStartPosRef.current = null;
+      panStartPosRef.current = null;
     },
-    [
-      isDraggingNode,
-      isPanning,
-      handleClosePanel,
-      nodeMap,
-      onNodeSelect,
-      onNodeNavigate,
-    ],
+    [isDraggingNode, isPanning, nodeMap, handleNodeSelect], // Add dependencies
   );
 
   useEffect(() => {
@@ -357,7 +402,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp]); // Update dependencies if handleMouseMove changes
 
   const handleTouchStart = (event: React.TouchEvent<SVGSVGElement>) => {
     const touches = event.touches;
@@ -728,7 +773,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<SVGSVGElement>) => {
-      event.preventDefault();
+      // event.preventDefault?.();
       const scaleFactor = 1.7;
       const zoomSpeed = 0.1;
       const delta = -event.deltaY * (zoomSpeed / 100);
@@ -802,35 +847,36 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     setNodePanel(null);
   };
 
-  // const {
-  //   filter: { get: getFilter },
-  // } = useGraph();
-  // const { filter } = getFilter();
+  const CONNECTABLE_TYPES = new Set(["idea", "task", "source", "excerpt"]);
 
-  // const filteredSet = new Set();
-  // const filteredNodes = nodes.filter((n) => {
-  //   const shouldInclude = filter(n);
-  //   if (shouldInclude) {
-  //     filteredSet.add(n.id);
-  //   } else {
-  //     filteredSet.delete(n.id);
-  //   }
-  //   return shouldInclude;
-  // });
-  // const filteredEdges = graph.edges.filter((e) => {
-  //   return (
-  //     filteredSet.has(e.source.toString()) &&
-  //     filteredSet.has(e.target.toString())
-  //   );
-  // });
-  //
+  const findConnectableCluster = useCallback(
+    (currentNodeId: string, visited: Set<string>) => {
+      if (visited.has(currentNodeId)) {
+        return;
+      }
+      visited.add(currentNodeId);
 
-  const handleNodeSelect = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode,
-  ) => {
-    onNodeSelect?.(event, node);
-  };
+      const connectedEdges = adjacencyList[currentNodeId] || [];
+
+      for (const edge of connectedEdges) {
+        if (edge.type === "connection") {
+          const neighborId =
+            edge.source === currentNodeId ? edge.target : edge.source;
+          const neighborNode = nodeMap[neighborId];
+
+          if (neighborNode && CONNECTABLE_TYPES.has(neighborNode.type)) {
+            findConnectableCluster(neighborId, visited);
+          }
+        }
+      }
+    },
+    [adjacencyList, nodeMap],
+  );
+
+  const { clusterSelect, clusterDeselect } = useGraphTraversal({
+    nodeMap,
+    adjacencyList,
+  });
 
   return (
     <div
@@ -839,59 +885,66 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
       className={styles.container}
       onClick={handleBackgroundClick}
     >
-      {nodePanel && <NodePanel ref={nodePanelRef} {...nodePanel} />}
-      {currentWidth > 0 && currentHeight > 0 && nodes.length ? (
-        <svg
-          ref={svgRef}
-          width={currentWidth}
-          height={currentHeight}
-          onWheel={handleWheel}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchCancel}
-          style={{
-            cursor: isDraggingNode
-              ? "grabbing"
-              : isPanning
-                ? "grabbing"
-                : "grab",
+      {nodePanel && (
+        <NodePanel
+          ref={nodePanelRef}
+          {...nodePanel}
+          onClusterSelect={(node) => {
+            clusterSelect(node);
           }}
-        >
-          <g
-            className="everything"
-            transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
-          >
-            {edges.map((edge, i) => (
-              <Edge
-                key={`${edge.id}`}
-                edge={edge}
-                sourceNode={nodeMap[edge.source]}
-                targetNode={nodeMap[edge.target]}
-              />
-            ))}
-            {nodes.map((node, i) => {
-              return (
-                <Node
-                  key={node.id.toString()}
-                  node={node}
-                  scaleFactor={transform.k}
-                  isDragging={isDraggingNode === node.id} // Correct check
-                  onNodeSelect={handleNodeSelect}
-                  onNodeNavigate={onNodeNavigate}
-                  onContextMenu={handleNodeContextMenu}
-                  data-node-id={node.id.toString()}
-                />
-              );
-            })}
-          </g>
-        </svg>
-      ) : (
-        <Flex align="center" justify="center" style={{ height: "100%" }}>
-          <Text>No data yet...</Text>
-        </Flex>
+          onClusterDeselect={(node) => {
+            clusterDeselect(node);
+          }}
+        />
       )}
+      <svg
+        ref={svgRef}
+        width={currentWidth}
+        height={currentHeight}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        style={{
+          cursor: isDraggingNode ? "grabbing" : isPanning ? "grabbing" : "grab",
+        }}
+      >
+        <g
+          className="everything"
+          transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
+        >
+          {edges.map((edge, i) => (
+            <Edge
+              key={`${edge.id}`}
+              edge={edge}
+              sourceNode={nodeMap[edge.source]}
+              targetNode={nodeMap[edge.target]}
+            />
+          ))}
+          {nodes.map((node, i) => {
+            return (
+              <Node
+                key={node.id.toString()}
+                node={node}
+                scaleFactor={transform.k}
+                isDragging={isDraggingNode === node.id} // Correct check
+                onNodeSelect={handleNodeSelect}
+                onNodeNavigate={onNodeNavigate}
+                onContextMenu={handleNodeContextMenu}
+                onClusterSelect={(_, node) => {
+                  clusterSelect(node);
+                }}
+                onClusterDeselect={(_, node) => {
+                  clusterDeselect(node);
+                }}
+                data-node-id={node.id.toString()}
+              />
+            );
+          })}
+        </g>
+      </svg>
     </div>
   );
 };

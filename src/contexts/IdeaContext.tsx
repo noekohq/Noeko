@@ -8,7 +8,8 @@ import {
 } from "react";
 import { IIdea, ISafeIdea } from "../../app/database/models/ideas";
 import { createIdeaConnection } from "../utils/ideas";
-import { ideasAreConnected, isIncluded } from "../utils/graph";
+import { isIncluded } from "../utils/graph";
+import { ideasAreConnected } from "../utils/ideas";
 import useFetch from "../hooks/useFetch";
 
 type IIdeaContext = {

@@ -1,6 +1,7 @@
 import React, { forwardRef, useState } from "react";
 import {
   ActionIcon,
+  Badge,
   Box,
   Card,
   Grid,
@@ -15,6 +16,7 @@ import styles from "./NodePanel.module.scss";
 import {
   ArrowRightIcon,
   ArrowsOutSimpleIcon,
+  GraphIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
@@ -23,17 +25,21 @@ import {
   getNodeDescription,
   getNodeLink,
   getNodeTitle,
+  NodeIcon,
 } from "../../utils/graph";
 import Content from "../UI/Layout/Content";
+import { useGraph } from "../../contexts/GraphContext";
 
 export type NodePanelProps = {
   node: INode;
   position: { x: number; y: number };
   onClose: () => void;
+  onClusterSelect: (node: INode) => void;
+  onClusterDeselect: (node: INode) => void;
 };
 
 const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
-  ({ node, position, onClose }, ref) => {
+  ({ node, position, onClose, onClusterDeselect, onClusterSelect }, ref) => {
     const navigate = useNavigate();
 
     const [expanded, setExpanded] = useState(false);
@@ -41,6 +47,14 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
     const title = getNodeTitle(node);
     const description = getNodeDescription(node);
     const content = getNodeContent(node);
+
+    const Icon = NodeIcon(node);
+
+    const {
+      selected: { get: selected },
+    } = useGraph();
+
+    const isSelected = selected.has(node.id.toString());
 
     return (
       <div
@@ -55,6 +69,78 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
       >
+        <Grid gutter="sm">
+          <Grid.Col span={{ sm: 12 }}>
+            <Group justify="space-between">
+              <Group gap="xs">
+                {Icon && <Icon weight="bold" size={16} />}
+                <Text tt="uppercase" fw="bold" size="sm">
+                  {title}
+                </Text>
+                <Badge size="xs" variant="outline" color="gray">
+                  {node.type}
+                </Badge>
+              </Group>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+              >
+                <XIcon />
+              </ActionIcon>
+            </Group>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Text size="sm">{description}</Text>
+          </Grid.Col>
+          <Grid.Col span={{ sm: 12 }}>
+            <Group gap="xs">
+              <Link to={getNodeLink(node) || ""}>
+                <ActionIcon
+                  color="gray"
+                  variant="light"
+                  radius="lg"
+                  size={"md"}
+                >
+                  <ArrowRightIcon weight="bold" />
+                </ActionIcon>
+              </Link>
+              <ActionIcon
+                color="gray"
+                variant="light"
+                radius="lg"
+                size={"md"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded(true);
+                }}
+              >
+                <ArrowsOutSimpleIcon weight="bold" />
+              </ActionIcon>
+              <ActionIcon
+                color={isSelected ? "blue" : "gray"}
+                variant="light"
+                radius="lg"
+                size={"md"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isSelected) {
+                    onClusterDeselect(node);
+                    return;
+                  }
+                  onClusterSelect(node);
+                }}
+                title="Select cluster from this node..."
+              >
+                <GraphIcon weight="bold" />
+              </ActionIcon>
+            </Group>
+          </Grid.Col>
+        </Grid>
         <Modal
           opened={expanded}
           onClose={() => {
@@ -82,49 +168,6 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
             </Content>
           </Group>
         </Modal>
-        <Grid gutter="sm">
-          <Grid.Col span={{ sm: 12 }}>
-            <Group justify="space-between">
-              <Text tt="uppercase" fw="bold" size="sm">
-                {title}
-              </Text>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-              >
-                <XIcon />
-              </ActionIcon>
-            </Group>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Text size="sm">{description}</Text>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Group>
-              <Link to={getNodeLink(node) || ""}>
-                <ActionIcon variant="light" radius="lg" size={"lg"}>
-                  <ArrowRightIcon weight="bold" />
-                </ActionIcon>
-              </Link>
-              <ActionIcon
-                variant="light"
-                radius="lg"
-                size={"lg"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setExpanded(true);
-                }}
-              >
-                <ArrowsOutSimpleIcon weight="bold" />
-              </ActionIcon>
-            </Group>
-          </Grid.Col>
-        </Grid>
       </div>
     );
   },

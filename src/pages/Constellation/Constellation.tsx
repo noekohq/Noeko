@@ -23,6 +23,7 @@ import {
   IConstellationLoader,
   ILoadedConstellation,
 } from "../../../app/services/Graph";
+import GraphLoader from "../../components/Utils/Loading/GraphLoader";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -111,11 +112,7 @@ export default function GraphPage() {
           </>
         ) : (
           <Group align="center" justify="center" h="100vh" mt="xl">
-            <LangtonsAntLoader withOverlay />
-            {/* <Loader size="sm" />
-            <Text c="dimmed">
-              Loading your graph... This could take a little while.
-            </Text> */}
+            <GraphLoader />
           </Group>
         )}
       </div>

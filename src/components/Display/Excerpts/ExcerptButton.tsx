@@ -131,7 +131,7 @@ function ExcerptButton({
           close();
         }
       }}
-      width="target"
+      width="400px"
       shadow="lg"
       radius="md"
       transitionProps={{
