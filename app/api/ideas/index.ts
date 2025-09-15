@@ -351,48 +351,6 @@ router.get("/:ideaId/tags", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
-router.get(
-  "/:ideaId/suggest-new-tags",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const ideaId = req.params.ideaId;
-      const idea = await Idea.get(ideaId);
-      if (!idea) {
-        res.status(404).send({
-          message: "Could not find idea",
-        });
-        return;
-      }
-      const existingTags = await Tag.getTagsForIdea(ideaId);
-      if (!existingTags) {
-        res.status(404).send({
-          message: "Error getting existing tags",
-        });
-        return;
-      }
-      const tags = await Tag.suggestNewTagsForContent(
-        idea.content,
-        existingTags,
-      );
-      if (!tags) {
-        res.status(404).json({ error: "Tags not found" });
-        return;
-      }
-      res.send({ message: "Successfully retrieved idea tags", data: tags });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-);
-
 router.post(
   "/:ideaId/derive",
   checkToken,

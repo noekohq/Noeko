@@ -501,8 +501,15 @@ export default function ViewTag() {
                   onChange={(event) =>
                     setFilterQuery(event.currentTarget.value)
                   }
-                  mb="md"
+                  mb="sm"
                   radius="md"
+                  size="sm"
+                  styles={{
+                    input: {
+                      border: "1px solid var(--mantine-color-dark-7)",
+                    },
+                  }}
+                  variant="filled"
                 />
                 {thingErrors && thingErrors.length > 0 && (
                   <Alert
