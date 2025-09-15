@@ -4,6 +4,7 @@ import { Idea } from "../database/models/ideas"; // For type hinting
 import { checkToken, disallowDisabled } from "../middleware/auth"; // Assuming auth middleware
 import { getFromReq } from "../utils/requests"; // Assuming request utility
 import { ISafeUser, User } from "../database/models/user"; // Assuming user type
+import { includeThingInRabbithole } from "../../src/utils/rabbitholes";
 
 const router = Router();
 
@@ -87,7 +88,7 @@ router.get("/:tagId", async (req, res): Promise<void> => {
       return;
     }
 
-    const isOwner = await Tag.checkUserOwnership(tagId, user.id);
+    const isOwner = await User.checkOwns(user.id, tagId);
     if (!isOwner) {
       res.status(403).json({ message: "Forbidden. You do not own this tag." });
       return;
@@ -130,7 +131,6 @@ router.put("/:tagId", async (req, res): Promise<void> => {
       return;
     }
 
-    // TODO: this could use the newer User.owns() method
     const isOwner = await Tag.checkUserOwnership(tagId, user.id);
     if (!isOwner) {
       res.status(403).json({ message: "Forbidden. You do not own this tag." });
@@ -227,6 +227,42 @@ router.get("/:tagId/ideas", async (req, res): Promise<void> => {
   }
 });
 
+router.get("/:tagId/things", async (req, res): Promise<void> => {
+  try {
+    const { tagId } = req.params;
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const isOwner = await Tag.checkUserOwnership(tagId, user.id);
+    if (!isOwner) {
+      res.status(403).json({ message: "Forbidden. You do not own this tag." });
+      return;
+    }
+
+    const tagExists = await Tag.get(tagId);
+    if (!tagExists) {
+      res.status(404).json({ message: "Tag not found." });
+      return;
+    }
+
+    const things = await Tag.getTagThings(tagId);
+    if (things === undefined) {
+      res.status(500).json({ message: "Error fetching things for tag." });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ message: "Things for tag retrieved.", data: things });
+  } catch (error) {
+    console.error("Error getting things for tag:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.post("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -304,6 +340,88 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
       .json({ message: "Tag disconnected from idea successfully." });
   } catch (error) {
     console.error("Error disconnecting tag from idea:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/apply", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { tagId, thingId } = req.body;
+
+    const isTagOwner = await User.checkOwns(user.id, tagId);
+    if (!isTagOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const isThingOwner = await User.checkOwns(user.id, thingId);
+    if (!isThingOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const relationship = await Tag.applyToThing(tagId, thingId);
+    if (!relationship) {
+      res.status(500).json({
+        message:
+          "Failed to connect tag to thing. Ensure both tag and thing exist.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tag connected to thing successfully.",
+      data: relationship,
+    });
+  } catch (error) {
+    console.error("Error connecting tag to thing:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/apply", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { tagId, thingId } = req.body;
+
+    const isTagOwner = await User.checkOwns(user.id, tagId);
+    if (!isTagOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const isThingOwner = await User.checkOwns(user.id, thingId);
+    if (!isThingOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const relationship = await Tag.removeFromThing(tagId, thingId);
+    if (!relationship) {
+      res.status(500).json({
+        message:
+          "Failed to disconnect tag from thing. The relationship might not exist.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tag disconnected from thing successfully.",
+      data: relationship,
+    });
+  } catch (error) {
+    console.error("Error disconnecting tag from thing:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -399,6 +517,91 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
   }
 });
 
+router.get("/:tagId/suggestions", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { tagId } = req.params;
+    const { limit, threshold } = req.query;
+
+    let parsedLimit: number | undefined = undefined;
+    if (limit) {
+      parsedLimit = parseInt(limit as string, 10);
+      if (isNaN(parsedLimit) || parsedLimit <= 0) {
+        res.status(400).json({
+          message: "Invalid limit parameter. Must be a positive integer.",
+        });
+        return;
+      }
+    }
+
+    let parsedThreshold: number | undefined = undefined;
+    if (threshold) {
+      parsedThreshold = parseFloat(threshold as string);
+      if (
+        isNaN(parsedThreshold) ||
+        parsedThreshold < 0 ||
+        parsedThreshold > 1
+      ) {
+        res.status(400).json({
+          message:
+            "Invalid threshold parameter. Must be a float between 0 and 1.",
+        });
+        return;
+      }
+    }
+
+    const isOwner = await User.checkOwns(user.id, tagId);
+    if (!isOwner) {
+      res.status(403).json({ message: "Forbidden. You do not own this tag." });
+      return;
+    }
+
+    // Ensure tag exists and has embeddings before calling the search function
+    const tagExists = await Tag.get(tagId);
+    if (!tagExists) {
+      res.status(404).json({ message: "Tag not found." });
+      return;
+    }
+    if (!tagExists.embeddings || tagExists.embeddings.length === 0) {
+      res.status(200).json({
+        message: "Tag has no embeddings to compare, no similar ideas found.",
+        data: [],
+      });
+      return;
+    }
+
+    const options = {
+      limit: parsedLimit,
+      threshold: parsedThreshold,
+    };
+
+    const similarThings = await Tag.getSimilarThings(user.id, tagId, options);
+
+    if (similarThings === undefined) {
+      res
+        .status(500)
+        .json({ message: "Error fetching similar ideas for the tag." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Successfully retrieved similar ideas for the tag.",
+      data: similarThings,
+    });
+  } catch (error) {
+    console.error(
+      `Error getting similar ideas for tag ${req.params.tagId}:`,
+      error,
+    );
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get("/similar_to/idea/:ideaId", async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -407,7 +610,7 @@ router.get("/similar_to/idea/:ideaId", async (req, res) => {
       return;
     }
     const ideaId = req.params.ideaId;
-    const userOwns = Idea.checkUserOwnership(ideaId, user.id);
+    const userOwns = await Idea.checkUserOwnership(ideaId, user.id);
     if (!userOwns) {
       res.status(403).send({
         message: "Unauthorized.",

@@ -31,6 +31,7 @@ export default function ConstellationActions({
     highlighted: { set: setHighlighted, clear: clearHighlighted },
     selected: { add: addSelected, remove: removeSelected },
     loading: { set: setLoading },
+    focused: { set: setFocused },
   } = useGraph();
 
   const {
@@ -117,7 +118,13 @@ export default function ConstellationActions({
             {searchResults
               ?.map((s, i) => {
                 return (
-                  <ConnectableThing key={s.id.toString()} thing={s.value} />
+                  <ConnectableThing
+                    key={s.id.toString()}
+                    thing={s.value}
+                    onClick={(node) => {
+                      setFocused(node.id.toString());
+                    }}
+                  />
                 );
               })
               .filter((r) => !!r)}

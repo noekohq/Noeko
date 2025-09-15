@@ -28,12 +28,6 @@
     }
 }
 
-.highlightRing {
-    stroke: var(--mantine-color-dark-2);
-    stroke-width: 2px;
-    r: 30;
-    fill: transparent;
-}
 
 .node {
     --node-radius: 18;
@@ -41,7 +35,20 @@
     --color-nodes: var(--mantine-color-dark-9);
     --color-stroke: var(--mantine-color-dark-4);
 
+    .highlightRing {
+        stroke: var(--mantine-color-dark-2);
+        stroke-width: 2px;
+        r: 30;
+        fill: transparent;
+    }
+
     cursor: pointer;
+
+    &.focused {
+        .highlightRing {
+            stroke: var(--mantine-color-yellow-5);
+        }
+    }
 
     .mainCircle {
         r: var(--node-radius);
@@ -70,7 +77,6 @@
             opacity: 0.5;
         }
     }
-
 
     &.hidden {
         opacity: 0.25;
