@@ -22,6 +22,7 @@ interface IGraphOrganizerProps {
 
 export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
   const {
+    focused: { get: focused, set: setFocused },
     selected: {
       get: selection,
       clear: clearSelection,
@@ -71,17 +72,31 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
             <RabbitholeButton
               key={rabbithole.id.toString()}
               rabbithole={rabbithole}
+              onClick={(node) => {
+                setFocused(node.id.toString());
+              }}
             />
           );
         })}
         {tags.map((tag) => {
-          return <TagButton key={tag.id.toString()} tag={tag} />;
+          return (
+            <TagButton
+              key={tag.id.toString()}
+              tag={tag}
+              onClick={(node) => {
+                setFocused(node.id.toString());
+              }}
+            />
+          );
         })}
         {connectables.map((connectable) => {
           return (
             <ConnectableThing
               key={connectable.id.toString()}
               thing={connectable}
+              onClick={(node) => {
+                setFocused(node.id.toString());
+              }}
             />
           );
         })}
