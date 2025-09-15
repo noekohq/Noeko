@@ -1,6 +1,7 @@
 import React from "react";
 import { IDerivedNode, IEdge, INode } from "../../declarations/graph.d"; // Adjust path as needed
 import styles from "./Edge.module.scss"; // Assuming styles remain similar
+import { useGraph } from "../../contexts/GraphContext";
 
 type EdgeProps = {
   edge: IEdge;
@@ -21,6 +22,15 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
     return null;
   }
 
+  const {
+    selected: { get: selected },
+  } = useGraph();
+
+  const isSelected =
+    selected.has(sourceNode.id.toString()) ||
+    selected.has(targetNode.id.toString());
+  const notSelected = !isSelected && selected.size > 0;
+
   const strokeWidth = 1.5;
 
   const visibilityToStyle: Record<
@@ -32,12 +42,24 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
     low: { opacity: 0.25, strokeWidth: 1 },
   };
 
+  const defaultStyles = !notSelected;
+
+  const classes = [
+    isSelected ? styles.selected : "",
+    notSelected ? styles.notSelected : "",
+    styles.edge,
+  ];
+
   return (
     <line
-      className={`${styles.edge}`}
-      style={{
-        ...visibilityToStyle[edge.visibility || "low"],
-      }}
+      className={classes.join(" ")}
+      style={
+        defaultStyles
+          ? {
+              ...visibilityToStyle[edge.visibility || "low"],
+            }
+          : {}
+      }
       x1={sourceNode.x}
       y1={sourceNode.y}
       x2={targetNode.x}
