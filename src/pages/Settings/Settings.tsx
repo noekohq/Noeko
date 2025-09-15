@@ -20,7 +20,13 @@ import { IThemeSpec } from "../../declarations/themes";
 import { Link } from "react-router";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
-import { CheckIcon, CopyIcon, LightbulbIcon } from "@phosphor-icons/react";
+import {
+  CheckIcon,
+  CopyIcon,
+  DiscordLogoIcon,
+  LightbulbIcon,
+  RedditLogoIcon,
+} from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Settings() {
@@ -180,7 +186,7 @@ export default function Settings() {
                               )
                             }
                           >
-                            <Text>Copy Referral Link</Text>
+                            Copy Referral Link
                           </Button>
                         );
                       }}
@@ -191,6 +197,31 @@ export default function Settings() {
                       Shared Ideas
                     </Button>
                   </Link>
+                </Group>
+              </Stack>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={12}>
+            <Card withBorder radius="lg">
+              <Stack>
+                <Title order={3}>Community</Title>
+                <Group>
+                  <a href="https://discord.gg/GXdtErEA" target="_blank">
+                    <Button
+                      variant="default"
+                      leftSection={<DiscordLogoIcon weight="fill" />}
+                    >
+                      Join the Discord
+                    </Button>
+                  </a>
+                  <a href="https://reddit.com/r/noeko" target="_blank">
+                    <Button
+                      variant="default"
+                      leftSection={<RedditLogoIcon weight="fill" />}
+                    >
+                      Check out the Subreddit
+                    </Button>
+                  </a>
                 </Group>
               </Stack>
             </Card>

@@ -712,7 +712,7 @@ export class Tag {
       const tagEmbedding = tag.embeddings;
 
       const finalVector = tagEmbedding
-        ? weightedAverage(tagEmbedding, averageEmbedding, 0.3)
+        ? weightedAverage(tagEmbedding, averageEmbedding, 0.6)
         : averageEmbedding;
 
       const similarThings = await GraphService.searchSimilarConnectables(

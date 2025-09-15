@@ -12,6 +12,9 @@ import {
   Modal,
   TextInput,
   SimpleGrid,
+  HoverCard,
+  Textarea,
+  Blockquote,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -23,6 +26,7 @@ import { ITagDescribes } from "../../../app/database/models/tag";
 import {
   ArrowLeftIcon,
   FloppyDiskIcon,
+  InfoIcon,
   LightbulbIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
@@ -409,15 +413,16 @@ export default function ViewTag() {
                       <Title order={4}>Edit Tag</Title>
                       <Group gap="xs">
                         <ActionIcon
-                          variant="filled"
+                          variant="light"
                           onClick={handleSave}
                           loading={updateTagLoading}
+                          color="gray"
                           title="Save Tag"
                         >
                           <FloppyDiskIcon weight="bold" />
                         </ActionIcon>
                         <ActionIcon
-                          variant="outline"
+                          variant="light"
                           color="gray"
                           onClick={handleCancel}
                           title="Cancel Edit"
@@ -427,14 +432,63 @@ export default function ViewTag() {
                       </Group>
                     </Group>
                     <TextInput
-                      label="Tag Name"
-                      placeholder="Tag name"
+                      label="Name"
+                      placeholder="Name your tag..."
                       {...editForm.getInputProps("name")}
                       required
                     />
-                    <TextInput
-                      label="Description"
-                      placeholder="Tag description (optional)"
+                    <Textarea
+                      label={
+                        <Group align="center" gap="2px">
+                          <Text size="sm">Description</Text>
+                          <HoverCard width="300px" radius="lg">
+                            <HoverCard.Target>
+                              <ActionIcon
+                                size="xs"
+                                radius="lg"
+                                variant="subtle"
+                                color="gray"
+                              >
+                                <InfoIcon size={14} />
+                              </ActionIcon>
+                            </HoverCard.Target>
+                            <HoverCard.Dropdown>
+                              <Stack gap="xs">
+                                <Text size="sm" mb="sm">
+                                  The better the description, the better the
+                                  system will be at suggesting tag applications.
+                                  More detail will mean more specific
+                                  suggestions.
+                                </Text>
+                                <Text fw="bold" size="sm">
+                                  Good Description
+                                </Text>
+                                <Blockquote p="xs" color="gray">
+                                  <Text size="sm">
+                                    Fleetingness. The quality of being fleeting
+                                    or transient.
+                                  </Text>
+                                </Blockquote>
+                                <Text fw="bold" size="sm">
+                                  Better Description
+                                </Text>
+                                <Blockquote p="xs" color="gray">
+                                  <Text size="sm">
+                                    The concept of fleetiness. It represents a
+                                    momentary, ephemeral experience, like a
+                                    spark of inspiration that fades, a dream
+                                    upon waking, or the brief scent of rain on
+                                    hot pavement.
+                                  </Text>
+                                </Blockquote>
+                              </Stack>
+                            </HoverCard.Dropdown>
+                          </HoverCard>
+                        </Group>
+                      }
+                      placeholder="Describe the meaning of your tag..."
+                      minRows={3}
+                      autosize
                       {...editForm.getInputProps("description")}
                     />
                     {updateTagErrors.length > 0 && (
@@ -473,16 +527,17 @@ export default function ViewTag() {
                           variant="subtle"
                           onClick={() => setIsEditing(true)}
                           title="Edit Tag"
+                          color="gray"
                         >
-                          <PencilSimpleIcon />
+                          <PencilSimpleIcon weight="bold" />
                         </ActionIcon>
                         <ActionIcon
                           variant="subtle"
-                          color="red"
+                          color="gray"
                           onClick={openDeleteModal}
                           title="Delete Tag"
                         >
-                          <TrashIcon />
+                          <TrashIcon weight="bold" />
                         </ActionIcon>
                       </Group>
                     </Group>

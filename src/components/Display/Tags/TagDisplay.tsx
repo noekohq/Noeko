@@ -40,7 +40,7 @@ export function InlineTag({
   } = useSettings();
 
   return (
-    <HoverCard withArrow openDelay={500}>
+    <HoverCard withArrow openDelay={200} width="300px" radius="lg">
       <HoverCard.Target>
         <Badge
           variant={variant || "light"}
@@ -62,7 +62,9 @@ export function InlineTag({
           {tag.name}
         </Badge>
       </HoverCard.Target>
-      <HoverCard.Dropdown>{tag.description}</HoverCard.Dropdown>
+      <HoverCard.Dropdown>
+        <Text size="sm">{tag.description}</Text>
+      </HoverCard.Dropdown>
     </HoverCard>
   );
 }
