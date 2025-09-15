@@ -46,11 +46,36 @@ async function fetchDreamConnectionItems(
   }
 }
 
+async function fetchDreamConnectionItemsSemantic(
+  query: string,
+): Promise<IDreamConnectionItem[]> {
+  if (!query) {
+    return [];
+  }
+  try {
+    const response = await api.get(`/search/smartSuggest?query=${query}`);
+    const items = response.data.data.map((item: ISearchResultValue) => ({
+      ...item,
+    }));
+    return items;
+  } catch (error) {
+    console.error(error);
+    return []; // Return empty array on error
+  }
+}
+
 const debouncedFetch = debounce(
   (query: string, resolve: (items: IDreamConnectionItem[]) => void) => {
     fetchDreamConnectionItems(query).then(resolve);
   },
   200,
+);
+
+const debouncedFetchSmart = debounce(
+  (query: string, resolve: (items: IDreamConnectionItem[]) => void) => {
+    fetchDreamConnectionItemsSemantic(query).then(resolve);
+  },
+  500,
 );
 
 const suggestionOptionsDefinition = (
@@ -88,7 +113,7 @@ const suggestionOptionsDefinition = (
     },
     items: async ({ query }) => {
       return new Promise((resolve) => {
-        debouncedFetch(query, resolve);
+        debouncedFetchSmart(query, resolve);
       });
     },
     render: () => {
