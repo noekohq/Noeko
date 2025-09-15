@@ -1,19 +1,17 @@
 import {
-  Container,
   Title,
   Text,
-  SimpleGrid,
   Card,
   Group,
   Stack,
   Loader,
   Alert,
-  LoadingOverlay,
   Button,
   Overlay,
   ActionIcon,
   Modal,
   TextInput,
+  SimpleGrid,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -21,24 +19,18 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import { Link, useNavigate, useParams } from "react-router";
-import { IIdea } from "../../../app/database/models/ideas";
+import { ITagDescribes } from "../../../app/database/models/tag";
 import {
   ArrowLeftIcon,
   FloppyDiskIcon,
+  LightbulbIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
-  PlusIcon,
-  TagIcon,
   TrashIcon,
   WarningCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { BlockTag } from "../../components/Display/Tags/TagDisplay";
-import {
-  addTagToIdea,
-  newTaggedIdea,
-  removeTagFromIdea,
-} from "../../utils/ideas"; // Import new utility functions
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
 import { useState, useEffect, useMemo } from "react";
@@ -46,10 +38,12 @@ import { useForm } from "@mantine/form";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
 import { useLayout } from "../../contexts/LayoutContext";
-import { useInteraction } from "../../contexts/InteractionContext";
 import StatusBar from "../../components/UI/Layout/Bottom";
-import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
-import { getNodeDescription } from "../../utils/graph";
+import { getNodeDescription, getNodeTitle } from "../../utils/graph";
+import CollapseButton from "../../components/Display/Interactions/CollapseButton";
+import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
+import { RecordId } from "surrealdb";
+import { applyTagToThing, removeTagFromThing } from "../../utils/tags";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -66,51 +60,45 @@ export default function ViewTag() {
   });
 
   const {
-    data: ideas,
-    loading: loadingIdeas,
-    errors: ideaErrors,
-    load: reloadIdeas,
-  } = useFetch<undefined, IIdea[]>({
-    url: `/tags/${tagId}/ideas`,
+    data: things,
+    loading: loadingThings,
+    errors: thingErrors,
+    load: reloadThings,
+  } = useFetch<undefined, ITagDescribes[]>({
+    url: `/tags/${tagId}/things`,
     runOnMount: true,
   });
 
   const {
-    data: relatedIdeas,
-    loading: loadingRelatedIdeas,
-    errors: relatedIdeaErrors,
-    load: reloadRelatedIdeas,
-  } = useFetch<undefined, IIdea[]>({
-    url: `/tags/${tagId}/similar-ideas`,
+    data: suggestedThings,
+    loading: loadingSuggestedThings,
+    errors: suggestedThingsErrors,
+    load: reloadSuggestedThings,
+  } = useFetch<undefined, ITagDescribes[]>({
+    url: `/tags/${tagId}/suggestions`,
     runOnMount: true,
   });
 
-  const filteredRelatedIdeas = relatedIdeas
-    ? relatedIdeas.filter(
-        (relatedIdea) => !ideas?.some((idea) => idea.id === relatedIdea.id),
-      )
-    : [];
-
-  const somethingLoading = loadingTag || loadingIdeas || loadingRelatedIdeas;
+  const somethingLoading =
+    loadingTag || loadingThings || loadingSuggestedThings;
 
   const handleRefresh = async () => {
     await reloadTag();
-    await reloadIdeas();
-    await reloadRelatedIdeas();
+    await reloadThings();
+    await reloadSuggestedThings();
   };
 
-  const handleAddTag = async (idea: IIdea) => {
+  const handleAddTag = async (thingId: string | RecordId) => {
     if (!tag) {
       console.error("Cannot add tag: Tag data not loaded.");
-      // Optionally show an error message to the user
       return;
     }
     try {
-      await addTagToIdea(idea.id.toString(), tag.id.toString());
+      await applyTagToThing(tag.id.toString(), thingId.toString());
       handleRefresh();
     } catch (error) {
       console.error(
-        `Failed to add tag ${tag.name} to idea ${idea.title}:`,
+        `Failed to add tag ${tag.name} to thing ${thingId}:`,
         error,
       );
       showNotification({
@@ -121,18 +109,18 @@ export default function ViewTag() {
     }
   };
 
-  const handleRemoveTag = async (idea: IIdea) => {
+  const handleRemoveTag = async (thing: ITagDescribes) => {
     if (!tag) {
       console.error("Cannot remove tag: Tag data not loaded.");
       return;
     }
     try {
-      await removeTagFromIdea(idea.id.toString(), tag.id.toString());
+      await removeTagFromThing(tag.id.toString(), thing.id.toString());
 
       handleRefresh();
     } catch (error) {
       console.error(
-        `Failed to remove tag ${tag.name} from idea ${idea.title}:`,
+        `Failed to remove tag ${tag.name} from thing ${thing}:`,
         error,
       );
       showNotification({
@@ -143,8 +131,8 @@ export default function ViewTag() {
     }
   };
 
-  const ideaIsConnected = (ideaId: string) => {
-    return !!ideas?.find((i) => i.id.toString() === ideaId);
+  const thingIsConnected = (thingId: string) => {
+    return !!things?.find((i) => i.id.toString() === thingId);
   };
 
   const [draggingOver, setDraggingOver] = useState(false);
@@ -161,7 +149,6 @@ export default function ViewTag() {
     },
   });
 
-  // Update form values when tag data loads
   useEffect(() => {
     if (tag) {
       editForm.setValues({
@@ -228,17 +215,17 @@ export default function ViewTag() {
         return;
       }
       const jData = e.dataTransfer.getData("application/json");
-      const data = JSON.parse(jData) as { ideaId: string };
-      const { ideaId } = data;
-      if (ideaIsConnected(ideaId)) {
+      const data = JSON.parse(jData) as { thingId: string };
+      const { thingId } = data;
+      if (thingIsConnected(thingId)) {
         showNotification({
           title: "Can't connect again",
-          message: "Can't connect this idea again.",
+          message: "Can't connect this item again.",
           color: "yellow",
         });
         return;
       }
-      await addTagToIdea(ideaId, tag.id.toString());
+      await applyTagToThing(tag.id.toString(), thingId);
       handleRefresh();
     } catch (error) {
       console.error("Error creating connection: ", error);
@@ -288,21 +275,6 @@ export default function ViewTag() {
     await deleteTag();
   };
 
-  const handleCreateNewTaggedIdea = async () => {
-    if (!tag) {
-      return;
-    }
-    const newIdea = await newTaggedIdea(tag?.id.toString());
-    if (newIdea) {
-      navigate(`/idea/${newIdea.id}`);
-    } else {
-      showNotification({
-        title: "Something went wrong",
-        message: "Something went wrong creating the new idea",
-      });
-    }
-  };
-
   const {
     elements: {
       rightSidebar: {
@@ -312,22 +284,17 @@ export default function ViewTag() {
   } = useLayout();
 
   const [filterQuery, setFilterQuery] = useState(""); // State for filter query
-  const filteredIdeas = useMemo(() => {
-    if (!ideas) return [];
-    if (!filterQuery.trim()) return ideas;
+  const filteredThings = useMemo(() => {
+    if (!things) return [];
+    if (!filterQuery.trim()) return things;
 
     const query = filterQuery.toLowerCase();
-    return ideas.filter((idea) => {
-      const name = idea.title;
-      const hasName = !!name?.toLowerCase().includes(query);
-      const description = getNodeDescription({
-        ...idea,
-        type: "idea",
-      });
-      const hasDescription = !!description?.toLowerCase().includes(query);
-      return hasName || hasDescription;
+    return things.filter((thing) => {
+      const name = JSON.stringify(thing);
+      const contains = !!name?.toLowerCase().includes(query);
+      return contains;
     });
-  }, [ideas, filterQuery]);
+  }, [things, filterQuery]);
 
   return (
     <PageWrapper>
@@ -339,7 +306,7 @@ export default function ViewTag() {
       >
         <Text size="sm">
           Are you sure you want to delete this tag? This action cannot be undone
-          and will remove the tag from all associated ideas.
+          and will remove the tag from all associated items.
         </Text>
         {deleteTagErrors.length > 0 && (
           <Text c="red" size="xs" mt="sm">
@@ -363,51 +330,32 @@ export default function ViewTag() {
         <LeftSidebar.Open>
           {!!tag && (
             <Stack gap="md">
-              <Group>
-                <Title order={3}>Suggestions</Title>
-                {loadingRelatedIdeas && <Loader size="md" />}
-              </Group>
-              {relatedIdeaErrors && relatedIdeaErrors.length > 0 && (
-                <Alert
-                  icon={<WarningCircleIcon size={24} />} // Updated icon
-                  title="Error!"
-                  color="red"
-                  mt="md"
-                >
-                  Failed to load suggestions: {relatedIdeaErrors.join(", ")}
-                </Alert>
-              )}
-              {!(relatedIdeaErrors && relatedIdeaErrors.length > 0) &&
-              filteredRelatedIdeas &&
-              filteredRelatedIdeas.length > 0 ? (
-                <Stack gap="md">
-                  {filteredRelatedIdeas.map((idea) => (
-                    <IdeaCard
-                      idea={idea}
-                      key={idea.id.toString()}
-                      actionsVisible={1}
-                      actions={[
-                        {
-                          icon: <TagIcon />,
-                          id: "apply_tag",
-                          label: `Apply "${tag.name}"`,
-                          onClick: () => {
-                            handleAddTag(idea);
-                          },
-                          tooltip: `Apply tag ${tag.name} to ${idea.title}`,
-                        },
-                      ]}
-                    />
-                  ))}
-                </Stack>
-              ) : (
-                !loadingRelatedIdeas &&
-                !(relatedIdeaErrors && relatedIdeaErrors.length > 0) && (
-                  <Text c="dimmed" size="sm">
-                    No suggestions.
-                  </Text>
-                )
-              )}
+              <Text size="sm" c="dark.4" fw="bold">
+                <Group gap="xs">
+                  <LightbulbIcon weight="bold" />
+                  SUGGESTED
+                </Group>
+              </Text>
+              {suggestedThings?.map((thing) => (
+                <CollapseButton
+                  key={thing.id.toString()}
+                  target={<ConnectableThing thing={thing} />}
+                  details={
+                    <Group>
+                      <Button
+                        radius="lg"
+                        variant="light"
+                        color="gray"
+                        onClick={() => {
+                          handleAddTag(thing.id.toString());
+                        }}
+                      >
+                        Apply "{tag.name}"
+                      </Button>
+                    </Group>
+                  }
+                />
+              ))}
             </Stack>
           )}
         </LeftSidebar.Open>
@@ -544,70 +492,62 @@ export default function ViewTag() {
 
               <Stack gap="md">
                 <Group>
-                  <Title order={3}>
-                    <Group gap="md">
-                      Ideas with this tag
-                      <ActionIcon
-                        onClick={() => {
-                          handleCreateNewTaggedIdea();
-                        }}
-                        variant="light"
-                        radius="sm"
-                        size="sm"
-                        color="gray"
-                      >
-                        <PlusIcon weight="bold" />
-                      </ActionIcon>
-                    </Group>
-                  </Title>
-                  {loadingIdeas && <Loader size="md" />}
+                  <Title order={3}>Items with this tag</Title>
+                  {loadingThings && <Loader size="md" />}
                 </Group>
                 <TextInput
-                  placeholder="Filter ideas..."
+                  placeholder="Filter items..."
                   value={filterQuery}
                   onChange={(event) =>
                     setFilterQuery(event.currentTarget.value)
                   }
-                  mb="md" // Added margin bottom for spacing
+                  mb="md"
                   radius="md"
                 />
-                {ideaErrors && ideaErrors.length > 0 && (
+                {thingErrors && thingErrors.length > 0 && (
                   <Alert
-                    icon={<WarningCircleIcon size={24} />} // Updated icon
+                    icon={<WarningCircleIcon size={24} />}
                     title="Error!"
                     color="red"
                     mt="md"
                   >
-                    Failed to load ideas for this tag: {ideaErrors.join(", ")}
+                    Failed to load items for this tag: {thingErrors.join(", ")}
                   </Alert>
                 )}
-                {filteredIdeas && filteredIdeas.length > 0 ? (
-                  <SimpleGrid cols={2} spacing="lg">
-                    {filteredIdeas.map((idea) => (
-                      <IdeaCard
-                        idea={idea}
-                        key={idea.id.toString()}
-                        actionsVisible={1}
-                        actions={[
-                          {
-                            icon: <TagIcon />,
-                            id: "remove_tag",
-                            label: `Remove tag`,
-                            onClick: () => {
-                              handleRemoveTag(idea);
-                            },
-                            tooltip: `Remove tag ${tag.name} from ${idea.title}`,
-                            color: "dark.1",
-                          },
-                        ]}
+                {filteredThings && filteredThings.length > 0 ? (
+                  <SimpleGrid
+                    cols={{
+                      sm: 1,
+                      md: 2,
+                      lg: 2,
+                    }}
+                  >
+                    {filteredThings.map((thing) => (
+                      <CollapseButton
+                        key={thing.id.toString()}
+                        target={<ConnectableThing thing={thing} />}
+                        details={
+                          <Group>
+                            <Button
+                              radius="lg"
+                              variant="light"
+                              color="red"
+                              onClick={() => {
+                                handleRemoveTag(thing);
+                              }}
+                            >
+                              Remove "{tag.name}"
+                            </Button>
+                          </Group>
+                        }
                       />
                     ))}
                   </SimpleGrid>
                 ) : (
-                  !loadingIdeas &&
-                  !(ideaErrors && ideaErrors.length > 0) && (
+                  !loadingThings &&
+                  !(thingErrors && thingErrors.length > 0) && (
                     <Text c="dimmed">
-                      No ideas are currently associated with this tag.
+                      No items are currently associated with this tag.
                     </Text>
                   )
                 )}

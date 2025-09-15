@@ -993,6 +993,7 @@ export default class Spyglass {
     results: ISearchResult[],
     intent: ISpyglassIntent,
   ): AsyncGenerator<string, void, unknown> {
+    /* We should update this to analyze each result in parallel instead of each result appended. It would improve accuracy and speed. */
     try {
       if (results.length === 0) {
         yield `[]`;

@@ -55,6 +55,7 @@ const NodeComponent = ({
 
   // Contexts and Hooks
   const {
+    focused: { get: focused },
     selected: {
       get: selected,
       add: addToSelection,
@@ -69,6 +70,7 @@ const NodeComponent = ({
 
   // Derived State & Values
   const nodeTitle = getNodeTitle(node);
+  const iAmFocused = focused === node.id.toString();
   const iAmSelected = selected.has(node.id.toString());
   const iAmUnselected = !iAmSelected && selected.size > 0;
   const iAmHighlighted = highlighted.has(node.id.toString());
@@ -170,6 +172,7 @@ const NodeComponent = ({
   const nodeClasses = [
     styles.node,
     styles[node.type],
+    iAmFocused && styles.focused,
     iAmSelected && styles.selected,
     iAmUnselected && styles.unselected,
     !shouldShow && styles.hidden,

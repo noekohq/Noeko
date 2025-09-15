@@ -7,6 +7,10 @@ type FilterConfig = {
 };
 
 type IGraphContext = {
+  focused: {
+    get: string;
+    set: (focused: string) => void;
+  };
   selected: {
     get: Set<string>;
     set: (ids: string[]) => void;
@@ -39,6 +43,10 @@ type IGraphContext = {
 };
 
 const initialGraphContext: IGraphContext = {
+  focused: {
+    get: "",
+    set: (focused: string) => {},
+  },
   selected: {
     get: new Set<string>(),
     set: (ids: string[] | null) => {},
@@ -81,7 +89,15 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
 
+  const [focused, setFocused] = useState<string>("");
+
   const value: IGraphContext = {
+    focused: {
+      get: focused,
+      set: (focused: string) => {
+        setFocused(focused);
+      },
+    },
     selected: {
       get: selected,
       set: (ids: string[] | null) => {

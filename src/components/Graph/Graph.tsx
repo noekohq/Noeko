@@ -8,6 +8,7 @@ import { useGraph } from "../../contexts/GraphContext";
 import { getNodeEdgeType } from "../../utils/graph";
 import { useGraphTraversal } from "./useGraphTraversal";
 import { GraphPanel } from "./GraphPanel";
+import { nodeInputRule } from "@tiptap/core";
 
 function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   const dx = touch1.clientX - touch2.clientX;
@@ -916,6 +917,37 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
     adjacencyList,
   });
 
+  const {
+    focused: { get: focused },
+  } = useGraph();
+
+  const focusOnNode = (nodeId: string, targetZoom: number = 1.5) => {
+    const node = nodeMap[nodeId];
+
+    if (
+      !node ||
+      typeof node.x === "undefined" ||
+      typeof node.y === "undefined"
+    ) {
+      console.warn(`Node with ID ${nodeId} not found or has no position.`);
+      return;
+    }
+
+    const currentWidth = propWidth ?? dimensions.width;
+    const currentHeight = propHeight ?? dimensions.height;
+
+    const newX = currentWidth / 2 - node.x * targetZoom;
+    const newY = currentHeight / 2 - node.y * targetZoom;
+
+    setTransform({ k: targetZoom, x: newX, y: newY });
+  };
+
+  useEffect(() => {
+    if (focused) {
+      focusOnNode(focused, 0.75);
+    }
+  }, [focused]);
+
   return (
     <div
       ref={containerRef}
@@ -923,7 +955,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
         width: "100%",
         height: "100%",
         overflow: "hidden",
-        overscrollBehaviorY: "contain",
+        overscrollBehavior: "none",
       }}
       className={styles.container}
       onClick={handleBackgroundClick}

@@ -7,8 +7,10 @@ import { getLM } from "../../ai/lms/lm";
 import { LMSchemaType } from "../../ai/lms";
 import { PromptBuilder } from "../../ai/lms/utils";
 import { Search } from "../../services/Search";
+import GraphService, { IConnectable } from "../../services/Graph";
+import { averageEmbeddings, weightedAverage } from "../../utils/math";
 
-type ITagDescribes = IIdea;
+export type ITagDescribes = IConnectable;
 
 export type ITag = {
   id: string | RecordId;
@@ -313,6 +315,77 @@ export class Tag {
     }
   }
 
+  static async applyToThing(
+    tagId: string | RecordId,
+    thingId: string | RecordId,
+  ): Promise<ITagDescriptionRelationship | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+
+      const tag = await Tag.get(tagId);
+      if (!tag) throw new Error(`Tag with id ${tagId} not found.`);
+
+      const result = await db.query<[ITagDescriptionRelationship]>(
+        `RELATE $tagId ->describes-> $thingId SET createdAt = $now;`,
+        {
+          tagId: new StringRecordId(tagId),
+          thingId: new StringRecordId(thingId),
+          now: new Date(),
+        },
+      );
+
+      if (!result) {
+        console.error(
+          `No relationship created for tag "${tagId}" and thing "${thingId}".`,
+        );
+        return undefined;
+      }
+      const [relationship] = result;
+      return relationship;
+    } catch (err) {
+      console.error(
+        `Error during applyToThing for tag "${tagId}" and thing "${thingId}":`,
+        err,
+      );
+      return undefined;
+    }
+  }
+
+  static async removeFromThing(
+    tagId: string | RecordId,
+    thingId: string | RecordId,
+  ): Promise<ITagDescriptionRelationship | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+
+      const result = await db.query<ITagDescriptionRelationship[]>(
+        `DELETE describes WHERE in = $tagId AND out = $thingId;`,
+        {
+          tagId: new StringRecordId(tagId),
+          thingId: new StringRecordId(thingId),
+        },
+      );
+
+      if (!result || result.length === 0) {
+        return undefined;
+      }
+
+      return result[0];
+    } catch (err) {
+      console.error(
+        `Error during removeFromThing for tag "${tagId}" and thing "${thingId}":`,
+        err,
+      );
+      return undefined;
+    }
+  }
+
   static async disconnectFromIdea(
     tagId: string | RecordId,
     ideaId: string | RecordId,
@@ -388,6 +461,39 @@ export class Tag {
       return results;
     } catch (error) {
       console.error("Error getting ideas for tag: ", error);
+      return undefined;
+    }
+  }
+
+  static async getTagThings(
+    tagId: string | RecordId,
+  ): Promise<ITagDescribes[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Error getting database");
+      }
+      const results = await db.query<[ITagDescribes[]]>(
+        `
+        SELECT VALUE
+          ->describes->(?) as describes
+        FROM ONLY $tagId
+        FETCH describes;
+        `,
+        {
+          tagId: new StringRecordId(tagId),
+        },
+      );
+
+      if (!results) {
+        console.warn("Error getting things for tag or tag has no things");
+        return [];
+      }
+
+      const [things] = results;
+      return things;
+    } catch (error) {
+      console.error("Error getting things for tag: ", error);
       return undefined;
     }
   }
@@ -535,92 +641,97 @@ export class Tag {
       if (!db) {
         throw new Error("Error getting database");
       }
-      const results = await db.query<[ITagDescribes]>(
+      const results = await db.query<[ITagDescribes[]]>(
         `
-        SELECT
+        SELECT VALUE
           ->describes->(?) AS describes
-        FROM ONLY $tag
-        FETCH describes;
+        FROM ONLY $tagId
+        LIMIT $k;
         `,
-        {
-          tag: id,
-          limit: k,
-        },
+        { tagId: new StringRecordId(id), k },
       );
+
       if (!results) {
-        throw new Error("Error getting first n described");
+        console.warn(`No ideas found for tag ${id.toString()}.`);
+        return [];
       }
-      const [firstN] = results;
-      return firstN;
+
+      const [firstK] = results;
+
+      return results;
     } catch (error) {
-      console.error(`Error fetching first k: `, k);
+      console.error(`Error getting ideas for tag ${id.toString()}: `, error);
       return undefined;
     }
   }
 
-  static async suggestNewTagsForContent(content: string, existingTags: ITag[]) {
+  static async getSimilarThings(
+    userId: string | RecordId,
+    tagId: string | RecordId,
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+    },
+  ): Promise<ITagDescribes[] | undefined> {
     try {
-      const prompt = new PromptBuilder()
-        .addBlock(
-          "Instructions",
-          `
-            You are a tag suggestion engine. Your task is to analyze the provided content and suggest a diverse list of accurate and useful classification tags.
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
 
-            **Key Guidelines for Tag Generation:**
+      const limit = options.limit || 25;
+      const threshold = Number(options.threshold) || 0.45;
 
-            1.  **No Duplicates:** Ensure your suggested tags are new and NOT present in the provided "Existing Tags" list.
-            2.  **Create a "Gradient" of Tags – Spanning Broad to Specific:**
-                * **Spectrum of Specificity:** Your suggestions should cover a range:
-                    * **Very Broad:** General categories, fields, or high-level concepts (e.g., "science," "arts," "business," "technology," "health," "education").
-                    * **Mid-Range Thematic:** More focused themes, systems, or methodologies (e.g., "particle physics," "impressionist art," "market analysis," "mobile application development," "preventive medicine," "online learning platforms").
-                    * **Fairly Specific (but Reusable):** Key components, techniques, specific theories, or distinct topics that are still recognizable and useful for categorizing other similar items (e.g., "Higgs boson," "color theory," "SWOT analysis," "user interface design," "vaccine development," "gamification strategies").
-                * **General Utility:** All tags, particularly the more specific ones, must retain general usefulness for broader categorization and discovery. Avoid hyper-specific tags that would *only* apply to the exact piece of content.
-                * **Varied Tag Types (apply the above spectrum to these):**
-                    * **Action/Process-Oriented:** Verbs describing activities (e.g., "researching," "authoring," "evaluating," "performing," "manufacturing," "diagnosing"). These can vary in their implied scope.
-                    * **Conceptual/Abstract:** Broader ideas or principles (often aligning with Very Broad or Mid-Range, e.g., "innovation," "ethics," "sustainability," "data privacy," "frameworks," "usability").
-                    * **Topic-Specific (Reusable):** Key subjects/entities (often Mid-Range or Fairly Specific, as illustrated in the example below).
-            3.  **Illustrative Example (Applying the Spectrum):**
-                For content describing "a detailed review of a new open-source photo editing software called 'FotoFix'":
-                * *Very Broad:* "software," "technology," "digital media," "creative tools"
-                * *Mid-Range:* "photo editing," "open-source applications," "graphics software," "software reviews," "image manipulation"
-                * *Fairly Specific (but Reusable):* "FotoFix" (if the software itself is a recognizable entity or could become one), "raster graphics editing," "non-destructive filters," "user interface critique," "workflow efficiency"
-            4.  **Enhance Discoverability:** Tags should help users find the content via search and reflect its multiple facets.
-          `,
-        )
-        .addBlock("Content", `${content}`)
-        .addList("Existing tags", [
-          ...existingTags.map((t) => {
-            return `${t.name}: ${t.description}`;
-          }),
-        ]);
-
-      const lm = getLM().withModel("simple");
-      const tags = await lm.generateJSON<
-        { name: string; description: string }[]
-      >(prompt.get(), {
-        type: LMSchemaType.ARRAY,
-        items: {
-          type: LMSchemaType.OBJECT,
-          description: "The specific tag in question",
-          properties: {
-            name: {
-              type: LMSchemaType.STRING,
-              description: "The name of the tag",
-            },
-            description: {
-              type: LMSchemaType.STRING,
-              description: "What the tag describes about the content",
-            },
-          },
-          required: ["name", "description"],
+      const results = await db.query<
+        [(ITagDescribes & { embeddings: number[] })[]]
+      >(
+        `
+        SELECT VALUE
+          ->describes->(?) as describes
+        FROM ONLY $tagId
+        FETCH describes;
+        `,
+        {
+          tagId: new StringRecordId(tagId),
         },
-      });
-      if (!tags) {
-        throw new Error("No tags generated.");
+      );
+
+      if (!results) {
+        throw new Error("Couldn't get results");
       }
-      return tags;
+
+      const [described] = results;
+      const vectors = described.map((i) => i.embeddings).filter((i) => !!i);
+      const averageEmbedding = averageEmbeddings(vectors);
+
+      const tag = await Tag.get(tagId);
+
+      if (!tag) {
+        throw new Error("No tag found");
+      }
+
+      const tagEmbedding = tag.embeddings;
+
+      const finalVector = tagEmbedding
+        ? weightedAverage(tagEmbedding, averageEmbedding, 0.3)
+        : averageEmbedding;
+
+      const similarThings = await GraphService.searchSimilarConnectables(
+        userId,
+        finalVector,
+        {
+          limit,
+          threshold,
+          exclude: described.map((i) => i.id.toString()),
+        },
+      );
+
+      if (!similarThings) {
+        throw new Error("Couldn't get similar things");
+      }
+
+      return similarThings;
     } catch (error) {
-      console.error("Error suggesting tags: ", error);
+      console.error("Error finding tag suggestions:", error);
       return undefined;
     }
   }

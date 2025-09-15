@@ -369,6 +369,7 @@ export default class GraphService {
       threshold?: number;
       candidates?: number;
       rabbitholeId?: string;
+      exclude?: string[];
     },
   ): Promise<IConnectable[] | undefined> {
     try {
@@ -378,6 +379,7 @@ export default class GraphService {
       const limit = options.limit ?? 10;
       const defaultCandidates = 300;
       const candidates = options.candidates ?? defaultCandidates;
+      const exclude = options.exclude ?? [];
 
       if (!embedding) {
         throw new Error("No embedding vector provided for connectable");
@@ -389,6 +391,10 @@ export default class GraphService {
       }
 
       const subqueryWhere = [`<-owns<-(user WHERE id = $userId)`];
+
+      if (exclude.length) {
+        subqueryWhere.push(`id NOT IN [${exclude.join(", ")}]`);
+      }
 
       if (!options.rabbitholeId) {
         subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
