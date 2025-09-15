@@ -135,10 +135,12 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
       onOptionSubmit={handleOptionSubmit}
       store={combobox}
       withinPortal={false}
+      width="100%"
     >
       <Combobox.Target>
         <TextInput
           ref={inputRef}
+          width={"100%"}
           placeholder={placeholder}
           value={searchQuery}
           size={size}
