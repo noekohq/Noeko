@@ -37,6 +37,8 @@ import {
 } from "@phosphor-icons/react";
 import { markdownToHtml } from "../../../utils/formatting";
 import { IFinding } from "../../../../app/services/Spyglass";
+import { getNodeTitle, getTypeFromId } from "../../../utils/graph";
+import { INode } from "../../../declarations/graph";
 
 export type IDisplayOverview = {
   overview: ISearchOverview;
@@ -190,31 +192,35 @@ export function DisplayOverview({
                 return sourceId in resultsMap;
               })
               .map(([sourceId, findings], index) => {
-                const source = resultsMap[sourceId];
-                const title =
-                  source.type === "idea" ? source.title : source.id.toString();
+                const nodeType = getTypeFromId(sourceId) as
+                  | "source"
+                  | "idea"
+                  | "excerpt"
+                  | "task";
+                const source = { ...resultsMap[sourceId], type: nodeType };
+
+                if (!nodeType) {
+                  return null;
+                }
+
+                const title = getNodeTitle({
+                  ...(source as INode),
+                });
 
                 return (
                   <Accordion.Item key={sourceId} value={sourceId}>
                     <Accordion.Control>
                       <Group align="center" justify="space-between">
                         <Text size="sm">{title}</Text>
-                        <Group>
+                        <Group gap="2px">
                           {findings.map((finding) => {
                             return (
-                              <Badge
+                              <button
                                 key={finding.index}
-                                variant="light"
-                                size="sm"
-                                mx="2px"
-                                p="xs"
-                                radius="lg"
-                                color="gray"
+                                className={styles.citationIcon}
                               >
-                                <Text size="xs" fw="bold">
-                                  {finding.index + 1}
-                                </Text>
-                              </Badge>
+                                {finding.index + 1}
+                              </button>
                             );
                           })}
                         </Group>
@@ -231,7 +237,7 @@ export function DisplayOverview({
                             }}
                           >
                             <Group gap="xs" c="dimmed">
-                              <Text size="sm">Go to idea</Text>
+                              <Text size="sm">View</Text>
                               <ArrowRightIcon size={14} />
                             </Group>
                           </Link>

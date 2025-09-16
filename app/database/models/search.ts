@@ -543,7 +543,7 @@ export class SpyglassSearch {
     }
   }
 
-  public static async *runSpyglassGenerator(
+  public static async *runSpyglassGeneratorOld(
     userId: string | RecordId,
     spyglassId: string | RecordId,
   ): AsyncGenerator<
@@ -822,6 +822,218 @@ export class SpyglassSearch {
     } catch (error) {
       const errorMessage = "An unexpected error occurred during spyglass run";
       logger.error(errorMessage, { userId, error });
+      yield {
+        type: "error",
+        data: errorMessage,
+        statusText: "Something went wrong...",
+      };
+      return undefined;
+    }
+  }
+
+  public static async *runSpyglassGenerator(
+    userId: string | RecordId,
+    spyglassId: string | RecordId,
+  ): AsyncGenerator<
+    {
+      type: ISpyglassGeneratorType;
+      statusText: string;
+      data: ISpyglassSearch | string;
+    },
+    ISpyglassSearch | undefined, // The final return type of the generator
+    unknown
+  > {
+    const startTime = Date.now();
+    let resultsTime: number | null = null;
+    let findingsTime: number | null = null;
+    let overviewTime: number | null = null;
+
+    try {
+      // --- Phase 1: Initial Setup ---
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+
+      const getSpyglass = async () => SpyglassSearch.get(spyglassId);
+      let spyglass = await getSpyglass();
+
+      if (!spyglass) {
+        throw new Error("Search not found");
+      }
+
+      // --- Phase 2: Iterative Search Building ---
+
+      // Step 2.1: Load Intent if missing
+      if (!spyglass.intent) {
+        console.info("Loading Spyglass intent...");
+        await SpyglassSearch.loadIntent(userId, spyglass.id);
+        spyglass = await getSpyglass();
+        if (!spyglass)
+          throw new Error("Spyglass record disappeared after loading intent.");
+        yield {
+          type: "intent_loaded",
+          statusText: "Understanding intent...",
+          data: spyglass,
+        };
+      }
+
+      // Step 2.2: Load Results if missing
+      if (!spyglass.results || spyglass.results.length === 0) {
+        console.info("Loading Spyglass results...");
+        await SpyglassSearch.loadResults(userId, spyglass.id);
+        spyglass = await getSpyglass();
+        if (!spyglass)
+          throw new Error("Spyglass record disappeared after loading results.");
+        resultsTime = Date.now();
+        yield {
+          type: "results_loaded",
+          statusText: `Found ${spyglass.results?.length || 0} results...`,
+          data: spyglass,
+        };
+      }
+
+      // Ensure resultsTime is set if results were already loaded
+      if (!resultsTime) resultsTime = Date.now();
+
+      // --- Phase 3: Generate Findings in Parallel ---
+      if (
+        !spyglass.analysis?.findings ||
+        spyglass.analysis.findings.length === 0
+      ) {
+        console.info("Generating Spyglass findings...");
+        if (!spyglass.fullResults)
+          throw new Error("Full results were not loaded.");
+        if (!spyglass.intent) throw new Error("Spyglass intent was not found.");
+
+        yield {
+          type: "findings_generating",
+          statusText: "Analyzing sources...",
+          data: spyglass,
+        };
+
+        const completeFindings: IFinding[] = [];
+        for await (const findingsArray of Spyglass.generateFindingsFromResources(
+          spyglass.baseQuery,
+          spyglass.fullResults,
+          spyglass.intent,
+        )) {
+          // Each `findingsArray` is a complete IFinding[] from one source
+          completeFindings.push(...findingsArray);
+          yield {
+            type: "findings_chunk",
+            statusText: `Generated ${completeFindings.length} findings...`,
+            // Send the new array as a valid JSON string. The client can parse this chunk.
+            data: JSON.stringify(findingsArray),
+          };
+
+          if (completeFindings.length > max_spyglass_finding_amount) {
+            logger.warn(
+              "Exceeded maximum finding amount. Stopping generation.",
+            );
+            break; // Stop processing further results
+          }
+        }
+
+        // Save all collected findings
+        await db.merge<ISpyglassSearch>(spyglass.id, {
+          analysis: { findings: completeFindings, overview: "" },
+        });
+
+        spyglass = await getSpyglass();
+        if (!spyglass)
+          throw new Error("Spyglass record disappeared after saving findings.");
+
+        findingsTime = Date.now();
+        yield {
+          type: "findings_loaded",
+          statusText: `Analyzed ${spyglass.results?.length || 0} sources.`,
+          data: spyglass,
+        };
+      }
+
+      // Ensure findingsTime is set if they were already loaded
+      if (!findingsTime) findingsTime = Date.now();
+
+      // --- Phase 4: Stream Overview Generation ---
+      if (
+        spyglass.analysis?.findings &&
+        spyglass.analysis.findings.length > 0 &&
+        !spyglass.analysis.overview
+      ) {
+        console.info("Loading Spyglass overview...");
+        if (!spyglass.intent)
+          throw new Error("Intent not found for overview generation.");
+
+        yield {
+          type: "overview_generating",
+          statusText: "Composing answer...",
+          data: spyglass,
+        };
+
+        let completeOverview = "";
+        for await (const chunk of Spyglass.generateOverviewFromFindings(
+          spyglass.baseQuery,
+          spyglass.analysis.findings,
+          spyglass.intent,
+          spyglass.fullResults || [],
+          spyglass.parent,
+        )) {
+          completeOverview += chunk;
+          yield {
+            type: "overview_chunk",
+            statusText: "Composing answer...",
+            data: chunk,
+          };
+        }
+
+        // Save the complete overview
+        await db.merge<ISpyglassSearch>(spyglass.id, {
+          analysis: { ...spyglass.analysis, overview: completeOverview },
+        });
+
+        spyglass = await getSpyglass();
+        if (!spyglass)
+          throw new Error("Spyglass record disappeared after saving overview.");
+
+        overviewTime = Date.now();
+        yield {
+          type: "overview_completed",
+          statusText: "Answer complete.",
+          data: spyglass,
+        };
+      }
+
+      // --- Phase 5: Completion ---
+      const finalSearch = spyglass;
+      const resultsDuration = resultsTime
+        ? (resultsTime - startTime) / 1000
+        : null;
+      const findingsDuration =
+        findingsTime && resultsTime
+          ? (findingsTime - resultsTime) / 1000
+          : null;
+      const overviewDuration =
+        overviewTime && findingsTime
+          ? (overviewTime - findingsTime) / 1000
+          : null;
+
+      const formatDecimal = (value: number | null) =>
+        value?.toFixed(2) ?? "N/A";
+      const totalCitations = finalSearch.analysis?.findings.length ?? 0;
+
+      const statusText = `Found ${finalSearch.results?.length ?? 0} result${
+        finalSearch.results?.length === 1 ? "" : "s"
+      } in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(
+        findingsDuration,
+      )}s and overview in ${formatDecimal(overviewDuration)}s`;
+
+      yield { type: "completed", statusText, data: finalSearch };
+      return finalSearch;
+    } catch (error: any) {
+      const errorMessage =
+        error.message || "An unexpected error occurred during spyglass run";
+      logger.error(errorMessage, { userId, spyglassId, error });
       yield {
         type: "error",
         data: errorMessage,

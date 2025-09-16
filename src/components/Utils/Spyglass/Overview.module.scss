@@ -28,3 +28,29 @@
 .overviewUI {
     animation: overviewUI 0.5s ease-in-out forwards;
 }
+
+.citationIcon {
+    border: 1px solid var(--mantine-color-dark-7);
+    display: inline-flex;
+    background: var(--mantine-color-dark-9);
+    box-shadow: var(--mantine-shadow-sm);
+    margin-inline: 2px;
+    border-radius: var(--mantine-radius-md);
+    align-items: center;
+    justify-content: center;
+    transition:
+        border-color 0.2s ease-in-out,
+        width 0.2s ease-in-out;
+    font-size: calc(var(--mantine-font-size-xs) * .8);
+    text-transform: none;
+    cursor: pointer;
+
+    &.hovering {
+        border-color: var(--mantine-color-dark-4);
+    }
+
+    &:hover {
+        border-color: var(--mantine-color-dark-2);
+        background-color: var(--mantine-color-dark-8);
+    }
+}
