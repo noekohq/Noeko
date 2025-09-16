@@ -2,40 +2,26 @@ import {
   Title,
   Text,
   Group,
-  Container,
   Stack,
   ActionIcon,
   Button,
-  Accordion,
-  Divider,
-  Flex,
   Badge,
-  Space,
   HoverCard,
   Transition,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import { Link, useNavigate, useSearchParams } from "react-router";
-import { getNodeAsIdeaOrNull, getNodeTitle } from "../../utils/graph";
+import { Link, useSearchParams } from "react-router";
+import { getNodeTitle } from "../../utils/graph";
 import { useEffect, useRef, useState } from "react";
 import styles from "./Spyglass.module.scss";
-import { getSearchResultPreview } from "../../utils/search";
-import {
-  capitalize,
-  numberToLetter,
-  sanitizeMarkdownForDescription,
-} from "../../utils/formatting";
-import Match from "../../components/Utils/Match";
-import { generateTextFragmentHashFromText } from "../../utils/textFragment";
 import useSpyglass from "./hooks/useSpyglass";
 import Textbox from "./Textbox";
 import { useLayout } from "../../contexts/LayoutContext";
 import CountUp from "../../components/Utils/Animations/Countup";
 import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
 import {
-  ArrowRightIcon,
   ArrowsClockwiseIcon,
   ClockCounterClockwiseIcon,
   InfoIcon,
@@ -45,10 +31,6 @@ import Content from "../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
-import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
-import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
-import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
-import CollapseButton from "../../components/Display/Interactions/CollapseButton";
 import SpyglassContext from "./Spyglass/SpyglassContext";
 import SpyglassActions from "./Spyglass/SpyglassActions";
 
@@ -282,7 +264,7 @@ export default function Spyglass() {
                 {results.length > 0 && (
                   <Text mb="lg" size="sm">
                     Reading{" "}
-                    <Badge variant="light" color="gray">
+                    <Badge variant="light" color="gray" component="span">
                       {<CountUp targetNumber={results.length} />}
                     </Badge>{" "}
                     resource{results.length === 1 ? "" : "s"}...
@@ -292,33 +274,32 @@ export default function Spyglass() {
                   const { excerpts, index } = citation;
                   const result = resultMap[sourceId];
                   return (
-                    <Transition mounted={true} transition="skew-down">
+                    <Transition
+                      mounted={true}
+                      transition="skew-down"
+                      key={sourceId}
+                    >
                       {(style) => {
                         return (
                           <Group
                             gap="xs"
                             className={styles.previewItem}
-                            key={sourceId}
                             style={style}
                           >
                             <Text size="sm" c="dimmed">
                               Reading
                             </Text>
-                            <Text size="sm" component="p" inline fw="bold">
-                              <Badge
-                                variant="light"
-                                color="gray"
-                                styles={{
-                                  label: {
-                                    textTransform: "none",
-                                  },
-                                }}
-                              >
-                                {result
-                                  ? getNodeTitle(result)
-                                  : "Unknown source"}
-                              </Badge>
-                            </Text>
+                            <Badge
+                              variant="light"
+                              color="gray"
+                              styles={{
+                                label: {
+                                  textTransform: "none",
+                                },
+                              }}
+                            >
+                              {result ? getNodeTitle(result) : "Unknown source"}
+                            </Badge>
                           </Group>
                         );
                       }}
