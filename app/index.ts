@@ -50,7 +50,7 @@ if (isProduction) {
   console.info(`Serving production build from ${viteBuildPath}`);
   app.use(Express.static(viteBuildPath));
 
-  app.get("/:path(.*)", (req, res) => {
+  app.get("/*app", (req, res) => {
     if (req.path.startsWith("/api/") || req.path.startsWith("/assets/")) {
       res.status(404).send("Not Found");
       return;
