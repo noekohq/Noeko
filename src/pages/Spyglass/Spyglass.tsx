@@ -217,15 +217,19 @@ export default function Spyglass() {
                         features might not always work as expected. We're
                         looking for feedback as we learn and grow :)
                       </Text>
+                      <Text size="xs" c="dimmed">
+                        This feature will remain free during it's experimental
+                        stage. Rate limits may apply in future versions.
+                      </Text>
                       <ActionIcon
                         size="sm"
                         variant="light"
-                        color="gray"
+                        color="blue"
                         onClick={() => {
                           openFeedbackModal();
                         }}
                       >
-                        <MegaphoneIcon />
+                        <MegaphoneIcon size="12" weight="bold" />
                       </ActionIcon>
                     </Stack>
                   </HoverCard.Dropdown>
