@@ -102,6 +102,8 @@ export default function useSpyglass({
     onAnalysisChange?.(spyglass?.analysis || null);
   }, [spyglass?.analysis]);
 
+  useEffect(() => {}, []);
+
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   const getEndStatusText = () => {
@@ -298,6 +300,9 @@ export default function useSpyglass({
     }
 
     try {
+      await api.get("/users/me").then(() => {
+        console.info("Ensured authentication status.");
+      });
       setStatusText("Searching your ideas...");
       const response = await api.post("/search/spyglass/initialize", {
         query,

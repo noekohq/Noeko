@@ -152,7 +152,8 @@ export function DisplayOverview({
                       {({ copied, copy }) => {
                         return (
                           <Button
-                            variant="subtle"
+                            variant="light"
+                            color="gray"
                             size="sm"
                             onClick={copy}
                             leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
@@ -166,7 +167,8 @@ export function DisplayOverview({
                       {({ copied, copy }) => {
                         return (
                           <Button
-                            variant="subtle"
+                            variant="light"
+                            color="gray"
                             size="sm"
                             onClick={copy}
                             leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
