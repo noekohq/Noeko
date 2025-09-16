@@ -159,7 +159,7 @@ export class User {
         `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
       );
 
-      const kernel = getKernel();
+      // const kernel = getKernel();
       ensureAllUsersHaveNecessaryFields();
     } catch (error) {
       console.error("Error creating user table:", error);
