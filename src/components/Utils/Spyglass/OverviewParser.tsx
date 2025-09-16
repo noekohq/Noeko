@@ -47,19 +47,14 @@ const FindingBadge: React.FC<IFindingBadgeProps> = ({
       radius="lg"
     >
       <HoverCard.Target>
-        <Badge
-          variant="light"
-          size="sm"
-          mx="2px"
-          p="xs"
-          radius="lg"
-          color="gray"
-          className={styles.citationIcon}
-        >
-          {findingNumber + 1}
-        </Badge>
+        <button className={styles.citationIcon}>{findingNumber + 1}</button>
       </HoverCard.Target>
-      <HoverCard.Dropdown>
+      <HoverCard.Dropdown
+        mah={400}
+        style={{
+          overflowY: "auto",
+        }}
+      >
         <Group align="baseline" justify="space-between">
           <Link to={titleLink || ""} style={{ textDecoration: "none" }}>
             <Text size="md" c="dark.1" fw="bold" style={{ cursor: "pointer" }}>

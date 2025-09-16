@@ -422,86 +422,6 @@ export type IFinding = {
   findingType: IFindingType;
 };
 
-// TODO: This will be absorbed into modes above
-const queryModes: {
-  name: string;
-  description: string;
-  specificInstructions: string[];
-}[] = [
-  {
-    name: "Direct Q&A",
-    description:
-      "This mode is for when a user asks a specific, direct question to their knowledge base. The goal is to provide a single, accurate, and concise answer.",
-    specificInstructions: [
-      "Your primary goal is to answer the user's question directly and concisely. Avoid providing broad, unnecessary background information.",
-      "Begin the response with the direct answer in the very first sentence. The rest of the response should only provide essential supporting context.",
-      "Prioritize findings with the types: FACT, DEFINITION, and EXPLANATION to construct your answer.",
-      "Synthesize multiple relevant findings into one cohesive answer. Do not list out different findings separately.",
-      "If the findings do not contain a direct answer to the question, you MUST explicitly state that the information is not available in the knowledge base. Do not attempt to infer or guess the answer.",
-      "Keep the response to 1-2 paragraphs maximum. Use simple sentence and paragraph structure.",
-    ],
-  },
-  {
-    name: "Synthesis Report",
-    description:
-      "This is the standard mode for general knowledge queries, the goal is to provide a comprehensive and detailed answer that covers all aspects of the user's query.",
-    specificInstructions: [
-      "Start with a brief, one-paragraph summary of the key information.",
-      "Structure the main body of the response using headings for sub-topics.",
-      "Prioritize FACT, DEFINITION, and EXPLANATION findings to build the core of the report.",
-      "Weave in PERSONAL_INSIGHT and QUOTE findings to add color and personal context, but they should support the main narrative, not lead it.",
-      "Ensure the report is well-organized, coherent, and easy to follow.",
-    ],
-  },
-  {
-    name: "Insight Review",
-    description:
-      "This mode is for when the user wants to review their own thinking process. The goal is to provide a reflective experience and insight to the user's thought process, in accordance with their query.",
-    specificInstructions: [
-      "You MUST prioritize findings with the PERSONAL_INSIGHT type above all others. Also, give high priority to KEY_TAKEAWAY and OPEN_QUESTION.",
-      "Structure the output as a narrative review. Use blockquotes (>) for direct PERSONAL_INSIGHT excerpts.",
-      "The tone should be more reflective. It is acceptable to frame the answer from the user's perspective, for example: 'Your main insight was that...' or 'You seem to have concluded that...'",
-      "Factual findings (FACT, DEFINITION) should only be used to provide brief context for the personal insights.",
-    ],
-  },
-  {
-    name: "Action Summary",
-    description:
-      "This mode is for when the user is planning or reviewing tasks. The goal is to provide a clear, actionable list of action items.",
-    specificInstructions: [
-      "Start with a concise overview of the user's action items",
-      "Prioritize actionability on the user's behalf, providing only necessary context to take action on an item.",
-      "You MUST only use findings with the ACTION_ITEM type to construct your todo-list",
-      "Group related tasks under subheadings based on their source or topic.",
-      "Prioritize flat text structure, avoid heading tags, use bold text for emphasis or categorization.",
-      "use a standard list format to construct the lists.",
-    ],
-  },
-  {
-    name: "Comparative Analysis",
-    description:
-      "This mode is for when the user wants to understand the relationship between two or more concepts. Your goal is to create a structured comparison of the concepts mentioned in the query.",
-    specificInstructions: [
-      "You MUST format the core of your response as an HTML table with <table>.",
-      "The table columns should be the items being compared (e.g., 'Permaculture', 'Syntropic Agroforestry')",
-      "The table rows should be the criteria for comparison (e.g., 'Core Principles', 'Key Proponents', 'Implementation Challenges').",
-      "Use FACT, DEFINITION, and KEY_TAKEAWAY findings to populate the table. Use CONTRADICTION findings to highlight key differences.",
-      "Conclude with a brief summary paragraph highlighting the most significant similarities and differences.",
-    ],
-  },
-  {
-    name: "Question Drilldown",
-    description:
-      "This mode is for exploring the user's knowledge gaps. Your goal is to help a user understand the gaps in their knowledge, and unanswered questions they have.",
-    specificInstructions: [
-      "The lack of a relevant finding that should be there implies a gap in knowledge",
-      "Only in this mode may you reference content that isn't specifically included in findings.",
-      "Use KNOWLEDGE_GAP findings to identify gaps in the user's knowledge. As well as OPEN_QUESTION findings to identify unanswered questions.",
-      "Conclude with a brief summary paragraph highlighting the most significant knowledge gaps and steps to address them.",
-    ],
-  },
-];
-
 const spyglassMissionStatement = `
   To answer the user's query with the best possible answer, embodying the following principles:
   1. Accuracy: our answers only include information that is supported by our sources.
@@ -929,14 +849,22 @@ export default class Spyglass {
     if (value.type === "idea") {
       r += `  <title>${value.title}</title>`;
       r += `  <content>${htmlToMarkdown(value.content)}</content>`;
+      r += `  <type>User note</type>`;
     }
     if (value.type === "task") {
       r += `  <title>${value.description}</title>`;
       r += `  <content>${htmlToMarkdown(value.scratchpad)}</content>`;
+      r += `  <type>User task</type>`;
     }
     if (value.type === "source") {
       r += `  <title>${value.displayName}</title>`;
       r += `  <content>${htmlToMarkdown(value.content)}</content>`;
+      r += `  <type>User saved source</type>`;
+    }
+    if (value.type === "excerpt") {
+      r += `  <sourceText>${value.sourceText}</sourceText>`;
+      r += `  <userNote>${htmlToMarkdown(value.note)}</userNote>`;
+      r += `  <type>User saved excerpt from source</type>`;
     }
     r += ` <id>${value.id.toString()}</id>`;
     if (highlightText) {
@@ -1032,6 +960,115 @@ export default class Spyglass {
       }
     } catch (error) {
       console.error("Error generating findings from results:", error);
+      throw error;
+    }
+  }
+
+  static singleFindingPromptBuilder(intent: string, mode: ISpyglassMode) {
+    return new PromptBuilder()
+      .addText(
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
+      )
+      .addBlock(
+        "Context",
+        `
+          Here is some context for you to use in formation of your analysis:
+          <context>
+            It is currently ${getFormattedDateTimeToday()}.
+            You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          </context>
+          `,
+      )
+      .addBlock(
+        "Source Material Types",
+        `
+          There are four different types of resource that you might come across in results from your sources. All are curated by the user.
+
+          Types:
+          - Idea: these are directly created by the user, and are units of user knowledge
+          - Task: these are things that the user needs to do
+          - Source: these are user saved sources of external knowledge
+          - Excerpt: these are saved notes on specific source text from sources
+        `,
+      )
+      .addBlock("Mission Statement", spyglassMissionStatement)
+      .addBlock(
+        "Core Task and Rules",
+        `
+          Your goal is to meticulously analyze the single piece of Source Material and extract **exclusively** those findings that are directly and positively relevant to the "User Intent". You must act as a strict filter.
+
+          **Strict Rules:**
+          - **The Zero-Finding Rule:** It is essential that you return an empty array \`[]\` if no excerpts in the Source Material directly and strongly answer the User Intent. **It is better to find nothing than to include irrelevant or weakly related information.** Do not force a finding.
+          - **Positive Findings Only:** Your final report must only contain positive, relevant findings. Never report that a result was irrelevant or that information was missing.
+          - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
+          `,
+      )
+      .addBlock("User Intent", intent)
+      .addText(mode.analysis.prompt(intent).get()) // This dynamic prompt remains
+      .addBlock(
+        "Source for Analysis",
+        "The Source Material to use is as follows:\n",
+      );
+  }
+
+  static async *generateFindingsFromResources(
+    query: string,
+    results: ISearchResult[],
+    intent: ISpyglassIntent,
+  ): AsyncGenerator<IFinding[], void, unknown> {
+    // Changed to yield string
+    try {
+      if (!results || results.length === 0) {
+        return;
+      }
+
+      const lm = getLM().withModel("fast-accurate");
+
+      // 1. Kick off all analysis requests in parallel.
+      // The .map call is synchronous and starts all the async operations.
+      const findingPromises = results.map((result) => {
+        return (async () => {
+          const sourceId = result.id.toString();
+          const resultString = this.resultToString(result);
+
+          const singleResultPrompt = this.singleFindingPromptBuilder(
+            intent.intent,
+            Modes[intent.mode],
+          );
+
+          singleResultPrompt.addBlock(`Source Material`, resultString, 2);
+
+          try {
+            const findings = await lm.generateJSON<IFinding[]>(
+              singleResultPrompt.get(),
+              this.findingsSchema([sourceId]),
+            );
+            return findings || [];
+          } catch (err) {
+            console.error(
+              `Failed to process findings for result ${sourceId}:`,
+              err,
+            );
+            return []; // Return an empty array on error.
+          }
+        })();
+      });
+
+      // 2. Await each promise individually and yield its result as it completes.
+      // This allows the client to receive data much sooner.
+      for (const promise of findingPromises) {
+        const findings = await promise; // This waits for the next promise in the array to resolve.
+
+        if (findings.length > 0) {
+          // Yield the result as a JSON string for the client.
+          yield findings;
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error generating findings from resources in parallel:",
+        error,
+      );
       throw error;
     }
   }

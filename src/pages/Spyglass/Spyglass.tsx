@@ -12,6 +12,7 @@ import {
   Badge,
   Space,
   HoverCard,
+  Transition,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -48,6 +49,8 @@ import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
 import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 import CollapseButton from "../../components/Display/Interactions/CollapseButton";
+import SpyglassContext from "./Spyglass/SpyglassContext";
+import SpyglassActions from "./Spyglass/SpyglassActions";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -79,44 +82,6 @@ export default function Spyglass() {
   }, [spyglassInitialized]);
 
   const initialized = hasInitialized.current;
-
-  const sortedSearchResults = results
-    // .filter((r) => {
-    //   const hasCitation = !!citationMap[r.id.toString()];
-    //   return hasCitation;
-    // })
-    ?.sort((a, b) => {
-      const aHasCitation = !!citationMap[a.id.toString()];
-      const bHasCitation = !!citationMap[b.id.toString()];
-
-      if (aHasCitation && bHasCitation) {
-        return (
-          citationMap[a.id.toString()].index -
-          citationMap[b.id.toString()].index
-        );
-      }
-
-      if (aHasCitation && !bHasCitation) {
-        return -1;
-      }
-
-      if (!aHasCitation && bHasCitation) {
-        return 1;
-      }
-
-      return 0;
-    });
-
-  const navigate = useNavigate();
-
-  const citations = results.filter((r) => {
-    const hasCitation = !!citationMap[r.id.toString()];
-    return hasCitation;
-  });
-
-  const [showAllResults, setShowAllResults] = useState(false);
-
-  const { isMobile } = useLayout();
 
   useEffect(() => {
     if (complete && spyglassId) {
@@ -163,8 +128,6 @@ export default function Spyglass() {
       feedback: { openFeedbackModal },
     },
   } = useInteraction();
-
-  console.log("Results: ", results);
 
   if (error) {
     return (
@@ -219,46 +182,7 @@ export default function Spyglass() {
         }}
       >
         <LeftSidebar.Open>
-          {citations.length < 1 && (
-            <Text c="dimmed" size="sm">
-              No findings here yet, try asking something!
-            </Text>
-          )}
-          {citations.length > 0 && (
-            <>
-              <Title order={3} mb="lg">
-                Findings in {citations.length} Source
-                {citations.length > 1 ? "s" : ""}
-              </Title>
-              <div className={styles.citationsDisplay}>
-                <Group wrap="wrap" gap="xs">
-                  {citations.map((c) => {
-                    if (!c.value) {
-                      return null;
-                    }
-
-                    const citation = citationMap[c.id.toString()];
-
-                    return (
-                      <CollapseButton
-                        target={<ConnectableThing thing={c.value} />}
-                        details={
-                          <>
-                            <ActionIcon size="xs" radius="md" color="gray">
-                              <Text size="xs">{citation.index}</Text>
-                            </ActionIcon>
-                            <Text size="sm">
-                              {citation.excerpts.join(" ... ")}
-                            </Text>
-                          </>
-                        }
-                      />
-                    );
-                  })}
-                </Group>
-              </div>
-            </>
-          )}
+          <SpyglassContext citationMap={citationMap} results={results} />
         </LeftSidebar.Open>
         <LeftSidebar.Collapsed>
           <Stack>
@@ -267,6 +191,7 @@ export default function Spyglass() {
                 variant="light"
                 size="sm"
                 radius="md"
+                color="gray"
                 onClick={() => {
                   setLeftSidebar("open");
                 }}
@@ -275,7 +200,7 @@ export default function Spyglass() {
               </ActionIcon>
             )}
             <Link to="/spyglass/history">
-              <ActionIcon variant="light" size="sm">
+              <ActionIcon color="gray" variant="light" size="sm">
                 <ClockCounterClockwiseIcon />
               </ActionIcon>
             </Link>
@@ -288,14 +213,42 @@ export default function Spyglass() {
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
             {!initialized && (
-              <Title
-                ta={initialized ? "left" : "center"}
-                className={`${styles.header} ${initialized ? styles.initialized : ""}`}
-                order={initialized ? 2 : 1}
-                mb="lg"
-              >
-                Spyglass
-              </Title>
+              <Group gap="xs" justify="center">
+                <Title
+                  ta={initialized ? "left" : "center"}
+                  className={`${styles.header} ${initialized ? styles.initialized : ""}`}
+                  order={initialized ? 2 : 1}
+                  mb="lg"
+                >
+                  Spyglass
+                </Title>
+                <HoverCard openDelay={400} width="300px">
+                  <HoverCard.Target>
+                    <Badge color="orange" size="sm" variant="light">
+                      EXPERIMENTAL
+                    </Badge>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Stack gap="xs">
+                      <Text size="sm">
+                        Spyglass is currently under active development and some
+                        features might not always work as expected. We're
+                        looking for feedback as we learn and grow :)
+                      </Text>
+                      <ActionIcon
+                        size="sm"
+                        variant="light"
+                        color="gray"
+                        onClick={() => {
+                          openFeedbackModal();
+                        }}
+                      >
+                        <MegaphoneIcon />
+                      </ActionIcon>
+                    </Stack>
+                  </HoverCard.Dropdown>
+                </HoverCard>
+              </Group>
             )}
             {(!!initialized || !!initializing) && (
               <Text
@@ -304,7 +257,7 @@ export default function Spyglass() {
                 mb="lg"
                 fs="italic"
               >
-                {capitalize(queryToShow())}
+                {queryToShow()}
               </Text>
             )}
             {initialized && (
@@ -312,7 +265,7 @@ export default function Spyglass() {
                 className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
               >
                 {results.length <= 0 && (
-                  <Text mb="lg">
+                  <Text mb="lg" size="sm">
                     {!!intent && intent.queries?.length > 0 ? (
                       <span>
                         Running{" "}
@@ -327,8 +280,8 @@ export default function Spyglass() {
                   </Text>
                 )}
                 {results.length > 0 && (
-                  <Text mb="lg">
-                    Found{" "}
+                  <Text mb="lg" size="sm">
+                    Reading{" "}
                     <Badge variant="light" color="gray">
                       {<CountUp targetNumber={results.length} />}
                     </Badge>{" "}
@@ -339,34 +292,45 @@ export default function Spyglass() {
                   const { excerpts, index } = citation;
                   const result = resultMap[sourceId];
                   return (
-                    <Group
-                      gap="xs"
-                      className={styles.previewItem}
-                      key={sourceId}
-                    >
-                      <Text size="md">Reading</Text>
-                      <Text component="p" inline fw="bold">
-                        <Badge
-                          variant="light"
-                          color="gray"
-                          styles={{
-                            label: {
-                              textTransform: "none",
-                            },
-                          }}
-                        >
-                          {result ? getNodeTitle(result) : "Unknown source"}
-                        </Badge>
-                      </Text>
-                    </Group>
+                    <Transition mounted={true} transition="skew-down">
+                      {(style) => {
+                        return (
+                          <Group
+                            gap="xs"
+                            className={styles.previewItem}
+                            key={sourceId}
+                            style={style}
+                          >
+                            <Text size="sm" c="dimmed">
+                              Reading
+                            </Text>
+                            <Text size="sm" component="p" inline fw="bold">
+                              <Badge
+                                variant="light"
+                                color="gray"
+                                styles={{
+                                  label: {
+                                    textTransform: "none",
+                                  },
+                                }}
+                              >
+                                {result
+                                  ? getNodeTitle(result)
+                                  : "Unknown source"}
+                              </Badge>
+                            </Text>
+                          </Group>
+                        );
+                      }}
+                    </Transition>
                   );
                 })}
                 {overview.findings.length > 0 && (
                   <>
-                    <Text className={styles.previewItem} mt="lg">
+                    <Text className={styles.previewItem} mt="lg" size="sm">
                       Analyzing results...
                     </Text>
-                    <Text className={styles.previewItem}>
+                    <Text size="sm" className={styles.previewItem}>
                       {overview.findings.length} finding
                       {overview.findings.length === 1 ? "" : "s"}...
                     </Text>
@@ -414,6 +378,7 @@ export default function Spyglass() {
                       clear(true);
                       setParentId(null);
                     }}
+                    color="gray"
                     size="md"
                     variant="light"
                     radius="lg"
@@ -472,32 +437,7 @@ export default function Spyglass() {
       </Content>
       <RightSidebar>
         <RightSidebar.Open>
-          {intent?.queries.length && (
-            <>
-              <Title order={3}>
-                {intent.queries.length} Search
-                {intent.queries.length === 1 ? "" : "es"}...
-              </Title>
-              <Stack mt="xs" gap="xs">
-                {intent.queries.map((q) => {
-                  return (
-                    <Text key={q} size="xs" fs="italic" c="dimmed">
-                      {q}
-                    </Text>
-                  );
-                })}
-              </Stack>
-              <Space my="lg" />
-            </>
-          )}
-          <Stack gap="xs">
-            <Text size="sm">
-              {results.length} Result{results.length === 1 ? "" : "s"}...
-            </Text>
-            {results.map((r) => {
-              return <ConnectableThing key={r.id.toString()} thing={r.value} />;
-            })}
-          </Stack>
+          <SpyglassActions intent={intent} results={results} />
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

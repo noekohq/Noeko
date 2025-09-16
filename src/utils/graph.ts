@@ -148,7 +148,28 @@ export const getNodeOrganizationType = (
   return undefined;
 };
 
-export const getNodeTitle = (node: INode) => {
+export const getTypeFromId = (id: string): INode["type"] | undefined => {
+  if (id.startsWith("idea")) {
+    return "idea";
+  }
+  if (id.startsWith("source")) {
+    return "source";
+  }
+  if (id.startsWith("task")) {
+    return "task";
+  }
+  if (id.startsWith("excerpt")) {
+    return "excerpt";
+  }
+  if (id.startsWith("rabbithole")) {
+    return "rabbithole";
+  }
+  if (id.startsWith("tag")) {
+    return "tag";
+  }
+};
+
+export const getNodeTitle = (node: INode): string | undefined => {
   if (node.type === "idea") {
     return node.title;
   }

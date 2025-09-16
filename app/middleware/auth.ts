@@ -18,7 +18,7 @@ export const checkToken = async (
 
     if (!token) {
       res.status(401).json({
-        message: "Unauthorized",
+        message: "Unauthenticated.",
       });
       return;
     }
@@ -26,7 +26,7 @@ export const checkToken = async (
     const decoded = await verifyToken<ISafeUser>(token);
     if (!decoded) {
       res.status(401).json({
-        message: "Unauthorized",
+        message: "Unauthenticated.",
       });
       return;
     }

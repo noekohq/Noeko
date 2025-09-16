@@ -124,7 +124,7 @@ export default function useSpyglass({
 
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  const fullFindings = useRef("");
+  const fullFindings = useRef<string>("");
   const fullOverview = useRef("");
 
   useEffect(() => {
@@ -191,20 +191,15 @@ export default function useSpyglass({
             setLoadingFindings(true);
             break;
           case "findings_chunk":
-            fullFindings.current += parsedData.data;
-            const available = parseIncompleteJsonArray(
-              fullFindings.current,
+            const newFindings = JSON.parse(
+              parsedData.data as unknown as string,
             ) as ISearchOverview["findings"];
-            if (available) {
-              setAnalysis((prev) => {
-                const a = {
-                  ...prev,
-                  findings: available,
-                  overview: parsedData.data.analysis?.overview || "",
-                };
-                return a;
-              });
-            }
+
+            setAnalysis((prev) => ({
+              overview: prev?.overview || "",
+              findings: [...(prev?.findings || []), ...newFindings],
+            }));
+            break;
             return;
           case "findings_loaded":
             findingsTime.current = Date.now();
