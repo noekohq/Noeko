@@ -21,7 +21,7 @@ const ContentWide = ({ children }: IContentWideProps) => {
   } = useLayout();
 
   const contentRef = useRef<HTMLDivElement>(null);
-  useScroll({ ref: contentRef });
+  useScroll({ ref: contentRef ?? null });
 
   const leftModeToClass: Record<typeof leftMode, string> = {
     open: styles.leftOpen,

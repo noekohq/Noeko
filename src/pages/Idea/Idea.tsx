@@ -391,7 +391,7 @@ export default function Idea() {
     }
   }, [highlightText]);
 
-  const editorRef = useRef<IEditor>();
+  const editorRef = useRef<IEditor>(null);
 
   const downloadAsHTML = () => {
     if (idea?.content) {
@@ -407,9 +407,9 @@ export default function Idea() {
     if (!idea?.content) {
       return "";
     }
-    if (editorRef.current?.storage.markdown) {
-      return editorRef.current?.storage.markdown.getMarkdown() as string;
-    }
+    // if (editorRef.current?.storage.markdown) {
+    //   return editorRef.current?.storage.markdown.getMarkdown() as string;
+    // }
     return htmlToMarkdown(idea?.content);
   };
 

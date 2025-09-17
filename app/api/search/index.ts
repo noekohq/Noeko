@@ -81,6 +81,12 @@ router.get("/smartSuggest", checkToken, async (req, res) => {
       return;
     }
     const query = req.query.query as string;
+    if (typeof query !== "string") {
+      res.status(400).send({
+        message: "Query must be a string!",
+      });
+      return;
+    }
     const rabbitholeId = req.query.rabbitholeId as string;
     const suggestions = await Search.smartSuggest(user.id, query, {
       rabbitholeId,

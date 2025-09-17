@@ -59,7 +59,7 @@ export default function App() {
   const isSuperuser = userIsSuperuser(user);
 
   const previousOnlineState = useRef(isOnline);
-  const notificationTimeout = useRef<Timer>();
+  const notificationTimeout = useRef<Timer>(null);
 
   const {
     ui: {

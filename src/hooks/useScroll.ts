@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLayout } from "../contexts/LayoutContext";
 
 interface IUseScrollArgs {
-  ref: React.RefObject<HTMLElement>;
+  ref: React.RefObject<HTMLElement | null> | null;
 }
 
 export default function useScroll({ ref }: IUseScrollArgs) {
@@ -13,7 +13,7 @@ export default function useScroll({ ref }: IUseScrollArgs) {
   const lastScrollPosition = useRef(0);
 
   const handleScroll = () => {
-    if (!ref.current) return;
+    if (!ref?.current) return;
     const direction =
       ref.current.scrollTop > lastScrollPosition.current ? "down" : "up";
     setIsScrolled(ref.current.scrollTop > 0);
@@ -22,6 +22,7 @@ export default function useScroll({ ref }: IUseScrollArgs) {
   };
 
   useEffect(() => {
+    if (!ref?.current) return;
     ref.current?.addEventListener("scroll", handleScroll);
 
     return () => {

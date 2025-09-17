@@ -74,8 +74,11 @@ export const clearAuthCookies = async (res: Response) => {
 };
 
 export const multerToStandardFile = (multerFile: Express.Multer.File): File => {
-  const newFile = new File([multerFile.buffer], multerFile.originalname, {
+  const uint8Array = new Uint8Array(multerFile.buffer);
+
+  const newFile = new File([uint8Array], multerFile.originalname, {
     type: multerFile.mimetype,
   });
+
   return newFile;
 };

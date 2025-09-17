@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import multer from "multer";
 import { UserFile } from "../database/models/userfile";
@@ -8,17 +8,62 @@ import { ISafeUser, User } from "../database/models/user";
 const router = Router();
 
 const storage = multer.memoryStorage();
+
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+];
+
+const fileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) => {
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    // The file type is allowed, so accept the file.
+    cb(null, true);
+  } else {
+    // The file type is not allowed, so reject it with an error.
+    cb(new Error("Invalid file type. Only images and PDFs are allowed."));
+  }
+};
+
+const handleUpload = (req: Request, res: Response, next: NextFunction) => {
+  const uploadMiddleware = upload.single("userFile");
+
+  uploadMiddleware(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      // Handle Multer-specific errors (e.g., file size limit exceeded)
+      return res
+        .status(400)
+        .json({ error: "File Upload Error", message: err.message });
+    } else if (err) {
+      // Handle our custom fileFilter error
+      return res
+        .status(400)
+        .json({ error: "Bad Request", message: err.message });
+    }
+    // If no errors, proceed to the main route handler
+    next();
+  });
+};
+
 const upload = multer({
   storage,
   limits: {
     fileSize: 1024 * 1024 * 10, // 10MB
   },
+  fileFilter: fileFilter,
 });
 
 router.post(
   "/",
   checkToken,
   disallowDisabled,
+  handleUpload,
   upload.single("userFile"),
   async (req, res) => {
     try {

@@ -13,7 +13,9 @@ import { capitalize } from "../../../../utils/formatting";
 
 export const DreamCode = CodeBlockLowlight.extend({
   addNodeView() {
-    return ReactNodeViewRenderer(DreamCodeNodeView);
+    return ReactNodeViewRenderer(DreamCodeNodeView, {
+      contentDOMElementTag: "code",
+    });
   },
 });
 
@@ -83,7 +85,7 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
         </div>
       )}
       <pre className={styles.code}>
-        <NodeViewContent as="code" />
+        <NodeViewContent />
       </pre>
     </NodeViewWrapper>
   );

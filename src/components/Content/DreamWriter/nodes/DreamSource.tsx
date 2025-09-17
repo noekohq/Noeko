@@ -115,7 +115,9 @@ export const DreamSource = Node.create<IDreamSourceOptions>({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DreamSourceComponent);
+    return ReactNodeViewRenderer(DreamSourceComponent, {
+      contentDOMElementTag: "span",
+    });
   },
 });
 
@@ -210,7 +212,6 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
       </HoverCard>
 
       <NodeViewContent
-        as="span"
         className={styles.dreamSourceContent}
         data-placeholder={
           isEmpty ? source?.displayName || "Loading title..." : undefined
