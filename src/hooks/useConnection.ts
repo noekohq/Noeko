@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../server/api";
 
-export const useConnection = (pollInterval: number = 5000) => {
+export const useConnection = (pollInterval: number = 10000) => {
   const [isOnline, setIsOnline] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const isLoadingRef = useRef(isLoading);

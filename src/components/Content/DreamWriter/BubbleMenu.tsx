@@ -77,7 +77,7 @@ export default function BubbleMenu({
   const menuProps = {
     editor: editor ?? undefined,
     className: styles.bubbleMenu,
-    tippyOptions: {
+    options: {
       duration: 100,
       placement: "bottom" as const,
       popperOptions: {

@@ -118,7 +118,7 @@ export default function TaskList() {
         </Stack>
         {!tasks?.length && (
           <Text size="sm" c="dimmed">
-            <Group gap="xs">
+            <Group gap="xs" component="span">
               No tasks {formattedDate().toLocaleLowerCase()}.
             </Group>
           </Text>
