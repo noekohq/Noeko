@@ -136,7 +136,7 @@ export default function Search({
                 <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
               )}
               <Text c="dimmed" size="xs">
-                <Group gap="xs">
+                <Group gap="xs" component="span">
                   Search{" "}
                   {withinRabbithole ? (
                     <>"{currentRabbithole?.name}"</>
