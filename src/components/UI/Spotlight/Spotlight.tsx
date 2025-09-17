@@ -209,7 +209,7 @@ export default function Spotlight() {
   }, [unifiedSearchItems]);
 
   const [loadingDynamicItems, setLoadingDynamicItems] = useState(false);
-  const currentTimeout = useRef<Timer>();
+  const currentTimeout = useRef<Timer>(null);
   useEffect(() => {
     if (currentSubviewId) {
       const subview = subviewDefinitions.get(currentSubviewId);

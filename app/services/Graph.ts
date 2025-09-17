@@ -237,9 +237,10 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const limit = options.limit ?? 10;
+      const limit =
+        options.limit && isFinite(options.limit) ? Number(options.limit) : 10;
       const defaultCandidates = 300;
-      const candidates = options.candidates ?? defaultCandidates;
+      const candidates = Number(options.candidates ?? defaultCandidates);
 
       const embedding = await this.getConnectableEmbedding(thingId);
       if (!embedding) {

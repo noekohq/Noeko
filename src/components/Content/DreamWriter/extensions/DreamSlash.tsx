@@ -31,7 +31,7 @@ export interface IDreamSlashItem {
   id: string;
   title: string;
   description?: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   command: ({ editor, range }: { editor: Editor; range: Range }) => void;
 }
 

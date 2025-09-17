@@ -261,6 +261,13 @@ router.get(
       }
       const isConnectable = GraphService.isConnectable(thingId);
       const rabbitholeId = req.query.rabbitholeId as string;
+
+      if (typeof rabbitholeId !== "string") {
+        res.status(400).send({
+          message: "Bad Request",
+        });
+        return;
+      }
       if (!isConnectable) {
         res.status(400).send({
           message: "Resource not available for this type of thing",

@@ -143,10 +143,7 @@ router.get("/:id", async (req, res) => {
       data: feedbackItem,
     });
   } catch (error) {
-    console.error(
-      `Error getting feedback item with ID ${req.params.id}:`,
-      error,
-    );
+    console.error(`Error getting feedback item:`, error);
     res.status(500).send({
       message: "Internal Server Error",
       error:

@@ -81,7 +81,7 @@ export default function Spyglass() {
     }
   }, [searchParams]);
 
-  const displayQuery = useRef<string>();
+  const displayQuery = useRef<string>(null);
 
   useEffect(() => {
     if (baseQuery) {

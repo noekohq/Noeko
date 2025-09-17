@@ -14,14 +14,14 @@ import styles from "./IdeaPreview.module.scss";
 
 type IdeaPreviewProps = {
   idea: IIdea;
-  subtext?: JSX.Element;
+  subtext?: React.ReactNode;
   setDraggingIdea?: (idea: IIdea | undefined) => void;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
   draggable?: boolean;
   hoveringIdea?: string | undefined;
   setHoveringIdea?: (hoveringIdea: string | undefined) => void;
-  options?: JSX.Element;
+  options?: React.ReactNode;
   tags?: React.ReactNode[];
 };
 

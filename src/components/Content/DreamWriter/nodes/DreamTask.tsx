@@ -27,7 +27,6 @@ declare module "@tiptap/core" {
 }
 
 export const DreamTask = Node.create({
-  id: "dreamTask",
   group: "inline",
   inline: true,
   draggable: true,
@@ -98,7 +97,9 @@ export const DreamTask = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DreamTaskComponent);
+    return ReactNodeViewRenderer(DreamTaskComponent, {
+      contentDOMElementTag: "span",
+    });
   },
 });
 
@@ -144,7 +145,6 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
         <Group gap="xs">
           <CheckIcon weight="bold" />
           <NodeViewContent
-            as="span"
             className={styles.dreamTaskContent}
             data-placeholder={
               isEmpty ? task?.description || "Loading task..." : undefined

@@ -1,7 +1,5 @@
-import {
-  Editor as IEditor,
-  FloatingMenu as TippyFloatingMenu,
-} from "@tiptap/react";
+import { FloatingMenu as TippyFloatingMenu } from "@tiptap/react/menus";
+import { Editor as IEditor } from "@tiptap/react";
 import { useState } from "react";
 import styles from "./FloatingMenu.module.scss";
 import { PlusIcon } from "@phosphor-icons/react";

@@ -6,8 +6,8 @@ import { CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 
 interface IExpandableCardStackProps {
   cards: React.ReactNode[];
-  topLabel: string | JSX.Element;
-  expandLabel: string | JSX.Element;
+  topLabel: string | React.ReactNode;
+  expandLabel: string | React.ReactNode;
   badges?: React.ReactNode[];
 }
 

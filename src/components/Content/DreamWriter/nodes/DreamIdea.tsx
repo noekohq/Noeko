@@ -116,7 +116,9 @@ export const DreamIdea = Node.create<IDreamIdeaOptions>({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(DreamIdeaComponent);
+    return ReactNodeViewRenderer(DreamIdeaComponent, {
+      contentDOMElementTag: "span",
+    });
   },
 });
 
@@ -226,7 +228,6 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       </HoverCard>
 
       <NodeViewContent
-        as="span"
         className={styles.dreamIdeaContent}
         data-placeholder={
           isEmpty ? idea?.title || "Loading title..." : undefined

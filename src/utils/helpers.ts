@@ -30,7 +30,7 @@ export function hasVisibleChildren(children: React.ReactNode): boolean {
     if (React.isValidElement(child)) {
       // If it's a Fragment, recursively check its children
       if (child.type === React.Fragment) {
-        return hasVisibleChildren(child.props.children);
+        return hasVisibleChildren((child.props as any)?.children);
       }
       // Any other element is considered visible content
       return true;

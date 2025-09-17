@@ -112,7 +112,7 @@ const RightSidebar = ({
 
   const defaultColor: MantineColor = "dark.3";
 
-  const Global: Record<typeof mode, JSX.Element> = {
+  const Global: Record<typeof mode, React.ReactNode> = {
     open: (
       <Group justify="space-between" align="center" wrap="nowrap">
         {!!topLevel?.open && topLevel.open}

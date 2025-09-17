@@ -377,8 +377,12 @@ const getReactNodeTextContent = (node: React.ReactNode): string => {
   if (typeof node === "string") return node;
   if (typeof node === "number") return String(node);
   if (Array.isArray(node)) return node.map(getReactNodeTextContent).join("");
-  if (React.isValidElement(node) && node.props) {
-    const children = node.props.children;
+  if (
+    React.isValidElement(node) &&
+    node.props &&
+    "children" in (node.props as any)
+  ) {
+    const children = (node.props as any).children;
     if (children) return getReactNodeTextContent(children);
   }
   return "";

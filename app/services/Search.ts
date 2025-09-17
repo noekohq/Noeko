@@ -911,7 +911,7 @@ export class Search {
     options: { limit?: number; rabbitholeId?: string } = {},
   ): Promise<ISearchResult[]> {
     const limit = options.limit ?? 50;
-    const queryLower = query.toLowerCase().trim();
+    const queryLower = String(query).toLowerCase().trim();
 
     try {
       const embeddingProcessor = getEmbedder();

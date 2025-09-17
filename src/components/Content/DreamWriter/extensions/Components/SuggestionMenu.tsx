@@ -114,7 +114,9 @@ const SuggestionMenu = ({
           )}
           {items.map((item, index) => (
             <Suggestion
-              ref={(node) => (itemRefs.current[index] = node)}
+              ref={(node) => {
+                itemRefs.current[index] = node;
+              }}
               key={item.id}
               item={item}
               select={() => onSelectionMade(index)}

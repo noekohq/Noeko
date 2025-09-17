@@ -127,7 +127,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
   const nodePositionsRef = useRef<Map<string, { x: number; y: number }>>(
     new Map(),
   );
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(null);
 
   const handleClosePanel = useCallback(() => {
     setNodePanel(null);
@@ -219,7 +219,7 @@ const GraphContainer: React.FC<GraphContainerProps> = ({
                 return node;
               });
             });
-            animationFrameRef.current = undefined;
+            animationFrameRef.current = null;
           });
         }
       }

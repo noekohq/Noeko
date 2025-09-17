@@ -1,8 +1,8 @@
 import {
   BubbleMenu as TippyBubbleMenu,
-  Editor as IEditor,
   BubbleMenuProps,
-} from "@tiptap/react";
+} from "@tiptap/react/menus";
+import { Editor as IEditor } from "@tiptap/react";
 import styles from "./BubbleMenu.module.scss";
 import {
   BlockquoteButton,
@@ -38,7 +38,7 @@ import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
 interface IBubbleMenuProps {
   editor: IEditor | null;
   onVisibilityChange?: (isVisible: boolean) => void;
-  boundaryRef?: RefObject<HTMLElement>;
+  boundaryRef?: RefObject<HTMLElement | null> | null;
 }
 
 export default function BubbleMenu({
@@ -75,7 +75,7 @@ export default function BubbleMenu({
   };
 
   const menuProps = {
-    editor: editor,
+    editor: editor ?? undefined,
     className: styles.bubbleMenu,
     tippyOptions: {
       duration: 100,

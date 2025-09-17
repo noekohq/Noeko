@@ -88,8 +88,9 @@ export default function Scratchpad() {
     if (!content) {
       return "";
     }
-    if (editorRef.current?.storage.markdown) {
-      return editorRef.current?.storage.markdown.getMarkdown() as string;
+    const markdownStorage = (editorRef.current?.storage as any).markdown as any;
+    if (markdownStorage as unknown) {
+      return markdownStorage?.getMarkdown?.() as string;
     }
     return htmlToMarkdown(content);
   };

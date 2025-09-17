@@ -278,7 +278,6 @@ const suggestionOptionsDefinition = (
 
 export const DreamConnection = Extension.create<IDreamConnectionOptions>({
   name: "dreamConnection",
-  pluginKey: suggestionKey,
 
   addOptions() {
     return {
