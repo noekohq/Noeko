@@ -8,9 +8,7 @@ import { GraphProvider } from "./contexts/GraphContext.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { ModalsProvider } from "@mantine/modals";
 import "@mantine/core/styles.css";
-import "@mantine/tiptap/styles.css";
 import "@mantine/notifications/styles.css";
-import "@mantine/spotlight/styles.css";
 import "@mantine/charts/styles.css";
 import "@mantine/dates/styles.css";
 import "./Global.css";
@@ -70,6 +68,8 @@ function WrapTheme({ children }: IWrapThemeProps) {
       },
     },
   } = useSettings();
+
+  console.log("Get theme: ", theme.override);
 
   return (
     <MantineProvider theme={theme.override} defaultColorScheme={theme.scheme}>
