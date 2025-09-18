@@ -1,9 +1,12 @@
 import { FallbackProps } from "react-error-boundary";
 import styles from "./Error.module.scss";
 import { WarningOctagonIcon } from "@phosphor-icons/react";
+import { useLayoutEffect } from "react";
 
 export default function Error({ error, resetErrorBoundary }: FallbackProps) {
-  console.log("Error", error);
+  useLayoutEffect(() => {
+    document.body.style.backgroundColor = "#282828";
+  }, []);
 
   return (
     <div className={styles.errorWrapper}>
