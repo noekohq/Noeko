@@ -141,7 +141,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
     },
   } = useLandscape();
   const { ensureConnected, loadingConnected } = useConnectable({
-    connectable: currentConnectable as IConnectable,
+    connectable: currentConnectable ?? null,
   });
   useEffect(() => {
     if (source?.id) {

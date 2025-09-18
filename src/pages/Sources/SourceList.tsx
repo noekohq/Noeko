@@ -75,7 +75,7 @@ export default function SourceList() {
             <HoverCard openDelay={400} width="300px">
               <HoverCard.Target>
                 <Badge color="orange" size="sm" variant="light">
-                  EXPERIMENTAL
+                  PREVIEW
                 </Badge>
               </HoverCard.Target>
               <HoverCard.Dropdown>
@@ -84,6 +84,10 @@ export default function SourceList() {
                     Sources is currently under active development and some
                     features might not work as expected. We're looking for
                     feedback as we learn and grow :)
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    This feature will remain free during its experimental
+                    phases, rate limits may apply in future iterations.
                   </Text>
                   <ActionIcon
                     size="sm"

@@ -1,7 +1,4 @@
-import {
-  BubbleMenu as TippyBubbleMenu,
-  BubbleMenuProps,
-} from "@tiptap/react/menus";
+import { BubbleMenu as BMenu, BubbleMenuProps } from "@tiptap/react/menus";
 import { Editor as IEditor } from "@tiptap/react";
 import styles from "./BubbleMenu.module.scss";
 import {
@@ -74,29 +71,12 @@ export default function BubbleMenu({
     return shouldBeVisible;
   };
 
-  const menuProps = {
+  const menuProps: BubbleMenuProps = {
     editor: editor ?? undefined,
     className: styles.bubbleMenu,
     options: {
-      duration: 100,
       placement: "bottom" as const,
-      popperOptions: {
-        modifiers: [
-          {
-            name: "preventOverflow",
-            options: {
-              boundary: boundaryRef?.current || "clippingParents",
-            },
-          },
-          {
-            name: "flip",
-            options: {
-              // Also use the same boundary for the flip modifier
-              boundary: boundaryRef?.current || "clippingParents",
-            },
-          },
-        ],
-      },
+      autoPlacement: true,
     },
     shouldShow: shouldShowHandler,
   };
@@ -107,43 +87,43 @@ export default function BubbleMenu({
 
   if (isDreamTable) {
     return (
-      <TippyBubbleMenu {...menuProps}>
+      <BMenu {...menuProps}>
         <div></div>
-      </TippyBubbleMenu>
+      </BMenu>
     );
   }
 
   if (isImage) {
     return (
-      <TippyBubbleMenu {...menuProps}>
+      <BMenu {...menuProps}>
         <DreamImageMenu editor={editor} />
-      </TippyBubbleMenu>
+      </BMenu>
     );
   }
   if (isInlineMath) {
     return (
-      <TippyBubbleMenu {...menuProps}>
+      <BMenu {...menuProps}>
         <InlineMathMenu editor={editor} />
-      </TippyBubbleMenu>
+      </BMenu>
     );
   }
   if (isBlockMath) {
     return (
-      <TippyBubbleMenu {...menuProps}>
+      <BMenu {...menuProps}>
         <BlockMathMenu editor={editor} />
-      </TippyBubbleMenu>
+      </BMenu>
     );
   }
   if (isDreamYouTube) {
     return (
-      <TippyBubbleMenu {...menuProps}>
+      <BMenu {...menuProps}>
         <DreamYouTubeMenu editor={editor} />
-      </TippyBubbleMenu>
+      </BMenu>
     );
   }
 
   return (
-    <TippyBubbleMenu {...menuProps}>
+    <BMenu {...menuProps}>
       {!hidden && (
         <>
           {isMobile && (
@@ -186,7 +166,7 @@ export default function BubbleMenu({
           </div>
         </>
       )}
-    </TippyBubbleMenu>
+    </BMenu>
   );
 }
 
