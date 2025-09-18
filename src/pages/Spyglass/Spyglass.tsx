@@ -8,6 +8,7 @@ import {
   Badge,
   HoverCard,
   Transition,
+  Loader,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -33,6 +34,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SpyglassContext from "./Spyglass/SpyglassContext";
 import SpyglassActions from "./Spyglass/SpyglassActions";
+import Loading from "../../components/Display/Loading/Loading";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -313,7 +315,10 @@ export default function Spyglass() {
                 {overview.findings.length > 0 && (
                   <>
                     <Text className={styles.previewItem} mt="lg" size="sm">
-                      Analyzing results...
+                      <Group component="span" align="center" gap="xs">
+                        Analyzing results...
+                        <Loader size="14px" color="gray" />
+                      </Group>
                     </Text>
                     <Text size="sm" className={styles.previewItem}>
                       {overview.findings.length} finding
