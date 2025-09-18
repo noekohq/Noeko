@@ -21,28 +21,34 @@ import { SettingsProvider } from "./contexts/SettingsContext.tsx";
 import { useSettings } from "./contexts/SettingsContext.tsx";
 import { InteractionProvider } from "./contexts/InteractionContext.tsx";
 import { LandscapeProvider } from "./contexts/LandscapeContext.tsx";
+import { ErrorBoundary } from "react-error-boundary";
+import Error from "./Error.tsx";
 
 const Client = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <SettingsProvider>
-          <SearchProvider>
-            <LayoutProvider>
-              <LandscapeProvider>
-                <GraphProvider>
-                  <WrapTheme>
-                    <InteractionProvider>
-                      <App />
-                    </InteractionProvider>
-                  </WrapTheme>
-                </GraphProvider>
-              </LandscapeProvider>
-            </LayoutProvider>
-          </SearchProvider>
-        </SettingsProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary
+      fallbackRender={(fallbackProps) => <Error {...fallbackProps} />}
+    >
+      <BrowserRouter>
+        <AuthProvider>
+          <SettingsProvider>
+            <SearchProvider>
+              <LayoutProvider>
+                <LandscapeProvider>
+                  <GraphProvider>
+                    <WrapTheme>
+                      <InteractionProvider>
+                        <App />
+                      </InteractionProvider>
+                    </WrapTheme>
+                  </GraphProvider>
+                </LandscapeProvider>
+              </LayoutProvider>
+            </SearchProvider>
+          </SettingsProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 

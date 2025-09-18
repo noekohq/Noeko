@@ -16,10 +16,11 @@ import { Link } from "react-router";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 
 export default function TagBreakdown() {
-  const { data: tagBreakdown, load: loadBreakdown } = useFetch<
-    undefined,
-    ITagBreakdown
-  >({
+  const {
+    data: tagBreakdown,
+    load: loadBreakdown,
+    loading: loadingBreakdown,
+  } = useFetch<undefined, ITagBreakdown>({
     url: "/analysis/tag-breakdown",
   });
 
@@ -51,7 +52,7 @@ export default function TagBreakdown() {
     }
   };
 
-  if (!tagBreakdown) {
+  if (loadingBreakdown) {
     return (
       <Text size="sm" c="dimmed" fw="bold">
         Loading...

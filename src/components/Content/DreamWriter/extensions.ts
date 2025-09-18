@@ -2,23 +2,11 @@ import contentStyles from "./Content.module.scss";
 import styles from "./DreamWriter.module.scss";
 import "katex/dist/katex.min.css";
 import "./lib/noeko-highlight.scss";
-import {
-  Editor as IEditor,
-  Extension,
-  Node,
-  Mark,
-  nodePasteRule,
-  markPasteRule,
-} from "@tiptap/core";
+import { Editor as IEditor, Extension, Node, Mark } from "@tiptap/core";
 
 import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
-import Dropcursor from "@tiptap/extension-dropcursor";
 import Typography from "@tiptap/extension-typography";
-import TaskList from "@tiptap/extension-task-list";
-import YouTube from "@tiptap/extension-youtube";
+import { ListKeymap, TaskList } from "@tiptap/extension-list";
 import { Mathematics } from "@tiptap/extension-mathematics";
 import { DreamImage } from "./nodes/DreamImage";
 import { DreamFile } from "./nodes/DreamFile";
@@ -38,6 +26,7 @@ import { DreamHighlight } from "./marks/DreamHighlight";
 import { all, createLowlight } from "lowlight";
 import { DreamYouTube } from "./nodes/DreamYouTube";
 import { YOUTUBE_URL_REGEX } from "../../../vars/regex";
+import { Focus, Placeholder, Dropcursor, Gapcursor } from "@tiptap/extensions";
 
 const lowlight = createLowlight(all);
 
@@ -101,26 +90,29 @@ export const getExtensionConfig = ({
           class: contentStyles.strike,
         },
       },
-      codeBlock: false,
+      underline: {
+        HTMLAttributes: {
+          class: contentStyles.underline,
+        },
+      },
+      link: {
+        HTMLAttributes: {
+          class: contentStyles.link,
+        },
+        linkOnPaste: true,
+      },
       dropcursor: false,
+      gapcursor: false,
     }),
+    ListKeymap.configure(),
     Placeholder.configure({
       placeholder,
       emptyEditorClass: styles.emptyEditor,
       emptyNodeClass: styles.emptyNode,
     }),
-    Underline.configure({
-      HTMLAttributes: {
-        class: contentStyles.underline,
-      },
-    }),
-    Link.configure({
-      HTMLAttributes: {
-        class: contentStyles.link,
-      },
-      linkOnPaste: true,
-    }),
     Dropcursor.configure({}),
+    Gapcursor.configure({}),
+    Focus.configure({}),
     Typography.configure({}),
     TaskList.configure({
       HTMLAttributes: {
@@ -141,11 +133,6 @@ export const getExtensionConfig = ({
         "connection",
       ],
     }),
-    // YouTube.configure({
-    //   HTMLAttributes: {
-    //     class: contentStyles.youtube,
-    //   },
-    // }),
     Mathematics.configure({}),
     DreamCode.configure({
       lowlight,

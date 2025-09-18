@@ -1,5 +1,5 @@
 import { mergeAttributes, Node, NodeViewProps } from "@tiptap/core";
-import { DOMParser } from "@tiptap/pm/model";
+import { DOMParser, Fragment } from "@tiptap/pm/model";
 import useFetch from "../../../../hooks/useFetch";
 import { ITask } from "../../../../../app/database/models/task";
 import {
@@ -27,6 +27,7 @@ declare module "@tiptap/core" {
 }
 
 export const DreamTask = Node.create({
+  name: "dreamTask",
   group: "inline",
   inline: true,
   draggable: true,
@@ -52,6 +53,19 @@ export const DreamTask = Node.create({
 
   parseHTML() {
     return [
+      {
+        tag: "span[data-dream-task][data-task-alias]",
+        getContent: (node, schema) => {
+          const dom = node as HTMLElement;
+          const alias = dom.getAttribute("data-task-alias");
+
+          if (alias) {
+            return Fragment.from(schema.text(alias));
+          }
+
+          return Fragment.empty;
+        },
+      },
       {
         tag: "span[data-dream-task][data-task-id]",
         getContent: (node, schema) => {
@@ -123,7 +137,7 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
     },
   } = useLandscape();
   const { ensureConnected, loadingConnected } = useConnectable({
-    connectable: currentConnectable as IConnectable,
+    connectable: currentConnectable ?? null,
   });
   useEffect(() => {
     if (task?.id) {

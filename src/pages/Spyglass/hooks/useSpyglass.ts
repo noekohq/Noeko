@@ -1,15 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ISearchResultValue,
   type ISearchResult,
 } from "../../../../app/services/Search";
-import { api, serverLocation } from "../../../server/api";
+import { api, refreshToken, serverLocation } from "../../../server/api";
 import {
   ISpyglassGeneratorType,
   ISpyglassSearch,
   ISearchOverview,
 } from "../../../../app/database/models/search";
-import { parseIncompleteJsonArray } from "../../../utils/processing";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { ISpyglassIntent } from "../../../../app/services/Spyglass";
@@ -300,9 +299,7 @@ export default function useSpyglass({
     }
 
     try {
-      await api.get("/users/me").then(() => {
-        console.info("Ensured authentication status.");
-      });
+      await refreshToken();
       setStatusText("Searching your ideas...");
       const response = await api.post("/search/spyglass/initialize", {
         query,

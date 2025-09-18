@@ -1,4 +1,4 @@
-import { TaskItem } from "@tiptap/extension-task-item";
+import { TaskItem } from "@tiptap/extension-list";
 import { wrappingInputRule, markInputRule } from "@tiptap/core";
 
 // Regex to match the markdown syntax for a checkbox, e.g., "- [ ] "

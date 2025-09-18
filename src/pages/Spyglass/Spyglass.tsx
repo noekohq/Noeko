@@ -206,8 +206,8 @@ export default function Spyglass() {
                 </Title>
                 <HoverCard openDelay={400} width="300px">
                   <HoverCard.Target>
-                    <Badge color="orange" size="sm" variant="light">
-                      EXPERIMENTAL
+                    <Badge color="gray" size="sm" variant="light">
+                      BETA
                     </Badge>
                   </HoverCard.Target>
                   <HoverCard.Dropdown>
@@ -218,8 +218,8 @@ export default function Spyglass() {
                         looking for feedback as we learn and grow :)
                       </Text>
                       <Text size="xs" c="dimmed">
-                        This feature will remain free during it's experimental
-                        stage. Rate limits may apply in future versions.
+                        This feature will remain free during it's beta stage.
+                        Rate limits may apply in future versions.
                       </Text>
                       <ActionIcon
                         size="sm"

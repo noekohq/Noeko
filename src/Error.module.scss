@@ -1,0 +1,43 @@
+@use "./styles/mixins.scss" as *;
+
+:global {
+    body {
+        background-color: #282828;
+    }
+}
+
+.errorWrapper {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    min-height: 50vw;
+
+    .content {
+        width: 100%;
+
+        @include desktop {
+            width: 60%;
+        }
+    }
+
+    h1 {
+        color: #fbf1c7;
+        margin: 0;
+        font-family: "Bricolage Grotesque", sans-serif;
+
+        svg {
+            position: relative;
+            top: 6px;
+            margin-right: 8px;
+            color: #e44640;
+        }
+    }
+
+    p {
+        color: #fbf1c7;
+        font-family: "Besley", sans-serif;
+    }
+}

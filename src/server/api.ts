@@ -200,99 +200,46 @@ api.interceptors.response.use(
   },
 );
 
-// --- React Integration Considerations (Updated) ---
+/**
+ * Proactively refreshes the access token.
+ * This function is safe to call from anywhere in the application.
+ * It uses the same `isRefreshing` lock and queueing mechanism as the interceptor
+ * to prevent multiple refresh requests from firing simultaneously.
+ *
+ * @returns {Promise<string>} A promise that resolves with the new access token.
+ * @throws {Error} Throws an error if the token refresh fails, which will also trigger a logout.
+ */
+export const refreshToken = async (): Promise<string> => {
+  // If a refresh is already in progress, wait for it to complete.
+  if (isRefreshing) {
+    console.info("A token refresh is already in progress. Waiting...");
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    }).then((token) => token as string);
+  }
 
-// 1. Logout Handler Configuration:
-//    - In your main App component or Auth Context setup, import and call `configureLogoutHandler`.
-//    - Pass a function that clears frontend state (e.g., user context), calls `removeAccessToken()`, makes the necessary backend `/logout` call, and redirects using React Router's `Maps`.
-/*
-   // Example in an AuthContext.tsx
-   import { configureLogoutHandler, api, removeAccessToken } from './api/axiosInstance';
-   import { useNavigate } from 'react-router-dom';
-   import { useCallback, useEffect } from 'react';
+  isRefreshing = true;
 
-   const AuthProvider = ({ children }) => {
-     const navigate = useNavigate();
+  try {
+    console.info("Proactively refreshing token...");
+    const response = await api.post<{ data: { accessToken: string } }>(
+      refreshEndpoint,
+      {},
+    );
+    const { accessToken } = response.data.data;
 
-     const handleLogout = useCallback(async () => {
-       console.log("Executing logout handler...");
-       removeAccessToken(); // Clear frontend token state/storage
-       try {
-         // Call backend to clear HttpOnly cookie
-         await api.post('/users/logout', {}, { withCredentials: true });
-         console.log("Backend logout successful.");
-       } catch (error) {
-         console.error("Backend logout failed:", error);
-         // Decide how to handle this - usually proceed with frontend logout anyway
-       } finally {
-         // Clear any other user state (e.g., context state) here
-         // setUser(null);
-         navigate('/login'); // Redirect to login
-       }
-     }, [navigate]);
+    setAccessToken(accessToken); // Store the new token
+    processQueue(null, accessToken); // Resolve any queued requests
 
-     useEffect(() => {
-       // Configure the handler when the auth provider mounts
-       configureLogoutHandler(handleLogout);
-     }, [handleLogout]);
-
-     // ... rest of your auth context logic
-     return <AuthContext.Provider value={...}>{children}</AuthContext.Provider>;
-   }
-*/
-
-// 2. Access Token Storage:
-//    - `localStorage` was used above. Consider `sessionStorage` (clears on tab close) or storing the access token in React's memory state (e.g., in your Auth Context). Storing in memory is generally safer against XSS but requires refetching/refreshing on page load/app start. HttpOnly cookies are the most secure for the *refresh token*.
-
-// 3. Environment Variables:
-//    - Still ensure `VITE_SERVER_LOCATION` is correctly set.
-
-// 4. CSRF Protection:
-//    - If your backend uses cookie-based sessions or requires CSRF protection (highly recommended, especially with `withCredentials: true`), ensure your Axios setup handles CSRF tokens correctly (often involving reading a CSRF cookie and sending it back in a header like `X-CSRF-TOKEN`). Axios might need further interceptor logic for this depending on your backend framework.
-
-// --- Usage in React Components (Mostly Unchanged) ---
-// The component usage remains largely the same, but error handling might
-// simplify slightly as logout is more centrally managed.
-/*
-import { api } from './api/axiosInstance';
-import { useEffect, useState } from 'react';
-
-function MyComponent() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.get('/protected-data');
-        setData(response.data);
-        setError(null);
-      } catch (err: any) {
-         console.error("Failed to fetch data:", err);
-         // Check if the error indicates a logout occurred via interceptor
-         if (err.message?.includes("Token refresh failed")) {
-             // Interceptor handled logout, maybe show a generic "Session expired" or rely on redirect
-             setError("Your session has expired. Redirecting to login...");
-             // Note: The actual redirect is handled by the configured logout handler
-         } else if (err.response?.status === 401) {
-             // This might happen if the initial token is bad / logout already happened
-              setError("Authentication failed. Please log in.");
-         }
-          else {
-            setError(err.response?.data?.message || err.message || 'An unknown error occurred');
-          }
-      } finally {
-          setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
-  // Render logic based on data ...
-}
-*/
+    console.info("Token refreshed successfully.");
+    return accessToken;
+  } catch (error: any) {
+    console.error("Proactive token refresh failed:", error);
+    processQueue(error, null); // Reject any queued requests
+    await _logoutHandler(); // Logout on failure
+    // Rethrow the error so the calling function knows the refresh failed
+    return Promise.reject(error);
+  } finally {
+    isRefreshing = false;
+  }
+};

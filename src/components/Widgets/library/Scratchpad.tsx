@@ -88,28 +88,27 @@ export default function Scratchpad() {
     if (!content) {
       return "";
     }
-    const markdownStorage = (editorRef.current?.storage as any).markdown as any;
-    if (markdownStorage as unknown) {
-      return markdownStorage?.getMarkdown?.() as string;
-    }
     return htmlToMarkdown(content);
   };
+  console.log("Original content: ", originalContent);
 
   return (
     <div className={styles.scratchpad}>
       <div className={styles.editor}>
-        <DreamWriter
-          autofocus={false}
-          ref={editorRef}
-          onBlur={() => {
-            handlePostContent();
-          }}
-          onChange={(v) => {
-            setContent(v);
-          }}
-          initialContent={originalContent}
-          readOnly={loadingContent}
-        />
+        {originalContent !== undefined && (
+          <DreamWriter
+            autofocus={false}
+            ref={editorRef}
+            onBlur={() => {
+              handlePostContent();
+            }}
+            onChange={(v) => {
+              setContent(v);
+            }}
+            initialContent={originalContent}
+            readOnly={loadingContent}
+          />
+        )}
       </div>
       <div className={styles.toolbar}>
         <Group>
