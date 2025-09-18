@@ -31,6 +31,7 @@ import { showNotification } from "@mantine/notifications";
 import { CheckIcon, TrashSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { RefObject, useEffect, useState } from "react";
 import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
+import { flip, shift } from "@floating-ui/react";
 
 interface IBubbleMenuProps {
   editor: IEditor | null;
@@ -75,8 +76,12 @@ export default function BubbleMenu({
     editor: editor ?? undefined,
     className: styles.bubbleMenu,
     options: {
-      placement: "bottom" as const,
-      autoPlacement: true,
+      placement: "bottom-start" as const,
+      flip: true,
+      shift: {
+        boundary: boundaryRef?.current ?? undefined,
+        padding: 0,
+      },
     },
     shouldShow: shouldShowHandler,
   };
