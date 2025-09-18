@@ -162,6 +162,88 @@ router.put("/:tagId", async (req, res): Promise<void> => {
   }
 });
 
+router.post("/apply", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { tagId, thingId } = req.body;
+
+    const isTagOwner = await User.checkOwns(user.id, tagId);
+    if (!isTagOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const isThingOwner = await User.checkOwns(user.id, thingId);
+    if (!isThingOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const relationship = await Tag.applyToThing(tagId, thingId);
+    if (!relationship) {
+      res.status(500).json({
+        message:
+          "Failed to connect tag to thing. Ensure both tag and thing exist.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tag connected to thing successfully.",
+      data: relationship,
+    });
+  } catch (error) {
+    console.error("Error connecting tag to thing:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/apply", async (req, res): Promise<void> => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user || !user.id) {
+      res.status(401).json({ message: "Unauthorized. User not found." });
+      return;
+    }
+
+    const { tagId, thingId } = req.body;
+
+    const isTagOwner = await User.checkOwns(user.id, tagId);
+    if (!isTagOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const isThingOwner = await User.checkOwns(user.id, thingId);
+    if (!isThingOwner) {
+      res.status(403).json({ message: "Forbidden." });
+      return;
+    }
+
+    const relationship = await Tag.removeFromThing(tagId, thingId);
+    if (!relationship) {
+      res.status(500).json({
+        message:
+          "Failed to disconnect tag from thing. The relationship might not exist.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tag disconnected from thing successfully.",
+      data: relationship,
+    });
+  } catch (error) {
+    console.error("Error disconnecting tag from thing:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.delete("/:tagId", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -340,88 +422,6 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
       .json({ message: "Tag disconnected from idea successfully." });
   } catch (error) {
     console.error("Error disconnecting tag from idea:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-router.post("/apply", async (req, res): Promise<void> => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user || !user.id) {
-      res.status(401).json({ message: "Unauthorized. User not found." });
-      return;
-    }
-
-    const { tagId, thingId } = req.body;
-
-    const isTagOwner = await User.checkOwns(user.id, tagId);
-    if (!isTagOwner) {
-      res.status(403).json({ message: "Forbidden." });
-      return;
-    }
-
-    const isThingOwner = await User.checkOwns(user.id, thingId);
-    if (!isThingOwner) {
-      res.status(403).json({ message: "Forbidden." });
-      return;
-    }
-
-    const relationship = await Tag.applyToThing(tagId, thingId);
-    if (!relationship) {
-      res.status(500).json({
-        message:
-          "Failed to connect tag to thing. Ensure both tag and thing exist.",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      message: "Tag connected to thing successfully.",
-      data: relationship,
-    });
-  } catch (error) {
-    console.error("Error connecting tag to thing:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-router.delete("/apply", async (req, res): Promise<void> => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user || !user.id) {
-      res.status(401).json({ message: "Unauthorized. User not found." });
-      return;
-    }
-
-    const { tagId, thingId } = req.body;
-
-    const isTagOwner = await User.checkOwns(user.id, tagId);
-    if (!isTagOwner) {
-      res.status(403).json({ message: "Forbidden." });
-      return;
-    }
-
-    const isThingOwner = await User.checkOwns(user.id, thingId);
-    if (!isThingOwner) {
-      res.status(403).json({ message: "Forbidden." });
-      return;
-    }
-
-    const relationship = await Tag.removeFromThing(tagId, thingId);
-    if (!relationship) {
-      res.status(500).json({
-        message:
-          "Failed to disconnect tag from thing. The relationship might not exist.",
-      });
-      return;
-    }
-
-    res.status(200).json({
-      message: "Tag disconnected from thing successfully.",
-      data: relationship,
-    });
-  } catch (error) {
-    console.error("Error disconnecting tag from thing:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
