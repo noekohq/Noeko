@@ -299,6 +299,17 @@ export class Idea {
       `;
     };
 
+    function ideasTimestampsIndex() {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_idea_created_at
+        ON TABLE idea
+        FIELDS createdAt;
+      DEFINE INDEX IF NOT EXISTS idx_idea_updated_at
+        ON TABLE idea
+        FIELDS updatedAt;
+      `;
+    }
+
     await db?.query(userGraphFunction());
     await db?.query(userHeavyGraphFunction());
     await db?.query(getIdeaConnections());
@@ -306,6 +317,7 @@ export class Idea {
     await db?.query(getUserIdeas());
     await db?.query(getUserIdeasPaginated());
     await db?.query(getUserIdeaStats());
+    await db?.query(ideasTimestampsIndex());
   }
 
   static attachComputedFieldsToCollection(

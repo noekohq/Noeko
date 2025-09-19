@@ -1,6 +1,6 @@
 import { Badge, Tooltip } from "@mantine/core";
 
-const STAGE = "Early Access";
+const STAGE = "BETA";
 
 export default function StageIndicator() {
   return (

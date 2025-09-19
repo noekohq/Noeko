@@ -26,7 +26,6 @@ export default function MobileBar() {
       },
     },
     scroll: { isScrolled, scrollDirection },
-    isMobile,
   } = useLayout();
 
   const leftModeToClass: Record<typeof leftMode, string> = {

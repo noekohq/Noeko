@@ -34,6 +34,42 @@ export type IConnection = {
 export default class GraphService {
   constructor() {}
 
+  public static async up() {
+    const db = await getDatabase();
+    if (!db) {
+      throw new Error("Couldn't get database");
+    }
+
+    const getSourceConnectionsFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_source_connections(
+        $sourceId: record
+      ) {
+        LET $connections = SELECT
+            ->connected->(?) as outgoing,
+            <-connected<-(?) as incoming
+          FROM ONLY $sourceId
+          FETCH outgoing, incoming;
+        RETURN $connections;
+      }
+      `;
+    };
+
+    function connectedIndex() {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_connections_in
+        ON TABLE connected
+        FIELDS in;
+      DEFINE INDEX IF NOT EXISTS idx_connections_out
+        ON TABLE connected
+        FIELDS out;
+    `;
+    }
+
+    await db.query(getSourceConnectionsFunction());
+    await db.query(connectedIndex());
+  }
+
   private static _connectionTypes = {
     idea: { outgoing: "connected", incoming: "connected" },
     source: { outgoing: "connected", incoming: "connected" },
@@ -62,30 +98,6 @@ export default class GraphService {
       return false;
     }
     return true;
-  }
-
-  public static async up() {
-    const db = await getDatabase();
-    if (!db) {
-      throw new Error("Couldn't get database");
-    }
-
-    const getSourceConnectionsFunction = () => {
-      return `
-      DEFINE FUNCTION OVERWRITE fn::get_source_connections(
-        $sourceId: record
-      ) {
-        LET $connections = SELECT
-            ->connected->(?) as outgoing,
-            <-connected<-(?) as incoming
-          FROM ONLY $sourceId
-          FETCH outgoing, incoming;
-        RETURN $connections;
-      }
-      `;
-    };
-
-    await db.query(getSourceConnectionsFunction());
   }
 
   public static async connect(

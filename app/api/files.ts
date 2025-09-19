@@ -36,7 +36,6 @@ const handleUpload = (req: Request, res: Response, next: NextFunction) => {
 
   uploadMiddleware(req, res, (err) => {
     if (err instanceof multer.MulterError) {
-      // Handle Multer-specific errors (e.g., file size limit exceeded)
       return res
         .status(400)
         .json({ error: "File Upload Error", message: err.message });
@@ -46,7 +45,6 @@ const handleUpload = (req: Request, res: Response, next: NextFunction) => {
         .status(400)
         .json({ error: "Bad Request", message: err.message });
     }
-    // If no errors, proceed to the main route handler
     next();
   });
 };
@@ -64,7 +62,6 @@ router.post(
   checkToken,
   disallowDisabled,
   handleUpload,
-  upload.single("userFile"),
   async (req, res) => {
     try {
       const file = req.file;

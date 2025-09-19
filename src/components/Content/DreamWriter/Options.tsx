@@ -66,6 +66,7 @@ import useConnectable from "../../../hooks/useConnectable";
 
 interface OptionProps {
   editor: IEditor | null;
+  visible: boolean;
 }
 
 interface IGetButtonPropsArgs {
@@ -674,6 +675,20 @@ export function NewIdea({ editor }: OptionProps) {
     }
   }, [opened]);
 
+  const getSelection = () => {
+    if (!editor) {
+      showNotification({
+        title: "Something went wrong",
+        message: "Please try again later, or report this error",
+        color: "red",
+      });
+      return;
+    }
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    return selectedText;
+  };
+
   const handleCreateNewIdea = async () => {
     if (newIdeaForm.validate().hasErrors) {
       return;
@@ -682,6 +697,7 @@ export function NewIdea({ editor }: OptionProps) {
     setLoading(true);
     try {
       const newIdea = await createIdea(newIdeaForm.values.content);
+      const selection = getSelection();
 
       if (newIdea) {
         editor
@@ -689,13 +705,9 @@ export function NewIdea({ editor }: OptionProps) {
           .focus()
           .setDreamIdea({
             ideaId: newIdea.id.toString(),
-            content: newIdea.title,
+            content: selection ?? newIdea.title,
           })
           .run();
-
-        if (viewingConnectable?.id.toString()) {
-          connect(viewingConnectable.id.toString(), newIdea.id.toString());
-        }
 
         if (isDownRabbithole) {
           includeThing(newIdea.id.toString());
@@ -937,11 +949,20 @@ export function TaskButton({ editor }: OptionProps) {
   );
 }
 
-export function MagicMenuButton({ editor }: OptionProps) {
+export function MagicMenuButton({ editor, visible }: OptionProps) {
+  const [opened, { toggle, close, open }] = useDisclosure();
+
+  useEffect(() => {
+    if (!visible) {
+      close();
+    }
+  }, [visible]);
+
   if (!editor) return null;
 
   return (
     <Popover
+      opened={opened}
       shadow="md"
       withArrow
       position="bottom-start"
@@ -949,18 +970,21 @@ export function MagicMenuButton({ editor }: OptionProps) {
     >
       <Popover.Target>
         <ActionIcon
-          {...getButtonProps({ isActive: false })}
+          {...getButtonProps({ isActive: opened })}
           title="Magic features"
+          onClick={() => {
+            toggle();
+          }}
         >
           <MagicWandIcon weight="bold" />
         </ActionIcon>
       </Popover.Target>
       <Popover.Dropdown>
         <Group gap="xs">
-          <NewIdea editor={editor} />
-          <ConnectIdea editor={editor} />
-          <SpyglassButton editor={editor} />
-          <TaskButton editor={editor} />
+          <NewIdea visible={visible} editor={editor} />
+          <ConnectIdea visible={visible} editor={editor} />
+          <SpyglassButton visible={visible} editor={editor} />
+          <TaskButton visible={visible} editor={editor} />
         </Group>
       </Popover.Dropdown>
     </Popover>

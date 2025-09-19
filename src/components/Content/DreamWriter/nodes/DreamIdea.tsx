@@ -3,6 +3,7 @@ import {
   ArrowSquareOutIcon,
   LightbulbIcon,
   TrashIcon,
+  TrashSimpleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { Node, mergeAttributes, Editor as IEditor } from "@tiptap/core";
@@ -13,7 +14,14 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import { ActionIcon, Group, HoverCard, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Group,
+  HoverCard,
+  Popover,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../app/database/models/ideas";
@@ -166,46 +174,47 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamIdeaInline}
       data-selected={selected || undefined}
     >
-      <HoverCard
-        width={"400px"}
-        shadow="md"
-        position="top"
-        openDelay={300}
-        radius="lg"
-      >
-        <HoverCard.Target>
+      <Popover width={"400px"} shadow="md" position="top" radius="lg">
+        <Popover.Target>
           <ActionIcon variant="subtle" size="sm" color="gray" radius="md">
             <LightbulbIcon className={styles.dreamIdeaIcon} weight="regular" />
           </ActionIcon>
-        </HoverCard.Target>
+        </Popover.Target>
 
-        <HoverCard.Dropdown
+        <Popover.Dropdown
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
           {idea ? (
-            <Stack>
-              <Group justify="space-between">
-                <Text fw={500} c="dimmed">
+            <Stack gap="sm">
+              <Group
+                justify="space-between"
+                align="center"
+                w={"100%"}
+                wrap="nowrap"
+              >
+                <Text fw={500} c="dark.3">
                   {idea.title}
                 </Text>
                 <Group justify="flex-end">
                   <ActionIcon
                     onClick={deleteNode}
-                    variant="subtle"
+                    variant="light"
                     color="gray"
                     size="sm"
+                    radius="sm"
                   >
-                    <XIcon weight="bold" />
+                    <TrashSimpleIcon weight="bold" size={12} />
                   </ActionIcon>
                   <Link to={`/idea/${ideaId}`}>
                     <ActionIcon
                       title="Open Idea"
-                      variant="subtle"
+                      variant="light"
                       color="gray"
                       size="sm"
+                      radius="sm"
                     >
-                      <ArrowRightIcon weight="bold" />
+                      <ArrowRightIcon weight="bold" size={12} />
                     </ActionIcon>
                   </Link>
                 </Group>
@@ -224,8 +233,8 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
               Could not find idea :/
             </Text>
           )}
-        </HoverCard.Dropdown>
-      </HoverCard>
+        </Popover.Dropdown>
+      </Popover>
 
       <NodeViewContent
         className={styles.dreamIdeaContent}
