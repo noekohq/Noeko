@@ -28,8 +28,8 @@ import { useDisclosure } from "@mantine/hooks";
 import { useLayout } from "../../../contexts/LayoutContext";
 import ExcerptableThing from "./ExcerptableThing";
 import { ISource } from "../../../../app/database/models/source";
-import { getNodeLink, getNodeLinkFromId, NodeIcon } from "../../../utils/graph";
-import useFetch from "../../../hooks/useFetch";
+import { getNodeLinkFromId, NodeIcon } from "../../../utils/graph";
+import { useLandscape } from "../../../contexts/LandscapeContext";
 
 type IExcerptButtonAction = {
   id: string;
@@ -55,7 +55,17 @@ function ExcerptButton({
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
+  const {
+    connectable: {
+      dragging: { set: setDragging },
+    },
+  } = useLandscape();
+
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    setDragging({
+      ...excerpt,
+      type: "excerpt",
+    });
     setIsInternallyDragging(true);
     e.dataTransfer.setData(
       "application/json",
@@ -67,6 +77,7 @@ function ExcerptButton({
   };
 
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    setDragging(null);
     setIsInternallyDragging(false);
   };
 

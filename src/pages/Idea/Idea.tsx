@@ -70,6 +70,7 @@ import { createIdeaConnection } from "../../utils/ideas";
 import { ideasAreConnected } from "../../utils/ideas";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
+import useConnectable from "../../hooks/useConnectable";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -444,30 +445,9 @@ export default function Idea() {
     };
   }, [loadingSaveChanges]);
 
-  const handleConnectIdea = async (ideaId: string) => {
-    try {
-      if (!ideaId || !idea) {
-        return;
-      }
-      await createIdeaConnection(idea.id.toString(), ideaId);
-      reloadIdea();
-    } catch (error) {
-      console.error("Error creating idea connection: ", error);
-      showNotification({
-        message: "Something went wrong creating the connection",
-      });
-    }
-  };
-
-  const isConnected = useCallback(
-    (ideaId: string) => {
-      if (!idea) {
-        return false;
-      }
-      return ideasAreConnected(idea, ideaId);
-    },
-    [ideaId, idea],
-  );
+  const { connect, isConnected } = useConnectable({
+    connectable: idea ? { ...idea, type: "idea" } : null,
+  });
 
   const handleTitleGen = () => {
     triggerTitleGeneration();
@@ -781,14 +761,14 @@ export default function Idea() {
               <Space my="lg" />
               <Search
                 resultActions={[
-                  (idea) => {
+                  (thing) => {
                     return {
                       id: "connect",
                       label: "Connect",
                       onClick: () => {
-                        handleConnectIdea(idea.id.toString());
+                        connect(thing.id.toString());
                       },
-                      disabled: isConnected(idea.id.toString()),
+                      disabled: isConnected(thing.id.toString()),
                     };
                   },
                 ]}

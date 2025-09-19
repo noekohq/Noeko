@@ -156,6 +156,13 @@ const RightSidebar = ({
                   constant improvements and ensure that Noeko meets the needs of
                   its users.
                 </Text>
+                <Text size="xs">
+                  For a more detailed Roadmap, check out our{" "}
+                  <a href="https://www.noeko.app/roadmap" target="_blank">
+                    Roadmap Page
+                  </a>
+                  .
+                </Text>
                 <ActionIcon
                   size="sm"
                   variant="light"

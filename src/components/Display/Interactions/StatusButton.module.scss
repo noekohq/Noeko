@@ -13,6 +13,7 @@
     padding: 0 var(--mantine-spacing-sm);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+    box-shadow: var(--mantine-shadow-md);
 
     &:hover {
         transform: scale(1.01) translateY(-2px);
@@ -39,9 +40,9 @@
 }
 
 .default {
-    background-color: var(--mantine-color-dark-8);
+    background-color: var(--mantine-color-dark-9);
     border: 1px solid var(--mantine-color-dark-7);
-    color: var(--mantine-color-dark-2);
+    color: var(--mantine-color-dark-1);
 }
 
 .primary {

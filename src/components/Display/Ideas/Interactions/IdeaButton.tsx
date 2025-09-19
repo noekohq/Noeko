@@ -16,6 +16,7 @@ import { useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
 import { useDisclosure } from "@mantine/hooks";
 import { useLayout } from "../../../../contexts/LayoutContext";
+import { useLandscape } from "../../../../contexts/LandscapeContext";
 
 const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
   if (idea.content) {
@@ -61,7 +62,17 @@ function IdeaButton({
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
+  const {
+    connectable: {
+      dragging: { set: setDragging },
+    },
+  } = useLandscape();
+
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    setDragging({
+      ...idea,
+      type: "idea",
+    });
     setIsInternallyDragging(true);
     e.dataTransfer.setData(
       "application/json",
@@ -74,6 +85,7 @@ function IdeaButton({
 
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     setIsInternallyDragging(false);
+    setDragging(null);
   };
 
   const handleClick = (

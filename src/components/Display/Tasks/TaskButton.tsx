@@ -18,6 +18,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { capitalize, formatDate } from "../../../utils/formatting";
 import { fromYYYYMMDD } from "../../../utils/datetime";
 import { useLayout } from "../../../contexts/LayoutContext";
+import { useLandscape } from "../../../contexts/LandscapeContext";
 
 type ITaskButtonAction = {
   id: string;
@@ -43,6 +44,11 @@ export default function TaskButton({
   actions,
 }: ITaskButton) {
   const navigate = useNavigate();
+  const {
+    connectable: {
+      dragging: { set: setDragging },
+    },
+  } = useLandscape();
 
   const handleClick = () => {
     onClick?.();
@@ -52,6 +58,7 @@ export default function TaskButton({
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    setDragging({ ...task, type: "task" });
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({
@@ -61,7 +68,9 @@ export default function TaskButton({
     );
   };
 
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {};
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    setDragging(null);
+  };
 
   const handleMarkTask = async (complete: boolean) => {
     await updateTask(task.id, {
