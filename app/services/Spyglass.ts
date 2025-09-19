@@ -2,8 +2,7 @@ import { getLM } from "../ai/lms/lm";
 import { LMSchema, LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
 import { ISearchResult, Search } from "./Search";
-import { IIdea } from "../database/models/ideas";
-import { formatDate, htmlToMarkdown } from "../utils/formatting";
+import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISearchOverview, ISpyglassSearch } from "../database/models/search";
@@ -964,7 +963,11 @@ export default class Spyglass {
     }
   }
 
-  static singleFindingPromptBuilder(intent: string, mode: ISpyglassMode) {
+  static singleFindingPromptBuilder(
+    query: string,
+    intent: string,
+    mode: ISpyglassMode,
+  ) {
     return new PromptBuilder()
       .addText(
         "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
@@ -1003,6 +1006,15 @@ export default class Spyglass {
           - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
           `,
       )
+      .addBlock(
+        "User Query",
+        `
+        The initial user query is as follows:
+        <query>
+          ${query}
+        </query>
+        `,
+      )
       .addBlock("User Intent", intent)
       .addText(mode.analysis.prompt(intent).get()) // This dynamic prompt remains
       .addBlock(
@@ -1032,6 +1044,7 @@ export default class Spyglass {
           const resultString = this.resultToString(result);
 
           const singleResultPrompt = this.singleFindingPromptBuilder(
+            query,
             intent.intent,
             Modes[intent.mode],
           );

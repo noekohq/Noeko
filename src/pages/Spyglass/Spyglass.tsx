@@ -196,7 +196,7 @@ export default function Spyglass() {
           <div
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
-            {!initialized && (
+            {!initialized && !loading && (
               <Group gap="xs" justify="center">
                 <Title
                   ta={initialized ? "left" : "center"}
@@ -245,7 +245,10 @@ export default function Spyglass() {
                 mb="lg"
                 fs="italic"
               >
-                {queryToShow()}
+                <Group wrap="nowrap" gap="xs" component="span">
+                  {queryToShow()}
+                  {loading && <Loader size="14px" color="gray" />}
+                </Group>
               </Text>
             )}
             {initialized && (
@@ -360,22 +363,12 @@ export default function Spyglass() {
                   placeholder="Ask your thoughts anything..."
                   placeholderIfInitialized="Ask a follow-up question..."
                   initialized={initialized}
+                  onReset={() => {
+                    hasInitialized.current = false;
+                    clear(true);
+                    setParentId(null);
+                  }}
                 />
-                {initialized && (
-                  <ActionIcon
-                    onClick={() => {
-                      hasInitialized.current = false;
-                      clear(true);
-                      setParentId(null);
-                    }}
-                    color="gray"
-                    size="md"
-                    variant="light"
-                    radius="lg"
-                  >
-                    <ArrowsClockwiseIcon />
-                  </ActionIcon>
-                )}
               </div>
               {!initialized && (
                 <Group mt="lg" justify="center">

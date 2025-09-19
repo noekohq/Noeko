@@ -7,7 +7,7 @@ import {
   ICitationMap,
   IResultsMap,
 } from "../../../pages/Spyglass/hooks/useSpyglass";
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import { useLayout } from "../../../contexts/LayoutContext";
 import OverviewParser from "./OverviewParser";
@@ -21,6 +21,7 @@ import {
   CopyButton,
   Group,
   HoverCard,
+  Popover,
   Space,
   Stack,
   Text,
@@ -34,11 +35,14 @@ import {
   CaretUpIcon,
   CheckIcon,
   CopyIcon,
+  DownloadSimpleIcon,
 } from "@phosphor-icons/react";
 import { markdownToHtml } from "../../../utils/formatting";
 import { IFinding } from "../../../../app/services/Spyglass";
 import { getNodeTitle, getTypeFromId } from "../../../utils/graph";
 import { INode } from "../../../declarations/graph";
+import { getOverviewAsMarkdown } from "../../../utils/spyglass";
+import { downloadTextAsFile } from "../../../utils/files";
 
 export type IDisplayOverview = {
   overview: ISearchOverview;
@@ -49,7 +53,7 @@ export type IDisplayOverview = {
   loading: boolean;
 };
 
-export function DisplayOverview({
+export function DisplayOverviewComponent({
   overview,
   resultsMap,
   citationMap,
@@ -98,6 +102,15 @@ export function DisplayOverview({
     new Map<string, (IFinding & { index: number })[]>([]),
   );
 
+  const handleDownloadAsMarkdown = () => {
+    const content = getOverviewAsMarkdown(overview, resultsMap);
+    return downloadTextAsFile(content, {
+      type: "text/markdown",
+      extension: "md",
+      name: `${query}`,
+    });
+  };
+
   return (
     <div>
       <Group justify="space-between" className={styles.overviewUI}>
@@ -140,35 +153,28 @@ export function DisplayOverview({
         <Group justify="end">
           {!loading && (
             <Group>
-              <HoverCard position="bottom-end" withArrow>
-                <HoverCard.Target>
-                  <ActionIcon variant="light" size="sm" color="gray">
-                    <CopyIcon size="14px" />
+              <Popover position="bottom-end" withArrow radius="md">
+                <Popover.Target>
+                  <ActionIcon
+                    variant="light"
+                    size="md"
+                    radius="md"
+                    color="gray"
+                  >
+                    <DownloadSimpleIcon />
                   </ActionIcon>
-                </HoverCard.Target>
-                <HoverCard.Dropdown p="0">
+                </Popover.Target>
+                <Popover.Dropdown p="0">
                   <Stack gap="0">
-                    <CopyButton value={markdownToHtml(overview.overview)}>
+                    <CopyButton
+                      value={getOverviewAsMarkdown(overview, resultsMap)}
+                    >
                       {({ copied, copy }) => {
                         return (
                           <Button
                             variant="light"
-                            color="gray"
-                            size="sm"
-                            onClick={copy}
-                            leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
-                          >
-                            Copy as HTML
-                          </Button>
-                        );
-                      }}
-                    </CopyButton>
-                    <CopyButton value={overview.overview}>
-                      {({ copied, copy }) => {
-                        return (
-                          <Button
-                            variant="light"
-                            color="gray"
+                            color="dark.8"
+                            c="dark.2"
                             size="sm"
                             onClick={copy}
                             leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
@@ -178,9 +184,21 @@ export function DisplayOverview({
                         );
                       }}
                     </CopyButton>
+                    <Button
+                      variant="light"
+                      color="dark.8"
+                      c="dark.2"
+                      size="sm"
+                      onClick={() => {
+                        handleDownloadAsMarkdown();
+                      }}
+                      leftSection={<DownloadSimpleIcon />}
+                    >
+                      Export as Markdown
+                    </Button>
                   </Stack>
-                </HoverCard.Dropdown>
-              </HoverCard>
+                </Popover.Dropdown>
+              </Popover>
             </Group>
           )}
         </Group>
@@ -247,20 +265,33 @@ export function DisplayOverview({
                         {findings.map((finding) => {
                           return (
                             <Box mb="sm">
-                              <Blockquote color="gray" p="xs" mb="xs">
+                              <Group gap="xs" align="center" mb="xs">
                                 <Badge
                                   key={finding.index}
                                   variant="light"
-                                  size="sm"
+                                  size="xs"
                                   mx="2px"
                                   p="xs"
-                                  radius="lg"
-                                  color="gray"
+                                  radius="sm"
+                                  color="blue"
                                 >
                                   <Text size="xs" fw="bold">
                                     {finding.index + 1}
                                   </Text>
                                 </Badge>
+                                <Badge
+                                  key={finding.findingType}
+                                  variant="light"
+                                  size="xs"
+                                  mx="2px"
+                                  p="xs"
+                                  radius="lg"
+                                  color="gray"
+                                >
+                                  {finding.findingType}
+                                </Badge>
+                              </Group>
+                              <Blockquote color="gray" p="xs" mb="xs">
                                 <Text
                                   size="sm"
                                   p="0"
@@ -290,3 +321,19 @@ export function DisplayOverview({
     </div>
   );
 }
+
+const areEqual = (prevProps: IDisplayOverview, nextProps: IDisplayOverview) => {
+  /*
+   * This function returns true if the props are "equal," preventing a re-render.
+   * We compare all props EXCEPT for `query`.
+   */
+  return (
+    prevProps.overview === nextProps.overview &&
+    prevProps.resultsMap === nextProps.resultsMap &&
+    prevProps.citationMap === nextProps.citationMap &&
+    prevProps.results === nextProps.results &&
+    prevProps.loading === nextProps.loading
+  );
+};
+
+export const DisplayOverview = memo(DisplayOverviewComponent, areEqual);

@@ -956,11 +956,7 @@ export class SpyglassSearch {
       if (!findingsTime) findingsTime = Date.now();
 
       // --- Phase 4: Stream Overview Generation ---
-      if (
-        spyglass.analysis?.findings &&
-        spyglass.analysis.findings.length > 0 &&
-        !spyglass.analysis.overview
-      ) {
+      if (spyglass.analysis?.findings && !spyglass.analysis.overview) {
         console.info("Loading Spyglass overview...");
         if (!spyglass.intent)
           throw new Error("Intent not found for overview generation.");

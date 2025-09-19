@@ -1,6 +1,7 @@
 import { ActionIcon, Button, Group, Text } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import {
+  ArrowsClockwiseIcon,
   PaperPlaneIcon,
   PaperPlaneRightIcon,
   RabbitIcon,
@@ -13,6 +14,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 interface ITextboxProps {
   onSubmit: (query: string) => void;
   onChange: (value: string) => void;
+  onReset: () => void;
   value: string;
   placeholder?: string;
   placeholderIfInitialized?: string;
@@ -22,6 +24,7 @@ interface ITextboxProps {
 export default function Textbox({
   onSubmit,
   onChange,
+  onReset,
   value,
   placeholder,
   placeholderIfInitialized,
@@ -48,20 +51,22 @@ export default function Textbox({
     if (!isFocused && !initialized) {
       inputRef.current?.focus();
     }
-    document.addEventListener("keydown", (event) => {
-      if (inputRef.current && event.key === "/") {
-        if (!isFocused) {
-          event.preventDefault();
-          inputRef.current.focus();
-        }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (inputRef.current && event.key === "/" && !isFocused) {
+        event.preventDefault();
+        inputRef.current.focus();
       }
-    });
-  }, [initialized]);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [initialized, isFocused]);
 
   const showUI = () => {
-    if (initialized && !isFocused) {
-      return false;
-    }
     return true;
   };
 
@@ -140,6 +145,17 @@ export default function Textbox({
             )}
           </Group>
           <Group justify="end">
+            <ActionIcon
+              onClick={() => {
+                onReset();
+              }}
+              color="gray"
+              size="md"
+              variant="light"
+              radius="md"
+            >
+              <ArrowsClockwiseIcon />
+            </ActionIcon>
             <ActionIcon
               variant="light"
               radius="md"
