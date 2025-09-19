@@ -14,7 +14,7 @@ export default function FloatingMenu({ editor }: { editor: IEditor | null }) {
       {menuOpen && (
         <div className={styles.menu}>
           <Group gap="xs">
-            <PasteButton editor={editor} />
+            <PasteButton visible={menuOpen} editor={editor} />
           </Group>
         </div>
       )}
