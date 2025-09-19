@@ -26,7 +26,6 @@
     transition:
         margin-left 0.2s ease-in-out,
         margin-right 0.2s ease-in-out;
-    margin-bottom: 10vh;
 
     @include tablet {
         padding-top: var(--mantine-spacing-sm);

@@ -6,10 +6,13 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 100%;
     position: relative;
     box-sizing: border-box;
-    /* padding-bottom: 10vh; */
+    height: calc(100vh - 24px - var(--mobile-bar-height));
+
+    @include tablet {
+        height: calc(100vh - 24px);
+    }
 
     &.initialized {
         /* This is now the flex parent */
@@ -36,7 +39,7 @@
         overflow-y: auto;
         scrollbar-width: none;
         min-height: 0;
-        padding-bottom: var(--mantine-spacing-lg);
+        padding-bottom: 20vh;
     }
 }
 
@@ -68,7 +71,6 @@
 }
 
 .textboxContainer {
-    margin-inline: auto;
     width: 100%;
     padding: var(--layout-spacing) 0;
     animation: textboxIn 0.5s ease-in-out forwards;
@@ -82,14 +84,27 @@
     align-items: center;
 
     @include desktop {
-        width: 100%;
+    }
+
+    @include widescreen {
+        width: 80%;
+        margin-inline: auto;
     }
 
     &.initialized {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
         /* This is now a simple flex item, no special positioning needed */
         height: fit-content;
         width: 100%;
         flex-shrink: 0; /* Prevents the textbox from shrinking */
+
+        @include widescreen {
+            width: 100%;
+            margin-inline: auto;
+        }
     }
 }
 
@@ -107,7 +122,7 @@
 .queryHeader {
     opacity: 0;
     animation: queryHeaderIn 0.5s ease-in-out forwards;
-    animation-delay: .2s;
+    animation-delay: 0.2s;
 }
 
 @keyframes previewIn {

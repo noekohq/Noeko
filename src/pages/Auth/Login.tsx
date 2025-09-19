@@ -60,10 +60,6 @@ export default function Login() {
     },
     dependencies: [loginForm.values],
     onSuccess: (data) => {
-      showNotification({
-        title: "Login Successful",
-        message: "Welcome back!",
-      });
       loadUser(data.accessToken).then(() => {
         navigate("/");
       });
