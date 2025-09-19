@@ -31,7 +31,6 @@ dayjs.extend(weekOfYear);
 type TasksByDay = Map<string, ITask[]>;
 
 const processTasks = (tasks: ITask[]) => {
-  // ... (this helper function does not need to change)
   const dated: ITask[] = [];
   const undated: ITask[] = [];
 
@@ -69,7 +68,6 @@ export default function TaskTimelineView() {
     const getTasksForMonth = async () => {
       try {
         setLoading(true);
-        // ✅ 2. Calculate the start and end for *only* the current month.
         const startDate = fetchMonth.format("YYYY-MM-DD");
         const endDate = fetchMonth.endOf("month").format("YYYY-MM-DD");
 

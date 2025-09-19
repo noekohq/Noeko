@@ -7,9 +7,10 @@
     align-items: center;
     justify-content: space-between;
     transition: all 0.2s ease-in-out;
-    background-color: var(--mantine-color-dark-8);
+    background-color: var(--mantine-color-dark-9);
     border-radius: var(--mantine-radius-lg);
     border: 1px solid var(--mantine-color-dark-7);
+    box-shadow: var(--mantine-shadow-md);
 
     &:hover {
         transform: scale(1.01) translateY(-2px);

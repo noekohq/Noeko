@@ -65,7 +65,11 @@ export default function TimeButton() {
     >
       <Popover.Target>
         <div style={{ height: "100%" }}>
-          <StatusButton>{formatButtonTime(now)}</StatusButton>
+          <StatusButton>
+            <Text size="sm" fw="normal" lineClamp={0}>
+              {formatButtonTime(now)}
+            </Text>
+          </StatusButton>
         </div>
       </Popover.Target>
       <Popover.Dropdown>

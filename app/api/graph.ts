@@ -262,7 +262,7 @@ router.get(
       const isConnectable = GraphService.isConnectable(thingId);
       const rabbitholeId = req.query.rabbitholeId as string;
 
-      if (typeof rabbitholeId !== "string") {
+      if (rabbitholeId && !(typeof rabbitholeId !== "string")) {
         res.status(400).send({
           message: "Bad Request",
         });

@@ -30,8 +30,6 @@ import {
   FileIcon,
   FileMagnifyingGlassIcon,
   IntersectSquareIcon,
-  MagnifyingGlassIcon,
-  Sparkle,
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
@@ -41,20 +39,14 @@ import {
   ISourceReference,
 } from "../../../app/database/models/source";
 import Search from "../../components/Search/Search";
-import { markdownToHtml } from "../../utils/formatting";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { updateSource } from "../../utils/sources";
 import { showNotification } from "@mantine/notifications";
-import { IExcerpt } from "../../../app/database/models/excerpt";
-import {
-  createExcerpt,
-  deleteExcerpt,
-  editExcerpt,
-} from "../../utils/excerpts";
 import { SourceProvider, useSource } from "./SourceContext";
+import useConnectable from "../../hooks/useConnectable";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -96,6 +88,10 @@ export default function Source() {
     }
     return null;
   }, [file]);
+
+  const { connect, isConnected } = useConnectable({
+    connectable: source ? { ...source, type: "source" } : null,
+  });
 
   const {
     elements: {
@@ -292,7 +288,20 @@ export default function Source() {
                   </Group>
                 </Card>
               )}
-              <Search />
+              <Search
+                resultActions={[
+                  (thing) => {
+                    return {
+                      id: "connect",
+                      label: "Connect",
+                      onClick: () => {
+                        connect(thing.id.toString());
+                      },
+                      disabled: isConnected(thing.id.toString()),
+                    };
+                  },
+                ]}
+              />
             </Stack>
           </RightSidebar.Open>
         </RightSidebar>

@@ -206,7 +206,6 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
-    console.log("Idea id: ", ideaId);
     const isOwner = await User.checkOwns(user.id, ideaId);
     if (!isOwner) {
       res.status(403).json({

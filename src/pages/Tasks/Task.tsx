@@ -51,6 +51,7 @@ import Search from "../../components/Search/Search";
 import { modals } from "@mantine/modals";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "../../contexts/LandscapeContext";
+import useConnectable from "../../hooks/useConnectable";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -286,6 +287,10 @@ export default function Task() {
 
   const isComplete = task?.completedAt !== null;
 
+  const { connect, isConnected } = useConnectable({
+    connectable: task ? { ...task, type: "task" } : null,
+  });
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -514,7 +519,23 @@ export default function Task() {
               </Menu>
             </Group>
             <Divider />
-            <Search />
+            <Search
+              resultActions={[
+                (thing) => {
+                  return {
+                    id: "connect",
+                    label: "Connect",
+                    onClick: () => {
+                      if (!task) {
+                        return;
+                      }
+                      connect(thing.id.toString());
+                    },
+                    disabled: isConnected(thing.id.toString()),
+                  };
+                },
+              ]}
+            />
           </Stack>
         </RightSidebar.Open>
       </RightSidebar>

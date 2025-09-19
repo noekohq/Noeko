@@ -111,27 +111,31 @@ export default function ConnectionManager({
         }}
         pos="relative"
       >
-        {draggingOverConnectionDrop && (
-          <Overlay
-            backgroundOpacity={0.5}
-            blur={10}
-            onDragOver={(e) => {
-              e.preventDefault();
-            }}
-            onDrop={(e) => {
-              handleConnectionDrop(e);
-            }}
-            radius={"lg"}
-          >
-            <Group align="center" justify="center" style={{ height: "100%" }}>
-              <Text c="dark.7" mx="lg" size="sm">
-                Drop here to create a connection
-              </Text>
-            </Group>
-          </Overlay>
-        )}
         <Stack>
           <Group align="center" justify="space-between" mt="lg">
+            {draggingOverConnectionDrop && (
+              <Overlay
+                backgroundOpacity={0.5}
+                blur={10}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  handleConnectionDrop(e);
+                }}
+                radius={"lg"}
+              >
+                <Group
+                  align="center"
+                  justify="center"
+                  style={{ height: "100%" }}
+                >
+                  <Text c="dark.7" mx="lg" size="sm">
+                    Drop here to create a connection
+                  </Text>
+                </Group>
+              </Overlay>
+            )}
             <Text size="sm" c="dark.4" fw="bold">
               <Group gap="xs">
                 <UniteSquareIcon weight="bold" />
@@ -236,8 +240,8 @@ export default function ConnectionManager({
                 />
               );
             })}
+          {draggingOverConnectionDrop && <Box my="md" mih={"10vh"} />}
         </Stack>
-        {draggingOverConnectionDrop && <Box mih={"10vh"} />}
       </Box>
       <Stack gap="xs" mb="md" mt="md">
         <Text size="sm" c="dark.4" fw="bold">

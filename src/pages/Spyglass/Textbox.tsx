@@ -159,7 +159,13 @@ export default function Textbox({
             <ActionIcon
               variant="light"
               radius="md"
-              color="blue"
+              bg="dark.9"
+              c="dark.1"
+              styles={{
+                root: {
+                  border: "1px solid var(--mantine-color-dark-7)",
+                },
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 send();
