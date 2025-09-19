@@ -19,6 +19,7 @@ import {
 } from "@phosphor-icons/react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import styles from "./ProfileButton.module.scss";
 
 export default function ProfileButton() {
   const { user, logout } = useAuth();
@@ -65,16 +66,18 @@ export default function ProfileButton() {
       zIndex={700}
     >
       <Menu.Target>
-        <Avatar
-          color={isSuperuser ? "red" : "blue"}
-          variant="filled"
-          radius="xl"
-          style={{ cursor: "pointer" }}
-          onDoubleClick={() => navigate("/")}
-          size={isMobile ? "md" : "sm"}
-        >
-          {initials}
-        </Avatar>
+        <div className={styles.buttonWrapper}>
+          <Avatar
+            color={isSuperuser ? "red" : "blue"}
+            variant="filled"
+            radius="xl"
+            style={{ cursor: "pointer" }}
+            onDoubleClick={() => navigate("/")}
+            size={isMobile ? "md" : "sm"}
+          >
+            {initials}
+          </Avatar>
+        </div>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>Views</Menu.Label>

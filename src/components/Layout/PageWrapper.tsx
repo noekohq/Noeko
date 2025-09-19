@@ -3,6 +3,7 @@ import { useLandscape } from "../../contexts/LandscapeContext";
 import { useLayout } from "../../contexts/LayoutContext";
 import MobileBar from "../UI/Layout/MobileBar";
 import styles from "./PageWrapper.module.scss";
+import useScroll from "../../hooks/useScroll";
 
 type PageWrapperProps = {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export default function PageWrapper({ children }: PageWrapperProps) {
       entered: { get: enteredRabbithole },
     },
   } = useLandscape();
+  useScroll({ ref: wrapperRef });
 
   const hasEnteredRabbithole = enteredRabbithole !== null;
 

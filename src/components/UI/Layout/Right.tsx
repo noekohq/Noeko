@@ -4,11 +4,13 @@ import styles from "./Sidebars.module.scss";
 import {
   ArrowLineLeftIcon,
   ListMagnifyingGlassIcon,
+  MegaphoneIcon,
   SidebarSimpleIcon,
   WifiXIcon,
 } from "@phosphor-icons/react";
 import {
   ActionIcon,
+  Badge,
   Group,
   HoverCard,
   MantineColor,
@@ -24,6 +26,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import { useLocation, useNavigate } from "react-router";
 import useSidebarHover from "../../../hooks/useSidebarHover";
 import { useConnection } from "../../../hooks/useConnection";
+import StageIndicator from "../../Utils/Info/StageIndicator";
 
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -102,6 +105,7 @@ const RightSidebar = ({
       layout: {
         spotlight: { open: openSpotlight },
       },
+      feedback: { openFeedbackModal },
     },
     state: {
       zen: { get: isZen },
@@ -122,7 +126,7 @@ const RightSidebar = ({
               setMode("collapsed");
             }}
             variant="subtle"
-            size={isMobile ? "sm" : "md"}
+            size={"md"}
             color={defaultColor}
           >
             <SidebarSimpleIcon
@@ -133,14 +137,42 @@ const RightSidebar = ({
           </ActionIcon>
         )}
         <Group gap="xs">
+          <HoverCard openDelay={400} width="300px">
+            <HoverCard.Target>
+              <Badge color="gray" size="sm" variant="light">
+                BETA
+              </Badge>
+            </HoverCard.Target>
+            <HoverCard.Dropdown>
+              <Stack gap="xs">
+                <Text size="sm">
+                  Noeko is current in active development, and we're working on
+                  making improvements every day as we work towards a stable
+                  release.
+                </Text>
+                <Text size="sm">
+                  The best way to support the project right now is to provide{" "}
+                  <i>honest and useful feedback</i>. This allows us to make
+                  constant improvements and ensure that Noeko meets the needs of
+                  its users.
+                </Text>
+                <ActionIcon
+                  size="sm"
+                  variant="light"
+                  color="blue"
+                  onClick={() => {
+                    openFeedbackModal();
+                  }}
+                >
+                  <MegaphoneIcon size="12" weight="bold" />
+                </ActionIcon>
+              </Stack>
+            </HoverCard.Dropdown>
+          </HoverCard>
           {!isOnline && !loadingConnection && (
             <HoverCard width="300px" openDelay={300} radius="lg">
               <HoverCard.Target>
-                <ActionIcon
-                  size={isMobile ? "sm" : "md"}
-                  color={defaultColor}
-                  variant="subtle"
-                >
+                <ActionIcon size={"md"} color={defaultColor} variant="subtle">
                   <WifiXIcon weight="bold" />
                 </ActionIcon>
               </HoverCard.Target>
@@ -170,7 +202,7 @@ const RightSidebar = ({
               setMode("collapsed");
             }}
             variant="subtle"
-            size={isMobile ? "sm" : "md"}
+            size={"md"}
             color={defaultColor}
           >
             <SidebarSimpleIcon />
@@ -202,9 +234,9 @@ const RightSidebar = ({
         )}
         <ProfileButton />
         <ActionIcon
-          variant="light"
+          variant="subtle"
           onClick={openSpotlight}
-          size="sm"
+          size="md"
           color={defaultColor}
         >
           <ListMagnifyingGlassIcon size={16} />
@@ -241,17 +273,8 @@ const RightSidebar = ({
       className={`${styles.sidebar} ${styles.right} ${modeToClass[mode]}`}
       // {...sidebarProps}
     >
-      {["open", "hovering"].includes(mode) && !isMobile ? (
-        <>
-          {children && <div className={styles.content}>{children}</div>}
-          <div className={styles.global}>{Global[mode]}</div>
-        </>
-      ) : (
-        <>
-          <div className={styles.global}>{Global[mode]}</div>
-          {children && <div className={styles.content}>{children}</div>}
-        </>
-      )}
+      <div className={styles.global}>{Global[mode]}</div>
+      {children && <div className={styles.content}>{children}</div>}
     </aside>
   );
 };

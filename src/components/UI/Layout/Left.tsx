@@ -105,7 +105,7 @@ const LeftSidebar = ({
       <Group justify="space-between" align="center" wrap="nowrap">
         {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
         <Group gap="xs" justify="flex-end" w="100%">
-          <HomeButton />
+          <HomeButton variant="subtle" />
           <Tooltip label="Give feedback!">
             <ActionIcon
               onClick={() => {
@@ -122,7 +122,7 @@ const LeftSidebar = ({
               setMode("collapsed");
             }}
             variant="subtle"
-            size={isMobile ? "sm" : "md"}
+            size={"md"}
             color={defaultColor}
           >
             <SidebarSimpleIcon />
@@ -143,7 +143,7 @@ const LeftSidebar = ({
               onClick={() => {
                 openFeedbackModal();
               }}
-              variant="light"
+              variant="subtle"
               color={defaultColor}
             >
               <MegaphoneIcon />
@@ -154,7 +154,7 @@ const LeftSidebar = ({
               setMode("collapsed");
             }}
             variant="subtle"
-            size={isMobile ? "sm" : "md"}
+            size={"md"}
             color={defaultColor}
           >
             <SidebarSimpleIcon />
@@ -221,25 +221,14 @@ const LeftSidebar = ({
       className={`${styles.sidebar} ${styles.left} ${modeToClass[mode]}`}
       // {...sidebarProps}
     >
-      {["open", "hovering"].includes(mode) && !isMobile ? (
-        <>
-          {!!children && (
-            <>
-              <div className={styles.content}>{children}</div>
-            </>
-          )}
-          <div className={styles.global}>{Global[mode]}</div>
-        </>
-      ) : (
-        <>
-          <div className={styles.global}>{Global[mode]}</div>
-          {!!children && (
-            <>
-              <div className={styles.content}>{children}</div>
-            </>
-          )}
-        </>
-      )}
+      <>
+        <div className={styles.global}>{Global[mode]}</div>
+        {!!children && (
+          <>
+            <div className={styles.content}>{children}</div>
+          </>
+        )}
+      </>
     </aside>
   );
 };

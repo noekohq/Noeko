@@ -54,20 +54,42 @@ export default function BubbleMenu({
 
   const { isMobile } = useLayout();
 
+  const [visible, setVisible] = useState(false);
+  const handleVisibilityChange = (v: boolean) => {
+    setVisible(v);
+    onVisibilityChange?.(v);
+  };
+
   const shouldShowHandler = ({
     editor: currentEditor,
-    from,
-    to,
+    state,
   }: any): boolean => {
     if (hidden) {
       return false;
     }
-    const { selection } = currentEditor.state;
+
+    const { selection } = state;
+    const { $from, from, to } = selection;
+
+    // Don't show for empty documents.
+    if (state.doc.content.size === 0) {
+      return false;
+    }
+
+    // Condition 1: A range of text is selected.
     const isTextSelected = from !== to;
 
-    const shouldBeVisible = isTextSelected && selection.content().size > 0;
+    // Condition 2: A specific node with a menu is selected.
+    const isNodeSelected =
+      selection instanceof NodeSelection &&
+      ["dreamImage", "inlineMath", "blockMath", "dreamYouTube"].includes(
+        selection.node.type.name,
+      );
 
-    onVisibilityChange?.(shouldBeVisible);
+    // Combine the conditions
+    const shouldBeVisible = isTextSelected || isNodeSelected;
+
+    handleVisibilityChange(shouldBeVisible);
 
     return shouldBeVisible;
   };
@@ -134,39 +156,39 @@ export default function BubbleMenu({
           {isMobile && (
             <div className={styles.row}>
               <div className={styles.buttonGroup}>
-                <CopySelectionButton editor={editor} />
-                <CutButton editor={editor} />
-                <PasteButton editor={editor} />
-                <SelectAllButton editor={editor} />
+                <CopySelectionButton visible={visible} editor={editor} />
+                <CutButton visible={visible} editor={editor} />
+                <PasteButton visible={visible} editor={editor} />
+                <SelectAllButton visible={visible} editor={editor} />
               </div>
               <div className={styles.buttonGroup}>
-                <MagicMenuButton editor={editor} />
+                <MagicMenuButton visible={visible} editor={editor} />
               </div>
             </div>
           )}
           <div className={styles.row}>
             {!isMobile && (
               <div className={styles.buttonGroup}>
-                <MagicMenuButton editor={editor} />
+                <MagicMenuButton visible={visible} editor={editor} />
               </div>
             )}
             <div className={styles.buttonGroup}>
-              <BoldButton editor={editor} />
-              <ItalicButton editor={editor} />
-              <UnderlineButton editor={editor} />
-              <StrikeThroughButton editor={editor} />
-              <LinkButton editor={editor} />
-              <BlockquoteButton editor={editor} />
-              <HighlightButton editor={editor} />
+              <BoldButton visible={visible} editor={editor} />
+              <ItalicButton visible={visible} editor={editor} />
+              <UnderlineButton visible={visible} editor={editor} />
+              <StrikeThroughButton visible={visible} editor={editor} />
+              <LinkButton visible={visible} editor={editor} />
+              <BlockquoteButton visible={visible} editor={editor} />
+              <HighlightButton visible={visible} editor={editor} />
             </div>
           </div>
 
           <div className={styles.row}>
             <div className={styles.buttonGroup}>
-              <HeadingMenuButton editor={editor} />
-              <ListMenuButton editor={editor} />
-              <CodeMenuButton editor={editor} />
-              <MathMenuButton editor={editor} />
+              <HeadingMenuButton visible={visible} editor={editor} />
+              <ListMenuButton visible={visible} editor={editor} />
+              <CodeMenuButton visible={visible} editor={editor} />
+              <MathMenuButton visible={visible} editor={editor} />
             </div>
           </div>
         </>

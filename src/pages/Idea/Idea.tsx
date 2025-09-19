@@ -780,22 +780,18 @@ export default function Idea() {
               </Card>
               <Space my="lg" />
               <Search
-                resultActions={
-                  isMobile
-                    ? [
-                        (idea) => {
-                          return {
-                            id: "connect",
-                            label: "Connect",
-                            onClick: () => {
-                              handleConnectIdea(idea.id.toString());
-                            },
-                            disabled: isConnected(idea.id.toString()),
-                          };
-                        },
-                      ]
-                    : undefined
-                }
+                resultActions={[
+                  (idea) => {
+                    return {
+                      id: "connect",
+                      label: "Connect",
+                      onClick: () => {
+                        handleConnectIdea(idea.id.toString());
+                      },
+                      disabled: isConnected(idea.id.toString()),
+                    };
+                  },
+                ]}
               />
             </Tabs.Panel>
             <Tabs.Panel value="access">

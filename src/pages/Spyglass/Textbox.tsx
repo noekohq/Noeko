@@ -2,13 +2,11 @@ import { ActionIcon, Button, Group, Text } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import {
   ArrowsClockwiseIcon,
-  PaperPlaneIcon,
   PaperPlaneRightIcon,
   RabbitIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useLayout } from "../../contexts/LayoutContext";
 import useRabbithole from "../../hooks/useRabbithole";
 
 interface ITextboxProps {
@@ -64,7 +62,7 @@ export default function Textbox({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [initialized, isFocused]);
+  }, []);
 
   const showUI = () => {
     return true;
@@ -145,27 +143,29 @@ export default function Textbox({
             )}
           </Group>
           <Group justify="end">
+            {initialized && (
+              <ActionIcon
+                onClick={() => {
+                  onReset();
+                }}
+                color="gray"
+                size="md"
+                variant="light"
+                radius="md"
+              >
+                <ArrowsClockwiseIcon />
+              </ActionIcon>
+            )}
             <ActionIcon
-              onClick={() => {
-                onReset();
-              }}
-              color="gray"
-              size="md"
               variant="light"
               radius="md"
-            >
-              <ArrowsClockwiseIcon />
-            </ActionIcon>
-            <ActionIcon
-              variant="light"
-              radius="md"
-              color="gray"
+              color="blue"
               onClick={(e) => {
                 e.stopPropagation();
                 send();
               }}
             >
-              <PaperPlaneRightIcon />
+              <PaperPlaneRightIcon weight="bold" />
             </ActionIcon>
           </Group>
         </div>

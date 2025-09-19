@@ -151,13 +151,25 @@ export class User {
         `;
       };
 
-      console.info("Running get users function...");
+      const referralCodeIndex = () => {
+        return `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`;
+      };
+
+      const ownershipIndex = () => {
+        return `
+        DEFINE INDEX IF NOT EXISTS idx_connected_in
+          ON TABLE owns
+          FIELDS in;
+        DEFINE INDEX IF NOT EXISTS idx_connected_out
+          ON TABLE owns
+          FIELDS out;
+        `;
+      };
+
       await db?.query(getUsersFunction());
 
-      console.info("Finished ensuring referral codes.");
-      await db?.query(
-        `DEFINE INDEX IF NOT EXISTS userReferralCodeIndex ON TABLE user COLUMNS referralCode UNIQUE;`,
-      );
+      await db?.query(referralCodeIndex());
+      await db?.query(ownershipIndex());
 
       // const kernel = getKernel();
       ensureAllUsersHaveNecessaryFields();

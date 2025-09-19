@@ -12,11 +12,13 @@ import { useLayout } from "../../../contexts/LayoutContext";
 interface IHomeButtonProps {
   size?: MantineSize;
   radius?: MantineRadius;
+  variant?: string;
 }
 
 export default function HomeButton({
   size = "md",
   radius = "sm",
+  variant = "light",
 }: IHomeButtonProps) {
   const { pathname } = useLocation();
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -33,7 +35,7 @@ export default function HomeButton({
   return (
     <Link to={"/"}>
       <ActionIcon
-        variant={isMobile ? "light" : "subtle"}
+        variant={variant}
         color={defaultColor}
         size={size}
         radius={radius}
