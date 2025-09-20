@@ -1,24 +1,22 @@
 import {
-  Container,
   Title,
   Loader,
   Grid,
-  Table,
-  ActionIcon,
-  ActionIconGroup,
   Group,
   TextInput,
-  Modal,
   Text,
   Button,
-  Textarea,
-  RadioCard,
-  RadioGroup,
-  Radio,
   Alert,
   CopyButton,
-  Code,
   SimpleGrid,
+  Drawer,
+  Stack,
+  Box,
+  ActionIcon,
+  Modal,
+  RadioGroup,
+  RadioCard,
+  Radio,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
 import {
@@ -27,15 +25,15 @@ import {
   IUser,
 } from "../../../app/database/models/user";
 import {
-  TrashSimple,
-  HandPalm,
-  ThumbsUp,
-  EnvelopeSimple,
   Check,
   Clipboard,
-  Eye,
-  CaretUp,
-  CaretDown,
+  CheckIcon,
+  ClipboardIcon,
+  ThumbsUpIcon,
+  HandPalmIcon,
+  EnvelopeSimple,
+  EnvelopeSimpleIcon,
+  TrashSimpleIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
@@ -47,6 +45,7 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import styles from "./Users.module.scss";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import UserCard from "../../components/Display/Users/UserCard";
 
 export default function Users() {
   const {
@@ -61,7 +60,6 @@ export default function Users() {
   const [toDisable, setToDisable] = useState<ISafeUser>();
   const [toEnable, setToEnable] = useState<ISafeUser>();
   const [toDelete, setToDelete] = useState<ISafeUser>();
-  const [toViewDetails, setToViewDetails] = useState<IComputedUser>();
 
   const { load: disableUser } = useFetch<undefined, ISafeUser>({
     url: `/users/disable/${toDisable?.id}`,
@@ -227,31 +225,16 @@ export default function Users() {
   const [sortField, setSortField] = useState<keyof IComputedUser | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  const handleSort = (field: keyof IComputedUser) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
-  const getSortIcon = (field: keyof IComputedUser) => {
-    if (sortField !== field) return null;
-    return sortDirection === "asc" ? (
-      <CaretUp size={14} />
-    ) : (
-      <CaretDown size={14} />
-    );
-  };
-
   const filteredUsers = users?.filter(
     (user) =>
       user.email.toLowerCase().includes(query.toLowerCase()) ||
       (user.firstName + " " + user.lastName)
         .toLowerCase()
         .includes(query.toLowerCase()) ||
-      user.id.toString().includes(query.toLowerCase()),
+      user.id.toString().includes(query.toLowerCase()) ||
+      user.roles.join("").includes(query.toLowerCase()) ||
+      (["disabled"].includes(query.toLowerCase()) && user.disabled) ||
+      (["enabled", "active"].includes(query.toLowerCase()) && !user.disabled),
   );
 
   const sortedUsers = filteredUsers?.sort((a, b) => {
@@ -327,10 +310,237 @@ export default function Users() {
 
   const summaryDetails = getSummaryDetails();
 
+  const [selectedUser, setSelectedUser] = useState<IComputedUser>();
+
   return (
     <PageWrapper>
       <LeftSidebar />
       <Content>
+        <Stack gap="md">
+          {loadingUsers && <Loader size="lg" />}
+          {!!invitedUser && (
+            <Alert
+              withCloseButton
+              onClose={() => {
+                setInvitedUser(undefined);
+              }}
+            >
+              <Grid>
+                <Grid.Col span={{ sm: 12 }}>
+                  <Text>
+                    {invitedUser.user.firstName} has been invited with the email{" "}
+                    <a href={`mailto:${invitedUser.user.email}`}>
+                      {invitedUser.user.email}
+                    </a>
+                    .{" "}
+                    {invitedUser.emailSuccess
+                      ? "Email was sent successfully."
+                      : "Email was not sent successfully."}
+                  </Text>
+                </Grid.Col>
+                <Grid.Col span={{ sm: 12 }}>
+                  <CopyButton value={invitedUser.user.email}>
+                    {({ copied, copy }) => {
+                      return (
+                        <Button
+                          onClick={copy}
+                          leftSection={
+                            copied ? (
+                              <Check weight="bold" />
+                            ) : (
+                              <Clipboard weight="bold" />
+                            )
+                          }
+                        >
+                          {copied ? "Copied" : "Copy Email"}
+                        </Button>
+                      );
+                    }}
+                  </CopyButton>
+                </Grid.Col>
+              </Grid>
+            </Alert>
+          )}
+          <Title>Manage Users</Title>
+          <Text>
+            There are <strong>{summaryDetails.numberOfUsers}</strong> users. The
+            most recent user is{" "}
+            <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
+            with the most ideas is{" "}
+            <strong>{summaryDetails.mostIdeas?.email}</strong>.
+          </Text>
+          <TextInput
+            placeholder="Filter users"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            radius="md"
+          />
+          {!!filteredUsers?.length && (
+            <SimpleGrid
+              cols={{
+                sm: 1,
+                md: 2,
+                lg: 3,
+              }}
+            >
+              {filteredUsers.map((user) => {
+                return (
+                  <UserCard
+                    user={user}
+                    onClick={() => {
+                      setSelectedUser(user);
+                    }}
+                  />
+                );
+              })}
+            </SimpleGrid>
+          )}
+        </Stack>
+
+        <Drawer
+          position="bottom"
+          opened={!!selectedUser}
+          onClose={() => {
+            setSelectedUser(undefined);
+          }}
+        >
+          <Stack>
+            <>
+              <Text size="sm">
+                <CopyButton
+                  value={`${selectedUser?.firstName} ${selectedUser?.lastName}`}
+                >
+                  {({ copied, copy }) => (
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      color="dark.1"
+                      onClick={copy}
+                      mx="xs"
+                      leftSection={
+                        copied ? (
+                          <CheckIcon size={14} />
+                        ) : (
+                          <ClipboardIcon size={14} />
+                        )
+                      }
+                    >
+                      {selectedUser?.firstName} {selectedUser?.lastName}
+                    </Button>
+                  )}
+                </CopyButton>
+                has {selectedUser?.numIdeas} idea
+                {selectedUser?.numIdeas === 1 ? "" : "s"}. Their ID is
+                <CopyButton value={selectedUser?.id.toString() ?? "Unknown"}>
+                  {({ copied, copy }) => (
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      color="dark.1"
+                      onClick={copy}
+                      leftSection={
+                        copied ? (
+                          <CheckIcon size={14} />
+                        ) : (
+                          <ClipboardIcon size={14} />
+                        )
+                      }
+                      mx="xs"
+                    >
+                      {selectedUser?.id.toString() ?? "Unknown"}
+                    </Button>
+                  )}
+                </CopyButton>
+                . Their email is
+                <CopyButton value={selectedUser?.email || "Unknown"}>
+                  {({ copied, copy }) => (
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      color="dark.1"
+                      onClick={copy}
+                      leftSection={
+                        copied ? (
+                          <CheckIcon size={14} />
+                        ) : (
+                          <ClipboardIcon size={14} />
+                        )
+                      }
+                      mx="xs"
+                    >
+                      {selectedUser?.email}
+                    </Button>
+                  )}
+                </CopyButton>
+                . Their roles are
+                <CopyButton value={selectedUser?.roles.join(", ") || ""}>
+                  {({ copied, copy }) => (
+                    <Button
+                      size="xs"
+                      variant="light"
+                      color="gray"
+                      onClick={copy}
+                      leftSection={
+                        copied ? (
+                          <CheckIcon size={14} />
+                        ) : (
+                          <ClipboardIcon size={14} />
+                        )
+                      }
+                      mx="xs"
+                    >
+                      {selectedUser?.roles.join(", ")}
+                    </Button>
+                  )}
+                </CopyButton>
+                .
+              </Text>
+              <Group gap="sm">
+                {selectedUser?.disabled ? (
+                  <Button
+                    variant="light"
+                    color="blue"
+                    size="sm"
+                    radius="md"
+                    onClick={() => setToEnable(selectedUser)}
+                    leftSection={<ThumbsUpIcon weight="bold" />}
+                  >
+                    Activate
+                  </Button>
+                ) : (
+                  <Button
+                    variant="light"
+                    color="red"
+                    radius="md"
+                    size="sm"
+                    onClick={() => setToDisable(selectedUser)}
+                    leftSection={<HandPalmIcon weight="bold" />}
+                  >
+                    Disable
+                  </Button>
+                )}
+                <Button
+                  variant="light"
+                  color="red"
+                  radius="md"
+                  size="sm"
+                  onClick={() => setToDelete(selectedUser)}
+                  leftSection={<TrashSimpleIcon weight="bold" />}
+                >
+                  Delete
+                </Button>
+              </Group>
+              <Group justify="end">
+                <Button
+                  variant="default"
+                  onClick={() => setSelectedUser(undefined)}
+                >
+                  Close
+                </Button>
+              </Group>
+            </>
+          </Stack>
+        </Drawer>
         <Modal
           opened={!!toDisable}
           title="Disable user"
@@ -395,443 +605,6 @@ export default function Users() {
             </Button>
           </Group>
         </Modal>
-
-        <Modal
-          opened={!!toEmail}
-          title="Email user"
-          onClose={() => setToEmail(undefined)}
-          size="lg"
-        >
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>
-              Sending email to {toEmail?.email}
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <RadioGroup
-                value={emailType}
-                onChange={(v) => setEmailType(v as typeof emailType)}
-              >
-                <RadioCard value="onboarding" radius="sm" p="md">
-                  <Group wrap="nowrap" align="flex-start">
-                    <Radio.Indicator />
-                    <Text>Send the user an onboarding email.</Text>
-                  </Group>
-                </RadioCard>
-                <RadioCard value="test" radius="sm" p="md">
-                  <Group wrap="nowrap" align="flex-start">
-                    <Radio.Indicator />
-                    <Text>Send the user test email.</Text>
-                  </Group>
-                </RadioCard>
-              </RadioGroup>
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                <Button
-                  variant="default"
-                  onClick={() => setToEmail(undefined)}
-                  disabled={sendingUserEmail}
-                >
-                  Cancel.
-                </Button>
-                <Button
-                  onClick={() => {
-                    sendUserEmail();
-                  }}
-                  leftSection={
-                    sendingUserEmail ? <Loader size="sm" color="white" /> : ""
-                  }
-                  disabled={sendingUserEmail}
-                >
-                  Send it.
-                </Button>
-              </Group>
-            </Grid.Col>
-          </Grid>
-        </Modal>
-
-        <Modal
-          opened={invitingUser}
-          onClose={() => setInvitingUser(false)}
-          title="Invite user"
-          size="lg"
-        >
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>
-              <TextInput
-                label="First name"
-                placeholder="First name"
-                {...invitationForm.getInputProps("firstName")}
-                withAsterisk
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <TextInput
-                label="Last name"
-                placeholder="Last name"
-                {...invitationForm.getInputProps("lastName")}
-                withAsterisk
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <TextInput
-                label="Email"
-                placeholder="Email"
-                {...invitationForm.getInputProps("email")}
-                withAsterisk
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }} />
-            <Grid.Col span={{ sm: 12 }}>
-              <Group justify="right">
-                <Button
-                  variant="default"
-                  onClick={() => {
-                    invitationForm.reset();
-                    setInvitingUser(false);
-                  }}
-                  disabled={loadingUserInvite}
-                >
-                  Cancel.
-                </Button>
-                <Button
-                  onClick={() => {
-                    inviteUser();
-                  }}
-                  leftSection={
-                    loadingUserInvite ? <Loader color="white" size="sm" /> : ""
-                  }
-                  disabled={loadingUserInvite}
-                >
-                  Send invite!
-                </Button>
-              </Group>
-            </Grid.Col>
-          </Grid>
-        </Modal>
-
-        <Modal
-          opened={!!toViewDetails}
-          onClose={() => setToViewDetails(undefined)}
-          title="User Details"
-          size="lg"
-        >
-          {toViewDetails && (
-            <Grid mt="lg">
-              <Grid.Col span={{ sm: 12 }}>
-                <Text>
-                  {toViewDetails.numIdeas} idea
-                  {toViewDetails.numIdeas === 1 ? "" : "s"}
-                </Text>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Text>
-                  Their name is
-                  <CopyButton
-                    value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}
-                  >
-                    {({ copied, copy }) => (
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={copy}
-                        mx="xs"
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
-                      >
-                        {toViewDetails.firstName} {toViewDetails.lastName}
-                      </Button>
-                    )}
-                  </CopyButton>
-                </Text>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Text>
-                  Their ID is
-                  <CopyButton value={toViewDetails.id.toString()}>
-                    {({ copied, copy }) => (
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={copy}
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
-                        mx="xs"
-                      >
-                        {toViewDetails.id}
-                      </Button>
-                    )}
-                  </CopyButton>
-                </Text>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Text>
-                  Their email is
-                  <CopyButton value={toViewDetails.email}>
-                    {({ copied, copy }) => (
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={copy}
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
-                        mx="xs"
-                      >
-                        {toViewDetails.email}
-                      </Button>
-                    )}
-                  </CopyButton>
-                </Text>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Group gap="xs">
-                  <Text>
-                    Their roles are
-                    <CopyButton value={toViewDetails.roles.join(", ")}>
-                      {({ copied, copy }) => (
-                        <Button
-                          size="xs"
-                          variant="light"
-                          onClick={copy}
-                          leftSection={
-                            copied ? (
-                              <Check size={14} />
-                            ) : (
-                              <Clipboard size={14} />
-                            )
-                          }
-                          mx="xs"
-                        >
-                          {toViewDetails.roles.join(", ")}
-                        </Button>
-                      )}
-                    </CopyButton>
-                  </Text>
-                </Group>
-              </Grid.Col>
-              <Grid.Col span={{ sm: 12 }}>
-                <Group justify="end">
-                  <Button
-                    variant="default"
-                    onClick={() => setToViewDetails(undefined)}
-                  >
-                    Close
-                  </Button>
-                </Group>
-              </Grid.Col>
-            </Grid>
-          )}
-        </Modal>
-
-        {loadingUsers && <Loader size="lg" />}
-        <Grid>
-          {!!invitedUser && (
-            <Grid.Col span={{ sm: 12 }}>
-              <Alert
-                withCloseButton
-                onClose={() => {
-                  setInvitedUser(undefined);
-                }}
-              >
-                <Grid>
-                  <Grid.Col span={{ sm: 12 }}>
-                    <Text>
-                      {invitedUser.user.firstName} has been invited with the
-                      email{" "}
-                      <a href={`mailto:${invitedUser.user.email}`}>
-                        {invitedUser.user.email}
-                      </a>
-                      .{" "}
-                      {invitedUser.emailSuccess
-                        ? "Email was sent successfully."
-                        : "Email was not sent successfully."}
-                    </Text>
-                  </Grid.Col>
-                  <Grid.Col span={{ sm: 12 }}>
-                    <CopyButton value={invitedUser.user.email}>
-                      {({ copied, copy }) => {
-                        return (
-                          <Button
-                            onClick={copy}
-                            leftSection={
-                              copied ? (
-                                <Check weight="bold" />
-                              ) : (
-                                <Clipboard weight="bold" />
-                              )
-                            }
-                          >
-                            {copied ? "Copied" : "Copy Email"}
-                          </Button>
-                        );
-                      }}
-                    </CopyButton>
-                  </Grid.Col>
-                </Grid>
-              </Alert>
-            </Grid.Col>
-          )}
-          <Grid.Col span={{ sm: 12 }}>
-            <Title>Manage Users</Title>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Text>
-              There are <strong>{summaryDetails.numberOfUsers}</strong> users.
-              The most recent user is{" "}
-              <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
-              with the most ideas is{" "}
-              <strong>{summaryDetails.mostIdeas?.email}</strong>.
-            </Text>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Group justify="end">
-              <Button variant="light" onClick={() => setInvitingUser(true)}>
-                Invite a user
-              </Button>
-            </Group>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Text></Text>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              placeholder="Filter users"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }} />
-          <Grid.Col>
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th
-                    style={{ cursor: "pointer", userSelect: "none" }}
-                    onClick={() => handleSort("firstName")}
-                  >
-                    <Group gap="xs">
-                      Name
-                      {getSortIcon("firstName")}
-                    </Group>
-                  </Table.Th>
-                  <Table.Th
-                    style={{ cursor: "pointer", userSelect: "none" }}
-                    onClick={() => handleSort("email")}
-                  >
-                    <Group gap="xs">
-                      Email
-                      {getSortIcon("email")}
-                    </Group>
-                  </Table.Th>
-                  <Table.Th>Roles</Table.Th>
-                  <Table.Th
-                    style={{ cursor: "pointer", userSelect: "none" }}
-                    onClick={() => handleSort("numIdeas")}
-                  >
-                    <Group gap="xs">
-                      Ideas
-                      {getSortIcon("numIdeas")}
-                    </Group>
-                  </Table.Th>
-                  <Table.Th
-                    style={{ cursor: "pointer", userSelect: "none" }}
-                    onClick={() => handleSort("createdAt")}
-                  >
-                    <Group gap="xs">
-                      Created
-                      {getSortIcon("createdAt")}
-                    </Group>
-                  </Table.Th>
-                  <Table.Th
-                    style={{ cursor: "pointer", userSelect: "none" }}
-                    onClick={() => handleSort("disabled")}
-                  >
-                    <Group gap="xs">
-                      Status
-                      {getSortIcon("disabled")}
-                    </Group>
-                  </Table.Th>
-                  <Table.Th>Actions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {sortedUsers?.map((user) => {
-                  return (
-                    <Table.Tr key={user.id}>
-                      <Table.Td>
-                        {user.firstName} {user.lastName}
-                      </Table.Td>
-                      <Table.Td>{user.email}</Table.Td>
-                      <Table.Td>{user.roles.join(", ")}</Table.Td>
-                      <Table.Td>
-                        {user.numIdeas} idea{user.numIdeas === 1 ? "" : "s"}
-                      </Table.Td>
-                      <Table.Td>
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </Table.Td>
-                      <Table.Td>
-                        <Text color={user.disabled ? "red" : "green"}>
-                          {user.disabled ? "Disabled" : "Active"}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <SimpleGrid cols={2}>
-                          {user.disabled ? (
-                            <ActionIcon
-                              variant="light"
-                              color="green"
-                              size="sm"
-                              onClick={() => setToEnable(user)}
-                            >
-                              <ThumbsUp />
-                            </ActionIcon>
-                          ) : (
-                            <ActionIcon
-                              variant="light"
-                              color="blue"
-                              size="sm"
-                              onClick={() => setToDisable(user)}
-                            >
-                              <HandPalm />
-                            </ActionIcon>
-                          )}
-                          <ActionIcon
-                            variant="light"
-                            color="orange"
-                            size="sm"
-                            onClick={() => setToEmail(user)}
-                          >
-                            <EnvelopeSimple />
-                          </ActionIcon>
-                          <ActionIcon
-                            variant="light"
-                            color="red"
-                            size="sm"
-                            onClick={() => setToDelete(user)}
-                          >
-                            <TrashSimple />
-                          </ActionIcon>
-                          <ActionIcon
-                            variant="light"
-                            color="teal"
-                            size="sm"
-                            title="View Details"
-                            onClick={() => setToViewDetails(user)}
-                          >
-                            <Eye />
-                          </ActionIcon>
-                        </SimpleGrid>
-                      </Table.Td>
-                    </Table.Tr>
-                  );
-                })}
-              </Table.Tbody>
-            </Table>
-          </Grid.Col>
-        </Grid>
       </Content>
       <StatusBar />
       <RightSidebar />
