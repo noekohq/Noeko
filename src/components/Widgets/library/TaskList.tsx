@@ -17,6 +17,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import { Link } from "react-router";
 import ProgressBar from "../../Utils/Info/ProgressBar";
 import { capitalize, formatDate } from "../../../utils/formatting";
+import { useLayout } from "../../../contexts/LayoutContext";
 
 export default function TaskList() {
   const todayDate = toYYYYMMDD(new Date());
@@ -55,6 +56,8 @@ export default function TaskList() {
     ? (completeTasks.length / tasks.length) * 100
     : 0;
 
+  const { isMobile } = useLayout();
+
   const formattedDate = () => {
     const normalized = date.split("-").join("");
     const year = parseInt(normalized.substring(0, 4));
@@ -70,40 +73,44 @@ export default function TaskList() {
         <Stack gap="xs" justify="flex-start" align="center">
           <Group gap="0" wrap="nowrap" justify="space-between" w="100%">
             <ActionIcon
-              size="xs"
+              size={isMobile ? "md" : "xs"}
               variant="light"
               color="gray"
               onClick={() => {
                 incrementDate(-1);
               }}
             >
-              <CaretLeftIcon size={12} weight="bold" />
+              <CaretLeftIcon size={isMobile ? 16 : 12} weight="bold" />
             </ActionIcon>
-            <Text size="sm" c="dark.2" fw="bold">
+            <Text size={isMobile ? "md" : "sm"} c="dark.2" fw="bold">
               {formattedDate()}
             </Text>
             <Group gap="xs">
               <ActionIcon
-                size="xs"
+                size={isMobile ? "md" : "xs"}
                 variant="light"
                 color="gray"
                 onClick={() => {
                   incrementDate(1);
                 }}
               >
-                <CaretRightIcon size={12} weight="bold" />
+                <CaretRightIcon size={isMobile ? 16 : 12} weight="bold" />
               </ActionIcon>
               <ActionIcon
                 onClick={() => newTask()}
-                size="xs"
+                size={isMobile ? "md" : "xs"}
                 color="gray"
                 variant="light"
               >
-                <PlusIcon weight="bold" size={14} />
+                <PlusIcon weight="bold" size={isMobile ? 16 : 12} />
               </ActionIcon>
               <Link to="/tasks">
-                <ActionIcon variant="light" color="gray" size="xs">
-                  <ArrowRightIcon weight="bold" size={14} />
+                <ActionIcon
+                  variant="light"
+                  color="gray"
+                  size={isMobile ? "md" : "xs"}
+                >
+                  <ArrowRightIcon weight="bold" size={isMobile ? 16 : 12} />
                 </ActionIcon>
               </Link>
             </Group>
