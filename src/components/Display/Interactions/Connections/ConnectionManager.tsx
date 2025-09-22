@@ -157,6 +157,7 @@ export default function ConnectionManager({
                 color="gray"
                 size={"sm"}
                 onClick={() => newConnectedIdea(connectable.id.toString())}
+                title="Create a new connected idea"
               >
                 <NotePencilIcon size={14} />
               </ActionIcon>
@@ -189,7 +190,7 @@ export default function ConnectionManager({
           </Group>
           <Transition
             mounted={connected && connected.length <= 0 && !loadingConnected}
-            transition="fade-up"
+            transition="fade-right"
           >
             {(styles) => {
               return (
@@ -278,7 +279,7 @@ export default function ConnectionManager({
       </Stack>
       <Transition
         mounted={!!similar && similar?.length > 0}
-        transition="fade-up"
+        transition="fade-right"
       >
         {(styles) => {
           return (
@@ -339,7 +340,7 @@ export default function ConnectionManager({
         mounted={
           !similar || (similar && similar.length <= 0 && !loadingSimilar)
         }
-        transition="fade-up"
+        transition="fade-right"
       >
         {(styles) => {
           return (

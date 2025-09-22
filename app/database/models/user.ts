@@ -5,6 +5,11 @@ import { invitationTemplate, passwordResetTemplate } from "../../emails/types";
 import { sendEmail } from "../../utils/email";
 import { Idea } from "./ideas";
 import { getKernel } from "../../services/Kernel";
+import {
+  firstIdea,
+  newScratchpad,
+  secondIdea,
+} from "../../templates/onboarding";
 
 export type IRole = {
   id: string;
@@ -249,6 +254,53 @@ export class User {
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;
+    }
+  }
+
+  static async loadOnboarding(userId: string | RecordId) {
+    try {
+      const user = await User.get(userId);
+      if (!user) {
+        throw new Error("Couldn't get user onboarding");
+      }
+      const firstContent = firstIdea(user);
+      const first = await Idea.create(
+        {
+          title: "Your First Idea",
+          content: firstContent,
+          embeddings: null,
+          visibility: "private",
+        },
+        user.id.toString(),
+        { omitEmbeddings: true, omitDerived: true },
+      );
+      if (!first) {
+        throw new Error("Couldn't create first idea");
+      }
+      const secondContent = secondIdea(user);
+      const second = await Idea.create(
+        {
+          title: "Your Second Idea",
+          content: secondContent,
+          embeddings: null,
+          visibility: "private",
+        },
+        user.id.toString(),
+        { omitEmbeddings: true, omitDerived: true },
+      );
+      if (!second) {
+        throw new Error("Couldn't create second idea!");
+      }
+      await Idea.loadEmbeddings(first.id, true);
+      await Idea.loadEmbeddings(second.id, true);
+      const scratchpad = newScratchpad(user, first);
+      const updated = await User.update(user.id, {
+        scratchpadContent: scratchpad,
+      });
+      return updated;
+    } catch (error) {
+      console.error("Error loading user onboarding: ", error);
+      return undefined;
     }
   }
 

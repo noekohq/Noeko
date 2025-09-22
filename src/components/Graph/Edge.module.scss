@@ -1,13 +1,14 @@
 .edge {
-    stroke: var(--mantine-color-dark-8);
+    stroke: var(--mantine-color-dark-6);
     transition: stroke 0.3s ease-in-out;
 
     &.selected {
-        stroke: var(--mantine-color-dark-6);
+        stroke: var(--mantine-color-dark-4);
         opacity: 1;
     }
 
     &.notSelected {
+        stroke: var(--mantine-color-dark-8);
         opacity: 0.1;
     }
 }

@@ -4,6 +4,8 @@ import useFetch from "../../../hooks/useFetch";
 import { IWidgetConfig } from "../index.d";
 import styles from "./TagBreakdown.module.scss";
 import {
+  ActionIcon,
+  Button,
   Group,
   SegmentedControl,
   SimpleGrid,
@@ -14,6 +16,7 @@ import TagCard from "../../Display/Tags/TagCard";
 import TagButton from "../../Display/Tags/TagButton";
 import { Link } from "react-router";
 import { ArrowRightIcon } from "@phosphor-icons/react";
+import { useInteraction } from "../../../contexts/InteractionContext";
 
 export default function TagBreakdown() {
   const {
@@ -65,23 +68,14 @@ export default function TagBreakdown() {
       <Stack gap="xs">
         <Group justify="space-between">
           <Text size="sm" c="dimmed" fw="bold">
-            <Group align="baseline" gap="xs">
-              You have {tagBreakdown?.total} tag
+            <Group align="center" gap="xs">
+              You have{" "}
+              {(tagBreakdown?.total ?? 0 > 0) ? tagBreakdown?.total : "no"} tag
               {tagBreakdown?.total === 1 ? "" : "s"}.{" "}
-              <Link
-                to="/tags"
-                style={{
-                  color: "var(--mantine-color-gray-4)",
-                }}
-              >
-                <Group gap="xs" align="center">
-                  All
-                  <ArrowRightIcon
-                    size={14}
-                    color="var(--mantine-color-gray-4"
-                    weight="bold"
-                  />
-                </Group>
+              <Link to="/tags">
+                <ActionIcon variant="light" color="gray" size="xs">
+                  <ArrowRightIcon weight="bold" size={14} />
+                </ActionIcon>
               </Link>
             </Group>
           </Text>
@@ -98,6 +92,13 @@ export default function TagBreakdown() {
             size="xs"
           />
         </Group>
+        {!toView().length && (
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">
+              No tags to see.
+            </Text>
+          </Group>
+        )}
         <SimpleGrid
           cols={{
             sm: 1,

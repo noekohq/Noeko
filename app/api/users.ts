@@ -118,7 +118,7 @@ router.post("/register-referred", async (req, res) => {
       password: hashedPassword,
       firstName: form.firstName,
       lastName: form.lastName,
-      scratchpadContent: `<h1>Hello and welcome to Noeko!</h1>`,
+      scratchpadContent: ``,
     });
 
     if (!newUser) {
@@ -126,6 +126,8 @@ router.post("/register-referred", async (req, res) => {
       res.status(500).json({ message: "Failed to create user account." });
       return;
     }
+
+    await User.loadOnboarding(newUser.id.toString());
 
     // Add referral relationship
     const referrerUser = await User.findByReferralCode(form.referralCode);

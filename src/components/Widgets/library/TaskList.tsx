@@ -71,7 +71,7 @@ export default function TaskList() {
           <Group gap="0" wrap="nowrap" justify="space-between" w="100%">
             <ActionIcon
               size="xs"
-              variant="subtle"
+              variant="light"
               color="gray"
               onClick={() => {
                 incrementDate(-1);
@@ -79,41 +79,34 @@ export default function TaskList() {
             >
               <CaretLeftIcon size={12} weight="bold" />
             </ActionIcon>
-            <Text size="xs" c="dark.3" fw="bold">
+            <Text size="sm" c="dark.2" fw="bold">
               {formattedDate()}
             </Text>
-            <ActionIcon
-              size="xs"
-              variant="subtle"
-              color="gray"
-              onClick={() => {
-                incrementDate(1);
-              }}
-            >
-              <CaretRightIcon size={12} weight="bold" />
-            </ActionIcon>
-          </Group>
-          <Group gap="2px" justify="space-between" w="100%">
-            <ActionIcon
-              onClick={() => newTask()}
-              size="xs"
-              color="gray"
-              variant="subtle"
-            >
-              <PlusIcon weight="bold" size={14} />
-            </ActionIcon>
-            <Link to="/tasks">
-              <Button
-                variant="subtle"
-                c="dimmed"
-                color="gray"
-                p={0}
-                rightSection={<ArrowRightIcon weight="bold" size={14} />}
+            <Group gap="xs">
+              <ActionIcon
                 size="xs"
+                variant="light"
+                color="gray"
+                onClick={() => {
+                  incrementDate(1);
+                }}
               >
-                All
-              </Button>
-            </Link>
+                <CaretRightIcon size={12} weight="bold" />
+              </ActionIcon>
+              <ActionIcon
+                onClick={() => newTask()}
+                size="xs"
+                color="gray"
+                variant="light"
+              >
+                <PlusIcon weight="bold" size={14} />
+              </ActionIcon>
+              <Link to="/tasks">
+                <ActionIcon variant="light" color="gray" size="xs">
+                  <ArrowRightIcon weight="bold" size={14} />
+                </ActionIcon>
+              </Link>
+            </Group>
           </Group>
         </Stack>
         {!tasks?.length && (
