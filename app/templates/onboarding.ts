@@ -5,9 +5,9 @@ export const newScratchpad = (user: ISafeUser, firstIdea: ISafeIdea) => {
   return `
   <h2>Welcome to the Beta!</h2>
 
-  <p>Hello ${user.firstName} and welcome to Noeko, the self-organizing knowledge-base!</p>
+  <p>Hello ${user.firstName} and welcome to <a href="https://www.noeko.app">Noeko</a>, the self-organizing knowledge-base!</p>
 
-  <p>Let’s get you oriented, start by visiting<span data-idea-id="${firstIdea.id.toString()}" data-dream-idea="">your first idea</span>, and reading through it to get oriented.</p>
+  <p>Let’s get you started! Head over to <span data-idea-id="${firstIdea.id.toString()}" data-dream-idea="">your first idea</span>, and read through it to get oriented.</p>
 
   <blockquote><p>We’re currently in Beta, and making improvements every day, but if you see anything strange, don’t hesitate to leave feedbaack!</p></blockquote><p></p>
   `;
