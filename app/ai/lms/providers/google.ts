@@ -138,9 +138,10 @@ export default class GeminiProvider implements LMProvider {
 
   async generateJSON<T>(prompt: string, schema: LMSchema): Promise<T | null> {
     try {
+      const truncatedPrompt = GeminiProvider.truncate(prompt);
       const result = await this.client.models.generateContent({
         model: this._model,
-        contents: prompt,
+        contents: truncatedPrompt,
         config: this.getGenerationConfig(schema),
       });
       if (!result || !result.text) {
@@ -164,9 +165,10 @@ export default class GeminiProvider implements LMProvider {
     schema: LMSchema,
   ): AsyncGenerator<string, void, unknown> {
     try {
+      const truncatedPrompt = GeminiProvider.truncate(prompt);
       const result = await this.client.models.generateContentStream({
         model: this._model,
-        contents: prompt,
+        contents: truncatedPrompt,
         config: this.getGenerationConfig(schema),
       });
 
@@ -184,9 +186,10 @@ export default class GeminiProvider implements LMProvider {
 
   async *generateStream(prompt: string): AsyncGenerator<string, void, unknown> {
     try {
+      const truncatedPrompt = GeminiProvider.truncate(prompt);
       const result = await this.client.models.generateContentStream({
         model: this._model,
-        contents: prompt,
+        contents: truncatedPrompt,
         config: this.getGenerationConfig(),
       });
       for await (const chunk of result) {

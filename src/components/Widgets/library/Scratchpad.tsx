@@ -15,6 +15,7 @@ import {
 import {
   ArrowsClockwiseIcon,
   CheckIcon,
+  CodeIcon,
   CopySimpleIcon,
   CursorTextIcon,
   InfoIcon,
@@ -142,6 +143,18 @@ export default function Scratchpad() {
                       onClick={copy}
                     >
                       Copy as Markdown
+                    </Menu.Item>
+                  );
+                }}
+              </CopyButton>
+              <CopyButton value={editorRef.current?.getHTML() ?? ""}>
+                {({ copied, copy }) => {
+                  return (
+                    <Menu.Item
+                      leftSection={copied ? <CheckIcon /> : <CodeIcon />}
+                      onClick={copy}
+                    >
+                      Copy as HTML
                     </Menu.Item>
                   );
                 }}

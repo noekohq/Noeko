@@ -11,7 +11,10 @@ import {
   ActionIcon,
   Modal,
   Stack,
-  SimpleGrid, // Added Modal for delete confirmation
+  SimpleGrid,
+  Textarea,
+  HoverCard,
+  Blockquote, // Added Modal for delete confirmation
 } from "@mantine/core";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -26,6 +29,7 @@ import {
   FloppyDiskIcon,
   XIcon,
   PlusIcon,
+  InfoIcon,
 } from "@phosphor-icons/react"; // Added new icons, including Trash
 import Content from "../../components/UI/Layout/Content";
 import useRabbithole from "../../hooks/useRabbithole";
@@ -88,6 +92,8 @@ export default function Tags() {
       if (isDownRabbithole) {
         includeThing(data.id.toString());
       }
+      setAddingTag(false);
+      setFilterQuery(data.name);
     },
     onError: (error) => {
       console.error("Failed to create tag:", error);
@@ -96,7 +102,11 @@ export default function Tags() {
   });
 
   const handleCreateTagSubmit = async () => {
-    await createTag();
+    try {
+      await createTag();
+    } catch (error) {
+      console.error("Error creating tag: ", error);
+    }
   };
 
   const filteredTags = useMemo(() => {
@@ -124,12 +134,12 @@ export default function Tags() {
                 <Title>Your tags</Title>
                 <ActionIcon
                   variant="light"
-                  color="blue"
+                  color="gray"
                   onClick={() => {
                     setAddingTag(true);
                   }}
                 >
-                  <PlusIcon />
+                  <PlusIcon weight="bold" />
                 </ActionIcon>
               </Group>
             </Grid.Col>
@@ -187,36 +197,83 @@ export default function Tags() {
         <Grid>
           <Grid.Col span={12}>
             <TextInput
-              placeholder="New Tag Name"
-              size="xs"
+              label="Name"
+              placeholder="Name your tag..."
               {...tagForm.getInputProps("name")}
               required
-              style={{ flexGrow: 1 }}
             />
           </Grid.Col>
           <Grid.Col>
-            <TextInput
-              placeholder="New Tag Description (Optional)"
-              size="xs"
+            <Textarea
+              label={
+                <Group align="center" gap="2px">
+                  <Text size="sm">Description</Text>
+                  <HoverCard width="300px" radius="lg">
+                    <HoverCard.Target>
+                      <ActionIcon
+                        size="xs"
+                        radius="lg"
+                        variant="subtle"
+                        color="gray"
+                      >
+                        <InfoIcon size={14} />
+                      </ActionIcon>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Stack gap="xs">
+                        <Text size="sm" mb="sm">
+                          The better the description, the better the system will
+                          be at suggesting tag applications. More detail will
+                          mean more specific suggestions.
+                        </Text>
+                        <Text fw="bold" size="sm">
+                          Good Description
+                        </Text>
+                        <Blockquote p="xs" color="gray">
+                          <Text size="sm">
+                            Fleetingness. The quality of being fleeting or
+                            transient.
+                          </Text>
+                        </Blockquote>
+                        <Text fw="bold" size="sm">
+                          Better Description
+                        </Text>
+                        <Blockquote p="xs" color="gray">
+                          <Text size="sm">
+                            The concept of fleetiness. It represents a
+                            momentary, ephemeral experience, like a spark of
+                            inspiration that fades, a dream upon waking, or the
+                            brief scent of rain on hot pavement.
+                          </Text>
+                        </Blockquote>
+                      </Stack>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                </Group>
+              }
+              placeholder="Describe the meaning of your tag..."
+              minRows={3}
+              autosize
               {...tagForm.getInputProps("description")}
-              style={{ flexGrow: 1 }}
             />
           </Grid.Col>
           <Grid.Col>
-            <ActionIcon
-              variant="filled"
-              onClick={() => {
-                const { hasErrors } = tagForm.validate(); // Run validation to display errors
-                if (!hasErrors) {
-                  // Check the form's hasErrors state after validating
-                  handleCreateTagSubmit();
-                }
-              }}
-              loading={createTagLoading}
-              title="Add Tag"
-            >
-              <PlusIcon weight="bold" />
-            </ActionIcon>
+            <Group justify="end" align="center">
+              <ActionIcon
+                variant="light"
+                onClick={() => {
+                  const { hasErrors } = tagForm.validate(); // Run validation to display errors
+                  if (!hasErrors) {
+                    handleCreateTagSubmit();
+                  }
+                }}
+                loading={createTagLoading}
+                title="Add a Tag"
+                color="blue"
+              >
+                <PlusIcon weight="bold" />
+              </ActionIcon>
+            </Group>
           </Grid.Col>
         </Grid>
       </Modal>

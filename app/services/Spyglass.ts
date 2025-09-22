@@ -1028,7 +1028,6 @@ export default class Spyglass {
     results: ISearchResult[],
     intent: ISpyglassIntent,
   ): AsyncGenerator<IFinding[], void, unknown> {
-    // Changed to yield string
     try {
       if (!results || results.length === 0) {
         return;
@@ -1036,8 +1035,6 @@ export default class Spyglass {
 
       const lm = getLM().withModel("fast-accurate");
 
-      // 1. Kick off all analysis requests in parallel.
-      // The .map call is synchronous and starts all the async operations.
       const findingPromises = results.map((result) => {
         return (async () => {
           const sourceId = result.id.toString();

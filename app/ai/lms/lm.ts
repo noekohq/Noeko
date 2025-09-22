@@ -1,9 +1,10 @@
 import GeminiProvider from "./providers/google";
 import { LMProvider } from ".";
+import { XAIProvider } from "./providers/grok";
 
 const { LM_PROVIDER } = process.env;
 
-const SupportedProviders = ["google"];
+const SupportedProviders = ["google", "xai"];
 
 const isValidProvider = (provider: string) =>
   SupportedProviders.includes(provider);
@@ -20,6 +21,7 @@ type IProviderKey = (typeof SupportedProviders)[number];
 
 const PROVIDER_MAP: Record<IProviderKey, () => LMProvider> = {
   google: () => new GeminiProvider(),
+  xai: () => new XAIProvider(),
 };
 
 export const getLM = (): LMProvider => {

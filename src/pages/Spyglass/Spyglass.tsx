@@ -282,37 +282,28 @@ export default function Spyglass() {
                 {Object.entries(citationMap).map(([sourceId, citation]) => {
                   const { excerpts, index } = citation;
                   const result = resultMap[sourceId];
+                  const title = getNodeTitle(result);
                   return (
-                    <Transition
-                      mounted={true}
-                      transition="skew-down"
-                      key={sourceId}
+                    <Group
+                      gap="xs"
+                      className={styles.previewItem}
+                      key={sourceId.toString()}
                     >
-                      {(style) => {
-                        return (
-                          <Group
-                            gap="xs"
-                            className={styles.previewItem}
-                            style={style}
-                          >
-                            <Text size="sm" c="dimmed">
-                              Reading
-                            </Text>
-                            <Badge
-                              variant="light"
-                              color="gray"
-                              styles={{
-                                label: {
-                                  textTransform: "none",
-                                },
-                              }}
-                            >
-                              {result ? getNodeTitle(result) : "Unknown source"}
-                            </Badge>
-                          </Group>
-                        );
-                      }}
-                    </Transition>
+                      <Text size="sm" c="dimmed">
+                        Reading
+                      </Text>
+                      <Badge
+                        variant="light"
+                        color="gray"
+                        styles={{
+                          label: {
+                            textTransform: "none",
+                          },
+                        }}
+                      >
+                        {title ? title : "Unknown source"}
+                      </Badge>
+                    </Group>
                   );
                 })}
                 {overview.findings.length > 0 && (

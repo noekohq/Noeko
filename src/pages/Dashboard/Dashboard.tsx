@@ -6,6 +6,7 @@ import {
   Flex,
   Grid,
   Group,
+  Loader,
   Stack,
   Text,
   Title,
@@ -97,10 +98,11 @@ export default function Dashboard() {
     loadWidgets();
   }, []);
 
-  const { data: dashboardData, load: loadDashboard } = useFetch<
-    undefined,
-    IDashboard
-  >({
+  const {
+    data: dashboardData,
+    load: loadDashboard,
+    loading: loadingDashboard,
+  } = useFetch<undefined, IDashboard>({
     url: "/dashboard",
     onError: (err) => {
       console.error("Error getting dashboard data: ", err);
@@ -114,7 +116,11 @@ export default function Dashboard() {
   const totalIdeas = dashboardData?.ideaStats?.total;
   const totalUsers = dashboardData?.totalUsers;
 
-  const { data: centralIdeas, load: loadCentral } = useFetch<
+  const {
+    data: centralIdeas,
+    load: loadCentral,
+    loading: loadingCentral,
+  } = useFetch<
     undefined,
     (ISafeIdea & {
       incoming: number;
@@ -132,10 +138,11 @@ export default function Dashboard() {
     loadCentral();
   }, []);
 
-  const { data: semanticCentralIdeas, load: loadSemanticCentral } = useFetch<
-    undefined,
-    ISafeIdea[]
-  >({
+  const {
+    data: semanticCentralIdeas,
+    load: loadSemanticCentral,
+    loading: loadingSemanticCentral,
+  } = useFetch<undefined, ISafeIdea[]>({
     url: "/dashboard/semantic-central-ideas",
     runOnMount: true,
     onError: (err) => {
@@ -146,20 +153,6 @@ export default function Dashboard() {
   useEffect(() => {
     loadSemanticCentral();
   }, []);
-
-  const getStatusText = () => {
-    if (totalIdeas === undefined) {
-      return "Loading...";
-    }
-    let text = "Hello there!";
-    if (totalUsers) {
-      text += ` You are using Noeko with ${totalUsers - 1} other people.`;
-    }
-    if (totalIdeas && totalIdeas > 0) {
-      text += ` You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
-    }
-    return text;
-  };
 
   const {
     actions: {
@@ -172,10 +165,24 @@ export default function Dashboard() {
     <PageWrapper>
       <LeftSidebar startOpened={!isMobile}>
         <LeftSidebar.Open>
-          {/*<Text size="sm" c="dark.2" mb="lg">
-            {getStatusText()}
-          </Text>*/}
-          <Stack>
+          <Stack gap="md">
+            <Transition
+              mounted={
+                loadingCentral || loadingSemanticCentral || loadingDashboard
+              }
+              transition="fade-right"
+            >
+              {(styles) => {
+                return (
+                  <Text size="xs" c="dimmed" style={styles}>
+                    <Group gap="xs" align="center">
+                      <Loader size="xs" color="gray" />
+                      Loading...
+                    </Group>
+                  </Text>
+                );
+              }}
+            </Transition>
             <Transition
               mounted={!!dashboardData?.recentIdeas}
               transition="fade-up"
