@@ -206,7 +206,7 @@ export default function Settings() {
               <Stack>
                 <Title order={3}>Community</Title>
                 <Group>
-                  <a href="https://discord.gg/GXdtErEA" target="_blank">
+                  <a href="https://discord.gg/eNh7c9Sp6r" target="_blank">
                     <Button
                       variant="default"
                       leftSection={<DiscordLogoIcon weight="fill" />}
