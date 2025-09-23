@@ -101,6 +101,13 @@ router.get("/:taskId", async (req, res) => {
       });
       return;
     }
+    const owns = await User.checkOwns(user.id, task.id);
+    if (!owns) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
     res.send({
       message: "Task retrieved successfully",
       data: task,

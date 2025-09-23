@@ -79,6 +79,14 @@ router.get("/:sourceId", async (req, res) => {
     }
 
     const sourceId = req.params.sourceId;
+    const source = await Source.get(sourceId);
+    if (!source) {
+      res.status(404).send({
+        message: "Source not found.",
+      });
+      return;
+    }
+
     const owns = await User.checkOwns(user.id, sourceId);
     if (!owns) {
       res.status(403).send({
@@ -87,10 +95,6 @@ router.get("/:sourceId", async (req, res) => {
       return;
     }
 
-    const source = await Source.get(sourceId);
-    if (!source) {
-      throw new Error("Couldn't get source");
-    }
     res.send({
       message: "Successfully fetched source",
       data: source,
