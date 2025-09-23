@@ -1,4 +1,5 @@
 import { Router } from "express";
+import v1Router from "./v1";
 import graphRouter from "./graph";
 import userRouter from "./users";
 import fileRouter from "./files";
@@ -17,6 +18,8 @@ import sourceRouter from "./sources";
 import excerptsRouter from "./excerpts";
 
 const router = Router();
+
+router.use("/v1", v1Router);
 
 router.use("/healthcheck", healthCheckRouter);
 router.use("/dashboard", dashboardRouter);
