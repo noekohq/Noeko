@@ -41,6 +41,8 @@ export const seedUsers = async () => {
             lastName: "User",
             scratchpadContent: "",
             password: await hashPassword(userPassword),
+            acceptedPrivacyPolicyAt: new Date(),
+            acceptedTermsOfServiceAt: new Date(),
           },
           ["role:superuser", "role:user"],
         );
