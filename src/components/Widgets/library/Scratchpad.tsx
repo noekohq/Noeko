@@ -91,7 +91,6 @@ export default function Scratchpad() {
     }
     return htmlToMarkdown(content);
   };
-  console.log("Original content: ", originalContent);
 
   return (
     <div className={styles.scratchpad}>

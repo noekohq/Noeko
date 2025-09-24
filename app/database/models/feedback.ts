@@ -142,7 +142,7 @@ export class Feedback {
         throw new Error("Error getting database when getting feedback item");
       }
       const result = await db.query<[IFeedback[]]>(
-        "SELECT * FROM feedback WHERE status != addressed FETCH user;",
+        "SELECT * FROM feedback WHERE status != 'addressed' FETCH user;",
       );
       if (!result) {
         throw new Error("Could not select feedback items");
