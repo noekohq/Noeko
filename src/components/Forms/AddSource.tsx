@@ -9,16 +9,21 @@ import {
   FilePdfIcon,
   Icon,
   ImageIcon,
+  MegaphoneIcon,
   UploadSimple,
   UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import {
+  ActionIcon,
+  Badge,
   Button,
   Code,
   FileInput,
   Grid,
   Group,
+  HoverCard,
   Loader,
+  Stack,
   Text,
 } from "@mantine/core";
 import { formatFileSize } from "../../utils/formatting";
@@ -26,6 +31,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { ISource } from "../../../app/database/models/source";
 import { createSourceFrom } from "../../utils/sources";
 import { useNavigate } from "react-router";
+import { useInteraction } from "../../contexts/InteractionContext";
 
 interface IAddSourceFormProps {
   onSubmit?: (source: ISource) => void;
@@ -173,9 +179,46 @@ export default function AddSourceForm({
   };
 
   const preview = userFile ? typeToPreview(userFile.type) : null;
+  const {
+    actions: {
+      feedback: { openFeedbackModal },
+    },
+  } = useInteraction();
 
   return (
     <Grid>
+      <Grid.Col>
+        <HoverCard openDelay={400} width="300px">
+          <HoverCard.Target>
+            <Badge color="orange" size="sm" variant="light">
+              PREVIEW
+            </Badge>
+          </HoverCard.Target>
+          <HoverCard.Dropdown>
+            <Stack gap="xs">
+              <Text size="sm">
+                Sources is currently under active development and some features
+                might not work as expected. We're looking for feedback as we
+                learn and grow :)
+              </Text>
+              <Text size="xs" c="dimmed">
+                This feature will remain free during its experimental phases,
+                rate limits may apply in future iterations.
+              </Text>
+              <ActionIcon
+                size="sm"
+                variant="light"
+                color="gray"
+                onClick={() => {
+                  openFeedbackModal();
+                }}
+              >
+                <MegaphoneIcon />
+              </ActionIcon>
+            </Stack>
+          </HoverCard.Dropdown>
+        </HoverCard>
+      </Grid.Col>
       <Grid.Col span={{ sm: 12 }}>
         <Text>Start by picking the file you want to upload...</Text>
       </Grid.Col>

@@ -74,13 +74,32 @@ router.post("/", async (req, res) => {
   }
 });
 
-// The following routes are only accessible by superusers
 router.use(checkIsSuperuser);
 
-// GET all feedback items (superuser only)
 router.get("/", async (req, res) => {
   try {
     const feedbackItems = await Feedback.getAll();
+    if (!feedbackItems) {
+      res.status(404).send({ message: "No feedback items found." });
+      return;
+    }
+    res.send({
+      message: "Successfully retrieved all feedback items.",
+      data: feedbackItems,
+    });
+  } catch (error) {
+    console.error("Error getting all feedback items:", error);
+    res.status(500).send({
+      message: "Internal Server Error",
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    });
+  }
+});
+
+router.get("/open", async (req, res) => {
+  try {
+    const feedbackItems = await Feedback.getAllOpen();
     if (!feedbackItems) {
       res.status(404).send({ message: "No feedback items found." });
       return;

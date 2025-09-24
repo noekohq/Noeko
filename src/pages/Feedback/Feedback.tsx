@@ -1,30 +1,29 @@
 import {
-  Container,
-  Title,
-  Loader,
-  Grid,
-  Table,
-  ActionIcon,
-  Group,
-  TextInput,
-  Modal,
-  Text,
   Button,
-  HoverCard,
-  Select,
-  Checkbox,
+  CopyButton,
+  Drawer,
+  Group,
+  Modal,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+  Title,
 } from "@mantine/core";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import Content from "../../components/UI/Layout/Content";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import styles from "./Feedback.module.scss";
 import useFetch from "../../hooks/useFetch";
-import { TrashSimple, CaretDown } from "@phosphor-icons/react";
+import { IFeedback } from "../../../app/database/models/feedback";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
-import { IFeedback } from "../../../app/database/models/feedback";
 import { api } from "../../server/api";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import Content from "../../components/UI/Layout/Content";
-import StatusBar from "../../components/UI/Layout/Bottom";
+import Search from "../../components/Search/Search";
+import FeedbackCard from "../../components/Display/Feedback/FeedbackCard";
+import { formatDate } from "../../utils/formatting";
+import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 
 export default function Feedback() {
   const {
@@ -32,7 +31,7 @@ export default function Feedback() {
     loading: loadingFeedback,
     load: reloadFeedback,
   } = useFetch<undefined, IFeedback[]>({
-    url: "/feedback",
+    url: "/feedback/open",
     runOnMount: true,
   });
 
@@ -80,13 +79,6 @@ export default function Feedback() {
       return true;
     });
 
-  const clipContent = (content: string) => {
-    if (content.length > 56) {
-      return content.slice(0, 56) + "...";
-    }
-    return content;
-  };
-
   const changeFeedbackStatus = (feedbackId: string, status: string) => {
     api
       .put(`/feedback/${feedbackId}`, {
@@ -104,10 +96,117 @@ export default function Feedback() {
       });
   };
 
+  const [viewingFeedback, setViewingFeedback] = useState<IFeedback>();
+
   return (
-    <PageWrapper>
-      <LeftSidebar />
-      <Content>
+    <div className={styles.feedback}>
+      <PageWrapper>
+        <LeftSidebar>
+          <LeftSidebar.Open>
+            {!!feedback && (
+              <Text size="sm">
+                {feedback?.length} feedback item{feedback.length > 1 ? "s" : ""}
+              </Text>
+            )}
+          </LeftSidebar.Open>
+        </LeftSidebar>
+        <Content>
+          <Stack>
+            <Title>Manage Feedback</Title>
+            <TextInput
+              placeholder="Filter feedback"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              w="100%"
+            />
+            <SimpleGrid
+              cols={{
+                sm: 1,
+                md: 2,
+                lg: 3,
+              }}
+            >
+              {filteredFeedback?.map((feedback) => {
+                return (
+                  <FeedbackCard
+                    key={feedback.id.toString()}
+                    feedback={feedback}
+                    onClick={() => {
+                      setViewingFeedback(feedback);
+                    }}
+                  />
+                );
+              })}
+            </SimpleGrid>
+          </Stack>
+        </Content>
+        <RightSidebar>
+          <RightSidebar.Open>
+            <Search />
+          </RightSidebar.Open>
+        </RightSidebar>
+        <Drawer
+          title={`Viewing feedback from ${viewingFeedback ? formatDate(viewingFeedback.createdAt) : "Unknown time"}`}
+          opened={!!viewingFeedback}
+          onClose={() => {
+            setViewingFeedback(undefined);
+          }}
+          position="bottom"
+          size="75%"
+        >
+          <Stack>
+            <Text size="sm">"{viewingFeedback?.content}"</Text>
+            <Text size="sm" c="dimmed">
+              - {viewingFeedback?.user?.firstName}{" "}
+              {viewingFeedback?.user?.lastName}
+            </Text>
+            <Group>
+              <Button
+                onClick={() => {
+                  setViewingFeedback(undefined);
+                  if (viewingFeedback) {
+                    changeFeedbackStatus(
+                      viewingFeedback.id.toString(),
+                      "addressed",
+                    );
+                  }
+                }}
+                size="sm"
+                variant="light"
+                color="blue"
+              >
+                Mark Resolved
+              </Button>
+              <Button
+                size="sm"
+                color="red"
+                onClick={() => {
+                  setToDelete(viewingFeedback);
+                  setViewingFeedback(undefined);
+                }}
+              >
+                Delete
+              </Button>
+              <CopyButton value={viewingFeedback?.user?.email ?? ""}>
+                {({ copied, copy }) => {
+                  return (
+                    <Button
+                      onClick={() => {
+                        copy();
+                      }}
+                      leftSection={copied ? <CheckIcon /> : <CopyIcon />}
+                      size="sm"
+                      variant="light"
+                      color="dark.1"
+                    >
+                      Copy Email
+                    </Button>
+                  );
+                }}
+              </CopyButton>
+            </Group>
+          </Stack>
+        </Drawer>
         <Modal
           opened={!!toDelete}
           title="Delete Feedback"
@@ -132,112 +231,7 @@ export default function Feedback() {
             </Button>
           </Group>
         </Modal>
-
-        {loadingFeedback && <Loader size="lg" />}
-        <Grid>
-          <Grid.Col span={{ sm: 12 }}>
-            <Title>Manage Feedback</Title>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }} />
-          <Grid.Col span={{ sm: 12 }}>
-            <TextInput
-              placeholder="Filter feedback"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }}>
-            <Group justify="start">
-              <Checkbox
-                label="Filter addressed items"
-                checked={filterAddressed}
-                onChange={(checked) => {
-                  setFilterAddressed(checked.currentTarget.checked);
-                }}
-              />
-            </Group>
-          </Grid.Col>
-          <Grid.Col span={{ sm: 12 }} />
-          <Grid.Col>
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>User</Table.Th>
-                  <Table.Th>Content</Table.Th>
-                  <Table.Th>Status</Table.Th>
-                  <Table.Th>Can Contact?</Table.Th>
-                  <Table.Th>Actions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {filteredFeedback?.map((feedback) => {
-                  return (
-                    <Table.Tr key={feedback.id.toString()}>
-                      {/* <Table.Td>
-                        <Text size="sm">{feedback.id.toString()}</Text>
-                      </Table.Td> */}
-                      <Table.Td>{feedback.user?.email || "unknown"}</Table.Td>
-                      <Table.Td>
-                        <HoverCard width="target">
-                          <HoverCard.Target>
-                            <Text size="sm">
-                              <CaretDown /> {clipContent(feedback.content)}
-                            </Text>
-                          </HoverCard.Target>
-                          <HoverCard.Dropdown>
-                            {feedback.content}
-                          </HoverCard.Dropdown>
-                        </HoverCard>
-                      </Table.Td>
-                      <Table.Td>
-                        <Select
-                          value={feedback.status}
-                          data={[
-                            {
-                              label: "Unaddressed",
-                              value: "unaddressed",
-                            },
-                            {
-                              label: "In Progress",
-                              value: "in-progress",
-                            },
-                            {
-                              label: "Addressed",
-                              value: "addressed",
-                            },
-                          ]}
-                          onChange={(v) => {
-                            if (v) {
-                              changeFeedbackStatus(feedback.id.toString(), v);
-                            }
-                          }}
-                        />
-                      </Table.Td>
-                      <Table.Td>
-                        {feedback.consentToContact ? "Yes" : "No"}
-                      </Table.Td>
-                      <Table.Td>
-                        <Group gap="xs">
-                          <ActionIcon
-                            variant="light"
-                            color="red"
-                            size="sm"
-                            onClick={() => setToDelete(feedback)}
-                          >
-                            <TrashSimple />
-                          </ActionIcon>
-                        </Group>
-                      </Table.Td>
-                    </Table.Tr>
-                  );
-                })}
-              </Table.Tbody>
-            </Table>
-          </Grid.Col>
-        </Grid>
-      </Content>
-      <StatusBar />
-      <RightSidebar />
-    </PageWrapper>
+      </PageWrapper>
+    </div>
   );
 }
