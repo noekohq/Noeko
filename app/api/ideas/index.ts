@@ -223,6 +223,9 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
+    Idea.update(ideaId, {
+      viewedAt: new Date(),
+    });
     const withDerived = req.query.withDerived === "true";
     const toSend: ISafeIdea & {
       connections?: IIdea[];

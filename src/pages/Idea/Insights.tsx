@@ -76,30 +76,36 @@ export default function Insights({
       <Grid>
         {!idea?.derived?.generative_summary ? (
           <>
-            <Stack w="100%">
-              <Text size="sm" c="dimmed">
-                This idea hasn't been analyzed.
-              </Text>
-              <Button
-                variant="light"
-                onClick={() => {
-                  generateSummary();
-                }}
-                disabled={loadingOverview}
-                leftSection={
-                  loadingOverview ? (
-                    <Loader size="xs" color="gray" />
-                  ) : (
-                    <EyeIcon />
-                  )
-                }
-                size="xs"
-                color="gray"
-                radius="md"
-              >
-                {loadingOverview ? "Analyzing..." : "Analyze idea"}
-              </Button>
-            </Stack>
+            <Grid.Col>
+              <Stack w="100%">
+                <Text size="xs" c="dimmed">
+                  This idea hasn't been analyzed.
+                </Text>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    generateSummary();
+                  }}
+                  disabled={loadingOverview}
+                  leftSection={
+                    loadingOverview ? (
+                      <Loader size="xs" color="gray" />
+                    ) : (
+                      <EyeIcon />
+                    )
+                  }
+                  size="xs"
+                  color="gray"
+                  radius="md"
+                >
+                  {loadingOverview ? "Analyzing..." : "Analyze idea"}
+                </Button>
+                <Text size="xs" c="dark.3">
+                  Analysis uses third-party AI models in accordance with our{" "}
+                  <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+                </Text>
+              </Stack>
+            </Grid.Col>
           </>
         ) : (
           <>

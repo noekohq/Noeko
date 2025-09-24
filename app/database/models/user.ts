@@ -10,6 +10,7 @@ import {
   newScratchpad,
   secondIdea,
 } from "../../templates/onboarding";
+import { SpyglassSearch } from "./search";
 
 export type IRole = {
   id: string;
@@ -29,6 +30,8 @@ export type IUser = {
   roles: RecordId[];
   disabled: boolean;
   referralCode?: string; // Added referral code
+  acceptedTermsOfServiceAt: Date | null;
+  acceptedPrivacyPolicyAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -47,6 +50,8 @@ export type IPublicUser = Omit<
   | "disabled"
   | "referralCode"
   | "scratchpadContent"
+  | "acceptedTermsOfServiceAt"
+  | "acceptedPrivacyPolicyAt"
 >;
 
 export type IToken = {
@@ -103,6 +108,22 @@ async function ensureAllUsersHaveNecessaryFields() {
       );
       numUpdatedReferralCodes++;
     }
+    if (!user.acceptedPrivacyPolicyAt) {
+      await db.query(
+        `UPDATE user MERGE { acceptedPrivacyPolicyAt: None } WHERE id = ${user.id}`,
+        {
+          acceptedPrivacyPolicyAt: null,
+        },
+      );
+    }
+    if (!user.acceptedTermsOfServiceAt) {
+      await db.query(
+        `UPDATE user MERGE { acceptedTermsOfServiceAt: None } WHERE id = ${user.id}`,
+        {
+          acceptedTermsOfServiceAt: null,
+        },
+      );
+    }
   }
   console.info(
     `Updated ${numUpdatedScratchpads} users to include scratchpad content`,
@@ -136,6 +157,8 @@ export class User {
         DEFINE FIELD IF NOT EXISTS disabled ON TABLE user TYPE bool DEFAULT false;
         DEFINE FIELD OVERWRITE scratchpadContent ON TABLE user TYPE option<string>;
         DEFINE FIELD OVERWRITE referralCode ON TABLE user TYPE option<string>;
+        DEFINE FIELD OVERWRITE acceptedTermsOfServiceAt ON TABLE user TYPE option<datetime>;
+        DEFINE FIELD OVERWRITE acceptedPrivacyPolicyAt ON TABLE user TYPE option<datetime>;
       `);
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
@@ -241,6 +264,8 @@ export class User {
         password: form.password,
         scratchpadContent: form.scratchpadContent,
         referralCode: Bun.randomUUIDv7(),
+        acceptedPrivacyPolicyAt: new Date(),
+        acceptedTermsOfServiceAt: new Date(),
         roles: withRoles.map((r) => new StringRecordId(r)),
         createdAt: new Date(),
         updatedAt: new Date(),

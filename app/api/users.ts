@@ -399,6 +399,21 @@ router.get("/me", checkToken, async (req, res) => {
   }
 });
 
+router.delete("/me", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+    await User.delete(user.id);
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("User delete error: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.put("/me", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<IUser>(req, "user");
@@ -447,6 +462,59 @@ router.put("/me", checkToken, async (req, res) => {
     });
   } catch (error) {
     console.error("User update error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/accept/terms-of-service", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+    await User.update(user.id, { acceptedTermsOfServiceAt: new Date() });
+    res.json({ message: "Terms of Service accepted successfully" });
+  } catch (error) {
+    console.error("Error accepting Terms of Service:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/accept/privacy-policy", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+    await User.update(user.id, { acceptedPrivacyPolicyAt: new Date() });
+    res.json({ message: "Privacy Policy accepted successfully" });
+  } catch (error) {
+    console.error("Error accepting Privacy Policy:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/accept/both", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthorized." });
+      return;
+    }
+    await User.update(user.id, {
+      acceptedTermsOfServiceAt: new Date(),
+      acceptedPrivacyPolicyAt: new Date(),
+    });
+    res.json({
+      message: "Both Terms of Service and Privacy Policy accepted successfully",
+    });
+  } catch (error) {
+    console.error(
+      "Error accepting both Terms of Service and Privacy Policy:",
+      error,
+    );
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
