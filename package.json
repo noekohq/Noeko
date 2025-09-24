@@ -32,7 +32,7 @@
     "@google-cloud/vertexai": "^1.10.0",
     "@google/genai": "^1.20.0",
     "@google/generative-ai": "^0.24.1",
-    "@mantine/charts": "8.2.2",
+    "@mantine/charts": "8.2.8",
     "@mantine/core": "8.2.2",
     "@mantine/dates": "8.2.2",
     "@mantine/form": "8.2.2",
