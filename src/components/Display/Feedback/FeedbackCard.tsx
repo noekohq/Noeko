@@ -24,7 +24,7 @@ export default function FeedbackCard({
     <button
       className={styles.feedbackCard}
       onClick={() => {
-        onClick(feedback);
+        onClick?.(feedback);
       }}
     >
       <Stack gap="xs">
