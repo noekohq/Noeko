@@ -11,6 +11,7 @@ import { showNotification } from "@mantine/notifications";
 import { getReferralLinkFromCode } from "../vars/users";
 import { handleLogout } from "../server/auth";
 import { userIsSuperuser } from "../utils/user";
+import { Modal, Text } from "@mantine/core";
 
 type AuthState = {
   user: (ISafeUser & { totalIdeas: number }) | undefined;
@@ -24,6 +25,9 @@ type AuthActions = {
   login: (accessToken: string, refreshToken?: string) => Promise<void>;
   logout: () => void;
   reload: () => Promise<void>;
+  acceptToS: () => Promise<void>;
+  acceptPrivacyPolicy: () => Promise<void>;
+  acceptBoth: () => Promise<void>;
   loggedIn: boolean;
   isSuperuser: boolean;
 };
@@ -42,6 +46,9 @@ const initialAuthActions: AuthActions = {
   login: async () => {},
   logout: () => {},
   reload: async () => {},
+  acceptToS: async () => {},
+  acceptPrivacyPolicy: async () => {},
+  acceptBoth: async () => {},
   loggedIn: false,
   isSuperuser: false,
 };
@@ -81,6 +88,76 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       clearTokens();
       setUser(undefined);
       setLoading(false);
+    },
+  });
+
+  const { load: acceptTermsOfService } = useFetch<undefined, undefined>({
+    url: "/users/accept/terms-of-service",
+    method: "POST",
+    onSuccess: () => {
+      showNotification({
+        title: "Terms Accepted",
+        message: "You have successfully accepted the terms of service.",
+        color: "green",
+      });
+    },
+    onError: (error) => {
+      console.error("Error accepting terms of service:", error);
+      showNotification({
+        title: "Terms Acceptance Failed",
+        message: "Could not accept the terms of service. Please try again.",
+        color: "red",
+      });
+    },
+    onFinally: () => {
+      reload();
+    },
+  });
+
+  const { load: acceptPrivacyPolicy } = useFetch<undefined, undefined>({
+    url: "/users/accept/privacy-policy",
+    method: "POST",
+    onSuccess: () => {
+      showNotification({
+        title: "Policy Accepted",
+        message: "You have successfully accepted the privacy policy.",
+        color: "green",
+      });
+    },
+    onError: (error) => {
+      console.error("Error accepting privacy policy:", error);
+      showNotification({
+        title: "Policy Acceptance Failed",
+        message: "Could not accept the privacy policy. Please try again.",
+        color: "red",
+      });
+    },
+    onFinally: () => {
+      reload();
+    },
+  });
+
+  const { load: acceptBoth } = useFetch<undefined, undefined>({
+    url: "/users/accept/both",
+    method: "POST",
+    onSuccess: () => {
+      console.info("Successfully accepted both policies");
+      showNotification({
+        title: "Policies Accepted",
+        message: "You have successfully accepted both policies.",
+        color: "green",
+      });
+    },
+    onError: (error) => {
+      console.error("Error accepting both policies:", error);
+      showNotification({
+        title: "Policy Acceptance Failed",
+        message: "Could not accept the privacy policy. Please try again.",
+        color: "red",
+      });
+    },
+    onFinally: () => {
+      reload();
     },
   });
 
@@ -144,6 +221,15 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         logout,
         reload,
+        acceptToS: async () => {
+          await acceptTermsOfService();
+        },
+        acceptPrivacyPolicy: async () => {
+          await acceptPrivacyPolicy();
+        },
+        acceptBoth: async () => {
+          await acceptBoth();
+        },
         loggedIn: !!user?.id,
         referralLink: user?.referralCode
           ? getReferralLinkFromCode(user.referralCode)
@@ -152,6 +238,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }) satisfies IAuthContext,
     [user, loading, setTokens, clearTokens, login, logout, reload],
   );
+
+  console.log("User: ", user);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

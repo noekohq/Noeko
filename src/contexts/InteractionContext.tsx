@@ -9,7 +9,15 @@ import { getOS } from "../utils/platform";
 import { useAuth } from "./AuthContext";
 import { userIsSuperuser } from "../utils/user";
 import { CheckIcon } from "@phosphor-icons/react";
-import { Group, Text, Drawer, Space } from "@mantine/core";
+import {
+  Group,
+  Text,
+  Drawer,
+  Space,
+  Modal,
+  Stack,
+  Button,
+} from "@mantine/core";
 import { useLayout } from "./LayoutContext";
 import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 import Spotlight from "../components/UI/Spotlight/Spotlight";
@@ -138,7 +146,8 @@ export function InteractionProvider({
 }) {
   const [loadingSomething, setLoadingSomething] = useState(false);
   const navigate = useNavigate();
-  const { user, loggedIn } = useAuth();
+  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } =
+    useAuth();
   const isSuperuser = userIsSuperuser(user);
   const [spotlightOpened, setSpotlightOpened] = useState(false);
 
@@ -458,6 +467,7 @@ export function InteractionProvider({
   return (
     <InteractionContext.Provider value={value}>
       {children}
+      <PolicyHandler />
       <AddSource opened={uploadingSource} setOpened={setUploadingSource} />
       <CreateTask
         opened={creatingTask}
@@ -484,6 +494,153 @@ export const useInteraction = () => {
   }
   return context;
 };
+
+function PolicyHandler() {
+  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } =
+    useAuth();
+
+  const showLegalModal = (): "privacy" | "tos" | "both" | undefined => {
+    console.log(
+      "Accepted: ",
+      !user?.acceptedPrivacyPolicyAt,
+      !user?.acceptedTermsOfServiceAt,
+    );
+    if (!user?.acceptedPrivacyPolicyAt && !user?.acceptedTermsOfServiceAt) {
+      return "both";
+    }
+    if (!user?.acceptedPrivacyPolicyAt) {
+      return "privacy";
+    }
+    if (!user?.acceptedTermsOfServiceAt) {
+      return "tos";
+    }
+  };
+
+  return (
+    <>
+      <Drawer
+        opened={showLegalModal() === "both"}
+        withCloseButton={false}
+        onClose={() => {}}
+        size="80%"
+        position="top"
+        offset="24px"
+        radius="md"
+      >
+        <Stack gap="md" align="center" justify="center">
+          <Text size="sm" c="dimmed">
+            Please accept our{" "}
+            <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
+            <a href="https://www.noeko.app/terms-of-service">
+              Terms of Service
+            </a>{" "}
+            to continue using Noeko :)
+          </Text>
+          <Group gap="sm">
+            <Button
+              variant="light"
+              color="blue"
+              onClick={() => {
+                acceptBoth();
+              }}
+            >
+              Accept
+            </Button>
+          </Group>
+        </Stack>
+      </Drawer>
+
+      <Drawer
+        opened={showLegalModal() === "tos"}
+        withCloseButton={false}
+        onClose={() => {}}
+        size="80%"
+        position="top"
+        offset="24px"
+        radius="md"
+      >
+        <Stack gap="md" align="center" justify="center">
+          <Text size="sm" c="dimmed">
+            Please accept our{" "}
+            <a href="https://www.noeko.app/terms-of-service">
+              Terms of Service
+            </a>{" "}
+            to continue using Noeko :)
+          </Text>
+          <Group gap="sm">
+            <Button
+              variant="light"
+              color="blue"
+              onClick={() => {
+                acceptTermsOfService();
+              }}
+            >
+              Accept
+            </Button>
+          </Group>
+        </Stack>
+      </Drawer>
+
+      <Drawer
+        opened={showLegalModal() === "privacy"}
+        withCloseButton={false}
+        onClose={() => {}}
+        size="80%"
+        position="top"
+        offset="24px"
+        radius="md"
+      >
+        <Stack gap="md" align="center" justify="center">
+          <Text size="sm" c="dimmed">
+            Please accept our{" "}
+            <a href="https://www.noeko.app/privacy">Privacy Policy</a> to
+            continue using Noeko :)
+          </Text>
+          <Group gap="sm">
+            <Button
+              variant="light"
+              color="blue"
+              onClick={() => {
+                acceptPrivacyPolicy();
+              }}
+            >
+              Accept
+            </Button>
+          </Group>
+        </Stack>
+      </Drawer>
+
+      <Drawer
+        opened={showLegalModal() === "tos"}
+        withCloseButton={false}
+        onClose={() => {}}
+        size="80%"
+        position="top"
+        offset="24px"
+        radius="md"
+      >
+        <Stack gap="md" align="center" justify="center">
+          <Text size="sm" c="dimmed">
+            Please accept our{" "}
+            <a href="https://www.noeko.app/terms">Terms of Service</a> to
+            continue using Noeko :)
+          </Text>
+          <Group gap="sm">
+            <Button
+              variant="light"
+              color="blue"
+              onClick={() => {
+                acceptToS();
+              }}
+            >
+              Accept
+            </Button>
+          </Group>
+        </Stack>
+      </Drawer>
+    </>
+  );
+}
 
 type ICreateTaskProps = {
   opened: boolean;

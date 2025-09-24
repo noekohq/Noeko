@@ -32,7 +32,7 @@ export default function RabbitholeList() {
             Recent Rabbitholes
             <ActionIcon
               size="sm"
-              color="yellow.7"
+              color="dark.2"
               variant="light"
               onClick={() => {
                 newRabbithole();

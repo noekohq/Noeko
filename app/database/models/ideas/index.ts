@@ -22,6 +22,7 @@ export type IIdea = {
   visibility: IIdeaVisibility;
   createdAt: Date;
   updatedAt: Date;
+  viewedAt: Date;
   contentUpdatedAt: Date;
   contentPlainUpdatedAt: Date;
   embeddingsUpdatedAt: Date;
@@ -49,6 +50,7 @@ export type IIdeaForm = Omit<
   | "id"
   | "createdAt"
   | "updatedAt"
+  | "viewedAt"
   | "contentUpdatedAt"
   | "contentPlainUpdatedAt"
   | "embeddingsUpdatedAt"
@@ -146,7 +148,7 @@ export class Idea {
     }
 
     await db?.query(
-      `DEFINE INDEX IF NOT EXISTS idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt;`,
+      `DEFINE INDEX OVERWRITE idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt, viewedAt;`,
     );
 
     const userGraphFunction = () => {
@@ -378,6 +380,7 @@ export class Idea {
         IIdeaForm & {
           createdAt: Date;
           updatedAt: Date;
+          viewedAt: Date;
           contentUpdatedAt: Date;
           embeddingsUpdatedAt: Date;
           contentPlainUpdatedAt: Date;
@@ -392,6 +395,7 @@ export class Idea {
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        viewedAt: new Date(),
         embeddingsUpdatedAt: new Date(),
         ...(options?.wasImported ? { importedAt: new Date() } : {}),
       });
@@ -474,6 +478,7 @@ export class Idea {
             contentUpdatedAt: new Date(),
             createdAt: new Date(),
             updatedAt: new Date(),
+            viewedAt: new Date(),
             embeddingsUpdatedAt: new Date(),
             ...(options?.wereImported ? { importedAt: new Date() } : {}),
           };

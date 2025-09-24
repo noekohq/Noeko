@@ -10,6 +10,8 @@ import {
   TextInput,
   Title,
   Loader,
+  Checkbox,
+  HoverCard,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
 import { useForm } from "@mantine/form";
@@ -19,7 +21,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import { validateEmail } from "../../utils/data";
 import StageIndicator from "../../components/Utils/Info/StageIndicator";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { QuestionIcon } from "@phosphor-icons/react";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -156,6 +159,8 @@ export default function Register() {
     dependencies: [referralCode],
   });
 
+  const [checkedAgreement, setCheckedAgreement] = useState(false);
+
   useEffect(() => {
     if (referralCode) {
       checkCode();
@@ -260,6 +265,19 @@ export default function Register() {
               <TextInput
                 label="First name"
                 placeholder="First name"
+                rightSection={
+                  <HoverCard width="300px" radius="lg">
+                    <HoverCard.Target>
+                      <QuestionIcon />
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Text size="sm" c="dimmed">
+                        Your first and last name are only for personalization,
+                        you can put whatever you'd like here :)
+                      </Text>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                }
                 {...registerForm.getInputProps("firstName")}
                 withAsterisk
               />
@@ -298,21 +316,37 @@ export default function Register() {
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }} />
             <Grid.Col span={12}>
-              <Group justify="end">
-                <Text c="dimmed" size="xs" fs="italic">
-                  Say hello to {codeValidity.user?.name} for us!
-                </Text>
-              </Group>
+              <Checkbox
+                size="xs"
+                label={
+                  <Text size="xs" c="dimmed">
+                    By creating an account, you agree to our{" "}
+                    <a href="https://www.noeko.app/privacy">Privacy Policy</a>{" "}
+                    and{" "}
+                    <a href="https://www.noeko.app/terms-of-service">
+                      Terms of Service
+                    </a>
+                    .
+                  </Text>
+                }
+                onChange={(e) => {
+                  setCheckedAgreement(e.currentTarget.checked);
+                }}
+              />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Group justify="right">
                 <Link to="/login">
-                  <Button variant="light">Have an account?</Button>
+                  <Button variant="light" color="gray">
+                    Have an account?
+                  </Button>
                 </Link>
                 <Button
                   onClick={() => {
                     handleRegister();
                   }}
+                  disabled={!checkedAgreement}
+                  loading={loadingRegister}
                 >
                   Register
                 </Button>
