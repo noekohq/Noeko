@@ -551,37 +551,6 @@ function PolicyHandler() {
       </Drawer>
 
       <Drawer
-        opened={showLegalModal() === "tos"}
-        withCloseButton={false}
-        onClose={() => {}}
-        size="80%"
-        position="top"
-        offset="24px"
-        radius="md"
-      >
-        <Stack gap="md" align="center" justify="center">
-          <Text size="sm" c="dimmed">
-            Please accept our{" "}
-            <a href="https://www.noeko.app/terms-of-service">
-              Terms of Service
-            </a>{" "}
-            to continue using Noeko :)
-          </Text>
-          <Group gap="sm">
-            <Button
-              variant="light"
-              color="blue"
-              onClick={() => {
-                acceptTermsOfService();
-              }}
-            >
-              Accept
-            </Button>
-          </Group>
-        </Stack>
-      </Drawer>
-
-      <Drawer
         opened={showLegalModal() === "privacy"}
         withCloseButton={false}
         onClose={() => {}}

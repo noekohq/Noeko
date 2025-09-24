@@ -119,6 +119,8 @@ router.post("/register-referred", async (req, res) => {
       firstName: form.firstName,
       lastName: form.lastName,
       scratchpadContent: ``,
+      acceptedPrivacyPolicyAt: new Date(),
+      acceptedTermsOfServiceAt: new Date(),
     });
 
     if (!newUser) {
