@@ -69,8 +69,6 @@ function WrapTheme({ children }: IWrapThemeProps) {
     },
   } = useSettings();
 
-  console.log("Get theme: ", theme.override);
-
   return (
     <MantineProvider theme={theme.override} defaultColorScheme={theme.scheme}>
       <ModalsProvider>

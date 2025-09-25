@@ -23,13 +23,9 @@ import {
 } from "@mantine/core";
 import {
   ArrowArcRightIcon,
-  BookOpenIcon,
   CalendarCheckIcon,
   CaretLeftIcon,
   CheckIcon,
-  CloudArrowUpIcon,
-  CloudCheckIcon,
-  CloudSlashIcon,
   DotsThreeVerticalIcon,
   TimerIcon,
   TrashSimpleIcon,
@@ -42,7 +38,6 @@ import { Duration } from "surrealdb";
 import styles from "./Task.module.scss";
 import { useLayout } from "../../contexts/LayoutContext";
 import { DatePicker } from "@mantine/dates";
-import Loading from "../../components/Display/Loading/Loading";
 import { updateTask } from "../../utils/tasks";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
@@ -146,8 +141,6 @@ export default function Task() {
       },
       dueDate: (value) => {
         if (!value) return "Due date is required";
-        if (fromYYYYMMDD(value) < new Date())
-          return "Due date must be in the future";
         return null;
       },
     },

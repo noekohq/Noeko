@@ -67,8 +67,15 @@ export type ITokenForm = Omit<IToken, "id" | "user"> & {
   user: StringRecordId;
 };
 
+export type IDailyActivity = {
+  day: string;
+  dailyCount: number;
+};
+
 export type IComputedProperties = {
   numIdeas: number;
+  ideaActivity: IDailyActivity[];
+  taskActivity: IDailyActivity[];
 };
 
 export type IComputedUser = IUser & IComputedProperties;
@@ -169,7 +176,25 @@ export class User {
         DEFINE FUNCTION OVERWRITE fn::get_users() {
           LET $users = SELECT
               *,
-              count(->owns->idea) as numIdeas
+              count(->owns->idea) as numIdeas,
+              (
+                SELECT
+                  time::floor(createdAt, 1d) AS day,
+                  count() AS dailyCount
+                FROM ->owns->idea
+                WHERE createdAt >= time::now() - 7d
+                GROUP BY day
+                ORDER BY day ASC
+              ) AS ideaActivity,
+              (
+                SELECT
+                  time::floor(createdAt, 1d) AS day,
+                  count() AS dailyCount
+                FROM ->owns->task
+                WHERE createdAt >= time::now() - 7d
+                GROUP BY day
+                ORDER BY day ASC
+              ) AS taskActivity
             OMIT password
             FROM user
             ORDER BY

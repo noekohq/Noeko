@@ -27,6 +27,7 @@ import {
   SparkleIcon,
   SquareIcon,
   CircleIcon,
+  UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -666,6 +667,15 @@ const useSpotlightConfig = ({
               icon: <ShieldStarIcon />,
               action: () => {
                 admin();
+                onClose();
+              },
+            },
+            {
+              id: "users",
+              title: "Users",
+              icon: <UsersThreeIcon />,
+              action: () => {
+                navigate(`/admin/users`);
                 onClose();
               },
             },

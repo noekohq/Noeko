@@ -15,6 +15,7 @@ export type ITask = {
   embeddingsUpdatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  viewedAt: Date;
   completedAt: Date | null;
 };
 
@@ -24,7 +25,7 @@ export type ITaskCreator = Omit<ITask, "id">;
 
 export type ITaskForm = Omit<
   ITaskCreator,
-  "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt"
+  "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt" | "viewedAt"
 >;
 
 export default class Task {
@@ -123,6 +124,7 @@ export default class Task {
         embeddingsUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        viewedAt: new Date(),
         completedAt: null,
       });
       if (!result) {

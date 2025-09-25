@@ -768,10 +768,13 @@ export default function Idea() {
                       onClick: () => {
                         connect(thing.id.toString());
                       },
-                      disabled: isConnected(thing.id.toString()),
+                      disabled: !!isConnected(thing.id.toString()),
                     };
                   },
                 ]}
+                resultFilter={(r) => {
+                  return !!isConnected(r);
+                }}
               />
             </Tabs.Panel>
             <Tabs.Panel value="access">

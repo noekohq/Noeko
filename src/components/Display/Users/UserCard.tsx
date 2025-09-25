@@ -7,9 +7,10 @@ import { formatDateTime } from "../../../utils/formatting";
 interface IUserCardProps {
   user: ISafeUser | IUser;
   onClick: (user: ISafeUser | IUser) => void;
+  children?: React.ReactNode;
 }
 
-export default function UserCard({ user, onClick }: IUserCardProps) {
+export default function UserCard({ user, onClick, children }: IUserCardProps) {
   return (
     <button
       className={styles.userCard}
@@ -43,6 +44,7 @@ export default function UserCard({ user, onClick }: IUserCardProps) {
             );
           })}
         </Group>
+        {children && <div className={styles.content}>{children}</div>}
       </Stack>
     </button>
   );

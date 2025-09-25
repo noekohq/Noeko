@@ -500,11 +500,6 @@ function PolicyHandler() {
     useAuth();
 
   const showLegalModal = (): "privacy" | "tos" | "both" | undefined => {
-    console.log(
-      "Accepted: ",
-      !user?.acceptedPrivacyPolicyAt,
-      !user?.acceptedTermsOfServiceAt,
-    );
     if (!user?.acceptedPrivacyPolicyAt && !user?.acceptedTermsOfServiceAt) {
       return "both";
     }

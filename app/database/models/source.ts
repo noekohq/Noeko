@@ -27,13 +27,18 @@ export type ISource = {
   references?: StringRecordId | ISourceReference;
   createdAt: Date;
   updatedAt: Date;
+  viewedAt: Date;
 };
 
 export type ISourceCreator = Omit<ISource, "id">;
 
 export type ISourceForm = Omit<
   ISourceCreator,
-  "createdAt" | "updatedAt" | "embeddings" | "embeddingsGeneratedAt"
+  | "createdAt"
+  | "updatedAt"
+  | "viewedAt"
+  | "embeddings"
+  | "embeddingsGeneratedAt"
 >;
 
 export type ISourceAnalysis = {
@@ -118,6 +123,7 @@ export default class Source {
         references: new StringRecordId(sourceable.id),
         createdAt: new Date(),
         updatedAt: new Date(),
+        viewedAt: new Date(),
       });
       if (!result) {
         throw new Error("Result is undefined");
