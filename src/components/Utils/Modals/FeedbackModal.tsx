@@ -1,5 +1,13 @@
 // components/LeftSidebar/FeedbackModal.tsx
-import { Modal, Grid, Textarea, Checkbox, Group, Button } from "@mantine/core";
+import {
+  Modal,
+  Grid,
+  Textarea,
+  Checkbox,
+  Group,
+  Button,
+  ActionIcon,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import useFetch from "../../../hooks/useFetch"; // Adjust path
@@ -9,6 +17,7 @@ import {
 } from "../../../../app/database/models/feedback"; // Adjust path
 import { useAuth } from "../../../contexts/AuthContext"; // Adjust path
 import { useLocation } from "react-router";
+import { DiscordLogoIcon, RedditLogoIcon } from "@phosphor-icons/react";
 
 type FeedbackModalProps = {
   opened: boolean;
@@ -104,7 +113,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
             <Checkbox
               label="May we contact you about this feedback?"
               size="sm"
-              color="gray"
+              color="blue"
               description={
                 user?.email
                   ? `If needed, we'll use: ${user.email}`
@@ -116,9 +125,20 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
             />
           </Grid.Col>
           <Grid.Col span={12}>
-            <Group justify="flex-end" mt="md">
+            <Group justify="end" mt="md">
+              <a href="https://discord.gg/eNh7c9Sp6r" target="_blank">
+                <ActionIcon variant="light" color="gray">
+                  <DiscordLogoIcon weight="fill" />
+                </ActionIcon>
+              </a>
+              <a href="https://reddit.com/r/noeko" target="_blank">
+                <ActionIcon variant="light" color="gray">
+                  <RedditLogoIcon weight="fill" />
+                </ActionIcon>
+              </a>
               <Button
-                variant="default"
+                variant="light"
+                color="gray"
                 onClick={() => {
                   feedbackForm.reset();
                   onClose();
@@ -127,8 +147,13 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
               >
                 Cancel
               </Button>
-              <Button type="submit" loading={loadingFeedback}>
-                Submit Feedback
+              <Button
+                variant="filled"
+                color="blue"
+                type="submit"
+                loading={loadingFeedback}
+              >
+                Submit
               </Button>
             </Group>
           </Grid.Col>
