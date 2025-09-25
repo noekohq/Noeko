@@ -772,9 +772,6 @@ export default function Idea() {
                     };
                   },
                 ]}
-                resultFilter={(r) => {
-                  return !!isConnected(r);
-                }}
               />
             </Tabs.Panel>
             <Tabs.Panel value="access">

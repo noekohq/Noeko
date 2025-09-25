@@ -1,32 +1,18 @@
-import {
-  ActionIcon,
-  Button,
-  Card,
-  Flex,
-  Group,
-  HoverCard,
-  Space,
-  Stack,
-  Text,
-  Tooltip,
-} from "@mantine/core";
+import { Group, Stack, Text } from "@mantine/core";
 import { IDBGraph } from "../../../app/database/models/ideas";
 import { useGraph } from "../../contexts/GraphContext";
-import { IGraph } from "../../declarations/graph";
+import { IEdge, IGraph, INode } from "../../declarations/graph";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./ConstellationContext.module.scss";
-import {
-  CompassIcon,
-  LassoIcon,
-  UniteSquareIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { CompassIcon, UniteSquareIcon } from "@phosphor-icons/react";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import { GraphOrganizer } from "../../components/Display/Interactions/GraphOrganizer/GraphOrganizer";
 
 type ConstellationContextProps = {
   graph: IGraph | null;
   reloadGraph: () => Promise<void>;
+  addNode?: (node: INode) => void;
+  addEdge?: (edge: IEdge) => void;
 };
 
 export default function ConstellationContext({
