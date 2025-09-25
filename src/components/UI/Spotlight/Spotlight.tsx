@@ -28,6 +28,7 @@ import {
   SquareIcon,
   CircleIcon,
   UsersThreeIcon,
+  ChatDotsIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -676,6 +677,15 @@ const useSpotlightConfig = ({
               icon: <UsersThreeIcon />,
               action: () => {
                 navigate(`/admin/users`);
+                onClose();
+              },
+            },
+            {
+              id: "feedback",
+              title: "Feedback",
+              icon: <ChatDotsIcon />,
+              action: () => {
+                navigate(`/admin/feedback`);
                 onClose();
               },
             },

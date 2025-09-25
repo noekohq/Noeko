@@ -52,13 +52,13 @@ const Updates = lazy(() => import("./pages/Feedback/Updates"));
 export default function App() {
   const navigate = useNavigate();
   const { loggedIn, loading: loadingAuth, user } = useAuth();
-  const { isOnline, isLoading: loadingConnection } = useConnection();
+  // const { isOnline, isLoading: loadingConnection } = useConnection();
   const { isMobile } = useLayout();
   const location = useLocation();
 
   const isSuperuser = userIsSuperuser(user);
 
-  const previousOnlineState = useRef(isOnline);
+  // const previousOnlineState = useRef(isOnline);
   const notificationTimeout = useRef<Timer>(null);
 
   const {
@@ -75,7 +75,7 @@ export default function App() {
     setColorScheme(scheme);
   }, [scheme]);
 
-  if (loadingAuth || loadingConnection) {
+  if (loadingAuth) {
     return (
       <div
         style={{
