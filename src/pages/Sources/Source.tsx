@@ -171,9 +171,13 @@ export default function Source() {
               <Tabs.Panel value="context">
                 {!source?.analysis && (
                   <Text size="xs" c="dimmed">
-                    This source has not been analyzed.
+                    This source hasn't been analyzed.
                   </Text>
                 )}
+                <Text size="xs" c="dark.3">
+                  Analysis uses third-party AI models in accordance with our{" "}
+                  <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+                </Text>
                 {source?.analysis && (
                   <Card
                     radius="lg"

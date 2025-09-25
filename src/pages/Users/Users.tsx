@@ -46,6 +46,8 @@ import styles from "./Users.module.scss";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import UserCard from "../../components/Display/Users/UserCard";
+import { LineChart, Sparkline } from "@mantine/charts";
+import { formatDate } from "../../utils/formatting";
 
 export default function Users() {
   const {
@@ -312,191 +314,363 @@ export default function Users() {
 
   const [selectedUser, setSelectedUser] = useState<IComputedUser>();
 
+  const userIdeaActivity = (user: IComputedUser) => {
+    const ideaMap = user.ideaActivity.reduce(
+      (acc, curr) => {
+        const date = new Date(curr.day).toISOString().split("T")[0];
+        acc[date] = curr.dailyCount;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    const lastSeven = Array(7).fill(0);
+    for (let i = 0; i < lastSeven.length; i++) {
+      const day = new Date().setDate(new Date().getDate() - i);
+      const key = new Date(day).toISOString().split("T")[0];
+      lastSeven[i] = ideaMap[key] || 0;
+    }
+    return lastSeven;
+  };
+
+  const userActivity = (user: IComputedUser) => {
+    const taskMap = user.taskActivity.reduce(
+      (acc, curr) => {
+        const date = new Date(curr.day).toISOString().split("T")[0];
+        acc[date] = curr.dailyCount;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    const ideaMap = user.ideaActivity.reduce(
+      (acc, curr) => {
+        const date = new Date(curr.day).toISOString().split("T")[0];
+        acc[date] = curr.dailyCount;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+    const lastSeven = Array(7)
+      .fill(undefined)
+      .map((a, index) => {
+        const date = Date.now() - index * 24 * 60 * 60 * 1000;
+        const key = new Date(date).toISOString().split("T")[0];
+        return {
+          date: formatDate(new Date(date)),
+          Tasks: taskMap[key] || 0,
+          Ideas: ideaMap[key] || 0,
+        };
+      })
+      .reverse();
+    return lastSeven;
+  };
+
   return (
     <PageWrapper>
       <LeftSidebar />
       <Content>
-        <Stack gap="md">
-          {loadingUsers && <Loader size="lg" />}
-          {!!invitedUser && (
-            <Alert
-              withCloseButton
-              onClose={() => {
-                setInvitedUser(undefined);
-              }}
-            >
-              <Grid>
-                <Grid.Col span={{ sm: 12 }}>
-                  <Text>
-                    {invitedUser.user.firstName} has been invited with the email{" "}
-                    <a href={`mailto:${invitedUser.user.email}`}>
-                      {invitedUser.user.email}
-                    </a>
-                    .{" "}
-                    {invitedUser.emailSuccess
-                      ? "Email was sent successfully."
-                      : "Email was not sent successfully."}
-                  </Text>
-                </Grid.Col>
-                <Grid.Col span={{ sm: 12 }}>
-                  <CopyButton value={invitedUser.user.email}>
-                    {({ copied, copy }) => {
-                      return (
-                        <Button
-                          onClick={copy}
-                          leftSection={
-                            copied ? (
-                              <Check weight="bold" />
-                            ) : (
-                              <Clipboard weight="bold" />
-                            )
-                          }
-                        >
-                          {copied ? "Copied" : "Copy Email"}
-                        </Button>
-                      );
-                    }}
-                  </CopyButton>
-                </Grid.Col>
-              </Grid>
-            </Alert>
-          )}
-          <Title>Manage Users</Title>
-          <Text>
-            There are <strong>{summaryDetails.numberOfUsers}</strong> users. The
-            most recent user is{" "}
-            <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
-            with the most ideas is{" "}
-            <strong>{summaryDetails.mostIdeas?.email}</strong>.
-          </Text>
-          <TextInput
-            placeholder="Filter users"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            radius="md"
-          />
-          {!!filteredUsers?.length && (
-            <SimpleGrid
-              cols={{
-                sm: 1,
-                md: 2,
-                lg: 3,
-              }}
-            >
-              {filteredUsers.map((user) => {
-                return (
-                  <UserCard
-                    user={user}
-                    onClick={() => {
-                      setSelectedUser(user);
-                    }}
-                  />
-                );
-              })}
-            </SimpleGrid>
-          )}
-        </Stack>
+        <div className={styles.users}>
+          <Stack gap="md">
+            {loadingUsers && <Loader size="lg" />}
+            {!!invitedUser && (
+              <Alert
+                withCloseButton
+                onClose={() => {
+                  setInvitedUser(undefined);
+                }}
+              >
+                <Grid>
+                  <Grid.Col span={{ sm: 12 }}>
+                    <Text>
+                      {invitedUser.user.firstName} has been invited with the
+                      email{" "}
+                      <a href={`mailto:${invitedUser.user.email}`}>
+                        {invitedUser.user.email}
+                      </a>
+                      .{" "}
+                      {invitedUser.emailSuccess
+                        ? "Email was sent successfully."
+                        : "Email was not sent successfully."}
+                    </Text>
+                  </Grid.Col>
+                  <Grid.Col span={{ sm: 12 }}>
+                    <CopyButton value={invitedUser.user.email}>
+                      {({ copied, copy }) => {
+                        return (
+                          <Button
+                            onClick={copy}
+                            leftSection={
+                              copied ? (
+                                <Check weight="bold" />
+                              ) : (
+                                <Clipboard weight="bold" />
+                              )
+                            }
+                          >
+                            {copied ? "Copied" : "Copy Email"}
+                          </Button>
+                        );
+                      }}
+                    </CopyButton>
+                  </Grid.Col>
+                </Grid>
+              </Alert>
+            )}
+            <Title>Manage Users</Title>
+            <Text>
+              There are <strong>{summaryDetails.numberOfUsers}</strong> users.
+              The most recent user is{" "}
+              <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
+              with the most ideas is{" "}
+              <strong>{summaryDetails.mostIdeas?.email}</strong>.
+            </Text>
+            <TextInput
+              placeholder="Filter users"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              radius="md"
+            />
+            {!!filteredUsers?.length && (
+              <SimpleGrid
+                cols={{
+                  sm: 1,
+                  md: 2,
+                }}
+              >
+                {filteredUsers.map((user) => {
+                  const activity = userActivity(user);
+
+                  return (
+                    <UserCard
+                      key={user.id.toString()}
+                      user={user}
+                      onClick={() => {
+                        setSelectedUser(user);
+                      }}
+                    >
+                      <LineChart
+                        w={"100%"}
+                        h="24px"
+                        dataKey="date"
+                        series={[
+                          {
+                            name: "Ideas",
+                            color: "blue",
+                          },
+                          {
+                            name: "Tasks",
+                            color: "green",
+                          },
+                        ]}
+                        data={activity}
+                        curveType="linear"
+                        tickLine="none"
+                        gridAxis="none"
+                        withXAxis={false}
+                        withYAxis={false}
+                        withDots={false}
+                      />
+                      {/*<Sparkline
+                        data={userIdeaActivity(user)}
+                        color="blue"
+                      />*/}
+                    </UserCard>
+                  );
+                })}
+              </SimpleGrid>
+            )}
+          </Stack>
+        </div>
 
         <Drawer
           position="bottom"
+          size="lg"
           opened={!!selectedUser}
           onClose={() => {
             setSelectedUser(undefined);
           }}
+          title={
+            selectedUser
+              ? `User Details: ${selectedUser.firstName} ${selectedUser.lastName}`
+              : "User Details"
+          }
         >
-          <Stack>
-            <>
-              <Text size="sm">
-                <CopyButton
-                  value={`${selectedUser?.firstName} ${selectedUser?.lastName}`}
-                >
-                  {({ copied, copy }) => (
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      color="dark.1"
-                      onClick={copy}
-                      mx="xs"
-                      leftSection={
-                        copied ? (
-                          <CheckIcon size={14} />
-                        ) : (
-                          <ClipboardIcon size={14} />
-                        )
-                      }
-                    >
-                      {selectedUser?.firstName} {selectedUser?.lastName}
-                    </Button>
-                  )}
-                </CopyButton>
-                has {selectedUser?.numIdeas} idea
-                {selectedUser?.numIdeas === 1 ? "" : "s"}. Their ID is
-                <CopyButton value={selectedUser?.id.toString() ?? "Unknown"}>
-                  {({ copied, copy }) => (
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      color="dark.1"
-                      onClick={copy}
-                      leftSection={
-                        copied ? (
-                          <CheckIcon size={14} />
-                        ) : (
-                          <ClipboardIcon size={14} />
-                        )
-                      }
-                      mx="xs"
-                    >
-                      {selectedUser?.id.toString() ?? "Unknown"}
-                    </Button>
-                  )}
-                </CopyButton>
-                . Their email is
-                <CopyButton value={selectedUser?.email || "Unknown"}>
-                  {({ copied, copy }) => (
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      color="dark.1"
-                      onClick={copy}
-                      leftSection={
-                        copied ? (
-                          <CheckIcon size={14} />
-                        ) : (
-                          <ClipboardIcon size={14} />
-                        )
-                      }
-                      mx="xs"
-                    >
-                      {selectedUser?.email}
-                    </Button>
-                  )}
-                </CopyButton>
-                . Their roles are
-                <CopyButton value={selectedUser?.roles.join(", ") || ""}>
-                  {({ copied, copy }) => (
-                    <Button
-                      size="xs"
-                      variant="light"
-                      color="gray"
-                      onClick={copy}
-                      leftSection={
-                        copied ? (
-                          <CheckIcon size={14} />
-                        ) : (
-                          <ClipboardIcon size={14} />
-                        )
-                      }
-                      mx="xs"
-                    >
-                      {selectedUser?.roles.join(", ")}
-                    </Button>
-                  )}
-                </CopyButton>
-                .
-              </Text>
+          {selectedUser && (
+            <Stack>
+              <Grid>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Stack>
+                    <Title order={4}>Information</Title>
+                    <Group gap="xs" align="center">
+                      <Text component="span" fw={500}>
+                        Name:
+                      </Text>
+                      <Text component="span">
+                        {selectedUser.firstName} {selectedUser.lastName}
+                      </Text>
+                      <CopyButton
+                        value={`${selectedUser.firstName} ${selectedUser.lastName}`}
+                      >
+                        {({ copied, copy }) => (
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            onClick={copy}
+                          >
+                            {copied ? (
+                              <CheckIcon size={16} />
+                            ) : (
+                              <ClipboardIcon size={16} />
+                            )}
+                          </ActionIcon>
+                        )}
+                      </CopyButton>
+                    </Group>
+                    <Group gap="xs" align="center">
+                      <Text component="span" fw={500}>
+                        Email:
+                      </Text>
+                      <Text component="span">{selectedUser.email}</Text>
+                      <CopyButton value={selectedUser.email}>
+                        {({ copied, copy }) => (
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            onClick={copy}
+                          >
+                            {copied ? (
+                              <CheckIcon size={16} />
+                            ) : (
+                              <ClipboardIcon size={16} />
+                            )}
+                          </ActionIcon>
+                        )}
+                      </CopyButton>
+                    </Group>
+                    <Group gap="xs" align="center">
+                      <Text component="span" fw={500}>
+                        ID:
+                      </Text>
+                      <Text component="span">{selectedUser.id}</Text>
+                      <CopyButton value={selectedUser.id.toString()}>
+                        {({ copied, copy }) => (
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            onClick={copy}
+                          >
+                            {copied ? (
+                              <CheckIcon size={16} />
+                            ) : (
+                              <ClipboardIcon size={16} />
+                            )}
+                          </ActionIcon>
+                        )}
+                      </CopyButton>
+                    </Group>
+                    <Group gap="xs" align="center">
+                      <Text component="span" fw={500}>
+                        Roles:
+                      </Text>
+                      <Text component="span">
+                        {selectedUser.roles.join(", ")}
+                      </Text>
+                      <CopyButton value={selectedUser.roles.join(", ")}>
+                        {({ copied, copy }) => (
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            onClick={copy}
+                          >
+                            {copied ? (
+                              <CheckIcon size={16} />
+                            ) : (
+                              <ClipboardIcon size={16} />
+                            )}
+                          </ActionIcon>
+                        )}
+                      </CopyButton>
+                    </Group>
+                    <Text>
+                      <strong>Status:</strong>{" "}
+                      {selectedUser.disabled ? "Disabled" : "Active"}
+                    </Text>
+                    <Text>
+                      <strong>Created:</strong>{" "}
+                      {formatDate(new Date(selectedUser.createdAt))}
+                    </Text>
+                    <Text>
+                      <strong>Updated:</strong>{" "}
+                      {formatDate(new Date(selectedUser.updatedAt))}
+                    </Text>
+                    {selectedUser.referralCode && (
+                      <Group gap="xs" align="center">
+                        <Text component="span" fw={500}>
+                          Referral Code:
+                        </Text>
+                        <Text component="span">
+                          {selectedUser.referralCode}
+                        </Text>
+                        <CopyButton value={selectedUser.referralCode}>
+                          {({ copied, copy }) => (
+                            <ActionIcon
+                              variant="subtle"
+                              color="gray"
+                              onClick={copy}
+                            >
+                              {copied ? (
+                                <CheckIcon size={16} />
+                              ) : (
+                                <ClipboardIcon size={16} />
+                              )}
+                            </ActionIcon>
+                          )}
+                        </CopyButton>
+                      </Group>
+                    )}
+                    <Text>
+                      <strong>Terms Accepted:</strong>{" "}
+                      {selectedUser.acceptedTermsOfServiceAt
+                        ? formatDate(
+                            new Date(selectedUser.acceptedTermsOfServiceAt),
+                          )
+                        : "No"}
+                    </Text>
+                    <Text>
+                      <strong>Privacy Accepted:</strong>{" "}
+                      {selectedUser.acceptedPrivacyPolicyAt
+                        ? formatDate(
+                            new Date(selectedUser.acceptedPrivacyPolicyAt),
+                          )
+                        : "No"}
+                    </Text>
+                  </Stack>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Stack>
+                    <Title order={4}>Activity</Title>
+                    <Text>
+                      <strong>Ideas created:</strong> {selectedUser.numIdeas}
+                    </Text>
+                    <Text>
+                      <strong>Activity (last 7 days)</strong>
+                    </Text>
+                    <Box h={200}>
+                      <LineChart
+                        h="100%"
+                        data={userActivity(selectedUser)}
+                        dataKey="date"
+                        series={[
+                          { name: "Tasks", color: "green" },
+                          { name: "Ideas", color: "blue" },
+                        ]}
+                        curveType="linear"
+                      />
+                    </Box>
+                  </Stack>
+                </Grid.Col>
+              </Grid>
               <Group gap="sm">
-                {selectedUser?.disabled ? (
+                {selectedUser.disabled ? (
                   <Button
                     variant="light"
                     color="blue"
@@ -538,8 +712,8 @@ export default function Users() {
                   Close
                 </Button>
               </Group>
-            </>
-          </Stack>
+            </Stack>
+          )}
         </Drawer>
         <Modal
           opened={!!toDisable}

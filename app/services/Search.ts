@@ -347,6 +347,7 @@ export class Search {
             FROM task
             WHERE
                 (description @0@ $query OR scratchpad @1@ $query)
+                AND completedAt = NULL
                 AND <-owns<-(user WHERE id = <record> $userId);
 
             return $tasks;
@@ -769,7 +770,7 @@ export class Search {
       SELECT * FROM (
         SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
         OMIT embeddings FROM task
-        WHERE <-owns<-(user WHERE id = $userId) AND embeddings <|${limit}, ${candidates}|> $embedding
+        WHERE <-owns<-(user WHERE id = $userId) AND completedAt = NULL AND embeddings <|${limit}, ${candidates}|> $embedding
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 

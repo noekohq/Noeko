@@ -1,27 +1,30 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
 import {
   Button,
   Container,
   Group,
+  Loader,
   MantineColor,
   Space,
   Stack,
   Text,
+  Transition,
 } from "@mantine/core";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
 import { Link, useNavigate } from "react-router";
-import { ISafeIdea } from "../../../app/database/models/ideas";
 import { useAuth } from "../../contexts/AuthContext";
 import useRabbithole from "../../hooks/useRabbithole";
 import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
-import { IconProps } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, IconProps } from "@phosphor-icons/react";
 import ConnectableThing from "../Display/Interactions/Connections/ConnectableThing";
 import CollapseButton from "../Display/Interactions/CollapseButton";
 import { ISearchResultValue } from "../../../app/services/Search";
+import useFetch from "../../hooks/useFetch";
+import { IConnectable } from "../../../app/services/Graph";
 
 export type ISearchResultAction = {
   id: string;
@@ -89,6 +92,21 @@ export default function Search({
 
   const navigate = useNavigate();
 
+  const {
+    data: recent,
+    load: loadRecent,
+    loading: loadingRecent,
+  } = useFetch<undefined, IConnectable[]>({
+    url: `/insights/recent`,
+    method: "GET",
+  });
+  useEffect(() => {
+    if (!searchResults?.length && !searchQuery.length) {
+      console.log("Loading recent...");
+      loadRecent();
+    }
+  }, [searchResults]);
+
   return (
     <div className={styles.searchWrapper}>
       <SearchBar
@@ -124,6 +142,81 @@ export default function Search({
               </Text>
             </Group>
           </Link>
+        </>
+      )}
+      {!searchQuery.length && !searchResults?.length && (
+        <>
+          <Text size="sm" c="dark.4" fw="bold" my="md">
+            <Group gap="xs">
+              <ArrowClockwiseIcon weight="bold" />
+              RECENT
+              <Transition mounted={loadingRecent} transition="fade-left">
+                {(style) => {
+                  return <Loader style={style} size="xs" color="gray" />;
+                }}
+              </Transition>
+            </Group>
+          </Text>
+          <Transition
+            mounted={!!recent && recent.length > 0}
+            transition="fade-up"
+          >
+            {(style) => {
+              return (
+                <Stack style={style}>
+                  {recent
+                    ?.map((thing, i) => {
+                      const actions = resultActions?.map((action) => {
+                        return action(thing);
+                      });
+
+                      if (!actions) {
+                        return (
+                          <ConnectableThing
+                            key={thing.id.toString()}
+                            thing={thing}
+                            onClick={(thing) => {
+                              navigate(`/${thing.type}/${thing.id.toString()}`);
+                            }}
+                          />
+                        );
+                      }
+
+                      return (
+                        <CollapseButton
+                          key={thing.id.toString()}
+                          target={<ConnectableThing thing={thing} />}
+                          details={
+                            <>
+                              <Group>
+                                {actions.map((a) => {
+                                  return (
+                                    <Button
+                                      variant={a.variant || "light"}
+                                      size="xs"
+                                      color={a.color || "gray"}
+                                      onClick={(e) => {
+                                        a.onClick(e, thing);
+                                      }}
+                                      title={a.label}
+                                      leftSection={a.icon}
+                                      radius="md"
+                                    >
+                                      {a.label}
+                                    </Button>
+                                  );
+                                })}
+                              </Group>
+                            </>
+                          }
+                        />
+                      );
+                    })
+                    .filter((r) => !!r)}
+                </Stack>
+              );
+            }}
+          </Transition>
         </>
       )}
       {!searchQuery &&

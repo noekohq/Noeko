@@ -95,6 +95,10 @@ router.get("/:sourceId", async (req, res) => {
       return;
     }
 
+    Source.update(sourceId, {
+      viewedAt: new Date(),
+    });
+
     res.send({
       message: "Successfully fetched source",
       data: source,

@@ -108,6 +108,9 @@ router.get("/:taskId", async (req, res) => {
       });
       return;
     }
+    Task.update(task.id, {
+      viewedAt: new Date(),
+    });
     res.send({
       message: "Task retrieved successfully",
       data: task,
