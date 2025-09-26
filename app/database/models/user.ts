@@ -210,10 +210,10 @@ export class User {
 
       const ownershipIndex = () => {
         return `
-        DEFINE INDEX IF NOT EXISTS idx_connected_in
+        DEFINE INDEX IF NOT EXISTS idx_owns_in
           ON TABLE owns
           FIELDS in;
-        DEFINE INDEX IF NOT EXISTS idx_connected_out
+        DEFINE INDEX IF NOT EXISTS idx_owns_out
           ON TABLE owns
           FIELDS out;
         `;

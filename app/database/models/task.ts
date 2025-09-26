@@ -110,6 +110,14 @@ export default class Task {
     await db.query(getFullTaskRecordFunction());
     await db.query(getUserTasksFunction());
     await db.query(getUserTasksForDateRangeFunction());
+
+    function taskIndexes() {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_task_completed_at ON TABLE task FIELDS completedAt;
+      `;
+    }
+
+    await db.query(taskIndexes());
   }
 
   static async create(userId: string | RecordId, form: ITaskForm) {

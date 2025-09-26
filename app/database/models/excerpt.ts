@@ -147,6 +147,14 @@ export default class Excerpt {
     await db.query(getFullExcerptRecordFunction());
     await db.query(getExcerptsByUserFunction());
     await db.query(getExcerptsByExcerptableFunction());
+
+    function excerptIndexes() {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_excerpt_references ON TABLE excerpt FIELDS references;
+      `;
+    }
+
+    await db.query(excerptIndexes());
   }
 
   public static async from(source: IExcerptable, form: IExcerptForm) {
