@@ -110,6 +110,7 @@ router.put("/:excerptId", async (req, res) => {
       note,
       sourceText,
     });
+    await Excerpt.loadEmbeddings(excerptId);
 
     if (!updated) {
       throw new Error("Didn't update excerpt");
