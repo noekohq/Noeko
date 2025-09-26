@@ -98,7 +98,7 @@ export interface IEdge {
   distance: number;
   strength: number;
   visibility: "high" | "medium" | "low";
-  type?: "connection" | "description" | "inclusion";
+  type?: "connection" | "description" | "inclusion" | "reference";
 }
 
 export type INode =

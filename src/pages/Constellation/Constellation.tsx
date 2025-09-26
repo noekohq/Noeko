@@ -43,6 +43,7 @@ export default function GraphPage() {
         connections: true,
         inclusions: true,
         descriptions: true,
+        references: true,
       },
     },
     onFinally: () => {

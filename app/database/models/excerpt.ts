@@ -61,6 +61,13 @@ export type IExcerptForUser = {
   createdAt: Date;
 };
 
+export type IVirtualExcerptReference = {
+  id: string | RecordId;
+  in: string | RecordId;
+  out: string | RecordId;
+  createdAt: Date;
+};
+
 export default class Excerpt {
   constructor() {}
 
