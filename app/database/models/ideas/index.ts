@@ -147,9 +147,9 @@ export class Idea {
       throw new Error("Couldn't get database");
     }
 
-    await db?.query(
-      `DEFINE INDEX OVERWRITE idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt, viewedAt;`,
-    );
+    // await db?.query(
+    //   `DEFINE INDEX OVERWRITE idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt, viewedAt;`,
+    // );
 
     const userGraphFunction = () => {
       return `
@@ -309,6 +309,9 @@ export class Idea {
       DEFINE INDEX IF NOT EXISTS idx_idea_updated_at
         ON TABLE idea
         FIELDS updatedAt;
+      DEFINE INDEX IF NOT EXISTS idx_idea_viewed_at
+        ON TABLE idea
+        FIELDS viewedAt;
       `;
     }
 

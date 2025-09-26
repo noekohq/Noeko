@@ -186,7 +186,7 @@ function ExcerptButton({
                 )}
               </Box>
               <Text size="sm" lineClamp={1}>
-                {excerpt.note}
+                {excerpt.note ?? "Empty Excerpt"}
               </Text>
             </Group>
             {hovering && (

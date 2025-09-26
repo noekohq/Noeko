@@ -424,8 +424,9 @@ router.put("/me", checkToken, async (req, res) => {
       return;
     }
 
+    const existingRecord = await User.get(user.id);
     const updater: Partial<IUserForm> = {};
-    if (req.body.email && user.email !== req.body.email) {
+    if (req.body.email && existingRecord.email !== req.body.email) {
       const email = req.body.email;
       const emailExists = await User.findByEmail(email);
       if (emailExists) {

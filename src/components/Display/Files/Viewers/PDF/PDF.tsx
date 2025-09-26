@@ -8,6 +8,7 @@ import { getFileDownloadLink } from "../../../../../utils/userfiles";
 import {
   ActionIcon,
   Group,
+  Loader,
   LoadingOverlay,
   Stack,
   Text,
@@ -33,6 +34,7 @@ import {
   PdfAnnotationSubtype,
   Rect,
   PdfDocumentObject,
+  deserializeLogger,
 } from "@embedpdf/models";
 import { EmbedPDF, PDFContext } from "@embedpdf/core/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
@@ -84,6 +86,7 @@ import { showNotification } from "@mantine/notifications";
 import { useSource } from "../../../../../pages/Sources/SourceContext";
 import useFetch from "../../../../../hooks/useFetch";
 import { useForm } from "@mantine/form";
+import DreamWriter from "../../../../Content/DreamWriter/DreamWriter";
 
 const defaultZoomLevel = ZoomMode.FitPage;
 const defaultPlugins = [
@@ -280,30 +283,35 @@ function Toolbar() {
     },
   } = usePDFViewer();
 
+  const excerptToAnnotation = async (excerpt: IExcerpt) => {
+    if (!excerpt.pdfMetadata) {
+      return;
+    }
+    const {
+      pdfMetadata: { pageIndex, data },
+    } = excerpt;
+
+    const pageAnnotations = await annotations
+      ?.getPageAnnotations({ pageIndex })
+      .toPromise();
+    if (pageAnnotations?.find((pa) => pa.id === excerpt.id.toString())) {
+      annotations?.deleteAnnotation(pageIndex, excerpt.id.toString());
+    }
+    annotations?.createAnnotation(excerpt.pdfMetadata?.pageIndex, {
+      ...data,
+      id: excerpt.id.toString(),
+      type: PdfAnnotationSubtype.HIGHLIGHT,
+      color: colors.highlight[6],
+      opacity: 0.25,
+    });
+  };
+
   const {
     excerpts: { create: createExcerpt, all: allExcerpts },
   } = useSource();
   const loadAnnotations = useCallback(async () => {
     allExcerpts.forEach(async (excerpt) => {
-      if (!excerpt.pdfMetadata) {
-        return;
-      }
-      const {
-        pdfMetadata: { pageIndex, data },
-      } = excerpt;
-      const pageAnnotations = await annotations
-        ?.getPageAnnotations({ pageIndex })
-        .toPromise();
-      if (pageAnnotations?.find((pa) => pa.id === excerpt.id.toString())) {
-        annotations?.deleteAnnotation(pageIndex, excerpt.id.toString());
-      }
-      annotations?.createAnnotation(excerpt.pdfMetadata?.pageIndex, {
-        ...data,
-        id: excerpt.id.toString(),
-        type: PdfAnnotationSubtype.HIGHLIGHT,
-        color: colors.highlight[6],
-        opacity: 0.25,
-      });
+      excerptToAnnotation(excerpt);
     });
   }, []);
 
@@ -357,6 +365,7 @@ function Toolbar() {
         });
         return;
       }
+      excerptToAnnotation(excerpt);
     } catch (error) {
       console.error("Error highlighting text: ", error);
     } finally {
@@ -535,7 +544,7 @@ function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
     setUpdatingNote(true);
     updateExcerpt(id, { note: form.values.note })
       .then(() => {
-        setUpdatingNote(false);
+        handleDeselectAnnotation();
       })
       .finally(() => {
         setUpdatingNote(false);
@@ -552,6 +561,11 @@ function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
       className={styles.annotationMenu}
     >
       <Stack gap="sm">
+        {loadingExcerpt && (
+          <Group>
+            <Loader size="xs" color="gray" />
+          </Group>
+        )}
         <Group gap="xs" justify="space-between">
           <Textarea
             placeholder="Make a note..."
@@ -560,6 +574,7 @@ function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
             {...form.getInputProps("note")}
             variant="unstyled"
             w="100%"
+            disabled={loadingExcerpt}
           />
         </Group>
         <Group justify="space-between" gap="xs">
