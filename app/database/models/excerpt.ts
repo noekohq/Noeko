@@ -166,7 +166,7 @@ export default class Excerpt {
       }
       await this.establishOwnership(source.owner, excerpt.id);
       await this.excerptForUser(source.owner, excerpt.id);
-      this.loadEmbeddings(excerpt.id);
+      await this.loadEmbeddings(excerpt.id);
       return excerpt;
     } catch (error) {
       console.error("Error creating excerpt: ", source, form, error);
@@ -280,7 +280,6 @@ export default class Excerpt {
       if (!update) {
         throw new Error("Couldn't update excerpt");
       }
-      this.loadEmbeddings(excerptId);
       return update;
     } catch (error) {
       console.error("Error updating excerpt: ", excerptId, updates, error);
@@ -382,6 +381,10 @@ export default class Excerpt {
         ---
         ${excerpt.note}
         `;
+      console.info(
+        "Loading embedding vector for content: ",
+        excerpt.note.slice(0, 124),
+      );
       const embedding = await embedder.embedContent(embeddable);
       if (!embedding) {
         throw new Error("No embedding generated");
