@@ -47,8 +47,15 @@ export const fromConstellation = (
     edges: [],
   };
 
-  const { things, connections, tags, descriptions, rabbitholes, inclusions } =
-    constellation;
+  const {
+    things,
+    connections,
+    tags,
+    descriptions,
+    rabbitholes,
+    inclusions,
+    references,
+  } = constellation;
 
   if (things) {
     const connectableNodes: INode[] = things.map((connectable) => {
@@ -126,6 +133,22 @@ export const fromConstellation = (
       };
     });
     graph.edges.push(...rabbitholeEdges);
+  }
+
+  if (references) {
+    const referenceEdges: IEdge[] = references.map((reference) => {
+      return {
+        ...reference,
+        id: reference.id.toString(),
+        type: "reference" as const,
+        source: reference.in.toString(),
+        target: reference.out.toString(),
+        distance: MIN_GRAPH_DIST,
+        strength: 0.7,
+        visibility: "high" as const,
+      };
+    });
+    graph.edges.push(...referenceEdges);
   }
 
   return graph;

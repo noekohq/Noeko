@@ -210,7 +210,7 @@ const NodeComponent = ({
 
       {showText && (
         <foreignObject
-          width={90}
+          width={180}
           x={-90}
           height={textDimensions.height}
           y={mainCircleRadius + textOffset}
@@ -220,9 +220,7 @@ const NodeComponent = ({
             ref={textRef}
             style={{
               pointerEvents: "auto",
-              display: "inline-block",
               textAlign: "center",
-              minWidth: "180px",
             }}
           >
             <Text
@@ -230,6 +228,7 @@ const NodeComponent = ({
               size="xs"
               tt="capitalize"
               c={iAmSelected ? "dark.1" : "dimmed"}
+              lineClamp={3}
             >
               {nodeTitle}
             </Text>

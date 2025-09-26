@@ -4,7 +4,10 @@ import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
 import Source, { ISource } from "../database/models/source";
 import Task, { ITask } from "../database/models/task";
 import { ISearchResult } from "./Search";
-import Excerpt, { IExcerpt } from "../database/models/excerpt";
+import Excerpt, {
+  IExcerpt,
+  IVirtualExcerptReference,
+} from "../database/models/excerpt";
 import { ITag, ITagDescriptionRelationship, Tag } from "../database/models/tag";
 import Rabbithole, {
   IRabbithole,
@@ -827,6 +830,57 @@ export default class GraphService {
       return undefined;
     }
   }
+
+  public static async getUserReferences(userId: StringRecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere = [`<-owns<-(user WHERE id = $userId)`];
+
+      const tableWhere: string[] = [];
+      const query = `
+        SELECT
+          id,
+          references,
+          createdAt
+        FROM excerpt
+        WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+        `;
+
+      const [results] = await db.query<
+        [
+          {
+            id: IExcerpt["id"];
+            references: IExcerpt["references"];
+            createdAt: Date;
+          }[],
+        ]
+      >(query, {
+        userId: new StringRecordId(userId),
+      });
+
+      if (!results) {
+        throw new Error("Couldn't get inclusions");
+      }
+
+      const mappedToVirtual: IVirtualExcerptReference[] = results.map(
+        ({ id, references, createdAt }) => {
+          return {
+            id: id.toString() + references?.toString(),
+            in: id.toString(),
+            out: references?.toString(),
+            createdAt: createdAt,
+          } as IVirtualExcerptReference;
+        },
+      );
+
+      return mappedToVirtual as IVirtualExcerptReference[];
+    } catch (error) {
+      console.error("Error getting user connections: ", error);
+      return undefined;
+    }
+  }
 }
 
 export const initGraph = async () => {
@@ -840,6 +894,7 @@ export type ILoadedConstellation = Partial<{
   connections: IConnection[];
   inclusions: IRabbitholeInclusion[];
   descriptions: ITagDescriptionRelationship[];
+  references: IVirtualExcerptReference[];
 }>;
 
 export type IConstellationLoader = Partial<{
@@ -849,6 +904,7 @@ export type IConstellationLoader = Partial<{
   connections: boolean;
   inclusions: boolean;
   descriptions: boolean;
+  references: boolean;
 }>;
 
 export class ConstellationLoader {
@@ -870,25 +926,37 @@ export class ConstellationLoader {
     loader: IConstellationLoader,
   ): Promise<ILoadedConstellation | undefined> {
     try {
-      const loaded: Partial<ILoadedConstellation> = {};
+      const promises: Promise<Partial<ILoadedConstellation>>[] = [];
       if (loader.things) {
-        loaded.things = await this.connectables();
+        promises.push(this.connectables().then((res) => ({ things: res })));
       }
       if (loader.connections) {
-        loaded.connections = await this.connections();
+        promises.push(this.connections().then((res) => ({ connections: res })));
       }
       if (loader.rabbitholes) {
-        loaded.rabbitholes = await this.rabbitholes();
+        promises.push(this.rabbitholes().then((res) => ({ rabbitholes: res })));
       }
       if (loader.inclusions) {
-        loaded.inclusions = await this.inclusions();
+        promises.push(this.inclusions().then((res) => ({ inclusions: res })));
       }
       if (loader.tags) {
-        loaded.tags = await this.tags();
+        promises.push(this.tags().then((res) => ({ tags: res })));
       }
       if (loader.descriptions) {
-        loaded.descriptions = await this.descriptions();
+        promises.push(
+          this.descriptions().then((res) => ({ descriptions: res })),
+        );
       }
+      if (loader.references) {
+        promises.push(this.references().then((res) => ({ references: res })));
+      }
+
+      const results = await Promise.all(promises);
+      const loaded: Partial<ILoadedConstellation> = Object.assign(
+        {},
+        ...results,
+      );
+
       return loaded;
     } catch (error) {
       console.error("Error loading user constellation: ", error);
@@ -976,6 +1044,19 @@ export class ConstellationLoader {
       return descriptions;
     } catch (error) {
       console.error("Error getting user descriptions: ", this.userId, error);
+      return undefined;
+    }
+  }
+
+  public async references(): Promise<IVirtualExcerptReference[] | undefined> {
+    try {
+      const references = await GraphService.getUserReferences(this.userId);
+      if (!references) {
+        throw new Error("Couldn't get references");
+      }
+      return references;
+    } catch (error) {
+      console.error("Error getting user references: ", this.userId, error);
       return undefined;
     }
   }
