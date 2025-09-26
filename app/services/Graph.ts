@@ -71,6 +71,17 @@ export default class GraphService {
 
     await db.query(getSourceConnectionsFunction());
     await db.query(connectedIndex());
+
+    function edgeIndexes() {
+      return `
+      DEFINE INDEX IF NOT EXISTS idx_describes_in ON TABLE describes FIELDS in;
+      DEFINE INDEX IF NOT EXISTS idx_describes_out ON TABLE describes FIELDS out;
+      DEFINE INDEX IF NOT EXISTS idx_includes_in ON TABLE includes FIELDS in;
+      DEFINE INDEX IF NOT EXISTS idx_includes_out ON TABLE includes FIELDS out;
+    `;
+    }
+
+    await db.query(edgeIndexes());
   }
 
   private static _connectionTypes = {
