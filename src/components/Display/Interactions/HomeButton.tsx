@@ -26,7 +26,7 @@ export default function HomeButton({
 
   const isHome = pathname === "/";
 
-  const defaultColor: MantineColor = "dark.3";
+  const defaultColor: MantineColor = "dark.2";
 
   if (isHome) {
     return null;

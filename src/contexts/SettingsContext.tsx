@@ -11,7 +11,6 @@ import {
   IThemeResolved,
   IThemeSpec,
 } from "../declarations/themes"; // Assuming these paths are correct
-import { MantineColorScheme, MantineThemeOverride } from "@mantine/core";
 import { ResolveTheme } from "../themes"; // Assuming this path is correct
 import { isDarkScheme } from "../utils/dom";
 

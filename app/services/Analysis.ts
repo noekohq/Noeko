@@ -340,13 +340,18 @@ export class AnalysisService {
       if (!db) {
         throw new Error("Database connection not established");
       }
-      const [numIdeas] = await db.query<[number]>(
-        `count(SELECT id FROM ideas WHERE <-owns<-(user WHERE id = $userId));`,
+      const result = await db.query<[number]>(
+        `count(SELECT VALUE
+            id
+          FROM idea
+          WHERE <-owns<-(user WHERE id = $userId));`,
         {
           userId: new StringRecordId(userId),
         },
       );
+      const [numIdeas] = result;
       if (!numIdeas) {
+        console.info("Omiting because no ideas found");
         return;
       }
       const results = await db.run<ISafeIdea[]>(
@@ -372,7 +377,7 @@ export class AnalysisService {
         throw new Error("Database connection not established");
       }
       const [numTags] = await db.query<[number]>(
-        `count(SELECT id FROM tags WHERE <-owns<-(user WHERE id = $userId));`,
+        `count(SELECT id FROM tag WHERE <-owns<-(user WHERE id = $userId));`,
         {
           userId: new StringRecordId(userId),
         },

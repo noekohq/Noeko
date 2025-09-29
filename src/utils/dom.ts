@@ -1,4 +1,4 @@
-import { IThemeSpec } from "../declarations/themes";
+import { ICSSApplicator, IThemeSpec } from "../declarations/themes";
 
 export function matchParentWidth(
   fixedElementId: string,
@@ -103,4 +103,22 @@ export const extractNumberFromCSSValue = (
   // 20px -> 20, 50vw -> 50
   const match = value.match(/(\d+)/);
   return match ? parseInt(match[1], 10) : 0;
+};
+
+export const setCssVariable = (variableName: string, value: string): void => {
+  document.documentElement.style.setProperty(variableName, value);
+};
+
+export const applyStyleBlocks = (blocks: ICSSApplicator["blocks"]): void => {
+  for (const [selector, styleBlock] of Object.entries(blocks)) {
+    const elements = document.querySelectorAll(selector);
+
+    elements.forEach((element) => {
+      if (element instanceof HTMLElement) {
+        for (const [property, value] of Object.entries(styleBlock)) {
+          element.style.setProperty(property, value);
+        }
+      }
+    });
+  }
 };

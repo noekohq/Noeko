@@ -170,14 +170,17 @@ export default function Source() {
               </Tabs.List>
               <Tabs.Panel value="context">
                 {!source?.analysis && (
-                  <Text size="xs" c="dimmed">
-                    This source hasn't been analyzed.
-                  </Text>
+                  <>
+                    <Text size="xs" c="dimmed">
+                      This source hasn't been analyzed.
+                    </Text>
+                    <Text size="xs" c="dark.3">
+                      Analysis uses third-party AI models in accordance with our{" "}
+                      <a href="https://www.noeko.app/privacy">Privacy Policy</a>
+                      .
+                    </Text>
+                  </>
                 )}
-                <Text size="xs" c="dark.3">
-                  Analysis uses third-party AI models in accordance with our{" "}
-                  <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
-                </Text>
                 {source?.analysis && (
                   <Card
                     radius="lg"
@@ -380,6 +383,10 @@ function AnalysisBlock({
   return (
     <>
       <Stack>
+        <Text size="xs" c="dark.3">
+          Analysis uses third-party AI models in accordance with our{" "}
+          <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+        </Text>
         <Card
           radius="lg"
           p={"sm"}
@@ -456,13 +463,18 @@ function ExcerptsPanel() {
 
   return (
     <div>
-      <Stack>
+      <Stack gap="sm">
         <Text size="sm" c="dark.4" fw="bold">
           <Group gap="xs">
             <TextAlignLeftIcon weight="bold" />
             EXCERPTS
           </Group>
         </Text>
+        {!all.length && (
+          <Text size="sm" c="dimmed">
+            No excerpts yet, try highlighting some text :)
+          </Text>
+        )}
         {all.map((excerpt) => {
           return (
             <Stack gap="xs">
