@@ -53,6 +53,16 @@ const AppearanceSettings = () => {
       value: "noeko" as const,
       disabled: override === "noeko",
     },
+    {
+      label: "Nord",
+      value: "nord" as const,
+      disabled: override === "nord",
+    },
+    {
+      label: "Pink Lady",
+      value: "pinkLady" as const,
+      disabled: override === "pinkLady",
+    },
   ];
 
   const schemeData = [

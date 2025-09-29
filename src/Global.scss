@@ -1,242 +1,182 @@
 @use "./styles/mixins.scss" as *;
 
-/* For light mode */
-:root[data-mantine-color-scheme="light"] {
-    --mantine-color-body: var(--mantine-color-dark-9) !important;
-
-    --mantine-color-text: var(--mantine-color-dark-0) !important;
-    /* --button-bg: var(--mantine-color-dark-8) !important; */
-    --color-code-background: var(--mantine-color-dark-9);
-    --color-code-foreground: var(--mantine-color-dark-1);
-    --color-highlight: var(--mantine-color-highlight-6);
-
-    .highlight {
-        background-color: var(--color-highlight);
-        /* color: var(--mantine-color-dark-9); */
-        /* font-weight: 500; */
-    }
-}
-
-/* For dark mode */
-:root[data-mantine-color-scheme="dark"] {
-    --mantine-color-body: var(--mantine-color-dark-9) !important;
-    --mantine-color-text: var(--mantine-color-dark-0) !important;
-    --mantine-color-default: var(--mantine-color-dark-7) !important;
-    /* --button-bg: var(--mantine-color-dark-8) !important; */
-    --ai-bg: var(--mantine-color-dark-9) !important;
-
-    .mantine-Paper-root {
-        background-color: var(--mantine-color-dark-8) !important;
-    }
-    .mantine-Menu-dropdown {
-        background-color: var(--mantine-color-dark-9) !important;
-        z-index: 200 !important;
-    }
-    .mantine-HoverCard-dropdown {
-        background-color: var(--mantine-color-dark-9) !important;
-        z-index: 210 !important;
-    }
-    .mantine-Popover-dropdown {
-        background-color: var(--mantine-color-dark-9) !important;
-        z-index: 210 !important;
-    }
-    .mantine-Modal-header {
-        background-color: var(--mantine-color-dark-9) !important;
-    }
-    .mantine-Modal-body {
-        background-color: var(--mantine-color-dark-9) !important;
-    }
-
-    --color-code-background: var(--mantine-color-dark-9);
-    --color-code-foreground: var(--mantine-color-dark-1);
-    --color-highlight: var(--mantine-color-highlight-9);
-
-    .highlight {
-        background-color: var(--color-highlight);
-        color: var(--mantine-color-dark-0);
-    }
-}
-
+// Global variable definitions for layout and structure
 :root {
-    .highlight {
-        padding: 0 0.4rem;
-        margin: 0 0.2rem;
-    }
+  --sidebar-width: 80vw;
+  --sidebar-width-collapsed: 24px;
+  --content-width: 100%;
+  --layout-spacing: 8px;
+  --mobile-bar-height: 56px;
+  --status-bar-height: 36px;
 
-    --sidebar-width: 80vw;
-    --sidebar-width-collapsed: 24px;
+  @include tablet {
+    --sidebar-width: 40vw;
+    --sidebar-width-collapsed: 48px;
     --content-width: 100%;
-    --layout-spacing: 8px;
-    --mobile-bar-height: 56px;
-    --status-bar-height: 36px;
+  }
 
-    @include tablet {
-        --sidebar-width: 40vw;
-        --sidebar-width-collapsed: 48px;
-        --content-width: 100%;
-    }
+  @include desktop {
+    --sidebar-width: 22vw;
+    --sidebar-width-collapsed: 48px;
+    --content-width: 56vw;
+  }
 
-    @include desktop {
-        --sidebar-width: 22vw;
-        --sidebar-width-collapsed: 48px;
-        --content-width: 56vw;
-    }
+  @include widescreen {
+    --sidebar-width: 20vw;
+    --content-width: 55vw;
+  }
 
-    @include widescreen {
-        --sidebar-width: 20vw;
-        --sidebar-width-collapsed: 48px;
-        --content-width: 55vw;
-    }
-
-    @include ultrawide {
-        --sidebar-width: 20vw;
-        --sidebar-width-collapsed: 48px;
-        --content-width: 55vw;
-    }
-
-    .mantine-Accordion-root {
-        .mantine-Accordion-item {
-            transition: all 0.2s ease-in-out;
-            --item-filled-color: var(--mantine-color-dark-8) !important;
-
-            .mantine-Accordion-label {
-                padding-block: calc(var(--mantine-spacing-xs) / 2) !important;
-            }
-
-            &[data-active="true"] {
-                padding: var(--mantine-spacing-xs);
-                margin-bottom: var(--mantine-spacing-xs);
-                border-radius: var(--mantine-radius-lg);
-                border: 1px solid var(--mantine-color-dark-5);
-
-                .mantine-Accordion-label {
-                    padding-block: var(--mantine-spacing-xs) !important;
-                }
-            }
-        }
-
-        &[data-variant="contained"] {
-            .mantine-Accordion-item {
-                border-radius: 0;
-
-                &:first-child {
-                    border-top-left-radius: var(--mantine-radius-lg);
-                    border-top-right-radius: var(--mantine-radius-lg);
-                }
-
-                &:last-child {
-                    border-bottom-left-radius: var(--mantine-radius-lg);
-                    border-bottom-right-radius: var(--mantine-radius-lg);
-                }
-            }
-        }
-    }
+  @include ultrawide {
+    --sidebar-width: 20vw;
+    --content-width: 55vw;
+  }
 }
 
+// Base element and component styles
 html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--mantine-color-dark-5) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mantine-color-dark-5) transparent;
 
-    * {
-        -webkit-tap-highlight-color: transparent;
-    }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 body {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+  // Body background and text color are now applied by the applicator
+  // via --mantine-color-body and --mantine-color-text
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-stretch: 90%;
-    font-family: var(--mantine-font-family-headings);
+h1, h2, h3, h4, h5, h6 {
+  font-stretch: 90%;
+  font-family: var(--mantine-font-family-headings);
 }
 
 a {
-    color: var(--mantine-color-anchor);
-    cursor: pointer;
-    text-decoration: underline;
-    transition: all 0.2s ease-in-out;
+  color: var(--mantine-color-anchor);
+  cursor: pointer;
+  text-decoration: underline;
+  transition: all 0.2s ease-in-out;
 
-    &:hover {
-        color: var(--mantine-primary-color-6);
-    }
+  &:hover {
+    color: var(--mantine-primary-color-6);
+  }
+}
+
+.highlight {
+  padding: 0 0.4rem;
+  margin: 0 0.2rem;
+  // background-color and color are now applied by the applicator blocks
 }
 
 .searchResult {
-    width: 100%;
-    display: block;
-    margin-bottom: var(--mantine-spacing-md);
-    transition: transform 0.2s ease-in-out;
+  width: 100%;
+  display: block;
+  margin-bottom: var(--mantine-spacing-md);
+  transition: transform 0.2s ease-in-out;
 
-    &:hover {
-        transform: translateY(1px) scale(1.01);
-    }
+  &:hover {
+    transform: translateY(1px) scale(1.01);
+  }
 
-    &:active {
-        transform: translateY(2px) scale(0.99);
-    }
+  &:active {
+    transform: translateY(2px) scale(0.99);
+  }
 }
 
 blockquote {
-    margin-inline-start: 0;
-    padding-inline-start: 24px;
-    // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
-    border-left: 2.5px solid var(--mantine-primary-color-5);
+  margin-inline-start: 0;
+  padding-inline-start: 24px;
+  border-left: 2.5px solid var(--mantine-primary-color-5);
 }
 
 pre {
-    padding: 18px 18px;
-    border-radius: var(--mantine-radius-md);
-    border: 1px solid var(--mantine-color-gray-5);
-    white-space: pre-wrap;
-    background-color: var(--color-code-background);
-    color: var(--color-code-foreground);
+  padding: 18px;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-gray-5);
+  white-space: pre-wrap;
+  background-color: var(--color-code-background);
+  color: var(--color-code-foreground);
 
-    code {
-        border: none;
-    }
+  code {
+    border: none;
+  }
 }
 
 code {
-    color: var(--color-code-foreground);
-    background-color: var(--color-code-background);
-    border-radius: var(--mantine-radius-md);
-    padding: 4px 8px;
-    border: 1px solid var(--mantine-color-dark-7);
-    font-size: var(--mantine-font-size-sm);
+  background-color: var(--color-code-background);
+  color: var(--color-code-foreground);
+  border-radius: var(--mantine-radius-md);
+  padding: 4px 8px;
+  border: 1px solid var(--mantine-color-dark-7);
+  font-size: var(--mantine-font-size-sm);
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: var(--mantine-spacing-md);
-    font-size: var(--mantine-font-size-sm);
-    border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
-    overflow: hidden;
-    border: 1px solid var(--mantine-color-dark-7);
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-sm);
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-dark-7);
 }
 
 thead {
-    background-color: var(--mantine-color-dark-8);
+  background-color: var(--mantine-color-dark-8);
 }
 
 tr {
-    border: 1px solid var(--mantine-color-dark-7);
+  border: 1px solid var(--mantine-color-dark-7);
 }
 
 th {
-    font-weight: bold;
-    color: var(--mantine-color-dark-5);
+  font-weight: bold;
+  color: var(--mantine-color-dark-5);
 }
 
-th,
-td {
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    text-align: left;
+th, td {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  text-align: left;
+}
+
+// Mantine component overrides that are not theme-specific
+.mantine-Accordion-root {
+  .mantine-Accordion-item {
+    transition: all 0.2s ease-in-out;
+    // --item-filled-color is now set by the applicator
+
+    .mantine-Accordion-label {
+      padding-block: calc(var(--mantine-spacing-xs) / 2) !important;
+    }
+
+    &[data-active="true"] {
+      padding: var(--mantine-spacing-xs);
+      margin-bottom: var(--mantine-spacing-xs);
+      border-radius: var(--mantine-radius-lg);
+      border: 1px solid var(--mantine-color-dark-5);
+
+      .mantine-Accordion-label {
+        padding-block: var(--mantine-spacing-xs) !important;
+      }
+    }
+  }
+
+  &[data-variant="contained"] {
+    .mantine-Accordion-item {
+      border-radius: 0;
+
+      &:first-child {
+        border-top-left-radius: var(--mantine-radius-lg);
+        border-top-right-radius: var(--mantine-radius-lg);
+      }
+
+      &:last-child {
+        border-bottom-left-radius: var(--mantine-radius-lg);
+        border-bottom-right-radius: var(--mantine-radius-lg);
+      }
+    }
+  }
 }

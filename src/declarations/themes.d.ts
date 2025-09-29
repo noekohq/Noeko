@@ -1,6 +1,6 @@
 import { MantineColorScheme, MantineThemeOverride } from "@mantine/core";
 
-export type IThemeOption = "noeko";
+export type IThemeOption = "noeko" | "nord" | "pinkLady";
 
 export type IThemeSpec = {
   scheme: MantineColorScheme;
@@ -12,8 +12,16 @@ export type IThemeSpec = {
 export type IThemeResolved = {
   scheme: MantineColorScheme;
   override: MantineThemeOverride;
+  applicator: ICSSApplicator;
 };
 
-export type IOverrideResolver = (
-  theme: IThemeSpec,
-) => PartialDeepObject<MantineThemeOverride>;
+type StyleBlock = Record<string, string>;
+export type ICSSApplicator = {
+  variables: Record<string, string>;
+  blocks: Record<string, StyleBlock>;
+};
+
+export type IOverrideResolver = (theme: IThemeSpec) => {
+  override: PartialDeepObject<MantineThemeOverride>;
+  applicator: ICSSApplicator;
+};

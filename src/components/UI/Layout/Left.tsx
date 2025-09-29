@@ -98,7 +98,7 @@ const LeftSidebar = ({
     },
   } = useInteraction();
 
-  const defaultColor: MantineColor = "dark.3";
+  const defaultColor: MantineColor = "dark.2";
 
   const Global: Record<typeof mode, React.ReactNode> = {
     open: (
