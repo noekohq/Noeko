@@ -34,6 +34,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
         mode: { get: rightMode, set: setRightMode },
       },
     },
+    scroll: { isScrolled, scrollDirection },
     isMobile,
   } = useLayout();
 
@@ -85,7 +86,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
 
   return (
     <div
-      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren} ${leftModeClass} ${rightModeClass} ${isZen ? styles.zen : ""}`}
+      className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren} ${leftModeClass} ${rightModeClass} ${isZen ? styles.zen : ""} ${isScrolled ? styles.scrolled : ""} ${scrollDirection === "up" ? styles.scrollUp : styles.scrollDown}`}
     >
       {hasChildren && <div className={styles.content}>{children}</div>}
       <div

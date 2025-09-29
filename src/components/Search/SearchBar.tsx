@@ -25,7 +25,7 @@ type ISearchBarProps = {
 export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
   (
     {
-      placeholder = "Search your ideas...",
+      placeholder = "Search anything...",
       onResults,
       onResultsClear,
       onBlur,

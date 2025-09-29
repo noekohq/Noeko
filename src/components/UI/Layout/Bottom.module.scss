@@ -27,6 +27,7 @@
     border-radius: var(--mantine-radius-xl);
     height: var(--status-bar-height);
     padding: 0 var(--layout-spacing);
+    transition: bottom .2s ease-in-out;
 
     @include tablet {
         flex-direction: row;
@@ -43,6 +44,16 @@
         justify-content: space-around;
         left: var(--sidebar-width);
         right: var(--sidebar-width);
+    }
+}
+
+.scrolled {
+    &.scrollUp {
+        bottom: calc(var(--layout-spacing));
+    }
+
+    &.scrollDown {
+        bottom: -10vh;
     }
 }
 

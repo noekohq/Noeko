@@ -382,8 +382,8 @@ export class User {
   static async delete(id: string) {
     try {
       const db = await getDatabase();
-      const deletedIdeas = await Idea.deleteUserIdeas(id);
-      if (!deletedIdeas) {
+      const deletedStuff = await this.deleteUserStuff(id);
+      if (!deletedStuff) {
         throw Error("Something went wrong deleting user ideas.");
       }
       const result = await db?.delete<IUser>(new StringRecordId(id));
@@ -395,6 +395,34 @@ export class User {
     } catch (error) {
       console.error("Error deleting user:", error);
       throw error;
+    }
+  }
+
+  static async deleteUserStuff(userId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database.");
+      }
+      const deletions = [
+        `DELETE idea WHERE <-owns<-(user WHERE id = $userId)`,
+        `DELETE task WHERE <-owns<-(user WHERE id = $userId)`,
+        `DELETE source WHERE <-owns<-(user WHERE id = $userId)`,
+        `DELETE excerpt WHERE <-owns<-(user WHERE id = $userId)`,
+        `DELETE tag WHERE <-owns<-(user WHERE id = $userId)`,
+        `DELETE rabbithole WHERE <-owns<-(user WHERE id = $userId)`,
+        `DELETE spyglass WHERE <-searched<-(user WHERE id = $userId)`,
+        `DELETE import WHERE <-initiated_import<-(user WHERE id = $userId)`,
+      ];
+      for (const d of deletions) {
+        await db.query(d, {
+          userId: new StringRecordId(userId),
+        });
+      }
+      return true;
+    } catch (error) {
+      console.error("Error deleting user stuff: ", error);
+      return undefined;
     }
   }
 

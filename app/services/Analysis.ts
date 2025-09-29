@@ -3,6 +3,7 @@ import { getDatabase } from "../database/db"; // Assuming getDatabase is exporte
 import { logger } from "./Logger";
 import { ISafeIdea } from "../database/models/ideas";
 import { ITag } from "../database/models/tag";
+import { User } from "../database/models/user";
 
 interface CountQueryResult {
   count: number;
@@ -339,6 +340,15 @@ export class AnalysisService {
       if (!db) {
         throw new Error("Database connection not established");
       }
+      const [numIdeas] = await db.query<[number]>(
+        `count(SELECT id FROM ideas WHERE <-owns<-(user WHERE id = $userId));`,
+        {
+          userId: new StringRecordId(userId),
+        },
+      );
+      if (!numIdeas) {
+        return;
+      }
       const results = await db.run<ISafeIdea[]>(
         "fn::find_user_semantically_central_ideas",
         [new StringRecordId(userId), 10],
@@ -360,6 +370,15 @@ export class AnalysisService {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database connection not established");
+      }
+      const [numTags] = await db.query<[number]>(
+        `count(SELECT id FROM tags WHERE <-owns<-(user WHERE id = $userId));`,
+        {
+          userId: new StringRecordId(userId),
+        },
+      );
+      if (!numTags) {
+        return;
       }
       const results = await db.run<ITagBreakdown>(
         "fn::get_user_tag_breakdown",
