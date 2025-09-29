@@ -144,6 +144,29 @@ export default function Search({
           </Link>
         </>
       )}
+      {!searchQuery &&
+        (!searchResults || !filteredResults?.length) &&
+        !loading && (
+          <>
+            <Space my="lg" />
+            <Group gap="xs">
+              {withinRabbithole && (
+                <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
+              )}
+              <Text c="dimmed" size="xs">
+                <Group gap="xs" component="span">
+                  Search{" "}
+                  {withinRabbithole ? (
+                    <>"{currentRabbithole?.name}"</>
+                  ) : (
+                    "anything..."
+                  )}
+                </Group>
+              </Text>
+              <Text c="dimmed" size="xs"></Text>
+            </Group>
+          </>
+        )}
       {!searchQuery.length && !searchResults?.length && (
         <>
           <Text size="sm" c="dark.4" fw="bold" my="md">
@@ -219,29 +242,6 @@ export default function Search({
           </Transition>
         </>
       )}
-      {!searchQuery &&
-        (!searchResults || !filteredResults?.length) &&
-        !loading && (
-          <>
-            <Space my="lg" />
-            <Group gap="xs">
-              {withinRabbithole && (
-                <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
-              )}
-              <Text c="dimmed" size="xs">
-                <Group gap="xs" component="span">
-                  Search{" "}
-                  {withinRabbithole ? (
-                    <>"{currentRabbithole?.name}"</>
-                  ) : (
-                    "anything..."
-                  )}
-                </Group>
-              </Text>
-              <Text c="dimmed" size="xs"></Text>
-            </Group>
-          </>
-        )}
       {filteredResults && (
         <Container w="100%" className={styles.results} p="0">
           <Space my="lg" />

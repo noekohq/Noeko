@@ -13,7 +13,6 @@
         outline: 2px solid var(--mantine-primary-color-7);
         outline-offset: 1px;
     }
-
 }
 
 .dreamIdeaContent {
@@ -30,6 +29,10 @@
 
         float: left;
         pointer-events: none;
+    }
+
+    &.notFound {
+        color: var(--mantine-color-dark-4);
     }
 }
 

@@ -17,6 +17,7 @@ import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { Group, Overlay, Text } from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
+import { getOS } from "../../../utils/platform";
 
 interface EditorData {
   comments: [];
@@ -126,10 +127,14 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       },
     } = useInteraction();
 
+    const os = getOS();
+    const ctrl = os !== "macos";
+    const meta = os === "macos";
+
     useShortcuts({
       shortcuts: [
         {
-          keys: { ctrl: true, key: "k" },
+          keys: { ctrl, meta, key: "k" },
           run: (e) => {
             e.preventDefault();
             openSpotlight();

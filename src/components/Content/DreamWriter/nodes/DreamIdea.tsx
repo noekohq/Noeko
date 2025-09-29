@@ -237,7 +237,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       </Popover>
 
       <NodeViewContent
-        className={styles.dreamIdeaContent}
+        className={`${styles.dreamIdeaContent} ${!idea ? styles.notFound : ""}`}
         data-placeholder={
           isEmpty ? idea?.title || "Loading title..." : undefined
         }

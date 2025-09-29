@@ -539,6 +539,7 @@ router.get("/me/scratchpad", checkToken, disallowDisabled, async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 router.put("/me/scratchpad", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<IUser>(req, "user");
@@ -557,6 +558,47 @@ router.put("/me/scratchpad", checkToken, disallowDisabled, async (req, res) => {
   } catch (error) {
     console.error("User scratchpad error:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/me", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthenticated." });
+      return;
+    }
+    const updated = await User.delete(user.id.toString());
+    if (!updated) {
+      throw new Error("Couldn't delete account");
+    }
+    res.send({
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    console.error("User account deletion error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/me/stuff", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(401).json({ message: "Unauthenticated." });
+      return;
+    }
+    const deleted = await User.deleteUserStuff(user.id.toString());
+    if (!deleted) {
+      throw new Error("Couldn't delete stuff");
+    }
+    res.send({
+      message: "Account stuff deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Something went wrong",
+    });
   }
 });
 
@@ -690,7 +732,7 @@ router.delete(
     try {
       const user = await User.delete(req.params.id);
       res.json({
-        message: "User disabled successfully",
+        message: "User deleted successfully",
         data: user,
       });
     } catch (error) {
