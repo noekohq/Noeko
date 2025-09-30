@@ -23,17 +23,17 @@ const pinkLady: IOverrideResolver = (t) => {
     "#FFFBF2",
   ];
 
-  const pinkLadyDarkTuple: MantineColorsTuple = [
-    "#F9EBF0",
-    "#E5D5DA",
-    "#D2BFC5",
-    "#BEA9AF",
-    "#AA939A",
-    "#907A80",
-    "#776267",
-    "#614C50",
-    "#513A3F",
-    "#411528",
+  const pinkDusk: MantineColorsTuple = [
+    "#FDECF4", // Main text - a soft, creamy rose white
+    "#E8DDE2", // Secondary text
+    "#B9AAB2", // Tertiary text / subtle borders
+    "#8E7C84", // Borders
+    "#66545B", // Hovered borders / UI elements
+    "#4F3F46", // Interactive component backgrounds (e.g. inactive tabs)
+    "#3B2E34", // Hovered surfaces (e.g. list items)
+    "#2E262A", // Surface color (Paper, cards)
+    "#211C1F", // Main body background - a deep, warm rosewood
+    "#1A1618", // A slightly deeper variant for contrast if needed
   ];
 
   const baseColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> = {
@@ -88,6 +88,18 @@ const pinkLady: IOverrideResolver = (t) => {
       "#AF4D89",
       "#984277",
     ],
+    vibrantPink: [
+      "#FFE9F6",
+      "#FFD1E9",
+      "#FA9CD5",
+      "#F564BF",
+      "#F138AB",
+      "#E51E98", // A strong primary shade
+      "#D90B88", // This could be your primary shade (index 6)
+      "#C00075",
+      "#A90067",
+      "#920059",
+    ],
   };
 
   const lightColors: Partial<
@@ -101,7 +113,7 @@ const pinkLady: IOverrideResolver = (t) => {
     dark: MantineColorsTuple;
   } = {
     ...baseColors,
-    dark: pinkLadyDarkTuple,
+    dark: pinkDusk,
   };
 
   const scheme = t.scheme === "auto" ? getCurrentScheme() : t.scheme;
@@ -185,7 +197,7 @@ const pinkLady: IOverrideResolver = (t) => {
     colors,
     white,
     black,
-    primaryColor: "pinkPearl", // Changed to a thematic color
+    primaryColor: t.scheme === "dark" ? "vibrantPink" : "pinkPearl", // Changed to a thematic color
     primaryShade: 6,
     components: {
       Paper: Paper.extend({
