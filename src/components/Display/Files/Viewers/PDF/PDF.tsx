@@ -301,7 +301,7 @@ function Toolbar() {
       ...data,
       id: excerpt.id.toString(),
       type: PdfAnnotationSubtype.HIGHLIGHT,
-      color: colors.highlight[6],
+      color: "var(--color-highlight)",
       opacity: 0.25,
     });
   };
