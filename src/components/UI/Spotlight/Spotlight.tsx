@@ -29,6 +29,8 @@ import {
   CircleIcon,
   UsersThreeIcon,
   ChatDotsIcon,
+  PaletteIcon,
+  DesktopIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -475,6 +477,7 @@ const useSpotlightConfig = ({
       theme: {
         scheme: { set: setScheme },
         bodyFont: { set: setBodyFont },
+        override: { set: setOverride },
       },
     },
   } = useSettings();
@@ -641,9 +644,16 @@ const useSpotlightConfig = ({
       {
         id: "themeCmd",
         title: "Theme",
-        icon: <SunIcon />,
+        icon: <PaletteIcon />,
         subviewId: "themeSelectorSubview",
-        keywords: "light dark",
+        keywords: "appearance noeko nord pink lady",
+      },
+      {
+        id: "colorSchemeCmd",
+        title: "Color Scheme",
+        icon: <SunIcon />,
+        subviewId: "colorSchemeSelectorSubview",
+        keywords: "light dark auto theme",
       },
       {
         id: "fontCmd",
@@ -716,6 +726,42 @@ const useSpotlightConfig = ({
             title: "Theme",
             items: [
               {
+                id: "default",
+                title: "Default",
+                icon: <PaletteIcon />,
+                action: (close) => {
+                  setOverride("noeko");
+                  close();
+                },
+              },
+              {
+                id: "nord",
+                title: "Nord",
+                icon: <PaletteIcon />,
+                action: (close) => {
+                  setOverride("nord");
+                  close();
+                },
+              },
+              {
+                id: "pinkLady",
+                title: "Pink Lady",
+                icon: <PaletteIcon />,
+                action: (close) => {
+                  setOverride("pinkLady");
+                  close();
+                },
+              },
+            ],
+          },
+        ],
+        [
+          "colorSchemeSelectorSubview",
+          {
+            id: "colorSchemeSelectorSubview",
+            title: "Color Scheme",
+            items: [
+              {
                 id: "light",
                 title: "Light",
                 icon: <SunIcon />,
@@ -730,6 +776,15 @@ const useSpotlightConfig = ({
                 icon: <MoonIcon />,
                 action: (close) => {
                   setScheme("dark");
+                  close();
+                },
+              },
+              {
+                id: "auto",
+                title: "Auto",
+                icon: <DesktopIcon />,
+                action: (close) => {
+                  setScheme("auto");
                   close();
                 },
               },
@@ -994,7 +1049,7 @@ const useSpotlightConfig = ({
           },
         ],
       ]),
-    [setScheme, setBodyFont],
+    [setScheme, setBodyFont, setOverride],
   );
 
   return {

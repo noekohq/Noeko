@@ -149,6 +149,9 @@ export default function TaskButton({
             if (e.key === "Enter") {
               handleClick();
             }
+            if (e.key === "ArrowRight") {
+              navigate(`/task/${task.id.toString()}`);
+            }
           }}
           className={styles.taskButton}
           data-task-id={task.id.toString()}

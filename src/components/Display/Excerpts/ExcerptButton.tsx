@@ -186,7 +186,7 @@ function ExcerptButton({
                 )}
               </Box>
               <Text size="sm" lineClamp={1}>
-                {excerpt.note ?? "Empty Excerpt"}
+                {excerpt.note || excerpt.sourceText}
               </Text>
             </Group>
             {hovering && (
@@ -235,7 +235,7 @@ function ExcerptButton({
           <Blockquote p="xs" color="gray">
             <Text size="sm">{excerpt.sourceText}</Text>
           </Blockquote>
-          <Text size="sm">{excerpt.note}</Text>
+          <Text size="sm">{excerpt.note || "No note."}</Text>
         </Stack>
       </Popover.Dropdown>
     </Popover>

@@ -1,0 +1,18 @@
+.dashboard {
+    display: flex;
+    flex-direction: column;
+}
+
+.actionCenter {
+    outline: 1px solid red;
+    height: 20vh;
+}
+
+.scratchpadWrapper {
+    height: 60vh;
+    padding: var(--mantine-spacing-sm);
+    border-radius: var(--mantine-radius-xl);
+    background-color: var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-md);
+    box-shadow: var(--mantine-shadow-md);
+}

@@ -11,6 +11,7 @@ import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import DashboardExperimental from "./pages/Dashboard/Experimental";
 import Constellation from "./pages/Constellation/Constellation";
 import Idea from "./pages/Idea/Idea";
 import UserFile from "./pages/File/File";
@@ -157,6 +158,9 @@ export default function App() {
                     element={<Navigate to="/" replace />}
                   />
                   <Route index element={<Dashboard />} />
+                  <Route path="/experimental">
+                    <Route index element={<DashboardExperimental />} />
+                  </Route>
                   <Route path="constellation">
                     <Route index element={<Constellation />} />
                   </Route>
