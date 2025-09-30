@@ -146,6 +146,9 @@ function SourceButton({
             if (e.key === "Enter") {
               handleClick(e);
             }
+            if (e.key === "ArrowRight") {
+              navigate(`/source/${source.id.toString()}`);
+            }
           }}
           onMouseEnter={() => {
             setHovering(true);

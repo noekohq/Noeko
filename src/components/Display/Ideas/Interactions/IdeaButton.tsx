@@ -161,6 +161,9 @@ function IdeaButton({
             if (e.key === "Enter") {
               handleClick(e);
             }
+            if (e.key === "ArrowRight") {
+              navigate(`/idea/${idea.id.toString()}`);
+            }
           }}
           onMouseEnter={() => {
             setHovering(true);

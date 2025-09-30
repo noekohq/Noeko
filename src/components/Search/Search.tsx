@@ -127,21 +127,26 @@ export default function Search({
       {!!searchQuery && !searchResults && !loading && (
         <>
           <Space my="lg" />
-          <Link
-            to={`/spyglass?q=${encodeURIComponent(searchQuery)}`}
-            style={{
-              textDecoration: "none",
-            }}
-          >
-            <Group c="dark.3" gap="xs">
-              <Text size="xs">
-                <Group gap="xs">
-                  Open in Spyglass
-                  <SpyglassIcon size={12} color="var(--mantine-color-dark-3)" />
-                </Group>
-              </Text>
-            </Group>
-          </Link>
+          <Group>
+            <Link
+              to={`/spyglass?q=${encodeURIComponent(searchQuery)}`}
+              style={{
+                textDecoration: "none",
+              }}
+            >
+              <Group c="dark.3" gap="xs">
+                <Text size="xs">
+                  <Group gap="xs">
+                    Open in Spyglass
+                    <SpyglassIcon
+                      size={12}
+                      color="var(--mantine-color-dark-3)"
+                    />
+                  </Group>
+                </Text>
+              </Group>
+            </Link>
+          </Group>
         </>
       )}
       {!searchQuery &&
