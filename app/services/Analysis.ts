@@ -20,6 +20,11 @@ export interface ITagBreakdown {
   total: number;
 }
 
+export interface IProgressDataPoint {
+  date: string;
+  [key: string]: number | string;
+}
+
 export class AnalysisService {
   private constructor() {}
 
@@ -239,7 +244,7 @@ export class AnalysisService {
       yearEnd: string;
     },
   ): Promise<IHeatmapDataPoint[] | undefined> {
-    const source = "AnalysisService.getTotalUsers";
+    const source = "AnalysisService.getUserHeatmap";
     try {
       const db = await getDatabase();
       if (!db) {
@@ -290,6 +295,89 @@ export class AnalysisService {
     } catch (error: any) {
       logger.error(
         "Error fetching user heatmap.",
+        { error: error.message, stack: error.stack, userId },
+        source,
+      );
+      return undefined;
+    }
+  }
+
+  public static async getUserProgress(
+    userId: string | RecordId,
+    options: {
+      startDate: string;
+      endDate: string;
+      dataTypes: string[];
+    },
+  ): Promise<IProgressDataPoint[] | undefined> {
+    const source = "AnalysisService.getUserProgress";
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        logger.error("Failed to get database instance.", undefined, source);
+        return undefined;
+      }
+
+      const { startDate, endDate, dataTypes } = options;
+      const progressData: { [date: string]: IProgressDataPoint } = {};
+
+      for (const dataType of dataTypes) {
+        const query = `
+          SELECT
+              time::format(day, '%Y-%m-%d') as date,
+              count
+          FROM (
+              SELECT
+                  time::floor(createdAt, 1d) AS day,
+                  count() as count
+              FROM type::table($dataType)
+              WHERE
+                  <-owns<-(user WHERE id = <record>$userId) AND
+                  createdAt >= d'${startDate}' AND
+                  createdAt <= d'${endDate}'
+              GROUP BY day
+          );
+        `;
+
+        const queryResult = await db.query<[{ date: string; count: number }[]]>(
+          query,
+          {
+            userId: new StringRecordId(userId),
+            dataType: dataType,
+          },
+        );
+
+        if (queryResult && queryResult.length > 0) {
+          const [data] = queryResult;
+          for (const item of data) {
+            if (!progressData[item.date]) {
+              progressData[item.date] = { date: item.date };
+            }
+            progressData[item.date][dataType] = item.count;
+          }
+        }
+      }
+
+      const result = Object.values(progressData);
+
+      // Fill in missing dataTypes with 0 for each date
+      for (const dataPoint of result) {
+        for (const dataType of dataTypes) {
+          if (!dataPoint[dataType]) {
+            dataPoint[dataType] = 0;
+          }
+        }
+      }
+
+      // Sort by date
+      result.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+
+      return result;
+    } catch (error: any) {
+      logger.error(
+        "Error fetching user progress.",
         { error: error.message, stack: error.stack, userId },
         source,
       );

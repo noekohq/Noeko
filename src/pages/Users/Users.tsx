@@ -349,6 +349,14 @@ export default function Users() {
       },
       {} as Record<string, number>,
     );
+    const ideaViewMap = user.ideaViewActivity.reduce(
+      (acc, curr) => {
+        const date = new Date(curr.day).toISOString().split("T")[0];
+        acc[date] = curr.dailyCount;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
     const lastSeven = Array(7)
       .fill(undefined)
       .map((a, index) => {
@@ -358,6 +366,7 @@ export default function Users() {
           date: formatDate(new Date(date)),
           Tasks: taskMap[key] || 0,
           Ideas: ideaMap[key] || 0,
+          "Idea Views": ideaViewMap[key] || 0,
         };
       })
       .reverse();
@@ -459,6 +468,10 @@ export default function Users() {
                           {
                             name: "Tasks",
                             color: "green",
+                          },
+                          {
+                            name: "Idea Views",
+                            color: "orange",
                           },
                         ]}
                         data={activity}
@@ -662,6 +675,7 @@ export default function Users() {
                         series={[
                           { name: "Tasks", color: "green" },
                           { name: "Ideas", color: "blue" },
+                          { name: "Idea Views", color: "orange" },
                         ]}
                         curveType="linear"
                       />

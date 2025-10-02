@@ -1,0 +1,14 @@
+.glance {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.chart {
+    padding-block: var(--mantine-spacing-sm);
+}
+
+.heatmap {
+    padding-block: var(--mantine-spacing-sm);
+}

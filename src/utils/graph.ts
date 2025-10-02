@@ -32,6 +32,11 @@ import { IExcerptReference } from "../../app/database/models/excerpt";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
+export const GRAPH_DISTS = {
+  small: 100,
+  medium: 200,
+  large: 300,
+};
 export const MAX_GRAPH_DIST = 250; // Target distance for similarity = MIN_SIMILARITY_THRESHOLD
 export const DISTANCE_EXPONENT = 1; // > 1 emphasizes closeness
 
@@ -74,8 +79,8 @@ export const fromConstellation = (
         id: connection.id.toString(),
         source: connection.in.toString(),
         target: connection.out.toString(),
-        distance: MIN_GRAPH_DIST,
-        strength: 0.5,
+        distance: GRAPH_DISTS.large,
+        strength: 0.3,
         visibility: "high" as const,
       };
     });
@@ -100,8 +105,8 @@ export const fromConstellation = (
         type: "description",
         source: description.in.toString(),
         target: description.out.toString(),
-        distance: MIN_GRAPH_DIST,
-        strength: 0.7,
+        distance: GRAPH_DISTS.small,
+        strength: 1,
         visibility: "high" as const,
       };
     });
@@ -127,8 +132,8 @@ export const fromConstellation = (
         type: "inclusion",
         source: inclusion.in.toString(),
         target: inclusion.out.toString(),
-        distance: MIN_GRAPH_DIST,
-        strength: 0.7,
+        distance: GRAPH_DISTS.medium,
+        strength: 1,
         visibility: "high" as const,
       };
     });
@@ -143,8 +148,8 @@ export const fromConstellation = (
         type: "reference" as const,
         source: reference.in.toString(),
         target: reference.out.toString(),
-        distance: MIN_GRAPH_DIST,
-        strength: 0.7,
+        distance: GRAPH_DISTS.large,
+        strength: 0.3,
         visibility: "high" as const,
       };
     });
