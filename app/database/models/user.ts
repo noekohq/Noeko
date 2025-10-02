@@ -75,12 +75,19 @@ export type IDailyActivity = {
 export type IComputedProperties = {
   numIdeas: number;
   ideaActivity: IDailyActivity[];
+  ideaViewActivity: IDailyActivity[];
   taskActivity: IDailyActivity[];
 };
 
 export type IComputedUser = IUser & IComputedProperties;
+export type ISafeComputedUser = ISafeUser & IComputedProperties;
 
-export type ISafeComputedUsers = ISafeUser & IComputedProperties;
+export type IUserActivity = {
+  numIdeas: number;
+  ideaActivity: IDailyActivity[];
+  ideaViewActivity: IDailyActivity[];
+  taskActivity: IDailyActivity[];
+};
 
 async function ensureAllUsersHaveNecessaryFields() {
   const db = await getDatabase();
@@ -186,6 +193,15 @@ export class User {
                 GROUP BY day
                 ORDER BY day ASC
               ) AS ideaActivity,
+              (
+                SELECT
+                  time::floor(viewedAt, 1d) AS day,
+                  count() AS dailyCount
+                FROM ->owns->idea
+                WHERE viewedAt >= time::now() - 7d
+                GROUP BY day
+                ORDER BY day ASC
+              ) AS ideaViewActivity,
               (
                 SELECT
                   time::floor(createdAt, 1d) AS day,

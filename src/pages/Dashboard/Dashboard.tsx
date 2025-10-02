@@ -72,9 +72,12 @@ export default function Dashboard() {
   const [LoadedWidgets, setLoadedWidgets] = useState<ILoadedWidget[]>([]);
   const { isMobile } = useLayout();
 
-  const defaultWidgets: IAvailableWidgets[] = isMobile
-    ? ["scratchpad", "taskList", "rabbitholeList", "tagBreakdown"]
-    : ["scratchpad", "taskList", "rabbitholeList", "tagBreakdown"];
+  const defaultWidgets: IAvailableWidgets[] = [
+    "glance",
+    "taskList",
+    "serendipity",
+    "constellation",
+  ];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
     const loaded: ILoadedWidget[] = [];
@@ -163,7 +166,7 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
-      <LeftSidebar startOpened={!isMobile}>
+      <LeftSidebar>
         <LeftSidebar.Open>
           <Stack gap="md">
             <Transition
@@ -269,31 +272,35 @@ export default function Dashboard() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <div className={styles.dashboard}>
-          <Grid>
-            <Grid.Col span={12} py={0}>
-              <TopBar />
-            </Grid.Col>
-            {LoadedWidgets.map(({ id, Component, config }) => {
-              return (
-                <Grid.Col
-                  span={{
-                    sm: 12,
-                    md: config.columns.default,
-                  }}
-                  key={id}
-                  style={{
-                    height: "fit-content",
-                  }}
-                >
-                  <WidgetWrapper>
-                    <Component />
-                  </WidgetWrapper>
-                </Grid.Col>
-              );
-            })}
-          </Grid>
-        </div>
+        {isMobile ? (
+          <MobileDash />
+        ) : (
+          <div className={styles.dashboard}>
+            <Grid>
+              <Grid.Col span={12} py={0}>
+                <TopBar />
+              </Grid.Col>
+              {LoadedWidgets.map(({ id, Component, config }) => {
+                return (
+                  <Grid.Col
+                    span={{
+                      sm: 12,
+                      md: config.columns.default,
+                    }}
+                    key={id}
+                    style={{
+                      height: "fit-content",
+                    }}
+                  >
+                    <WidgetWrapper>
+                      <Component />
+                    </WidgetWrapper>
+                  </Grid.Col>
+                );
+              })}
+            </Grid>
+          </div>
+        )}
       </Content>
       <StatusBar>
         <StatusBar.Showing>
@@ -311,7 +318,7 @@ export default function Dashboard() {
           </Group>
         </StatusBar.Showing>
       </StatusBar>
-      <RightSidebar startOpened>
+      <RightSidebar>
         <RightSidebar.Open>
           <Search />
         </RightSidebar.Open>
@@ -404,4 +411,8 @@ function TopBar() {
       </Flex>
     </Group>
   );
+}
+
+function MobileDash() {
+  return <div>This is the dashboard for mobile.</div>;
 }

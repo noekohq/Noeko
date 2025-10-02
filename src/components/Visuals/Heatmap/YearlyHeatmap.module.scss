@@ -1,0 +1,23 @@
+.heatmapContainer {
+  width: 100%;
+  height: 100%;
+}
+
+.tooltip {
+  position: absolute;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  pointer-events: none; // Important!
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+  white-space: nowrap;
+}
+
+.monthLabel, .dayLabel {
+  fill: #767676;
+  font-size: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}

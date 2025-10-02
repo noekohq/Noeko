@@ -3,7 +3,6 @@ import { getDatabase } from "../database/db";
 import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
 import Source, { ISource } from "../database/models/source";
 import Task, { ITask } from "../database/models/task";
-import { ISearchResult } from "./Search";
 import Excerpt, {
   IExcerpt,
   IVirtualExcerptReference,
@@ -11,7 +10,6 @@ import Excerpt, {
 import { ITag, ITagDescriptionRelationship, Tag } from "../database/models/tag";
 import Rabbithole, {
   IRabbithole,
-  IRabbitholeIncludes,
   IRabbitholeInclusion,
 } from "../database/models/rabbithole";
 
@@ -32,6 +30,24 @@ export type IConnection = {
   id: string | RecordId;
   in: string | RecordId;
   out: string | RecordId;
+};
+
+export type IGraphFilters = {
+  rabbithole: string;
+  date: {
+    createdAt: {
+      after: string;
+      before: string;
+    };
+    updatedAt: {
+      after: string;
+      before: string;
+    };
+    viewedAt: {
+      after: string;
+      before: string;
+    };
+  };
 };
 
 export default class GraphService {
@@ -562,24 +578,24 @@ export default class GraphService {
 
   public static async getUserConnectables(
     userId: StringRecordId,
-    options?: {
-      rabbitholeId?: StringRecordId;
-    },
+    filters?: IGraphFilters,
   ) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere = [`<->owns<-(user WHERE id = $userId)`];
+      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
 
-      if (options?.rabbitholeId) {
-        queryWhere.push(`
-          (
-            id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-          )
-          `);
+      if (filters?.rabbithole) {
+        builder.inRabbithole(filters.rabbithole);
       }
+      if (filters?.date?.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+      if (filters?.date?.updatedAt) {
+        builder.withDateRange("updatedAt", filters.date.updatedAt);
+      }
+      const { where: queryWhere, params } = builder.build();
 
       const tableQuery = (table: string) => {
         const tableWhere: string[] = [];
@@ -604,12 +620,7 @@ export default class GraphService {
       const getOfType = async <T extends IConnectable>(
         query: string,
       ): Promise<IConnectable[]> => {
-        const [results] = await db.query<[T[]]>(query, {
-          userId: new StringRecordId(userId),
-          ...(options?.rabbitholeId && {
-            rabbitholeId: new StringRecordId(options.rabbitholeId),
-          }),
-        });
+        const [results] = await db.query<[T[]]>(query, params);
         return results;
       };
 
@@ -646,17 +657,20 @@ export default class GraphService {
 
   public static async getUserEdges(
     userId: StringRecordId,
-    options?: {
-      rabbitholeId?: StringRecordId;
-    },
+    filters?: IGraphFilters,
   ) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
       const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+      const builder = new GraphFilterQueryBuilder();
 
-      if (options?.rabbitholeId) {
+      if (filters?.date.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+
+      if (filters?.rabbithole) {
         queryWhere.push(`
           (
             in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
@@ -667,13 +681,15 @@ export default class GraphService {
           `);
       }
 
+      const { params, where: filterWhere } = builder.build();
+
       const tableQuery = (table: string) => {
         const tableWhere: string[] = [];
         const query = `
           SELECT
             *
           FROM ${table}
-          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
           `;
         return query;
       };
@@ -687,9 +703,10 @@ export default class GraphService {
       ): Promise<IConnection[]> => {
         const [results] = await db.query<[T[]]>(query, {
           userId: new StringRecordId(userId),
-          ...(options?.rabbitholeId && {
-            rabbitholeId: new StringRecordId(options.rabbitholeId),
+          ...(filters?.rabbithole && {
+            rabbitholeId: new StringRecordId(filters.rabbithole),
           }),
+          ...params,
         });
         return results;
       };
@@ -921,16 +938,19 @@ export type IConstellationLoader = Partial<{
 export class ConstellationLoader {
   private userId: StringRecordId;
   private rabbitholeId?: StringRecordId;
+  private filters?: IGraphFilters;
 
   constructor(config: {
     userId: string | RecordId;
     rabbitholeId?: string | RecordId;
+    filters?: IGraphFilters;
   }) {
     const { userId, rabbitholeId } = config;
     this.userId = new StringRecordId(userId);
     this.rabbitholeId = rabbitholeId
       ? new StringRecordId(rabbitholeId)
       : undefined;
+    this.filters = config.filters;
   }
 
   public async load(
@@ -1070,5 +1090,86 @@ export class ConstellationLoader {
       console.error("Error getting user references: ", this.userId, error);
       return undefined;
     }
+  }
+}
+
+export class GraphFilterQueryBuilder {
+  private whereClauses: string[] = [];
+  private params: Record<string, any> = {};
+
+  constructor() {} // Start with a clean slate
+
+  /**
+   * Adds a filter to ensure all items are owned by the specified user.
+   * This is a fundamental clause that was previously handled outside the builder.
+   * Bringing it inside makes the builder more self-contained.
+   */
+  public ownedBy(userId: string | RecordId): this {
+    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
+    this.params.userId = new StringRecordId(userId);
+    return this;
+  }
+
+  /**
+   * Adds a date-based filter for a specific field.
+   * @param field The database field name (e.g., 'createdAt', 'updatedAt').
+   * @param options An object with optional 'before' and 'after' date strings.
+   */
+  public withDateRange(
+    field: "createdAt" | "updatedAt" | "viewedAt",
+    options: { after?: string; before?: string },
+  ): this {
+    const { after, before } = options;
+    const afterDate = after ? new Date(after) : null;
+    const beforeDate = before ? new Date(before) : null;
+
+    if (
+      afterDate &&
+      !isNaN(afterDate.getTime()) &&
+      beforeDate &&
+      !isNaN(beforeDate.getTime())
+    ) {
+      this.whereClauses.push(
+        `${field} BETWEEN $${field}After AND $${field}Before`,
+      );
+      this.params[`${field}After`] = afterDate;
+      this.params[`${field}Before`] = beforeDate;
+    } else if (afterDate && !isNaN(afterDate.getTime())) {
+      this.whereClauses.push(`${field} > $${field}After`);
+      this.params[`${field}After`] = afterDate;
+    } else if (beforeDate && !isNaN(beforeDate.getTime())) {
+      this.whereClauses.push(`${field} < $${field}Before`);
+      this.params[`${field}Before`] = beforeDate;
+    }
+    return this; // Return 'this' to allow chaining
+  }
+
+  /**
+   * Adds the rabbithole filter.
+   */
+  public inRabbithole(rabbitholeId: string | RecordId): this {
+    const clause = `
+      (
+        id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+        id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+      )
+    `;
+    this.whereClauses.push(clause);
+    this.params.rabbitholeId = new StringRecordId(rabbitholeId);
+    return this;
+  }
+
+  // You can add more specific, chainable methods here
+  // public withTags(tags: string[]): this { ... }
+  // public excludeIds(ids: (string | RecordId)[]): this { ... }
+
+  /**
+   * Finalizes the chain and returns the generated clauses and parameters.
+   */
+  public build(): { where: string[]; params: Record<string, any> } {
+    return {
+      where: this.whereClauses,
+      params: this.params,
+    };
   }
 }

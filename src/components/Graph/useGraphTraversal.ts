@@ -23,7 +23,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
 
       const connectedEdges = adjacencyList[currentNodeId] || [];
       for (const edge of connectedEdges) {
-        if (edge.type === "connection") {
+        if (edge.type === "connection" || edge.type === "reference") {
           const neighborId =
             edge.source === currentNodeId ? edge.target : edge.source;
           const neighborNode = nodeMap[neighborId];

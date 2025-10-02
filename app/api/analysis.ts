@@ -44,4 +44,39 @@ router.get("/tag-breakdown", async (req, res) => {
   }
 });
 
+router.get("/progress", async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      throw new Error("User is not logged in.");
+    }
+
+    const { startDate, endDate, dataTypes } = req.query;
+
+    if (
+      typeof startDate !== "string" ||
+      typeof endDate !== "string" ||
+      typeof dataTypes !== "string"
+    ) {
+      res.status(400).json({ error: "Missing or invalid query parameters." });
+      return;
+    }
+
+    const options = {
+      startDate,
+      endDate,
+      dataTypes: dataTypes.split(","),
+    };
+
+    const progress = await AnalysisService.getUserProgress(user.id, options);
+    res.send({
+      message: "Progress data successfully fetched",
+      data: progress,
+    });
+  } catch (error) {
+    console.error("Error generating user progress data", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 export default router;

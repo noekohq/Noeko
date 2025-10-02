@@ -1,4 +1,7 @@
 export type IAvailableWidgets =
+  | "glance"
+  | "constellation"
+  | "serendipity"
   | "scratchpad"
   | "taskList"
   | "heatmap"
