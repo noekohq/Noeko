@@ -97,7 +97,7 @@ export default function Search({
     load: loadRecent,
     loading: loadingRecent,
   } = useFetch<undefined, IConnectable[]>({
-    url: `/insights/recent`,
+    url: `/insights/recent?limit=10`,
     method: "GET",
   });
   useEffect(() => {

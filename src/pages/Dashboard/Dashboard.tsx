@@ -61,6 +61,9 @@ import { IDashboard } from "../../../app/services/Dashboard";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { Link } from "react-router";
 import ExpandableCardStack from "../../components/Display/Interactions/ExpandableCardStack";
+import { IConnectable } from "../../../app/services/Graph";
+import Selection from "../../components/Display/Interactions/Selection";
+import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 
 type ILoadedWidget = {
   id: string;
@@ -73,10 +76,10 @@ export default function Dashboard() {
   const { isMobile } = useLayout();
 
   const defaultWidgets: IAvailableWidgets[] = [
-    "glance",
+    "constellation",
     "taskList",
     "serendipity",
-    "constellation",
+    "glance",
   ];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
@@ -168,139 +171,35 @@ export default function Dashboard() {
     <PageWrapper>
       <LeftSidebar>
         <LeftSidebar.Open>
-          <Stack gap="md">
-            <Transition
-              mounted={
-                loadingCentral || loadingSemanticCentral || loadingDashboard
-              }
-              transition="fade-right"
-            >
-              {(styles) => {
-                return (
-                  <Text size="xs" c="dimmed" style={styles}>
-                    <Group gap="xs" align="center">
-                      <Loader size="xs" color="gray" />
-                      Loading...
-                    </Group>
-                  </Text>
-                );
-              }}
-            </Transition>
-            <Transition
-              mounted={!!dashboardData?.recentIdeas}
-              transition="fade-up"
-            >
-              {(styles) => {
-                return (
-                  <div style={styles}>
-                    <ExpandableCardStack
-                      topLabel={
-                        <Group gap="xs">
-                          <ClockClockwiseIcon weight="bold" />
-                          Latest idea...
-                        </Group>
-                      }
-                      expandLabel="All recent..."
-                      cards={
-                        dashboardData?.recentIdeas?.map((idea) => (
-                          <IdeaCard key={idea.id.toString()} idea={idea} />
-                        )) ?? []
-                      }
-                    />
-                  </div>
-                );
-              }}
-            </Transition>
-            <Transition mounted={!!centralIdeas?.length} transition="fade-up">
-              {(styles) => {
-                return (
-                  <div style={styles}>
-                    <ExpandableCardStack
-                      topLabel={
-                        <Group gap="xs">
-                          <UniteSquareIcon weight="bold" />
-                          Most Connected Idea...
-                        </Group>
-                      }
-                      expandLabel="Highest connected..."
-                      cards={
-                        centralIdeas?.map((idea) => (
-                          <IdeaCard
-                            badges={[
-                              {
-                                label: `${idea.total}`,
-                                color: "gray.9",
-                                icon: <UniteSquareIcon />,
-                              },
-                            ]}
-                            key={idea.id.toString()}
-                            idea={idea}
-                          />
-                        )) ?? []
-                      }
-                    />
-                  </div>
-                );
-              }}
-            </Transition>
-            <Transition
-              mounted={!!semanticCentralIdeas?.length}
-              transition="fade-up"
-            >
-              {(styles) => {
-                return (
-                  <div style={styles}>
-                    <ExpandableCardStack
-                      topLabel={
-                        <Group gap="xs">
-                          <IntersectSquareIcon weight="bold" />
-                          Most Relevant Idea...
-                        </Group>
-                      }
-                      expandLabel="Most relevant..."
-                      cards={
-                        semanticCentralIdeas?.map((idea) => (
-                          <IdeaCard key={idea.id.toString()} idea={idea} />
-                        )) ?? []
-                      }
-                    />
-                  </div>
-                );
-              }}
-            </Transition>
-          </Stack>
+          <JumpBackIn />
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        {isMobile ? (
-          <MobileDash />
-        ) : (
-          <div className={styles.dashboard}>
-            <Grid>
-              <Grid.Col span={12} py={0}>
-                <TopBar />
-              </Grid.Col>
-              {LoadedWidgets.map(({ id, Component, config }) => {
-                return (
-                  <Grid.Col
-                    span={{
-                      sm: 12,
-                      md: config.columns.default,
-                    }}
-                    key={id}
-                    style={{
-                      height: "fit-content",
-                    }}
-                  >
-                    <WidgetWrapper>
-                      <Component />
-                    </WidgetWrapper>
-                  </Grid.Col>
-                );
-              })}
-            </Grid>
-          </div>
-        )}
+        <div className={styles.dashboard}>
+          <Grid>
+            <Grid.Col span={12} py={0}>
+              <TopBar />
+            </Grid.Col>
+            {LoadedWidgets.map(({ id, Component, config }) => {
+              return (
+                <Grid.Col
+                  span={{
+                    sm: 12,
+                    md: config.columns.default,
+                  }}
+                  key={id}
+                  style={{
+                    height: "fit-content",
+                  }}
+                >
+                  <WidgetWrapper>
+                    <Component />
+                  </WidgetWrapper>
+                </Grid.Col>
+              );
+            })}
+          </Grid>
+        </div>
       </Content>
       <StatusBar>
         <StatusBar.Showing>
@@ -413,6 +312,58 @@ function TopBar() {
   );
 }
 
-function MobileDash() {
-  return <div>This is the dashboard for mobile.</div>;
+function JumpBackIn() {
+  const [view, setView] = useState<"recent">("recent");
+
+  const {
+    data: recent,
+    load: loadRecent,
+    loading: loadingRecent,
+  } = useFetch<undefined, IConnectable[]>({
+    url: `/insights/recent?limit=5`,
+    method: "GET",
+  });
+
+  useEffect(() => {
+    loadRecent();
+  }, []);
+
+  const toView = () => {
+    switch (view) {
+      case "recent":
+        return recent;
+      default:
+        return undefined;
+    }
+  };
+
+  return (
+    <div>
+      <Stack gap="md">
+        <Group justify="space-between" w="100%">
+          <Text size="sm" c="dark.4" fw="bold">
+            JUMP BACK IN
+          </Text>
+          <Selection
+            name="View"
+            options={[
+              {
+                label: "Recent",
+                value: "recent",
+              },
+            ]}
+            initialValue="recent"
+          />
+        </Group>
+        {!toView()?.length && (
+          <Text size="sm" c="dimmed">
+            Nothing here yet.
+          </Text>
+        )}
+        {toView()?.map((thing) => {
+          return <ConnectableThing key={thing.id.toString()} thing={thing} />;
+        })}
+      </Stack>
+    </div>
+  );
 }

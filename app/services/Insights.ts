@@ -65,6 +65,9 @@ export default class Insights {
 
   public static async recent(
     userId: string | RecordId,
+    filters?: {
+      limit?: number;
+    },
   ): Promise<IConnectable[] | undefined> {
     try {
       const db = await getDatabase();
@@ -72,11 +75,13 @@ export default class Insights {
         throw new Error("Couldn't get database in Insights recent");
       }
 
+      const limit = filters?.limit ?? 10;
+
       const recent = await db.run<{
         ideas: IIdea[];
         tasks: IPublicTask[];
         sources: ISource[];
-      }>("fn::get_recent_things", [new StringRecordId(userId), 10]);
+      }>("fn::get_recent_things", [new StringRecordId(userId), limit]);
 
       const [ideas, tasks, sources] = [
         recent.ideas.map((i) => ({
@@ -105,7 +110,10 @@ export default class Insights {
 
         return dateB.getTime() - dateA.getTime();
       });
-      return sorted as IConnectable[];
+
+      const final = sorted.slice(0, limit);
+
+      return final as IConnectable[];
     } catch (error) {
       console.error("Error fetching recent connectables:", error);
       return undefined;

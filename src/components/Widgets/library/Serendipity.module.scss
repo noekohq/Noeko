@@ -1,0 +1,86 @@
+.serendipity {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.record {
+    .query {
+        text-align: center;
+        padding: var(--mantine-spacing-sm) 0;
+    }
+}
+
+.timerBar {
+  animation-name: shrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.content {
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
+    background-color: var(--mantine-color-dark-9);
+    border-radius: var(--mantine-spacing-md);
+    border: 1px solid var(--mantine-color-dark-7);
+    height: 30%;
+    overflow-y: auto;
+}
+
+.ui {
+    position: absolute;
+    bottom: var(--layout-spacing);
+    left: 0;
+    right: 0;
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes cardHover {
+    0% {
+        transform: translateY(-2px);
+        box-shadow: var(--mantine-shadow-md);
+    }
+    100% {
+        transform: translateY(0);
+        box-shadow: var(--mantine-shadow-sm);
+    }
+}
+
+.prompt {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--mantine-spacing-lg);
+    height: 100%;
+
+    .card {
+        animation: cardHover 1s ease-in-out infinite alternate;
+        text-align: center;
+        box-shadow: var(--mantine-shadow-md);
+        padding: var(--mantine-spacing-lg) var(--mantine-spacing-md);
+        border-radius: var(--mantine-radius-lg);
+        border: 1px solid var(--mantine-color-dark-8);
+        background-color: var(--mantine-color-dark-9);
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+            /* animation: none; */
+            transform: scale(1.1);
+            background-color: var(--mantine-color-dark-8);
+            border: 1px solid var(--mantine-color-dark-7);
+        }
+
+        &:active {
+            transform: scale(1.05);
+            background-color: var(--mantine-color-dark-10);
+        }
+    }
+}

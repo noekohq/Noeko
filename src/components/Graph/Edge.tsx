@@ -9,7 +9,7 @@ type EdgeProps = {
   targetNode: INode | IDerivedNode | undefined;
 };
 
-const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
+const EdgeComponent = ({ edge, sourceNode, targetNode }: EdgeProps) => {
   if (
     !sourceNode ||
     !targetNode ||
@@ -68,5 +68,48 @@ const Edge = ({ edge, sourceNode, targetNode }: EdgeProps) => {
     />
   );
 };
+
+const areEqual = (prevProps: EdgeProps, nextProps: EdgeProps) => {
+  // If edge visibility changes, re-render
+  if (prevProps.edge.visibility !== nextProps.edge.visibility) {
+    return false;
+  }
+
+  // If source/target nodes are added or removed, re-render
+  if (
+    (!prevProps.sourceNode && nextProps.sourceNode) ||
+    (prevProps.sourceNode && !nextProps.sourceNode) ||
+    (!prevProps.targetNode && nextProps.targetNode) ||
+    (prevProps.targetNode && !nextProps.targetNode)
+  ) {
+    return false;
+  }
+
+  // If nodes are defined, check their relevant properties
+  if (prevProps.sourceNode && nextProps.sourceNode) {
+    if (
+      prevProps.sourceNode.id !== nextProps.sourceNode.id ||
+      prevProps.sourceNode.x !== nextProps.sourceNode.x ||
+      prevProps.sourceNode.y !== nextProps.sourceNode.y
+    ) {
+      return false;
+    }
+  }
+
+  if (prevProps.targetNode && nextProps.targetNode) {
+    if (
+      prevProps.targetNode.id !== nextProps.targetNode.id ||
+      prevProps.targetNode.x !== nextProps.targetNode.x ||
+      prevProps.targetNode.y !== nextProps.targetNode.y
+    ) {
+      return false;
+    }
+  }
+
+  return true; // Props are equal
+};
+
+const Edge = React.memo(EdgeComponent, areEqual);
+Edge.displayName = "Edge";
 
 export default Edge;

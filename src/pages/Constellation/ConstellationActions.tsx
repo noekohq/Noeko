@@ -88,7 +88,7 @@ export default function ConstellationActions({
               isMobile ? "Search..." : `Press ${primaryKey} + / to focus...`
             }
           />
-          {searchResults?.length && (
+          {!!searchResults?.length && (
             <Group gap="xs">
               <Button
                 onClick={() => {

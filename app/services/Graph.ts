@@ -32,23 +32,23 @@ export type IConnection = {
   out: string | RecordId;
 };
 
-export type IGraphFilters = {
+export type IGraphFilters = Partial<{
   rabbithole: string;
   date: {
-    createdAt: {
+    createdAt?: {
       after: string;
       before: string;
     };
-    updatedAt: {
+    updatedAt?: {
       after: string;
       before: string;
     };
-    viewedAt: {
+    viewedAt?: {
       after: string;
       before: string;
     };
   };
-};
+}>;
 
 export default class GraphService {
   constructor() {}
@@ -655,7 +655,7 @@ export default class GraphService {
     }
   }
 
-  public static async getUserEdges(
+  public static async getUserConnections(
     userId: StringRecordId,
     filters?: IGraphFilters,
   ) {
@@ -663,104 +663,47 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+      const queryWhere: string[] = [`<->(?)<-owns<-(user WHERE id = $userId)`];
       const builder = new GraphFilterQueryBuilder();
 
-      if (filters?.date.createdAt) {
+      if (filters?.rabbithole) {
+        // queryWhere.push(`
+        //   (
+        //     in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+        //     out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+        //     in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+        //     out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+        //   )
+        //   `);
+        queryWhere.push(`
+          (
+            <->(?)<-includes<-(rabbithole WHERE id = $rabbitholeId) OR
+            <->(?)<-describes<-tag<-includes<-(rabbithole WHERE id = $rabbitholeId)
+          )
+          `);
+      }
+
+      if (filters?.date?.createdAt) {
         builder.withDateRange("createdAt", filters.date.createdAt);
       }
 
-      if (filters?.rabbithole) {
-        queryWhere.push(`
-          (
-            in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-            out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-          )
-          `);
-      }
-
-      const { params, where: filterWhere } = builder.build();
-
-      const tableQuery = (table: string) => {
-        const tableWhere: string[] = [];
-        const query = `
-          SELECT
-            *
-          FROM ${table}
-          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
-          `;
-        return query;
-      };
-
-      const connectedQuery = tableQuery("connected");
-      const describesQuery = tableQuery("describes");
-      const includesQuery = tableQuery("includes");
-
-      const getOfType = async <T extends IConnection>(
-        query: string,
-      ): Promise<IConnection[]> => {
-        const [results] = await db.query<[T[]]>(query, {
-          userId: new StringRecordId(userId),
-          ...(filters?.rabbithole && {
-            rabbitholeId: new StringRecordId(filters.rabbithole),
-          }),
-          ...params,
-        });
-        return results;
-      };
-
-      const connections = await getOfType<IConnection>(connectedQuery);
-      const descriptions =
-        await getOfType<ITagDescriptionRelationship>(describesQuery);
-      const inclusions = await getOfType<IRabbitholeInclusion>(includesQuery);
-
-      const combined = [...connections, descriptions, inclusions];
-
-      return combined as IConnection[];
-    } catch (error) {
-      console.error("Error getting user connections: ", error);
-      return undefined;
-    }
-  }
-
-  public static async getUserConnections(
-    userId: StringRecordId,
-    options?: {
-      rabbitholeId?: StringRecordId;
-    },
-  ) {
-    try {
-      const db = await getDatabase();
-      if (!db) throw new Error("Database not initialized");
-
-      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
-
-      if (options?.rabbitholeId) {
-        queryWhere.push(`
-          (
-            in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-            out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-          )
-          `);
-      }
+      const { params: filterParams, where: filterWhere } = builder.build();
 
       const tableWhere: string[] = [];
+
       const query = `
           SELECT
             *
           FROM connected
-          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
           `;
 
       const [results] = await db.query<[IConnection[]]>(query, {
         userId: new StringRecordId(userId),
-        ...(options?.rabbitholeId && {
-          rabbitholeId: new StringRecordId(options.rabbitholeId),
+        ...(filters?.rabbithole && {
+          rabbitholeId: new StringRecordId(filters.rabbithole),
         }),
+        ...filterParams,
       });
 
       if (!results) {
@@ -778,17 +721,20 @@ export default class GraphService {
 
   public static async getUserDescriptions(
     userId: StringRecordId,
-    options?: {
-      rabbitholeId?: StringRecordId;
-    },
+    filters?: IGraphFilters,
   ) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
       const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+      const builder = new GraphFilterQueryBuilder();
 
-      if (options?.rabbitholeId) {
+      if (filters?.date?.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+
+      if (filters?.rabbithole) {
         queryWhere.push(`
           (
             in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
@@ -799,19 +745,22 @@ export default class GraphService {
           `);
       }
 
+      const { where: filterWhere, params: filterParams } = builder.build();
+
       const tableWhere: string[] = [];
       const query = `
           SELECT
             *
           FROM describes
-          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
           `;
 
       const [results] = await db.query<[ITagDescriptionRelationship[]]>(query, {
         userId: new StringRecordId(userId),
-        ...(options?.rabbitholeId && {
-          rabbitholeId: new StringRecordId(options.rabbitholeId),
+        ...(filters?.rabbithole && {
+          rabbitholeId: new StringRecordId(filters.rabbithole),
         }),
+        ...filterParams,
       });
 
       if (!results) {
@@ -827,23 +776,41 @@ export default class GraphService {
     }
   }
 
-  public static async getUserInclusions(userId: StringRecordId) {
+  public static async getUserInclusions(
+    userId: StringRecordId,
+    filters?: IGraphFilters,
+  ) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
       const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+      if (filters?.rabbithole) {
+        queryWhere.push(`in = $rabbitholeId`);
+      }
+
+      const builder = new GraphFilterQueryBuilder();
+
+      if (filters?.date?.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+
+      const { where: filterWhere, params: filterParams } = builder.build();
 
       const tableWhere: string[] = [];
       const query = `
           SELECT
             *
           FROM includes
-          WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
           `;
 
       const [results] = await db.query<[IRabbitholeInclusion[]]>(query, {
         userId: new StringRecordId(userId),
+        ...filterParams,
+        ...(filters?.rabbithole && {
+          rabbitholeId: new StringRecordId(filters.rabbithole),
+        }),
       });
 
       if (!results) {
@@ -859,12 +826,27 @@ export default class GraphService {
     }
   }
 
-  public static async getUserReferences(userId: StringRecordId) {
+  public static async getUserReferences(
+    userId: StringRecordId,
+    filters?: IGraphFilters,
+  ) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
       const queryWhere = [`<-owns<-(user WHERE id = $userId)`];
+
+      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
+
+      if (filters?.date?.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+
+      if (filters?.rabbithole) {
+        builder.inRabbithole(filters.rabbithole);
+      }
+
+      const { params: filterParams, where: filterWhere } = builder.build();
 
       const tableWhere: string[] = [];
       const query = `
@@ -873,7 +855,7 @@ export default class GraphService {
           references,
           createdAt
         FROM excerpt
-        WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
+        WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
         `;
 
       const [results] = await db.query<
@@ -886,6 +868,7 @@ export default class GraphService {
         ]
       >(query, {
         userId: new StringRecordId(userId),
+        ...filterParams,
       });
 
       if (!results) {
@@ -906,6 +889,116 @@ export default class GraphService {
       return mappedToVirtual as IVirtualExcerptReference[];
     } catch (error) {
       console.error("Error getting user connections: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserRabbitholes(
+    userId: StringRecordId,
+    filters?: IGraphFilters,
+  ): Promise<IRabbithole[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      if (filters?.rabbithole) {
+        const result = await db.query<[IRabbithole]>(
+          `
+          SELECT
+            *
+          FROM ONLY $rabbitholeId;
+          `,
+          {
+            rabbitholeId: new StringRecordId(filters.rabbithole),
+          },
+        );
+        return result;
+      }
+
+      const queryWhere: string[] = [];
+
+      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
+
+      if (filters?.date?.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+
+      if (filters?.date?.updatedAt) {
+        builder.withDateRange("updatedAt", filters.date.updatedAt);
+      }
+
+      const { params: filterParams, where: filterWhere } = builder.build();
+
+      const tableWhere: string[] = [];
+      const query = `
+        SELECT
+          *
+        FROM rabbithole
+        WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
+        `;
+
+      const [results] = await db.query<[IRabbithole[]]>(query, {
+        userId: new StringRecordId(userId),
+        ...filterParams,
+      });
+
+      if (!results) {
+        throw new Error("Couldn't get inclusions");
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Couldn't get user rabbitholes: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserTags(
+    userId: StringRecordId,
+    filters?: IGraphFilters,
+  ): Promise<ITag[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const queryWhere: string[] = [];
+
+      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
+
+      if (filters?.date?.createdAt) {
+        builder.withDateRange("createdAt", filters.date.createdAt);
+      }
+
+      if (filters?.date?.updatedAt) {
+        builder.withDateRange("updatedAt", filters.date.updatedAt);
+      }
+
+      if (filters?.rabbithole) {
+        builder.inRabbithole(filters.rabbithole);
+      }
+
+      const { params: filterParams, where: filterWhere } = builder.build();
+
+      const tableWhere: string[] = [];
+      const query = `
+          SELECT
+            *
+          FROM tag
+          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
+          `;
+
+      const [results] = await db.query<[ITag[]]>(query, {
+        userId: new StringRecordId(userId),
+        ...filterParams,
+      });
+
+      if (!results) {
+        throw new Error("Couldn't get inclusions");
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Couldn't get user rabbitholes: ", error);
       return undefined;
     }
   }
@@ -997,7 +1090,10 @@ export class ConstellationLoader {
 
   public async connectables(): Promise<IConnectable[] | undefined> {
     try {
-      const connectables = await GraphService.getUserConnectables(this.userId);
+      const connectables = await GraphService.getUserConnectables(
+        this.userId,
+        this.filters,
+      );
       if (!connectables) {
         throw new Error("Couldn't get connectables");
       }
@@ -1010,7 +1106,10 @@ export class ConstellationLoader {
 
   public async connections(): Promise<IConnection[] | undefined> {
     try {
-      const connections = await GraphService.getUserConnections(this.userId);
+      const connections = await GraphService.getUserConnections(
+        this.userId,
+        this.filters,
+      );
       if (!connections) {
         throw new Error("Couldn't get connections");
       }
@@ -1023,7 +1122,10 @@ export class ConstellationLoader {
 
   public async rabbitholes(): Promise<IRabbithole[] | undefined> {
     try {
-      const rabbitholes = Rabbithole.getAll(this.userId.toString());
+      const rabbitholes = GraphService.getUserRabbitholes(
+        this.userId,
+        this.filters,
+      );
       if (!rabbitholes) {
         throw new Error("Couldn't get rabbitholes");
       }
@@ -1036,7 +1138,10 @@ export class ConstellationLoader {
 
   public async inclusions(): Promise<IRabbitholeInclusion[] | undefined> {
     try {
-      const inclusions = await GraphService.getUserInclusions(this.userId);
+      const inclusions = await GraphService.getUserInclusions(
+        this.userId,
+        this.filters,
+      );
       if (!inclusions) {
         throw new Error("Couldn't get rabbithole inclusions");
       }
@@ -1053,7 +1158,7 @@ export class ConstellationLoader {
 
   public async tags(): Promise<ITag[] | undefined> {
     try {
-      const tags = Tag.getUserTags(this.userId.toString());
+      const tags = await GraphService.getUserTags(this.userId, this.filters);
       if (!tags) {
         throw new Error("Couldn't get tags");
       }
@@ -1130,7 +1235,7 @@ export class GraphFilterQueryBuilder {
       !isNaN(beforeDate.getTime())
     ) {
       this.whereClauses.push(
-        `${field} BETWEEN $${field}After AND $${field}Before`,
+        `${field} >= $${field}After AND ${field} <= $${field}Before`,
       );
       this.params[`${field}After`] = afterDate;
       this.params[`${field}Before`] = beforeDate;

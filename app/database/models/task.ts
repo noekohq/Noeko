@@ -95,8 +95,7 @@ export default class Task {
               FROM task
               WHERE
                 <-owns<-(user WHERE id = <record> $userId) AND
-                (dueDate >= $startDate AND dueDate <= $endDate) AND
-                (completedAt = NONE OR completedAt = NULL);
+                (dueDate >= $startDate AND dueDate <= $endDate);
             RETURN $tasks;
           }
           `;

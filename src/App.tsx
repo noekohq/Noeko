@@ -48,6 +48,7 @@ import SourceList from "./pages/Sources/SourceList";
 import Source from "./pages/Sources/Source";
 import { showNotification } from "@mantine/notifications";
 import { useLayout } from "./contexts/LayoutContext";
+import MobileDashboard from "./pages/Dashboard/Mobile";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
@@ -157,10 +158,8 @@ export default function App() {
                     path="register"
                     element={<Navigate to="/" replace />}
                   />
-                  <Route index element={<Dashboard />} />
-                  <Route path="/experimental">
-                    <Route index element={<DashboardExperimental />} />
-                  </Route>
+                  {!isMobile && <Route index element={<Dashboard />} />}
+                  {isMobile && <Route index element={<MobileDashboard />} />}
                   <Route path="constellation">
                     <Route index element={<Constellation />} />
                   </Route>

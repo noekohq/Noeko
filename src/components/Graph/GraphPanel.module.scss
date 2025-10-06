@@ -12,19 +12,12 @@
 }
 
 .graphPanel {
+    position: absolute;
     background-color: var(--mantine-color-dark-8);
     box-shadow: var(--mantine-shadow-xl);
     padding: 14px;
     border-radius: 8px 8px 8px 8px;
     animation: panelIn 0.3s ease-in-out forwards;
-    width: 70vw;
-    position: relative;
-
-    @include tablet {
-        width: 50vw;
-    }
-
-    @include desktop {
-        width: 25vw;
-    }
+    width: 350px;
+    max-height: 350px;
 }

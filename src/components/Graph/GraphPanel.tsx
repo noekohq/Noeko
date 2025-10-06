@@ -9,6 +9,7 @@ import {
   newRabbithole,
 } from "../../utils/rabbitholes";
 import { useNavigate } from "react-router";
+import { createPortal } from "react-dom";
 
 interface IGraphPanelProps {
   position: { x: number; y: number };
@@ -60,12 +61,11 @@ export const GraphPanel = forwardRef<HTMLDivElement, IGraphPanelProps>(
       }
     };
 
-    return (
+    return createPortal(
       <div
         className={styles.graphPanel}
         ref={ref}
         style={{
-          position: "absolute",
           left: position.x + 4,
           top: position.y + 16,
           zIndex: 10,
@@ -90,7 +90,8 @@ export const GraphPanel = forwardRef<HTMLDivElement, IGraphPanelProps>(
             Rabbithole with {includable.length} things
           </Button>
         </Stack>
-      </div>
+      </div>,
+      document.body,
     );
   },
 );

@@ -1,5 +1,5 @@
-import Graph from "../../components/Graph/Graph";
-import { IGraph, INode } from "../../declarations/graph";
+import Graph, { IGraphController } from "../../components/Graph/Graph";
+import { INode } from "../../declarations/graph";
 import React, {
   useEffect,
   useRef,
@@ -21,16 +21,30 @@ import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import {
   IConstellationLoader,
+  IGraphFilters,
   ILoadedConstellation,
 } from "../../../app/services/Graph";
 import GraphLoader from "../../components/Utils/Loading/GraphLoader";
+import useRabbithole from "../../hooks/useRabbithole";
+import { useLandscape } from "../../contexts/LandscapeContext";
+import { useGraph } from "../../contexts/GraphContext";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const graphRef = useRef<IGraphController>(null);
 
-  const graphIsLoading = useRef(false);
-  const { data: constellationData, load: reloadConstellation } = useFetch<
-    { loader: IConstellationLoader },
+  const {
+    rabbitholes: {
+      entered: { get: currentRabbithole },
+    },
+  } = useLandscape();
+
+  const {
+    data: constellationData,
+    load: reloadConstellation,
+    loading: loadingConstellation,
+  } = useFetch<
+    { loader: IConstellationLoader; filters: IGraphFilters },
     ILoadedConstellation
   >({
     url: "/graph",
@@ -45,18 +59,26 @@ export default function GraphPage() {
         descriptions: true,
         references: true,
       },
+      filters: {
+        ...(!!currentRabbithole && {
+          rabbithole: currentRabbithole?.id.toString(),
+        }),
+      },
     },
+    dependencies: [currentRabbithole?.id],
     onFinally: () => {
-      graphIsLoading.current = false;
+      graphRef.current?.reset();
     },
   });
 
+  const {
+    focused: { set: setFocused },
+  } = useGraph();
+
   useEffect(() => {
-    if (graphIsLoading.current === false) {
-      graphIsLoading.current = true;
-      reloadConstellation();
-    }
-  }, []);
+    reloadConstellation();
+    setFocused(currentRabbithole?.id.toString() || "");
+  }, [currentRabbithole]);
 
   useEffect(() => {
     setIsNavigating(false);
@@ -86,7 +108,7 @@ export default function GraphPage() {
     [navigate],
   );
 
-  const isLoaded = !!constellationData && graphData;
+  const isLoading = loadingConstellation || !graphData;
 
   return (
     <PageWrapper>
@@ -103,27 +125,24 @@ export default function GraphPage() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <div ref={containerRef} className={styles.container}>
-        {isLoaded ? (
-          <>
-            <Graph
-              graph={graphData}
-              onNodeNavigate={handleNodeNavigate}
-              isNavigating={isNavigating}
-            />
-          </>
-        ) : (
+        {isLoading ? (
           <Group align="center" justify="center" h="100vh" mt="xl">
             <GraphLoader />
           </Group>
+        ) : (
+          <Graph
+            ref={graphRef}
+            graph={graphData} // graphData is guaranteed to exist here
+            onNodeNavigate={handleNodeNavigate}
+            isNavigating={isNavigating}
+          />
         )}
       </div>
       <StatusBar />
       <RightSidebar>
         <RightSidebar.Open>
-          {!isLoaded && <Loader size="sm" />}
-          {isLoaded && !!graphData && (
-            <ConstellationActions graphData={graphData} />
-          )}
+          {isLoading && <Loader size="sm" color="gray" />}
+          {!!graphData && <ConstellationActions graphData={graphData} />}
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

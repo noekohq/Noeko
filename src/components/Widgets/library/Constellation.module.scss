@@ -3,5 +3,16 @@
     width: 100%;
     margin: 0;
     overflow: hidden;
-    outline: 1px solid red;
+    position: relative;
+}
+
+.floatingUI {
+    position: absolute;
+    z-index: 50;
+    top: var(--layout-spacing);
+    left: var(--layout-spacing);
+    right: var(--layout-spacing);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }

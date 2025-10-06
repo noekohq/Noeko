@@ -18,7 +18,11 @@ router.get("/recent", async (req, res) => {
       return;
     }
 
-    const recents = await Insights.recent(user.id);
+    const limit = Number(req.query.limit as string);
+
+    const recents = await Insights.recent(user.id, {
+      limit: limit ?? undefined,
+    });
 
     if (!recents) {
       res.status(404).send({

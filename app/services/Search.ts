@@ -678,7 +678,10 @@ export class Search {
     const candidates = options.candidates ?? 300;
     const threshold = options.threshold ?? this.SEMANTIC_THRESHOLD;
 
-    const subqueryWhere = [`<-owns<-(user WHERE id = $userId)`];
+    const subqueryWhere = [
+      `<-owns<-(user WHERE id = $userId)`,
+      "embeddings != NULL",
+    ];
     if (options.rabbitholeId) {
       subqueryWhere.push(
         `(id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId))`,
@@ -689,8 +692,12 @@ export class Search {
 
     const query = `
       SELECT * FROM (
-        SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
-        OMIT embeddings FROM idea WHERE ${subqueryWhere.join(" AND ")}
+        SELECT
+          *,
+          vector::similarity::cosine(embeddings, $embedding) AS distance
+        OMIT embeddings
+        FROM idea
+        WHERE ${subqueryWhere.join(" AND ")}
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
@@ -733,7 +740,10 @@ export class Search {
       SELECT * FROM (
         SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
         OMIT embeddings FROM source
-        WHERE <-owns<-(user WHERE id = $userId) AND embeddings <|${limit}, ${candidates}|> $embedding
+        WHERE
+          <-owns<-(user WHERE id = $userId) AND
+          embeddings != NULL AND
+          embeddings <|${limit}, ${candidates}|> $embedding
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
@@ -770,7 +780,11 @@ export class Search {
       SELECT * FROM (
         SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
         OMIT embeddings FROM task
-        WHERE <-owns<-(user WHERE id = $userId) AND completedAt = NULL AND embeddings <|${limit}, ${candidates}|> $embedding
+        WHERE
+          <-owns<-(user WHERE id = $userId) AND
+          completedAt = NULL AND
+          embeddings != NULL AND
+          embeddings <|${limit}, ${candidates}|> $embedding
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
@@ -810,7 +824,10 @@ export class Search {
       SELECT * FROM (
         SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
         OMIT embeddings FROM excerpt
-        WHERE <-owns<-(user WHERE id = $userId) AND embeddings <|${limit}, ${candidates}|> $embedding
+        WHERE
+          <-owns<-(user WHERE id = $userId) AND
+          embeddings != NULL AND
+          embeddings <|${limit}, ${candidates}|> $embedding
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
