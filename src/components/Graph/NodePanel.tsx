@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import {
   ActionIcon,
   Badge,
@@ -30,6 +30,7 @@ import {
 } from "../../utils/graph";
 import Content from "../UI/Layout/Content";
 import { useGraph } from "../../contexts/GraphContext";
+import { createPortal } from "react-dom";
 
 export type NodePanelProps = {
   node: INode;
@@ -57,18 +58,20 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
 
     const isSelected = selected.has(node.id.toString());
 
-    return (
+    return createPortal(
       <div
         ref={ref}
         style={{
-          position: "absolute",
-          left: position.x + 4,
-          top: position.y + 16,
+          left: position.x,
+          top: position.y,
           zIndex: 10,
           transform: `translateX(-50%)`,
         }}
         className={styles.nodePanel}
         onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
         onTouchStart={(e) => e.stopPropagation()}
       >
         <Grid gutter="sm">
@@ -186,7 +189,8 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
             </Content>
           </Group>
         </Modal>
-      </div>
+      </div>,
+      document.body,
     );
   },
 );

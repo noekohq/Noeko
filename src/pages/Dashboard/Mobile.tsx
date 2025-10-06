@@ -1,28 +1,140 @@
 import { useEffect, useState } from "react";
-import { ITask } from "../../../../app/database/models/task";
-import useFetch from "../../../hooks/useFetch";
-import { toYYYYMMDD } from "../../../utils/datetime";
-import { IWidgetConfig } from "../index.d";
-import TaskCard from "../../Display/Tasks/TaskCard";
-import TaskButton from "../../Display/Tasks/TaskButton";
-import { ActionIcon, Button, Group, Select, Stack, Text } from "@mantine/core";
-import styles from "./TaskList.module.scss";
+import IconToggle from "../../components/Display/Interactions/Toggle/IconToggle";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import StatusBar from "../../components/UI/Layout/Bottom";
+import Content from "../../components/UI/Layout/Content";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import RightSidebar from "../../components/UI/Layout/Right";
+import styles from "./Mobile.module.scss";
 import {
   ArrowRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  CheckIcon,
+  IntersectSquareIcon,
   PlusIcon,
 } from "@phosphor-icons/react";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
+import Selection from "../../components/Display/Interactions/Selection";
+import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
+import useFetch from "../../hooks/useFetch";
+import { IConnectable } from "../../../app/services/Graph";
+import { useInteraction } from "../../contexts/InteractionContext";
 import { Link } from "react-router";
-import ProgressBar from "../../Utils/Info/ProgressBar";
-import { capitalize, formatDate } from "../../../utils/formatting";
-import { useLayout } from "../../../contexts/LayoutContext";
-import Selection from "../../Display/Interactions/Selection";
+import { toYYYYMMDD } from "../../utils/datetime";
+import { ITask } from "../../../app/database/models/task";
+import { useLayout } from "../../contexts/LayoutContext";
+import { capitalize, formatDate } from "../../utils/formatting";
+import ProgressBar from "../../components/Utils/Info/ProgressBar";
+import TaskButton from "../../components/Display/Tasks/TaskButton";
+
+type IDashboardView = "jump-back-in" | "tasks";
+
+export default function MobileDashboard({}) {
+  const [view, setView] = useState<IDashboardView>("jump-back-in");
+
+  const viewToComponent = {
+    "jump-back-in": JumpBackIn,
+    tasks: TaskList,
+  };
+
+  const viewToTitle = {
+    "jump-back-in": "Jump back in",
+    tasks: "Getting things done",
+  };
+
+  const View = viewToComponent[view];
+
+  return (
+    <div className={styles.dashboard}>
+      <PageWrapper>
+        <LeftSidebar></LeftSidebar>
+        <Content>
+          <Stack gap="md">
+            <Group justify="space-between">
+              <Title order={2}>{viewToTitle[view]}</Title>
+              <IconToggle
+                value={view}
+                options={[
+                  {
+                    icon: <IntersectSquareIcon />,
+                    value: "jump-back-in" satisfies IDashboardView,
+                  },
+                  {
+                    icon: <CheckIcon />,
+                    value: "tasks" satisfies IDashboardView,
+                  },
+                ]}
+                onChange={(view) => {
+                  setView(view as IDashboardView);
+                }}
+              />
+            </Group>
+            <View />
+          </Stack>
+        </Content>
+        <StatusBar></StatusBar>
+        <RightSidebar></RightSidebar>
+      </PageWrapper>
+    </div>
+  );
+}
+
+function JumpBackIn() {
+  const [view, setView] = useState<"recent">("recent");
+
+  const {
+    data: recent,
+    load: loadRecent,
+    loading: loadingRecent,
+  } = useFetch<undefined, IConnectable[]>({
+    url: `/insights/recent?limit=20`,
+    method: "GET",
+  });
+
+  useEffect(() => {
+    loadRecent();
+  }, []);
+
+  const toView = () => {
+    switch (view) {
+      case "recent":
+        return recent;
+      default:
+        return undefined;
+    }
+  };
+
+  return (
+    <div className={styles.jumpBackIn}>
+      <Stack gap="md">
+        <Group justify="space-between" w="100%">
+          <Selection
+            name="View"
+            options={[
+              {
+                label: "Recent",
+                value: "recent",
+              },
+            ]}
+            initialValue="recent"
+          />
+        </Group>
+        {!toView()?.length && (
+          <Text size="sm" c="dimmed">
+            Nothing here yet.
+          </Text>
+        )}
+        {toView()?.map((thing) => {
+          return <ConnectableThing key={thing.id.toString()} thing={thing} />;
+        })}
+      </Stack>
+    </div>
+  );
+}
 
 type IViewOptions = "daily" | "urgency" | "availability";
-
-export default function TaskList() {
+function TaskList() {
   const [byView, setByView] = useState<IViewOptions>("daily");
 
   const {
@@ -81,14 +193,6 @@ export default function TaskList() {
     </div>
   );
 }
-
-export const config: IWidgetConfig = {
-  columns: {
-    default: 4,
-    min: 4,
-    max: 6,
-  },
-};
 
 function DailyTasks() {
   const todayDate = toYYYYMMDD(new Date());

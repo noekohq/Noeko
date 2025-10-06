@@ -53,10 +53,10 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const loader = req.body.loader as IConstellationLoader;
-    const rabbitholeId = req.body.rabbitholeId;
+    const filters = req.body.filters;
     const constellationLoader = new ConstellationLoader({
       userId: user.id,
-      rabbitholeId,
+      filters: filters,
     });
     const constellation = await constellationLoader.load(loader);
     if (!constellation) {

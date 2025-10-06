@@ -31,6 +31,7 @@ import {
   ChatDotsIcon,
   PaletteIcon,
   DesktopIcon,
+  UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -571,6 +572,15 @@ const useSpotlightConfig = ({
         title: "Sources",
         icon: <FileTextIcon />,
         subviewId: "sourcesSubview",
+      },
+      {
+        id: "import",
+        title: "Import",
+        icon: <UploadSimpleIcon />,
+        action: () => {
+          navigate("/import");
+          onClose();
+        },
       },
       {
         id: "enterRabbithole",

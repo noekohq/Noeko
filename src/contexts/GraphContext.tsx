@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { IDerivedNode, INode } from "../declarations/graph";
+import { IDerivedNode, IEdge, INode } from "../declarations/graph";
 import { useSet } from "@mantine/hooks";
 
 type FilterConfig = {

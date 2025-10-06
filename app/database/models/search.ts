@@ -147,8 +147,7 @@ export class SpyglassSearch {
             WHERE <-searched<-(user WHERE id = $userId)
             ORDER BY createdAt DESC
             LIMIT $pageSize
-            START ($page * $pageSize)
-            FETCH results;
+            START ($page * $pageSize);
           RETURN $history;
         }
         `;

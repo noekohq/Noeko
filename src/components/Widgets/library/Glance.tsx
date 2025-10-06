@@ -1,12 +1,13 @@
 import styles from "./Glance.module.scss";
 import { IWidgetConfig } from "../index.d";
-import { Group, SegmentedControl, Stack } from "@mantine/core";
+import { Group, SegmentedControl, Stack, Text } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { IHeatmapDataPoint } from "../../../../app/services/Analysis";
 import { IHeatmapData } from "../../Visuals/Heatmap/types";
 import YearlyHeatmap from "../../Visuals/Heatmap/YearlyHeatmap";
 import { LineChart } from "@mantine/charts";
+import { formatDate } from "../../../utils/formatting";
 
 type IVisualOptions = "chart" | "heatmap";
 
@@ -17,14 +18,6 @@ interface IProgressDataPoint {
 }
 
 export default function Glance() {
-  const {
-    data: heatmapData,
-    load: loadHeatmap,
-    loading: loadingHeatmap,
-  } = useFetch<undefined, IHeatmapDataPoint[]>({
-    url: "/analysis/heatmap",
-  });
-
   const end = new Date();
   end.setUTCHours(23, 59, 59, 0);
 
@@ -47,21 +40,23 @@ export default function Glance() {
   });
 
   useEffect(() => {
-    // loadHeatmap();
     loadProgress();
   }, []);
 
   return (
     <div className={styles.glance}>
-      <Stack>
+      <Text size="sm" c="dimmed" ta="center">
+        Your activity since {formatDate(start)}.
+      </Text>
+      <div className={styles.chart}>
         <ChartView
           progress={progressData || []}
           dataTypes={dataTypes}
           startDate={startDate}
           endDate={endDate}
         />
-        {/*<HeatmapView heatmap={heatmapData || []} />*/}
-      </Stack>
+      </div>
+      <div className={styles.breakdown}></div>
     </div>
   );
 }
@@ -159,8 +154,6 @@ function HeatmapView({ heatmap }: IHeatmapViewProps) {
     };
   });
 
-  console.log("Transformed data: ", transformed);
-
   return (
     <div className={styles.heatmap}>
       <YearlyHeatmap year={new Date().getFullYear()} data={transformed} />
@@ -170,7 +163,7 @@ function HeatmapView({ heatmap }: IHeatmapViewProps) {
 
 export const config: IWidgetConfig = {
   columns: {
-    default: 8,
+    default: 7,
     min: 8,
     max: 12,
   },
