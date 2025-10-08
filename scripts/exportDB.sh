@@ -49,21 +49,21 @@ if [[ -f "$ENV_FILE" ]]; then
     fi
 
     ### DEBUG ### (Keep these for now)
-    echo "--- DEBUG: Environment after export processing ---"
-    env | grep DB_ || echo "No DB_ vars found in env"
-    echo "--- END DEBUG ---"
+    # echo "--- DEBUG: Environment after export processing ---"
+    # env | grep DB_ || echo "No DB_ vars found in env"
+    # echo "--- END DEBUG ---"
     ### DEBUG ###
 
     # Check required variables (using parameter expansion with error)
     ### DEBUG ### (Keep these for now)
-    echo "--- DEBUG: Checking DB_USER ---"
-    echo "Value of DB_USER before check: [${DB_USER:-NOT SET}]"
-    ### DEBUG ###
-    : "${DB_USER?ERROR: DB_USER not set in $ENV_FILE or failed to load}"
-    : "${DB_PASSWORD?ERROR: DB_PASSWORD not set in $ENV_FILE or failed to load}"
-    : "${DB_NAMESPACE?ERROR: DB_NAMESPACE not set in $ENV_FILE or failed to load}"
-    : "${DB_DATABASE?ERROR: DB_DATABASE not set in $ENV_FILE or failed to load}"
-    log ".env variables checked."
+    # echo "--- DEBUG: Checking DB_USER ---"
+    # echo "Value of DB_USER before check: [${DB_USER:-NOT SET}]"
+    # ### DEBUG ###
+    # : "${DB_USER?ERROR: DB_USER not set in $ENV_FILE or failed to load}"
+    # : "${DB_PASSWORD?ERROR: DB_PASSWORD not set in $ENV_FILE or failed to load}"
+    # : "${DB_NAMESPACE?ERROR: DB_NAMESPACE not set in $ENV_FILE or failed to load}"
+    # : "${DB_DATABASE?ERROR: DB_DATABASE not set in $ENV_FILE or failed to load}"
+    # log ".env variables checked."
 else
     error "$ENV_FILE not found in the current directory ($(pwd)). Please ensure it exists where you run the script."
 fi
