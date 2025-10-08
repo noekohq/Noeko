@@ -1,80 +1,214 @@
 import { useEffect, useState } from "react";
-import { ITask } from "../../../../app/database/models/task";
+import {
+  IPublicTask,
+  ITask,
+  ITaskDurationBehavior,
+  ITaskSortFields,
+} from "../../../../app/database/models/task";
 import useFetch from "../../../hooks/useFetch";
 import { toYYYYMMDD } from "../../../utils/datetime";
 import { IWidgetConfig } from "../index.d";
 import TaskCard from "../../Display/Tasks/TaskCard";
 import TaskButton from "../../Display/Tasks/TaskButton";
-import { ActionIcon, Button, Group, Select, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Group,
+  Loader,
+  Select,
+  Stack,
+  Text,
+} from "@mantine/core";
 import styles from "./TaskList.module.scss";
 import {
   ArrowRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  HourglassIcon,
   PlusIcon,
+  SunIcon,
 } from "@phosphor-icons/react";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import ProgressBar from "../../Utils/Info/ProgressBar";
 import { capitalize, formatDate } from "../../../utils/formatting";
 import { useLayout } from "../../../contexts/LayoutContext";
 import Selection from "../../Display/Interactions/Selection";
+import { useSearch } from "../../../contexts/SearchContext";
+import ConnectableThing from "../../Display/Interactions/Connections/ConnectableThing";
 
-type IViewOptions = "daily" | "urgency" | "availability";
+type ITaskViews = "daily" | "urgent" | "recent";
 
 export default function TaskList() {
-  const [byView, setByView] = useState<IViewOptions>("daily");
+  const [viewBy, setViewBy] = useState<ITaskViews>("daily");
+  const [timeAvailable, setTimeAvailable] = useState<string>();
+
+  const navigate = useNavigate();
+  const todayDate = toYYYYMMDD(new Date());
+  const tomorrowDate = toYYYYMMDD(new Date(Date.now() + 24 * 60 * 60 * 1000));
+
+  const getQuery = () => {
+    const query: {
+      sortField?: ITaskSortFields;
+      sortDirection?: "asc" | "desc";
+      duration?: string;
+      durationBehavior?: ITaskDurationBehavior;
+      dateStart?: string;
+      dateEnd?: string;
+    } = {
+      sortField: undefined,
+      sortDirection: "desc",
+      duration: undefined,
+      durationBehavior: "under-inclusive",
+      dateStart: undefined,
+      dateEnd: undefined,
+    };
+
+    switch (viewBy) {
+      case "daily": {
+        query.dateStart = todayDate;
+        query.dateEnd = tomorrowDate;
+        query.sortField = "updatedAt";
+        query.sortDirection = "asc";
+        break;
+      }
+      case "urgent": {
+        query.sortField = "dueDate";
+        query.sortDirection = "asc";
+        break;
+      }
+      case "recent": {
+        query.sortField = "updatedAt";
+        query.sortDirection = "desc";
+        break;
+      }
+    }
+
+    if (timeAvailable) {
+      query.duration = timeAvailable;
+    }
+
+    return query;
+  };
+
+  const {
+    data: allTasks,
+    loading,
+    load: loadTasks,
+  } = useFetch<undefined, IPublicTask[]>({
+    url: "/tasks",
+    query: {
+      ...getQuery(),
+    },
+    dependencies: [getQuery()],
+  });
+
+  useEffect(() => {
+    setTimeAvailable(undefined);
+  }, [viewBy]);
+
+  const {
+    global: {
+      query: { get: searchQuery },
+      results: { get: searchResults },
+    },
+  } = useSearch();
+
+  useEffect(() => {
+    loadTasks();
+  }, [viewBy, timeAvailable]);
+
+  useEffect(() => {
+    if (!searchQuery && !loading) {
+      loadTasks();
+    }
+  }, [searchQuery]);
 
   const {
     actions: { newTask },
   } = useInteraction();
 
-  const viewToComponent: Record<IViewOptions, React.ComponentType<any>> = {
-    daily: DailyTasks,
-    urgency: UrgentTasks,
-    availability: AvailableTasks,
-  };
-
-  const Component = viewToComponent[byView];
-
   return (
     <div className={styles.taskList}>
-      <Group w="100%" justify="center" mt="2px">
+      <Group wrap="nowrap" gap="xs">
         <Selection
-          name="Daily"
+          initialValue={viewBy}
           options={[
             {
-              label: "Daily",
-              value: "daily",
+              label: "Today",
+              value: "daily" as ITaskViews,
             },
             {
               label: "Urgency",
-              value: "urgency",
-            },
-            {
-              label: "Availability",
-              value: "availability",
+              value: "urgent" as ITaskViews,
             },
           ]}
-          onSelect={(value) => setByView(value as IViewOptions)}
-          initialValue={byView}
+          onSelect={(v) => {
+            setViewBy(v as ITaskViews);
+          }}
         />
+        {viewBy === "daily" && (
+          <Selection
+            label="Time"
+            initialValue={timeAvailable}
+            options={[
+              {
+                label: "8h",
+                value: "8h",
+              },
+              {
+                label: "4h",
+                value: "4h",
+              },
+              {
+                label: "1h",
+                value: "1h",
+              },
+              {
+                label: "30m",
+                value: "30m",
+              },
+              {
+                label: "15m",
+                value: "15m",
+              },
+            ]}
+            onSelect={(v) => {
+              setTimeAvailable(v);
+            }}
+          />
+        )}
       </Group>
-      <Component />
+      <div className={styles.scrollArea}>
+        <Stack gap="xs">
+          {allTasks?.map((task) => {
+            return <TaskButton key={task.id.toString()} task={task} />;
+          })}
+          {allTasks?.length === 0 && (
+            <Text size="sm" c="dimmed">
+              No tasks.
+            </Text>
+          )}
+          {loading && (
+            <Group justify="center">
+              <Loader size="sm" />
+            </Group>
+          )}
+        </Stack>
+      </div>
       <div className={styles.ui}>
-        <Group justify="flex-end" gap="xs">
-          <Link to="/tasks">
-            <ActionIcon variant="light" color="gray" size={"md"}>
-              <ArrowRightIcon weight="bold" size={16} />
-            </ActionIcon>
-          </Link>
+        <Group justify="right">
           <ActionIcon
-            onClick={() => newTask()}
-            size={"md"}
-            color="gray"
-            variant="light"
+            onClick={() => {
+              newTask();
+            }}
+            variant="filled"
+            color="dark.2"
+            radius="lg"
+            size="md"
           >
-            <PlusIcon weight="bold" size={16} />
+            <PlusIcon size={14} weight="bold" />
           </ActionIcon>
         </Group>
       </div>
@@ -209,12 +343,4 @@ function DailyTasks() {
       </Stack>
     </div>
   );
-}
-
-function UrgentTasks() {
-  return <div>By urgency</div>;
-}
-
-function AvailableTasks() {
-  return <div>By availability</div>;
 }

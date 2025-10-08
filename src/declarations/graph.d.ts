@@ -8,7 +8,7 @@ import { ITag } from "../../app/database/models/tag";
 import { IUserFile } from "../../app/database/models/userfile";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 import { ISource } from "../../app/database/models/source";
-import { ITask } from "../../app/database/models/task";
+import { IPublicTask, ITask } from "../../app/database/models/task";
 import { IExcerpt } from "../../app/database/models/excerpt";
 
 export type IIdeaNode = ISafeIdea & {
@@ -71,7 +71,7 @@ export type ISourceNode = ISource & {
   fy?: number | null;
 };
 
-export type ITaskNode = ITask & {
+export type ITaskNode = (ITask | IPublicTask) & {
   type: "task";
   x?: number;
   y?: number;

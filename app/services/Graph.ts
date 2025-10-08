@@ -2,7 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
 import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
 import Source, { ISource } from "../database/models/source";
-import Task, { ITask } from "../database/models/task";
+import Task, { IPublicTask, ITask } from "../database/models/task";
 import Excerpt, {
   IExcerpt,
   IVirtualExcerptReference,
@@ -20,8 +20,11 @@ export type IConnectable =
       type: "idea";
       direction?: "incoming" | "outgoing";
     })
+  | ((ITask | IPublicTask) & {
+      type: "task";
+      direction?: "incoming" | "outgoing";
+    })
   | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
-  | (ITask & { type: "task"; direction?: "incoming" | "outgoing" })
   | (IExcerpt & { type: "excerpt"; direction?: "incoming" | "outgoing" });
 
 export type ISimilarConnectable = IConnectable & { similarity: number };

@@ -1,3 +1,15 @@
 .dashboard {
     /* padding-bottom: 20vh; */
 }
+
+.think {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.scrollArea {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 5px;
+}

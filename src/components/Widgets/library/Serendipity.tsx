@@ -134,24 +134,14 @@ export default function Serendipity() {
       {!!viewing && (
         <div className={styles.record}>
           <div className={styles.query}>
-            <Text size="md" c="dimmed" fs="italic">
+            <Text size="md" c="dimmed" fs="italic" title={viewing.baseQuery}>
               <Group
                 gap="xs"
                 align="center"
                 justify="space-between"
                 wrap="nowrap"
               >
-                "{viewing?.baseQuery}"
-                <ActionIcon
-                  variant="subtle"
-                  color="dark.2"
-                  size="sm"
-                  onClick={() => {
-                    navigate(`/spyglass/records/${viewing.id.toString()}`);
-                  }}
-                >
-                  <ArrowRightIcon weight="bold" size={14} />
-                </ActionIcon>
+                {viewing?.baseQuery}
               </Group>
             </Text>
           </div>
@@ -226,7 +216,14 @@ export default function Serendipity() {
               }}
             </Transition>
           </div>
-          <Group justify="center" mt="lg" className={styles.ui} w="100%">
+          <Group
+            justify="space-between"
+            gap="xs"
+            mt="lg"
+            className={styles.ui}
+            w="100%"
+            wrap="nowrap"
+          >
             <Button
               variant="light"
               radius="lg"
@@ -235,7 +232,7 @@ export default function Serendipity() {
               onClick={handlePreviousPage}
               leftSection={<CaretLeftIcon />}
             >
-              Previous
+              Prev
             </Button>
             <Button
               variant="light"
@@ -246,6 +243,15 @@ export default function Serendipity() {
               rightSection={<CaretRightIcon />}
             >
               Next
+            </Button>
+            <Button
+              variant="light"
+              radius="lg"
+              size="sm"
+              color="gray"
+              onClick={handleNextPage}
+            >
+              <ArrowRightIcon weight="bold" size={14} />
             </Button>
           </Group>
         </div>

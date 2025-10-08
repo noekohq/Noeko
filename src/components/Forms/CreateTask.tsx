@@ -21,23 +21,12 @@ import styles from "./CreateTask.module.scss";
 import {
   ArrowArcRightIcon,
   CalendarCheckIcon,
-  CheckIcon,
-  DotsThreeCircleIcon,
-  DotsThreeIcon,
-  DotsThreeVerticalIcon,
   TextAlignLeftIcon,
-  Timer,
   TimerIcon,
-  XIcon,
 } from "@phosphor-icons/react";
 import { capitalize, formatDate, formatDateTime } from "../../utils/formatting";
 import { useLayout } from "../../contexts/LayoutContext";
-import {
-  Calendar,
-  DatePicker,
-  DateTimePicker,
-  TimePicker,
-} from "@mantine/dates";
+import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { createTask } from "../../utils/tasks";
 import DreamWriter from "../Content/DreamWriter/DreamWriter";

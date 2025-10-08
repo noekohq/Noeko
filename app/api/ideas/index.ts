@@ -8,6 +8,7 @@ import {
   IIdeaAsRelation,
   IIdeaDerivedMap,
   IIdeaForm,
+  IIdeaQuery,
   ISafeIdea,
 } from "../../database/models/ideas";
 import { Tag } from "../../database/models/tag";
@@ -51,7 +52,54 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const ideas = await Idea.getUserIdeas(user.id);
+    const sortField = req.query.sort as string;
+    const sortDirection = req.query.direction as string;
+    const limit = req.query.limit as string;
+    const start = req.query.start as string;
+
+    if (
+      sortField &&
+      !["createdAt", "updatedAt", "viewedAt"].includes(sortField)
+    ) {
+      res.status(400).send({
+        message: "Sort field must be createdAt, updatedAt, or viewedAt",
+      });
+      return;
+    }
+    if (sortDirection && !["asc", "desc"].includes(sortDirection)) {
+      res.status(400).send({
+        message: "Sort direction must be asc or desc",
+      });
+      return;
+    }
+    if (limit && isNaN(Number(limit))) {
+      res.status(400).send({
+        message: "Limit must be a number",
+      });
+      return;
+    }
+    if (start && isNaN(Number(start))) {
+      res.status(400).send({
+        message: "Start must be a number",
+      });
+      return;
+    }
+
+    const parsedLimit = limit ? Number(limit) : undefined;
+    const parsedStart = start ? Number(start) : undefined;
+
+    const options: IIdeaQuery = {
+      sort:
+        sortField && sortDirection
+          ? ({
+              field: sortField,
+              direction: sortDirection,
+            } as IIdeaQuery["sort"])
+          : undefined,
+      limit: parsedLimit,
+      start: parsedStart,
+    };
+    const ideas = await Idea.getUserIdeas(user.id, options);
     if (!ideas) {
       res.status(404).json({ error: "User ideas not found" });
       return;

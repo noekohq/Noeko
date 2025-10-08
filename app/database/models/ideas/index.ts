@@ -106,17 +106,6 @@ export type IDBGraphWithComputedFields = IDBGraph & {
   ideas: IIdeaWithComputedFields[];
 };
 
-export type SearchResult = {
-  score: number;
-  idea: IIdeaAsRelation;
-  highlightText: string; // Placeholder for potential future implementation
-  debug?: {
-    // Optional: Add a debug structure to see score breakdown
-    semanticScore: number;
-    exactTitleBonus: number;
-  };
-};
-
 export type IUserIdeaStats = {
   total: number;
 };
@@ -127,6 +116,74 @@ export type IViewOnlyIdea = Pick<
   ISafeIdea,
   "id" | "title" | "content" | "createdAt" | "updatedAt"
 >;
+
+export type IIdeaSortFields = "createdAt" | "updatedAt" | "viewedAt";
+export type IIdeaQuery = Partial<{
+  sort?: {
+    field: IIdeaSortFields;
+    direction: "desc" | "asc";
+  };
+  limit?: number;
+  start?: number;
+}>;
+
+export class IdeaQueryBuilder {
+  private whereClauses: string[] = [];
+  private params: Record<string, any> = {};
+  private sortClause: string = "";
+  private paginationClause: string = "";
+
+  constructor() {}
+
+  public ownedBy(userId: string | RecordId): this {
+    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
+    this.params.userId = new StringRecordId(userId);
+    return this;
+  }
+
+  public sortBy(
+    field: IIdeaSortFields,
+    direction: "desc" | "asc" = "desc",
+  ): this {
+    this.sortClause = `ORDER BY ${field} ${direction}`;
+    return this;
+  }
+
+  public paginate(options: { start?: number; limit?: number }): this {
+    if (options.limit) {
+      this.paginationClause += ` LIMIT ${options.limit}`;
+    }
+    if (options.start) {
+      this.paginationClause += ` START ${options.start}`;
+    }
+    return this;
+  }
+
+  public build(): {
+    query: string;
+    params: Record<string, any>;
+  } {
+    const where =
+      this.whereClauses.length > 0
+        ? `WHERE ${this.whereClauses.join(" AND ")}`
+        : "";
+
+    const query = `
+      SELECT
+        *
+      OMIT embeddings
+      FROM idea
+      ${where}
+      ${this.sortClause}
+      ${this.paginationClause}
+    `;
+
+    return {
+      query,
+      params: this.params,
+    };
+  }
+}
 
 export class Idea {
   constructor() {}
@@ -589,17 +646,41 @@ export class Idea {
     }
   }
 
-  static async getUserIdeas(userId: string) {
+  static async getUserIdeas(
+    userId: string,
+    options?: IIdeaQuery,
+  ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
-      const results = await db?.run<IIdea[]>("fn::get_user_ideas", [userId]);
+      if (!db) {
+        throw new Error("Database not available");
+      }
+
+      const builder = new IdeaQueryBuilder().ownedBy(userId);
+
+      if (options?.sort) {
+        builder.sortBy(options.sort.field, options.sort.direction);
+      } else {
+        builder.sortBy("updatedAt", "desc"); // Default sort
+      }
+
+      builder.paginate({
+        start: options?.start,
+        limit: options?.limit ?? 50,
+      });
+
+      const { query, params } = builder.build();
+
+      const results = await db.query<[ISafeIdea[]]>(query, params);
+
       if (!results) {
         console.error("Something went wrong, no results found.");
         return undefined;
       }
-      return results;
+      const [ideas] = results;
+      return ideas;
     } catch (err) {
-      console.error("Something went wrong", err);
+      console.error("Something went wrong getting user ideas", err);
       return undefined;
     }
   }
@@ -1505,98 +1586,6 @@ export class Idea {
       return withDerivedMapped;
     } catch (err) {
       console.error(err);
-      return undefined;
-    }
-  }
-
-  static async searchIdeas(
-    userId: string | RecordId,
-    query: string,
-    options: { limit?: number; semanticThreshold?: number } = {},
-  ): Promise<SearchResult[] | undefined> {
-    const limit = options.limit ?? 10;
-    const semanticThreshold = options.semanticThreshold ?? 0.5;
-    const semanticLimitMultiplier = 3;
-    const initialFetchLimit = Math.max(limit * semanticLimitMultiplier, 20);
-
-    const weights = {
-      semantic: 1.5,
-    };
-    const exactTitleBonus = 2.0;
-
-    try {
-      const db = await getDatabase();
-      if (!db) {
-        console.error("Database connection not available.");
-        return undefined;
-      }
-
-      const embeddingProcessor = getEmbedder();
-      const queryEmbedding = await embeddingProcessor.embedContent(query);
-
-      if (!queryEmbedding) {
-        console.error("searchIdeas: Failed to generate query embedding.");
-        // TODO: Consider fallback to text-only search if needed
-        return undefined;
-      }
-
-      const semanticCandidates = await Idea.semanticSearch(
-        userId,
-        queryEmbedding,
-      );
-
-      if (semanticCandidates === undefined) {
-        console.error("searchIdeas: Semantic search phase failed.");
-        return undefined;
-      }
-
-      if (semanticCandidates.length === 0) {
-        // TODO: Optionally perform a pure text search here as a fallback
-        return [];
-      }
-
-      const resultsWithScores: SearchResult[] = [];
-      const queryLower = query.toLowerCase().trim();
-
-      for (const candidate of semanticCandidates) {
-        const rawSemanticScore = candidate.distance ?? 0;
-
-        if (rawSemanticScore < semanticThreshold) {
-          continue;
-        }
-
-        const currentExactTitleBonus =
-          candidate.title?.toLowerCase().trim() === queryLower
-            ? exactTitleBonus
-            : 0;
-
-        const combinedScore =
-          rawSemanticScore * weights.semantic + currentExactTitleBonus;
-
-        const highlightText = candidate.content
-          ? candidate.content.substring(0, 150) +
-            (candidate.content.length > 150 ? "..." : "")
-          : "";
-
-        resultsWithScores.push({
-          idea: {
-            ...candidate,
-            id: candidate.id.toString(),
-          },
-          score: combinedScore,
-          highlightText: highlightText,
-          debug: {
-            semanticScore: rawSemanticScore,
-            exactTitleBonus: currentExactTitleBonus,
-          },
-        });
-      }
-
-      resultsWithScores.sort((a, b) => b.score - a.score);
-
-      return resultsWithScores.slice(0, limit);
-    } catch (err) {
-      console.error(`Error during searchIdeas for query "${query}":`, err);
       return undefined;
     }
   }

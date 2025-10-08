@@ -6,18 +6,15 @@
     gap: var(--mantine-spacing-sm);
 }
 
+.scrollArea {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 5px;
+}
+
 .ui {
     position: absolute;
     bottom: 0;
-    right: 0;
     left: 0;
-}
-
-.daily {
-    &.progress {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        left: 0;
-    }
+    right: 0;
 }
