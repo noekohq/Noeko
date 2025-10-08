@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] DEBUG: Script execution started." >> /root/webroot/qwest-prod/logs/exports.log
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
