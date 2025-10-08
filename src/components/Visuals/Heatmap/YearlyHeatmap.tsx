@@ -32,8 +32,6 @@ const YearlyHeatmap: React.FC<IYearlyHeatmapProps> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  console.log("Got data: ", data);
-
   useEffect(() => {
     if (wrapperRef.current) {
       const observer = new ResizeObserver((entries) => {
@@ -149,8 +147,8 @@ const YearlyHeatmap: React.FC<IYearlyHeatmapProps> = ({
           d3.timeWeek.count(d3.timeYear(d.firstDay), d.firstDay) * cellSize,
       )
       .attr("y", -5)
-      .style("font-size", monthLabelFontSize)
-      .style("fill", monthLabelColor);
+      .style("font-size", monthLabelFontSize as any)
+      .style("fill", monthLabelColor as any);
 
     g.selectAll(".dayLabel")
       .data(weekDays.filter((_, i) => i % 2 !== 0)) // Show M, W, F
@@ -159,8 +157,8 @@ const YearlyHeatmap: React.FC<IYearlyHeatmapProps> = ({
       .text((d) => d)
       .attr("x", -15)
       .attr("y", (d, i) => (i * 2 + 1) * cellSize + cellSize / 1.5)
-      .style("font-size", dayLabelFontSize)
-      .style("fill", dayLabelColor);
+      .style("font-size", dayLabelFontSize as any)
+      .style("fill", dayLabelColor as any);
 
     return () => {
       tooltip.remove();
