@@ -91,9 +91,6 @@ export default function Constellation() {
     selected: { get: selected, set: setSelected },
     focused: { set: setFocused },
     highlighted: { set: setHighlighted, clear: clearHighlighted },
-    state: {
-      nodes: { find: findNode, get: nodes },
-    },
   } = useGraph();
 
   useEffect(() => {
@@ -136,7 +133,9 @@ export default function Constellation() {
         if (!first) {
           return defaultText;
         }
-        const node = findNode(first);
+        const node = graphRef.current
+          ?.nodes()
+          .find((node) => node.id.toString() === first);
         if (!node) {
           return defaultText;
         }
@@ -183,7 +182,7 @@ export default function Constellation() {
             </ActionIcon>
           )}
         </Group>
-        <Text size="sm" fw="bold" c="dark.4">
+        <Text size="sm" c="dark.5">
           {clippedText(statusText(), 24)}
         </Text>
       </div>

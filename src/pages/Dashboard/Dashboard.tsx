@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Card,
   Center,
@@ -21,13 +22,14 @@ import type {
   IAvailableWidgets,
   IWidgetConfig,
 } from "../../components/Widgets/index.d";
-import { lazy, useEffect, useState } from "react";
+import { lazy, useEffect, useRef, useState } from "react";
 import Content from "../../components/UI/Layout/Content";
 import WidgetWrapper from "../../components/Widgets/Wrapper";
 import Search from "../../components/Search/Search";
 import useFetch from "../../hooks/useFetch";
 import {
   IIdea,
+  IIdeaSortFields,
   ISafeIdea,
   IUserIdeaStats,
 } from "../../../app/database/models/ideas";
@@ -37,6 +39,8 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   ClockClockwiseIcon,
+  ClockCounterClockwiseIcon,
+  ClockIcon,
   HandWavingIcon,
   IntersectSquareIcon,
   MegaphoneIcon,
@@ -59,11 +63,13 @@ import StatusButton from "../../components/Display/Interactions/StatusButton";
 import TimeButton from "../../components/Display/Interactions/TimeButton";
 import { IDashboard } from "../../../app/services/Dashboard";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import ExpandableCardStack from "../../components/Display/Interactions/ExpandableCardStack";
 import { IConnectable } from "../../../app/services/Graph";
 import Selection from "../../components/Display/Interactions/Selection";
 import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
+import { useSearch } from "../../contexts/SearchContext";
+import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
 
 type ILoadedWidget = {
   id: string;
@@ -169,7 +175,7 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
-      <LeftSidebar>
+      <LeftSidebar startOpened>
         <LeftSidebar.Open>
           <JumpBackIn />
         </LeftSidebar.Open>
@@ -217,7 +223,7 @@ export default function Dashboard() {
           </Group>
         </StatusBar.Showing>
       </StatusBar>
-      <RightSidebar>
+      <RightSidebar startOpened>
         <RightSidebar.Open>
           <Search />
         </RightSidebar.Open>
@@ -313,57 +319,165 @@ function TopBar() {
 }
 
 function JumpBackIn() {
-  const [view, setView] = useState<"recent">("recent");
+  const [sortField, setSortField] = useState<IIdeaSortFields>("viewedAt");
+  const [start, setStart] = useState(0);
+  const limit = 25;
+  const [allIdeas, setAllIdeas] = useState<ISafeIdea[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const {
-    data: recent,
-    load: loadRecent,
-    loading: loadingRecent,
-  } = useFetch<undefined, IConnectable[]>({
-    url: `/insights/recent?limit=5`,
-    method: "GET",
+    data: newIdeas,
+    loading,
+    load: getPage,
+  } = useFetch<undefined, ISafeIdea[]>({
+    url: "/ideas",
+    query: {
+      sortField: sortField,
+      sortDirection: "desc",
+      limit: limit.toString(),
+      start: start.toString(),
+    },
+    runOnDependencies: [start, sortField],
   });
 
   useEffect(() => {
-    loadRecent();
-  }, []);
-
-  const toView = () => {
-    switch (view) {
-      case "recent":
-        return recent;
-      default:
-        return undefined;
+    if (start === 0 && !loading) {
+      getPage();
     }
-  };
+  }, [start]);
+
+  useEffect(() => {
+    if (newIdeas) {
+      setAllIdeas((prevIdeas) => {
+        const existingIds = new Set(prevIdeas.map((idea) => idea.id));
+        const uniqueNewIdeas = newIdeas.filter(
+          (idea) => !existingIds.has(idea.id),
+        );
+        return [...prevIdeas, ...uniqueNewIdeas];
+      });
+      setHasMore(newIdeas.length === limit);
+    }
+  }, [newIdeas]);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !loading) {
+          setStart((prevStart) => prevStart + limit);
+        }
+      },
+      {
+        root: scrollContainer,
+        threshold: 0.01,
+        rootMargin: "0px 0px 800px 0px",
+      },
+    );
+
+    const currentObserverTarget = observerTarget.current;
+    if (currentObserverTarget) {
+      observer.observe(currentObserverTarget);
+    }
+
+    return () => {
+      if (currentObserverTarget) {
+        observer.unobserve(currentObserverTarget);
+      }
+    };
+  }, [hasMore, loading, observerTarget.current, scrollContainerRef.current]);
+
+  useEffect(() => {
+    setAllIdeas([]);
+    setStart(0);
+    setHasMore(true);
+  }, [sortField]);
+
+  const firstIdea = allIdeas?.[0];
+  const rest = firstIdea ? allIdeas.slice(1, allIdeas.length) : allIdeas;
 
   return (
-    <div>
-      <Stack gap="md">
-        <Group justify="space-between" w="100%">
-          <Text size="sm" c="dark.4" fw="bold">
-            JUMP BACK IN
-          </Text>
-          <Selection
-            name="View"
-            options={[
-              {
-                label: "Recent",
-                value: "recent",
-              },
-            ]}
-            initialValue="recent"
-          />
-        </Group>
-        {!toView()?.length && (
-          <Text size="sm" c="dimmed">
-            Nothing here yet.
-          </Text>
-        )}
-        {toView()?.map((thing) => {
-          return <ConnectableThing key={thing.id.toString()} thing={thing} />;
-        })}
-      </Stack>
+    <div className={styles.think}>
+      <Group mb="md">
+        <Text size="sm" c="dark.4" fw="bold">
+          JUMP BACK IN
+        </Text>
+        <Selection
+          initialValue={sortField}
+          options={[
+            {
+              label: "Viewed",
+              value: "viewedAt" as IIdeaSortFields,
+              icon: <ClockCounterClockwiseIcon />,
+            },
+            {
+              label: "Created",
+              value: "createdAt" as IIdeaSortFields,
+              icon: <ClockIcon />,
+            },
+            {
+              label: "Updated",
+              value: "updatedAt" as IIdeaSortFields,
+              icon: <ClockClockwiseIcon />,
+            },
+          ]}
+          onSelect={(v) => {
+            setSortField(v as IIdeaSortFields);
+          }}
+        />
+      </Group>
+      <div ref={scrollContainerRef} className={styles.scrollArea}>
+        <Stack gap="sm">
+          {firstIdea && start === 0 && (
+            <Box
+              p="sm"
+              style={{
+                border: "1px solid var(--mantine-color-dark-7)",
+                borderRadius: "var(--mantine-radius-lg)",
+              }}
+            >
+              <Stack>
+                <Text size="sm" c="dimmed">
+                  Jump Back In
+                </Text>
+                <IdeaButton
+                  idea={firstIdea}
+                  onClick={() => {
+                    navigate(`/idea/${firstIdea.id.toString()}`);
+                  }}
+                />
+              </Stack>
+            </Box>
+          )}
+          {rest?.map((idea) => {
+            return <IdeaButton key={idea.id.toString()} idea={idea} />;
+          })}
+          {allIdeas.length === 0 && (
+            <Text size="sm" c="dimmed">
+              No ideas yet.
+            </Text>
+          )}
+          {hasMore && !loading && (
+            <div ref={observerTarget} style={{ height: "1px" }} />
+          )}
+          {loading && (
+            <Group justify="center">
+              <Loader size="sm" />
+            </Group>
+          )}
+          {!hasMore && !loading && allIdeas.length > 0 && (
+            <Center>
+              <Text size="sm" c="dimmed">
+                That's all :)
+              </Text>
+            </Center>
+          )}
+        </Stack>
+      </div>
     </div>
   );
 }

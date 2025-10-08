@@ -28,8 +28,84 @@ export type ITaskForm = Omit<
   "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt" | "viewedAt"
 >;
 
+export type ITaskSortFields =
+  | "createdAt"
+  | "updatedAt"
+  | "completedAt"
+  | "viewedAt"
+  | "dueDate";
+
+export type ITaskSortDirection = "desc" | "asc";
+
+export type ITaskDurationBehavior =
+  | "under"
+  | "under-inclusive"
+  | "over"
+  | "over-inclusive"
+  | "equals";
+
+export type ITaskQuery = Partial<{
+  sort?: {
+    field: ITaskSortFields;
+    direction: ITaskSortDirection;
+  };
+  duration?: {
+    value: string;
+    behavior: ITaskDurationBehavior;
+  };
+  dateRange?: {
+    start?: string;
+    end?: string;
+  };
+  limit?: number;
+  start?: number;
+}>;
+
 export default class Task {
   constructor() {}
+
+  static async getUserTasks(
+    userId: string,
+    options?: ITaskQuery,
+  ): Promise<IPublicTask[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available");
+      }
+
+      const builder = new TaskQueryBuilder().ownedBy(userId);
+
+      builder.onlyIncomplete();
+      builder.withDuration(options?.duration);
+      builder.dateRange(options?.dateRange);
+
+      if (options?.sort) {
+        builder.sortBy(options.sort.field, options.sort.direction);
+      } else {
+        builder.sortBy("dueDate", "desc"); // Default sort
+      }
+
+      builder.paginate({
+        start: options?.start,
+        limit: options?.limit ?? 50,
+      });
+
+      const { query, params } = builder.build();
+
+      const results = await db.query<[IPublicTask[]]>(query, params);
+
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      const [tasks] = results;
+      return tasks;
+    } catch (err) {
+      console.error("Something went wrong getting user tasks", err);
+      return undefined;
+    }
+  }
 
   static async up() {
     const getTaskRecordFunction = () => {
@@ -378,5 +454,125 @@ export default class Task {
       );
       return undefined;
     }
+  }
+}
+
+export class TaskQueryBuilder {
+  private whereClauses: string[] = [];
+  private params: Record<string, any> = {};
+  private sortClause: string = "";
+  private paginationClause: string = "";
+
+  constructor() {}
+
+  public ownedBy(userId: string | RecordId): this {
+    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
+    this.params.userId = new StringRecordId(userId);
+    return this;
+  }
+
+  public sortBy(
+    field: ITaskSortFields,
+    direction: "desc" | "asc" = "desc",
+  ): this {
+    this.sortClause = `ORDER BY ${field} ${direction}`;
+    return this;
+  }
+
+  public paginate(options: { start?: number; limit?: number }): this {
+    if (options.limit) {
+      this.paginationClause += ` LIMIT ${options.limit}`;
+    }
+    if (options.start) {
+      this.paginationClause += ` START ${options.start}`;
+    }
+    return this;
+  }
+
+  public onlyIncomplete(): this {
+    this.whereClauses.push(`completedAt = NULL`);
+    return this;
+  }
+
+  public withDuration(duration: ITaskQuery["duration"]) {
+    if (!duration || !duration.value || !duration.behavior) {
+      return this;
+    }
+    const { behavior, value } = duration;
+    switch (behavior) {
+      case "equals":
+        this.whereClauses.push(
+          `<duration> estimatedTime = <duration> $duration`,
+        );
+        break;
+      case "under":
+        this.whereClauses.push(
+          `<duration> estimatedTime < <duration> $duration`,
+        );
+        break;
+      case "under-inclusive":
+        this.whereClauses.push(
+          `<duration> estimatedTime <= <duration> $duration`,
+        );
+        break;
+      case "over":
+        this.whereClauses.push(
+          `<duration> estimatedTime > <duration> $duration`,
+        );
+        break;
+      case "over-inclusive":
+        this.whereClauses.push(
+          `<duration> estimatedTime >= <duration> $duration`,
+        );
+        break;
+    }
+    this.params.duration = value;
+    return this;
+  }
+
+  public dateRange(date: ITaskQuery["dateRange"]) {
+    if (!date) {
+      return this;
+    }
+    const { start, end } = date;
+
+    const q = [];
+    if (start) {
+      q.push(`date >= $startDate`);
+      this.params.startDate = new Date(start);
+    }
+    if (end) {
+      q.push(`date <= $endDate`);
+      this.params.endDate = new Date(end);
+    }
+    if (q.length > 0) {
+      this.whereClauses.push(`(${q.join(" AND ")})`);
+    }
+    return this;
+  }
+
+  public build(): {
+    query: string;
+    params: Record<string, any>;
+  } {
+    const where =
+      this.whereClauses.length > 0
+        ? `WHERE ${this.whereClauses.join(" AND ")}`
+        : "";
+
+    const query = `
+      SELECT
+        *
+      OMIT embeddings
+      FROM task
+      ${where}
+      ${this.sortClause}
+      ${this.paginationClause}
+    `;
+
+    return {
+      query,
+      params: this.params,
+    };
   }
 }

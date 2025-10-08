@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { ITask } from "../../../../app/database/models/task";
+import { IPublicTask, ITask } from "../../../../app/database/models/task";
 import styles from "./TaskButton.module.scss";
 import {
   ActionIcon,
@@ -19,6 +19,7 @@ import { capitalize, formatDate } from "../../../utils/formatting";
 import { fromYYYYMMDD } from "../../../utils/datetime";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useLandscape } from "../../../contexts/LandscapeContext";
+import { getFormattedDate } from "@mantine/dates";
 
 type ITaskButtonAction = {
   id: string;
@@ -29,7 +30,7 @@ type ITaskButtonAction = {
 };
 
 interface ITaskButton {
-  task: ITask;
+  task: IPublicTask;
   onClick?: () => void;
   onMark?: (complete: boolean) => void;
   link?: boolean;
@@ -118,6 +119,11 @@ export default function TaskButton({
 
   const [opened, { toggle, open, close }] = useDisclosure();
 
+  const isOverdue = () => {
+    if (!task.dueDate) return false;
+    return new Date(task.dueDate) < new Date();
+  };
+
   return (
     <Popover
       opened={opened}
@@ -153,7 +159,7 @@ export default function TaskButton({
               navigate(`/task/${task.id.toString()}`);
             }
           }}
-          className={styles.taskButton}
+          className={`${styles.taskButton} ${isOverdue() ? styles.overdue : ""}`}
           data-task-id={task.id.toString()}
           data-thing-id={task.id.toString()}
           onDragStart={handleDragStart}
@@ -171,26 +177,46 @@ export default function TaskButton({
           }}
         >
           <div className={styles.content}>
-            <Group gap="xs" align="center" wrap="nowrap">
-              <Checkbox
-                variant="outline"
-                defaultChecked={isCompleted}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMarkTask(e.currentTarget.checked);
-                }}
-                color="gray"
-                size="xs"
-              />
-              <Text
-                size="sm"
-                lineClamp={1}
-                c={isCompleted ? "dimmed" : "inherit"}
-                td={isCompleted ? "line-through" : undefined}
-              >
-                {task.description}
-              </Text>
-            </Group>
+            <Checkbox
+              variant="outline"
+              defaultChecked={isCompleted}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleMarkTask(e.currentTarget.checked);
+              }}
+              color="gray"
+              size="xs"
+            />
+            <div className={styles.info}>
+              <div className={styles.top}>
+                <Group gap="xs" align="center" wrap="nowrap">
+                  <Text
+                    size="sm"
+                    lineClamp={1}
+                    c={isCompleted ? "dimmed" : "inherit"}
+                    td={isCompleted ? "line-through" : undefined}
+                  >
+                    {task.description}
+                  </Text>
+                </Group>
+              </div>
+              <div className={styles.bottom}>
+                <Group gap="xs" align="center" wrap="nowrap">
+                  <Text size="xs" lineClamp={1} c="dark.5">
+                    {task.estimatedTime.toString()}{" "}
+                    {task.dueDate && (
+                      <Text
+                        inline
+                        component="span"
+                        c={isOverdue() ? "red.5" : "inherit"}
+                      >
+                        {formatDate(new Date(task.dueDate))}
+                      </Text>
+                    )}
+                  </Text>
+                </Group>
+              </div>
+            </div>
             {hovering && (
               <Group gap="xs" wrap="nowrap">
                 {allActions?.map((action) => {

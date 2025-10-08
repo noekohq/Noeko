@@ -48,7 +48,7 @@ import SourceList from "./pages/Sources/SourceList";
 import Source from "./pages/Sources/Source";
 import { showNotification } from "@mantine/notifications";
 import { useLayout } from "./contexts/LayoutContext";
-import MobileDashboard from "./pages/Dashboard/Mobile";
+import MobileDashboard from "./pages/Dashboard/Mobile/Mobile";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {

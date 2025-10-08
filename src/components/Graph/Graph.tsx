@@ -12,10 +12,8 @@ import Edge from "./Edge";
 import styles from "./Graph.module.scss";
 import NodePanel from "./NodePanel";
 import { useGraph } from "../../contexts/GraphContext";
-import { getNodeEdgeType } from "../../utils/graph";
 import { useGraphTraversal } from "./useGraphTraversal";
 import { GraphPanel } from "./GraphPanel";
-import { nodeInputRule } from "@tiptap/core";
 import { Text } from "@mantine/core";
 
 function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
@@ -51,6 +49,7 @@ type IGraphContainerProps = {
 
 export type IGraphController = {
   reset: () => void;
+  nodes: () => INode[];
 };
 
 const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
@@ -270,6 +269,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
         initializeSimulation();
       },
+      nodes: () => nodes,
     }));
 
     useEffect(() => {

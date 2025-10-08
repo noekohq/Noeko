@@ -2,7 +2,12 @@ import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser, User } from "../database/models/user";
-import Task, { ITask, ITaskForm } from "../database/models/task";
+import Task, {
+  ITask,
+  ITaskDurationBehavior,
+  ITaskForm,
+  ITaskQuery,
+} from "../database/models/task";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { getLM } from "../ai/lms/lm";
 import { Duration } from "surrealdb";
@@ -20,7 +25,109 @@ router.get("/", async (req, res) => {
       });
       return;
     }
-    const tasks = await Task.all(user.id);
+    const sortField = req.query.sortField as string;
+    const sortDirection = req.query.sortDirection as string;
+    const limit = req.query.limit as string;
+    const start = req.query.start as string;
+    const startDate = req.query.dateStart as string;
+    const endDate = req.query.dateEnd as string;
+    const duration = req.query.duration as string;
+    const durationBehavior = req.query.durationBehavior as string;
+
+    if (
+      sortField &&
+      !["createdAt", "updatedAt", "viewedAt", "dueDate"].includes(sortField)
+    ) {
+      res.status(400).send({
+        message: "Sort field must be createdAt, updatedAt, or viewedAt",
+      });
+      return;
+    }
+    if (sortDirection && !["asc", "desc"].includes(sortDirection)) {
+      res.status(400).send({
+        message: "Sort direction must be asc or desc",
+      });
+      return;
+    }
+    if (limit && isNaN(Number(limit))) {
+      res.status(400).send({
+        message: "Limit must be a number",
+      });
+      return;
+    }
+    if (start && isNaN(Number(start))) {
+      res.status(400).send({
+        message: "Start must be a number",
+      });
+      return;
+    }
+    if (startDate && !new Date(startDate)) {
+      res.status(400).send({
+        message: "Start date must be a valid date",
+      });
+      return;
+    }
+    if (endDate && !new Date(endDate)) {
+      res.status(400).send({
+        message: "End date must be a valid date",
+      });
+      return;
+    }
+    if (duration && !new Duration(duration)) {
+      res.status(400).send({
+        message: "Duration must be a valid duration",
+      });
+      return;
+    }
+    if (
+      durationBehavior &&
+      ![
+        "over",
+        "over-inclusive",
+        "under",
+        "under-inclusive",
+        "equals",
+      ].includes(durationBehavior)
+    ) {
+      res.status(400).send({
+        message:
+          "Duration behavior must be one of 'over', 'over-inclusive', 'under', 'under-inclusive', or 'equals'",
+      });
+      return;
+    }
+
+    const parsedLimit = limit ? Number(limit) : undefined;
+    const parsedStart = start ? Number(start) : undefined;
+
+    console.log("Sort field and direction: ", sortField, sortDirection);
+
+    const options: ITaskQuery = {
+      sort:
+        sortField && sortDirection
+          ? ({
+              field: sortField,
+              direction: sortDirection,
+            } as ITaskQuery["sort"])
+          : undefined,
+      limit: parsedLimit,
+      start: parsedStart,
+      dateRange: {
+        start: startDate ?? undefined,
+        end: endDate ?? undefined,
+      },
+      duration:
+        duration && durationBehavior
+          ? {
+              value: duration,
+              behavior: durationBehavior as ITaskDurationBehavior,
+            }
+          : undefined,
+    };
+    const tasks = await Task.getUserTasks(user.id, options);
+    if (!tasks) {
+      res.status(404).json({ error: "User tasks not found" });
+      return;
+    }
     res.send({
       message: "Tasks retrieved successfully",
       data: tasks,

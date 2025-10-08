@@ -1,4 +1,4 @@
-import { CheckIcon, IconProps } from "@phosphor-icons/react";
+import { CaretDownIcon, CheckIcon, IconProps } from "@phosphor-icons/react";
 import { useState } from "react";
 import styles from "./Selection.module.scss";
 import { Text } from "@mantine/core";
@@ -11,16 +11,14 @@ interface IOption {
 }
 
 interface ISelectionProps {
-  name: string;
-  icon?: React.ReactElement<IconProps>;
+  label?: string;
   options: IOption[];
   initialValue?: string;
   onSelect?: (value: string) => void;
 }
 
 export default function Selection({
-  name,
-  icon,
+  label,
   options,
   initialValue,
   onSelect,
@@ -60,11 +58,9 @@ export default function Selection({
             {currentOption.label}
           </>
         ) : (
-          <>
-            {icon && <div className={styles.left}>{icon}</div>}
-            {name}
-          </>
+          <>{label ?? "Select..."}</>
         )}
+        <CaretDownIcon />
       </button>
       {opened && (
         <div className={styles.options}>

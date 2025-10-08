@@ -1,9 +1,10 @@
 import styles from "./IconToggle.module.scss";
 import { useToggle } from "@mantine/hooks";
-import { IconProps } from "@phosphor-icons/react";
+import { Icon, IconProps } from "@phosphor-icons/react";
+import React from "react";
 
 type IIconToggleOption = {
-  icon: React.ReactElement<IconProps>;
+  icon: Icon;
   value: string;
 };
 
@@ -25,14 +26,17 @@ export default function IconToggle({
   return (
     <div className={styles.iconToggle}>
       {options.map((option) => {
+        const IconEl = option.icon;
+
         return (
           <button
+            key={option.value}
             onClick={() => {
               onChange?.(option.value);
             }}
             className={`${styles.option} ${value === option.value ? styles.active : ""}`}
           >
-            {option.icon}
+            <IconEl weight="bold" />
           </button>
         );
       })}
