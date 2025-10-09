@@ -99,8 +99,6 @@ router.get("/", async (req, res) => {
     const parsedLimit = limit ? Number(limit) : undefined;
     const parsedStart = start ? Number(start) : undefined;
 
-    console.log("Sort field and direction: ", sortField, sortDirection);
-
     const options: ITaskQuery = {
       sort:
         sortField && sortDirection
