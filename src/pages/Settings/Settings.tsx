@@ -420,7 +420,7 @@ const CommunitySettings = () => (
       </Text>
       <Group>
         <a
-          href="https://discord.gg/eNh7c9Sp6r"
+          href="https://discord.gg/TY9sna9ZbT"
           target="_blank"
           rel="noopener noreferrer"
         >
