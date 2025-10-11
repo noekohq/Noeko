@@ -40,7 +40,6 @@ router.post("/initialize", checkToken, async (req, res) => {
         rabbitholeId,
       },
     );
-    console.log("Got new spyglass: ", newSpyglass?.id);
     if (!newSpyglass) {
       res.status(500).json({ error: "Couldn't initiate spyglass" });
       return;
