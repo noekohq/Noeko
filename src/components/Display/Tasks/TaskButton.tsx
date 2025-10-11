@@ -222,6 +222,7 @@ export default function TaskButton({
                 {allActions?.map((action) => {
                   return (
                     <ActionIcon
+                      key={action.id.toString()}
                       size="xs"
                       onClick={(e) => {
                         e.preventDefault();

@@ -204,7 +204,7 @@ export default function TaskList() {
               newTask();
             }}
             variant="filled"
-            color="dark.2"
+            color="gray"
             radius="lg"
             size="md"
           >

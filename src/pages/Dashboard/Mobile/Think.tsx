@@ -120,6 +120,7 @@ export default function Think() {
       {!hasSearch && (
         <Group mb="md">
           <Selection
+            name="View by"
             initialValue={sortField}
             options={[
               {

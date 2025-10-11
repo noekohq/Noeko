@@ -77,6 +77,7 @@ export type IComputedProperties = {
   ideaActivity: IDailyActivity[];
   ideaViewActivity: IDailyActivity[];
   taskActivity: IDailyActivity[];
+  spyglassActivity: IDailyActivity[];
 };
 
 export type IComputedUser = IUser & IComputedProperties;
@@ -210,7 +211,16 @@ export class User {
                 WHERE createdAt >= time::now() - 7d
                 GROUP BY day
                 ORDER BY day ASC
-              ) AS taskActivity
+              ) AS taskActivity,
+              (
+                SELECT
+                  time::floor(createdAt, 1d) AS day,
+                  count() AS dailyCount
+                FROM ->searched->spyglass
+                WHERE createdAt >= time::now() - 7d
+                GROUP BY day
+                ORDER BY day ASC
+              ) AS spyglassActivity
             OMIT password
             FROM user
             ORDER BY
