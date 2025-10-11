@@ -415,7 +415,7 @@ function JumpBackIn() {
           JUMP BACK IN
         </Text>
         <Selection
-          name="View by"
+          label="View by"
           initialValue={sortField}
           options={[
             {
