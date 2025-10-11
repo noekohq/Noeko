@@ -341,6 +341,14 @@ function JumpBackIn() {
       start: start.toString(),
     },
     runOnDependencies: [start, sortField],
+    onBefore: () => {
+      console.log("Start and Limit: ", start, limit);
+    },
+    onSuccess: (d) => {
+      if (start === 0) {
+        console.log("Data from 0: ", d);
+      }
+    },
   });
 
   useEffect(() => {
@@ -407,6 +415,7 @@ function JumpBackIn() {
           JUMP BACK IN
         </Text>
         <Selection
+          name="View by"
           initialValue={sortField}
           options={[
             {
@@ -442,7 +451,7 @@ function JumpBackIn() {
             >
               <Stack>
                 <Text size="sm" c="dimmed">
-                  Jump Back In
+                  Suggested
                 </Text>
                 <IdeaButton
                   idea={firstIdea}

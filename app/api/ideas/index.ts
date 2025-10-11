@@ -52,8 +52,8 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const sortField = req.query.sort as string;
-    const sortDirection = req.query.direction as string;
+    const sortField = req.query.sortField as string;
+    const sortDirection = req.query.sortDirection as string;
     const limit = req.query.limit as string;
     const start = req.query.start as string;
 

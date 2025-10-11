@@ -357,6 +357,14 @@ export default function Users() {
       },
       {} as Record<string, number>,
     );
+    const spyglassmap = user.spyglassActivity.reduce(
+      (acc, curr) => {
+        const date = new Date(curr.day).toISOString().split("T")[0];
+        acc[date] = curr.dailyCount;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
     const lastSeven = Array(7)
       .fill(undefined)
       .map((a, index) => {
@@ -367,6 +375,7 @@ export default function Users() {
           Tasks: taskMap[key] || 0,
           Ideas: ideaMap[key] || 0,
           "Idea Views": ideaViewMap[key] || 0,
+          "Spyglass Queries": spyglassmap[key] || 0,
         };
       })
       .reverse();
@@ -458,7 +467,7 @@ export default function Users() {
                     >
                       <LineChart
                         w={"100%"}
-                        h="24px"
+                        h="48px"
                         dataKey="date"
                         series={[
                           {
@@ -472,6 +481,10 @@ export default function Users() {
                           {
                             name: "Idea Views",
                             color: "orange",
+                          },
+                          {
+                            name: "Spyglass Queries",
+                            color: "pink",
                           },
                         ]}
                         data={activity}
@@ -676,6 +689,7 @@ export default function Users() {
                           { name: "Tasks", color: "green" },
                           { name: "Ideas", color: "blue" },
                           { name: "Idea Views", color: "orange" },
+                          { name: "Spyglass Queries", color: "pink" },
                         ]}
                         curveType="linear"
                       />

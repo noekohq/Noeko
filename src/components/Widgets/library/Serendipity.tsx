@@ -47,8 +47,6 @@ export default function Serendipity() {
     loadSpyglass();
   }, [page]);
 
-  console.log("Spyglass query: ", spyglassSearch);
-
   const viewing = spyglassSearch?.[0];
   const analysis = viewing?.analysis;
   const viewingFinding = analysis?.findings[currentFinding];
