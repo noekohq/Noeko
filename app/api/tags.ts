@@ -40,7 +40,7 @@ router.post("/", async (req, res): Promise<void> => {
     const tagData: Omit<ITagForm, "embeddings" | "embeddingsUpdatedAt"> = {
       name: name.trim(),
       description: description?.trim() || "",
-      color: color?.trim(), // Added color
+      color: color?.trim(),
     };
 
     const newTag = await Tag.create(tagData, user.id);

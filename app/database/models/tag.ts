@@ -26,6 +26,7 @@ export type ITagForm = Omit<
   ITag,
   | "id"
   | "embeddings"
+  | "cachedCentroidEmbeddings"
   | "describes"
   | "embeddingsUpdatedAt"
   | "createdAt"
