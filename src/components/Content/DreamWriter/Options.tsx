@@ -696,7 +696,9 @@ export function NewIdea({ editor }: OptionProps) {
 
     setLoading(true);
     try {
-      const newIdea = await createIdea(newIdeaForm.values.content);
+      const newIdea = await createIdea({
+        content: newIdeaForm.values.content,
+      });
       const selection = getSelection();
 
       if (newIdea) {

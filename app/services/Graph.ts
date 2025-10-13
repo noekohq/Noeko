@@ -290,7 +290,7 @@ export default class GraphService {
       const embeddingVector = await this.getConnectableEmbedding(thingId);
 
       const applied = await this.getTags(thingId);
-      const appliedIds = applied?.map((a) => a.id.toString());
+      const appliedIds = applied?.map((a) => a.id.toString()) || [];
 
       if (!embeddingVector) {
         throw new Error("No embedding vector");
