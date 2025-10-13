@@ -20,59 +20,55 @@ import {
   CaretUpIcon,
   ArrowRightIcon,
   DotsThreeIcon,
+  IntersectSquareIcon,
+  TagIcon,
 } from "@phosphor-icons/react";
 import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
 import useFetch from "../../hooks/useFetch";
 import { useState, useMemo, useEffect } from "react";
 import {
-  addTagToIdea,
-  createTagAndAddToIdea,
-  removeTagFromIdea,
-} from "../../utils/ideas";
+  createTagAndAddToThing,
+  applyTagToThing,
+  removeTagFromThing,
+} from "../../utils/tags";
 import { Link, useNavigate } from "react-router";
 import { useSettings } from "../../contexts/SettingsContext";
 import { InlineTag } from "../../components/Display/Tags/TagDisplay";
 import SuggestTags from "../../components/Search/SuggestTags";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
+import { IConnectable } from "../../../app/services/Graph";
+import useConnectable from "../../hooks/useConnectable";
 
 type ITagsManagerProps = {
-  idea: ISafeIdea;
+  connectable: IConnectable;
   maxSuggested?: number;
 };
 
-export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
+export default function TagsManager({
+  connectable,
+  maxSuggested,
+}: ITagsManagerProps) {
   const [actingTagId, setActingTagId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-  const ideaIdStr = useMemo(() => idea.id.toString(), [idea.id.toString()]);
-
-  const {
-    data: existingTagsData,
-    load: loadExistingTags,
-    loading: existingTagsLoading,
-  } = useFetch<undefined, ITag[]>({
-    url: `/ideas/${ideaIdStr}/tags`,
-    dependencies: [ideaIdStr],
-    runOnDependencies: [ideaIdStr],
-  });
-  const existingTags: ITag[] = existingTagsData || [];
-  const omitTagIds = useMemo(
-    () => existingTags.map((tag) => tag.id.toString()),
-    [existingTags],
+  const thingIdStr = useMemo(
+    () => connectable.id.toString(),
+    [connectable.id.toString()],
   );
 
   const {
-    data: relatedTagsData,
-    loading: relatedTagsLoading,
-    load: loadRelatedTags,
-  } = useFetch<undefined, ITag[]>({
-    url: `/tags/similar_to/idea/${ideaIdStr}`,
-    dependencies: [ideaIdStr],
-    runOnDependencies: [ideaIdStr], // Ensures ideaIdStr is truthy
+    tags: {
+      applied: appliedTags,
+      suggested: suggestedTags,
+      refresh: refreshTags,
+      apply: applyTag,
+      remove: removeTag,
+    },
+  } = useConnectable({
+    connectable,
   });
-  const relatedTagsRaw: ITag[] = relatedTagsData || [];
 
   const tagForm = useForm<Partial<ITagForm>>({
     initialValues: {
@@ -86,26 +82,18 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
     },
   });
 
-  const refresh = () => {
-    loadExistingTags();
-    loadRelatedTags();
-  };
-
   useEffect(() => {
-    refresh();
-  }, [idea.embeddingsUpdatedAt]);
+    refreshTags();
+  }, [connectable.embeddingsUpdatedAt]);
 
   const [creatingTag, setCreatingTag] = useState(false);
 
   const handleAddTag = async (tagId: string) => {
-    if (!ideaIdStr || actionLoading) return;
+    if (!thingIdStr || actionLoading) return;
     setActingTagId(tagId);
     setActionLoading(true);
     try {
-      const result = await addTagToIdea(ideaIdStr, tagId);
-      if (result) {
-        loadExistingTags();
-      }
+      await applyTag(tagId);
     } catch (error) {
       console.error("Error adding tag from TagsManager:", error);
     } finally {
@@ -119,14 +107,11 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
   };
 
   const handleRemoveTag = async (tagId: string) => {
-    if (!ideaIdStr || actionLoading) return;
+    if (!thingIdStr || actionLoading) return;
     setActingTagId(tagId);
     setActionLoading(true);
     try {
-      const result = await removeTagFromIdea(ideaIdStr, tagId);
-      if (result) {
-        loadExistingTags();
-      }
+      await removeTag(tagId);
     } catch (error) {
       console.error("Error removing tag from TagsManager:", error);
     } finally {
@@ -137,30 +122,30 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
 
   const [allSuggested, setAllSuggested] = useState(false);
 
-  const suggestedTruncated = relatedTagsData?.slice(0, maxSuggested);
+  const suggestedTruncated = suggestedTags?.slice(0, maxSuggested);
 
-  const processedTags = useMemo(() => {
-    const existingTagIds = new Set(existingTags.map((t) => t.id.toString()));
-
-    const currentExistingTags = existingTags.map((tag) => ({
-      tag,
-      type: "existing" as const,
-      idStr: tag.id.toString(),
-    }));
-
-    const relatedToUse = allSuggested
-      ? relatedTagsData || []
-      : suggestedTruncated;
-    const currentRelatedTags = [...(relatedToUse || [])]
-      .filter((tag) => !existingTagIds.has(tag.id.toString()))
-      .map((tag) => ({
-        tag: tag,
-        type: "related" as const,
-        idStr: tag.id.toString(),
-      }));
-
-    return [...currentExistingTags, ...currentRelatedTags];
-  }, [existingTags, relatedTagsRaw, allSuggested]);
+  const processedTags: {
+    tag: ITag;
+    type: "existing" | "suggested";
+    id: string;
+  }[] = useMemo(() => {
+    return [
+      ...appliedTags?.map((t) => {
+        return {
+          tag: t,
+          type: "existing" as const,
+          id: t.id.toString(),
+        };
+      }),
+      ...(allSuggested ? suggestedTags : suggestedTruncated)?.map((t) => {
+        return {
+          tag: t,
+          type: "suggested" as const,
+          id: t.id.toString(),
+        };
+      }),
+    ];
+  }, [appliedTags, suggestedTags, allSuggested]);
 
   const [createTagLoading, setCreateTagLoading] = useState(false);
   const handleCreateAndAddTag = async (
@@ -169,23 +154,13 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
     close: boolean,
   ) => {
     setCreateTagLoading(true);
-    await createTagAndAddToIdea(name, description, idea.id.toString());
+    await createTagAndAddToThing(name, description, connectable.id.toString());
     setCreateTagLoading(false);
-    refresh();
+    refreshTags();
     if (close) {
       setCreatingTag(false);
     }
   };
-
-  if (!ideaIdStr) {
-    return (
-      <Card withBorder radius="lg" p="md">
-        <Text c="dimmed" size="sm">
-          Select an idea to manage tags.
-        </Text>
-      </Card>
-    );
-  }
 
   const {
     ui: {
@@ -199,17 +174,151 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
 
   const [managing, setManaging] = useState(false);
 
-  if (existingTagsLoading || relatedTagsLoading) {
-    return (
-      <Group>
-        <Loader size="sm" />
-        <Text size="sm">Loading tags...</Text>
-      </Group>
-    );
-  }
-
   return (
     <Container p="0" w="100%">
+      <Stack w="100%" gap="xs">
+        <Text size="sm" c="dark.4" fw="bold">
+          <Group gap="xs">
+            <TagIcon weight="fill" />
+            TAGS
+          </Group>
+        </Text>
+        {processedTags.length === 0 && (
+          <Text c="dimmed" size="sm">
+            No tags.
+          </Text>
+        )}
+        <Group gap="xs" wrap="wrap" w="100%">
+          {processedTags.map(({ tag, type, id }) => {
+            const isLoadingAction = actionLoading && actingTagId === id;
+
+            return (
+              <InlineTag
+                key={tag.id.toString()}
+                tag={tag}
+                link={false}
+                variant={type === "existing" ? "filled" : "light"}
+                onClick={() => {
+                  navigate(`/tags/${tag.id.toString()}`);
+                }}
+                rightSection={
+                  isLoadingAction ? (
+                    <Loader size="xs" color="gray" style={{ marginRight: 5 }} />
+                  ) : type === "existing" ? (
+                    <ActionIcon
+                      size="xs"
+                      color="gray"
+                      radius="xl"
+                      variant="transparent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveTag(tag.id.toString());
+                      }}
+                      aria-label={`Remove tag ${tag.name}`}
+                      title={`Remove tag ${tag.name}`}
+                      disabled={actionLoading}
+                    >
+                      <XIcon style={{ width: "70%", height: "70%" }} />
+                    </ActionIcon>
+                  ) : (
+                    // type === "related"
+                    <ActionIcon
+                      size="xs"
+                      color="gray"
+                      radius="xl"
+                      variant="transparent"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddTag(tag.id.toString());
+                      }}
+                      aria-label={`Add tag ${tag.name}`}
+                      title={`Add tag ${tag.name}`}
+                      disabled={actionLoading}
+                    >
+                      <PlusIcon style={{ width: "70%", height: "70%" }} />
+                    </ActionIcon>
+                  )
+                }
+              />
+            );
+          })}
+          {suggestedTruncated &&
+            suggestedTags &&
+            suggestedTruncated.length < suggestedTags?.length && (
+              <ActionIcon
+                onClick={() => {
+                  setAllSuggested(!allSuggested);
+                }}
+                size="xs"
+                color="gray"
+                radius="xl"
+                variant="transparent"
+                aria-label={`Show ${allSuggested ? "less" : "more"} suggested tags`}
+                title={`Show ${allSuggested ? "less" : "more"} suggested tags`}
+                disabled={actionLoading}
+              >
+                {allSuggested ? <XIcon /> : <DotsThreeIcon />}
+              </ActionIcon>
+            )}
+          {!managing && (
+            <ActionIcon
+              onClick={() => {
+                setManaging(true);
+              }}
+              size="xs"
+              variant="light"
+              color="gray"
+            >
+              <CaretDownIcon size={14} />
+            </ActionIcon>
+          )}
+        </Group>
+        {!!managing && (
+          <Stack gap="xs" w="100%">
+            <Group align="baseline" gap="xs">
+              <ActionIcon
+                onClick={() => {
+                  setManaging(false);
+                }}
+                size="xs"
+                variant="light"
+                color="gray"
+              >
+                <CaretUpIcon size={14} />
+              </ActionIcon>
+              <ActionIcon
+                onClick={() => {
+                  setCreatingTag(true);
+                }}
+                variant="light"
+                size={"xs"}
+                color="gray"
+                title="Create a new tag."
+              >
+                <PlusIcon size={14} />
+              </ActionIcon>
+              <Link
+                to="/tags"
+                style={{ textDecoration: "none" }}
+                title="Go to tags management page."
+              >
+                <ActionIcon variant="light" size="xs" color={"gray"}>
+                  <ArrowRightIcon size={14} />
+                </ActionIcon>
+              </Link>
+            </Group>
+            <Group w="100%">
+              <SuggestTags
+                onSelect={handleSuggestedTagSelect}
+                omit={appliedTags.map((tag) => tag.id.toString())}
+                placeholder="Search for a tag..."
+                limit={10}
+              />
+            </Group>
+          </Stack>
+        )}
+      </Stack>
       {creatingTag && (
         <Modal
           title="Create tag"
@@ -275,145 +384,6 @@ export default function TagsManager({ idea, maxSuggested }: ITagsManagerProps) {
           </Stack>
         </Modal>
       )}
-      <Stack w="100%" gap="xs">
-        {processedTags.length === 0 &&
-          !existingTagsLoading &&
-          !relatedTagsLoading &&
-          omitTagIds.length === 0 && (
-            <Text c="dimmed" size="sm">
-              No tags currently associated.
-            </Text>
-          )}
-        <Group gap="xs" wrap="wrap" w="100%">
-          {processedTags.map(({ tag, type, idStr }) => {
-            const isLoadingAction = actionLoading && actingTagId === idStr;
-            return (
-              <InlineTag
-                key={tag.id.toString()}
-                tag={tag}
-                link={false}
-                variant={type === "existing" ? "filled" : "light"}
-                onClick={() => {
-                  navigate(`/tags/${tag.id.toString()}`);
-                }}
-                rightSection={
-                  isLoadingAction ? (
-                    <Loader size="xs" color="gray" style={{ marginRight: 5 }} />
-                  ) : type === "existing" ? (
-                    <ActionIcon
-                      size="xs"
-                      color="gray"
-                      radius="xl"
-                      variant="transparent"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveTag(tag.id.toString());
-                      }}
-                      aria-label={`Remove tag ${tag.name}`}
-                      title={`Remove tag ${tag.name}`}
-                      disabled={actionLoading}
-                    >
-                      <XIcon style={{ width: "70%", height: "70%" }} />
-                    </ActionIcon>
-                  ) : (
-                    // type === "related"
-                    <ActionIcon
-                      size="xs"
-                      color="gray"
-                      radius="xl"
-                      variant="transparent"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleAddTag(tag.id.toString());
-                      }}
-                      aria-label={`Add tag ${tag.name}`}
-                      title={`Add tag ${tag.name}`}
-                      disabled={actionLoading}
-                    >
-                      <PlusIcon style={{ width: "70%", height: "70%" }} />
-                    </ActionIcon>
-                  )
-                }
-              />
-            );
-          })}
-          {suggestedTruncated &&
-            relatedTagsData &&
-            suggestedTruncated.length < relatedTagsData?.length && (
-              <ActionIcon
-                onClick={() => {
-                  setAllSuggested(!allSuggested);
-                }}
-                size="xs"
-                color="gray"
-                radius="xl"
-                variant="transparent"
-                aria-label={`Show ${allSuggested ? "less" : "more"} suggested tags`}
-                title={`Show ${allSuggested ? "less" : "more"} suggested tags`}
-                disabled={actionLoading}
-              >
-                {allSuggested ? <XIcon /> : <DotsThreeIcon />}
-              </ActionIcon>
-            )}
-          {!managing && (
-            <ActionIcon
-              onClick={() => {
-                setManaging(true);
-              }}
-              size="xs"
-              variant="light"
-              color="gray"
-            >
-              <CaretDownIcon size={14} />
-            </ActionIcon>
-          )}
-        </Group>
-        {!!managing && (
-          <Stack gap="xs">
-            <Group align="baseline" gap="xs">
-              <ActionIcon
-                onClick={() => {
-                  setManaging(false);
-                }}
-                size="xs"
-                variant="light"
-                color="gray"
-              >
-                <CaretUpIcon size={14} />
-              </ActionIcon>
-              <ActionIcon
-                onClick={() => {
-                  setCreatingTag(true);
-                }}
-                variant="light"
-                size={"xs"}
-                color="gray"
-                title="Create a new tag."
-              >
-                <PlusIcon size={14} />
-              </ActionIcon>
-              <Link
-                to="/tags"
-                style={{ textDecoration: "none" }}
-                title="Go to tags management page."
-              >
-                <ActionIcon variant="light" size="xs" color={"gray"}>
-                  <ArrowRightIcon size={14} />
-                </ActionIcon>
-              </Link>
-            </Group>
-            <Group>
-              <SuggestTags
-                onSelect={handleSuggestedTagSelect}
-                omit={omitTagIds}
-                placeholder="Find a tag..."
-                limit={10}
-              />
-            </Group>
-          </Stack>
-        )}
-      </Stack>
     </Container>
   );
 }

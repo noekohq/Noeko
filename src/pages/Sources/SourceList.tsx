@@ -19,6 +19,7 @@ import {
 import { MegaphoneIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SourceCard from "../../components/Display/Sources/SourceCard";
+import ConnectableTable from "../../components/Display/Data/ConnectableTable";
 
 export default function SourceList() {
   const { data: sources, load: loadSources } = useFetch<undefined, ISource[]>({
@@ -103,18 +104,9 @@ export default function SourceList() {
               </HoverCard.Dropdown>
             </HoverCard>
           </Group>
-          <TextInput
-            placeholder="Filter sources by name, content, or analysis."
-            onChange={(e) => {
-              setQuery(e.currentTarget.value);
-            }}
-            radius="md"
+          <ConnectableTable
+            connectables={sources?.map((s) => ({ ...s, type: "source" })) ?? []}
           />
-
-          {filteredSources()?.map((source) => {
-            return <SourceCard source={source} key={source.id.toString()} />;
-          })}
-          {!filteredSources()?.length && <Text size="sm">No sources.</Text>}
         </Stack>
       </Content>
       <StatusBar />

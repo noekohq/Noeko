@@ -1292,7 +1292,9 @@ export class Search {
   ): Promise<ITag[]> {
     try {
       const limit = options?.limit ?? 5; // Default limit for suggestions
-      const results = await Search.ftsSearchTags(userId, query, { limit });
+      const results = await Search.comprehensiveSearchTags(userId, query, {
+        limit,
+      });
       return results.map((tag) => {
         return tag.value;
       });

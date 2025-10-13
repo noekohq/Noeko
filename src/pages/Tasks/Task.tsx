@@ -47,6 +47,7 @@ import { modals } from "@mantine/modals";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import useConnectable from "../../hooks/useConnectable";
+import TagsManager from "../Idea/TagsManager";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -413,15 +414,24 @@ export default function Task() {
                 </Popover.Dropdown>
               </Popover>
             </Stack>
+            {!!task && (
+              <TagsManager
+                connectable={{
+                  ...task,
+                  type: "task",
+                }}
+                maxSuggested={2}
+              />
+            )}
+            {!!task && (
+              <ConnectionManager
+                connectable={{
+                  ...task,
+                  type: "task",
+                }}
+              />
+            )}
           </Stack>
-          {!!task && (
-            <ConnectionManager
-              connectable={{
-                ...task,
-                type: "task",
-              }}
-            />
-          )}
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>

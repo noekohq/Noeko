@@ -4,6 +4,7 @@ import {
   Input,
   MantineColorsTuple,
   Paper,
+  Popover,
 } from "@mantine/core";
 import { ICSSApplicator, IOverrideResolver } from "../../declarations/themes";
 import { getCurrentScheme } from "../../utils/dom";
@@ -331,7 +332,7 @@ const noeko: IOverrideResolver = (t) => {
         color: "var(--color-code-foreground)",
       },
       table: {
-        border: `1px solid ${darkColors.dark[7]}`,
+        border: `1px solid ${darkColors.dark[8]}`,
       },
       thead: {
         "background-color": darkColors.dark[8],
@@ -379,6 +380,13 @@ const noeko: IOverrideResolver = (t) => {
         styles: {
           input: {
             backgroundColor: colorsToUse().colors.dark?.[9],
+          },
+        },
+      }),
+      Popover: Popover.extend({
+        styles: {
+          dropdown: {
+            backgroundColor: colorsToUse().colors.dark?.[8],
           },
         },
       }),

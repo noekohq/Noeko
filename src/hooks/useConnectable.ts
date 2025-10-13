@@ -2,8 +2,13 @@ import { RecordId } from "surrealdb";
 import { IConnectable, ISimilarConnectable } from "../../app/services/Graph";
 import useFetch from "./useFetch";
 import { connect, disconnect } from "../utils/graph";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useRabbithole from "./useRabbithole";
+import {
+  ITag,
+  ITagDescriptionRelationship,
+} from "../../app/database/models/tag";
+import { applyTagToThing, removeTagFromThing } from "../utils/tags";
 
 type IUseConnectableArgs = {
   connectable: IConnectable | null;
@@ -13,9 +18,21 @@ type IUseConnectableReturn = {
   connected: IConnectable[];
   loadingConnected: boolean;
   similar: IConnectable[];
+  tags: {
+    applied: ITag[];
+    suggested: ITag[];
+    apply: (
+      tagId: string | RecordId,
+    ) => Promise<ITagDescriptionRelationship | undefined>;
+    remove: (
+      tagId: string | RecordId,
+    ) => Promise<ITagDescriptionRelationship | undefined>;
+    refresh: () => Promise<void>;
+  };
   loadingSimilar: boolean;
   connect: (target: string | RecordId) => Promise<boolean>;
   disconnect: (target: string | RecordId) => Promise<boolean>;
+  loadingConnect: boolean;
   load: () => void;
   isConnected: (thingId: string | RecordId) => boolean | undefined;
   ensureConnected: (thingId: string | RecordId) => Promise<void>;
@@ -53,6 +70,24 @@ export default function useConnectable({
     },
   });
 
+  const {
+    load: loadTags,
+    data: tags = [],
+    loading: loadingTags,
+  } = useFetch<undefined, ITag[]>({
+    url: `/graph/${connectable?.id.toString()}/tags`,
+    dependencies: [connectable?.id.toString()],
+  });
+
+  const {
+    load: loadSuggestedTags,
+    data: suggestedTags = [],
+    loading: loadingSuggestedTags,
+  } = useFetch<undefined, ITag[]>({
+    url: `/graph/${connectable?.id.toString()}/tags/suggested`,
+    dependencies: [connectable?.id.toString()],
+  });
+
   const load = () => {
     if (!connectable?.id) {
       console.error("Attempted to load empty connectable information.");
@@ -60,6 +95,8 @@ export default function useConnectable({
     }
     loadConnected();
     loadSimilar();
+    loadTags();
+    loadSuggestedTags();
   };
 
   useEffect(() => {
@@ -153,6 +190,35 @@ export default function useConnectable({
     }
   };
 
+  const refreshTags = async () => {
+    await loadTags();
+    await loadSuggestedTags();
+  };
+
+  const applyTag = useCallback(
+    async (tagId: string | RecordId) => {
+      if (!connectable?.id.toString()) {
+        return;
+      }
+      const res = await applyTagToThing(tagId, connectable?.id.toString());
+      refreshTags();
+      return res;
+    },
+    [connectable],
+  );
+
+  const removeTag = useCallback(
+    async (tagId: string | RecordId) => {
+      if (!connectable?.id.toString()) {
+        return;
+      }
+      const res = await removeTagFromThing(tagId, connectable?.id.toString());
+      refreshTags();
+      return res;
+    },
+    [connectable],
+  );
+
   return {
     connected,
     loadingConnected,
@@ -161,7 +227,15 @@ export default function useConnectable({
     load,
     connect: handleConnect,
     disconnect: handleDisconnect,
+    loadingConnect: isConnecting,
     isConnected,
     ensureConnected,
+    tags: {
+      applied: tags,
+      suggested: suggestedTags,
+      apply: applyTag,
+      remove: removeTag,
+      refresh: refreshTags,
+    },
   };
 }

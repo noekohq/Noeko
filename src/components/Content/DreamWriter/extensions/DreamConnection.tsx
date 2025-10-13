@@ -9,18 +9,18 @@ import Suggestion, {
 
 import { api } from "../../../../server/api";
 import SuggestionMenu from "./Components/SuggestionMenu";
-import { LightbulbIcon } from "@phosphor-icons/react";
-import {
-  getNodeDescription,
-  getNodeTitle,
-  NodeIcon,
-} from "../../../../utils/graph";
+import { getNodeTitle, getTypeFromId, NodeIcon } from "../../../../utils/graph";
 import { PluginKey } from "@tiptap/pm/state";
 import { debounce } from "lodash";
 import { IConnectable } from "../../../../../app/services/Graph";
 import { ISearchResultValue } from "../../../../../app/services/Search";
-
-const suggestionKey = new PluginKey("dream-connection");
+import {
+  createIdea,
+  handleCreateNewConnectedIdea,
+  newIdea,
+} from "../../../../utils/ideas";
+import { showNotification } from "@mantine/notifications";
+import { PlusIcon } from "@phosphor-icons/react";
 
 export interface IDreamConnectionOptions {
   allowedTypes?: string[];
@@ -42,7 +42,7 @@ async function fetchDreamConnectionItems(
     return items;
   } catch (error) {
     console.error(error);
-    return []; // Return empty array on error
+    return [];
   }
 }
 
@@ -111,48 +111,62 @@ const suggestionOptionsDefinition = (
         text: fullMatch,
       };
     },
-    items: async ({ query }) => {
-      return new Promise((resolve) => {
-        debouncedFetchSmart(query, resolve);
-      });
-    },
+    items: () => [],
     render: () => {
       let element: HTMLElement | null = null;
       let root: import("react-dom/client").Root | null = null;
       let currentProps: SuggestionProps<IDreamConnectionItem> | null = null;
+
+      let query: string = "";
+      let items: IDreamConnectionItem[] = [];
+      let allItems = () => [
+        {
+          id: "new-idea",
+          label: `Create “${query}”`,
+          icon: <PlusIcon />,
+        },
+        ...items.map((s) => {
+          const Icon = NodeIcon(s);
+          return {
+            ...s,
+            id: s.id.toString(),
+            label: getNodeTitle(s) ?? "Unknown",
+            icon: Icon ? <Icon /> : undefined,
+            type: s.type || getTypeFromId((s as any).id.toString()),
+          };
+        }),
+      ];
+      let isLoading = false;
       let activeIndex = 0;
 
-      const renderComponent = (
-        props: SuggestionProps<IDreamConnectionItem>,
-        loading: boolean,
-      ) => {
-        console.log("Rendering with: ", props);
-        if (!root) {
-          console.log("No root to render with...");
-          return;
-        }
+      const renderComponent = () => {
+        if (!root || !currentProps) return;
+
         root.render(
           <SuggestionMenu
-            loading={loading}
-            items={props.items.map((s) => {
-              const Icon = NodeIcon(s);
-              return {
-                id: s.id.toString(),
-                label: getNodeTitle(s) ?? "Unknown",
-                icon: Icon ? <Icon /> : undefined,
-              };
-            })}
+            loading={isLoading}
+            items={allItems()}
             activeIndex={activeIndex}
-            getReferenceClientRect={props.clientRect as () => DOMRect}
+            getReferenceClientRect={currentProps.clientRect as () => DOMRect}
             onSelectionMade={(index) => {
-              const item = props.items[index];
-              if (item) {
-                props.command(item);
+              const item = allItems()[index];
+              if (item && currentProps) {
+                currentProps.command(item);
               }
             }}
           />,
         );
       };
+
+      const debouncedFetchAndUpdate = debounce((query: string) => {
+        fetchDreamConnectionItemsSemantic(query).then((fetchedItems) => {
+          if (query === currentProps?.query) {
+            items = fetchedItems;
+            isLoading = false;
+            renderComponent();
+          }
+        });
+      }, 500);
 
       return {
         onStart: (props) => {
@@ -162,29 +176,32 @@ const suggestionOptionsDefinition = (
 
           root = createRoot(element);
           currentProps = props;
-          activeIndex = 0;
-          renderComponent(props, true);
-        },
 
-        onBeforeUpdate: (props) => {
-          console.log("Before updating: ", props);
-          renderComponent(props, true);
+          isLoading = true;
+          items = [];
+          activeIndex = 0;
+          query = props.query;
+          renderComponent();
+          debouncedFetchAndUpdate(props.query);
         },
 
         onUpdate: (props) => {
           currentProps = props;
+
+          isLoading = true;
+          items = [];
           activeIndex = 0;
-          console.log("Updating: ", props);
-          renderComponent(props, false);
+          query = props.query;
+          renderComponent();
+          debouncedFetchAndUpdate(props.query);
         },
 
         onKeyDown: ({ event }: SuggestionKeyDownProps) => {
-          if (!currentProps || currentProps.items.length === 0) {
-            console.log("Not returning...");
+          if (!currentProps) {
             return false;
           }
 
-          const itemCount = currentProps.items.length;
+          const itemCount = allItems().length;
           let handled = false;
 
           if (event.key === "ArrowUp") {
@@ -195,7 +212,7 @@ const suggestionOptionsDefinition = (
             handled = true;
           } else if (event.key === "Enter" || event.key === "Tab") {
             event.preventDefault();
-            const selectedItem = currentProps.items[activeIndex];
+            const selectedItem = allItems()[activeIndex];
             if (selectedItem) {
               currentProps.command(selectedItem);
             }
@@ -203,25 +220,29 @@ const suggestionOptionsDefinition = (
           }
 
           if (handled) {
-            renderComponent(currentProps, false);
+            renderComponent();
           }
 
           return handled;
         },
 
         onExit: () => {
-          console.log("Exiting...");
+          debouncedFetchAndUpdate.cancel(); // Cancel any pending fetches
           root?.unmount();
           element?.remove();
           element = null;
           root = null;
           currentProps = null;
+          items = [];
           activeIndex = 0;
+          isLoading = false;
         },
       };
     },
     command: ({ editor, range, props }) => {
       const triggerText = editor.state.doc.textBetween(range.from, range.to);
+
+      console.log("Triggering command with ");
 
       const queryStartIndex = triggerText.lastIndexOf("[[");
       const originalQuery = triggerText.substring(queryStartIndex + 2);
@@ -232,6 +253,43 @@ const suggestionOptionsDefinition = (
         to: textAfter === "]]" ? range.to + 2 : range.to,
       };
 
+      console.log("Running command with props: ", props);
+
+      if (props.id === "new-idea") {
+        createIdea({
+          title: originalQuery,
+          content: "",
+        })
+          .then((idea) => {
+            if (!idea) {
+              showNotification({
+                title: "Error",
+                message: "Couldn't create new idea",
+                color: "red",
+              });
+              return;
+            }
+            editor
+              .chain()
+              .focus()
+              .deleteRange(finalRange)
+              .setDreamIdea({
+                ideaId: idea.id.toString(),
+                content: idea.title,
+              })
+              .run();
+          })
+          .catch((error) => {
+            console.error("Error creating new idea: ", error);
+            showNotification({
+              title: "Error",
+              message: "Couldn't create new idea",
+              color: "red",
+            });
+          });
+        return;
+      }
+
       const commandMap: Record<string, () => boolean> = {
         idea: () =>
           editor
@@ -240,7 +298,7 @@ const suggestionOptionsDefinition = (
             .deleteRange(finalRange)
             .setDreamIdea({
               ideaId: props.id.toString(),
-              content: originalQuery,
+              content: props.title,
             })
             .run(),
         source: () =>
@@ -250,7 +308,7 @@ const suggestionOptionsDefinition = (
             .deleteRange(finalRange)
             .setDreamSource({
               sourceId: props.id.toString(),
-              content: originalQuery,
+              content: props.displayName,
             })
             .run(),
         task: () =>
@@ -270,7 +328,9 @@ const suggestionOptionsDefinition = (
         props.type === "source" ||
         props.type === "task"
       ) {
-        commandMap[props.type]();
+        const cmd = commandMap[props.type];
+        console.log("Command map: ", cmd, props);
+        cmd();
       }
     },
   };
