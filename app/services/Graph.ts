@@ -12,6 +12,7 @@ import Rabbithole, {
   IRabbithole,
   IRabbitholeInclusion,
 } from "../database/models/rabbithole";
+import { Search } from "./Search";
 
 export type IConnectableTypes = "idea" | "source" | "task";
 
@@ -233,6 +234,108 @@ export default class GraphService {
       return combined;
     } catch (error) {
       console.error("Couldn't get connections: ", thingId, error);
+      return undefined;
+    }
+  }
+
+  static async getTags(
+    thingId: string | RecordId,
+  ): Promise<ITag[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get the database");
+      }
+
+      const results = await db.query<[ITag[]]>(
+        `
+        SELECT VALUE
+          <-describes<-tag as tags
+        FROM ONLY $thingId
+        FETCH tags;
+        `,
+        {
+          thingId: new StringRecordId(thingId),
+        },
+      );
+      if (!results || !results[0]) {
+        throw new Error("Tags were not returned from the database");
+      }
+      const [rawTags] = results;
+      const filtered = rawTags.map((t) => {
+        const { embeddings, ...tag } = t;
+        return tag;
+      });
+      return filtered as ITag[];
+    } catch (error) {
+      console.error("Couldn't get tags: ", error);
+      return undefined;
+    }
+  }
+
+  static async getSuggestedTags(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+  ): Promise<ITag[] | undefined> {
+    try {
+      if (!this.isConnectable(thingId)) {
+        throw new Error("Can't get suggested tags for non-connectable");
+      }
+
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get the database");
+      }
+
+      const embeddingVector = await this.getConnectableEmbedding(thingId);
+
+      const applied = await this.getTags(thingId);
+      const appliedIds = applied?.map((a) => a.id.toString());
+
+      if (!embeddingVector) {
+        throw new Error("No embedding vector");
+      }
+
+      const threshold = 0.4;
+      const limit = 10;
+
+      const subqueryWhere = [
+        `<-owns<-(user WHERE id = $userId)`,
+        `embeddings <|30, 300|> $embedding`,
+        `id NOT in [${appliedIds.join(", ")}]`,
+      ];
+
+      const query = `
+        SELECT * FROM (
+          SELECT
+            *,
+            vector::similarity::cosine(embeddings, $embedding) AS distance
+          OMIT embeddings
+          FROM tag
+          WHERE ${subqueryWhere.join(" AND ")}
+        )
+        WHERE
+          distance >= ${threshold}
+        ORDER BY distance DESC
+        LIMIT ${limit};
+      `;
+
+      const [dbResults] = await db.query<(ITag & { distance: number })[][]>(
+        query,
+        {
+          userId: new StringRecordId(userId),
+          connectableId: new StringRecordId(thingId),
+          embedding: embeddingVector,
+        },
+      );
+
+      if (!dbResults) {
+        throw new Error("Didn't find any suggestions");
+      }
+
+      return dbResults;
+    } catch (error) {
+      console.error("Couldn't get suggested tags: ", error);
       return undefined;
     }
   }

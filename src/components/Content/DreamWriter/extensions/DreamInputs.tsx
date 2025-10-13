@@ -5,11 +5,20 @@ const createPairedBracketRule = (openChar: string, closeChar: string) => {
   return new InputRule({
     find: new RegExp(`\\B${escapeRegExp(openChar)}$`),
     handler: ({ state, range }) => {
-      const { tr } = state;
-      const { from, to } = range;
+      const { tr, selection } = state;
 
-      tr.insertText(openChar + closeChar, from, to);
-      tr.setSelection(TextSelection.create(tr.doc, from + 1));
+      if (!selection.empty) {
+        const { from, to } = selection;
+        const selectedText = state.doc.textBetween(from, to);
+
+        tr.insertText(openChar + selectedText + closeChar, from, to);
+
+        tr.setSelection(TextSelection.create(tr.doc, from + 1, to + 1));
+      } else {
+        const { from, to } = range;
+        tr.insertText(openChar + closeChar, from, to);
+        tr.setSelection(TextSelection.create(tr.doc, from + 1));
+      }
     },
   });
 };
@@ -54,6 +63,35 @@ export const DreamInputs = Extension.create({
       createPairedBracketRule("{", "}"),
       latexInputRule,
     ];
+  },
+
+  addKeyboardShortcuts() {
+    const createOverwriteRule = (char: string) => () => {
+      const { state } = this.editor;
+      const { selection } = state;
+
+      if (!selection.empty) {
+        return false;
+      }
+
+      const { $head } = selection;
+      const pos = $head.pos;
+      const nextChar = state.doc.textBetween(pos, pos + 1);
+
+      if (nextChar === char) {
+        // Use the built-in command to move the cursor.
+        // This command returns `true` if it was successful.
+        return this.editor.commands.setTextSelection(pos + 1);
+      }
+
+      return false;
+    };
+
+    return {
+      ")": createOverwriteRule(")"),
+      "]": createOverwriteRule("]"),
+      "}": createOverwriteRule("}"),
+    };
   },
 });
 

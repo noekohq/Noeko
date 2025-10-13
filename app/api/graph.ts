@@ -1,13 +1,5 @@
 import { Router } from "express";
-import {
-  Idea,
-  IIdea,
-  IIdeaAsRelation,
-  IIdeaDerivedMap,
-  IIdeaForm,
-  ISafeIdea,
-} from "../database/models/ideas";
-import { getLM } from "../ai/lms/lm";
+import { Idea } from "../database/models/ideas";
 import {
   checkIsSuperuser,
   checkToken,
@@ -284,6 +276,82 @@ router.get(
       res.send({
         message: "Successfully got similar",
         data: similar,
+      });
+    } catch (error) {
+      res.status(500).send({
+        message: "Something went wrong",
+      });
+    }
+  },
+);
+
+router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const { thingId } = req.params;
+    const hasAccess = await User.checkOwns(user.id, thingId);
+    if (!hasAccess) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const isConnectable = GraphService.isConnectable(thingId);
+    if (!isConnectable) {
+      res.status(400).send({
+        message: "Resource not available for this type of thing",
+      });
+      return;
+    }
+    const tags = await GraphService.getTags(thingId);
+    res.send({
+      message: "Successfully got tags",
+      data: tags,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
+
+router.get(
+  "/:thingId/tags/suggested",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+      const { thingId } = req.params;
+      const hasAccess = await User.checkOwns(user.id, thingId);
+      if (!hasAccess) {
+        res.status(403).send({
+          message: "Unauthorized.",
+        });
+        return;
+      }
+      const isConnectable = GraphService.isConnectable(thingId);
+      if (!isConnectable) {
+        res.status(400).send({
+          message: "Resource not available for this type of thing",
+        });
+        return;
+      }
+      const tags = await GraphService.getSuggestedTags(
+        user.id.toString(),
+        thingId,
+      );
+      res.send({
+        message: "Successfully got suggested tags",
+        data: tags,
       });
     } catch (error) {
       res.status(500).send({

@@ -441,17 +441,18 @@ function JumpBackIn() {
       </Group>
       <div ref={scrollContainerRef} className={styles.scrollArea}>
         <Stack gap="sm">
-          {firstIdea && start === 0 && (
+          {!!firstIdea && (
             <Box
-              p="sm"
+              px="sm"
+              py="xs"
               style={{
                 border: "1px solid var(--mantine-color-dark-7)",
                 borderRadius: "var(--mantine-radius-lg)",
               }}
             >
-              <Stack>
-                <Text size="sm" c="dimmed">
-                  Suggested
+              <Stack gap="xs">
+                <Text size="xs" c="dimmed" fw="bold">
+                  SUGGESTED
                 </Text>
                 <IdeaButton
                   idea={firstIdea}

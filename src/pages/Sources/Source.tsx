@@ -47,6 +47,7 @@ import { updateSource } from "../../utils/sources";
 import { showNotification } from "@mantine/notifications";
 import { SourceProvider, useSource } from "./SourceContext";
 import useConnectable from "../../hooks/useConnectable";
+import TagsManager from "../Idea/TagsManager";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -169,44 +170,47 @@ export default function Source() {
                 </Tabs.Tab>
               </Tabs.List>
               <Tabs.Panel value="context">
-                {!source?.analysis && (
-                  <>
-                    <Text size="xs" c="dimmed">
-                      This source hasn't been analyzed.
-                    </Text>
-                    <Text size="xs" c="dark.3">
-                      Analysis uses third-party AI models in accordance with our{" "}
-                      <a href="https://www.noeko.app/privacy">Privacy Policy</a>
-                      .
-                    </Text>
-                  </>
-                )}
-                {source?.analysis && (
-                  <Card
-                    radius="lg"
-                    p={"sm"}
-                    styles={{
-                      root: {
-                        backgroundColor:
-                          "var(--mantine-color-dark-8) !important",
-                        border: "1px solid var(--mantine-color-dark-7)",
-                      },
-                    }}
-                  >
-                    <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
-                      The Gist
-                    </Text>
-                    <Text size="sm">{source.analysis.headline}</Text>
-                  </Card>
-                )}
-                {!!source && (
-                  <ConnectionManager
-                    connectable={{
-                      ...source,
-                      type: "source",
-                    }}
-                  />
-                )}
+                <Stack gap="md">
+                  {!source?.analysis && (
+                    <>
+                      <Text size="xs" c="dimmed">
+                        This source hasn't been analyzed.
+                      </Text>
+                    </>
+                  )}
+                  {source?.analysis && (
+                    <Card
+                      radius="lg"
+                      p={"sm"}
+                      styles={{
+                        root: {
+                          backgroundColor:
+                            "var(--mantine-color-dark-8) !important",
+                          border: "1px solid var(--mantine-color-dark-7)",
+                        },
+                      }}
+                    >
+                      <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+                        The Gist
+                      </Text>
+                      <Text size="sm">{source.analysis.headline}</Text>
+                    </Card>
+                  )}
+                  {!!source && (
+                    <TagsManager
+                      connectable={{ ...source, type: "source" }}
+                      maxSuggested={2}
+                    />
+                  )}
+                  {!!source && (
+                    <ConnectionManager
+                      connectable={{
+                        ...source,
+                        type: "source",
+                      }}
+                    />
+                  )}
+                </Stack>
               </Tabs.Panel>
               <Tabs.Panel value="analysis">
                 <AnalysisBlock
@@ -358,6 +362,10 @@ function AnalysisBlock({
         <Stack>
           <Text size="sm" c="dimmed">
             This source hasn't been analyzed.
+          </Text>
+          <Text size="xs" c="dark.3">
+            Analysis uses third-party AI models in accordance with our{" "}
+            <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
           </Text>
           <Button
             variant="light"

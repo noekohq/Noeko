@@ -12,6 +12,7 @@ import {
   ITag,
   ITagDescriptionRelationship,
 } from "../../app/database/models/tag";
+import { applyTagToThing } from "./tags";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
@@ -27,11 +28,12 @@ export const newIdea = async () => {
   }
 };
 
-export const createIdea = async (content: string) => {
+export const createIdea = async (form: { title?: string; content: string }) => {
   try {
     const results = await api.post("/ideas", {
-      generateTitle: true,
-      content,
+      generateTitle: !form.title,
+      title: form.title,
+      content: form.content,
     });
     return results.data.data as IIdea;
   } catch (error) {
@@ -187,45 +189,11 @@ export const getChunkSize = (chunk: IChunk): number => {
   }, 0);
 };
 
-export const addTagToIdea = async (ideaId: string, tagId: string) => {
-  try {
-    const response = await api.post(`/tags/${tagId}/ideas/${ideaId}`);
-    return response.data.data as ITagDescriptionRelationship; // Or a more specific part of the response if needed
-  } catch (error: any) {
-    console.error(`Error adding tag ${tagId} to idea ${ideaId}:`, error);
-    showNotification({
-      title: "Error Adding Tag",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while adding the tag.",
-      color: "red",
-    });
-    return undefined;
-  }
-};
-
-export const removeTagFromIdea = async (ideaId: string, tagId: string) => {
-  try {
-    const response = await api.delete(`/tags/${tagId}/ideas/${ideaId}`);
-    return response.data; // Or a more specific part of the response if needed
-  } catch (error: any) {
-    console.error(`Error removing tag ${tagId} from idea ${ideaId}:`, error);
-    showNotification({
-      title: "Error Removing Tag",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while removing the tag.",
-      color: "red",
-    });
-    return undefined;
-  }
-};
-
 export const newTaggedIdea = async (tagId: string) => {
   try {
     const idea = await newIdea();
     if (idea) {
-      addTagToIdea(idea.id.toString(), tagId);
+      applyTagToThing(idea.id.toString(), tagId);
     }
     return idea;
   } catch (error: any) {
@@ -235,54 +203,6 @@ export const newTaggedIdea = async (tagId: string) => {
       message:
         error.response?.data?.message ||
         "Something went wrong while adding the tag.",
-      color: "red",
-    });
-    return undefined;
-  }
-};
-
-export const createTag = async (name: string, description: string) => {
-  try {
-    const response = await api.post(`/tags`, {
-      name,
-      description,
-    });
-    return response.data.data as ITag;
-  } catch (error: any) {
-    console.error(`Error creatign tag ${name}:`, error);
-    showNotification({
-      title: "Error Creating Tag",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while creating the tag.",
-      color: "red",
-    });
-    return undefined;
-  }
-};
-
-export const createTagAndAddToIdea = async (
-  name: string,
-  description: string,
-  ideaId: string,
-) => {
-  try {
-    const created = await createTag(name, description);
-    if (!created) {
-      throw new Error("Couldn't create tag");
-    }
-    const added = await addTagToIdea(ideaId, created.id.toString());
-    if (!added) {
-      throw new Error("Couldn't add tag");
-    }
-    return added;
-  } catch (error: any) {
-    console.error(`Error creatign tag ${name}:`, error);
-    showNotification({
-      title: "Error Creating Tag",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while creating the tag.",
       color: "red",
     });
     return undefined;

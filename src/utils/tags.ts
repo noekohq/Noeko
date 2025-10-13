@@ -37,3 +37,51 @@ export const removeTagFromThing = async (
     return undefined;
   }
 };
+
+export const createTag = async (name: string, description: string) => {
+  try {
+    const response = await api.post(`/tags`, {
+      name,
+      description,
+    });
+    return response.data.data as ITag;
+  } catch (error: any) {
+    console.error(`Error creatign tag ${name}:`, error);
+    showNotification({
+      title: "Error Creating Tag",
+      message:
+        error.response?.data?.message ||
+        "Something went wrong while creating the tag.",
+      color: "red",
+    });
+    return undefined;
+  }
+};
+
+export const createTagAndAddToThing = async (
+  name: string,
+  description: string,
+  thingId: string,
+) => {
+  try {
+    const created = await createTag(name, description);
+    if (!created) {
+      throw new Error("Couldn't create tag");
+    }
+    const added = await addTagToThing(thingId, created.id.toString());
+    if (!added) {
+      throw new Error("Couldn't add tag");
+    }
+    return added;
+  } catch (error: any) {
+    console.error(`Error creatign tag ${name}:`, error);
+    showNotification({
+      title: "Error Creating Tag",
+      message:
+        error.response?.data?.message ||
+        "Something went wrong while creating the tag.",
+      color: "red",
+    });
+    return undefined;
+  }
+};

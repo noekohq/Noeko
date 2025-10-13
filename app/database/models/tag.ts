@@ -3,9 +3,6 @@ import { getDatabase } from "../db";
 import { User } from "./user";
 import { Idea, IIdea, IIdeaDerived } from "./ideas"; // Assuming Idea model is in this path
 import { getEmbedder } from "../../ai/embeddings/embeddings";
-import { getLM } from "../../ai/lms/lm";
-import { LMSchemaType } from "../../ai/lms";
-import { PromptBuilder } from "../../ai/lms/utils";
 import { Search } from "../../services/Search";
 import GraphService, { IConnectable } from "../../services/Graph";
 import { averageEmbeddings, weightedAverage } from "../../utils/math";
@@ -18,6 +15,7 @@ export type ITag = {
   description: string;
   color?: string; // Optional: hex code for tag color
   embeddings: number[] | null;
+  cachedCentroidEmbeddings: number[] | null;
   describes: ITagDescribes;
   embeddingsUpdatedAt: Date;
   createdAt: Date;
@@ -343,6 +341,9 @@ export class Tag {
         );
         return undefined;
       }
+
+      this.cacheCentroidVector(tag.id.toString());
+
       const [relationship] = result;
       return relationship;
     } catch (err) {
@@ -491,7 +492,12 @@ export class Tag {
       }
 
       const [things] = results;
-      return things;
+
+      const connectables = things.map(
+        (t) => GraphService.getConnectable(t) || t,
+      );
+
+      return connectables;
     } catch (error) {
       console.error("Error getting things for tag: ", error);
       return undefined;
@@ -665,6 +671,89 @@ export class Tag {
     }
   }
 
+  static async getTagAverageEmbeddings(tagId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const results = await db.query<
+        [(ITagDescribes & { embeddings: number[] })[]]
+      >(
+        `
+        SELECT VALUE
+          ->describes->(?) as describes
+        FROM ONLY $tagId
+        FETCH describes;
+        `,
+        {
+          tagId: new StringRecordId(tagId),
+        },
+      );
+
+      if (!results) {
+        throw new Error("Couldn't get results");
+      }
+
+      const [described] = results;
+      const vectors = described.map((i) => i.embeddings).filter((i) => !!i);
+
+      const averageEmbedding = averageEmbeddings(vectors);
+
+      return averageEmbedding;
+    } catch (error) {
+      console.error("Error getting average embeddings: ", error);
+      return undefined;
+    }
+  }
+
+  static async getWeightedVector(
+    tagEmbedding: number[] | null,
+    averageEmbedding: number[] | null,
+  ): Promise<number[]> {
+    try {
+      if (!tagEmbedding && !averageEmbedding) {
+        throw new Error("Can't get weighted vector of tag with no embeddings");
+      }
+
+      if (!tagEmbedding && !!averageEmbedding) {
+        return averageEmbedding;
+      }
+
+      if (!averageEmbedding && !!tagEmbedding) {
+        return tagEmbedding;
+      }
+
+      if (!averageEmbedding || !tagEmbedding) {
+        throw new Error("There's a problem with tag embeddings.");
+      }
+
+      const final = weightedAverage(tagEmbedding, averageEmbedding, 0.6);
+      return final;
+    } catch (error) {
+      console.error("Error getting weighted vector: ", error);
+      const emb = getEmbedder();
+      return emb.getEmptyEmbeddings();
+    }
+  }
+
+  static async cacheCentroidVector(tagId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const averageEmbeddings = await this.getTagAverageEmbeddings(tagId);
+
+      await Tag.update(tagId, {
+        cachedCentroidEmbeddings: averageEmbeddings,
+      });
+
+      return averageEmbeddings;
+    } catch (error) {
+      console.error("Error caching the tag centroid vector: ", error);
+      return undefined;
+    }
+  }
+
   static async getSimilarThings(
     userId: string | RecordId,
     tagId: string | RecordId,
@@ -700,8 +789,6 @@ export class Tag {
       }
 
       const [described] = results;
-      const vectors = described.map((i) => i.embeddings).filter((i) => !!i);
-      const averageEmbedding = averageEmbeddings(vectors);
 
       const tag = await Tag.get(tagId);
 
@@ -709,11 +796,18 @@ export class Tag {
         throw new Error("No tag found");
       }
 
+      let centroidEmbeddings: number[] | null = tag.cachedCentroidEmbeddings;
+      if (!centroidEmbeddings) {
+        const centroid = await Tag.cacheCentroidVector(tagId);
+        centroidEmbeddings = centroid ?? null;
+      }
+
       const tagEmbedding = tag.embeddings;
 
-      const finalVector = tagEmbedding
-        ? weightedAverage(tagEmbedding, averageEmbedding, 0.6)
-        : averageEmbedding;
+      const finalVector = await this.getWeightedVector(
+        tagEmbedding || null,
+        centroidEmbeddings || null,
+      );
 
       const similarThings = await GraphService.searchSimilarConnectables(
         userId,

@@ -500,15 +500,10 @@ export default function Idea() {
               {!!idea && (
                 <>
                   <Space my="lg" />
-                  <Stack>
-                    <Text size="sm" fw="bold" c="dimmed">
-                      <Group gap="xs">
-                        <TagIcon weight="fill" />
-                        TAGS
-                      </Group>
-                    </Text>
-                    <TagsManager maxSuggested={2} idea={idea} />
-                  </Stack>
+                  <TagsManager
+                    maxSuggested={2}
+                    connectable={{ ...idea, type: "idea" }}
+                  />
                   <ConnectionManager
                     connectable={{
                       ...idea,

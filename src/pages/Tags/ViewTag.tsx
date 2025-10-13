@@ -48,6 +48,7 @@ import CollapseButton from "../../components/Display/Interactions/CollapseButton
 import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 import { RecordId } from "surrealdb";
 import { applyTagToThing, removeTagFromThing } from "../../utils/tags";
+import ConnectableTable from "../../components/Display/Data/ConnectableTable";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -550,22 +551,6 @@ export default function ViewTag() {
                   <Title order={3}>Items with this tag</Title>
                   {loadingThings && <Loader size="md" />}
                 </Group>
-                <TextInput
-                  placeholder="Filter items..."
-                  value={filterQuery}
-                  onChange={(event) =>
-                    setFilterQuery(event.currentTarget.value)
-                  }
-                  mb="sm"
-                  radius="md"
-                  size="sm"
-                  styles={{
-                    input: {
-                      border: "1px solid var(--mantine-color-dark-7)",
-                    },
-                  }}
-                  variant="filled"
-                />
                 {thingErrors && thingErrors.length > 0 && (
                   <Alert
                     icon={<WarningCircleIcon size={24} />}
@@ -576,43 +561,7 @@ export default function ViewTag() {
                     Failed to load items for this tag: {thingErrors.join(", ")}
                   </Alert>
                 )}
-                {filteredThings && filteredThings.length > 0 ? (
-                  <SimpleGrid
-                    cols={{
-                      sm: 1,
-                      md: 2,
-                      lg: 2,
-                    }}
-                  >
-                    {filteredThings.map((thing) => (
-                      <CollapseButton
-                        key={thing.id.toString()}
-                        target={<ConnectableThing thing={thing} />}
-                        details={
-                          <Group>
-                            <Button
-                              radius="lg"
-                              variant="light"
-                              color="red"
-                              onClick={() => {
-                                handleRemoveTag(thing);
-                              }}
-                            >
-                              Remove "{tag.name}"
-                            </Button>
-                          </Group>
-                        }
-                      />
-                    ))}
-                  </SimpleGrid>
-                ) : (
-                  !loadingThings &&
-                  !(thingErrors && thingErrors.length > 0) && (
-                    <Text c="dimmed">
-                      No items are currently associated with this tag.
-                    </Text>
-                  )
-                )}
+                <ConnectableTable connectables={filteredThings} />
               </Stack>
             </Stack>
           )}
