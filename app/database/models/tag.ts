@@ -218,7 +218,11 @@ export class Tag {
   static async update(
     id: string | RecordId,
     data: Partial<
-      ITagForm & { embeddings: number[]; embeddingsUpdatedAt: Date }
+      ITagForm & {
+        embeddings: number[];
+        embeddingsUpdatedAt: Date;
+        cachedCentroidEmbeddings: number[];
+      }
     >,
   ): Promise<ITag | undefined> {
     try {
