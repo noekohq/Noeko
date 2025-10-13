@@ -97,12 +97,11 @@ export default function Search({
     load: loadRecent,
     loading: loadingRecent,
   } = useFetch<undefined, IConnectable[]>({
-    url: `/insights/recent?limit=10`,
+    url: `/insights/recent?limit=20`,
     method: "GET",
   });
   useEffect(() => {
     if (!searchResults?.length && !searchQuery.length) {
-      console.log("Loading recent...");
       loadRecent();
     }
   }, [searchResults]);

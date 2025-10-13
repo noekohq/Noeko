@@ -3,6 +3,7 @@ import {
   ActionIcon,
   Group,
   MantineColor,
+  Modal,
   Popover,
   Stack,
   Text,
@@ -11,7 +12,12 @@ import {
 import { IIdea } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
-import { IconProps, ArrowRightIcon, EyeIcon } from "@phosphor-icons/react";
+import {
+  IconProps,
+  ArrowRightIcon,
+  EyeIcon,
+  ArrowsOutIcon,
+} from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../../app/database/models/ideas";
 import { useDisclosure } from "@mantine/hooks";
@@ -125,114 +131,163 @@ function IdeaButton({
   ];
 
   const [opened, { open, close, toggle }] = useDisclosure();
+  const [previewing, setPreviewing] = useState(false);
 
   return (
-    <Popover
-      opened={opened}
-      closeOnClickOutside
-      onChange={(o) => {
-        if (o) {
-          open();
-        } else {
-          close();
-        }
-      }}
-      width="400px"
-      shadow="lg"
-      radius="md"
-      transitionProps={{
-        transition: "fade-down",
-        duration: 200,
-        timingFunction: "ease-out",
-      }}
-    >
-      <Popover.Target>
-        <div
-          role="button"
-          data-thing-id={idea.id.toString()}
-          data-idea-id={idea.id.toString()}
-          className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
-          draggable={true}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onClick={handleClick}
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleClick(e);
-            }
-            if (e.key === "ArrowRight") {
-              navigate(`/idea/${idea.id.toString()}`);
-            }
+    <>
+      <Popover
+        opened={opened}
+        closeOnClickOutside
+        onChange={(o) => {
+          if (o) {
+            open();
+          } else {
+            close();
+          }
+        }}
+        width="400px"
+        shadow="lg"
+        radius="md"
+        transitionProps={{
+          transition: "fade-down",
+          duration: 200,
+          timingFunction: "ease-out",
+        }}
+      >
+        <Popover.Target>
+          <div
+            role="button"
+            data-thing-id={idea.id.toString()}
+            data-idea-id={idea.id.toString()}
+            className={`${styles.ideaButton} ${fullWidth ? styles["full-width"] : ""}`}
+            draggable={true}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onClick={handleClick}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleClick(e);
+              }
+              if (e.key === "ArrowRight") {
+                navigate(`/idea/${idea.id.toString()}`);
+              }
+            }}
+            onMouseEnter={() => {
+              setHovering(true);
+            }}
+            onMouseLeave={() => {
+              setHovering(false);
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              toggle();
+            }}
+          >
+            <Group justify="space-between" wrap="nowrap" w="100%">
+              <Text
+                className={styles.title}
+                c="dark.1"
+                size="sm"
+                truncate="end"
+              >
+                <Group gap="xs" wrap="nowrap">
+                  {idea.title}
+                </Group>
+              </Text>
+              {hovering && (
+                <Group wrap="nowrap" gap="xs">
+                  {allActions?.map((action) => {
+                    return (
+                      <ActionIcon
+                        key={action.id}
+                        size="xs"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          action.onClick(e);
+                        }}
+                        variant="subtle"
+                        color={action.color ? action.color : "dark.4"}
+                        title={action.tooltip}
+                      >
+                        {action.icon
+                          ? React.cloneElement(action.icon, {
+                              size: 12,
+                            })
+                          : undefined}
+                      </ActionIcon>
+                    );
+                  })}
+                </Group>
+              )}
+            </Group>
+          </div>
+        </Popover.Target>
+        <Popover.Dropdown
+          onClick={(e) => {
+            e.stopPropagation();
           }}
-          onMouseEnter={() => {
-            setHovering(true);
-          }}
-          onMouseLeave={() => {
-            setHovering(false);
-          }}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            toggle();
+          style={{
+            maxHeight: "400px",
+            overflowY: "scroll",
           }}
         >
-          <Group justify="space-between" wrap="nowrap" w="100%">
-            <Text className={styles.title} c="dark.1" size="sm" truncate="end">
+          <Stack gap="xs">
+            <Group wrap="nowrap" gap="sm" justify="space-between">
+              <Text size="md">{idea.title}</Text>
               <Group gap="xs" wrap="nowrap">
-                {idea.title}
+                <ActionIcon
+                  variant="light"
+                  color="gray"
+                  size="sm"
+                  radius="md"
+                  onClick={() => {
+                    setPreviewing(true);
+                  }}
+                >
+                  <ArrowsOutIcon />
+                </ActionIcon>
+                <ActionIcon
+                  variant="light"
+                  color="gray"
+                  size="sm"
+                  radius="md"
+                  onClick={() => {
+                    navigate(`/idea/${idea.id.toString()}`);
+                  }}
+                >
+                  <ArrowRightIcon />
+                </ActionIcon>
               </Group>
-            </Text>
-            {hovering && (
-              <Group wrap="nowrap" gap="xs">
-                {allActions?.map((action) => {
-                  return (
-                    <ActionIcon
-                      key={action.id}
-                      size="xs"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        action.onClick(e);
-                      }}
-                      variant="subtle"
-                      color={action.color ? action.color : "dark.4"}
-                      title={action.tooltip}
-                    >
-                      {action.icon
-                        ? React.cloneElement(action.icon, {
-                            size: 12,
-                          })
-                        : undefined}
-                    </ActionIcon>
-                  );
-                })}
-              </Group>
-            )}
-          </Group>
-        </div>
-      </Popover.Target>
-      <Popover.Dropdown
+            </Group>
+            <Text
+              size="sm"
+              dangerouslySetInnerHTML={{
+                __html: idea.content,
+              }}
+            />
+          </Stack>
+        </Popover.Dropdown>
+      </Popover>
+      <Modal
+        opened={previewing}
+        onClose={() => {
+          setPreviewing(false);
+        }}
+        title={<Text size="sm">Previewing {idea.title}</Text>}
         onClick={(e) => {
           e.stopPropagation();
         }}
-        style={{
-          maxHeight: "400px",
-          overflowY: "scroll",
-        }}
+        size="lg"
       >
-        <Stack gap="xs">
-          <Text c="dimmed" fw="bold" size="sm">
-            {idea.title}
-          </Text>
-          <Text
-            size="sm"
-            dangerouslySetInnerHTML={{
-              __html: idea.content,
-            }}
-          />
-        </Stack>
-      </Popover.Dropdown>
-    </Popover>
+        <div
+          dangerouslySetInnerHTML={{
+            __html: idea.content,
+          }}
+        />
+      </Modal>
+    </>
   );
 }
 

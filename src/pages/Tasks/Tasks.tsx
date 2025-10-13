@@ -6,7 +6,6 @@ import {
   Text,
   Loader,
   Group,
-  Switch,
   ActionIcon,
 } from "@mantine/core";
 import { useInView } from "react-intersection-observer";
@@ -14,7 +13,6 @@ import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 
 import { ITask } from "../../../app/database/models/task";
-import TaskCard from "../../components/Display/Tasks/TaskCard";
 import { api } from "../../server/api";
 import styles from "./Tasks.module.scss";
 import PageWrapper from "../../components/Layout/PageWrapper";

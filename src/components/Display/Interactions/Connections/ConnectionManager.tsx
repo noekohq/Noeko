@@ -56,6 +56,7 @@ export default function ConnectionManager({
     disconnect,
     load,
     isConnected,
+    loadingConnect,
   } = useConnectable({ connectable });
 
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -99,6 +100,12 @@ export default function ConnectionManager({
   const {
     actions: { newConnectedIdea },
   } = useInteraction();
+
+  const relatedOutOfDate = () => {
+    const lastUpdated = new Date(connectable.updatedAt);
+    const lastEmbeddingsUpdate = new Date(connectable.embeddingsUpdatedAt);
+    return lastUpdated.getTime() > lastEmbeddingsUpdate.getTime();
+  };
 
   return (
     <div className={styles.connectionManager}>
@@ -230,6 +237,8 @@ export default function ConnectionManager({
                             title="Disconnect this thing"
                             leftSection={<SubtractSquareIcon weight="bold" />}
                             radius="md"
+                            loading={loadingConnect}
+                            disabled={loadingConnect}
                           >
                             Disconnect
                           </Button>
@@ -249,7 +258,7 @@ export default function ConnectionManager({
           <Group gap="xs">
             <IntersectSquareIcon weight="bold" />
             RELATED
-            {/*<Transition mounted={loadingSimilar} transition="fade-up">
+            {/*<Transition mounted={relatedOutOfDate()} transition="fade-up">
               {(styles) => {
                 if (loadingSimilar) {
                   return <Loader color="gray" size="xs" />;
@@ -317,6 +326,8 @@ export default function ConnectionManager({
                                 }}
                                 title="Connect this idea"
                                 leftSection={<UniteSquareIcon weight="bold" />}
+                                loading={loadingConnect}
+                                disabled={loadingConnect}
                               >
                                 Connect
                               </Button>
