@@ -1,6 +1,10 @@
 import { RecordId } from "surrealdb";
 import { api } from "../server/api";
-import { ITagDescriptionRelationship } from "../../app/database/models/tag";
+import {
+  ITag,
+  ITagDescriptionRelationship,
+} from "../../app/database/models/tag";
+import { showNotification } from "@mantine/notifications";
 
 export const applyTagToThing = async (
   tagId: string | RecordId,
@@ -68,7 +72,7 @@ export const createTagAndAddToThing = async (
     if (!created) {
       throw new Error("Couldn't create tag");
     }
-    const added = await addTagToThing(thingId, created.id.toString());
+    const added = await applyTagToThing(thingId, created.id.toString());
     if (!added) {
       throw new Error("Couldn't add tag");
     }

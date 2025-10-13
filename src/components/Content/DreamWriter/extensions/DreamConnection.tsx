@@ -290,37 +290,57 @@ const suggestionOptionsDefinition = (
         return;
       }
 
+      const insertionPos = finalRange.from;
+
       const commandMap: Record<string, () => boolean> = {
-        idea: () =>
-          editor
+        idea: () => {
+          const content = props.title ?? "";
+          const from = insertionPos + 1;
+          const to = from + content.length;
+
+          return editor
             .chain()
             .focus()
             .deleteRange(finalRange)
             .setDreamIdea({
               ideaId: props.id.toString(),
-              content: props.title,
+              content: content,
             })
-            .run(),
-        source: () =>
-          editor
+            .setTextSelection({ from, to }) // <-- Select the inner content
+            .run();
+        },
+        source: () => {
+          const content = props.displayName ?? "";
+          const from = insertionPos + 1;
+          const to = from + content.length;
+
+          return editor
             .chain()
             .focus()
             .deleteRange(finalRange)
             .setDreamSource({
               sourceId: props.id.toString(),
-              content: props.displayName,
+              content: content,
             })
-            .run(),
-        task: () =>
-          editor
+            .setTextSelection({ from, to }) // <-- Select the inner content
+            .run();
+        },
+        task: () => {
+          const content = originalQuery ?? "";
+          const from = insertionPos + 1;
+          const to = from + content.length;
+
+          return editor
             .chain()
             .focus()
             .deleteRange(finalRange)
             .setDreamTask({
               taskId: props.id.toString(),
-              content: originalQuery,
+              content: content,
             })
-            .run(),
+            .setTextSelection({ from, to }) // <-- Select the inner content
+            .run();
+        },
       };
 
       if (
