@@ -1,10 +1,15 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import { IIdea, IIdeaAsRelation, IIdeaDerived } from "../database/models/ideas";
+import {
+  IIdea,
+  IIdeaAsRelation,
+  IIdeaDerived,
+  ISafeIdea,
+} from "../database/models/ideas";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { ITag } from "../database/models/tag";
 import { IRabbithole } from "../database/models/rabbithole";
-import { ITask } from "../database/models/task";
+import { IPublicTask, ITask } from "../database/models/task";
 import { IExcerpt } from "../database/models/excerpt";
 import { IConnectable, IConnectableTypes } from "./Graph";
 import { ISource } from "../database/models/source";
@@ -25,13 +30,46 @@ export type ISearchResult = {
   };
 };
 
-export type IFTSIdeaResult = IIdea & {
+export type IFTSIdeaResult = ISafeIdea & {
   contentScore: number;
   titleScore: number;
   preview: string;
 };
 
-export type ISemanticIdeaResult = IIdeaAsRelation & {};
+export type IFTSTaskResult = IPublicTask & {
+  descriptionScore: number;
+  scratchpadScore: number;
+  preview: string;
+};
+
+export type IFTSSourceResult = ISource & {
+  contentScore: number;
+  displayNameScore: number;
+  preview: string;
+};
+
+export type IFTSExcerptResult = IExcerpt & {
+  noteScore: number;
+  sourceTextScore: number;
+  preview: string;
+};
+
+export type IFTSResult =
+  | IFTSIdeaResult
+  | IFTSTaskResult
+  | IFTSSourceResult
+  | IFTSExcerptResult;
+
+export type ISemanticIdeaResult = IIdea & { similarity: number };
+export type ISemanticTaskResult = ITask & { similarity: number };
+export type ISemanticSourceResult = ISource & { similarity: number };
+export type ISemanticExcerptResult = IExcerpt & { similarity: number };
+
+export type ISemanticResult =
+  | ISemanticIdeaResult
+  | ISemanticTaskResult
+  | ISemanticSourceResult
+  | ISemanticExcerptResult;
 
 export type ITagSearchResultValue = ITag;
 
@@ -68,12 +106,49 @@ export type IExcerptSearchResult = {
   search_type?: "fts" | "semantic";
 };
 
-export type IFTExcerptSResult = {
-  score: number;
-  id: string | RecordId;
+export type ISearchableTable =
+  | "task"
+  | "idea"
+  | "source"
+  | "excerpt"
+  | "rabbithole"
+  | "tag";
+
+export type IConnectableSearchQueryTagFilter = {
+  set: (string | RecordId)[];
+  behavior: "and" | "or";
 };
 
-export type ISemanticExcerptResult = IFTExcerptSResult;
+export type IConnectableSearchQueryVectorSettings = {
+  effort: number | "low" | "mid" | "high";
+};
+
+export type IConnectableSearchQuery = { query: string } & Partial<{
+  tables: IConnectableTypes[];
+  limit: number;
+  rabbithole: string | RecordId;
+  tags?: IConnectableSearchQueryTagFilter;
+  searchType: {
+    fts: boolean;
+    vector: boolean;
+  };
+  date: {
+    createdAt?: {
+      after?: string;
+      before?: string;
+    };
+    updatedAt?: {
+      after?: string;
+      before?: string;
+    };
+    viewedAt?: {
+      after?: string;
+      before?: string;
+    };
+  };
+  vectorSettings?: IConnectableSearchQueryVectorSettings;
+  scope?: string[];
+}>;
 
 export class Search {
   private static readonly COMPREHENSIVE_WEIGHTS = {
@@ -531,9 +606,329 @@ export class Search {
     // Implementation for removing indexes can be added here
   }
 
-  // =================================================================
-  // FTS Search Methods
-  // =================================================================
+  private static _normalizeScores(results: ISearchResult[]): void {
+    // Return early if there are no results or only one result
+    if (results.length <= 1) {
+      if (results.length === 1) {
+        // Set a single result's score to 1 as it's the 'best'
+        results[0].score = 1.0;
+      }
+      return;
+    }
+
+    let minScore = results[0].score;
+    let maxScore = results[0].score;
+
+    for (const result of results) {
+      if (result.score < minScore) minScore = result.score;
+      if (result.score > maxScore) maxScore = result.score;
+    }
+
+    const range = maxScore - minScore;
+
+    // Avoid division by zero if all scores are the same
+    if (range === 0) {
+      for (const result of results) {
+        result.score = 1.0; // Or 0.5, or any constant value
+      }
+      return;
+    }
+
+    for (const result of results) {
+      result.score = (result.score - minScore) / range;
+    }
+  }
+
+  private static _fuseResults(
+    ftsResults: ISearchResult[],
+    semanticResults: ISearchResult[],
+  ): ISearchResult[] {
+    // Step 1: Normalize scores for each result set independently
+    this._normalizeScores(ftsResults);
+    this._normalizeScores(semanticResults);
+
+    // Step 2: Use a Map to combine results by their unique ID
+    const combined = new Map<
+      string,
+      { ftsScore: number; semanticScore: number; result: ISearchResult }
+    >();
+
+    // Process FTS results
+    for (const fts of ftsResults) {
+      const id = typeof fts.id === "string" ? fts.id : fts.id.toString();
+      combined.set(id, {
+        ftsScore: fts.score, // This is now normalized
+        semanticScore: 0,
+        result: fts,
+      });
+    }
+
+    // Process and merge semantic results
+    for (const semantic of semanticResults) {
+      const id =
+        typeof semantic.id === "string" ? semantic.id : semantic.id.toString();
+      const existing = combined.get(id);
+
+      if (existing) {
+        // Document was also in FTS results, update its semantic score
+        existing.semanticScore = semantic.score; // This is now normalized
+      } else {
+        // Document was only in semantic results, add it
+        combined.set(id, {
+          ftsScore: 0,
+          semanticScore: semantic.score,
+          result: semantic,
+        });
+      }
+    }
+
+    // Step 3: Calculate the final weighted score for each result
+    const finalResults: ISearchResult[] = [];
+    for (const [id, data] of combined.entries()) {
+      // Note: Assuming ftsScore is a combined title + content score.
+      // If they are separate, you'd apply COMPREHENSIVE_WEIGHTS here.
+      // For this example, let's assume fts.score already reflects title/content weighting.
+      let finalScore =
+        data.ftsScore * this.COMPREHENSIVE_WEIGHTS.FTS_CONTENT +
+        data.semanticScore * this.COMPREHENSIVE_WEIGHTS.SEMANTIC;
+
+      // Apply exact title bonus if applicable (you'd need to pass this info)
+      // if (data.result.debug?.exactTitleBonus) {
+      //   finalScore += this.EXACT_TITLE_BONUS;
+      // }
+
+      data.result.score = finalScore;
+
+      // Update debug info for clarity
+      data.result.debug = {
+        ...data.result.debug,
+        semanticScore: data.semanticScore,
+        ftsContentScore: data.ftsScore, // Assuming ftsScore is content for simplicity
+        source: "hybrid",
+      };
+
+      finalResults.push(data.result);
+    }
+
+    // Step 4: Sort by the new final score and return
+    return this.sortByScore(finalResults);
+  }
+
+  public static async searchConnectables(
+    userId: string | RecordId,
+    query: IConnectableSearchQuery,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+
+      const ftsResults: ISearchResult[] = [];
+      const semanticResults: ISearchResult[] = [];
+
+      const searchType = query.searchType ?? {
+        fts: true,
+        vector: true,
+      };
+
+      if (searchType?.fts) {
+        console.info("Searching FTS: ", query.query);
+        const r = await this.ftsSearchConnectables(userId, query);
+        if (r) {
+          ftsResults.push(...r);
+        } else {
+          console.error("Couldn't get any fts results");
+        }
+      }
+
+      if (searchType?.vector) {
+        console.info("Searching Vector: ", query.query);
+        const r = await this.semanticSearchConnectables(userId, query);
+        if (r) {
+          semanticResults.push(...r);
+        } else {
+          console.error("Couldn't get any semantic results");
+        }
+      }
+
+      const merged = this._fuseResults(ftsResults, semanticResults);
+
+      return merged;
+    } catch (error) {
+      console.error("Error searching connectables: ", userId, query, error);
+      return undefined;
+    }
+  }
+
+  public static sortByScore(results: ISearchResult[]) {
+    return results.sort((a, b) => b.score - a.score);
+  }
+
+  public static async ftsSearchConnectables(
+    userId: string | RecordId,
+    query: IConnectableSearchQuery,
+  ): Promise<ISearchResult[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+
+      const searches: ISearchResult[] = [];
+      const allTables = !query.tables;
+
+      if (query.tables?.includes("idea") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "idea",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchFTS();
+        if (!results) {
+          console.error("Couldn't get idea search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+      if (query.tables?.includes("task") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "task",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchFTS();
+        if (!results) {
+          console.error("Couldn't get task search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+      if (query.tables?.includes("source") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "source",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchFTS();
+        if (!results) {
+          console.error("Couldn't get source search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+      if (query.tables?.includes("excerpt") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "excerpt",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchFTS();
+        if (!results) {
+          console.error("Couldn't get excerpt search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+
+      const merged = this.sortByScore(searches);
+
+      return merged;
+    } catch (error) {
+      console.error(
+        "Error full-text searching connectables: ",
+        userId,
+        query,
+        error,
+      );
+      return undefined;
+    }
+  }
+
+  public static async semanticSearchConnectables(
+    userId: string | RecordId,
+    query: IConnectableSearchQuery,
+  ): Promise<ISearchResult[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+
+      const embedder = getEmbedder();
+      const embedding = await embedder.embedContent(query.query);
+      if (!embedding) {
+        return [];
+      }
+
+      const searches: ISearchResult[] = [];
+      const allTables = !query.tables;
+
+      if (query.tables?.includes("idea") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "idea",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchVector(embedding);
+        if (!results) {
+          console.error("Couldn't get idea search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+      if (query.tables?.includes("task") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "task",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchVector(embedding);
+        if (!results) {
+          console.error("Couldn't get task search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+      if (query.tables?.includes("source") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "source",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchVector(embedding);
+        if (!results) {
+          console.error("Couldn't get source search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+      if (query.tables?.includes("excerpt") || allTables) {
+        const qb = new ConnectableTableSearchBuilder({
+          table: "excerpt",
+          searchQuery: query,
+          userId,
+        });
+        const results = await qb.searchVector(embedding);
+        if (!results) {
+          console.error("Couldn't get excerpt search results");
+        } else {
+          searches.push(...results);
+        }
+      }
+
+      const merged = this.sortByScore(searches);
+      return merged;
+    } catch (error) {
+      console.error(
+        "Error full-text searching connectables: ",
+        userId,
+        query,
+        error,
+      );
+      return undefined;
+    }
+  }
 
   public static async ftsSearchIdeas(
     userId: string | RecordId,
@@ -1372,3 +1767,423 @@ export const initSearch = async () => {
 export const dropSearch = async () => {
   await Search.down();
 };
+
+export class ConnectableSearchQueryBuilder {
+  private whereClauses: string[] = [];
+  private params: Record<string, any> = {};
+
+  constructor() {}
+
+  public ownedBy(userId: string | RecordId): this {
+    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
+    this.params.userId = new StringRecordId(userId);
+    return this;
+  }
+
+  public withDateRange(
+    field: "createdAt" | "updatedAt" | "viewedAt",
+    options: { after?: string; before?: string },
+  ): this {
+    const { after, before } = options;
+    const afterDate = after ? new Date(after) : null;
+    const beforeDate = before ? new Date(before) : null;
+
+    if (
+      afterDate &&
+      !isNaN(afterDate.getTime()) &&
+      beforeDate &&
+      !isNaN(beforeDate.getTime())
+    ) {
+      this.whereClauses.push(
+        `<datetime> ${field} >= <datetime> $${field}After AND <datetime> ${field} <= <datetime> $${field}Before`,
+      );
+      this.params[`${field}After`] = afterDate;
+      this.params[`${field}Before`] = beforeDate;
+    } else if (afterDate && !isNaN(afterDate.getTime())) {
+      this.whereClauses.push(
+        `<datetime> ${field} >= <datetime> $${field}After`,
+      );
+      this.params[`${field}After`] = afterDate;
+    } else if (beforeDate && !isNaN(beforeDate.getTime())) {
+      this.whereClauses.push(
+        `<datetime> ${field} <= <datetime> $${field}Before`,
+      );
+      this.params[`${field}Before`] = beforeDate;
+    }
+    return this;
+  }
+
+  public inRabbithole(rabbitholeId: string | RecordId): this {
+    const clause = `
+      (
+        id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+        id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+      )
+    `;
+    this.whereClauses.push(clause);
+    this.params.rabbitholeId = new StringRecordId(rabbitholeId);
+    return this;
+  }
+
+  public withTags(filter: IConnectableSearchQueryTagFilter): this {
+    const { set, behavior } = filter;
+    if (!set.length) {
+      return this;
+    }
+
+    switch (behavior) {
+      case "and":
+        this.whereClauses.push(
+          `array::len(<-describes<-(tag WHERE id in $tagSet) = array::len($tagSet)`,
+        );
+        break;
+      case "or":
+        this.whereClauses.push(`<-describes<-(tag WHERE id IN $tagSet)`);
+        break;
+    }
+
+    this.params.tagSet = set.map((s) => new StringRecordId(s));
+
+    return this;
+  }
+
+  public withScope(filter: IConnectableSearchQuery["scope"]): this {
+    if (!filter) {
+      return this;
+    }
+    this.whereClauses.push(`id IN $scopeSet`);
+    this.params.scopeSet = filter?.map((s) => new StringRecordId(s));
+    return this;
+  }
+
+  public build(): { where: string[]; params: Record<string, any> } {
+    return {
+      where: this.whereClauses,
+      params: this.params,
+    };
+  }
+}
+
+interface IConnectableTableSearchBuilderArgs {
+  table: IConnectableTypes;
+  userId: string | RecordId;
+  searchQuery: IConnectableSearchQuery;
+}
+
+export class ConnectableTableSearchBuilder {
+  private table: IConnectableTypes;
+  private searchQuery: IConnectableSearchQuery;
+  private userId: string | RecordId;
+  private queryBuilder: ConnectableSearchQueryBuilder;
+  private defaultLimit = 50;
+
+  constructor({
+    table,
+    userId,
+    searchQuery,
+  }: IConnectableTableSearchBuilderArgs) {
+    this.table = table;
+    this.userId = userId;
+    this.searchQuery = searchQuery;
+    this.queryBuilder = new ConnectableSearchQueryBuilder();
+
+    this.buildFilters();
+  }
+
+  public vectorEffort() {
+    const effort = this.searchQuery.vectorSettings?.effort ?? "mid";
+    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    if (typeof effort === "number") {
+      return effort;
+    }
+    switch (effort) {
+      case "low":
+        return limit * 2;
+      case "mid":
+        return limit * 8;
+      case "high":
+        return limit * 15;
+    }
+  }
+
+  public static tableSelector: Record<
+    IConnectableTypes,
+    {
+      ftsFields: string[];
+      vectorFields: string[];
+    }
+  > = {
+    idea: {
+      ftsFields: ["title", "contentPlain"] as (keyof IIdea)[],
+      vectorFields: ["embeddings"] as (keyof IIdea)[],
+    },
+    task: {
+      ftsFields: ["description", "scratchpad"] as (keyof ITask)[],
+      vectorFields: ["embeddings"] as (keyof ITask)[],
+    },
+    source: {
+      ftsFields: ["displayName", "content"] as (keyof ISource)[],
+      vectorFields: ["embeddings"] as (keyof ISource)[],
+    },
+    excerpt: {
+      ftsFields: ["sourceText", "note"] as (keyof IExcerpt)[],
+      vectorFields: ["embeddings"] as (keyof ISource)[],
+    },
+  };
+
+  public static mapTableSearch: Record<
+    IConnectableTypes,
+    {
+      fts: (thing: IFTSResult) => ISearchResult;
+      vector: (thing: ISemanticResult) => ISearchResult;
+    }
+  > = {
+    idea: {
+      fts: (thing) => {
+        const idea = thing as IFTSIdeaResult;
+        return {
+          id: idea.id.toString(),
+          score: (idea.contentScore ?? 0) + (idea.titleScore ?? 0),
+          value: {
+            ...idea,
+            type: "idea",
+          },
+        } satisfies ISearchResult;
+      },
+      vector: (thing: ISemanticResult) => {
+        const idea = thing as ISemanticIdeaResult;
+        return {
+          id: idea.id.toString(),
+          score: idea.similarity,
+          value: {
+            ...idea,
+            type: "idea",
+          },
+        } satisfies ISearchResult;
+      },
+    },
+    task: {
+      fts: (thing: IFTSResult) => {
+        const task = thing as IFTSTaskResult;
+        return {
+          id: task.id.toString(),
+          score: (task.descriptionScore ?? 0) + (task.scratchpadScore ?? 0),
+          value: {
+            ...task,
+            type: "task",
+          },
+        } satisfies ISearchResult;
+      },
+      vector: (thing: ISemanticResult) => {
+        const task = thing as ISemanticTaskResult;
+        return {
+          id: task.id.toString(),
+          score: task.similarity,
+          value: {
+            ...task,
+            type: "task",
+          },
+        } satisfies ISearchResult;
+      },
+    },
+    source: {
+      fts: (thing: IFTSResult) => {
+        const source = thing as IFTSSourceResult;
+        return {
+          id: source.id.toString(),
+          score: (source.contentScore ?? 0) + (source.displayNameScore ?? 0),
+          value: {
+            ...source,
+            type: "source",
+          },
+        } satisfies ISearchResult;
+      },
+      vector: (thing: ISemanticResult) => {
+        const source = thing as ISemanticSourceResult;
+        return {
+          id: source.id.toString(),
+          score: source.similarity,
+          value: {
+            ...source,
+            type: "source",
+          },
+        } satisfies ISearchResult;
+      },
+    },
+    excerpt: {
+      fts: (thing: IFTSResult) => {
+        const excerpt = thing as IFTSExcerptResult;
+        return {
+          id: excerpt.id.toString(),
+          score: (excerpt.noteScore ?? 0) + (excerpt.sourceTextScore ?? 0),
+          value: {
+            ...excerpt,
+            type: "excerpt",
+          },
+        } satisfies ISearchResult;
+      },
+      vector: (thing: ISemanticResult) => {
+        const excerpt = thing as ISemanticExcerptResult;
+        return {
+          id: excerpt.id.toString(),
+          score: excerpt.similarity,
+          value: {
+            ...excerpt,
+            type: "excerpt",
+          },
+        } satisfies ISearchResult;
+      },
+    },
+  };
+
+  public buildFilters() {
+    const builder = this.queryBuilder;
+
+    if (this.userId) {
+      builder.ownedBy(this.userId);
+    }
+
+    const { date, tags, rabbithole, scope } = this.searchQuery;
+
+    if (date?.createdAt) {
+      builder.withDateRange("createdAt", date.createdAt);
+    }
+    if (date?.updatedAt) {
+      builder.withDateRange("updatedAt", date.updatedAt);
+    }
+    if (date?.viewedAt) {
+      builder.withDateRange("viewedAt", date.viewedAt);
+    }
+
+    if (tags) {
+      builder.withTags(tags);
+    }
+
+    if (rabbithole) {
+      builder.inRabbithole(rabbithole);
+    }
+
+    if (scope?.length) {
+      builder.withScope(scope);
+    }
+  }
+
+  public buildFTS(): {
+    query: string;
+    params: Record<string, any>;
+  } {
+    const { ftsFields, vectorFields } =
+      ConnectableTableSearchBuilder.tableSelector[this.table];
+    const ftsSelectors = ftsFields.map((f, i) => {
+      return `${f} @${i}@ $query`;
+    });
+    const ftsSearchFields = ftsFields.map((f) => {
+      return `${f}Score`; // Ex. contentScore
+    });
+    const ftsSelectorScores = ftsSearchFields.map((f, i) => {
+      return `search::score(${i}) AS ${f}`;
+    });
+    const { where: filterWhere, params: filterParams } =
+      this.queryBuilder.build();
+    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    const query = this.searchQuery.query;
+
+    const baseQuery = `
+      SELECT
+        *,
+        search::highlight("->", "<-", 0) AS preview,
+        ${ftsSelectorScores.join(", ")}
+      OMIT ${vectorFields.join(", ")}
+      FROM ${this.table}
+      WHERE
+        (${ftsSelectors.join(" OR ")}) AND
+        ${filterWhere.join(" AND ")}
+      ORDER BY
+        ${ftsSearchFields.map((f) => `${f} DESC`).join(",")}
+      LIMIT ${limit};
+      `;
+
+    return {
+      query: baseQuery,
+      params: { ...filterParams, query },
+    };
+  }
+
+  public async searchFTS(): Promise<ISearchResult[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+      const { query, params } = this.buildFTS();
+      const results = await db.query<[IFTSResult[]]>(query, params);
+      if (!results || !results[0]) {
+        console.error("Failed to get ideas with FTS: ", results);
+      }
+      const [r] = results;
+      const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
+      const searchResults = r.map((r) => mapper.fts(r));
+      return searchResults;
+    } catch (error) {
+      console.error("Error searching with fts: ", error);
+      return undefined;
+    }
+  }
+
+  public buildVector(embedding: number[]): {
+    query: string;
+    params: Record<string, any>;
+  } {
+    const { vectorFields } =
+      ConnectableTableSearchBuilder.tableSelector[this.table];
+    const { where: filterWhere, params: filterParams } =
+      this.queryBuilder.build();
+    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    const effort = this.vectorEffort();
+
+    const baseQuery = `
+      SELECT
+        *,
+        ${vectorFields.map((f) => {
+          return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
+        })}
+      OMIT ${vectorFields.join(", ")}
+      FROM ${this.table}
+      WHERE
+        ${filterWhere.join(" AND ")} AND
+        embeddings <|${limit}, ${effort}|> $embedding
+      ORDER BY similarity DESC
+        `;
+
+    return {
+      query: baseQuery,
+      params: {
+        ...filterParams,
+        embedding,
+      },
+    };
+  }
+
+  public async searchVector(
+    embedding: number[],
+  ): Promise<ISearchResult[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+      const { query, params } = this.buildVector(embedding);
+      const results = await db.query<[ISemanticResult[]]>(query, params);
+      if (!results || !results[0]) {
+        console.error("Failed to get ideas with vector search: ", results);
+      }
+      const [r] = results;
+      const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
+      const searchResults = r.map((r) => mapper.vector(r));
+      return searchResults;
+    } catch (error) {
+      console.error("Error searching with vector: ", error);
+      return undefined;
+    }
+  }
+}

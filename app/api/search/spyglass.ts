@@ -14,7 +14,7 @@ router.post("/initialize", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const { query, parentId, rabbitholeId } = req.body;
+    const { query, parentId, rabbitholeId, scope } = req.body;
     if (!query) {
       res.status(400).json({ error: "Query is required" });
       return;
@@ -38,6 +38,7 @@ router.post("/initialize", checkToken, async (req, res) => {
       },
       {
         rabbitholeId,
+        scope,
       },
     );
     if (!newSpyglass) {

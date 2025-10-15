@@ -5,17 +5,60 @@ import { ISafeUser } from "../../database/models/user";
 import {
   ISearchResult,
   Search,
-  ITagSearchResult, // Added for tag search results
+  ITagSearchResult,
+  IConnectableSearchQuery, // Added for tag search results
 } from "../../services/Search";
 import { ISearchOverview } from "../../database/models/search";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { ITag } from "../../database/models/tag";
 import spyglassRouter from "./spyglass";
 import { IRabbithole } from "../../database/models/rabbithole";
+import z from "zod";
+import { ConnectableSearchQuerySchema } from "../../utils/validation";
 
 const router = Router();
 
 router.use("/spyglass", spyglassRouter);
+
+router.post("/", checkToken, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const validationResult = ConnectableSearchQuerySchema.safeParse(req.body);
+    if (!validationResult.success) {
+      res.status(400).json({
+        message: "Invalid request body",
+        error: z.treeifyError(validationResult.error),
+      });
+      return;
+    }
+
+    const searchQuery = validationResult.data as IConnectableSearchQuery;
+
+    const results = await Search.searchConnectables(
+      user.id.toString(),
+      searchQuery,
+    );
+
+    if (!results) {
+      throw new Error("Couldn't get results");
+    }
+
+    res.send({
+      message: "Succesfully searched",
+      data: results,
+    });
+  } catch (error) {
+    console.error("Error searching: ", error);
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
 
 router.post("/comprehensive", checkToken, async (req, res) => {
   try {

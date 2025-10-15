@@ -1,7 +1,7 @@
 import { getLM } from "../ai/lms/lm";
 import { LMSchema, LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
-import { ISearchResult, Search } from "./Search";
+import { IConnectableSearchQuery, ISearchResult, Search } from "./Search";
 import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
@@ -372,7 +372,7 @@ export const Modes: Record<string, ISpyglassMode> = {
 
 export interface ISpyglassIntent {
   intent: string;
-  queries: string[];
+  searches: IConnectableSearchQuery[];
   mode: keyof typeof Modes;
 }
 
@@ -444,15 +444,10 @@ export default class Spyglass {
 
   static async getResultsFromQueries(
     userId: string,
-    queries: string[],
-    options?: {
-      rabbitholeId?: string;
-    },
+    searches: ISpyglassIntent["searches"],
   ): Promise<ISearchResult[]> {
-    const searchPromises = queries.map((query) =>
-      Search.comprehensiveSearch(userId, query, {
-        rabbitholeId: options?.rabbitholeId,
-      }),
+    const searchPromises = searches.map((query) =>
+      Search.searchConnectables(userId, query),
     );
 
     const allResultSets = await Promise.all(searchPromises);
@@ -803,17 +798,97 @@ export default class Spyglass {
           enum: [...Object.keys(Modes)],
           format: "enum",
         },
-        queries: {
+        searches: {
           type: LMSchemaType.ARRAY,
-          items: {
-            type: LMSchemaType.STRING,
-            description:
-              "A search query related to the user's intent to fetch results.",
-          },
           description: "The search queries related to the user's intent.",
+          items: {
+            type: LMSchemaType.OBJECT,
+            description:
+              "A search query to fetch results. Must include a query string.",
+            properties: {
+              query: {
+                type: LMSchemaType.STRING,
+                description: "The core search term or question.",
+              },
+              tables: {
+                type: LMSchemaType.ARRAY,
+                description: "A list of table types to search within.",
+                items: {
+                  type: LMSchemaType.STRING,
+                  enum: ["idea", "task", "source", "excerpt"],
+                },
+              },
+              limit: {
+                type: LMSchemaType.NUMBER,
+                description: "The maximum number of results to return.",
+              },
+              tags: {
+                type: LMSchemaType.OBJECT,
+                description:
+                  "Filter results to include or exclude specific tags by name or ID.",
+                properties: {
+                  include: {
+                    type: LMSchemaType.ARRAY,
+                    items: { type: LMSchemaType.STRING },
+                  },
+                  exclude: {
+                    type: LMSchemaType.ARRAY,
+                    items: { type: LMSchemaType.STRING },
+                  },
+                },
+              },
+              date: {
+                type: LMSchemaType.OBJECT,
+                description:
+                  "Filter results by date ranges using ISO 8601 format.",
+                properties: {
+                  createdAt: {
+                    type: LMSchemaType.OBJECT,
+                    properties: {
+                      after: { type: LMSchemaType.STRING, format: "date-time" },
+                      before: {
+                        type: LMSchemaType.STRING,
+                        format: "date-time",
+                      },
+                    },
+                  },
+                  updatedAt: {
+                    type: LMSchemaType.OBJECT,
+                    properties: {
+                      after: { type: LMSchemaType.STRING, format: "date-time" },
+                      before: {
+                        type: LMSchemaType.STRING,
+                        format: "date-time",
+                      },
+                    },
+                  },
+                  viewedAt: {
+                    type: LMSchemaType.OBJECT,
+                    properties: {
+                      after: { type: LMSchemaType.STRING, format: "date-time" },
+                      before: {
+                        type: LMSchemaType.STRING,
+                        format: "date-time",
+                      },
+                    },
+                  },
+                },
+              },
+              searchType: {
+                type: LMSchemaType.OBJECT,
+                description:
+                  "Specify the search method: full-text search (fts) and/or vector search.",
+                properties: {
+                  fts: { type: LMSchemaType.BOOLEAN },
+                  vector: { type: LMSchemaType.BOOLEAN },
+                },
+              },
+            },
+            required: ["query", "tables"],
+          },
         },
       },
-      required: ["intent", "mode", "queries"],
+      required: ["intent", "mode", "searches"],
     };
   }
 
@@ -825,7 +900,7 @@ export default class Spyglass {
       if (!query.length) {
         return undefined;
       }
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("fast-accurate");
       const prompt = this.intentPromptBuilder(query, parent).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,

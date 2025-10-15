@@ -28,7 +28,7 @@ import {
 import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Content from "../../../components/UI/Layout/Content";
 import StatusBar from "../../../components/UI/Layout/Bottom";
 
@@ -108,44 +108,10 @@ export default function SpyglassHistory() {
     };
   }, [hasMore, loading, observerTarget.current]); // observerTarget.current is crucial here
 
+  const navigate = useNavigate();
+
   return (
     <>
-      <Drawer
-        opened={viewing !== undefined}
-        onClose={() => setViewing(undefined)}
-        position="right"
-        size="lg"
-      >
-        {viewing && (
-          <Stack p="md">
-            <Group>
-              <Link to={`/spyglass/records/${viewing.id}`}>
-                <Button
-                  variant="light"
-                  color={"gray"}
-                  size="xs"
-                  rightSection={<ArrowRightIcon weight="bold" />}
-                >
-                  View Full
-                </Button>
-              </Link>
-            </Group>
-            <Title order={4}>{viewing.baseQuery}</Title>
-            {viewing.analysis?.overview && (
-              <Blockquote color="gray">
-                <Text fw="bold" c="dimmed" size="xs" mb="sm">
-                  ANSWER
-                </Text>
-                <Text
-                  dangerouslySetInnerHTML={{
-                    __html: markdownToHtml(viewing.analysis.overview),
-                  }}
-                />
-              </Blockquote>
-            )}
-          </Stack>
-        )}
-      </Drawer>
       <PageWrapper>
         <LeftSidebar />
         <Content>
@@ -205,12 +171,12 @@ export default function SpyglassHistory() {
                     <Box
                       p="sm"
                       className={styles.historyItem}
-                      onClick={() => setViewing(item)}
+                      onClick={() => navigate(`/spyglass/records/${item.id}`)}
                       style={{ cursor: "pointer" }}
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
-                          setViewing(item);
+                          navigate(`/spyglass/records/${item.id}`);
                         }
                       }}
                     >
@@ -234,16 +200,6 @@ export default function SpyglassHistory() {
                             {formatDateTime(item.createdAt).toLowerCase()}
                           </Text>
                         </Stack>
-                        <ActionIcon
-                          variant="subtle"
-                          aria-label="View details"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setViewing(item);
-                          }}
-                        >
-                          <DotsThreeIcon weight="bold" size={20} />
-                        </ActionIcon>
                       </Group>
                     </Box>
                   </Grid.Col>
