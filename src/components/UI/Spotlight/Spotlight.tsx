@@ -446,6 +446,7 @@ export default function Spotlight() {
                   active={i === activeItemIndex}
                   setActive={() => setActiveItemIndex(i)}
                   onClick={item.action} // Action is now always a direct function call
+                  inSubview={!!currentSubviewDef?.id}
                 />
               ))}
             </div>

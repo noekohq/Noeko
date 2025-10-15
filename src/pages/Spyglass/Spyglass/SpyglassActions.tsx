@@ -20,14 +20,14 @@ export default function SpyglassActions({
     <>
       <>
         <Text fw="bold" size="sm" c="dimmed">
-          {intent.queries.length} SEARCH
-          {intent.queries.length === 1 ? "" : "ES"}...
+          {intent.searches.length} SEARCH
+          {intent.searches.length === 1 ? "" : "ES"}...
         </Text>
         <Stack mt="xs" gap="xs">
-          {intent.queries.map((q) => {
+          {intent.searches.map((q) => {
             return (
-              <Text key={q} size="xs" fs="italic" c="dimmed">
-                {q}
+              <Text key={q.query} size="xs" fs="italic" c="dimmed">
+                {q.query}
               </Text>
             );
           })}

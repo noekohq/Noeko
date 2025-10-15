@@ -96,19 +96,28 @@
     .results {
         text-align: left;
         background-color: var(--mantine-color-body);
-        border-radius: var(--mantine-radius-lg);
         overflow: hidden;
 
         .result {
             color: var(--mantine-color-text);
 
+            &.inSubview {
+                .content {
+                    flex-direction: row-reverse;
+                    justify-content: flex-end;
+                }
+            }
+
             .content {
                 display: flex;
+                flex-direction: row;
+                justify-content: space-between;
                 gap: 14px;
                 align-items: center;
                 padding: 8px 14px 8px 14px;
                 font-size: var(--mantine-font-size-lg);
                 cursor: pointer;
+                border: 1px solid var(--mantine-color-dark-8);
 
                 .icon {
                     position: relative;

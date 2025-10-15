@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from "react-router";
 import styles from "./App.module.scss";
-import { Loader, useMantineColorScheme } from "@mantine/core";
+import { Center, Loader, Text, useMantineColorScheme } from "@mantine/core";
 import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "./contexts/AuthContext";

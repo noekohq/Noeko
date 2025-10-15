@@ -77,7 +77,7 @@ const FindingBadge: React.FC<IFindingBadgeProps> = ({
             }}
           />
         </Blockquote>
-        <Text>{finding.analysis}</Text>
+        <Text size="sm">{finding.analysis}</Text>
       </HoverCard.Dropdown>
     </HoverCard>
   );
