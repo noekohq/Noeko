@@ -34,7 +34,6 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SpyglassContext from "./Spyglass/SpyglassContext";
 import SpyglassActions from "./Spyglass/SpyglassActions";
-import Loading from "../../components/Display/Loading/Loading";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -257,13 +256,13 @@ export default function Spyglass() {
               >
                 {results.length <= 0 && (
                   <Text mb="lg" size="sm">
-                    {!!intent && intent.queries?.length > 0 ? (
+                    {!!intent && intent.searches?.length > 0 ? (
                       <span>
                         Running{" "}
                         <Badge variant="light" color="gray">
-                          <CountUp targetNumber={intent.queries.length} />
+                          <CountUp targetNumber={intent.searches.length} />
                         </Badge>{" "}
-                        search{intent.queries.length === 1 ? "" : "es"}...
+                        search{intent.searches.length === 1 ? "" : "es"}...
                       </span>
                     ) : (
                       "Searching your ideas..."

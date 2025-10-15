@@ -1,5 +1,9 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import { ISearchResult, ISearchResultValue } from "../../services/Search";
+import {
+  IConnectableSearchQuery,
+  ISearchResult,
+  ISearchResultValue,
+} from "../../services/Search";
 import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
@@ -7,6 +11,8 @@ import { parseIncompleteJsonArray } from "../../utils/processing";
 import { max_spyglass_finding_amount } from "../../settings";
 import Spyglass, { IFinding, ISpyglassIntent } from "../../services/Spyglass";
 import { IRabbithole } from "./rabbithole";
+import { IConnectable } from "../../services/Graph";
+import { User } from "./user";
 
 export type ISearchOverview = {
   overview: string;
@@ -20,12 +26,12 @@ export type ISpyglassSearch = {
   analysis: ISearchOverview | null;
   createdAt: Date;
   updatedAt: Date;
-  // Computed fields
   results?: ISearchResultValue[];
   resultConnections?: ISearchConnection[];
   fullResults?: ISearchResult[];
   parent?: ISpyglassSearch;
   rabbithole?: IRabbithole;
+  scope?: IConnectable[] | (RecordId | StringRecordId)[];
 };
 
 export type ISpyglassSearchForm = Omit<
@@ -168,6 +174,7 @@ export class SpyglassSearch {
     form: ISpyglassSearchForm,
     options?: {
       rabbitholeId?: string;
+      scope?: string[];
     },
   ) {
     try {
@@ -367,12 +374,16 @@ export class SpyglassSearch {
       }
       const results: ISearchResult[] = [];
       if (search.intent) {
+        const searches = search.intent.searches.map((s) => {
+          return {
+            ...s,
+            rabbithole: search.rabbithole,
+            tables: s.tables ?? [],
+          } as IConnectableSearchQuery;
+        });
         const r = await Spyglass.getResultsFromQueries(
           userId.toString(),
-          search.intent.queries,
-          {
-            rabbitholeId: search.rabbithole?.id.toString(),
-          },
+          searches,
         );
         results.push(...r);
       } else {
@@ -464,12 +475,6 @@ export class SpyglassSearch {
       const search = await SpyglassSearch.get(searchId);
       if (!search) {
         throw new Error("Search not found");
-      }
-      if (!search.results) {
-        throw new Error("Tried to run analysis on an empty search");
-      }
-      if (!search.resultConnections) {
-        throw new Error("Did not load result relations");
       }
       if (!search.fullResults) {
         throw new Error("Did not load full results");
@@ -861,9 +866,6 @@ export class SpyglassSearch {
         throw new Error("Search not found");
       }
 
-      // --- Phase 2: Iterative Search Building ---
-
-      // Step 2.1: Load Intent if missing
       if (!spyglass.intent) {
         console.info("Loading Spyglass intent...");
         await SpyglassSearch.loadIntent(userId, spyglass.id);
@@ -877,7 +879,6 @@ export class SpyglassSearch {
         };
       }
 
-      // Step 2.2: Load Results if missing
       if (!spyglass.results || spyglass.results.length === 0) {
         console.info("Loading Spyglass results...");
         await SpyglassSearch.loadResults(userId, spyglass.id);
@@ -892,17 +893,13 @@ export class SpyglassSearch {
         };
       }
 
-      // Ensure resultsTime is set if results were already loaded
       if (!resultsTime) resultsTime = Date.now();
 
-      // --- Phase 3: Generate Findings in Parallel ---
       if (
         !spyglass.analysis?.findings ||
         spyglass.analysis.findings.length === 0
       ) {
         console.info("Generating Spyglass findings...");
-        if (!spyglass.fullResults)
-          throw new Error("Full results were not loaded.");
         if (!spyglass.intent) throw new Error("Spyglass intent was not found.");
 
         yield {
@@ -914,15 +911,13 @@ export class SpyglassSearch {
         const completeFindings: IFinding[] = [];
         for await (const findingsArray of Spyglass.generateFindingsFromResources(
           spyglass.baseQuery,
-          spyglass.fullResults,
+          spyglass.fullResults || [],
           spyglass.intent,
         )) {
-          // Each `findingsArray` is a complete IFinding[] from one source
           completeFindings.push(...findingsArray);
           yield {
             type: "findings_chunk",
             statusText: `Generated ${completeFindings.length} findings...`,
-            // Send the new array as a valid JSON string. The client can parse this chunk.
             data: JSON.stringify(findingsArray),
           };
 
@@ -930,11 +925,10 @@ export class SpyglassSearch {
             logger.warn(
               "Exceeded maximum finding amount. Stopping generation.",
             );
-            break; // Stop processing further results
+            break;
           }
         }
 
-        // Save all collected findings
         await db.merge<ISpyglassSearch>(spyglass.id, {
           analysis: { findings: completeFindings, overview: "" },
         });

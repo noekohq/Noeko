@@ -14,7 +14,7 @@ import Rabbithole, {
 } from "../database/models/rabbithole";
 import { Search } from "./Search";
 
-export type IConnectableTypes = "idea" | "source" | "task";
+export type IConnectableTypes = "idea" | "source" | "task" | "excerpt";
 
 export type IConnectable =
   | ((ISafeIdea | IIdea) & {

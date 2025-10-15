@@ -96,7 +96,8 @@ export default class Source {
               *,
               ->references->(?) as references
               FROM source
-              WHERE <-sources<-(user WHERE id = $userId);
+              WHERE <-sources<-(user WHERE id = $userId)
+              ORDER BY viewedAt DESC;
             RETURN $sources;
           }
           `;

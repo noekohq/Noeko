@@ -8,6 +8,7 @@ type IOptionProps = {
   active: boolean;
   setActive: () => void;
   onClick: () => void;
+  inSubview: boolean;
 };
 
 export function Option({
@@ -17,6 +18,7 @@ export function Option({
   active,
   setActive,
   onClick,
+  inSubview,
 }: IOptionProps) {
   const optionRef = useRef<HTMLDivElement>(null);
   const [hovering, setHovering] = useState(false);
@@ -30,7 +32,7 @@ export function Option({
   return (
     <div
       ref={optionRef}
-      className={`${styles.result} ${active ? styles.active : ""} ${hovering ? styles.hovering : ""}`}
+      className={`${styles.result} ${active ? styles.active : ""} ${hovering ? styles.hovering : ""} ${inSubview ? styles.inSubview : ""}`}
       onMouseDown={setActive}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}

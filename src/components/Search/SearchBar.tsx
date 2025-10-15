@@ -1,9 +1,17 @@
-import { forwardRef, useCallback, useEffect, useRef } from "react";
-import { ISearchResult } from "../../../app/services/Search";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import {
+  IConnectableSearchQuery,
+  ISearchResult,
+} from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
-import { MagnifyingGlass, MagnifyingGlassIcon, X } from "@phosphor-icons/react";
+import {
+  MagnifyingGlass,
+  MagnifyingGlassIcon,
+  X,
+  XIcon,
+} from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useSearch } from "../../contexts/SearchContext";
 import useRabbithole from "../../hooks/useRabbithole";
@@ -22,7 +30,28 @@ type ISearchBarProps = {
   ignoreRabbithole?: boolean;
 };
 
-export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
+const quips = [
+  "Find that thing!",
+  "Explore we shall!",
+  "Adventure is out there!",
+  "Into the great within!",
+  "Where to next?",
+  "Connect the dots...",
+  "Ask a great question.",
+  "Follow your curiosity!",
+  "Summon the knowledge!",
+  "Uncover a mystery",
+  "Spark a new idea.",
+  "What if...?",
+  "A new quest awaits.",
+  "Chart the unknown.",
+];
+
+const getRandomQuip = () => {
+  return quips[Math.floor(Math.random() * quips.length)];
+};
+
+export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
   (
     {
       placeholder = "Search anything...",
@@ -52,17 +81,23 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
       data: rawResults,
       load: searchIdeas,
       loading: loadingIdeas,
-    } = useFetch<
-      { query: string; rabbitholeId: string | undefined },
-      { results: ISearchResult[] }
-    >({
-      url: "/search/comprehensive",
+    } = useFetch<IConnectableSearchQuery, ISearchResult[]>({
+      url: "/search",
       method: "POST",
       body: {
         query,
-        rabbitholeId: withinRabbithole
+        rabbithole: withinRabbithole
           ? currentRabbithole?.id.toString()
           : undefined,
+        tables: ["idea", "task", "source", "excerpt"],
+        searchType: {
+          fts: true,
+          vector: true,
+        },
+        vectorSettings: {
+          effort: "high",
+        },
+        limit: 50,
       },
       dependencies: [query, withOverview],
       onBefore: () => {
@@ -70,8 +105,8 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
         setLoading(true);
       },
       onSuccess: (r) => {
-        onResults?.(r.results);
-        setResults(r.results);
+        onResults?.(r);
+        setResults(r);
       },
       onFinally: () => {
         onSearchEnd?.();
@@ -79,9 +114,20 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
       },
     });
 
+    const internalRef = useRef<HTMLTextAreaElement>(null);
+    useEffect(() => {
+      if (ref) {
+        if (typeof ref === "function") {
+          ref(internalRef.current);
+        } else {
+          ref.current = internalRef.current;
+        }
+      }
+    }, [ref]);
+
     const isFocused = () => {
       const activeElement = document.activeElement;
-      return activeElement === inputRef.current;
+      return activeElement === internalRef.current;
     };
 
     useShortcuts({
@@ -89,7 +135,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
         {
           keys: { key: "Escape" },
           run: () => {
-            inputRef.current?.blur();
+            internalRef.current?.blur();
           },
         },
         ...(onShortcuts
@@ -124,6 +170,8 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
       }
     }, [query]);
 
+    const [focused, setFocused] = useState(false);
+
     return (
       <div className={styles.searchBar}>
         <Textarea
@@ -133,7 +181,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
           radius={"md"}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
+          placeholder={focused ? getRandomQuip() : placeholder}
           classNames={{
             input: `${styles.input} ${withinRabbithole ? styles.withinRabbithole : ""}`,
           }}
@@ -154,7 +202,7 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
                   color="gray"
                   onClick={clearResults}
                 >
-                  <X weight="bold" />
+                  <XIcon weight="bold" />
                 </ActionIcon>
               </Flex>
             ) : (
@@ -164,8 +212,11 @@ export const SearchBar = forwardRef<HTMLInputElement, ISearchBarProps>(
           ref={inputRef}
           onBlur={() => {
             onBlur && onBlur();
+            setFocused(false);
           }}
-          onFocus={() => {}}
+          onFocus={() => {
+            setFocused(true);
+          }}
         />
       </div>
     );
