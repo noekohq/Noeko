@@ -538,15 +538,15 @@ export class TaskQueryBuilder {
 
     const q = [];
     if (start) {
-      q.push(`date >= $startDate`);
+      q.push(`dueDate >= $startDate`);
       this.params.startDate = new Date(start);
     }
     if (end) {
-      q.push(`date <= $endDate`);
+      q.push(`dueDate <= $endDate`);
       this.params.endDate = new Date(end);
     }
     if (q.length > 0) {
-      this.whereClauses.push(`(${q.join(" AND ")})`);
+      this.whereClauses.push(`((${q.join(" AND ")}) OR dueDate = NULL)`);
     }
     return this;
   }

@@ -18,10 +18,12 @@ import { SpyglassIcon } from "../../Utils/Icons/Icons";
 import { Link, useNavigate } from "react-router";
 import Loading from "../../Display/Loading/Loading";
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
 } from "@phosphor-icons/react";
+import { markdownToHtml } from "../../../utils/formatting";
 
 const SWITCH_INTERVAL = 20000;
 const TRANSITION_DURATION = 200;
@@ -61,7 +63,7 @@ export default function Serendipity() {
   }, [viewing]);
 
   const handlePreviousPage = () => {
-    if (page > 1) {
+    if (page >= 1) {
       setPage(page - 1);
       setCurrentFinding(0);
       setAnimationKey((prevKey) => prevKey + 1);
@@ -119,58 +121,41 @@ export default function Serendipity() {
     return () => clearInterval(timer);
   }, [currentFinding, page, analysis]);
 
-  const clipContent = (content: string, len: number) => {
-    if (content.length > len) {
-      return `${content.slice(0, len)}...`;
-    }
-    return content;
-  };
-
   return (
     <div className={styles.serendipity}>
-      {loadingSpyglass && <Loading size="sm" color="dark.3" />}
+      {loadingSpyglass && (
+        <div className={styles.loader}>
+          <Loading size="sm" color="dark.3" />
+        </div>
+      )}
       {!!viewing && (
         <div className={styles.record}>
           <div className={styles.query}>
-            <Text size="md" c="dimmed" fs="italic" title={viewing.baseQuery}>
-              <Group
-                gap="xs"
-                align="center"
-                justify="space-between"
-                wrap="nowrap"
-              >
-                {viewing?.baseQuery}
-              </Group>
-            </Text>
+            <Link
+              to={`/spyglass/records/${viewing.id.toString()}`}
+              style={{
+                textDecoration: "none",
+              }}
+            >
+              <Text size="sm" c="dark.1" ff="heading" title={viewing.baseQuery}>
+                {viewing?.baseQuery}{" "}
+                <ArrowRightIcon
+                  size={12}
+                  weight="bold"
+                  style={{ position: "relative", top: "2px" }}
+                />
+              </Text>
+            </Link>
           </div>
-          <Group justify="space-between" align="center" mb="sm">
-            <ActionIcon
-              onClick={handlePrevious}
-              disabled={currentFinding === 0}
-              variant="subtle"
-              color="gray"
-              size="sm"
-            >
-              <CaretLeftIcon size={14} />
-            </ActionIcon>
-            <Text size="xs" c="dimmed">
-              {currentFinding + 1} / {analysis?.findings.length}
-            </Text>
-            <ActionIcon
-              onClick={handleNext}
-              disabled={
-                currentFinding === (analysis?.findings?.length ?? 0) - 1
-              }
-              variant="subtle"
-              color="gray"
-              size="sm"
-            >
-              <CaretRightIcon size={14} />
-            </ActionIcon>
-          </Group>
           <div className={styles.content}>
+            {viewing.analysis?.findings.length === 0 ||
+              (!viewingFinding && (
+                <Text size="sm" c="dimmed">
+                  Nothing to see here :/
+                </Text>
+              ))}
             <Transition
-              mounted={isContentVisible}
+              mounted={isContentVisible && !!viewingFinding}
               transition={"pop-top-left"}
               duration={TRANSITION_DURATION}
             >
@@ -200,13 +185,14 @@ export default function Serendipity() {
                     {!!viewingFinding && (
                       <Stack gap="sm">
                         <Blockquote color="gray" p={"sm"}>
-                          <Text size="sm">
-                            {clipContent(viewingFinding.excerpt, 96)}
-                          </Text>
+                          <Text
+                            size="sm"
+                            dangerouslySetInnerHTML={{
+                              __html: markdownToHtml(viewingFinding.excerpt),
+                            }}
+                          />
                         </Blockquote>
-                        <Text size="sm">
-                          {clipContent(viewingFinding.analysis, 96)}
-                        </Text>
+                        <Text size="sm">{viewingFinding.analysis}</Text>
                       </Stack>
                     )}
                   </div>
@@ -218,39 +204,53 @@ export default function Serendipity() {
             justify="space-between"
             gap="xs"
             mt="lg"
-            className={styles.ui}
             w="100%"
             wrap="nowrap"
           >
-            <Button
+            <ActionIcon
               variant="light"
               radius="lg"
-              size="sm"
+              size="md"
               color="gray"
               onClick={handlePreviousPage}
-              leftSection={<CaretLeftIcon />}
+              disabled={page === 0}
             >
-              Prev
-            </Button>
-            <Button
+              <ArrowLeftIcon weight="bold" />
+            </ActionIcon>
+            <ActionIcon
+              onClick={handlePrevious}
+              disabled={currentFinding === 0}
               variant="light"
               radius="lg"
-              size="sm"
+              size="md"
               color="gray"
-              onClick={handleNextPage}
-              rightSection={<CaretRightIcon />}
             >
-              Next
-            </Button>
-            <Button
+              <CaretLeftIcon weight="bold" size={14} />
+            </ActionIcon>
+            <Text size="sm" c="dimmed">
+              {currentFinding + 1} / {analysis?.findings.length}
+            </Text>
+            <ActionIcon
+              onClick={handleNext}
+              disabled={
+                currentFinding === (analysis?.findings?.length ?? 0) - 1
+              }
               variant="light"
               radius="lg"
-              size="sm"
+              size="md"
+              color="gray"
+            >
+              <CaretRightIcon weight="bold" size={14} />
+            </ActionIcon>
+            <ActionIcon
+              variant="light"
+              radius="lg"
+              size="md"
               color="gray"
               onClick={handleNextPage}
             >
-              <ArrowRightIcon weight="bold" size={14} />
-            </Button>
+              <ArrowRightIcon weight="bold" />
+            </ActionIcon>
           </Group>
         </div>
       )}

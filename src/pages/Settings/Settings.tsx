@@ -13,6 +13,7 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -26,8 +27,13 @@ import {
   CheckIcon,
   CopyIcon,
   DiscordLogoIcon,
+  DownloadIcon,
   LightbulbIcon,
   RedditLogoIcon,
+  Tag,
+  TagIcon,
+  TrashIcon,
+  UploadIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import React, { useState } from "react";
@@ -104,20 +110,6 @@ const AppearanceSettings = () => {
           data={fontData}
           onChange={(v) => setBodyFont(v as IThemeSpec["bodyFont"])}
         />
-        <Divider my="sm" />
-        <Title order={4}>Preview</Title>
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </Text>
-        <Group justify="flex-end">
-          <Button variant="default">Do it!</Button>
-          <Button variant="outline">Do it!</Button>
-          <Button variant="light">Do it!</Button>
-          <Button>Do it!</Button>
-        </Group>
       </Stack>
     </Card>
   );
@@ -286,17 +278,40 @@ const DataSettings = () => {
         </Text>
         <Group>
           <Link to="/tags">
-            <Button variant="light">Tags</Button>
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<TagIcon weight="bold" />}
+            >
+              Tags
+            </Button>
           </Link>
           <Link to="/import">
-            <Button variant="light">Import Ideas</Button>
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<UploadIcon weight="bold" />}
+            >
+              Import Ideas
+            </Button>
           </Link>
+          <Tooltip label="Coming soon...">
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<DownloadIcon weight="bold" />}
+              disabled
+            >
+              Export Stuff
+            </Button>
+          </Tooltip>
           <Button
             variant="light"
             color="red"
             onClick={() => {
               setConfirmingDelete(true);
             }}
+            leftSection={<TrashIcon weight="bold" />}
           >
             Delete Stuff
           </Button>

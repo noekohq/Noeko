@@ -1,9 +1,6 @@
 import {
   Box,
-  Button,
-  Card,
   Center,
-  Collapse,
   Flex,
   Grid,
   Group,
@@ -11,7 +8,6 @@ import {
   Stack,
   Text,
   Title,
-  Transition,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";

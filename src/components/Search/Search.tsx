@@ -190,7 +190,7 @@ export default function Search({
           >
             {(style) => {
               return (
-                <Stack style={style}>
+                <Stack style={style} gap="sm">
                   {recent
                     ?.map((thing, i) => {
                       const actions = resultActions?.map((action) => {

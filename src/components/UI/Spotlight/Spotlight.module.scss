@@ -69,9 +69,8 @@
         font-family: var(--mantine-font-family);
         /* font-stretch: 80%; */
         font-size: var(--mantine-font-size-lg);
-        border-radius: var(--mantine-radius-lg);
+        border-radius: var(--mantine-radius-md);
         background-color: var(--mantine-color-body);
-        border: none;
         border: 1px solid var(--mantine-color-dark-7);
         box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-dark-8);
         padding: var(--mantine-spacing-xs) var(--mantine-spacing-xl);
@@ -92,14 +91,16 @@
     height: 50vh;
     overflow-y: scroll;
     scrollbar-width: none;
+    border-radius: var(--mantine-radius-md);
 
     .results {
         text-align: left;
-        background-color: var(--mantine-color-body);
+        background-color: var(--mantine-color-dark-9);
         overflow: hidden;
 
         .result {
             color: var(--mantine-color-text);
+            border-bottom: 1px solid var(--mantine-color-dark-8);
 
             &.inSubview {
                 .content {
@@ -117,7 +118,6 @@
                 padding: 8px 14px 8px 14px;
                 font-size: var(--mantine-font-size-lg);
                 cursor: pointer;
-                border: 1px solid var(--mantine-color-dark-8);
 
                 .icon {
                     position: relative;
