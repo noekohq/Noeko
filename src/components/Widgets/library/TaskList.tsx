@@ -8,27 +8,10 @@ import {
 import useFetch from "../../../hooks/useFetch";
 import { toYYYYMMDD } from "../../../utils/datetime";
 import { IWidgetConfig } from "../index.d";
-import TaskCard from "../../Display/Tasks/TaskCard";
 import TaskButton from "../../Display/Tasks/TaskButton";
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Group,
-  Loader,
-  Select,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { ActionIcon, Group, Loader, Stack, Text } from "@mantine/core";
 import styles from "./TaskList.module.scss";
-import {
-  ArrowRightIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-  HourglassIcon,
-  PlusIcon,
-  SunIcon,
-} from "@phosphor-icons/react";
+import { CaretLeftIcon, CaretRightIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { Link, useNavigate } from "react-router";
 import ProgressBar from "../../Utils/Info/ProgressBar";
@@ -36,7 +19,6 @@ import { capitalize, formatDate } from "../../../utils/formatting";
 import { useLayout } from "../../../contexts/LayoutContext";
 import Selection from "../../Display/Interactions/Selection";
 import { useSearch } from "../../../contexts/SearchContext";
-import ConnectableThing from "../../Display/Interactions/Connections/ConnectableThing";
 
 type ITaskViews = "daily" | "urgent" | "recent";
 

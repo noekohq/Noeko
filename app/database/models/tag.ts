@@ -48,6 +48,8 @@ export type ITagDescriptionRelationship = {
 };
 
 export class Tag {
+  public static SUGGESTION_WEIGHT = 0.6; // 0-1, higher numbers favor the centroid, lower favors the description
+
   static async up() {
     const db = await getDatabase();
     if (!db) {
@@ -715,28 +717,31 @@ export class Tag {
     tagEmbedding: number[] | null,
     averageEmbedding: number[] | null,
   ): Promise<number[]> {
+    const emb = getEmbedder();
     try {
       if (!tagEmbedding && !averageEmbedding) {
         throw new Error("Can't get weighted vector of tag with no embeddings");
       }
 
-      if (!tagEmbedding && !!averageEmbedding) {
+      if (tagEmbedding && averageEmbedding) {
+        return weightedAverage(
+          tagEmbedding,
+          averageEmbedding,
+          this.SUGGESTION_WEIGHT,
+        );
+      }
+
+      if (!tagEmbedding && averageEmbedding) {
         return averageEmbedding;
       }
 
-      if (!averageEmbedding && !!tagEmbedding) {
+      if (!averageEmbedding && tagEmbedding) {
         return tagEmbedding;
       }
 
-      if (!averageEmbedding || !tagEmbedding) {
-        throw new Error("There's a problem with tag embeddings.");
-      }
-
-      const final = weightedAverage(tagEmbedding, averageEmbedding, 0.6);
-      return final;
+      return emb.getEmptyEmbeddings();
     } catch (error) {
       console.error("Error getting weighted vector: ", error);
-      const emb = getEmbedder();
       return emb.getEmptyEmbeddings();
     }
   }

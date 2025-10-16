@@ -1,29 +1,45 @@
 .serendipity {
     height: 100%;
     position: relative;
-    overflow: hidden;
-}
 
-.record {
-    .query {
-        text-align: center;
-        padding: 4px 0;
+    .loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translateY(-50%) translateX(-50%);
     }
 }
 
-.timerBar {
-  animation-name: shrink;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.content {
+.record {
+    height: 100%;
+    /* outline: 1px solid green; */
+    display: flex;
+    flex-direction: column;
     padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
     background-color: var(--mantine-color-dark-9);
     border-radius: var(--mantine-spacing-md);
     border: 1px solid var(--mantine-color-dark-7);
-    height: 30%;
-    overflow-y: auto;
+    gap: var(--mantine-spacing-md);
+
+    > * {
+        box-sizing: border-box;
+    }
+
+    .query {
+        text-align: left;
+        padding: 4px 0;
+    }
+
+    .content {
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    .timerBar {
+        animation-name: shrink;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
 }
 
 .ui {
@@ -34,12 +50,12 @@
 }
 
 @keyframes shrink {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
 }
 
 @keyframes cardHover {

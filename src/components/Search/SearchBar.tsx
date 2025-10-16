@@ -30,27 +30,6 @@ type ISearchBarProps = {
   ignoreRabbithole?: boolean;
 };
 
-const quips = [
-  "Find that thing!",
-  "Explore we shall!",
-  "Adventure is out there!",
-  "Into the great within!",
-  "Where to next?",
-  "Connect the dots...",
-  "Ask a great question.",
-  "Follow your curiosity!",
-  "Summon the knowledge!",
-  "Uncover a mystery",
-  "Spark a new idea.",
-  "What if...?",
-  "A new quest awaits.",
-  "Chart the unknown.",
-];
-
-const getRandomQuip = () => {
-  return quips[Math.floor(Math.random() * quips.length)];
-};
-
 export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
   (
     {
@@ -66,6 +45,27 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
     },
     ref,
   ) => {
+    const quips = [
+      "Find that thing!",
+      "Explore we shall!",
+      "Adventure is out there!",
+      "Into the great within!",
+      "Where to next?",
+      "Connect the dots...",
+      "Ask a great question.",
+      "Follow your curiosity!",
+      "Summon the knowledge!",
+      "Uncover a mystery",
+      "Spark a new idea.",
+      "What if...?",
+      "A new quest awaits.",
+      "Chart the unknown.",
+    ];
+
+    const getRandomQuip = () => {
+      return quips[Math.floor(Math.random() * quips.length)];
+    };
+
     const {
       global: {
         query: { get: query, set: setQuery },
