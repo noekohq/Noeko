@@ -1,6 +1,7 @@
 import React from "react";
 import {
   ActionIcon,
+  Button,
   Group,
   MantineColor,
   Modal,
@@ -281,11 +282,27 @@ function IdeaButton({
         }}
         size="lg"
       >
-        <div
-          dangerouslySetInnerHTML={{
-            __html: idea.content,
-          }}
-        />
+        <Stack py="lg" gap="xs">
+          <Group>
+            <Button
+              onClick={() => {
+                navigate(`/idea/${idea.id.toString()}`);
+              }}
+              rightSection={<ArrowRightIcon size={12} />}
+              color="gray"
+              variant="light"
+              size="xs"
+              radius="lg"
+            >
+              Visit
+            </Button>
+          </Group>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: idea.content,
+            }}
+          />
+        </Stack>
       </Modal>
     </>
   );

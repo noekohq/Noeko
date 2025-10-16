@@ -286,6 +286,7 @@ export default function ViewTag() {
         mode: { set: setRightSidebar },
       },
     },
+    isMobile,
   } = useLayout();
 
   const [filterQuery, setFilterQuery] = useState(""); // State for filter query
@@ -341,6 +342,11 @@ export default function ViewTag() {
                   SUGGESTED
                 </Group>
               </Text>
+              {!suggestedThings?.length && (
+                <Text size="sm" c="dimmed">
+                  Suggestions will populate based on usage.
+                </Text>
+              )}
               {suggestedThings?.map((thing) => (
                 <CollapseButton
                   key={thing.id.toString()}
@@ -561,7 +567,16 @@ export default function ViewTag() {
                     Failed to load items for this tag: {thingErrors.join(", ")}
                   </Alert>
                 )}
-                <ConnectableTable connectables={filteredThings} />
+                {filteredThings.length > 0 && (
+                  <ConnectableTable connectables={filteredThings} />
+                )}
+                {!filteredThings.length && (
+                  <Text size="sm">
+                    {isMobile
+                      ? "Nothing here yet :/"
+                      : "Nothing yet, try dragging something here to tag it!"}
+                  </Text>
+                )}
               </Stack>
             </Stack>
           )}

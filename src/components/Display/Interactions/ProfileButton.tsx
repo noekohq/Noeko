@@ -39,7 +39,7 @@ export default function ProfileButton() {
     { label: "Sources", icon: FileIcon, path: "/sources" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
-    { label: "Constellation", icon: GraphIcon, path: "/graph" },
+    { label: "Constellation", icon: GraphIcon, path: "/constellation" },
     { label: "Tags", icon: TagIcon, path: "/tags" },
     { label: "Updates", icon: ScrollIcon, path: "/updates" },
     { label: "Files", icon: FileIcon, path: "/files" },

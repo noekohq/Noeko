@@ -142,16 +142,22 @@ export default function Textbox({
               </Button>
             )}
           </Group>
-          <Group justify="end">
+          <Group justify="end" gap="sm">
             {initialized && (
               <ActionIcon
                 onClick={() => {
                   onReset();
                 }}
-                color="gray"
                 size="md"
                 variant="light"
                 radius="md"
+                bg="dark.9"
+                c="dark.1"
+                styles={{
+                  root: {
+                    border: "1px solid var(--mantine-color-dark-7)",
+                  },
+                }}
               >
                 <ArrowsClockwiseIcon />
               </ActionIcon>
@@ -159,6 +165,7 @@ export default function Textbox({
             <ActionIcon
               variant="light"
               radius="md"
+              size="md"
               bg="dark.9"
               c="dark.1"
               styles={{
@@ -171,7 +178,7 @@ export default function Textbox({
                 send();
               }}
             >
-              <PaperPlaneRightIcon weight="bold" />
+              <PaperPlaneRightIcon />
             </ActionIcon>
           </Group>
         </div>

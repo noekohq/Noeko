@@ -733,7 +733,6 @@ export class Search {
       };
 
       if (searchType?.fts) {
-        console.info("Searching FTS: ", query.query);
         const r = await this.ftsSearchConnectables(userId, query);
         if (r) {
           ftsResults.push(...r);
@@ -743,7 +742,6 @@ export class Search {
       }
 
       if (searchType?.vector) {
-        console.info("Searching Vector: ", query.query);
         const r = await this.semanticSearchConnectables(userId, query);
         if (r) {
           semanticResults.push(...r);
@@ -1911,6 +1909,7 @@ export class ConnectableTableSearchBuilder {
     {
       ftsFields: string[];
       vectorFields: string[];
+      specialClauses?: string[];
     }
   > = {
     idea: {
@@ -1920,6 +1919,7 @@ export class ConnectableTableSearchBuilder {
     task: {
       ftsFields: ["description", "scratchpad"] as (keyof ITask)[],
       vectorFields: ["embeddings"] as (keyof ITask)[],
+      specialClauses: ["completedAt = NULL"],
     },
     source: {
       ftsFields: ["displayName", "content"] as (keyof ISource)[],
@@ -2072,7 +2072,7 @@ export class ConnectableTableSearchBuilder {
     query: string;
     params: Record<string, any>;
   } {
-    const { ftsFields, vectorFields } =
+    const { ftsFields, vectorFields, specialClauses } =
       ConnectableTableSearchBuilder.tableSelector[this.table];
     const ftsSelectors = ftsFields.map((f, i) => {
       return `${f} @${i}@ $query`;
@@ -2097,7 +2097,9 @@ export class ConnectableTableSearchBuilder {
       FROM ${this.table}
       WHERE
         (${ftsSelectors.join(" OR ")}) AND
-        ${filterWhere.join(" AND ")}
+        ${filterWhere.join(" AND ")} ${
+          specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
+        }
       ORDER BY
         ${ftsSearchFields.map((f) => `${f} DESC`).join(",")}
       LIMIT ${limit};
@@ -2134,7 +2136,7 @@ export class ConnectableTableSearchBuilder {
     query: string;
     params: Record<string, any>;
   } {
-    const { vectorFields } =
+    const { vectorFields, specialClauses } =
       ConnectableTableSearchBuilder.tableSelector[this.table];
     const { where: filterWhere, params: filterParams } =
       this.queryBuilder.build();
@@ -2151,7 +2153,9 @@ export class ConnectableTableSearchBuilder {
       FROM ${this.table}
       WHERE
         ${filterWhere.join(" AND ")} AND
-        embeddings <|${limit}, ${effort}|> $embedding
+        embeddings <|${limit}, ${effort}|> $embedding ${
+          specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
+        }
       ORDER BY similarity DESC
         `;
 

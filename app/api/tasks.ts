@@ -8,8 +8,6 @@ import Task, {
   ITaskForm,
   ITaskQuery,
 } from "../database/models/task";
-import { getEmbedder } from "../ai/embeddings/embeddings";
-import { getLM } from "../ai/lms/lm";
 import { Duration } from "surrealdb";
 
 const router = Router();
