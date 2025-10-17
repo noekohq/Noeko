@@ -289,7 +289,7 @@ export default function Spyglass() {
                       key={sourceId.toString()}
                     >
                       <Text size="sm" c="dimmed">
-                        Reading
+                        Read
                       </Text>
                       <Badge
                         variant="light"

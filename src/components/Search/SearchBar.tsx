@@ -95,7 +95,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           vector: true,
         },
         vectorSettings: {
-          effort: "high",
+          effort: "mid",
         },
         limit: 50,
       },

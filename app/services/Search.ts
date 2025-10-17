@@ -151,13 +151,13 @@ export type IConnectableSearchQuery = { query: string } & Partial<{
 }>;
 
 export class Search {
-  private static readonly COMPREHENSIVE_WEIGHTS = {
+  public static readonly COMPREHENSIVE_WEIGHTS = {
     SEMANTIC: 2,
-    FTS_TITLE: 1.5,
-    FTS_CONTENT: 0.5,
+    FTS_TITLE: 2,
+    FTS_CONTENT: 1,
   };
-  private static readonly EXACT_TITLE_BONUS = 2.0;
-  private static readonly SEMANTIC_THRESHOLD = 0.45;
+  public static readonly EXACT_TITLE_BONUS = 2.0;
+  public static readonly SEMANTIC_THRESHOLD = 0.45;
 
   constructor() {}
 
@@ -2144,19 +2144,25 @@ export class ConnectableTableSearchBuilder {
     const effort = this.vectorEffort();
 
     const baseQuery = `
-      SELECT
-        *,
-        ${vectorFields.map((f) => {
-          return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
-        })}
-      OMIT ${vectorFields.join(", ")}
-      FROM ${this.table}
-      WHERE
-        ${filterWhere.join(" AND ")} AND
-        embeddings <|${limit}, ${effort}|> $embedding ${
-          specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
-        }
-      ORDER BY similarity DESC
+        SELECT * FROM (
+          SELECT
+            *,
+            ${vectorFields.map((f) => {
+              return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
+            })}
+          OMIT ${vectorFields.join(", ")}
+          FROM ${this.table}
+          WHERE
+            ${filterWhere.join(" AND ")} AND
+            embeddings <|${limit}, ${effort}|> $embedding AND
+            embeddings != NONE ${
+              specialClauses?.length
+                ? `AND ${specialClauses.join(" AND ")}`
+                : ""
+            }
+        )
+        WHERE similarity >= ${Search.SEMANTIC_THRESHOLD}
+        ORDER BY similarity DESC;
         `;
 
     return {
@@ -2181,6 +2187,7 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with vector search: ", results);
       }
+      console.log("Got semantic results: ", results);
       const [r] = results;
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.vector(r));
