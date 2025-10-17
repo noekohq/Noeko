@@ -379,6 +379,9 @@ export class SpyglassSearch {
             ...s,
             rabbithole: search.rabbithole,
             tables: s.tables ?? ["idea", "excerpt", "source"],
+            vectorSettings: {
+              effort: "high",
+            },
           } as IConnectableSearchQuery;
         });
         const r = await Spyglass.getResultsFromQueries(

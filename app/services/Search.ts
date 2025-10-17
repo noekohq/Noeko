@@ -2144,20 +2144,25 @@ export class ConnectableTableSearchBuilder {
     const effort = this.vectorEffort();
 
     const baseQuery = `
-      SELECT
-        *,
-        ${vectorFields.map((f) => {
-          return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
-        })}
-      OMIT ${vectorFields.join(", ")}
-      FROM ${this.table}
-      WHERE
-        ${filterWhere.join(" AND ")} AND
-        embeddings <|${limit}, ${effort}|> $embedding AND
-        similarity > ${Search.SEMANTIC_THRESHOLD} ${
-          specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
-        }
-      ORDER BY similarity DESC
+        SELECT * FROM (
+          SELECT
+            *,
+            ${vectorFields.map((f) => {
+              return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
+            })}
+          OMIT ${vectorFields.join(", ")}
+          FROM ${this.table}
+          WHERE
+            ${filterWhere.join(" AND ")} AND
+            embeddings <|${limit}, ${effort}|> $embedding AND
+            embeddings != NONE ${
+              specialClauses?.length
+                ? `AND ${specialClauses.join(" AND ")}`
+                : ""
+            }
+        )
+        WHERE similarity >= ${Search.SEMANTIC_THRESHOLD}
+        ORDER BY similarity DESC;
         `;
 
     return {
@@ -2182,6 +2187,7 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with vector search: ", results);
       }
+      console.log("Got semantic results: ", results);
       const [r] = results;
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.vector(r));
