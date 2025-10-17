@@ -151,13 +151,13 @@ export type IConnectableSearchQuery = { query: string } & Partial<{
 }>;
 
 export class Search {
-  private static readonly COMPREHENSIVE_WEIGHTS = {
+  public static readonly COMPREHENSIVE_WEIGHTS = {
     SEMANTIC: 2,
-    FTS_TITLE: 1.5,
-    FTS_CONTENT: 0.5,
+    FTS_TITLE: 2,
+    FTS_CONTENT: 1,
   };
-  private static readonly EXACT_TITLE_BONUS = 2.0;
-  private static readonly SEMANTIC_THRESHOLD = 0.45;
+  public static readonly EXACT_TITLE_BONUS = 2.0;
+  public static readonly SEMANTIC_THRESHOLD = 0.45;
 
   constructor() {}
 
@@ -2153,7 +2153,8 @@ export class ConnectableTableSearchBuilder {
       FROM ${this.table}
       WHERE
         ${filterWhere.join(" AND ")} AND
-        embeddings <|${limit}, ${effort}|> $embedding ${
+        embeddings <|${limit}, ${effort}|> $embedding AND
+        similarity > ${Search.SEMANTIC_THRESHOLD} ${
           specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
         }
       ORDER BY similarity DESC

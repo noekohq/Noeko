@@ -719,11 +719,11 @@ export class Tag {
   ): Promise<number[]> {
     const emb = getEmbedder();
     try {
-      if (!tagEmbedding && !averageEmbedding) {
+      if (!tagEmbedding?.length && !averageEmbedding?.length) {
         throw new Error("Can't get weighted vector of tag with no embeddings");
       }
 
-      if (tagEmbedding && averageEmbedding) {
+      if (tagEmbedding?.length && averageEmbedding?.length) {
         return weightedAverage(
           tagEmbedding,
           averageEmbedding,
@@ -731,11 +731,11 @@ export class Tag {
         );
       }
 
-      if (!tagEmbedding && averageEmbedding) {
+      if (!tagEmbedding?.length && averageEmbedding?.length) {
         return averageEmbedding;
       }
 
-      if (!averageEmbedding && tagEmbedding) {
+      if (!averageEmbedding?.length && tagEmbedding?.length) {
         return tagEmbedding;
       }
 
