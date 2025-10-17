@@ -45,6 +45,7 @@ export function weightedAverage(
   vectorB: number[],
   weightB: number,
 ): number[] {
+  console.log("lentghs: ", vectorA.length, vectorB.length);
   if (vectorA.length !== vectorB.length) {
     throw new Error(
       "Vectors must have the same dimensions for weighted averaging.",

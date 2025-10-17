@@ -769,6 +769,12 @@ export default class Spyglass {
           `,
       )
       .addBlock(
+        "Edge Cases",
+        `
+        If no findings are provided, then respond to the user accordingly, stating that you do not have enough information to accurately answer their query.
+        `,
+      )
+      .addBlock(
         "User Query",
         `
         The user's query is:
@@ -812,29 +818,14 @@ export default class Spyglass {
               },
               tables: {
                 type: LMSchemaType.ARRAY,
-                description: "A list of table types to search within.",
+                description: `A list of table types to search within.
+                - ideas: the user's notes
+                - task: the users open tasks
+                - source: external information sources the user has saved
+                - excerpt: excerpts from those sources`,
                 items: {
                   type: LMSchemaType.STRING,
                   enum: ["idea", "task", "source", "excerpt"],
-                },
-              },
-              limit: {
-                type: LMSchemaType.NUMBER,
-                description: "The maximum number of results to return.",
-              },
-              tags: {
-                type: LMSchemaType.OBJECT,
-                description:
-                  "Filter results to include or exclude specific tags by name or ID.",
-                properties: {
-                  include: {
-                    type: LMSchemaType.ARRAY,
-                    items: { type: LMSchemaType.STRING },
-                  },
-                  exclude: {
-                    type: LMSchemaType.ARRAY,
-                    items: { type: LMSchemaType.STRING },
-                  },
                 },
               },
               date: {
@@ -995,7 +986,6 @@ export default class Spyglass {
     results: ISearchResult[],
     intent: ISpyglassIntent,
   ): AsyncGenerator<string, void, unknown> {
-    /* We should update this to analyze each result in parallel instead of each result appended. It would improve accuracy and speed. */
     try {
       if (results.length === 0) {
         yield `[]`;
@@ -1022,7 +1012,7 @@ export default class Spyglass {
         findingsPrompt.addBlock(`Result ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("simple").withThinking(-1);
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
         this.findingsSchema(results.map((r) => r.id.toString())),
@@ -1052,7 +1042,7 @@ export default class Spyglass {
         `
           Here is some context for you to use in formation of your analysis:
           <context>
-            It is currently ${getFormattedDateTimeToday()}.
+            It is currently ${getFormattedDateTimeToday()} (${Date.now()} | ${new Date().toISOString()}).
             You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           </context>
           `,
@@ -1063,10 +1053,10 @@ export default class Spyglass {
           There are four different types of resource that you might come across in results from your sources. All are curated by the user.
 
           Types:
-          - Idea: these are directly created by the user, and are units of user knowledge
-          - Task: these are things that the user needs to do
+          - Idea: these are notes directly created by the user
+          - Task: open tasks for the user to complete
           - Source: these are user saved sources of external knowledge
-          - Excerpt: these are saved notes on specific source text from sources
+          - Excerpt: these are saved excerpts on specific source text from sources
         `,
       )
       .addBlock("Mission Statement", spyglassMissionStatement)
@@ -1108,7 +1098,7 @@ export default class Spyglass {
         return;
       }
 
-      const lm = getLM().withModel("fast-accurate");
+      const lm = getLM().withModel("simple").withThinking(-1);
 
       const findingPromises = results.map((result) => {
         return (async () => {
@@ -1168,20 +1158,20 @@ export default class Spyglass {
     const source = citationMap[sourceId];
     const type = source.value.type;
     t += "<finding>";
-    t += `  <sourceType>${type}</sourceType>`;
-    t += `  <sourceId>${sourceId}</sourceId>`;
+    t += `  <resourceType>${type}</resourceType>`;
+    t += `  <resourceId>${sourceId}</resourceId>`;
     if (source.value.type === "idea") {
-      t += `  <sourceTitle>${source.value.title}</sourceTitle>`;
+      t += `  <resourceTitle>${source.value.title}</resourceTitle>`;
     }
     if (source.value.type === "task") {
-      t += `  <sourceTitle>${source.value.description}</sourceTitle>`;
+      t += `  <resourceTitle>${source.value.description}</resourceTitle>`;
     }
     if (source.value.type === "source") {
-      t += `  <sourceTitle>${source.value.displayName}</sourceTitle>`;
+      t += `  <resourceTitle>${source.value.displayName}</resourceTitle>`;
     }
     t += `  <findingNumber>${index}</findingNumber>`;
-    t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
     t += `  <type>${findingType}</type>`;
+    t += `  <excerpt>${htmlToMarkdown(excerpt)}</excerpt>`;
     t += `  <analysis>${htmlToMarkdown(analysis)}</analysis>`;
     t += "</finding>";
     return t;
@@ -1194,9 +1184,6 @@ export default class Spyglass {
     results: ISearchResult[],
   ): Promise<ISearchOverview["overview"] | undefined> {
     try {
-      if (findings.length === 0) {
-        return "There were no results to analyze.";
-      }
       const findingsString: string[] = [];
       let index = 0;
       const citationMap = this.getCitationMap(results);
@@ -1245,10 +1232,6 @@ export default class Spyglass {
     parent?: ISpyglassSearch,
   ): AsyncGenerator<string, void, unknown> {
     try {
-      if (findings.length === 0) {
-        yield "There were no results to analyze.";
-        return;
-      }
       const findingsString: string[] = [];
       const citationMap = this.getCitationMap(results);
       let index = 0;
@@ -1270,7 +1253,7 @@ export default class Spyglass {
         overviewPrompt.addBlock(`Finding ${i + 1}`, s, 2);
       });
 
-      const lm = getLM().withModel("simple");
+      const lm = getLM().withModel("fast-accurate").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
         yield chunk;
       }
