@@ -28,6 +28,13 @@ export type IConnectable =
   | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
   | (IExcerpt & { type: "excerpt"; direction?: "incoming" | "outgoing" });
 
+export type IConnectableTypeMap = {
+  idea: IIdea;
+  source: ISource;
+  task: ITask | IPublicTask;
+  excerpt: IExcerpt;
+};
+
 export type ISimilarConnectable = IConnectable & { similarity: number };
 
 export type IConnection = {
@@ -681,6 +688,8 @@ export default class GraphService {
       return undefined;
     }
   }
+
+  public static async getConnectableContent(thingId: string | RecordId) {}
 
   public static async getUserConnectables(
     userId: StringRecordId,
@@ -1382,5 +1391,148 @@ export class GraphFilterQueryBuilder {
       where: this.whereClauses,
       params: this.params,
     };
+  }
+}
+
+export type IConnectableFields = {
+  id: string | RecordId;
+  name: string;
+  content: string;
+  description: string;
+  type: IConnectableTypes;
+};
+
+export class Connectable {
+  private _thingId: RecordId | string;
+  private _type: IConnectableTypes | undefined;
+
+  constructor(thingId: RecordId | string) {
+    this._thingId = thingId;
+    this._type = Connectable.idToType(thingId.toString()) as IConnectableTypes;
+    if (!this._type) {
+      throw new Error("The Connectable id is not a valid connectable type!");
+    }
+  }
+
+  public get thingId() {
+    return this._thingId;
+  }
+
+  public get type() {
+    return this._type;
+  }
+
+  public static getterResolver: {
+    [K in keyof IConnectableTypeMap]: (
+      id: RecordId | string,
+    ) => Promise<IConnectableTypeMap[K] | undefined>;
+  } = {
+    idea: async (id: string | RecordId) => {
+      return await Idea.get(id, "full");
+    },
+    task: async (id: string | RecordId) => {
+      return await Task.get(id, "full");
+    },
+    source: async (id: string | RecordId) => {
+      return await Source.get(id);
+    },
+    excerpt: async (id: string | RecordId) => {
+      return await Excerpt.get(id, "full");
+    },
+  };
+
+  public static fieldsResolver: {
+    [K in keyof IConnectableTypeMap]: (
+      i: IConnectableTypeMap[K],
+    ) => IConnectableFields;
+  } = {
+    idea: (idea: IIdea) => {
+      return {
+        id: idea.id,
+        name: idea.title,
+        description:
+          idea.contentPlain?.slice(0, 256) || "No description available.",
+        content: idea.content,
+        type: "idea",
+      };
+    },
+    source: (source: ISource) => {
+      return {
+        id: source.id,
+        name: source.displayName,
+        description:
+          source.content?.slice(0, 256) || "No description available.",
+        content: source.content,
+        type: "source",
+      };
+    },
+    task: (task: ITask | IPublicTask) => {
+      return {
+        id: task.id,
+        name: task.description.slice(0, 124),
+        description:
+          task.scratchpad?.slice(0, 256) || "No description available.",
+        content: task.scratchpad,
+        type: "task",
+      };
+    },
+    excerpt: (excerpt: IExcerpt) => {
+      return {
+        id: excerpt.id,
+        name: excerpt.note,
+        description:
+          excerpt.sourceText?.slice(0, 256) || "No description available.",
+        content: excerpt.sourceText,
+        type: "excerpt",
+      };
+    },
+  };
+
+  public static idToType = (id: string): IConnectableTypes | undefined => {
+    if (id.startsWith("idea")) {
+      return "idea";
+    }
+    if (id.startsWith("source")) {
+      return "source";
+    }
+    if (id.startsWith("task")) {
+      return "task";
+    }
+    if (id.startsWith("excerpt")) {
+      return "excerpt";
+    }
+  };
+
+  public async get<T extends IConnectable>(): Promise<T | undefined> {
+    try {
+      const thingId = this.thingId;
+      const type = this.type;
+      if (!type) {
+        throw new Error("Couldn't get type of connectable");
+      }
+      const thing = await Connectable.getterResolver[type]?.(thingId);
+      return thing as T;
+    } catch (error) {
+      console.error("Error getting thing: ", this.thingId, error);
+      return undefined;
+    }
+  }
+
+  public async fields(): Promise<IConnectableFields | undefined> {
+    try {
+      const type = this.type;
+      if (!type) {
+        throw new Error("Couldn't get type of connectable");
+      }
+      const thing = (await this.get()) as IConnectable;
+      if (!thing) {
+        throw new Error("Couldn't get connectable");
+      }
+      const fields = Connectable.fieldsResolver[type]?.(thing as any);
+      return fields;
+    } catch (error) {
+      console.error("Error getting connectable fields: ", error);
+      return undefined;
+    }
   }
 }

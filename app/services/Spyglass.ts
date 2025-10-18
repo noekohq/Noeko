@@ -8,6 +8,13 @@ import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISearchOverview, ISpyglassSearch } from "../database/models/search";
 import { RecordId } from "surrealdb";
 import Source, { ISourceAnalysis } from "../database/models/source";
+import { Connectable, IConnectableFields } from "./Graph";
+import { Tag } from "../database/models/tag";
+
+export type ISpyglassScope = {
+  connectables: string[];
+  tags: string[];
+};
 
 type ICitationMap = Record<string, ISearchResult>;
 
@@ -1129,13 +1136,10 @@ export default class Spyglass {
         })();
       });
 
-      // 2. Await each promise individually and yield its result as it completes.
-      // This allows the client to receive data much sooner.
       for (const promise of findingPromises) {
-        const findings = await promise; // This waits for the next promise in the array to resolve.
+        const findings = await promise;
 
         if (findings.length > 0) {
-          // Yield the result as a JSON string for the client.
           yield findings;
         }
       }
@@ -1443,6 +1447,130 @@ export default class Spyglass {
     } catch (error) {
       console.error("Error analyzing source: ", sourceId, error);
       return undefined;
+    }
+  }
+
+  static scopedFindingPromptBuilder(query: string) {
+    return new PromptBuilder()
+      .addText(
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
+      )
+      .addBlock(
+        "Context",
+        `
+          Here is some context for you to use in formation of your analysis:
+          <context>
+            It is currently ${getFormattedDateTimeToday()} (${Date.now()} | ${new Date().toISOString()}).
+            You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          </context>
+          `,
+      )
+      .addBlock(
+        "Source Material Types",
+        `
+          There are four different types of resource that you might come across in results from your sources. All are curated by the user.
+
+          Types:
+          - Idea: these are notes directly created by the user
+          - Task: open tasks for the user to complete
+          - Source: these are user saved sources of external knowledge
+          - Excerpt: these are saved excerpts on specific source text from sources
+        `,
+      )
+      .addBlock("Mission Statement", spyglassMissionStatement)
+      .addBlock(
+        "Core Task and Rules",
+        `
+          Your goal is to meticulously analyze the single piece of Source Material and extract **exclusively** those findings that are directly and positively relevant to the "User Intent". You must act as a strict filter.
+
+          **Strict Rules:**
+          - **The Zero-Finding Rule:** It is essential that you return an empty array \`[]\` if no excerpts in the Source Material directly and strongly answer the User Intent. **It is better to find nothing than to include irrelevant or weakly related information.** Do not force a finding.
+          - **Positive Findings Only:** Your final report must only contain positive, relevant findings. Never report that a result was irrelevant or that information was missing.
+          - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
+          `,
+      )
+      .addBlock(
+        "User Query",
+        `
+        The initial user query is as follows:
+        <query>
+          ${query}
+        </query>
+        `,
+      )
+      .addBlock(
+        "Source for Analysis",
+        "The Source Material to use is as follows:\n",
+      );
+  }
+
+  static async connectableToString(fields: IConnectableFields) {
+    const { name, content, type } = fields;
+    let r = "";
+    r += `<resource>`;
+    r += `  <title>${name}</title>`;
+    r += `  <type>${type}</type>`;
+    r += `  <content>${htmlToMarkdown(content)}</content>`;
+    r += "</resource>";
+    return r;
+  }
+
+  static async *generateFindingsFromScope(
+    query: string,
+    scope: ISpyglassScope,
+  ) {
+    try {
+      const scopeStrings: IConnectableFields[] = [];
+      for (const c of scope.connectables) {
+        const connectable = new Connectable(c);
+        const fields = await connectable.fields();
+        if (!fields) {
+          throw new Error("Couldn't get scoped connectable");
+        }
+        scopeStrings.push(fields);
+      }
+
+      for (const t of scope.tags) {
+        // TODO: get everything that the tag is applied to and add that
+      }
+
+      const lm = getLM().withModel("simple").withThinking(-1);
+
+      const findingPromises = scopeStrings.map((resource) => {
+        return (async () => {
+          const sourceId = resource.id.toString();
+          const resultString = await this.connectableToString(resource);
+
+          const singleResultPrompt = this.scopedFindingPromptBuilder(query);
+
+          singleResultPrompt.addBlock(`Source Material`, resultString, 2);
+
+          try {
+            const findings = await lm.generateJSON<IFinding[]>(
+              singleResultPrompt.get(),
+              this.findingsSchema([sourceId]),
+            );
+            return findings || [];
+          } catch (err) {
+            console.error(
+              `Failed to process findings for result ${sourceId}:`,
+              err,
+            );
+            return [];
+          }
+        })();
+      });
+
+      for (const promise of findingPromises) {
+        const findings = await promise;
+
+        if (findings.length > 0) {
+          yield findings;
+        }
+      }
+    } catch (error) {
+      console.error("Error generating findings from results:", error);
+      throw error;
     }
   }
 }
