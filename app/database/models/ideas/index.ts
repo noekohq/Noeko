@@ -685,6 +685,33 @@ export class Idea {
     }
   }
 
+  static async getAllUserIdeas(userId: string) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database connection not established");
+      }
+
+      const builder = new IdeaQueryBuilder().ownedBy(userId);
+
+      builder.sortBy("updatedAt", "desc");
+
+      const { query, params } = builder.build();
+
+      const results = await db.query<[ISafeIdea[]]>(query, params);
+
+      if (!results) {
+        console.error("Something went wrong, no results found.");
+        return undefined;
+      }
+      const [ideas] = results;
+      return ideas;
+    } catch (err) {
+      console.error("Something went wrong getting user ideas", err);
+      return undefined;
+    }
+  }
+
   static async getUserIdeasPaginated(
     userId: string,
     page?: number,

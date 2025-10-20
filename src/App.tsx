@@ -49,6 +49,7 @@ import Source from "./pages/Sources/Source";
 import { showNotification } from "@mantine/notifications";
 import { useLayout } from "./contexts/LayoutContext";
 import MobileDashboard from "./pages/Dashboard/Mobile/Mobile";
+import Export from "./pages/Export/Export";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 
 export default function App() {
@@ -212,6 +213,9 @@ export default function App() {
                   <Route path="sources" element={<SourceList />} />
                   <Route path="import">
                     <Route index element={<Import />} />
+                  </Route>
+                  <Route path="export">
+                    <Route index element={<Export />} />
                   </Route>
                   <Route path="search">
                     <Route index element={<SearchPage />} />
