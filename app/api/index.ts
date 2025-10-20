@@ -17,6 +17,7 @@ import taskRouter from "./tasks";
 import sourceRouter from "./sources";
 import excerptsRouter from "./excerpts";
 import insightsRouter from "./insights";
+import exportRouter from "./export";
 
 const router = Router();
 
@@ -30,7 +31,6 @@ router.use("/files", fileRouter);
 router.use("/users", userRouter);
 router.use("/search", searchRouter);
 router.use("/feedback", feedbackRouter);
-router.use("/imports", importRouter);
 router.use("/tags", tagRouter);
 router.use("/rabbitholes", rabbitholeRouter);
 router.use("/analysis", analysisRouter);
@@ -39,5 +39,7 @@ router.use("/tasks", taskRouter);
 router.use("/sources", sourceRouter);
 router.use("/excerpts", excerptsRouter);
 router.use("/insights", insightsRouter);
+router.use("/imports", importRouter);
+router.use("/exports", exportRouter);
 
 export default router;

@@ -22,7 +22,7 @@ export type IUser = {
   scratchpadContent: string;
   roles: RecordId[];
   disabled: boolean;
-  referralCode?: string; // Added referral code
+  referralCode?: string;
   acceptedTermsOfServiceAt: Date | null;
   acceptedPrivacyPolicyAt: Date | null;
   createdAt: Date;

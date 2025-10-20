@@ -277,6 +277,27 @@ export default class Task {
     }
   }
 
+  static async allIncludingCompleted(userId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+      const [tasks] = await db.query<[ITask[]]>(
+        `SELECT * OMIT embeddings FROM task WHERE <-owns<-(user WHERE id = $userId)`,
+        { userId: new StringRecordId(userId) },
+      );
+
+      if (!tasks) {
+        throw new Error("Tasks are falsey");
+      }
+      return tasks;
+    } catch (error) {
+      console.error("Error getting all tasks: ", error);
+      return undefined;
+    }
+  }
+
   static async delete(taskId: string | RecordId) {
     try {
       const db = await getDatabase();
