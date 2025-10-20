@@ -295,16 +295,15 @@ const DataSettings = () => {
               Import Ideas
             </Button>
           </Link>
-          <Tooltip label="Coming soon...">
+          <Link to="/export">
             <Button
               variant="light"
               color="gray"
               leftSection={<DownloadIcon weight="bold" />}
-              disabled
             >
               Export Stuff
             </Button>
-          </Tooltip>
+          </Link>
           <Button
             variant="light"
             color="red"
