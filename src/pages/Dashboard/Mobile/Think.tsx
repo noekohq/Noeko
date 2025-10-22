@@ -36,7 +36,7 @@ export default function Think() {
     url: "/ideas",
     query: {
       sortField: sortField,
-      sortDirection: "asc",
+      sortDirection: "desc",
       limit: limit.toString(),
       start: start.toString(),
     },
