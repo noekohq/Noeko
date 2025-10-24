@@ -19,6 +19,7 @@ import { capitalize, formatDate } from "../../../utils/formatting";
 import { useLayout } from "../../../contexts/LayoutContext";
 import Selection from "../../Display/Interactions/Selection";
 import { useSearch } from "../../../contexts/SearchContext";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 type ITaskViews = "daily" | "urgent" | "recent";
 
@@ -111,8 +112,17 @@ export default function TaskList() {
     actions: { newTask },
   } = useInteraction();
 
+  const taskListRef = useTourStep({
+    id: "feature:task_list",
+    title: "Your todo list",
+    content:
+      "Manage your tasks here. Your tasks will surface as relevant context to remind you to do things when they're relevant.",
+    view: "dashboard",
+    order: 2,
+  });
+
   return (
-    <div className={styles.taskList}>
+    <div className={styles.taskList} ref={taskListRef}>
       <Group wrap="nowrap" gap="xs">
         <Selection
           initialValue={viewBy}

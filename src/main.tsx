@@ -21,6 +21,7 @@ import { InteractionProvider } from "./contexts/InteractionContext.tsx";
 import { LandscapeProvider } from "./contexts/LandscapeContext.tsx";
 import { ErrorBoundary } from "react-error-boundary";
 import Error from "./Error.tsx";
+import { TourGuideProvider } from "./contexts/TourGuideContext.tsx";
 
 const Client = () => {
   return (
@@ -36,7 +37,9 @@ const Client = () => {
                   <GraphProvider>
                     <WrapTheme>
                       <InteractionProvider>
-                        <App />
+                        <TourGuideProvider>
+                          <App />
+                        </TourGuideProvider>
                       </InteractionProvider>
                     </WrapTheme>
                   </GraphProvider>

@@ -18,6 +18,7 @@ import sourceRouter from "./sources";
 import excerptsRouter from "./excerpts";
 import insightsRouter from "./insights";
 import exportRouter from "./export";
+import tourRouter from "./tourguide";
 
 const router = Router();
 
@@ -41,5 +42,6 @@ router.use("/excerpts", excerptsRouter);
 router.use("/insights", insightsRouter);
 router.use("/imports", importRouter);
 router.use("/exports", exportRouter);
+router.use("/tourguide", tourRouter);
 
 export default router;

@@ -223,6 +223,14 @@ router.post("/validate-referral", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "Email is required" });
+      return;
+    }
+    if (!password) {
+      res.status(400).json({ message: "Password is required" });
+      return;
+    }
     const user = await User.findByEmail(email, true);
     if (!user) {
       res.status(404).json({ message: "User not found." });
@@ -454,6 +462,9 @@ router.put("/me", checkToken, async (req, res) => {
       }
       const newPassword = await hashPassword(req.body.newPassword);
       updater.password = newPassword;
+    }
+    if (req.body.onboarding) {
+      updater.onboarding = req.body.onboarding;
     }
 
     const updatedUser = await User.update(user.id, updater);

@@ -15,6 +15,7 @@ import { Tag } from "../../database/models/tag";
 import shareRouter from "./share";
 import { max_idea_size } from "../../settings";
 import { getLM } from "../../ai/lms/lm";
+import { first } from "../../templates/onboarding";
 
 const router = Router();
 
@@ -200,6 +201,28 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
       user.id,
       { omitEmbeddings: true, omitDerived: true },
     );
+    if (!i) {
+      res.status(404).json({ error: "Idea not created" });
+      return;
+    }
+    res.send({ message: "Successfully created idea.", data: i });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.post("/first", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ error: "Unauthorized" });
+      return;
+    }
+    const i = await Idea.create(first, user.id, {
+      omitEmbeddings: true,
+      omitDerived: true,
+    });
     if (!i) {
       res.status(404).json({ error: "Idea not created" });
       return;

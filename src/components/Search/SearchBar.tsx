@@ -15,6 +15,7 @@ import {
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useSearch } from "../../contexts/SearchContext";
 import useRabbithole from "../../hooks/useRabbithole";
+import { useTourStep } from "../../contexts/TourGuideContext";
 
 type ISearchBarProps = {
   placeholder?: string;
@@ -172,8 +173,16 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
 
     const [focused, setFocused] = useState(false);
 
+    const tourRef = useTourStep({
+      id: "feature:smart_search",
+      title: "Smart Search",
+      content: `In Noeko, you can search for anything based on meaning, not just keywords. For example, queries like "gardening concepts", "something about driving laws in California", or "biology class" will bring up relevant results. No more searching for exact matches!`,
+      view: "all",
+      order: 2,
+    });
+
     return (
-      <div className={styles.searchBar}>
+      <div className={styles.searchBar} ref={tourRef}>
         <Textarea
           minRows={1}
           maxRows={4}

@@ -20,7 +20,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import { useSettings } from "../../contexts/SettingsContext";
 import { IThemeSpec } from "../../declarations/themes";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import {
@@ -28,6 +28,7 @@ import {
   CopyIcon,
   DiscordLogoIcon,
   DownloadIcon,
+  KeyReturnIcon,
   LightbulbIcon,
   RedditLogoIcon,
   Tag,
@@ -425,6 +426,26 @@ const SharingSettings = () => {
   );
 };
 
+const InteractionSettings = () => {
+  return (
+    <Card withBorder radius="lg">
+      <Stack>
+        <Title order={3}>Interactions</Title>
+        <Text size="sm" c="dimmed">
+          Use Noeko to its full potential!
+        </Text>
+        <Group>
+          <Link to="/keymap">
+            <Button variant="default" leftSection={<KeyReturnIcon />}>
+              Keymap
+            </Button>
+          </Link>
+        </Group>
+      </Stack>
+    </Card>
+  );
+};
+
 const CommunitySettings = () => (
   <Card withBorder radius="lg">
     <Stack>
@@ -483,6 +504,7 @@ export default function Settings() {
                   <AccountSettings />
                   <ActivitySettings />
                   <SharingSettings />
+                  <InteractionSettings />
                 </Stack>
               </Grid.Col>
             </Grid>

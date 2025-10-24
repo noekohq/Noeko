@@ -1,5 +1,4 @@
 import {
-  Card,
   Group,
   Text,
   ActionIcon,
@@ -23,23 +22,25 @@ import {
   IntersectSquareIcon,
   TagIcon,
 } from "@phosphor-icons/react";
-import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
-import { ITag, ITagForm } from "../../../app/database/models/tag";
-import useFetch from "../../hooks/useFetch";
+import { IIdea, ISafeIdea } from "../../../../../app/database/models/ideas";
+import { ITag, ITagForm } from "../../../../../app/database/models/tag";
+import useFetch from "../../../../hooks/useFetch";
 import { useState, useMemo, useEffect } from "react";
 import {
   createTagAndAddToThing,
   applyTagToThing,
   removeTagFromThing,
-} from "../../utils/tags";
+} from "../../../../utils/tags";
 import { Link, useNavigate } from "react-router";
-import { useSettings } from "../../contexts/SettingsContext";
-import { InlineTag } from "../../components/Display/Tags/TagDisplay";
-import SuggestTags from "../../components/Search/SuggestTags";
+import { useSettings } from "../../../../contexts/SettingsContext";
+import { InlineTag } from "../../Tags/TagDisplay";
+import SuggestTags from "../../../Search/SuggestTags";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
-import { IConnectable } from "../../../app/services/Graph";
-import useConnectable from "../../hooks/useConnectable";
+import { IConnectable } from "../../../../../app/services/Graph";
+import useConnectable from "../../../../hooks/useConnectable";
+import { useTourStep } from "../../../../contexts/TourGuideContext";
+import styles from "./TagsManager.module.scss";
 
 type ITagsManagerProps = {
   connectable: IConnectable;
@@ -174,8 +175,17 @@ export default function TagsManager({
 
   const [managing, setManaging] = useState(false);
 
+  const tourRef = useTourStep({
+    id: "feature:tags",
+    view: "editor",
+    order: 1,
+    title: "Smart Tags",
+    content: "These tags are automatically suggested to help you categorize.",
+  });
+
   return (
-    <Container p="0" w="100%">
+    <div ref={tourRef} className={styles.tagsManager}>
+      <span data-tour-id="tags-manager" />
       <Stack w="100%" gap="xs">
         <Text size="sm" c="dark.4" fw="bold">
           <Group gap="xs">
@@ -384,6 +394,6 @@ export default function TagsManager({
           </Stack>
         </Modal>
       )}
-    </Container>
+    </div>
   );
 }

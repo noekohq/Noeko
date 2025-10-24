@@ -35,6 +35,7 @@ import CollapseButton from "../CollapseButton";
 import { useNavigate } from "react-router";
 import useRabbithole from "../../../../hooks/useRabbithole";
 import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
+import { useTourStep } from "../../../../contexts/TourGuideContext";
 
 interface IConnectionManagerProps {
   connectable: IConnectable;
@@ -107,6 +108,25 @@ export default function ConnectionManager({
     return lastUpdated.getTime() > lastEmbeddingsUpdate.getTime();
   };
 
+  const connectionRef = useTourStep({
+    id: "feature:connections",
+    view: "editor",
+    order: 2,
+    title: "Connections",
+    content: `Explicit connections are only made by you, and they are
+    persistent even if the content changes, unlike similar
+    things. You can drag and drop ideas to this area, or click
+    the associated buttons to make connections.`,
+  });
+
+  const contextRef = useTourStep({
+    id: "feature:context",
+    view: "editor",
+    order: 3,
+    title: "Context",
+    content: `Noeko automatically surfaces relevant saved context from your idea, task, or source content. This fosters serendipitous connections, ensuring your saves proactively appear when useful.`,
+  });
+
   return (
     <div className={styles.connectionManager}>
       <Box
@@ -117,6 +137,7 @@ export default function ConnectionManager({
           setDraggingOverConnectionDrop(false);
         }}
         pos="relative"
+        ref={connectionRef}
       >
         <Stack>
           <Group align="center" justify="space-between" mt="lg">
@@ -188,7 +209,7 @@ export default function ConnectionManager({
                   {connected && connected?.length <= 0 && (
                     <Text c="dimmed" size="xs">
                       No connections yet. Try connecting (
-                      <UniteSquareIcon size={12} />) a related thing!
+                      <UniteSquareIcon size={12} />) something from the context!
                     </Text>
                   )}
                 </HoverCard.Dropdown>
@@ -253,11 +274,11 @@ export default function ConnectionManager({
           {draggingOverConnectionDrop && <Box my="md" mih={"10vh"} />}
         </Stack>
       </Box>
-      <Stack gap="xs" mb="md" mt="md">
+      <Stack gap="xs" mb="md" mt="md" ref={contextRef} pos="relative">
         <Text size="sm" c="dark.4" fw="bold">
           <Group gap="xs">
             <IntersectSquareIcon weight="bold" />
-            RELATED
+            CONTEXT
             {/*<Transition mounted={relatedOutOfDate()} transition="fade-up">
               {(styles) => {
                 if (loadingSimilar) {

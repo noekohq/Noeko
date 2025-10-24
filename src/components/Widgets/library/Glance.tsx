@@ -11,7 +11,6 @@ import { formatDate } from "../../../utils/formatting";
 
 type IVisualOptions = "chart" | "heatmap";
 
-// Cannot import from server, so redefining here
 interface IProgressDataPoint {
   date: string;
   [key: string]: number | string;
@@ -131,7 +130,7 @@ function ChartView({
         withLegend={false}
         withYAxis={false}
         withXAxis={false}
-        curveType="natural"
+        curveType="linear"
         gridAxis="none"
         tickLine="none"
         yAxisProps={{ domain: [0, "auto"] }}

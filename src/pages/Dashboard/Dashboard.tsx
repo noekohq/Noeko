@@ -66,6 +66,7 @@ import Selection from "../../components/Display/Interactions/Selection";
 import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 import { useSearch } from "../../contexts/SearchContext";
 import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
+import { useTourStep } from "../../contexts/TourGuideContext";
 
 type ILoadedWidget = {
   id: string;
@@ -337,9 +338,6 @@ function JumpBackIn() {
       start: start.toString(),
     },
     runOnDependencies: [start, sortField],
-    onBefore: () => {
-      console.log("Start and Limit: ", start, limit);
-    },
     onSuccess: (d) => {
       if (start === 0) {
         console.log("Data from 0: ", d);
