@@ -28,6 +28,7 @@ import GraphLoader from "../../components/Utils/Loading/GraphLoader";
 import useRabbithole from "../../hooks/useRabbithole";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useGraph } from "../../contexts/GraphContext";
+import { useTourStep } from "../../contexts/TourGuideContext";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);

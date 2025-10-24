@@ -16,6 +16,11 @@ export default function CollapseButton({ target, details }: ICollapseButton) {
         onClick={() => {
           toggle();
         }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            toggle();
+          }
+        }}
         className={styles.target}
       >
         {target}

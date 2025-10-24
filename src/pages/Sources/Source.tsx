@@ -47,7 +47,7 @@ import { updateSource } from "../../utils/sources";
 import { showNotification } from "@mantine/notifications";
 import { SourceProvider, useSource } from "./SourceContext";
 import useConnectable from "../../hooks/useConnectable";
-import TagsManager from "../Idea/TagsManager";
+import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 
 export default function Source() {
   const { sourceId } = useParams();

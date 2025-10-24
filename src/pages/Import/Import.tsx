@@ -9,10 +9,20 @@ import TextFileImporter from "./importers/TextFile";
 import DirectoryImporter from "./importers/Directory";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import { useTourStep } from "../../contexts/TourGuideContext";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
 export default function Import() {
+  const tourRef = useTourStep({
+    id: "import_page_seen",
+    view: "import",
+    order: 1,
+    title: "Import",
+    content:
+      "You can import your stuff directly into Noeko through the automated workflow.",
+  });
+
   const [importType, setImportType] = useState<IImportType>("markdown-file");
 
   const typeToComponent: Record<IImportType, React.ReactNode | null> = {
@@ -59,6 +69,7 @@ export default function Import() {
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>{typeToComponent[importType]}</Grid.Col>
         </Grid>
+        <span ref={tourRef} />
       </Content>
       <StatusBar />
       <RightSidebar />

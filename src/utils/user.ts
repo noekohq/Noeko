@@ -1,4 +1,10 @@
-import { IPublicUser, ISafeUser, IUser } from "../../app/database/models/user";
+import {
+  IPublicUser,
+  ISafeUser,
+  IUser,
+  IUserForm,
+} from "../../app/database/models/user";
+import { api } from "../server/api";
 
 export const userInitials = (user: ISafeUser | undefined) => {
   if (!user) return "";
@@ -16,4 +22,10 @@ export const userFormattedName = (
 ) => {
   if (!user) return "";
   return `${user.firstName} ${user.lastName}`;
+};
+
+export const updateUser = async (form: Partial<IUserForm>) => {
+  return api.put("/users/me", {
+    ...form,
+  });
 };

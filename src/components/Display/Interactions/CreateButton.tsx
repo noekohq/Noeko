@@ -12,6 +12,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import { useState } from "react";
 import { RabbitholeIcon } from "../../Utils/Icons/Icons";
 import { useLayout } from "../../../contexts/LayoutContext";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 export default function CreateButton() {
   const {
@@ -20,6 +21,15 @@ export default function CreateButton() {
   const { isMobile, isTablet } = useLayout();
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const createRef = useTourStep({
+    id: "feature:create_button",
+    title: "Create",
+    content:
+      "Hit the create button whenever you want to add a new idea, task, source, or rabbithole.",
+    view: "all",
+    order: 1,
+  });
 
   return (
     <Menu
@@ -33,7 +43,7 @@ export default function CreateButton() {
       openDelay={100}
     >
       <Menu.Target>
-        <div style={{ height: "100%" }}>
+        <div style={{ height: "100%", position: "relative" }} ref={createRef}>
           <StatusButton variant="primary">
             {menuOpen ? (
               <XIcon weight="bold" size={16} />

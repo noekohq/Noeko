@@ -32,6 +32,7 @@ import {
   PaletteIcon,
   DesktopIcon,
   UploadSimpleIcon,
+  SignOutIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -490,7 +491,7 @@ const useSpotlightConfig = ({
     },
   } = useLandscape();
   const { exitRabbithole, isDownRabbithole } = useRabbithole();
-  const { isSuperuser } = useAuth();
+  const { isSuperuser, logout } = useAuth();
 
   const {
     state: {
@@ -679,6 +680,15 @@ const useSpotlightConfig = ({
         icon: isZen ? <CircleIcon /> : <SquareIcon />,
         action: () => {
           setZen(!isZen);
+        },
+      },
+      {
+        id: "logout",
+        title: "Logout",
+        icon: <SignOutIcon />,
+        action: () => {
+          logout();
+          close();
         },
       },
       ...(isSuperuser
