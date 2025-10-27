@@ -119,9 +119,9 @@ const concepts: IConcept[] = [
     icon: UniteSquareIcon,
     description: (
       <>
-        Build your Constellation by creating bi-directional links. Every
-        connection automatically links both ways—connecting your ideas, tasks,
-        and sources just like your mind does.
+        <strong>Organize how your mind actually works.</strong> Every link works
+        both ways, automatically weaving your knowledge together into a
+        Constellation.
       </>
     ),
     graphic: <ConnectingDots />,
@@ -131,9 +131,9 @@ const concepts: IConcept[] = [
     icon: IntersectSquareIcon,
     description: (
       <>
-        Context is automatic. As you write, Noeko intelligently finds and
-        displays relevant knowledge from your past. This helps you build on old
-        ideas and discover connections you never knew you had.
+        <strong>Rediscover your thoughts.</strong> As you write, Noeko
+        automatically surfaces relevant notes from your past, revealing
+        connections you never knew you had.
       </>
     ),
     graphic: <ContextSurfacing />,
@@ -143,9 +143,9 @@ const concepts: IConcept[] = [
     icon: BrainIcon,
     description: (
       <>
-        Noeko is built for a frictionless workflow. It understands the meaning
-        behind your notes, so you can stop worrying about perfect tags or exact
-        keywords and just focus on your ideas
+        <strong>Less overhead, more power.</strong> Noeko understands the
+        meaning behind your notes, so you can find anything without perfect tags
+        or keywords.
       </>
     ),
     graphic: <SemanticDemo />,

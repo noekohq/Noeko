@@ -856,7 +856,7 @@ export default class GraphService {
           embeddings
         FROM (
           SELECT VALUE
-              ->connected->(?).{embeddings}
+              <->connected->(?).{embeddings}
           FROM ONLY $connectableId
         )`,
         {
