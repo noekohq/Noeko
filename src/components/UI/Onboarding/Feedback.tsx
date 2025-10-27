@@ -40,10 +40,10 @@ export default function Feedback({ next }: IOnboardingProps) {
               improve.
             </Text>
           </Group>
-          <Text size="xs" c="dimmed" fs="italic">
-            Pro tip: try it now!
-          </Text>
         </div>
+        <Text size="xs" c="dimmed" fs="italic">
+          Try it out: Tell us how you like the onboarding!
+        </Text>
       </Stack>
       <Group justify="center">
         <button className={styles.button} onClick={next}>

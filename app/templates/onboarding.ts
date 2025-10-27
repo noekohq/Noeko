@@ -9,21 +9,36 @@ export const first: IIdeaForm = {
   embeddings: null,
   visibility: "private",
   content: `
-    <p>This is your <em>first</em> idea!</p>
-    <p>An idea in <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.noeko.app">Noeko</a> follows similar principles to other Markdown-based editors. You can<em> apply familiar formatting</em>, link to other ideas with “[[]]” syntax, and use “/” to insert content.</p>
-    <p>Try typing “reference guide” in the center of the brackets: [[]]</p>
-    <p>Try placing your cursor after the “/”:</p>
-    <p>/</p>
-    <p><span>select text to apply formatting</span>, connect ideas, or even create new ideas without leaving the editor.<em> Our biggest priority is your experience using Noeko,</em> so <strong>please don’t hesitate to give us feedback!</strong> (you will find a megaphone button in the left sidebar.)</p>
-    <h1>Orientation</h1>
-    <p><em>In the right sidebar</em>, you’ll see your search bar, <em>you can search with natural language</em>, or based on text! (Try searching for “My second idea”)</p>
-    <p><em>In the left sidebar</em>, you’ll see relevant context about the idea you’re currently working in.</p>
-    <p>You can <em>connect</em> ideas, either by dragging-and-dropping, or clicking on the idea to reveal a “Connect” button.</p>
-    <h1>Video Tutorial</h1>
-    <p>For a quick video tutorial on Noeko’s basic features, check this out:</p>
+    <h1>Welcome to Noeko! ✨</h1>
+    <p>This is your first "idea," and we've designed it to be an interactive guide. The best way to learn is by doing.</p>
+    <p>Let's start by completing your first few tasks.</p>
+
+    <h3>Your First Tasks</h3>
+    <ul>
+      <li><strong>Create a new idea:</strong> The <code>[[]]</code> syntax is for linking. Type <code>[[My Second Idea]]</code> right here. A link will appear. Click it to jump to your new idea! (This page will be here when you come back.)</li>
+      <li><strong>Use a "Slash" command:</strong> On a new line below this, type <code>/</code> to open the command menu. Select <code>To-do list</code> (or just type <code>/todo</code>) to create your own checkbox.</li>
+      <li><strong>Format text:</strong> Highlight the words -&gt; <em>make me bold</em> &lt;- and use the floating menu that appears to make them <strong>bold</strong>.</li>
+    </ul>
+
+    <h3>How to Navigate Noeko</h3>
+    <p>Now that you've got the editor basics, here's a quick tour of the UI.</p>
+
+    <h4>1. The Right Sidebar (<code>-&gt;</code>)</h4>
+    <p>This is your global dashboard. You'll find your <strong>Search</strong> bar here. You can search with natural language (like "ideas about marketing") or by title.</p>
+    <ul>
+      <li><strong>Try it:</strong> Search for the "<strong>Reference Guide</strong>" we've included in your workspace.</li>
+    </ul>
+
+    <h4>2. The Left Sidebar (<code>&lt;-</code>)</h4>
+    <p>This sidebar is all about <strong>Context</strong>. It shows you what's connected to the idea you're currently viewing. You can also drag and drop ideas from here to connect them.</p>
+
+    <h3>Want to Learn More?</h3>
+    <p>For a quick overview of Noeko's core features, check out this quick video tutorial:</p>
     <div data-dream-youtube-video="">
       <iframe src="https://www.youtube.com/embed/ndP8Sc2CGZw" data-start="0" frameborder="0" allowfullscreen="true" title="Embedded YouTube Video"></iframe>
     </div>
+
+    <p><strong>We're here to help.</strong><br>We are actively building Noeko and <em>your</em> experience is our top priority. If you have feedback or get stuck, please click the <strong>Megaphone</strong> button (📣) in the left sidebar.</p>
     `,
 };
 
@@ -35,8 +50,7 @@ export const ideas: IIdeaForm[] = [
     content: `
     <p>
         <em
-            >We will not be sad if you delete this note, it is here largely for
-            introductory purposes. Happy thinking :)</em
+            >This is is here for introductory purposes, try deleting it! Happy thinking :)</em
         >
     </p>
     <p><strong>TLDR:&nbsp;</strong>Noeko’s mission is two-fold:</p>
