@@ -27,7 +27,7 @@ export default function CreateButton() {
     title: "Create",
     content:
       "Hit the create button whenever you want to add a new idea, task, source, or rabbithole.",
-    view: "all",
+    view: "navigation",
     order: 1,
   });
 

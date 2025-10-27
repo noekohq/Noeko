@@ -15,12 +15,22 @@ type IImportType = "markdown-file" | "text-file" | "directory";
 
 export default function Import() {
   const tourRef = useTourStep({
-    id: "import_page_seen",
+    id: "feature:import",
     view: "import",
-    order: 1,
+    order: 0,
     title: "Import",
-    content:
-      "You can import your stuff directly into Noeko through the automated workflow.",
+    content: (
+      <>
+        <p>
+          You can import your stuff directly into Noeko through the automated
+          workflow.
+        </p>
+        <p>
+          We will add more import options over time, if you have suggestions,
+          let us know :)
+        </p>
+      </>
+    ),
   });
 
   const [importType, setImportType] = useState<IImportType>("markdown-file");
@@ -35,7 +45,7 @@ export default function Import() {
     <PageWrapper>
       <LeftSidebar />
       <Content>
-        <Grid>
+        <Grid pos="relative" ref={tourRef}>
           <Grid.Col span={{ sm: 12 }}>
             <Title>Import</Title>
           </Grid.Col>
@@ -69,7 +79,7 @@ export default function Import() {
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>{typeToComponent[importType]}</Grid.Col>
         </Grid>
-        <span ref={tourRef} />
+        <span />
       </Content>
       <StatusBar />
       <RightSidebar />

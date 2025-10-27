@@ -4,7 +4,7 @@ import {
   ISearchResult,
 } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
-import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
+import { Loader, ActionIcon, Textarea, Flex, List, Text } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
 import {
   MagnifyingGlass,
@@ -61,6 +61,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
       "What if...?",
       "A new quest awaits.",
       "Chart the unknown.",
+      "Onward!",
     ];
 
     const getRandomQuip = () => {
@@ -176,7 +177,23 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
     const tourRef = useTourStep({
       id: "feature:smart_search",
       title: "Smart Search",
-      content: `In Noeko, you can search for anything based on meaning, not just keywords. For example, queries like "gardening concepts", "something about driving laws in California", or "biology class" will bring up relevant results. No more searching for exact matches!`,
+      content: (
+        <>
+          <p>
+            In Noeko, you can search for anything based on meaning, not just
+            keywords.
+          </p>
+          <p>For example, queries like:</p>
+          <List>
+            <List.Item>“Gardening Concepts”</List.Item>
+            <List.Item>“Driving laws in California”</List.Item>
+            <List.Item>“That concept from biology class”</List.Item>
+          </List>
+          <p>
+            Will bring up relevant results. No more searching for exact matches!
+          </p>
+        </>
+      ),
       view: "all",
       order: 2,
     });

@@ -46,11 +46,9 @@ export default function GlobalTourManager() {
         zIndex: 10000,
       }}
     >
-      <div style={{ maxWidth: 300 }}>
+      <div style={{ maxWidth: 300 }} className={styles.body}>
         <Text fw={500}>{currentStep.title}</Text>
-        <Text size="sm" mt="xs">
-          {currentStep.content}
-        </Text>
+        <div className={styles.content}>{currentStep.content}</div>
 
         <Group justify="right" mt="md">
           <Button

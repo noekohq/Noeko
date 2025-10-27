@@ -12,6 +12,7 @@ import ProfileButton from "../../Display/Interactions/ProfileButton";
 import { useLocation } from "react-router";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import HomeButton from "../../Display/Interactions/HomeButton";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function MobileBar() {
   const {
@@ -27,6 +28,7 @@ export default function MobileBar() {
     },
     scroll: { isScrolled, scrollDirection },
   } = useLayout();
+  const { user } = useAuth();
 
   const leftModeToClass: Record<typeof leftMode, string> = {
     open: styles.leftOpen,

@@ -3,18 +3,20 @@ import {
   useCallback,
   useContext,
   useState,
-  useEffect, // Added useEffect
-  ReactNode, // Added ReactNode for clarity
+  useEffect,
+  ReactNode,
 } from "react";
 import {
   IThemeOption,
   IThemeResolved,
   IThemeSpec,
-} from "../declarations/themes"; // Assuming these paths are correct
-import { ResolveTheme } from "../themes"; // Assuming this path is correct
+} from "../declarations/themes";
+import { ResolveTheme } from "../themes";
 import { isDarkScheme } from "../utils/dom";
+import { IUserSettings } from "../../app/database/models/user";
+import { useAuth } from "./AuthContext";
+import { api } from "../server/api";
 
-// Define keys for localStorage
 const LOCAL_STORAGE_KEYS = {
   override: "themeOverride",
   scheme: "themeScheme",
@@ -48,16 +50,19 @@ type ISettingsContext = {
       };
     };
   };
+  user: {
+    setSetting: (
+      setting: keyof IUserSettings,
+      value: any,
+    ) => Promise<boolean | undefined>;
+  };
 };
 
-// Helper to get initial value from localStorage or return default
 function getInitialState<T>(key: string, defaultValue: T): T {
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       const storedValue = localStorage.getItem(key);
       if (storedValue !== null) {
-        // Assuming theme spec values are strings or string literals.
-        // If they were complex objects, JSON.parse(storedValue) would be needed.
         return storedValue as unknown as T;
       }
     } catch (error) {
@@ -71,37 +76,38 @@ const SettingsContext = createContext<ISettingsContext>({
   ui: {
     theme: {
       override: {
-        get: "noeko", // Default value
+        get: "noeko",
         set: () => {},
       },
       bodyFont: {
-        get: "sans-serif", // Default value
+        get: "sans-serif",
         set: () => {},
       },
       headingFont: {
-        // Added default for headingFont
-        get: "sans-serif", // Default value
+        get: "sans-serif",
         set: () => {},
       },
       scheme: {
-        get: "auto", // Default value
+        get: "auto",
         set: () => {},
         actual: "light",
       },
       resolved: {
-        // This default should ideally be a fully formed IThemeResolved
-        // or a minimal valid one if ResolveTheme is not available here.
         get: {
-          scheme: "light", // Example: Assuming IThemeResolved has a concrete scheme
-          override: {}, // Example: Assuming MantineThemeOverride
-          // Potentially add other default resolved properties if needed
-        } as IThemeResolved, // Cast to ensure it matches the type
+          scheme: "light",
+          override: {},
+        } as IThemeResolved,
       },
     },
+  },
+  user: {
+    setSetting: async () => undefined,
   },
 });
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
+  const { user, reload } = useAuth();
+
   const [override, setOverride] = useState<IThemeSpec["override"]>(() =>
     getInitialState(LOCAL_STORAGE_KEYS.override, "noeko"),
   );
@@ -115,7 +121,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     () => getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif"),
   );
 
-  // Effect for persisting 'override'
   useEffect(() => {
     try {
       if (typeof window !== "undefined" && window.localStorage) {
@@ -129,7 +134,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [override]);
 
-  // Effect for persisting 'scheme'
   useEffect(() => {
     try {
       if (typeof window !== "undefined" && window.localStorage) {
@@ -172,7 +176,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [headingFont]);
 
   const resolvedTheme = useCallback(
-    // Renamed to avoid conflict, and ensure it returns IThemeResolved
     (): IThemeResolved => // Explicit return type
       ResolveTheme({
         override,
@@ -183,6 +186,24 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [override, scheme, bodyFont, headingFont],
   );
 
+  const setUserSetting: ISettingsContext["user"]["setSetting"] = async (
+    setting,
+    value,
+  ) => {
+    try {
+      const result = await api.put("/users/me", {
+        settings: {
+          ...user?.settings,
+          [setting]: value,
+        },
+      });
+      return !!result.data.data;
+    } catch (error) {
+      console.error("Couldn't set user setting");
+      return undefined;
+    }
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -190,11 +211,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
           theme: {
             override: {
               get: override,
-              set: setOverride, // Simplified setter
+              set: setOverride,
             },
             scheme: {
               get: scheme,
-              set: setScheme, // Simplified setter
+              set: setScheme,
               actual:
                 scheme === "auto"
                   ? isDarkScheme()
@@ -204,17 +225,19 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             },
             bodyFont: {
               get: bodyFont,
-              set: setBodyFont, // Simplified setter
+              set: setBodyFont,
             },
             headingFont: {
-              // Added headingFont to context value
               get: headingFont,
-              set: setHeadingFont, // Simplified setter
+              set: setHeadingFont,
             },
             resolved: {
-              get: resolvedTheme(), // Use the memoized function call
+              get: resolvedTheme(),
             },
           },
+        },
+        user: {
+          setSetting: setUserSetting,
         },
       }}
     >

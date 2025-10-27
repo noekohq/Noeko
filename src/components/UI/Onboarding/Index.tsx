@@ -5,21 +5,27 @@ import { useState } from "react";
 import { updateUser } from "../../../utils/user";
 import Introduction from "./Introduction";
 import ChooseYourPath from "./ChooseYourPath";
+import Hotkeys from "./Hotkeys";
+import Concepts from "./Concepts";
+import { useLayout } from "../../../contexts/LayoutContext";
+import Feedback from "./Feedback";
 
 export type IOnboardingProps = {
   next: () => void;
-  complete: () => Promise<void>;
+  complete: (cb?: () => void) => Promise<void>;
 };
 
 export default function Onboarding() {
-  const { user, reload } = useAuth();
-  const handleMarkComplete = async () => {
+  const { isDesktop, isWideScreen, isUltraWide, isTablet } = useLayout();
+  const { reload } = useAuth();
+  const handleMarkComplete = async (cb?: () => void) => {
     await updateUser({
-      onboarding: {
-        viewedWelcomeScreenAt: new Date(),
+      settings: {
+        isNew: false,
       },
     });
     await reload();
+    cb?.();
   };
 
   const [stage, setStage] = useState<number>(0);
@@ -28,7 +34,17 @@ export default function Onboarding() {
     setStage(stage + 1);
   };
 
-  const StageToView = [Introduction, ChooseYourPath];
+  const DesktopOnly = [Hotkeys];
+
+  const StageToView = [
+    Introduction,
+    Concepts,
+    ...(isDesktop || isWideScreen || isUltraWide ? DesktopOnly : []),
+    Feedback,
+    ChooseYourPath,
+  ];
+
+  console.log("All stages: ", StageToView);
 
   const Stage = StageToView[stage];
 

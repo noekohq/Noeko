@@ -266,7 +266,7 @@ router.get(
         });
         return;
       }
-      const similar = await GraphService.getSimilarConnectables(
+      const similar = await GraphService.getRecommendedConnectables(
         user.id,
         thingId,
         {

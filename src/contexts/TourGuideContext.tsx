@@ -14,7 +14,7 @@ export interface IOnboardingStep {
   view: string;
   order: number;
   title: string;
-  content: string;
+  content: React.ReactNode;
 }
 
 type IRegisteredStep = IOnboardingStep & {
@@ -194,17 +194,7 @@ export const useTourStep = (step: IOnboardingStep) => {
     return () => {
       deregisterStep(id);
     };
-  }, [
-    id,
-    view,
-    order,
-    title,
-    content,
-    registerStep,
-    deregisterStep,
-    isLoading,
-    viewedFeatures,
-  ]);
+  }, [id, registerStep, deregisterStep, isLoading, viewedFeatures]);
 
   return ref;
 };
