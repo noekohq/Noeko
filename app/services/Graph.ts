@@ -13,6 +13,8 @@ import Rabbithole, {
   IRabbitholeInclusion,
 } from "../database/models/rabbithole";
 import { Search } from "./Search";
+import { averageEmbeddings, weightedAverage } from "../utils/math";
+import { getEmbedder } from "../ai/embeddings/embeddings";
 
 export type IConnectableTypes = "idea" | "source" | "task" | "excerpt";
 
@@ -62,6 +64,8 @@ export type IGraphFilters = Partial<{
 }>;
 
 export default class GraphService {
+  static readonly SUGGESTION_WEIGHT = 0.5;
+
   constructor() {}
 
   public static async up() {
@@ -413,9 +417,7 @@ export default class GraphService {
         `id NOT IN <->connected->(?)`,
       ];
 
-      if (!options.rabbitholeId) {
-        subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
-      }
+      subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
 
       if (options.rabbitholeId) {
         subqueryWhere.push(`
@@ -449,6 +451,151 @@ export default class GraphService {
           ORDER BY similarity DESC
           LIMIT ${limit};
           `;
+        return query;
+      };
+
+      const ideaQuery = tableQuery("idea");
+      const sourceQuery = tableQuery("source");
+      const taskQuery = tableQuery("task");
+      const excerptQuery = tableQuery("excerpt");
+
+      const getOfType = async <T extends ISimilarConnectable>(
+        query: string,
+      ): Promise<ISimilarConnectable[]> => {
+        const [results] = await db.query<[T[]]>(query, {
+          userId: new StringRecordId(userId),
+          embedding: embedding,
+          ...(options.rabbitholeId && {
+            rabbitholeId: new StringRecordId(options.rabbitholeId),
+          }),
+          sourceId: new StringRecordId(thingId),
+        });
+        return results;
+      };
+
+      const ideas = (
+        await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)
+      ).map((i) => ({ ...i, type: "idea" as const }));
+      const sources = (
+        await getOfType<ISource & { type: "source"; similarity: number }>(
+          sourceQuery,
+        )
+      ).map((s) => ({
+        ...s,
+        type: "source" as const,
+      }));
+      const tasks = (
+        await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)
+      ).map((t) => ({
+        ...t,
+        type: "task" as const,
+      }));
+      const excerpts = (
+        await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(
+          excerptQuery,
+        )
+      ).map((t) => ({
+        ...t,
+        type: "excerpt" as const,
+      }));
+
+      const combined = [...ideas, ...sources, ...tasks, ...excerpts];
+      const sorted = combined.sort((a, b) => {
+        if (a.similarity > b.similarity) {
+          return -1;
+        }
+        if (a.similarity === b.similarity) {
+          return 0;
+        }
+        return 1;
+      });
+
+      const final = sorted;
+
+      return final as IConnectable[];
+    } catch (error) {
+      console.error("Error during semantic search:", error);
+      return undefined;
+    }
+  }
+
+  static async getRecommendedConnectables(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+    options: {
+      limit?: number;
+      threshold?: number;
+      candidates?: number;
+      rabbitholeId?: string;
+    },
+  ): Promise<IConnectable[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const limit =
+        options.limit && isFinite(options.limit) ? Number(options.limit) : 10;
+      const defaultCandidates = 300;
+      const candidates = Number(options.candidates ?? defaultCandidates);
+
+      const connectableEmbedding = await this.getConnectableEmbedding(thingId);
+      if (!connectableEmbedding) {
+        throw new Error("Couldn't get connectable vector for connectable");
+      }
+
+      const centroidEmbedding =
+        await this.getConnectableCentroidEmbedding(thingId);
+
+      const embedding = await this.getWeightedVector(
+        connectableEmbedding || null,
+        centroidEmbedding || null,
+      );
+
+      const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
+      if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
+        throw new Error("Invalid similarity threshold provided.");
+      }
+
+      const subqueryWhere = [
+        `<-owns<-(user WHERE id = $userId)`,
+        `id != $sourceId`,
+        `id NOT IN <->connected->(?)`,
+      ];
+
+      subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
+
+      if (options.rabbitholeId) {
+        subqueryWhere.push(`
+              (
+                id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
+                id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+              )
+            `);
+      }
+
+      const tableQuery = (table: string) => {
+        const tableWhere: string[] = [];
+        if (table === "task") {
+          tableWhere.push(`completedAt = NULL`);
+        }
+        if (table === "excerpt") {
+          tableWhere.push(`references != $sourceId`);
+        }
+        const query = `
+            SELECT * FROM (
+              SELECT
+                *,
+                vector::similarity::cosine(embeddings, $embedding) AS similarity
+              OMIT embeddings
+              FROM ${table}
+              WHERE ${[...subqueryWhere, ...tableWhere].join(" AND ")}
+            )
+            WHERE
+              similarity >= ${threshold} AND
+              similarity != NaN
+            ORDER BY similarity DESC
+            LIMIT ${limit};
+            `;
         return query;
       };
 
@@ -686,6 +833,85 @@ export default class GraphService {
         error,
       );
       return undefined;
+    }
+  }
+
+  public static async getConnectableCentroidEmbedding(
+    thingId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+      const isConnectable = this.isConnectable(thingId);
+      if (!isConnectable) {
+        console.error(
+          "Can't get connectable embedding for non connectable item: ",
+          thingId,
+        );
+        return undefined;
+      }
+      const result = await db.query<[number[][]]>(
+        `
+        SELECT VALUE
+          embeddings
+        FROM (
+          SELECT VALUE
+              ->connected->(?).{embeddings}
+          FROM ONLY $connectableId
+        )`,
+        {
+          connectableId: new StringRecordId(thingId),
+        },
+      );
+
+      if (!result) {
+        throw new Error("Failed to get embeddings");
+      }
+
+      const [vectors] = result;
+
+      const centroid = averageEmbeddings(vectors);
+      return centroid;
+    } catch (error) {
+      console.error(
+        "Error getting connectable centroid vector: ",
+        thingId,
+        error,
+      );
+      return undefined;
+    }
+  }
+
+  static async getWeightedVector(
+    connectableEmbedding: number[] | null,
+    averageEmbedding: number[] | null,
+  ): Promise<number[]> {
+    const emb = getEmbedder();
+    try {
+      if (!connectableEmbedding?.length && !averageEmbedding?.length) {
+        throw new Error("Can't get weighted vector of tag with no embeddings");
+      }
+
+      if (connectableEmbedding?.length && averageEmbedding?.length) {
+        return weightedAverage(
+          connectableEmbedding,
+          averageEmbedding,
+          this.SUGGESTION_WEIGHT,
+        );
+      }
+
+      if (!connectableEmbedding?.length && averageEmbedding?.length) {
+        return averageEmbedding;
+      }
+
+      if (!averageEmbedding?.length && connectableEmbedding?.length) {
+        return connectableEmbedding;
+      }
+
+      return emb.getEmptyEmbeddings();
+    } catch (error) {
+      console.error("Error getting weighted vector: ", error);
+      return emb.getEmptyEmbeddings();
     }
   }
 

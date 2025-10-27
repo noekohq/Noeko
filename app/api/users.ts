@@ -4,7 +4,13 @@ import {
   checkToken,
   disallowDisabled,
 } from "../middleware/auth";
-import { ISafeUser, IUser, IUserForm, User } from "../database/models/user";
+import {
+  initialSettings,
+  ISafeUser,
+  IUser,
+  IUserForm,
+  User,
+} from "../database/models/user";
 import {
   getRandomPassword,
   hashPassword,
@@ -121,6 +127,7 @@ router.post("/register-referred", async (req, res) => {
       scratchpadContent: ``,
       acceptedPrivacyPolicyAt: new Date(),
       acceptedTermsOfServiceAt: new Date(),
+      settings: initialSettings,
     });
 
     if (!newUser) {
@@ -131,7 +138,6 @@ router.post("/register-referred", async (req, res) => {
 
     await User.loadOnboarding(newUser.id.toString());
 
-    // Add referral relationship
     const referrerUser = await User.findByReferralCode(form.referralCode);
     if (referrerUser) {
       await User.addReferralRelationship(referrerUser.id, newUser.id);
@@ -139,8 +145,6 @@ router.post("/register-referred", async (req, res) => {
         `Referral relationship added between ${referrerUser.email} and ${newUser.email}`,
       );
     } else {
-      // This case should ideally not happen if isReferralCodeValid passed,
-      // but good to log if it does.
       console.warn(
         `Referrer user not found for code ${form.referralCode} after validation.`,
       );
@@ -463,8 +467,8 @@ router.put("/me", checkToken, async (req, res) => {
       const newPassword = await hashPassword(req.body.newPassword);
       updater.password = newPassword;
     }
-    if (req.body.onboarding) {
-      updater.onboarding = req.body.onboarding;
+    if (req.body.settings) {
+      updater.settings = req.body.settings;
     }
 
     const updatedUser = await User.update(user.id, updater);

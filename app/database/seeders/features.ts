@@ -3,9 +3,7 @@ import Feature, { IFeatureForm } from "../models/feature";
 
 const initialFeatures: IFeatureForm[] = [
   // DASHBOARD STUFF
-  {
-    name: "widget_task_list",
-  },
+  { name: "widget_task_list" },
   {
     name: "widget_recent_constellation",
   },
@@ -34,6 +32,14 @@ const initialFeatures: IFeatureForm[] = [
   },
   {
     name: "constellation",
+  },
+  // NAVIGATION
+  {
+    name: "navigation_spyglass",
+  },
+  // WORKFLOWS
+  {
+    name: "import",
   },
 ];
 

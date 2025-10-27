@@ -51,9 +51,9 @@ import { useLayout } from "./contexts/LayoutContext";
 import MobileDashboard from "./pages/Dashboard/Mobile/Mobile";
 import Export from "./pages/Export/Export";
 import Keymap from "./pages/Settings/Keymap";
-import Onboarding from "./components/UI/Onboarding/Index";
 import GlobalTourManager from "./components/Utils/Onboarding/GlobalTourManager";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
+const Onboarding = lazy(() => import("./components/UI/Onboarding/Index"));
 
 export default function App() {
   const navigate = useNavigate();
@@ -96,7 +96,9 @@ export default function App() {
     );
   }
 
-  if (!user?.onboarding.viewedWelcomeScreenAt) {
+  console.log("User settings: ", user?.settings);
+
+  if (user?.settings.isNew) {
     return <Onboarding />;
   }
 

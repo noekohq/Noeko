@@ -194,6 +194,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     clearTokens();
     setUser(undefined);
     setLoading(false);
+    window.location.href = "/";
     window.location.reload();
     handleLogout();
   }, [clearTokens]);

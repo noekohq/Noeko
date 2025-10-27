@@ -13,6 +13,14 @@ export type IRole = {
 
 export type IRoleForm = Omit<IRole, "id">;
 
+export type IUserSettings = {
+  isNew: boolean;
+};
+
+export const initialSettings: IUserSettings = {
+  isNew: true,
+};
+
 export type IUser = {
   id: string;
   firstName: string;
@@ -27,6 +35,7 @@ export type IUser = {
   acceptedPrivacyPolicyAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  settings: IUserSettings;
 };
 
 export type IUserForm = Omit<
@@ -45,6 +54,7 @@ export type IPublicUser = Omit<
   | "scratchpadContent"
   | "acceptedTermsOfServiceAt"
   | "acceptedPrivacyPolicyAt"
+  | "settings"
 >;
 
 export type IToken = {
@@ -132,6 +142,14 @@ async function ensureAllUsersHaveNecessaryFields() {
         },
       );
     }
+    if (!user.settings) {
+      await db.query(
+        `UPDATE user MERGE { settings: $settings } WHERE id = ${user.id}`,
+        {
+          settings: initialSettings,
+        },
+      );
+    }
   }
   console.info(
     `Updated ${numUpdatedScratchpads} users to include scratchpad content`,
@@ -167,6 +185,7 @@ export class User {
         DEFINE FIELD IF NOT EXISTS referralCode ON TABLE user TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS acceptedTermsOfServiceAt ON TABLE user TYPE option<datetime>;
         DEFINE FIELD IF NOT EXISTS acceptedPrivacyPolicyAt ON TABLE user TYPE option<datetime>;
+        DEFINE FIELD OVERWRITE settings ON TABLE user FLEXIBLE TYPE option<object>;
       `);
       await db?.query(
         `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
@@ -313,6 +332,7 @@ export class User {
         roles: withRoles.map((r) => new StringRecordId(r)),
         createdAt: new Date(),
         updatedAt: new Date(),
+        settings: initialSettings,
       });
       if (!result) {
         console.error("Failed to create user");
