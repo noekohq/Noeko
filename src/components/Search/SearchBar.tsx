@@ -179,23 +179,12 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
       title: "Smart Search",
       content: (
         <>
-          <p>
-            In Noeko, you can search for anything based on meaning, not just
-            keywords.
-          </p>
-          <p>For example, queries like:</p>
-          <List>
-            <List.Item>“Gardening Concepts”</List.Item>
-            <List.Item>“Driving laws in California”</List.Item>
-            <List.Item>“That concept from biology class”</List.Item>
-          </List>
-          <p>
-            Will bring up relevant results. No more searching for exact matches!
-          </p>
+          In Noeko, you can search for anything based on meaning, not just
+          keywords.
         </>
       ),
       view: "all",
-      order: 2,
+      order: 4,
     });
 
     return (

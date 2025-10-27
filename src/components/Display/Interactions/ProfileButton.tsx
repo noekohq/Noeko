@@ -20,6 +20,7 @@ import {
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import styles from "./ProfileButton.module.scss";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 export default function ProfileButton() {
   const { user, logout } = useAuth();
@@ -55,6 +56,15 @@ export default function ProfileButton() {
 
   const { isMobile } = useLayout();
 
+  const profileRef = useTourStep({
+    id: "feature:button_profile",
+    title: "Profile",
+    content:
+      "Hit your profile button to access different views, perform actions, and access settings.",
+    view: "all",
+    order: 5,
+  });
+
   return (
     <Menu
       width={220}
@@ -66,7 +76,7 @@ export default function ProfileButton() {
       zIndex={700}
     >
       <Menu.Target>
-        <div className={styles.buttonWrapper}>
+        <div className={styles.buttonWrapper} ref={profileRef}>
           <Avatar
             color={isSuperuser ? "red" : "blue"}
             variant="filled"

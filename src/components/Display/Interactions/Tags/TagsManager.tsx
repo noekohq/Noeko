@@ -178,7 +178,7 @@ export default function TagsManager({
   const tourRef = useTourStep({
     id: "feature:tags",
     view: "editor",
-    order: 1,
+    order: 10,
     title: "Smart Tags",
     content: "These tags are automatically suggested to help you categorize.",
   });

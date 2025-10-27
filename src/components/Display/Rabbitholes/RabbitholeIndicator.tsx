@@ -21,6 +21,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import RabbitholeCard from "./RabbitholeCard";
 import RabbitholeThing from "./RabbitholeThing";
 import { getNodeTitle } from "../../../utils/graph";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 export function RabbitholeIndicator() {
   const {
@@ -30,6 +31,15 @@ export function RabbitholeIndicator() {
   } = useLandscape();
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const tourRef = useTourStep({
+    id: "feature:rabbithole_navigation",
+    title: "Rabbitholes",
+    content:
+      "Use Rabbitholes to go down deep dives into a specific subject or topic!",
+    view: "all",
+    order: 3,
+  });
 
   return (
     <Menu
@@ -51,6 +61,7 @@ export function RabbitholeIndicator() {
             height: "100%",
           }}
           className={`${styles.rabbitholeIndicator} ${!!currentRabbithole ? styles.down : styles.notDown}`}
+          ref={tourRef}
         >
           {menuOpen ? (
             <XIcon size={16} weight="bold" />

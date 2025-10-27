@@ -26,16 +26,25 @@ const initialFeatures: IFeatureForm[] = [
   {
     name: "smart_search",
   },
-  // VIEWS
+  // ACTIONS
   {
-    name: "spyglass",
+    name: "button_create",
   },
   {
-    name: "constellation",
+    name: "button_profile",
   },
   // NAVIGATION
   {
     name: "navigation_spyglass",
+  },
+  {
+    name: "constellation_navigation",
+  },
+  {
+    name: "rabbithole_navigation",
+  },
+  {
+    name: "spyglass_navigation",
   },
   // WORKFLOWS
   {

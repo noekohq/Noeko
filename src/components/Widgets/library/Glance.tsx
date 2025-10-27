@@ -8,6 +8,7 @@ import { IHeatmapData } from "../../Visuals/Heatmap/types";
 import YearlyHeatmap from "../../Visuals/Heatmap/YearlyHeatmap";
 import { LineChart } from "@mantine/charts";
 import { formatDate } from "../../../utils/formatting";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 type IVisualOptions = "chart" | "heatmap";
 
@@ -42,8 +43,17 @@ export default function Glance() {
     loadProgress();
   }, []);
 
+  const glanceRef = useTourStep({
+    id: "feature:widget_glance",
+    title: "Glance",
+    content:
+      "This widget will show you recent progress at a glance, ideas you've made, tasks you've created, etc.",
+    view: "dashboard",
+    order: 4,
+  });
+
   return (
-    <div className={styles.glance}>
+    <div className={styles.glance} ref={glanceRef}>
       <Text size="sm" c="dimmed" ta="center">
         Your activity since {formatDate(start)}.
       </Text>
