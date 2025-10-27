@@ -29,28 +29,31 @@ export default function Hotkeys({ next, complete }: IOnboardingProps) {
       <div className={styles.body}>
         <div className={styles.card}>
           <Group justify="center">
-            <Kbd size="xl">{primaryKey}</Kbd> + <Kbd size="xl">K</Kbd>
+            <div className={styles.key}>{primaryKey}</div>+{" "}
+            <div className={styles.key}>K</div>
           </Group>
-          <Text fw="bold">Press {primaryKey} K anytime.</Text>
+          <Text fw="bold">Press {primaryKey} + K anytime.</Text>
           <Text size="sm" c="dimmed">
             Search files, navigate sections, or use commands.
           </Text>
         </div>
         <Group wrap="nowrap" gap="lg">
           <div className={styles.card}>
-            <Text fw="bold" size="sm" c="dimmed">
+            <Text fw="bold" size="sm">
               Toggle Left Sidebar
             </Text>
             <Group justify="center">
-              <Kbd size="xl">CTRL</Kbd> + <Kbd size="xl">q</Kbd>
+              <div className={styles.key}>Ctrl</div> +{" "}
+              <div className={styles.key}>q</div>
             </Group>
           </div>
           <div className={styles.card}>
-            <Text fw="bold" size="sm" c="dimmed">
+            <Text fw="bold" size="sm">
               Toggle Right Sidebar
             </Text>
             <Group justify="center">
-              <Kbd size="xl">CTRL</Kbd> + <Kbd size="xl">l</Kbd>
+              <div className={styles.key}>Ctrl</div> +{" "}
+              <div className={styles.key}>l</div>
             </Group>
           </div>
         </Group>
