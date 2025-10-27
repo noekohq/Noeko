@@ -155,7 +155,7 @@ export default function Constellation() {
   };
 
   const tourRef = useTourStep({
-    id: "feature:recent_constellation",
+    id: "feature:widget_recent_constellation",
     title: "Recent Constellation",
     content:
       "This is a mini constellation to let you visualize your recent activity.",

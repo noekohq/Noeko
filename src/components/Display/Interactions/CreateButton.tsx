@@ -23,11 +23,11 @@ export default function CreateButton() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const createRef = useTourStep({
-    id: "feature:create_button",
+    id: "feature:button_create",
     title: "Create",
     content:
       "Hit the create button whenever you want to add a new idea, task, source, or rabbithole.",
-    view: "navigation",
+    view: "all",
     order: 1,
   });
 

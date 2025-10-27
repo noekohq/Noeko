@@ -111,7 +111,7 @@ export default function ConnectionManager({
   const connectionRef = useTourStep({
     id: "feature:connections",
     view: "editor",
-    order: 2,
+    order: 11,
     title: "Connections",
     content: `Explicit connections are only made by you, and they are
     persistent even if the content changes, unlike similar
@@ -122,7 +122,7 @@ export default function ConnectionManager({
   const contextRef = useTourStep({
     id: "feature:context",
     view: "editor",
-    order: 3,
+    order: 12,
     title: "Context",
     content: `Noeko automatically surfaces relevant saved context from your idea, task, or source content. This fosters serendipitous connections, ensuring your saves proactively appear when useful.`,
   });

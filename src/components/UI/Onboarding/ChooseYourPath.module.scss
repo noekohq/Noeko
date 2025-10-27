@@ -49,10 +49,10 @@
     justify-content: center;
     padding: var(--mantine-spacing-sm) var(--mantine-spacing-xl);
     border-radius: 100px;
-    background-color: var(--mantine-color-blue-7);
+    background-color: var(--mantine-color-blue-6);
     color: var(--mantine-color-white);
     font-size: var(--mantine-font-size-lg);
-    border: 1px solid var(--mantine-color-blue-7);
+    border: 1px solid var(--mantine-color-blue-6);
     box-shadow: var(--mantine-shadow-xl);
     transition: all 0.3s ease-in-out;
     cursor: pointer;
@@ -61,8 +61,8 @@
     overflow: hidden;
 
     &:hover {
-        background-color: var(--mantine-color-red-7);
-        border: 1px solid var(--mantine-color-red-7);
+        background-color: var(--mantine-color-dark-2);
+        border: 1px solid var(--mantine-color-dark-2);
         color: var(--mantine-color-white);
         animation-play-state: paused;
     }

@@ -90,8 +90,8 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
         results.
       </>
     ),
-    view: "navigation",
-    order: 1,
+    view: "all",
+    order: 2,
   });
 
   if (isZen) {
