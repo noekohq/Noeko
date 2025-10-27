@@ -1,5 +1,6 @@
 import { MantineColor } from "@mantine/core";
 import styles from "./StatusButton.module.scss";
+import { forwardRef } from "react";
 
 type IStatusButtonVariant = "default" | "primary";
 
@@ -12,27 +13,25 @@ interface IStatusButtonProps {
   variant?: IStatusButtonVariant;
 }
 
-export default function StatusButton({
-  children,
-  onClick,
-  leftSection,
-  title,
-  style,
-  variant,
-}: IStatusButtonProps) {
-  const handleClick = () => {
-    onClick?.();
-  };
+const StatusButton = forwardRef<HTMLButtonElement, IStatusButtonProps>(
+  ({ children, onClick, leftSection, title, style, variant }, ref) => {
+    const handleClick = () => {
+      onClick?.();
+    };
 
-  return (
-    <button
-      className={`${styles.statusButton} ${styles[variant ?? "default"]}`}
-      onClick={handleClick}
-      title={title}
-      style={style}
-    >
-      {leftSection && <div className={styles.left}>{leftSection}</div>}
-      <div className={styles.content}>{children}</div>
-    </button>
-  );
-}
+    return (
+      <button
+        ref={ref}
+        className={`${styles.statusButton} ${styles[variant ?? "default"]}`}
+        onClick={handleClick}
+        title={title}
+        style={style}
+      >
+        {leftSection && <div className={styles.left}>{leftSection}</div>}
+        <div className={styles.content}>{children}</div>
+      </button>
+    );
+  },
+);
+
+export default StatusButton;

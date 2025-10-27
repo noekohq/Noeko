@@ -424,11 +424,20 @@ export function InteractionProvider({
       },
     ],
     [
-      "mod+;",
+      'mod+"',
       () => {
         if (isSuperuser) {
           value.views.admin();
         }
+      },
+      {
+        preventDefault: true,
+      },
+    ],
+    [
+      "mod+;",
+      () => {
+        navigate("/keymap");
       },
       {
         preventDefault: true,

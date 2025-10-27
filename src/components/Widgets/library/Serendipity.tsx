@@ -24,6 +24,7 @@ import {
   CaretRightIcon,
 } from "@phosphor-icons/react";
 import { markdownToHtml } from "../../../utils/formatting";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 const SWITCH_INTERVAL = 20000;
 const TRANSITION_DURATION = 200;
@@ -121,8 +122,17 @@ export default function Serendipity() {
     return () => clearInterval(timer);
   }, [currentFinding, page, analysis]);
 
+  const serendipityRef = useTourStep({
+    id: "feature:widget_serendipity",
+    title: "Reflect",
+    content:
+      "This area will populate with recent Spyglass queries, letting you reflect on past thoughts and analysis.",
+    view: "dashboard",
+    order: 3,
+  });
+
   return (
-    <div className={styles.serendipity}>
+    <div className={styles.serendipity} ref={serendipityRef}>
       {loadingSpyglass && (
         <div className={styles.loader}>
           <Loading size="sm" color="dark.3" />

@@ -19,6 +19,7 @@ import { ArrowsOutIcon, XIcon } from "@phosphor-icons/react";
 import { formatDate } from "../../../utils/formatting";
 import { useGraph } from "../../../contexts/GraphContext";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 export default function Constellation() {
   const {
@@ -153,47 +154,58 @@ export default function Constellation() {
     return text;
   };
 
+  const tourRef = useTourStep({
+    id: "feature:widget_recent_constellation",
+    title: "Recent Constellation",
+    content:
+      "This is a mini constellation to let you visualize your recent activity.",
+    view: "dashboard",
+    order: 1,
+  });
+
   return (
     <div ref={containerRef} className={styles.constellation}>
-      <div className={styles.floatingUI}>
-        <Group gap="xs" align="center">
-          <ActionIcon
-            variant="light"
-            color="gray"
-            size="sm"
-            title="Full constellation"
-            onClick={() => {
-              graph();
-            }}
-          >
-            <ArrowsOutIcon />
-          </ActionIcon>
-          {selected.size > 0 && (
+      <div ref={tourRef} style={{ position: "relative" }}>
+        <div className={styles.floatingUI}>
+          <Group gap="xs" align="center">
             <ActionIcon
               variant="light"
               color="gray"
               size="sm"
+              title="Full constellation"
               onClick={() => {
-                setSelected([]);
+                graph();
               }}
-              title="Clear selection"
             >
-              <XIcon weight="bold" />
+              <ArrowsOutIcon />
             </ActionIcon>
-          )}
-        </Group>
-        <Text size="sm" c="dark.5">
-          {clippedText(statusText(), 24)}
-        </Text>
+            {selected.size > 0 && (
+              <ActionIcon
+                variant="light"
+                color="gray"
+                size="sm"
+                onClick={() => {
+                  setSelected([]);
+                }}
+                title="Clear selection"
+              >
+                <XIcon weight="bold" />
+              </ActionIcon>
+            )}
+          </Group>
+          <Text size="sm" c="dark.5">
+            {clippedText(statusText(), 24)}
+          </Text>
+        </div>
+        {isLoading && <GraphLoader />}
+        {!!graphData && !isLoading && (
+          <GraphContainer
+            width={containerRef.current?.clientWidth}
+            height={containerRef.current?.clientHeight}
+            graph={graphData}
+          />
+        )}
       </div>
-      {isLoading && <GraphLoader />}
-      {!!graphData && !isLoading && (
-        <GraphContainer
-          width={containerRef.current?.clientWidth}
-          height={containerRef.current?.clientHeight}
-          graph={graphData}
-        />
-      )}
     </div>
   );
 }

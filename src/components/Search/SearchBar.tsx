@@ -4,7 +4,7 @@ import {
   ISearchResult,
 } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
-import { Loader, ActionIcon, Textarea, Flex } from "@mantine/core";
+import { Loader, ActionIcon, Textarea, Flex, List, Text } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
 import {
   MagnifyingGlass,
@@ -15,6 +15,7 @@ import {
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useSearch } from "../../contexts/SearchContext";
 import useRabbithole from "../../hooks/useRabbithole";
+import { useTourStep } from "../../contexts/TourGuideContext";
 
 type ISearchBarProps = {
   placeholder?: string;
@@ -60,6 +61,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
       "What if...?",
       "A new quest awaits.",
       "Chart the unknown.",
+      "Onward!",
     ];
 
     const getRandomQuip = () => {
@@ -172,8 +174,21 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
 
     const [focused, setFocused] = useState(false);
 
+    const tourRef = useTourStep({
+      id: "feature:smart_search",
+      title: "Smart Search",
+      content: (
+        <>
+          In Noeko, you can search for anything based on meaning, not just
+          keywords.
+        </>
+      ),
+      view: "all",
+      order: 4,
+    });
+
     return (
-      <div className={styles.searchBar}>
+      <div className={styles.searchBar} ref={tourRef}>
         <Textarea
           minRows={1}
           maxRows={4}

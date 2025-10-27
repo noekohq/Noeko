@@ -50,7 +50,10 @@ import { showNotification } from "@mantine/notifications";
 import { useLayout } from "./contexts/LayoutContext";
 import MobileDashboard from "./pages/Dashboard/Mobile/Mobile";
 import Export from "./pages/Export/Export";
+import Keymap from "./pages/Settings/Keymap";
+import GlobalTourManager from "./components/Utils/Onboarding/GlobalTourManager";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
+const Onboarding = lazy(() => import("./components/UI/Onboarding/Index"));
 
 export default function App() {
   const navigate = useNavigate();
@@ -91,6 +94,12 @@ export default function App() {
         <Loader size="lg" />
       </div>
     );
+  }
+
+  console.log("User settings: ", user?.settings);
+
+  if (user?.settings.isNew) {
+    return <Onboarding />;
   }
 
   return (
@@ -153,6 +162,7 @@ export default function App() {
             path="/*"
             element={
               <div className={styles.app}>
+                <GlobalTourManager />
                 <Routes>
                   <Route path="login" element={<Navigate to="/" replace />} />
                   <Route
@@ -216,6 +226,9 @@ export default function App() {
                   </Route>
                   <Route path="export">
                     <Route index element={<Export />} />
+                  </Route>
+                  <Route path="keymap">
+                    <Route index element={<Keymap />} />
                   </Route>
                   <Route path="search">
                     <Route index element={<SearchPage />} />

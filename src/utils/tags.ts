@@ -72,7 +72,7 @@ export const createTagAndAddToThing = async (
     if (!created) {
       throw new Error("Couldn't create tag");
     }
-    const added = await applyTagToThing(thingId, created.id.toString());
+    const added = await applyTagToThing(created.id.toString(), thingId);
     if (!added) {
       throw new Error("Couldn't add tag");
     }

@@ -15,6 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import CreateButton from "../../Display/Interactions/CreateButton";
 import { Link } from "react-router";
+import { useTourStep } from "../../../contexts/TourGuideContext";
 
 interface IBottomProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -79,6 +80,19 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
 
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
+
+  const spyglassTour = useTourStep({
+    id: "feature:spyglass_navigation",
+    title: "Spyglass",
+    content: (
+      <>
+        Use Spyglass to ask your knowledge base anything, and get grounded
+        results.
+      </>
+    ),
+    view: "all",
+    order: 2,
+  });
 
   if (isZen) {
     return null;
@@ -163,6 +177,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
               spyglass();
             }}
             title="Spyglass"
+            ref={spyglassTour}
           >
             <SpyglassIcon size={16} />
           </StatusButton>

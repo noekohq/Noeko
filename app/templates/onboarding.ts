@@ -4,15 +4,14 @@ import { ITaskForm } from "../database/models/task";
 import { ISafeUser } from "../database/models/user";
 import { ITagForm } from "../database/models/tag";
 
-export const ideas: IIdeaForm[] = [
-  {
-    title: "Your first idea!",
-    embeddings: null,
-    visibility: "private",
-    content: `
+export const first: IIdeaForm = {
+  title: "Your first idea!",
+  embeddings: null,
+  visibility: "private",
+  content: `
     <p>This is your <em>first</em> idea!</p>
     <p>An idea in <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.noeko.app">Noeko</a> follows similar principles to other Markdown-based editors. You can<em> apply familiar formatting</em>, link to other ideas with “[[]]” syntax, and use “/” to insert content.</p>
-    <p>Try typing “your second idea” in the center of the brackets: [[]]</p>
+    <p>Try typing “reference guide” in the center of the brackets: [[]]</p>
     <p>Try placing your cursor after the “/”:</p>
     <p>/</p>
     <p><span>select text to apply formatting</span>, connect ideas, or even create new ideas without leaving the editor.<em> Our biggest priority is your experience using Noeko,</em> so <strong>please don’t hesitate to give us feedback!</strong> (you will find a megaphone button in the left sidebar.)</p>
@@ -26,7 +25,9 @@ export const ideas: IIdeaForm[] = [
       <iframe src="https://www.youtube.com/embed/ndP8Sc2CGZw" data-start="0" frameborder="0" allowfullscreen="true" title="Embedded YouTube Video"></iframe>
     </div>
     `,
-  },
+};
+
+export const ideas: IIdeaForm[] = [
   {
     title: "Noeko’s Mission",
     visibility: "private",

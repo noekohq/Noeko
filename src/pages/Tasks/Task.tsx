@@ -47,7 +47,7 @@ import { modals } from "@mantine/modals";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import useConnectable from "../../hooks/useConnectable";
-import TagsManager from "../Idea/TagsManager";
+import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 
 export default function Task() {
   const { taskId } = useParams();

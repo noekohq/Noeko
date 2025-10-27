@@ -54,7 +54,7 @@ import { getTextProcessed } from "../../utils/processing";
 import { htmlToPlainText } from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
-import TagsManager from "./TagsManager";
+import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 import { downloadTextAsFile } from "../../utils/files";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
 import Content from "../../components/UI/Layout/Content";
@@ -455,7 +455,7 @@ export default function Idea() {
 
   return (
     <PageWrapper>
-      <LeftSidebar>
+      <LeftSidebar startOpened>
         <LeftSidebar.Open>
           <Tabs defaultValue="context">
             <Tabs.List>
@@ -623,7 +623,7 @@ export default function Idea() {
         </div>
       </Content>
       <StatusBar />
-      <RightSidebar>
+      <RightSidebar startOpened>
         <RightSidebar.Open>
           <Tabs defaultValue="tools">
             <Tabs.List>
