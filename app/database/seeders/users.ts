@@ -1,5 +1,5 @@
 import { hashPassword } from "../../utils/crypto";
-import { Role, User } from "../models/user";
+import { initialSettings, Role, User } from "../models/user";
 
 const dumpUserAuth = async (user: { email: string; password: string }) => {
   Bun.write(`./auth/${user.email}`, JSON.stringify(user));
@@ -43,6 +43,7 @@ export const seedUsers = async () => {
             password: await hashPassword(userPassword),
             acceptedPrivacyPolicyAt: new Date(),
             acceptedTermsOfServiceAt: new Date(),
+            settings: initialSettings,
           },
           ["role:superuser", "role:user"],
         );
