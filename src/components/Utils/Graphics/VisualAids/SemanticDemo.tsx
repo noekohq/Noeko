@@ -91,9 +91,9 @@ const demoConfigurations: DemoConfig[] = [
 ];
 
 const animationConfig = {
-  typingSpeed: 20,
+  typingSpeed: 10,
   postTypingDelay: 500,
-  postResultsDelay: 3000,
+  postResultsDelay: 6000,
   initialDelay: 500,
 };
 

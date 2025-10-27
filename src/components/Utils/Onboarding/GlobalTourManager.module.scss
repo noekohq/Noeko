@@ -29,7 +29,11 @@
     padding: var(--mantine-spacing-md);
     animation:
         tipIn 0.3s ease-in-out forwards,
-        float 4s ease-in-out 0.3s infinite;
+        float 4s ease-in-out 0.3s 3;
+
+    &:hover {
+        animation-play-state: running, paused;
+    }
 }
 
 .body {

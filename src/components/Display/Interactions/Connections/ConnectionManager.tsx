@@ -113,10 +113,17 @@ export default function ConnectionManager({
     view: "editor",
     order: 11,
     title: "Connections",
-    content: `Explicit connections are only made by you, and they are
-    persistent even if the content changes, unlike similar
-    things. You can drag and drop ideas to this area, or click
-    the associated buttons to make connections.`,
+    content: (
+      <>
+        <p>Try dragging something here to connect it!</p>
+        <p>
+          Explicit connections are only made by you, and they are persistent
+          even if the content changes, unlike similar things. You can drag and
+          drop ideas to this area, or click the associated buttons to make
+          connections.`,
+        </p>
+      </>
+    ),
   });
 
   const contextRef = useTourStep({
