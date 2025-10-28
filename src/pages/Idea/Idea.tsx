@@ -89,6 +89,7 @@ export default function Idea() {
       },
     },
     isMobile,
+    isDesktop,
   } = useLayout();
 
   useDocumentTitle(`${title || "Loading..."} - Noeko`);
@@ -455,7 +456,7 @@ export default function Idea() {
 
   return (
     <PageWrapper>
-      <LeftSidebar startOpened>
+      <LeftSidebar startOpened={isDesktop}>
         <LeftSidebar.Open>
           <Tabs defaultValue="context">
             <Tabs.List>
@@ -623,7 +624,7 @@ export default function Idea() {
         </div>
       </Content>
       <StatusBar />
-      <RightSidebar startOpened>
+      <RightSidebar startOpened={isDesktop}>
         <RightSidebar.Open>
           <Tabs defaultValue="tools">
             <Tabs.List>
