@@ -48,6 +48,7 @@ import StatusBar from "../../components/UI/Layout/Bottom";
 import UserCard from "../../components/Display/Users/UserCard";
 import { LineChart, Sparkline } from "@mantine/charts";
 import { formatDate } from "../../utils/formatting";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Users() {
   const {
@@ -808,7 +809,7 @@ export default function Users() {
           </Group>
         </Modal>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

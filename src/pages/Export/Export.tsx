@@ -24,6 +24,7 @@ import { handleExportDownload } from "../../utils/export";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Export() {
   const [loadingMarkdownExport, setLoadingMarkdownExport] = useState(false);
@@ -104,7 +105,7 @@ export default function Export() {
           </Text>
         </Stack>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

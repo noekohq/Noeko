@@ -10,6 +10,7 @@ import DirectoryImporter from "./importers/Directory";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import { useTourStep } from "../../contexts/TourGuideContext";
+import Nav from "../../components/UI/Layout/Nav";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
@@ -81,7 +82,7 @@ export default function Import() {
         </Grid>
         <span />
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

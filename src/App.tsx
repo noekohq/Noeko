@@ -52,6 +52,7 @@ import MobileDashboard from "./pages/Dashboard/Mobile/Mobile";
 import Export from "./pages/Export/Export";
 import Keymap from "./pages/Settings/Keymap";
 import GlobalTourManager from "./components/Utils/Onboarding/GlobalTourManager";
+import Agenda from "./pages/Agenda/Agenda";
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 const Onboarding = lazy(() => import("./components/UI/Onboarding/Index"));
 
@@ -203,6 +204,9 @@ export default function App() {
                   </Route>
                   <Route path="tasks">
                     <Route index element={<Tasks />} />
+                  </Route>
+                  <Route path="agenda">
+                    <Route index element={<Agenda />} />
                   </Route>
                   <Route path="task">
                     <Route path=":taskId">

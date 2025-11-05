@@ -71,6 +71,7 @@ import { ideasAreConnected } from "../../utils/ideas";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import useConnectable from "../../hooks/useConnectable";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -623,7 +624,7 @@ export default function Idea() {
           </Stack>
         </div>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar startOpened={isDesktop}>
         <RightSidebar.Open>
           <Tabs defaultValue="tools">

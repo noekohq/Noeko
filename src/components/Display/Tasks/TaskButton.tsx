@@ -35,6 +35,7 @@ interface ITaskButton {
   onMark?: (complete: boolean) => void;
   link?: boolean;
   actions?: ITaskButtonAction[];
+  detail?: "simple" | "full";
 }
 
 export default function TaskButton({
@@ -43,6 +44,7 @@ export default function TaskButton({
   onMark,
   link = true,
   actions,
+  detail = "full",
 }: ITaskButton) {
   const navigate = useNavigate();
   const {
@@ -143,6 +145,7 @@ export default function TaskButton({
         duration: 200,
         timingFunction: "ease-out",
       }}
+      disabled={detail === "simple"}
     >
       <Popover.Target>
         <div
@@ -173,7 +176,9 @@ export default function TaskButton({
           }}
           onContextMenu={(e) => {
             e.preventDefault();
-            toggle();
+            if (detail === "full") {
+              toggle();
+            }
           }}
         >
           <div className={styles.content}>
@@ -185,7 +190,7 @@ export default function TaskButton({
                 handleMarkTask(e.currentTarget.checked);
               }}
               color="gray"
-              size="xs"
+              size="sm"
             />
             <div className={styles.info}>
               <div className={styles.top}>
@@ -200,24 +205,26 @@ export default function TaskButton({
                   </Text>
                 </Group>
               </div>
-              <div className={styles.bottom}>
-                <Group gap="xs" align="center" wrap="nowrap">
-                  <Text size="xs" lineClamp={1} c="dark.5">
-                    {task.estimatedTime.toString()}{" "}
-                    {task.dueDate && (
-                      <Text
-                        inline
-                        component="span"
-                        c={isOverdue() ? "red.5" : "inherit"}
-                      >
-                        {formatDate(new Date(task.dueDate))}
-                      </Text>
-                    )}
-                  </Text>
-                </Group>
-              </div>
+              {detail === "full" && (
+                <div className={styles.bottom}>
+                  <Group gap="xs" align="center" wrap="nowrap">
+                    <Text size="xs" lineClamp={1} c="dark.5">
+                      {task.estimatedTime.toString()}{" "}
+                      {task.dueDate && (
+                        <Text
+                          inline
+                          component="span"
+                          c={isOverdue() ? "red.5" : "inherit"}
+                        >
+                          {formatDate(new Date(task.dueDate))}
+                        </Text>
+                      )}
+                    </Text>
+                  </Group>
+                </div>
+              )}
             </div>
-            {hovering && (
+            {detail === "full" && hovering && (
               <Group gap="xs" wrap="nowrap">
                 {allActions?.map((action) => {
                   return (

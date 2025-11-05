@@ -18,6 +18,7 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import React from "react";
 import { getOS } from "../../utils/platform";
 import Shortcut from "../../components/Utils/Help/Shortcut";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Keymap() {
   const isMacos = getOS() === "macos";
@@ -83,7 +84,7 @@ export default function Keymap() {
           </SimpleGrid>
         </Stack>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar>
         <RightSidebar.Open>
           <Search />

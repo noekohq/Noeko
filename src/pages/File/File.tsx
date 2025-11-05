@@ -25,6 +25,7 @@ import { ViewerMap } from "../../components/Display/Files/Viewers";
 import { useLayout } from "../../contexts/LayoutContext";
 import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
 import { createSourceFrom } from "../../utils/sources";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -189,7 +190,7 @@ export default function UserFile() {
           )}
         </div>
       </ContentWide>
-      <StatusBar />
+      <Nav />
       <RightSidebar>
         <RightSidebar.Open>
           <Stack gap="lg">

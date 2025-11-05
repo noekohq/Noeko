@@ -42,6 +42,7 @@ import ContentWide from "../../components/UI/Layout/ContentWide";
 import useFetch from "../../hooks/useFetch";
 import { handleLogout } from "../../server/auth";
 import { showNotification } from "@mantine/notifications";
+import Nav from "../../components/UI/Layout/Nav";
 
 const AppearanceSettings = () => {
   const {
@@ -511,7 +512,7 @@ export default function Settings() {
           </Stack>
         </Container>
       </ContentWide>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

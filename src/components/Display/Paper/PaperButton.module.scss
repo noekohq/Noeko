@@ -1,0 +1,42 @@
+@keyframes buttonIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.paperButton {
+    animation: buttonIn 0.2s ease-in-out;
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-lg);
+    display: flex;
+    flex-direction: row;
+    gap: var(--mantine-spacing-sm);
+    font-size: var(--mantine-font-size-sm);
+    text-decoration: none;
+    color: var(--mantine-color-dark-3);
+    font-weight: bold;
+    border: 1px solid var(--mantine-color-dark-7);
+    width: 100%;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--mantine-shadow-sm);
+    }
+
+    &:active {
+        transform: scale(0.98) translateY(2px);
+    }
+
+    .leftSection {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

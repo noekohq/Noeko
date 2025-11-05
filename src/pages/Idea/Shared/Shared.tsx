@@ -25,6 +25,7 @@ import {
 } from "../../../utils/formatting";
 import { splitBySentences } from "../../../utils/processing";
 import StatusBar from "../../../components/UI/Layout/Bottom";
+import Nav from "../../../components/UI/Layout/Nav";
 
 export default function SharedIdeas() {
   const {
@@ -115,7 +116,7 @@ export default function SharedIdeas() {
           </SimpleGrid>
         </Stack>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar></RightSidebar>
     </PageWrapper>
   );

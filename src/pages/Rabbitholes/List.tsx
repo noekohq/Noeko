@@ -25,6 +25,7 @@ import {
   getRabbitholeThingDescription,
   getRabbitholeThingName,
 } from "../../utils/rabbitholes";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Rabbitholes() {
   const { load: loadRabbitholes, data: rabbitholes } = useFetch<
@@ -125,7 +126,7 @@ export default function Rabbitholes() {
           )}
         </Stack>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar></RightSidebar>
     </PageWrapper>
   );

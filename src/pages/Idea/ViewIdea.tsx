@@ -19,6 +19,7 @@ import { Pencil } from "@phosphor-icons/react";
 import { useEffect } from "react";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function ViewIdea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -81,7 +82,7 @@ export default function ViewIdea() {
           />
         </Stack>
       </Content>
-      {loggedIn && <StatusBar />}
+      {loggedIn && <Nav />}
       {loggedIn && <RightSidebar />}
     </PageWrapper>
   );

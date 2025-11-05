@@ -31,6 +31,7 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import { Link, useNavigate } from "react-router";
 import Content from "../../../components/UI/Layout/Content";
 import StatusBar from "../../../components/UI/Layout/Bottom";
+import Nav from "../../../components/UI/Layout/Nav";
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();
@@ -234,7 +235,7 @@ export default function SpyglassHistory() {
             )}
           </Stack>
         </Content>
-        <StatusBar />
+        <Nav />
         <RightSidebar />
       </PageWrapper>
     </>
