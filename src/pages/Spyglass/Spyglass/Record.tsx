@@ -40,6 +40,7 @@ import StatusBar from "../../../components/UI/Layout/Bottom";
 import IdeaCard from "../../../components/Display/Ideas/Interactions/IdeaCard";
 import SpyglassContext from "./SpyglassContext";
 import SpyglassActions from "./SpyglassActions";
+import Nav from "../../../components/UI/Layout/Nav";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -150,7 +151,7 @@ export default function SpyglassRecord() {
           )}
         </Grid>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar>
         <RightSidebar.Open>
           {!!spyglass && (

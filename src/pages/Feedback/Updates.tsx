@@ -24,6 +24,7 @@ import { MegaphoneSimple, MegaphoneSimpleIcon } from "@phosphor-icons/react";
 import { capitalize, formatDate } from "../../utils/formatting";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 type IUpdate = {
   title: string;
@@ -521,7 +522,7 @@ export default function Updates() {
           </Drawer>
         </Grid>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

@@ -23,6 +23,7 @@ import { useLayout } from "../../contexts/LayoutContext";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Ideas() {
   const { isMobile } = useLayout();
@@ -141,7 +142,7 @@ export default function Ideas() {
           </Center>
         )}
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

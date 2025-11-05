@@ -1,10 +1,9 @@
-import { useRef } from "react";
-import { useLandscape } from "../../contexts/LandscapeContext";
+import { useEffect, useRef } from "react";
 import { useLayout } from "../../contexts/LayoutContext";
 import MobileBar from "../UI/Layout/MobileBar";
 import styles from "./PageWrapper.module.scss";
-import useScroll from "../../hooks/useScroll";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLandscape } from "../../contexts/LandscapeContext";
 
 type PageWrapperProps = {
   children: React.ReactNode;
@@ -21,17 +20,26 @@ export default function PageWrapper({ children }: PageWrapperProps) {
         mode: { get: rightMode },
       },
     },
+    scroll: { setScrollableElement },
   } = useLayout();
   const { user } = useAuth();
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (wrapperRef.current) {
+      setScrollableElement(wrapperRef.current);
+    }
+    return () => {
+      setScrollableElement(null);
+    };
+  }, []);
 
   const {
     rabbitholes: {
       entered: { get: enteredRabbithole },
     },
   } = useLandscape();
-  useScroll({ ref: wrapperRef });
 
   const hasEnteredRabbithole = enteredRabbithole !== null;
 
@@ -65,7 +73,7 @@ export default function PageWrapper({ children }: PageWrapperProps) {
       ref={wrapperRef}
     >
       {children}
-      {isMobile && showMobileBar() && <MobileBar />}
+      {/*{isMobile && showMobileBar() && <MobileBar />}*/}
     </div>
   );
 }

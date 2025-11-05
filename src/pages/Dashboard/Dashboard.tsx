@@ -67,6 +67,7 @@ import ConnectableThing from "../../components/Display/Interactions/Connections/
 import { useSearch } from "../../contexts/SearchContext";
 import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
 import { useTourStep } from "../../contexts/TourGuideContext";
+import Nav from "../../components/UI/Layout/Nav";
 
 type ILoadedWidget = {
   id: string;
@@ -172,7 +173,7 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
-      <LeftSidebar startOpened>
+      <LeftSidebar startOpened={!isMobile}>
         <LeftSidebar.Open>
           <JumpBackIn />
         </LeftSidebar.Open>
@@ -204,23 +205,8 @@ export default function Dashboard() {
           </Grid>
         </div>
       </Content>
-      <StatusBar>
-        <StatusBar.Showing>
-          <Group gap="xs" h="100%">
-            <TimeButton />
-            <Link
-              to="/ideas/shared"
-              style={{ height: "100%" }}
-              title="Ideas shared with you"
-            >
-              <StatusButton>
-                <ShareNetworkIcon weight="bold" />
-              </StatusButton>
-            </Link>
-          </Group>
-        </StatusBar.Showing>
-      </StatusBar>
-      <RightSidebar startOpened>
+      <Nav />
+      <RightSidebar startOpened={!isMobile}>
         <RightSidebar.Open>
           <Search />
         </RightSidebar.Open>

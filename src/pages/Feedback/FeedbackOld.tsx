@@ -25,6 +25,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Feedback() {
   const {
@@ -236,7 +237,7 @@ export default function Feedback() {
           </Grid.Col>
         </Grid>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

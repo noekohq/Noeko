@@ -6,6 +6,7 @@ import React, {
   Dispatch,
   SetStateAction,
   ComponentType,
+  useRef,
 } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 
@@ -53,9 +54,8 @@ type ILayoutContext = {
   };
   scroll: {
     isScrolled: boolean;
-    setIsScrolled: Dispatch<SetStateAction<boolean>>;
     scrollDirection: "up" | "down";
-    setScrollDirection: Dispatch<SetStateAction<"up" | "down">>;
+    setScrollableElement: Dispatch<SetStateAction<HTMLElement | null>>;
   };
   isMobile: boolean;
   isTablet: boolean;
@@ -105,9 +105,8 @@ const initialLayoutContext: ILayoutContext = {
   },
   scroll: {
     isScrolled: false,
-    setIsScrolled: () => {},
     scrollDirection: "up",
-    setScrollDirection: () => {},
+    setScrollableElement: () => {},
   },
   isMobile: false,
   isTablet: false,
@@ -167,6 +166,29 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
+  const [scrollableElement, setScrollableElement] =
+    useState<HTMLElement | null>(null);
+  const lastScrollPosition = useRef(0);
+
+  useEffect(() => {
+    if (!scrollableElement) return;
+
+    const handleScroll = () => {
+      const direction =
+        scrollableElement.scrollTop > lastScrollPosition.current
+          ? "down"
+          : "up";
+      setIsScrolled(scrollableElement.scrollTop > 0);
+      setScrollDirection(direction);
+      lastScrollPosition.current = scrollableElement.scrollTop;
+    };
+
+    scrollableElement.addEventListener("scroll", handleScroll);
+
+    return () => {
+      scrollableElement.removeEventListener("scroll", handleScroll);
+    };
+  }, [scrollableElement]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -322,9 +344,8 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     },
     scroll: {
       isScrolled: isScrolled,
-      setIsScrolled: setIsScrolled,
       scrollDirection: scrollDirection,
-      setScrollDirection: setScrollDirection,
+      setScrollableElement: setScrollableElement,
     },
     isMobile,
     isTablet,

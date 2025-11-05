@@ -19,6 +19,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Profile() {
   const { user, reload: reloadUser } = useAuth();
@@ -161,7 +162,7 @@ export default function Profile() {
           </Grid.Col>
         </Grid>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

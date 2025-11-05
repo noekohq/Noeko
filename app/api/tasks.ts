@@ -9,6 +9,10 @@ import Task, {
   ITaskQuery,
 } from "../database/models/task";
 import { Duration } from "surrealdb";
+import { getLM } from "../ai/lms/lm";
+import { LMSchemaType } from "../ai/lms";
+import { PromptBuilder } from "../ai/lms/utils";
+import { getFormattedDateTimeToday } from "../utils/prompts/components";
 
 const router = Router();
 
@@ -235,26 +239,101 @@ router.post("/", async (req, res) => {
       });
       return;
     }
-    let { description, scratchpad, estimatedTime, dueDate } = req.body;
-    if (!estimatedTime) {
-      res.status(400).send({
-        message: "Estimated time is required",
-      });
-      return;
-    }
-    if (!dueDate) {
-      res.status(400).send({
-        message: "Due date is required",
-      });
-      return;
-    }
-
-    const task = await Task.create(user.id, {
+    let { description, scratchpad, estimatedTime, dueDate, auto } = req.body;
+    const creator: ITaskForm = {
       description,
       scratchpad,
       estimatedTime,
       dueDate,
       completedAt: null,
+    };
+    const lm = getLM().withModel("simple");
+    if (!creator.description && !auto) {
+      res.status(400).send({
+        message: "No description provided.",
+      });
+      return;
+    }
+    if (!creator.description && !!creator.scratchpad && auto) {
+      const d = await lm.utils.entitle(
+        "A brief, concise, action-oriented description of the following rough task explanation.",
+        creator.scratchpad,
+      );
+      if (d) {
+        creator.description = d;
+      } else {
+        res.status(400).send({
+          message: "No description provided and failed to generate.",
+        });
+        return;
+      }
+    }
+    if (!creator.estimatedTime && auto) {
+      const prompt = new PromptBuilder();
+      prompt.addBlock(
+        "Instructions",
+        `Estimate the amount of time that it would take to complete the following task based on the description and scratch content associated:`,
+      );
+      prompt.addBlock(
+        "Description",
+        `The task description is: <taskDescription>${description}</taskDescription>`,
+      );
+      prompt.addBlock(
+        "Scratch",
+        `The task's scratch content is: <scratchContent>${scratchpad}</scratchContent>`,
+      );
+      const et = await lm.generateJSON<string>(prompt.get(), {
+        type: LMSchemaType.STRING,
+        enum: ["15m", "30m", "1h", "2hrs", "4hrs", "8hr"],
+        description:
+          "The closest estimated amount of time it would take to complete the task",
+      });
+      console.log("Estimated time: ", et);
+      if (et) {
+        creator.estimatedTime = new Duration(et);
+      }
+    }
+    if (
+      !creator.dueDate &&
+      (!!creator.description || !!creator.scratchpad) &&
+      auto
+    ) {
+      const prompt = new PromptBuilder();
+      prompt.addBlock(
+        "Instructions",
+        `Extract the due date for the following task based on the description and scratch content associated.`,
+      );
+      prompt.addBlock(
+        "RULES",
+        "DO NOT return a due-date if none is specified or strongly implied",
+      );
+      prompt.addBlock(
+        "Context",
+        `The current date and time are: ${getFormattedDateTimeToday()}`,
+      );
+      prompt.addBlock(
+        "Description",
+        `The task description is: <taskDescription>${description}</taskDescription>`,
+      );
+      prompt.addBlock(
+        "Scratch",
+        `The task's scratch content is: <scratchContent>${scratchpad}</scratchContent>`,
+      );
+      const dd = await lm.generateJSON<string>(prompt.get(), {
+        type: LMSchemaType.STRING,
+        description:
+          "An ISO string containing the estimated due date. LEAVE EMPTY if no due date can be accurately derived.",
+      });
+      if (dd) {
+        console.log("Estimated due date: ", dd);
+        const parsedDate = new Date(dd);
+        creator.dueDate = parsedDate.toISOString();
+      }
+    }
+    console.log("Creating task with form: ", creator);
+
+    const task = await Task.create(user.id, {
+      ...creator,
     });
     res.send({
       message: "Task created successfully",

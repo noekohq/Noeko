@@ -23,8 +23,10 @@ import { useLayout } from "../../contexts/LayoutContext";
 import CountUp from "../../components/Utils/Animations/Countup";
 import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
 import {
+  ArrowLeftIcon,
   ArrowsClockwiseIcon,
   ClockCounterClockwiseIcon,
+  HouseIcon,
   InfoIcon,
   MegaphoneIcon,
 } from "@phosphor-icons/react";
@@ -34,6 +36,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SpyglassContext from "./Spyglass/SpyglassContext";
 import SpyglassActions from "./Spyglass/SpyglassActions";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Spyglass() {
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
@@ -375,6 +378,16 @@ export default function Spyglass() {
                       History
                     </Button>
                   </Link>
+                  {/*<Link to="/">
+                    <ActionIcon
+                      radius="md"
+                      variant="light"
+                      color="dark.4"
+                      c="dark.2"
+                    >
+                      <HouseIcon weight="bold" size={14} />
+                    </ActionIcon>
+                  </Link>*/}
                   <HoverCard width="300px" openDelay={200}>
                     <HoverCard.Target>
                       <ActionIcon variant="subtle" color="gray" size="sm">
@@ -408,6 +421,7 @@ export default function Spyglass() {
           )}
         </div>
       </Content>
+      <Nav />
       <RightSidebar>
         <RightSidebar.Open>
           <SpyglassActions intent={intent} results={results} />

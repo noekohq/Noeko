@@ -8,13 +8,9 @@ import {
 } from "@phosphor-icons/react";
 import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
-import { useHotkeys } from "@mantine/hooks";
 import { Link, useLocation } from "react-router";
-import useSidebarHover from "../../../hooks/useSidebarHover";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import { useLandscape } from "../../../contexts/LandscapeContext";
 import useRabbithole from "../../../hooks/useRabbithole";
-import HomeButton from "../../Display/Interactions/HomeButton";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];
@@ -105,7 +101,7 @@ const LeftSidebar = ({
       <Group justify="space-between" align="center" wrap="nowrap">
         {!!topLevel?.open && <Group gap="xs">{topLevel.open}</Group>}
         <Group gap="xs" justify="flex-end" w="100%">
-          <HomeButton variant="subtle" />
+          {/*<HomeButton variant="subtle" />*/}
           <Tooltip label="Give feedback!">
             <ActionIcon
               onClick={() => {
@@ -137,7 +133,7 @@ const LeftSidebar = ({
           <Group gap="xs">{topLevel.open}</Group>
         )}
         <Group gap="xs">
-          <HomeButton />
+          {/*<HomeButton />*/}
           <Tooltip label="Give feedback!">
             <ActionIcon
               onClick={() => {
@@ -177,7 +173,7 @@ const LeftSidebar = ({
             <SidebarSimpleIcon />
           </ActionIcon>
         )}
-        <HomeButton />
+        {/*<HomeButton />*/}
         <Tooltip label="Give Feedback!">
           <ActionIcon
             onClick={() => {

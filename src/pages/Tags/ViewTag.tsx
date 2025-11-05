@@ -49,6 +49,7 @@ import ConnectableThing from "../../components/Display/Interactions/Connections/
 import { RecordId } from "surrealdb";
 import { applyTagToThing, removeTagFromThing } from "../../utils/tags";
 import ConnectableTable from "../../components/Display/Data/ConnectableTable";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -582,7 +583,7 @@ export default function ViewTag() {
           )}
         </div>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar>
         <RightSidebar.Collapsed>
           <ActionIcon

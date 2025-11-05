@@ -26,6 +26,7 @@ import { Link } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Admin() {
   const { referralLink } = useAuth();
@@ -135,7 +136,7 @@ export default function Admin() {
           </Grid.Col>
         </Grid>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar />
     </PageWrapper>
   );

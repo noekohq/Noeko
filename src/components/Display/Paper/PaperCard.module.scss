@@ -1,0 +1,35 @@
+@keyframes buttonIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.paperCard {
+    animation: buttonIn 0.2s ease-in-out;
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
+    border-radius: var(--mantine-radius-xl);
+    border: 1px solid var(--mantine-color-dark-7);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-sm);
+
+    .title {
+        padding-left: var(--mantine-spacing-xs);
+        display: flex;
+        align-items: center;
+        gap: var(--mantine-spacing-xs);
+    }
+
+    .content {
+        background-color: var(--mantine-color-dark-9);
+        padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+        border-radius: var(--mantine-radius-lg);
+        min-height: 10vh;
+    }
+}

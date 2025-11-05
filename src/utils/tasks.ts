@@ -4,6 +4,22 @@ import { api } from "../server/api";
 import { RecordId } from "surrealdb";
 
 export const createTask = async (
+  form: Partial<ITaskForm & { auto: boolean }>,
+): Promise<ITask | undefined> => {
+  try {
+    const result = await api.post("/tasks", form);
+    const data = await result.data.data;
+    return data as ITask;
+  } catch (error) {
+    console.error("Error creating task: ", error);
+    showNotification({
+      title: "Something went wrong",
+      message: "Error creating notification :/",
+    });
+  }
+};
+
+export const createTaskStrict = async (
   form: ITaskForm,
 ): Promise<ITask | undefined> => {
   try {
