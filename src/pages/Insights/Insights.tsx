@@ -5,10 +5,12 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Insights() {
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
         <Title>Insights</Title>

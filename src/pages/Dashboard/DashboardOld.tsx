@@ -45,6 +45,7 @@ import { useState } from "react";
 import { userIsSuperuser } from "../../utils/user";
 import { useInteraction } from "../../contexts/InteractionContext";
 import Content from "../../components/UI/Layout/Content";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -108,6 +109,7 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar>
         <LeftSidebar.Open>
           <Text c="dimmed" size="sm">

@@ -20,6 +20,7 @@ import { useEffect } from "react";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function ViewIdea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -58,6 +59,7 @@ export default function ViewIdea() {
 
   return (
     <PageWrapper>
+      <TopBar />
       {loggedIn && <LeftSidebar />}
       <Content>
         <Stack>

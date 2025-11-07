@@ -3,11 +3,13 @@ import Content from "../../../components/UI/Layout/Content";
 import styles from "./Mobile.module.scss";
 import Nav from "../../../components/UI/Layout/Nav";
 import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
-import { Grid, Group, Stack } from "@mantine/core";
+import { Grid, Group, Paper, Stack, Text } from "@mantine/core";
 import PaperCard from "../../../components/Display/Paper/PaperCard";
 import {
   CalendarCheckIcon,
   ClockCounterClockwiseIcon,
+  Hammer,
+  HammerIcon,
 } from "@phosphor-icons/react";
 import useFetch from "../../../hooks/useFetch";
 import { ITask } from "../../../../app/database/models/task";
@@ -34,9 +36,36 @@ export default function MobileDashboard() {
             <Pillbar.Panel value="overview">
               <Overview />
             </Pillbar.Panel>
-            <Pillbar.Panel value="agenda">Agenda page</Pillbar.Panel>
-            <Pillbar.Panel value="insights">Insights page</Pillbar.Panel>
-            <Pillbar.Panel value="shared">Shared page</Pillbar.Panel>
+            <Pillbar.Panel value="agenda">
+              <Paper radius="lg" p="md">
+                <Text size="sm" fw="bold">
+                  <Group>
+                    <HammerIcon weight="bold" />
+                    This page is under construction.
+                  </Group>
+                </Text>
+              </Paper>
+            </Pillbar.Panel>
+            <Pillbar.Panel value="insights">
+              <Paper radius="lg" p="md">
+                <Text size="sm" fw="bold">
+                  <Group>
+                    <HammerIcon weight="bold" />
+                    This page is under construction.
+                  </Group>
+                </Text>
+              </Paper>
+            </Pillbar.Panel>
+            <Pillbar.Panel value="shared">
+              <Paper radius="lg" p="md">
+                <Text size="sm" fw="bold">
+                  <Group>
+                    <HammerIcon weight="bold" />
+                    This page is under construction.
+                  </Group>
+                </Text>
+              </Paper>
+            </Pillbar.Panel>
           </Pillbar>
         </div>
       </Content>
@@ -73,6 +102,16 @@ function Overview() {
   return (
     <div className={styles.overview}>
       <Grid>
+        <Grid.Col span={12}>
+          <Paper radius="lg" p="md">
+            <Text size="sm" fw="bold">
+              <Group>
+                <HammerIcon weight="bold" />
+                This page is under construction.
+              </Group>
+            </Text>
+          </Paper>
+        </Grid.Col>
         {tasks && tasks.length > 0 && (
           <Grid.Col span={12}>
             <PaperCard title="ACTIVE TASKS">

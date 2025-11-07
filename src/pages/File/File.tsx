@@ -26,6 +26,7 @@ import { useLayout } from "../../contexts/LayoutContext";
 import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
 import { createSourceFrom } from "../../utils/sources";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function UserFile() {
   const { fileId } = useParams();
@@ -153,6 +154,7 @@ export default function UserFile() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar></LeftSidebar>
       <ContentWide>
         <div className={styles.fileView}>

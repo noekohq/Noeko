@@ -27,6 +27,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Admin() {
   const { referralLink } = useAuth();
@@ -52,6 +53,7 @@ export default function Admin() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <Content>
         <Grid>

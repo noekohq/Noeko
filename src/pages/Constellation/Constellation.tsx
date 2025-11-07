@@ -30,6 +30,7 @@ import { useLandscape } from "../../contexts/LandscapeContext";
 import { useGraph } from "../../contexts/GraphContext";
 import { useTourStep } from "../../contexts/TourGuideContext";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -114,6 +115,7 @@ export default function GraphPage() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar>
         <LeftSidebar.Open>
           {!!graphData && (

@@ -43,6 +43,7 @@ import useFetch from "../../hooks/useFetch";
 import { handleLogout } from "../../server/auth";
 import { showNotification } from "@mantine/notifications";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 const AppearanceSettings = () => {
   const {
@@ -487,6 +488,7 @@ const CommunitySettings = () => (
 export default function Settings() {
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <ContentWide>
         <Container fluid p="md">

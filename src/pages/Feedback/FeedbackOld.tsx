@@ -26,6 +26,7 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Feedback() {
   const {
@@ -107,6 +108,7 @@ export default function Feedback() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <Content>
         <Modal
