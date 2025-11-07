@@ -70,6 +70,7 @@ import ConnectableThing from "../../components/Display/Interactions/Connections/
 import CollapseButton from "../../components/Display/Interactions/CollapseButton";
 import TagButton from "../../components/Display/Tags/TagButton";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Rabbithole() {
   const [error, setError] = useState("");
@@ -389,6 +390,7 @@ export default function Rabbithole() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar>
         <LeftSidebar.Collapsed>
           {loadingSaveChanges && <Loader size="xs" color="gray" />}

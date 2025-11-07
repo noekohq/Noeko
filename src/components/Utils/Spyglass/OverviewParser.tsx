@@ -10,47 +10,44 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { ISpyglassSearch } from "../../../../app/database/models/search";
-import { IResultsMap } from "../../../pages/Spyglass/hooks/useSpyglass";
 import styles from "./OverviewParser.module.scss";
 import { ArrowRightIcon, ArrowsOutIcon } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm"; // Import the plugin
-import {
-  getNodeContent,
-  getNodeLink,
-  getNodeTitle,
-} from "../../../utils/graph";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useNavigation } from "react-router";
 import { markdownToHtml } from "../../../utils/formatting";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
+import { IFinding } from "../../../../app/services/Spyglass";
+import { IResultsMap } from "../../../hooks/useSpyglassService";
+import { getTypeFromId, TypeIcon } from "../../../utils/graph";
+import { INode } from "../../../declarations/graph";
 
 interface IOverviewParserProps {
   markdown: string;
   resultsMap: IResultsMap;
-  analysis: ISpyglassSearch["analysis"];
+  findings: IFinding[];
 }
 
 interface IFindingBadgeProps {
   findingNumber: number;
   resultsMap: IResultsMap;
-  analysis: ISpyglassSearch["analysis"];
+  findings: IFinding[];
 }
 
 const FindingBadge: React.FC<IFindingBadgeProps> = ({
   findingNumber,
   resultsMap,
-  analysis,
+  findings,
 }) => {
-  const finding = analysis?.findings[findingNumber];
+  const finding = findings[findingNumber];
   if (!finding) return null;
 
   const result = resultsMap[finding.sourceId];
   if (!result) return null;
 
-  const title = getNodeTitle(result);
-  const titleLink = getNodeLink(result);
-  const content = getNodeContent(result);
+  const title = result.name;
+  const titleLink = `/${result.type}/${result.id.toString()}`;
+  const content = result.content;
   const [previewing, setPreviewing] = useState(false);
   const navigate = useNavigate();
 
@@ -159,16 +156,138 @@ const FindingBadge: React.FC<IFindingBadgeProps> = ({
   );
 };
 
+interface IResourceBadgeProps {
+  id: string;
+  resultsMap: IResultsMap;
+}
+
+const ResourceBadge: React.FC<IResourceBadgeProps> = ({ id, resultsMap }) => {
+  const navigate = useNavigate();
+  const [previewing, setPreviewing] = useState(false);
+  const result = resultsMap[id];
+
+  if (!result) {
+    return null;
+  }
+
+  const type = getTypeFromId(id);
+
+  const Icon = TypeIcon(type as INode["type"]);
+
+  console.log("Results map: ", resultsMap);
+  console.log("Result: ", id, result);
+  const titleLink = `/${type}/${id}`;
+
+  return (
+    <Link to={`/${type}/${id}`} style={{ textDecoration: "none" }}>
+      <HoverCard
+        width="400px"
+        position="bottom-end"
+        withArrow
+        shadow="lg"
+        openDelay={500}
+        radius="lg"
+      >
+        <HoverCard.Target>
+          <button className={styles.citationIcon}>
+            {Icon ? <Icon /> : "N/A"}
+          </button>
+        </HoverCard.Target>
+        <HoverCard.Dropdown
+          mah={400}
+          style={{
+            overflowY: "auto",
+          }}
+        >
+          <Stack gap="sm">
+            <Group align="baseline" justify="space-between">
+              <Link to={titleLink} style={{ textDecoration: "none" }}>
+                <Text size="sm" c="dark.1" style={{ cursor: "pointer" }}>
+                  <Group gap="xs">
+                    {result.name}
+                    {titleLink && <ArrowRightIcon weight="bold" />}
+                  </Group>
+                </Text>
+              </Link>
+            </Group>
+            <Text size="sm">{result.description}</Text>
+            <Group>
+              <ActionIcon
+                variant="light"
+                color="gray"
+                size="sm"
+                radius="md"
+                onClick={() => {
+                  navigate(titleLink || "");
+                }}
+              >
+                <ArrowRightIcon />
+              </ActionIcon>
+              <ActionIcon
+                variant="light"
+                color="gray"
+                size="sm"
+                radius="md"
+                onClick={() => {
+                  setPreviewing(true);
+                }}
+              >
+                <ArrowsOutIcon />
+              </ActionIcon>
+            </Group>
+          </Stack>
+        </HoverCard.Dropdown>
+      </HoverCard>
+      <Modal
+        opened={previewing}
+        onClose={() => setPreviewing(false)}
+        title={<Text size="sm">Previewing {result.name}</Text>}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        size="lg"
+      >
+        <Stack py="lg" gap="xs">
+          <Group>
+            <Button
+              onClick={() => {
+                navigate(titleLink || "");
+              }}
+              rightSection={<ArrowRightIcon size={12} />}
+              color="gray"
+              variant="light"
+              size="xs"
+              radius="lg"
+            >
+              Visit
+            </Button>
+          </Group>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: result.content || "No content available.",
+            }}
+          />
+        </Stack>
+      </Modal>
+    </Link>
+  );
+};
+
 const OverviewParser: React.FC<IOverviewParserProps> = ({
   markdown,
   resultsMap,
-  analysis,
+  findings,
 }) => {
   const processedMarkdown = React.useMemo(() => {
     if (!markdown) return "";
-    const citationRegex = /\[(\d+)\]/g;
-    return markdown.replace(citationRegex, (match, numberStr) => {
-      return `[](source:${numberStr})`;
+    const citationRegex = /\[(\d+|[a-zA-Z_]+:[a-zA-Z0-9_.-]+)\]/g;
+    return markdown.replace(citationRegex, (match, citationIdentifier) => {
+      // Check if the identifier is purely numeric
+      if (/^\d+$/.test(citationIdentifier)) {
+        return `[](finding:${citationIdentifier})`;
+      }
+      // Otherwise, it's a resource identifier
+      return `[](resource:${citationIdentifier})`;
     });
   }, [markdown]);
 
@@ -178,7 +297,8 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
       "https:",
       "ftp:",
       "mailto:",
-      "source:",
+      "finding:",
+      "resource:",
     ];
     if (supportedProtocols.some((protocol) => url.startsWith(protocol))) {
       return url;
@@ -193,8 +313,8 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
         urlTransform={urlTransform}
         components={{
           a: ({ node, ...props }) => {
-            if (props.href?.startsWith("source:")) {
-              const findingNumberStr = props.href.substring(7);
+            if (props.href?.startsWith("finding:")) {
+              const findingNumberStr = props.href.substring(8);
               const findingNumber = parseInt(findingNumberStr.trim(), 10);
 
               if (!isNaN(findingNumber)) {
@@ -202,11 +322,19 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
                   <FindingBadge
                     findingNumber={findingNumber - 1}
                     resultsMap={resultsMap}
-                    analysis={analysis}
+                    findings={findings}
                   />
                 );
               }
             }
+
+            if (props.href?.startsWith("resource:")) {
+              const resourceStr = props.href.substring(9);
+              console.log("Resource string: ", props.href, resourceStr);
+
+              return <ResourceBadge resultsMap={resultsMap} id={resourceStr} />;
+            }
+
             return (
               <a href={props.href} target="_blank" rel="noopener noreferrer">
                 {props.children}

@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, Text } from "@mantine/core";
+import { ActionIcon, Button, Chip, Group, Text } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import {
   ArrowsClockwiseIcon,
@@ -8,6 +8,9 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useRabbithole from "../../hooks/useRabbithole";
+import PaperButton from "../../components/Display/Paper/PaperButton";
+import PaperChip from "../../components/Display/Paper/PaperChip";
+import PaperIcon from "../../components/Display/Paper/PaperIcon";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -15,8 +18,9 @@ interface ITextboxProps {
   onReset: () => void;
   value: string;
   placeholder?: string;
-  placeholderIfInitialized?: string;
   initialized?: boolean;
+  deepAnalysis: boolean;
+  setDeepAnalysis: (value: boolean) => void;
 }
 
 export default function Textbox({
@@ -25,8 +29,9 @@ export default function Textbox({
   onReset,
   value,
   placeholder,
-  placeholderIfInitialized,
   initialized,
+  deepAnalysis,
+  setDeepAnalysis,
 }: ITextboxProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [sendingAnimation, setSendingAnimation] = useState(false);
@@ -51,7 +56,12 @@ export default function Textbox({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (inputRef.current && event.key === "/" && !isFocused) {
+      if (
+        inputRef.current &&
+        event.metaKey &&
+        event.key === "/" &&
+        !isFocused
+      ) {
         event.preventDefault();
         inputRef.current.focus();
       }
@@ -68,9 +78,6 @@ export default function Textbox({
     return true;
   };
 
-  const { isDownRabbithole, currentRabbithole, exitRabbithole } =
-    useRabbithole();
-
   return (
     <div
       className={`${styles.textbox} ${isFocused ? styles.focused : ""} ${initialized ? styles.initialized : ""}`}
@@ -83,7 +90,7 @@ export default function Textbox({
       onBlur={() => setIsFocused(false)}
     >
       <textarea
-        placeholder={initialized ? placeholderIfInitialized : placeholder}
+        placeholder={placeholder}
         value={value}
         onChange={(e) => {
           onChange(e.currentTarget.value);
@@ -104,82 +111,36 @@ export default function Textbox({
       {showUI() && (
         <div className={styles.ui}>
           <Group justify="start">
-            {isDownRabbithole && (
-              <Button
-                radius="xl"
-                size="xs"
-                variant="light"
-                color="green"
-                rightSection={
-                  <>
-                    <ActionIcon
-                      variant="subtle"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        exitRabbithole();
-                      }}
-                      size="sm"
-                      color="green"
-                    >
-                      <XIcon weight="bold" />
-                    </ActionIcon>
-                  </>
-                }
-              >
-                <Group gap="2px" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                  <RabbitIcon weight="fill" />
-                  <Text
-                    w={"100%"}
-                    truncate={"end"}
-                    size="xs"
-                    tt="uppercase"
-                    fw="bold"
-                    title={currentRabbithole?.name}
-                  >
-                    {currentRabbithole?.name}
-                  </Text>
-                </Group>
-              </Button>
-            )}
+            <PaperChip
+              active={deepAnalysis}
+              onClick={() => {
+                setDeepAnalysis(!deepAnalysis);
+              }}
+            >
+              Deep Focus
+            </PaperChip>
           </Group>
           <Group justify="end" gap="sm">
             {initialized && (
-              <ActionIcon
+              <PaperIcon
+                aria-label="Reset Spyglass"
                 onClick={() => {
                   onReset();
                 }}
-                size="md"
-                variant="light"
-                radius="md"
-                bg="dark.9"
-                c="dark.1"
-                styles={{
-                  root: {
-                    border: "1px solid var(--mantine-color-dark-7)",
-                  },
-                }}
               >
                 <ArrowsClockwiseIcon />
-              </ActionIcon>
+              </PaperIcon>
             )}
-            <ActionIcon
-              variant="light"
-              radius="md"
-              size="md"
-              bg="dark.9"
-              c="dark.1"
-              styles={{
-                root: {
-                  border: "1px solid var(--mantine-color-dark-7)",
-                },
-              }}
+            <PaperIcon
+              aria-label="Submit query"
               onClick={(e) => {
                 e.stopPropagation();
                 send();
               }}
+              withBorder
             >
               <PaperPlaneRightIcon />
-            </ActionIcon>
+            </PaperIcon>
           </Group>
         </div>
       )}

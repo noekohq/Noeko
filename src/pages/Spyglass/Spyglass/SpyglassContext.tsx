@@ -5,10 +5,11 @@ import styles from "./SpyglassContext.module.scss";
 import CollapseButton from "../../../components/Display/Interactions/CollapseButton";
 import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
 import { ISearchResult } from "../../../../app/services/Search";
+import { IConnectable } from "../../../../app/services/Graph";
 
 interface ISpyglassContextProps {
   citationMap: ICitationMap;
-  results: ISearchResult[];
+  results: IConnectable[];
 }
 
 export default function SpyglassContext({
@@ -34,7 +35,7 @@ export default function SpyglassContext({
             {citations.length > 1 ? "S" : ""}
           </Text>
           {citations.map((c) => {
-            if (!c.value) {
+            if (!c) {
               return null;
             }
 
@@ -42,7 +43,7 @@ export default function SpyglassContext({
 
             return (
               <CollapseButton
-                target={<ConnectableThing thing={c.value} />}
+                target={<ConnectableThing thing={c} />}
                 details={
                   <>
                     <ActionIcon size="xs" radius="md" color="gray">

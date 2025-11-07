@@ -8,7 +8,7 @@ import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISearchOverview, ISpyglassSearch } from "../database/models/search";
 import { RecordId } from "surrealdb";
 import Source, { ISourceAnalysis } from "../database/models/source";
-import { Connectable, IConnectableFields } from "./Graph";
+import { Connectable, IConnectable, IConnectableFields } from "./Graph";
 import { Tag } from "../database/models/tag";
 
 export type ISpyglassScope = {
@@ -1035,12 +1035,8 @@ export default class Spyglass {
     }
   }
 
-  static singleFindingPromptBuilder(
-    query: string,
-    intent: string,
-    mode: ISpyglassMode,
-  ) {
-    return new PromptBuilder()
+  static singleFindingPromptBuilder(query: string, intent?: ISpyglassIntent) {
+    const p = new PromptBuilder()
       .addText(
         "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
       )
@@ -1087,18 +1083,29 @@ export default class Spyglass {
         </query>
         `,
       )
-      .addBlock("User Intent", intent)
-      .addText(mode.analysis.prompt(intent).get()) // This dynamic prompt remains
       .addBlock(
         "Source for Analysis",
         "The Source Material to use is as follows:\n",
       );
+
+    if (intent) {
+      p.addBlock("User Intent", intent.intent);
+      const mode = Modes[intent.mode];
+      p.addText(mode.analysis.prompt(intent.intent).get());
+    } else {
+      p.addBlock(
+        "User Intent",
+        "The user's intent is to have their query answered accurately and directly.",
+      );
+    }
+
+    return p;
   }
 
   static async *generateFindingsFromResources(
     query: string,
-    results: ISearchResult[],
-    intent: ISpyglassIntent,
+    results: IConnectableFields[],
+    intent?: ISpyglassIntent,
   ): AsyncGenerator<IFinding[], void, unknown> {
     try {
       if (!results || results.length === 0) {
@@ -1110,12 +1117,11 @@ export default class Spyglass {
       const findingPromises = results.map((result) => {
         return (async () => {
           const sourceId = result.id.toString();
-          const resultString = this.resultToString(result);
+          const resultString = await this.connectableToString(result);
 
           const singleResultPrompt = this.singleFindingPromptBuilder(
             query,
-            intent.intent,
-            Modes[intent.mode],
+            intent,
           );
 
           singleResultPrompt.addBlock(`Source Material`, resultString, 2);
@@ -1131,7 +1137,7 @@ export default class Spyglass {
               `Failed to process findings for result ${sourceId}:`,
               err,
             );
-            return []; // Return an empty array on error.
+            return [];
           }
         })();
       });
@@ -1450,6 +1456,29 @@ export default class Spyglass {
     }
   }
 
+  static async getIntentConfigFromQuery(
+    query: string,
+  ): Promise<ISpyglassIntent | undefined> {
+    try {
+      if (!query.length) {
+        return undefined;
+      }
+      const lm = getLM().withModel("fast-accurate");
+      const prompt = this.intentPromptBuilder(query, undefined).get();
+      const intent = await lm.generateJSON<ISpyglassIntent>(
+        prompt,
+        this.intentSchema(),
+      );
+      if (!intent) {
+        throw new Error("Did not get intent from LM");
+      }
+      return intent;
+    } catch (error) {
+      console.error("Error in getIntentFromQuery:", error);
+      return undefined;
+    }
+  }
+
   static scopedFindingPromptBuilder(query: string) {
     return new PromptBuilder()
       .addText(
@@ -1589,8 +1618,8 @@ export default class Spyglass {
           - Your entire response MUST be valid Markdown.
           - At the end of any sentence that uses information from a source, you MUST add a citation.
           - Place the citation immediately after the last word of the sentence, with no space.
-          - The format is the resource's ID inside brackets, like \`[source:xxxx]\`.
-          - If multiple sources support a sentence, list each citation in its own separate brackets, like \`[source:xxxx][source:yyyy]\`.
+          - The format is the resource's type and ID inside brackets, like \[idea:xxxx\] or \[source:yyyy\].
+          - If multiple sources support a sentence, list each citation in its own separate brackets, like \[idea:xxxx\]\[source:yyyy\].
           `,
       )
       .addBlock(
@@ -1610,7 +1639,7 @@ export default class Spyglass {
               if (r.name) content += `<title>${r.name}</title>\n`;
               if (r.content)
                 content += `<content>${htmlToMarkdown(r.content)}</content>`;
-              return `<document id="${r.id.toString()}">${content}</document>`;
+              return `<document id=\"${r.id.toString()}\" type=\"${r.type}\">${content}</document>`;
             })
             .join("\n\n"),
       );
@@ -1713,36 +1742,68 @@ export default class Spyglass {
     try {
       yield { type: "status", data: "Starting analysis..." };
 
-      let resources: IConnectableFields[] = [];
+      let intent: ISpyglassIntent | undefined = undefined;
+      const resources: IConnectableFields[] = [];
+      const fullResults: IConnectable[] = [];
       if (scope && scope.length > 0) {
         yield { type: "status", data: `Loading ${scope.length} sources...` };
         const connectablePromises = scope.map(async (id) => {
           const connectable = new Connectable(id);
+          const c = await connectable.get();
+          if (c) {
+            fullResults.push(c);
+          }
           return await connectable.fields();
         });
         const resolvedResources = await Promise.all(connectablePromises);
-        resources = resolvedResources.filter(
-          (r) => r !== null,
-        ) as IConnectableFields[];
+        resources.push(
+          ...(resolvedResources.filter(
+            (r) => r !== null,
+          ) as IConnectableFields[]),
+        );
       } else {
-        yield {
-          type: "error",
-          data: "Search is not yet implemented for this flow.",
-        };
-        return;
+        const _intent = await this.getIntentConfigFromQuery(query);
+        if (!_intent) {
+          yield { type: "error", data: "No intent found for the query." };
+          return;
+        }
+        intent = _intent;
+        const searches = intent.searches.map((s) => {
+          return {
+            ...s,
+            tables: s.tables ?? ["idea", "excerpt", "source"],
+            vectorSettings: {
+              effort: "high",
+            },
+          } as IConnectableSearchQuery;
+        });
+        const r = await Spyglass.getResultsFromQueries(
+          userId.toString(),
+          searches,
+        );
+        const connectablePromises = r.map(async (s) => {
+          fullResults.push(s.value);
+          const type = s.value.type;
+          const fields = Connectable.fieldsResolver[type]?.(s.value as any);
+          return fields;
+        });
+        const connectables = await Promise.all(connectablePromises);
+        resources.push(...connectables);
       }
 
       yield { type: "resources_loaded", data: resources };
+      yield { type: "full_results_loaded", data: fullResults };
 
       let fullOverview = "";
       const finalFindings: IFinding[] = [];
 
       if (deepAnalysis) {
         yield { type: "status", data: "Generating deep analysis findings..." };
-        const findingGenerator = Spyglass.generateFindingsFromScope(query, {
-          connectables: scope || [],
-          tags: [],
-        });
+        const findingGenerator = Spyglass.generateFindingsFromResources(
+          query,
+          resources,
+          intent,
+        );
         for await (const findingChunk of findingGenerator) {
           yield { type: "findings_chunk", data: findingChunk };
           finalFindings.push(...findingChunk);

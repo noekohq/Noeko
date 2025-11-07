@@ -1,12 +1,4 @@
 import { Link, useNavigate } from "react-router";
-import {
-  ISpyglassSearch,
-  ISearchOverview,
-} from "../../../../app/database/models/search";
-import {
-  ICitationMap,
-  IResultsMap,
-} from "../../../pages/Spyglass/hooks/useSpyglass";
 import { memo, useCallback, useState } from "react";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import { useLayout } from "../../../contexts/LayoutContext";
@@ -17,25 +9,19 @@ import {
   Badge,
   Blockquote,
   Box,
-  Button,
   CopyButton,
   Group,
-  HoverCard,
-  Popover,
-  Space,
   Stack,
   Text,
 } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import {
-  ArrowLineLeftIcon,
-  ArrowLineUpRightIcon,
   ArrowRightIcon,
-  CaretDownIcon,
-  CaretUpIcon,
   CheckIcon,
   CopyIcon,
   DownloadSimpleIcon,
+  MagnifyingGlassIcon,
+  TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { markdownToHtml } from "../../../utils/formatting";
 import { IFinding } from "../../../../app/services/Spyglass";
@@ -43,18 +29,27 @@ import { getNodeTitle, getTypeFromId } from "../../../utils/graph";
 import { INode } from "../../../declarations/graph";
 import { getOverviewAsMarkdown } from "../../../utils/spyglass";
 import { downloadTextAsFile } from "../../../utils/files";
+import {
+  IConnectable,
+  IConnectableFields,
+} from "../../../../app/services/Graph";
+import { Tabs } from "../../UI/Layout/Utils/Tabs";
+import { ICitationMap, IResultsMap } from "../../../hooks/useSpyglassService";
+import { Pillbar } from "../../UI/Layout/Utils/Pillbar";
 
 export type IDisplayOverview = {
-  overview: ISearchOverview;
+  overview: string;
+  findings: IFinding[];
   resultsMap: IResultsMap;
   citationMap: ICitationMap;
   query: string;
-  results: ISpyglassSearch["fullResults"];
+  results: IConnectableFields[];
   loading: boolean;
 };
 
 export function DisplayOverviewComponent({
   overview,
+  findings,
   resultsMap,
   citationMap,
   query,
@@ -87,23 +82,20 @@ export function DisplayOverviewComponent({
     },
   } = useLayout();
 
-  const findingsBySource = overview.findings.reduce(
-    (acc, current, findingNumber) => {
-      if (acc.has(current.sourceId)) {
-        acc.get(current.sourceId)?.push({
-          ...current,
-          index: findingNumber,
-        });
-      } else {
-        acc.set(current.sourceId, [{ ...current, index: findingNumber }]);
-      }
-      return acc;
-    },
-    new Map<string, (IFinding & { index: number })[]>([]),
-  );
+  const findingsBySource = findings.reduce((acc, current, findingNumber) => {
+    if (acc.has(current.sourceId)) {
+      acc.get(current.sourceId)?.push({
+        ...current,
+        index: findingNumber,
+      });
+    } else {
+      acc.set(current.sourceId, [{ ...current, index: findingNumber }]);
+    }
+    return acc;
+  }, new Map<string, (IFinding & { index: number })[]>([]));
 
   const handleDownloadAsMarkdown = () => {
-    const content = getOverviewAsMarkdown(overview, resultsMap);
+    const content = getOverviewAsMarkdown(overview, findings, resultsMap);
     return downloadTextAsFile(content, {
       type: "text/markdown",
       extension: "md",
@@ -113,119 +105,78 @@ export function DisplayOverviewComponent({
 
   return (
     <div>
-      <Group justify="space-between" className={styles.overviewUI}>
-        <Group>
-          <Button
-            rightSection={
-              !showFindings ? (
-                <CaretDownIcon weight="bold" />
-              ) : (
-                <CaretUpIcon weight="bold" />
-              )
-            }
-            onClick={() => setShowFindings(!showFindings)}
-            variant="default"
-            radius="lg"
-            size="xs"
-          >
-            {overview.findings.length} Finding
-            {overview.findings.length === 1 ? "" : "s"}
-          </Button>
-          <Button
-            radius="lg"
-            size="xs"
-            variant="subtle"
-            color="gray"
-            leftSection={
-              rightSidebarMode === "collapsed" ? (
-                <ArrowLineUpRightIcon weight="bold" />
-              ) : (
-                <ArrowLineLeftIcon weight="bold" />
-              )
-            }
-            onClick={() => {
-              toggleRightSidebar();
-            }}
-          >
-            {results?.length} Result{results?.length === 1 ? "" : "s"}
-          </Button>
-        </Group>
-        <Group justify="end">
-          {!loading && (
-            <Group>
-              <Popover position="bottom-end" withArrow radius="md">
-                <Popover.Target>
+      <Pillbar defaultValue="overview">
+        <Pillbar.List>
+          <Pillbar.Tab value="overview" leftSection={<TextAlignLeftIcon />}>
+            Overview
+          </Pillbar.Tab>
+          <Pillbar.Tab value="findings" leftSection={<MagnifyingGlassIcon />}>
+            Findings
+          </Pillbar.Tab>
+        </Pillbar.List>
+        <Pillbar.Panel value="overview">
+          <Group justify="space-between" className={styles.overviewUI}>
+            <Group justify="end">
+              {!loading && (
+                <Group>
                   <ActionIcon
                     variant="light"
                     size="md"
                     radius="md"
                     color="gray"
+                    onClick={() => {
+                      handleDownloadAsMarkdown();
+                    }}
+                    aria-label="Download as markdown"
                   >
                     <DownloadSimpleIcon />
                   </ActionIcon>
-                </Popover.Target>
-                <Popover.Dropdown p="0">
-                  <Stack gap="0">
-                    <CopyButton
-                      value={getOverviewAsMarkdown(overview, resultsMap)}
-                    >
-                      {({ copied, copy }) => {
-                        return (
-                          <Button
-                            variant="light"
-                            color="dark.8"
-                            c="dark.2"
-                            size="sm"
-                            onClick={copy}
-                            leftSection={!copied ? <CopyIcon /> : <CheckIcon />}
-                          >
-                            Copy as Markdown
-                          </Button>
-                        );
-                      }}
-                    </CopyButton>
-                    <Button
-                      variant="light"
-                      color="dark.8"
-                      c="dark.2"
-                      size="sm"
-                      onClick={() => {
-                        handleDownloadAsMarkdown();
-                      }}
-                      leftSection={<DownloadSimpleIcon />}
-                    >
-                      Export as Markdown
-                    </Button>
-                  </Stack>
-                </Popover.Dropdown>
-              </Popover>
+                  <CopyButton
+                    value={getOverviewAsMarkdown(
+                      overview,
+                      findings,
+                      resultsMap,
+                    )}
+                  >
+                    {({ copied, copy }) => {
+                      return (
+                        <ActionIcon
+                          variant="light"
+                          size="md"
+                          radius="md"
+                          color="gray"
+                          onClick={copy}
+                          aria-label="Copy as markdown"
+                        >
+                          {!copied ? <CopyIcon /> : <CheckIcon />}
+                        </ActionIcon>
+                      );
+                    }}
+                  </CopyButton>
+                </Group>
+              )}
             </Group>
+          </Group>
+          <OverviewParser
+            markdown={overview}
+            resultsMap={resultsMap}
+            findings={findings}
+          />
+        </Pillbar.Panel>
+        <Pillbar.Panel value="findings">
+          {!findings.length && (
+            <Text c="dimmed" size="sm">
+              No findings found.
+            </Text>
           )}
-        </Group>
-      </Group>
-      {showFindings && (
-        <>
-          <Space my="sm" />
           <Accordion radius="lg" variant="contained">
             {Array.from(findingsBySource.entries())
               .filter(([sourceId]) => {
                 return sourceId in resultsMap;
               })
               .map(([sourceId, findings], index) => {
-                const nodeType = getTypeFromId(sourceId) as
-                  | "source"
-                  | "idea"
-                  | "excerpt"
-                  | "task";
-                const source = { ...resultsMap[sourceId], type: nodeType };
-
-                if (!nodeType) {
-                  return null;
-                }
-
-                const title = getNodeTitle({
-                  ...(source as INode),
-                });
+                const resource = resultsMap[sourceId];
+                const title = resource.name;
 
                 return (
                   <Accordion.Item key={sourceId} value={sourceId}>
@@ -310,14 +261,8 @@ export function DisplayOverviewComponent({
                 );
               })}
           </Accordion>
-        </>
-      )}
-      <OverviewParser
-        markdown={overview.overview}
-        resultsMap={resultsMap}
-        analysis={overview}
-      />
-      <Space my="lg" />
+        </Pillbar.Panel>
+      </Pillbar>
     </div>
   );
 }

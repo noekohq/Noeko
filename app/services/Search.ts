@@ -2187,7 +2187,6 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with vector search: ", results);
       }
-      console.log("Got semantic results: ", results);
       const [r] = results;
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.vector(r));

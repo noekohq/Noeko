@@ -10,14 +10,12 @@ import {
 } from "@phosphor-icons/react";
 import styles from "./CaptureButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
-import { Group, Loader, Text, Textarea } from "@mantine/core";
+import { Loader, Text, Textarea } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import useShortcuts from "../../../hooks/useShortcuts";
 import { createIdea } from "../../../utils/ideas";
 import { markdownToHtml } from "../../../utils/formatting";
 import { showNotification } from "@mantine/notifications";
-import { sleep } from "../../../utils/helpers";
 import { createTask } from "../../../utils/tasks";
 import useRabbithole from "../../../hooks/useRabbithole";
 
@@ -286,6 +284,9 @@ export default function CaptureButton() {
       <button
         className={`${styles.capture} ${opened ? styles.opened : ""}`}
         onClick={() => {
+          if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+          }
           toggle();
         }}
       >

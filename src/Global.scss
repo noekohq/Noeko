@@ -6,13 +6,16 @@
     --sidebar-width-collapsed: 24px;
     --content-width: 100%;
     --layout-spacing: 8px;
-    --mobile-bar-height: 56px;
+    --navbar-height: 56px;
+    --top-bar-height: 56px;
     --status-bar-height: 36px;
 
     @include tablet {
         --sidebar-width: 40vw;
         --sidebar-width-collapsed: 48px;
         --content-width: 100%;
+        --navbar-height: 40px;
+        --top-bar-height: 40px;
     }
 
     @include desktop {
@@ -30,6 +33,23 @@
         --sidebar-width: 20vw;
         --content-width: 55vw;
     }
+
+    // DERIVED VARIABLES
+    --total-top-offset: calc(
+        env(safe-area-inset-top) + var(--top-bar-height) +
+            (var(--layout-spacing) * 3)
+    );
+    --total-bottom-offset: calc(
+        env(safe-area-inset-bottom) + var(--navbar-height) +
+            (var(--layout-spacing) * 3)
+    );
+
+    @include tablet {
+        --total-top-offset: env(safe-area-inset-top);
+        --total-bottom-offset: calc(var(--navbar-height));
+    }
+
+    --mb-z-index: 500 !important;
 }
 
 // Base element and component styles

@@ -1,0 +1,19 @@
+.paperInset {
+  // Use a darker BG to look "recessed"
+  background-color: var(--mantine-color-dark-9);
+  border-radius: var(--mantine-radius-md); // Slightly smaller radius
+
+  // The "inset" shadow is what sells the effect
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  // --- Padding Variants ---
+  &.xs {
+    padding: var(--mantine-spacing-xs);
+  }
+  &.sm {
+    padding: var(--mantine-spacing-sm);
+  }
+  &.md {
+    padding: var(--mantine-spacing-md);
+  }
+}

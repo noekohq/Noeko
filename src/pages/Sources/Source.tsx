@@ -54,108 +54,6 @@ import TagsManager from "../../components/Display/Interactions/Tags/TagsManager"
 import { useSpyglassService } from "../../hooks/useSpyglassService";
 import Nav from "../../components/UI/Layout/Nav";
 
-function ScopedAnalysisInterface({ source }: { source?: ISource }) {
-  const [query, setQuery] = useState("");
-  const [deepAnalysis, setDeepAnalysis] = useState(false);
-  const {
-    search,
-    save,
-    reset,
-    overview,
-    findings,
-    status,
-    loading,
-    complete,
-    error,
-  } = useSpyglassService();
-
-  if (!source) {
-    return (
-      <Text c="dimmed" size="sm">
-        Source not loaded.
-      </Text>
-    );
-  }
-
-  const handleSearch = () => {
-    if (!query || !source.id) return;
-    search({
-      query,
-      scope: [source.id.toString()],
-      deepAnalysis,
-    });
-  };
-
-  return (
-    <Stack>
-      <Textarea
-        label="Ask a question about this source"
-        placeholder="e.g., 'What are the main arguments in this document?'"
-        value={query}
-        onChange={(e) => setQuery(e.currentTarget.value)}
-        disabled={loading}
-      />
-      <Switch
-        label="Deep Analysis (more detailed, slower)"
-        checked={deepAnalysis}
-        onChange={(e) => setDeepAnalysis(e.currentTarget.checked)}
-        disabled={loading}
-      />
-      <Group>
-        <Button onClick={handleSearch} loading={loading} disabled={!query}>
-          Run Analysis
-        </Button>
-        {complete && !loading && (
-          <>
-            <Button variant="light" onClick={save}>
-              Save Analysis
-            </Button>
-            <Button variant="subtle" color="gray" onClick={reset}>
-              Clear
-            </Button>
-          </>
-        )}
-      </Group>
-
-      {loading && status && (
-        <Text c="dimmed" size="sm">
-          {status}
-        </Text>
-      )}
-      {error && (
-        <Text c="red" size="sm">
-          {error}
-        </Text>
-      )}
-
-      {overview && (
-        <Paper p="md" withBorder>
-          <Text sx={{ whiteSpace: "pre-wrap" }}>{overview}</Text>
-        </Paper>
-      )}
-
-      {findings.length > 0 && (
-        <Stack>
-          <Title order={4}>Findings</Title>
-          {findings.map((finding, index) => (
-            <Card key={index} withBorder>
-              <Text fw={500}>Excerpt:</Text>
-              <Blockquote>{finding.excerpt}</Blockquote>
-              <Text fw={500} mt="sm">
-                Analysis:
-              </Text>
-              <Text size="sm">{finding.analysis}</Text>
-              <Text size="xs" c="dimmed" mt="xs">
-                Type: {finding.findingType}
-              </Text>
-            </Card>
-          ))}
-        </Stack>
-      )}
-    </Stack>
-  );
-}
-
 export default function Source() {
   const { sourceId } = useParams();
 
@@ -335,74 +233,48 @@ export default function Source() {
           </LeftSidebar.Open>
         </LeftSidebar>
         <ContentWide>
-          <Tabs defaultValue="read">
-            <Tabs.List>
-              <Tabs.Tab value="read">
-                <Group>
-                  <EyeIcon />
-                  Read
-                </Group>
-              </Tabs.Tab>
-              <Tabs.Tab value="analyze">
-                <Group>
-                  <EyeIcon />
-                  Analyze
-                </Group>
-              </Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="read">
-              <div className={styles.fileView}>
-                <Group gap="xs">
-                  <ActionIcon
-                    onClick={() => {
-                      navigate(-1);
-                    }}
-                    color="gray"
-                    variant="subtle"
-                    size="sm"
-                  >
-                    <CaretLeftIcon weight="bold" />
-                  </ActionIcon>
-                  <Title
-                    contentEditable
-                    onBlur={(e) => {
-                      handleFieldUpdate(
-                        "displayName",
-                        e.currentTarget.innerText,
-                      );
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: source?.displayName || "",
-                    }}
-                  />
-                </Group>
-                {file && (
-                  <div
-                    className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
-                  >
-                    <Suspense
-                      fallback={
-                        <Text size="xs" c="dimmed">
-                          Loading viewer...
-                        </Text>
-                      }
-                    >
-                      {Viewer ? (
-                        <Viewer fileId={file.id.toString()} />
-                      ) : (
-                        <Text>
-                          No viewer available for this type of file :/
-                        </Text>
-                      )}
-                    </Suspense>
-                  </div>
-                )}
+          <div className={styles.fileView}>
+            <Group gap="xs">
+              <ActionIcon
+                onClick={() => {
+                  navigate(-1);
+                }}
+                color="gray"
+                variant="subtle"
+                size="sm"
+              >
+                <CaretLeftIcon weight="bold" />
+              </ActionIcon>
+              <Title
+                contentEditable
+                onBlur={(e) => {
+                  handleFieldUpdate("displayName", e.currentTarget.innerText);
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: source?.displayName || "",
+                }}
+              />
+            </Group>
+            {file && (
+              <div
+                className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
+              >
+                <Suspense
+                  fallback={
+                    <Text size="xs" c="dimmed">
+                      Loading viewer...
+                    </Text>
+                  }
+                >
+                  {Viewer ? (
+                    <Viewer fileId={file.id.toString()} />
+                  ) : (
+                    <Text>No viewer available for this type of file :/</Text>
+                  )}
+                </Suspense>
               </div>
-            </Tabs.Panel>
-            <Tabs.Panel value="analyze">
-              <ScopedAnalysisInterface source={source} />
-            </Tabs.Panel>
-          </Tabs>
+            )}
+          </div>
         </ContentWide>
         <Nav />
         <RightSidebar>

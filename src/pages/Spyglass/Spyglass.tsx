@@ -1,106 +1,51 @@
-import {
-  Title,
-  Text,
-  Group,
-  Stack,
-  ActionIcon,
-  Button,
-  Badge,
-  HoverCard,
-  Transition,
-  Loader,
-} from "@mantine/core";
+import { Link } from "react-router";
 import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import { Link, useSearchParams } from "react-router";
-import { getNodeTitle } from "../../utils/graph";
-import { useEffect, useRef, useState } from "react";
-import styles from "./Spyglass.module.scss";
-import useSpyglass from "./hooks/useSpyglass";
-import Textbox from "./Textbox";
-import { useLayout } from "../../contexts/LayoutContext";
-import CountUp from "../../components/Utils/Animations/Countup";
-import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
-import {
-  ArrowLeftIcon,
-  ArrowsClockwiseIcon,
-  ClockCounterClockwiseIcon,
-  HouseIcon,
-  InfoIcon,
-  MegaphoneIcon,
-} from "@phosphor-icons/react";
 import Content from "../../components/UI/Layout/Content";
-import { useDocumentTitle } from "../../hooks/useDocumentTitle";
-import useRabbithole from "../../hooks/useRabbithole";
-import { useInteraction } from "../../contexts/InteractionContext";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import styles from "./Spyglass.module.scss";
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Group,
+  HoverCard,
+  Loader,
+  Paper,
+  Space,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import {
+  ClockCounterClockwiseIcon,
+  MegaphoneIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import SpyglassContext from "./Spyglass/SpyglassContext";
-import SpyglassActions from "./Spyglass/SpyglassActions";
+import { useSpyglassService } from "../../hooks/useSpyglassService";
+import { useInteraction } from "../../contexts/InteractionContext";
+import { useLayout } from "../../contexts/LayoutContext";
+import RightSidebar from "../../components/UI/Layout/Right";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
+import SpyglassActions from "./Spyglass/SpyglassActions";
+import { useEffect, useState } from "react";
+import Textbox from "./Textbox";
+import CountUp from "../../components/Utils/Animations/Countup";
+import { getNodeTitle } from "../../utils/graph";
+import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
+import useRabbithole from "../../hooks/useRabbithole";
+import { RabbitholeIcon } from "../../components/Utils/Icons/Icons";
+import PaperCard from "../../components/Display/Paper/PaperCard";
+import PaperInset from "../../components/Display/Paper/PaperInset";
+import Search from "../../components/Search/Search";
 
 export default function Spyglass() {
-  const { isDownRabbithole, currentRabbithole } = useRabbithole();
-
-  const [query, setQuery] = useState<string>("");
-  const [parentId, setParentId] = useState<string | null>(null);
   const {
-    spyglassId,
-    initialize,
-    intent,
-    results,
-    analysis: overview,
-    initialized: spyglassInitialized,
-    initializing,
-    clear,
-    complete,
-    resultMap,
-    citationMap,
-    baseQuery,
-    loading,
-    error,
-  } = useSpyglass({ query, parentId });
-
-  const hasInitialized = useRef(false);
-  useEffect(() => {
-    if (spyglassInitialized && !hasInitialized.current) {
-      hasInitialized.current = true;
-    }
-  }, [spyglassInitialized]);
-
-  const initialized = hasInitialized.current;
-
-  useEffect(() => {
-    if (complete && spyglassId) {
-      setQuery("");
-      setParentId(spyglassId);
-    }
-  }, [complete, spyglassId]);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  useEffect(() => {
-    const q = searchParams.get("q");
-    if (q) {
-      setQuery(q);
-    }
-  }, [searchParams]);
-
-  const displayQuery = useRef<string>(null);
-
-  useEffect(() => {
-    if (baseQuery) {
-      displayQuery.current = baseQuery;
-    } else if (query) {
-      displayQuery.current = query;
-    }
-  }, [baseQuery, query]);
-
-  const queryToShow = () => {
-    return displayQuery.current ?? baseQuery ?? query;
-  };
-
-  useDocumentTitle(queryToShow() ? `${queryToShow()} - Noeko` : `Noeko`);
-
+    actions: {
+      feedback: { openFeedbackModal },
+    },
+  } = useInteraction();
   const {
     elements: {
       leftSidebar: {
@@ -109,51 +54,48 @@ export default function Spyglass() {
     },
   } = useLayout();
 
-  const {
-    actions: {
-      feedback: { openFeedbackModal },
-    },
-  } = useInteraction();
+  const { isDownRabbithole, currentRabbithole, exitRabbithole } =
+    useRabbithole();
 
-  if (error) {
-    return (
-      <PageWrapper>
-        <LeftSidebar startClosed></LeftSidebar>
-        <Content>
-          <div className={styles.spyglass}>
-            <Stack>
-              <Title>Something went wrong :/</Title>
-              <Text size="sm" c="dimmed">
-                {error}
-              </Text>
-              <Group>
-                <Button
-                  size="sm"
-                  variant="light"
-                  onClick={() => clear(true)}
-                  rightSection={<ArrowsClockwiseIcon weight="bold" />}
-                >
-                  Start Over
-                </Button>
-                <Button
-                  size="sm"
-                  variant="light"
-                  rightSection={<MegaphoneIcon weight="bold" />}
-                  color="gray"
-                >
-                  Leave Feedback
-                </Button>
-              </Group>
-            </Stack>
-          </div>
-        </Content>
-        <RightSidebar startClosed></RightSidebar>
-      </PageWrapper>
-    );
-  }
+  // SPYGLASS PARAMS
+  const [query, setQuery] = useState("");
+  const [deepAnalysis, setDeepAnalysis] = useState(false);
+
+  const [currentQuery, setCurrentQuery] = useState("");
+
+  const {
+    search,
+    reset,
+    save,
+    error,
+    initialized,
+    loading,
+    complete,
+    intent,
+    results,
+    fullResults,
+    findings,
+    overview,
+    citationMap,
+    resultsMap,
+    uninitialize,
+  } = useSpyglassService();
+
+  const handleSubmit = () => {
+    if (!query) return;
+    setCurrentQuery(query);
+    search({ query, deepAnalysis });
+  };
+
+  useEffect(() => {
+    if (complete) {
+      setQuery("");
+    }
+  }, [complete]);
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar
         topLevel={{
           open: (
@@ -168,11 +110,14 @@ export default function Spyglass() {
         }}
       >
         <LeftSidebar.Open>
-          <SpyglassContext citationMap={citationMap} results={results} />
+          <SpyglassContext
+            citationMap={citationMap}
+            results={fullResults || []}
+          />
         </LeftSidebar.Open>
         <LeftSidebar.Collapsed>
           <Stack>
-            {overview.findings.length > 0 && (
+            {findings.length > 0 && (
               <ActionIcon
                 variant="light"
                 size="sm"
@@ -182,7 +127,7 @@ export default function Spyglass() {
                   setLeftSidebar("open");
                 }}
               >
-                <Text size="xs">{overview.findings.length}</Text>
+                <Text size="xs">{findings.length}</Text>
               </ActionIcon>
             )}
             <Link to="/spyglass/history">
@@ -194,68 +139,140 @@ export default function Spyglass() {
         </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
-        <div className={styles.spyglass}>
+        <div
+          className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}
+        >
+          {!initialized && (
+            <Group gap="xs" justify="center">
+              <Title ta={"center"} className={`${styles.header}`} mb="lg">
+                Spyglass
+              </Title>
+              <HoverCard openDelay={400} width="300px">
+                <HoverCard.Target>
+                  <Badge color="gray" size="sm" variant="light">
+                    BETA
+                  </Badge>
+                </HoverCard.Target>
+                <HoverCard.Dropdown>
+                  <Stack gap="xs">
+                    <Text size="sm">
+                      Spyglass is currently under active development and some
+                      features might not always work as expected. We're looking
+                      for feedback as we learn and grow :)
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      This feature will remain free during it's beta stage. Rate
+                      limits may apply in future versions.
+                    </Text>
+                    <ActionIcon
+                      size="sm"
+                      variant="light"
+                      color="blue"
+                      onClick={() => {
+                        openFeedbackModal();
+                      }}
+                    >
+                      <MegaphoneIcon size="12" weight="bold" />
+                    </ActionIcon>
+                  </Stack>
+                </HoverCard.Dropdown>
+              </HoverCard>
+            </Group>
+          )}
+          {!loading && (
+            <div
+              className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+            >
+              <Textbox
+                value={query}
+                onSubmit={() => {
+                  handleSubmit();
+                }}
+                onReset={() => {
+                  reset();
+                  uninitialize();
+                  setQuery("");
+                }}
+                onChange={(v) => {
+                  setQuery(v);
+                }}
+                placeholder={
+                  initialized
+                    ? "Ask a follow-up question..."
+                    : "Ask your thoughts anything..."
+                }
+                initialized={initialized}
+                deepAnalysis={deepAnalysis}
+                setDeepAnalysis={(v) => {
+                  setDeepAnalysis(v);
+                }}
+              />
+            </div>
+          )}
+          {!initialized && isDownRabbithole && (
+            <>
+              <Space my="sm" />
+              <div className={styles.scopeWrapper}>
+                <Stack gap="sm">
+                  <Text size="sm" fw="bold" c="dimmed">
+                    SCOPE
+                  </Text>
+                  <Button
+                    radius="xl"
+                    size="xs"
+                    variant="light"
+                    color="green"
+                    rightSection={
+                      <>
+                        <ActionIcon
+                          variant="subtle"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            exitRabbithole();
+                          }}
+                          size="sm"
+                          color="green"
+                        >
+                          <XIcon weight="bold" />
+                        </ActionIcon>
+                      </>
+                    }
+                  >
+                    <Group
+                      gap="xs"
+                      wrap="nowrap"
+                      style={{ flex: 1, minWidth: 0 }}
+                    >
+                      <Text
+                        w={"100%"}
+                        truncate={"end"}
+                        size="xs"
+                        tt="uppercase"
+                        fw="bold"
+                        title={currentRabbithole?.name}
+                      >
+                        {currentRabbithole?.name}
+                      </Text>
+                    </Group>
+                  </Button>
+                </Stack>
+              </div>
+            </>
+          )}
           <div
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
-            {!initialized && !loading && (
-              <Group gap="xs" justify="center">
-                <Title
-                  ta={initialized ? "left" : "center"}
-                  className={`${styles.header} ${initialized ? styles.initialized : ""}`}
-                  order={initialized ? 2 : 1}
-                  mb="lg"
-                >
-                  Spyglass
-                </Title>
-                <HoverCard openDelay={400} width="300px">
-                  <HoverCard.Target>
-                    <Badge color="gray" size="sm" variant="light">
-                      BETA
-                    </Badge>
-                  </HoverCard.Target>
-                  <HoverCard.Dropdown>
-                    <Stack gap="xs">
-                      <Text size="sm">
-                        Spyglass is currently under active development and some
-                        features might not always work as expected. We're
-                        looking for feedback as we learn and grow :)
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        This feature will remain free during it's beta stage.
-                        Rate limits may apply in future versions.
-                      </Text>
-                      <ActionIcon
-                        size="sm"
-                        variant="light"
-                        color="blue"
-                        onClick={() => {
-                          openFeedbackModal();
-                        }}
-                      >
-                        <MegaphoneIcon size="12" weight="bold" />
-                      </ActionIcon>
-                    </Stack>
-                  </HoverCard.Dropdown>
-                </HoverCard>
-              </Group>
-            )}
-            {(!!initialized || !!initializing) && (
-              <Text
-                className={styles.queryHeader}
-                size="lg"
-                mb="lg"
-                fs="italic"
-              >
+            {initialized && (
+              <Text className={styles.queryHeader} size="lg" mb="lg">
                 <Group wrap="nowrap" gap="xs" component="span">
-                  {queryToShow()}
+                  {currentQuery}
                   {loading && <Loader size="14px" color="gray" />}
                 </Group>
               </Text>
             )}
             {initialized && (
               <div
-                className={`${styles.preview} ${!!overview.overview.length ? styles.hide : ""}`}
+                className={`${styles.preview} ${overview.length ? styles.hide : ""}`}
               >
                 {results.length <= 0 && (
                   <Text mb="lg" size="sm">
@@ -283,8 +300,9 @@ export default function Spyglass() {
                 )}
                 {Object.entries(citationMap).map(([sourceId, citation]) => {
                   const { excerpts, index } = citation;
-                  const result = resultMap[sourceId];
-                  const title = getNodeTitle(result);
+                  const result = resultsMap[sourceId];
+                  const title = result.name;
+
                   return (
                     <Group
                       gap="xs"
@@ -308,30 +326,30 @@ export default function Spyglass() {
                     </Group>
                   );
                 })}
-                {overview.findings.length > 0 && (
+                {deepAnalysis && results.length > 0 && (
                   <>
                     <Text className={styles.previewItem} mt="lg" size="sm">
                       <Group component="span" align="center" gap="xs">
                         Analyzing results...
-                        <Loader size="14px" color="gray" />
                       </Group>
                     </Text>
                     <Text size="sm" className={styles.previewItem}>
-                      {overview.findings.length} finding
-                      {overview.findings.length === 1 ? "" : "s"}...
+                      {findings.length} finding
+                      {findings.length === 1 ? "" : "s"}...
                     </Text>
                   </>
                 )}
               </div>
             )}
-            {overview && overview.overview && (
+            {overview && (
               <>
                 <div className={styles.overviewDisplay}>
                   <DisplayOverview
                     overview={overview}
-                    resultsMap={resultMap ?? {}}
+                    findings={findings}
+                    resultsMap={resultsMap ?? {}}
                     citationMap={citationMap ?? {}}
-                    query={baseQuery}
+                    query={query}
                     results={results}
                     loading={loading}
                   />
@@ -339,92 +357,13 @@ export default function Spyglass() {
               </>
             )}
           </div>
-          {!loading && (
-            <>
-              <div
-                className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-              >
-                <Textbox
-                  value={query}
-                  onSubmit={() => {
-                    clear();
-                    initialize();
-                  }}
-                  onChange={(v) => {
-                    setQuery(v);
-                  }}
-                  placeholder="Ask your thoughts anything..."
-                  placeholderIfInitialized="Ask a follow-up question..."
-                  initialized={initialized}
-                  onReset={() => {
-                    hasInitialized.current = false;
-                    clear(true);
-                    setParentId(null);
-                  }}
-                />
-              </div>
-              {!initialized && (
-                <Group mt="lg" justify="center">
-                  <Link to="/spyglass/history">
-                    <Button
-                      // leftSection={
-                      //   <ClockCounterClockwiseIcon weight="bold" size={14} />
-                      // }
-                      radius="lg"
-                      variant="light"
-                      color="dark.4"
-                      c="dark.2"
-                    >
-                      History
-                    </Button>
-                  </Link>
-                  {/*<Link to="/">
-                    <ActionIcon
-                      radius="md"
-                      variant="light"
-                      color="dark.4"
-                      c="dark.2"
-                    >
-                      <HouseIcon weight="bold" size={14} />
-                    </ActionIcon>
-                  </Link>*/}
-                  <HoverCard width="300px" openDelay={200}>
-                    <HoverCard.Target>
-                      <ActionIcon variant="subtle" color="gray" size="sm">
-                        <InfoIcon />
-                      </ActionIcon>
-                    </HoverCard.Target>
-                    <HoverCard.Dropdown>
-                      <Text size="sm">
-                        Ask your thoughts anything with Spyglass. Given a
-                        prompt, Spyglass will search and analyze your notes for
-                        relevant excerpts, then generate a response based on
-                        those findings, with citations.
-                      </Text>
-                      {isDownRabbithole && (
-                        <Text size="xs" c="dimmed" mt="md">
-                          Since you have entered a Rabbithole, Spyglass will
-                          only search within "{currentRabbithole?.name}".
-                        </Text>
-                      )}
-                      {!isDownRabbithole && (
-                        <Text size="xs" c="dimmed" mt="md">
-                          Tip: If you enter a Rabbithole, Spyglass will only
-                          search within that Rabbithole.
-                        </Text>
-                      )}
-                    </HoverCard.Dropdown>
-                  </HoverCard>
-                </Group>
-              )}
-            </>
-          )}
         </div>
       </Content>
       <Nav />
       <RightSidebar>
         <RightSidebar.Open>
-          <SpyglassActions intent={intent} results={results} />
+          {/*<Search />*/}
+          <SpyglassActions intent={intent} results={fullResults} />
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

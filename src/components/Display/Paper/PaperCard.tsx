@@ -1,4 +1,4 @@
-import { Group, Text } from "@mantine/core";
+import { Group, MantineColor, Text } from "@mantine/core";
 import styles from "./PaperCard.module.scss";
 import { Icon } from "@phosphor-icons/react";
 
@@ -6,6 +6,7 @@ interface IPaperCard {
   icon?: Icon;
   title: string;
   children: React.ReactNode | React.ReactNode[];
+  bg?: MantineColor | string;
 }
 
 export default function PaperCard({ title, icon, children }: IPaperCard) {

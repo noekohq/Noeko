@@ -329,22 +329,41 @@ export const getNodeEdgeType = (node: INode): IEdge["type"] => {
 };
 
 export const NodeIcon = (node: INode) => {
-  if (node.type === "idea") {
+  switch (node.type) {
+    case "idea":
+      return LightbulbIcon;
+    case "source":
+      return FileTextIcon;
+    case "task":
+      return CheckIcon;
+    case "rabbithole":
+      return RabbitholeIcon;
+    case "tag":
+      return TagIcon;
+    case "excerpt":
+      return TextAlignLeftIcon;
+    default:
+      return undefined; // Or a default icon if appropriate, otherwise undefined
+  }
+};
+
+export const TypeIcon = (type: INode["type"]) => {
+  if (type === "idea") {
     return LightbulbIcon;
   }
-  if (node.type === "source") {
+  if (type === "source") {
     return FileTextIcon;
   }
-  if (node.type === "task") {
+  if (type === "task") {
     return CheckIcon;
   }
-  if (node.type === "rabbithole") {
+  if (type === "rabbithole") {
     return RabbitholeIcon;
   }
-  if (node.type === "tag") {
+  if (type === "tag") {
     return TagIcon;
   }
-  if (node.type === "excerpt") {
+  if (type === "excerpt") {
     return TextAlignLeftIcon;
   }
 };

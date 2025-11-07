@@ -144,7 +144,6 @@ export default class GeminiProvider implements LMProvider {
         contents: truncatedPrompt,
         config: this.getGenerationConfig(schema),
       });
-      console.log("Raw response: ", result);
       if (!result || !result.text) {
         console.error("Invalid response");
         return null;

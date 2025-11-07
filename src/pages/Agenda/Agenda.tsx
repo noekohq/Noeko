@@ -7,6 +7,7 @@ export default function Agenda() {
     <PageWrapper>
       <Content>
         <h1>Your agenda</h1>
+        <p>This page is under construction.</p>
       </Content>
       <Nav />
     </PageWrapper>

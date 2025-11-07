@@ -2,46 +2,73 @@ import { Avatar, Group } from "@mantine/core";
 import styles from "./Nav.module.scss";
 import {
   CalendarCheckIcon,
-  CalendarIcon,
+  CaretUpIcon,
   HouseIcon,
-  HouseSimpleIcon,
   MagnifyingGlassIcon,
-  PlusIcon,
-  RabbitIcon,
   UserIcon,
-  XIcon,
 } from "@phosphor-icons/react";
 import {
   ConstellationIcon,
   RabbitholeIcon,
   SpyglassIcon,
 } from "../../Utils/Icons/Icons";
-import { useAuth } from "../../../contexts/AuthContext";
-import { userInitials, userIsSuperuser } from "../../../utils/user";
 import { useLocation, useNavigate } from "react-router";
-import { useState } from "react";
-import { useDisclosure } from "@mantine/hooks";
+import React, { useEffect, useState } from "react";
 import CaptureButton from "../../Display/Interactions/CaptureButton";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import MyButton from "../../Display/Interactions/MyButton";
 
-export default function Nav() {
+type INavProps = {
+  children?: React.ReactNode | React.ReactNode[];
+};
+
+const Drawer = ({ children }: INavProps) => {
+  return <>{children}</>;
+};
+Drawer.displayName = "Nav.Drawer";
+
+export default function Nav({ children }: INavProps) {
   const {
-    isDesktop,
-    isWideScreen,
-    isUltraWide,
+    isMobile,
     scroll: { isScrolled, scrollDirection },
+    elements: {
+      nav: {
+        drawer: {
+          isOpen: isDrawerOpen,
+          toggle: toggleDrawer,
+          setHasContent: setDrawerHasContent,
+          hasContent: hasDrawerContent,
+        },
+      },
+    },
   } = useLayout();
   const {
     state: {
       zen: { get: isZen },
     },
   } = useInteraction();
-  const isAtLeastDesktop = isDesktop || isWideScreen || isUltraWide;
-
-  const iconSize = isAtLeastDesktop ? 16 : 20;
+  const iconSize = isMobile ? 20 : 16;
 
   const { pathname } = useLocation();
+
+  let drawerContent: React.ReactNode = null;
+
+  React.Children.forEach(children, (child) => {
+    if (
+      React.isValidElement(child) &&
+      (child.type as any).displayName === "Nav.Drawer"
+    ) {
+      drawerContent = (child.props as any)?.children;
+    }
+  });
+
+  useEffect(() => {
+    setDrawerHasContent(!!drawerContent && isMobile);
+    return () => {
+      setDrawerHasContent(false);
+    };
+  }, [drawerContent, isMobile]);
 
   const activeMap = {
     search: () => {
@@ -77,11 +104,37 @@ export default function Nav() {
   };
 
   return (
-    <div className={`${styles.nav} ${isHidden() ? styles.hidden : ""}`}>
-      <div className={styles.options}>
-        {isAtLeastDesktop && (
+    <div
+      className={`${styles.nav} ${isHidden() ? styles.hidden : ""} ${
+        hasDrawerContent && isMobile ? styles.hasDrawer : ""
+      }`}
+    >
+      {isDrawerOpen && <div className={styles.backdrop} />}
+      {hasDrawerContent && isMobile && (
+        <>
+          <div
+            className={`${styles.drawer} ${isDrawerOpen ? styles.open : ""}`}
+          >
+            {drawerContent}
+          </div>
+          <div
+            className={`${styles.handle} ${isDrawerOpen ? styles.open : ""}`}
+            onClick={toggleDrawer}
+          >
+            <div className={styles.indicator}>
+              <CaretUpIcon weight="bold" />
+            </div>
+          </div>
+        </>
+      )}
+      <div
+        className={`${styles.options} ${hasDrawerContent && isMobile ? styles.hasDrawer : ""}`}
+      >
+        {!isMobile && (
           <button
-            className={`${styles.action} ${activeMap.constellation() ? styles.active : ""}`}
+            className={`${styles.action} ${
+              activeMap.constellation() ? styles.active : ""
+            }`}
             onClick={() => navigate("/constellation")}
           >
             <ConstellationIcon
@@ -91,21 +144,11 @@ export default function Nav() {
             />
           </button>
         )}
-        {isAtLeastDesktop && (
+        {!isMobile && false && (
           <button
-            className={`${styles.action} ${activeMap.spyglass() ? styles.active : ""}`}
-            onClick={() => navigate("/spyglass")}
-          >
-            <SpyglassIcon
-              color="var(--mantine-color-dark-2)"
-              weight={activeMap.search() ? "fill" : "bold"}
-              size={iconSize}
-            />
-          </button>
-        )}
-        {isAtLeastDesktop && (
-          <button
-            className={`${styles.action} ${activeMap.agenda() ? styles.active : ""}`}
+            className={`${styles.action} ${
+              activeMap.agenda() ? styles.active : ""
+            }`}
             onClick={() => navigate("/agenda")}
           >
             <CalendarCheckIcon
@@ -115,19 +158,22 @@ export default function Nav() {
             />
           </button>
         )}
-        {!isAtLeastDesktop && (
-          <button
-            className={`${styles.action} ${activeMap.search() ? styles.active : ""}`}
-            onClick={() => navigate("/search")}
-          >
-            <MagnifyingGlassIcon
-              weight={activeMap.search() ? "fill" : "bold"}
-              size={iconSize}
-            />
-          </button>
-        )}
         <button
-          className={`${styles.action} ${activeMap.rabbitholes() ? styles.active : ""}`}
+          className={`${styles.action} ${
+            activeMap.spyglass() ? styles.active : ""
+          }`}
+          onClick={() => navigate("/spyglass")}
+        >
+          <SpyglassIcon
+            color="var(--mantine-color-dark-2)"
+            weight={activeMap.search() ? "fill" : "bold"}
+            size={iconSize}
+          />
+        </button>
+        <button
+          className={`${styles.action} ${
+            activeMap.rabbitholes() ? styles.active : ""
+          }`}
           onClick={() => navigate("/rabbitholes")}
         >
           <RabbitholeIcon
@@ -136,9 +182,11 @@ export default function Nav() {
             size={iconSize}
           />
         </button>
-        {!isAtLeastDesktop && <CaptureButton />}
+        {isMobile && <CaptureButton />}
         <button
-          className={`${styles.action} ${activeMap.home() ? styles.active : ""}`}
+          className={`${styles.action} ${
+            activeMap.home() ? styles.active : ""
+          }`}
           onClick={() => navigate("/")}
         >
           <HouseIcon
@@ -146,13 +194,11 @@ export default function Nav() {
             size={iconSize}
           />
         </button>
-        {!isAtLeastDesktop && (
-          <button className={`${styles.action}`}>
-            <UserIcon weight="bold" size={iconSize} />
-          </button>
-        )}
-        {isAtLeastDesktop && <CaptureButton />}
+        {isMobile && <MyButton />}
+        {!isMobile && <CaptureButton />}
       </div>
     </div>
   );
 }
+
+Nav.Drawer = Drawer;
