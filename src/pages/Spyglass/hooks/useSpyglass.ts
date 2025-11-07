@@ -13,6 +13,8 @@ import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { ISpyglassIntent } from "../../../../app/services/Spyglass";
 import useRabbithole from "../../../hooks/useRabbithole";
+import { ISpyglassRecord } from "../../../../app/database/models/spyglass_record";
+import { IConnectable } from "../../../../app/services/Graph";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -437,17 +439,18 @@ interface IUseSpyglassRecordArgs {
 
 interface IUseSpyglassRecordReturn {
   loading: boolean;
-  spyglass?: ISpyglassSearch;
-  analysis?: ISpyglassSearch["analysis"];
+  spyglass?: ISpyglassRecord;
   resultMap?: IResultsMap;
   citationMap?: ICitationMap;
+  fullResults?: IConnectable[];
 }
 
 export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
-  const [spyglass, setSpyglass] = useState<ISpyglassSearch>();
+  const [spyglass, setSpyglass] = useState<ISpyglassRecord>();
+  const [fullResults, setFullResults] = useState<IConnectable[]>([]);
   const { loading, load: fetchSpyglassRecord } = useFetch<
     undefined,
-    ISpyglassSearch
+    ISpyglassRecord
   >({
     url: `/search/spyglass/record/${spyglassId}`,
     dependencies: [spyglassId],
@@ -464,18 +467,37 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     },
   });
 
+  const { load: fetchScope } = useFetch<
+    any,
+    { data: { nodes: IConnectable[] } }
+  >({
+    url: `/graph`,
+    method: "POST",
+    onSuccess: (data) => {
+      setFullResults(data.data.nodes);
+    },
+  });
+
   useEffect(() => {
     if (spyglassId) {
       fetchSpyglassRecord();
     }
   }, [spyglassId]);
 
-  const analysis = spyglass?.analysis;
+  // useEffect(() => {
+  //   if (spyglass?.scope) {
+  //     fetchScope({
+  //       loader: {
+  //         ids: spyglass.scope,
+  //       },
+  //     });
+  //   }
+  // }, [spyglass]);
 
   const getResultsMap = () => {
-    return spyglass?.fullResults?.reduce((acc, curr, i) => {
-      if (curr.value) {
-        acc[curr.id.toString()] = curr.value;
+    return fullResults?.reduce((acc, curr, i) => {
+      if (curr) {
+        acc[curr.id.toString()] = curr;
       }
       return acc;
     }, {} as IResultsMap);
@@ -484,7 +506,7 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
   const resultMap = getResultsMap();
 
   const buildCitationMap = (): ICitationMap => {
-    if (!analysis) {
+    if (!spyglass?.findings) {
       return {};
     }
     const map: Record<
@@ -495,7 +517,7 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
       }
     > = {};
     let currRefNumber = 1;
-    for (const finding of analysis?.findings) {
+    for (const finding of spyglass.findings) {
       if (!(finding.sourceId in map)) {
         map[finding.sourceId] = {
           excerpts: [finding.excerpt],
@@ -513,9 +535,9 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
 
   return {
     loading,
-    analysis,
     spyglass,
     resultMap,
     citationMap,
+    fullResults,
   } satisfies IUseSpyglassRecordReturn;
 };

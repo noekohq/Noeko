@@ -67,6 +67,8 @@ import ConnectableThing from "../../components/Display/Interactions/Connections/
 import { useSearch } from "../../contexts/SearchContext";
 import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
 import { useTourStep } from "../../contexts/TourGuideContext";
+import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 type ILoadedWidget = {
   id: string;
@@ -82,7 +84,7 @@ export default function Dashboard() {
     "constellation",
     "taskList",
     "serendipity",
-    "glance",
+    "pins",
   ];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
@@ -172,7 +174,8 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
-      <LeftSidebar startOpened>
+      <TopBar />
+      <LeftSidebar startOpened={!isMobile}>
         <LeftSidebar.Open>
           <JumpBackIn />
         </LeftSidebar.Open>
@@ -181,7 +184,7 @@ export default function Dashboard() {
         <div className={styles.dashboard}>
           <Grid>
             <Grid.Col span={12} py={0}>
-              <TopBar />
+              <Header />
             </Grid.Col>
             {LoadedWidgets.map(({ id, Component, config }) => {
               return (
@@ -204,23 +207,8 @@ export default function Dashboard() {
           </Grid>
         </div>
       </Content>
-      <StatusBar>
-        <StatusBar.Showing>
-          <Group gap="xs" h="100%">
-            <TimeButton />
-            <Link
-              to="/ideas/shared"
-              style={{ height: "100%" }}
-              title="Ideas shared with you"
-            >
-              <StatusButton>
-                <ShareNetworkIcon weight="bold" />
-              </StatusButton>
-            </Link>
-          </Group>
-        </StatusBar.Showing>
-      </StatusBar>
-      <RightSidebar startOpened>
+      <Nav />
+      <RightSidebar startOpened={!isMobile}>
         <RightSidebar.Open>
           <Search />
         </RightSidebar.Open>
@@ -229,9 +217,9 @@ export default function Dashboard() {
   );
 }
 
-interface ITopBarProps {}
+interface IHeaderProps {}
 
-function TopBar() {
+function Header() {
   const { user } = useAuth();
 
   const { isMobile } = useLayout();

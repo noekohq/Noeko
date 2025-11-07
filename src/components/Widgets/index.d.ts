@@ -7,7 +7,8 @@ export type IAvailableWidgets =
   | "heatmap"
   | "rabbitholeList"
   | "miniGraph"
-  | "tagBreakdown";
+  | "tagBreakdown"
+  | "pins";
 
 export type IWidgetConfig = {
   columns: {

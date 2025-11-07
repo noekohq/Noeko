@@ -117,7 +117,7 @@ export default function useConnectable({
       return;
     }
     loadSimilar();
-  }, [connectable?.embeddingsUpdatedAt]);
+  }, [connectable?.embeddingsUpdatedAt, connected]);
 
   useEffect(() => {
     if (!connectable?.id) {

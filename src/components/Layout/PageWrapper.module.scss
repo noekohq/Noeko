@@ -1,8 +1,12 @@
 @use "../../styles/mixins.scss" as *;
 
+:root {
+}
+
 .pageWrapper {
     --rabbithole-indicator-width: 1px;
     display: flex;
+    box-sizing: border-box;
     height: calc(100vh);
     flex-direction: column;
     justify-content: space-around;
@@ -25,7 +29,7 @@
     &.hasRabbithole {
         border: var(--rabbithole-indicator-width) solid
             var(--mantine-color-yellow-5);
-        box-shadow: inset 0px 0px 15px 0px var(--mantine-color-yellow-5);
+        box-shadow: inset 0px 0px 5px 0px var(--mantine-color-yellow-5);
         border-radius: 0;
     }
 }

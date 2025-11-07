@@ -10,6 +10,7 @@ import { Stack, Text, Title } from "@mantine/core";
 import { IPublicUser } from "../../../../app/database/models/user";
 import { userFormattedName } from "../../../utils/user";
 import StatusBar from "../../../components/UI/Layout/Bottom";
+import Nav from "../../../components/UI/Layout/Nav";
 
 export default function ViewonlyIdea() {
   const { ideaId } = useParams();
@@ -46,7 +47,7 @@ export default function ViewonlyIdea() {
           />
         </Stack>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar></RightSidebar>
     </PageWrapper>
   );

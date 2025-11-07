@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Content.module.scss";
-import useScroll from "../../../hooks/useScroll";
 
 interface IContentProps {
   children: React.ReactNode | React.ReactNode[];
@@ -21,7 +20,6 @@ const Content = ({ children }: IContentProps) => {
   } = useLayout();
 
   const contentRef = useRef<HTMLDivElement>(null);
-  useScroll({ ref: contentRef });
 
   return (
     <div

@@ -8,7 +8,7 @@ import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISearchOverview, ISpyglassSearch } from "../database/models/search";
 import { RecordId } from "surrealdb";
 import Source, { ISourceAnalysis } from "../database/models/source";
-import { Connectable, IConnectableFields } from "./Graph";
+import { Connectable, IConnectable, IConnectableFields } from "./Graph";
 import { Tag } from "../database/models/tag";
 
 export type ISpyglassScope = {
@@ -1035,12 +1035,8 @@ export default class Spyglass {
     }
   }
 
-  static singleFindingPromptBuilder(
-    query: string,
-    intent: string,
-    mode: ISpyglassMode,
-  ) {
-    return new PromptBuilder()
+  static singleFindingPromptBuilder(query: string, intent?: ISpyglassIntent) {
+    const p = new PromptBuilder()
       .addText(
         "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
       )
@@ -1087,18 +1083,29 @@ export default class Spyglass {
         </query>
         `,
       )
-      .addBlock("User Intent", intent)
-      .addText(mode.analysis.prompt(intent).get()) // This dynamic prompt remains
       .addBlock(
         "Source for Analysis",
         "The Source Material to use is as follows:\n",
       );
+
+    if (intent) {
+      p.addBlock("User Intent", intent.intent);
+      const mode = Modes[intent.mode];
+      p.addText(mode.analysis.prompt(intent.intent).get());
+    } else {
+      p.addBlock(
+        "User Intent",
+        "The user's intent is to have their query answered accurately and directly.",
+      );
+    }
+
+    return p;
   }
 
   static async *generateFindingsFromResources(
     query: string,
-    results: ISearchResult[],
-    intent: ISpyglassIntent,
+    results: IConnectableFields[],
+    intent?: ISpyglassIntent,
   ): AsyncGenerator<IFinding[], void, unknown> {
     try {
       if (!results || results.length === 0) {
@@ -1110,12 +1117,11 @@ export default class Spyglass {
       const findingPromises = results.map((result) => {
         return (async () => {
           const sourceId = result.id.toString();
-          const resultString = this.resultToString(result);
+          const resultString = await this.connectableToString(result);
 
           const singleResultPrompt = this.singleFindingPromptBuilder(
             query,
-            intent.intent,
-            Modes[intent.mode],
+            intent,
           );
 
           singleResultPrompt.addBlock(`Source Material`, resultString, 2);
@@ -1131,7 +1137,7 @@ export default class Spyglass {
               `Failed to process findings for result ${sourceId}:`,
               err,
             );
-            return []; // Return an empty array on error.
+            return [];
           }
         })();
       });
@@ -1450,6 +1456,29 @@ export default class Spyglass {
     }
   }
 
+  static async getIntentConfigFromQuery(
+    query: string,
+  ): Promise<ISpyglassIntent | undefined> {
+    try {
+      if (!query.length) {
+        return undefined;
+      }
+      const lm = getLM().withModel("fast-accurate");
+      const prompt = this.intentPromptBuilder(query, undefined).get();
+      const intent = await lm.generateJSON<ISpyglassIntent>(
+        prompt,
+        this.intentSchema(),
+      );
+      if (!intent) {
+        throw new Error("Did not get intent from LM");
+      }
+      return intent;
+    } catch (error) {
+      console.error("Error in getIntentFromQuery:", error);
+      return undefined;
+    }
+  }
+
   static scopedFindingPromptBuilder(query: string) {
     return new PromptBuilder()
       .addText(
@@ -1571,6 +1600,250 @@ export default class Spyglass {
     } catch (error) {
       console.error("Error generating findings from results:", error);
       throw error;
+    }
+  }
+
+  public static scopedOverviewPromptBuilder(
+    query: string,
+    resources: IConnectableFields[],
+  ) {
+    const builder = new PromptBuilder()
+      .addText(
+        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided source documents.",
+      )
+      .addBlock("Mission Statement", spyglassMissionStatement)
+      .addBlock(
+        "Output and Citation Rules",
+        `
+          - Your entire response MUST be valid Markdown.
+          - At the end of any sentence that uses information from a source, you MUST add a citation.
+          - Place the citation immediately after the last word of the sentence, with no space.
+          - The format is the resource's type and ID inside brackets, like \[idea:xxxx\] or \[source:yyyy\].
+          - If multiple sources support a sentence, list each citation in its own separate brackets, like \[idea:xxxx\]\[source:yyyy\].
+          `,
+      )
+      .addBlock(
+        "Strict Rules",
+        `
+          - **ALWAYS** cite relevant sources for statements made to ensure accuracy and verifiability.
+          - **NEVER** use information that is not explicitly present in the source documents. If the documents do not contain the answer, state that you cannot answer based on the information provided.
+          `,
+      )
+      .addBlock("User Query", `<userQuery>${query}</userQuery>`)
+      .addBlock(
+        "Source Documents",
+        "The source documents to use for your answer are as follows:\n" +
+          resources
+            .map((r) => {
+              let content = "";
+              if (r.name) content += `<title>${r.name}</title>\n`;
+              if (r.content)
+                content += `<content>${htmlToMarkdown(r.content)}</content>`;
+              return `<document id=\"${r.id.toString()}\" type=\"${r.type}\">${content}</document>`;
+            })
+            .join("\n\n"),
+      );
+    return builder;
+  }
+
+  public static async *generateOverviewFromScope({
+    query,
+    scope,
+  }: {
+    query: string;
+    scope: IConnectableFields[];
+  }): AsyncGenerator<string, void, unknown> {
+    try {
+      const overviewPrompt = this.scopedOverviewPromptBuilder(query, scope);
+      const lm = getLM().withModel("fast-accurate");
+      for await (const chunk of lm.generateStream(overviewPrompt.get())) {
+        yield chunk;
+      }
+    } catch (error) {
+      console.error("Error generating overview stream from scope:", error);
+      throw error;
+    }
+  }
+
+  public static overviewFromFindingsPromptBuilder(
+    query: string,
+    findings: IFinding[],
+  ) {
+    const builder = new PromptBuilder()
+      .addText(
+        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
+      )
+      .addBlock("Mission Statement", spyglassMissionStatement)
+      .addBlock(
+        "Output and Citation Rules",
+        `
+          - Your entire response MUST be valid Markdown.
+          - At the end of any sentence that uses information from the findings, you MUST add a citation.
+          - The format is a 1-based finding number inside brackets, like \`[1]\`.
+          - If multiple findings support a sentence, list each citation in its own separate brackets, like \`[1][2]\`.
+          `,
+      )
+      .addBlock(
+        "Strict Rules",
+        `
+          - **ALWAYS** cite relevant findings for statements made.
+          - **NEVER** use information that is not explicitly present in the Findings.
+          `,
+      )
+      .addBlock("User Query", `<userQuery>${query}</userQuery>`)
+      .addBlock(
+        "Findings",
+        "The findings to use for your answer are as follows:\n" +
+          findings
+            .map((f, i) => {
+              return `<finding number="${i + 1}" sourceId="${f.sourceId}">\n<excerpt>${f.excerpt}</excerpt>\n<analysis>${f.analysis}</analysis>\n</finding>`;
+            })
+            .join("\n\n"),
+      );
+    return builder;
+  }
+
+  public static async *generateOverviewFromGeneratedFindings({
+    query,
+    findings,
+  }: {
+    query: string;
+    findings: IFinding[];
+  }): AsyncGenerator<string, void, unknown> {
+    try {
+      const overviewPrompt = this.overviewFromFindingsPromptBuilder(
+        query,
+        findings,
+      );
+      const lm = getLM().withModel("fast-accurate").withThinking();
+      for await (const chunk of lm.generateStream(overviewPrompt.get())) {
+        yield chunk;
+      }
+    } catch (error) {
+      console.error(
+        "Error generating overview stream from generated findings:",
+        error,
+      );
+      throw error;
+    }
+  }
+
+  public static async *runAnalysisGenerator({
+    userId,
+    query,
+    scope,
+    deepAnalysis,
+  }: {
+    userId: string;
+    query: string;
+    scope?: string[];
+    deepAnalysis: boolean;
+  }) {
+    try {
+      yield { type: "status", data: "Starting analysis..." };
+
+      let intent: ISpyglassIntent | undefined = undefined;
+      const resources: IConnectableFields[] = [];
+      const fullResults: IConnectable[] = [];
+      if (scope && scope.length > 0) {
+        yield { type: "status", data: `Loading ${scope.length} sources...` };
+        const connectablePromises = scope.map(async (id) => {
+          const connectable = new Connectable(id);
+          const c = await connectable.get();
+          if (c) {
+            fullResults.push(c);
+          }
+          return await connectable.fields();
+        });
+        const resolvedResources = await Promise.all(connectablePromises);
+        resources.push(
+          ...(resolvedResources.filter(
+            (r) => r !== null,
+          ) as IConnectableFields[]),
+        );
+      } else {
+        const _intent = await this.getIntentConfigFromQuery(query);
+        if (!_intent) {
+          yield { type: "error", data: "No intent found for the query." };
+          return;
+        }
+        intent = _intent;
+        const searches = intent.searches.map((s) => {
+          return {
+            ...s,
+            tables: s.tables ?? ["idea", "excerpt", "source"],
+            vectorSettings: {
+              effort: "high",
+            },
+          } as IConnectableSearchQuery;
+        });
+        const r = await Spyglass.getResultsFromQueries(
+          userId.toString(),
+          searches,
+        );
+        const connectablePromises = r.map(async (s) => {
+          fullResults.push(s.value);
+          const type = s.value.type;
+          const fields = Connectable.fieldsResolver[type]?.(s.value as any);
+          return fields;
+        });
+        const connectables = await Promise.all(connectablePromises);
+        resources.push(...connectables);
+      }
+
+      yield { type: "resources_loaded", data: resources };
+      yield { type: "full_results_loaded", data: fullResults };
+
+      let fullOverview = "";
+      const finalFindings: IFinding[] = [];
+
+      if (deepAnalysis) {
+        yield { type: "status", data: "Generating deep analysis findings..." };
+        const findingGenerator = Spyglass.generateFindingsFromResources(
+          query,
+          resources,
+          intent,
+        );
+        for await (const findingChunk of findingGenerator) {
+          yield { type: "findings_chunk", data: findingChunk };
+          finalFindings.push(...findingChunk);
+        }
+        yield { type: "status", data: "Generating overview from findings..." };
+        const overviewGenerator =
+          Spyglass.generateOverviewFromGeneratedFindings({
+            query,
+            findings: finalFindings,
+          });
+        for await (const chunk of overviewGenerator) {
+          fullOverview += chunk;
+          yield { type: "overview_chunk", data: chunk };
+        }
+      } else {
+        yield { type: "status", data: "Generating overview from resources..." };
+        const overviewGenerator = Spyglass.generateOverviewFromScope({
+          query,
+          scope: resources,
+        });
+        for await (const chunk of overviewGenerator) {
+          fullOverview += chunk;
+          yield { type: "overview_chunk", data: chunk };
+        }
+      }
+
+      yield {
+        type: "completed",
+        data: {
+          overview: fullOverview,
+          findings: finalFindings,
+          results: resources,
+        },
+      };
+    } catch (error) {
+      console.error("Error in runAnalysisGenerator:", error);
+      yield {
+        type: "error",
+        data: "An unexpected error occurred during analysis.",
+      };
     }
   }
 }

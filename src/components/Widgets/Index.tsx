@@ -1,6 +1,7 @@
 import { IWidgetMap } from "./index.d";
 
 const widgets: IWidgetMap = {
+  pins: () => import("./library/Pins"),
   glance: () => import("./library/Glance"),
   serendipity: () => import("./library/Serendipity"),
   constellation: () => import("./library/Constellation"),

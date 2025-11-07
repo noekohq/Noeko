@@ -1,0 +1,49 @@
+@keyframes chipIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.paperChip {
+    animation: chipIn 0.2s ease-in-out;
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-lg);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--mantine-spacing-sm);
+    font-size: var(--mantine-font-size-sm);
+    text-decoration: none;
+    color: var(--mantine-color-dark-1);
+    font-weight: 565;
+    border: 1px solid var(--mantine-color-dark-7);
+    width: auto;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--mantine-shadow-sm);
+        background-color: var(--mantine-color-dark-7);
+    }
+
+    &:active {
+        transform: scale(0.98) translateY(0px);
+    }
+
+    &.active {
+        background-color: var(--mantine-color-green-7);
+        color: var(--mantine-color-white);
+        border-color: var(--mantine-color-dark-9);
+    }
+
+    svg {
+        font-size: var(--mantine-font-size-md);
+    }
+}

@@ -4,6 +4,7 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Insights() {
   return (
@@ -12,7 +13,7 @@ export default function Insights() {
       <Content>
         <Title>Insights</Title>
       </Content>
-      <StatusBar />
+      <Nav />
       <RightSidebar></RightSidebar>
     </PageWrapper>
   );

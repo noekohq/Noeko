@@ -1,0 +1,68 @@
+.pillbarContainer {
+  width: 100%;
+}
+
+.pillbarList {
+  display: flex;
+  position: relative;
+  background-color: var(--mantine-color-dark-8);
+  padding: 4px;
+  border-radius: var(--mantine-radius-xl);
+  width: 100%;
+  height: 40px;
+}
+
+.tab {
+  flex: 1;
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: bold;
+  color: var(--mantine-color-dark-4);
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px var(--layout-spacing);
+  z-index: 1;
+
+  &:hover {
+    color: var(--mantine-color-dark-0);
+  }
+}
+
+.tabActive {
+  color: var(--mantine-color-dark-0);
+}
+
+.tabLeftSection {
+  display: flex;
+  align-items: center;
+}
+
+.pill {
+  position: absolute;
+  top: 4px;
+  background-color: var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-xl);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+@keyframes panelIn {
+  0% {
+    opacity: 0.5;
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabPanel {
+  animation: panelIn 0.2s ease-in-out;
+  padding-top: var(--mantine-spacing-md);
+}

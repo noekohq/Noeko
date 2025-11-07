@@ -29,6 +29,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useGraph } from "../../contexts/GraphContext";
 import { useTourStep } from "../../contexts/TourGuideContext";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,7 +140,7 @@ export default function GraphPage() {
           />
         )}
       </div>
-      <StatusBar />
+      <Nav />
       <RightSidebar>
         <RightSidebar.Open>
           {isLoading && <Loader size="sm" color="gray" />}

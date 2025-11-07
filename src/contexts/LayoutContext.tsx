@@ -6,6 +6,7 @@ import React, {
   Dispatch,
   SetStateAction,
   ComponentType,
+  useRef,
 } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 
@@ -50,12 +51,20 @@ type ILayoutContext = {
         set: (message: string | null) => void;
       };
     };
+    nav: {
+      drawer: {
+        isOpen: boolean;
+        setIsOpen: (isOpen: boolean) => void;
+        toggle: () => void;
+        hasContent: boolean;
+        setHasContent: (hasContent: boolean) => void;
+      };
+    };
   };
   scroll: {
     isScrolled: boolean;
-    setIsScrolled: Dispatch<SetStateAction<boolean>>;
     scrollDirection: "up" | "down";
-    setScrollDirection: Dispatch<SetStateAction<"up" | "down">>;
+    setScrollableElement: Dispatch<SetStateAction<HTMLElement | null>>;
   };
   isMobile: boolean;
   isTablet: boolean;
@@ -102,12 +111,20 @@ const initialLayoutContext: ILayoutContext = {
         set: () => {},
       },
     },
+    nav: {
+      drawer: {
+        isOpen: false,
+        setIsOpen: () => {},
+        toggle: () => {},
+        hasContent: false,
+        setHasContent: () => {},
+      },
+    },
   },
   scroll: {
     isScrolled: false,
-    setIsScrolled: () => {},
     scrollDirection: "up",
-    setScrollDirection: () => {},
+    setScrollableElement: () => {},
   },
   isMobile: false,
   isTablet: false,
@@ -160,6 +177,9 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
   const [rightSidebarHovering, setRightSidebarHovering] =
     useState<boolean>(false);
 
+  const [navDrawerHasContent, setNavDrawerHasContent] = useState(false);
+  const [navDrawerIsOpen, setNavDrawerIsOpen] = useState(false);
+
   const [statusBarMode, setStatusbarMode] =
     useState<ILayoutContext["elements"]["statusBar"]["mode"]["get"]>("showing");
   const [statusBarMessage, setStatusbarMessage] =
@@ -167,6 +187,29 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
+  const [scrollableElement, setScrollableElement] =
+    useState<HTMLElement | null>(null);
+  const lastScrollPosition = useRef(0);
+
+  useEffect(() => {
+    if (!scrollableElement) return;
+
+    const handleScroll = () => {
+      const direction =
+        scrollableElement.scrollTop > lastScrollPosition.current
+          ? "down"
+          : "up";
+      setIsScrolled(scrollableElement.scrollTop > 0);
+      setScrollDirection(direction);
+      lastScrollPosition.current = scrollableElement.scrollTop;
+    };
+
+    scrollableElement.addEventListener("scroll", handleScroll);
+
+    return () => {
+      scrollableElement.removeEventListener("scroll", handleScroll);
+    };
+  }, [scrollableElement]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -319,12 +362,20 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
           set: setStatusbarMessage,
         },
       },
+      nav: {
+        drawer: {
+          isOpen: navDrawerIsOpen,
+          setIsOpen: setNavDrawerIsOpen,
+          toggle: () => setNavDrawerIsOpen((prev) => !prev),
+          hasContent: navDrawerHasContent,
+          setHasContent: setNavDrawerHasContent,
+        },
+      },
     },
     scroll: {
       isScrolled: isScrolled,
-      setIsScrolled: setIsScrolled,
       scrollDirection: scrollDirection,
-      setScrollDirection: setScrollDirection,
+      setScrollableElement: setScrollableElement,
     },
     isMobile,
     isTablet,

@@ -9,6 +9,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import { showNotification } from "@mantine/notifications";
 import StatusBar from "../../components/UI/Layout/Bottom";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function PublicIdea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -50,7 +51,7 @@ export default function PublicIdea() {
           ></Box>
         </Stack>
       </Container>
-      {loggedIn && <StatusBar />}
+      {loggedIn && <Nav />}
       {loggedIn && <RightSidebar />}
     </PageWrapper>
   );

@@ -48,6 +48,7 @@ import ConnectionManager from "../../components/Display/Interactions/Connections
 import { useLandscape } from "../../contexts/LandscapeContext";
 import useConnectable from "../../hooks/useConnectable";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -476,7 +477,7 @@ export default function Task() {
           )}
         </Stack>
       </Content>
-      <StatusBar></StatusBar>
+      <Nav />
       <RightSidebar>
         <RightSidebar.Open>
           <Stack gap="lg">
@@ -500,26 +501,15 @@ export default function Task() {
               >
                 Mark {isComplete ? "Incomplete" : "Complete"}
               </Button>
-              <Menu>
-                <Menu.Target>
-                  <ActionIcon variant="subtle" color="gray">
-                    <DotsThreeVerticalIcon weight="bold" />
-                  </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    variant="light"
-                    color="red"
-                    onClick={handleDeleteTask}
-                    disabled={loadingDelete}
-                    leftSection={
-                      loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
-                    }
-                  >
-                    Delete Task
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
+              <ActionIcon
+                onClick={handleDeleteTask}
+                disabled={loadingDelete}
+                loading={loadingDelete}
+                variant="light"
+                color="red"
+              >
+                <TrashSimpleIcon />
+              </ActionIcon>
             </Group>
             <Divider />
             <Search

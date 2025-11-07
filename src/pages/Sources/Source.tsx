@@ -13,7 +13,9 @@ import {
   Paper,
   ScrollAreaAutosize,
   Stack,
+  Switch,
   Text,
+  Textarea,
   Title,
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -26,6 +28,7 @@ import { ViewerMap } from "../../components/Display/Files/Viewers";
 import { useLayout } from "../../contexts/LayoutContext";
 import {
   CaretLeftIcon,
+  Eye,
   EyeIcon,
   FileIcon,
   FileMagnifyingGlassIcon,
@@ -48,6 +51,8 @@ import { showNotification } from "@mantine/notifications";
 import { SourceProvider, useSource } from "./SourceContext";
 import useConnectable from "../../hooks/useConnectable";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
+import { useSpyglassService } from "../../hooks/useSpyglassService";
+import Nav from "../../components/UI/Layout/Nav";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -245,7 +250,9 @@ export default function Source() {
                 onBlur={(e) => {
                   handleFieldUpdate("displayName", e.currentTarget.innerText);
                 }}
-                dangerouslySetInnerHTML={{ __html: source?.displayName || "" }}
+                dangerouslySetInnerHTML={{
+                  __html: source?.displayName || "",
+                }}
               />
             </Group>
             {file && (
@@ -269,7 +276,7 @@ export default function Source() {
             )}
           </div>
         </ContentWide>
-        <StatusBar />
+        <Nav />
         <RightSidebar>
           <RightSidebar.Open>
             <Stack>

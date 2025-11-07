@@ -1,0 +1,204 @@
+@use "../../../styles/mixins.scss" as *;
+
+:root {
+    --nav-bottom: calc(var(--layout-spacing) + env(safe-area-inset-bottom));
+}
+
+.nav {
+    position: fixed;
+    bottom: var(--nav-bottom);
+    left: var(--layout-spacing);
+    right: var(--layout-spacing);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 250;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    transition: transform 0.2s ease-in-out;
+
+    &.hidden {
+        transform: translateY(calc(100% + var(--layout-spacing)));
+    }
+
+    @include desktop {
+        left: calc(var(--sidebar-width) + var(--layout-spacing));
+        right: calc(var(--sidebar-width) + var(--layout-spacing));
+        height: 40px;
+    }
+}
+
+.options {
+    width: 100%;
+    height: var(--navbar-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mantine-spacing-sm);
+    background-color: var(--mantine-color-dark-9);
+    box-shadow:
+        0px 1px 4px -1px rgba(0, 0, 0, 0.2),
+        0px 6px 10px -3px rgba(0, 0, 0, 0.1);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    border-radius: var(--mantine-radius-xl);
+    border: 1px solid var(--mantine-color-dark-7);
+    padding: 6px var(--mantine-spacing-sm);
+
+    @include tablet {
+        width: fit-content;
+    }
+
+    @include desktop {
+        width: fit-content;
+        box-shadow: none;
+        background-color: transparent;
+        border-radius: var(--mantine-radius-lg);
+        border-color: transparent;
+        padding: 0;
+    }
+
+    &.hasDrawer {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-top: none;
+    }
+}
+
+%button-base {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; // Needed for the ::after
+    border-radius: var(--mantine-radius-xl);
+    border: 1.5px solid transparent;
+    background-color: transparent; // Inactive is just paper
+    color: var(--mantine-color-dark-2);
+    transition:
+        all 0.3s ease-in-out,
+        transform 0.2s ease-out;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+    }
+
+    @include desktop {
+        background-color: var(--mantine-color-dark-8);
+    }
+}
+
+.action {
+    @extend %button-base;
+    width: 56px;
+    border-color: var(--mantine-color-dark-8);
+
+    &.active {
+        background-color: var(--mantine-color-dark-8);
+        /* box-shadow: inset 0px 0px 2px rgba(0, 0, 0, 0.1); */
+        color: var(--mantine-color-dark-0);
+        transform: scale(1);
+        border-color: var(--mantine-color-dark-7);
+    }
+
+    &:hover {
+        background-color: var(--mantine-color-dark-8);
+
+        @include desktop {
+            transform: scale(1.01) translateY(-2px);
+        }
+    }
+
+    &:active {
+        transform: scale(0.95) translateY(2px);
+        background-color: var(--mantine-color-dark-7);
+    }
+
+    svg {
+        z-index: 3;
+    }
+}
+
+.handle {
+    width: 100%;
+    height: 36px;
+    background-color: var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-xl) var(--mantine-radius-xl) 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: -1;
+    transition: all 0.1s ease-in-out;
+    border: 1px solid var(--mantine-color-dark-7);
+    border-bottom: none;
+
+    &.open {
+        border-radius: 0;
+        border: none;
+        border-left: 1px solid var(--mantine-color-dark-7);
+        border-right: 1px solid var(--mantine-color-dark-7);
+    }
+
+    .indicator {
+        margin-inline: auto;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            color: var(--mantine-color-dark-3);
+            transition: transform 0.2s ease-in-out;
+        }
+    }
+}
+
+@keyframes backdropIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.backdrop {
+    animation: backdropIn 0.2s ease-in-out forwards;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(4px) brightness(0.8);
+    z-index: -3;
+}
+
+.drawer {
+    width: 100%;
+    height: 0;
+    background-color: var(--mantine-color-dark-9);
+    border: 1px solid var(--mantine-color-dark-7);
+    border-bottom: none;
+    border-radius: var(--mantine-radius-xl) var(--mantine-radius-xl) 0 0;
+    padding: var(--mantine-spacing-sm);
+    padding-bottom: 24px;
+    z-index: -2;
+    opacity: 0;
+    transition: all 0.2s ease-out;
+
+    &.open {
+        opacity: 1;
+        height: calc(100vh - var(--nav-bottom) - var(--nav-menu-height) - 56px);
+
+        + .handle {
+            .indicator {
+                svg {
+                    transform: rotate(180deg);
+                }
+            }
+        }
+    }
+}

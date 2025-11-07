@@ -1,9 +1,10 @@
 .taskButton {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    padding: 4px var(--mantine-spacing-sm);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
     background-color: transparent;
     border: 1px solid var(--mantine-color-dark-7);
+    /* box-shadow: var(--mantine-shadow-sm); */
     border-radius: var(--mantine-radius-md);
     display: flex;
     flex-direction: row;
