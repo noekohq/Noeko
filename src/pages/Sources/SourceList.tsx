@@ -21,6 +21,7 @@ import { useInteraction } from "../../contexts/InteractionContext";
 import SourceCard from "../../components/Display/Sources/SourceCard";
 import ConnectableTable from "../../components/Display/Data/ConnectableTable";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function SourceList() {
   const { data: sources, load: loadSources } = useFetch<undefined, ISource[]>({
@@ -56,6 +57,7 @@ export default function SourceList() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
         <Stack>

@@ -36,6 +36,7 @@ import useRabbithole from "../../hooks/useRabbithole";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import TagCard from "../../components/Display/Tags/TagCard";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Tags() {
   const {
@@ -127,6 +128,7 @@ export default function Tags() {
   return (
     <>
       <PageWrapper>
+        <TopBar />
         <LeftSidebar />
         <Content>
           <Grid>

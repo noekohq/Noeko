@@ -53,6 +53,7 @@ import useConnectable from "../../hooks/useConnectable";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 import { useSpyglassService } from "../../hooks/useSpyglassService";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -153,6 +154,7 @@ export default function Source() {
   return (
     <SourceProvider source={source}>
       <PageWrapper>
+        <TopBar />
         <LeftSidebar>
           <LeftSidebar.Open>
             <Tabs defaultValue="context">

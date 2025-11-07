@@ -65,8 +65,9 @@ export default function Rabbitholes() {
 
   return (
     <PageWrapper>
-      <LeftSidebar></LeftSidebar>
       <TopBar />
+      <LeftSidebar></LeftSidebar>
+
       <Content>
         <Stack>
           <Group>

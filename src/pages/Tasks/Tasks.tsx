@@ -24,6 +24,7 @@ import { useInteraction } from "../../contexts/InteractionContext";
 import { PlusIcon } from "@phosphor-icons/react";
 import TaskButton from "../../components/Display/Tasks/TaskButton";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 dayjs.extend(weekOfYear);
 
@@ -124,6 +125,7 @@ export default function TaskTimelineView() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
         <div className={styles.tasks}>

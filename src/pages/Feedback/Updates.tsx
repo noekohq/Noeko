@@ -25,6 +25,7 @@ import { capitalize, formatDate } from "../../utils/formatting";
 import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 type IUpdate = {
   title: string;
@@ -402,6 +403,7 @@ export default function Updates() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <Content>
         <Stack>

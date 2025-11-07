@@ -25,6 +25,7 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Export() {
   const [loadingMarkdownExport, setLoadingMarkdownExport] = useState(false);
@@ -55,6 +56,7 @@ export default function Export() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <Content>
         <Stack>

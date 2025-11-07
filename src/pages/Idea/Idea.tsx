@@ -74,6 +74,7 @@ import useConnectable from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
 import { Pillbar } from "../../components/UI/Layout/Utils/Pillbar";
 import PaperCard from "../../components/Display/Paper/PaperCard";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -459,6 +460,7 @@ export default function Idea() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar startOpened={isDesktop}>
         <LeftSidebar.Open>
           <Tabs defaultValue="context">

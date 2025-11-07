@@ -24,6 +24,7 @@ import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Ideas() {
   const { isMobile } = useLayout();
@@ -93,6 +94,7 @@ export default function Ideas() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <Content>
         <Stack>
