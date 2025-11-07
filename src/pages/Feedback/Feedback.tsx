@@ -24,6 +24,7 @@ import Search from "../../components/Search/Search";
 import FeedbackCard from "../../components/Display/Feedback/FeedbackCard";
 import { formatDate } from "../../utils/formatting";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Feedback() {
   const {
@@ -101,6 +102,7 @@ export default function Feedback() {
   return (
     <div className={styles.feedback}>
       <PageWrapper>
+        <TopBar />
         <LeftSidebar>
           <LeftSidebar.Open>
             {!!feedback && (

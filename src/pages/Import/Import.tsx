@@ -11,6 +11,7 @@ import Content from "../../components/UI/Layout/Content";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import { useTourStep } from "../../contexts/TourGuideContext";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
@@ -44,6 +45,7 @@ export default function Import() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar />
       <Content>
         <Grid pos="relative" ref={tourRef}>

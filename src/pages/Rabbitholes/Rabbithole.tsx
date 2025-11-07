@@ -376,6 +376,7 @@ export default function Rabbithole() {
   if (!!error.length) {
     return (
       <PageWrapper>
+        <TopBar />
         <LeftSidebar />
         <Content>
           <Text>

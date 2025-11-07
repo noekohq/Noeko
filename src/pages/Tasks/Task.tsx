@@ -49,6 +49,7 @@ import { useLandscape } from "../../contexts/LandscapeContext";
 import useConnectable from "../../hooks/useConnectable";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -288,6 +289,7 @@ export default function Task() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar>
         <LeftSidebar.Open>
           <Stack>

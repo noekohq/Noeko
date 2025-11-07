@@ -26,6 +26,7 @@ import {
 import { splitBySentences } from "../../../utils/processing";
 import StatusBar from "../../../components/UI/Layout/Bottom";
 import Nav from "../../../components/UI/Layout/Nav";
+import TopBar from "../../../components/UI/Layout/TopBar";
 
 export default function SharedIdeas() {
   const {
@@ -42,6 +43,7 @@ export default function SharedIdeas() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
         <Stack>

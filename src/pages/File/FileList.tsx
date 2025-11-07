@@ -10,6 +10,7 @@ import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
 import FileCard from "../../components/Display/Files/FileCard";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { PlusIcon } from "@phosphor-icons/react";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function FileList() {
   const { load: getFiles, data: files } = useFetch<undefined, IUserFile[]>({
@@ -22,6 +23,7 @@ export default function FileList() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
         <Stack>

@@ -50,6 +50,7 @@ import { RecordId } from "surrealdb";
 import { applyTagToThing, removeTagFromThing } from "../../utils/tags";
 import ConnectableTable from "../../components/Display/Data/ConnectableTable";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -305,6 +306,7 @@ export default function ViewTag() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <Modal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
