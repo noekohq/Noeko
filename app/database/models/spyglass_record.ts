@@ -1,11 +1,16 @@
 import { getDatabase } from "../db";
-import { IFinding, IFindingType } from "../../services/Spyglass";
+import {
+  IFinding,
+  IFindingType,
+  ISpyglassIntent,
+} from "../../services/Spyglass";
 import { StringRecordId } from "surrealdb";
 
 export interface ISpyglassRecord {
   id: StringRecordId;
   userId: StringRecordId;
   createdAt: Date;
+  intent?: ISpyglassIntent;
   baseQuery: string;
   scope: StringRecordId[];
   searchPerformed: boolean;

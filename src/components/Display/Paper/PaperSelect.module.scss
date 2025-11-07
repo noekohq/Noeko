@@ -1,0 +1,95 @@
+@keyframes buttonIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.paperSelectWrapper {
+  width: 100%;
+}
+
+.label {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--mantine-color-dark-2);
+  margin-bottom: var(--mantine-spacing-xs);
+  display: block;
+}
+
+.optionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+
+.paperSelectItem {
+  // --- Base styles copied from PaperButton ---
+  animation: buttonIn 0.2s ease-in-out;
+  background-color: var(--mantine-color-dark-8);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-lg);
+  display: flex;
+  flex-direction: row;
+  gap: var(--mantine-spacing-sm);
+  text-align: left;
+  font-weight: 565;
+  color: var(--mantine-color-dark-1);
+  border: 1px solid var(--mantine-color-dark-7); // Default border
+  transition:
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+
+  &.fullWidth {
+    width: 100%;
+  }
+
+  // --- Interaction States ---
+  &:hover:not(.selected) {
+    transform: translateY(-2px);
+    box-shadow: var(--mantine-shadow-sm);
+  }
+
+  &:active:not(.selected) {
+    transform: scale(0.98) translateY(2px);
+  }
+
+  // --- Selected State ---
+  &.selected {
+    background-color: var(--mantine-color-dark-7);
+    border-color: var(--mantine-color-blue-6); // Strong indicator
+    transform: translateY(-2px);
+    box-shadow: var(--mantine-shadow-sm);
+  }
+
+  // --- Content Layout ---
+  .itemIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mantine-color-dark-3);
+  }
+
+  .itemBody {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .itemLabel {
+    font-size: var(--mantine-font-size-sm);
+    color: var(--mantine-color-dark-1);
+    font-weight: 565;
+  }
+
+  .itemDescription {
+    font-size: var(--mantine-font-size-xs);
+    color: var(--mantine-color-dark-3);
+  }
+}

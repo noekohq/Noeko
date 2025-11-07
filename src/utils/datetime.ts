@@ -16,6 +16,19 @@ export const getCurrentTimeOfDay = (): ITimeOfDay => {
   return getTimeOfDay(hour);
 };
 
+export const getRelativeDateISO = (unit: "week" | "year" | "month"): string => {
+  const d = new Date();
+  if (unit === "week") {
+    d.setDate(d.getDate() - 7);
+  } else if (unit === "month") {
+    d.setMonth(d.getMonth() - 1);
+  } else if (unit === "year") {
+    d.setFullYear(d.getFullYear() - 1);
+  }
+  d.setHours(0, 0, 0, 0); // Zero out the time
+  return d.toISOString();
+};
+
 export const getCurrentTime = (): Date => {
   return new Date();
 };
@@ -35,7 +48,10 @@ export const toYYYYMMDD = (date: Date): string => {
   const month = date.getMonth() + 1; // getMonth() is zero-based
   const day = date.getDate();
 
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+    2,
+    "0",
+  )}`;
 };
 
 export const fromYYYYMMDD = (dateString: string): Date => {

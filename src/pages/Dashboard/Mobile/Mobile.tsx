@@ -15,10 +15,13 @@ import TaskButton from "../../../components/Display/Tasks/TaskButton";
 import { ISafeIdea } from "../../../../app/database/models/ideas";
 import PaperButton from "../../../components/Display/Paper/PaperButton";
 import { Link } from "react-router";
+import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButton";
+import TopBar from "../../../components/UI/Layout/TopBar";
 
 export default function MobileDashboard() {
   return (
     <PageWrapper>
+      <TopBar />
       <Content>
         <div className={styles.dashboard}>
           <Pillbar defaultValue="overview">
@@ -58,7 +61,7 @@ function Overview() {
   >({
     url: "/ideas",
     query: {
-      limit: "1",
+      limit: "3",
       start: "0",
       sortField: "updatedAt",
       sortOrder: "desc",
@@ -70,17 +73,34 @@ function Overview() {
   return (
     <div className={styles.overview}>
       <Grid>
-        <Grid.Col span={12}>
-          <PaperCard title="ACTIVE TASKS">
-            <Stack gap="xs">
-              {tasks?.map((t) => {
-                return (
-                  <TaskButton task={t} key={t.id.toString()} detail="simple" />
-                );
-              })}
-            </Stack>
-          </PaperCard>
-        </Grid.Col>
+        {tasks && tasks.length > 0 && (
+          <Grid.Col span={12}>
+            <PaperCard title="ACTIVE TASKS">
+              <Stack gap="xs">
+                {tasks?.map((t) => {
+                  return (
+                    <TaskButton
+                      task={t}
+                      key={t.id.toString()}
+                      detail="simple"
+                    />
+                  );
+                })}
+              </Stack>
+            </PaperCard>
+          </Grid.Col>
+        )}
+        {recentIdeas && (
+          <Grid.Col span={12}>
+            <PaperCard title="RECENT IDEAS">
+              <Stack gap="xs">
+                {recentIdeas?.map((i) => {
+                  return <IdeaButton idea={i} key={i.id.toString()} />;
+                })}
+              </Stack>
+            </PaperCard>
+          </Grid.Col>
+        )}
         {recentIdea && (
           <Grid.Col span={12}>
             <Link
@@ -91,6 +111,7 @@ function Overview() {
             >
               <PaperButton
                 leftSection={<ClockCounterClockwiseIcon weight="bold" />}
+                fullWidth
               >
                 {recentIdea.title}
               </PaperButton>

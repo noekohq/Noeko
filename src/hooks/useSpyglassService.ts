@@ -1,27 +1,16 @@
 import { useCallback, useRef, useState } from "react";
-import { getAccessToken, serverLocation } from "../server/api";
-import { IFinding } from "../../app/services/Spyglass";
-import { IConnectable } from "../../app/services/Graph";
+import { api, getAccessToken, serverLocation } from "../server/api";
+import { IFinding, ISpyglassIntent } from "../../app/services/Spyglass";
+import { IConnectable, IConnectableFields } from "../../app/services/Graph";
 
-interface ISpyglassServiceState {
-  loading: boolean;
-  complete: boolean;
-  error: string | null;
-  results: IConnectable[];
-  findings: IFinding[];
-  overview: string;
-  status: string | null;
-}
-
-const initialState: ISpyglassServiceState = {
-  loading: false,
-  complete: false,
-  error: null,
-  results: [],
-  findings: [],
-  overview: "",
-  status: null,
-};
+export type ICitationMap = Record<
+  string,
+  {
+    index: number;
+    excerpts: string[];
+  }
+>;
+export type IResultsMap = Record<string, IConnectableFields>;
 
 interface ISearchArgs {
   query: string;
@@ -29,8 +18,36 @@ interface ISearchArgs {
   deepAnalysis: boolean;
 }
 
-export function useSpyglassService() {
-  const [state, setState] = useState<ISpyglassServiceState>(initialState);
+interface ISpyglassServiceReturn {
+  initialized: boolean;
+  intent?: ISpyglassIntent;
+  loading: boolean;
+  complete: boolean;
+  error: string | null;
+  results: IConnectableFields[];
+  fullResults: IConnectable[];
+  findings: IFinding[];
+  overview: string;
+  status: string | null;
+  citationMap: ICitationMap;
+  resultsMap: IResultsMap;
+  search: (args: ISearchArgs) => Promise<void>;
+  save: () => Promise<void>;
+  reset: () => void;
+  uninitialize: () => void;
+}
+
+export function useSpyglassService(): ISpyglassServiceReturn {
+  const [initialized, setInitialized] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [complete, setComplete] = useState(false);
+  const [intent, setIntent] = useState<ISpyglassIntent | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<IConnectableFields[]>([]);
+  const [fullResults, setFullResults] = useState<IConnectable[]>([]);
+  const [findings, setFindings] = useState<IFinding[]>([]);
+  const [overview, setOverview] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
   const searchArgsRef = useRef<ISearchArgs | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -38,18 +55,26 @@ export function useSpyglassService() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    setState(initialState);
+    setLoading(false);
+    setComplete(false);
+    setError(null);
+    setResults([]);
+    setFindings([]);
+    setOverview("");
+    setStatus(null);
     searchArgsRef.current = null;
   }, []);
 
+  const uninitialize = useCallback(() => {
+    setInitialized(false);
+  }, [resetState]);
+
   const search = useCallback(
     async ({ query, scope, deepAnalysis }: ISearchArgs) => {
+      setInitialized(true);
       resetState();
-      setState((s) => ({
-        ...s,
-        loading: true,
-        status: "Initiating analysis...",
-      }));
+      setLoading(true);
+      setStatus("Initiating analysis...");
       searchArgsRef.current = { query, scope, deepAnalysis };
       abortControllerRef.current = new AbortController();
 
@@ -105,34 +130,32 @@ export function useSpyglassService() {
 
                   switch (type) {
                     case "status":
-                      setState((s) => ({ ...s, status: data }));
+                      setStatus(data);
+                      break;
+                    case "intent_loaded":
+                      setIntent(data);
                       break;
                     case "resources_loaded":
-                      setState((s) => ({
-                        ...s,
-                        results: data,
-                        status: "Analyzing resources...",
-                      }));
+                      setResults(data);
+                      setStatus("Analyzing resources...");
+                      break;
+                    case "full_results_loaded":
+                      setFullResults(data);
                       break;
                     case "findings_chunk":
-                      setState((s) => ({
-                        ...s,
-                        findings: [...s.findings, ...data],
-                      }));
+                      setFindings(data);
                       break;
                     case "overview_chunk":
-                      setState((s) => ({ ...s, overview: s.overview + data }));
+                      setOverview((prev) => prev + data);
                       break;
                     case "completed":
-                      setState((s) => ({
-                        ...s,
-                        loading: false,
-                        complete: true,
-                        status: "Analysis complete.",
-                      }));
+                      setLoading(false);
+                      setComplete(true);
+                      setStatus("Analysis complete.");
                       break;
                     case "error":
-                      setState((s) => ({ ...s, loading: false, error: data }));
+                      setError(data);
+                      setLoading(false);
                       break;
                   }
                 }
@@ -148,52 +171,91 @@ export function useSpyglassService() {
           return;
         }
         console.error("Search failed:", error);
-        setState((s) => ({
-          ...s,
-          loading: false,
-          error: "An error occurred during the analysis.",
-        }));
+        setLoading(false);
+        setError("An error occurred during the analysis.");
       }
     },
     [resetState],
   );
 
   const save = useCallback(async () => {
-    if (!state.complete || !searchArgsRef.current) {
+    if (!complete || !searchArgsRef.current) {
       console.error("Cannot save an incomplete or non-existent analysis.");
       return;
     }
 
     try {
-      // The `api` object from `../server/api` handles auth automatically
-      await fetch(`${serverLocation}/api/search/spyglass/save`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          baseQuery: searchArgsRef.current.query,
-          scope: searchArgsRef.current.scope || [],
-          isDeepAnalysis: searchArgsRef.current.deepAnalysis,
-          searchPerformed:
-            !searchArgsRef.current.scope ||
-            searchArgsRef.current.scope.length === 0,
-          results: state.results,
-          findings: state.findings,
-          overview: state.overview,
-        }),
+      await api.post(`/search/spyglass/save`, {
+        baseQuery: searchArgsRef.current.query,
+        scope: searchArgsRef.current.scope || [],
+        isDeepAnalysis: searchArgsRef.current.deepAnalysis,
+        searchPerformed:
+          !searchArgsRef.current.scope ||
+          searchArgsRef.current.scope.length === 0,
+        intent: intent,
+        results: results,
+        findings: findings,
+        overview: overview,
       });
     } catch (error) {
       console.error("Failed to save analysis:", error);
     }
-  }, [state]);
+  }, [searchArgsRef, intent, results, findings, overview]);
+
+  const buildCitationMap = (): ICitationMap => {
+    if (!findings) {
+      return {};
+    }
+    const map: Record<
+      string,
+      {
+        excerpts: string[];
+        index: number;
+      }
+    > = {};
+    let currRefNumber = 1;
+    for (const finding of findings) {
+      if (!(finding.sourceId in map)) {
+        map[finding.sourceId] = {
+          excerpts: [finding.excerpt],
+          index: currRefNumber,
+        };
+        currRefNumber++;
+      } else {
+        map[finding.sourceId].excerpts.push(finding.excerpt);
+      }
+    }
+    return map;
+  };
+
+  const getResultsMap = () => {
+    return results?.reduce((acc, curr, i) => {
+      if (curr) {
+        acc[curr.id.toString()] = curr;
+      }
+      return acc;
+    }, {} as IResultsMap);
+  };
+
+  const citationMap = buildCitationMap();
+  const resultsMap = getResultsMap();
 
   return {
-    ...state,
+    initialized,
+    loading,
+    error,
+    complete,
+    intent,
+    overview,
+    status,
+    results,
+    fullResults,
+    findings,
     search,
     save,
+    citationMap,
+    resultsMap,
     reset: resetState,
-  };
+    uninitialize,
+  } satisfies ISpyglassServiceReturn;
 }

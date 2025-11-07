@@ -72,6 +72,8 @@ import StatusBar from "../../components/UI/Layout/Bottom";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import useConnectable from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
+import { Pillbar } from "../../components/UI/Layout/Utils/Pillbar";
+import PaperCard from "../../components/Display/Paper/PaperCard";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -624,7 +626,144 @@ export default function Idea() {
           </Stack>
         </div>
       </Content>
-      <Nav />
+      <Nav>
+        <Nav.Drawer>
+          <Stack gap="md">
+            <Pillbar defaultValue="tools">
+              <Pillbar.List>
+                <Pillbar.Tab value="tags">Tags</Pillbar.Tab>
+                <Pillbar.Tab value="tools">Tools</Pillbar.Tab>
+                <Pillbar.Tab value="context">Context</Pillbar.Tab>
+              </Pillbar.List>
+              <Pillbar.Panel value="tags">
+                {idea && (
+                  <TagsManager
+                    maxSuggested={2}
+                    connectable={{ ...idea, type: "idea" }}
+                  />
+                )}
+              </Pillbar.Panel>
+              <Pillbar.Panel value="tools">
+                <PaperCard title="ACTIONS">
+                  <Group gap="sm">
+                    <Tooltip label="Delete Idea">
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        radius="md"
+                        onClick={handleDeleteIdea}
+                        disabled={loadingDelete}
+                      >
+                        {loadingDelete ? (
+                          <Loader size="xs" />
+                        ) : (
+                          <TrashSimpleIcon />
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Viewonly">
+                      <Link to="view">
+                        <ActionIcon variant="light" radius="md" color="gray">
+                          <BookOpenIcon />
+                        </ActionIcon>
+                      </Link>
+                    </Tooltip>
+                    <Tooltip label="Export as HTML">
+                      <ActionIcon
+                        variant="light"
+                        radius="md"
+                        color="gray"
+                        onClick={downloadAsHTML}
+                      >
+                        <BracketsAngleIcon />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Export as Markdown">
+                      <ActionIcon
+                        variant="light"
+                        radius="md"
+                        color="gray"
+                        onClick={downloadAsMarkdown}
+                      >
+                        <MarkdownLogoIcon />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Copy">
+                      <Menu trigger="hover">
+                        <Menu.Target>
+                          <ActionIcon variant="light" radius="md" color="gray">
+                            <CopySimpleIcon />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <CopyButton value={getMarkdownContent()}>
+                            {({ copied, copy }) => {
+                              return (
+                                <Menu.Item
+                                  leftSection={
+                                    copied ? (
+                                      <CheckIcon />
+                                    ) : (
+                                      <MarkdownLogoIcon />
+                                    )
+                                  }
+                                  onClick={copy}
+                                >
+                                  Copy as Markdown
+                                </Menu.Item>
+                              );
+                            }}
+                          </CopyButton>
+                          {idea?.content && (
+                            <CopyButton value={htmlToPlainText(idea?.content)}>
+                              {({ copied, copy }) => {
+                                return (
+                                  <Menu.Item
+                                    leftSection={
+                                      copied ? (
+                                        <CheckIcon />
+                                      ) : (
+                                        <CursorTextIcon />
+                                      )
+                                    }
+                                    onClick={copy}
+                                  >
+                                    Copy as Text
+                                  </Menu.Item>
+                                );
+                              }}
+                            </CopyButton>
+                          )}
+                          {idea?.content && (
+                            <CopyButton value={idea?.content}>
+                              {({ copied, copy }) => {
+                                return (
+                                  <Menu.Item
+                                    leftSection={
+                                      copied ? (
+                                        <CheckIcon />
+                                      ) : (
+                                        <CursorTextIcon />
+                                      )
+                                    }
+                                    onClick={copy}
+                                  >
+                                    Copy as HTML
+                                  </Menu.Item>
+                                );
+                              }}
+                            </CopyButton>
+                          )}
+                        </Menu.Dropdown>
+                      </Menu>
+                    </Tooltip>
+                  </Group>
+                </PaperCard>
+              </Pillbar.Panel>
+            </Pillbar>
+          </Stack>
+        </Nav.Drawer>
+      </Nav>
       <RightSidebar startOpened={isDesktop}>
         <RightSidebar.Open>
           <Tabs defaultValue="tools">

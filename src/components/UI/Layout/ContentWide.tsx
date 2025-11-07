@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLayout } from "../../../contexts/LayoutContext";
 import styles from "./ContentWide.module.scss";
-import useScroll from "../../../hooks/useScroll";
 
 interface IContentWideProps {
   children: React.ReactNode | React.ReactNode[];
@@ -21,7 +20,6 @@ const ContentWide = ({ children }: IContentWideProps) => {
   } = useLayout();
 
   const contentRef = useRef<HTMLDivElement>(null);
-  useScroll({ ref: contentRef ?? null });
 
   const leftModeToClass: Record<typeof leftMode, string> = {
     open: styles.leftOpen,

@@ -68,6 +68,7 @@ import { useSearch } from "../../contexts/SearchContext";
 import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
 import { useTourStep } from "../../contexts/TourGuideContext";
 import Nav from "../../components/UI/Layout/Nav";
+import TopBar from "../../components/UI/Layout/TopBar";
 
 type ILoadedWidget = {
   id: string;
@@ -83,7 +84,7 @@ export default function Dashboard() {
     "constellation",
     "taskList",
     "serendipity",
-    "glance",
+    "pins",
   ];
 
   const loadWidgets = async (): Promise<ILoadedWidget[]> => {
@@ -173,6 +174,7 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
+      <TopBar />
       <LeftSidebar startOpened={!isMobile}>
         <LeftSidebar.Open>
           <JumpBackIn />
@@ -182,7 +184,7 @@ export default function Dashboard() {
         <div className={styles.dashboard}>
           <Grid>
             <Grid.Col span={12} py={0}>
-              <TopBar />
+              <Header />
             </Grid.Col>
             {LoadedWidgets.map(({ id, Component, config }) => {
               return (
@@ -215,9 +217,9 @@ export default function Dashboard() {
   );
 }
 
-interface ITopBarProps {}
+interface IHeaderProps {}
 
-function TopBar() {
+function Header() {
   const { user } = useAuth();
 
   const { isMobile } = useLayout();

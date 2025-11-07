@@ -1,18 +1,17 @@
 import { ISearchOverview } from "../../app/database/models/search";
 import { IFinding } from "../../app/services/Spyglass";
 import { INode } from "../declarations/graph";
-import { IResultsMap } from "../pages/Spyglass/hooks/useSpyglass";
+import { IResultsMap } from "../hooks/useSpyglassService";
 import { getNodeTitle, getTypeFromId } from "./graph";
 
 // A helper type to make the grouped findings map more explicit
 type GroupedFindings = Map<string, (IFinding & { index: number })[]>;
 
 export const getOverviewAsMarkdown = (
-  analysis: ISearchOverview,
+  overview: string,
+  findings: IFinding[],
   resultsMap: IResultsMap,
 ): string => {
-  const { overview, findings } = analysis;
-
   // 1. Group findings by their source ID
   const findingsBySource = findings.reduce<GroupedFindings>(
     (acc, current, findingNumber) => {
@@ -39,7 +38,7 @@ export const getOverviewAsMarkdown = (
         return null; // Or handle as an error
       }
 
-      const title = getNodeTitle({ ...sourceNode, type: nodeType } as INode);
+      const title = sourceNode.name;
 
       // Create the markdown for each individual finding under this source
       const findingsMarkdown = sourceFindings

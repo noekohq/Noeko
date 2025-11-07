@@ -51,6 +51,15 @@ type ILayoutContext = {
         set: (message: string | null) => void;
       };
     };
+    nav: {
+      drawer: {
+        isOpen: boolean;
+        setIsOpen: (isOpen: boolean) => void;
+        toggle: () => void;
+        hasContent: boolean;
+        setHasContent: (hasContent: boolean) => void;
+      };
+    };
   };
   scroll: {
     isScrolled: boolean;
@@ -100,6 +109,15 @@ const initialLayoutContext: ILayoutContext = {
       message: {
         get: null,
         set: () => {},
+      },
+    },
+    nav: {
+      drawer: {
+        isOpen: false,
+        setIsOpen: () => {},
+        toggle: () => {},
+        hasContent: false,
+        setHasContent: () => {},
       },
     },
   },
@@ -158,6 +176,9 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     useState<boolean>(false);
   const [rightSidebarHovering, setRightSidebarHovering] =
     useState<boolean>(false);
+
+  const [navDrawerHasContent, setNavDrawerHasContent] = useState(false);
+  const [navDrawerIsOpen, setNavDrawerIsOpen] = useState(false);
 
   const [statusBarMode, setStatusbarMode] =
     useState<ILayoutContext["elements"]["statusBar"]["mode"]["get"]>("showing");
@@ -339,6 +360,15 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
         message: {
           get: statusBarMessage,
           set: setStatusbarMessage,
+        },
+      },
+      nav: {
+        drawer: {
+          isOpen: navDrawerIsOpen,
+          setIsOpen: setNavDrawerIsOpen,
+          toggle: () => setNavDrawerIsOpen((prev) => !prev),
+          hasContent: navDrawerHasContent,
+          setHasContent: setNavDrawerHasContent,
         },
       },
     },

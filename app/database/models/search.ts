@@ -550,488 +550,488 @@ export class SpyglassSearch {
     }
   }
 
-  public static async *runSpyglassGeneratorOld(
-    userId: string | RecordId,
-    spyglassId: string | RecordId,
-  ): AsyncGenerator<
-    {
-      type: ISpyglassGeneratorType;
-      statusText: string;
-      data: ISpyglassSearch | string;
-    },
-    ISpyglassSearch | undefined, // The final return type of the generator
-    unknown
-  > {
-    let resultsTime: number | null = null;
-    let findingsTime: number | null = null;
-    let overviewTime: number | null = null;
+  // public static async *runSpyglassGeneratorOld(
+  //   userId: string | RecordId,
+  //   spyglassId: string | RecordId,
+  // ): AsyncGenerator<
+  //   {
+  //     type: ISpyglassGeneratorType;
+  //     statusText: string;
+  //     data: ISpyglassSearch | string;
+  //   },
+  //   ISpyglassSearch | undefined, // The final return type of the generator
+  //   unknown
+  // > {
+  //   let resultsTime: number | null = null;
+  //   let findingsTime: number | null = null;
+  //   let overviewTime: number | null = null;
 
-    try {
-      const startTime = Date.now();
-      const db = await getDatabase();
-      if (!db) {
-        const errorMessage = "Database not initialized";
-        logger.error(errorMessage, { spyglassId });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "There was an error",
-        };
-        return undefined;
-      }
+  //   try {
+  //     const startTime = Date.now();
+  //     const db = await getDatabase();
+  //     if (!db) {
+  //       const errorMessage = "Database not initialized";
+  //       logger.error(errorMessage, { spyglassId });
+  //       yield {
+  //         type: "error",
+  //         data: errorMessage,
+  //         statusText: "There was an error",
+  //       };
+  //       return undefined;
+  //     }
 
-      const getSpyglass = async () => await SpyglassSearch.get(spyglassId);
-      let spyglass = await getSpyglass();
-      if (!spyglass) {
-        const errorMessage = "Search not found";
-        logger.error(errorMessage, { spyglassId });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "Something went wrong...",
-        };
-        return undefined;
-      }
+  //     const getSpyglass = async () => await SpyglassSearch.get(spyglassId);
+  //     let spyglass = await getSpyglass();
+  //     if (!spyglass) {
+  //       const errorMessage = "Search not found";
+  //       logger.error(errorMessage, { spyglassId });
+  //       yield {
+  //         type: "error",
+  //         data: errorMessage,
+  //         statusText: "Something went wrong...",
+  //       };
+  //       return undefined;
+  //     }
 
-      if (!spyglass.intent) {
-        try {
-          await SpyglassSearch.loadIntent(userId, spyglass.id);
-          spyglass = await getSpyglass();
-          if (!spyglass) {
-            throw new Error("Spyglass not found");
-          }
-          yield {
-            type: "intent_loaded",
-            statusText: "Loading results...",
-            data: spyglass,
-          };
-        } catch (e) {
-          const errorMessage = "Error loading intent";
-          logger.error(errorMessage, {
-            userId,
-            searchId: spyglassId,
-            error: e,
-          });
-          yield {
-            type: "error",
-            data: errorMessage,
-            statusText: "Something went wrong...",
-          };
-          return undefined;
-        }
-      }
+  //     if (!spyglass.intent) {
+  //       try {
+  //         await SpyglassSearch.loadIntent(userId, spyglass.id);
+  //         spyglass = await getSpyglass();
+  //         if (!spyglass) {
+  //           throw new Error("Spyglass not found");
+  //         }
+  //         yield {
+  //           type: "intent_loaded",
+  //           statusText: "Loading results...",
+  //           data: spyglass,
+  //         };
+  //       } catch (e) {
+  //         const errorMessage = "Error loading intent";
+  //         logger.error(errorMessage, {
+  //           userId,
+  //           searchId: spyglassId,
+  //           error: e,
+  //         });
+  //         yield {
+  //           type: "error",
+  //           data: errorMessage,
+  //           statusText: "Something went wrong...",
+  //         };
+  //         return undefined;
+  //       }
+  //     }
 
-      if (!spyglass.results || !spyglass.results.length) {
-        try {
-          await SpyglassSearch.loadResults(userId, spyglass?.id);
-          spyglass = await getSpyglass();
-          if (!spyglass) {
-            throw new Error("Spyglass not found");
-          }
-          yield {
-            type: "results_loaded",
-            statusText: `Reading ${spyglass.results?.length || "some"} results...`,
-            data: spyglass,
-          };
-        } catch (e) {
-          const errorMessage = "Error loading search results";
-          logger.error(errorMessage, {
-            userId,
-            searchId: spyglassId,
-            error: e,
-          });
-          yield {
-            type: "error",
-            statusText: "Something went wrong...",
-            data: errorMessage,
-          };
-          return undefined;
-        }
-        resultsTime = Date.now();
-      }
+  //     if (!spyglass.results || !spyglass.results.length) {
+  //       try {
+  //         await SpyglassSearch.loadResults(userId, spyglass?.id);
+  //         spyglass = await getSpyglass();
+  //         if (!spyglass) {
+  //           throw new Error("Spyglass not found");
+  //         }
+  //         yield {
+  //           type: "results_loaded",
+  //           statusText: `Reading ${spyglass.results?.length || "some"} results...`,
+  //           data: spyglass,
+  //         };
+  //       } catch (e) {
+  //         const errorMessage = "Error loading search results";
+  //         logger.error(errorMessage, {
+  //           userId,
+  //           searchId: spyglassId,
+  //           error: e,
+  //         });
+  //         yield {
+  //           type: "error",
+  //           statusText: "Something went wrong...",
+  //           data: errorMessage,
+  //         };
+  //         return undefined;
+  //       }
+  //       resultsTime = Date.now();
+  //     }
 
-      try {
-        if (!spyglass.fullResults) {
-          throw new Error("Did not load full results");
-        }
-        if (!spyglass.intent) {
-          throw new Error("Spyglass intent not found");
-        }
+  //     try {
+  //       if (!spyglass.fullResults) {
+  //         throw new Error("Did not load full results");
+  //       }
+  //       if (!spyglass.intent) {
+  //         throw new Error("Spyglass intent not found");
+  //       }
 
-        yield {
-          type: "findings_generating",
-          statusText: "Generating findings...",
-          data: spyglass,
-        };
+  //       yield {
+  //         type: "findings_generating",
+  //         statusText: "Generating findings...",
+  //         data: spyglass,
+  //       };
 
-        let completeFindingsJSON = "";
-        for await (const findingChunk of Spyglass.generateFindingsFromResults(
-          spyglass.baseQuery,
-          spyglass.fullResults,
-          spyglass.intent,
-        )) {
-          completeFindingsJSON += findingChunk;
-          yield {
-            type: "findings_chunk",
-            statusText: "Generating findings...",
-            data: findingChunk,
-          };
-          const completeFindings =
-            parseIncompleteJsonArray(completeFindingsJSON);
-          if (completeFindings.length > max_spyglass_finding_amount) {
-            throw new Error("Too many findings");
-          }
-        }
+  //       let completeFindingsJSON = "";
+  //       for await (const findingChunk of Spyglass.generateFindingsFromResults(
+  //         spyglass.baseQuery,
+  //         spyglass.fullResults,
+  //         spyglass.intent,
+  //       )) {
+  //         completeFindingsJSON += findingChunk;
+  //         yield {
+  //           type: "findings_chunk",
+  //           statusText: "Generating findings...",
+  //           data: findingChunk,
+  //         };
+  //         const completeFindings =
+  //           parseIncompleteJsonArray(completeFindingsJSON);
+  //         if (completeFindings.length > max_spyglass_finding_amount) {
+  //           throw new Error("Too many findings");
+  //         }
+  //       }
 
-        // Save the complete findings
-        const db = await getDatabase();
-        if (!db) {
-          throw new Error("Database not initialized");
-        }
-        const completeFindings = parseIncompleteJsonArray(completeFindingsJSON);
-        await db.merge<ISpyglassSearch>(spyglass.id, {
-          analysis: {
-            findings: completeFindings,
-            overview: "",
-          },
-        });
+  //       // Save the complete findings
+  //       const db = await getDatabase();
+  //       if (!db) {
+  //         throw new Error("Database not initialized");
+  //       }
+  //       const completeFindings = parseIncompleteJsonArray(completeFindingsJSON);
+  //       await db.merge<ISpyglassSearch>(spyglass.id, {
+  //         analysis: {
+  //           findings: completeFindings,
+  //           overview: "",
+  //         },
+  //       });
 
-        spyglass = await SpyglassSearch.get(spyglass.id);
-        if (!spyglass) {
-          throw new Error("Spyglass not found");
-        }
+  //       spyglass = await SpyglassSearch.get(spyglass.id);
+  //       if (!spyglass) {
+  //         throw new Error("Spyglass not found");
+  //       }
 
-        yield {
-          type: "findings_loaded",
-          statusText: `Generated ${completeFindings.length} findings from ${spyglass.results?.length || "some"} results...`,
-          data: spyglass,
-        };
-        findingsTime = Date.now();
-      } catch (e) {
-        const errorMessage = "Error generating findings";
-        logger.error(errorMessage, {
-          userId,
-          searchId: spyglass?.id,
-          error: e,
-        });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "Something went wrong...",
-        };
-        return undefined;
-      }
+  //       yield {
+  //         type: "findings_loaded",
+  //         statusText: `Generated ${completeFindings.length} findings from ${spyglass.results?.length || "some"} results...`,
+  //         data: spyglass,
+  //       };
+  //       findingsTime = Date.now();
+  //     } catch (e) {
+  //       const errorMessage = "Error generating findings";
+  //       logger.error(errorMessage, {
+  //         userId,
+  //         searchId: spyglass?.id,
+  //         error: e,
+  //       });
+  //       yield {
+  //         type: "error",
+  //         data: errorMessage,
+  //         statusText: "Something went wrong...",
+  //       };
+  //       return undefined;
+  //     }
 
-      // Phase 2: Stream Overview Generation
-      if (
-        spyglass.intent &&
-        spyglass.analysis &&
-        spyglass.analysis.findings.length > 0
-      ) {
-        try {
-          yield {
-            type: "overview_generating",
-            statusText: "Generating overview...",
-            data: spyglass,
-          };
+  //     // Phase 2: Stream Overview Generation
+  //     if (
+  //       spyglass.intent &&
+  //       spyglass.analysis &&
+  //       spyglass.analysis.findings.length > 0
+  //     ) {
+  //       try {
+  //         yield {
+  //           type: "overview_generating",
+  //           statusText: "Generating overview...",
+  //           data: spyglass,
+  //         };
 
-          let completeOverview = "";
-          for await (const chunk of Spyglass.generateOverviewFromFindings(
-            spyglass.baseQuery,
-            spyglass.analysis.findings,
-            spyglass.intent,
-            spyglass.fullResults || [],
-            spyglass.parent,
-          )) {
-            completeOverview += chunk;
-            yield {
-              type: "overview_chunk",
-              statusText: "Generating overview...",
-              data: chunk,
-            };
-          }
+  //         let completeOverview = "";
+  //         for await (const chunk of Spyglass.generateOverviewFromFindings(
+  //           spyglass.baseQuery,
+  //           spyglass.analysis.findings,
+  //           spyglass.intent,
+  //           spyglass.fullResults || [],
+  //           spyglass.parent,
+  //         )) {
+  //           completeOverview += chunk;
+  //           yield {
+  //             type: "overview_chunk",
+  //             statusText: "Generating overview...",
+  //             data: chunk,
+  //           };
+  //         }
 
-          // Save the complete overview
-          const db = await getDatabase();
-          if (!db) {
-            throw new Error("Database not initialized");
-          }
-          await db.merge<ISpyglassSearch>(spyglass.id, {
-            analysis: {
-              findings: spyglass.analysis.findings,
-              overview: completeOverview,
-            },
-          });
+  //         // Save the complete overview
+  //         const db = await getDatabase();
+  //         if (!db) {
+  //           throw new Error("Database not initialized");
+  //         }
+  //         await db.merge<ISpyglassSearch>(spyglass.id, {
+  //           analysis: {
+  //             findings: spyglass.analysis.findings,
+  //             overview: completeOverview,
+  //           },
+  //         });
 
-          spyglass = await SpyglassSearch.get(spyglass.id);
-          if (!spyglass) {
-            throw new Error("Spyglass not found");
-          }
+  //         spyglass = await SpyglassSearch.get(spyglass.id);
+  //         if (!spyglass) {
+  //           throw new Error("Spyglass not found");
+  //         }
 
-          yield {
-            type: "overview_completed",
-            statusText: "Overview generated successfully",
-            data: spyglass,
-          };
-          overviewTime = Date.now();
-        } catch (e) {
-          const errorMessage = "Error generating overview";
-          logger.error(errorMessage, {
-            userId,
-            searchId: spyglass?.id,
-            error: e,
-          });
-          yield {
-            type: "error",
-            data: errorMessage,
-            statusText: "Something went wrong...",
-          };
-          return undefined;
-        }
-      }
+  //         yield {
+  //           type: "overview_completed",
+  //           statusText: "Overview generated successfully",
+  //           data: spyglass,
+  //         };
+  //         overviewTime = Date.now();
+  //       } catch (e) {
+  //         const errorMessage = "Error generating overview";
+  //         logger.error(errorMessage, {
+  //           userId,
+  //           searchId: spyglass?.id,
+  //           error: e,
+  //         });
+  //         yield {
+  //           type: "error",
+  //           data: errorMessage,
+  //           statusText: "Something went wrong...",
+  //         };
+  //         return undefined;
+  //       }
+  //     }
 
-      // Stage 4: Completion
-      // Fetch the final, complete search record
-      const finalSearch = await SpyglassSearch.get(spyglass.id);
-      if (!finalSearch) {
-        const errorMessage =
-          "Failed to retrieve final search record after completion";
-        logger.error(errorMessage, { userId, searchId: spyglass.id });
-        yield {
-          type: "error",
-          data: errorMessage,
-          statusText: "Something went wrong...",
-        };
-        return undefined;
-      }
+  //     // Stage 4: Completion
+  //     // Fetch the final, complete search record
+  //     const finalSearch = await SpyglassSearch.get(spyglass.id);
+  //     if (!finalSearch) {
+  //       const errorMessage =
+  //         "Failed to retrieve final search record after completion";
+  //       logger.error(errorMessage, { userId, searchId: spyglass.id });
+  //       yield {
+  //         type: "error",
+  //         data: errorMessage,
+  //         statusText: "Something went wrong...",
+  //       };
+  //       return undefined;
+  //     }
 
-      const resultsDuration = resultsTime
-        ? (resultsTime - startTime) / 1000
-        : null;
-      const findingsDuration =
-        findingsTime && resultsTime
-          ? (findingsTime - resultsTime) / 1000
-          : null;
-      const overviewDuration =
-        overviewTime && findingsTime
-          ? (overviewTime - findingsTime) / 1000
-          : null;
+  //     const resultsDuration = resultsTime
+  //       ? (resultsTime - startTime) / 1000
+  //       : null;
+  //     const findingsDuration =
+  //       findingsTime && resultsTime
+  //         ? (findingsTime - resultsTime) / 1000
+  //         : null;
+  //     const overviewDuration =
+  //       overviewTime && findingsTime
+  //         ? (overviewTime - findingsTime) / 1000
+  //         : null;
 
-      const formatDecimal = (value: number | null) =>
-        value?.toFixed(2) ?? "N/A";
+  //     const formatDecimal = (value: number | null) =>
+  //       value?.toFixed(2) ?? "N/A";
 
-      const totalCitations = finalSearch.analysis?.findings.length;
+  //     const totalCitations = finalSearch.analysis?.findings.length;
 
-      const statusText = `Found ${finalSearch.results?.length ?? 0} result${finalSearch.results?.length === 1 ? "" : "s"} in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(findingsDuration)}s and overview in ${formatDecimal(overviewDuration)}s`;
+  //     const statusText = `Found ${finalSearch.results?.length ?? 0} result${finalSearch.results?.length === 1 ? "" : "s"} in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(findingsDuration)}s and overview in ${formatDecimal(overviewDuration)}s`;
 
-      yield { type: "completed", statusText, data: finalSearch };
-      return finalSearch; // The final value returned by the generator
-    } catch (error) {
-      const errorMessage = "An unexpected error occurred during spyglass run";
-      logger.error(errorMessage, { userId, error });
-      yield {
-        type: "error",
-        data: errorMessage,
-        statusText: "Something went wrong...",
-      };
-      return undefined;
-    }
-  }
+  //     yield { type: "completed", statusText, data: finalSearch };
+  //     return finalSearch; // The final value returned by the generator
+  //   } catch (error) {
+  //     const errorMessage = "An unexpected error occurred during spyglass run";
+  //     logger.error(errorMessage, { userId, error });
+  //     yield {
+  //       type: "error",
+  //       data: errorMessage,
+  //       statusText: "Something went wrong...",
+  //     };
+  //     return undefined;
+  //   }
+  // }
 
-  public static async *runSpyglassGenerator(
-    userId: string | RecordId,
-    spyglassId: string | RecordId,
-  ): AsyncGenerator<
-    {
-      type: ISpyglassGeneratorType;
-      statusText: string;
-      data: ISpyglassSearch | string;
-    },
-    ISpyglassSearch | undefined, // The final return type of the generator
-    unknown
-  > {
-    const startTime = Date.now();
-    let resultsTime: number | null = null;
-    let findingsTime: number | null = null;
-    let overviewTime: number | null = null;
+  // public static async *runSpyglassGenerator(
+  //   userId: string | RecordId,
+  //   spyglassId: string | RecordId,
+  // ): AsyncGenerator<
+  //   {
+  //     type: ISpyglassGeneratorType;
+  //     statusText: string;
+  //     data: ISpyglassSearch | string;
+  //   },
+  //   ISpyglassSearch | undefined, // The final return type of the generator
+  //   unknown
+  // > {
+  //   const startTime = Date.now();
+  //   let resultsTime: number | null = null;
+  //   let findingsTime: number | null = null;
+  //   let overviewTime: number | null = null;
 
-    try {
-      // --- Phase 1: Initial Setup ---
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not initialized");
-      }
+  //   try {
+  //     // --- Phase 1: Initial Setup ---
+  //     const db = await getDatabase();
+  //     if (!db) {
+  //       throw new Error("Database not initialized");
+  //     }
 
-      const getSpyglass = async () => SpyglassSearch.get(spyglassId);
-      let spyglass = await getSpyglass();
+  //     const getSpyglass = async () => SpyglassSearch.get(spyglassId);
+  //     let spyglass = await getSpyglass();
 
-      if (!spyglass) {
-        throw new Error("Search not found");
-      }
+  //     if (!spyglass) {
+  //       throw new Error("Search not found");
+  //     }
 
-      if (!spyglass.intent) {
-        console.info("Loading Spyglass intent...");
-        await SpyglassSearch.loadIntent(userId, spyglass.id);
-        spyglass = await getSpyglass();
-        if (!spyglass)
-          throw new Error("Spyglass record disappeared after loading intent.");
-        yield {
-          type: "intent_loaded",
-          statusText: "Understanding intent...",
-          data: spyglass,
-        };
-      }
+  //     if (!spyglass.intent) {
+  //       console.info("Loading Spyglass intent...");
+  //       await SpyglassSearch.loadIntent(userId, spyglass.id);
+  //       spyglass = await getSpyglass();
+  //       if (!spyglass)
+  //         throw new Error("Spyglass record disappeared after loading intent.");
+  //       yield {
+  //         type: "intent_loaded",
+  //         statusText: "Understanding intent...",
+  //         data: spyglass,
+  //       };
+  //     }
 
-      if (!spyglass.results || spyglass.results.length === 0) {
-        console.info("Loading Spyglass results...");
-        await SpyglassSearch.loadResults(userId, spyglass.id);
-        spyglass = await getSpyglass();
-        if (!spyglass)
-          throw new Error("Spyglass record disappeared after loading results.");
-        resultsTime = Date.now();
-        yield {
-          type: "results_loaded",
-          statusText: `Found ${spyglass.results?.length || 0} results...`,
-          data: spyglass,
-        };
-      }
+  //     if (!spyglass.results || spyglass.results.length === 0) {
+  //       console.info("Loading Spyglass results...");
+  //       await SpyglassSearch.loadResults(userId, spyglass.id);
+  //       spyglass = await getSpyglass();
+  //       if (!spyglass)
+  //         throw new Error("Spyglass record disappeared after loading results.");
+  //       resultsTime = Date.now();
+  //       yield {
+  //         type: "results_loaded",
+  //         statusText: `Found ${spyglass.results?.length || 0} results...`,
+  //         data: spyglass,
+  //       };
+  //     }
 
-      if (!resultsTime) resultsTime = Date.now();
+  //     if (!resultsTime) resultsTime = Date.now();
 
-      if (
-        !spyglass.analysis?.findings ||
-        spyglass.analysis.findings.length === 0
-      ) {
-        console.info("Generating Spyglass findings...");
-        if (!spyglass.intent) throw new Error("Spyglass intent was not found.");
+  //     if (
+  //       !spyglass.analysis?.findings ||
+  //       spyglass.analysis.findings.length === 0
+  //     ) {
+  //       console.info("Generating Spyglass findings...");
+  //       if (!spyglass.intent) throw new Error("Spyglass intent was not found.");
 
-        yield {
-          type: "findings_generating",
-          statusText: "Analyzing sources...",
-          data: spyglass,
-        };
+  //       yield {
+  //         type: "findings_generating",
+  //         statusText: "Analyzing sources...",
+  //         data: spyglass,
+  //       };
 
-        const completeFindings: IFinding[] = [];
-        for await (const findingsArray of Spyglass.generateFindingsFromResources(
-          spyglass.baseQuery,
-          spyglass.fullResults || [],
-          spyglass.intent,
-        )) {
-          completeFindings.push(...findingsArray);
-          yield {
-            type: "findings_chunk",
-            statusText: `Generated ${completeFindings.length} findings...`,
-            data: JSON.stringify(findingsArray),
-          };
+  //       const completeFindings: IFinding[] = [];
+  //       for await (const findingsArray of Spyglass.generateFindingsFromResources(
+  //         spyglass.baseQuery,
+  //         spyglass.fullResults || [],
+  //         spyglass.intent,
+  //       )) {
+  //         completeFindings.push(...findingsArray);
+  //         yield {
+  //           type: "findings_chunk",
+  //           statusText: `Generated ${completeFindings.length} findings...`,
+  //           data: JSON.stringify(findingsArray),
+  //         };
 
-          if (completeFindings.length > max_spyglass_finding_amount) {
-            logger.warn(
-              "Exceeded maximum finding amount. Stopping generation.",
-            );
-            break;
-          }
-        }
+  //         if (completeFindings.length > max_spyglass_finding_amount) {
+  //           logger.warn(
+  //             "Exceeded maximum finding amount. Stopping generation.",
+  //           );
+  //           break;
+  //         }
+  //       }
 
-        await db.merge<ISpyglassSearch>(spyglass.id, {
-          analysis: { findings: completeFindings, overview: "" },
-        });
+  //       await db.merge<ISpyglassSearch>(spyglass.id, {
+  //         analysis: { findings: completeFindings, overview: "" },
+  //       });
 
-        spyglass = await getSpyglass();
-        if (!spyglass)
-          throw new Error("Spyglass record disappeared after saving findings.");
+  //       spyglass = await getSpyglass();
+  //       if (!spyglass)
+  //         throw new Error("Spyglass record disappeared after saving findings.");
 
-        findingsTime = Date.now();
-        yield {
-          type: "findings_loaded",
-          statusText: `Analyzed ${spyglass.results?.length || 0} sources.`,
-          data: spyglass,
-        };
-      }
+  //       findingsTime = Date.now();
+  //       yield {
+  //         type: "findings_loaded",
+  //         statusText: `Analyzed ${spyglass.results?.length || 0} sources.`,
+  //         data: spyglass,
+  //       };
+  //     }
 
-      // Ensure findingsTime is set if they were already loaded
-      if (!findingsTime) findingsTime = Date.now();
+  //     // Ensure findingsTime is set if they were already loaded
+  //     if (!findingsTime) findingsTime = Date.now();
 
-      // --- Phase 4: Stream Overview Generation ---
-      if (spyglass.analysis?.findings && !spyglass.analysis.overview) {
-        console.info("Loading Spyglass overview...");
-        if (!spyglass.intent)
-          throw new Error("Intent not found for overview generation.");
+  //     // --- Phase 4: Stream Overview Generation ---
+  //     if (spyglass.analysis?.findings && !spyglass.analysis.overview) {
+  //       console.info("Loading Spyglass overview...");
+  //       if (!spyglass.intent)
+  //         throw new Error("Intent not found for overview generation.");
 
-        yield {
-          type: "overview_generating",
-          statusText: "Composing answer...",
-          data: spyglass,
-        };
+  //       yield {
+  //         type: "overview_generating",
+  //         statusText: "Composing answer...",
+  //         data: spyglass,
+  //       };
 
-        let completeOverview = "";
-        for await (const chunk of Spyglass.generateOverviewFromFindings(
-          spyglass.baseQuery,
-          spyglass.analysis.findings,
-          spyglass.intent,
-          spyglass.fullResults || [],
-          spyglass.parent,
-        )) {
-          completeOverview += chunk;
-          yield {
-            type: "overview_chunk",
-            statusText: "Composing answer...",
-            data: chunk,
-          };
-        }
+  //       let completeOverview = "";
+  //       for await (const chunk of Spyglass.generateOverviewFromFindings(
+  //         spyglass.baseQuery,
+  //         spyglass.analysis.findings,
+  //         spyglass.intent,
+  //         spyglass.fullResults || [],
+  //         spyglass.parent,
+  //       )) {
+  //         completeOverview += chunk;
+  //         yield {
+  //           type: "overview_chunk",
+  //           statusText: "Composing answer...",
+  //           data: chunk,
+  //         };
+  //       }
 
-        // Save the complete overview
-        await db.merge<ISpyglassSearch>(spyglass.id, {
-          analysis: { ...spyglass.analysis, overview: completeOverview },
-        });
+  //       // Save the complete overview
+  //       await db.merge<ISpyglassSearch>(spyglass.id, {
+  //         analysis: { ...spyglass.analysis, overview: completeOverview },
+  //       });
 
-        spyglass = await getSpyglass();
-        if (!spyglass)
-          throw new Error("Spyglass record disappeared after saving overview.");
+  //       spyglass = await getSpyglass();
+  //       if (!spyglass)
+  //         throw new Error("Spyglass record disappeared after saving overview.");
 
-        overviewTime = Date.now();
-        yield {
-          type: "overview_completed",
-          statusText: "Answer complete.",
-          data: spyglass,
-        };
-      }
+  //       overviewTime = Date.now();
+  //       yield {
+  //         type: "overview_completed",
+  //         statusText: "Answer complete.",
+  //         data: spyglass,
+  //       };
+  //     }
 
-      // --- Phase 5: Completion ---
-      const finalSearch = spyglass;
-      const resultsDuration = resultsTime
-        ? (resultsTime - startTime) / 1000
-        : null;
-      const findingsDuration =
-        findingsTime && resultsTime
-          ? (findingsTime - resultsTime) / 1000
-          : null;
-      const overviewDuration =
-        overviewTime && findingsTime
-          ? (overviewTime - findingsTime) / 1000
-          : null;
+  //     // --- Phase 5: Completion ---
+  //     const finalSearch = spyglass;
+  //     const resultsDuration = resultsTime
+  //       ? (resultsTime - startTime) / 1000
+  //       : null;
+  //     const findingsDuration =
+  //       findingsTime && resultsTime
+  //         ? (findingsTime - resultsTime) / 1000
+  //         : null;
+  //     const overviewDuration =
+  //       overviewTime && findingsTime
+  //         ? (overviewTime - findingsTime) / 1000
+  //         : null;
 
-      const formatDecimal = (value: number | null) =>
-        value?.toFixed(2) ?? "N/A";
-      const totalCitations = finalSearch.analysis?.findings.length ?? 0;
+  //     const formatDecimal = (value: number | null) =>
+  //       value?.toFixed(2) ?? "N/A";
+  //     const totalCitations = finalSearch.analysis?.findings.length ?? 0;
 
-      const statusText = `Found ${finalSearch.results?.length ?? 0} result${
-        finalSearch.results?.length === 1 ? "" : "s"
-      } in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(
-        findingsDuration,
-      )}s and overview in ${formatDecimal(overviewDuration)}s`;
+  //     const statusText = `Found ${finalSearch.results?.length ?? 0} result${
+  //       finalSearch.results?.length === 1 ? "" : "s"
+  //     } in ${formatDecimal(resultsDuration)}s. Generated ${totalCitations} findings in ${formatDecimal(
+  //       findingsDuration,
+  //     )}s and overview in ${formatDecimal(overviewDuration)}s`;
 
-      yield { type: "completed", statusText, data: finalSearch };
-      return finalSearch;
-    } catch (error: any) {
-      const errorMessage =
-        error.message || "An unexpected error occurred during spyglass run";
-      logger.error(errorMessage, { userId, spyglassId, error });
-      yield {
-        type: "error",
-        data: errorMessage,
-        statusText: "Something went wrong...",
-      };
-      return undefined;
-    }
-  }
+  //     yield { type: "completed", statusText, data: finalSearch };
+  //     return finalSearch;
+  //   } catch (error: any) {
+  //     const errorMessage =
+  //       error.message || "An unexpected error occurred during spyglass run";
+  //     logger.error(errorMessage, { userId, spyglassId, error });
+  //     yield {
+  //       type: "error",
+  //       data: errorMessage,
+  //       statusText: "Something went wrong...",
+  //     };
+  //     return undefined;
+  //   }
+  // }
 }
