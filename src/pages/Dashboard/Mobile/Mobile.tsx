@@ -19,6 +19,7 @@ import PaperButton from "../../../components/Display/Paper/PaperButton";
 import { Link } from "react-router";
 import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButton";
 import TopBar from "../../../components/UI/Layout/TopBar";
+import UnderConstruction from "../../../components/Utils/UnderConstruction";
 
 export default function MobileDashboard() {
   return (
@@ -37,34 +38,13 @@ export default function MobileDashboard() {
               <Overview />
             </Pillbar.Panel>
             <Pillbar.Panel value="agenda">
-              <Paper radius="lg" p="md">
-                <Text size="sm" fw="bold">
-                  <Group>
-                    <HammerIcon weight="bold" />
-                    This page is under construction.
-                  </Group>
-                </Text>
-              </Paper>
+              <UnderConstruction />
             </Pillbar.Panel>
             <Pillbar.Panel value="insights">
-              <Paper radius="lg" p="md">
-                <Text size="sm" fw="bold">
-                  <Group>
-                    <HammerIcon weight="bold" />
-                    This page is under construction.
-                  </Group>
-                </Text>
-              </Paper>
+              <UnderConstruction />
             </Pillbar.Panel>
             <Pillbar.Panel value="shared">
-              <Paper radius="lg" p="md">
-                <Text size="sm" fw="bold">
-                  <Group>
-                    <HammerIcon weight="bold" />
-                    This page is under construction.
-                  </Group>
-                </Text>
-              </Paper>
+              <UnderConstruction />
             </Pillbar.Panel>
           </Pillbar>
         </div>
@@ -103,14 +83,7 @@ function Overview() {
     <div className={styles.overview}>
       <Grid>
         <Grid.Col span={12}>
-          <Paper radius="lg" p="md">
-            <Text size="sm" fw="bold">
-              <Group>
-                <HammerIcon weight="bold" />
-                This page is under construction.
-              </Group>
-            </Text>
-          </Paper>
+          <UnderConstruction />
         </Grid.Col>
         {tasks && tasks.length > 0 && (
           <Grid.Col span={12}>
@@ -134,7 +107,7 @@ function Overview() {
             <PaperCard title="RECENT IDEAS">
               <Stack gap="xs">
                 {recentIdeas?.map((i) => {
-                  return <IdeaButton idea={i} key={i.id.toString()} />;
+                  return <IdeaButton link idea={i} key={i.id.toString()} />;
                 })}
               </Stack>
             </PaperCard>

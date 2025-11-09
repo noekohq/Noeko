@@ -48,6 +48,24 @@ export type ITagDescriptionRelationship = {
 };
 
 export class Tag {
+  _id: StringRecordId;
+
+  constructor(id: string | RecordId) {
+    this._id = new StringRecordId(id);
+  }
+
+  public get id() {
+    return this._id;
+  }
+
+  public async get(): Promise<ITag | undefined> {
+    return await Tag.get(this.id.toString());
+  }
+
+  public async getConnectables(): Promise<IConnectable[] | undefined> {
+    return await Tag.getTagThings(this.id.toString());
+  }
+
   public static SUGGESTION_WEIGHT = 0.6; // 0-1, higher numbers favor the centroid, lower favors the description
 
   static async up() {

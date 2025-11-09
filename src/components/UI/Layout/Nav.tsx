@@ -18,6 +18,7 @@ import CaptureButton from "../../Display/Interactions/CaptureButton";
 import { useLayout } from "../../../contexts/LayoutContext";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import MyButton from "../../Display/Interactions/MyButton";
+import { useAuth } from "../../../contexts/AuthContext";
 
 type INavProps = {
   children?: React.ReactNode | React.ReactNode[];
@@ -43,6 +44,8 @@ export default function Nav({ children }: INavProps) {
       },
     },
   } = useLayout();
+  const { isSuperuser } = useAuth();
+
   const {
     state: {
       zen: { get: isZen },
@@ -144,7 +147,7 @@ export default function Nav({ children }: INavProps) {
             />
           </button>
         )}
-        {!isMobile && false && (
+        {!isMobile && isSuperuser && (
           <button
             className={`${styles.action} ${
               activeMap.agenda() ? styles.active : ""
