@@ -81,47 +81,47 @@ router.post("/save", checkToken, async (req, res) => {
   }
 });
 
-router.get("/history", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
+// router.get("/history", checkToken, async (req, res) => {
+//   try {
+//     const user = await getFromReq<ISafeUser>(req, "user");
+//     if (!user) {
+//       res.status(403).json({ error: "Unauthorized" });
+//       return;
+//     }
 
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
+//     const page = parseInt(req.query.page as string, 10) || 1;
+//     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
 
-    const paginatedResult = await SpyglassRecord.getHistory(
-      user.id.toString(),
-      page,
-      pageSize,
-    );
+//     const paginatedResult = await SpyglassRecord.getHistory(
+//       user.id.toString(),
+//       page,
+//       pageSize,
+//     );
 
-    if (!paginatedResult) {
-      res.status(500).json({ message: "Failed to retrieve Spyglass history." });
-      return;
-    }
+//     if (!paginatedResult) {
+//       res.status(500).json({ message: "Failed to retrieve Spyglass history." });
+//       return;
+//     }
 
-    res.send({
-      message: "Spyglass history retrieved successfully",
-      data: paginatedResult,
-    });
-  } catch (error) {
-    const userIdForLogging =
-      (req as any).user?.id ||
-      "User ID not available or error occurred before user retrieval";
-    logger.error("Error in /history GET route", {
-      userId: userIdForLogging,
-      queryParams: req.query,
-      errorMessage: error instanceof Error ? error.message : String(error),
-      errorStack: error instanceof Error ? error.stack : undefined,
-    });
-    res.status(500).json({
-      message: "An unexpected error occurred while processing your request.",
-    });
-  }
-});
+//     res.send({
+//       message: "Spyglass history retrieved successfully",
+//       data: paginatedResult,
+//     });
+//   } catch (error) {
+//     const userIdForLogging =
+//       (req as any).user?.id ||
+//       "User ID not available or error occurred before user retrieval";
+//     logger.error("Error in /history GET route", {
+//       userId: userIdForLogging,
+//       queryParams: req.query,
+//       errorMessage: error instanceof Error ? error.message : String(error),
+//       errorStack: error instanceof Error ? error.stack : undefined,
+//     });
+//     res.status(500).json({
+//       message: "An unexpected error occurred while processing your request.",
+//     });
+//   }
+// });
 
 router.get("/history/light", checkToken, async (req, res) => {
   try {
@@ -150,53 +150,53 @@ router.get("/history/light", checkToken, async (req, res) => {
   }
 });
 
-router.get("/history/suggest", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
+// router.get("/history/suggest", checkToken, async (req, res) => {
+//   try {
+//     const user = await getFromReq<ISafeUser>(req, "user");
+//     if (!user) {
+//       res.status(403).json({ error: "Unauthorized" });
+//       return;
+//     }
 
-    const queryLimit = parseInt(req.query.limit as string, 10);
-    const queryPage = parseInt(req.query.page as string, 10);
+//     const queryLimit = parseInt(req.query.limit as string, 10);
+//     const queryPage = parseInt(req.query.page as string, 10);
 
-    const limit =
-      Number.isInteger(queryLimit) && queryLimit > 0 ? queryLimit : 10;
-    const page = Number.isInteger(queryPage) && queryPage > 0 ? queryPage : 1;
+//     const limit =
+//       Number.isInteger(queryLimit) && queryLimit > 0 ? queryLimit : 10;
+//     const page = Number.isInteger(queryPage) && queryPage > 0 ? queryPage : 1;
 
-    const paginatedResult = await SpyglassRecord.getHistory(
-      user.id.toString(),
-      page,
-      limit,
-    );
+//     const paginatedResult = await SpyglassRecord.getHistory(
+//       user.id.toString(),
+//       page,
+//       limit,
+//     );
 
-    if (!paginatedResult) {
-      res
-        .status(500)
-        .json({ message: "Failed to retrieve Spyglass history suggestions." });
-      return;
-    }
+//     if (!paginatedResult) {
+//       res
+//         .status(500)
+//         .json({ message: "Failed to retrieve Spyglass history suggestions." });
+//       return;
+//     }
 
-    res.send({
-      message: "Spyglass history suggestions retrieved successfully",
-      data: paginatedResult,
-    });
-  } catch (error) {
-    const userIdForLogging =
-      (req as any).user?.id ||
-      "User ID not available or error occurred before user retrieval";
-    logger.error("Error in /history/suggest GET route", {
-      userId: userIdForLogging,
-      queryParams: req.query,
-      errorMessage: error instanceof Error ? error.message : String(error),
-      errorStack: error instanceof Error ? error.stack : undefined,
-    });
-    res.status(500).json({
-      message: "An unexpected error occurred while processing your request.",
-    });
-  }
-});
+//     res.send({
+//       message: "Spyglass history suggestions retrieved successfully",
+//       data: paginatedResult,
+//     });
+//   } catch (error) {
+//     const userIdForLogging =
+//       (req as any).user?.id ||
+//       "User ID not available or error occurred before user retrieval";
+//     logger.error("Error in /history/suggest GET route", {
+//       userId: userIdForLogging,
+//       queryParams: req.query,
+//       errorMessage: error instanceof Error ? error.message : String(error),
+//       errorStack: error instanceof Error ? error.stack : undefined,
+//     });
+//     res.status(500).json({
+//       message: "An unexpected error occurred while processing your request.",
+//     });
+//   }
+// });
 
 router.get("/record/:spyglassId", checkToken, async (req, res) => {
   try {
