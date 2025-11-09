@@ -10,12 +10,16 @@
     min-height: var(--top-bar-height);
     left: var(--layout-spacing);
     right: var(--layout-spacing);
-    z-index: 250;
     box-sizing: border-box;
+    z-index: 250;
 
     &.withinRabbithole {
         border-color: var(--mantine-color-yellow-5) !important;
         /* box-shadow: inset 0.2px 0.2px 2px 0 var(--mantine-color-yellow-5); */
+    }
+
+    &.focused {
+        z-index: 300;
     }
 
     @include tablet {

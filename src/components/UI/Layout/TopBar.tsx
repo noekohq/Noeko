@@ -147,7 +147,7 @@ export default function TopBar() {
           }}
         >
           <Stack gap="md">
-            {!results?.length && (
+            {!results?.length && !loading && (
               <>
                 <Text size="sm" c="dimmed">
                   Search for anything...

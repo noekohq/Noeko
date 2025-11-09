@@ -166,7 +166,7 @@ export function DisplayOverviewComponent({
         <Pillbar.Panel value="findings">
           {!findings.length && (
             <Text c="dimmed" size="sm">
-              No findings found.
+              No findings for this query.
             </Text>
           )}
           <Accordion radius="lg" variant="contained">

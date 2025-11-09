@@ -35,8 +35,24 @@ export type IRabbitholeInclusion = {
 };
 
 export default class Rabbithole {
+  _id: string | RecordId;
+  constructor(id: string | RecordId) {
+    this._id = id;
+  }
+
+  public get id() {
+    return this._id;
+  }
+
+  public async get() {
+    return await Rabbithole.get(this._id);
+  }
+
+  public async getConnectables() {
+    return await Rabbithole.getThings(this._id);
+  }
+
   public static async up() {
-    // TODO: make sure this doesn't return embeddings
     const rabbitholeGetFunction = () => {
       return `
       DEFINE FUNCTION OVERWRITE fn::get_rabbithole(
@@ -112,8 +128,6 @@ export default class Rabbithole {
   }
 
   public static async down() {}
-
-  constructor() {}
 
   static async create(userId: string | RecordId, form: IRabbitholeForm) {
     try {
@@ -303,6 +317,37 @@ export default class Rabbithole {
         rabbitholeId,
         thingIds,
       ]);
+      return undefined;
+    }
+  }
+
+  static async getThings(rabbitholeId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const result = await db?.query<[IConnectable[]]>(
+        `
+          SELECT VALUE
+              (SELECT * OMIT embeddings
+              FROM $parent->includes->(?))
+          FROM ONLY $rabbitholeId;
+          `,
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+        },
+      );
+      if (!result) {
+        throw new Error(
+          "Something went wrong getting things from rabbithole: ",
+          result,
+        );
+      }
+      const [rabbithole] = result;
+      return rabbithole;
+    } catch (error) {
+      logger.error("Error getting things from rabbithole: ", [rabbitholeId]);
       return undefined;
     }
   }

@@ -84,7 +84,16 @@ export default function Spyglass() {
   const handleSubmit = () => {
     if (!query) return;
     setCurrentQuery(query);
-    search({ query, deepAnalysis });
+    search(
+      {
+        query,
+        deepAnalysis,
+        scope: currentRabbithole
+          ? [currentRabbithole.id.toString()]
+          : undefined,
+      },
+      true,
+    );
   };
 
   useEffect(() => {
@@ -263,7 +272,7 @@ export default function Spyglass() {
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
             {initialized && (
-              <Text className={styles.queryHeader} size="lg" mb="lg">
+              <Text className={styles.queryHeader} mb="lg" size="lg" fw="565">
                 <Group wrap="nowrap" gap="xs" component="span">
                   {currentQuery}
                   {loading && <Loader size="14px" color="gray" />}
@@ -284,6 +293,8 @@ export default function Spyglass() {
                         </Badge>{" "}
                         search{intent.searches.length === 1 ? "" : "es"}...
                       </span>
+                    ) : isDownRabbithole ? (
+                      "Accessing your Rabbithole..."
                     ) : (
                       "Searching your ideas..."
                     )}
@@ -301,6 +312,9 @@ export default function Spyglass() {
                 {Object.entries(citationMap).map(([sourceId, citation]) => {
                   const { excerpts, index } = citation;
                   const result = resultsMap[sourceId];
+                  if (!result) {
+                    return null;
+                  }
                   const title = result.name;
 
                   return (
@@ -349,7 +363,7 @@ export default function Spyglass() {
                     findings={findings}
                     resultsMap={resultsMap ?? {}}
                     citationMap={citationMap ?? {}}
-                    query={query}
+                    query={currentQuery}
                     results={results}
                     loading={loading}
                   />

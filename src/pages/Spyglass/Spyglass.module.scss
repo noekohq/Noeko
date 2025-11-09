@@ -79,6 +79,7 @@
         overflow-y: auto;
         scrollbar-width: none;
         min-height: 0;
+        padding-top: var(--mantine-spacing-md);
         padding-bottom: 20vh;
     }
 }
@@ -86,7 +87,7 @@
 @keyframes queryHeaderIn {
     0% {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(10vh);
     }
     100% {
         opacity: 1;
@@ -97,7 +98,9 @@
 .queryHeader {
     opacity: 0;
     animation: queryHeaderIn 0.2s ease-in-out forwards;
+    font-family: var(--mantine-font-family-headings);
 }
+
 @keyframes previewIn {
     0% {
         opacity: 0.25;

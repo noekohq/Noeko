@@ -8,8 +8,13 @@ import { getFormattedDateTimeToday } from "../utils/prompts/components";
 import { ISearchOverview, ISpyglassSearch } from "../database/models/search";
 import { RecordId } from "surrealdb";
 import Source, { ISourceAnalysis } from "../database/models/source";
-import { Connectable, IConnectable, IConnectableFields } from "./Graph";
+import GraphService, {
+  Connectable,
+  IConnectable,
+  IConnectableFields,
+} from "./Graph";
 import { Tag } from "../database/models/tag";
+import Rabbithole from "../database/models/rabbithole";
 
 export type ISpyglassScope = {
   connectables: string[];
@@ -1544,65 +1549,6 @@ export default class Spyglass {
     return r;
   }
 
-  static async *generateFindingsFromScope(
-    query: string,
-    scope: ISpyglassScope,
-  ) {
-    try {
-      const scopeStrings: IConnectableFields[] = [];
-      for (const c of scope.connectables) {
-        const connectable = new Connectable(c);
-        const fields = await connectable.fields();
-        if (!fields) {
-          throw new Error("Couldn't get scoped connectable");
-        }
-        scopeStrings.push(fields);
-      }
-
-      for (const t of scope.tags) {
-        // TODO: get everything that the tag is applied to and add that
-      }
-
-      const lm = getLM().withModel("simple").withThinking(-1);
-
-      const findingPromises = scopeStrings.map((resource) => {
-        return (async () => {
-          const sourceId = resource.id.toString();
-          const resultString = await this.connectableToString(resource);
-
-          const singleResultPrompt = this.scopedFindingPromptBuilder(query);
-
-          singleResultPrompt.addBlock(`Source Material`, resultString, 2);
-
-          try {
-            const findings = await lm.generateJSON<IFinding[]>(
-              singleResultPrompt.get(),
-              this.findingsSchema([sourceId]),
-            );
-            return findings || [];
-          } catch (err) {
-            console.error(
-              `Failed to process findings for result ${sourceId}:`,
-              err,
-            );
-            return [];
-          }
-        })();
-      });
-
-      for (const promise of findingPromises) {
-        const findings = await promise;
-
-        if (findings.length > 0) {
-          yield findings;
-        }
-      }
-    } catch (error) {
-      console.error("Error generating findings from results:", error);
-      throw error;
-    }
-  }
-
   public static scopedOverviewPromptBuilder(
     query: string,
     resources: IConnectableFields[],
@@ -1620,6 +1566,16 @@ export default class Spyglass {
           - Place the citation immediately after the last word of the sentence, with no space.
           - The format is the resource's type and ID inside brackets, like \[idea:xxxx\] or \[source:yyyy\].
           - If multiple sources support a sentence, list each citation in its own separate brackets, like \[idea:xxxx\]\[source:yyyy\].
+          `,
+      )
+      .addBlock(
+        "Tone and Style",
+        `
+          - Your tone should be informative and professional.
+          - Your writing style should be clear and concise.
+          - Use active voice whenever possible.
+          - Match the user's level of formality and technical language.
+          - Talk in the second person, directly to the user
           `,
       )
       .addBlock(
@@ -1684,6 +1640,16 @@ export default class Spyglass {
           `,
       )
       .addBlock(
+        "Tone and Style",
+        `
+          - Your tone should be informative and professional.
+          - Your writing style should be clear and concise.
+          - Use active voice whenever possible.
+          - Match the user's level of formality and technical language.
+          - Talk in the second person, directly to the user
+          `,
+      )
+      .addBlock(
         "Strict Rules",
         `
           - **ALWAYS** cite relevant findings for statements made.
@@ -1715,7 +1681,7 @@ export default class Spyglass {
         query,
         findings,
       );
-      const lm = getLM().withModel("fast-accurate").withThinking();
+      const lm = getLM().withModel("simple").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
         yield chunk;
       }
@@ -1747,20 +1713,49 @@ export default class Spyglass {
       const fullResults: IConnectable[] = [];
       if (scope && scope.length > 0) {
         yield { type: "status", data: `Loading ${scope.length} sources...` };
-        const connectablePromises = scope.map(async (id) => {
-          const connectable = new Connectable(id);
-          const c = await connectable.get();
-          if (c) {
-            fullResults.push(c);
+        for (const id of scope) {
+          if (GraphService.isConnectable(id)) {
+            const connectable = new Connectable(id);
+            const c = await connectable.get();
+            if (c) {
+              fullResults.push(c);
+            }
+            const fields = await connectable.fields();
+            if (fields) {
+              resources.push(fields);
+            }
           }
-          return await connectable.fields();
-        });
-        const resolvedResources = await Promise.all(connectablePromises);
-        resources.push(
-          ...(resolvedResources.filter(
-            (r) => r !== null,
-          ) as IConnectableFields[]),
-        );
+          if (GraphService.isTag(id)) {
+            const tag = new Tag(id);
+            const connectables = await tag.getConnectables();
+            if (!connectables) {
+              console.error(`No connectables found for tag ${id}`);
+              continue;
+            }
+            fullResults.push(...connectables);
+            for (const c of connectables) {
+              const fields = await Connectable.connectableFields(c);
+              if (fields) {
+                resources.push(fields);
+              }
+            }
+          }
+          if (GraphService.isRabbithole(id)) {
+            const rabbithole = new Rabbithole(id);
+            const connectables = await rabbithole.getConnectables();
+            if (!connectables) {
+              console.error(`No connectables found for rabbithole ${id}`);
+              continue;
+            }
+            fullResults.push(...connectables);
+            for (const c of connectables) {
+              const fields = await Connectable.connectableFields(c);
+              if (fields) {
+                resources.push(fields);
+              }
+            }
+          }
+        }
       } else {
         const _intent = await this.getIntentConfigFromQuery(query);
         if (!_intent) {

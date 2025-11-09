@@ -55,24 +55,7 @@ export default function MyButton() {
     { label: "Settings", icon: GearIcon, path: "/settings" },
   ];
 
-  const actionMenuItems = [
-    {
-      label: "New Idea",
-      icon: LightbulbIcon,
-      action: () => {
-        newIdea();
-        handleClose();
-      },
-    },
-    {
-      label: "New Rabbithole",
-      icon: RabbitIcon,
-      action: () => {
-        newRabbithole();
-        handleClose();
-      },
-    },
-  ];
+  const actionMenuItems = [];
 
   return (
     <>
@@ -105,19 +88,6 @@ export default function MyButton() {
                     navigate(item.path);
                     handleClose();
                   }}
-                >
-                  <item.icon weight="bold" size={16} />
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-            <div className={styles.section}>
-              <div className={styles.sectionHeader}>Actions</div>
-              {actionMenuItems.map((item) => (
-                <button
-                  key={item.label}
-                  className={styles.option}
-                  onClick={item.action}
                 >
                   <item.icon weight="bold" size={16} />
                   <span>{item.label}</span>

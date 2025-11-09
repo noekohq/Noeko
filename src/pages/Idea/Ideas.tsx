@@ -98,35 +98,11 @@ export default function Ideas() {
       <LeftSidebar />
       <Content>
         <Stack>
-          <Title mt="md">All your great ideas...</Title>
-          <Group justify="start">
-            <Link to="/search">
-              <Button
-                variant="light"
-                leftSection={<MagnifyingGlassIcon weight="bold" />}
-              >
-                Search your ideas...
-              </Button>
-            </Link>
-            <Button
-              variant="filled"
-              leftSection={<PlusIcon weight="bold" />}
-              onClick={() => {
-                newIdea();
-              }}
-            >
-              Add an idea...
-            </Button>
-          </Group>
-        </Stack>
-        <Divider my="lg" />
-        <Grid>
+          <Title mt="md">Your ideas</Title>
           {allIdeas.map((idea, i) => (
-            <Grid.Col key={idea.id.toString()} span={{ sm: 6 }}>
-              <IdeaCard idea={idea} />
-            </Grid.Col>
+            <IdeaCard key={idea.id.toString()} idea={idea} />
           ))}
-        </Grid>
+        </Stack>
         {hasMore && !loading && (
           <div ref={observerTarget} style={{ height: "1px" }} />
         )}

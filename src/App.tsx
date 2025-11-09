@@ -33,7 +33,7 @@ import ViewTag from "./pages/Tags/ViewTag";
 import ViewIdea from "./pages/Idea/ViewIdea";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
-// import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
+import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
 // import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
 import SearchPage from "./pages/Search/Search";
 import SharedIdeas from "./pages/Idea/Shared/Shared";
@@ -243,11 +243,11 @@ export default function App() {
                   </Route>
                   <Route path="spyglass">
                     <Route index element={<Spyglass />} />
-                    {/*<Route path="history" element={<SpyglassRecords />} />
+                    <Route path="history" element={<SpyglassRecords />} />
                     <Route path="records">
                       <Route index element={<SpyglassRecords />} />
-                      <Route path=":spyglassId" element={<SpyglassRecord />} />
-                    </Route>*/}
+                      {/*<Route path=":spyglassId" element={<SpyglassRecord />} />*/}
+                    </Route>
                   </Route>
                   {isSuperuser && (
                     <Route path="admin">

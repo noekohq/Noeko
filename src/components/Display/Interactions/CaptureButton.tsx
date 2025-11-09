@@ -284,9 +284,9 @@ export default function CaptureButton() {
       <button
         className={`${styles.capture} ${opened ? styles.opened : ""}`}
         onClick={() => {
-          if (window.navigator && window.navigator.vibrate) {
-            window.navigator.vibrate(50);
-          }
+          // if (window.navigator && window.navigator.vibrate) {
+          //   window.navigator.vibrate(50);
+          // }
           toggle();
         }}
       >
