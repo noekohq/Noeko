@@ -174,12 +174,10 @@ const ResourceBadge: React.FC<IResourceBadgeProps> = ({ id, resultsMap }) => {
 
   const Icon = TypeIcon(type as INode["type"]);
 
-  console.log("Results map: ", resultsMap);
-  console.log("Result: ", id, result);
   const titleLink = `/${type}/${id}`;
 
   return (
-    <Link to={`/${type}/${id}`} style={{ textDecoration: "none" }}>
+    <>
       <HoverCard
         width="400px"
         position="bottom-end"
@@ -269,7 +267,7 @@ const ResourceBadge: React.FC<IResourceBadgeProps> = ({ id, resultsMap }) => {
           />
         </Stack>
       </Modal>
-    </Link>
+    </>
   );
 };
 
@@ -330,7 +328,6 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
 
             if (props.href?.startsWith("resource:")) {
               const resourceStr = props.href.substring(9);
-              console.log("Resource string: ", props.href, resourceStr);
 
               return <ResourceBadge resultsMap={resultsMap} id={resourceStr} />;
             }

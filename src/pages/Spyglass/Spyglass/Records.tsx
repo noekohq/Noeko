@@ -18,7 +18,6 @@ import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
 import RightSidebar from "../../../components/UI/Layout/Right";
 import styles from "./Records.module.scss";
-import { ISpyglassSearch } from "../../../../app/database/models/search";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -28,65 +27,62 @@ import {
 import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";
-import { Link, useNavigate } from "react-router";
 import Content from "../../../components/UI/Layout/Content";
 import StatusBar from "../../../components/UI/Layout/Bottom";
 import Nav from "../../../components/UI/Layout/Nav";
 import TopBar from "../../../components/UI/Layout/TopBar";
+import { Link, useNavigate } from "react-router";
+import {
+  ISpyglassHistoryResponse,
+  ISpyglassLightHistoryResponse,
+  ISpyglassRecord,
+} from "../../../../app/database/models/spyglass_record";
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();
-  const [page, setPage] = useState(0);
-
+  const [page, setPage] = useState(1);
   const pageSize = isMobile ? 10 : 10;
-  const [allHistory, setAllHistory] = useState<ISpyglassSearch[]>([]);
+  const [allHistory, setAllHistory] = useState<
+    ISpyglassLightHistoryResponse["history"]
+  >([]);
   const [hasMore, setHasMore] = useState(true);
-  const [viewing, setViewing] = useState<ISpyglassSearch | undefined>(
-    undefined,
-  );
 
   const {
-    load: getHistoryPage,
     loading,
-    data: newHistoryFetched,
+    data: apiResponse,
     errors,
-  } = useFetch<undefined, ISpyglassSearch[]>({
+  } = useFetch<undefined, ISpyglassLightHistoryResponse>({
     url: `/search/spyglass/history/light?page=${page}&pageSize=${pageSize}`,
     runOnDependencies: [page],
   });
 
-  useEffect(() => {
-    if (page === 0 && !loading) {
-      getHistoryPage();
-    }
-  }, [getHistoryPage]);
-
   const observerTarget = useRef(null);
 
   useEffect(() => {
-    if (newHistoryFetched && newHistoryFetched.length > 0) {
+    if (apiResponse?.history) {
+      const { history: newItems, total } = apiResponse;
+
       setAllHistory((prevHistory) => {
-        const existingIds = new Set(
-          prevHistory.map((item) => item.id!.toString()), // Assuming ISpyglassSearch has an 'id'
+        const existingIds = new Set(prevHistory.map((item) => item.id));
+        const uniqueNewItems = newItems.filter(
+          (item) => !existingIds.has(item.id),
         );
-        const uniqueNewItems = newHistoryFetched.filter(
-          (item) => !existingIds.has(item.id!.toString()),
-        );
-        return [...prevHistory, ...uniqueNewItems];
+        const updatedHistory = [...prevHistory, ...uniqueNewItems];
+
+        setHasMore(updatedHistory.length < total);
+        return updatedHistory;
       });
-      setHasMore(newHistoryFetched.length === pageSize);
-    } else if (newHistoryFetched && newHistoryFetched.length === 0) {
-      // If an empty array is returned (either initial load or subsequent)
-      if (page === 0) {
-        setAllHistory([]); // Clear history if the very first page is empty
+
+      if (page === 1 && newItems.length === 0) {
+        setAllHistory([]);
+        setHasMore(false);
       }
-      setHasMore(false); // No more data
     }
 
     if (errors && errors.length > 0) {
-      setHasMore(false); // Stop trying to load more if there's an error
+      setHasMore(false);
     }
-  }, [newHistoryFetched, page, pageSize, errors]);
+  }, [apiResponse, errors, page]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -108,7 +104,7 @@ export default function SpyglassHistory() {
         observer.unobserve(currentObserverTarget);
       }
     };
-  }, [hasMore, loading, observerTarget.current]); // observerTarget.current is crucial here
+  }, [hasMore, loading, observerTarget.current]);
 
   const navigate = useNavigate();
 
@@ -138,10 +134,9 @@ export default function SpyglassHistory() {
               Your Spyglass History
             </Title>
 
-            {/* Error display for initial load failure */}
             {errors &&
               errors.length > 0 &&
-              page === 0 &&
+              page === 1 &&
               allHistory.length === 0 && (
                 <Center mt="xl">
                   <Stack align="center">
@@ -157,7 +152,6 @@ export default function SpyglassHistory() {
                 </Center>
               )}
 
-            {/* No history found message */}
             {!loading &&
               !hasMore &&
               allHistory.length === 0 &&
@@ -170,7 +164,7 @@ export default function SpyglassHistory() {
             {allHistory.length > 0 && (
               <Grid>
                 {allHistory.map((item) => (
-                  <Grid.Col span={{ base: 12 }} key={item.id?.toString()}>
+                  <Grid.Col span={{ base: 12 }} key={item.id.toString()}>
                     <Box
                       p="sm"
                       className={styles.historyItem}
@@ -196,10 +190,6 @@ export default function SpyglassHistory() {
                             "{item.baseQuery}"
                           </Text>
                           <Text size="sm" c="dimmed">
-                            {item.analysis?.findings.length} finding
-                            {item.analysis?.findings.length === 1
-                              ? ""
-                              : "s"},{" "}
                             {formatDateTime(item.createdAt).toLowerCase()}
                           </Text>
                         </Stack>
@@ -210,7 +200,6 @@ export default function SpyglassHistory() {
               </Grid>
             )}
 
-            {/* Invisible target for IntersectionObserver */}
             {hasMore && !loading && (
               <div
                 ref={observerTarget}
@@ -219,7 +208,6 @@ export default function SpyglassHistory() {
               />
             )}
 
-            {/* Loading indicator at the bottom */}
             {loading && (
               <Center mt="lg" mb="lg">
                 <Loader />
@@ -227,7 +215,6 @@ export default function SpyglassHistory() {
               </Center>
             )}
 
-            {/* End of list message */}
             {!hasMore && !loading && allHistory.length > 0 && (
               <Center mt="lg" mb="lg">
                 <Text c="dimmed" size="sm">

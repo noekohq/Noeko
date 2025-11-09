@@ -145,6 +145,28 @@ export default class GraphService {
     return true;
   }
 
+  public static isTag(thingId: string | RecordId) {
+    const table = this.getTable(thingId);
+    if (!table) {
+      return undefined;
+    }
+    if (table === "tag") {
+      return true;
+    }
+    return false;
+  }
+
+  public static isRabbithole(thingId: string | RecordId) {
+    const table = this.getTable(thingId);
+    if (!table) {
+      return undefined;
+    }
+    if (table === "rabbithole") {
+      return true;
+    }
+    return false;
+  }
+
   public static async connect(
     source: string | RecordId,
     target: string | RecordId,
@@ -1758,6 +1780,24 @@ export class Connectable {
       return fields;
     } catch (error) {
       console.error("Error getting connectable fields: ", error);
+      return undefined;
+    }
+  }
+
+  public static async connectableFields(
+    connectable: IConnectable,
+  ): Promise<IConnectableFields | undefined> {
+    try {
+      const type = this.idToType(connectable.id.toString());
+      if (!type) {
+        throw new Error(
+          `Couldn't get type of connectable: ${connectable.id.toString()}`,
+        );
+      }
+      const fields = Connectable.fieldsResolver[type]?.(connectable as any);
+      return fields;
+    } catch (error) {
+      console.error("Error getting static connectable fields: ", error);
       return undefined;
     }
   }

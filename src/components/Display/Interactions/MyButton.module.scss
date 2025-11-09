@@ -2,7 +2,6 @@
 
 .myButton {
   position: relative;
-  z-index: 270;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -17,6 +16,7 @@
   &.opened {
     background-color: var(--mantine-color-dark-1);
     color: var(--mantine-color-dark-9);
+    z-index: 301;
 
     .userIcon {
       transform: translateY(-100%);
@@ -70,7 +70,7 @@
   right: 0;
   bottom: 0;
   top: 0;
-  z-index: 260;
+  z-index: 300;
   animation: overlayIn 0.1s ease-in-out forwards;
 }
 

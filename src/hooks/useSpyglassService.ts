@@ -31,7 +31,7 @@ interface ISpyglassServiceReturn {
   status: string | null;
   citationMap: ICitationMap;
   resultsMap: IResultsMap;
-  search: (args: ISearchArgs) => Promise<void>;
+  search: (args: ISearchArgs, autosave?: boolean) => Promise<void>;
   save: () => Promise<void>;
   reset: () => void;
   uninitialize: () => void;
@@ -50,6 +50,8 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   const [status, setStatus] = useState<string | null>(null);
   const searchArgsRef = useRef<ISearchArgs | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const fullFindings = useRef<IFinding[]>([]);
+  const fullOverview = useRef<string>("");
 
   const resetState = useCallback(() => {
     if (abortControllerRef.current) {
@@ -70,7 +72,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   }, [resetState]);
 
   const search = useCallback(
-    async ({ query, scope, deepAnalysis }: ISearchArgs) => {
+    async ({ query, scope, deepAnalysis }: ISearchArgs, autosave?: boolean) => {
       setInitialized(true);
       resetState();
       setLoading(true);
@@ -143,15 +145,26 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                       setFullResults(data);
                       break;
                     case "findings_chunk":
-                      setFindings(data);
+                      fullFindings.current = [...fullFindings.current, ...data];
+                      if (!fullFindings.current) {
+                        return;
+                      }
+                      setFindings(fullFindings.current);
                       break;
                     case "overview_chunk":
-                      setOverview((prev) => prev + data);
+                      fullOverview.current = fullOverview.current + data;
+                      if (!fullOverview.current) {
+                        return;
+                      }
+                      setOverview(fullOverview.current);
                       break;
                     case "completed":
                       setLoading(false);
                       setComplete(true);
                       setStatus("Analysis complete.");
+                      if (autosave) {
+                        await save();
+                      }
                       break;
                     case "error":
                       setError(data);
@@ -167,7 +180,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
         await processStream();
       } catch (error: any) {
         if (error.name === "AbortError") {
-          console.log("Search aborted");
+          console.error("Search aborted");
           return;
         }
         console.error("Search failed:", error);
@@ -185,6 +198,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     }
 
     try {
+      console.log("Saving...");
       await api.post(`/search/spyglass/save`, {
         baseQuery: searchArgsRef.current.query,
         scope: searchArgsRef.current.scope || [],

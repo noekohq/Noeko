@@ -58,6 +58,7 @@ interface IIdeaButton {
     idea: IIdea | ISafeIdea,
     e: React.MouseEvent | React.KeyboardEvent,
   ) => void;
+  link?: boolean;
 }
 
 function IdeaButton({
@@ -65,6 +66,7 @@ function IdeaButton({
   actions,
   fullWidth = false,
   onClick,
+  link,
 }: IIdeaButton) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
@@ -100,6 +102,9 @@ function IdeaButton({
   ) => {
     if (onClick) {
       onClick(idea, e);
+    }
+    if (link) {
+      navigate(`/idea/${idea.id.toString()}`);
     }
   };
 

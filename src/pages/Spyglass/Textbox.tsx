@@ -54,13 +54,15 @@ export default function Textbox({
     if (!isFocused && !initialized) {
       inputRef.current?.focus();
     }
+  }, []);
 
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         inputRef.current &&
         event.metaKey &&
         event.key === "/" &&
-        !isFocused
+        document.activeElement !== inputRef.current
       ) {
         event.preventDefault();
         inputRef.current.focus();
@@ -75,6 +77,9 @@ export default function Textbox({
   }, []);
 
   const showUI = () => {
+    if (!isFocused && initialized) {
+      return false;
+    }
     return true;
   };
 
