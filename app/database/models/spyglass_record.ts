@@ -136,53 +136,53 @@ export class SpyglassRecord {
     }
   }
 
-  public static async getHistory(
-    userId: string,
-    page: number,
-    pageSize: number,
-  ): Promise<ISpyglassHistoryResponse | null> {
-    try {
-      const offset = (page > 0 ? page - 1 : 0) * pageSize;
-      const limit = pageSize;
+  // public static async getHistory(
+  //   userId: string,
+  //   page: number,
+  //   pageSize: number,
+  // ): Promise<ISpyglassHistoryResponse | null> {
+  //   try {
+  //     const offset = (page > 0 ? page - 1 : 0) * pageSize;
+  //     const limit = pageSize;
 
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database connection not available");
-      }
+  //     const db = await getDatabase();
+  //     if (!db) {
+  //       throw new Error("Database connection not available");
+  //     }
 
-      const historyQuery = `
-        SELECT * FROM ${this.table}
-        WHERE <-searched<-(user WHERE id = $userId)
-        ORDER BY createdAt DESC
-        LIMIT $limit START $offset;
-      `;
-      const historyResult = await db.query<[ISpyglassRecord[]]>(historyQuery, {
-        userId,
-        limit,
-        offset,
-      });
+  //     const historyQuery = `
+  //       SELECT * FROM ${this.table}
+  //       WHERE <-searched<-(user WHERE id = $userId)
+  //       ORDER BY createdAt DESC
+  //       LIMIT $limit START $offset;
+  //     `;
+  //     const historyResult = await db.query<[ISpyglassRecord[]]>(historyQuery, {
+  //       userId,
+  //       limit,
+  //       offset,
+  //     });
 
-      const countQuery = `
-        SELECT count((SELECT * FROM ${this.table} WHERE <-searched<-(user WHERE id = $userId))) as total;
-      `;
-      const countResult = await db.query<[{ total: number }[]]>(countQuery, {
-        userId,
-      });
+  //     const countQuery = `
+  //       SELECT count((SELECT * FROM ${this.table} WHERE <-searched<-(user WHERE id = $userId))) as total;
+  //     `;
+  //     const countResult = await db.query<[{ total: number }[]]>(countQuery, {
+  //       userId,
+  //     });
 
-      const history = historyResult?.[0] || [];
-      const total = countResult?.[0]?.total || 0;
+  //     const history = historyResult?.[0] || [];
+  //     const total = countResult?.[0]?.total || 0;
 
-      return {
-        history,
-        total,
-        limit,
-        page,
-      };
-    } catch (error) {
-      console.error("Error getting SpyglassRecord history:", error);
-      return null;
-    }
-  }
+  //     return {
+  //       history,
+  //       total,
+  //       limit,
+  //       page,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error getting SpyglassRecord history:", error);
+  //     return null;
+  //   }
+  // }
 
   public static async getHistoryLightweight(
     userId: string,
