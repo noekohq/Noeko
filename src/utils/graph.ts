@@ -343,7 +343,7 @@ export const NodeIcon = (node: INode) => {
     case "excerpt":
       return TextAlignLeftIcon;
     default:
-      return undefined; // Or a default icon if appropriate, otherwise undefined
+      return undefined;
   }
 };
 

@@ -3,31 +3,29 @@ import Content from "../../../components/UI/Layout/Content";
 import styles from "./Mobile.module.scss";
 import Nav from "../../../components/UI/Layout/Nav";
 import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
-import { Grid, Group, Paper, Stack, Text } from "@mantine/core";
+import { Grid, Stack } from "@mantine/core";
 import PaperCard from "../../../components/Display/Paper/PaperCard";
-import {
-  CalendarCheckIcon,
-  ClockCounterClockwiseIcon,
-  Hammer,
-  HammerIcon,
-} from "@phosphor-icons/react";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import useFetch from "../../../hooks/useFetch";
 import { ITask } from "../../../../app/database/models/task";
 import TaskButton from "../../../components/Display/Tasks/TaskButton";
 import { ISafeIdea } from "../../../../app/database/models/ideas";
 import PaperButton from "../../../components/Display/Paper/PaperButton";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButton";
 import TopBar from "../../../components/UI/Layout/TopBar";
 import UnderConstruction from "../../../components/Utils/UnderConstruction";
+import { useEffect, useState } from "react";
 
 export default function MobileDashboard() {
+  const [currentTab, setCurrentTab] = useState("overview");
+
   return (
     <PageWrapper>
       <TopBar />
       <Content>
         <div className={styles.dashboard}>
-          <Pillbar defaultValue="overview">
+          <Pillbar defaultValue={currentTab} onChange={setCurrentTab}>
             <Pillbar.List>
               <Pillbar.Tab value="overview">Overview</Pillbar.Tab>
               <Pillbar.Tab value="agenda">Agenda</Pillbar.Tab>
@@ -35,7 +33,7 @@ export default function MobileDashboard() {
               <Pillbar.Tab value="shared">Shared</Pillbar.Tab>
             </Pillbar.List>
             <Pillbar.Panel value="overview">
-              <Overview />
+              <Overview setTab={setCurrentTab} />
             </Pillbar.Panel>
             <Pillbar.Panel value="agenda">
               <UnderConstruction />
@@ -54,7 +52,11 @@ export default function MobileDashboard() {
   );
 }
 
-function Overview() {
+interface IOverviewProps {
+  setTab: (tab: string) => void;
+}
+
+function Overview({ setTab }: IOverviewProps) {
   const { load: loadTasks, data: tasks } = useFetch<undefined, ITask[]>({
     url: "/tasks",
     query: {
@@ -79,6 +81,8 @@ function Overview() {
   });
   const recentIdea = recentIdeas?.[0];
 
+  const navigate = useNavigate();
+
   return (
     <div className={styles.overview}>
       <Grid>
@@ -87,7 +91,12 @@ function Overview() {
         </Grid.Col>
         {tasks && tasks.length > 0 && (
           <Grid.Col span={12}>
-            <PaperCard title="ACTIVE TASKS">
+            <PaperCard
+              title="ACTIVE TASKS"
+              onClick={() => {
+                setTab("agenda");
+              }}
+            >
               <Stack gap="xs">
                 {tasks?.map((t) => {
                   return (
@@ -104,7 +113,12 @@ function Overview() {
         )}
         {recentIdeas && (
           <Grid.Col span={12}>
-            <PaperCard title="RECENT IDEAS">
+            <PaperCard
+              title="RECENT IDEAS"
+              onClick={() => {
+                navigate("/ideas");
+              }}
+            >
               <Stack gap="xs">
                 {recentIdeas?.map((i) => {
                   return <IdeaButton link idea={i} key={i.id.toString()} />;

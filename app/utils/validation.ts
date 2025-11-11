@@ -30,8 +30,8 @@ export const ConnectableSearchQueryVectorSettingsSchema = z.object({
   threshold: z.number().min(0).max(1).optional(),
 });
 export const DateRangeSchema = z.object({
-  after: z.string().datetime(),
-  before: z.string().datetime(),
+  after: z.iso.datetime().optional(),
+  before: z.iso.datetime().optional(),
 });
 export const ConnectableSearchQuerySchema = z
   .object({
