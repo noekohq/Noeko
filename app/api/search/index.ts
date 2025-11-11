@@ -44,10 +44,6 @@ router.post("/", checkToken, async (req, res) => {
       searchQuery,
     );
 
-    if (!results) {
-      throw new Error("Couldn't get results");
-    }
-
     res.send({
       message: "Succesfully searched",
       data: results,

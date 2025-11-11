@@ -3,6 +3,7 @@ import {
   DefaultMantineColor,
   Input,
   MantineColorsTuple,
+  Menu,
   Paper,
   Popover,
 } from "@mantine/core";
@@ -387,6 +388,18 @@ const noeko: IOverrideResolver = (t) => {
         styles: {
           dropdown: {
             backgroundColor: colorsToUse().colors.dark?.[8],
+          },
+        },
+      }),
+      Menu: Menu.extend({
+        styles: {
+          dropdown: {
+            backgroundColor: colorsToUse().colors.dark?.[8],
+            border: "none",
+          },
+          arrow: {
+            backgroundColor: colorsToUse().colors.dark[8],
+            border: "none",
           },
         },
       }),
