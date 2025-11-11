@@ -55,10 +55,18 @@ export type IFTSExcerptResult = IExcerpt & {
 };
 
 export type IFTSResult =
-  | IFTSIdeaResult
-  | IFTSTaskResult
-  | IFTSSourceResult
-  | IFTSExcerptResult;
+  | (IFTSIdeaResult & {
+      preview?: string;
+    })
+  | (IFTSTaskResult & {
+      preview?: string;
+    })
+  | (IFTSSourceResult & {
+      preview?: string;
+    })
+  | (IFTSExcerptResult & {
+      preview?: string;
+    });
 
 export type ISemanticIdeaResult = IIdea & { similarity: number };
 export type ISemanticTaskResult = ITask & { similarity: number };
@@ -1943,6 +1951,7 @@ export class ConnectableTableSearchBuilder {
         const idea = thing as IFTSIdeaResult;
         return {
           id: idea.id.toString(),
+          highlightText: idea.preview,
           score: (idea.contentScore ?? 0) + (idea.titleScore ?? 0),
           value: {
             ...idea,
@@ -1967,6 +1976,7 @@ export class ConnectableTableSearchBuilder {
         const task = thing as IFTSTaskResult;
         return {
           id: task.id.toString(),
+          highlightText: task.preview,
           score: (task.descriptionScore ?? 0) + (task.scratchpadScore ?? 0),
           value: {
             ...task,
@@ -1991,6 +2001,7 @@ export class ConnectableTableSearchBuilder {
         const source = thing as IFTSSourceResult;
         return {
           id: source.id.toString(),
+          highlightText: source.preview,
           score: (source.contentScore ?? 0) + (source.displayNameScore ?? 0),
           value: {
             ...source,
@@ -2015,6 +2026,7 @@ export class ConnectableTableSearchBuilder {
         const excerpt = thing as IFTSExcerptResult;
         return {
           id: excerpt.id.toString(),
+          highlightText: thing.preview,
           score: (excerpt.noteScore ?? 0) + (excerpt.sourceTextScore ?? 0),
           value: {
             ...excerpt,

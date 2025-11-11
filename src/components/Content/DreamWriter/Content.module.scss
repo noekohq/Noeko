@@ -1,6 +1,12 @@
 .blockquote {
+    background-color: var(--mantine-color-dark-8);
+    width: 100%;
     margin-inline-start: 0;
-    padding-inline-start: 24px;
+    padding: 4px;
+    padding-inline-start: var(--mantine-spacing-md);
+    border-top-right-radius: var(--mantine-radius-md);
+    border-bottom-right-radius: var(--mantine-radius-md);
+    /* border: 1px solid var(--mantine-color-dark-7); */
     // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
     border-left: 2.5px solid var(--mantine-primary-color-5);
 }

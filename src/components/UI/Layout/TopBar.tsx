@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./TopBar.module.scss";
 import { useSearch } from "../../../contexts/SearchContext";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
-import { Group, Loader, Stack, Text } from "@mantine/core";
+import { ActionIcon, Group, Loader, Stack, Text } from "@mantine/core";
 import { useLayout } from "../../../contexts/LayoutContext";
 import useSearchQuery from "../../../hooks/useSearchQuery";
 import useRabbithole from "../../../hooks/useRabbithole";
@@ -10,6 +10,10 @@ import PaperChip from "../../Display/Paper/PaperChip";
 import { getRelativeDateISO } from "../../../utils/datetime";
 import ConnectableThing from "../../Display/Interactions/Connections/ConnectableThing";
 import { useNavigate } from "react-router";
+import { getNodeDescription, getNodeTitle } from "../../../utils/graph";
+import { formatDateTime } from "../../../utils/formatting";
+import PaperSearchResult from "../../Display/Paper/PaperSearchResult/PaperSearchResult";
+import { useInteraction } from "../../../contexts/InteractionContext";
 
 export default function TopBar() {
   const quips = [
@@ -63,27 +67,43 @@ export default function TopBar() {
     setQuery("");
     setResults(null);
     setDateAfter("");
-    setDateBefore("");
   };
 
-  const [dateBefore, setDateBefore] = useState<string | undefined>();
   const [dateAfter, setDateAfter] = useState<string | undefined>();
 
   const handleSearch = () => {
+    if (!query) {
+      return;
+    }
     search(query, {
       date: {
         updatedAt: {
-          before: dateBefore,
           after: dateAfter,
         },
       },
     });
   };
 
+  useEffect(() => {
+    handleSearch();
+  }, [dateAfter]);
+
   const pastWeekISO = getRelativeDateISO("week");
+  const pastMonthISO = getRelativeDateISO("month");
   const pastYearISO = getRelativeDateISO("year");
 
   const navigate = useNavigate();
+
+  const {
+    actions: { newRabbithole },
+  } = useInteraction();
+
+  useEffect(() => {
+    return () => {
+      setResults(null);
+      setQuery("");
+    };
+  }, []);
 
   if (!isMobile) return null;
 
@@ -152,30 +172,40 @@ export default function TopBar() {
                 <Text size="sm" c="dimmed">
                   Search for anything...
                 </Text>
-                <Group>
-                  <PaperChip
-                    onClick={() =>
-                      setDateAfter((prev) =>
-                        prev === pastWeekISO ? undefined : pastWeekISO,
-                      )
-                    }
-                    active={dateAfter === pastWeekISO}
-                  >
-                    Past Week
-                  </PaperChip>
-                  <PaperChip
-                    onClick={() =>
-                      setDateAfter((prev) =>
-                        prev === pastYearISO ? undefined : pastYearISO,
-                      )
-                    }
-                    active={dateAfter === pastYearISO}
-                  >
-                    Past Year
-                  </PaperChip>
-                </Group>
               </>
             )}
+            <Group>
+              <PaperChip
+                onClick={() =>
+                  setDateAfter((prev) =>
+                    prev === pastWeekISO ? undefined : pastWeekISO,
+                  )
+                }
+                active={dateAfter === pastWeekISO}
+              >
+                Past Week
+              </PaperChip>
+              <PaperChip
+                onClick={() =>
+                  setDateAfter((prev) =>
+                    prev === pastMonthISO ? undefined : pastMonthISO,
+                  )
+                }
+                active={dateAfter === pastMonthISO}
+              >
+                Past Month
+              </PaperChip>
+              {/*<PaperChip
+                onClick={() =>
+                  setDateAfter((prev) =>
+                    prev === pastYearISO ? undefined : pastYearISO,
+                  )
+                }
+                active={dateAfter === pastYearISO}
+              >
+                Past Year
+              </PaperChip>*/}
+            </Group>
             {loading && (
               <Group align="center" justify="flex-start" gap="sm">
                 <Loader size="xs" color="gray" />
@@ -183,22 +213,53 @@ export default function TopBar() {
               </Group>
             )}
             {complete && results && results.length > 0 && (
-              <Stack gap="xs">
-                <Text size="sm">
-                  {results.length} result{results.length === 1 ? "" : "s"}
+              <>
+                <Text size="md" fw="bold" c="dimmed">
+                  Results ({results.length})
                 </Text>
-                {results.map((s) => {
-                  return (
-                    <ConnectableThing
-                      key={s.id.toString()}
-                      thing={s.value}
-                      onClick={(thing) => {
-                        navigate(`/${thing.type}/${thing.id.toString()}`);
-                      }}
+                {/*<Group wrap="nowrap">
+                  <ActionIcon
+                    variant="light"
+                    color="yellow"
+                    radius="md"
+                    size={"md"}
+                  >
+                    <RabbitholeIcon
+                      size={16}
+                      color="var(--mantine-color-dark-2)"
                     />
-                  );
-                })}
-              </Stack>
+                  </ActionIcon>
+                </Group>*/}
+                <Stack gap="lg">
+                  {results.map((s) => {
+                    const title = getNodeTitle(s.value);
+                    const preview =
+                      s.highlightText ?? getNodeDescription(s.value);
+                    const updatedAt = formatDateTime(s.value.updatedAt);
+
+                    if (!title || !preview || !updatedAt) {
+                      return null;
+                    }
+
+                    return (
+                      <PaperSearchResult
+                        node={s.value}
+                        title={title || "Untitled Thing"}
+                        snippet={preview}
+                        meta={`Modified ${updatedAt}`}
+                        onSelect={(node) => {
+                          navigate(`/${node.type}/${node.id.toString()}`);
+                        }}
+                      />
+                    );
+                  })}
+                </Stack>
+              </>
+            )}
+            {complete && results && results.length < 1 && (
+              <Text size="md" fw="bold" c="dimmed">
+                No Results :(
+              </Text>
             )}
           </Stack>
         </div>

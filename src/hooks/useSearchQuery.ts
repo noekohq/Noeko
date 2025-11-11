@@ -54,6 +54,7 @@ export default function useSearchQuery({
         vectorSettings: {
           effort: "mid",
         },
+        ...params,
       };
       setComplete(false);
       setLoading(true);
@@ -62,8 +63,9 @@ export default function useSearchQuery({
       });
 
       const results = response.data.data as ISearchResult[];
-      if (!results) {
-        throw new Error("No results found");
+      console.log("Results: ", results);
+      if (results === undefined || results === null) {
+        throw new Error("Results were undefined");
       }
       setComplete(true);
       setResults(results);
