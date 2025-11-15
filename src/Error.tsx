@@ -22,6 +22,10 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
           contact us at <a href="mailto:support@noeko.app">support@noeko.app</a>{" "}
           for assistance in clearing this up.
         </p>
+        <p>
+          You can also reach out directly on{" "}
+          <a href="https://discord.gg/TY9sna9ZbT">Discord</a>!
+        </p>
       </div>
     </div>
   );

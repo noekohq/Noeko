@@ -27,9 +27,7 @@ export default function PaperCard({
     >
       <div className={styles.title}>
         {Icon && <Icon weight="bold" />}
-        <Text fw="bold" c="dimmed" size="sm">
-          {title}
-        </Text>
+        {title}
       </div>
 
       <div

@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { DOMParser } from "@tiptap/pm/model";
 import { marked } from "marked";
-import { YOUTUBE_URL_REGEX } from "../../../../vars/regex";
+import { YOUTUBE_URL_REGEX } from "../../../../../shared/vars/regex";
 
 export const DreamPaste = Extension.create({
   name: "dreamPaste",

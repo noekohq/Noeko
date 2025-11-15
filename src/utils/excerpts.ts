@@ -65,3 +65,15 @@ export const getExcerpt = async (id: string | RecordId) => {
     return undefined;
   }
 };
+
+export const getExcerptReferenceId = (
+  excerpt: IExcerpt,
+): string | undefined => {
+  if (!excerpt.references) {
+    return undefined;
+  }
+  if ("id" in excerpt.references) {
+    return excerpt.references.id.toString();
+  }
+  return excerpt.references.toString();
+};

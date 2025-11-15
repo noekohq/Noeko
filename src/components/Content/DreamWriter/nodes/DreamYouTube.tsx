@@ -11,7 +11,13 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import styles from "./styles/DreamYouTube.module.scss";
 import { ActionIcon, Group } from "@mantine/core";
 import { TrashIcon } from "@phosphor-icons/react";
-import { YOUTUBE_URL_REGEX } from "../../../../vars/regex";
+import { YOUTUBE_URL_REGEX } from "../../../../../shared/vars/regex";
+import {
+  IDreamYouTubeAttributes,
+  IDreamYouTubeOptions,
+  DreamYouTubeSchema,
+  getYoutubeEmbedUrl,
+} from "../../../../../shared/editing/tiptap/nodes/DreamYouTube";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -23,29 +29,6 @@ declare module "@tiptap/core" {
     };
   }
 }
-
-function getYoutubeEmbedUrl(url: string): string | null {
-  if (!url) return null;
-
-  const match = YOUTUBE_URL_REGEX.exec(url);
-
-  const videoId = match ? match[1] : null;
-
-  if (videoId) {
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
-
-  return null;
-}
-
-export interface DreamYouTubeOptions {
-  HTMLAttributes: Record<string, any>;
-}
-
-type DreamYouTubeAttributes = {
-  src: string | null;
-  start?: number;
-};
 
 const DreamYouTubeComponent: React.FC<NodeViewProps> = ({ node, selected }) => {
   const { src, start } = node.attrs;
@@ -73,90 +56,7 @@ const DreamYouTubeComponent: React.FC<NodeViewProps> = ({ node, selected }) => {
   );
 };
 
-export const DreamYouTube = Node.create<DreamYouTubeOptions>({
-  name: "dreamYouTube",
-  group: "block",
-  atom: true,
-  draggable: true,
-
-  addOptions() {
-    return {
-      HTMLAttributes: {
-        class: styles.youtubeWrapper,
-      },
-    };
-  },
-
-  addAttributes(): { [K in keyof DreamYouTubeAttributes]: {} } {
-    return {
-      src: {
-        default: null,
-      },
-      start: {
-        default: 0,
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: "div[data-dream-youtube-video]",
-        getAttrs: (dom: HTMLElement) => {
-          const iframe = dom.querySelector("iframe");
-          if (!iframe) {
-            return false;
-          }
-
-          return {
-            src: iframe.getAttribute("src"),
-            start: iframe.getAttribute("data-start"),
-          };
-        },
-      },
-    ];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    const embedUrl = HTMLAttributes.src as string;
-    if (!embedUrl) {
-      return ["div", { "data-dream-youtube-video-invalid": "" }];
-    }
-
-    const finalSrc = new URL(embedUrl);
-    if (HTMLAttributes.start > 0) {
-      finalSrc.searchParams.set("start", String(HTMLAttributes.start));
-    }
-
-    const iframeAttrs = mergeAttributes(this.options.HTMLAttributes, {
-      src: finalSrc.toString(),
-      "data-start": HTMLAttributes.start,
-      frameborder: 0,
-      allowfullscreen: "true",
-      title: "Embedded YouTube Video",
-    });
-
-    return ["div", { "data-dream-youtube-video": "" }, ["iframe", iframeAttrs]];
-  },
-
-  addCommands() {
-    return {
-      setDreamYouTubeVideo:
-        (options) =>
-        ({ commands }) => {
-          const embedUrl = getYoutubeEmbedUrl(options.src);
-          if (!embedUrl) {
-            return false;
-          }
-
-          return commands.insertContent({
-            type: this.name,
-            attrs: { ...options, src: embedUrl },
-          });
-        },
-    };
-  },
-
+export const DreamYouTube = DreamYouTubeSchema.extend({
   addInputRules() {
     return [
       nodeInputRule({
@@ -169,7 +69,6 @@ export const DreamYouTube = Node.create<DreamYouTubeOptions>({
       }),
     ];
   },
-
   addNodeView() {
     return ReactNodeViewRenderer(DreamYouTubeComponent);
   },

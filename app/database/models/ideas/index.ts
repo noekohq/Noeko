@@ -18,6 +18,7 @@ export type IIdea = {
   title: string;
   content: string;
   contentPlain?: string;
+  yState?: string;
   embeddings: number[] | null;
   visibility: IIdeaVisibility;
   createdAt: Date;

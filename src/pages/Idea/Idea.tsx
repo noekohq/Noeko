@@ -5,7 +5,7 @@ import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
-import { Editor as IEditor } from "@tiptap/react";
+import { generateJSON, Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
   Grid,
@@ -22,28 +22,33 @@ import {
   Stack,
   Space,
   Button,
+  Popover,
+  Box,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import { modals } from "@mantine/modals";
 import {
+  ArrowLeftIcon,
   BookOpenIcon,
   BracketsAngleIcon,
   CheckIcon,
-  CopySimpleIcon,
+  ClockIcon,
   CursorTextIcon,
+  DotsThreeVerticalIcon,
+  DownloadSimpleIcon,
   EyeIcon,
   IntersectSquareIcon,
+  MagnifyingGlassIcon,
   MarkdownLogoIcon,
-  ShareNetworkIcon,
+  PencilSimpleIcon,
+  PushPinIcon,
   SparkleIcon,
-  StarIcon,
   TagIcon,
   TrashSimpleIcon,
+  UniteSquareIcon,
   UserCirclePlusIcon,
-  WrenchIcon,
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
-import Connections from "./Connections";
 import Insights from "./Insights";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -51,7 +56,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import { useLayout } from "../../contexts/LayoutContext";
 import { getTextProcessed } from "../../utils/processing";
-import { htmlToPlainText } from "../../utils/formatting";
+import { formatDateTime, htmlToPlainText } from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
@@ -62,28 +67,19 @@ import Search from "../../components/Search/Search";
 import Access from "./Access";
 import Loading from "../../components/Display/Loading/Loading";
 
-import { Alert } from "@mantine/core";
-import { WarningCircleIcon } from "@phosphor-icons/react";
-import { useMultiTabWarning } from "../../hooks/useMultiTabWarning";
 import { useLandscape } from "../../contexts/LandscapeContext";
-import { createIdeaConnection } from "../../utils/ideas";
-import { ideasAreConnected } from "../../utils/ideas";
-import StatusBar from "../../components/UI/Layout/Bottom";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import useConnectable from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
-import { Pillbar } from "../../components/UI/Layout/Utils/Pillbar";
-import PaperCard from "../../components/Display/Paper/PaperCard";
 import TopBar from "../../components/UI/Layout/TopBar";
+import usePins from "../../hooks/usePins";
+import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
+import UnderConstruction from "../../components/Utils/UnderConstruction";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
-  const isDuplicateTab = useMultiTabWarning(ideaId);
-  const [overrideDuplicateTab, setOverrideDuplicateTab] = useState(false);
-  const editingDisabled = isDuplicateTab && !overrideDuplicateTab;
   const [title, setTitle] = useState<string>("");
-  const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
   const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
 
   const {
@@ -115,43 +111,6 @@ export default function Idea() {
       setOriginalIdea(d);
     },
   });
-
-  const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
-    url: `/ideas/${ideaId}`,
-    dependencies: [ideaId],
-    method: "DELETE",
-    onSuccess: () => {
-      navigate(-1);
-      showNotification({
-        title: "Success",
-        message: "Idea deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      console.error("Error deleting idea: ", error);
-      showNotification({
-        title: "Error Deleting",
-        message: `There was an error deleting the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
-        color: "red",
-      });
-    },
-  });
-
-  const handleDeleteIdea = useCallback(() => {
-    if (loadingDelete) return;
-    modals.openConfirmModal({
-      title: "Are you sure you want to delete this idea?",
-      centered: true,
-      children: (
-        <Text size="sm">
-          This action cannot be undone. All associated data will be lost.
-        </Text>
-      ),
-      labels: { confirm: "Delete Idea", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => triggerDeleteIdea(),
-    });
-  }, [loadingDelete, triggerDeleteIdea, ideaId]);
 
   const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/ideas/${ideaId}/embed`,
@@ -257,11 +216,7 @@ export default function Idea() {
     const { wordCount, characterCount, sentenceCount } = getTextProcessed(
       htmlToPlainText(idea.content),
     );
-    if (loadingSaveChanges) {
-      text += "Saving...";
-    } else {
-      text += "Saved. ";
-    }
+    text += "Saved. ";
     text += `${wordCount} word${characterCount === 1 ? "" : "s"}. `;
     text += `${characterCount} character${characterCount === 1 ? "" : "s"}. `;
     text += `${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}. `;
@@ -281,61 +236,22 @@ export default function Idea() {
     };
   }, [statusText()]);
 
-  const updateContent = async (newContent: string) => {
-    setLoadingSaveChanges(true);
-    await api
-      .put(`/ideas/${ideaId}`, {
-        content: newContent,
-      })
-      .then(() => {
-        reloadIdea();
-      })
-      .catch((error) => {
-        if (error.response.status === 413) {
-          showNotification({
-            title: "Error",
-            message: "Content is too large",
-          });
-          return;
-        }
-        showNotification({
-          title: "Error",
-          message: "Something went wrong saving the content",
-        });
-      })
-      .finally(() => {
-        setLoadingSaveChanges(false);
-      });
-  };
-
   const updateTitle = async (newTitle: string) => {
-    setLoadingSaveChanges(true);
     await api
       .put(`/ideas/${ideaId}`, {
         title: newTitle,
       })
       .then(() => {
         reloadIdea();
-      })
-      .finally(() => {
-        setLoadingSaveChanges(false);
       });
   };
-  const debouncedUpdateContent = useDebouncedCallback(updateContent, 500);
   const debouncedUpdateTitle = useDebouncedCallback(updateTitle, 500);
-
-  const handleContentChange = useCallback(
-    (newContent: string) => {
-      debouncedUpdateContent(newContent);
-    },
-    [ideaId],
-  );
 
   useEffect(() => {
     if (title && originalIdea?.title !== title) {
       debouncedUpdateTitle(title);
     }
-  }, [title]);
+  }, [title, originalIdea]);
 
   const isMountedRef = useRef(false);
   useEffect(() => {
@@ -399,57 +315,6 @@ export default function Idea() {
 
   const editorRef = useRef<IEditor>(null);
 
-  const downloadAsHTML = () => {
-    if (idea?.content) {
-      downloadTextAsFile(idea?.content, {
-        type: "text/html",
-        extension: "html",
-        name: idea.title,
-      });
-    }
-  };
-
-  const getMarkdownContent = () => {
-    if (!idea?.content) {
-      return "";
-    }
-    // if (editorRef.current?.storage.markdown) {
-    //   return editorRef.current?.storage.markdown.getMarkdown() as string;
-    // }
-    return htmlToMarkdown(idea?.content);
-  };
-
-  const downloadAsMarkdown = () => {
-    if (idea?.content && editorRef.current) {
-      const markdown = getMarkdownContent();
-
-      downloadTextAsFile(markdown, {
-        type: "text/markdown",
-        extension: "md",
-        name: idea.title,
-      });
-    }
-  };
-
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (loadingSaveChanges) {
-        event.preventDefault();
-        event.returnValue = "";
-      }
-    };
-
-    if (loadingSaveChanges) {
-      window.addEventListener("beforeunload", handleBeforeUnload);
-    } else {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    }
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [loadingSaveChanges]);
-
   const { connect, isConnected } = useConnectable({
     connectable: idea ? { ...idea, type: "idea" } : null,
   });
@@ -505,11 +370,6 @@ export default function Idea() {
               )}
               {!!idea && (
                 <>
-                  <Space my="lg" />
-                  <TagsManager
-                    maxSuggested={2}
-                    connectable={{ ...idea, type: "idea" }}
-                  />
                   <ConnectionManager
                     connectable={{
                       ...idea,
@@ -539,70 +399,105 @@ export default function Idea() {
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        {editingDisabled && (
-          <Alert
-            variant="light"
-            color="orange"
-            title="Editing in multiple tabs is not supported"
-            icon={<WarningCircleIcon />}
-            mb="md"
-          >
-            <Group justify="space-between">
-              <Text>
-                To avoid losing your work, please close this tab and continue
-                editing in the original one.
-              </Text>
-              <Button
-                variant="light"
-                color="orange"
-                onClick={() => setOverrideDuplicateTab(true)}
-              >
-                Edit Anyway
-              </Button>
-            </Group>
-          </Alert>
-        )}
         <div className={styles.ideaContainer}>
           <Stack gap="md">
-            <Group gap="xs">
-              <Title
-                order={1}
-                m="0"
-                pr="md"
-                contentEditable={!editingDisabled}
-                suppressContentEditableWarning
-                onBlur={(e) => {
-                  updateTitle(e.currentTarget.innerText);
-                }}
-                dangerouslySetInnerHTML={{ __html: title || "" }}
-                className={styles.editableTitle}
-              />
-              {titleNeedsGeneration() && !loadingTitleGeneration && (
-                <ActionIcon
-                  onClick={() => {
-                    handleTitleGen();
+            <Stack>
+              {idea && editorRef.current && (
+                <Tools editor={editorRef.current} idea={idea} />
+              )}
+              <Group gap="xs">
+                <Title
+                  order={1}
+                  m="0"
+                  pr="md"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    const newTitle = e.currentTarget.innerText;
+                    if (newTitle !== title) {
+                      setTitle(newTitle);
+                    }
                   }}
-                  variant="light"
-                  size="sm"
-                  color="gray"
-                >
-                  <SparkleIcon />
-                </ActionIcon>
+                  dangerouslySetInnerHTML={{ __html: title || "" }}
+                  className={styles.editableTitle}
+                />
+                {titleNeedsGeneration() && !loadingTitleGeneration && (
+                  <ActionIcon
+                    onClick={() => {
+                      handleTitleGen();
+                    }}
+                    variant="light"
+                    size="sm"
+                    color="gray"
+                  >
+                    <SparkleIcon />
+                  </ActionIcon>
+                )}
+                {idea?.titleGeneratedAt && (
+                  <div
+                    className={styles.generatedIndicator}
+                    title={"This title was generated automatically."}
+                  >
+                    <SparkleIcon />
+                  </div>
+                )}
+                {loadingTitleGeneration && (
+                  <div className={styles.loadingIndicator}>
+                    <Loader size="xs" color="gray" />
+                  </div>
+                )}
+              </Group>
+              <Box
+                bg="dark.9"
+                c="dark.1"
+                style={{
+                  borderRadius: "var(--mantine-radius-md)",
+                }}
+              >
+                <Flex gap="xs" direction={isMobile ? "column" : "row"}>
+                  <Group gap="8px">
+                    <Text size="xs" title="Created at" c="dark.3" fw="565">
+                      <Group gap="4px" align="center">
+                        <ClockIcon weight="bold" />
+                        CREATED{" "}
+                      </Group>
+                    </Text>
+                    <Text size="xs" fw="500">
+                      {idea?.createdAt
+                        ? `${formatDateTime(idea?.createdAt)}`
+                        : ""}
+                    </Text>
+                  </Group>
+                  {!isMobile && (
+                    <Text size="sm" fw="bold" c="dark.4">
+                      •
+                    </Text>
+                  )}
+                  <Group gap="8px">
+                    <Text size="xs" title="Created at" c="dark.3" fw="565">
+                      <Group gap="4px" align="center">
+                        <PencilSimpleIcon weight="bold" />
+                        UPDATED{" "}
+                      </Group>
+                    </Text>
+                    <Text size="xs" fw="500">
+                      {idea?.updatedAt
+                        ? `${formatDateTime(idea?.updatedAt)}`
+                        : ""}
+                    </Text>
+                  </Group>
+                </Flex>
+              </Box>
+              {idea && (
+                <TagsManager
+                  connectable={{
+                    ...idea,
+                    type: "idea",
+                  }}
+                  maxSuggested={2}
+                />
               )}
-              {idea?.titleGeneratedAt && (
-                <div
-                  className={styles.generatedIndicator}
-                  title={"This title was generated automatically."}
-                >
-                  <SparkleIcon />
-                </div>
-              )}
-              {loadingTitleGeneration && (
-                <div className={styles.loadingIndicator}>
-                  <Loader size="xs" color="gray" />
-                </div>
-              )}
-            </Group>
+            </Stack>
             <div className={styles.contentArea}>
               {idea && (
                 <IdeaProvider
@@ -615,12 +510,11 @@ export default function Idea() {
                     key={ideaId}
                     initialContent={editorContent}
                     stickyMenu={false}
-                    onChange={handleContentChange}
                     onBlur={handleEditorBlur}
                     onContentReady={handleContentReady}
                     dependencies={[ideaId, idea.id]}
                     ref={editorRef}
-                    readOnly={editingDisabled}
+                    collaborationId={idea.id.toString()}
                   />
                 </IdeaProvider>
               )}
@@ -628,152 +522,15 @@ export default function Idea() {
           </Stack>
         </div>
       </Content>
-      <Nav>
-        <Nav.Drawer>
-          <Stack gap="md">
-            <Pillbar defaultValue="tools">
-              <Pillbar.List>
-                <Pillbar.Tab value="tags">Tags</Pillbar.Tab>
-                <Pillbar.Tab value="tools">Tools</Pillbar.Tab>
-                <Pillbar.Tab value="context">Context</Pillbar.Tab>
-              </Pillbar.List>
-              <Pillbar.Panel value="tags">
-                {idea && (
-                  <TagsManager
-                    maxSuggested={2}
-                    connectable={{ ...idea, type: "idea" }}
-                  />
-                )}
-              </Pillbar.Panel>
-              <Pillbar.Panel value="tools">
-                <PaperCard title="ACTIONS">
-                  <Group gap="sm">
-                    <Tooltip label="Delete Idea">
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        radius="md"
-                        onClick={handleDeleteIdea}
-                        disabled={loadingDelete}
-                      >
-                        {loadingDelete ? (
-                          <Loader size="xs" />
-                        ) : (
-                          <TrashSimpleIcon />
-                        )}
-                      </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Viewonly">
-                      <Link to="view">
-                        <ActionIcon variant="light" radius="md" color="gray">
-                          <BookOpenIcon />
-                        </ActionIcon>
-                      </Link>
-                    </Tooltip>
-                    <Tooltip label="Export as HTML">
-                      <ActionIcon
-                        variant="light"
-                        radius="md"
-                        color="gray"
-                        onClick={downloadAsHTML}
-                      >
-                        <BracketsAngleIcon />
-                      </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Export as Markdown">
-                      <ActionIcon
-                        variant="light"
-                        radius="md"
-                        color="gray"
-                        onClick={downloadAsMarkdown}
-                      >
-                        <MarkdownLogoIcon />
-                      </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Copy">
-                      <Menu trigger="hover">
-                        <Menu.Target>
-                          <ActionIcon variant="light" radius="md" color="gray">
-                            <CopySimpleIcon />
-                          </ActionIcon>
-                        </Menu.Target>
-                        <Menu.Dropdown>
-                          <CopyButton value={getMarkdownContent()}>
-                            {({ copied, copy }) => {
-                              return (
-                                <Menu.Item
-                                  leftSection={
-                                    copied ? (
-                                      <CheckIcon />
-                                    ) : (
-                                      <MarkdownLogoIcon />
-                                    )
-                                  }
-                                  onClick={copy}
-                                >
-                                  Copy as Markdown
-                                </Menu.Item>
-                              );
-                            }}
-                          </CopyButton>
-                          {idea?.content && (
-                            <CopyButton value={htmlToPlainText(idea?.content)}>
-                              {({ copied, copy }) => {
-                                return (
-                                  <Menu.Item
-                                    leftSection={
-                                      copied ? (
-                                        <CheckIcon />
-                                      ) : (
-                                        <CursorTextIcon />
-                                      )
-                                    }
-                                    onClick={copy}
-                                  >
-                                    Copy as Text
-                                  </Menu.Item>
-                                );
-                              }}
-                            </CopyButton>
-                          )}
-                          {idea?.content && (
-                            <CopyButton value={idea?.content}>
-                              {({ copied, copy }) => {
-                                return (
-                                  <Menu.Item
-                                    leftSection={
-                                      copied ? (
-                                        <CheckIcon />
-                                      ) : (
-                                        <CursorTextIcon />
-                                      )
-                                    }
-                                    onClick={copy}
-                                  >
-                                    Copy as HTML
-                                  </Menu.Item>
-                                );
-                              }}
-                            </CopyButton>
-                          )}
-                        </Menu.Dropdown>
-                      </Menu>
-                    </Tooltip>
-                  </Group>
-                </PaperCard>
-              </Pillbar.Panel>
-            </Pillbar>
-          </Stack>
-        </Nav.Drawer>
-      </Nav>
+      <Nav></Nav>
       <RightSidebar startOpened={isDesktop}>
         <RightSidebar.Open>
-          <Tabs defaultValue="tools">
+          <Tabs defaultValue="search">
             <Tabs.List>
-              <Tabs.Tab value="tools">
+              <Tabs.Tab value="search">
                 <Group gap="xs">
-                  <WrenchIcon weight="fill" size={14} />
-                  Tools
+                  <MagnifyingGlassIcon weight="fill" size={14} />
+                  Search
                 </Group>
               </Tabs.Tab>
               <Tabs.Tab value="access">
@@ -783,120 +540,7 @@ export default function Idea() {
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel value="tools">
-              <Card
-                radius="lg"
-                p={"xs"}
-                styles={{
-                  root: {
-                    backgroundColor: "var(--mantine-color-dark-8) !important",
-                    border: "1px solid var(--mantine-color-dark-7)",
-                  },
-                }}
-              >
-                <Flex gap="sm" justify="flex-start">
-                  <Tooltip label="Delete Idea">
-                    <ActionIcon
-                      variant="light"
-                      color="red"
-                      radius="md"
-                      onClick={handleDeleteIdea}
-                      disabled={loadingDelete}
-                    >
-                      {loadingDelete ? (
-                        <Loader size="xs" />
-                      ) : (
-                        <TrashSimpleIcon />
-                      )}
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label="Viewonly">
-                    <Link to="view">
-                      <ActionIcon variant="light" radius="md" color="gray">
-                        <BookOpenIcon />
-                      </ActionIcon>
-                    </Link>
-                  </Tooltip>
-                  <Tooltip label="Export as HTML">
-                    <ActionIcon
-                      variant="light"
-                      radius="md"
-                      color="gray"
-                      onClick={downloadAsHTML}
-                    >
-                      <BracketsAngleIcon />
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label="Export as Markdown">
-                    <ActionIcon
-                      variant="light"
-                      radius="md"
-                      color="gray"
-                      onClick={downloadAsMarkdown}
-                    >
-                      <MarkdownLogoIcon />
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label="Copy">
-                    <Menu trigger="hover">
-                      <Menu.Target>
-                        <ActionIcon variant="light" radius="md" color="gray">
-                          <CopySimpleIcon />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <CopyButton value={getMarkdownContent()}>
-                          {({ copied, copy }) => {
-                            return (
-                              <Menu.Item
-                                leftSection={
-                                  copied ? <CheckIcon /> : <MarkdownLogoIcon />
-                                }
-                                onClick={copy}
-                              >
-                                Copy as Markdown
-                              </Menu.Item>
-                            );
-                          }}
-                        </CopyButton>
-                        {idea?.content && (
-                          <CopyButton value={htmlToPlainText(idea?.content)}>
-                            {({ copied, copy }) => {
-                              return (
-                                <Menu.Item
-                                  leftSection={
-                                    copied ? <CheckIcon /> : <CursorTextIcon />
-                                  }
-                                  onClick={copy}
-                                >
-                                  Copy as Text
-                                </Menu.Item>
-                              );
-                            }}
-                          </CopyButton>
-                        )}
-                        {idea?.content && (
-                          <CopyButton value={idea?.content}>
-                            {({ copied, copy }) => {
-                              return (
-                                <Menu.Item
-                                  leftSection={
-                                    copied ? <CheckIcon /> : <CursorTextIcon />
-                                  }
-                                  onClick={copy}
-                                >
-                                  Copy as HTML
-                                </Menu.Item>
-                              );
-                            }}
-                          </CopyButton>
-                        )}
-                      </Menu.Dropdown>
-                    </Menu>
-                  </Tooltip>
-                </Flex>
-              </Card>
-              <Space my="lg" />
+            <Tabs.Panel value="search">
               <Search
                 resultActions={[
                   (thing) => {
@@ -926,5 +570,300 @@ export default function Idea() {
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>
+  );
+}
+
+interface ITools {
+  idea: ISafeIdea;
+  editor: IEditor;
+}
+
+function Tools({ idea, editor }: ITools) {
+  const { isMobile } = useLayout();
+
+  const navigate = useNavigate();
+
+  const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
+    url: `/ideas/${idea.id.toString()}`,
+    dependencies: [idea.id.toString()],
+    method: "DELETE",
+    onSuccess: () => {
+      navigate(-1);
+      showNotification({
+        title: "Success",
+        message: "Idea deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting idea: ", error);
+      showNotification({
+        title: "Error Deleting",
+        message: `There was an error deleting the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
+        color: "red",
+      });
+    },
+  });
+
+  const handleDeleteIdea = useCallback(() => {
+    if (loadingDelete) return;
+    modals.openConfirmModal({
+      title: "Are you sure you want to delete this idea?",
+      centered: true,
+      children: (
+        <Text size="sm">
+          This action cannot be undone. All associated data will be lost.
+        </Text>
+      ),
+      labels: { confirm: "Delete Idea", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => triggerDeleteIdea(),
+    });
+  }, [loadingDelete, triggerDeleteIdea, idea.id.toString()]);
+
+  const downloadAsHTML = () => {
+    if (idea?.content) {
+      downloadTextAsFile(idea?.content, {
+        type: "text/html",
+        extension: "html",
+        name: idea.title,
+      });
+    }
+  };
+
+  const getMarkdownContent = () => {
+    if (!idea?.content) {
+      return "";
+    }
+    // if (editorRef.current?.storage.markdown) {
+    //   return editorRef.current?.storage.markdown.getMarkdown() as string;
+    // }
+    return htmlToMarkdown(idea?.content);
+  };
+
+  const downloadAsMarkdown = () => {
+    if (idea?.content && editor) {
+      const markdown = getMarkdownContent();
+
+      downloadTextAsFile(markdown, {
+        type: "text/markdown",
+        extension: "md",
+        name: idea.title,
+      });
+    }
+  };
+
+  const { thingIsPinned, togglePin } = usePins();
+  const [pinning, setPinning] = useState(false);
+  const isPinned = thingIsPinned(idea.id);
+  const handleTogglePin = async () => {
+    try {
+      setPinning(true);
+      await togglePin(idea.id.toString());
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+    } finally {
+      setPinning(false);
+    }
+  };
+
+  const size = isMobile ? "lg" : "md";
+  const radius = "md";
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const [managingConnections, setManagingConnections] = useState(false);
+
+  return (
+    <div>
+      <Group justify="space-between" wrap="nowrap">
+        <Group wrap="nowrap">
+          <ActionIcon
+            onClick={handleBack}
+            color="gray"
+            variant="subtle"
+            size={size}
+            radius={radius}
+          >
+            <ArrowLeftIcon weight="bold" />
+          </ActionIcon>
+        </Group>
+        <Group wrap="nowrap">
+          <ActionIcon
+            onClick={() => {
+              if (pinning) return;
+              handleTogglePin();
+            }}
+            aria-label={isPinned ? "Unpin" : "Pin"}
+            size={size}
+            radius={radius}
+            variant="subtle"
+            color="gray"
+          >
+            <PushPinIcon weight={isPinned ? "fill" : "bold"} />
+          </ActionIcon>
+          {isMobile && (
+            <>
+              <ActionIcon
+                aria-label="Manage connections"
+                size={size}
+                radius={radius}
+                variant="subtle"
+                color="gray"
+                onClick={() => setManagingConnections(true)}
+              >
+                <UniteSquareIcon />
+              </ActionIcon>
+            </>
+          )}
+          <Menu
+            width={300}
+            shadow="md"
+            position="bottom-end"
+            radius={radius}
+            withArrow
+            arrowOffset={14}
+            zIndex={700}
+          >
+            <Menu.Target>
+              <div>
+                <ActionIcon
+                  size={size}
+                  aria-label="Download"
+                  radius={radius}
+                  variant="subtle"
+                  color="gray"
+                >
+                  <DownloadSimpleIcon weight="bold" />
+                </ActionIcon>
+              </div>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<BracketsAngleIcon />}
+                onClick={downloadAsHTML}
+              >
+                Export as HTML
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<MarkdownLogoIcon />}
+                onClick={downloadAsMarkdown}
+              >
+                Export as Markdown
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+          <Menu
+            width={300}
+            shadow="md"
+            position="bottom-end"
+            radius={radius}
+            withArrow
+            arrowOffset={14}
+            zIndex={700}
+          >
+            <Menu.Target>
+              <div>
+                <ActionIcon
+                  aria-label="More options"
+                  size={size}
+                  radius={radius}
+                  variant="subtle"
+                  color="gray"
+                >
+                  <DotsThreeVerticalIcon weight="bold" />
+                </ActionIcon>
+              </div>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Tooltip label="Delete Idea">
+                <Menu.Item
+                  color="red"
+                  leftSection={
+                    loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
+                  }
+                  onClick={handleDeleteIdea}
+                  disabled={loadingDelete}
+                >
+                  Delete
+                </Menu.Item>
+              </Tooltip>
+              <Link
+                to="view"
+                style={{
+                  textDecoration: "none",
+                }}
+              >
+                <Menu.Item leftSection={<BookOpenIcon />} onClick={() => {}}>
+                  Viewonly
+                </Menu.Item>
+              </Link>
+              <CopyButton value={getMarkdownContent()}>
+                {({ copied, copy }) => {
+                  return (
+                    <Menu.Item
+                      leftSection={
+                        copied ? <CheckIcon /> : <MarkdownLogoIcon />
+                      }
+                      onClick={copy}
+                    >
+                      Copy as Markdown
+                    </Menu.Item>
+                  );
+                }}
+              </CopyButton>
+              {idea?.content && (
+                <CopyButton value={htmlToPlainText(idea?.content)}>
+                  {({ copied, copy }) => {
+                    return (
+                      <Menu.Item
+                        leftSection={
+                          copied ? <CheckIcon /> : <CursorTextIcon />
+                        }
+                        onClick={copy}
+                      >
+                        Copy as Text
+                      </Menu.Item>
+                    );
+                  }}
+                </CopyButton>
+              )}
+              {idea?.content && (
+                <CopyButton value={idea?.content}>
+                  {({ copied, copy }) => {
+                    return (
+                      <Menu.Item
+                        leftSection={
+                          copied ? <CheckIcon /> : <CursorTextIcon />
+                        }
+                        onClick={copy}
+                      >
+                        Copy as HTML
+                      </Menu.Item>
+                    );
+                  }}
+                </CopyButton>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Group>
+      <PaperDrawer
+        opened={managingConnections}
+        onClose={() => setManagingConnections(false)}
+      >
+        <UnderConstruction
+          text="This area is under construction"
+          omitFeedback
+        />
+        <ConnectionManager
+          connectable={{
+            ...idea,
+            type: "idea",
+          }}
+        />
+      </PaperDrawer>
+    </div>
   );
 }

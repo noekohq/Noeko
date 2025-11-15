@@ -4,26 +4,12 @@ import { Table, TextInput, Button, Group, ActionIcon } from "@mantine/core";
 import React, { useState, useEffect, useCallback } from "react";
 import { PlusIcon, XIcon } from "@phosphor-icons/react";
 import styles from "./styles/DreamTable.module.scss";
-
-export interface IDreamTableOptions {
-  HTMLAttributes: Record<string, any>;
-}
-
-interface TableDataType {
-  headers: string[];
-  rows: string[][];
-}
-
-const initializeTableData = (columns: number, rows: number): TableDataType => {
-  return {
-    headers: Array(columns > 0 ? columns : 1)
-      .fill("")
-      .map((_, i) => `Header ${i + 1}`),
-    rows: Array(rows > 0 ? rows : 1)
-      .fill(null)
-      .map(() => Array(columns > 0 ? columns : 1).fill("")),
-  };
-};
+import {
+  DreamTableSchema,
+  IDreamTableOptions,
+  ITableDataType,
+  initializeTableData,
+} from "../../../../../shared/editing/tiptap/nodes/DreamTable";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -33,64 +19,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const DreamTable = Node.create<IDreamTableOptions>({
-  name: "dreamTable",
-  group: "block",
-  inline: false,
-  atom: true,
-  draggable: true,
-
-  addOptions() {
-    return {
-      HTMLAttributes: {},
-    };
-  },
-
-  addAttributes() {
-    return {
-      tableData: {
-        default: JSON.stringify(initializeTableData(2, 2)),
-        parseHTML: (element) => element.getAttribute("data-table-data"),
-        renderHTML: (attributes) => ({
-          "data-table-data": attributes.tableData,
-        }),
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: "div[data-table-data]",
-      },
-    ];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return [
-      "div",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-type": this.name,
-      }),
-    ];
-  },
-
-  addCommands() {
-    return {
-      setDreamTable:
-        (options) =>
-        ({ commands }) => {
-          const initialData = initializeTableData(
-            options.columns,
-            options.rows,
-          );
-          return commands.insertContent(
-            `<div data-type="${this.name}" data-table-data='${JSON.stringify(initialData)}'></div>`,
-          );
-        },
-    };
-  },
-
+export const DreamTable = DreamTableSchema.extend({
   addNodeView() {
     return ReactNodeViewRenderer(DreamTableComponent);
   },
@@ -101,7 +30,7 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
   updateAttributes,
   editor,
 }) => {
-  const getParsedTableData = (): TableDataType => {
+  const getParsedTableData = (): ITableDataType => {
     try {
       const dataString = node.attrs.tableData;
       if (!dataString || typeof dataString !== "string") {
@@ -123,7 +52,7 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
             (r: any) => Array.isArray(r) && r.length === Rcols,
           )
         ) {
-          return rawParsed as TableDataType;
+          return rawParsed as ITableDataType;
         }
       } else if (
         rawParsed &&
@@ -148,10 +77,10 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
   };
 
   const [tableState, setTableState] =
-    useState<TableDataType>(getParsedTableData());
+    useState<ITableDataType>(getParsedTableData());
 
   const persistChanges = useCallback(
-    (newData: TableDataType) => {
+    (newData: ITableDataType) => {
       updateAttributes({ tableData: JSON.stringify(newData) });
     },
     [updateAttributes],

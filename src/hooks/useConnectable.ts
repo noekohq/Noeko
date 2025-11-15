@@ -21,6 +21,7 @@ type IUseConnectableReturn = {
   tags: {
     applied: ITag[];
     suggested: ITag[];
+    appliedSet: Set<string>;
     apply: (
       tagId: string | RecordId,
     ) => Promise<ITagDescriptionRelationship | undefined>;
@@ -219,6 +220,10 @@ export default function useConnectable({
     [connectable],
   );
 
+  const getTagAppliedSet = useCallback(() => {
+    return new Set(tags.map((tag) => tag.id.toString()));
+  }, [tags]);
+
   return {
     connected,
     loadingConnected,
@@ -232,6 +237,7 @@ export default function useConnectable({
     ensureConnected,
     tags: {
       applied: tags,
+      appliedSet: getTagAppliedSet(),
       suggested: suggestedTags,
       apply: applyTag,
       remove: removeTag,

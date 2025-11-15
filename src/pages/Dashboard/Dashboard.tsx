@@ -436,17 +436,12 @@ function JumpBackIn() {
                 <Text size="xs" c="dimmed" fw="bold">
                   SUGGESTED
                 </Text>
-                <IdeaButton
-                  idea={firstIdea}
-                  onClick={() => {
-                    navigate(`/idea/${firstIdea.id.toString()}`);
-                  }}
-                />
+                <IdeaButton idea={firstIdea} link />
               </Stack>
             </Box>
           )}
           {rest?.map((idea) => {
-            return <IdeaButton key={idea.id.toString()} idea={idea} />;
+            return <IdeaButton link key={idea.id.toString()} idea={idea} />;
           })}
           {allIdeas.length === 0 && (
             <Text size="sm" c="dimmed">

@@ -2,9 +2,9 @@
 
 .myButton {
   position: relative;
-  width: 44px;
+  width: 56px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--mantine-radius-xl);
   border: 1.5px solid var(--mantine-color-dark-8);
   background-color: var(--mantine-color-dark-9);
   display: flex;
