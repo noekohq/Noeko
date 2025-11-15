@@ -1,5 +1,6 @@
 import { TaskItem } from "@tiptap/extension-list";
 import { wrappingInputRule, markInputRule } from "@tiptap/core";
+import { DreamTaskItemSchema } from "../../../../../shared/editing/tiptap/nodes/DreamTaskItem";
 
 // Regex to match the markdown syntax for a checkbox, e.g., "- [ ] "
 // - `^\s*`: Matches any whitespace at the beginning of the line.
@@ -9,7 +10,7 @@ import { wrappingInputRule, markInputRule } from "@tiptap/core";
 // - `\s$`: Matches a final space, which triggers the rule.
 export const taskItemInputRegex = /^\s*(\[ \])\s$/;
 
-export const DreamTaskItem = TaskItem.extend({
+export const DreamTaskItem = DreamTaskItemSchema.extend({
   addInputRules() {
     return [
       wrappingInputRule({

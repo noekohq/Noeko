@@ -79,7 +79,7 @@ router.delete("/:id", async (req, res) => {
       return;
     }
     const { id } = req.params;
-    const pin = await Pin.unpinThing(id);
+    const pin = await Pin.unpinThing(user.id, id);
     if (!pin) {
       res.status(404).send({ message: "Pin not found" });
       return;

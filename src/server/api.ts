@@ -7,6 +7,11 @@ import axios, {
 const appEnv = import.meta.env.VITE_APP_ENV ?? "development";
 
 // --- Configuration ---
+export const serverHost = import.meta.env.VITE_SERVER_HOST;
+if (!serverHost) {
+  throw new Error("Server host (VITE_SERVER_HOST) is not defined in .env");
+}
+
 export const serverLocation =
   appEnv === "production" ? "" : import.meta.env.VITE_SERVER_LOCATION;
 const refreshEndpoint = "/users/refresh"; // Your refresh token endpoint

@@ -30,6 +30,7 @@ import ExcerptableThing from "./ExcerptableThing";
 import { ISource } from "../../../../app/database/models/source";
 import { getNodeLinkFromId, NodeIcon } from "../../../utils/graph";
 import { useLandscape } from "../../../contexts/LandscapeContext";
+import { getExcerptReferenceId } from "../../../utils/excerpts";
 
 type IExcerptButtonAction = {
   id: string;
@@ -44,6 +45,7 @@ interface IExcerptButtonProps {
   actions?: IExcerptButtonAction[];
   fullWidth?: boolean;
   onClick?: (excerpt: IExcerpt, e: React.MouseEvent) => void;
+  link?: boolean;
 }
 
 function ExcerptButton({
@@ -51,6 +53,7 @@ function ExcerptButton({
   actions,
   fullWidth = false,
   onClick,
+  link,
 }: IExcerptButtonProps) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
@@ -84,6 +87,10 @@ function ExcerptButton({
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (onClick) {
       onClick(excerpt, e);
+    }
+    if (link) {
+      const id = getExcerptReferenceId(excerpt);
+      navigate(`/source/${id}`);
     }
   };
 

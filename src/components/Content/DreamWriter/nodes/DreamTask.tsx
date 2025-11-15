@@ -12,8 +12,11 @@ import { Group, HoverCard, Text } from "@mantine/core";
 import { CheckIcon } from "@phosphor-icons/react";
 import { useLandscape } from "../../../../contexts/LandscapeContext";
 import useConnectable from "../../../../hooks/useConnectable";
-import { IConnectable } from "../../../../../app/services/Graph";
 import { useEffect } from "react";
+import {
+  DreamTaskSchema,
+  IDreamTaskOptions,
+} from "../../../../../shared/editing/tiptap/nodes/DreamTask";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -26,90 +29,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const DreamTask = Node.create({
-  name: "dreamTask",
-  group: "inline",
-  inline: true,
-  draggable: true,
-  content: "text*",
-
-  addOptions() {
-    return {
-      HTMLAttributes: {},
-    };
-  },
-
-  addAttributes() {
-    return {
-      taskId: {
-        default: "",
-        parseHTML: (element) => element.getAttribute("data-task-id"),
-        renderHTML: (attributes) => ({
-          "data-task-id": attributes.taskId,
-        }),
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: "span[data-dream-task][data-task-alias]",
-        getContent: (node, schema) => {
-          const dom = node as HTMLElement;
-          const alias = dom.getAttribute("data-task-alias");
-
-          if (alias) {
-            return Fragment.from(schema.text(alias));
-          }
-
-          return Fragment.empty;
-        },
-      },
-      {
-        tag: "span[data-dream-task][data-task-id]",
-        getContent: (node, schema) => {
-          const dom = node as HTMLElement;
-          return DOMParser.fromSchema(schema).parseSlice(dom).content;
-        },
-      },
-    ];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return [
-      "span",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-dream-task": "",
-      }),
-      0,
-    ];
-  },
-
-  addCommands() {
-    return {
-      setDreamTask:
-        (options) =>
-        ({ commands }) => {
-          if (!options.taskId || !options.content) {
-            return false;
-          }
-          return commands.insertContent({
-            type: this.name,
-            attrs: {
-              taskId: options.taskId,
-            },
-            content: [
-              {
-                type: "text",
-                text: options.content,
-              },
-            ],
-          });
-        },
-    };
-  },
-
+export const DreamTask = DreamTaskSchema.extend({
   addNodeView() {
     return ReactNodeViewRenderer(DreamTaskComponent, {
       contentDOMElementTag: "span",

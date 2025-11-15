@@ -1,0 +1,77 @@
+@keyframes tagIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.paperTag {
+    animation: tagIn 0.2s ease-in-out;
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-xl);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--mantine-spacing-sm);
+    font-size: var(--mantine-font-size-sm);
+    text-decoration: none;
+    color: var(--mantine-color-dark-1);
+    font-weight: 565;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    width: auto;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--mantine-shadow-sm);
+        background-color: var(--mantine-color-dark-7);
+        border-style: solid;
+    }
+
+    &:active {
+        transform: scale(0.98) translateY(0px);
+    }
+
+    &.applied {
+        background-color: var(--mantine-color-green-7);
+        color: var(--mantine-color-dark-9);
+
+        [data-mantine-color-scheme='dark'] & {
+            color: var(--mantine-color-white);
+        }
+    }
+
+    &.suggested {
+        background-color: var(--mantine-color-dark-9);
+        border-style: dashed;
+        border-width: 2px;
+        border-color: var(--mantine-color-dark-7);
+
+        &:hover {
+            border-style: solid;
+            background-color: var(--mantine-color-dark-8);
+            border-color: var(--mantine-color-green-7);
+        }
+    }
+
+    &.display {
+        background-color: var(--mantine-color-dark-9);
+        border: 1px solid var(--mantine-color-dark-7);
+        color: var(--mantine-color-dark-9);
+
+        [data-mantine-color-scheme='dark'] & {
+            color: var(--mantine-color-white);
+        }
+    }
+
+    svg {
+        font-size: var(--mantine-font-size-sm);
+    }
+}

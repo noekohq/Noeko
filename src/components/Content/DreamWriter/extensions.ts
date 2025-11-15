@@ -6,8 +6,8 @@ import { Editor as IEditor, Extension, Node, Mark } from "@tiptap/core";
 
 import StarterKit from "@tiptap/starter-kit";
 import Typography from "@tiptap/extension-typography";
+import { DreamMathSchema } from "../../../../shared/editing/tiptap/extensions/DreamMath";
 import { ListKeymap, TaskList } from "@tiptap/extension-list";
-import { Mathematics } from "@tiptap/extension-mathematics";
 import { DreamImage } from "./nodes/DreamImage";
 import { DreamFile } from "./nodes/DreamFile";
 import { DreamFileHandler } from "./extensions/DreamFileHandler";
@@ -25,7 +25,6 @@ import { DreamTable } from "./nodes/DreamTable";
 import { DreamHighlight } from "./marks/DreamHighlight";
 import { all, createLowlight } from "lowlight";
 import { DreamYouTube } from "./nodes/DreamYouTube";
-import { YOUTUBE_URL_REGEX } from "../../../vars/regex";
 import { Focus, Placeholder, Dropcursor, Gapcursor } from "@tiptap/extensions";
 
 const lowlight = createLowlight(all);
@@ -39,71 +38,39 @@ interface IGetExtensionConfigReturn {
   loader: ({ editor }: { editor: IEditor }) => void;
 }
 
+// THIS MUST BE SYNCHRONIZED WITH THE BACKEND VERSION
+// (TODO: consolidate the two extension configurations into a single source of truth)
 export const getExtensionConfig = ({
   placeholder,
 }: IGetExtensionConfigOptions): IGetExtensionConfigReturn => ({
   extensions: [
+    // 1. CORE HYBRID (Synced with Server)
     StarterKit.configure({
       heading: {
         levels: [1, 2, 3, 4, 5],
-        HTMLAttributes: {
-          class: contentStyles.heading,
-        },
+        HTMLAttributes: { class: contentStyles.heading },
       },
       horizontalRule: {
-        HTMLAttributes: {
-          class: contentStyles.horizontalRule,
-        },
+        HTMLAttributes: { class: contentStyles.horizontalRule },
       },
-      blockquote: {
-        HTMLAttributes: {
-          class: contentStyles.blockquote,
-        },
-      },
-      paragraph: {
-        HTMLAttributes: {
-          class: contentStyles.paragraph,
-        },
-      },
-      listItem: {
-        HTMLAttributes: {
-          class: contentStyles.listItem,
-        },
-      },
-      orderedList: {
-        HTMLAttributes: {
-          class: contentStyles.orderedList,
-        },
-      },
-      bulletList: {
-        HTMLAttributes: {
-          class: contentStyles.bulletList,
-        },
-      },
-      code: {
-        HTMLAttributes: {
-          class: contentStyles.code,
-        },
-      },
-      strike: {
-        HTMLAttributes: {
-          class: contentStyles.strike,
-        },
-      },
-      underline: {
-        HTMLAttributes: {
-          class: contentStyles.underline,
-        },
-      },
+      blockquote: { HTMLAttributes: { class: contentStyles.blockquote } },
+      paragraph: { HTMLAttributes: { class: contentStyles.paragraph } },
+      listItem: { HTMLAttributes: { class: contentStyles.listItem } },
+      orderedList: { HTMLAttributes: { class: contentStyles.orderedList } },
+      bulletList: { HTMLAttributes: { class: contentStyles.bulletList } },
+      strike: { HTMLAttributes: { class: contentStyles.strike } },
+      underline: { HTMLAttributes: { class: contentStyles.underline } },
       link: {
-        HTMLAttributes: {
-          class: contentStyles.link,
-        },
+        HTMLAttributes: { class: contentStyles.link },
         linkOnPaste: true,
       },
+      code: false,
+      codeBlock: false,
       dropcursor: false,
       gapcursor: false,
     }),
+
+    // 2. UI EXTENSIONS (Client Only)
     ListKeymap.configure(),
     Placeholder.configure({
       placeholder,
@@ -114,79 +81,77 @@ export const getExtensionConfig = ({
     Gapcursor.configure({}),
     Focus.configure({}),
     Typography.configure({}),
+
+    // 3. DATA EXTENSIONS (Synced with Server)
     TaskList.configure({
-      HTMLAttributes: {
-        class: contentStyles.taskList,
-      },
+      HTMLAttributes: { class: contentStyles.taskList },
     }),
+
     Indent.configure({
+      // MUST MATCH SERVER NODE NAMES EXACTLY
       types: [
         "paragraph",
         "heading",
         "blockquote",
-        "list",
-        "code",
-        "table",
-        "image",
-        "file",
-        "idea",
-        "connection",
+        "listItem", // Server uses "listItem"
+        "codeBlock", // DreamCode name is "codeBlock"
+        "dreamTable", // DreamTable name is "dreamTable"
+        "dreamImage",
+        "dreamFile",
+        "dreamIdea",
+        "dreamSource",
+        "dreamTask", // If using DreamTask
       ],
     }),
-    Mathematics.configure({}),
+
+    DreamMathSchema.configure({}), // Shared
+
     DreamCode.configure({
       lowlight,
-      HTMLAttributes: {
-        class: contentStyles.codeBlock,
-      },
+      HTMLAttributes: { class: contentStyles.codeBlock },
     }),
+
     DreamTaskItem.configure({
       nested: true,
-      HTMLAttributes: {
-        class: contentStyles.taskItem,
-      },
+      HTMLAttributes: { class: contentStyles.taskItem },
     }),
+
     DreamTable.configure({
-      HTMLAttributes: {
-        class: contentStyles.table,
-      },
+      HTMLAttributes: { class: contentStyles.table },
     }),
+
     DreamImage.configure({
-      HTMLAttributes: {
-        class: contentStyles.image,
-      },
+      HTMLAttributes: { class: contentStyles.image },
     }),
+
     DreamFile.configure({
-      HTMLAttributes: {
-        class: contentStyles.file,
-      },
+      HTMLAttributes: { class: contentStyles.file },
     }),
+
     DreamIdea.configure({
-      HTMLAttributes: {
-        class: contentStyles.idea,
-      },
+      HTMLAttributes: { class: contentStyles.idea },
     }),
+
     DreamTask.configure({
-      HTMLAttributes: {
-        class: contentStyles.task,
-      },
+      HTMLAttributes: { class: contentStyles.task },
     }),
+
     DreamSource.configure({
-      HTMLAttributes: {
-        class: contentStyles.source,
-      },
+      HTMLAttributes: { class: contentStyles.source },
     }),
+
+    DreamYouTube.configure({
+      HTMLAttributes: { class: styles.dreamYouTube },
+    }),
+
+    DreamHighlight.configure(), // Shared Mark
+
+    // 4. BEHAVIOR EXTENSIONS (Client Only)
     DreamFileHandler.configure({}),
     DreamConnection.configure({}),
     DreamSlash.configure({}),
     DreamPaste.configure(),
-    DreamHighlight.configure(),
     DreamInputs.configure(),
-    DreamYouTube.configure({
-      HTMLAttributes: {
-        class: styles.dreamYouTube,
-      },
-    }),
   ],
   loader: ({ editor }) => {},
 });

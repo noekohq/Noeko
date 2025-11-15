@@ -41,7 +41,7 @@ export default class Pin {
     }
   }
 
-  public static async unpinThing(pinId: string | RecordId) {
+  public static async deletePin(pinId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -51,12 +51,39 @@ export default class Pin {
         pinId: new StringRecordId(pinId),
       });
       if (!result || !result.length) {
+        throw new Error("Failed to delete pin");
+      }
+      const [pins] = result;
+      return pins[0];
+    } catch (error) {
+      console.error("Error deleting pin: ", pinId, error);
+      return undefined;
+    }
+  }
+
+  public static async unpinThing(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
+      const result = await db.query<[IPin[]]>(
+        `DELETE pins WHERE in = $userId AND out = $thingId`,
+        {
+          thingId: new StringRecordId(thingId),
+          userId: new StringRecordId(userId),
+        },
+      );
+      if (!result || !result.length) {
         throw new Error("Failed to unpin thing");
       }
       const [pins] = result;
       return pins[0];
     } catch (error) {
-      console.error("Error unpinning thing: ", pinId, error);
+      console.error("Error unpinning thing: ", thingId, userId, error);
       return undefined;
     }
   }
@@ -70,7 +97,6 @@ export default class Pin {
       const result = await db.query<[IPin[]]>(`SELECT * FROM $userId->pins`, {
         userId: new StringRecordId(userId),
       });
-      console.log("Got user pins result: ", result);
       if (!result || !result.length) {
         throw new Error("Failed to get user pins");
       }
@@ -91,12 +117,11 @@ export default class Pin {
         throw new Error("Database not initialized");
       }
       const result = await db.query<[IPinnable[]]>(
-        `SELECT VALUE id as connectable FROM $userId->pins FETCH connectable`,
+        `SELECT * OMIT embeddings FROM $userId->pins->(?)`,
         {
           userId: new StringRecordId(userId),
         },
       );
-      console.log("Got user pins result: ", result);
       if (!result || !result.length) {
         throw new Error("Failed to get user pins");
       }

@@ -1,6 +1,7 @@
 @use "../../styles/mixins.scss" as *;
 
 .ideaContainer {
+    padding-top: var(--layout-spacing);
     display: flex;
     flex-direction: column;
     justify-content: space-between;

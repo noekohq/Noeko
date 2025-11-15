@@ -19,11 +19,11 @@ import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IUserFile } from "../../../../../app/database/models/userfile";
 import { triggerDownload } from "../../../../utils/helpers";
+import {
+  DreamFileSchema,
+  IDreamFileOptions,
+} from "../../../../../shared/editing/tiptap/nodes/DreamFile";
 // Keep Mantine, React Router, hook, types, and helper imports...
-
-export interface DreamFileOptions {
-  HTMLAttributes: Record<string, any>;
-}
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -37,84 +37,7 @@ declare module "@tiptap/core" {
   }
 }
 
-export const DreamFile = Node.create<DreamFileOptions>({
-  name: "dreamFile",
-  group: "block",
-  atom: true, // Add this - Marks the node as a single, indivisible unit. Often good for custom nodes that shouldn't have their content directly edited.
-  draggable: true,
-
-  addOptions() {
-    return {
-      HTMLAttributes: {}, // Keep default HTML attributes option
-    };
-  },
-
-  addAttributes() {
-    return {
-      fileId: {
-        default: "",
-        // Parse from data-file-id attribute
-        parseHTML: (element) => element.getAttribute("data-file-id"),
-        // Render as data-file-id attribute
-        renderHTML: (attributes) => ({ "data-file-id": attributes.fileId }),
-        // Keep this attribute when pasting HTML
-        keepOnSplit: false,
-      },
-      fileName: {
-        default: "Untitled File",
-        parseHTML: (element) => element.getAttribute("data-file-name"),
-        renderHTML: (attributes) => ({ "data-file-name": attributes.fileName }),
-        keepOnSplit: false,
-      },
-      fileType: {
-        default: null,
-        parseHTML: (element) => element.getAttribute("data-file-type"), // Corrected: parse from data-file-type
-        renderHTML: (attributes) => ({ "data-file-type": attributes.fileType }),
-        keepOnSplit: false,
-      },
-    };
-  },
-
-  parseHTML() {
-    return [
-      {
-        tag: "div[data-dream-file][data-file-id][data-file-name]",
-      },
-    ];
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return [
-      "div",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-dream-file": "", // Add a specific marker
-      }),
-    ];
-  },
-
-  addCommands() {
-    return {
-      setDreamFile:
-        (options) =>
-        ({ commands }) => {
-          if (!options.fileId || !options.fileName) {
-            console.error("Cannot set file link without fileId and filename");
-            return false;
-          }
-          // Ensure fileType is at least null or an empty string if not provided
-          const attrs = {
-            fileId: options.fileId,
-            fileName: options.fileName,
-            fileType: options.fileType ?? null,
-          };
-          return commands.insertContent({
-            type: this.name,
-            attrs: attrs,
-          });
-        },
-    };
-  },
-
+export const DreamFile = DreamFileSchema.extend<IDreamFileOptions>({
   addNodeView() {
     return ReactNodeViewRenderer(DreamFileComponent);
   },

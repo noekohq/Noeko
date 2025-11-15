@@ -13,7 +13,7 @@
     cursor: pointer;
     animation: buttonIn 0.2s ease-in-out;
     background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-xs);
+    padding: var(--mantine-spacing-sm);
     border-radius: var(--mantine-radius-lg);
     display: flex;
     align-items: center;
@@ -21,9 +21,28 @@
     color: var(--mantine-color-dark-1);
     border: 1px solid transparent; // Use transparent for layout stability
     line-height: 0; // Helps center the icon
-    transition:
-        transform 0.2s ease-in-out,
-        box-shadow 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+
+    &.xs {
+        padding: var(--mantine-spacing-xs);
+        font-size: var(--mantine-font-size-xs);
+    }
+    &.sm {
+        padding: var(--mantine-spacing-sm);
+        font-size: var(--mantine-font-size-sm);
+    }
+    &.md {
+        padding: var(--mantine-spacing-md);
+        font-size: var(--mantine-font-size-md);
+    }
+    &.lg {
+        padding: var(--mantine-spacing-lg);
+        font-size: var(--mantine-font-size-lg);
+    }
+    &.xl {
+        padding: var(--mantine-spacing-xl);
+        font-size: var(--mantine-font-size-xl);
+    }
 
     &.withBorder {
         border-color: var(--mantine-color-dark-7);
@@ -35,6 +54,12 @@
     }
 
     &:active {
-        transform: scale(0.98) translateY(2px);
+        transform: scale(0.95) translateY(2px);
+        background-color: var(--mantine-color-dark-7);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
     }
 }

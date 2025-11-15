@@ -37,3 +37,39 @@
         outline-offset: 1px;
     }
 }
+
+.collaboration-carets__caret {
+    /* The extension sets the 'color' property on this element to your var(...) */
+    /* We use 'currentColor' to inherit it for the border */
+    border-left: 1px solid currentColor;
+    border-right: 1px solid currentColor;
+    margin-left: -1px;
+    margin-right: -1px;
+    pointer-events: none;
+    position: relative;
+    word-break: normal;
+}
+
+.collaboration-carets__label {
+    border-radius: 3px 3px 3px 0;
+    background-color: currentColor;
+    color: var(--mantine-color-dark-9);
+    font-size: var(--mantine-font-size-sm);
+    font-family: var(--mantine-font-family);
+    font-style: normal;
+    font-weight: 600;
+    left: -1px;
+    line-height: normal;
+    padding: 0.1rem 0.3rem;
+    position: absolute;
+    top: -1.4em;
+    user-select: none;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.collaboration-cursor__selection {
+    opacity: 0.3;
+    transition: background-color 0.2s ease;
+    pointer-events: none;
+}
