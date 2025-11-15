@@ -97,8 +97,6 @@ export default function App() {
     );
   }
 
-  console.log("User settings: ", user?.settings);
-
   if (user?.settings.isNew) {
     return <Onboarding />;
   }

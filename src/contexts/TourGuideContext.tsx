@@ -51,8 +51,6 @@ export const TourGuideProvider = ({
   const [viewedFeatures, setViewedFeatures] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log("Viewed features: ", viewedFeatures);
-
   useEffect(() => {
     getAllViewed()
       .then((viewedIds) => {

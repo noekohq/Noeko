@@ -5,6 +5,8 @@ if (!NODE_ENV) {
   throw Error("NODE_ENV not defined in .env");
 }
 
+const isProduction = NODE_ENV === "production";
+
 export const addToReq = async <T>(req: Request, key: string, value: T) => {
   (req as Request & { [key: string]: T })[key] = value;
 };
@@ -19,8 +21,8 @@ export const addRefreshTokenToRes = async (
 ) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: NODE_ENV === "production" ? "lax" : "none",
+    secure: isProduction,
+    sameSite: isProduction ? "lax" : "lax",
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
   });
 };
@@ -31,8 +33,8 @@ export const addAccessTokenToRes = async (
 ) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: NODE_ENV === "production" ? "lax" : "none",
+    secure: isProduction,
+    sameSite: isProduction ? "lax" : "lax",
     maxAge: 900000,
   });
 };

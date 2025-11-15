@@ -1,0 +1,47 @@
+@keyframes overlayIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(4px) brightness(0.7);
+    }
+}
+
+.overlay {
+    z-index: 1000;
+    animation: overlayIn 0.3s ease-in-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(4px) brightness(0.8);
+}
+
+@keyframes contentIn {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.content {
+    min-height: 60vh;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: contentIn 0.2s ease-in-out;
+    position: fixed;
+    bottom: 0;
+    left: var(--layout-spacing);
+    right: var(--layout-spacing);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-sm);
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-lg);
+    border-radius: var(--mantine-radius-lg) var(--mantine-radius-lg) 0 0;
+    box-shadow: var(--mantine-shadow-md);
+}

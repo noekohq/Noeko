@@ -23,7 +23,10 @@
         padding-left: var(--mantine-spacing-xs);
         display: flex;
         align-items: center;
-        gap: var(--mantine-spacing-xs);
+        gap: var(--layout-spacing);
+        font-weight: bold;
+        color: var(--mantine-color-dark-3);
+        font-size: var(--mantine-font-size-sm);
     }
 
     .content {

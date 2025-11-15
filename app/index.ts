@@ -8,6 +8,7 @@ import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
 import { initServices } from "./services";
 import { max_idea_size } from "./settings";
+import collaborationServer from "./collaboration";
 
 config();
 
@@ -71,11 +72,22 @@ if (isProduction) {
   });
 }
 
-app.listen(Number(PORT), () => {
+const server = app.listen(Number(PORT), () => {
   console.info(
     `Express server running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`,
   );
   console.info(
     `Mode: ${chalk.yellow(isProduction ? "Production" : "Development")}`,
+  );
+});
+
+server.on("upgrade", (request, socket, head) => {
+  collaborationServer.webSocketServer.handleUpgrade(
+    request,
+    socket,
+    head,
+    (ws) => {
+      collaborationServer.hocuspocus.handleConnection(ws, request);
+    },
   );
 });

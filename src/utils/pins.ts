@@ -17,7 +17,7 @@ export async function createPin(thingId: string | RecordId) {
 
 export async function deletePin(pinId: string | RecordId) {
   try {
-    const response = await api.delete(`/pins/${pinId}`);
+    const response = await api.delete(`/pins/${pinId.toString()}`);
     const pin = response.data.data as IPin;
     return pin;
   } catch (error) {

@@ -7,6 +7,7 @@ import {
   Group,
   Button,
   ActionIcon,
+  Space,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
@@ -89,7 +90,14 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Submit Feedback" centered>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Submit Feedback"
+      centered
+      radius="lg"
+    >
+      <Space my="md" />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -136,17 +144,6 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
                   <RedditLogoIcon weight="fill" />
                 </ActionIcon>
               </a>
-              <Button
-                variant="light"
-                color="gray"
-                onClick={() => {
-                  feedbackForm.reset();
-                  onClose();
-                }}
-                disabled={loadingFeedback}
-              >
-                Cancel
-              </Button>
               <Button
                 variant="filled"
                 color="blue"

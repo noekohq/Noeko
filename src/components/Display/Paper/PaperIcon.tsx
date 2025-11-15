@@ -1,3 +1,4 @@
+import { MantineSize } from "@mantine/core";
 import styles from "./PaperIcon.module.scss";
 
 interface IPaperIconProps {
@@ -6,6 +7,8 @@ interface IPaperIconProps {
   "aria-label": string; // Required for accessibility
   tabIndex?: number;
   withBorder?: boolean;
+  disabled?: boolean;
+  size?: MantineSize;
 }
 
 export default function PaperIcon({
@@ -14,8 +17,14 @@ export default function PaperIcon({
   "aria-label": ariaLabel,
   tabIndex,
   withBorder = false,
+  disabled = false,
+  size = "sm",
 }: IPaperIconProps) {
-  const classNames = [styles.paperIcon, withBorder ? styles.withBorder : ""]
+  const classNames = [
+    styles.paperIcon,
+    withBorder ? styles.withBorder : "",
+    styles[size],
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -28,6 +37,7 @@ export default function PaperIcon({
       }}
       tabIndex={tabIndex}
       aria-label={ariaLabel}
+      disabled={disabled}
     >
       {children}
     </button>

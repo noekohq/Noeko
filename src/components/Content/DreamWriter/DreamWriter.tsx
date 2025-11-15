@@ -2,6 +2,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -18,6 +19,11 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import { Group, Overlay, Text } from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
 import { getOS } from "../../../utils/platform";
+import { useCollaboration } from "../../../hooks/useCollaboration";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import { useAuth } from "../../../contexts/AuthContext";
+import { assignMantineColor } from "../../../utils/colors";
 
 interface EditorData {
   comments: [];
@@ -37,9 +43,20 @@ interface EditorProps {
   dependencies?: any[];
   readOnly?: boolean;
   autofocus?: boolean;
+  collaborationId?: string;
 }
 
 const defaultContent = ``;
+
+const getRandomCollaborationColor = () => {
+  const colors = [
+    "var(--mantine-color-orange-6)",
+    "var(--mantine-color-green-6)",
+    "var(--mantine-color-pink-6)",
+    "var(--mantine-color-blue-7)",
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
 
 const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
   (
@@ -57,17 +74,49 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       dependencies,
       readOnly,
       autofocus = true,
+      collaborationId,
     },
     ref,
   ) => {
+    const { user } = useAuth();
     const content = initialContent || defaultContent.trim();
 
-    const { extensions, loader } = getExtensionConfig({ placeholder });
+    const { provider, status } = useCollaboration({
+      roomId: collaborationId,
+      enabled: !!collaborationId,
+    });
+
+    const userName = user?.firstName + " " + user?.lastName;
+
+    const { extensions, loader } = useMemo(() => {
+      const { extensions, loader } = getExtensionConfig({ placeholder });
+
+      if (provider) {
+        extensions.push(
+          Collaboration.configure({ document: provider.document }),
+          CollaborationCaret.configure({
+            provider,
+            user: {
+              name: userName,
+              color: assignMantineColor(userName),
+            },
+          }),
+        );
+      }
+
+      return {
+        extensions,
+        loader,
+      };
+    }, [provider]);
+
+    const isLocked = !!collaborationId && status !== "synced";
+    const isEditable = !isLocked && !readOnly; // Simplified logic
 
     const editor = useEditor(
       {
         extensions,
-        content,
+        content: provider ? undefined : initialContent,
         editorProps: {
           attributes: {
             class: `${styles.tippyEditor} ${contentStyles.editor} tippy-editor`,
@@ -87,15 +136,23 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             onBlur(output);
           }
         },
+        onContentError: ({ disableCollaboration }) => {
+          disableCollaboration();
+        },
         onPaste: (e) => {},
         onCreate: (currentEditor) => {
           loader({ editor: currentEditor.editor });
+          provider?.on("synced", () => {
+            if (currentEditor.editor.isEmpty) {
+              currentEditor.editor.commands.setContent(defaultContent);
+            }
+          });
         },
-        editable: !readOnly,
+        editable: isEditable,
         injectCSS: false,
         autofocus,
       },
-      [...(dependencies ?? []), initialContent, readOnly, content],
+      [...(dependencies ?? []), initialContent, readOnly, content, isEditable],
     );
 
     const [droppingOver, setDroppingOver] = useState(false);
@@ -108,16 +165,20 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       return undefined;
     }, [editor]);
 
-    // Call onContentReady when editor is ready and has content
     useEffect(() => {
       if (editor && initialContent && onContentReady) {
-        // Small delay to ensure content is fully rendered in DOM
         const timeoutId = setTimeout(() => {
           onContentReady();
         }, 100);
         return () => clearTimeout(timeoutId);
       }
     }, [editor, initialContent, onContentReady]);
+
+    useEffect(() => {
+      if (editor) {
+        editor.setEditable(isEditable);
+      }
+    }, [editor, isEditable]);
 
     const {
       actions: {
@@ -165,18 +226,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       <div
         ref={editorContainerRef}
         className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
-        // onDragOver={(e) => {
-        //   e.preventDefault();
-        // }}
-        // onDragEnterCapture={(e) => {
-        //   setDroppingOver(true);
-        // }}
-        // onDragLeaveCapture={(e) => {
-        //   setDroppingOver(false);
-        // }}
-        // onDropCapture={(e) => {
-        //   setDroppingOver(false);
-        // }}
       >
         {droppingOver && (
           <Overlay
@@ -195,6 +244,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             </Group>
           </Overlay>
         )}
+        {isLocked && <div>Syncing...</div>}
         {/*<FloatingMenu editor={editor} />*/}
         <BubbleMenu
           editor={editor}

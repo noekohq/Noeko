@@ -3,9 +3,13 @@ import Content from "../../../components/UI/Layout/Content";
 import styles from "./Mobile.module.scss";
 import Nav from "../../../components/UI/Layout/Nav";
 import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
-import { Grid, Stack } from "@mantine/core";
+import { Grid, Stack, Text } from "@mantine/core";
 import PaperCard from "../../../components/Display/Paper/PaperCard";
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
+import {
+  CheckIcon,
+  ClockCounterClockwiseIcon,
+  PushPinIcon,
+} from "@phosphor-icons/react";
 import useFetch from "../../../hooks/useFetch";
 import { ITask } from "../../../../app/database/models/task";
 import TaskButton from "../../../components/Display/Tasks/TaskButton";
@@ -16,6 +20,8 @@ import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButto
 import TopBar from "../../../components/UI/Layout/TopBar";
 import UnderConstruction from "../../../components/Utils/UnderConstruction";
 import { useEffect, useState } from "react";
+import usePins from "../../../hooks/usePins";
+import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
 
 export default function MobileDashboard() {
   const [currentTab, setCurrentTab] = useState("overview");
@@ -83,6 +89,10 @@ function Overview({ setTab }: IOverviewProps) {
 
   const navigate = useNavigate();
 
+  const { pins } = usePins();
+  const firstPins = pins.slice(0, 3);
+  console.log("First pins : ", firstPins, pins);
+
   return (
     <div className={styles.overview}>
       <Grid>
@@ -92,6 +102,7 @@ function Overview({ setTab }: IOverviewProps) {
         {tasks && tasks.length > 0 && (
           <Grid.Col span={12}>
             <PaperCard
+              icon={CheckIcon}
               title="ACTIVE TASKS"
               onClick={() => {
                 setTab("agenda");
@@ -111,22 +122,24 @@ function Overview({ setTab }: IOverviewProps) {
             </PaperCard>
           </Grid.Col>
         )}
-        {recentIdeas && (
-          <Grid.Col span={12}>
-            <PaperCard
-              title="RECENT IDEAS"
-              onClick={() => {
-                navigate("/ideas");
-              }}
-            >
+        <Grid.Col span={12}>
+          <PaperCard title="PINNED" icon={PushPinIcon}>
+            {firstPins.length < 1 && (
+              <Text c="gray" size="sm">
+                Nothing yet pinned.
+              </Text>
+            )}
+            {firstPins.length > 0 && (
               <Stack gap="xs">
-                {recentIdeas?.map((i) => {
-                  return <IdeaButton link idea={i} key={i.id.toString()} />;
+                {firstPins.map((p) => {
+                  return (
+                    <ConnectableThing link key={p.id.toString()} thing={p} />
+                  );
                 })}
               </Stack>
-            </PaperCard>
-          </Grid.Col>
-        )}
+            )}
+          </PaperCard>
+        </Grid.Col>
         {recentIdea && (
           <Grid.Col span={12}>
             <Link

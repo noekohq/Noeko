@@ -39,6 +39,7 @@ interface IConnectableThingProps {
   actions?: IConnectableThingAction[];
   connected?: boolean;
   onClick?: (connectable: IConnectable) => void;
+  link?: boolean;
 }
 
 export default function ConnectableThing({
@@ -47,6 +48,7 @@ export default function ConnectableThing({
   connectable,
   connected,
   onClick,
+  link,
 }: IConnectableThingProps) {
   const handleClick = (thing: IConnectable) => {
     onClick?.(thing);
@@ -56,6 +58,7 @@ export default function ConnectableThing({
     const idea = thing as IIdea;
     return (
       <IdeaButton
+        link={link}
         key={idea.id.toString()}
         idea={idea}
         onClick={() => {
@@ -67,7 +70,7 @@ export default function ConnectableThing({
   if (thing.id.toString().startsWith("task")) {
     return (
       <TaskButton
-        link={false}
+        link={link}
         key={thing.id.toString()}
         task={thing as ITask}
         onClick={() => {
@@ -80,6 +83,7 @@ export default function ConnectableThing({
     const source = thing as ISource;
     return (
       <SourceButton
+        link={link}
         key={source.id.toString()}
         source={source}
         onClick={() => {
@@ -92,6 +96,7 @@ export default function ConnectableThing({
     const excerpt = thing as IExcerpt;
     return (
       <ExcerptButton
+        link={link}
         key={excerpt.id.toString()}
         excerpt={excerpt}
         onClick={() => {

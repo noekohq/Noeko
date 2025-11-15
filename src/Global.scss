@@ -205,6 +205,28 @@ td {
         }
     }
 }
+.mantine-Modal-root {
+    z-index: 1000;
+
+    .mantine-Modal-overlay {
+        z-index: inherit;
+    }
+
+    .mantine-Modal-inner {
+        z-index: 1001;
+    }
+}
+.mantine-Popover-dropdown {
+    background-color: var(--mantine-color-body);
+    border: 1px solid var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-lg);
+    border-top-left-radius: var(--mantine-radius-sm);
+    padding: var(--mantine-spacing-md);
+}
+.mantine-Popover-arrow {
+    background-color: var(--mantine-color-dark-8);
+    border: none;
+}
 
 div[data-dream-youtube-video] {
     iframe {

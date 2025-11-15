@@ -38,6 +38,7 @@ interface ISourceButtonProps {
     source: ISource,
     e: React.MouseEvent | React.KeyboardEvent,
   ) => void;
+  link?: boolean;
 }
 
 function SourceButton({
@@ -45,6 +46,7 @@ function SourceButton({
   actions,
   fullWidth = false,
   onClick,
+  link = false,
 }: ISourceButtonProps) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
@@ -80,6 +82,9 @@ function SourceButton({
   ) => {
     if (onClick) {
       onClick(source, e);
+    }
+    if (link) {
+      navigate(`/source/${source.id.toString()}`);
     }
   };
 

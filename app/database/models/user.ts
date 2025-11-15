@@ -626,6 +626,33 @@ export class User {
     }
   }
 
+  static async checkHasAccess(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available.");
+      }
+      const results = await db.query<[number]>(
+        `count(SELECT VALUE id FROM owns WHERE in = $userId AND out = $thingId)`,
+        {
+          userId: new StringRecordId(userId),
+          thingId: new StringRecordId(thingId),
+        },
+      );
+      if (!results) {
+        throw new Error("No results for ownership check");
+      }
+      const owns = results[0] > 0;
+      return owns;
+    } catch (error) {
+      console.error("Error checking user owns: ", userId, thingId, error);
+      return undefined;
+    }
+  }
+
   static async generateAccessToken(user: ISafeUser | IPublicUser) {
     try {
       const token = generateToken<ISafeUser | IPublicUser>(user, {
