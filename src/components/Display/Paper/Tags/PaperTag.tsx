@@ -1,4 +1,4 @@
-import { ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, TagIcon, XIcon } from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
 import { ITag } from "../../../../../app/database/models/tag";
 import React, { useRef, useState } from "react";
@@ -27,23 +27,6 @@ export default function PaperTag({
   state,
 }: IPaperTagProps) {
   const [opened, { open, close, toggle }] = useDisclosure();
-  const [isLongPress, setIsLongPress] = useState(false);
-  const pressTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  const handlePressStart = () => {
-    pressTimeout.current = setTimeout(() => {
-      open();
-      setIsLongPress(true); // It was a long press
-      pressTimeout.current = null;
-    }, 500);
-  };
-
-  const handlePressEnd = () => {
-    if (pressTimeout.current) {
-      clearTimeout(pressTimeout.current);
-      pressTimeout.current = null;
-    }
-  };
 
   const handleClick = () => {
     if (!tag) return;
@@ -55,10 +38,6 @@ export default function PaperTag({
   };
 
   const handleClickWrapper = () => {
-    if (isLongPress) {
-      setIsLongPress(false);
-      return;
-    }
     if (opened) {
       close();
       return;
@@ -96,14 +75,12 @@ export default function PaperTag({
           className={classNames.join(" ")}
           onClick={handleClickWrapper}
           onContextMenu={handleContextMenu}
-          onTouchStart={handlePressStart}
-          onTouchEnd={handlePressEnd}
         >
-          <TagIcon weight="bold" />
+          {opened ? <XIcon weight="bold" /> : <TagIcon weight="bold" />}
           {tag?.name}
         </button>
       </Popover.Target>
-      <Popover.Dropdown w={200}>
+      <Popover.Dropdown w={300}>
         <div className={styles.context}>
           <Stack>
             <Group>
@@ -113,7 +90,7 @@ export default function PaperTag({
                 </PaperIcon>
               </Link>
             </Group>
-            <Text size="sm">
+            <Text size="md">
               {tag?.description || "No description provided."}
             </Text>
           </Stack>
