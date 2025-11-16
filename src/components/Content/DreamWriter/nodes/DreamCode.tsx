@@ -1,5 +1,4 @@
-import { Node, NodeViewProps, mergeAttributes } from "@tiptap/core";
-import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { NodeViewProps } from "@tiptap/core";
 import {
   NodeViewContent,
   NodeViewWrapper,
@@ -86,7 +85,7 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
         </div>
       )}
       <pre className={styles.code}>
-        <NodeViewContent />
+        <NodeViewContent spellCheck={false} />
       </pre>
     </NodeViewWrapper>
   );

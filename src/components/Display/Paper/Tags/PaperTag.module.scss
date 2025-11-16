@@ -12,12 +12,12 @@
 .paperTag {
     animation: tagIn 0.2s ease-in-out;
     background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    padding: 8px var(--mantine-spacing-xs);
     border-radius: var(--mantine-radius-xl);
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--mantine-spacing-sm);
+    gap: var(--mantine-spacing-xs);
     font-size: var(--mantine-font-size-sm);
     text-decoration: none;
     color: var(--mantine-color-dark-1);
@@ -40,8 +40,9 @@
     }
 
     &.applied {
-        background-color: var(--mantine-color-green-7);
-        color: var(--mantine-color-dark-9);
+        background-color: var(--mantine-color-dark-8);
+        color: var(--mantine-color-dark-1);
+        border: 1px solid var(--mantine-color-dark-7);
 
         [data-mantine-color-scheme='dark'] & {
             color: var(--mantine-color-white);
@@ -51,13 +52,12 @@
     &.suggested {
         background-color: var(--mantine-color-dark-9);
         border-style: dashed;
-        border-width: 2px;
+        border-width: 1px;
         border-color: var(--mantine-color-dark-7);
 
         &:hover {
             border-style: solid;
             background-color: var(--mantine-color-dark-8);
-            border-color: var(--mantine-color-green-7);
         }
     }
 

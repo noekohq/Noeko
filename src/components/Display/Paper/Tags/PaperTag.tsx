@@ -1,4 +1,4 @@
-import { CheckIcon } from "@phosphor-icons/react";
+import { CheckIcon, TagIcon } from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
 import { ITag } from "../../../../../app/database/models/tag";
 import { IConnectable } from "../../../../../app/services/Graph";
@@ -41,7 +41,7 @@ export default function PaperTag({
 
   return (
     <button className={classNames.join(" ")} onClick={handleClick}>
-      {active && <CheckIcon weight="bold" />}
+      <TagIcon weight="bold" />
       {tag?.name}
     </button>
   );

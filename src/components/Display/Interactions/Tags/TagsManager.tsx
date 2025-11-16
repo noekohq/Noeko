@@ -93,11 +93,11 @@ export default function TagsManager({
           );
         })}
 
-        {/* 2. The Unified Picker (Always at the end) */}
         <TagPicker
           onSelectExisting={(tag) => handleApplyExisting(tag.id.toString())}
           onCreateNew={handleCreateAndAdd}
           omitIds={appliedTags?.map((t) => t.id.toString())}
+          initialSuggestions={filteredSuggested}
         />
       </Group>
     </div>
