@@ -1,3 +1,4 @@
+import { MantineColor, MantineSize } from "@mantine/core";
 import styles from "./PaperButton.module.scss";
 
 interface IPaperButtonProps {
@@ -7,6 +8,7 @@ interface IPaperButtonProps {
   onClick?: () => void;
   withBorder?: boolean;
   fullWidth?: boolean;
+  size?: MantineSize;
 }
 
 export default function PaperButton({
@@ -16,11 +18,19 @@ export default function PaperButton({
   onClick,
   withBorder = false,
   fullWidth = false,
+  size = "md",
 }: IPaperButtonProps) {
+  const classNames: string[] = [
+    styles.paperButton,
+    withBorder ? styles.withBorder : "",
+    fullWidth ? styles.fullWidth : "",
+    styles[size],
+  ].filter((c) => !!c);
+
   return (
     <button
       tabIndex={tabIndex}
-      className={`${styles.paperButton} ${withBorder ? styles.withBorder : ""} ${fullWidth ? styles.fullWidth : ""}`}
+      className={classNames.join(" ")}
       onClick={onClick}
     >
       {leftSection && <div className={styles.leftSection}>{leftSection}</div>}

@@ -7,6 +7,7 @@ import React, {
   SetStateAction,
   ComponentType,
   useRef,
+  useCallback,
 } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 
@@ -65,6 +66,7 @@ type ILayoutContext = {
     isScrolled: boolean;
     scrollDirection: "up" | "down";
     setScrollableElement: Dispatch<SetStateAction<HTMLElement | null>>;
+    check: () => void;
   };
   isMobile: boolean;
   isTablet: boolean;
@@ -125,6 +127,7 @@ const initialLayoutContext: ILayoutContext = {
     isScrolled: false,
     scrollDirection: "up",
     setScrollableElement: () => {},
+    check: () => {},
   },
   isMobile: false,
   isTablet: false,
@@ -191,18 +194,17 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     useState<HTMLElement | null>(null);
   const lastScrollPosition = useRef(0);
 
+  const handleScroll = useCallback(() => {
+    if (!scrollableElement) return;
+    const direction =
+      scrollableElement.scrollTop > lastScrollPosition.current ? "down" : "up";
+    setIsScrolled(scrollableElement.scrollTop > 0);
+    setScrollDirection(direction);
+    lastScrollPosition.current = scrollableElement.scrollTop;
+  }, [scrollableElement]);
+
   useEffect(() => {
     if (!scrollableElement) return;
-
-    const handleScroll = () => {
-      const direction =
-        scrollableElement.scrollTop > lastScrollPosition.current
-          ? "down"
-          : "up";
-      setIsScrolled(scrollableElement.scrollTop > 0);
-      setScrollDirection(direction);
-      lastScrollPosition.current = scrollableElement.scrollTop;
-    };
 
     scrollableElement.addEventListener("scroll", handleScroll);
 
@@ -376,6 +378,9 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
       isScrolled: isScrolled,
       scrollDirection: scrollDirection,
       setScrollableElement: setScrollableElement,
+      check: () => {
+        handleScroll();
+      },
     },
     isMobile,
     isTablet,
