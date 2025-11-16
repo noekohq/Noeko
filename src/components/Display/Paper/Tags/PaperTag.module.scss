@@ -27,6 +27,7 @@
     width: auto;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
+    user-select: none;
 
     &:hover {
         transform: translateY(-2px);
@@ -44,7 +45,7 @@
         color: var(--mantine-color-dark-1);
         border: 1px solid var(--mantine-color-dark-7);
 
-        [data-mantine-color-scheme='dark'] & {
+        [data-mantine-color-scheme="dark"] & {
             color: var(--mantine-color-white);
         }
     }
@@ -66,7 +67,7 @@
         border: 1px solid var(--mantine-color-dark-7);
         color: var(--mantine-color-dark-9);
 
-        [data-mantine-color-scheme='dark'] & {
+        [data-mantine-color-scheme="dark"] & {
             color: var(--mantine-color-white);
         }
     }
