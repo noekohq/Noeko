@@ -117,6 +117,13 @@ const PaperSelection = ({
     [mode, searchQuery, formPrompt, onClose],
   );
 
+  const menu = React.Children.toArray(children).find(
+    (child) => React.isValidElement(child) && child.type === Menu,
+  );
+  const form = React.Children.toArray(children).find(
+    (child) => React.isValidElement(child) && child.type === Form,
+  );
+
   return (
     <PaperSelectionContext.Provider value={contextValue}>
       <Stack gap="xs">
@@ -134,9 +141,8 @@ const PaperSelection = ({
         </div>
 
         <div className={styles.root}>
-          <div className={styles.flipper} data-mode={mode}>
-            {children}
-          </div>
+          {mode === "search" && menu}
+          {mode === "create" && form}
         </div>
       </Stack>
     </PaperSelectionContext.Provider>

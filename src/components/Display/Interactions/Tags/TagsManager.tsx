@@ -60,6 +60,9 @@ export default function TagsManager({
   const suggestedToAllowed = showingAll
     ? filteredSuggested
     : filteredSuggested.slice(0, maxSuggested);
+  const slicedOutSuggestions = showingAll
+    ? []
+    : filteredSuggested.slice(maxSuggested);
 
   return (
     <div className={styles.tagsManager}>
@@ -97,7 +100,7 @@ export default function TagsManager({
           onSelectExisting={(tag) => handleApplyExisting(tag.id.toString())}
           onCreateNew={handleCreateAndAdd}
           omitIds={appliedTags?.map((t) => t.id.toString())}
-          initialSuggestions={filteredSuggested}
+          initialSuggestions={slicedOutSuggestions}
         />
       </Group>
     </div>
