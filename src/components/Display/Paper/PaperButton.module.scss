@@ -12,12 +12,9 @@
 .paperButton {
     animation: buttonIn 0.2s ease-in-out;
     background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
     border-radius: var(--mantine-radius-lg);
     display: flex;
     flex-direction: row;
-    gap: var(--mantine-spacing-sm);
-    font-size: var(--mantine-font-size-sm);
     text-decoration: none;
     color: var(--mantine-color-dark-1);
     font-weight: 565;
@@ -35,6 +32,7 @@
     &.fullWidth {
         width: 100%;
     }
+
     &:hover {
         transform: translateY(-2px);
         box-shadow: var(--mantine-shadow-sm);
@@ -48,6 +46,36 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--mantine-color-dark-4);
+        color: var(--mantine-color-dark-2);
     }
+}
+
+.xs {
+    padding: 4px var(--mantine-spacing-xs);
+    gap: var(--mantine-spacing-xs);
+    font-size: var(--mantine-font-size-xs);
+}
+
+.sm {
+    padding: 8px var(--mantine-spacing-sm);
+    gap: var(--mantine-spacing-xs);
+    font-size: var(--mantine-font-size-xs);
+}
+
+.md {
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    gap: var(--mantine-spacing-sm);
+    font-size: var(--mantine-font-size-sm);
+}
+
+.lg {
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+    gap: var(--mantine-spacing-md);
+    font-size: var(--mantine-font-size-md);
+}
+
+.xl {
+    padding: var(--mantine-spacing-md) var(--mantine-spacing-xl);
+    gap: var(--mantine-spacing-lg);
+    font-size: var(--mantine-font-size-lg);
 }

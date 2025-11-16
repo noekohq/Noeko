@@ -16,7 +16,7 @@ import { getExtensionConfig } from "./extensions";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "../../../contexts/LayoutContext";
-import { Group, Overlay, Text } from "@mantine/core";
+import { Group, Loader, Overlay, Text } from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
 import { getOS } from "../../../utils/platform";
 import { useCollaboration } from "../../../hooks/useCollaboration";
@@ -244,7 +244,16 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             </Group>
           </Overlay>
         )}
-        {isLocked && <div>Syncing...</div>}
+        {isLocked && (
+          <div className={styles.syncing}>
+            <Group gap="xs">
+              <Text size="sm" c="dimmed" fw="bold">
+                Syncing
+              </Text>
+              <Loader size="xs" color="gray" />
+            </Group>
+          </div>
+        )}
         {/*<FloatingMenu editor={editor} />*/}
         <BubbleMenu
           editor={editor}
@@ -261,7 +270,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }}
           className={styles.tippyContent}
           editor={editor}
-          spellCheck={false}
         />
       </div>
     );

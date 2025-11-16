@@ -32,7 +32,7 @@ Drawer.displayName = "Nav.Drawer";
 export default function Nav({ children }: INavProps) {
   const {
     isMobile,
-    scroll: { isScrolled, scrollDirection },
+    scroll: { isScrolled, scrollDirection, check: checkScrolled },
     elements: {
       nav: {
         drawer: {
@@ -93,6 +93,10 @@ export default function Nav({ children }: INavProps) {
       return pathname === "/";
     },
   };
+
+  useEffect(() => {
+    checkScrolled();
+  }, []);
 
   const navigate = useNavigate();
 

@@ -20,61 +20,6 @@ import PaperButton from "../../Paper/PaperButton"; // Assuming you have this
 import { PaperSelection, usePaperSelection } from "../../Paper/PaperSelection";
 import PaperTag from "../../Paper/Tags/PaperTag";
 
-// --- Extracted Create Form ---
-// This form component uses the context to get the default name.
-function TagCreateForm({
-  onSubmit,
-  isSubmitting,
-}: {
-  onSubmit: (values: {
-    name: string;
-    description: string;
-    color: string;
-  }) => Promise<void>;
-  isSubmitting: boolean;
-}) {
-  // Pull the current search query from the context
-  const { searchQuery } = usePaperSelection();
-
-  const form = useForm({
-    initialValues: {
-      name: searchQuery,
-      description: "",
-      color: "", // You can add your color picker logic here
-    },
-  });
-
-  // Sync defaultName to form *only when it changes*
-  // This updates the form if the user types *after* clicking "create"
-  // and then flips back and forth.
-  useEffect(() => {
-    form.setFieldValue("name", searchQuery);
-  }, [searchQuery]);
-
-  return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
-      <Stack gap="xs">
-        <TextInput
-          placeholder="Name"
-          {...form.getInputProps("name")}
-          data-autofocus
-        />
-        <Textarea
-          placeholder="Short description (required)"
-          autosize
-          minRows={2}
-          maxRows={4}
-          {...form.getInputProps("description")}
-        />
-        <Button type="submit" fullWidth loading={isSubmitting} size="xs">
-          Create & Apply
-        </Button>
-      </Stack>
-    </form>
-  );
-}
-
-// --- Main TagPicker Component ---
 interface TagPickerProps {
   onSelectExisting: (tag: ITag) => void;
   onCreateNew: (
@@ -83,12 +28,14 @@ interface TagPickerProps {
     color: string,
   ) => Promise<void>;
   omitIds?: string[];
+  initialSuggestions?: ITag[];
 }
 
 export function TagPicker({
   onSelectExisting,
   onCreateNew,
   omitIds = [],
+  initialSuggestions,
 }: TagPickerProps) {
   const [opened, { open, close, toggle }] = useDisclosure(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,6 +73,32 @@ export function TagPicker({
     }
   };
 
+  const isSearching = searchQuery.trim().length > 0;
+  const hasInitialSuggestions =
+    initialSuggestions && initialSuggestions.length > 0;
+  const hasFilteredSuggestions = filteredSuggestions.length > 0;
+
+  const showInitialSuggestions = !isSearching && hasInitialSuggestions;
+  const showTypeToSearch = !isSearching && !hasInitialSuggestions;
+  const showFilteredSuggestions = isSearching && hasFilteredSuggestions;
+  const showNoResults = isSearching && !hasFilteredSuggestions;
+
+  const renderSuggestions = (tags: ITag[]) => (
+    <Group gap="xs" wrap="wrap" align="center" pt="xs">
+      {tags.map((tag) => (
+        <PaperTag
+          key={tag.id.toString()}
+          state="suggested"
+          onApply={() => {
+            onSelectExisting(tag);
+            handleClose();
+          }}
+          tag={tag}
+        />
+      ))}
+    </Group>
+  );
+
   return (
     <Popover
       opened={opened}
@@ -139,8 +112,15 @@ export function TagPicker({
       <Popover.Target>
         <div>
           <PaperButton
-            leftSection={opened ? <XIcon size={14} /> : <PlusIcon size={14} />}
+            leftSection={
+              opened ? (
+                <XIcon weight="bold" size={14} />
+              ) : (
+                <PlusIcon weight="bold" size={14} />
+              )
+            }
             onClick={toggle}
+            size="md"
           >
             {opened ? "Cancel" : "Add Tag"}
           </PaperButton>
@@ -156,36 +136,23 @@ export function TagPicker({
           formPrompt={(q) => `Add "${q}"`}
         >
           <PaperSelection.Menu>
-            <ScrollArea.Autosize mah={200} type="scroll">
-              <Stack gap="xs">
-                {filteredSuggestions.length === 0 ||
-                  (searchQuery.length <= 1 && searchQuery.trim() === "" && (
-                    <Text c="dimmed" size="xs" ta="left" py="sm">
-                      Type to search...
-                    </Text>
-                  ))}
-                {searchQuery.length > 0 && filteredSuggestions.length === 0 && (
-                  <Text c="dimmed" size="xs" ta="left" py="sm">
-                    No results found.
-                  </Text>
-                )}
-                {searchQuery.length > 0 && filteredSuggestions.length > 0 && (
-                  <Group gap="xs" wrap="wrap" align="center" pt="xs">
-                    {filteredSuggestions.map((tag) => (
-                      <PaperTag
-                        key={tag.id.toString()}
-                        state="suggested"
-                        onApply={() => {
-                          onSelectExisting(tag);
-                          handleClose();
-                        }}
-                        tag={tag}
-                      />
-                    ))}
-                  </Group>
-                )}
-              </Stack>
-            </ScrollArea.Autosize>
+            {showInitialSuggestions &&
+              initialSuggestions &&
+              renderSuggestions(initialSuggestions)}
+
+            {showTypeToSearch && (
+              <Text c="dimmed" size="xs" ta="left" py="sm">
+                Type to search...
+              </Text>
+            )}
+
+            {showFilteredSuggestions && renderSuggestions(filteredSuggestions)}
+
+            {showNoResults && (
+              <Text c="dimmed" size="xs" ta="left" py="sm">
+                No results found.
+              </Text>
+            )}
           </PaperSelection.Menu>
 
           <PaperSelection.Form title="New Tag">
@@ -197,5 +164,65 @@ export function TagPicker({
         </PaperSelection>
       </Popover.Dropdown>
     </Popover>
+  );
+}
+
+function TagCreateForm({
+  onSubmit,
+  isSubmitting,
+}: {
+  onSubmit: (values: {
+    name: string;
+    description: string;
+    color: string;
+  }) => Promise<void>;
+  isSubmitting: boolean;
+}) {
+  const { searchQuery } = usePaperSelection();
+
+  const form = useForm({
+    initialValues: {
+      name: searchQuery,
+      description: "",
+      color: "",
+    },
+  });
+
+  useEffect(() => {
+    form.setFieldValue("name", searchQuery);
+  }, [searchQuery]);
+
+  return (
+    <form onSubmit={form.onSubmit(onSubmit)}>
+      <Stack gap="xs">
+        <TextInput
+          placeholder="Name"
+          {...form.getInputProps("name")}
+          data-autofocus
+          radius="md"
+          size="md"
+        />
+        <Textarea
+          placeholder="Short description (required)"
+          autosize
+          minRows={3}
+          maxRows={4}
+          {...form.getInputProps("description")}
+          radius="md"
+          size="md"
+        />
+        <Button
+          type="submit"
+          fullWidth
+          loading={isSubmitting}
+          size="md"
+          radius="lg"
+          color="gray"
+          variant="light"
+        >
+          Create & Apply
+        </Button>
+      </Stack>
+    </form>
   );
 }

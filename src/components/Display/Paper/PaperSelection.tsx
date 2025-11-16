@@ -146,12 +146,24 @@ const PaperSelection = ({
 const Menu = ({ children }: MenuProps) => {
   const { searchQuery, formPrompt, setMode } = usePaperSelection();
 
+  const hasChildren = React.Children.count(children) > 0;
+  const hasQuery = searchQuery.trim().length > 0;
+  const showMenu = hasChildren || hasQuery;
+
+  console.log(
+    "Children: ",
+    hasChildren,
+    React.Children.count(children),
+    children,
+  );
+
+  if (!showMenu) return null;
+
   return (
     <div className={`${styles.panel} ${styles.menu}`}>
       <Stack gap="sm" style={{ width: "100%" }}>
         {children}
 
-        {/* The "Create" button */}
         {searchQuery.trim().length > 0 && (
           <>
             <div>
@@ -169,14 +181,12 @@ const Menu = ({ children }: MenuProps) => {
   );
 };
 
-// --- Form Component ---
 const Form = ({ children, title }: FormProps) => {
   const { setMode } = usePaperSelection();
 
   return (
     <div className={`${styles.panel} ${styles.form}`}>
       <Stack gap="xs" style={{ width: "100%" }}>
-        {/* Back button and Title */}
         <Group justify="space-between">
           <ActionIcon
             variant="subtle"
@@ -185,15 +195,14 @@ const Form = ({ children, title }: FormProps) => {
             onClick={() => setMode("search")}
             className={styles.backButton}
           >
-            <ArrowLeftIcon />
+            <ArrowLeftIcon weight="bold" />
           </ActionIcon>
-          <Text size="xs" fw={700}>
+          <Text size="xs" c="dimmed" fw="bold">
             {title}
           </Text>
-          <div style={{ width: 28 }} /> {/* Spacer */}
+          <div style={{ width: 28 }} />
         </Group>
 
-        {/* Render the form fields passed as children */}
         {children}
       </Stack>
     </div>

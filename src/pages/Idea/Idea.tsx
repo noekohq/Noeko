@@ -494,7 +494,7 @@ export default function Idea() {
                     ...idea,
                     type: "idea",
                   }}
-                  maxSuggested={2}
+                  maxSuggested={1}
                 />
               )}
             </Stack>
