@@ -7,8 +7,6 @@ import {
   Stack,
   Text,
   TextInput,
-  ScrollArea,
-  Box,
   Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -19,6 +17,8 @@ import { useDisclosure } from "@mantine/hooks";
 import PaperButton from "../../Paper/PaperButton"; // Assuming you have this
 import { PaperSelection, usePaperSelection } from "../../Paper/PaperSelection";
 import PaperTag from "../../Paper/Tags/PaperTag";
+import { useLayout } from "../../../../contexts/LayoutContext";
+import PaperDrawer from "../../Paper/PaperDrawer";
 
 interface TagPickerProps {
   onSelectExisting: (tag: ITag) => void;
@@ -37,6 +37,8 @@ export function TagPicker({
   omitIds = [],
   initialSuggestions,
 }: TagPickerProps) {
+  const { isMobile } = useLayout();
+
   const [opened, { open, close, toggle }] = useDisclosure(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -99,6 +101,66 @@ export function TagPicker({
     </Group>
   );
 
+  const paperSelectionContent = (
+    <PaperSelection
+      onSearch={setSearchQuery}
+      onClear={() => setSearchQuery("")}
+      onClose={handleClose}
+      isLoading={loading}
+      formPrompt={(q) => `Add "${q}"`}
+    >
+      <PaperSelection.Menu>
+        {showInitialSuggestions &&
+          initialSuggestions &&
+          renderSuggestions(initialSuggestions)}
+
+        {showTypeToSearch && (
+          <Text c="dimmed" size="xs" ta="left" py="sm">
+            Type to search...
+          </Text>
+        )}
+
+        {showFilteredSuggestions && renderSuggestions(filteredSuggestions)}
+
+        {showNoResults && (
+          <Text c="dimmed" size="xs" ta="left" py="sm">
+            No results found.
+          </Text>
+        )}
+      </PaperSelection.Menu>
+
+      <PaperSelection.Form title="New Tag">
+        <TagCreateForm
+          onSubmit={handleCreateSubmit}
+          isSubmitting={isSubmitting}
+        />
+      </PaperSelection.Form>
+    </PaperSelection>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <PaperButton
+          leftSection={
+            opened ? (
+              <XIcon weight="bold" size={14} />
+            ) : (
+              <PlusIcon weight="bold" size={14} />
+            )
+          }
+          onClick={toggle}
+          size="md"
+        >
+          {opened ? "Cancel" : "Add Tag"}
+        </PaperButton>
+        <PaperDrawer opened={opened} onClose={handleClose}>
+          {paperSelectionContent}
+        </PaperDrawer>
+      </>
+    );
+  }
+
   return (
     <Popover
       opened={opened}
@@ -127,42 +189,7 @@ export function TagPicker({
         </div>
       </Popover.Target>
 
-      <Popover.Dropdown p="xs">
-        <PaperSelection
-          onSearch={setSearchQuery}
-          onClear={() => setSearchQuery("")}
-          onClose={handleClose}
-          isLoading={loading}
-          formPrompt={(q) => `Add "${q}"`}
-        >
-          <PaperSelection.Menu>
-            {showInitialSuggestions &&
-              initialSuggestions &&
-              renderSuggestions(initialSuggestions)}
-
-            {showTypeToSearch && (
-              <Text c="dimmed" size="xs" ta="left" py="sm">
-                Type to search...
-              </Text>
-            )}
-
-            {showFilteredSuggestions && renderSuggestions(filteredSuggestions)}
-
-            {showNoResults && (
-              <Text c="dimmed" size="xs" ta="left" py="sm">
-                No results found.
-              </Text>
-            )}
-          </PaperSelection.Menu>
-
-          <PaperSelection.Form title="New Tag">
-            <TagCreateForm
-              onSubmit={handleCreateSubmit}
-              isSubmitting={isSubmitting}
-            />
-          </PaperSelection.Form>
-        </PaperSelection>
-      </Popover.Dropdown>
+      <Popover.Dropdown p="xs">{paperSelectionContent}</Popover.Dropdown>
     </Popover>
   );
 }
