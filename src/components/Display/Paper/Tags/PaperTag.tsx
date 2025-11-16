@@ -1,8 +1,11 @@
-import { CheckIcon, TagIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
 import { ITag } from "../../../../../app/database/models/tag";
-import { IConnectable } from "../../../../../app/services/Graph";
-import useConnectable from "../../../../hooks/useConnectable";
+import React, { useRef, useState } from "react";
+import { Group, Popover, Stack, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import PaperIcon from "../PaperIcon";
+import { Link } from "react-router";
 
 export type ITagState = "applied" | "suggested" | "display";
 
@@ -23,6 +26,25 @@ export default function PaperTag({
   onApply,
   state,
 }: IPaperTagProps) {
+  const [opened, { open, close, toggle }] = useDisclosure();
+  const [isLongPress, setIsLongPress] = useState(false);
+  const pressTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handlePressStart = () => {
+    pressTimeout.current = setTimeout(() => {
+      open();
+      setIsLongPress(true); // It was a long press
+      pressTimeout.current = null;
+    }, 500);
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimeout.current) {
+      clearTimeout(pressTimeout.current);
+      pressTimeout.current = null;
+    }
+  };
+
   const handleClick = () => {
     if (!tag) return;
     if (active && onRemove) {
@@ -30,6 +52,23 @@ export default function PaperTag({
     } else if (onApply) {
       onApply(tag.id.toString());
     }
+  };
+
+  const handleClickWrapper = () => {
+    if (isLongPress) {
+      setIsLongPress(false);
+      return;
+    }
+    if (opened) {
+      close();
+      return;
+    }
+    handleClick();
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toggle();
   };
 
   const classNames = [
@@ -40,9 +79,46 @@ export default function PaperTag({
   ].filter(Boolean);
 
   return (
-    <button className={classNames.join(" ")} onClick={handleClick}>
-      <TagIcon weight="bold" />
-      {tag?.name}
-    </button>
+    <Popover
+      opened={opened}
+      closeOnClickOutside
+      onChange={(o) => {
+        if (o) {
+          open();
+        } else {
+          close();
+        }
+      }}
+      shadow="md"
+    >
+      <Popover.Target>
+        <button
+          className={classNames.join(" ")}
+          onClick={handleClickWrapper}
+          onContextMenu={handleContextMenu}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
+        >
+          <TagIcon weight="bold" />
+          {tag?.name}
+        </button>
+      </Popover.Target>
+      <Popover.Dropdown w={200}>
+        <div className={styles.context}>
+          <Stack>
+            <Group>
+              <Link to={`/tags/${tag?.id}`}>
+                <PaperIcon aria-label="View tag" withBorder>
+                  <ArrowRightIcon weight="bold" />
+                </PaperIcon>
+              </Link>
+            </Group>
+            <Text size="sm">
+              {tag?.description || "No description provided."}
+            </Text>
+          </Stack>
+        </div>
+      </Popover.Dropdown>
+    </Popover>
   );
 }

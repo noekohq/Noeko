@@ -1,30 +1,18 @@
 .root {
     position: relative;
-    overflow: hidden;
     background-color: var(--mantine-color-dark-9);
     border: 1px solid var(--mantine-color-dark-7);
     border-radius: var(--mantine-radius-md);
 }
 
-.flipper {
-    display: flex;
-    transition: transform 0.25s ease-in-out;
-    width: 200%;
-}
-
-.flipper[data-mode="create"] {
-    transform: translateX(-50%);
-}
-
 .panel {
     padding: var(--layout-spacing) var(--mantine-spacing-sm);
-    max-height: 300;
-    overflow-y: scroll;
-    width: 50%;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    vertical-align: top;
 }
 
 .inputContainer {
