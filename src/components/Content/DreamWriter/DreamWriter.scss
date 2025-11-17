@@ -72,5 +72,5 @@
     transition: background-color 0.2s ease;
     pointer-events: none;
     opacity: 1;
-    background-color: var(--mantine-color-blue-8) !important;
+    background-color: rgb(from var(--mantine-color-blue-6) r g b / 0.25) !important;
 }
