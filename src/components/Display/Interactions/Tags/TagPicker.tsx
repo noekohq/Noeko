@@ -10,7 +10,7 @@ import {
   Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { XIcon, PlusIcon } from "@phosphor-icons/react";
+import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
 import { ITag } from "../../../../../app/database/models/tag"; // Adjust path as needed
 import useFetch from "../../../../hooks/useFetch"; // Adjust path
 import { useDisclosure } from "@mantine/hooks";
@@ -206,6 +206,7 @@ function TagCreateForm({
   isSubmitting: boolean;
 }) {
   const { searchQuery } = usePaperSelection();
+  const [descriptionVisible, setDescriptionVisible] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -224,20 +225,43 @@ function TagCreateForm({
       <Stack gap="xs">
         <TextInput
           placeholder="Name"
+          variant="unstyled"
           {...form.getInputProps("name")}
+          size="md"
           data-autofocus
-          radius="md"
-          size="md"
+          classNames={{
+            root: styles.textRoot,
+            input: styles.input,
+          }}
         />
-        <Textarea
-          placeholder="Short description (required)"
-          autosize
-          minRows={3}
-          maxRows={4}
-          {...form.getInputProps("description")}
-          radius="md"
-          size="md"
-        />
+        {descriptionVisible ? (
+          <Textarea
+            placeholder="What does this mean?"
+            variant="unstyled"
+            autosize
+            minRows={3}
+            maxRows={4}
+            {...form.getInputProps("description")}
+            size="md"
+            classNames={{
+              root: styles.textRoot,
+              input: styles.input,
+              label: styles.label,
+            }}
+          />
+        ) : (
+          <Group justify="flex-end">
+            <Button
+              variant="subtle"
+              color="gray"
+              size="xs"
+              onClick={() => setDescriptionVisible(true)}
+              leftSection={<ArrowBendDownLeftIcon weight="bold" />}
+            >
+              Add description
+            </Button>
+          </Group>
+        )}
         <Button
           type="submit"
           fullWidth

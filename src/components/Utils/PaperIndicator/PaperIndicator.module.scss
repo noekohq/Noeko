@@ -1,0 +1,44 @@
+.wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.indicator {
+  position: absolute;
+  z-index: 10;
+  background-color: var(--mantine-color-dark-7);
+  color: var(--mantine-color-dark-0);
+  border-radius: var(--mantine-radius-xl);
+  padding: 2px 6px;
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1.2;
+  box-shadow: var(--mantine-shadow-sm);
+  border: 1px solid var(--mantine-color-dark-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topLeft {
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.topRight {
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+}
+
+.bottomLeft {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+}
+
+.bottomRight {
+  bottom: 0;
+  right: 0;
+  transform: translate(50%, 50%);
+}

@@ -48,16 +48,6 @@ interface EditorProps {
 
 const defaultContent = ``;
 
-const getRandomCollaborationColor = () => {
-  const colors = [
-    "var(--mantine-color-orange-6)",
-    "var(--mantine-color-green-6)",
-    "var(--mantine-color-pink-6)",
-    "var(--mantine-color-blue-7)",
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-
 const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
   (
     {

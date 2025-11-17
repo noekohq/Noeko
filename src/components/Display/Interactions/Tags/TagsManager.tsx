@@ -8,6 +8,7 @@ import { createTagAndAddToThing } from "../../../../utils/tags"; // Adjust
 import styles from "./TagsManager.module.scss";
 // Assuming you will create this or use your PaperTag logic here
 import PaperTag, { ITagState } from "../../Paper/Tags/PaperTag";
+import { useLayout } from "../../../../contexts/LayoutContext";
 
 type ITagsManagerProps = {
   connectable: IConnectable;
@@ -18,6 +19,7 @@ export default function TagsManager({
   connectable,
   maxSuggested,
 }: ITagsManagerProps) {
+  const { isMobile } = useLayout();
   const {
     tags: {
       appliedSet,
@@ -69,7 +71,12 @@ export default function TagsManager({
       {/* Optional: Minimal header, or remove entirely for pure "flow" */}
       {/* <Text size="xs" c="dimmed" fw={700} mb={4} tt="uppercase" ls={1}>Tags</Text> */}
 
-      <Group gap="xs" wrap="wrap" align="center">
+      <Group
+        gap="xs"
+        wrap={isMobile ? "nowrap" : "wrap"}
+        align="center"
+        className={isMobile ? styles.mobileGroup : ""}
+      >
         {/* 1. Render Applied Tags */}
         {appliedTags?.map((tag) => {
           return (

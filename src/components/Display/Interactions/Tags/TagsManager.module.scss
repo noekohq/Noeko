@@ -1,3 +1,14 @@
 .tagsManager {
     position: relative;
 }
+
+.mobileGroup {
+    overflow-x: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    /* padding-block: var(--layout-spacing); */
+
+    &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+}
