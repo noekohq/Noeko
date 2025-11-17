@@ -34,7 +34,6 @@ export const extensions = [
   StarterKit.configure({
     heading: { levels: [1, 2, 3, 4, 5] },
     codeBlock: false, // We use DreamCode instead
-    code: false, // Inline code
     dropcursor: false, // UI
     gapcursor: false, // UI
   }),
