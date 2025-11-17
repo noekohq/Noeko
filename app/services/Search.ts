@@ -426,7 +426,7 @@ export class Search {
                 *,
                 search::highlight("->", "<-", 0) AS preview,
                 search::score(0) AS descriptionScore,
-                search::score(0) AS scratchpadScore
+                search::score(1) AS scratchpadScore
             FROM task
             WHERE
                 (description @0@ $query OR scratchpad @1@ $query)
@@ -1918,24 +1918,29 @@ export class ConnectableTableSearchBuilder {
       ftsFields: string[];
       vectorFields: string[];
       specialClauses?: string[];
+      highlightIndex?: number;
     }
   > = {
     idea: {
       ftsFields: ["title", "contentPlain"] as (keyof IIdea)[],
       vectorFields: ["embeddings"] as (keyof IIdea)[],
+      highlightIndex: 1,
     },
     task: {
       ftsFields: ["description", "scratchpad"] as (keyof ITask)[],
       vectorFields: ["embeddings"] as (keyof ITask)[],
       specialClauses: ["completedAt = NULL"],
+      highlightIndex: 1,
     },
     source: {
       ftsFields: ["displayName", "content"] as (keyof ISource)[],
       vectorFields: ["embeddings"] as (keyof ISource)[],
+      highlightIndex: 1,
     },
     excerpt: {
       ftsFields: ["sourceText", "note"] as (keyof IExcerpt)[],
       vectorFields: ["embeddings"] as (keyof ISource)[],
+      highlightIndex: 1,
     },
   };
 
@@ -2084,7 +2089,7 @@ export class ConnectableTableSearchBuilder {
     query: string;
     params: Record<string, any>;
   } {
-    const { ftsFields, vectorFields, specialClauses } =
+    const { ftsFields, vectorFields, specialClauses, highlightIndex } =
       ConnectableTableSearchBuilder.tableSelector[this.table];
     const ftsSelectors = ftsFields.map((f, i) => {
       return `${f} @${i}@ $query`;
@@ -2103,7 +2108,7 @@ export class ConnectableTableSearchBuilder {
     const baseQuery = `
       SELECT
         *,
-        search::highlight("->", "<-", 0) AS preview,
+        search::highlight("->", "<-", ${highlightIndex ?? 0}) AS preview,
         ${ftsSelectorScores.join(", ")}
       OMIT ${vectorFields.join(", ")}
       FROM ${this.table}
