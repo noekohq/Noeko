@@ -53,7 +53,7 @@
 .collaboration-carets__label {
     border-radius: 3px 3px 3px 0;
     background-color: currentColor;
-    color: var(--mantine-color-dark-9);
+    color: var(--mantine-color-white);
     font-size: var(--mantine-font-size-sm);
     font-family: var(--mantine-font-family);
     font-style: normal;
@@ -68,8 +68,9 @@
     z-index: 10;
 }
 
-.collaboration-cursor__selection {
-    opacity: 0.3;
+.ProseMirror-yjs-selection {
     transition: background-color 0.2s ease;
     pointer-events: none;
+    opacity: 1;
+    background-color: var(--mantine-color-blue-8) !important;
 }
