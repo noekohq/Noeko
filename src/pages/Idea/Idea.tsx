@@ -24,6 +24,7 @@ import {
   Button,
   Popover,
   Box,
+  Indicator,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import { modals } from "@mantine/modals";
@@ -56,7 +57,11 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import { useLayout } from "../../contexts/LayoutContext";
 import { getTextProcessed } from "../../utils/processing";
-import { formatDateTime, htmlToPlainText } from "../../utils/formatting";
+import {
+  formatDate,
+  formatDateTime,
+  htmlToPlainText,
+} from "../../utils/formatting";
 import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
@@ -69,12 +74,15 @@ import Loading from "../../components/Display/Loading/Loading";
 
 import { useLandscape } from "../../contexts/LandscapeContext";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
-import useConnectable from "../../hooks/useConnectable";
+import useConnectable, {
+  IUseConnectableReturn,
+} from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import usePins from "../../hooks/usePins";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
 import UnderConstruction from "../../components/Utils/UnderConstruction";
+import PaperIndicator from "../../components/Utils/PaperIndicator";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -315,9 +323,10 @@ export default function Idea() {
 
   const editorRef = useRef<IEditor>(null);
 
-  const { connect, isConnected } = useConnectable({
+  const connectable = useConnectable({
     connectable: idea ? { ...idea, type: "idea" } : null,
   });
+  const { connect, isConnected, connected } = connectable;
 
   const handleTitleGen = () => {
     triggerTitleGeneration();
@@ -403,7 +412,11 @@ export default function Idea() {
           <Stack gap="md">
             <Stack>
               {idea && editorRef.current && (
-                <Tools editor={editorRef.current} idea={idea} />
+                <Tools
+                  connectable={connectable}
+                  editor={editorRef.current}
+                  idea={idea}
+                />
               )}
               <Group gap="xs">
                 <Title
@@ -455,17 +468,14 @@ export default function Idea() {
                 }}
               >
                 <Flex gap="xs" direction={isMobile ? "column" : "row"}>
-                  <Group gap="8px">
-                    <Text size="xs" title="Created at" c="dark.3" fw="565">
-                      <Group gap="4px" align="center">
-                        <ClockIcon weight="bold" />
-                        CREATED{" "}
-                      </Group>
-                    </Text>
+                  <Group gap="4px" align="center">
+                    <ClockIcon
+                      color="var(--mantine-color-dark-3)"
+                      size={12}
+                      weight="bold"
+                    />
                     <Text size="xs" fw="500">
-                      {idea?.createdAt
-                        ? `${formatDateTime(idea?.createdAt)}`
-                        : ""}
+                      {idea?.createdAt ? `${formatDate(idea?.createdAt)}` : ""}
                     </Text>
                   </Group>
                   {!isMobile && (
@@ -473,13 +483,12 @@ export default function Idea() {
                       •
                     </Text>
                   )}
-                  <Group gap="8px">
-                    <Text size="xs" title="Created at" c="dark.3" fw="565">
-                      <Group gap="4px" align="center">
-                        <PencilSimpleIcon weight="bold" />
-                        UPDATED{" "}
-                      </Group>
-                    </Text>
+                  <Group gap="4px" align="center">
+                    <PencilSimpleIcon
+                      color="var(--mantine-color-dark-3)"
+                      size={12}
+                      weight="bold"
+                    />
                     <Text size="xs" fw="500">
                       {idea?.updatedAt
                         ? `${formatDateTime(idea?.updatedAt)}`
@@ -576,9 +585,10 @@ export default function Idea() {
 interface ITools {
   idea: ISafeIdea;
   editor: IEditor;
+  connectable: IUseConnectableReturn;
 }
 
-function Tools({ idea, editor }: ITools) {
+function Tools({ idea, editor, connectable }: ITools) {
   const { isMobile } = useLayout();
 
   const navigate = useNavigate();

@@ -10,6 +10,7 @@
 }
 
 .paperTag {
+    position: relative;
     animation: tagIn 0.2s ease-in-out;
     background-color: var(--mantine-color-dark-8);
     padding: 8px var(--mantine-spacing-xs);
@@ -27,7 +28,18 @@
     width: auto;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
+    white-space: nowrap;
     user-select: none;
+    margin: 6px 0;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        bottom: -6px;
+        left: -2px;
+        right: -2px;
+    }
 
     &:hover {
         transform: translateY(-2px);
@@ -42,8 +54,8 @@
 
     &.applied {
         background-color: var(--mantine-color-dark-8);
-        color: var(--mantine-color-dark-1);
         border: 1px solid var(--mantine-color-dark-7);
+        box-shadow: var(--mantine-shadow-md);
 
         [data-mantine-color-scheme="dark"] & {
             color: var(--mantine-color-white);
@@ -53,12 +65,11 @@
     &.suggested {
         background-color: var(--mantine-color-dark-9);
         border-style: dashed;
-        border-width: 1px;
+        border-width: 2px;
         border-color: var(--mantine-color-dark-7);
 
         &:hover {
-            border-style: solid;
-            background-color: var(--mantine-color-dark-8);
+            background-color: var(--mantine-color-dark-7);
         }
     }
 

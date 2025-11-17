@@ -1,4 +1,9 @@
-import { ArrowRightIcon, TagIcon, XIcon } from "@phosphor-icons/react";
+import {
+  ArrowRightIcon,
+  PlusIcon,
+  TagIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
 import { ITag } from "../../../../../app/database/models/tag";
 import React, { useRef, useState } from "react";
@@ -57,6 +62,13 @@ export default function PaperTag({
     state === "suggested" && styles.suggested,
   ].filter(Boolean);
 
+  const Icon = () => {
+    if (opened) {
+      return <XIcon weight="bold" />;
+    }
+    return <TagIcon weight="bold" />;
+  };
+
   return (
     <Popover
       opened={opened}
@@ -76,7 +88,7 @@ export default function PaperTag({
           onClick={handleClickWrapper}
           onContextMenu={handleContextMenu}
         >
-          {opened ? <XIcon weight="bold" /> : <TagIcon weight="bold" />}
+          {opened ? <XIcon weight="bold" /> : <Icon />}
           {tag?.name}
         </button>
       </Popover.Target>

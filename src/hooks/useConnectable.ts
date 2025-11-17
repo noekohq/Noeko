@@ -10,11 +10,11 @@ import {
 } from "../../app/database/models/tag";
 import { applyTagToThing, removeTagFromThing } from "../utils/tags";
 
-type IUseConnectableArgs = {
+export type IUseConnectableArgs = {
   connectable: IConnectable | null;
 };
 
-type IUseConnectableReturn = {
+export type IUseConnectableReturn = {
   connected: IConnectable[];
   loadingConnected: boolean;
   similar: IConnectable[];
