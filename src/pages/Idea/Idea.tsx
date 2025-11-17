@@ -90,6 +90,8 @@ export default function Idea() {
   const [title, setTitle] = useState<string>("");
   const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
 
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
   const {
     elements: {
       statusBar: {
@@ -115,7 +117,9 @@ export default function Idea() {
     method: "GET",
     runOnMount: true,
     onSuccess: (d) => {
-      setTitle(d.title);
+      if (document.activeElement !== titleRef.current) {
+        setTitle(d.title);
+      }
       setOriginalIdea(d);
     },
   });
@@ -420,6 +424,7 @@ export default function Idea() {
               )}
               <Group gap="xs">
                 <Title
+                  ref={titleRef}
                   order={1}
                   m="0"
                   pr="md"
@@ -431,9 +436,10 @@ export default function Idea() {
                       setTitle(newTitle);
                     }
                   }}
-                  dangerouslySetInnerHTML={{ __html: title || "" }}
                   className={styles.editableTitle}
-                />
+                >
+                  {title || ""}
+                </Title>
                 {titleNeedsGeneration() && !loadingTitleGeneration && (
                   <ActionIcon
                     onClick={() => {

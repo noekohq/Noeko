@@ -2,9 +2,9 @@ const MANTINE_CURSOR_COLORS = [
   "red",
   "pink",
   "grape",
+  "blue",
   "violet",
   "indigo",
-  "blue",
   "cyan",
   "teal",
   "green",
@@ -21,5 +21,5 @@ export const assignMantineColor = (str: string): string => {
   const index = Math.abs(hash) % MANTINE_CURSOR_COLORS.length;
   const colorName = MANTINE_CURSOR_COLORS[index];
 
-  return `var(--mantine-color-${colorName}-6)`;
+  return `var(--mantine-color-${colorName}-8)`;
 };
