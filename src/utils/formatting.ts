@@ -6,7 +6,7 @@ const turndownService = new TurndownService();
 export const formatDate = (d: Date) => {
   const date = new Date(d);
 
-  return formatDateRelative(date);
+  return capitalize(formatDateRelative(date));
 };
 
 export const formatDateTime = (d: Date) => {

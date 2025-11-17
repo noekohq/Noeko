@@ -64,7 +64,9 @@ export const getExtensionConfig = ({
         HTMLAttributes: { class: contentStyles.link },
         linkOnPaste: true,
       },
-      code: false,
+      code: {
+        HTMLAttributes: { class: contentStyles.code },
+      },
       codeBlock: false,
       dropcursor: false,
       gapcursor: false,
