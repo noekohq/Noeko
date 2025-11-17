@@ -266,7 +266,7 @@ function TagCreateForm({
           type="submit"
           fullWidth
           loading={isSubmitting}
-          size="md"
+          size="sm"
           radius="lg"
           color="gray"
           variant="light"
