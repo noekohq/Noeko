@@ -31,6 +31,7 @@ const lowlight = createLowlight(all);
 
 interface IGetExtensionConfigOptions {
   placeholder?: string;
+  connectableId?: string;
 }
 
 interface IGetExtensionConfigReturn {
@@ -42,6 +43,7 @@ interface IGetExtensionConfigReturn {
 // (TODO: consolidate the two extension configurations into a single source of truth)
 export const getExtensionConfig = ({
   placeholder,
+  connectableId,
 }: IGetExtensionConfigOptions): IGetExtensionConfigReturn => ({
   extensions: [
     // 1. CORE HYBRID (Synced with Server)
@@ -149,7 +151,13 @@ export const getExtensionConfig = ({
     DreamHighlight.configure(), // Shared Mark
 
     // 4. BEHAVIOR EXTENSIONS (Client Only)
-    DreamFileHandler.configure({}),
+    ...(connectableId
+      ? [
+          DreamFileHandler.configure({
+            connectableId,
+          }),
+        ]
+      : []),
     DreamConnection.configure({}),
     DreamSlash.configure({}),
     DreamPaste.configure(),

@@ -5,7 +5,7 @@
  */
 export function averageEmbeddings(vectors: number[][]): number[] {
   // 1. Handle the edge case of an empty input array to avoid errors.
-  if (vectors.length === 0) {
+  if (vectors.length === 0 || !vectors[0]) {
     return [];
   }
 

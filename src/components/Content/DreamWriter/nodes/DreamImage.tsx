@@ -26,6 +26,7 @@ declare module "@tiptap/core" {
         title?: string;
         width?: string | number;
         height?: string | number;
+        fileId?: string;
       }) => ReturnType;
     };
   }
@@ -91,15 +92,18 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
       data-selected={selected}
     >
       <img
-        {...node.attrs}
-        ref={imgRef}
-        className={styles.dreamImage}
-        draggable="true"
-        data-drag-handle
+        src={node.attrs.src}
+        alt={node.attrs.alt}
+        title={node.attrs.title}
+        data-file-id={node.attrs.fileId}
         style={{
           width: node.attrs.width,
           height: node.attrs.height,
         }}
+        ref={imgRef}
+        className={styles.dreamImage}
+        draggable="true"
+        data-drag-handle
       />
       {selected && (
         <div

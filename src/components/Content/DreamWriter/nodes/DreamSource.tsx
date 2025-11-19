@@ -2,11 +2,10 @@ import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
   FileTextIcon,
-  LightbulbIcon,
   TrashIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { Node, mergeAttributes, Editor as IEditor } from "@tiptap/core";
+import { Editor as IEditor } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewProps,
@@ -17,16 +16,8 @@ import styles from "./styles/DreamSource.module.scss";
 import { ActionIcon, Group, HoverCard, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
-import { DOMParser, Fragment } from "@tiptap/pm/model";
-import { useEffect } from "react";
 import { ISource } from "../../../../../app/database/models/source";
-import { useLandscape } from "../../../../contexts/LandscapeContext";
-import useConnectable from "../../../../hooks/useConnectable";
-import { IConnectable } from "../../../../../app/services/Graph";
-import {
-  DreamSourceSchema,
-  IDreamSourceOptions,
-} from "../../../../../shared/editing/tiptap/nodes/DreamSource";
+import { DreamSourceSchema } from "../../../../../shared/editing/tiptap/nodes/DreamSource";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -60,20 +51,6 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
     url: `/sources/${sourceId}`,
     runOnMount: !!sourceId,
   });
-
-  const {
-    connectable: {
-      viewing: { get: currentConnectable },
-    },
-  } = useLandscape();
-  const { ensureConnected, loadingConnected } = useConnectable({
-    connectable: currentConnectable ?? null,
-  });
-  useEffect(() => {
-    if (source?.id) {
-      ensureConnected(source.id.toString());
-    }
-  }, [source?.id.toString(), loadingConnected]);
 
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;

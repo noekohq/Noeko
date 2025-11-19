@@ -4,6 +4,7 @@ import {
   IIdeaForm,
   IIdeaDerived,
   ISafeIdea,
+  IIdeaShareAccess,
 } from "../../app/database/models/ideas";
 import { api } from "../server/api";
 import { IChunk } from "../../app/services/Importer";
@@ -274,11 +275,20 @@ export const getIdeaSummaryItemIfExists = (
   return i;
 };
 
-export const createIdeaShare = async (ideaId: string, userId: string) => {
+export const createIdeaShare = async (
+  ideaId: string,
+
+  userId: string,
+
+  accessLevel?: IIdeaShareAccess,
+) => {
   try {
     return await api
+
       .post(`/ideas/${ideaId}/share`, {
         userId,
+
+        accessLevel,
       })
       .then(() => {
         return Promise.resolve();

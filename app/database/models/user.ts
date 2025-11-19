@@ -4,6 +4,7 @@ import { generateToken, verifyToken, hashPassword } from "../../utils/crypto";
 import { invitationTemplate, passwordResetTemplate } from "../../emails/types";
 import { sendEmail } from "../../utils/email";
 import TourGuide from "../../services/TourGuide";
+import Authorization from "../../services/Authorization";
 
 export type IRole = {
   id: string;
@@ -55,6 +56,7 @@ export type IPublicUser = Omit<
   | "acceptedTermsOfServiceAt"
   | "acceptedPrivacyPolicyAt"
   | "settings"
+  | "updatedAt"
 >;
 
 export type IToken = {
@@ -298,11 +300,10 @@ export class User {
     if (Array.isArray(user)) {
       return user.map((u) => this.filterPublicFields(u)) as IPublicUser[];
     }
-    const { id, createdAt, updatedAt, firstName, lastName } = user;
+    const { id, createdAt, firstName, lastName } = user;
     const publicUser: IPublicUser = {
       id,
       createdAt,
-      updatedAt,
       firstName,
       lastName,
     };
@@ -631,22 +632,9 @@ export class User {
     thingId: string | RecordId,
   ) {
     try {
-      const db = await getDatabase();
-      if (!db) {
-        throw new Error("Database not available.");
-      }
-      const results = await db.query<[number]>(
-        `count(SELECT VALUE id FROM owns WHERE in = $userId AND out = $thingId)`,
-        {
-          userId: new StringRecordId(userId),
-          thingId: new StringRecordId(thingId),
-        },
-      );
-      if (!results) {
-        throw new Error("No results for ownership check");
-      }
-      const owns = results[0] > 0;
-      return owns;
+      const auth = new Authorization(userId);
+      const hasAccess = await auth.hasAccess(thingId);
+      return hasAccess;
     } catch (error) {
       console.error("Error checking user owns: ", userId, thingId, error);
       return undefined;

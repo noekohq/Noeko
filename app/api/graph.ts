@@ -11,6 +11,8 @@ import GraphService, {
   ConstellationLoader,
   IConstellationLoader,
 } from "../services/Graph";
+import { StringRecordId } from "surrealdb";
+import Authorization from "../services/Authorization";
 
 const router = Router();
 
@@ -72,8 +74,8 @@ router.post("/connection", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const { source, target } = req.body;
-    const hasAccessToSource = await User.checkOwns(user.id, source);
-    const hasAccessToTarget = await User.checkOwns(user.id, source);
+    const hasAccessToSource = await User.checkHasAccess(user.id, source);
+    const hasAccessToTarget = await User.checkHasAccess(user.id, target);
     if (!hasAccessToSource || !hasAccessToTarget) {
       res.status(403).json({
         message: "Unauthorized",
@@ -117,8 +119,8 @@ router.delete("/connection", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const { source, target } = req.body;
-    const hasAccessToSource = await User.checkOwns(user.id, source);
-    const hasAccessToTarget = await User.checkOwns(user.id, source);
+    const hasAccessToSource = await User.checkHasAccess(user.id, source);
+    const hasAccessToTarget = await User.checkHasAccess(user.id, target);
     if (!hasAccessToSource || !hasAccessToTarget) {
       res.status(403).json({
         message: "Unauthorized",
@@ -148,8 +150,8 @@ router.get("/connection", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const { source, target } = req.body;
-    const hasAccessToSource = await User.checkOwns(user.id, source);
-    const hasAccessToTarget = await User.checkOwns(user.id, source);
+    const hasAccessToSource = await User.checkHasAccess(user.id, source);
+    const hasAccessToTarget = await User.checkHasAccess(user.id, target);
     if (!hasAccessToSource || !hasAccessToTarget) {
       res.status(403).json({
         message: "Unauthorized",
@@ -205,8 +207,9 @@ router.get(
         return;
       }
       const { thingId } = req.params;
-      const hasAccess = await User.checkOwns(user.id, thingId);
+      const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
+        console.log("Does not have access for similar: ", user.id, thingId);
         res.status(403).send({
           message: "Unauthorized.",
         });
@@ -219,7 +222,10 @@ router.get(
         });
         return;
       }
-      const connections = await GraphService.getConnections(thingId);
+      const connections = await GraphService.getUserConnectionsForThing(
+        thingId,
+        user.id,
+      );
       res.send({
         message: "Successfully got connections",
         data: connections,
@@ -244,8 +250,9 @@ router.get(
         return;
       }
       const { thingId } = req.params;
-      const hasAccess = await User.checkOwns(user.id, thingId);
+      const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
+        console.log("Does not have access for similar: ", user.id, thingId);
         res.status(403).send({
           message: "Unauthorized.",
         });
@@ -293,8 +300,9 @@ router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const { thingId } = req.params;
-    const hasAccess = await User.checkOwns(user.id, thingId);
+    const hasAccess = await User.checkHasAccess(user.id, thingId);
     if (!hasAccess) {
+      console.log("Does not have access for tags: ", user.id, thingId);
       res.status(403).send({
         message: "Unauthorized.",
       });
@@ -307,7 +315,7 @@ router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const tags = await GraphService.getTags(thingId);
+    const tags = await GraphService.getUserTagsForThing(thingId, user.id);
     res.send({
       message: "Successfully got tags",
       data: tags,
@@ -331,7 +339,7 @@ router.get(
         return;
       }
       const { thingId } = req.params;
-      const hasAccess = await User.checkOwns(user.id, thingId);
+      const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
         res.status(403).send({
           message: "Unauthorized.",
@@ -357,6 +365,59 @@ router.get(
       res.status(500).send({
         message: "Something went wrong",
       });
+    }
+  },
+);
+
+router.post(
+  "/ensure-connected",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<IUser>(req, "user");
+      if (!user) {
+        res.status(403).json({ message: "Unauthorized" });
+        return;
+      }
+
+      const auth = new Authorization(user.id);
+
+      const { source, targets } = req.body;
+
+      if (!source || !targets || !Array.isArray(targets)) {
+        res.status(400).json({
+          message: "Bad Request: Missing source or invalid targets array",
+        });
+        return;
+      }
+
+      const hasAccessToSource = await auth.hasAccess(source);
+
+      if (!hasAccessToSource) {
+        res.status(403).json({
+          message: "Unauthorized: You do not have access to the source node.",
+        });
+        return;
+      }
+
+      const accessibleConnections = await auth.hasAccessBulk(targets);
+      if (accessibleConnections.size === 0) {
+        res.status(200).json({ message: "No valid connections to create." });
+        return;
+      }
+
+      await GraphService.ensureConnected(
+        source,
+        Array.from(accessibleConnections),
+      );
+
+      res.status(200).json({
+        message: "Connections ensured.",
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal Server Error" });
     }
   },
 );

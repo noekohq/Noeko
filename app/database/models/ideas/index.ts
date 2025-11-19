@@ -1921,10 +1921,6 @@ class IdeaDerivedCascade {
         await GenerativeSummary.cascadeGenerativeSummary(this.ideaId);
       if (updatedGenerativeSummary) {
         console.info(`Updated generative summary for idea "${this.ideaId}"`);
-      } else {
-        console.error(
-          `No generative summary updated for idea "${this.ideaId}"`,
-        );
       }
     } catch (error) {
       console.error(`Error during cascade for idea "${this.ideaId}":`, error);

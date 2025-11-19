@@ -4,9 +4,8 @@ import {
   LightbulbIcon,
   TrashIcon,
   TrashSimpleIcon,
-  XIcon,
 } from "@phosphor-icons/react";
-import { Node, Editor as IEditor } from "@tiptap/core";
+import { Editor as IEditor } from "@tiptap/core";
 import {
   ReactNodeViewRenderer,
   NodeViewProps,
@@ -14,27 +13,13 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import {
-  ActionIcon,
-  Group,
-  HoverCard,
-  Popover,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { ActionIcon, Group, Popover, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../app/database/models/ideas";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
-import { useIdea } from "../../../../contexts/IdeaContext";
+import { DreamIdeaSchema } from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
 import { useEffect } from "react";
-import useConnectable from "../../../../hooks/useConnectable";
-import { useLandscape } from "../../../../contexts/LandscapeContext";
-import { IConnectable } from "../../../../../app/services/Graph";
-import {
-  DreamIdeaSchema,
-  IDreamIdeaOptions,
-} from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -74,20 +59,6 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   useEffect(() => {
     fetchIdea();
   }, []);
-
-  const {
-    connectable: {
-      viewing: { get: currentConnectable },
-    },
-  } = useLandscape();
-  const { ensureConnected, loadingConnected } = useConnectable({
-    connectable: currentConnectable ?? null,
-  });
-  useEffect(() => {
-    if (idea?.id) {
-      ensureConnected(idea.id.toString());
-    }
-  }, [idea?.id.toString(), loadingConnected]);
 
   if (!ideaId) {
     return <span className={styles.dreamIdeaError}>[ERROR]</span>;

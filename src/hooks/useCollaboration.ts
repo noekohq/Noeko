@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { refreshToken, serverHost } from "../server/api";
 
@@ -15,62 +15,97 @@ export const useCollaboration = ({
 }: any) => {
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
   const [status, setStatus] = useState<CollaborationStatus>("disconnected");
-  const [retryCount, setRetryCount] = useState(0);
+
+  // Keep track of the current room so we don't overwrite a newer request
+  // with an older async result
+  const activeRoomRef = useRef<string | null>(null);
 
   useEffect(() => {
+    // 1. Guard Clauses
     if (!roomId || !enabled) {
       setProvider(null);
-      return;
-    }
-
-    if (retryCount > 1) {
       setStatus("disconnected");
       return;
     }
 
+    // 2. Update Ref to current intention
+    activeRoomRef.current = roomId;
+
+    // 3. Set Loading State & Clear old provider to prevent "Zombie" usage
+    // This ensures DreamWriter reverts to read-only/local while connecting
+    // rather than trying to use a destroyed provider.
+    setProvider(null);
     setStatus("connecting");
 
     let newProvider: HocuspocusProvider | null = null;
 
-    (async () => {
+    const initProvider = async () => {
       try {
-        await refreshToken(); // Ensure auth is fresh
+        // 4. Refresh Token
+        await refreshToken();
+
+        // Check if we are still trying to connect to the same room
+        // (User might have navigated away while we were awaiting)
+        if (activeRoomRef.current !== roomId) return;
 
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
         const url = `${protocol}://${serverHost}`;
 
-        console.log(`Connecting to ${url} (Attempt ${retryCount + 1})`);
-
         newProvider = new HocuspocusProvider({
           url,
           name: roomId,
+          // Optional: Force WebSocketPolyfill if using in non-browser env
+          // WebSocketPolyfill: WebSocket,
           onSynced: () => {
-            setStatus("synced");
-            onStatusChange?.("synced");
-            setRetryCount(0);
+            if (activeRoomRef.current === roomId) {
+              setStatus("synced");
+              onStatusChange?.("synced");
+            }
           },
           onClose: () => {
-            setStatus("disconnected");
+            if (activeRoomRef.current === roomId) {
+              setStatus("disconnected");
+            }
           },
-          onAuthenticationFailed: () => {
-            console.warn("Auth failed, retrying...");
-            setRetryCount((prev) => prev + 1);
+          onAuthenticationFailed: async () => {
+            console.warn("Auth failed. Attempting token refresh...");
+            try {
+              await refreshToken();
+              // Hocuspocus doesn't automatically retry immediately after this callback
+              // usually, but the next connection attempt will use the new cookie.
+              // We can force a granular reconnect if needed, but usually
+              // the provider retry strategy handles this.
+            } catch (e) {
+              console.error("Token refresh failed", e);
+              setStatus("disconnected");
+            }
           },
         });
 
-        setProvider(newProvider);
+        if (activeRoomRef.current === roomId) {
+          setProvider(newProvider);
+        } else {
+          // We navigated away during setup
+          newProvider.destroy();
+        }
       } catch (err) {
         console.error("Failed to setup collaboration", err);
-        setStatus("disconnected");
+        if (activeRoomRef.current === roomId) {
+          setStatus("disconnected");
+        }
       }
-    })();
+    };
 
+    initProvider();
+
+    // 5. Cleanup
     return () => {
+      activeRoomRef.current = null; // Cancel any pending async setups
       if (newProvider) {
         newProvider.destroy();
       }
     };
-  }, [roomId, enabled, retryCount]);
+  }, [roomId, enabled]); // Removed 'version' dependency
 
   return { provider, status };
 };

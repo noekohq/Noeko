@@ -4,6 +4,7 @@ import multer from "multer";
 import { UserFile } from "../database/models/userfile";
 import { getFromReq, multerToStandardFile } from "../utils/requests";
 import { ISafeUser, User } from "../database/models/user";
+import Authorization from "../services/Authorization";
 
 const router = Router();
 
@@ -134,6 +135,167 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
+router.post("/embed", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(401).json({
+        error: "Unauthorized",
+        message: "User not found.",
+      });
+      return;
+    }
+    const fileId = req.body.fileId;
+    const hasAccess = await User.checkHasAccess(user.id, fileId);
+    if (!hasAccess) {
+      res.status(403).json({
+        error: "Forbidden",
+        message: "User does not have access to the file.",
+      });
+      return;
+    }
+    const connectableId = req.body.connectableId;
+    const hasAccessToConnectable = await User.checkHasAccess(
+      user.id,
+      connectableId,
+    );
+    if (!hasAccessToConnectable) {
+      res.status(403).json({
+        error: "Forbidden",
+        message: "User does not have access to the connectable.",
+      });
+      return;
+    }
+    const relation = await UserFile.embedInConnectable(fileId, connectableId);
+    res.status(201).json({
+      message: "File embedded successfully.",
+      data: relation,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: "Something went wrong.",
+    });
+  }
+});
+
+router.post("/unembed", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(401).json({
+        error: "Unauthorized",
+        message: "User not found.",
+      });
+      return;
+    }
+    const fileId = req.body.fileId;
+    const file = await UserFile.get(fileId);
+    if (!file) {
+      res.status(404).json({
+        error: "Not Found",
+        message: "File not found.",
+      });
+      return;
+    }
+    const connectableId = req.body.connectableId;
+    const hasAccess = await Authorization.checkHasAccess(
+      user.id,
+      connectableId,
+    );
+    if (!hasAccess) {
+      res.status(403).json({
+        error: "Forbidden",
+        message: "User does not have access to the connectable.",
+      });
+      return;
+    }
+    await UserFile.unembedFromConnectable(fileId, connectableId);
+    res.status(200).json({
+      message: "File unembedded successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: "Something went wrong.",
+    });
+  }
+});
+
+router.post(
+  "/ensure-embedded",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res
+          .status(401)
+          .json({ error: "Unauthorized", message: "User not found." });
+        return;
+      }
+
+      const { connectableId, fileIds } = req.body;
+
+      if (!connectableId || !fileIds || !Array.isArray(fileIds)) {
+        res.status(400).json({
+          error: "Bad Request",
+          message: "Missing connectableId or invalid fileIds array.",
+        });
+        return;
+      }
+
+      // 1. Check Write Access to the Target Container (The Idea)
+      // You must be able to edit the idea to embed things in it.
+      const canEditContainer = await Authorization.checkHasAccess(
+        user.id,
+        connectableId,
+        "editor", // IMPORTANT: Require editor access to the Idea
+      );
+
+      if (!canEditContainer) {
+        res.status(403).json({
+          error: "Forbidden",
+          message: "User does not have write access to the connectable.",
+        });
+        return;
+      }
+
+      // 2. Bulk Check Read Access to the Source Files
+      // You must already have read access to a file to link it here.
+      const allowedFileIds = await Authorization.checkHasAccessBulk(
+        user.id,
+        fileIds,
+        // No specific level required, simple view access is enough to link it
+      );
+
+      if (allowedFileIds.size === 0) {
+        // If no valid files, just return success (nothing to do)
+        res.status(200).json({ message: "No valid files to embed." });
+        return;
+      }
+
+      // 3. Embed only the intersection
+      // Convert Set to Array for the model method
+      await UserFile.ensureEmbedded(connectableId, Array.from(allowedFileIds));
+
+      res.status(200).json({
+        message: "File connections ensured.",
+        count: allowedFileIds.size,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: "Something went wrong ensuring embeddings.",
+      });
+    }
+  },
+);
+
 router.get("/:fileId", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -152,7 +314,7 @@ router.get("/:fileId", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    if (!UserFile.checkUserOwnership(file.id.toString(), user.id)) {
+    if (!(await UserFile.checkUserOwnership(file.id.toString(), user.id))) {
       res.status(403).json({
         error: "Forbidden",
         message: "You do not have permission to access this file.",
@@ -190,7 +352,7 @@ router.delete("/:fileId", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    if (!UserFile.checkUserOwnership(file.id, user.id)) {
+    if (!(await UserFile.checkUserOwnership(file.id, user.id))) {
       res.status(403).json({
         error: "Forbidden",
         message: "You do not have permission to access this file.",
@@ -228,7 +390,7 @@ router.get("/:id/download", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    if (!User.checkOwns(user.id, file.id)) {
+    if (!(await User.checkHasAccess(user.id, file.id))) {
       res.status(403).json({
         message: "Unauthorized.",
       });
@@ -273,7 +435,7 @@ router.get("/:id/stream", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    if (!User.checkOwns(user.id.toString(), file.id.toString())) {
+    if (!(await User.checkHasAccess(user.id.toString(), file.id.toString()))) {
       res.status(403).json({
         error: "Forbidden",
         message: "You do not have permission to access this file.",

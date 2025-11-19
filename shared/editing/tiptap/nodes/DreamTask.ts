@@ -1,4 +1,3 @@
-import { NodeConfig } from "@tiptap/core";
 import { DOMParser, Fragment } from "@tiptap/pm/model";
 import { mergeAttributes } from "@tiptap/core";
 import { Node } from "@tiptap/core";

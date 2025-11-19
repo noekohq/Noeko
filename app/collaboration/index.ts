@@ -87,9 +87,8 @@ const collabServer = new Server({
       throw new Error("Unauthorized.");
     }
 
-    const id = user.id.toString();
-    const auth = new Authorization(id);
-    const hasAccess = await auth.hasAccess(documentName);
+    const auth = new Authorization(user.id.toString());
+    const hasAccess = await auth.hasAccess(documentName, "editor");
 
     if (!hasAccess) {
       throw new Error("Unauthorized.");
