@@ -8,8 +8,6 @@ import { PushPinIcon } from "@phosphor-icons/react";
 export default function Pins() {
   const { pins, pinThing, unpinThing } = usePins();
 
-  console.log("pins: ", pinThing, unpinThing);
-
   return (
     <div className={styles.pins}>
       <Stack>

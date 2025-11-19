@@ -420,6 +420,8 @@ export default function Idea() {
                   connectable={connectable}
                   editor={editorRef.current}
                   idea={idea}
+                  reloadIdea={reloadIdea}
+                  loadingIdea={loadingIdea}
                 />
               )}
               <Group gap="xs">
@@ -473,7 +475,7 @@ export default function Idea() {
                   borderRadius: "var(--mantine-radius-md)",
                 }}
               >
-                <Flex gap="xs" direction={isMobile ? "column" : "row"}>
+                <Flex gap="xs" direction={"row"}>
                   <Group gap="4px" align="center">
                     <ClockIcon
                       color="var(--mantine-color-dark-3)"
@@ -484,11 +486,9 @@ export default function Idea() {
                       {idea?.createdAt ? `${formatDate(idea?.createdAt)}` : ""}
                     </Text>
                   </Group>
-                  {!isMobile && (
-                    <Text size="sm" fw="bold" c="dark.4">
-                      •
-                    </Text>
-                  )}
+                  <Text size="sm" fw="bold" c="dark.4">
+                    •
+                  </Text>
                   <Group gap="4px" align="center">
                     <PencilSimpleIcon
                       color="var(--mantine-color-dark-3)"
@@ -523,13 +523,14 @@ export default function Idea() {
                 >
                   <DreamWriter
                     key={ideaId}
-                    initialContent={editorContent}
+                    // initialContent={editorContent}
                     stickyMenu={false}
                     onBlur={handleEditorBlur}
                     onContentReady={handleContentReady}
                     dependencies={[ideaId, idea.id]}
                     ref={editorRef}
                     collaborationId={idea.id.toString()}
+                    connectableId={idea.id.toString()}
                   />
                 </IdeaProvider>
               )}
@@ -573,11 +574,22 @@ export default function Idea() {
             </Tabs.Panel>
             <Tabs.Panel value="access">
               {!!idea && (
-                <Access
-                  idea={idea}
-                  loadingIdea={loadingIdea}
-                  reloadIdea={reloadIdea}
-                />
+                <>
+                  {isMobile ? (
+                    <Box p="md">
+                      <Text size="sm" c="dimmed" ta="center">
+                        Access controls can be found in the toolbar at the top
+                        of the screen.
+                      </Text>
+                    </Box>
+                  ) : (
+                    <Access
+                      idea={idea}
+                      loadingIdea={loadingIdea}
+                      reloadIdea={reloadIdea}
+                    />
+                  )}
+                </>
               )}
               {!idea && <Loading size="sm" />}
             </Tabs.Panel>
@@ -590,31 +602,58 @@ export default function Idea() {
 
 interface ITools {
   idea: ISafeIdea;
+
   editor: IEditor;
+
   connectable: IUseConnectableReturn;
+
+  reloadIdea: () => void;
+
+  loadingIdea: boolean;
 }
 
-function Tools({ idea, editor, connectable }: ITools) {
+function Tools({
+  idea,
+
+  editor,
+
+  connectable,
+
+  reloadIdea,
+
+  loadingIdea,
+}: ITools) {
   const { isMobile } = useLayout();
 
   const navigate = useNavigate();
 
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/ideas/${idea.id.toString()}`,
+
     dependencies: [idea.id.toString()],
+
     method: "DELETE",
+
     onSuccess: () => {
       navigate(-1);
+
       showNotification({
         title: "Success",
+
         message: "Idea deleted successfully",
       });
     },
+
     onError: (error: any) => {
       console.error("Error deleting idea: ", error);
+
       showNotification({
         title: "Error Deleting",
-        message: `There was an error deleting the idea: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
+
+        message: `There was an error deleting the idea: ${
+          error?.response?.data?.message || error?.message || "Unknown error"
+        }`,
+
         color: "red",
       });
     },
@@ -622,16 +661,22 @@ function Tools({ idea, editor, connectable }: ITools) {
 
   const handleDeleteIdea = useCallback(() => {
     if (loadingDelete) return;
+
     modals.openConfirmModal({
       title: "Are you sure you want to delete this idea?",
+
       centered: true,
+
       children: (
         <Text size="sm">
           This action cannot be undone. All associated data will be lost.
         </Text>
       ),
+
       labels: { confirm: "Delete Idea", cancel: "Cancel" },
+
       confirmProps: { color: "red" },
+
       onConfirm: () => triggerDeleteIdea(),
     });
   }, [loadingDelete, triggerDeleteIdea, idea.id.toString()]);
@@ -640,7 +685,9 @@ function Tools({ idea, editor, connectable }: ITools) {
     if (idea?.content) {
       downloadTextAsFile(idea?.content, {
         type: "text/html",
+
         extension: "html",
+
         name: idea.title,
       });
     }
@@ -650,9 +697,13 @@ function Tools({ idea, editor, connectable }: ITools) {
     if (!idea?.content) {
       return "";
     }
+
     // if (editorRef.current?.storage.markdown) {
+
     //   return editorRef.current?.storage.markdown.getMarkdown() as string;
+
     // }
+
     return htmlToMarkdown(idea?.content);
   };
 
@@ -662,18 +713,24 @@ function Tools({ idea, editor, connectable }: ITools) {
 
       downloadTextAsFile(markdown, {
         type: "text/markdown",
+
         extension: "md",
+
         name: idea.title,
       });
     }
   };
 
   const { thingIsPinned, togglePin } = usePins();
+
   const [pinning, setPinning] = useState(false);
+
   const isPinned = thingIsPinned(idea.id);
+
   const handleTogglePin = async () => {
     try {
       setPinning(true);
+
       await togglePin(idea.id.toString());
     } catch (error) {
       console.error("Error toggling pin:", error);
@@ -683,6 +740,7 @@ function Tools({ idea, editor, connectable }: ITools) {
   };
 
   const size = isMobile ? "lg" : "md";
+
   const radius = "md";
 
   const handleBack = () => {
@@ -690,6 +748,8 @@ function Tools({ idea, editor, connectable }: ITools) {
   };
 
   const [managingConnections, setManagingConnections] = useState(false);
+
+  const [managingAccess, setManagingAccess] = useState(false);
 
   return (
     <div>
@@ -705,10 +765,12 @@ function Tools({ idea, editor, connectable }: ITools) {
             <ArrowLeftIcon weight="bold" />
           </ActionIcon>
         </Group>
+
         <Group wrap="nowrap">
           <ActionIcon
             onClick={() => {
               if (pinning) return;
+
               handleTogglePin();
             }}
             aria-label={isPinned ? "Unpin" : "Pin"}
@@ -719,6 +781,7 @@ function Tools({ idea, editor, connectable }: ITools) {
           >
             <PushPinIcon weight={isPinned ? "fill" : "bold"} />
           </ActionIcon>
+
           {isMobile && (
             <>
               <ActionIcon
@@ -731,8 +794,20 @@ function Tools({ idea, editor, connectable }: ITools) {
               >
                 <UniteSquareIcon />
               </ActionIcon>
+
+              <ActionIcon
+                aria-label="Manage access"
+                size={size}
+                radius={radius}
+                variant="subtle"
+                color="gray"
+                onClick={() => setManagingAccess(true)}
+              >
+                <UserCirclePlusIcon weight="fill" />
+              </ActionIcon>
             </>
           )}
+
           <Menu
             width={300}
             shadow="md"
@@ -755,6 +830,7 @@ function Tools({ idea, editor, connectable }: ITools) {
                 </ActionIcon>
               </div>
             </Menu.Target>
+
             <Menu.Dropdown>
               <Menu.Item
                 leftSection={<BracketsAngleIcon />}
@@ -762,6 +838,7 @@ function Tools({ idea, editor, connectable }: ITools) {
               >
                 Export as HTML
               </Menu.Item>
+
               <Menu.Item
                 leftSection={<MarkdownLogoIcon />}
                 onClick={downloadAsMarkdown}
@@ -770,6 +847,7 @@ function Tools({ idea, editor, connectable }: ITools) {
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+
           <Menu
             width={300}
             shadow="md"
@@ -792,6 +870,7 @@ function Tools({ idea, editor, connectable }: ITools) {
                 </ActionIcon>
               </div>
             </Menu.Target>
+
             <Menu.Dropdown>
               <Tooltip label="Delete Idea">
                 <Menu.Item
@@ -805,6 +884,7 @@ function Tools({ idea, editor, connectable }: ITools) {
                   Delete
                 </Menu.Item>
               </Tooltip>
+
               <Link
                 to="view"
                 style={{
@@ -815,6 +895,7 @@ function Tools({ idea, editor, connectable }: ITools) {
                   Viewonly
                 </Menu.Item>
               </Link>
+
               <CopyButton value={getMarkdownContent()}>
                 {({ copied, copy }) => {
                   return (
@@ -829,6 +910,7 @@ function Tools({ idea, editor, connectable }: ITools) {
                   );
                 }}
               </CopyButton>
+
               {idea?.content && (
                 <CopyButton value={htmlToPlainText(idea?.content)}>
                   {({ copied, copy }) => {
@@ -845,6 +927,7 @@ function Tools({ idea, editor, connectable }: ITools) {
                   }}
                 </CopyButton>
               )}
+
               {idea?.content && (
                 <CopyButton value={idea?.content}>
                   {({ copied, copy }) => {
@@ -865,6 +948,7 @@ function Tools({ idea, editor, connectable }: ITools) {
           </Menu>
         </Group>
       </Group>
+
       <PaperDrawer
         opened={managingConnections}
         onClose={() => setManagingConnections(false)}
@@ -873,12 +957,21 @@ function Tools({ idea, editor, connectable }: ITools) {
           text="This area is under construction"
           omitFeedback
         />
+
         <ConnectionManager
           connectable={{
             ...idea,
+
             type: "idea",
           }}
         />
+      </PaperDrawer>
+
+      <PaperDrawer
+        opened={managingAccess}
+        onClose={() => setManagingAccess(false)}
+      >
+        <Access idea={idea} loadingIdea={loadingIdea} reloadIdea={reloadIdea} />
       </PaperDrawer>
     </div>
   );

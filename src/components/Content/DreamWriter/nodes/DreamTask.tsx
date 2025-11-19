@@ -1,5 +1,4 @@
-import { mergeAttributes, Node, NodeViewProps } from "@tiptap/core";
-import { DOMParser, Fragment } from "@tiptap/pm/model";
+import { NodeViewProps } from "@tiptap/core";
 import useFetch from "../../../../hooks/useFetch";
 import { ITask } from "../../../../../app/database/models/task";
 import {
@@ -8,15 +7,9 @@ import {
   ReactNodeViewRenderer,
 } from "@tiptap/react";
 import styles from "./styles/DreamTask.module.scss";
-import { Group, HoverCard, Text } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import { CheckIcon } from "@phosphor-icons/react";
-import { useLandscape } from "../../../../contexts/LandscapeContext";
-import useConnectable from "../../../../hooks/useConnectable";
-import { useEffect } from "react";
-import {
-  DreamTaskSchema,
-  IDreamTaskOptions,
-} from "../../../../../shared/editing/tiptap/nodes/DreamTask";
+import { DreamTaskSchema } from "../../../../../shared/editing/tiptap/nodes/DreamTask";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -50,20 +43,6 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
     url: `/tasks/${taskId}`,
     runOnMount: !!taskId,
   });
-
-  const {
-    connectable: {
-      viewing: { get: currentConnectable },
-    },
-  } = useLandscape();
-  const { ensureConnected, loadingConnected } = useConnectable({
-    connectable: currentConnectable ?? null,
-  });
-  useEffect(() => {
-    if (task?.id) {
-      ensureConnected(task.id.toString());
-    }
-  }, [task?.id.toString(), loadingConnected]);
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;

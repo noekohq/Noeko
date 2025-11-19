@@ -6,7 +6,7 @@ import {
 } from "../../app/database/models/user";
 import { api } from "../server/api";
 
-export const userInitials = (user: ISafeUser | undefined) => {
+export const userInitials = (user: ISafeUser | IPublicUser | undefined) => {
   if (!user) return "";
   const initials = user.firstName.charAt(0) + user.lastName.charAt(0);
   return initials.toUpperCase();

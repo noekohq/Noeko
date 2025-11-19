@@ -1,5 +1,4 @@
-import { Node } from "@tiptap/core";
-import { mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes } from "@tiptap/core";
 
 export interface IDreamImageOptions {
   HTMLAttributes: Record<string, any>;
@@ -25,9 +24,8 @@ export const DreamImageSchema = Node.create<IDreamImageOptions>({
         default: null,
         parseHTML: (element) => element.getAttribute("title"),
       },
-      // Add width and height for resizing
       width: {
-        default: "100%", // A sensible default
+        default: "100%",
         parseHTML: (element) => element.getAttribute("width"),
         renderHTML: (attributes) => ({
           width: attributes.width,
@@ -39,6 +37,29 @@ export const DreamImageSchema = Node.create<IDreamImageOptions>({
         renderHTML: (attributes) => ({
           height: attributes.height,
         }),
+      },
+      fileId: {
+        default: null,
+        parseHTML: (element) => {
+          // 1. Primary: Check for the clean attribute
+          const dataId = element.getAttribute("data-file-id");
+          if (dataId) return dataId;
+
+          // 2. Migration Fallback: Extract from legacy URL structure
+          // This runs ONLY if data-file-id is missing (old content)
+          const src = element.getAttribute("src");
+          if (src && src.includes("/api/files/")) {
+            const match = src.match(/\/api\/files\/(user_file:[^/]+)\/stream/);
+            if (match && match[1]) {
+              return match[1];
+            }
+          }
+          return null;
+        },
+        renderHTML: (attributes) => {
+          if (!attributes.fileId) return {};
+          return { "data-file-id": attributes.fileId };
+        },
       },
     };
   },

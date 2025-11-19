@@ -35,6 +35,12 @@ export type IUserFileUserOwnership = {
   out: string;
 };
 
+export type IConnectableEmbedRelationship = {
+  id: RecordId;
+  in: string;
+  out: string;
+};
+
 const sanitizeFilename = (filename: string): string => {
   const sanitized = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
   return sanitized.substring(0, 100);
@@ -82,7 +88,17 @@ export class UserFile {
       `;
     };
 
+    const defineEmbeddingIndex = () => {
+      return `
+        -- Ensure a file can only be embedded in an idea ONCE
+        DEFINE INDEX IF NOT EXISTS idx_unique_embedding
+        ON TABLE embedded_within
+        COLUMNS in, out UNIQUE;
+      `;
+    };
+
     const db = await getDatabase();
+    await db?.query(defineEmbeddingIndex());
     await db?.query(getUserFilesFunction());
     await db?.query(getUserFileFunction());
   }
@@ -165,6 +181,172 @@ export class UserFile {
         err,
       );
       return undefined;
+    }
+  }
+
+  static async isEmbeddedInConnectable(
+    userFileId: string | RecordId,
+    connectableId: string | RecordId,
+  ): Promise<IConnectableEmbedRelationship | undefined> {
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IConnectableEmbedRelationship[]]>(
+        `SELECT * FROM embedded_within WHERE in = $fromId AND out = $toId LIMIT 1;`,
+        {
+          fromId: new StringRecordId(userFileId),
+          toId: new StringRecordId(connectableId),
+        },
+      );
+
+      if (!result || !result[0]) {
+        return undefined;
+      }
+      const present = result[0][0];
+
+      return present;
+    } catch (err) {
+      console.error(
+        `Error during isEmbeddedInConnectable for user file "${userFileId}":`,
+        err,
+      );
+      return undefined;
+    }
+  }
+
+  static async embedInConnectable(
+    userFileId: string | RecordId,
+    connectableId: string | RecordId,
+  ) {
+    try {
+      const existingRelationship = await this.isEmbeddedInConnectable(
+        userFileId,
+        connectableId,
+      );
+      if (existingRelationship) {
+        return existingRelationship;
+      }
+
+      const db = await getDatabase();
+      const result = await db?.query<[IConnectableEmbedRelationship]>(
+        `RELATE $fromId->embedded_within->$toId SET createdAt = $now;`,
+        {
+          fromId: new StringRecordId(userFileId),
+          toId: new StringRecordId(connectableId),
+          now: new Date(),
+        },
+      );
+      if (!result) {
+        throw Error(
+          `No embedded relationship created for user file "${userFileId}" and connectable "${connectableId}".`,
+        );
+      }
+      const [ownership] = result;
+      return ownership;
+    } catch (err) {
+      console.error(
+        `Error during embedInConnectable for user file "${userFileId}":`,
+        err,
+      );
+      return undefined;
+    }
+  }
+
+  static async unembedFromConnectable(
+    userFileId: string | RecordId,
+    connectableId: string | RecordId,
+  ) {
+    try {
+      const existingRelationship = await this.isEmbeddedInConnectable(
+        userFileId,
+        connectableId,
+      );
+      if (!existingRelationship) {
+        return undefined;
+      }
+
+      const db = await getDatabase();
+      const result = await db?.query<IConnectableEmbedRelationship[]>(
+        `DELETE embedded_within WHERE in = $fromId AND out = $toId;`,
+        {
+          fromId: new StringRecordId(userFileId),
+          toId: new StringRecordId(connectableId),
+        },
+      );
+      if (!result) {
+        throw Error(
+          `Failed to remove embedded relationship for user file "${userFileId}" and connectable "${connectableId}".`,
+        );
+      }
+      const [ownership] = result;
+      return ownership;
+    } catch (err) {
+      console.error(
+        `Error during unembedInConnectable for user file "${userFileId}":`,
+        err,
+      );
+      return undefined;
+    }
+  }
+
+  static async ensureEmbedded(
+    connectableId: string | RecordId,
+    userFileIds: (string | RecordId)[],
+  ) {
+    try {
+      if (!userFileIds || userFileIds.length === 0) {
+        return;
+      }
+
+      const db = await getDatabase();
+      if (!db) {
+        return false;
+      }
+
+      const formattedFileIds = userFileIds.map((id) => new StringRecordId(id));
+      const formattedConnectableId = new StringRecordId(connectableId);
+
+      const existingResult = await db.query<[{ in: RecordId }[]]>(
+        `SELECT in FROM embedded_within WHERE in IN $fileIds AND out = $target;`,
+        {
+          fileIds: formattedFileIds,
+          target: formattedConnectableId,
+        },
+      );
+
+      if (!existingResult) {
+        throw new Error("Failed to query existing embedded relationships.");
+      }
+
+      const existingRelations = existingResult[0] || [];
+      const existingFileIds = new Set(
+        existingRelations.map((item) => item.in.toString()),
+      );
+
+      const missingFileIds = formattedFileIds.filter(
+        (id) => !existingFileIds.has(id.toString()),
+      );
+
+      if (missingFileIds.length > 0) {
+        await db.query(
+          `
+          FOR $fileId IN $missingFileIds {
+            RELATE $fileId->embedded_within->$target SET createdAt = time::now();
+          };
+          `,
+          {
+            missingFileIds: missingFileIds,
+            target: formattedConnectableId,
+          },
+        );
+      }
+
+      return true;
+    } catch (err) {
+      console.error(
+        `Error during ensureEmbedded for connectable "${connectableId}":`,
+        err,
+      );
+      return false;
     }
   }
 

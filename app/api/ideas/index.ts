@@ -16,6 +16,7 @@ import shareRouter from "./share";
 import { max_idea_size } from "../../settings";
 import { getLM } from "../../ai/lms/lm";
 import { first } from "../../templates/onboarding";
+import Authorization from "../../services/Authorization";
 
 const router = Router();
 
@@ -277,13 +278,9 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
-    const exists = !!(await Idea.get(ideaId));
-    if (!exists) {
-      res.status(404).json({ message: "Idea not found" });
-      return;
-    }
-    const isOwner = await User.checkOwns(user.id, ideaId);
-    if (!isOwner) {
+    const auth = new Authorization(user.id);
+    const hasAccess = await auth.hasAccess(ideaId);
+    if (!hasAccess) {
       res.status(403).json({
         message: "Unauthorized.",
       });
@@ -294,9 +291,12 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    Idea.update(ideaId, {
-      viewedAt: new Date(),
-    });
+    const isOwner = await User.checkOwns(user.id, ideaId);
+    if (isOwner) {
+      Idea.update(ideaId, {
+        viewedAt: new Date(),
+      });
+    }
     const withDerived = req.query.withDerived === "true";
     const toSend: ISafeIdea & {
       connections?: IIdea[];
@@ -322,7 +322,7 @@ router.delete("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+    const hasAccess = await User.checkOwns(user.id, ideaId);
     if (!hasAccess) {
       res.status(403).json({
         message: "Unauthorized",
@@ -335,94 +335,6 @@ router.delete("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     res.send({ message: "Successfully deleted idea.", data: i });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.get(
-  "/:ideaId/connections",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const { ideaId } = req.params;
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(500).json({ message: "Internal Server Error" });
-        return;
-      }
-      const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
-      const isSuperuser = await User.checkUserHasRole(
-        user.id,
-        "role:superuser",
-      );
-      if (!isOwner) {
-        if (!isSuperuser) {
-          res.status(403).json({
-            message: "Unauthorized.",
-          });
-          return;
-        }
-      }
-      const i = await Idea.getConnections(ideaId);
-      res.send({ message: "Successfully retrieved idea.", data: i });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.get(
-  "/:ideaId/related",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const { ideaId } = req.params;
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(500).json({ message: "Internal Server Error" });
-        return;
-      }
-      const isOwner = await Idea.checkUserOwnership(ideaId, user.id);
-      const isSuperuser = await User.checkUserHasRole(
-        user.id,
-        "role:superuser",
-      );
-      if (!isOwner) {
-        if (!isSuperuser) {
-          res.status(403).json({
-            message: "Unauthorized.",
-          });
-          return;
-        }
-      }
-      const r = await Idea.findSimilar(user.id, ideaId);
-      res.send({ message: "Successfully retrieved idea.", data: r });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.get("/:ideaId/tags", checkToken, disallowDisabled, async (req, res) => {
-  try {
-    const user = await getFromReq<IUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ message: "Unauthorized" });
-      return;
-    }
-    const ideaId = req.params.ideaId;
-    const tags = await Tag.getTagsForIdea(ideaId);
-    if (!tags) {
-      res.status(404).json({ error: "Tags not found" });
-      return;
-    }
-    res.send({ message: "Successfully retrieved idea tags", data: tags });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
@@ -443,7 +355,7 @@ router.post(
         return;
       }
       const { ideaId } = req.params;
-      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      const hasAccess = await Authorization.checkHasAccess(ideaId, user.id);
       if (!hasAccess) {
         res.status(403).json({
           message: "Unauthorized.",
@@ -485,7 +397,11 @@ router.post(
         return;
       }
       const { ideaId } = req.params;
-      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      const hasAccess = await Authorization.checkHasAccess(
+        ideaId,
+        user.id,
+        "editor",
+      );
       if (!hasAccess) {
         res.status(403).json({
           message: "Unauthorized.",
@@ -524,7 +440,7 @@ router.post(
         res.status(403).json({ message: "Unauthorized" });
         return;
       }
-      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      const hasAccess = await User.checkHasAccess(user.id, ideaId);
       if (!hasAccess) {
         res.status(403).json({
           message: "Unauthorized",
@@ -552,7 +468,7 @@ router.post(
         res.status(403).json({ message: "Unauthorized" });
         return;
       }
-      const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+      const hasAccess = await User.checkHasAccess(user.id, ideaId);
       if (!hasAccess) {
         res.status(403).json({
           message: "Unauthorized",

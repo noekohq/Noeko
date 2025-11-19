@@ -1,6 +1,8 @@
 import {
   ArrowRightIcon,
+  HashIcon,
   PlusIcon,
+  SparkleIcon,
   TagIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -66,6 +68,9 @@ export default function PaperTag({
     if (opened) {
       return <XIcon weight="bold" />;
     }
+    // if (state === "suggested") {
+    //   return <SparkleIcon weight="bold" />;
+    // }
     return <TagIcon weight="bold" />;
   };
 
@@ -88,7 +93,7 @@ export default function PaperTag({
           onClick={handleClickWrapper}
           onContextMenu={handleContextMenu}
         >
-          {opened ? <XIcon weight="bold" /> : <Icon />}
+          <Icon />
           {tag?.name}
         </button>
       </Popover.Target>

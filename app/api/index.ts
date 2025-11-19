@@ -20,6 +20,7 @@ import insightsRouter from "./insights";
 import exportRouter from "./export";
 import tourRouter from "./tourguide";
 import pinRouter from "./pins";
+import sharedRouter from "./shared";
 
 const router = Router();
 
@@ -45,5 +46,6 @@ router.use("/imports", importRouter);
 router.use("/exports", exportRouter);
 router.use("/tourguide", tourRouter);
 router.use("/pins", pinRouter);
+router.use("/sharing", sharedRouter);
 
 export default router;

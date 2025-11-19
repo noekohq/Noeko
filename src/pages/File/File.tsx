@@ -152,6 +152,13 @@ export default function UserFile() {
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
 
+  const canBeSource = () => {
+    if (file?.mimeType === "application/pdf") {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <PageWrapper>
       <TopBar />
@@ -224,7 +231,7 @@ export default function UserFile() {
                 Delete
               </Button>
             </Group>
-            {!file?.source && (
+            {!file?.source && canBeSource() && (
               <Group>
                 <Button
                   onClick={() => handleCreateSource()}

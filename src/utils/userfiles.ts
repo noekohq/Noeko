@@ -46,3 +46,33 @@ export const getFileDownload = async (file: IUserFile | string) => {
     return undefined;
   }
 };
+
+export const linkFileToConnectable = async (
+  fileId: string,
+  connectableId: string,
+) => {
+  try {
+    await api.post("/files/embed", {
+      fileId: fileId,
+      connectableId: connectableId,
+    });
+    console.info(`Linked file ${fileId} to ${connectableId}`);
+  } catch (error) {
+    console.error("Failed to link file to connectable:", error);
+  }
+};
+
+export const unlinkFileFromConnectable = async (
+  fileId: string,
+  connectableId: string,
+) => {
+  try {
+    await api.post("/files/unembed", {
+      fileId: fileId,
+      connectableId: connectableId,
+    });
+    console.info(`Linked file ${fileId} to ${connectableId}`);
+  } catch (error) {
+    console.error("Failed to link file to connectable:", error);
+  }
+};
