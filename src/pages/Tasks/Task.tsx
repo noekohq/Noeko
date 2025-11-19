@@ -474,6 +474,8 @@ export default function Task() {
                   setScratchpadContent(v);
                 }}
                 readOnly={!task}
+                collaborationId={task.id.toString()}
+                connectableId={task.id.toString()}
               />
             </>
           )}

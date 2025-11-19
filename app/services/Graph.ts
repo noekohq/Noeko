@@ -89,6 +89,41 @@ export default class GraphService {
       `;
     };
 
+    const getSourceUserConnectionsFunction = () => {
+      return `
+      DEFINE FUNCTION OVERWRITE fn::get_source_user_connections(
+        $sourceId: record,
+        $userId: record<user>
+      ) {
+        LET $connections = SELECT
+            -- OUTGOING connections (The nodes we point TO)
+            ->connected->(
+              ? WHERE
+                -- 1. User owns the target node
+                (count(<-owns[WHERE in = $userId]) > 0)
+                OR
+                -- 2. Target node is shared with the user
+                (count(->shared_with[WHERE out = $userId]) > 0)
+            ) as outgoing,
+
+            -- INCOMING connections (The nodes pointing TO us)
+            <-connected<-(
+              ? WHERE
+                -- 1. User owns the source node
+                (count(<-owns[WHERE in = $userId]) > 0)
+                OR
+                -- 2. Source node is shared with the user
+                (count(->shared_with[WHERE out = $userId]) > 0)
+            ) as incoming
+
+          FROM ONLY $sourceId
+          FETCH outgoing, incoming;
+
+        RETURN $connections;
+      }
+          `;
+    };
+
     function connectedIndex() {
       return `
       DEFINE INDEX IF NOT EXISTS idx_connections_in
@@ -101,6 +136,7 @@ export default class GraphService {
     }
 
     await db.query(getSourceConnectionsFunction());
+    await db.query(getSourceUserConnectionsFunction());
     await db.query(connectedIndex());
 
     function edgeIndexes() {
@@ -170,12 +206,25 @@ export default class GraphService {
   public static async connect(
     source: string | RecordId,
     target: string | RecordId,
-  ) {
+  ): Promise<IConnection | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Error getting database");
       }
+
+      const [existingConnections] = await db.query<[IConnection[]]>(
+        `SELECT * FROM connected WHERE in = $sourceId AND out = $targetId LIMIT 1`,
+        {
+          sourceId: new StringRecordId(source),
+          targetId: new StringRecordId(target),
+        },
+      );
+
+      if (existingConnections && existingConnections.length > 0) {
+        return existingConnections[0];
+      }
+
       const canConnectSource = this.isConnectable(source);
       const canConnectTarget = this.isConnectable(target);
       if (!canConnectSource) {
@@ -184,7 +233,7 @@ export default class GraphService {
       if (!canConnectTarget) {
         throw new Error("Can't connect target");
       }
-      const result = await db.query<[IConnection]>(
+      const [newConnections] = await db.query<[IConnection[]]>(
         `RELATE $sourceId->connected->$targetId CONTENT { createdAt: $now, }`,
         {
           sourceId: new StringRecordId(source),
@@ -192,12 +241,12 @@ export default class GraphService {
           now: new Date(),
         },
       );
-      if (!result) {
+      if (!newConnections || newConnections.length === 0) {
         console.error("No link created.");
         return undefined;
       }
-      const [connection] = result;
-      return connection;
+
+      return newConnections[0];
     } catch (error) {
       console.error(
         "Error connecting source to target: ",
@@ -271,6 +320,47 @@ export default class GraphService {
     }
   }
 
+  static async getUserConnectionsForThing(
+    thingId: string | RecordId,
+    userId: string | RecordId,
+  ): Promise<IConnectable[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get database");
+      }
+      const result = await db.run<{
+        outgoing: IConnectable[];
+        incoming: IConnectable[];
+      }>(`fn::get_source_user_connections`, [
+        new StringRecordId(thingId),
+        new StringRecordId(userId),
+      ]);
+      if (!result) {
+        throw new Error("Couldn't get source connections");
+      }
+      const { incoming: i, outgoing: o } = result;
+      const incoming: IConnectable[] = i
+        .map((node) => {
+          const connectable = this.getConnectable(node);
+          return connectable;
+        })
+        .filter((n) => !!n);
+      const outgoing: IConnectable[] = o
+        .map((node) => {
+          const connectable = this.getConnectable(node);
+          return connectable;
+        })
+        .filter((n) => !!n);
+
+      const combined = [...incoming, ...outgoing];
+      return combined;
+    } catch (error) {
+      console.error("Couldn't get connections: ", thingId, error);
+      return undefined;
+    }
+  }
+
   static async getTags(
     thingId: string | RecordId,
   ): Promise<ITag[] | undefined> {
@@ -299,6 +389,55 @@ export default class GraphService {
         const { embeddings, ...tag } = t;
         return tag;
       });
+      return filtered as ITag[];
+    } catch (error) {
+      console.error("Couldn't get tags: ", error);
+      return undefined;
+    }
+  }
+
+  static async getUserTagsForThing(
+    thingId: string | RecordId,
+    userId: string | RecordId,
+  ): Promise<ITag[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Couldn't get the database");
+      }
+
+      const results = await db.query<[ITag[]]>(
+        `
+          SELECT VALUE (
+              SELECT * OMIT cachedCentroidEmbeddings, embeddings
+              FROM <-describes<-(
+                  tag WHERE
+                  (count(<-owns[WHERE in = $userId]) > 0)
+                  OR
+                  (count(->shared_with[WHERE out = $userId]) > 0)
+              )
+          )
+          FROM ONLY $thingId;
+          `,
+        {
+          thingId: new StringRecordId(thingId),
+          userId: new StringRecordId(userId),
+        },
+      );
+
+      if (!results || !results[0]) {
+        // Return empty array if no tags found (or query fail)
+        return [];
+      }
+
+      const [rawTags] = results;
+
+      const filtered = rawTags.map((t) => {
+        // Omit embeddings from the response payload for performance
+        const { embeddings, ...tag } = t;
+        return tag;
+      });
+
       return filtered as ITag[];
     } catch (error) {
       console.error("Couldn't get tags: ", error);
@@ -891,6 +1030,9 @@ export default class GraphService {
       }
 
       const [vectors] = result;
+      if (!vectors.length) {
+        throw new Error("No embeddings found");
+      }
 
       const centroid = averageEmbeddings(vectors);
       return centroid;
@@ -1315,7 +1457,6 @@ export default class GraphService {
       return undefined;
     }
   }
-
   public static async getUserTags(
     userId: StringRecordId,
     filters?: IGraphFilters,
@@ -1363,6 +1504,60 @@ export default class GraphService {
     } catch (error) {
       console.error("Couldn't get user rabbitholes: ", error);
       return undefined;
+    }
+  }
+
+  /**
+   * Batch ensures that a source is connected to multiple targets.
+   * Uses the 'connected' edge.
+   * Idempotent and efficient for migration/healing.
+   */
+  public static async ensureConnected(
+    sourceId: string | RecordId,
+    targetIds: (string | RecordId)[],
+  ) {
+    try {
+      console.log("Ensuring connections: ", sourceId, targetIds);
+      if (!this.isConnectable(sourceId)) {
+        throw new Error("Source is not connectable");
+      }
+
+      if (!targetIds || targetIds.length === 0) {
+        return;
+      }
+
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const formattedSource = new StringRecordId(sourceId);
+      const formattedTargets = targetIds
+        .filter((id) => this.isConnectable(id))
+        .map((id) => new StringRecordId(id));
+
+      if (formattedTargets.length === 0) return;
+
+      await db.query(
+        `
+        FOR $target IN $targets {
+          LET $existing = (SELECT VALUE id FROM connected WHERE in = $source AND out = $target LIMIT 1);
+          IF count($existing) = 0 {
+            RELATE $source->connected->$target SET createdAt = time::now();
+          }
+        };
+        `,
+        {
+          source: formattedSource,
+          targets: formattedTargets,
+        },
+      );
+
+      return true;
+    } catch (error) {
+      console.error(
+        `Error during ensureConnected for source "${sourceId}":`,
+        error,
+      );
+      return false;
     }
   }
 }
@@ -1652,21 +1847,22 @@ export type IConnectableFields = {
 
 export class Connectable {
   private _thingId: RecordId | string;
-  private _type: IConnectableTypes | undefined;
+  private _type: IConnectableTypes;
 
   constructor(thingId: RecordId | string) {
     this._thingId = thingId;
-    this._type = Connectable.idToType(thingId.toString()) as IConnectableTypes;
-    if (!this._type) {
+    const type = Connectable.idToType(thingId.toString());
+    if (!type) {
       throw new Error("The Connectable id is not a valid connectable type!");
     }
+    this._type = type;
   }
 
   public get thingId() {
     return this._thingId;
   }
 
-  public get type() {
+  public get type(): IConnectableTypes {
     return this._type;
   }
 

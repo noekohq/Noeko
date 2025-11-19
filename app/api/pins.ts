@@ -3,6 +3,7 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { ISafeUser } from "../database/models/user";
 import Pin from "../database/models/pin";
+import Authorization from "../services/Authorization";
 
 const router = Router();
 
@@ -60,6 +61,11 @@ router.post("/", async (req, res) => {
       return;
     }
     const { thingId } = req.body;
+    const hasAccess = await Authorization.checkHasAccess(user.id, thingId);
+    if (!hasAccess) {
+      res.status(403).send({ message: "Forbidden" });
+      return;
+    }
     const pin = await Pin.pinThing(user.id, thingId);
     res.status(201).send({
       message: "Successfully created pin",
@@ -79,6 +85,11 @@ router.delete("/:id", async (req, res) => {
       return;
     }
     const { id } = req.params;
+    const hasAccess = await Authorization.checkHasAccess(user.id, id);
+    if (!hasAccess) {
+      res.status(403).send({ message: "Forbidden" });
+      return;
+    }
     const pin = await Pin.unpinThing(user.id, id);
     if (!pin) {
       res.status(404).send({ message: "Pin not found" });

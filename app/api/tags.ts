@@ -178,8 +178,8 @@ router.post("/apply", async (req, res): Promise<void> => {
       return;
     }
 
-    const isThingOwner = await User.checkOwns(user.id, thingId);
-    if (!isThingOwner) {
+    const hasThingAccess = await User.checkHasAccess(user.id, thingId);
+    if (!hasThingAccess) {
       res.status(403).json({ message: "Forbidden." });
       return;
     }
@@ -219,8 +219,8 @@ router.delete("/apply", async (req, res): Promise<void> => {
       return;
     }
 
-    const isThingOwner = await User.checkOwns(user.id, thingId);
-    if (!isThingOwner) {
+    const hasThingAccess = await User.checkHasAccess(user.id, thingId);
+    if (!hasThingAccess) {
       res.status(403).json({ message: "Forbidden." });
       return;
     }

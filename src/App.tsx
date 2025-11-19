@@ -37,6 +37,7 @@ import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
 // import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
 import SearchPage from "./pages/Search/Search";
 import SharedIdeas from "./pages/Idea/Shared/Shared";
+import Sharing from "./pages/Sharing/Sharing";
 import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
 import Rabbithole from "./pages/Rabbitholes/Rabbithole";
 import Rabbitholes from "./pages/Rabbitholes/List";
@@ -190,6 +191,9 @@ export default function App() {
                         element={<ViewIdea key={location.pathname} />}
                       />
                     </Route>
+                  </Route>
+                  <Route path="sharing">
+                    <Route index element={<Sharing />} />
                   </Route>
                   <Route path="ideas">
                     <Route index element={<Ideas />} />

@@ -1,0 +1,205 @@
+import { RecordId, StringRecordId } from "surrealdb";
+import { Connectable, IConnectable } from "../../services/Graph";
+import { getDatabase } from "../db";
+import { IPublicUser } from "./user";
+
+export type ISharedThing = IConnectable & {
+  owner: IPublicUser;
+  users: IPublicUser[];
+  accessLevel: IShareAccess;
+  sharedAt: Date;
+};
+
+export type IShareAccess = "viewonly" | "editor";
+
+export type IShare = {
+  id: string;
+  in: string;
+  out: string;
+  accessLevel: IShareAccess;
+};
+
+type ISharedThingsQueryResult = {
+  thing: IConnectable;
+  sharedAt: Date;
+  accessLevel: string;
+  owner: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    createdAt: Date;
+  };
+  users: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    createdAt: Date;
+  }[];
+};
+
+export class Share {
+  private _connectableId: StringRecordId;
+  private _connectable: Connectable;
+
+  constructor(connectableId: string | RecordId) {
+    this._connectableId = new StringRecordId(connectableId);
+    this._connectable = new Connectable(connectableId);
+
+    if (this._connectable.type !== "idea") {
+      throw new Error(
+        "Only ideas can currently be shared, other types not yet supported.",
+      );
+    }
+  }
+
+  get connectableId(): StringRecordId {
+    return this._connectableId;
+  }
+
+  async shareAccess(userId: string, accessLevel: IShareAccess = "viewonly") {
+    try {
+      const db = await getDatabase();
+
+      const existing = await db?.query<[IShare[]]>(
+        `SELECT * FROM shared_with WHERE in = $connectableId AND out = $userId`,
+        {
+          connectableId: this.connectableId,
+          userId: new StringRecordId(userId),
+        },
+      );
+
+      if (existing && existing[0] && existing[0].length > 0) {
+        return true;
+      }
+
+      const query = `
+          RELATE $connectableId->shared_with->$userId CONTENT {
+            accessLevel: $accessLevel,
+            createdAt: $now,
+          };
+        `;
+
+      const result = await db?.query<[IShare[]]>(query, {
+        connectableId: this.connectableId,
+        userId: new StringRecordId(userId),
+        accessLevel,
+        now: new Date(),
+      });
+      return !!(result && result[0] && result[0].length > 0);
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  async revokeAccess(userId: string) {
+    const query = `
+      DELETE FROM shared_with
+      WHERE
+        out = $userId AND
+        in = $connectableId
+    `;
+
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IShare[]]>(query, {
+        connectableId: this.connectableId,
+        userId: new StringRecordId(userId),
+      });
+      return !!(result && result[0] && result[0].length > 0);
+    } catch (e) {
+      console.error("Couldn't revoke access", e);
+      return false;
+    }
+  }
+
+  async updateAccess(userId: string, accessLevel: IShareAccess) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not available");
+      const update = await db.query<[IShare[]]>(
+        `
+        UPDATE shared_with
+        MERGE { accessLevel: $accessLevel }
+        WHERE
+          out = $userId AND
+          in = $connectableId
+      `,
+        {
+          connectableId: this.connectableId,
+          userId: new StringRecordId(userId),
+          accessLevel,
+        },
+      );
+      if (!update || !update[0] || update[0].length === 0) {
+        throw new Error("Share not found");
+      }
+      const share = update[0][0];
+      return share;
+    } catch (e) {
+      console.error("Error updating access", e);
+      return false;
+    }
+  }
+
+  static async getUserSharedThings(
+    userId: string | RecordId,
+  ): Promise<ISharedThing[] | undefined> {
+    try {
+      const db = await getDatabase();
+      const query = `
+        SELECT VALUE
+            (
+                SELECT
+                    (
+                        SELECT * OMIT embeddings FROM $parent.in
+                    )[0] as thing,
+                    createdAt AS sharedAt,
+                    accessLevel,
+                    (
+                        SELECT
+                            id,
+                            firstName,
+                            lastName
+                        FROM
+                            in<-owns<-user
+                    )[0] as owner,
+                    (
+                        SELECT
+                            id,
+                            firstName,
+                            lastName
+                        FROM
+                            in->shared_with->user
+                    ) as users
+                OMIT embeddings
+                FROM shared_with
+                WHERE out = $parent.id
+            ) as things
+        FROM ONLY $userId;
+      `;
+      const result = await db?.query<[ISharedThingsQueryResult[]]>(query, {
+        userId: new StringRecordId(userId),
+      });
+      if (!result || !result[0] || result[0].length === 0) {
+        throw new Error("No shared things found");
+      }
+      const mappedToShared: ISharedThing[] = result[0].map((item) => {
+        const c = new Connectable(item.thing.id);
+        const type = c.type;
+        return {
+          ...item.thing,
+          type: type,
+          sharedAt: item.sharedAt,
+          accessLevel: item.accessLevel as IShareAccess,
+          owner: item.owner,
+          users: item.users,
+        } as ISharedThing;
+      });
+      return mappedToShared;
+    } catch (error) {
+      console.error("Error fetching shared things", error);
+      return undefined;
+    }
+  }
+}

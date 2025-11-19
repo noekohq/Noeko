@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  IIdeaShareAccess,
   IIdeaShareDetails,
   ISafeIdea,
 } from "../../../app/database/models/ideas";
@@ -13,7 +12,8 @@ import {
   Group,
   Loader,
   Modal,
-  Popover,
+  Menu,
+  SegmentedControl,
   Space,
   Stack,
   Text,
@@ -30,8 +30,13 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
-import { createIdeaShareFromEmail, removeIdeaShare } from "../../utils/ideas";
 import { showNotification } from "@mantine/notifications";
+import {
+  revokeAccess,
+  updateAccess,
+  shareAccessWithEmail,
+} from "../../utils/shares";
+import { IShareAccess } from "../../../app/database/models/share";
 
 const { VITE_DEPLOYED_URL } = import.meta.env;
 
@@ -70,6 +75,7 @@ export default function Access({
   const form = useForm({
     initialValues: {
       email: "",
+      accessLevel: "viewonly" as IShareAccess,
     },
     validate: {
       email: (v) => {
@@ -86,7 +92,7 @@ export default function Access({
 
   const handleStopSharing = async (userId: string) => {
     try {
-      await removeIdeaShare(idea.id.toString(), userId);
+      await revokeAccess(idea.id.toString(), userId);
       showNotification({
         title: "Stopped Sharing",
         message: `Successfully stopped sharing.`,
@@ -100,6 +106,27 @@ export default function Access({
 
   const [loadingShare, setLoadingShare] = useState(false);
 
+  const handleUpdateAccess = async (
+    userId: string,
+    accessLevel: IShareAccess,
+  ) => {
+    try {
+      await updateAccess(idea.id.toString(), userId, accessLevel);
+      showNotification({
+        title: "Access Updated",
+        message: `Successfully updated access level.`,
+      });
+      await loadShared();
+    } catch (error) {
+      console.error("Error updating share", error);
+      showNotification({
+        title: "Error",
+        message: "There was an error updating the access level.",
+        color: "red",
+      });
+    }
+  };
+
   const handleCreateShare = async () => {
     try {
       const { hasErrors, errors } = form.validate();
@@ -112,9 +139,10 @@ export default function Access({
         return;
       }
       setLoadingShare(true);
-      await createIdeaShareFromEmail(
+      await shareAccessWithEmail(
         idea.id.toString(),
-        form.getTransformedValues().email,
+        form.values.email,
+        form.values.accessLevel,
       );
       showNotification({
         title: (
@@ -132,12 +160,17 @@ export default function Access({
       form.reset();
     } catch (error) {
       console.error("Error creating share: ", error);
+      showNotification({
+        title: "Error",
+        message: "There was an error creating the share.",
+        color: "red",
+      });
     } finally {
       setLoadingShare(false);
     }
   };
 
-  const getShareLink = (mode: IIdeaShareAccess) => {
+  const getShareLink = (mode: IShareAccess) => {
     if (mode === "viewonly") {
       return `${VITE_DEPLOYED_URL}/ideas/shared/${idea.id.toString()}/viewonly`;
     }
@@ -187,43 +220,59 @@ export default function Access({
                     {share.accessLevel}
                   </Text>
                 </Stack>
-                <Popover position="left-start">
-                  <Popover.Target>
+                <Menu shadow="md" width={200} position="left-start">
+                  <Menu.Target>
                     <ActionIcon variant="subtle" size="sm">
                       <DotsThreeVerticalIcon />
                     </ActionIcon>
-                  </Popover.Target>
-                  <Popover.Dropdown p="0">
-                    <Stack gap="0">
-                      <Button
-                        leftSection={<XCircleIcon />}
-                        onClick={() => {
-                          handleStopSharing(share.user.id.toString());
-                        }}
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Label>Access Level</Menu.Label>
+                    <Box p={4}>
+                      <SegmentedControl
+                        fullWidth
                         size="xs"
-                        color="red"
-                      >
-                        Stop Sharing
-                      </Button>
-                      <CopyButton value={getShareLink(share.accessLevel)}>
-                        {({ copy, copied }) => {
-                          return (
-                            <Button
-                              leftSection={
-                                copied ? <CheckIcon /> : <CopyIcon />
-                              }
-                              onClick={copy}
-                              size="xs"
-                              variant="light"
-                            >
-                              {copied ? "Copied" : "Copy Share Link"}
-                            </Button>
-                          );
-                        }}
-                      </CopyButton>
-                    </Stack>
-                  </Popover.Dropdown>
-                </Popover>
+                        data={[
+                          { label: "Reader", value: "viewonly" },
+                          { label: "Editor", value: "editor" },
+                        ]}
+                        value={share.accessLevel}
+                        onChange={(value) =>
+                          handleUpdateAccess(
+                            share.user.id.toString(),
+                            value as IShareAccess,
+                          )
+                        }
+                      />
+                    </Box>
+                    <Menu.Divider />
+                    <Menu.Item
+                      color="red"
+                      leftSection={<XCircleIcon size={14} />}
+                      onClick={() =>
+                        handleStopSharing(share.user.id.toString())
+                      }
+                    >
+                      Remove Access
+                    </Menu.Item>
+                    <CopyButton value={getShareLink(share.accessLevel)}>
+                      {({ copy, copied }) => (
+                        <Menu.Item
+                          leftSection={
+                            copied ? (
+                              <CheckIcon size={14} />
+                            ) : (
+                              <CopyIcon size={14} />
+                            )
+                          }
+                          onClick={copy}
+                        >
+                          {copied ? "Copied" : "Copy Share Link"}
+                        </Menu.Item>
+                      )}
+                    </CopyButton>
+                  </Menu.Dropdown>
+                </Menu>
               </Group>
             );
           })}
@@ -243,6 +292,16 @@ export default function Access({
             {...form.getInputProps("email")}
             mb="xs"
           />
+          <SegmentedControl
+            fullWidth
+            size="xs"
+            data={[
+              { label: "Reader", value: "viewonly" },
+              { label: "Editor", value: "editor" },
+            ]}
+            {...form.getInputProps("accessLevel")}
+          />
+          <Space h="md" />
           <Group justify="right">
             <Button
               variant="default"

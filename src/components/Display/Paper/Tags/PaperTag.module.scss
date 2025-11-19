@@ -1,3 +1,5 @@
+@use "../../../../styles/mixins.scss" as *;
+
 @keyframes tagIn {
     from {
         opacity: 0;
@@ -18,7 +20,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--mantine-spacing-xs);
+    gap: var(--layout-spacing);
     font-size: var(--mantine-font-size-sm);
     text-decoration: none;
     color: var(--mantine-color-dark-1);
@@ -33,7 +35,7 @@
     margin: 6px 0;
 
     &::after {
-        content: '';
+        content: "";
         position: absolute;
         top: -6px;
         bottom: -6px;
@@ -55,7 +57,10 @@
     &.applied {
         background-color: var(--mantine-color-dark-8);
         border: 1px solid var(--mantine-color-dark-7);
-        box-shadow: var(--mantine-shadow-md);
+
+        @include tablet {
+            box-shadow: var(--mantine-shadow-md);
+        }
 
         [data-mantine-color-scheme="dark"] & {
             color: var(--mantine-color-white);
@@ -85,5 +90,6 @@
 
     svg {
         font-size: var(--mantine-font-size-sm);
+        color: var(--mantine-color-dark-4);
     }
 }

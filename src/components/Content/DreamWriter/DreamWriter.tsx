@@ -24,6 +24,8 @@ import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { useAuth } from "../../../contexts/AuthContext";
 import { assignMantineColor } from "../../../utils/colors";
+import { useLandscape } from "../../../contexts/LandscapeContext";
+import { useDreamHealer } from "./hooks/useDreamHealer";
 
 interface EditorData {
   comments: [];
@@ -44,6 +46,7 @@ interface EditorProps {
   readOnly?: boolean;
   autofocus?: boolean;
   collaborationId?: string;
+  connectableId?: string;
 }
 
 const defaultContent = ``;
@@ -65,6 +68,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       readOnly,
       autofocus = true,
       collaborationId,
+      connectableId,
     },
     ref,
   ) => {
@@ -79,7 +83,10 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     const userName = user?.firstName + " " + user?.lastName;
 
     const { extensions, loader } = useMemo(() => {
-      const { extensions, loader } = getExtensionConfig({ placeholder });
+      const { extensions, loader } = getExtensionConfig({
+        placeholder,
+        connectableId,
+      });
 
       if (provider) {
         extensions.push(
@@ -98,10 +105,10 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         extensions,
         loader,
       };
-    }, [provider]);
+    }, [provider, connectableId, placeholder]);
 
     const isLocked = !!collaborationId && status !== "synced";
-    const isEditable = !isLocked && !readOnly; // Simplified logic
+    const isEditable = !isLocked && !readOnly;
 
     const editor = useEditor(
       {
@@ -142,8 +149,26 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         injectCSS: false,
         autofocus,
       },
-      [...(dependencies ?? []), initialContent, readOnly, content, isEditable],
+      [...(dependencies ?? []), initialContent, readOnly, content, provider],
     );
+
+    useEffect(() => {
+      if (!editor || !connectableId) return;
+
+      const fileHandler = editor.extensionManager.extensions.find(
+        (e) => e.name === "dreamFileHandler",
+      );
+      if (fileHandler) {
+        fileHandler.options.connectableId = connectableId;
+      }
+
+      const connectionHandler = editor.extensionManager.extensions.find(
+        (e) => e.name === "dreamConnection",
+      );
+      if (connectionHandler) {
+        connectionHandler.options.connectableId = connectableId;
+      }
+    }, [editor, connectableId]);
 
     const [droppingOver, setDroppingOver] = useState(false);
     const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -211,6 +236,9 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     } = useLayout();
 
     const [bubbleMenuVisible, setBubbleMenuVisible] = useState(false);
+
+    const isContentReady = provider ? status === "synced" : true;
+    useDreamHealer(editor, connectableId, isContentReady);
 
     return (
       <div

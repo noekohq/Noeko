@@ -3,7 +3,16 @@ import Content from "../../../components/UI/Layout/Content";
 import styles from "./Mobile.module.scss";
 import Nav from "../../../components/UI/Layout/Nav";
 import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
-import { Grid, Stack, Text } from "@mantine/core";
+import {
+  Avatar,
+  Box,
+  Card,
+  Grid,
+  Group,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
 import PaperCard from "../../../components/Display/Paper/PaperCard";
 import {
   CheckIcon,
@@ -19,9 +28,13 @@ import { Link, useNavigate } from "react-router";
 import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButton";
 import TopBar from "../../../components/UI/Layout/TopBar";
 import UnderConstruction from "../../../components/Utils/UnderConstruction";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import usePins from "../../../hooks/usePins";
 import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
+import { ISharedThing } from "../../../../app/database/models/share";
+import { IPublicUser, ISafeUser } from "../../../../app/database/models/user";
+import { userInitials } from "../../../utils/user";
+import { formatDateTime } from "../../../utils/formatting";
 
 export default function MobileDashboard() {
   const [currentTab, setCurrentTab] = useState("overview");
@@ -48,7 +61,7 @@ export default function MobileDashboard() {
               <UnderConstruction />
             </Pillbar.Panel>
             <Pillbar.Panel value="shared">
-              <UnderConstruction />
+              <Shared setTab={setCurrentTab} />
             </Pillbar.Panel>
           </Pillbar>
         </div>
@@ -158,6 +171,97 @@ function Overview({ setTab }: IOverviewProps) {
           </Grid.Col>
         )}
       </Grid>
+    </div>
+  );
+}
+
+function Shared({ setTab }: IOverviewProps) {
+  const { load: loadShared, data: sharedThings } = useFetch<
+    undefined,
+    ISharedThing[]
+  >({
+    url: "/sharing",
+  });
+
+  useEffect(() => {
+    loadShared();
+  }, []);
+
+  const groupedByOwner = useMemo(() => {
+    if (!sharedThings) return [];
+
+    const grouped = sharedThings.reduce(
+      (acc, curr) => {
+        acc[curr.owner.id] = [...(acc[curr.owner.id] || []), curr];
+        return acc;
+      },
+      {} as Record<string, ISharedThing[]>,
+    );
+
+    return Object.values(grouped).map((items) => {
+      const owner = items[0].owner;
+      const lastActivity = items.reduce((latest, item) => {
+        const itemDate = new Date(item.updatedAt);
+        return itemDate > latest ? itemDate : latest;
+      }, new Date(0));
+
+      return {
+        owner,
+        lastActivity,
+        items,
+      };
+    });
+  }, [sharedThings]);
+
+  const sortedGroups = useMemo(() => {
+    return groupedByOwner.sort(
+      (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime(),
+    );
+  }, [groupedByOwner]);
+
+  if (!sharedThings || sharedThings.length === 0) {
+    return <Text>Nothing has been shared with you yet.</Text>;
+  }
+
+  return (
+    <div>
+      <Stack gap="lg">
+        {!sortedGroups.length && <Text size="sm">No shared items found.</Text>}
+        {sortedGroups.map((group) => (
+          <Card radius="lg">
+            <Stack>
+              <Group key={group.owner.id} gap="xs" align="center">
+                <Avatar
+                  variant="filled"
+                  src={userInitials(group.owner)}
+                  size={20}
+                />
+                <Text size="sm">
+                  {group.owner.firstName} {group.owner.lastName}
+                </Text>
+                <Text c="dimmed" size="sm">
+                  {formatDateTime(group.lastActivity)}
+                </Text>
+              </Group>
+              <SimpleGrid
+                cols={{
+                  sm: 1,
+                  md: 2,
+                  lg: 3,
+                }}
+              >
+                {group.items.map((item) => (
+                  <ConnectableThing
+                    key={item.id.toString()}
+                    thing={item}
+                    link
+                  />
+                ))}
+              </SimpleGrid>
+            </Stack>
+          </Card>
+        ))}
+      </Stack>
     </div>
   );
 }
