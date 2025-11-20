@@ -398,8 +398,8 @@ router.post(
       }
       const { ideaId } = req.params;
       const hasAccess = await Authorization.checkHasAccess(
-        ideaId,
         user.id,
+        ideaId,
         "editor",
       );
       if (!hasAccess) {
