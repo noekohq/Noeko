@@ -195,15 +195,7 @@ export default function Search({
                 <Stack style={style} gap="sm">
                   {recent
                     ?.map((thing, i) => {
-                      const props = getThingPropsFromConnectable(thing, {
-                        action: {
-                          icon: PlusIcon,
-                          onClick: (id, e) => {
-                            console.log("Clicked: ", id);
-                          },
-                          tooltip: "Add this thing",
-                        },
-                      });
+                      const props = getThingPropsFromConnectable(thing);
 
                       return (
                         <PaperThing key={thing.id.toString()} {...props} />
