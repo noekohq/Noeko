@@ -155,7 +155,7 @@ function useLongPress(
   onLongPress: (e: React.MouseEvent | React.TouchEvent) => void,
   { delay = 400, moveThreshold = 10 } = {},
 ) {
-  const timeout = useRef<NodeJS.Timeout>();
+  const timeout = useRef<NodeJS.Timeout>(null);
   const startPos = useRef<{ x: number; y: number } | null>(null);
   const isLongPress = useRef(false);
 
