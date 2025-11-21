@@ -1,18 +1,10 @@
-import {
-  ArrowRightIcon,
-  HashIcon,
-  PlusIcon,
-  SparkleIcon,
-  TagIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
 import { ITag } from "../../../../../app/database/models/tag";
-import React, { useRef, useState } from "react";
-import { Group, Popover, Stack, Text } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import PaperIcon from "../PaperIcon";
-import { Link } from "react-router";
+import React from "react";
+import { Text } from "@mantine/core";
+import { PaperContextMenu } from "../PaperContextMenu";
+import { useNavigate } from "react-router";
 
 export type ITagState = "applied" | "suggested" | "display";
 
@@ -33,28 +25,18 @@ export default function PaperTag({
   onApply,
   state,
 }: IPaperTagProps) {
-  const [opened, { open, close, toggle }] = useDisclosure();
-
+  const navigate = useNavigate();
   const handleClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
     if (!tag) return;
     if (active && onRemove) {
       onRemove(tag.id.toString());
     } else if (onApply) {
       onApply(tag.id.toString());
     }
-  };
-
-  const handleClickWrapper = () => {
-    if (opened) {
-      close();
-      return;
-    }
-    handleClick();
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    toggle();
   };
 
   const classNames = [
@@ -65,9 +47,6 @@ export default function PaperTag({
   ].filter(Boolean);
 
   const Icon = () => {
-    if (opened) {
-      return <XIcon weight="bold" />;
-    }
     // if (state === "suggested") {
     //   return <SparkleIcon weight="bold" />;
     // }
@@ -75,44 +54,41 @@ export default function PaperTag({
   };
 
   return (
-    <Popover
-      opened={opened}
-      closeOnClickOutside
-      onChange={(o) => {
-        if (o) {
-          open();
-        } else {
-          close();
-        }
-      }}
-      shadow="md"
-    >
-      <Popover.Target>
-        <button
-          className={classNames.join(" ")}
-          onClick={handleClickWrapper}
-          onContextMenu={handleContextMenu}
-        >
+    <PaperContextMenu>
+      <PaperContextMenu.Target>
+        <button className={classNames.join(" ")} onClick={handleClick}>
           <Icon />
           {tag?.name}
         </button>
-      </Popover.Target>
-      <Popover.Dropdown w={300}>
-        <div className={styles.context}>
-          <Stack>
-            <Group>
-              <Link to={`/tags/${tag?.id}`}>
-                <PaperIcon aria-label="View tag" withBorder>
-                  <ArrowRightIcon weight="bold" />
-                </PaperIcon>
-              </Link>
-            </Group>
-            <Text size="md">
-              {tag?.description || "No description provided."}
-            </Text>
-          </Stack>
-        </div>
-      </Popover.Dropdown>
-    </Popover>
+      </PaperContextMenu.Target>
+      <PaperContextMenu.Dropdown>
+        {tag && (
+          <>
+            <PaperContextMenu.Item
+              icon={<ArrowRightIcon weight="bold" />}
+              onClick={() => navigate(`/tags/${tag.id}`)}
+            >
+              View tag
+            </PaperContextMenu.Item>
+            {tag.description ? (
+              <>
+                <PaperContextMenu.Label>Description</PaperContextMenu.Label>
+                <div
+                  style={{
+                    padding: "var(--mantine-spacing-xs)",
+                    maxWidth: 300,
+                    whiteSpace: "normal",
+                  }}
+                >
+                  <Text size="sm">{tag.description}</Text>
+                </div>
+              </>
+            ) : (
+              <PaperContextMenu.Label>No description</PaperContextMenu.Label>
+            )}
+          </>
+        )}
+      </PaperContextMenu.Dropdown>
+    </PaperContextMenu>
   );
 }

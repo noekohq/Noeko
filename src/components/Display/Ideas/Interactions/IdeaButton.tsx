@@ -52,6 +52,7 @@ type IIdeaButtonAction = {
 
 interface IIdeaButton {
   idea: IIdea | ISafeIdea;
+  details?: string;
   actions?: IIdeaButtonAction[];
   fullWidth?: boolean;
   onClick?: (
@@ -63,6 +64,7 @@ interface IIdeaButton {
 
 function IdeaButton({
   idea,
+  details,
   actions,
   fullWidth = false,
   onClick,
@@ -72,16 +74,13 @@ function IdeaButton({
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
   const {
-    connectable: {
-      dragging: { set: setDragging },
+    dragging: {
+      current: { set: setDragging, get: getDragging },
     },
   } = useLandscape();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    setDragging({
-      ...idea,
-      type: "idea",
-    });
+    setDragging(idea.id.toString());
     setIsInternallyDragging(true);
     e.dataTransfer.setData(
       "application/json",

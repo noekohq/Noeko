@@ -62,7 +62,6 @@ import {
   formatDateTime,
   htmlToPlainText,
 } from "../../utils/formatting";
-import { IdeaProvider } from "../../contexts/IdeaContext";
 import { api } from "../../server/api";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 import { downloadTextAsFile } from "../../utils/files";
@@ -383,6 +382,7 @@ export default function Idea() {
               )}
               {!!idea && (
                 <>
+                  <Space my="lg" />
                   <ConnectionManager
                     connectable={{
                       ...idea,
@@ -390,14 +390,6 @@ export default function Idea() {
                     }}
                   />
                   <Space my="lg" />
-                  {/*<Connections
-                    loadingIdea={loadingIdea}
-                    idea={idea}
-                    reloadIdea={reloadIdea}
-                    computeOutOfDate={embeddingsOutOfDate()}
-                    triggerCompute={triggerComputeIfNeeded}
-                    computing={loadingEmbeddings || loadingDerivedCascade}
-                  />*/}
                 </>
               )}
             </Tabs.Panel>
@@ -515,24 +507,17 @@ export default function Idea() {
             </Stack>
             <div className={styles.contentArea}>
               {idea && (
-                <IdeaProvider
-                  idea={idea}
-                  reloadIdea={async () => {
-                    await reloadIdea();
-                  }}
-                >
-                  <DreamWriter
-                    key={ideaId}
-                    // initialContent={editorContent}
-                    stickyMenu={false}
-                    onBlur={handleEditorBlur}
-                    onContentReady={handleContentReady}
-                    dependencies={[ideaId, idea.id]}
-                    ref={editorRef}
-                    collaborationId={idea.id.toString()}
-                    connectableId={idea.id.toString()}
-                  />
-                </IdeaProvider>
+                <DreamWriter
+                  key={ideaId}
+                  // initialContent={editorContent}
+                  stickyMenu={false}
+                  onBlur={handleEditorBlur}
+                  onContentReady={handleContentReady}
+                  dependencies={[ideaId, idea.id]}
+                  ref={editorRef}
+                  collaborationId={idea.id.toString()}
+                  connectableId={idea.id.toString()}
+                />
               )}
             </div>
           </Stack>
@@ -950,24 +935,20 @@ function Tools({
       </Group>
 
       <PaperDrawer
+        title="Manage Connections"
         opened={managingConnections}
         onClose={() => setManagingConnections(false)}
       >
-        <UnderConstruction
-          text="This area is under construction"
-          omitFeedback
-        />
-
         <ConnectionManager
           connectable={{
             ...idea,
-
             type: "idea",
           }}
         />
       </PaperDrawer>
 
       <PaperDrawer
+        title="Manage Access"
         opened={managingAccess}
         onClose={() => setManagingAccess(false)}
       >

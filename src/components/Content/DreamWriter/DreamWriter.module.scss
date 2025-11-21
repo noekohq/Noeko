@@ -44,7 +44,7 @@
     position: sticky;
     // Non-color variables kept
     top: calc(var(--topnav-height) + var(--navbar-height));
-    z-index: 100;
+    z-index: var(--z-index-selection);
     // Replaced --color-background with --mantine-color-body
     background-color: var(--mantine-color-body);
     display: flex;

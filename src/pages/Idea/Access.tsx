@@ -37,6 +37,7 @@ import {
   shareAccessWithEmail,
 } from "../../utils/shares";
 import { IShareAccess } from "../../../app/database/models/share";
+import { PaperContextMenu } from "../../components/Display/Paper/PaperContextMenu";
 
 const { VITE_DEPLOYED_URL } = import.meta.env;
 
@@ -174,7 +175,7 @@ export default function Access({
     if (mode === "viewonly") {
       return `${VITE_DEPLOYED_URL}/ideas/shared/${idea.id.toString()}/viewonly`;
     }
-    return `${VITE_DEPLOYED_URL}/ideas/${idea.id.toString()}`;
+    return `${VITE_DEPLOYED_URL}/idea/${idea.id.toString()}`;
   };
 
   return (
@@ -194,7 +195,7 @@ export default function Access({
             Share
           </Button>
         </Group>
-        <Text size="xs" c="dark.2">
+        <Text size="sm" c="dark.2">
           Shared with:
         </Text>
         <Group gap={"xs"}>
@@ -220,18 +221,20 @@ export default function Access({
                     {share.accessLevel}
                   </Text>
                 </Stack>
-                <Menu shadow="md" width={200} position="left-start">
-                  <Menu.Target>
-                    <ActionIcon variant="subtle" size="sm">
-                      <DotsThreeVerticalIcon />
+                <PaperContextMenu triggerOn="click">
+                  <PaperContextMenu.Target>
+                    <ActionIcon variant="subtle" size="lg">
+                      <DotsThreeVerticalIcon weight="bold" />
                     </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Label>Access Level</Menu.Label>
+                  </PaperContextMenu.Target>
+                  <PaperContextMenu.Dropdown>
+                    <PaperContextMenu.Label>
+                      Access Level
+                    </PaperContextMenu.Label>
                     <Box p={4}>
                       <SegmentedControl
                         fullWidth
-                        size="xs"
+                        size="sm"
                         data={[
                           { label: "Reader", value: "viewonly" },
                           { label: "Editor", value: "editor" },
@@ -245,20 +248,19 @@ export default function Access({
                         }
                       />
                     </Box>
-                    <Menu.Divider />
-                    <Menu.Item
+                    <PaperContextMenu.Item
                       color="red"
-                      leftSection={<XCircleIcon size={14} />}
+                      icon={<XCircleIcon size={14} />}
                       onClick={() =>
                         handleStopSharing(share.user.id.toString())
                       }
                     >
                       Remove Access
-                    </Menu.Item>
+                    </PaperContextMenu.Item>
                     <CopyButton value={getShareLink(share.accessLevel)}>
                       {({ copy, copied }) => (
-                        <Menu.Item
-                          leftSection={
+                        <PaperContextMenu.Item
+                          icon={
                             copied ? (
                               <CheckIcon size={14} />
                             ) : (
@@ -268,11 +270,11 @@ export default function Access({
                           onClick={copy}
                         >
                           {copied ? "Copied" : "Copy Share Link"}
-                        </Menu.Item>
+                        </PaperContextMenu.Item>
                       )}
                     </CopyButton>
-                  </Menu.Dropdown>
-                </Menu>
+                  </PaperContextMenu.Dropdown>
+                </PaperContextMenu>
               </Group>
             );
           })}
@@ -294,7 +296,7 @@ export default function Access({
           />
           <SegmentedControl
             fullWidth
-            size="xs"
+            size="sm"
             data={[
               { label: "Reader", value: "viewonly" },
               { label: "Editor", value: "editor" },

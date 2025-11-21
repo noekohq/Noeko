@@ -23,52 +23,33 @@ import Content from "../../components/UI/Layout/Content";
 import WidgetWrapper from "../../components/Widgets/Wrapper";
 import Search from "../../components/Search/Search";
 import useFetch from "../../hooks/useFetch";
-import {
-  IIdea,
-  IIdeaSortFields,
-  ISafeIdea,
-  IUserIdeaStats,
-} from "../../../app/database/models/ideas";
+import { IIdeaSortFields, ISafeIdea } from "../../../app/database/models/ideas";
 import {
   ArticleIcon,
-  BellIcon,
-  CaretDownIcon,
-  CaretUpIcon,
   ClockClockwiseIcon,
   ClockCounterClockwiseIcon,
   ClockIcon,
   HandWavingIcon,
-  IntersectSquareIcon,
-  MegaphoneIcon,
   MoonStarsIcon,
-  ShareNetworkIcon,
   SunIcon,
   TagIcon,
-  UniteSquareIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import { useLayout } from "../../contexts/LayoutContext";
-import StatusBar from "../../components/UI/Layout/Bottom";
 import {
   getCurrentTimeFormatted,
   getCurrentTimeOfDay,
 } from "../../utils/datetime";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
-import TimeButton from "../../components/Display/Interactions/TimeButton";
 import { IDashboard } from "../../../app/services/Dashboard";
-import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
 import { Link, useNavigate } from "react-router";
-import ExpandableCardStack from "../../components/Display/Interactions/ExpandableCardStack";
-import { IConnectable } from "../../../app/services/Graph";
 import Selection from "../../components/Display/Interactions/Selection";
-import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
-import { useSearch } from "../../contexts/SearchContext";
-import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
-import { useTourStep } from "../../contexts/TourGuideContext";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
+import PaperThing from "../../components/Display/Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
 
 type ILoadedWidget = {
   id: string;
@@ -436,12 +417,30 @@ function JumpBackIn() {
                 <Text size="xs" c="dimmed" fw="bold">
                   SUGGESTED
                 </Text>
-                <IdeaButton idea={firstIdea} link />
+                <PaperThing
+                  {...getThingPropsFromConnectable(
+                    {
+                      ...firstIdea,
+                      type: "idea",
+                    },
+                    {},
+                    true,
+                  )}
+                />
               </Stack>
             </Box>
           )}
           {rest?.map((idea) => {
-            return <IdeaButton link key={idea.id.toString()} idea={idea} />;
+            return (
+              <PaperThing
+                key={idea.id.toString()}
+                {...getThingPropsFromConnectable(
+                  { ...idea, type: "idea" },
+                  {},
+                  true,
+                )}
+              />
+            );
           })}
           {allIdeas.length === 0 && (
             <Text size="sm" c="dimmed">

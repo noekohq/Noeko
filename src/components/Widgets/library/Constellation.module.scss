@@ -8,7 +8,7 @@
 
 .floatingUI {
     position: absolute;
-    z-index: 50;
+    z-index: var(--z-index-constellation);
     top: var(--layout-spacing);
     left: var(--layout-spacing);
     right: var(--layout-spacing);
