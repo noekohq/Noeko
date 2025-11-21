@@ -1,4 +1,5 @@
 @use "./styles/mixins.scss" as *;
+@import "styles/z-index";
 
 // Global variable definitions for layout and structure
 :root {
@@ -48,8 +49,6 @@
         --total-top-offset: env(safe-area-inset-top);
         --total-bottom-offset: calc(var(--navbar-height));
     }
-
-    --mb-z-index: 500 !important;
 }
 
 // Base element and component styles
@@ -206,25 +205,54 @@ td {
     }
 }
 .mantine-Modal-root {
-    z-index: 1000;
+    z-index: var(--z-index-modal);
 
     .mantine-Modal-overlay {
         z-index: inherit;
     }
 
     .mantine-Modal-inner {
-        z-index: 1001;
+        z-index: var(--z-index-global-override);
     }
 }
-.mantine-Popover-dropdown {
-    background-color: var(--mantine-color-body);
-    border: 1px solid var(--mantine-color-dark-8);
-    border-radius: var(--mantine-radius-lg);
-    border-top-left-radius: var(--mantine-radius-sm);
-    padding: var(--mantine-spacing-md);
+
+@keyframes popoverIn {
+    from {
+        transform: scale(0.9) translateY(-5px);
+    }
+    to {
+        transform: scale(1) translateY(0);
+    }
 }
+
+.mantine-Popover-dropdown {
+    z-index: var(--z-index-context-menu);
+
+    animation: popoverIn 0.2s ease-in-out forwards;
+
+    background-color: var(--mantine-color-dark-8) !important;
+    border: 1px solid var(--mantine-color-dark-7);
+    border-radius: var(--mantine-radius-md);
+    /* border-top-left-radius: var(--mantine-radius-sm); */
+    padding: var(--mantine-spacing-md);
+    box-shadow: var(--mantine-shadow-md);
+}
+
+.mantine-Menu-dropdown {
+    z-index: 2000;
+
+    animation: popoverIn 0.2s ease-in-out forwards;
+
+    background-color: var(--mantine-color-dark-8) !important;
+    border: 1px solid var(--mantine-color-dark-7);
+    border-radius: var(--mantine-radius-md);
+    /* border-top-left-radius: var(--mantine-radius-sm); */
+    padding: var(--mantine-spacing-md);
+    box-shadow: var(--mantine-shadow-md);
+}
+
 .mantine-Popover-arrow {
-    background-color: var(--mantine-color-dark-8);
+    background-color: var(--mantine-color-dark-7);
     border: none;
 }
 

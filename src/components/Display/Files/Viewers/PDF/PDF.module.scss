@@ -21,7 +21,7 @@
     top: var(--layout-spacing);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 10;
+    z-index: var(--z-index-low);
     width: fit-content;
 
     background-color: var(--mantine-color-dark-9);
@@ -63,6 +63,6 @@
     border-radius: var(--mantine-radius-md);
     border: 1px solid var(--mantine-color-dark-7);
     box-shadow: var(--mantine-shadow-lg);
-    z-index: 2000;
+    z-index: var(--z-index-pdf-viewer);
     min-width: 300px;
 }

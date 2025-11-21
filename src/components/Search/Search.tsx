@@ -19,12 +19,14 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import useRabbithole from "../../hooks/useRabbithole";
 import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
-import { ArrowClockwiseIcon, IconProps } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, IconProps, PlusIcon } from "@phosphor-icons/react";
 import ConnectableThing from "../Display/Interactions/Connections/ConnectableThing";
 import CollapseButton from "../Display/Interactions/CollapseButton";
 import { ISearchResultValue } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { IConnectable } from "../../../app/services/Graph";
+import PaperThing from "../Display/Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from "../Display/Paper/Things/thingUtils";
 
 export type ISearchResultAction = {
   id: string;
@@ -193,50 +195,18 @@ export default function Search({
                 <Stack style={style} gap="sm">
                   {recent
                     ?.map((thing, i) => {
-                      const actions = resultActions?.map((action) => {
-                        return action(thing);
+                      const props = getThingPropsFromConnectable(thing, {
+                        action: {
+                          icon: PlusIcon,
+                          onClick: (id, e) => {
+                            console.log("Clicked: ", id);
+                          },
+                          tooltip: "Add this thing",
+                        },
                       });
 
-                      if (!actions) {
-                        return (
-                          <ConnectableThing
-                            key={thing.id.toString()}
-                            thing={thing}
-                            onClick={(thing) => {
-                              navigate(`/${thing.type}/${thing.id.toString()}`);
-                            }}
-                          />
-                        );
-                      }
-
                       return (
-                        <CollapseButton
-                          key={thing.id.toString()}
-                          target={<ConnectableThing thing={thing} />}
-                          details={
-                            <>
-                              <Group>
-                                {actions.map((a) => {
-                                  return (
-                                    <Button
-                                      variant={a.variant || "light"}
-                                      size="xs"
-                                      color={a.color || "gray"}
-                                      onClick={(e) => {
-                                        a.onClick(e, thing);
-                                      }}
-                                      title={a.label}
-                                      leftSection={a.icon}
-                                      radius="md"
-                                    >
-                                      {a.label}
-                                    </Button>
-                                  );
-                                })}
-                              </Group>
-                            </>
-                          }
-                        />
+                        <PaperThing key={thing.id.toString()} {...props} />
                       );
                     })
                     .filter((r) => !!r)}

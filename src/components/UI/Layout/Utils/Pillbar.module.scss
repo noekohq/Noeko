@@ -26,7 +26,7 @@
   justify-content: center;
   gap: var(--mantine-spacing-xs);
   padding: 4px var(--layout-spacing);
-  z-index: 1;
+  z-index: var(--z-index-content);
 
   &:hover {
     color: var(--mantine-color-dark-0);
@@ -48,7 +48,7 @@
   background-color: var(--mantine-color-dark-7);
   border-radius: var(--mantine-radius-xl);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 0;
+  z-index: var(--z-index-base);
 }
 
 @keyframes panelIn {

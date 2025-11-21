@@ -1,51 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { IConnectable } from "../../../../../app/services/Graph";
-import useFetch from "../../../../hooks/useFetch";
 import styles from "./ConnectionManager.module.scss";
 import useConnectable from "../../../../hooks/useConnectable";
 import {
-  Accordion,
-  ActionIcon,
-  Badge,
   Box,
-  Button,
   Group,
-  HoverCard,
-  Loader,
   Overlay,
   Stack,
   Text,
   Transition,
+  ActionIcon,
+  Tooltip,
+  Divider,
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import {
-  ArrowRightIcon,
-  ArrowsClockwiseIcon,
-  InfoIcon,
-  IntersectSquareIcon,
-  NotePencilIcon,
-  SubtractSquareIcon,
-  UniteSquareIcon,
-} from "@phosphor-icons/react";
+import { NotePencilIcon, PlusIcon, SubtractIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../../contexts/InteractionContext";
-import ConnectableThing from "./ConnectableThing";
-import { similarityToColor, similarityToLevel } from "../../../../vars/ideas";
-import { getNodeDescription } from "../../../../utils/graph";
-import CollapseButton from "../CollapseButton";
-import { useNavigate } from "react-router";
-import useRabbithole from "../../../../hooks/useRabbithole";
-import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
 import { useTourStep } from "../../../../contexts/TourGuideContext";
+import PaperThing from "../../Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from "../../Paper/Things/thingUtils";
+import { similarityToLevel } from "../../../../vars/ideas";
+import { ConnectionPicker } from "./ConnectionPicker";
+import { capitalize } from "../../../../utils/formatting";
 
 interface IConnectionManagerProps {
   connectable: IConnectable;
-  onReload?: () => void;
+  maxSuggested?: number;
   shouldUpdate?: boolean;
 }
 
 export default function ConnectionManager({
   connectable,
-  onReload,
+  maxSuggested = 3,
   shouldUpdate,
 }: IConnectionManagerProps) {
   const {
@@ -57,10 +43,11 @@ export default function ConnectionManager({
     disconnect,
     load,
     isConnected,
-    loadingConnect,
   } = useConnectable({ connectable });
 
-  const { isDownRabbithole, currentRabbithole } = useRabbithole();
+  const {
+    actions: { newConnectedIdea },
+  } = useInteraction();
 
   useEffect(() => {
     load();
@@ -72,18 +59,41 @@ export default function ConnectionManager({
     }
   }, [shouldUpdate]);
 
-  const [draggingOverConnectionDrop, setDraggingOverConnectionDrop] =
-    useState(false);
+  // --- Logic: Filtering & Slicing ---
+
+  // 1. Identify what is already connected (to omit from suggestions/picker)
+  const connectedIdSet = useMemo(() => {
+    return new Set(connected?.map((c) => c.id.toString()) || []);
+  }, [connected]);
+
+  // 2. Filter similar items that are NOT connected
+  const filteredSimilar = useMemo(() => {
+    if (!similar) return [];
+    return similar.filter((s) => !connectedIdSet.has(s.id.toString()));
+  }, [similar, connectedIdSet]);
+
+  // 3. Slice for display
+  const suggestionsToShow = filteredSimilar.slice(0, maxSuggested);
+
+  // --- Logic: Drag & Drop ---
+  const [draggingOver, setDraggingOver] = useState(false);
+
   const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingOver(false);
+
     try {
       const jData = e.dataTransfer.getData("application/json");
       const data = JSON.parse(jData);
-      const thingId =
-        data.thingId || data.ideaId || data.taskId || data.sourceId;
+      const thingId = data.thingId;
+
+      if (!thingId) return;
+
       if (isConnected(thingId)) {
         showNotification({
-          title: "Can't connect again",
-          message: "Can't connect this thing again.",
+          title: "Already connected",
+          message: "These two things are already linked.",
           color: "yellow",
         });
         return;
@@ -91,304 +101,118 @@ export default function ConnectionManager({
       await connect(thingId);
     } catch (error) {
       console.error("Error creating connection: ", error);
-    } finally {
-      setDraggingOverConnectionDrop(false);
     }
-  };
-
-  const navigate = useNavigate();
-
-  const {
-    actions: { newConnectedIdea },
-  } = useInteraction();
-
-  const relatedOutOfDate = () => {
-    const lastUpdated = new Date(connectable.updatedAt);
-    const lastEmbeddingsUpdate = new Date(connectable.embeddingsUpdatedAt);
-    return lastUpdated.getTime() > lastEmbeddingsUpdate.getTime();
   };
 
   const connectionRef = useTourStep({
     id: "feature:connections",
     view: "editor",
     order: 11,
-    title: "Connections",
-    content: (
-      <>
-        <p>Try dragging something here to connect it!</p>
-        <p>
-          Explicit connections are only made by you, and they are persistent
-          even if the content changes, unlike similar things. You can drag and
-          drop ideas to this area, or click the associated buttons to make
-          connections.`,
-        </p>
-      </>
-    ),
+    title: "Connections & Context",
+    content: "Drag and drop notes here, or use the picker to find connections.",
   });
 
-  const contextRef = useTourStep({
-    id: "feature:context",
-    view: "editor",
-    order: 12,
-    title: "Context",
-    content: `Noeko automatically surfaces relevant saved context from your idea, task, or source content. This fosters serendipitous connections, ensuring your saves proactively appear when useful.`,
-  });
+  const hasConnections = connected && connected.length > 0;
+  const hasSuggestions = suggestionsToShow.length > 0;
+  const omitIds = [...Array.from(connectedIdSet), connectable.id.toString()];
 
   return (
-    <div className={styles.connectionManager}>
+    <div className={styles.connectionManager} ref={connectionRef}>
       <Box
-        onDragOver={() => {
-          setDraggingOverConnectionDrop(true);
+        className={styles.dropZone}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDraggingOver(true);
         }}
-        onDragLeave={() => {
-          setDraggingOverConnectionDrop(false);
-        }}
-        pos="relative"
-        ref={connectionRef}
+        onDragLeave={() => setDraggingOver(false)}
+        onDrop={handleConnectionDrop}
       >
-        <Stack>
-          <Group align="center" justify="space-between" mt="lg">
-            {draggingOverConnectionDrop && (
-              <Overlay
-                backgroundOpacity={0.5}
-                blur={10}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                }}
-                onDrop={(e) => {
-                  handleConnectionDrop(e);
-                }}
-                radius={"lg"}
-              >
-                <Group
-                  align="center"
-                  justify="center"
-                  style={{ height: "100%" }}
-                >
-                  <Text c="dark.7" mx="lg" size="sm">
-                    Drop here to create a connection
-                  </Text>
-                </Group>
-              </Overlay>
-            )}
-            <Text size="sm" c="dark.4" fw="bold">
-              <Group gap="xs">
-                <UniteSquareIcon weight="bold" />
-                CONNECTED
-                {/*<Transition mounted={loadingConnected} transition="fade-up">
-                  {(styles) => {
-                    return (
-                      <div style={styles}>
-                        <Loader color="gray" size="xs" />
-                      </div>
-                    );
-                  }}
-                </Transition>*/}
-              </Group>
-            </Text>
-            <Group gap="xs">
-              <ActionIcon
-                variant="light"
-                color="gray"
-                size={"sm"}
-                onClick={() => newConnectedIdea(connectable.id.toString())}
-                title="Create a new connected idea"
-              >
-                <NotePencilIcon size={14} />
-              </ActionIcon>
-              <HoverCard width="400px" openDelay={300}>
-                <HoverCard.Target>
-                  <ActionIcon variant="subtle" size="sm" color="gray">
-                    <InfoIcon />
-                  </ActionIcon>
-                </HoverCard.Target>
-                <HoverCard.Dropdown>
-                  <Text size="sm" mb="xs">
-                    Explicit connections are only made by you, and they are
-                    persistent even if the content changes, unlike similar
-                    things. You can drag and drop ideas to this area, or click
-                    the associated buttons to make connections.
-                  </Text>
-                  <Text c="dimmed" size="xs" mb="xs">
-                    Click the <NotePencilIcon /> button to create a new
-                    connected note.
-                  </Text>
-                  {connected && connected?.length <= 0 && (
-                    <Text c="dimmed" size="xs">
-                      No connections yet. Try connecting (
-                      <UniteSquareIcon size={12} />) something from the context!
-                    </Text>
-                  )}
-                </HoverCard.Dropdown>
-              </HoverCard>
-            </Group>
-          </Group>
-          <Transition
-            mounted={connected && connected.length <= 0 && !loadingConnected}
-            transition="fade-right"
+        {draggingOver && (
+          <Overlay
+            color="dark.9"
+            backgroundOpacity={0.05}
+            blur={4}
+            className={styles.overlay}
+            radius="md"
           >
-            {(styles) => {
-              return (
-                <Text style={styles} size="xs" c="dimmed">
-                  No connected things yet.
-                </Text>
-              );
-            }}
+            <Group align="center" justify="center" h="100%">
+              <Text fw={700} size="sm" c="dark.1">
+                Drop to connect
+              </Text>
+            </Group>
+          </Overlay>
+        )}
+
+        <Stack gap="md">
+          <Transition mounted={hasConnections} transition="fade" duration={200}>
+            {(styles) => (
+              <div style={styles}>
+                <Stack gap="xs">
+                  {connected?.map((thing) => (
+                    <PaperThing
+                      key={thing.id.toString()}
+                      {...getThingPropsFromConnectable(
+                        thing,
+                        {
+                          state: "default",
+                          action: {
+                            icon: SubtractIcon,
+                            tooltip: "Disconnect",
+                            onClick: (id) => disconnect(id),
+                          },
+                        },
+                        true,
+                      )}
+                    />
+                  ))}
+                </Stack>
+              </div>
+            )}
           </Transition>
-        </Stack>
-        <Stack mt="sm">
-          {connected &&
-            connected?.length > 0 &&
-            connected?.map((connection, i) => {
-              return (
-                <CollapseButton
-                  key={connection.id.toString()}
-                  target={
-                    <>
-                      <ConnectableThing
-                        connectable={connectable}
-                        thing={connection}
+
+          <Transition mounted={hasSuggestions} transition="fade" duration={200}>
+            {(styles) => (
+              <div style={styles}>
+                <Stack gap="xs">
+                  {suggestionsToShow.map((thing) => {
+                    // Example: Add similarity info to the detail
+                    const distance = (thing as any).distance || 0;
+                    const level = similarityToLevel(distance);
+                    const baseDetail =
+                      getThingPropsFromConnectable(thing).detail;
+
+                    return (
+                      <PaperThing
+                        key={thing.id.toString()}
+                        {...getThingPropsFromConnectable(
+                          thing,
+                          {
+                            state: "suggested",
+                            detail: `${capitalize(level)} Match • ${baseDetail}`,
+                            action: {
+                              icon: PlusIcon,
+                              tooltip: "Connect",
+                              onClick: (id) => connect(id),
+                            },
+                          },
+                          true,
+                        )}
                       />
-                    </>
-                  }
-                  details={
-                    <>
-                      <Stack gap="xs">
-                        <Group gap="xs">
-                          <Button
-                            variant="light"
-                            size="xs"
-                            color="dark.3"
-                            onClick={() => {
-                              disconnect(connection.id.toString());
-                            }}
-                            title="Disconnect this thing"
-                            leftSection={<SubtractSquareIcon weight="bold" />}
-                            radius="md"
-                            loading={loadingConnect}
-                            disabled={loadingConnect}
-                          >
-                            Disconnect
-                          </Button>
-                        </Group>
-                        <Text size="sm">{getNodeDescription(connection)}</Text>
-                      </Stack>
-                    </>
-                  }
-                />
-              );
-            })}
-          {draggingOverConnectionDrop && <Box my="md" mih={"10vh"} />}
+                    );
+                  })}
+                </Stack>
+              </div>
+            )}
+          </Transition>
+
+          <ConnectionPicker
+            onSelect={async (id) => {
+              await connect(id);
+            }}
+            omitIds={omitIds}
+          />
         </Stack>
       </Box>
-      <Stack gap="xs" mb="md" mt="md" ref={contextRef} pos="relative">
-        <Text size="sm" c="dark.4" fw="bold">
-          <Group gap="xs">
-            <IntersectSquareIcon weight="bold" />
-            CONTEXT
-            {/*<Transition mounted={relatedOutOfDate()} transition="fade-up">
-              {(styles) => {
-                if (loadingSimilar) {
-                  return <Loader color="gray" size="xs" />;
-                }
-                return (
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size="xs"
-                    style={styles}
-                  >
-                    <ArrowsClockwiseIcon size={12} />
-                  </ActionIcon>
-                );
-              }}
-            </Transition>*/}
-          </Group>
-        </Text>
-        {isDownRabbithole && (
-          <Text size="xs" c="dimmed">
-            <Group align="center" gap="xs" wrap="nowrap">
-              In "{currentRabbithole?.name}"{" "}
-              <RabbitholeIcon size={14} color="var(--mantine-color-gray-4)" />
-            </Group>
-          </Text>
-        )}
-      </Stack>
-      <Transition
-        mounted={!!similar && similar?.length > 0}
-        transition="fade-right"
-      >
-        {(styles) => {
-          return (
-            <Stack gap="md">
-              {similar?.map((similar) => {
-                const distance =
-                  (similar as IConnectable & { distance: number }).distance ||
-                  0;
-                const level = similarityToLevel(distance);
-                const color = similarityToColor[level];
-                const connected = isConnected(similar.id.toString());
-
-                return (
-                  <CollapseButton
-                    key={similar.id.toString()}
-                    target={
-                      <ConnectableThing
-                        key={similar.id.toString()}
-                        connectable={connectable}
-                        thing={similar}
-                      />
-                    }
-                    details={
-                      <>
-                        <Stack gap="md">
-                          <Group gap="xs" align="baseline">
-                            {!connected && (
-                              <Button
-                                variant="light"
-                                size="xs"
-                                radius="md"
-                                color={"dark.3"}
-                                onClick={() => {
-                                  connect(similar.id.toString());
-                                }}
-                                title="Connect this idea"
-                                leftSection={<UniteSquareIcon weight="bold" />}
-                                loading={loadingConnect}
-                                disabled={loadingConnect}
-                              >
-                                Connect
-                              </Button>
-                            )}
-                            <Badge color={"gray"} variant="light" size="sm">
-                              {level}
-                            </Badge>
-                          </Group>
-                          <Text size="sm">{getNodeDescription(similar)}</Text>
-                        </Stack>
-                      </>
-                    }
-                  />
-                );
-              })}
-            </Stack>
-          );
-        }}
-      </Transition>
-      <Transition
-        mounted={
-          !similar || (similar && similar.length <= 0 && !loadingSimilar)
-        }
-        transition="fade-right"
-      >
-        {(styles) => {
-          return (
-            <Text style={styles} size="xs" c="dimmed" mb="md">
-              No related things yet.
-            </Text>
-          );
-        }}
-      </Transition>
     </div>
   );
 }

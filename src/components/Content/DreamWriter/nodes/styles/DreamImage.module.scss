@@ -27,6 +27,6 @@
     right: 0;
     left: 0;
     cursor: nwse-resize;
-    z-index: 10;
+    z-index: var(--z-index-low);
     animation: resizeHandleAnimation .2s forwards;
 }

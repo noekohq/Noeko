@@ -154,7 +154,7 @@ export function TagPicker({
         >
           {opened ? "Cancel" : "Add Tag"}
         </PaperButton>
-        <PaperDrawer opened={opened} onClose={handleClose}>
+        <PaperDrawer title="Add a tag" opened={opened} onClose={handleClose}>
           {paperSelectionContent}
         </PaperDrawer>
       </>

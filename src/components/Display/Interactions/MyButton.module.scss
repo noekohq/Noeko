@@ -16,7 +16,7 @@
   &.opened {
     background-color: var(--mantine-color-dark-1);
     color: var(--mantine-color-dark-9);
-    z-index: 301;
+    z-index: var(--z-index-my-button);
 
     .userIcon {
       transform: translateY(-100%);
@@ -70,7 +70,7 @@
   right: 0;
   bottom: 0;
   top: 0;
-  z-index: 300;
+  z-index: var(--z-index-top-bar);
   animation: overlayIn 0.1s ease-in-out forwards;
 }
 

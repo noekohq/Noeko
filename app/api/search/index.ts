@@ -127,8 +127,10 @@ router.get("/smartSuggest", checkToken, async (req, res) => {
       return;
     }
     const rabbitholeId = req.query.rabbitholeId as string;
+    const limit = parseInt(req.query.limit as string) || 5;
     const suggestions = await Search.smartSuggest(user.id, query, {
       rabbitholeId,
+      limit,
     });
     res.json({
       message: "Suggestions fetched successfully",
