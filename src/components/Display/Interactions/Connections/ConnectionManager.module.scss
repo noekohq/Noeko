@@ -1,0 +1,14 @@
+.connectionManager {
+    position: relative;
+}
+
+.dragOverlay {
+    outline: 1px solid red;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    border: 0;
+    backdrop-filter: blur(4px) brightness(0.8);
+    z-index: 100;
+}

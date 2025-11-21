@@ -11,7 +11,7 @@
     left: var(--layout-spacing);
     right: var(--layout-spacing);
     box-sizing: border-box;
-    z-index: 250;
+    z-index: var(--z-index-ui-controls);
 
     &.withinRabbithole {
         border-color: var(--mantine-color-yellow-5) !important;
@@ -19,7 +19,7 @@
     }
 
     &.focused {
-        z-index: 300;
+        z-index: var(--z-index-top-bar);
     }
 
     @include tablet {
@@ -56,7 +56,7 @@
 
 .backdrop {
     animation: backdropIn 0.2s ease-in-out forwards;
-    z-index: -3;
+    z-index: var(--z-index-negative-3);
     position: fixed;
     top: 0;
     left: 0;

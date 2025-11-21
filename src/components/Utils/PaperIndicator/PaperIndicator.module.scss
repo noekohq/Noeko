@@ -5,7 +5,7 @@
 
 .indicator {
   position: absolute;
-  z-index: 10;
+  z-index: var(--z-index-low);
   background-color: var(--mantine-color-dark-7);
   color: var(--mantine-color-dark-0);
   border-radius: var(--mantine-radius-xl);

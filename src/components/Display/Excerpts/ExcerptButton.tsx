@@ -59,16 +59,13 @@ function ExcerptButton({
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
   const {
-    connectable: {
-      dragging: { set: setDragging },
+    dragging: {
+      current: { set: setDragging },
     },
   } = useLandscape();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    setDragging({
-      ...excerpt,
-      type: "excerpt",
-    });
+    setDragging(excerpt.id.toString());
     setIsInternallyDragging(true);
     e.dataTransfer.setData(
       "application/json",

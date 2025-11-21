@@ -15,7 +15,7 @@
     top: 0;
     right: 0;
     left: 0;
-    z-index: 120;
+    z-index: var(--z-index-mobile-bar);
     background-color: var(--mantine-color-dark-9);
     height: var(--mobile-bar-height);
     overflow: hidden;

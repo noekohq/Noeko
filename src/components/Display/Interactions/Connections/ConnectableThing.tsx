@@ -1,12 +1,8 @@
-import { DoorOpenIcon, IconProps } from "@phosphor-icons/react";
-import { ITag } from "../../../../../app/database/models/tag";
+import { IconProps } from "@phosphor-icons/react";
 import { IIdea } from "../../Ideas/IdeaCardTypes";
-import TagCard from "../../Tags/TagCard";
-import TaskCard from "../../Tasks/TaskCard";
 import { ITask } from "../../../../../app/database/models/task";
 import { MantineColor } from "@mantine/core";
 import { ISource } from "../../../../../app/database/models/source";
-import SourceCard from "../../Sources/SourceCard";
 import { IConnectable } from "../../../../../app/services/Graph";
 import IdeaButton from "../../Ideas/Interactions/IdeaButton";
 import TaskButton from "../../Tasks/TaskButton";

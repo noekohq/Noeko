@@ -52,16 +52,13 @@ function SourceButton({
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
   const {
-    connectable: {
-      dragging: { set: setDragging },
+    dragging: {
+      current: { set: setDragging },
     },
   } = useLandscape();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    setDragging({
-      ...source,
-      type: "source",
-    });
+    setDragging(source.id.toString());
     setIsInternallyDragging(true);
     e.dataTransfer.setData(
       "application/json",

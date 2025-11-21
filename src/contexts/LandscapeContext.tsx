@@ -20,15 +20,17 @@ interface ILandscapeContext {
       get: IConnectable | null;
       set: (connectable: IConnectable | null) => void;
     };
-    dragging: {
-      get: IConnectable | null;
-      set: (connectable: IConnectable | null) => void;
-    };
   };
   selection: {
     current: {
       get: ISelection | null;
       set: (selection: ISelection) => void;
+    };
+  };
+  dragging: {
+    current: {
+      get: string | null;
+      set: (dragging: string | null) => void;
     };
   };
 }
@@ -46,12 +48,14 @@ const initialContext: ILandscapeContext = {
       get: null,
       set: () => {},
     },
-    dragging: {
-      get: null,
-      set: (connectable: IConnectable | null) => {},
-    },
   },
   selection: {
+    current: {
+      get: null,
+      set: () => {},
+    },
+  },
+  dragging: {
     current: {
       get: null,
       set: () => {},
@@ -69,7 +73,7 @@ export const LandscapeProvider = ({
   const [rabbithole, setRabbithole] = useState<IRabbithole | null>(null);
   const [connectable, setConnectable] = useState<IConnectable | null>(null);
   const [selection, setSelection] = useState<ISelection | null>(null);
-  const [dragging, setDragging] = useState<IConnectable | null>(null);
+  const [dragging, setDragging] = useState<string | null>(null);
 
   const { load: reloadRabbithole } = useFetch<undefined, IRabbithole>({
     url: `/rabbitholes/${rabbithole?.id.toString()}`,
@@ -102,15 +106,17 @@ export const LandscapeProvider = ({
         get: connectable,
         set: setConnectable,
       },
-      dragging: {
-        get: dragging,
-        set: setDragging,
-      },
     },
     selection: {
       current: {
         get: selection,
         set: setSelection,
+      },
+    },
+    dragging: {
+      current: {
+        get: dragging,
+        set: setDragging,
       },
     },
   } satisfies ILandscapeContext;

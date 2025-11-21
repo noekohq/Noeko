@@ -1,13 +1,11 @@
-import { Group, Stack, Text } from "@mantine/core";
-import { TagIcon } from "@phosphor-icons/react";
+import { Group } from "@mantine/core";
 import { IConnectable } from "../../../../../app/services/Graph"; // Adjust
 import useConnectable from "../../../../hooks/useConnectable"; // Adjust
 import { useEffect, useState } from "react";
 import { TagPicker } from "./TagPicker"; // Import the new component
 import { createTagAndAddToThing } from "../../../../utils/tags"; // Adjust
 import styles from "./TagsManager.module.scss";
-// Assuming you will create this or use your PaperTag logic here
-import PaperTag, { ITagState } from "../../Paper/Tags/PaperTag";
+import PaperTag from "../../Paper/Tags/PaperTag";
 import { useLayout } from "../../../../contexts/LayoutContext";
 
 type ITagsManagerProps = {

@@ -9,6 +9,7 @@ interface IPaperIconProps {
   withBorder?: boolean;
   disabled?: boolean;
   size?: MantineSize;
+  className?: string;
 }
 
 export default function PaperIcon({
@@ -19,11 +20,13 @@ export default function PaperIcon({
   withBorder = false,
   disabled = false,
   size = "sm",
+  className,
 }: IPaperIconProps) {
   const classNames = [
     styles.paperIcon,
     withBorder ? styles.withBorder : "",
     styles[size],
+    className,
   ]
     .filter(Boolean)
     .join(" ");

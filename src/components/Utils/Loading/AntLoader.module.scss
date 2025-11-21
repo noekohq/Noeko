@@ -18,7 +18,7 @@
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px); // For Safari browser compatibility
     pointer-events: none;
-    z-index: 0; // Tailwind class z-0
+    z-index: var(--z-index-base); // Tailwind class z-0
   }
 
   .loader-canvas {
@@ -30,7 +30,7 @@
     display: block; // Tailwind class block
     width: 100%;    // Tailwind class w-full
     height: 100%;   // Tailwind class h-full
-    z-index: 10;    // Tailwind class z-10
+    z-index: var(--z-index-low);    // Tailwind class z-10
 
     // For crisp pixel rendering
     image-rendering: pixelated;
@@ -48,13 +48,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20; // Above canvas and overlay
+    z-index: var(--z-index-mid); // Above canvas and overlay
     color: var(--mantine-color-text);
   }
 
   .blur-overlay {
       position: absolute;
-      z-index: 20; // Above canvas and overlay
+      z-index: var(--z-index-mid); // Above canvas and overlay
       top: 0;
       left: 0;
       right: 0;

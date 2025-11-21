@@ -1,47 +1,83 @@
 @keyframes overlayIn {
-    0% {
+    from {
         opacity: 0;
     }
-    100% {
+    to {
         opacity: 1;
-        backdrop-filter: blur(4px) brightness(0.7);
     }
 }
 
 .overlay {
-    z-index: 1000;
-    animation: overlayIn 0.3s ease-in-out;
+    z-index: var(--z-index-drawer);
+    animation: overlayIn 0.2s ease-out forwards;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+
     backdrop-filter: blur(4px) brightness(0.8);
+    /* Hardware acceleration hint */
+    will-change: opacity;
 }
 
-@keyframes contentIn {
-    0% {
+@keyframes bodyIn {
+    from {
         transform: translateY(100%);
     }
-    100% {
+    to {
         transform: translateY(0);
     }
 }
 
-.content {
+.body {
+    /* ... existing layout styles ... */
     min-height: 60vh;
     max-height: 80vh;
     overflow-y: auto;
-    animation: contentIn 0.2s ease-in-out;
+
+    /* 3. The "Native" Feel:
+           Use a custom cubic-bezier. This specific curve (0.32, 0.72, 0, 1)
+           starts quickly and has a long, smooth "braking" distance.
+           It feels snappy but expensive. */
+    animation: bodyIn 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+
     position: fixed;
     bottom: 0;
-    left: var(--layout-spacing);
-    right: var(--layout-spacing);
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
     gap: var(--mantine-spacing-sm);
     background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-lg);
-    border-radius: var(--mantine-radius-xl) var(--mantine-radius-xl) 0 0;
+    padding: var(--mantine-spacing-sm);
+    border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
     box-shadow: var(--mantine-shadow-md);
+
+    /* Hardware acceleration hint to prevent jank during the slide */
+    will-change: transform;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* padding: 0 var(--mantine-spacing-xs); */
+
+    .closeButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--mantine-spacing-xs);
+        font-size: var(--mantine-font-size-md);
+        border-radius: var(--mantine-radius-xl);
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--mantine-color-dark-3);
+
+        &:hover {
+            background-color: var(--mantine-color-dark-7);
+        }
+    }
+}
+
+.content {
 }

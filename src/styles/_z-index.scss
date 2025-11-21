@@ -1,0 +1,48 @@
+:root {
+    // Z-Index Definitions
+    --z-index-negative-1: -1;
+    --z-index-negative-2: -2;
+    --z-index-negative-3: -3;
+
+    // Base z-indices
+    --z-index-base: 0;
+    --z-index-content: 1;
+    --z-index-low: 10;
+    --z-index-mid: 20;
+
+    // Components
+    --z-index-constellation: 50;
+    --z-index-selection: 100;
+    --z-index-mobile-bar: 120;
+    --z-index-sidebars: 150;
+
+    // UI Controls
+    --z-index-ui-controls: 250;
+    --z-index-capture-button: 260;
+
+    // Higher-level UI
+    --z-index-top-bar: 300;
+    --z-index-my-button: 301;
+    --z-index-spotlight: 305;
+
+    // Overlays and Modals
+    --z-index-mailbaby: 500;
+    --z-index-spotlight-overlay: 610;
+    --z-index-loading-overlay: 700;
+    --z-index-modal: 1001;
+
+    // Context Menus and Drawers
+    --z-index-context-menu: 1000;
+    --z-index-drawer: 1000;
+    --z-index-global-override: 1001;
+
+    // Highest level
+    --z-index-pdf-viewer: 2000;
+
+    // Semantic Cloud
+    --z-index-cloud-far: 4;
+    --z-index-cloud-mid: 6;
+    --z-index-cloud-near: 8;
+    --z-index-cloud-text: 10;
+    --z-index-cloud-hover: 20;
+}

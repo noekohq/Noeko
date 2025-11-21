@@ -22,13 +22,12 @@ import { LandscapeProvider } from "./contexts/LandscapeContext.tsx";
 import { ErrorBoundary } from "react-error-boundary";
 import Error from "./Error.tsx";
 import { TourGuideProvider } from "./contexts/TourGuideContext.tsx";
-import {polyfill} from "mobile-drag-drop"
-import {polyfill} from "mobile-drag-drop/scrollimport { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
+import { polyfill } from "mobile-drag-drop";
+import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
 
-// Trigger the polyfill
 polyfill({
-    dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride
-});"
+  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
+});
 
 const Client = () => {
   return (

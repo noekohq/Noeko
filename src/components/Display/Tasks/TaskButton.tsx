@@ -47,9 +47,10 @@ export default function TaskButton({
   detail = "full",
 }: ITaskButton) {
   const navigate = useNavigate();
+
   const {
-    connectable: {
-      dragging: { set: setDragging },
+    dragging: {
+      current: { set: setDragging },
     },
   } = useLandscape();
 
@@ -61,7 +62,7 @@ export default function TaskButton({
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    setDragging({ ...task, type: "task" });
+    setDragging(task.id.toString());
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({

@@ -36,7 +36,7 @@
     font-size: clamp(1.75rem, 5vw, 3rem);
     font-weight: 700;
     color: var(--mantine-color-text);
-    z-index: 10;
+    z-index: var(--z-index-cloud-text);
 }
 
 /* --- Base Word Styling --- */
@@ -48,7 +48,7 @@
 
     &:hover {
         transform: scale(1.1) !important;
-        z-index: 20;
+        z-index: var(--z-index-cloud-hover);
     }
 }
 
@@ -59,7 +59,7 @@
     font-size: clamp(1rem, 3vw, 1.25rem);
     font-weight: 600;
     color: var(--mantine-color-dark-3);
-    z-index: 8;
+    z-index: var(--z-index-cloud-near);
 }
 
 .wordMedium {
@@ -67,7 +67,7 @@
     font-size: clamp(0.875rem, 2.5vw, 1rem);
     font-weight: 500;
     color: var(--mantine-color-dimmed);
-    z-index: 6;
+    z-index: var(--z-index-cloud-mid);
 }
 
 .wordSmall {
@@ -76,7 +76,7 @@
     font-weight: 400;
     color: var(--mantine-color-dimmed);
     opacity: 0.8;
-    z-index: 4;
+    z-index: var(--z-index-cloud-far);
 }
 
 /* --- Word Positions & Animation Staggering ---

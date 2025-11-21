@@ -297,7 +297,6 @@ export const getNodeLink = (node: INode) => {
 
 export const getNodeLinkFromId = (id: string | RecordId) => {
   const realId = id.toString();
-  console.log("Got realid: ", realId);
   if (realId.startsWith("idea")) {
     return `/idea/${realId}`;
   }
@@ -366,6 +365,15 @@ export const TypeIcon = (type: INode["type"]) => {
   if (type === "excerpt") {
     return TextAlignLeftIcon;
   }
+};
+
+export const IconMap: Record<INode["type"], React.FC> = {
+  idea: LightbulbIcon,
+  source: FileTextIcon,
+  task: CheckIcon,
+  rabbithole: RabbitholeIcon,
+  tag: TagIcon,
+  excerpt: TextAlignLeftIcon,
 };
 
 export const isIncluded = (
