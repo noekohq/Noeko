@@ -154,7 +154,7 @@ export default class Authorization {
 
   /**
    * Checks if the item is connected (neighbor) to an item the user has access to.
-   * Path: Item <-> connected_to <-> Neighbor -> (owns OR shared_with) -> User
+   * Path: Item <-> connected <-> Neighbor -> (owns OR shared_with) -> User
    * Constraint: Connected access is strictly VIEWONLY.
    */
   static async hasConnectedAccess(
@@ -181,7 +181,7 @@ export default class Authorization {
       // If count > 0, we have access.
       const query = `
           SELECT count(
-            (->connected_to.out + <-connected_to.in)[
+            (->connected.out + <-connected.in)[
                WHERE
                  -- Path A: User owns the neighbor
                  (<-owns.in CONTAINS $userId)
