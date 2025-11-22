@@ -27,6 +27,9 @@ import useFetch from "../../hooks/useFetch";
 import { IConnectable } from "../../../app/services/Graph";
 import PaperThing from "../Display/Paper/Things/PaperThing";
 import { getThingPropsFromConnectable } from "../Display/Paper/Things/thingUtils";
+import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
+import { getNodeDescription, getNodeTitle } from "../../utils/graph";
+import { formatDateTime } from "../../utils/formatting";
 
 export type ISearchResultAction = {
   id: string;
@@ -159,7 +162,7 @@ export default function Search({
               {withinRabbithole && (
                 <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
               )}
-              <Text c="dimmed" size="xs">
+              <Text c="dimmed" size="sm">
                 <Group gap="xs" component="span">
                   Search{" "}
                   {withinRabbithole ? (
@@ -169,7 +172,6 @@ export default function Search({
                   )}
                 </Group>
               </Text>
-              <Text c="dimmed" size="xs"></Text>
             </Group>
           </>
         )}
@@ -195,7 +197,11 @@ export default function Search({
                 <Stack style={style} gap="sm">
                   {recent
                     ?.map((thing, i) => {
-                      const props = getThingPropsFromConnectable(thing);
+                      const props = getThingPropsFromConnectable(
+                        thing,
+                        {},
+                        true,
+                      );
 
                       return (
                         <PaperThing key={thing.id.toString()} {...props} />
@@ -222,49 +228,22 @@ export default function Search({
           <Stack>
             {filteredResults
               ?.map((s, i) => {
-                const actions = resultActions?.map((action) => {
-                  return action(s.value);
-                });
+                const title = getNodeTitle(s.value);
+                const preview = s.highlightText ?? getNodeDescription(s.value);
+                const updatedAt = formatDateTime(s.value.updatedAt);
 
-                if (!actions) {
-                  return (
-                    <ConnectableThing
-                      key={s.id.toString()}
-                      thing={s.value}
-                      onClick={(thing) => {
-                        navigate(`/${thing.type}/${thing.id.toString()}`);
-                      }}
-                    />
-                  );
+                if (!title || !preview || !updatedAt) {
+                  return null;
                 }
 
                 return (
-                  <CollapseButton
-                    key={s.id.toString()}
-                    target={<ConnectableThing thing={s.value} />}
-                    details={
-                      <>
-                        <Group>
-                          {actions.map((a) => {
-                            return (
-                              <Button
-                                variant={a.variant || "light"}
-                                size="xs"
-                                color={a.color || "gray"}
-                                onClick={(e) => {
-                                  a.onClick(e, s.value);
-                                }}
-                                title={a.label}
-                                leftSection={a.icon}
-                                radius="md"
-                              >
-                                {a.label}
-                              </Button>
-                            );
-                          })}
-                        </Group>
-                      </>
-                    }
+                  <PaperSearchResult
+                    node={s.value}
+                    title={title || "Untitled Thing"}
+                    snippet={preview}
+                    onSelect={(node) => {
+                      navigate(`/${node.type}/${node.id.toString()}`);
+                    }}
                   />
                 );
               })
