@@ -246,7 +246,6 @@ export default function TopBar() {
                         node={s.value}
                         title={title || "Untitled Thing"}
                         snippet={preview}
-                        meta={`Modified ${updatedAt}`}
                         onSelect={(node) => {
                           navigate(`/${node.type}/${node.id.toString()}`);
                         }}
