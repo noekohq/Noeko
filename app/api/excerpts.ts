@@ -71,6 +71,9 @@ router.get("/:excerptId", async (req, res) => {
     }
 
     const excerpt = await Excerpt.get(excerptId);
+    Excerpt.update(excerptId, {
+      viewedAt: new Date(),
+    });
 
     res.send({
       message: "Successfully got excerpt",

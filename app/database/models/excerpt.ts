@@ -35,6 +35,7 @@ export type IExcerpt = {
   pdfMetadata?: IPDFMetadata;
   createdAt: Date;
   updatedAt: Date;
+  viewedAt: Date;
 };
 
 export type IPublicExcerpt = Omit<IExcerpt, "embeddings">;
@@ -46,6 +47,7 @@ export type IExcerptForm = Omit<
   | "embeddingsUpdatedAt"
   | "createdAt"
   | "updatedAt"
+  | "viewedAt"
   | "references"
 >;
 
@@ -171,6 +173,7 @@ export default class Excerpt {
         embeddingsUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        viewedAt: new Date(),
       });
       if (!created) {
         throw new Error("Couldn't create excerpt");
