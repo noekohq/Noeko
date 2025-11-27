@@ -12,6 +12,11 @@ export type ISharedThing = IConnectable & {
 
 export type IShareAccess = "viewonly" | "editor";
 
+export type IShareDetails = {
+  user: IPublicUser;
+  accessLevel: IShareAccess;
+};
+
 export type IShare = {
   id: string;
   in: string;
@@ -45,9 +50,12 @@ export class Share {
     this._connectableId = new StringRecordId(connectableId);
     this._connectable = new Connectable(connectableId);
 
-    if (this._connectable.type !== "idea") {
+    const allowedTypes = ["idea", "task"];
+    if (!allowedTypes.includes(this._connectable.type)) {
       throw new Error(
-        "Only ideas can currently be shared, other types not yet supported.",
+        `Only ${allowedTypes.join(
+          ", ",
+        )} can currently be shared, other types not yet supported.`,
       );
     }
   }
@@ -142,6 +150,38 @@ export class Share {
     }
   }
 
+  static async getShares(
+    connectableId: string | RecordId,
+  ): Promise<IShareDetails[] | undefined> {
+    try {
+      const query = `
+        SELECT
+            out.* as user,
+            accessLevel
+        FROM shared_with
+        WHERE
+            in = $connectableId
+      `;
+
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not available");
+
+      const result = await db.query<[IShareDetails[]]>(query, {
+        connectableId: new StringRecordId(connectableId),
+      });
+
+      if (!result || !result[0]) {
+        return [];
+      }
+
+      const shares = result[0];
+      return shares;
+    } catch (error) {
+      console.error("Error getting shares", error);
+      return undefined;
+    }
+  }
+
   static async getUserSharedThings(
     userId: string | RecordId,
   ): Promise<ISharedThing[] | undefined> {
@@ -182,7 +222,7 @@ export class Share {
         userId: new StringRecordId(userId),
       });
       if (!result || !result[0] || result[0].length === 0) {
-        throw new Error("No shared things found");
+        return [];
       }
       const mappedToShared: ISharedThing[] = result[0].map((item) => {
         const c = new Connectable(item.thing.id);

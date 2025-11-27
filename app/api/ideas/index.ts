@@ -1,4 +1,4 @@
-import Express, { Router } from "express";
+import { Router } from "express";
 import { checkToken, disallowDisabled } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
 import { ISafeUser, IUser, User } from "../../database/models/user";
@@ -11,9 +11,6 @@ import {
   IIdeaQuery,
   ISafeIdea,
 } from "../../database/models/ideas";
-import { Tag } from "../../database/models/tag";
-import shareRouter from "./share";
-import { max_idea_size } from "../../settings";
 import { getLM } from "../../ai/lms/lm";
 import { first } from "../../templates/onboarding";
 import Authorization from "../../services/Authorization";
@@ -45,7 +42,6 @@ router.get("/:ideaId/public", async (req, res) => {
 
 router.use(checkToken);
 router.use(disallowDisabled);
-router.use(shareRouter);
 
 router.get("/", checkToken, disallowDisabled, async (req, res) => {
   try {
