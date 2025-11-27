@@ -54,6 +54,9 @@ import Export from "./pages/Export/Export";
 import Keymap from "./pages/Settings/Keymap";
 import GlobalTourManager from "./components/Utils/Onboarding/GlobalTourManager";
 import Agenda from "./pages/Agenda/Agenda";
+import All from "./pages/All/All";
+import PinsPage from "./pages/Pins/Pins";
+
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 const Onboarding = lazy(() => import("./components/UI/Onboarding/Index"));
 
@@ -209,6 +212,12 @@ export default function App() {
                   </Route>
                   <Route path="agenda">
                     <Route index element={<Agenda />} />
+                  </Route>
+                  <Route path="all">
+                    <Route index element={<All />} />
+                  </Route>
+                  <Route path="pinned">
+                    <Route index element={<PinsPage />} />
                   </Route>
                   <Route path="task">
                     <Route path=":taskId">

@@ -4,27 +4,22 @@ import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
-import { IIdea, ISafeIdea } from "../../../app/database/models/ideas";
-import { generateJSON, Editor as IEditor } from "@tiptap/react";
+import { ISafeIdea } from "../../../app/database/models/ideas";
+import { Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
-  Grid,
   Group,
   Title,
   Loader,
   Text,
   Card,
   Tooltip,
-  Divider,
   Flex,
   Menu,
   CopyButton,
   Stack,
   Space,
-  Button,
-  Popover,
   Box,
-  Indicator,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import { modals } from "@mantine/modals";
@@ -44,7 +39,6 @@ import {
   PencilSimpleIcon,
   PushPinIcon,
   SparkleIcon,
-  TagIcon,
   TrashSimpleIcon,
   UniteSquareIcon,
   UserCirclePlusIcon,
@@ -80,8 +74,6 @@ import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import usePins from "../../hooks/usePins";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
-import UnderConstruction from "../../components/Utils/UnderConstruction";
-import PaperIndicator from "../../components/Utils/PaperIndicator";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -434,16 +426,19 @@ export default function Idea() {
                 >
                   {title || ""}
                 </Title>
-                {titleNeedsGeneration() && !loadingTitleGeneration && (
+                {titleNeedsGeneration() && (
                   <ActionIcon
                     onClick={() => {
                       handleTitleGen();
                     }}
                     variant="light"
-                    size="sm"
+                    size="md"
+                    radius="md"
                     color="gray"
+                    disabled={loadingTitleGeneration}
+                    loading={loadingTitleGeneration}
                   >
-                    <SparkleIcon />
+                    <SparkleIcon size={14} weight="duotone" />
                   </ActionIcon>
                 )}
                 {idea?.titleGeneratedAt && (
@@ -452,11 +447,6 @@ export default function Idea() {
                     title={"This title was generated automatically."}
                   >
                     <SparkleIcon />
-                  </div>
-                )}
-                {loadingTitleGeneration && (
-                  <div className={styles.loadingIndicator}>
-                    <Loader size="xs" color="gray" />
                   </div>
                 )}
               </Group>

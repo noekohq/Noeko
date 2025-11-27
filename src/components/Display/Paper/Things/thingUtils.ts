@@ -1,4 +1,7 @@
+import { IRabbithole } from "../../../../../app/database/models/rabbithole";
 import { IConnectable } from "../../../../../app/services/Graph";
+import { IAcceleratorItem } from "../../../../../app/services/Recommendations";
+import { formatDateTime } from "../../../../utils/formatting";
 import {
   getNodeContent,
   getNodeDescription,
@@ -6,6 +9,11 @@ import {
   getNodeTitle,
   IconMap,
 } from "../../../../utils/graph";
+import {
+  acceleratorItemFieldResolvers,
+  getAcceleratorItemFields,
+} from "../../../../utils/recommendations/accelerator";
+import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
 import { IPaperThingProps } from "./PaperThing";
 
 export function getThingPropsFromConnectable(
@@ -27,13 +35,52 @@ export function getThingPropsFromConnectable(
       : undefined;
   const action = overrides?.action;
   const preview: IPaperThingProps["preview"] | undefined =
-    overrides?.preview ?? {
-      content: getNodeContent(connectable) || "No content available.",
-    };
-
+    overrides?.preview ??
+    (getNodeContent(connectable) || "No content available.");
   return {
     id,
     title,
+    detail,
+    icon,
+    state,
+    link,
+    action,
+    preview,
+  } satisfies IPaperThingProps;
+}
+
+export function getThingPropsFromRabbithole(
+  rabbithole: IRabbithole,
+  overrides?: Partial<IPaperThingProps>,
+): IPaperThingProps {
+  const { id, name, updatedAt, createdAt } = rabbithole;
+
+  return {
+    id: overrides?.id ?? id.toString(),
+    title: overrides?.title ?? name,
+    detail:
+      overrides?.detail ??
+      `Updated ${formatDateTime(updatedAt)}, Created ${formatDateTime(createdAt)}`,
+    icon: overrides?.icon ?? RabbitholeIcon,
+    state: overrides?.state ?? "default",
+    link: overrides?.link ?? `/rabbithole/${id.toString()}`,
+    action: overrides?.action,
+    preview: overrides?.preview,
+  };
+}
+
+export function getThingPropsFromAcceleratorItem(
+  item: IAcceleratorItem,
+  overrides?: Partial<IPaperThingProps>,
+): IPaperThingProps {
+  const resolved = getAcceleratorItemFields(item);
+  const { id, name, link, detail, icon, preview } = resolved;
+  const state = overrides?.state ?? "default";
+  const action = overrides?.action;
+
+  return {
+    id,
+    title: name,
     detail,
     icon,
     state,

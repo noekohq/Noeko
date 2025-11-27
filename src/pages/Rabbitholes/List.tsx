@@ -4,6 +4,7 @@ import {
   Card,
   Group,
   SimpleGrid,
+  Space,
   Stack,
   Text,
   TextInput,
@@ -27,6 +28,12 @@ import {
 } from "../../utils/rabbitholes";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
+import GridCard from "../../components/Display/Paper/Things/GridCard";
+import {
+  getThingPropsFromConnectable,
+  getThingPropsFromRabbithole,
+} from "../../components/Display/Paper/Things/thingUtils";
+import { formatDateTime } from "../../utils/formatting";
 
 export default function Rabbitholes() {
   const { load: loadRabbitholes, data: rabbitholes } = useFetch<
@@ -89,7 +96,7 @@ export default function Rabbitholes() {
             placeholder="Filter rabbitholes..."
             value={filterQuery}
             onChange={(event) => setFilterQuery(event.currentTarget.value)}
-            mb="md" // Added margin bottom for spacing
+            mb="md"
             radius="md"
           />
           {!rabbitholes?.length && (
@@ -112,21 +119,23 @@ export default function Rabbitholes() {
           )}
           {!!filteredRabbitholes?.length && (
             <SimpleGrid
+              spacing="xs"
               cols={{
-                sm: 1,
-                md: 2,
+                base: 2,
+                sm: 2,
+                md: 3,
+                lg: 4,
               }}
             >
               {filteredRabbitholes.map((rabbithole) => {
-                return (
-                  <RabbitholeCard
-                    key={rabbithole.id.toString()}
-                    rabbithole={rabbithole}
-                  />
-                );
+                const props = getThingPropsFromRabbithole(rabbithole, {
+                  detail: `Last active ${formatDateTime(rabbithole.updatedAt)}`,
+                });
+                return <GridCard key={rabbithole.id.toString()} {...props} />;
               })}
             </SimpleGrid>
           )}
+          <Space my="lg" />
         </Stack>
       </Content>
       <Nav />

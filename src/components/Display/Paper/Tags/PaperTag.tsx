@@ -2,7 +2,7 @@ import { ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
 import { ITag } from "../../../../../app/database/models/tag";
 import React from "react";
-import { Text } from "@mantine/core";
+import { MantineSize, Text } from "@mantine/core";
 import { PaperContextMenu } from "../PaperContextMenu";
 import { useNavigate } from "react-router";
 
@@ -15,6 +15,8 @@ interface IPaperTagProps {
   onRemove?: (tagId: string) => void;
   onApply?: (tagId: string) => void;
   state: ITagState;
+  size?: MantineSize;
+  maxWidth?: string | number;
 }
 
 export default function PaperTag({
@@ -24,6 +26,8 @@ export default function PaperTag({
   onRemove,
   onApply,
   state,
+  size = "md",
+  maxWidth,
 }: IPaperTagProps) {
   const navigate = useNavigate();
   const handleClick = () => {
@@ -44,21 +48,24 @@ export default function PaperTag({
     active && styles.active,
     state === "applied" && styles.applied,
     state === "suggested" && styles.suggested,
+    styles[size],
   ].filter(Boolean);
 
   const Icon = () => {
-    // if (state === "suggested") {
-    //   return <SparkleIcon weight="bold" />;
-    // }
-    return <TagIcon weight="bold" />;
+    // Note: added class name for flex shrinking control
+    return <TagIcon weight="bold" className={styles.icon} />;
   };
 
   return (
     <PaperContextMenu>
       <PaperContextMenu.Target>
-        <button className={classNames.join(" ")} onClick={handleClick}>
+        <button
+          className={classNames.join(" ")}
+          onClick={handleClick}
+          style={{ maxWidth: maxWidth }}
+        >
           <Icon />
-          {tag?.name}
+          <span className={styles.label}>{tag?.name}</span>
         </button>
       </PaperContextMenu.Target>
       <PaperContextMenu.Dropdown>
