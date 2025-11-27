@@ -30,6 +30,10 @@ export type IConnectable =
   | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
   | (IExcerpt & { type: "excerpt"; direction?: "incoming" | "outgoing" });
 
+export type ITaggedConnectable = IConnectable & {
+  appliedTags: ITag[];
+};
+
 export type IConnectableTypeMap = {
   idea: IIdea;
   source: ISource;
@@ -43,6 +47,11 @@ export type IConnection = {
   id: string | RecordId;
   in: string | RecordId;
   out: string | RecordId;
+};
+
+export type IGraphTagFilter = {
+  set: string[];
+  behavior: "and" | "or";
 };
 
 export type IGraphFilters = Partial<{
@@ -61,7 +70,24 @@ export type IGraphFilters = Partial<{
       before: string;
     };
   };
+  tags: IGraphTagFilter;
 }>;
+
+export type IGetAllConnectables_SortOptions = Partial<{
+  sortField: "createdAt" | "updatedAt" | "viewedAt";
+  sortDirection: "ASC" | "DESC";
+}>;
+
+export type IGetAllConnectables_PaginationOptions = Partial<{
+  limit: number;
+  cursor: string;
+}>;
+
+export type IGetAllConnectables_Options =
+  IGetAllConnectables_PaginationOptions &
+    IGetAllConnectables_SortOptions & {
+      filters?: IGraphFilters;
+    };
 
 export default class GraphService {
   static readonly SUGGESTION_WEIGHT = 0.5;
@@ -1164,107 +1190,118 @@ export default class GraphService {
     userId: StringRecordId,
     options: IGetAllConnectables_Options,
   ) {
-    try {
-      const db = await getDatabase();
-      if (!db) throw new Error("Database not initialized");
+    const db = await getDatabase();
+    if (!db) throw new Error("Database not initialized");
 
-      const limit = options.limit ?? 20;
-      const sortField = options.sortField ?? "updatedAt";
-      const sortDirection = options.sortDirection ?? "DESC";
+    const limit = options.limit ?? 20;
+    const sortField = options.sortField ?? "updatedAt";
+    const sortDirection = options.sortDirection ?? "DESC";
 
-      const builder = new GraphFilterQueryBuilder()
-        .ownedBy(userId)
-        .sortBy(sortField, sortDirection)
-        .limit(limit);
+    const builder = new GraphFilterQueryBuilder()
+      .ownedBy(userId.toString())
+      .sortBy(sortField, sortDirection)
+      .limit(limit);
 
-      if (options.cursor) {
-        builder.withCursor(options.cursor, sortField);
+    if (options.cursor) {
+      builder.withCursor(options.cursor, sortField);
+    }
+
+    if (options.filters) {
+      builder.applyFilters(options.filters);
+    }
+
+    const {
+      where,
+      params,
+      sort,
+      limit: limitClause,
+    } = builder.buildQueryParts();
+
+    const tableQuery = (table: string) => {
+      const tableWhere: string[] = [];
+      if (table === "task") {
+        tableWhere.push(`completedAt = NULL`);
       }
 
-      if (options.filters?.tags && options.filters.tags.length > 0) {
-        builder.withTags(options.filters.tags);
-      }
+      const whereClause =
+        where.length > 0 || tableWhere.length > 0
+          ? `WHERE ${[...where, ...tableWhere].join(" AND ")}`
+          : "";
 
-      const {
-        where,
-        params,
-        sort,
-        limit: limitClause,
-      } = builder.buildQueryParts();
-
-      const tableQuery = (table: string) => {
-        const tableWhere: string[] = [];
-        if (table === "task") {
-          tableWhere.push(`completedAt = NULL`);
-        }
-
-        const whereClause =
-          where.length > 0 || tableWhere.length > 0
-            ? `WHERE ${[...where, ...tableWhere].join(" AND ")}`
-            : "";
-
-        const query = `
+      const query = `
           SELECT
-            *
+            *,
+            (
+                SELECT
+                    *
+                OMIT embeddings, cachedCentroidEmbeddings
+                FROM $parent.id<-describes<-tag
+            ) as appliedTags
           OMIT embeddings
           FROM ${table}
           ${whereClause}
           ${sort}
           ${limitClause}
           `;
-        return { query, params };
-      };
 
-      const ideaBuilder = tableQuery("idea");
-      const sourceBuilder = tableQuery("source");
-      const taskBuilder = tableQuery("task");
-      const excerptBuilder = tableQuery("excerpt");
+      console.log("Ran query: ", query, params);
+      return { query, params };
+    };
 
-      const getOfType = async <T>(
-        type: IConnectableTypes,
-        query: string,
-        queryParams: Record<string, any>,
-      ): Promise<(T & { type: IConnectableTypes })[]> => {
-        const [results] = await db.query<[T[]]>(query, queryParams);
-        return results.map((item) => ({ ...item, type }));
-      };
+    const ideaBuilder = tableQuery("idea");
+    const sourceBuilder = tableQuery("source");
+    const taskBuilder = tableQuery("task");
+    const excerptBuilder = tableQuery("excerpt");
 
-      const [ideas, sources, tasks, excerpts] = await Promise.all([
-        getOfType<IIdea>("idea", ideaBuilder.query, ideaBuilder.params),
-        getOfType<ISource>("source", sourceBuilder.query, sourceBuilder.params),
-        getOfType<ITask>("task", taskBuilder.query, taskBuilder.params),
-        getOfType<IExcerpt>(
-          "excerpt",
-          excerptBuilder.query,
-          excerptBuilder.params,
-        ),
-      ]);
+    const getOfType = async <T>(
+      type: IConnectableTypes,
+      query: string,
+      queryParams: Record<string, any>,
+    ): Promise<ITaggedConnectable[]> => {
+      const [results] = await db.query<[ITaggedConnectable[]]>(
+        query,
+        queryParams,
+      );
+      return results.map((item) => ({ ...item, type })) as ITaggedConnectable[];
+    };
 
-      const combined = [...ideas, ...sources, ...tasks, ...excerpts];
+    const [ideas, sources, tasks, excerpts] = await Promise.all([
+      getOfType<IIdea>("idea", ideaBuilder.query, ideaBuilder.params),
+      getOfType<ISource>("source", sourceBuilder.query, sourceBuilder.params),
+      getOfType<ITask>("task", taskBuilder.query, taskBuilder.params),
+      getOfType<IExcerpt>(
+        "excerpt",
+        excerptBuilder.query,
+        excerptBuilder.params,
+      ),
+    ]);
 
-      const sorted = combined.sort((a, b) => {
-        const dateA = new Date((a as any)[sortField] || 0);
-        const dateB = new Date((b as any)[sortField] || 0);
+    const combined: ITaggedConnectable[] = [
+      ...ideas,
+      ...sources,
+      ...tasks,
+      ...excerpts,
+    ];
 
-        if (sortDirection === "DESC") {
-          return dateB.getTime() - dateA.getTime();
-        }
-        return dateA.getTime() - dateB.getTime();
-      });
+    const sorted = combined.sort((a, b) => {
+      const dateA = new Date((a as any)[sortField] || 0);
+      const dateB = new Date((b as any)[sortField] || 0);
 
-      const final = sorted.slice(0, limit);
+      if (sortDirection === "DESC") {
+        return dateB.getTime() - dateA.getTime();
+      }
+      return dateA.getTime() - dateB.getTime();
+    });
 
-      const nextCursor =
-        final.length === limit ? final[final.length - 1]?.[sortField] : null;
+    const final = sorted.slice(0, limit);
 
-      return {
-        items: final as IConnectable[],
-        nextCursor,
-      };
-    } catch (error) {
-      console.error("Error getting all connectables: ", error);
-      return undefined;
-    }
+    const nextCursor =
+      final.length === limit ? final[final.length - 1]?.[sortField] : null;
+
+    return {
+      items: final,
+      nextCursor,
+    };
   }
 
   public static async getUserConnections(
@@ -1866,6 +1903,8 @@ export class ConstellationLoader {
 export class GraphFilterQueryBuilder {
   private whereClauses: string[] = [];
   private params: Record<string, any> = {};
+  private sortClause = "";
+  private limitClause = "";
 
   constructor() {} // Start with a clean slate
 
@@ -1929,9 +1968,62 @@ export class GraphFilterQueryBuilder {
     return this;
   }
 
-  // You can add more specific, chainable methods here
-  // public withTags(tags: string[]): this { ... }
-  // public excludeIds(ids: (string | RecordId)[]): this { ... }
+  public sortBy(field: string, direction: "ASC" | "DESC" = "DESC"): this {
+    this.sortClause = `ORDER BY ${field} ${direction}`;
+    return this;
+  }
+
+  public limit(count: number): this {
+    this.limitClause = `LIMIT ${count}`;
+    return this;
+  }
+
+  public withCursor(cursor: string, field: string = "updatedAt"): this {
+    this.whereClauses.push(`${field} < $cursor`);
+    this.params.cursor = new Date(cursor);
+    return this;
+  }
+
+  public withTags(filter: IGraphTagFilter): this {
+    const { set, behavior } = filter;
+    if (!set.length) {
+      return this;
+    }
+
+    switch (behavior) {
+      case "and":
+        this.whereClauses.push(
+          `array::len(<-describes<-(tag WHERE id in $tagSet) = array::len($tagSet)`,
+        );
+        break;
+      case "or":
+        this.whereClauses.push(`<-describes<-(tag WHERE id IN $tagSet)`);
+        break;
+    }
+
+    this.params.tagSet = set.map((s) => new StringRecordId(s));
+
+    return this;
+  }
+
+  public applyFilters(filters: IGraphFilters): this {
+    if (filters.date?.createdAt) {
+      this.withDateRange("createdAt", filters.date.createdAt);
+    }
+    if (filters.date?.updatedAt) {
+      this.withDateRange("updatedAt", filters.date.updatedAt);
+    }
+    if (filters.date?.viewedAt) {
+      this.withDateRange("viewedAt", filters.date.viewedAt);
+    }
+    if (filters.rabbithole) {
+      this.inRabbithole(filters.rabbithole);
+    }
+    if (filters.tags) {
+      this.withTags(filters.tags);
+    }
+    return this;
+  }
 
   /**
    * Finalizes the chain and returns the generated clauses and parameters.
@@ -1940,6 +2032,20 @@ export class GraphFilterQueryBuilder {
     return {
       where: this.whereClauses,
       params: this.params,
+    };
+  }
+
+  public buildQueryParts(): {
+    where: string[];
+    params: Record<string, any>;
+    sort: string;
+    limit: string;
+  } {
+    return {
+      where: this.whereClauses,
+      params: this.params,
+      sort: this.sortClause,
+      limit: this.limitClause,
     };
   }
 }
