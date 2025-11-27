@@ -28,6 +28,7 @@ import useRabbithole from "../hooks/useRabbithole";
 import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
 import CreateTaskForm from "../components/Forms/CreateTask";
 import AddSourceForm from "../components/Forms/AddSource";
+import PaperDrawer from "../components/Display/Paper/PaperDrawer";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -629,22 +630,12 @@ function CreateTask({
   const { isMobile } = useLayout();
 
   return (
-    <Drawer
+    <PaperDrawer
       opened={opened}
       onClose={() => {
         setOpened(false);
       }}
-      title={
-        <Text>
-          <Group gap="xs">
-            <CheckIcon weight="bold" />
-            Create a task
-          </Group>
-        </Text>
-      }
-      offset={14}
-      radius="lg"
-      position={isMobile ? "bottom" : "right"}
+      title={"Create a task"}
     >
       <Space my="lg" />
       <CreateTaskForm
@@ -654,7 +645,7 @@ function CreateTask({
         initialDescription={initialDescription}
       />
       <Space my="lg" />
-    </Drawer>
+    </PaperDrawer>
   );
 }
 

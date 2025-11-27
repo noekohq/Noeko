@@ -93,7 +93,7 @@
 .action {
     @extend %button-base;
     width: 56px;
-    border-color: var(--mantine-color-dark-8);
+    /* border-color: var(--mantine-color-dark-8); */
 
     &.active {
         background-color: var(--mantine-color-dark-8);

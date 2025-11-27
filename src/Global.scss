@@ -205,14 +205,12 @@ td {
     }
 }
 .mantine-Modal-root {
-    z-index: var(--z-index-modal);
-
     .mantine-Modal-overlay {
-        z-index: inherit;
+        z-index: var(--z-index-modal);
     }
 
     .mantine-Modal-inner {
-        z-index: var(--z-index-global-override);
+        z-index: calc(var(--z-index-modal) + 1);
     }
 }
 
@@ -239,8 +237,6 @@ td {
 }
 
 .mantine-Menu-dropdown {
-    z-index: 2000;
-
     animation: popoverIn 0.2s ease-in-out forwards;
 
     background-color: var(--mantine-color-dark-8) !important;

@@ -1872,14 +1872,14 @@ export class ConnectableSearchQueryBuilder {
 
 interface IConnectableTableSearchBuilderArgs {
   table: IConnectableTypes;
-  userId: string | RecordId;
+  userId: string | RecordId | StringRecordId;
   searchQuery: IConnectableSearchQuery;
 }
 
 export class ConnectableTableSearchBuilder {
   private table: IConnectableTypes;
   private searchQuery: IConnectableSearchQuery;
-  private userId: string | RecordId;
+  private userId: StringRecordId;
   private queryBuilder: ConnectableSearchQueryBuilder;
   private defaultLimit = 50;
 
@@ -1889,7 +1889,7 @@ export class ConnectableTableSearchBuilder {
     searchQuery,
   }: IConnectableTableSearchBuilderArgs) {
     this.table = table;
-    this.userId = userId;
+    this.userId = new StringRecordId(userId.toString());
     this.searchQuery = searchQuery;
     this.queryBuilder = new ConnectableSearchQueryBuilder();
 
@@ -2057,7 +2057,7 @@ export class ConnectableTableSearchBuilder {
     const builder = this.queryBuilder;
 
     if (this.userId) {
-      builder.ownedBy(this.userId);
+      builder.ownedBy(this.userId.toString());
     }
 
     const { date, tags, rabbithole, scope } = this.searchQuery;

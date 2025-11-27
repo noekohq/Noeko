@@ -1,30 +1,32 @@
 import React, { useRef, useState } from "react";
 import {
-  IconProps,
+  ArrowUpRightIcon,
   DotsSixVertical,
   DotsSixVerticalIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { CopyButton, Modal, Stack, Text } from "@mantine/core";
+import { CopyButton, Modal, Stack, Text, Box } from "@mantine/core";
 import {
   CopyIcon,
   EyeIcon,
   ArrowRightIcon,
+  ArrowUpRight, // New import for the CTA
   BrowsersIcon,
   CheckIcon,
 } from "@phosphor-icons/react";
-import styles from "./PaperThing.module.scss";
+import styles from "./GridCard.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
 import { useLandscape } from "../../../../contexts/LandscapeContext";
 import { IThing } from "./things";
 
-export type IPaperThingState = "default" | "suggested";
+export type ICardState = "default" | "suggested";
 
-export interface IPaperThingProps extends IThing {
-  state?: IPaperThingState;
+export interface IGridCardProps extends IThing {
+  state?: ICardState;
+  footerContent?: React.ReactNode;
 }
 
-export default function PaperThing({
+export default function GridCard({
   id,
   title,
   detail,
@@ -35,13 +37,13 @@ export default function PaperThing({
   action,
   preview,
   draggable = false,
-}: IPaperThingProps) {
+  footerContent,
+}: IGridCardProps) {
   const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
   const [peering, setPeering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
-  // Ref for capturing the whole row as the drag image
   const rootRef = useRef<HTMLDivElement>(null);
 
   const handleMainClick = (e: React.MouseEvent) => {
@@ -58,33 +60,27 @@ export default function PaperThing({
   } = useLandscape();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    // IMPORTANT: Stop propagation so the root doesn't try to drag if it accidentally had the attribute
     e.stopPropagation();
-
     setIsInternallyDragging(true);
     setDragging(id);
 
-    // Force the browser to use the whole row (rootRef) as the ghost image
-    // instead of just the small icon being dragged.
     if (rootRef.current) {
       e.dataTransfer.setDragImage(rootRef.current, 0, 0);
     }
 
     e.dataTransfer.setData(
       "application/json",
-      JSON.stringify({
-        thingId: id.toString(),
-      }),
+      JSON.stringify({ thingId: id.toString() }),
     );
   };
 
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragEnd = () => {
     setIsInternallyDragging(false);
     setDragging(null);
   };
 
   const rootClasses = [
-    styles.paperThing,
+    styles.gridCard,
     styles[state],
     draggable && styles.draggable,
     hovering && styles.hovering,
@@ -101,53 +97,64 @@ export default function PaperThing({
             ref={rootRef}
             className={rootClasses}
             onClick={handleMainClick}
-            onMouseEnter={() => {
-              setHovering(true);
-            }}
-            onMouseLeave={() => {
-              setHovering(false);
-            }}
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => setHovering(false)}
             tabIndex={0}
             role="button"
           >
-            <div
-              className={`${styles.iconDragZone} ${
-                hovering ? styles.hovering : ""
-              }`}
-              draggable={!!id && draggable}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onClick={(e) => e.stopPropagation()} // Prevent triggering the main click
-            >
-              {IconComponent ? (
-                <IconComponent
-                  size={16}
-                  weight={state === "suggested" ? "regular" : "bold"}
-                  className={styles.mainIcon}
-                />
-              ) : (
-                // Fallback handle if no icon exists
-                <DotsSixVerticalIcon size={16} weight="bold" />
-              )}
+            {/* ROW 1: Icon (Left) + CTA (Right) */}
+            <div className={styles.topRow}>
+              <div
+                className={`${styles.iconDragZone} ${
+                  hovering ? styles.hovering : ""
+                }`}
+                draggable={!!id && draggable}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {IconComponent ? (
+                  <IconComponent
+                    size={18}
+                    weight={state === "suggested" ? "regular" : "bold"}
+                    className={styles.mainIcon}
+                  />
+                ) : (
+                  <DotsSixVerticalIcon size={20} weight="bold" />
+                )}
+              </div>
+
+              {/* Visual indicator that this card is clickable/navigable */}
+              <div className={styles.ctaIcon}>
+                <ArrowUpRightIcon size={16} weight="bold" />
+              </div>
             </div>
 
+            {/* ROW 2: Title */}
+            <Text lineClamp={1} fw="bold" size="md" title={title} w={"100%"}>
+              {title.trim() || "Untitled"}
+            </Text>
+
+            {/* ROW 3: Content Detail */}
             <div className={styles.contentWrapper}>
-              <Stack gap={2}>
-                <Text className={styles.title} truncate="end" title={title}>
-                  {title.trim() || "Untitled"}
-                </Text>
-                <Text
-                  className={styles.detail}
-                  truncate="end"
-                  title={detail?.toString() || ""}
-                >
-                  {detail}
-                </Text>
-              </Stack>
+              <Text
+                className={styles.detail}
+                lineClamp={3}
+                title={detail?.toString() || ""}
+              >
+                {detail}
+              </Text>
             </div>
 
-            <div className={styles.actionWrapper}>
-              {action && (
+            {/* Additional footer content */}
+            {footerContent && (
+              <div className={styles.footerContent}>{footerContent}</div>
+            )}
+
+            {/* ROW 4: Footer Actions (Floating bottom right) */}
+            {action && (
+              <div className={styles.footer}>
+                <Box style={{ flex: 1 }} />
                 <button
                   className={styles.actionButton}
                   onClick={(e) => {
@@ -156,12 +163,14 @@ export default function PaperThing({
                   }}
                   title={action.tooltip}
                 >
-                  <action.icon weight="bold" />
+                  <action.icon weight="bold" size={14} />
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </PaperContextMenu.Target>
+
+        {/* Context Menu (Unchanged) */}
         <PaperContextMenu.Dropdown>
           <PaperContextMenu.Detail label="Title" valueToCopy={title}>
             {title}
@@ -171,56 +180,44 @@ export default function PaperThing({
             <>
               <PaperContextMenu.Item
                 icon={<ArrowRightIcon weight="bold" />}
-                onClick={() => {
-                  navigate(link);
-                }}
+                onClick={() => navigate(link)}
               >
                 Open
               </PaperContextMenu.Item>
               <PaperContextMenu.Item
                 icon={<BrowsersIcon weight="bold" />}
-                onClick={() => {
-                  window.open(link, "_blank");
-                }}
+                onClick={() => window.open(link, "_blank")}
               >
                 Open in new tab
               </PaperContextMenu.Item>
             </>
           )}
           <CopyButton value={title}>
-            {({ copy, copied }) => {
-              return (
-                <PaperContextMenu.Item
-                  icon={copied ? <CheckIcon /> : <CopyIcon />}
-                  onClick={() => {
-                    copy();
-                  }}
-                >
-                  Copy title
-                </PaperContextMenu.Item>
-              );
-            }}
+            {({ copy, copied }) => (
+              <PaperContextMenu.Item
+                icon={copied ? <CheckIcon /> : <CopyIcon />}
+                onClick={copy}
+              >
+                Copy title
+              </PaperContextMenu.Item>
+            )}
           </CopyButton>
           <PaperContextMenu.Item
             icon={<EyeIcon />}
-            onClick={() => {
-              setPeering(true);
-            }}
+            onClick={() => setPeering(true)}
           >
             Preview
           </PaperContextMenu.Item>
         </PaperContextMenu.Dropdown>
       </PaperContextMenu>
+
+      {/* Modal (Unchanged) */}
       {preview && (
         <Modal
           opened={peering}
-          onClose={() => {
-            setPeering(false);
-          }}
+          onClose={() => setPeering(false)}
           title={<Text size="sm">Peering at {title}</Text>}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
+          onClick={(e) => e.stopPropagation()}
           size="lg"
         >
           <Stack py="lg" gap="xs">

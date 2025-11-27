@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Text } from "@mantine/core";
 import { INode } from "../../../../declarations/graph";
 import styles from "./PaperSearchResult.module.scss";
 import Match from "../../../Utils/Match";
 import { IconMap, TypeIcon } from "../../../../utils/graph";
 import { QuestionMarkIcon } from "@phosphor-icons/react";
+import { useLandscape } from "../../../../contexts/LandscapeContext";
 
 interface IPaperSearchResult {
   node: INode;
   title: string;
   snippet: string;
   onSelect?: (node: INode) => void;
+  draggable?: boolean;
 }
 
 export default function PaperSearchResult({
@@ -18,7 +20,11 @@ export default function PaperSearchResult({
   title,
   snippet,
   onSelect,
+  draggable,
 }: IPaperSearchResult) {
+  const [isInternallyDragging, setIsInternallyDragging] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
   const handleOnSelect = () => {
     onSelect?.(node);
   };
@@ -27,6 +33,32 @@ export default function PaperSearchResult({
     if (event.key === "Enter") {
       handleOnSelect();
     }
+  };
+
+  const {
+    dragging: {
+      current: { set: setDragging },
+    },
+  } = useLandscape();
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setIsInternallyDragging(true);
+    setDragging(node.id.toString());
+
+    if (rootRef.current) {
+      e.dataTransfer.setDragImage(rootRef.current, 0, 0);
+    }
+
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ thingId: node.id.toString() }),
+    );
+  };
+
+  const handleDragEnd = () => {
+    setIsInternallyDragging(false);
+    setDragging(null);
   };
 
   const IconComponent = node.type ? IconMap[node.type] : QuestionMarkIcon;
@@ -38,6 +70,10 @@ export default function PaperSearchResult({
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="button"
+      draggable={draggable}
+      ref={rootRef}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
     >
       {/* Left: Icon Anchor */}
       <div className={styles.iconZone}>

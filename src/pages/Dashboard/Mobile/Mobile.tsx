@@ -1,40 +1,58 @@
-import PageWrapper from "../../../components/Layout/PageWrapper";
-import Content from "../../../components/UI/Layout/Content";
-import styles from "./Mobile.module.scss";
-import Nav from "../../../components/UI/Layout/Nav";
-import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
+import React, { useState, useEffect, useMemo } from "react";
+import { Link, useNavigate } from "react-router";
 import {
+  Text,
+  Stack,
+  Button,
+  Loader,
+  Center,
+  ThemeIcon,
+  Badge,
   Avatar,
-  Box,
   Card,
-  Grid,
   Group,
   SimpleGrid,
-  Stack,
-  Text,
+  Box,
 } from "@mantine/core";
-import PaperCard from "../../../components/Display/Paper/PaperCard";
 import {
   CheckIcon,
-  ClockCounterClockwiseIcon,
   PushPinIcon,
+  FireIcon,
+  LightbulbIcon,
+  BookOpenIcon,
+  ArticleIcon,
+  WarningCircleIcon,
+  LightningIcon,
+  ClockCounterClockwiseIcon,
+  ArrowRightIcon,
 } from "@phosphor-icons/react";
-import useFetch from "../../../hooks/useFetch";
-import { ITask } from "../../../../app/database/models/task";
-import TaskButton from "../../../components/Display/Tasks/TaskButton";
-import { ISafeIdea } from "../../../../app/database/models/ideas";
-import PaperButton from "../../../components/Display/Paper/PaperButton";
-import { Link, useNavigate } from "react-router";
-import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButton";
+
+// --- LAYOUT & UTILS ---
+import PageWrapper from "../../../components/Layout/PageWrapper";
+import Content from "../../../components/UI/Layout/Content";
+import Nav from "../../../components/UI/Layout/Nav";
 import TopBar from "../../../components/UI/Layout/TopBar";
+import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
 import UnderConstruction from "../../../components/Utils/UnderConstruction";
-import { useEffect, useMemo, useState } from "react";
-import usePins from "../../../hooks/usePins";
-import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
-import { ISharedThing } from "../../../../app/database/models/share";
-import { IPublicUser, ISafeUser } from "../../../../app/database/models/user";
+import styles from "./Mobile.module.scss";
 import { userInitials } from "../../../utils/user";
 import { formatDateTime } from "../../../utils/formatting";
+
+// --- DATA HOOKS ---
+import useFetch from "../../../hooks/useFetch";
+import { ISharedThing } from "../../../../app/database/models/share";
+
+// --- DISPLAY COMPONENTS ---
+import PaperCard from "../../../components/Display/Paper/PaperCard";
+import PaperThing from "../../../components/Display/Paper/Things/PaperThing";
+import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
+import AcceleratorShelf, {
+  IAcceleratorShelfProps,
+} from "../../../components/Display/Acceleration/AcceleratorShelf";
+import { IShelfData } from "../../../../app/services/Recommendations";
+import LangtonsAntLoader from "../../../components/Utils/Loading/AntLoader";
+
+// --- MAIN COMPONENT ---
 
 export default function MobileDashboard() {
   const [currentTab, setCurrentTab] = useState("overview");
@@ -51,9 +69,11 @@ export default function MobileDashboard() {
               <Pillbar.Tab value="insights">Insights</Pillbar.Tab>
               <Pillbar.Tab value="shared">Shared</Pillbar.Tab>
             </Pillbar.List>
+
             <Pillbar.Panel value="overview">
-              <Overview setTab={setCurrentTab} />
+              <AcceleratorOverview setTab={setCurrentTab} />
             </Pillbar.Panel>
+
             <Pillbar.Panel value="agenda">
               <UnderConstruction />
             </Pillbar.Panel>
@@ -71,111 +91,87 @@ export default function MobileDashboard() {
   );
 }
 
-interface IOverviewProps {
-  setTab: (tab: string) => void;
-}
+// --- THE ACCELERATOR ENGINE ---
 
-function Overview({ setTab }: IOverviewProps) {
-  const { load: loadTasks, data: tasks } = useFetch<undefined, ITask[]>({
-    url: "/tasks",
-    query: {
-      limit: "3",
-      start: "0",
-    },
-    runOnMount: true,
-  });
-
-  const { load: loadRecentIdea, data: recentIdeas } = useFetch<
-    undefined,
-    ISafeIdea[]
-  >({
-    url: "/ideas",
-    query: {
-      limit: "3",
-      start: "0",
-      sortField: "updatedAt",
-      sortOrder: "desc",
-    },
-    runOnMount: true,
-  });
-  const recentIdea = recentIdeas?.[0];
-
+function AcceleratorOverview({ setTab }: { setTab: (t: string) => void }) {
   const navigate = useNavigate();
 
-  const { pins } = usePins();
-  const firstPins = pins.slice(0, 3);
-  console.log("First pins : ", firstPins, pins);
+  const {
+    load,
+    data: shelves,
+    loading,
+  } = useFetch<undefined, IShelfData[]>({
+    url: "/dashboard/accelerator",
+    runOnMount: true,
+  });
+
+  const resolveShelfRoute = (shelfId: string) => {
+    switch (shelfId) {
+      case "urgent":
+        return "/agenda";
+      case "rabbitholes":
+        return "/rabbitholes";
+      case "pins":
+        return "/pinned";
+      case "rediscovery":
+        return "/graph";
+      default:
+        return "/library";
+    }
+  };
+
+  if (loading && !shelves) {
+    return (
+      <Center h={500}>
+        <LangtonsAntLoader cellSize={18} stepsPerSecond={10} />
+      </Center>
+    );
+  }
+
+  if (!shelves || shelves.length === 0) {
+    return (
+      <Center h={300}>
+        <Stack align="center" gap="md">
+          <ThemeIcon size="xl" radius="xl" variant="light" color="gray">
+            <LightningIcon />
+          </ThemeIcon>
+          <Text>No immediate actions found.</Text>
+          <Button variant="light" onClick={() => setTab("agenda")}>
+            Check Agenda
+          </Button>
+        </Stack>
+      </Center>
+    );
+  }
 
   return (
     <div className={styles.overview}>
-      <Grid>
-        <Grid.Col span={12}>
-          <UnderConstruction />
-        </Grid.Col>
-        {tasks && tasks.length > 0 && (
-          <Grid.Col span={12}>
-            <PaperCard
-              icon={CheckIcon}
-              title="ACTIVE TASKS"
-              onClick={() => {
-                setTab("agenda");
-              }}
-            >
-              <Stack gap="xs">
-                {tasks?.map((t) => {
-                  return (
-                    <TaskButton
-                      task={t}
-                      key={t.id.toString()}
-                      detail="simple"
-                    />
-                  );
-                })}
-              </Stack>
-            </PaperCard>
-          </Grid.Col>
-        )}
-        <Grid.Col span={12}>
-          <PaperCard title="PINNED" icon={PushPinIcon}>
-            {firstPins.length < 1 && (
-              <Text c="gray" size="sm">
-                Nothing yet pinned.
-              </Text>
-            )}
-            {firstPins.length > 0 && (
-              <Stack gap="xs">
-                {firstPins.map((p) => {
-                  return (
-                    <ConnectableThing link key={p.id.toString()} thing={p} />
-                  );
-                })}
-              </Stack>
-            )}
-          </PaperCard>
-        </Grid.Col>
-        {recentIdea && (
-          <Grid.Col span={12}>
-            <Link
-              to={`/idea/${recentIdea.id.toString()}`}
-              style={{
-                textDecoration: "none",
-              }}
-            >
-              <PaperButton
-                leftSection={<ClockCounterClockwiseIcon weight="bold" />}
-                fullWidth
-              >
-                {recentIdea.title}
-              </PaperButton>
-            </Link>
-          </Grid.Col>
-        )}
-      </Grid>
+      <Stack gap="sm" pb={100}>
+        {shelves.map((shelf, index) => {
+          const indexToLayout = (): IAcceleratorShelfProps["layout"] => {
+            if (index === 0) return "hero";
+            if ([1, 2].includes(index)) return "carousel";
+            return "list";
+          };
+
+          console.log("Mapping shelf: ", shelf);
+
+          return (
+            <AcceleratorShelf
+              key={shelf.id.toString()}
+              shelf={shelf}
+              layout={indexToLayout()}
+            />
+          );
+        })}
+      </Stack>
     </div>
   );
 }
 
-function Shared({ setTab }: IOverviewProps) {
+// --- SHARED TAB (Legacy Support) ---
+
+function Shared({ setTab }: { setTab: (t: string) => void }) {
   const { load: loadShared, data: sharedThings } = useFetch<
     undefined,
     ISharedThing[]
@@ -220,48 +216,42 @@ function Shared({ setTab }: IOverviewProps) {
   }, [groupedByOwner]);
 
   if (!sharedThings || sharedThings.length === 0) {
-    return <Text>Nothing has been shared with you yet.</Text>;
+    return (
+      <Center h={200}>
+        <Text c="dimmed">Nothing has been shared with you yet.</Text>
+      </Center>
+    );
   }
 
   return (
-    <div>
-      <Stack gap="lg">
-        {!sortedGroups.length && <Text size="sm">No shared items found.</Text>}
-        {sortedGroups.map((group) => (
-          <Card radius="lg">
-            <Stack>
-              <Group key={group.owner.id} gap="xs" align="center">
-                <Avatar
-                  variant="filled"
-                  src={userInitials(group.owner)}
-                  size={20}
-                />
-                <Text size="sm">
+    <Stack gap="lg" pb={100}>
+      {sortedGroups.map((group) => (
+        <Card radius="lg" key={group.owner.id} withBorder>
+          <Stack>
+            <Group gap="xs" align="center">
+              <Avatar
+                variant="filled"
+                src={userInitials(group.owner)}
+                size={24}
+                radius="xl"
+              />
+              <div>
+                <Text size="sm" fw={500}>
                   {group.owner.firstName} {group.owner.lastName}
                 </Text>
-                <Text c="dimmed" size="sm">
-                  {formatDateTime(group.lastActivity)}
+                <Text c="dimmed" size="xs">
+                  Shared {formatDateTime(group.lastActivity)}
                 </Text>
-              </Group>
-              <SimpleGrid
-                cols={{
-                  sm: 1,
-                  md: 2,
-                  lg: 3,
-                }}
-              >
-                {group.items.map((item) => (
-                  <ConnectableThing
-                    key={item.id.toString()}
-                    thing={item}
-                    link
-                  />
-                ))}
-              </SimpleGrid>
-            </Stack>
-          </Card>
-        ))}
-      </Stack>
-    </div>
+              </div>
+            </Group>
+            <SimpleGrid cols={{ base: 1, xs: 2 }}>
+              {group.items.map((item) => (
+                <ConnectableThing key={item.id.toString()} thing={item} link />
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </Card>
+      ))}
+    </Stack>
   );
 }

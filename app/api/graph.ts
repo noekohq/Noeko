@@ -195,6 +195,41 @@ router.post(
   },
 );
 
+router.post("/all", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+
+    const { limit, cursor, sortField, sortDirection, filters } = req.body;
+
+    const connectables = await GraphService.getAllConnectables(
+      new StringRecordId(user.id),
+      {
+        limit,
+        cursor,
+        sortField,
+        sortDirection,
+        filters,
+      },
+    );
+
+    if (!connectables) {
+      throw new Error("Connectables couldn't be retrieved");
+    }
+
+    res.send({
+      message: "Successfully retrieved all connectables.",
+      data: connectables,
+    });
+  } catch (err) {
+    console.error("Error getting all connectables: ", req, err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get(
   "/:thingId/connections",
   checkToken,

@@ -16,6 +16,7 @@ export type IRabbithole = {
   id: string | RecordId;
   name: string;
   includes?: IRabbitholeIncludes[];
+  cachedCentroidEmbeddings?: number[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -81,24 +82,26 @@ export default class Rabbithole {
         $rabbithole: record<rabbithole>,
         $user: record<user>
       ) {
-        LET $includes =
-          SELECT VALUE
-            ->includes->(?) as includes
-          FROM ONLY $rabbithole
-          FETCH includes;
-        LET $count = count($includes);
-
-        IF ($count = 0) THEN
-          RETURN [];
+        LET $average = IF $rabbithole.cachedCentroidEmbeddings != NONE AND array::len($rabbithole.cachedCentroidEmbeddings) > 0 THEN
+            $rabbithole.cachedCentroidEmbeddings
+        ELSE
+            (
+                SELECT VALUE array::fold(
+                    vectors,
+                    array::repeat(0, array::len(array::first(vectors))),
+                    |$accumulator, $current_vector| vector::add($accumulator, $current_vector)
+                )
+                FROM (
+                    SELECT (SELECT VALUE embeddings FROM $rabbithole->includes WHERE embeddings != NONE) AS vectors FROM ONLY $rabbithole
+                )
+            )[0]
         END;
 
-        LET $vectors = SELECT VALUE embeddings FROM $includes WHERE embeddings != NULL AND embeddings != NONE;
+        IF $average = NONE OR $average = NULL OR count($average) = 0 THEN
+            RETURN [];
+        END;
 
-        LET $average = array::fold(
-            $vectors,
-            array::repeat(0, array::len(array::first($vectors))),
-            |$accumulator, $current_vector| vector::add($accumulator, $current_vector)
-        );
+        LET $includes = SELECT VALUE id FROM $rabbithole->includes;
 
         LET $ideas =
           SELECT
@@ -109,7 +112,7 @@ export default class Rabbithole {
           FROM idea
           WHERE
             <-owns<-(user WHERE id = $user) AND
-            id NOT IN $includes.id AND
+            id NOT IN $includes AND
             embeddings <|10, 400|> $average AND
             embeddings != NONE
           ORDER BY similarity DESC;
@@ -161,17 +164,17 @@ export default class Rabbithole {
 
   static async update(
     id: string | RecordId,
-    form: Partial<IRabbitholeCreator>,
+    form: Partial<IRabbitholeCreator & { cachedCentroidEmbeddings: number[] }>,
   ) {
     try {
       const db = await getDatabase();
-      const result = await db?.merge<IRabbithole, Partial<IRabbitholeCreator>>(
-        new StringRecordId(id),
-        {
-          ...form,
-          updatedAt: new Date(),
-        },
-      );
+      const result = await db?.merge<
+        IRabbithole,
+        Partial<IRabbitholeCreator & { cachedCentroidEmbeddings: number[] }>
+      >(new StringRecordId(id), {
+        ...form,
+        updatedAt: new Date(),
+      });
       if (!result) {
         throw new Error("Something went wrong updating rabbithole: ", result);
       }
@@ -239,6 +242,60 @@ export default class Rabbithole {
     }
   }
 
+  static async getRabbitholeAverageEmbeddings(rabbitholeId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const results = await db.query<
+        [(IRabbitholeIncludes & { embeddings: number[] })[]]
+      >(
+        `
+        SELECT VALUE
+          ->includes->(?) as includes
+        FROM ONLY $rabbitholeId
+        FETCH includes;
+        `,
+        {
+          rabbitholeId: new StringRecordId(rabbitholeId),
+        },
+      );
+
+      if (!results) {
+        throw new Error("Couldn't get results");
+      }
+
+      const [included] = results;
+      const vectors = included.map((i) => i.embeddings).filter((i) => !!i);
+
+      const averageEmbedding = averageEmbeddings(vectors);
+
+      return averageEmbedding;
+    } catch (error) {
+      console.error("Error getting average embeddings: ", error);
+      return undefined;
+    }
+  }
+
+  static async cacheCentroidVector(rabbitholeId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const averageEmbeddings =
+        await this.getRabbitholeAverageEmbeddings(rabbitholeId);
+
+      await Rabbithole.update(rabbitholeId, {
+        cachedCentroidEmbeddings: averageEmbeddings,
+      });
+
+      return averageEmbeddings;
+    } catch (error) {
+      console.error("Error caching the rabbithole centroid vector: ", error);
+      return undefined;
+    }
+  }
+
   static async isIncludable(thing: string | RecordId) {
     const thingId = thing.toString();
     if (GraphService.isConnectable(thing) || thingId.startsWith("tag")) {
@@ -269,6 +326,7 @@ export default class Rabbithole {
         },
       );
       this.update(rabbitholeId, { updatedAt: new Date() });
+      this.cacheCentroidVector(rabbitholeId);
       if (!result) {
         throw new Error(
           "Something went wrong adding thing to rabbithole: ",
@@ -304,6 +362,7 @@ export default class Rabbithole {
         },
       );
       this.update(rabbitholeId, { updatedAt: new Date() });
+      this.cacheCentroidVector(rabbitholeId);
       if (!result) {
         throw new Error(
           "Something went wrong adding things to rabbithole: ",
@@ -369,6 +428,7 @@ export default class Rabbithole {
         },
       );
       this.update(rabbitholeId, { updatedAt: new Date() });
+      this.cacheCentroidVector(rabbitholeId);
       if (!result) {
         throw new Error(
           "Something went wrong deleting thing from rabbithole: ",
@@ -442,31 +502,26 @@ export default class Rabbithole {
       const limit = options.limit || 25;
       const threshold = Number(options.threshold) || 0.45;
 
-      const results = await db.query<
-        [(IRabbitholeIncludes & { embeddings: number[] })[]]
-      >(
-        `
-        SELECT VALUE
-          ->includes->(?) as included
-        FROM ONLY $rabbitholeId
-        FETCH included;
-        `,
-        {
-          rabbitholeId: new StringRecordId(rabbitholeId),
-        },
-      );
+      const rabbithole = await Rabbithole.get(rabbitholeId);
 
-      if (!results) {
-        throw new Error("Couldn't get results");
+      if (!rabbithole) {
+        throw new Error("No rabbithole found");
       }
 
-      const [included] = results;
-      const vectors = included.map((i) => i.embeddings).filter((i) => !!i);
-      const averageEmbedding = averageEmbeddings(vectors);
+      let centroidEmbeddings: number[] | undefined =
+        rabbithole.cachedCentroidEmbeddings;
+      if (!centroidEmbeddings) {
+        const centroid = await Rabbithole.cacheCentroidVector(rabbitholeId);
+        centroidEmbeddings = centroid ?? undefined;
+      }
+
+      if (!centroidEmbeddings) {
+        throw new Error("Couldn't get centroid embeddings");
+      }
 
       const similarThings = await GraphService.searchSimilarConnectables(
         userId,
-        averageEmbedding,
+        centroidEmbeddings,
         {
           limit,
           threshold,
