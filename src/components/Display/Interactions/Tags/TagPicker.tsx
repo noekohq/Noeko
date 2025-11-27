@@ -11,10 +11,10 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
-import { ITag } from "../../../../../app/database/models/tag"; // Adjust path as needed
-import useFetch from "../../../../hooks/useFetch"; // Adjust path
+import { ITag } from "../../../../../app/database/models/tag";
+import useFetch from "../../../../hooks/useFetch";
 import { useDisclosure } from "@mantine/hooks";
-import PaperButton from "../../Paper/PaperButton"; // Assuming you have this
+import PaperButton from "../../Paper/PaperButton";
 import { PaperSelection, usePaperSelection } from "../../Paper/PaperSelection";
 import PaperTag from "../../Paper/Tags/PaperTag";
 import { useLayout } from "../../../../contexts/LayoutContext";
@@ -22,13 +22,16 @@ import PaperDrawer from "../../Paper/PaperDrawer";
 
 interface TagPickerProps {
   onSelectExisting: (tag: ITag) => void;
-  onCreateNew: (
+  // Made optional to support filter mode where creation isn't needed
+  onCreateNew?: (
     name: string,
     description: string,
     color: string,
   ) => Promise<void>;
   omitIds?: string[];
   initialSuggestions?: ITag[];
+  /** Whether to show the form to create a new tag if not found. Defaults to true. */
+  allowCreation?: boolean;
 }
 
 export function TagPicker({
@@ -36,6 +39,7 @@ export function TagPicker({
   onCreateNew,
   omitIds = [],
   initialSuggestions,
+  allowCreation = true,
 }: TagPickerProps) {
   const { isMobile } = useLayout();
 
@@ -59,11 +63,14 @@ export function TagPicker({
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleCreateSubmit = async (values: {
     name: string;
     description: string;
     color: string;
   }) => {
+    if (!onCreateNew) return;
+
     setIsSubmitting(true);
     try {
       await onCreateNew(values.name, values.description, values.color);
@@ -108,6 +115,8 @@ export function TagPicker({
       onClose={handleClose}
       isLoading={loading}
       formPrompt={(q) => `Add "${q}"`}
+      placeholder={allowCreation ? "Find or create..." : "Find a tag..."}
+      allowCreation={allowCreation}
     >
       <PaperSelection.Menu>
         {showInitialSuggestions &&
@@ -129,12 +138,17 @@ export function TagPicker({
         )}
       </PaperSelection.Menu>
 
-      <PaperSelection.Form title="New Tag">
-        <TagCreateForm
-          onSubmit={handleCreateSubmit}
-          isSubmitting={isSubmitting}
-        />
-      </PaperSelection.Form>
+      {/* Only render the creation form if enabled.
+        This is useful for 'Filter' contexts where we only want selection.
+      */}
+      {allowCreation && onCreateNew && (
+        <PaperSelection.Form title="New Tag">
+          <TagCreateForm
+            onSubmit={handleCreateSubmit}
+            isSubmitting={isSubmitting}
+          />
+        </PaperSelection.Form>
+      )}
     </PaperSelection>
   );
 

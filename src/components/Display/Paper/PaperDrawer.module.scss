@@ -37,7 +37,7 @@
            Use a custom cubic-bezier. This specific curve (0.32, 0.72, 0, 1)
            starts quickly and has a long, smooth "braking" distance.
            It feels snappy but expensive. */
-    animation: bodyIn 0.4s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    animation: bodyIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 
     position: fixed;
     bottom: 0;

@@ -6,15 +6,7 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
-import {
-  TextInput,
-  Loader,
-  Button,
-  Group,
-  ActionIcon,
-  Text,
-  Stack,
-} from "@mantine/core";
+import { Loader, ActionIcon, Text } from "@mantine/core";
 import {
   MagnifyingGlassIcon,
   PlusIcon,
@@ -42,6 +34,7 @@ interface IPaperSelectionContext {
   searchQuery: string;
   formPrompt: (query: string) => string;
   onClose: () => void;
+  allowCreation: boolean; // Added to context
 }
 
 const PaperSelectionContext = createContext<IPaperSelectionContext | null>(
@@ -65,17 +58,13 @@ type PaperSelectionProps = {
   onClose: () => void;
   formPrompt: (query: string) => string;
   isLoading?: boolean;
+  placeholder?: string;
+  /** Whether to allow the 'Create' workflow. Defaults to true. */
+  allowCreation?: boolean;
 };
 
-type MenuProps = {
-  children: ReactNode;
-};
-
-type FormProps = {
-  children: ReactNode;
-  title: string;
-};
-
+type MenuProps = { children: ReactNode };
+type FormProps = { children: ReactNode; title: string };
 type ItemProps = {
   id: string;
   name: string;
@@ -90,6 +79,8 @@ const PaperSelection = ({
   onClose,
   formPrompt,
   isLoading,
+  placeholder = "Find or create...",
+  allowCreation = true, // Defaulting to true preserves existing behavior
 }: PaperSelectionProps) => {
   const [mode, setMode] = useState<"search" | "create">("search");
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,8 +104,9 @@ const PaperSelection = ({
       searchQuery,
       formPrompt,
       onClose,
+      allowCreation,
     }),
-    [mode, searchQuery, formPrompt, onClose],
+    [mode, searchQuery, formPrompt, onClose, allowCreation],
   );
 
   const menu = React.Children.toArray(children).find(
@@ -126,63 +118,59 @@ const PaperSelection = ({
 
   return (
     <PaperSelectionContext.Provider value={contextValue}>
-      <Stack gap="xs">
-        <div className={styles.inputContainer}>
-          <input
-            placeholder="Find or create..."
-            value={searchQuery}
-            onChange={(e) => handleSetQuery(e.currentTarget.value)}
-            autoFocus
-            className={styles.input}
-          />
-          <div className={styles.icon}>
-            {isLoading ? <Loader size="xs" /> : <MagnifyingGlassIcon />}
+      <div className={styles.wrapper}>
+        {/* Sticky Header / Input */}
+        {mode === "search" && (
+          <div className={styles.inputContainer}>
+            <input
+              placeholder={placeholder}
+              value={searchQuery}
+              onChange={(e) => handleSetQuery(e.currentTarget.value)}
+              autoFocus
+              className={styles.input}
+            />
+            <div className={styles.icon}>
+              {isLoading ? (
+                <Loader size={16} color="gray" />
+              ) : (
+                <MagnifyingGlassIcon size={16} />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className={styles.root}>
+        {/* Scrollable Content Body */}
+        <div className={styles.contentScroll}>
           {mode === "search" && menu}
           {mode === "create" && form}
         </div>
-      </Stack>
+      </div>
     </PaperSelectionContext.Provider>
   );
 };
 
 const Menu = ({ children }: MenuProps) => {
-  const { searchQuery, formPrompt, setMode } = usePaperSelection();
+  // Destructure allowCreation from context
+  const { searchQuery, formPrompt, setMode, allowCreation } =
+    usePaperSelection();
 
-  const hasChildren = React.Children.count(children) > 0;
   const hasQuery = searchQuery.trim().length > 0;
-  const showMenu = hasChildren || hasQuery;
-
-  console.log(
-    "Children: ",
-    hasChildren,
-    React.Children.count(children),
-    children,
-  );
-
-  if (!showMenu) return null;
 
   return (
-    <div className={`${styles.panel} ${styles.menu}`}>
-      <Stack gap="sm" style={{ width: "100%" }}>
-        {children}
+    <div className={styles.menu}>
+      {children}
 
-        {searchQuery.trim().length > 0 && (
-          <>
-            <div>
-              <PaperButton
-                leftSection={<PlusIcon weight="bold" />}
-                onClick={() => setMode("create")}
-              >
-                {formPrompt(searchQuery)}
-              </PaperButton>
-            </div>
-          </>
-        )}
-      </Stack>
+      {hasQuery && allowCreation && (
+        <div className={styles.createAction}>
+          <PaperButton
+            leftSection={<PlusIcon weight="bold" />}
+            onClick={() => setMode("create")}
+            fullWidth
+          >
+            {formPrompt(searchQuery)}
+          </PaperButton>
+        </div>
+      )}
     </div>
   );
 };
@@ -191,26 +179,23 @@ const Form = ({ children, title }: FormProps) => {
   const { setMode } = usePaperSelection();
 
   return (
-    <div className={`${styles.panel} ${styles.form}`}>
-      <Stack gap="xs" style={{ width: "100%" }}>
-        <Group justify="space-between">
-          <ActionIcon
-            variant="subtle"
-            size="sm"
-            color="gray"
-            onClick={() => setMode("search")}
-            className={styles.backButton}
-          >
-            <ArrowLeftIcon weight="bold" />
-          </ActionIcon>
-          <Text size="xs" c="dimmed" fw="bold">
-            {title}
-          </Text>
-          <div style={{ width: 28 }} />
-        </Group>
+    <div className={styles.form}>
+      <div className={styles.formHeader}>
+        <ActionIcon
+          variant="transparent"
+          size="sm"
+          color="dimmed"
+          onClick={() => setMode("search")}
+          className={styles.backButton}
+        >
+          <ArrowLeftIcon weight="bold" />
+        </ActionIcon>
+        <Text size="sm" fw={600}>
+          {title}
+        </Text>
+      </div>
 
-        {children}
-      </Stack>
+      {children}
     </div>
   );
 };
@@ -218,13 +203,12 @@ const Form = ({ children, title }: FormProps) => {
 const Item = ({ id, name, description, onClick }: ItemProps) => {
   return (
     <div className={styles.item} onClick={onClick}>
-      <span className={styles.name}>{name}</span>
-      {description && <span className={styles.description}>{description}</span>}
+      <Text className={styles.name}>{name}</Text>
+      {description && <Text className={styles.description}>{description}</Text>}
     </div>
   );
 };
 
-// Assign compound components
 PaperSelection.Menu = Menu;
 PaperSelection.Form = Form;
 PaperSelection.Item = Item;
