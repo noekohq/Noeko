@@ -7,6 +7,7 @@ import { parse } from "cookie";
 import { applyUpdate, Doc, encodeStateAsUpdate } from "yjs";
 
 import { Idea, ISafeIdea } from "../database/models/ideas";
+import Task, { ITask } from "../database/models/task";
 import { ISafeUser } from "../database/models/user";
 import { extensions } from "../lib/editing/tiptap/extensions";
 import Authorization from "../services/Authorization";
@@ -39,6 +40,18 @@ const database = new Database({
           return update;
         }
         return null;
+      case "task":
+        const task = thing as ITask;
+        if (task.yState) {
+          return toUint8Array(task.yState);
+        }
+        if (task.scratchpad) {
+          const json = generateJSON(task.scratchpad, extensions);
+          const state = TiptapTransformer.toYdoc(json, "default", extensions);
+          const update = encodeStateAsUpdate(state);
+          return update;
+        }
+        return null;
       default:
         return null;
     }
@@ -56,6 +69,12 @@ const database = new Database({
         await Idea.update(documentName, {
           yState: toBase64(state),
           content: html,
+        });
+        break;
+      case "task":
+        await Task.update(documentName, {
+          yState: toBase64(state),
+          scratchpad: html,
         });
         break;
       default:

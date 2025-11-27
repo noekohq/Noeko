@@ -122,3 +122,18 @@ export const updateAccess = async (
     console.error("Error updating share: ", error);
   }
 };
+
+export const getShares = async (thingId: string) => {
+  try {
+    const response = await api.get(`/sharing/${thingId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error getting shares for ${thingId}`, error);
+    showNotification({
+      title: "Something went wrong",
+      message: "Could not load sharing information.",
+      color: "red",
+    });
+    return undefined;
+  }
+};
