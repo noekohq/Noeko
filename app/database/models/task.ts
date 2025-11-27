@@ -9,6 +9,7 @@ export type ITask = {
   id: string | RecordId;
   description: string;
   scratchpad: string;
+  yState?: string | null;
   estimatedTime: Duration;
   dueDate: string | null;
   embeddings: number[];

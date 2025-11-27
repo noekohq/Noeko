@@ -1160,6 +1160,113 @@ export default class GraphService {
     }
   }
 
+  public static async getAllConnectables(
+    userId: StringRecordId,
+    options: IGetAllConnectables_Options,
+  ) {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      const limit = options.limit ?? 20;
+      const sortField = options.sortField ?? "updatedAt";
+      const sortDirection = options.sortDirection ?? "DESC";
+
+      const builder = new GraphFilterQueryBuilder()
+        .ownedBy(userId)
+        .sortBy(sortField, sortDirection)
+        .limit(limit);
+
+      if (options.cursor) {
+        builder.withCursor(options.cursor, sortField);
+      }
+
+      if (options.filters?.tags && options.filters.tags.length > 0) {
+        builder.withTags(options.filters.tags);
+      }
+
+      const {
+        where,
+        params,
+        sort,
+        limit: limitClause,
+      } = builder.buildQueryParts();
+
+      const tableQuery = (table: string) => {
+        const tableWhere: string[] = [];
+        if (table === "task") {
+          tableWhere.push(`completedAt = NULL`);
+        }
+
+        const whereClause =
+          where.length > 0 || tableWhere.length > 0
+            ? `WHERE ${[...where, ...tableWhere].join(" AND ")}`
+            : "";
+
+        const query = `
+          SELECT
+            *
+          OMIT embeddings
+          FROM ${table}
+          ${whereClause}
+          ${sort}
+          ${limitClause}
+          `;
+        return { query, params };
+      };
+
+      const ideaBuilder = tableQuery("idea");
+      const sourceBuilder = tableQuery("source");
+      const taskBuilder = tableQuery("task");
+      const excerptBuilder = tableQuery("excerpt");
+
+      const getOfType = async <T>(
+        type: IConnectableTypes,
+        query: string,
+        queryParams: Record<string, any>,
+      ): Promise<(T & { type: IConnectableTypes })[]> => {
+        const [results] = await db.query<[T[]]>(query, queryParams);
+        return results.map((item) => ({ ...item, type }));
+      };
+
+      const [ideas, sources, tasks, excerpts] = await Promise.all([
+        getOfType<IIdea>("idea", ideaBuilder.query, ideaBuilder.params),
+        getOfType<ISource>("source", sourceBuilder.query, sourceBuilder.params),
+        getOfType<ITask>("task", taskBuilder.query, taskBuilder.params),
+        getOfType<IExcerpt>(
+          "excerpt",
+          excerptBuilder.query,
+          excerptBuilder.params,
+        ),
+      ]);
+
+      const combined = [...ideas, ...sources, ...tasks, ...excerpts];
+
+      const sorted = combined.sort((a, b) => {
+        const dateA = new Date((a as any)[sortField] || 0);
+        const dateB = new Date((b as any)[sortField] || 0);
+
+        if (sortDirection === "DESC") {
+          return dateB.getTime() - dateA.getTime();
+        }
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      const final = sorted.slice(0, limit);
+
+      const nextCursor =
+        final.length === limit ? final[final.length - 1]?.[sortField] : null;
+
+      return {
+        items: final as IConnectable[],
+        nextCursor,
+      };
+    } catch (error) {
+      console.error("Error getting all connectables: ", error);
+      return undefined;
+    }
+  }
+
   public static async getUserConnections(
     userId: StringRecordId,
     filters?: IGraphFilters,

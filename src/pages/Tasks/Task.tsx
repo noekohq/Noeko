@@ -1,47 +1,46 @@
-import { Link, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { ITask, ITaskForm } from "../../../app/database/models/task";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import useFetch from "../../hooks/useFetch";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import StatusBar from "../../components/UI/Layout/Bottom";
 import Content from "../../components/UI/Layout/Content";
 import {
   ActionIcon,
   Button,
+  Collapse,
   Divider,
   Group,
   Loader,
   Menu,
-  Popover,
-  SegmentedControl,
   Stack,
   Text,
-  TextInput,
   Title,
+  Tooltip,
+  UnstyledButton,
 } from "@mantine/core";
 import {
-  ArrowArcRightIcon,
-  CalendarCheckIcon,
-  CaretLeftIcon,
-  CheckIcon,
+  ArrowLeftIcon,
+  CheckCircleIcon, // Added
+  CircleIcon, // Added
   DotsThreeVerticalIcon,
-  TimerIcon,
+  DownloadSimpleIcon,
+  MarkdownLogoIcon,
+  PushPinIcon,
+  ShareNetworkIcon,
   TrashSimpleIcon,
-  XCircleIcon,
+  UniteSquareIcon,
+  UserCirclePlusIcon,
 } from "@phosphor-icons/react";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import { useForm } from "@mantine/form";
-import { capitalize, formatDate } from "../../utils/formatting";
 import { Duration } from "surrealdb";
 import styles from "./Task.module.scss";
 import { useLayout } from "../../contexts/LayoutContext";
-import { DatePicker } from "@mantine/dates";
 import { updateTask } from "../../utils/tasks";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
-import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
 import Search from "../../components/Search/Search";
 import { modals } from "@mantine/modals";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
@@ -50,6 +49,15 @@ import useConnectable from "../../hooks/useConnectable";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
+import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
+import Access from "./Access";
+import usePins from "../../hooks/usePins";
+import { downloadTextAsFile } from "../../utils/files";
+import { htmlToMarkdown } from "../../../app/utils/formatting";
+import HorizonSelector from "../../components/Display/Paper/Inputs/HorizonSelector";
+import { fromYYYYMMDD } from "../../utils/datetime";
+import { capitalize, formatDate } from "../../utils/formatting";
+import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -62,45 +70,6 @@ export default function Task() {
     url: `/tasks/${taskId}`,
     dependencies: [taskId],
   });
-
-  const navigate = useNavigate();
-
-  const { load: triggerDeleteTask, loading: loadingDelete } = useFetch({
-    url: `/tasks/${taskId}`,
-    dependencies: [taskId],
-    method: "DELETE",
-    onSuccess: () => {
-      navigate(-1);
-      showNotification({
-        title: "Success",
-        message: "Task deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      console.error("Error deleting task: ", error);
-      showNotification({
-        title: "Error Deleting",
-        message: `There was an error deleting the task: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
-        color: "red",
-      });
-    },
-  });
-
-  const handleDeleteTask = useCallback(() => {
-    if (loadingDelete) return;
-    modals.openConfirmModal({
-      title: "Are you sure you want to delete this task?",
-      centered: true,
-      children: (
-        <Text size="sm">
-          This action cannot be undone. All associated data will be lost.
-        </Text>
-      ),
-      labels: { confirm: "Delete Task", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => triggerDeleteTask(),
-    });
-  }, [loadingDelete, triggerDeleteTask, taskId]);
 
   useEffect(() => {
     loadTask();
@@ -128,7 +97,7 @@ export default function Task() {
   const taskForm = useForm({
     initialValues: {
       description: task?.description || "",
-      estimatedTime: task ? new Duration(task.estimatedTime) : "",
+      estimatedTime: task ? new Duration(task.estimatedTime).toString() : null,
       dueDate: task?.dueDate || null,
     },
     validate: {
@@ -138,19 +107,11 @@ export default function Task() {
           return "Description must be at least 5 characters";
         return null;
       },
-      estimatedTime: (value) => {
-        if (!value) return "Estimated time is required";
-        return null;
-      },
-      dueDate: (value) => {
-        if (!value) return "Due date is required";
-        return null;
-      },
     },
     transformValues: (v) => {
       return {
         ...v,
-        estimatedTime: v.estimatedTime.toString(),
+        estimatedTime: v.estimatedTime ? v.estimatedTime.toString() : null,
         dueDate: v.dueDate ? v.dueDate : null,
       };
     },
@@ -165,90 +126,7 @@ export default function Task() {
     });
   }, [task]);
 
-  const formattedEstimatedTime = () => {
-    return taskForm.values.estimatedTime.toString();
-  };
-
-  const formattedDueDate = () => {
-    if (!taskForm.values.dueDate) return "No due date.";
-    return capitalize(formatDate(fromYYYYMMDD(taskForm.values.dueDate)));
-  };
-
   const { isMobile } = useLayout();
-
-  const [timeOptionMode, setTimeOptionMode] = useState<"options" | "manual">(
-    "options",
-  );
-
-  const timePickerOptions = [
-    {
-      label: "15m",
-      value: Duration.minutes(15).toString(),
-    },
-    {
-      label: "30m",
-      value: Duration.minutes(30).toString(),
-    },
-    {
-      label: "1hr",
-      value: Duration.hours(1).toString(),
-    },
-    {
-      label: "2hrs",
-      value: Duration.hours(2).toString(),
-    },
-    {
-      label: "4hrs",
-      value: Duration.hours(4).toString(),
-    },
-  ];
-
-  useEffect(() => {
-    const isInOptions = timePickerOptions.some(
-      (o) => taskForm.values.estimatedTime.toString() === o.value.toString(),
-    );
-    if (isInOptions) {
-      setTimeOptionMode("options");
-    } else {
-      setTimeOptionMode("manual");
-    }
-  }, [taskForm.values.estimatedTime]);
-
-  const [scratchpadContent, setScratchpadContent] = useState("");
-  useEffect(() => {
-    if (task?.scratchpad != scratchpadContent && task?.scratchpad) {
-      setScratchpadContent(task?.scratchpad);
-    }
-  }, [task?.scratchpad]);
-  const { load: updateScratchpad } = useFetch<{ scratchpad: string }, ITask>({
-    url: `/tasks/${taskId}`,
-    method: "PUT",
-    body: {
-      scratchpad: scratchpadContent,
-    },
-    dependencies: [scratchpadContent, task?.scratchpad],
-  });
-
-  const [scratchpadSaved, setScratchpadSaved] = useState(true);
-  const debouncedUpdateScratchpad = useDebouncedCallback(async (newContent) => {
-    if (taskId) {
-      updateTask(taskId, {
-        scratchpad: newContent,
-      }).then(() => {
-        setScratchpadSaved(true);
-      });
-    }
-  }, 200);
-
-  useEffect(() => {
-    if (loadingTask || scratchpadContent === "") {
-      return;
-    }
-    setScratchpadSaved(false);
-    debouncedUpdateScratchpad(scratchpadContent);
-  }, [scratchpadContent]);
-
-  const [dueDatePopoverOpened, setDueDatePopoverOpened] = useState(false);
 
   const debouncedUpdate = useDebouncedCallback(
     async (update: Partial<ITaskForm>) => {
@@ -293,139 +171,6 @@ export default function Task() {
       <LeftSidebar>
         <LeftSidebar.Open>
           <Stack>
-            <Stack>
-              <Text size="xs">
-                <Group gap="xs" wrap="nowrap">
-                  <TimerIcon />
-                  How long should this take to complete?
-                </Group>
-              </Text>
-              <Group wrap="nowrap" gap="xs">
-                {timeOptionMode === "options" ? (
-                  <SegmentedControl
-                    data={timePickerOptions}
-                    value={taskForm.values.estimatedTime.toString()}
-                    onChange={(value) => {
-                      handleFieldUpdate("estimatedTime", new Duration(value));
-                    }}
-                    classNames={{ root: styles.suggestions }}
-                    withItemsBorders={false}
-                    size={isMobile ? "xs" : "xs"}
-                    radius="lg"
-                    w="100%"
-                  />
-                ) : (
-                  <TextInput
-                    placeholder={`Example: 2h30m, 90m, or 1d2h.`}
-                    error={taskForm.errors.estimatedTime}
-                    defaultValue={taskForm.values.estimatedTime.toString()}
-                    onChange={(v) => {
-                      try {
-                        const d = new Duration(v.currentTarget.value);
-                        handleFieldUpdate("estimatedTime", d);
-                      } catch (error) {
-                        console.error("Error: ", error);
-                        taskForm.setFieldError(
-                          "estimatedTime",
-                          `Invalid format. Try "2h30m", "90m", or "1.5d".`,
-                        );
-                      }
-                    }}
-                    size="sm"
-                    variant="filled"
-                    errorProps={{
-                      c: "red.4",
-                    }}
-                    radius="lg"
-                    w="100%"
-                  />
-                )}
-                <ActionIcon
-                  onClick={() => {
-                    setTimeOptionMode((prev) => {
-                      if (prev === "manual") {
-                        return "options";
-                      }
-                      return "manual";
-                    });
-                  }}
-                  variant="light"
-                  size="xs"
-                  color="dark.3"
-                >
-                  <ArrowArcRightIcon />
-                </ActionIcon>
-              </Group>
-            </Stack>
-            <Divider />
-            <Stack>
-              <Text size="xs">
-                <Group gap="xs">
-                  <CalendarCheckIcon />
-                  When should this be done?
-                </Group>
-              </Text>
-
-              <Popover
-                opened={dueDatePopoverOpened}
-                onClose={() => {
-                  setDueDatePopoverOpened(false);
-                }}
-                closeOnClickOutside
-                closeOnEscape
-              >
-                <Popover.Target>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    radius="lg"
-                    fullWidth
-                    onClick={() =>
-                      setDueDatePopoverOpened(!dueDatePopoverOpened)
-                    }
-                  >
-                    {formattedDueDate()}
-                  </Button>
-                </Popover.Target>
-                <Popover.Dropdown
-                  w="300px"
-                  style={{
-                    maxHeight: "400px",
-                    overflowY: "scroll",
-                  }}
-                >
-                  <Stack>
-                    <Text fw="bold" size="sm">
-                      Select Date
-                    </Text>
-                    <DatePicker
-                      styles={{
-                        calendarHeader: {
-                          width: "100%",
-                        },
-                      }}
-                      value={taskForm.values.dueDate}
-                      onChange={(date) => {
-                        if (date) {
-                          const formattedDate = date;
-                          handleFieldUpdate("dueDate", formattedDate);
-                          setDueDatePopoverOpened(false);
-                        }
-                      }}
-                    />
-                  </Stack>
-                </Popover.Dropdown>
-              </Popover>
-            </Stack>
-            {!!task && (
-              <TagsManager
-                connectable={{
-                  ...task,
-                  type: "task",
-                }}
-                maxSuggested={2}
-              />
-            )}
             {!!task && (
               <ConnectionManager
                 connectable={{
@@ -439,40 +184,76 @@ export default function Task() {
       </LeftSidebar>
       <Content>
         <Stack gap="sm" pb="50vh">
-          <Group mb="lg">
-            <Link
-              to="/tasks"
-              style={{
-                textDecoration: "none",
-              }}
-            >
-              <Group c="dark.3" gap="xs">
-                <CaretLeftIcon weight="bold" size={13} />
-                <Text c="dark.3" size="sm">
-                  Agenda
-                </Text>
-              </Group>
-            </Link>
-          </Group>
-          <Group>
-            <Title
-              contentEditable
-              onBlur={(e) => {
-                handleFieldUpdate("description", e.currentTarget.innerText);
-              }}
-              dangerouslySetInnerHTML={{ __html: task?.description || "" }}
-            />
-          </Group>
+          {/* Tools now live at the top of the content area */}
+          {task && <Tools task={task} reloadTask={loadTask} />}
+
+          <Stack gap="md">
+            {/* UPDATED LAYOUT: Title-Adjacent Pattern
+               The checkbox is now next to the title.
+            */}
+            <Group align="flex-start" wrap="nowrap" gap="sm">
+              <ActionIcon
+                variant="transparent"
+                color={isComplete ? "teal.4" : "gray.5"}
+                size="xl"
+                radius="xl"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMarkTask(!isComplete);
+                }}
+                mt={2} // Slight micro-adjustment to align with title text baseline
+              >
+                {isComplete ? (
+                  <CheckCircleIcon weight="fill" size={32} />
+                ) : (
+                  <CircleIcon weight="regular" size={32} />
+                )}
+              </ActionIcon>
+
+              <Title
+                contentEditable
+                className={styles.editableTitle}
+                style={{
+                  flex: 1,
+                  textDecoration: isComplete ? "line-through" : "none",
+                  opacity: isComplete ? 0.6 : 1,
+                  transition: "opacity 0.2s ease, text-decoration 0.2s ease",
+                }}
+                onBlur={(e) => {
+                  handleFieldUpdate("description", e.currentTarget.innerText);
+                }}
+                dangerouslySetInnerHTML={{ __html: task?.description || "" }}
+              />
+            </Group>
+
+            {!!task && (
+              <>
+                <TagsManager
+                  connectable={{
+                    ...task,
+                    type: "task",
+                  }}
+                  maxSuggested={2}
+                />
+
+                {/* The new Mad Libs / Natural Language Sentence Component */}
+                <TaskSentence
+                  date={taskForm.values.dueDate}
+                  duration={taskForm.values.estimatedTime}
+                  onChange={(field, val) => handleFieldUpdate(field, val)}
+                />
+
+                {/* REMOVED: The large "Mark Complete" button block was here */}
+              </>
+            )}
+          </Stack>
+
+          <Divider label="Notes" labelPosition="center" color="dark.6" />
+
           {!!task && (
             <>
               <DreamWriter
                 initialContent={task.scratchpad}
-                onBlur={() => {
-                  updateScratchpad();
-                }}
-                onChange={(v) => {
-                  setScratchpadContent(v);
-                }}
                 readOnly={!task}
                 collaborationId={task.id.toString()}
                 connectableId={task.id.toString()}
@@ -484,58 +265,380 @@ export default function Task() {
       <Nav />
       <RightSidebar>
         <RightSidebar.Open>
-          <Stack gap="lg">
-            <Group gap="xs" wrap="nowrap">
-              <Button
-                radius="md"
-                leftSection={
-                  isComplete ? (
-                    <XCircleIcon weight="bold" />
-                  ) : (
-                    <CheckIcon weight="bold" />
-                  )
-                }
-                variant={isComplete ? "light" : "filled"}
-                onClick={() => {
-                  handleMarkTask(!isComplete);
-                }}
-                color={isComplete ? "gray.2" : "blue.7"}
-                size="xs"
-                fullWidth
-              >
-                Mark {isComplete ? "Incomplete" : "Complete"}
-              </Button>
-              <ActionIcon
-                onClick={handleDeleteTask}
-                disabled={loadingDelete}
-                loading={loadingDelete}
-                variant="light"
-                color="red"
-              >
-                <TrashSimpleIcon />
-              </ActionIcon>
-            </Group>
-            <Divider />
-            <Search
-              resultActions={[
-                (thing) => {
-                  return {
-                    id: "connect",
-                    label: "Connect",
-                    onClick: () => {
-                      if (!task) {
-                        return;
-                      }
-                      connect(thing.id.toString());
+          <Tabs defaultValue="search">
+            <Tabs.List>
+              <Tabs.Tab value="search">Search</Tabs.Tab>
+              <Tabs.Tab value="sharing" leftSection={<ShareNetworkIcon />}>
+                Sharing
+              </Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="search">
+              <Stack gap="lg">
+                <Search
+                  resultActions={[
+                    (thing) => {
+                      return {
+                        id: "connect",
+                        label: "Connect",
+                        onClick: () => {
+                          if (!task) {
+                            return;
+                          }
+                          connect(thing.id.toString());
+                        },
+                        disabled: isConnected(thing.id.toString()),
+                      };
                     },
-                    disabled: isConnected(thing.id.toString()),
-                  };
-                },
-              ]}
-            />
-          </Stack>
+                  ]}
+                />
+              </Stack>
+            </Tabs.Panel>
+            <Tabs.Panel value="sharing">
+              {task && <Access task={task} reloadTask={loadTask} />}
+            </Tabs.Panel>
+          </Tabs>
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>
+  );
+}
+
+// --- The New Natural Language Component ---
+
+interface ITaskSentence {
+  date: string | null;
+  duration: string | null;
+  onChange: (field: "dueDate" | "estimatedTime", value: any) => void;
+}
+
+function TaskSentence({ date, duration, onChange }: ITaskSentence) {
+  const [activeSelector, setActiveSelector] = useState<
+    "date" | "duration" | null
+  >(null);
+
+  // Helpers to format the "Variables" in the sentence
+  const displayDuration = duration ? duration.toString() : "time estimate";
+  const displayDate = date
+    ? capitalize(formatDate(fromYYYYMMDD(date))) // "Tomorrow", "Next Friday"
+    : "target date";
+
+  // Auto-collapse handler
+  const handleSelection = (field: "dueDate" | "estimatedTime", val: any) => {
+    onChange(field, val);
+    // Small delay to let user see the selection happen before hiding
+    setTimeout(() => {
+      setActiveSelector(null);
+    }, 300);
+  };
+
+  const toggle = (mode: "date" | "duration") => {
+    setActiveSelector((current) => (current === mode ? null : mode));
+  };
+
+  return (
+    <Stack gap="xs">
+      {/* The Sentence */}
+      <Group gap={6} wrap="wrap">
+        <Text size="sm" c="dimmed">
+          Should take
+        </Text>
+
+        <UnstyledButton onClick={() => toggle("duration")}>
+          <Text
+            size="sm"
+            fw={duration ? 700 : 500}
+            td="underline"
+            c={duration ? "white" : "dimmed"}
+            style={{ textUnderlineOffset: 4, textDecorationStyle: "dashed" }}
+          >
+            {displayDuration}.
+          </Text>
+        </UnstyledButton>
+
+        <Text size="sm" c="dimmed">
+          Done by
+        </Text>
+
+        <UnstyledButton onClick={() => toggle("date")}>
+          <Text
+            size="sm"
+            fw={date ? 700 : 500}
+            td="underline"
+            c={date ? "white" : "dimmed"}
+            style={{ textUnderlineOffset: 4, textDecorationStyle: "dashed" }}
+          >
+            {displayDate}.
+          </Text>
+        </UnstyledButton>
+      </Group>
+
+      {/* The Progressive Disclosure Area */}
+      <Collapse in={!!activeSelector} transitionDuration={200}>
+        {activeSelector === "duration" && (
+          <HorizonSelector
+            type="duration"
+            value={duration}
+            onChange={(val) => {
+              if (val) handleSelection("estimatedTime", new Duration(val));
+              else onChange("estimatedTime", null);
+            }}
+          />
+        )}
+        {activeSelector === "date" && (
+          <HorizonSelector
+            type="date"
+            value={date}
+            onChange={(val) => {
+              handleSelection("dueDate", val);
+            }}
+          />
+        )}
+      </Collapse>
+    </Stack>
+  );
+}
+
+// --- The Tools Component (Refactored for Top Bar) ---
+
+interface ITools {
+  task: ITask;
+  reloadTask: () => void;
+}
+
+function Tools({ task, reloadTask }: ITools) {
+  const { isMobile } = useLayout();
+  const navigate = useNavigate();
+
+  const { load: triggerDeleteTask, loading: loadingDelete } = useFetch({
+    url: `/tasks/${task.id.toString()}`,
+    dependencies: [task.id.toString()],
+    method: "DELETE",
+    onSuccess: () => {
+      navigate(-1);
+      showNotification({
+        title: "Success",
+        message: "Task deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting task: ", error);
+      showNotification({
+        title: "Error Deleting",
+        message: `There was an error deleting the task: ${
+          error?.response?.data?.message || error?.message || "Unknown error"
+        }`,
+        color: "red",
+      });
+    },
+  });
+
+  const handleDeleteTask = useCallback(() => {
+    if (loadingDelete) return;
+    modals.openConfirmModal({
+      title: "Are you sure you want to delete this task?",
+      centered: true,
+      children: (
+        <Text size="sm">
+          This action cannot be undone. All associated data will be lost.
+        </Text>
+      ),
+      labels: { confirm: "Delete Task", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => triggerDeleteTask(),
+    });
+  }, [loadingDelete, triggerDeleteTask, task.id.toString()]);
+
+  const getMarkdownContent = () => {
+    if (!task?.scratchpad) {
+      return "";
+    }
+    return htmlToMarkdown(task?.scratchpad);
+  };
+
+  const downloadAsMarkdown = () => {
+    if (task?.scratchpad) {
+      const markdown = getMarkdownContent();
+      downloadTextAsFile(markdown, {
+        type: "text/markdown",
+        extension: "md",
+        name: task.description,
+      });
+    }
+  };
+
+  const { thingIsPinned, togglePin } = usePins();
+  const [pinning, setPinning] = useState(false);
+  const isPinned = thingIsPinned(task.id);
+
+  const handleTogglePin = async () => {
+    try {
+      setPinning(true);
+      await togglePin(task.id.toString());
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+    } finally {
+      setPinning(false);
+    }
+  };
+
+  const size = isMobile ? "lg" : "md";
+  const radius = "md";
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const [managingConnections, setManagingConnections] = useState(false);
+  const [managingAccess, setManagingAccess] = useState(false);
+
+  return (
+    <>
+      <Group justify="space-between" wrap="nowrap" mb="lg">
+        <Group wrap="nowrap">
+          <ActionIcon
+            onClick={handleBack}
+            color="gray"
+            variant="subtle"
+            size={size}
+            radius={radius}
+          >
+            <ArrowLeftIcon weight="bold" />
+          </ActionIcon>
+        </Group>
+        <Group wrap="nowrap">
+          <ActionIcon
+            onClick={() => {
+              if (pinning) return;
+              handleTogglePin();
+            }}
+            aria-label={isPinned ? "Unpin" : "Pin"}
+            size={size}
+            radius={radius}
+            variant="subtle"
+            color="gray"
+          >
+            <PushPinIcon weight={isPinned ? "fill" : "bold"} />
+          </ActionIcon>
+
+          {isMobile && (
+            <>
+              <ActionIcon
+                aria-label="Manage connections"
+                size={size}
+                radius={radius}
+                variant="subtle"
+                color="gray"
+                onClick={() => setManagingConnections(true)}
+              >
+                <UniteSquareIcon />
+              </ActionIcon>
+
+              <ActionIcon
+                aria-label="Manage access"
+                size={size}
+                radius={radius}
+                variant="subtle"
+                color="gray"
+                onClick={() => setManagingAccess(true)}
+              >
+                <UserCirclePlusIcon weight="fill" />
+              </ActionIcon>
+            </>
+          )}
+
+          <Menu
+            width={300}
+            shadow="md"
+            position="bottom-end"
+            radius={radius}
+            withArrow
+            arrowOffset={14}
+            zIndex={700}
+          >
+            <Menu.Target>
+              <div>
+                <ActionIcon
+                  size={size}
+                  aria-label="Download"
+                  radius={radius}
+                  variant="subtle"
+                  color="gray"
+                >
+                  <DownloadSimpleIcon weight="bold" />
+                </ActionIcon>
+              </div>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<MarkdownLogoIcon />}
+                onClick={downloadAsMarkdown}
+              >
+                Export as Markdown
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+
+          <Menu
+            width={300}
+            shadow="md"
+            position="bottom-end"
+            radius={radius}
+            withArrow
+            arrowOffset={14}
+            zIndex={700}
+          >
+            <Menu.Target>
+              <div>
+                <ActionIcon
+                  aria-label="More options"
+                  size={size}
+                  radius={radius}
+                  variant="subtle"
+                  color="gray"
+                >
+                  <DotsThreeVerticalIcon weight="bold" />
+                </ActionIcon>
+              </div>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Tooltip label="Delete Task">
+                <Menu.Item
+                  color="red"
+                  leftSection={
+                    loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
+                  }
+                  onClick={handleDeleteTask}
+                  disabled={loadingDelete}
+                >
+                  Delete
+                </Menu.Item>
+              </Tooltip>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Group>
+
+      <PaperDrawer
+        title="Manage Connections"
+        opened={managingConnections}
+        onClose={() => setManagingConnections(false)}
+      >
+        <ConnectionManager
+          connectable={{
+            ...task,
+            type: "task",
+          }}
+        />
+      </PaperDrawer>
+
+      <PaperDrawer
+        title="Manage Access"
+        opened={managingAccess}
+        onClose={() => setManagingAccess(false)}
+      >
+        <Access task={task} reloadTask={reloadTask} />
+      </PaperDrawer>
+    </>
   );
 }
