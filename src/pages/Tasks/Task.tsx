@@ -339,7 +339,7 @@ function TaskSentence({ date, duration, onChange }: ITaskSentence) {
     <Stack gap="xs">
       {/* The Sentence */}
       <Group gap={6} wrap="wrap">
-        <Text size="sm" c="dimmed">
+        <Text size="sm" c="dark.2">
           Should take
         </Text>
 
@@ -348,14 +348,14 @@ function TaskSentence({ date, duration, onChange }: ITaskSentence) {
             size="sm"
             fw={duration ? 700 : 500}
             td="underline"
-            c={duration ? "white" : "dimmed"}
+            c="dark.1"
             style={{ textUnderlineOffset: 4, textDecorationStyle: "dashed" }}
           >
             {displayDuration}.
           </Text>
         </UnstyledButton>
 
-        <Text size="sm" c="dimmed">
+        <Text size="sm" c="dark.2">
           Done by
         </Text>
 
@@ -364,7 +364,7 @@ function TaskSentence({ date, duration, onChange }: ITaskSentence) {
             size="sm"
             fw={date ? 700 : 500}
             td="underline"
-            c={date ? "white" : "dimmed"}
+            c={"dark.1"}
             style={{ textUnderlineOffset: 4, textDecorationStyle: "dashed" }}
           >
             {displayDate}.
