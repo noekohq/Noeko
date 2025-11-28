@@ -1,123 +1,154 @@
 .wrapper {
-  position: relative;
-  width: 100%;
-  overflow: hidden; // Contain the transitions
+    position: relative;
+    width: 100%;
+    overflow: hidden; // Contain the transitions
 }
 
 // --- The Scrollable Strip (Presets Mode) ---
 .scrollArea {
-  width: 100%;
-  // Fade masks for horizontal scrolling
-  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+    width: 100%;
+    // Fade masks for horizontal scrolling
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 12px,
+        black calc(100% - 12px),
+        transparent
+    );
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 12px,
+        black calc(100% - 12px),
+        transparent
+    );
 }
 
 .track {
-  display: flex;
-  gap: var(--mantine-spacing-xs);
-  padding: 4px var(--mantine-spacing-md); // Padding prevents first item clipping
+    display: flex;
+    gap: var(--mantine-spacing-xs);
+    padding: 4px var(--mantine-spacing-md); // Padding prevents first item clipping
 
-  // Ensure track is scrollable
-  overflow-x: auto;
-  scrollbar-width: none; // Hide scrollbar FF
-  &::-webkit-scrollbar { display: none; } // Hide scrollbar Chrome
-  scroll-snap-type: x mandatory;
+    // Ensure track is scrollable
+    overflow-x: auto;
+    scrollbar-width: none; // Hide scrollbar FF
+    &::-webkit-scrollbar {
+        display: none;
+    } // Hide scrollbar Chrome
+    scroll-snap-type: x mandatory;
 }
 
 // --- The Form/Custom View (Custom Mode) ---
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--mantine-spacing-xs);
-  padding: 0 var(--mantine-spacing-md);
-  animation: fadeIn 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-xs);
+    padding: 0 var(--mantine-spacing-md);
+    animation: fadeIn 0.2s ease-out;
 }
 
 .formHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--mantine-spacing-xs);
-  padding-bottom: var(--mantine-spacing-xs);
-  border-bottom: 1px solid var(--mantine-color-dark-6);
-  margin-bottom: var(--mantine-spacing-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--mantine-spacing-xs);
+    padding-bottom: var(--mantine-spacing-xs);
+    border-bottom: 1px solid var(--mantine-color-dark-6);
+    margin-bottom: var(--mantine-spacing-xs);
 }
 
 .backButton {
-  transition: transform 0.2s ease;
-  &:hover {
-    transform: translateX(-2px);
-  }
+    transition: transform 0.2s ease;
+    &:hover {
+        transform: translateX(-2px);
+    }
 }
 
 // --- The Item Card ---
 @keyframes itemIn {
-  0% { opacity: 0; transform: translateX(10px); }
-  100% { opacity: 1; transform: translateX(0); }
+    0% {
+        opacity: 0;
+        transform: translateX(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .item {
-  animation: itemIn 0.3s ease-out backwards;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
+    animation: itemIn 0.3s ease-out backwards;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
 
-  flex: 0 0 auto; // Don't shrink
-  min-width: 100px;
-  height: 64px;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  scroll-snap-align: start;
+    flex: 0 0 auto; // Don't shrink
+    min-width: 100px;
+    height: 64px;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    scroll-snap-align: start;
 
-  cursor: pointer;
-  background-color: var(--mantine-color-dark-9);
-  border: 1px solid var(--mantine-color-dark-7);
-  border-radius: var(--mantine-radius-md);
-  transition: all 0.2s ease;
-  user-select: none;
+    cursor: pointer;
+    background-color: var(--mantine-color-dark-9);
+    border: 1px solid var(--mantine-color-dark-7);
+    border-radius: var(--mantine-radius-md);
+    transition: all 0.2s ease;
+    user-select: none;
 
-  // Stagger animation delays for children
-  @for $i from 1 through 10 {
-    &:nth-child(#{$i}) { animation-delay: #{$i * 50}ms; }
-  }
+    // Stagger animation delays for children
+    @for $i from 1 through 10 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 50}ms;
+        }
+    }
 
-  &:hover {
-    background-color: var(--mantine-color-gray-8);
-    border-color: var(--mantine-color-gray-7);
-    color: var(--mantine-color-white);
-  }
+    &:hover {
+        background-color: var(--mantine-color-dark-8);
+        border-color: var(--mantine-color-dark-6);
+        color: var(--mantine-color-dark-1);
+    }
 
-  &[data-active="true"] {
-    background-color: var(--mantine-primary-color-9);
-    border-color: var(--mantine-primary-color-6);
-    color: var(--mantine-color-white);
+    &[data-active="true"] {
+        background-color: var(--mantine-color-dark-1);
+        border-color: var(--mantine-color-dark-7);
+        color: var(--mantine-color-dark-9);
 
-    .description { color: rgba(255,255,255,0.7); }
-  }
+        .description {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    }
 
-  // Specific style for the "Custom" card in the list
-  &.customTrigger {
-    border-style: dashed;
-    align-items: center;
-    .label { color: var(--mantine-color-dimmed); }
-  }
+    // Specific style for the "Custom" card in the list
+    &.customTrigger {
+        align-items: center;
+        .label {
+            color: var(--mantine-color-dimmed);
+        }
+    }
 
-  .label {
-    font-weight: 600;
-    font-size: var(--mantine-font-size-sm);
-    white-space: nowrap;
-    line-height: 1.2;
-  }
+    .label {
+        font-weight: 600;
+        font-size: var(--mantine-font-size-sm);
+        white-space: nowrap;
+        line-height: 1.2;
+    }
 
-  .description {
-    font-size: 11px;
-    color: var(--mantine-color-dimmed);
-    white-space: nowrap;
-    line-height: 1.2;
-    margin-top: 2px;
-  }
+    .description {
+        font-size: 11px;
+        color: var(--mantine-color-dimmed);
+        white-space: nowrap;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
 }
