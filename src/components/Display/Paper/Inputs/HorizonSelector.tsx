@@ -108,7 +108,7 @@ const Item = ({ label, sub, active, onClick, isCustomTrigger }: ItemProps) => {
       {isCustomTrigger ? (
         // Centered layout for custom trigger
         <>
-          <CalendarPlusIcon size={20} color="var(--mantine-color-dimmed)" />
+          <CalendarPlusIcon size={20} />
           <Text className={styles.description}>{label}</Text>
         </>
       ) : (

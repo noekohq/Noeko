@@ -33,12 +33,13 @@ export interface IAcceleratorShelfProps {
 
 export function AcceleratorShelf({ shelf, layout }: IAcceleratorShelfProps) {
   const navigate = useNavigate();
-  const details = resolveShelfToDetails[shelf.id];
+  const details: IAcceleratorShelfUIDetails | undefined =
+    resolveShelfToDetails[shelf.id];
 
   const { items } = shelf;
   const action = {
     label: "View All",
-    onClick: () => details.action(navigate),
+    onClick: () => details?.action(navigate),
   };
 
   const Component = () => {
@@ -53,6 +54,10 @@ export function AcceleratorShelf({ shelf, layout }: IAcceleratorShelfProps) {
         return null;
     }
   };
+
+  if (!details) {
+    return;
+  }
 
   return (
     <div className={styles.shelf}>
