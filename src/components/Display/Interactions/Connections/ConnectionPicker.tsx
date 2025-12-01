@@ -21,22 +21,26 @@ import { useLayout } from "../../../../contexts/LayoutContext";
 import PaperDrawer from "../../Paper/PaperDrawer";
 // Import your creation logic
 import { handleCreateIdea } from "../../../../utils/ideas";
+import { connect } from "../../../../utils/graph";
+import { RecordId } from "surrealdb";
 
 interface ConnectionPickerProps {
   onSelect: (id: string) => Promise<void>;
   omitIds?: string[];
+  initialSuggestions?: IConnectable[];
+  connectableId?: string;
 }
 
 export function ConnectionPicker({
   onSelect,
   omitIds = [],
+  connectableId,
+  initialSuggestions,
 }: ConnectionPickerProps) {
   const { isMobile } = useLayout();
   const [opened, { toggle, close }] = useDisclosure(false);
 
-  // 1. State & Debouncing
   const [searchQuery, setSearchQuery] = useState("");
-  // Debounce the query by 400ms to spare the embedding endpoint
   const [debouncedQuery] = useDebouncedValue(searchQuery, 400);
 
   const handleClose = () => {
@@ -44,13 +48,10 @@ export function ConnectionPicker({
     setSearchQuery("");
   };
 
-  // 2. Fetch using Debounced Query
   const { data: suggestions, loading } = useFetch<undefined, IConnectable[]>({
-    url: "/search/smartSuggest", // Your smart/embedding search
+    url: "/search/smartSuggest",
     method: "GET",
-    // Only send request if we have a query to avoid empty embedding errors
     query: { query: debouncedQuery, limit: "5" },
-    // Fetch triggers when the *debounced* value changes
     runOnDependencies: [debouncedQuery],
   });
 
@@ -58,11 +59,16 @@ export function ConnectionPicker({
     (t) => !omitIds.includes(t.id.toString()),
   );
 
-  // Determine UI state based on the *immediate* query (for responsiveness)
-  // but show loading while waiting for the *debounced* fetch
   const isSearching = searchQuery.trim().length > 0;
+  const hasInitialSuggestions =
+    initialSuggestions && initialSuggestions.length > 0;
+  const hasFilteredSuggestions = filteredSuggestions.length > 0;
 
-  // 3. Handle Creation
+  const showInitialSuggestions = !isSearching && hasInitialSuggestions;
+  const showTypeToSearch = !isSearching && !hasInitialSuggestions;
+  const showFilteredSuggestions = isSearching && hasFilteredSuggestions;
+  const showNoResults = isSearching && !hasFilteredSuggestions && !loading;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateSubmit = async (values: {
@@ -81,6 +87,9 @@ export function ConnectionPicker({
       async (newIdea) => {
         try {
           await onSelect(newIdea.id.toString());
+          if (connectableId) {
+            await connect(connectableId, newIdea.id.toString());
+          }
           handleClose();
         } catch (e) {
           console.error("Created but failed to connect", e);
@@ -130,19 +139,21 @@ export function ConnectionPicker({
       formPrompt={(q) => `Create new note "${q}"`}
     >
       <PaperSelection.Menu>
-        {isSearching &&
-          filteredSuggestions.length > 0 &&
-          renderSuggestions(filteredSuggestions)}
+        {showInitialSuggestions &&
+          initialSuggestions &&
+          renderSuggestions(initialSuggestions)}
 
-        {isSearching && filteredSuggestions.length === 0 && !loading && (
-          <Text c="dimmed" size="xs" ta="center" py="md">
-            No results found.
+        {showTypeToSearch && (
+          <Text c="dimmed" size="xs" ta="left" py="sm">
+            Type to search your graph...
           </Text>
         )}
 
-        {!isSearching && (
-          <Text c="dimmed" size="xs" ta="left" py="sm">
-            Type to search your graph...
+        {showFilteredSuggestions && renderSuggestions(filteredSuggestions)}
+
+        {showNoResults && (
+          <Text c="dimmed" size="xs" ta="center" py="md">
+            No results found.
           </Text>
         )}
       </PaperSelection.Menu>

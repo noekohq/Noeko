@@ -269,7 +269,7 @@ export const getNodeContent = (node: INode) => {
     return node.scratchpad;
   }
   if (node.type === "excerpt") {
-    return node.note;
+    return `<blockquote>${node.sourceText}</blockquote>${node.note}`;
   }
   return undefined;
 };

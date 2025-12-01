@@ -174,16 +174,22 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
 
     const [focused, setFocused] = useState(false);
 
+    const [placeholderQuip, setPlaceholderQuip] = useState<string>();
+
     const tourRef = useTourStep({
       id: "feature:smart_search",
+
       title: "Smart Search",
+
       content: (
         <>
           In Noeko, you can search for anything based on meaning, not just
           keywords.
         </>
       ),
+
       view: "all",
+
       order: 4,
     });
 
@@ -196,13 +202,16 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           radius={"md"}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={focused ? getRandomQuip() : placeholder}
+          placeholder={focused ? placeholderQuip : placeholder}
           classNames={{
-            input: `${styles.input} ${withinRabbithole ? styles.withinRabbithole : ""}`,
+            input: `${styles.input} ${
+              withinRabbithole ? styles.withinRabbithole : ""
+            } ${focused ? styles.focused : ""}`,
           }}
           onKeyDown={(e) => {
             if (!e.shiftKey && e.key === "Enter") {
               e.preventDefault();
+
               searchIdeas();
             }
           }}
@@ -227,10 +236,13 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           ref={inputRef}
           onBlur={() => {
             onBlur && onBlur();
+
             setFocused(false);
           }}
           onFocus={() => {
             setFocused(true);
+
+            setPlaceholderQuip(getRandomQuip());
           }}
         />
       </div>
