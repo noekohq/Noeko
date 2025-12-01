@@ -119,7 +119,7 @@ export default function PaperThing({
               onDragEnd={handleDragEnd}
               onClick={(e) => e.stopPropagation()} // Prevent triggering the main click
             >
-              {IconComponent ? (
+              {IconComponent && !(draggable && hovering) ? (
                 <IconComponent
                   size={16}
                   weight={state === "suggested" ? "regular" : "bold"}
@@ -228,17 +228,7 @@ export default function PaperThing({
               Preview
             </Text>
             {typeof preview === "string" ? (
-              <Text
-                size="sm"
-                dangerouslySetInnerHTML={{ __html: preview }}
-                style={{
-                  maxHeight: "150px",
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 7,
-                  WebkitBoxOrient: "vertical",
-                }}
-              />
+              <Text size="sm" dangerouslySetInnerHTML={{ __html: preview }} />
             ) : (
               preview
             )}

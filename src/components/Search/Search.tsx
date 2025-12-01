@@ -204,7 +204,11 @@ export default function Search({
                       );
 
                       return (
-                        <PaperThing key={thing.id.toString()} {...props} />
+                        <PaperThing
+                          key={thing.id.toString()}
+                          {...props}
+                          draggable={true}
+                        />
                       );
                     })
                     .filter((r) => !!r)}
@@ -238,6 +242,7 @@ export default function Search({
 
                 return (
                   <PaperSearchResult
+                    draggable={true}
                     node={s.value}
                     title={title || "Untitled Thing"}
                     snippet={preview}

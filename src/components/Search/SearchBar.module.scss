@@ -5,9 +5,20 @@
 
 .input {
     border: 1px solid var(--mantine-color-dark-7) !important;
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md) !important;
+    border-radius: var(--mantine-radius-lg) !important;
+    transition: all 0.15s ease-in-out !important;
+    color: var(--mantine-color-dark-1);
+    background-color: var(--mantine-color-dark-8) !important;
+
+    &.focused {
+        background-color: var(--mantine-color-dark-9) !important;
+        border-color: var(--mantine-color-dark-7) !important;
+        border-radius: var(--mantine-radius-md) !important;
+        padding: var(--mantine-spacing-sm) var(--mantine-spacing-xs) !important;
+    }
 
     &.withinRabbithole {
-        border-color: var(--mantine-color-yellow-5) !important;
         box-shadow: inset 0.2px 0.2px 2px 0 var(--mantine-color-yellow-5);
     }
 }

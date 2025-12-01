@@ -90,7 +90,7 @@ export type IGetAllConnectables_Options =
     };
 
 export default class GraphService {
-  static readonly SUGGESTION_WEIGHT = 0.5;
+  static readonly SUGGESTION_WEIGHT = 0.25;
 
   constructor() {}
 
@@ -602,9 +602,8 @@ export default class GraphService {
         `<-owns<-(user WHERE id = $userId)`,
         `id != $sourceId`,
         `id NOT IN <->connected->(?)`,
+        `embeddings <|${limit}, ${candidates}|> $embedding`,
       ];
-
-      subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
 
       if (options.rabbitholeId) {
         subqueryWhere.push(`
