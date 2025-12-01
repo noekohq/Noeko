@@ -59,23 +59,18 @@ export default function ConnectionManager({
     }
   }, [shouldUpdate]);
 
-  // --- Logic: Filtering & Slicing ---
-
-  // 1. Identify what is already connected (to omit from suggestions/picker)
   const connectedIdSet = useMemo(() => {
     return new Set(connected?.map((c) => c.id.toString()) || []);
   }, [connected]);
 
-  // 2. Filter similar items that are NOT connected
   const filteredSimilar = useMemo(() => {
     if (!similar) return [];
     return similar.filter((s) => !connectedIdSet.has(s.id.toString()));
   }, [similar, connectedIdSet]);
 
-  // 3. Slice for display
   const suggestionsToShow = filteredSimilar.slice(0, maxSuggested);
+  const otherSuggestions = filteredSimilar.slice(maxSuggested);
 
-  // --- Logic: Drag & Drop ---
   const [draggingOver, setDraggingOver] = useState(false);
 
   const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -150,6 +145,7 @@ export default function ConnectionManager({
                 <Stack gap="xs">
                   {connected?.map((thing) => (
                     <PaperThing
+                      draggable={true}
                       key={thing.id.toString()}
                       {...getThingPropsFromConnectable(
                         thing,
@@ -183,6 +179,7 @@ export default function ConnectionManager({
 
                     return (
                       <PaperThing
+                        draggable
                         key={thing.id.toString()}
                         {...getThingPropsFromConnectable(
                           thing,
@@ -209,7 +206,9 @@ export default function ConnectionManager({
             onSelect={async (id) => {
               await connect(id);
             }}
+            connectableId={connectable.id.toString()}
             omitIds={omitIds}
+            initialSuggestions={otherSuggestions}
           />
         </Stack>
       </Box>
