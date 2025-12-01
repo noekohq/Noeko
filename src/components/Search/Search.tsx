@@ -238,6 +238,7 @@ export default function Search({
 
                 return (
                   <PaperSearchResult
+                    draggable={true}
                     node={s.value}
                     title={title || "Untitled Thing"}
                     snippet={preview}
