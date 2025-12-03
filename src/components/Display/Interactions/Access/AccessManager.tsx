@@ -184,7 +184,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
             }}
             variant="light"
             color="gray"
-            size="md"
+            size="sm"
             radius="md"
             fullWidth
           >
@@ -230,7 +230,6 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
                     <Box>
                       <SegmentedControl
                         fullWidth
-                        size="sm"
                         data={[
                           { label: "Reader", value: "viewonly" },
                           { label: "Editor", value: "editor" },

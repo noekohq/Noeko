@@ -439,7 +439,6 @@ export class AnalysisService {
       );
       const [numIdeas] = result;
       if (!numIdeas) {
-        console.info("Omiting because no ideas found");
         return;
       }
       const results = await db.run<ISafeIdea[]>(
