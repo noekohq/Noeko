@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 import {
-  IIdeaShareDetails,
-  ISafeIdea,
-} from "../../../app/database/models/ideas";
-import useFetch from "../../hooks/useFetch";
+  IShareAccess,
+  IShareDetails,
+} from "../../../../../app/database/models/share";
+import { IConnectable } from "../../../../../app/services/Graph";
+import useFetch from "../../../../hooks/useFetch";
+import { useForm } from "@mantine/form";
+import { validateEmail } from "../../../../utils/data";
+import { useAuth } from "../../../../contexts/AuthContext";
+import {
+  revokeAccess,
+  shareAccessWithEmail,
+  updateAccess,
+} from "../../../../utils/shares";
+import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
   Box,
@@ -12,16 +22,12 @@ import {
   Group,
   Loader,
   Modal,
-  Menu,
   SegmentedControl,
   Space,
   Stack,
   Text,
   TextInput,
 } from "@mantine/core";
-import { userFormattedName } from "../../utils/user";
-import { useForm } from "@mantine/form";
-import { validateEmail } from "../../utils/data";
 import {
   CheckIcon,
   CopyIcon,
@@ -29,15 +35,9 @@ import {
   ShareNetworkIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { useAuth } from "../../contexts/AuthContext";
-import { showNotification } from "@mantine/notifications";
-import {
-  revokeAccess,
-  updateAccess,
-  shareAccessWithEmail,
-} from "../../utils/shares";
-import { IShareAccess } from "../../../app/database/models/share";
-import { PaperContextMenu } from "../../components/Display/Paper/PaperContextMenu";
+import { userFormattedName } from "../../../../utils/user";
+import { PaperContextMenu } from "../../Paper/PaperContextMenu";
+import { getNodeLink } from "../../../../utils/graph";
 
 const { VITE_DEPLOYED_URL } = import.meta.env;
 
@@ -47,31 +47,25 @@ if (!VITE_DEPLOYED_URL) {
 
 const deployedURL = VITE_DEPLOYED_URL;
 
-interface IAccessProps {
-  loadingIdea: boolean;
-  idea: ISafeIdea;
-  reloadIdea: () => void;
+interface IAccessManagerProps {
+  connectable: IConnectable;
 }
 
-export default function Access({
-  loadingIdea,
-  idea,
-  reloadIdea,
-}: IAccessProps) {
+export default function AccessManager({ connectable }: IAccessManagerProps) {
   const {
     load: loadShared,
     data: shared,
     loading: loadingShared,
-  } = useFetch<undefined, IIdeaShareDetails[]>({
-    url: `/ideas/${idea.id.toString()}/shares`,
-    dependencies: [idea.id.toString()],
+  } = useFetch<undefined, IShareDetails[]>({
+    url: `/sharing/${connectable.id.toString()}`,
+    dependencies: [connectable.id.toString()],
   });
 
   useEffect(() => {
-    if (idea) {
+    if (connectable) {
       loadShared();
     }
-  }, [idea]);
+  }, [connectable]);
 
   const form = useForm({
     initialValues: {
@@ -93,7 +87,7 @@ export default function Access({
 
   const handleStopSharing = async (userId: string) => {
     try {
-      await revokeAccess(idea.id.toString(), userId);
+      await revokeAccess(connectable.id.toString(), userId);
       showNotification({
         title: "Stopped Sharing",
         message: `Successfully stopped sharing.`,
@@ -112,7 +106,7 @@ export default function Access({
     accessLevel: IShareAccess,
   ) => {
     try {
-      await updateAccess(idea.id.toString(), userId, accessLevel);
+      await updateAccess(connectable.id.toString(), userId, accessLevel);
       showNotification({
         title: "Access Updated",
         message: `Successfully updated access level.`,
@@ -141,7 +135,7 @@ export default function Access({
       }
       setLoadingShare(true);
       await shareAccessWithEmail(
-        idea.id.toString(),
+        connectable.id.toString(),
         form.values.email,
         form.values.accessLevel,
       );
@@ -172,10 +166,11 @@ export default function Access({
   };
 
   const getShareLink = (mode: IShareAccess) => {
+    const baseRoute = getNodeLink(connectable);
     if (mode === "viewonly") {
-      return `${VITE_DEPLOYED_URL}/ideas/shared/${idea.id.toString()}/viewonly`;
+      return `${VITE_DEPLOYED_URL}${baseRoute}/viewonly`;
     }
-    return `${VITE_DEPLOYED_URL}/idea/${idea.id.toString()}`;
+    return `${VITE_DEPLOYED_URL}${baseRoute}`;
   };
 
   return (
@@ -189,7 +184,8 @@ export default function Access({
             }}
             variant="light"
             color="gray"
-            size="xs"
+            size="md"
+            radius="md"
             fullWidth
           >
             Share
@@ -231,7 +227,7 @@ export default function Access({
                     <PaperContextMenu.Label>
                       Access Level
                     </PaperContextMenu.Label>
-                    <Box p={4}>
+                    <Box>
                       <SegmentedControl
                         fullWidth
                         size="sm"
@@ -290,6 +286,8 @@ export default function Access({
           <TextInput
             label="Email"
             placeholder="Enter the recipient's email..."
+            size="md"
+            radius="md"
             required
             {...form.getInputProps("email")}
             mb="xs"
