@@ -62,7 +62,6 @@ import { downloadTextAsFile } from "../../utils/files";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
-import Access from "./Access";
 import Loading from "../../components/Display/Loading/Loading";
 
 import { useLandscape } from "../../contexts/LandscapeContext";
@@ -74,6 +73,7 @@ import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import usePins from "../../hooks/usePins";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
+import AccessManager from "../../components/Display/Interactions/Access/AccessManager";
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -558,10 +558,11 @@ export default function Idea() {
                       </Text>
                     </Box>
                   ) : (
-                    <Access
-                      idea={idea}
-                      loadingIdea={loadingIdea}
-                      reloadIdea={reloadIdea}
+                    <AccessManager
+                      connectable={{
+                        ...idea,
+                        type: "idea",
+                      }}
                     />
                   )}
                 </>
@@ -942,7 +943,12 @@ function Tools({
         opened={managingAccess}
         onClose={() => setManagingAccess(false)}
       >
-        <Access idea={idea} loadingIdea={loadingIdea} reloadIdea={reloadIdea} />
+        <AccessManager
+          connectable={{
+            ...idea,
+            type: "idea",
+          }}
+        />
       </PaperDrawer>
     </div>
   );
