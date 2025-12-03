@@ -1056,7 +1056,7 @@ export default class GraphService {
 
       const [vectors] = result;
       if (!vectors.length) {
-        throw new Error("No embeddings found");
+        return undefined;
       }
 
       const centroid = averageEmbeddings(vectors);
