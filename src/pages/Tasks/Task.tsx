@@ -50,7 +50,6 @@ import TagsManager from "../../components/Display/Interactions/Tags/TagsManager"
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
-import Access from "./Access";
 import usePins from "../../hooks/usePins";
 import { downloadTextAsFile } from "../../utils/files";
 import { htmlToMarkdown } from "../../../app/utils/formatting";
@@ -58,6 +57,7 @@ import HorizonSelector from "../../components/Display/Paper/Inputs/HorizonSelect
 import { fromYYYYMMDD } from "../../utils/datetime";
 import { capitalize, formatDate } from "../../utils/formatting";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
+import AccessManager from "../../components/Display/Interactions/Access/AccessManager";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -294,7 +294,14 @@ export default function Task() {
               </Stack>
             </Tabs.Panel>
             <Tabs.Panel value="sharing">
-              {task && <Access task={task} reloadTask={loadTask} />}
+              {task && (
+                <AccessManager
+                  connectable={{
+                    ...task,
+                    type: "task",
+                  }}
+                />
+              )}
             </Tabs.Panel>
           </Tabs>
         </RightSidebar.Open>
@@ -637,7 +644,12 @@ function Tools({ task, reloadTask }: ITools) {
         opened={managingAccess}
         onClose={() => setManagingAccess(false)}
       >
-        <Access task={task} reloadTask={reloadTask} />
+        <AccessManager
+          connectable={{
+            ...task,
+            type: "task",
+          }}
+        />
       </PaperDrawer>
     </>
   );
