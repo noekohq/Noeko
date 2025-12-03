@@ -74,7 +74,7 @@ export default function Login() {
     },
   });
 
-  const handleLogin = async () => {
+  const handleLogin = loginForm.onSubmit(async () => {
     try {
       await login();
     } catch (error) {
@@ -85,7 +85,7 @@ export default function Login() {
         color: "red",
       });
     }
-  };
+  });
 
   return (
     <Container
@@ -101,67 +101,63 @@ export default function Login() {
           radius="lg"
           shadow="md"
         >
-          <Grid>
-            {loadingLogin && (
+          <form onSubmit={handleLogin}>
+            <Grid>
+              {loadingLogin && (
+                <Grid.Col span={12}>
+                  <Loader />
+                </Grid.Col>
+              )}
               <Grid.Col span={12}>
-                <Loader />
+                <Group>
+                  <Title>Login to Noeko</Title>
+                  <StageIndicator />
+                </Group>
               </Grid.Col>
-            )}
-            <Grid.Col span={12}>
-              <Group>
-                <Title>Login to Noeko</Title>
-                <StageIndicator />
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={12} />
-            <Grid.Col span={{ sm: 12 }}>
-              <TextInput
-                label="Email"
-                placeholder="Email"
-                {...loginForm.getInputProps("email")}
-                withAsterisk
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <PasswordInput
-                label="Password"
-                placeholder="Password"
-                {...loginForm.getInputProps("password")}
-                withAsterisk
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }} />
-            <Grid.Col span={{ sm: 12 }}>
-              <Group justify="right">
-                <Tooltip label="Coming soon...">
-                  <Button variant="default" disabled>
-                    Create an account
-                  </Button>
-                </Tooltip>
-                <Button
-                  onClick={() => {
-                    handleLogin();
-                  }}
-                >
-                  Login
-                </Button>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group justify="center">
-                <Link
-                  to="/forgot-password"
-                  style={{
-                    textDecoration: "none",
-                  }}
-                >
-                  <Text size="xs" c="dimmed">
-                    Forgot password?
-                  </Text>
-                </Link>
-              </Group>
-            </Grid.Col>
-          </Grid>
+              <Grid.Col span={12} />
+              <Grid.Col span={{ sm: 12 }}>
+                <TextInput
+                  label="Email"
+                  placeholder="Email"
+                  {...loginForm.getInputProps("email")}
+                  withAsterisk
+                />
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <PasswordInput
+                  label="Password"
+                  placeholder="Password"
+                  {...loginForm.getInputProps("password")}
+                  withAsterisk
+                />
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }} />
+              <Grid.Col span={{ sm: 12 }}>
+                <Group justify="right">
+                  <Tooltip label="Coming soon...">
+                    <Button variant="default" disabled>
+                      Create an account
+                    </Button>
+                  </Tooltip>
+                  <Button type="submit">Login</Button>
+                </Group>
+              </Grid.Col>
+              <Grid.Col span={{ sm: 12 }}>
+                <Group justify="center">
+                  <Link
+                    to="/forgot-password"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    <Text size="xs" c="dimmed">
+                      Forgot password?
+                    </Text>
+                  </Link>
+                </Group>
+              </Grid.Col>
+            </Grid>
+          </form>
         </Card>
       </Flex>
     </Container>
