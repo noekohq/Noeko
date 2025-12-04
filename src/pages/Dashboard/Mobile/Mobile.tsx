@@ -112,6 +112,7 @@ function AcceleratorOverview({ setTab }: { setTab: (t: string) => void }) {
         {shelves.map((shelf, index) => {
           const indexToLayout = (): IAcceleratorShelfProps["layout"] => {
             if (index === 0) return "hero";
+            return "carousel";
             if ([1, 2].includes(index)) return "carousel";
             return "list";
           };
