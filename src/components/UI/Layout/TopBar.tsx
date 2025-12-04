@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./TopBar.module.scss";
 import { useSearch } from "../../../contexts/SearchContext";
-import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PushPinIcon, XIcon } from "@phosphor-icons/react";
 import { ActionIcon, Group, Loader, Stack, Text } from "@mantine/core";
 import { useLayout } from "../../../contexts/LayoutContext";
 import useSearchQuery from "../../../hooks/useSearchQuery";
@@ -9,11 +9,12 @@ import useRabbithole from "../../../hooks/useRabbithole";
 import PaperChip from "../../Display/Paper/PaperChip";
 import { getRelativeDateISO } from "../../../utils/datetime";
 import ConnectableThing from "../../Display/Interactions/Connections/ConnectableThing";
-import { useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { getNodeDescription, getNodeTitle } from "../../../utils/graph";
 import { formatDateTime } from "../../../utils/formatting";
 import PaperSearchResult from "../../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { useInteraction } from "../../../contexts/InteractionContext";
+import PaperIcon from "../../Display/Paper/PaperIcon";
 
 export default function TopBar() {
   const quips = [
@@ -105,6 +106,9 @@ export default function TopBar() {
     };
   }, []);
 
+  const location = useLocation();
+  const actionIconActive = location.pathname.includes("pinned");
+
   if (!isMobile) return null;
 
   return (
@@ -112,156 +116,170 @@ export default function TopBar() {
       className={`${styles.topBar} ${isFocused ? styles.focused : ""} ${
         isDownRabbithole ? styles.downRabbithole : ""
       }`}
-      onClick={() => {
-        if (!isFocused) {
-          setIsFocused(true);
-        }
-      }}
     >
-      {isFocused && (
-        <div className={styles.backdrop} onClick={() => setIsFocused(false)} />
-      )}
       <div
-        className={`${styles.search} ${isFocused ? styles.focused : ""} ${
-          isDownRabbithole ? styles.downRabbithole : ""
-        }`}
+        className={styles.searchWrapper}
+        onClick={() => {
+          if (!isFocused) {
+            setIsFocused(true);
+          }
+        }}
       >
-        <input
-          className={styles.input}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={quip}
-          ref={inputRef}
-          onFocus={() => setIsFocused(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSearch();
-            }
-          }}
-        />
-        <button
-          className={styles.toggle}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (showResults) {
-              clear();
-              setIsFocused(false);
-            } else {
-              setIsFocused(true);
-            }
-          }}
-        >
-          {showResults ? (
-            <XIcon weight="bold" className={styles.icon} />
-          ) : (
-            <MagnifyingGlassIcon weight="bold" className={styles.icon} />
-          )}
-        </button>
-      </div>
-      {isFocused && (
+        {isFocused && (
+          <div
+            className={styles.backdrop}
+            onClick={() => setIsFocused(false)}
+          />
+        )}
         <div
-          className={styles.searchPanel}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
+          className={`${styles.search} ${isFocused ? styles.focused : ""} ${
+            isDownRabbithole ? styles.downRabbithole : ""
+          }`}
         >
-          <Stack gap="md">
-            {!results?.length && !loading && (
-              <>
-                <Text size="sm" c="dimmed">
-                  Search for anything...
-                </Text>
-              </>
+          <input
+            className={styles.input}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={quip}
+            ref={inputRef}
+            onFocus={() => setIsFocused(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
+          />
+          <button
+            className={styles.toggle}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (showResults) {
+                clear();
+                setIsFocused(false);
+              } else {
+                setIsFocused(true);
+              }
+            }}
+          >
+            {showResults ? (
+              <XIcon weight="bold" className={styles.icon} />
+            ) : (
+              <MagnifyingGlassIcon weight="bold" className={styles.icon} />
             )}
-            <Group>
-              <PaperChip
-                onClick={() =>
-                  setDateAfter((prev) =>
-                    prev === pastWeekISO ? undefined : pastWeekISO,
-                  )
-                }
-                active={dateAfter === pastWeekISO}
-              >
-                Past Week
-              </PaperChip>
-              <PaperChip
-                onClick={() =>
-                  setDateAfter((prev) =>
-                    prev === pastMonthISO ? undefined : pastMonthISO,
-                  )
-                }
-                active={dateAfter === pastMonthISO}
-              >
-                Past Month
-              </PaperChip>
-              {/*<PaperChip
-                onClick={() =>
-                  setDateAfter((prev) =>
-                    prev === pastYearISO ? undefined : pastYearISO,
-                  )
-                }
-                active={dateAfter === pastYearISO}
-              >
-                Past Year
-              </PaperChip>*/}
-            </Group>
-            {loading && (
-              <Group align="center" justify="flex-start" gap="sm">
-                <Loader size="xs" color="gray" />
-                <Text size="sm">Loading results...</Text>
-              </Group>
-            )}
-            {complete && results && results.length > 0 && (
-              <>
-                <Text size="md" fw="bold" c="dimmed">
-                  Results ({results.length})
-                </Text>
-                {/*<Group wrap="nowrap">
-                  <ActionIcon
-                    variant="light"
-                    color="yellow"
-                    radius="md"
-                    size={"md"}
-                  >
-                    <RabbitholeIcon
-                      size={16}
-                      color="var(--mantine-color-dark-2)"
-                    />
-                  </ActionIcon>
-                </Group>*/}
-                <Stack gap="lg">
-                  {results.map((s) => {
-                    const title = getNodeTitle(s.value);
-                    const preview =
-                      s.highlightText ?? getNodeDescription(s.value);
-                    const updatedAt = formatDateTime(s.value.updatedAt);
-
-                    if (!title || !preview || !updatedAt) {
-                      return null;
-                    }
-
-                    return (
-                      <PaperSearchResult
-                        node={s.value}
-                        title={title || "Untitled Thing"}
-                        snippet={preview}
-                        onSelect={(node) => {
-                          navigate(`/${node.type}/${node.id.toString()}`);
-                        }}
-                      />
-                    );
-                  })}
-                </Stack>
-              </>
-            )}
-            {complete && results && results.length < 1 && (
-              <Text size="md" fw="bold" c="dimmed">
-                No Results :(
-              </Text>
-            )}
-          </Stack>
+          </button>
         </div>
+        {isFocused && (
+          <div
+            className={styles.searchPanel}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <Stack gap="md">
+              {!results?.length && !loading && (
+                <>
+                  <Text size="sm" c="dimmed">
+                    Search for anything...
+                  </Text>
+                </>
+              )}
+              <Group>
+                <PaperChip
+                  onClick={() =>
+                    setDateAfter((prev) =>
+                      prev === pastWeekISO ? undefined : pastWeekISO,
+                    )
+                  }
+                  active={dateAfter === pastWeekISO}
+                >
+                  Past Week
+                </PaperChip>
+                <PaperChip
+                  onClick={() =>
+                    setDateAfter((prev) =>
+                      prev === pastMonthISO ? undefined : pastMonthISO,
+                    )
+                  }
+                  active={dateAfter === pastMonthISO}
+                >
+                  Past Month
+                </PaperChip>
+                {/*<PaperChip
+                  onClick={() =>
+                    setDateAfter((prev) =>
+                      prev === pastYearISO ? undefined : pastYearISO,
+                    )
+                  }
+                  active={dateAfter === pastYearISO}
+                >
+                  Past Year
+                </PaperChip>*/}
+              </Group>
+              {loading && (
+                <Group align="center" justify="flex-start" gap="sm">
+                  <Loader size="xs" color="gray" />
+                  <Text size="sm">Loading results...</Text>
+                </Group>
+              )}
+              {complete && results && results.length > 0 && (
+                <>
+                  <Text size="md" fw="bold" c="dimmed">
+                    Results ({results.length})
+                  </Text>
+                  {/*<Group wrap="nowrap">
+                    <ActionIcon
+                      variant="light"
+                      color="yellow"
+                      radius="md"
+                      size={"md"}
+                    >
+                      <RabbitholeIcon
+                        size={16}
+                        color="var(--mantine-color-dark-2)"
+                      />
+                    </ActionIcon>
+                  </Group>*/}
+                  <Stack gap="lg">
+                    {results.map((s) => {
+                      const title = getNodeTitle(s.value);
+                      const preview =
+                        s.highlightText ?? getNodeDescription(s.value);
+                      const updatedAt = formatDateTime(s.value.updatedAt);
+
+                      if (!title || !preview || !updatedAt) {
+                        return null;
+                      }
+
+                      return (
+                        <PaperSearchResult
+                          node={s.value}
+                          title={title || "Untitled Thing"}
+                          snippet={preview}
+                          onSelect={(node) => {
+                            navigate(`/${node.type}/${node.id.toString()}`);
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </>
+              )}
+              {complete && results && results.length < 1 && (
+                <Text size="md" fw="bold" c="dimmed">
+                  No Results :(
+                </Text>
+              )}
+            </Stack>
+          </div>
+        )}
+      </div>
+      {!isFocused && !actionIconActive && (
+        <Link to={"/pinned"}>
+          <div className={styles.actionButton} title="Pins">
+            <PushPinIcon weight="bold" />
+          </div>
+        </Link>
       )}
     </div>
   );

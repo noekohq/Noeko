@@ -63,7 +63,7 @@ export function getThingPropsFromRabbithole(
       `Updated ${formatDateTime(updatedAt)}, Created ${formatDateTime(createdAt)}`,
     icon: overrides?.icon ?? RabbitholeIcon,
     state: overrides?.state ?? "default",
-    link: overrides?.link ?? `/rabbithole/${id.toString()}`,
+    link: overrides?.link ?? `/rabbitholes/${id.toString()}`,
     action: overrides?.action,
     preview: overrides?.preview,
   };

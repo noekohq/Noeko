@@ -1,33 +1,18 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router";
 import {
   Text,
   Stack,
   Button,
-  Loader,
   Center,
   ThemeIcon,
-  Badge,
   Avatar,
   Card,
   Group,
   SimpleGrid,
-  Box,
 } from "@mantine/core";
-import {
-  CheckIcon,
-  PushPinIcon,
-  FireIcon,
-  LightbulbIcon,
-  BookOpenIcon,
-  ArticleIcon,
-  WarningCircleIcon,
-  LightningIcon,
-  ClockCounterClockwiseIcon,
-  ArrowRightIcon,
-} from "@phosphor-icons/react";
+import { LightningIcon } from "@phosphor-icons/react";
 
-// --- LAYOUT & UTILS ---
 import PageWrapper from "../../../components/Layout/PageWrapper";
 import Content from "../../../components/UI/Layout/Content";
 import Nav from "../../../components/UI/Layout/Nav";
@@ -38,21 +23,15 @@ import styles from "./Mobile.module.scss";
 import { userInitials } from "../../../utils/user";
 import { formatDateTime } from "../../../utils/formatting";
 
-// --- DATA HOOKS ---
 import useFetch from "../../../hooks/useFetch";
 import { ISharedThing } from "../../../../app/database/models/share";
 
-// --- DISPLAY COMPONENTS ---
-import PaperCard from "../../../components/Display/Paper/PaperCard";
-import PaperThing from "../../../components/Display/Paper/Things/PaperThing";
 import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
 import AcceleratorShelf, {
   IAcceleratorShelfProps,
 } from "../../../components/Display/Acceleration/AcceleratorShelf";
 import { IShelfData } from "../../../../app/services/Recommendations";
 import LangtonsAntLoader from "../../../components/Utils/Loading/AntLoader";
-
-// --- MAIN COMPONENT ---
 
 export default function MobileDashboard() {
   const [currentTab, setCurrentTab] = useState("overview");
@@ -91,8 +70,6 @@ export default function MobileDashboard() {
   );
 }
 
-// --- THE ACCELERATOR ENGINE ---
-
 function AcceleratorOverview({ setTab }: { setTab: (t: string) => void }) {
   const navigate = useNavigate();
 
@@ -104,21 +81,6 @@ function AcceleratorOverview({ setTab }: { setTab: (t: string) => void }) {
     url: "/dashboard/accelerator",
     runOnMount: true,
   });
-
-  const resolveShelfRoute = (shelfId: string) => {
-    switch (shelfId) {
-      case "urgent":
-        return "/agenda";
-      case "rabbitholes":
-        return "/rabbitholes";
-      case "pins":
-        return "/pinned";
-      case "rediscovery":
-        return "/graph";
-      default:
-        return "/library";
-    }
-  };
 
   if (loading && !shelves) {
     return (
@@ -153,8 +115,6 @@ function AcceleratorOverview({ setTab }: { setTab: (t: string) => void }) {
             if ([1, 2].includes(index)) return "carousel";
             return "list";
           };
-
-          console.log("Mapping shelf: ", shelf);
 
           return (
             <AcceleratorShelf

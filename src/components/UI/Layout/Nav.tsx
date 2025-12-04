@@ -19,6 +19,7 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import MyButton from "../../Display/Interactions/MyButton";
 import { useAuth } from "../../../contexts/AuthContext";
+import useRabbithole from "../../../hooks/useRabbithole";
 
 type INavProps = {
   children?: React.ReactNode | React.ReactNode[];
@@ -72,6 +73,8 @@ export default function Nav({ children }: INavProps) {
       setDrawerHasContent(false);
     };
   }, [drawerContent, isMobile]);
+
+  const { currentRabbithole } = useRabbithole();
 
   const activeMap = {
     search: () => {
@@ -181,7 +184,13 @@ export default function Nav({ children }: INavProps) {
           className={`${styles.action} ${
             activeMap.rabbitholes() ? styles.active : ""
           }`}
-          onClick={() => navigate("/rabbitholes")}
+          onClick={() => {
+            if (currentRabbithole?.id.toString()) {
+              navigate(`/rabbitholes/${currentRabbithole.id.toString()}`);
+              return;
+            }
+            navigate("/rabbitholes");
+          }}
         >
           <RabbitholeIcon
             color="var(--mantine-color-dark-2)"

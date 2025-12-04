@@ -344,11 +344,15 @@ export default function Rabbithole() {
         variant="light"
         leftSection={<RabbitIcon />}
         onClick={() => {
-          handleEnterRabbithole();
+          if (isEntered) {
+            handleExitRabbithole();
+          } else {
+            handleEnterRabbithole();
+          }
         }}
-        color="green"
+        color={isEntered ? "red" : "green"}
       >
-        Enter Rabbithole
+        {isEntered ? "Exit" : "Enter"} Rabbithole
       </Button>
       <HoverCard width="300px">
         <HoverCard.Target>
@@ -562,7 +566,7 @@ export default function Rabbithole() {
                 dangerouslySetInnerHTML={{ __html: rabbithole?.name || "" }}
                 className={styles.editableTitle}
               />
-              {!isEntered && isMobile && ActionCenter}
+              {isMobile && ActionCenter}
               {isEntered && (
                 <TextInput
                   placeholder="Filter things..."

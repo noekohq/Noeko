@@ -12,6 +12,10 @@
     right: var(--layout-spacing);
     box-sizing: border-box;
     z-index: var(--z-index-ui-controls);
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: var(--mantine-spacing-xs);
 
     &.withinRabbithole {
         border-color: var(--mantine-color-yellow-5) !important;
@@ -63,6 +67,10 @@
     right: 0;
     bottom: 0;
     backdrop-filter: blur(4px) brightness(0.8);
+}
+
+.searchWrapper {
+   width: 100%;
 }
 
 .search {
@@ -142,4 +150,29 @@
     max-height: calc(
         100vh - var(--total-bottom-offset) - var(--total-top-offset)
     );
+}
+
+.actionButton {
+    width: 56px;
+    height: var(--top-bar-height);
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--mantine-color-dark-8);
+    box-shadow: var(--mantine-shadow-sm);
+    border-radius: 50%;
+    border: 1px solid var(--mantine-color-dark-7);
+    color: var(--mantine-color-dark-3);
+    transition: all .2s ease-in-out;
+
+    &:hover {
+        transform: scale(1.01) translateY(-2px);
+        background-color: var(--mantine-color-dark-7);
+    }
+
+    &:active {
+        transform: scale(.99) translateY(2px);
+        background-color: var(--mantine-color-dark-7);
+    }
 }
