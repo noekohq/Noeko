@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Stack, Title, Text, Loader, Group } from "@mantine/core";
+import { Stack, Title, Text, Loader, Group, SimpleGrid } from "@mantine/core";
 import { IConnectable } from "../../../app/services/Graph";
 import useFetch from "../../hooks/useFetch";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -13,6 +13,8 @@ import ConnectableThing from "../../components/Display/Interactions/Connections/
 import { useNavigate } from "react-router";
 import PaperThing from "../../components/Display/Paper/Things/PaperThing";
 import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
+import { PushPinIcon } from "@phosphor-icons/react";
+import GridCard from "../../components/Display/Paper/Things/GridCard";
 
 export default function PinsPage() {
   const {
@@ -23,6 +25,8 @@ export default function PinsPage() {
     url: "/pins/things",
   });
 
+  console.log("Got pins: ", pins);
+
   const {
     global: {
       query: { get: searchQuery },
@@ -30,10 +34,8 @@ export default function PinsPage() {
   } = useSearch();
 
   useEffect(() => {
-    if (!searchQuery) {
-      loadPins();
-    }
-  }, [searchQuery]);
+    loadPins();
+  }, []);
 
   const navigate = useNavigate();
 
@@ -42,10 +44,13 @@ export default function PinsPage() {
       <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
-        <Stack gap="xl">
+        <Stack gap="sm">
           <Group justify="space-between">
             <Title order={1}>
-              <Group gap="lg">Pinned Items</Group>
+              <Group gap="sm">
+                <PushPinIcon size={24} weight="duotone" />
+                Your pins
+              </Group>
             </Title>
           </Group>
 
@@ -62,12 +67,20 @@ export default function PinsPage() {
           )}
 
           {!loading && pins && pins.length > 0 && (
-            <Stack>
+            <SimpleGrid
+              spacing="xs"
+              cols={{
+                base: 2,
+                sm: 2,
+                md: 3,
+                lg: 4,
+              }}
+            >
               {pins.map((thing) => {
                 const props = getThingPropsFromConnectable(thing, {}, true);
-                return <PaperThing key={thing.id.toString()} {...props} />;
+                return <GridCard key={thing.id.toString()} {...props} />;
               })}
-            </Stack>
+            </SimpleGrid>
           )}
         </Stack>
       </Content>

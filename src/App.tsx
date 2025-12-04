@@ -216,6 +216,7 @@ export default function App() {
                   <Route path="all">
                     <Route index element={<All />} />
                   </Route>
+                  <Route path="pins" element={<Navigate to="/pinned" />} />
                   <Route path="pinned">
                     <Route index element={<PinsPage />} />
                   </Route>

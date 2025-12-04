@@ -17,7 +17,7 @@ import { default_embeddings_dimension } from "../settings";
 // --- 1. INTERFACES & TYPES ---
 
 type ITaskWithDiff = ITask & {
-  daysDiff: number; // duration::days(dueDate - now)
+  daysDiff: number;
 };
 
 type IRabbitholeWithDecay = IRabbithole & {
@@ -79,7 +79,7 @@ export interface IShelfData {
 
 export default class Recommendations {
   private static readonly ANCHOR_LIMIT = 15;
-  private static readonly DECAY_FACTOR = 0.9;
+  private static readonly DECAY_FACTOR = 0.8;
 
   // Shelf Weights
   private static readonly WEIGHT_URGENT = 1.5;
@@ -103,34 +103,30 @@ export default class Recommendations {
     return db;
   }
 
-  // --- PHASE 3: AGGREGATOR ---
   public static async getAcceleratorFeed(
     userId: string | RecordId,
   ): Promise<IShelfData[]> {
     const userRecordId = new StringRecordId(userId);
 
-    // 1. Get Context (Anchor + Active Tags)
     const [temporalAnchor, tagClusters] = await Promise.all([
       this.getTemporalAnchor(userRecordId),
       this.getActiveTagClusters(userRecordId),
     ]);
 
-    // 2. Run Strategies (Passing the Anchor to all of them)
     const [
       urgentTasks,
       activeRabbitholes,
       pinnedItems,
       recentActivity,
-      tagShelves,
+      // tagShelves,
     ] = await Promise.all([
       this.strategyUrgentTasks(userRecordId, temporalAnchor),
       this.strategyActiveRabbitholes(userRecordId, temporalAnchor),
       this.strategyPinnedItems(userRecordId, temporalAnchor),
       this.strategyRecentActivity(userRecordId, temporalAnchor),
-      this.strategyTagExploration(userRecordId, temporalAnchor, tagClusters),
+      // this.strategyTagExploration(userRecordId, temporalAnchor, tagClusters),
     ]);
 
-    // 3. Define Static Shelves
     const shelves: IShelfData[] = [
       {
         id: "urgent",
@@ -152,22 +148,18 @@ export default class Recommendations {
         inherentWeight: this.WEIGHT_RECENT,
         items: recentActivity,
       },
-      ...tagShelves,
     ];
 
-    // 4. Score Shelves
     const scoredShelves = shelves.map((shelf) => {
       if (shelf.items.length === 0) return { ...shelf, totalShelfScore: 0 };
       const maxItemScore = Math.max(...shelf.items.map((i) => i.internalScore));
       return { ...shelf, totalShelfScore: maxItemScore * shelf.inherentWeight };
     });
 
-    // 5. Sort Shelves
     scoredShelves.sort(
       (a, b) => (b.totalShelfScore || 0) - (a.totalShelfScore || 0),
     );
 
-    // 6. De-dupe Items
     const seenIds = new Set<string>();
     const finalFeed: IShelfData[] = [];
 
@@ -183,8 +175,6 @@ export default class Recommendations {
 
     return finalFeed;
   }
-
-  // --- PHASE 2: STRATEGIES ---
 
   /**
    * STRATEGY: DYNAMIC TAG EXPLORATION
@@ -329,7 +319,8 @@ export default class Recommendations {
 
   /**
    * STRATEGY: URGENT TASKS
-   * Urgent is Urgent, but Context breaks ties.
+   * Returns the top 10 most urgent tasks.
+   * "Urgency" is defined strictly by the Due Date (Overdue -> Due Today -> Future).
    */
   private static async strategyUrgentTasks(
     userId: StringRecordId,
@@ -337,45 +328,65 @@ export default class Recommendations {
   ): Promise<IAcceleratorItem[]> {
     const db = await this.db();
 
-    // Need to fetch embeddings for context check
+    // 1. Fetch top 10 tasks sorted by date.
+    // ORDER BY dueDate ASC ensures that:
+    // - Past dates (Overdue) come first (e.g., -5 days)
+    // - Near future dates come next (e.g., +1 day)
+    // - Far future dates come last
     const query = `
-      SELECT *, embeddings, duration::days(dueDate - time::now()) as daysDiff
-      FROM task
-      WHERE
-        <-owns<-(user WHERE id = $userId)
-        AND completedAt = NONE
-        AND dueDate != NONE
-        AND dueDate < time::now() + 7d
-      ORDER BY dueDate ASC
-    `;
+          SELECT
+            *,
+            embeddings,
+            (time::unix(type::datetime(dueDate)) - time::unix(time::now())) / 86400 as daysDiff
+          FROM task
+          WHERE
+            <-owns<-(user WHERE id = $userId)
+            AND completedAt = NULL
+            AND dueDate != NULL
+          ORDER BY dueDate ASC
+          LIMIT 10
+        `;
 
+    // We cast the result to your extended type
     const [results] = await db.query<[ITaskWithDiff[]]>(query, { userId });
     const tasks = results || [];
 
     return tasks.map((t): IAcceleratorItem => {
       const daysDiff = t.daysDiff;
+
       let urgencyScore = 0.5;
       let label = "Upcoming";
       let urgency: IAcceleratorItem["context"]["urgency"] = "normal";
 
+      // 2. Logic based strictly on daysDiff
       if (daysDiff < 0) {
+        // OVERDUE (The more negative, the more overdue, but all get high score)
         urgencyScore = 1.0;
-        label = "Overdue";
+        label = `Overdue (${Math.abs(Math.round(daysDiff))}d)`; // e.g. "Overdue (3d)"
         urgency = "critical";
-      } else if (daysDiff < 1) {
+      } else if (daysDiff <= 1) {
+        // DUE TODAY (0 to 1 day remaining)
         urgencyScore = 0.95;
         label = "Due Today";
         urgency = "high";
-      } else if (daysDiff < 2) {
+      } else if (daysDiff <= 2) {
+        // DUE TOMORROW
         urgencyScore = 0.8;
         label = "Due Tomorrow";
         urgency = "high";
+      } else {
+        // FUTURE
+        // Score decays slightly the further out it is,
+        // preventing a task due in 6 months from ranking equal to one due in 3 days.
+        // Simple decay: 0.5 base - 0.01 per day out
+        urgencyScore = Math.max(0.1, 0.5 - daysDiff * 0.01);
+        label = `Due in ${Math.round(daysDiff)}d`;
       }
 
-      // Calculate Context Relevance
+      // 3. Calculate Context Relevance
       const contextScore = this.calculateRelevance(t.embeddings, anchorVector);
 
-      // Blend: Urgency is dominant (70%), but context (30%) can bump a relevant task up
+      // 4. Blend Scores
       const finalScore =
         urgencyScore * (1 - this.RELEVANCE_WEIGHT_TASK) +
         contextScore * this.RELEVANCE_WEIGHT_TASK;
