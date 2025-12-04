@@ -342,7 +342,8 @@ export default class Recommendations {
           WHERE
             <-owns<-(user WHERE id = $userId)
             AND completedAt = NULL
-            AND dueDate != NULL
+            AND dueDate != NONE -- specific check for missing fields
+            AND dueDate != NULL -- specific check for null fields
           ORDER BY dueDate ASC
           LIMIT 10
         `;
