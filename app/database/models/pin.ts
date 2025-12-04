@@ -1,6 +1,6 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
-import { IConnectable } from "../../services/Graph";
+import GraphService, { Connectable, IConnectable } from "../../services/Graph";
 
 export type IPinnable = IConnectable;
 
@@ -126,7 +126,17 @@ export default class Pin {
         throw new Error("Failed to get user pins");
       }
       const [pins] = result;
-      return pins;
+      const connectables = pins
+        .map((p) => {
+          const type = Connectable.idToType(p.id.toString());
+          if (!type) return null;
+          return {
+            ...p,
+            type,
+          } as IConnectable;
+        })
+        .filter((p) => !!p);
+      return connectables;
     } catch (error) {
       console.error("Error getting user pins: ", userId, error);
       return undefined;

@@ -1,7 +1,6 @@
 import {
   ActionIcon,
   Button,
-  Card,
   Group,
   SimpleGrid,
   Space,
@@ -19,9 +18,6 @@ import useFetch from "../../hooks/useFetch";
 import { IRabbithole } from "../../../app/database/models/rabbithole";
 import { useEffect, useMemo, useState } from "react";
 import { useInteraction } from "../../contexts/InteractionContext";
-import RabbitholeCard from "../../components/Display/Rabbitholes/RabbitholeCard";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import { getNodeTitle } from "../../utils/graph";
 import {
   getRabbitholeThingDescription,
   getRabbitholeThingName,
@@ -29,10 +25,7 @@ import {
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import GridCard from "../../components/Display/Paper/Things/GridCard";
-import {
-  getThingPropsFromConnectable,
-  getThingPropsFromRabbithole,
-} from "../../components/Display/Paper/Things/thingUtils";
+import { getThingPropsFromRabbithole } from "../../components/Display/Paper/Things/thingUtils";
 import { formatDateTime } from "../../utils/formatting";
 
 export default function Rabbitholes() {

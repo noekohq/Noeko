@@ -82,7 +82,7 @@
 }
 
 .menu {
-    animation: menuIn 0.2s ease-out forwards;
+    animation: menuIn 0.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
     position: absolute;
     bottom: 94px;
     display: flex;
