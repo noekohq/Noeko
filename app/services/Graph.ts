@@ -1243,7 +1243,6 @@ export default class GraphService {
           ${limitClause}
           `;
 
-      console.log("Ran query: ", query, params);
       return { query, params };
     };
 

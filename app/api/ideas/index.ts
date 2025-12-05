@@ -274,17 +274,17 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
       return;
     }
+    const idea = await Idea.get(ideaId);
+    if (!idea) {
+      res.status(404).json({ message: "Idea not found" });
+      return;
+    }
     const auth = new Authorization(user.id);
     const hasAccess = await auth.hasAccess(ideaId);
     if (!hasAccess) {
       res.status(403).json({
         message: "Unauthorized.",
       });
-      return;
-    }
-    const idea = await Idea.get(ideaId);
-    if (!idea) {
-      res.status(404).json({ message: "Idea not found" });
       return;
     }
     const isOwner = await User.checkOwns(user.id, ideaId);
