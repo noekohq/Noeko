@@ -282,7 +282,7 @@ export class Search {
 
     const ftsIdeaTitleSearchIndex = () => {
       return `
-      DEFINE INDEX IF NOT EXISTS
+      DEFINE INDEX IF NOT EXISTS idx_idea_title_fts
         ON TABLE idea
         FIELDS title
         SEARCH ANALYZER idea_analyzer
