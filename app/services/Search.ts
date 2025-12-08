@@ -1767,7 +1767,9 @@ export class Search {
 }
 
 export const initSearch = async () => {
+  console.info("Initializing search service.");
   await Search.up();
+  console.info("Search service initialized ✅");
 };
 
 export const dropSearch = async () => {
