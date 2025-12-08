@@ -19,7 +19,7 @@ const projectRoot = process.cwd();
 if (!PORT) throw new Error("PORT is not defined");
 
 await initDatabase();
-await initServices();
+// await initServices();
 
 const app = Express();
 app.use(Express.json({ limit: max_idea_size }));
