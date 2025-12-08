@@ -16,6 +16,11 @@
     align-items: center;
     flex-wrap: nowrap;
     gap: var(--mantine-spacing-xs);
+    transition: transform 0.2s ease-in-out;
+
+    &.hidden {
+        transform: translateY(-150%);
+    }
 
     &.withinRabbithole {
         border-color: var(--mantine-color-yellow-5) !important;
