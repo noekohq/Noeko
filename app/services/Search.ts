@@ -240,49 +240,49 @@ export class Search {
 
     const ideaSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER OVERWRITE idea_analyzer
+      DEFINE ANALYZER IF NOT EXISTS idea_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
 
     const tagSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER OVERWRITE tag_analyzer
+      DEFINE ANALYZER IF NOT EXISTS tag_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
 
     const rabbitholeSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER OVERWRITE rabbithole_analyzer
+      DEFINE ANALYZER IF NOT EXISTS rabbithole_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
 
     const taskSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER OVERWRITE task_analyzer
+      DEFINE ANALYZER IF NOT EXISTS task_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
 
     const sourceSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER OVERWRITE source_analyzer
+      DEFINE ANALYZER IF NOT EXISTS source_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
 
     const excerptSearchAnalyzer = () => {
       return `
-      DEFINE ANALYZER OVERWRITE excerpt_analyzer
+      DEFINE ANALYZER IF NOT EXISTS excerpt_analyzer
       TOKENIZERS class
       FILTERS lowercase, snowball(english);`;
     };
 
     const ftsIdeaTitleSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_idea_title_fts
+      DEFINE INDEX IF NOT EXISTS
         ON TABLE idea
         FIELDS title
         SEARCH ANALYZER idea_analyzer
@@ -294,7 +294,7 @@ export class Search {
       return `
       REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;
 
-      DEFINE INDEX OVERWRITE idx_idea_content_fts
+      DEFINE INDEX IF NOT EXISTS idx_idea_content_fts
         ON TABLE idea
         FIELDS contentPlain
         SEARCH ANALYZER idea_analyzer
@@ -304,7 +304,7 @@ export class Search {
 
     const ftsTagNameSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_tag_name_fts
+      DEFINE INDEX IF NOT EXISTS idx_tag_name_fts
         ON TABLE tag
         FIELDS name
         SEARCH ANALYZER tag_analyzer
@@ -314,7 +314,7 @@ export class Search {
 
     const ftsTagDescriptionSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_tag_description_fts
+      DEFINE INDEX IF NOT EXISTS idx_tag_description_fts
         ON TABLE tag
         FIELDS description
         SEARCH ANALYZER tag_analyzer
@@ -324,7 +324,7 @@ export class Search {
 
     const ftsRabbitholeSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_rabbithole_fts
+      DEFINE INDEX IF NOT EXISTS idx_rabbithole_fts
         ON TABLE rabbithole
         FIELDS name
         SEARCH ANALYZER rabbithole_analyzer
@@ -334,7 +334,7 @@ export class Search {
 
     const ftsTaskDescriptionSearchIndex = () => {
       return `
-          DEFINE INDEX OVERWRITE idx_task_description_fts
+          DEFINE INDEX IF NOT EXISTS idx_task_description_fts
             ON TABLE task
             FIELDS description
             SEARCH ANALYZER task_analyzer
@@ -344,7 +344,7 @@ export class Search {
 
     const ftsTaskScratchpadSearchIndex = () => {
       return `
-          DEFINE INDEX OVERWRITE idx_task_scratchpad_fts
+          DEFINE INDEX IF NOT EXISTS idx_task_scratchpad_fts
             ON TABLE task
             FIELDS scratchpad
             SEARCH ANALYZER task_analyzer
@@ -354,7 +354,7 @@ export class Search {
 
     const ftsSourceDisplayNameSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_source_display_name_fts
+      DEFINE INDEX IF NOT EXISTS idx_source_display_name_fts
         ON TABLE source
         FIELDS displayName
         SEARCH ANALYZER source_analyzer
@@ -364,7 +364,7 @@ export class Search {
 
     const ftsSourceContentSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_source_content_fts
+      DEFINE INDEX IF NOT EXISTS idx_source_content_fts
         ON TABLE source
         FIELDS content
         SEARCH ANALYZER source_analyzer
@@ -374,7 +374,7 @@ export class Search {
 
     const ftsExcerptNoteSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_excerpt_note_fts
+      DEFINE INDEX IF NOT EXISTS idx_excerpt_note_fts
         ON TABLE excerpt
         FIELDS note
         SEARCH ANALYZER excerpt_analyzer
@@ -384,7 +384,7 @@ export class Search {
 
     const ftsExcerptSourceTextSearchIndex = () => {
       return `
-      DEFINE INDEX OVERWRITE idx_excerpt_source_text_fts
+      DEFINE INDEX IF NOT EXISTS idx_excerpt_source_text_fts
         ON TABLE excerpt
         FIELDS sourceText
         SEARCH ANALYZER excerpt_analyzer
@@ -394,7 +394,7 @@ export class Search {
 
     const ftsSearchIdeasFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::search_user_ideas_fts(
+      DEFINE FUNCTION IF NOT EXISTS fn::search_user_ideas_fts(
         $userId: record<user>,
         $query: string
       ) {
@@ -418,7 +418,7 @@ export class Search {
 
     const ftsSearchTasksFunction = () => {
       return `
-          DEFINE FUNCTION OVERWRITE fn::search_user_tasks_fts(
+          DEFINE FUNCTION IF NOT EXISTS fn::search_user_tasks_fts(
             $userId: record<user>,
             $query: string
           ) {
@@ -439,7 +439,7 @@ export class Search {
 
     const ftsSearchSourcesFunction = () => {
       return `
-          DEFINE FUNCTION OVERWRITE fn::search_user_sources_fts(
+          DEFINE FUNCTION IF NOT EXISTS fn::search_user_sources_fts(
             $userId: record<user>,
             $query: string
           ) {
@@ -460,7 +460,7 @@ export class Search {
 
     const ftsSearchExcerptsFunction = () => {
       return `
-          DEFINE FUNCTION OVERWRITE fn::search_user_excerpts_fts(
+          DEFINE FUNCTION IF NOT EXISTS fn::search_user_excerpts_fts(
             $userId: record<user>,
             $query: string
           ) {
@@ -481,7 +481,7 @@ export class Search {
 
     const ftsSearchWithinRabbitholeFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::search_rabbithole_ideas_fts(
+      DEFINE FUNCTION IF NOT EXISTS fn::search_rabbithole_ideas_fts(
         $query: string,
         $rabbitholeId: string
       ) {
@@ -516,7 +516,7 @@ export class Search {
 
     const ftsSearchTagsFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::search_user_tags_fts(
+      DEFINE FUNCTION IF NOT EXISTS fn::search_user_tags_fts(
         $userId: record<user>,
         $query: string,
         $limit: int
@@ -540,7 +540,7 @@ export class Search {
 
     const ftsSearchRabbitholesFunction = () => {
       return `
-      DEFINE FUNCTION OVERWRITE fn::search_user_rabbitholes_fts(
+      DEFINE FUNCTION IF NOT EXISTS fn::search_user_rabbitholes_fts(
         $userId: record<user>,
         $query: string,
         $limit: int
