@@ -488,5 +488,7 @@ export class AnalysisService {
 }
 
 export async function initAnalysis() {
+  console.info("Initializing analysis service.");
   await AnalysisService.up();
+  console.info("Analysis service initialized ✅");
 }

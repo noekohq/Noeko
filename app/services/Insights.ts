@@ -122,6 +122,7 @@ export default class Insights {
 }
 
 export const initInsights = async () => {
-  console.info("Initializing insights");
+  console.info("Initializing Insights service...");
   await Insights.up();
+  console.info("Insights service initialized ✅");
 };

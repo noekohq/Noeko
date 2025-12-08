@@ -1705,7 +1705,9 @@ export default class GraphService {
 }
 
 export const initGraph = async () => {
+  console.info("Initializing graph service...");
   await GraphService.up();
+  console.info("Graph service initialized ✅");
 };
 
 export type ILoadedConstellation = Partial<{
