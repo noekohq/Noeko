@@ -47,7 +47,10 @@ export default function TopBar() {
     },
   } = useSearch();
   const { search, results, loading, complete } = useSearchQuery();
-  const { isMobile } = useLayout();
+  const {
+    isMobile,
+    scroll: { isScrolled, scrollDirection },
+  } = useLayout();
 
   const [isFocused, setIsFocused] = useState(false);
   const [quip, setQuip] = useState(() => getRandomQuip());
@@ -111,11 +114,16 @@ export default function TopBar() {
 
   if (!isMobile) return null;
 
+  const isHidden = () => {
+    if (isFocused) return false;
+    return isScrolled && scrollDirection === "down";
+  };
+
   return (
     <div
       className={`${styles.topBar} ${isFocused ? styles.focused : ""} ${
         isDownRabbithole ? styles.downRabbithole : ""
-      }`}
+      } ${isHidden() ? styles.hidden : ""}`}
     >
       <div
         className={styles.searchWrapper}
