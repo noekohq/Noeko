@@ -4,6 +4,8 @@ import usePins from "../../../hooks/usePins";
 import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import ConnectableThing from "../../Display/Interactions/Connections/ConnectableThing";
 import { PushPinIcon } from "@phosphor-icons/react";
+import PaperThing from "../../Display/Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from "../../Display/Paper/Things/thingUtils";
 
 export default function Pins() {
   const { pins, pinThing, unpinThing } = usePins();
@@ -29,11 +31,14 @@ export default function Pins() {
               md: 2,
             }}
           >
-            {pins.map((pin) => (
-              <div key={pin.id.toString()}>
-                <ConnectableThing link thing={pin} />
-              </div>
-            ))}
+            {pins.map((pin) => {
+              const props = getThingPropsFromConnectable(pin, {}, true);
+              return (
+                <div key={pin.id.toString()}>
+                  <PaperThing {...props} />
+                </div>
+              );
+            })}
           </SimpleGrid>
         )}
       </Stack>
