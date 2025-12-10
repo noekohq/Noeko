@@ -44,25 +44,30 @@ export default function useConnectable({
 }: IUseConnectableArgs): IUseConnectableReturn {
   const [isConnecting, setIsConnecting] = useState(false);
   const { currentRabbithole, isDownRabbithole } = useRabbithole();
+  const isOptimistic = (connectable as any)?.isOptimistic;
 
   const {
     load: loadConnected,
     data: connected = [],
     loading: loadingConnected,
   } = useFetch<undefined, IConnectable[]>({
-    url: `/graph/${connectable?.id.toString()}/connections`,
+    url: !isOptimistic
+      ? `/graph/${connectable?.id.toString()}/connections`
+      : null,
     dependencies: [connectable?.id.toString()],
   });
 
+  // FIX: Added embeddingsUpdatedAt to dependencies to force refresh when AI finishes
   const {
     load: loadSimilar,
     data: similar = [],
     loading: loadingSimilar,
   } = useFetch<undefined, ISimilarConnectable[]>({
-    url: `/graph/${connectable?.id.toString()}/similar`,
+    url: !isOptimistic ? `/graph/${connectable?.id.toString()}/similar` : null,
     dependencies: [
       connectable?.id.toString(),
       currentRabbithole?.id.toString(),
+      connectable?.embeddingsUpdatedAt, // <--- CRITICAL
     ],
     query: {
       rabbitholeId: isDownRabbithole
@@ -76,7 +81,7 @@ export default function useConnectable({
     data: tags = [],
     loading: loadingTags,
   } = useFetch<undefined, ITag[]>({
-    url: `/graph/${connectable?.id.toString()}/tags`,
+    url: !isOptimistic ? `/graph/${connectable?.id.toString()}/tags` : null,
     dependencies: [connectable?.id.toString()],
   });
 
@@ -85,53 +90,48 @@ export default function useConnectable({
     data: suggestedTags = [],
     loading: loadingSuggestedTags,
   } = useFetch<undefined, ITag[]>({
-    url: `/graph/${connectable?.id.toString()}/tags/suggested`,
-    dependencies: [connectable?.id.toString()],
+    url: !isOptimistic
+      ? `/graph/${connectable?.id.toString()}/tags/suggested`
+      : null,
+    dependencies: [
+      connectable?.id.toString(),
+      connectable?.embeddingsUpdatedAt, // <--- CRITICAL
+    ],
   });
 
-  const load = () => {
-    if (!connectable?.id) {
-      console.error("Attempted to load empty connectable information.");
+  const load = useCallback(() => {
+    if (isOptimistic || !connectable?.id) {
       return;
     }
     loadConnected();
     loadSimilar();
     loadTags();
     loadSuggestedTags();
-  };
+  }, [
+    isOptimistic,
+    connectable?.id,
+    loadConnected,
+    loadSimilar,
+    loadTags,
+    loadSuggestedTags,
+  ]);
 
   useEffect(() => {
-    if (!connectable?.id) {
-      console.error(
-        "Can't load connected nodes for connectable because it does not exist.",
-      );
-      return;
-    }
+    if (isOptimistic || !connectable?.id) return;
     loadConnected();
   }, [connectable?.updatedAt]);
 
+  // FIX: This effect now properly triggers because loadSimilar's dependencies
+  // (via useFetch) include embeddingsUpdatedAt, so the function identity changes,
+  // or the useEffect below catches it.
   useEffect(() => {
-    if (!connectable?.id) {
-      console.error(
-        "Can't load similar nodes for connectable because it does not exist.",
-      );
-      return;
-    }
+    if (isOptimistic || !connectable?.id) return;
     loadSimilar();
-  }, [connectable?.embeddingsUpdatedAt, connected]);
-
-  useEffect(() => {
-    if (!connectable?.id) {
-      console.error(
-        "Can't load similar nodes for connectable because it does not exist.",
-      );
-      return;
-    }
-    loadSimilar();
-  }, [currentRabbithole]);
+    loadSuggestedTags();
+  }, [connectable?.embeddingsUpdatedAt, connected, currentRabbithole]);
 
   const handleConnect = async (target: string | RecordId) => {
-    if (isConnecting) {
+    if (isOptimistic || isConnecting) {
       return false;
     }
     setIsConnecting(true);
@@ -151,6 +151,7 @@ export default function useConnectable({
   };
 
   const handleDisconnect = async (target: string | RecordId) => {
+    if (isOptimistic) return false;
     try {
       if (!connectable) {
         throw new Error(
@@ -168,7 +169,7 @@ export default function useConnectable({
   };
 
   const isConnected = (thingId: string | RecordId) => {
-    if (!connected) {
+    if (isOptimistic || !connected) {
       return undefined;
     }
     const found = connected.find((c) => c.id.toString() === thingId.toString());
@@ -176,7 +177,7 @@ export default function useConnectable({
   };
 
   const ensureConnected = async (thingId: string | RecordId) => {
-    if (!connectable || !thingId) {
+    if (isOptimistic || !connectable || !thingId) {
       return;
     }
     if (loadingConnected) {
@@ -192,13 +193,14 @@ export default function useConnectable({
   };
 
   const refreshTags = async () => {
+    if (isOptimistic) return;
     await loadTags();
     await loadSuggestedTags();
   };
 
   const applyTag = useCallback(
     async (tagId: string | RecordId) => {
-      if (!connectable?.id.toString()) {
+      if (isOptimistic || !connectable?.id.toString()) {
         return;
       }
       const res = await applyTagToThing(tagId, connectable?.id.toString());
@@ -210,7 +212,7 @@ export default function useConnectable({
 
   const removeTag = useCallback(
     async (tagId: string | RecordId) => {
-      if (!connectable?.id.toString()) {
+      if (isOptimistic || !connectable?.id.toString()) {
         return;
       }
       const res = await removeTagFromThing(tagId, connectable?.id.toString());

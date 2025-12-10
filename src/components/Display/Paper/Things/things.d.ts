@@ -4,6 +4,7 @@ export type IThing = {
   detail: string | React.ReactNode;
   icon?: React.FC<IconProps>;
   link?: string;
+  onDelete?: () => void;
   onClick?: (id: string, e: React.MouseEvent) => void;
   draggable?: boolean;
 

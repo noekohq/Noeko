@@ -237,13 +237,15 @@ td {
 }
 
 .mantine-Menu-dropdown {
+    z-index: var(--z-index-context-menu);
+
     animation: popoverIn 0.2s ease-in-out forwards;
 
-    background-color: var(--mantine-color-dark-8) !important;
-    border: 1px solid var(--mantine-color-dark-7);
+    background-color: var(--mantine-color-body) !important;
     border-radius: var(--mantine-radius-md);
+    border: 1px solid var(--mantine-color-dark-7) !important;
     /* border-top-left-radius: var(--mantine-radius-sm); */
-    padding: var(--mantine-spacing-md);
+    padding: var(--mantine-spacing-xs) var(--layout-spacing);
     box-shadow: var(--mantine-shadow-md);
 }
 

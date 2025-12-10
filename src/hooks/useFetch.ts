@@ -3,7 +3,7 @@ import { DefaultResponse } from "../declarations/server";
 import { api } from "../server/api";
 
 export interface UseFetchConfig<B, D> {
-  url: string;
+  url: string | null;
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: B;
   onBefore?: () => void;
@@ -39,7 +39,7 @@ function useFetch<B, D>({
         .join("&")
     : "";
 
-  const urlToUse = queryStr ? `${url}?${queryStr}` : url;
+  const urlToUse = queryStr && url ? `${url}?${queryStr}` : url;
 
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<D>();
@@ -57,6 +57,10 @@ function useFetch<B, D>({
 
   const load = useCallback(
     async (loadConfig?: { updatedUrl?: string; updatedBody?: B }) => {
+      if (!urlToUse) {
+        console.error("Missing updatedUrl in loadConfig", queryStr, url);
+        return;
+      }
       refreshHeaders();
       onBefore && onBefore();
       setLoading(true);
@@ -107,10 +111,14 @@ function useFetch<B, D>({
       (runOnDependencies.length > 0 && runOnDependencies.every((dep) => !!dep))
     ) {
       refreshHeaders();
-      load({
-        updatedUrl: urlToUse,
-        updatedBody: body,
-      });
+      if (urlToUse) {
+        load({
+          updatedUrl: urlToUse,
+          updatedBody: body,
+        });
+      } else {
+        console.error("Missing urlToUse");
+      }
     }
   }, [
     urlToUse,
