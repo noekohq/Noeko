@@ -35,7 +35,6 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
 // import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
-import SearchPage from "./pages/Search/Search";
 import SharedIdeas from "./pages/Idea/Shared/Shared";
 import Sharing from "./pages/Sharing/Sharing";
 import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
@@ -188,7 +187,7 @@ export default function App() {
                   <Route path="idea">
                     <Route index element={<Navigate to="/ideas" replace />} />
                     <Route path=":ideaId">
-                      <Route index element={<Idea key={location.pathname} />} />
+                      <Route index element={<Idea />} />
                       <Route
                         path="view"
                         element={<ViewIdea key={location.pathname} />}
@@ -245,9 +244,6 @@ export default function App() {
                   </Route>
                   <Route path="keymap">
                     <Route index element={<Keymap />} />
-                  </Route>
-                  <Route path="search">
-                    <Route index element={<SearchPage />} />
                   </Route>
                   <Route path="rabbitholes">
                     <Route index element={<Rabbitholes />} />

@@ -19,6 +19,30 @@ export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
 };
 
+export const newIdeaOptimistic = () => {
+  const tempId = crypto.randomUUID();
+  const optimisticIdea: any = {
+    id: tempId,
+    title: "Untitled Idea",
+    content: "",
+    embeddings: null,
+    visibility: "private",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    viewedAt: new Date(),
+    contentUpdatedAt: new Date(),
+    contentPlainUpdatedAt: new Date(),
+    embeddingsUpdatedAt: new Date(),
+    isOptimistic: true,
+  };
+
+  const promise = api
+    .post("/ideas/new")
+    .then((results) => results.data.data as IIdea);
+
+  return { optimisticIdea, promise };
+};
+
 export const newIdea = async () => {
   try {
     const results = await api.post("/ideas/new");

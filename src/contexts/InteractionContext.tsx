@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import {
   handleCreateNewConnectedIdea,
   handleCreateNewIdea,
+  newIdeaOptimistic,
 } from "../utils/ideas";
 import { showNotification } from "@mantine/notifications";
 import { getOS } from "../utils/platform";
@@ -161,28 +162,39 @@ export function InteractionProvider({
     rabbitholes: {
       entered: { get: currentRabbithole },
     },
+    ideas: {
+      optimistic: { add: addOptimisticIdea, remove: removeOptimisticIdea },
+    },
   } = useLandscape();
 
   const { includeThing } = useRabbithole();
 
-  const handleNewIdea = async () => {
+  const handleNewIdea = () => {
     setLoadingSomething(true);
-    await handleCreateNewIdea(
-      (i) => {
-        navigate(`idea/${i.id.toString()}`);
+    const { optimisticIdea, promise } = newIdeaOptimistic();
+    addOptimisticIdea(optimisticIdea);
+    navigate(`idea/${optimisticIdea.id.toString()}`);
+
+    promise
+      .then((realIdea) => {
+        removeOptimisticIdea(optimisticIdea.id.toString());
+        navigate(`idea/${realIdea.id.toString()}`, { replace: true });
         if (currentRabbithole) {
-          includeThing(i.id.toString());
+          includeThing(realIdea.id.toString());
         }
-      },
-      (err) => {
+      })
+      .catch((err) => {
+        removeOptimisticIdea(optimisticIdea.id.toString());
+        navigate("/");
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong adding the idea.",
           color: "red",
         });
-      },
-    );
-    setLoadingSomething(false);
+      })
+      .finally(() => {
+        setLoadingSomething(false);
+      });
   };
 
   const handleNewConnectedIdea = async (source: string) => {
