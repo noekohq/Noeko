@@ -6,4 +6,4 @@ bun install
 
 bun run client:build
 
-pm2 restart ecosystem.config.cjs
+supervisor restart noeko-prod
