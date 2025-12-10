@@ -3,6 +3,7 @@ import {
   IconProps,
   DotsSixVertical,
   DotsSixVerticalIcon,
+  TrashSimpleIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { CopyButton, Modal, Stack, Text } from "@mantine/core";
@@ -30,6 +31,7 @@ export default function PaperThing({
   detail,
   icon: IconComponent,
   link,
+  onDelete,
   state = "default",
   onClick,
   action,
@@ -209,6 +211,17 @@ export default function PaperThing({
           >
             Preview
           </PaperContextMenu.Item>
+          {onDelete && (
+            <PaperContextMenu.Item
+              icon={<TrashSimpleIcon weight="bold" />}
+              onClick={() => {
+                onDelete?.();
+              }}
+              color="red"
+            >
+              Delete
+            </PaperContextMenu.Item>
+          )}
         </PaperContextMenu.Dropdown>
       </PaperContextMenu>
       {preview && (

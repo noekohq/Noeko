@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 import useFetch from "../hooks/useFetch";
 import { IConnectable } from "../../app/services/Graph";
+import { IIdea } from "../../app/database/models/ideas";
+
+export type IOptimisticIdea = IIdea & { isOptimistic: true };
 
 interface ISelection {
   content: string;
@@ -33,6 +36,13 @@ interface ILandscapeContext {
       set: (dragging: string | null) => void;
     };
   };
+  ideas: {
+    optimistic: {
+      get: (id: string) => IOptimisticIdea | undefined;
+      add: (idea: IOptimisticIdea) => void;
+      remove: (id: string) => void;
+    };
+  };
 }
 
 const initialContext: ILandscapeContext = {
@@ -61,6 +71,13 @@ const initialContext: ILandscapeContext = {
       set: () => {},
     },
   },
+  ideas: {
+    optimistic: {
+      get: () => undefined,
+      add: () => {},
+      remove: () => {},
+    },
+  },
 };
 
 const LandscapeContext = createContext(initialContext);
@@ -74,6 +91,19 @@ export const LandscapeProvider = ({
   const [connectable, setConnectable] = useState<IConnectable | null>(null);
   const [selection, setSelection] = useState<ISelection | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
+  const [optimisticIdeas, setOptimisticIdeas] = useState<IOptimisticIdea[]>([]);
+
+  const addOptimisticIdea = (idea: IOptimisticIdea) => {
+    setOptimisticIdeas((prev) => [...prev, idea]);
+  };
+
+  const removeOptimisticIdea = (tempId: string) => {
+    setOptimisticIdeas((prev) => prev.filter((idea) => idea.id !== tempId));
+  };
+
+  const getOptimisticIdea = (id: string) => {
+    return optimisticIdeas.find((idea) => idea.id === id);
+  };
 
   const { load: reloadRabbithole } = useFetch<undefined, IRabbithole>({
     url: `/rabbitholes/${rabbithole?.id.toString()}`,
@@ -117,6 +147,13 @@ export const LandscapeProvider = ({
       current: {
         get: dragging,
         set: setDragging,
+      },
+    },
+    ideas: {
+      optimistic: {
+        get: getOptimisticIdea,
+        add: addOptimisticIdea,
+        remove: removeOptimisticIdea,
       },
     },
   } satisfies ILandscapeContext;

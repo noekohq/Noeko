@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react"; // Import React
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
@@ -10,19 +10,18 @@ import {
   ActionIcon,
   Group,
   Title,
-  Loader,
   Text,
   Card,
-  Tooltip,
-  Flex,
-  Menu,
-  CopyButton,
   Stack,
   Space,
   Box,
+  Flex,
+  Menu,
+  Tooltip,
+  Loader,
+  CopyButton,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
-import { modals } from "@mantine/modals";
 import {
   ArrowLeftIcon,
   BookOpenIcon,
@@ -43,7 +42,6 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
 } from "@phosphor-icons/react";
-import { showNotification } from "@mantine/notifications";
 import Insights from "./Insights";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -54,34 +52,54 @@ import { getTextProcessed } from "../../utils/processing";
 import {
   formatDate,
   formatDateTime,
+  htmlToMarkdown,
   htmlToPlainText,
 } from "../../utils/formatting";
 import { api } from "../../server/api";
 import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
-import { downloadTextAsFile } from "../../utils/files";
-import { htmlToMarkdown } from "../../../app/utils/formatting";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
 import Loading from "../../components/Display/Loading/Loading";
 
-import { useLandscape } from "../../contexts/LandscapeContext";
+import { IOptimisticIdea, useLandscape } from "../../contexts/LandscapeContext";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
 import useConnectable, {
   IUseConnectableReturn,
 } from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
-import usePins from "../../hooks/usePins";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
 import AccessManager from "../../components/Display/Interactions/Access/AccessManager";
+import usePins from "../../hooks/usePins";
+import { showNotification } from "@mantine/notifications";
+import { modals } from "@mantine/modals";
+import { downloadTextAsFile } from "../../utils/files";
+
+// --- Types ---
+type IdeaUnion = ISafeIdea | IOptimisticIdea;
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
-  const [title, setTitle] = useState<string>("");
-  const [originalIdea, setOriginalIdea] = useState<ISafeIdea>();
-
+  const [searchParams] = useSearchParams();
+  const highlightText = searchParams.get("highlightText");
   const titleRef = useRef<HTMLHeadingElement>(null);
+
+  const [editorReady, setEditorReady] = useState(false);
+  const editorRef = useRef<IEditor>(null);
+
+  // FIX: This ref is now controlled directly by this component's own handlers
+  const isDeletingRef = useRef(false);
+  const isMountedRef = useRef(false);
+
+  const {
+    ideas: {
+      optimistic: { get: getOptimisticIdea },
+    },
+    connectable: {
+      viewing: { set: setViewing },
+    },
+  } = useLandscape();
 
   const {
     elements: {
@@ -93,38 +111,107 @@ export default function Idea() {
     isDesktop,
   } = useLayout();
 
-  useDocumentTitle(`${title || "Loading..."} - Noeko`);
+  // --- Sticky Optimistic State ---
+  const optimisticFromStore = useMemo(() => {
+    return ideaId ? getOptimisticIdea(ideaId) : undefined;
+  }, [ideaId, getOptimisticIdea]);
+
+  const [isOptimistic, setIsOptimistic] = useState(!!optimisticFromStore);
+
+  useEffect(() => {
+    setIsOptimistic(!!optimisticFromStore);
+  }, [ideaId]);
+
+  // --- Animation Key Logic ---
+  const [contentKey, setContentKey] = useState(ideaId);
+  const wasOptimisticRef = useRef(isOptimistic);
+
+  useEffect(() => {
+    const isOptimisticTransition = wasOptimisticRef.current && !isOptimistic;
+    if (!isOptimisticTransition) {
+      setContentKey(ideaId);
+    }
+    wasOptimisticRef.current = isOptimistic;
+  }, [ideaId, isOptimistic]);
+
+  // --- API: Fetch Real Idea ---
+  const fetchUrl = !isOptimistic && ideaId ? `/ideas/${ideaId}` : null;
 
   const {
-    data: idea,
+    data: fetchedIdea,
     load: reloadIdea,
     loading: loadingIdea,
   } = useFetch<undefined, ISafeIdea>({
+    url: fetchUrl,
+    dependencies: [ideaId],
+    query: { withDerived: "true" },
+    method: "GET",
+    runOnMount: !!fetchUrl,
+  });
+
+  const ideaToRender: IdeaUnion | undefined =
+    optimisticFromStore || fetchedIdea;
+
+  const [title, setTitle] = useState<string>("");
+
+  useEffect(() => {
+    if (ideaToRender && document.activeElement !== titleRef.current) {
+      if (ideaToRender.title !== title) {
+        setTitle(ideaToRender.title);
+      }
+    }
+  }, [ideaToRender?.title, ideaToRender?.id]);
+
+  // --- API: Delete Idea (Hoisted) ---
+  const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
-    query: {
-      withDerived: "true",
+    method: "DELETE",
+    runOnMount: false,
+    onSuccess: () => {
+      navigate(-1);
+      showNotification({
+        title: "Success",
+        message: "Idea deleted successfully",
+      });
     },
-    method: "GET",
-    runOnMount: true,
-    onSuccess: (d) => {
-      if (document.activeElement !== titleRef.current) {
-        setTitle(d.title);
-      }
-      setOriginalIdea(d);
+    onError: (error: any) => {
+      // If error, reset the deleting flag so auto-save can resume if needed
+      isDeletingRef.current = false;
+      showNotification({
+        title: "Error Deleting",
+        message: error?.message || "Unknown error",
+        color: "red",
+      });
     },
   });
 
+  const handleDeleteIdea = useCallback(() => {
+    if (loadingDelete || isOptimistic) return;
+
+    modals.openConfirmModal({
+      title: "Delete this idea?",
+      centered: true,
+      children: (
+        <Text size="sm">
+          This action cannot be undone. All associated data will be lost.
+        </Text>
+      ),
+      labels: { confirm: "Delete Idea", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        // CRITICAL: Set the flag synchronously before triggering the delete/nav
+        isDeletingRef.current = true;
+        triggerDeleteIdea();
+      },
+    });
+  }, [loadingDelete, triggerDeleteIdea, isOptimistic]);
+
+  // --- API: Compute (Embeddings, Cascade, Title) ---
   const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/ideas/${ideaId}/embed`,
     method: "POST",
-    onSuccess: () => {},
-    onError: (error: any) => {
-      console.error("Error generating embeddings: ", error);
-    },
-    onFinally: () => {
-      reloadIdea();
-    },
+    onFinally: reloadIdea,
   });
 
   const { load: triggerDerivedCascade, loading: loadingDerivedCascade } =
@@ -132,13 +219,7 @@ export default function Idea() {
       url: `/ideas/${ideaId}/cascade`,
       dependencies: [ideaId],
       method: "POST",
-      onSuccess: () => {},
-      onError: (error: any) => {
-        console.error("Error generating derived cascade: ", error);
-      },
-      onFinally: () => {
-        reloadIdea();
-      },
+      onFinally: reloadIdea,
     });
 
   const { load: triggerTitleGeneration, loading: loadingTitleGeneration } =
@@ -146,186 +227,146 @@ export default function Idea() {
       url: `/ideas/${ideaId}/entitle`,
       dependencies: [ideaId],
       method: "POST",
-      onSuccess: () => {},
-      onError: (error: any) => {
-        console.error("Error generating title: ", error);
-      },
-      onFinally: () => {
-        reloadIdea();
-      },
+      onFinally: reloadIdea,
     });
 
-  const {
-    connectable: {
-      viewing: { set: setViewing },
-    },
-  } = useLandscape();
-
-  useEffect(() => {
-    if (idea) {
-      setViewing({
-        ...idea,
-        type: "idea",
-      });
-    }
-
-    return () => {
-      setViewing(null);
-    };
-  }, [idea]);
-
+  // --- Helpers ---
   const embeddingsOutOfDate = useCallback(() => {
-    if (!idea) {
-      return false;
-    }
-    if (!idea.embeddingsUpdatedAt) {
-      return true;
-    }
-    return new Date(idea.contentUpdatedAt) > new Date(idea.embeddingsUpdatedAt);
-  }, [ideaId, idea]);
+    if (!fetchedIdea || !fetchedIdea.embeddingsUpdatedAt) return true;
+    return (
+      new Date(fetchedIdea.contentUpdatedAt) >
+      new Date(fetchedIdea.embeddingsUpdatedAt)
+    );
+  }, [fetchedIdea]);
 
   const derivedOutOfDate = useCallback(() => {
-    if (!idea) {
-      return false;
-    }
-    if (
-      !idea.derived?.generative_summary ||
-      !idea.derived.generative_summary.createdAt
-    ) {
-      return true;
-    }
-    return (
-      new Date(idea.contentUpdatedAt) >
-      new Date(idea.derived.generative_summary.createdAt)
-    );
-  }, [ideaId, idea]);
+    if (!fetchedIdea) return false;
+    const summary = fetchedIdea.derived?.generative_summary;
+    if (!summary?.createdAt) return true;
+    return new Date(fetchedIdea.contentUpdatedAt) > new Date(summary.createdAt);
+  }, [fetchedIdea]);
 
   const titleNeedsGeneration = useCallback(() => {
-    if (!idea) {
-      return false;
-    }
-    const cleanTitle = idea.title.replaceAll(/_/g, "").replaceAll(/\n/g, "");
-    if (!cleanTitle || cleanTitle === "Untitled Idea") {
-      return true;
-    }
-    return false;
-  }, [ideaId, idea]);
+    if (!ideaToRender) return false;
+    const cleanTitle = ideaToRender.title
+      .replaceAll(/_/g, "")
+      .replaceAll(/\n/g, "");
+    return !cleanTitle || cleanTitle === "Untitled Idea";
+  }, [ideaToRender]);
 
-  const statusText = useCallback(() => {
-    let text = "";
-    if (!idea) {
-      return "Still loading...";
-    }
-    const { wordCount, characterCount, sentenceCount } = getTextProcessed(
-      htmlToPlainText(idea.content),
-    );
-    text += "Saved. ";
-    text += `${wordCount} word${characterCount === 1 ? "" : "s"}. `;
-    text += `${characterCount} character${characterCount === 1 ? "" : "s"}. `;
-    text += `${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}. `;
-    if (loadingEmbeddings) {
-      text += "Indexing... ";
-    }
-    return text.trim();
-  }, [idea, ideaId, loadingEmbeddings, embeddingsOutOfDate]);
-
-  useEffect(() => {
-    if (statusText()) {
-      setStatusMessage(statusText());
-    }
-
-    return () => {
-      setStatusMessage("");
-    };
-  }, [statusText()]);
-
-  const updateTitle = async (newTitle: string) => {
-    await api
-      .put(`/ideas/${ideaId}`, {
-        title: newTitle,
-      })
-      .then(() => {
-        reloadIdea();
-      });
-  };
-  const debouncedUpdateTitle = useDebouncedCallback(updateTitle, 500);
-
-  useEffect(() => {
-    if (title && originalIdea?.title !== title) {
-      debouncedUpdateTitle(title);
-    }
-  }, [title, originalIdea]);
-
-  const isMountedRef = useRef(false);
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  const triggerComputeIfNeeded = useCallback(async () => {
-    if (!isMountedRef.current) {
-      return;
-    }
-
-    if (embeddingsOutOfDate() && !loadingEmbeddings) {
-      triggerEmbedIdea();
-    }
-    if (derivedOutOfDate() && !loadingDerivedCascade) {
-      triggerDerivedCascade();
-    }
-  }, [
-    idea,
+  // --- Logic Loop Prevention ---
+  const computeStateRef = useRef({
+    isOptimistic,
     ideaId,
     loadingEmbeddings,
     loadingDerivedCascade,
     embeddingsOutOfDate,
     derivedOutOfDate,
-  ]);
+    triggerEmbedIdea,
+    triggerDerivedCascade,
+  });
 
   useEffect(() => {
+    computeStateRef.current = {
+      isOptimistic,
+      ideaId,
+      loadingEmbeddings,
+      loadingDerivedCascade,
+      embeddingsOutOfDate,
+      derivedOutOfDate,
+      triggerEmbedIdea,
+      triggerDerivedCascade,
+    };
+  });
+
+  useEffect(() => {
+    isMountedRef.current = true;
     return () => {
-      triggerComputeIfNeeded();
+      isMountedRef.current = false;
+      const state = computeStateRef.current;
+
+      // FIX: This flag is now reliable because we set it locally in handleDeleteIdea
+      if (isDeletingRef.current) return;
+
+      if (!state.isOptimistic && state.ideaId) {
+        if (state.embeddingsOutOfDate() && !state.loadingEmbeddings) {
+          state.triggerEmbedIdea();
+        }
+        if (state.derivedOutOfDate() && !state.loadingDerivedCascade) {
+          state.triggerDerivedCascade();
+        }
+      }
     };
   }, []);
 
-  const [editorContent, setEditorContent] = useState<string>();
-  const currentIdeaId = useRef(idea?.id);
-  useEffect(() => {
-    const idChanged = currentIdeaId.current !== idea?.id;
-    if (idChanged && idea) {
-      currentIdeaId.current = idea.id;
-      setEditorContent(idea.content);
-    }
+  // --- Layout Effects ---
+  useDocumentTitle(`${title || "Loading..."} - Noeko`);
 
-    return () => {
-      setEditorContent(undefined);
-    };
-  }, [idea?.id]);
+  useEffect(() => {
+    if (ideaToRender) {
+      setViewing({ ...ideaToRender, type: "idea" });
+    }
+    return () => setViewing(null);
+  }, [ideaToRender?.id]);
+
+  useEffect(() => {
+    if (!ideaToRender) {
+      setStatusMessage("Still loading...");
+      return;
+    }
+    if (isOptimistic) {
+      setStatusMessage("Saving...");
+      return;
+    }
+    const { wordCount, characterCount, sentenceCount } = getTextProcessed(
+      htmlToPlainText(ideaToRender.content),
+    );
+    let text = `Saved. ${wordCount} word${
+      wordCount === 1 ? "" : "s"
+    }. ${characterCount} char${characterCount === 1 ? "" : "s"}. ${sentenceCount} sentence${
+      sentenceCount === 1 ? "" : "s"
+    }.`;
+    if (loadingEmbeddings) text += " Indexing...";
+    setStatusMessage(text);
+    return () => setStatusMessage("");
+  }, [ideaToRender, isOptimistic, loadingEmbeddings, setStatusMessage]);
 
   const handleEditorBlur = useCallback(async () => {
-    await triggerComputeIfNeeded();
-  }, [ideaId, idea]);
+    if (isOptimistic || isDeletingRef.current) return;
+    if (embeddingsOutOfDate() && !loadingEmbeddings) triggerEmbedIdea();
+    if (derivedOutOfDate() && !loadingDerivedCascade) triggerDerivedCascade();
+  }, [
+    isOptimistic,
+    embeddingsOutOfDate,
+    derivedOutOfDate,
+    loadingEmbeddings,
+    loadingDerivedCascade,
+    triggerEmbedIdea,
+    triggerDerivedCascade,
+  ]);
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const highlightText = searchParams.get("highlightText");
+  const updateTitle = async (newTitle: string) => {
+    if (isOptimistic) return;
+    await api
+      .put(`/ideas/${ideaId}`, { title: newTitle })
+      .then(() => reloadIdea());
+  };
+
   const handleContentReady = useCallback(() => {
     if (highlightText) {
       window.location.hash = highlightText;
     }
-  }, [highlightText]);
-
-  const editorRef = useRef<IEditor>(null);
+    if (editorRef.current && !editorReady) {
+      setEditorReady(true);
+    }
+  }, [highlightText, editorReady]);
 
   const connectable = useConnectable({
-    connectable: idea ? { ...idea, type: "idea" } : null,
+    connectable: ideaToRender ? { ...ideaToRender, type: "idea" } : null,
   });
-  const { connect, isConnected, connected } = connectable;
+  const { connect, isConnected } = connectable;
 
-  const handleTitleGen = () => {
-    triggerTitleGeneration();
-  };
+  const safeIdea = isOptimistic ? undefined : (ideaToRender as ISafeIdea);
 
   return (
     <PageWrapper>
@@ -340,15 +381,16 @@ export default function Idea() {
                   Context
                 </Group>
               </Tabs.Tab>
-              <Tabs.Tab value="insights">
+              <Tabs.Tab value="insights" disabled={isOptimistic}>
                 <Group gap="xs">
                   <EyeIcon weight="bold" />
                   Insights
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
+
             <Tabs.Panel value="context">
-              {!!idea?.derived?.generative_summary && (
+              {safeIdea?.derived?.generative_summary && (
                 <Card
                   radius="lg"
                   p={"sm"}
@@ -363,8 +405,8 @@ export default function Idea() {
                     The Gist
                   </Text>
                   <Text size="sm">
-                    {idea?.derived?.generative_summary?.sentenceSummary ||
-                      idea?.derived?.generative_summary?.sentenceOverview || (
+                    {safeIdea.derived.generative_summary.sentenceSummary ||
+                      safeIdea.derived.generative_summary.sentenceOverview || (
                         <Text span c="dimmed" fs="italic">
                           No overview available.
                         </Text>
@@ -372,65 +414,76 @@ export default function Idea() {
                   </Text>
                 </Card>
               )}
-              {!!idea && (
+
+              {safeIdea && (
                 <>
                   <Space my="lg" />
                   <ConnectionManager
-                    connectable={{
-                      ...idea,
-                      type: "idea",
-                    }}
+                    connectable={{ ...safeIdea, type: "idea" }}
                   />
                   <Space my="lg" />
                 </>
               )}
+              {isOptimistic && <Loading size="sm" />}
             </Tabs.Panel>
+
             <Tabs.Panel value="insights">
               <Insights
                 loadingIdea={loadingIdea}
-                idea={idea}
+                idea={safeIdea}
                 reloadIdea={reloadIdea}
               />
             </Tabs.Panel>
           </Tabs>
         </LeftSidebar.Open>
       </LeftSidebar>
-      <Content>
+
+      <Content key={contentKey}>
         <div className={styles.ideaContainer}>
           <Stack gap="md">
             <Stack>
-              {idea && editorRef.current && (
+              {ideaToRender && editorRef.current && (
                 <Tools
                   connectable={connectable}
                   editor={editorRef.current}
-                  idea={idea}
+                  idea={ideaToRender}
                   reloadIdea={reloadIdea}
                   loadingIdea={loadingIdea}
+                  isOptimistic={isOptimistic}
+                  // FIX: Pass the deletion state and handler down
+                  onDelete={handleDeleteIdea}
+                  loadingDelete={loadingDelete}
                 />
               )}
+
               <Group gap="xs">
                 <Title
                   ref={titleRef}
                   order={1}
                   m="0"
                   pr="md"
-                  contentEditable
+                  contentEditable={!isOptimistic}
                   suppressContentEditableWarning
                   onBlur={(e) => {
+                    if (isOptimistic) return;
                     const newTitle = e.currentTarget.innerText;
                     if (newTitle !== title) {
                       setTitle(newTitle);
+                      updateTitle(newTitle);
                     }
                   }}
                   className={styles.editableTitle}
+                  style={{
+                    opacity: isOptimistic ? 0.7 : 1,
+                    cursor: isOptimistic ? "not-allowed" : "text",
+                  }}
                 >
                   {title || ""}
                 </Title>
-                {titleNeedsGeneration() && (
+
+                {titleNeedsGeneration() && !isOptimistic && (
                   <ActionIcon
-                    onClick={() => {
-                      handleTitleGen();
-                    }}
+                    onClick={() => triggerTitleGeneration()}
                     variant="light"
                     size="md"
                     radius="md"
@@ -441,7 +494,8 @@ export default function Idea() {
                     <SparkleIcon size={14} weight="duotone" />
                   </ActionIcon>
                 )}
-                {idea?.titleGeneratedAt && (
+
+                {safeIdea?.titleGeneratedAt && (
                   <div
                     className={styles.generatedIndicator}
                     title={"This title was generated automatically."}
@@ -450,12 +504,11 @@ export default function Idea() {
                   </div>
                 )}
               </Group>
+
               <Box
                 bg="dark.9"
                 c="dark.1"
-                style={{
-                  borderRadius: "var(--mantine-radius-md)",
-                }}
+                style={{ borderRadius: "var(--mantine-radius-md)" }}
               >
                 <Flex gap="xs" direction={"row"}>
                   <Group gap="4px" align="center">
@@ -465,7 +518,9 @@ export default function Idea() {
                       weight="bold"
                     />
                     <Text size="xs" fw="500">
-                      {idea?.createdAt ? `${formatDate(idea?.createdAt)}` : ""}
+                      {ideaToRender?.createdAt
+                        ? `${formatDate(ideaToRender.createdAt)}`
+                        : "Now"}
                     </Text>
                   </Group>
                   <Text size="sm" fw="bold" c="dark.4">
@@ -478,42 +533,41 @@ export default function Idea() {
                       weight="bold"
                     />
                     <Text size="xs" fw="500">
-                      {idea?.updatedAt
-                        ? `${formatDateTime(idea?.updatedAt)}`
-                        : ""}
+                      {ideaToRender?.updatedAt
+                        ? `${formatDateTime(ideaToRender.updatedAt)}`
+                        : "Now"}
                     </Text>
                   </Group>
                 </Flex>
               </Box>
-              {idea && (
+
+              {safeIdea && (
                 <TagsManager
-                  connectable={{
-                    ...idea,
-                    type: "idea",
-                  }}
+                  connectable={{ ...safeIdea, type: "idea" }}
                   maxSuggested={1}
                 />
               )}
             </Stack>
+
             <div className={styles.contentArea}>
-              {idea && (
+              {ideaToRender && (
                 <DreamWriter
-                  key={ideaId}
-                  // initialContent={editorContent}
                   stickyMenu={false}
                   onBlur={handleEditorBlur}
                   onContentReady={handleContentReady}
-                  dependencies={[ideaId, idea.id]}
+                  dependencies={[ideaId, ideaToRender.id]}
                   ref={editorRef}
-                  collaborationId={idea.id.toString()}
-                  connectableId={idea.id.toString()}
+                  collaborationId={
+                    !isOptimistic ? ideaToRender.id.toString() : undefined
+                  }
+                  connectableId={ideaToRender.id.toString()}
                 />
               )}
             </div>
           </Stack>
         </div>
       </Content>
-      <Nav></Nav>
+      <Nav />
       <RightSidebar startOpened={isDesktop}>
         <RightSidebar.Open>
           <Tabs defaultValue="search">
@@ -524,7 +578,7 @@ export default function Idea() {
                   Search
                 </Group>
               </Tabs.Tab>
-              <Tabs.Tab value="access">
+              <Tabs.Tab value="access" disabled={isOptimistic}>
                 <Group gap="xs">
                   <UserCirclePlusIcon weight="fill" size={14} />
                   Access
@@ -534,40 +588,28 @@ export default function Idea() {
             <Tabs.Panel value="search">
               <Search
                 resultActions={[
-                  (thing) => {
-                    return {
-                      id: "connect",
-                      label: "Connect",
-                      onClick: () => {
-                        connect(thing.id.toString());
-                      },
-                      disabled: !!isConnected(thing.id.toString()),
-                    };
-                  },
+                  (thing) => ({
+                    id: "connect",
+                    label: "Connect",
+                    onClick: () => connect(thing.id.toString()),
+                    disabled:
+                      !!isConnected(thing.id.toString()) || isOptimistic,
+                  }),
                 ]}
               />
             </Tabs.Panel>
             <Tabs.Panel value="access">
-              {!!idea && (
-                <>
-                  {isMobile ? (
-                    <Box p="md">
-                      <Text size="sm" c="dimmed" ta="center">
-                        Access controls can be found in the toolbar at the top
-                        of the screen.
-                      </Text>
-                    </Box>
-                  ) : (
-                    <AccessManager
-                      connectable={{
-                        ...idea,
-                        type: "idea",
-                      }}
-                    />
-                  )}
-                </>
-              )}
-              {!idea && <Loading size="sm" />}
+              {safeIdea &&
+                (isMobile ? (
+                  <Box p="md">
+                    <Text size="sm" c="dimmed" ta="center">
+                      Access controls are in the top toolbar.
+                    </Text>
+                  </Box>
+                ) : (
+                  <AccessManager connectable={{ ...safeIdea, type: "idea" }} />
+                ))}
+              {!safeIdea && <Loading size="sm" />}
             </Tabs.Panel>
           </Tabs>
         </RightSidebar.Open>
@@ -577,162 +619,75 @@ export default function Idea() {
 }
 
 interface ITools {
-  idea: ISafeIdea;
-
+  idea: IdeaUnion;
   editor: IEditor;
-
   connectable: IUseConnectableReturn;
-
   reloadIdea: () => void;
-
   loadingIdea: boolean;
+  isOptimistic: boolean;
+  // FIX: Receive handler and state from parent
+  onDelete: () => void;
+  loadingDelete: boolean;
 }
 
 function Tools({
   idea,
-
   editor,
-
-  connectable,
-
-  reloadIdea,
-
-  loadingIdea,
+  isOptimistic,
+  onDelete,
+  loadingDelete,
 }: ITools) {
   const { isMobile } = useLayout();
-
   const navigate = useNavigate();
-
-  const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
-    url: `/ideas/${idea.id.toString()}`,
-
-    dependencies: [idea.id.toString()],
-
-    method: "DELETE",
-
-    onSuccess: () => {
-      navigate(-1);
-
-      showNotification({
-        title: "Success",
-
-        message: "Idea deleted successfully",
-      });
-    },
-
-    onError: (error: any) => {
-      console.error("Error deleting idea: ", error);
-
-      showNotification({
-        title: "Error Deleting",
-
-        message: `There was an error deleting the idea: ${
-          error?.response?.data?.message || error?.message || "Unknown error"
-        }`,
-
-        color: "red",
-      });
-    },
-  });
-
-  const handleDeleteIdea = useCallback(() => {
-    if (loadingDelete) return;
-
-    modals.openConfirmModal({
-      title: "Are you sure you want to delete this idea?",
-
-      centered: true,
-
-      children: (
-        <Text size="sm">
-          This action cannot be undone. All associated data will be lost.
-        </Text>
-      ),
-
-      labels: { confirm: "Delete Idea", cancel: "Cancel" },
-
-      confirmProps: { color: "red" },
-
-      onConfirm: () => triggerDeleteIdea(),
-    });
-  }, [loadingDelete, triggerDeleteIdea, idea.id.toString()]);
-
-  const downloadAsHTML = () => {
-    if (idea?.content) {
-      downloadTextAsFile(idea?.content, {
-        type: "text/html",
-
-        extension: "html",
-
-        name: idea.title,
-      });
-    }
-  };
-
-  const getMarkdownContent = () => {
-    if (!idea?.content) {
-      return "";
-    }
-
-    // if (editorRef.current?.storage.markdown) {
-
-    //   return editorRef.current?.storage.markdown.getMarkdown() as string;
-
-    // }
-
-    return htmlToMarkdown(idea?.content);
-  };
-
-  const downloadAsMarkdown = () => {
-    if (idea?.content && editor) {
-      const markdown = getMarkdownContent();
-
-      downloadTextAsFile(markdown, {
-        type: "text/markdown",
-
-        extension: "md",
-
-        name: idea.title,
-      });
-    }
-  };
-
   const { thingIsPinned, togglePin } = usePins();
-
   const [pinning, setPinning] = useState(false);
+  const [managingConnections, setManagingConnections] = useState(false);
+  const [managingAccess, setManagingAccess] = useState(false);
 
   const isPinned = thingIsPinned(idea.id);
+  const size = isMobile ? "lg" : "md";
+  const radius = "md";
 
   const handleTogglePin = async () => {
+    if (isOptimistic) return;
     try {
       setPinning(true);
-
       await togglePin(idea.id.toString());
-    } catch (error) {
-      console.error("Error toggling pin:", error);
     } finally {
       setPinning(false);
     }
   };
 
-  const size = isMobile ? "lg" : "md";
-
-  const radius = "md";
-
-  const handleBack = () => {
-    navigate(-1);
+  const getMarkdownContent = () => {
+    return idea?.content ? htmlToMarkdown(idea.content) : "";
   };
 
-  const [managingConnections, setManagingConnections] = useState(false);
+  const downloadAsHTML = () => {
+    if (idea?.content) {
+      downloadTextAsFile(idea.content, {
+        type: "text/html",
+        extension: "html",
+        name: idea.title,
+      });
+    }
+  };
 
-  const [managingAccess, setManagingAccess] = useState(false);
+  const downloadAsMarkdown = () => {
+    if (idea?.content) {
+      downloadTextAsFile(getMarkdownContent(), {
+        type: "text/markdown",
+        extension: "md",
+        name: idea.title,
+      });
+    }
+  };
 
   return (
     <div>
       <Group justify="space-between" wrap="nowrap">
         <Group wrap="nowrap">
           <ActionIcon
-            onClick={handleBack}
+            onClick={() => navigate(-1)}
             color="gray"
             variant="subtle"
             size={size}
@@ -744,16 +699,13 @@ function Tools({
 
         <Group wrap="nowrap">
           <ActionIcon
-            onClick={() => {
-              if (pinning) return;
-
-              handleTogglePin();
-            }}
+            onClick={() => !pinning && handleTogglePin()}
             aria-label={isPinned ? "Unpin" : "Pin"}
             size={size}
             radius={radius}
             variant="subtle"
             color="gray"
+            disabled={isOptimistic}
           >
             <PushPinIcon weight={isPinned ? "fill" : "bold"} />
           </ActionIcon>
@@ -767,6 +719,7 @@ function Tools({
                 variant="subtle"
                 color="gray"
                 onClick={() => setManagingConnections(true)}
+                disabled={isOptimistic}
               >
                 <UniteSquareIcon />
               </ActionIcon>
@@ -778,6 +731,7 @@ function Tools({
                 variant="subtle"
                 color="gray"
                 onClick={() => setManagingAccess(true)}
+                disabled={isOptimistic}
               >
                 <UserCirclePlusIcon weight="fill" />
               </ActionIcon>
@@ -785,7 +739,7 @@ function Tools({
           )}
 
           <Menu
-            width={300}
+            width={200}
             shadow="md"
             position="bottom-end"
             radius={radius}
@@ -814,7 +768,6 @@ function Tools({
               >
                 Export as HTML
               </Menu.Item>
-
               <Menu.Item
                 leftSection={<MarkdownLogoIcon />}
                 onClick={downloadAsMarkdown}
@@ -825,7 +778,7 @@ function Tools({
           </Menu>
 
           <Menu
-            width={300}
+            width={200}
             shadow="md"
             position="bottom-end"
             radius={radius}
@@ -841,6 +794,7 @@ function Tools({
                   radius={radius}
                   variant="subtle"
                   color="gray"
+                  disabled={isOptimistic}
                 >
                   <DotsThreeVerticalIcon weight="bold" />
                 </ActionIcon>
@@ -854,70 +808,52 @@ function Tools({
                   leftSection={
                     loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
                   }
-                  onClick={handleDeleteIdea}
+                  // FIX: Use handler passed from parent
+                  onClick={onDelete}
                   disabled={loadingDelete}
                 >
                   Delete
                 </Menu.Item>
               </Tooltip>
 
-              <Link
-                to="view"
-                style={{
-                  textDecoration: "none",
-                }}
-              >
-                <Menu.Item leftSection={<BookOpenIcon />} onClick={() => {}}>
-                  Viewonly
-                </Menu.Item>
+              <Link to="view" style={{ textDecoration: "none" }}>
+                <Menu.Item leftSection={<BookOpenIcon />}>View only</Menu.Item>
               </Link>
 
               <CopyButton value={getMarkdownContent()}>
-                {({ copied, copy }) => {
-                  return (
-                    <Menu.Item
-                      leftSection={
-                        copied ? <CheckIcon /> : <MarkdownLogoIcon />
-                      }
-                      onClick={copy}
-                    >
-                      Copy as Markdown
-                    </Menu.Item>
-                  );
-                }}
+                {({ copied, copy }) => (
+                  <Menu.Item
+                    leftSection={copied ? <CheckIcon /> : <MarkdownLogoIcon />}
+                    onClick={copy}
+                  >
+                    Copy as Markdown
+                  </Menu.Item>
+                )}
               </CopyButton>
 
               {idea?.content && (
-                <CopyButton value={htmlToPlainText(idea?.content)}>
-                  {({ copied, copy }) => {
-                    return (
-                      <Menu.Item
-                        leftSection={
-                          copied ? <CheckIcon /> : <CursorTextIcon />
-                        }
-                        onClick={copy}
-                      >
-                        Copy as Text
-                      </Menu.Item>
-                    );
-                  }}
+                <CopyButton value={htmlToPlainText(idea.content)}>
+                  {({ copied, copy }) => (
+                    <Menu.Item
+                      leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
+                      onClick={copy}
+                    >
+                      Copy as Text
+                    </Menu.Item>
+                  )}
                 </CopyButton>
               )}
 
               {idea?.content && (
-                <CopyButton value={idea?.content}>
-                  {({ copied, copy }) => {
-                    return (
-                      <Menu.Item
-                        leftSection={
-                          copied ? <CheckIcon /> : <CursorTextIcon />
-                        }
-                        onClick={copy}
-                      >
-                        Copy as HTML
-                      </Menu.Item>
-                    );
-                  }}
+                <CopyButton value={idea.content}>
+                  {({ copied, copy }) => (
+                    <Menu.Item
+                      leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
+                      onClick={copy}
+                    >
+                      Copy as HTML
+                    </Menu.Item>
+                  )}
                 </CopyButton>
               )}
             </Menu.Dropdown>
@@ -925,31 +861,25 @@ function Tools({
         </Group>
       </Group>
 
-      <PaperDrawer
-        title="Manage Connections"
-        opened={managingConnections}
-        onClose={() => setManagingConnections(false)}
-      >
-        <ConnectionManager
-          connectable={{
-            ...idea,
-            type: "idea",
-          }}
-        />
-      </PaperDrawer>
+      {!isOptimistic && (
+        <>
+          <PaperDrawer
+            title="Manage Connections"
+            opened={managingConnections}
+            onClose={() => setManagingConnections(false)}
+          >
+            <ConnectionManager connectable={{ ...idea, type: "idea" }} />
+          </PaperDrawer>
 
-      <PaperDrawer
-        title="Manage Access"
-        opened={managingAccess}
-        onClose={() => setManagingAccess(false)}
-      >
-        <AccessManager
-          connectable={{
-            ...idea,
-            type: "idea",
-          }}
-        />
-      </PaperDrawer>
+          <PaperDrawer
+            title="Manage Access"
+            opened={managingAccess}
+            onClose={() => setManagingAccess(false)}
+          >
+            <AccessManager connectable={{ ...idea, type: "idea" }} />
+          </PaperDrawer>
+        </>
+      )}
     </div>
   );
 }

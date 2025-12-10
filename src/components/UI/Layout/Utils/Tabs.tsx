@@ -36,16 +36,20 @@ interface ITabsTabProps {
   value: string;
   leftSection?: ReactNode;
   children: ReactNode;
+  disabled?: boolean;
 }
 
-const TabsTab = ({ value, leftSection, children }: ITabsTabProps) => {
+const TabsTab = ({ value, leftSection, children, disabled }: ITabsTabProps) => {
   const { activeTab, setActiveTab } = useTabs();
   const isActive = activeTab === value;
 
   return (
     <button
-      onClick={() => setActiveTab(value)}
-      className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
+      onClick={() => !disabled && setActiveTab(value)}
+      disabled={disabled}
+      className={`${styles.tab} ${isActive ? styles.tabActive : ""} ${
+        disabled ? styles.tabDisabled : ""
+      }`}
     >
       {leftSection && (
         <span className={styles.tabLeftSection}>{leftSection}</span>

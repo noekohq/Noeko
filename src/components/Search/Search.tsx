@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearch } from "../../contexts/SearchContext";
 import { SearchBar } from "./SearchBar";
 import {
-  Button,
   Container,
   Group,
   Loader,
@@ -20,8 +19,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import useRabbithole from "../../hooks/useRabbithole";
 import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
 import { ArrowClockwiseIcon, IconProps, PlusIcon } from "@phosphor-icons/react";
-import ConnectableThing from "../Display/Interactions/Connections/ConnectableThing";
-import CollapseButton from "../Display/Interactions/CollapseButton";
 import { ISearchResultValue } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { IConnectable } from "../../../app/services/Graph";
