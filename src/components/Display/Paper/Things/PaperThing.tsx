@@ -136,7 +136,7 @@ export default function PaperThing({
             <div className={styles.contentWrapper}>
               <Stack gap={2}>
                 <Text className={styles.title} truncate="end" title={title}>
-                  {title.trim() || "Untitled"}
+                  {title?.trim() || "Untitled"}
                 </Text>
                 <Text
                   className={styles.detail}
