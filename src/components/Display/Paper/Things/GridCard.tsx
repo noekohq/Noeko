@@ -132,7 +132,7 @@ export default function GridCard({
 
             {/* ROW 2: Title */}
             <Text lineClamp={1} fw="bold" size="md" title={title} w={"100%"}>
-              {title.trim() || "Untitled"}
+              {title?.trim() || "Untitled"}
             </Text>
 
             {/* ROW 3: Content Detail */}

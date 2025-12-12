@@ -92,7 +92,11 @@ export default function Textbox({
         }
       }}
       onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setIsFocused(false);
+        }
+      }}
     >
       <textarea
         placeholder={placeholder}
