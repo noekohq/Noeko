@@ -22,7 +22,6 @@ import PaperDrawer from "../../Paper/PaperDrawer";
 
 interface TagPickerProps {
   onSelectExisting: (tag: ITag) => void;
-  // Made optional to support filter mode where creation isn't needed
   onCreateNew?: (
     name: string,
     description: string,
@@ -30,7 +29,6 @@ interface TagPickerProps {
   ) => Promise<void>;
   omitIds?: string[];
   initialSuggestions?: ITag[];
-  /** Whether to show the form to create a new tag if not found. Defaults to true. */
   allowCreation?: boolean;
 }
 

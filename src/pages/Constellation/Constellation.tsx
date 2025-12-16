@@ -17,18 +17,14 @@ import { Group, Loader, Text } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
-import StatusBar from "../../components/UI/Layout/Bottom";
 import {
   IConstellationLoader,
   IGraphFilters,
   ILoadedConstellation,
 } from "../../../app/services/Graph";
 import GraphLoader from "../../components/Utils/Loading/GraphLoader";
-import useRabbithole from "../../hooks/useRabbithole";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useGraph } from "../../contexts/GraphContext";
-import { useTourStep } from "../../contexts/TourGuideContext";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 

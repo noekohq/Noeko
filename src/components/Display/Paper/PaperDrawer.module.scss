@@ -28,15 +28,10 @@
 }
 
 .body {
-    /* ... existing layout styles ... */
     min-height: 60vh;
     max-height: 80vh;
     overflow-y: auto;
 
-    /* 3. The "Native" Feel:
-           Use a custom cubic-bezier. This specific curve (0.32, 0.72, 0, 1)
-           starts quickly and has a long, smooth "braking" distance.
-           It feels snappy but expensive. */
     animation: bodyIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 
     position: fixed;

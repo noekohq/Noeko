@@ -7,38 +7,47 @@ import { useSearch } from "../contexts/SearchContext";
 import { api } from "../server/api";
 import useFetch from "./useFetch";
 import useRabbithole from "./useRabbithole";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface IUseSearchQueryParams {
+  query: string;
+  params?: Partial<IConnectableSearchQuery>;
   ignoreRabbithole?: boolean;
 }
 
 interface IUseSearchQueryReturn {
-  search: (q: string, params: Partial<IConnectableSearchQuery>) => void;
+  search: () => void;
   loading: boolean;
   complete: boolean;
   results: ISearchResult[] | null;
+  reset: () => void;
 }
 
 export default function useSearchQuery({
+  query,
+  params,
   ignoreRabbithole = false,
-}: IUseSearchQueryParams = {}): IUseSearchQueryReturn {
+}: IUseSearchQueryParams): IUseSearchQueryReturn {
   const [complete, setComplete] = useState(false);
 
   const { currentRabbithole } = useRabbithole();
   const withinRabbithole = ignoreRabbithole ? false : !!currentRabbithole;
   const {
     global: {
-      query: { get: query, set: setQuery },
+      query: { set: setQuery },
       results: { set: setResults, get: searchResults },
       loading: { set: setLoading, get: loadingSearch },
     },
   } = useSearch();
 
-  const search = async (
-    q: string,
-    params: Partial<IConnectableSearchQuery>,
-  ) => {
+  useEffect(() => {
+    setQuery(query);
+    if (!query) {
+      setResults(null);
+    }
+  }, [query]);
+
+  const search = async () => {
     try {
       const rabbitholeId = ignoreRabbithole
         ? undefined
@@ -63,7 +72,6 @@ export default function useSearchQuery({
       });
 
       const results = response.data.data as ISearchResult[];
-      console.log("Results: ", results);
       if (results === undefined || results === null) {
         throw new Error("Results were undefined");
       }
@@ -80,10 +88,18 @@ export default function useSearchQuery({
     }
   };
 
+  const handleReset = () => {
+    setQuery("");
+    setResults(null);
+    setComplete(false);
+    setLoading(false);
+  };
+
   return {
     search,
     loading: loadingSearch,
     complete,
     results: searchResults,
+    reset: handleReset,
   };
 }
