@@ -65,8 +65,8 @@ router.get("/", async (req, res): Promise<void> => {
       res.status(401).json({ message: "Unauthorized. User not found." });
       return;
     }
-
-    const tags = await Tag.getUserTags(user.id);
+    const limit = parseInt(req.query.limit as string);
+    const tags = await Tag.getAll(user.id, { limit });
     if (tags === undefined) {
       res.status(500).json({ message: "Error fetching user tags." });
       return;

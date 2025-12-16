@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -101,6 +101,18 @@ export default function Spyglass() {
       setQuery("");
     }
   }, [complete]);
+
+  const [searchParams, setParams] = useSearchParams();
+  useEffect(() => {
+    console.log("Search params: ", searchParams);
+    if (searchParams.get("q")) {
+      const q = searchParams.get("q") || "";
+      console.log("Got q: ", q);
+      const deepAnalysis = searchParams.get("deep") === "true";
+      setQuery(q);
+      setDeepAnalysis(deepAnalysis);
+    }
+  }, [searchParams]);
 
   return (
     <PageWrapper>

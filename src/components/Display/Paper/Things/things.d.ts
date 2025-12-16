@@ -5,7 +5,8 @@ export type IThing = {
   icon?: React.FC<IconProps>;
   link?: string;
   onDelete?: () => void;
-  onClick?: (id: string, e: React.MouseEvent) => void;
+  onClick?: (id: string, e: React.MouseEvent | React.KeyboardEvent) => void;
+  preventClickDefault?: boolean;
   draggable?: boolean;
 
   // The action on the right side (e.g., the "+" button)

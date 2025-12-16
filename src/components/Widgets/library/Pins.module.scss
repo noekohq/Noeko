@@ -1,9 +1,4 @@
 .pins {
   height: 100%;
-}
-
-.scrollablePins {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
+  overflow-y: scroll;
 }

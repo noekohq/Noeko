@@ -34,6 +34,7 @@ export default function PaperThing({
   onDelete,
   state = "default",
   onClick,
+  preventClickDefault,
   action,
   preview,
   draggable = false,
@@ -46,8 +47,8 @@ export default function PaperThing({
   // Ref for capturing the whole row as the drag image
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const handleMainClick = (e: React.MouseEvent) => {
-    if (link) {
+  const handleMainClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (link && !preventClickDefault) {
       navigate(link);
     }
     onClick?.(id, e);
@@ -103,6 +104,11 @@ export default function PaperThing({
             ref={rootRef}
             className={rootClasses}
             onClick={handleMainClick}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleMainClick(e);
+              }
+            }}
             onMouseEnter={() => {
               setHovering(true);
             }}

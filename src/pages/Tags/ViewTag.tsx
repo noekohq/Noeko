@@ -30,6 +30,8 @@ import {
   LightbulbIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
+  TagIcon,
+  TagSimpleIcon,
   TrashIcon,
   WarningCircleIcon,
   XIcon,
@@ -51,6 +53,8 @@ import { applyTagToThing, removeTagFromThing } from "../../utils/tags";
 import ConnectableTable from "../../components/Display/Data/ConnectableTable";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
+import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
+import PaperThing from "../../components/Display/Paper/Things/PaperThing";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -350,26 +354,25 @@ export default function ViewTag() {
                   Suggestions will populate based on usage.
                 </Text>
               )}
-              {suggestedThings?.map((thing) => (
-                <CollapseButton
-                  key={thing.id.toString()}
-                  target={<ConnectableThing thing={thing} />}
-                  details={
-                    <Group>
-                      <Button
-                        radius="lg"
-                        variant="light"
-                        color="gray"
-                        onClick={() => {
-                          handleAddTag(thing.id.toString());
-                        }}
-                      >
-                        Apply "{tag.name}"
-                      </Button>
-                    </Group>
-                  }
-                />
-              ))}
+              {suggestedThings?.map((thing) => {
+                const props = getThingPropsFromConnectable(
+                  thing,
+                  {
+                    action: {
+                      icon: TagIcon,
+                      onClick: (id, e) => {
+                        e.stopPropagation();
+                        applyTagToThing(tag.id.toString(), id);
+                      },
+                      tooltip: `Apply tag "${tag.name}"`,
+                    },
+                  },
+                  true,
+                );
+                return (
+                  <PaperThing key={thing.id.toString()} {...props} draggable />
+                );
+              })}
             </Stack>
           )}
         </LeftSidebar.Open>

@@ -23,9 +23,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid var(--mantine-color-blue-5);
-        outline-offset: 0px;
-        border-radius: var(--mantine-radius-lg);
+        box-shadow: 0 0 0 2px var(--mantine-color-blue-filled);
         z-index: 10;
     }
 

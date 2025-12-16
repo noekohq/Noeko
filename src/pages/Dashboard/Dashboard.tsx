@@ -64,7 +64,7 @@ export default function Dashboard() {
   const defaultWidgets: IAvailableWidgets[] = [
     "constellation",
     "taskList",
-    "serendipity",
+    // "serendipity",
     "pins",
   ];
 
