@@ -78,7 +78,7 @@ export default function useSearchQuery({
       setComplete(true);
       setResults(results);
     } catch (error) {
-      console.error("Error running search query: ", q, params, error);
+      console.error("Error running search query: ", query, params, error);
       showNotification({
         message: "Something went wrong",
       });
