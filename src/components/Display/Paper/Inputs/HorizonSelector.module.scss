@@ -1,13 +1,11 @@
 .wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden; // Contain the transitions
+    overflow: hidden;
 }
 
-// --- The Scrollable Strip (Presets Mode) ---
 .scrollArea {
     width: 100%;
-    // Fade masks for horizontal scrolling
     mask-image: linear-gradient(
         to right,
         transparent,
@@ -27,18 +25,16 @@
 .track {
     display: flex;
     gap: var(--mantine-spacing-xs);
-    padding: 4px var(--mantine-spacing-md); // Padding prevents first item clipping
+    padding: 4px var(--mantine-spacing-md);
 
-    // Ensure track is scrollable
     overflow-x: auto;
-    scrollbar-width: none; // Hide scrollbar FF
+    scrollbar-width: none;
     &::-webkit-scrollbar {
         display: none;
-    } // Hide scrollbar Chrome
+    }
     scroll-snap-type: x mandatory;
 }
 
-// --- The Form/Custom View (Custom Mode) ---
 .form {
     display: flex;
     flex-direction: column;
@@ -63,7 +59,6 @@
     }
 }
 
-// --- The Item Card ---
 @keyframes itemIn {
     0% {
         opacity: 0;
@@ -106,7 +101,6 @@
     transition: all 0.2s ease;
     user-select: none;
 
-    // Stagger animation delays for children
     @for $i from 1 through 10 {
         &:nth-child(#{$i}) {
             animation-delay: #{$i * 50}ms;
@@ -120,9 +114,9 @@
     }
 
     &[data-active="true"] {
-        background-color: var(--mantine-color-dark-1);
+        background-color: var(--mantine-color-dark-7);
         border-color: var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-9);
+        color: var(--mantine-color-dark-1);
 
         .description {
             color: rgba(255, 255, 255, 0.7);

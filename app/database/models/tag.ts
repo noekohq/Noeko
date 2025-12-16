@@ -235,6 +235,25 @@ export class Tag {
     }
   }
 
+  static async getAll(userId: string | RecordId, options?: { limit: number }) {
+    try {
+      const db = await getDatabase();
+      const limit = options?.limit ? Number(options.limit) : undefined;
+      const result = await db?.query<[ITag[]]>(
+        `SELECT * FROM tag WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt${limit ? " LIMIT $limit;" : ""};`,
+        { userId: new StringRecordId(userId), limit },
+      );
+      if (!result) {
+        throw new Error("Something went wrong getting tag: ", result);
+      }
+      const [tag] = result;
+      return tag;
+    } catch (error) {
+      console.error("Error getting user tags: ", [userId, error]);
+      return undefined;
+    }
+  }
+
   static async update(
     id: string | RecordId,
     data: Partial<

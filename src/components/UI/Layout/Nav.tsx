@@ -5,6 +5,7 @@ import {
   CaretUpIcon,
   HouseIcon,
   MagnifyingGlassIcon,
+  TagIcon,
   UserIcon,
 } from "@phosphor-icons/react";
 import {
@@ -82,6 +83,9 @@ export default function Nav({ children }: INavProps) {
     },
     rabbitholes: () => {
       return pathname.startsWith("/rabbithole");
+    },
+    tags: () => {
+      return pathname.startsWith("/tag");
     },
     constellation: () => {
       return pathname.startsWith("/constellation");
@@ -180,6 +184,18 @@ export default function Nav({ children }: INavProps) {
             size={iconSize}
           />
         </button>
+        {!isMobile && (
+          <button
+            className={`${styles.action} ${
+              activeMap.tags() ? styles.active : ""
+            }`}
+            onClick={() => {
+              navigate("/tags");
+            }}
+          >
+            <TagIcon weight="bold" size={iconSize} />
+          </button>
+        )}
         <button
           className={`${styles.action} ${
             activeMap.rabbitholes() ? styles.active : ""

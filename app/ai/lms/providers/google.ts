@@ -29,18 +29,22 @@ export default class GeminiProvider implements LMProvider {
   public static maxCharacters: number = max_lm_prompt_size;
 
   constructor() {
-    if (API_KEY) {
-      this.client = new GoogleGenAI({
-        apiKey: API_KEY,
-      });
-    } else if (GCP_PROJECT_ID) {
+    // Prefer Vertex AI (Service Account) if Project ID is set
+    if (GCP_PROJECT_ID) {
       this.client = new GoogleGenAI({
         vertexai: true,
         project: GCP_PROJECT_ID,
         location: GCP_LOCATION,
       });
+      // The library automatically looks for GOOGLE_APPLICATION_CREDENTIALS here
+    }
+    // Fallback to API Key
+    else if (API_KEY) {
+      this.client = new GoogleGenAI({
+        apiKey: API_KEY,
+      });
     } else {
-      throw new Error("Missing GEMINI_API_KEY or GCP_PROJECT_ID");
+      throw new Error("Missing GCP_PROJECT_ID (for Vertex) or GEMINI_API_KEY");
     }
     this._utils = new LMUtils(this);
     this._model = ModelMap.simple;

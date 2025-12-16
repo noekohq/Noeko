@@ -48,7 +48,7 @@ export default function Pins() {
 
 export const config: IWidgetConfig = {
   columns: {
-    default: 7,
+    default: 12,
     min: 6,
     max: 12,
   },

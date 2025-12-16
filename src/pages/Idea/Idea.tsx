@@ -88,7 +88,6 @@ export default function Idea() {
   const [editorReady, setEditorReady] = useState(false);
   const editorRef = useRef<IEditor>(null);
 
-  // FIX: This ref is now controlled directly by this component's own handlers
   const isDeletingRef = useRef(false);
   const isMountedRef = useRef(false);
 
@@ -111,7 +110,6 @@ export default function Idea() {
     isDesktop,
   } = useLayout();
 
-  // --- Sticky Optimistic State ---
   const optimisticFromStore = useMemo(() => {
     return ideaId ? getOptimisticIdea(ideaId) : undefined;
   }, [ideaId, getOptimisticIdea]);
@@ -122,7 +120,6 @@ export default function Idea() {
     setIsOptimistic(!!optimisticFromStore);
   }, [ideaId]);
 
-  // --- Animation Key Logic ---
   const [contentKey, setContentKey] = useState(ideaId);
   const wasOptimisticRef = useRef(isOptimistic);
 
@@ -134,7 +131,6 @@ export default function Idea() {
     wasOptimisticRef.current = isOptimistic;
   }, [ideaId, isOptimistic]);
 
-  // --- API: Fetch Real Idea ---
   const fetchUrl = !isOptimistic && ideaId ? `/ideas/${ideaId}` : null;
 
   const {

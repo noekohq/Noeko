@@ -1649,11 +1649,6 @@ export default class GraphService {
     }
   }
 
-  /**
-   * Batch ensures that a source is connected to multiple targets.
-   * Uses the 'connected' edge.
-   * Idempotent and efficient for migration/healing.
-   */
   public static async ensureConnected(
     sourceId: string | RecordId,
     targetIds: (string | RecordId)[],

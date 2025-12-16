@@ -2,7 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./TopBar.module.scss";
 import { useSearch } from "../../../contexts/SearchContext";
 import { MagnifyingGlassIcon, PushPinIcon, XIcon } from "@phosphor-icons/react";
-import { ActionIcon, Group, Loader, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Center,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  Transition,
+} from "@mantine/core";
 import { useLayout } from "../../../contexts/LayoutContext";
 import useSearchQuery from "../../../hooks/useSearchQuery";
 import useRabbithole from "../../../hooks/useRabbithole";
@@ -15,6 +23,11 @@ import { formatDateTime } from "../../../utils/formatting";
 import PaperSearchResult from "../../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import PaperIcon from "../../Display/Paper/PaperIcon";
+import useFetch from "../../../hooks/useFetch";
+import { ITag } from "../../../../app/database/models/tag";
+import { TagPicker } from "../../Display/Interactions/Tags/TagPicker";
+import PaperButton from "../../Display/Paper/PaperButton";
+import LangtonsAntLoader from "../../Utils/Loading/AntLoader";
 
 export default function TopBar() {
   const quips = [
@@ -39,14 +52,22 @@ export default function TopBar() {
     return quips[Math.floor(Math.random() * quips.length)];
   }, []);
 
+  const [query, setQuery] = useState("");
+  const [dateAfter, setDateAfter] = useState<string | undefined>();
+
   const { isDownRabbithole, currentRabbithole } = useRabbithole();
-  const {
-    global: {
-      query: { set: setQuery, get: query },
-      results: { set: setResults },
+  const { search, results, loading, complete, reset } = useSearchQuery({
+    query,
+    params: {
+      ...(dateAfter && {
+        date: {
+          updatedAt: {
+            after: dateAfter,
+          },
+        },
+      }),
     },
-  } = useSearch();
-  const { search, results, loading, complete } = useSearchQuery();
+  });
   const {
     isMobile,
     scroll: { isScrolled, scrollDirection },
@@ -68,25 +89,27 @@ export default function TopBar() {
   const showResults = isFocused || query.length > 0;
 
   const clear = () => {
+    reset();
     setQuery("");
-    setResults(null);
     setDateAfter("");
   };
 
-  const [dateAfter, setDateAfter] = useState<string | undefined>();
+  // const { data: recentTags, load: loadRecentTags } = useFetch<
+  //   undefined,
+  //   ITag[]
+  // >({
+  //   url: "/tags?limit=10",
+  // });
+  // useEffect(() => {
+  //   loadRecentTags();
+  // }, [isFocused]);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (!query) {
       return;
     }
-    search(query, {
-      date: {
-        updatedAt: {
-          after: dateAfter,
-        },
-      },
-    });
-  };
+    search();
+  }, [query, dateAfter]);
 
   useEffect(() => {
     handleSearch();
@@ -101,13 +124,6 @@ export default function TopBar() {
   const {
     actions: { newRabbithole },
   } = useInteraction();
-
-  useEffect(() => {
-    return () => {
-      setResults(null);
-      setQuery("");
-    };
-  }, []);
 
   const location = useLocation();
   const actionIconActive = location.pathname.includes("pinned");
@@ -185,98 +201,99 @@ export default function TopBar() {
             }}
           >
             <Stack gap="md">
-              {!results?.length && !loading && (
-                <>
-                  <Text size="sm" c="dimmed">
-                    Search for anything...
-                  </Text>
-                </>
-              )}
-              <Group>
-                <PaperChip
-                  onClick={() =>
-                    setDateAfter((prev) =>
-                      prev === pastWeekISO ? undefined : pastWeekISO,
-                    )
-                  }
-                  active={dateAfter === pastWeekISO}
-                >
-                  Past Week
-                </PaperChip>
-                <PaperChip
-                  onClick={() =>
-                    setDateAfter((prev) =>
-                      prev === pastMonthISO ? undefined : pastMonthISO,
-                    )
-                  }
-                  active={dateAfter === pastMonthISO}
-                >
-                  Past Month
-                </PaperChip>
-                {/*<PaperChip
-                  onClick={() =>
-                    setDateAfter((prev) =>
-                      prev === pastYearISO ? undefined : pastYearISO,
-                    )
-                  }
-                  active={dateAfter === pastYearISO}
-                >
-                  Past Year
-                </PaperChip>*/}
-              </Group>
-              {loading && (
-                <Group align="center" justify="flex-start" gap="sm">
-                  <Loader size="xs" color="gray" />
-                  <Text size="sm">Loading results...</Text>
-                </Group>
-              )}
-              {complete && results && results.length > 0 && (
-                <>
-                  <Text size="md" fw="bold" c="dimmed">
-                    Results ({results.length})
-                  </Text>
-                  {/*<Group wrap="nowrap">
-                    <ActionIcon
-                      variant="light"
-                      color="yellow"
-                      radius="md"
-                      size={"md"}
-                    >
-                      <RabbitholeIcon
-                        size={16}
-                        color="var(--mantine-color-dark-2)"
-                      />
-                    </ActionIcon>
-                  </Group>*/}
-                  <Stack gap="lg">
-                    {results.map((s) => {
-                      const title = getNodeTitle(s.value);
-                      const preview =
-                        s.highlightText ?? getNodeDescription(s.value);
-                      const updatedAt = formatDateTime(s.value.updatedAt);
-
-                      if (!title || !preview || !updatedAt) {
-                        return null;
-                      }
-
-                      return (
-                        <PaperSearchResult
-                          node={s.value}
-                          title={title || "Untitled Thing"}
-                          snippet={preview}
-                          onSelect={(node) => {
-                            navigate(`/${node.type}/${node.id.toString()}`);
-                          }}
-                        />
-                      );
-                    })}
+              {query.length < 1 && (
+                <div className={styles.filters}>
+                  <Stack gap="sm">
+                    <Text fw="bold" c="dimmed">
+                      FILTERS
+                    </Text>
+                    <Group>
+                      <PaperChip
+                        onClick={() =>
+                          setDateAfter((prev) =>
+                            prev === pastWeekISO ? undefined : pastWeekISO,
+                          )
+                        }
+                        active={dateAfter === pastWeekISO}
+                      >
+                        Past Week
+                      </PaperChip>
+                      <PaperChip
+                        onClick={() =>
+                          setDateAfter((prev) =>
+                            prev === pastMonthISO ? undefined : pastMonthISO,
+                          )
+                        }
+                        active={dateAfter === pastMonthISO}
+                      >
+                        Past Month
+                      </PaperChip>
+                      {/*<PaperChip
+                        onClick={() =>
+                          setDateAfter((prev) =>
+                            prev === pastYearISO ? undefined : pastYearISO,
+                          )
+                        }
+                        active={dateAfter === pastYearISO}
+                      >
+                        Past Year
+                      </PaperChip>*/}
+                    </Group>
                   </Stack>
-                </>
+                </div>
               )}
+              {loading && (
+                <Center h={500}>
+                  <LangtonsAntLoader cellSize={18} stepsPerSecond={10} />
+                </Center>
+              )}
+              <Transition
+                mounted={complete && !!results && results.length > 0}
+                transition="fade-up"
+              >
+                {(styles) => {
+                  return (
+                    <Stack gap="sm" style={styles}>
+                      {results?.map((s) => {
+                        const title = getNodeTitle(s.value);
+                        const preview =
+                          s.highlightText ?? getNodeDescription(s.value);
+                        const updatedAt = formatDateTime(s.value.updatedAt);
+
+                        if (!title || !preview || !updatedAt) {
+                          return null;
+                        }
+
+                        return (
+                          <PaperSearchResult
+                            node={s.value}
+                            title={title || "Untitled Thing"}
+                            snippet={preview}
+                            onSelect={(node) => {
+                              navigate(`/${node.type}/${node.id.toString()}`);
+                            }}
+                          />
+                        );
+                      })}
+                    </Stack>
+                  );
+                }}
+              </Transition>
               {complete && results && results.length < 1 && (
-                <Text size="md" fw="bold" c="dimmed">
-                  No Results :(
-                </Text>
+                <Stack>
+                  <Text size="md" fw="bold" c="dimmed">
+                    There's nothing here!
+                  </Text>
+                  <Link
+                    to={`/spyglass?q=${query}`}
+                    style={{ textDecoration: "none" }}
+                    onClick={() => {
+                      setIsFocused(false);
+                    }}
+                  >
+                    <PaperButton>Search with Spyglass?</PaperButton>
+                  </Link>
+                </Stack>
               )}
             </Stack>
           </div>
