@@ -197,7 +197,6 @@ export default function Constellation() {
             {clippedText(statusText(), 24)}
           </Text>
         </div>
-        {isLoading && <GraphLoader />}
         {!!graphData && !isLoading && (
           <GraphContainer
             width={containerRef.current?.clientWidth}
@@ -206,6 +205,7 @@ export default function Constellation() {
           />
         )}
       </div>
+      {isLoading && <GraphLoader />}
     </div>
   );
 }

@@ -34,6 +34,7 @@ export default function GridCard({
   link,
   state = "default",
   onClick,
+  preventClickDefault,
   action,
   preview,
   draggable = false,
@@ -47,7 +48,7 @@ export default function GridCard({
   const rootRef = useRef<HTMLDivElement>(null);
 
   const handleMainClick = (e: React.MouseEvent) => {
-    if (link) {
+    if (link && !preventClickDefault) {
       navigate(link);
     }
     onClick?.(id, e);

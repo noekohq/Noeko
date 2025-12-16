@@ -43,14 +43,14 @@ export default function CaptureButton() {
     action: () => void;
     icon: Icon;
   }[] = [
-    {
-      label: "Source",
-      icon: FileIcon,
-      action: () => {
-        newSource();
-        toggle();
-      },
-    },
+    // {
+    //   label: "Source",
+    //   icon: FileIcon,
+    //   action: () => {
+    //     newSource();
+    //     toggle();
+    //   },
+    // },
     {
       label: "Rabbithole",
       icon: RabbitIcon,
