@@ -4,14 +4,9 @@ import {
   ISearchResult,
 } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
-import { Loader, ActionIcon, Textarea, Flex, List, Text } from "@mantine/core";
+import { Loader, ActionIcon, Textarea } from "@mantine/core";
 import styles from "./SearchBar.module.scss";
-import {
-  MagnifyingGlass,
-  MagnifyingGlassIcon,
-  X,
-  XIcon,
-} from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import useShortcuts, { IShortcut } from "../../hooks/useShortcuts";
 import { useSearch } from "../../contexts/SearchContext";
 import useRabbithole from "../../hooks/useRabbithole";
@@ -116,20 +111,25 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
       },
     });
 
-    const internalRef = useRef<HTMLTextAreaElement>(null);
-    useEffect(() => {
-      if (ref) {
-        if (typeof ref === "function") {
-          ref(internalRef.current);
-        } else {
-          ref.current = internalRef.current;
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
+    const setRefs = useCallback(
+      (node: HTMLTextAreaElement) => {
+        inputRef.current = node;
+        if (ref) {
+          if (typeof ref === "function") {
+            ref(node);
+          } else {
+            ref.current = node;
+          }
         }
-      }
-    }, [ref]);
+      },
+      [ref],
+    );
 
     const isFocused = () => {
       const activeElement = document.activeElement;
-      return activeElement === internalRef.current;
+      return activeElement === inputRef.current;
     };
 
     useShortcuts({
@@ -137,7 +137,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
         {
           keys: { key: "Escape" },
           run: () => {
-            internalRef.current?.blur();
+            inputRef.current?.blur();
           },
         },
         ...(onShortcuts
@@ -157,8 +157,6 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           : []),
       ],
     });
-
-    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const clearResults = useCallback(() => {
       setQuery("");
@@ -194,7 +192,11 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
     });
 
     return (
-      <div className={styles.searchBar} ref={tourRef}>
+      <div
+        className={`${styles.searchBar} ${focused ? styles.focused : ""}`}
+        ref={tourRef}
+        onClick={() => inputRef.current?.focus()}
+      >
         <Textarea
           minRows={1}
           maxRows={4}
@@ -204,9 +206,11 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           onChange={(e) => setQuery(e.target.value)}
           placeholder={focused ? placeholderQuip : placeholder}
           classNames={{
+            wrapper: styles.wrapper,
             input: `${styles.input} ${
               withinRabbithole ? styles.withinRabbithole : ""
             } ${focused ? styles.focused : ""}`,
+            section: `${styles.section}`,
           }}
           onKeyDown={(e) => {
             if (!e.shiftKey && e.key === "Enter") {
@@ -215,25 +219,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
               searchIdeas();
             }
           }}
-          rightSection={
-            loadingIdeas ? (
-              <Loader size="xs" />
-            ) : query.length > 0 ? (
-              <Flex direction="column" h="100%" justify="center">
-                <ActionIcon
-                  variant="light"
-                  size="sm"
-                  color="gray"
-                  onClick={clearResults}
-                >
-                  <XIcon weight="bold" />
-                </ActionIcon>
-              </Flex>
-            ) : (
-              <MagnifyingGlassIcon />
-            )
-          }
-          ref={inputRef}
+          ref={setRefs}
           onBlur={() => {
             onBlur && onBlur();
 
@@ -245,6 +231,22 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
             setPlaceholderQuip(getRandomQuip());
           }}
         />
+        <div className={styles.indicator}>
+          {loadingIdeas ? (
+            <Loader size="xs" />
+          ) : query.length > 0 ? (
+            <ActionIcon
+              variant="light"
+              size="sm"
+              color="gray"
+              onClick={clearResults}
+            >
+              <XIcon weight="bold" />
+            </ActionIcon>
+          ) : (
+            <MagnifyingGlassIcon />
+          )}
+        </div>
       </div>
     );
   },

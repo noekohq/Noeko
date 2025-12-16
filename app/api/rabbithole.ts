@@ -81,7 +81,7 @@ router.get("/", async (req, res) => {
       });
       return;
     }
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string);
     const rabbitholes = await Rabbithole.getAll(user.id.toString(), { limit });
     if (!rabbitholes) {
       res.status(500).send({

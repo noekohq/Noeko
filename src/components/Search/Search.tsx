@@ -230,7 +230,9 @@ export default function Search({
             {filteredResults
               ?.map((s, i) => {
                 const title = getNodeTitle(s.value);
-                const preview = s.highlightText ?? getNodeDescription(s.value);
+                const preview =
+                  (s.highlightText ?? getNodeDescription(s.value)) ||
+                  "No preview available.";
                 const updatedAt = formatDateTime(s.value.updatedAt);
 
                 if (!title || !preview || !updatedAt) {

@@ -14,6 +14,7 @@ import {
   Group,
   Loader,
   Menu,
+  Space,
   Stack,
   Text,
   Title,
@@ -170,97 +171,97 @@ export default function Task() {
       <TopBar />
       <LeftSidebar>
         <LeftSidebar.Open>
-          <Stack>
-            {!!task && (
-              <ConnectionManager
-                connectable={{
-                  ...task,
-                  type: "task",
-                }}
-              />
-            )}
-          </Stack>
+          <Space my="xs" />
+          {!!task && (
+            <ConnectionManager
+              connectable={{
+                ...task,
+                type: "task",
+              }}
+            />
+          )}
         </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
-        <Stack gap="sm" pb="50vh">
-          {/* Tools now live at the top of the content area */}
-          {task && <Tools task={task} reloadTask={loadTask} />}
+        <div className={styles.taskContainer}>
+          <Stack gap="sm" pb="50vh">
+            <Stack>{task && <Tools task={task} reloadTask={loadTask} />}</Stack>
 
-          <Stack gap="md">
-            {/* UPDATED LAYOUT: Title-Adjacent Pattern
-               The checkbox is now next to the title.
-            */}
-            <Group align="flex-start" wrap="nowrap" gap="sm">
-              <ActionIcon
-                variant="transparent"
-                color={isComplete ? "teal.4" : "gray.5"}
-                size="xl"
-                radius="xl"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMarkTask(!isComplete);
-                }}
-                mt={2} // Slight micro-adjustment to align with title text baseline
-              >
-                {isComplete ? (
-                  <CheckCircleIcon weight="fill" size={32} />
-                ) : (
-                  <CircleIcon weight="regular" size={32} />
-                )}
-              </ActionIcon>
+            <Stack gap="md">
+              {/* UPDATED LAYOUT: Title-Adjacent Pattern
+                 The checkbox is now next to the title.
+              */}
+              <Group align="flex-start" wrap="nowrap" gap="sm">
+                <ActionIcon
+                  variant="transparent"
+                  color={isComplete ? "teal.4" : "gray.5"}
+                  size="xl"
+                  radius="xl"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkTask(!isComplete);
+                  }}
+                  mt={2} // Slight micro-adjustment to align with title text baseline
+                >
+                  {isComplete ? (
+                    <CheckCircleIcon weight="fill" size={32} />
+                  ) : (
+                    <CircleIcon weight="regular" size={32} />
+                  )}
+                </ActionIcon>
 
-              <Title
-                contentEditable
-                className={styles.editableTitle}
-                style={{
-                  flex: 1,
-                  textDecoration: isComplete ? "line-through" : "none",
-                  opacity: isComplete ? 0.6 : 1,
-                  transition: "opacity 0.2s ease, text-decoration 0.2s ease",
-                }}
-                onBlur={(e) => {
-                  handleFieldUpdate("description", e.currentTarget.innerText);
-                }}
-                dangerouslySetInnerHTML={{ __html: task?.description || "" }}
-              />
-            </Group>
+                <Title
+                  contentEditable
+                  suppressContentEditableWarning
+                  className={styles.editableTitle}
+                  style={{
+                    flex: 1,
+                    textDecoration: isComplete ? "line-through" : "none",
+                    opacity: isComplete ? 0.6 : 1,
+                  }}
+                  onBlur={(e) => {
+                    handleFieldUpdate("description", e.currentTarget.innerText);
+                  }}
+                  dangerouslySetInnerHTML={{ __html: task?.description || "" }}
+                />
+              </Group>
+
+              {!!task && (
+                <>
+                  <TagsManager
+                    connectable={{
+                      ...task,
+                      type: "task",
+                    }}
+                    maxSuggested={2}
+                  />
+
+                  {/* The new Mad Libs / Natural Language Sentence Component */}
+                  <TaskSentence
+                    date={taskForm.values.dueDate}
+                    duration={taskForm.values.estimatedTime}
+                    onChange={(field, val) => handleFieldUpdate(field, val)}
+                  />
+
+                  {/* REMOVED: The large "Mark Complete" button block was here */}
+                </>
+              )}
+            </Stack>
+
+            <Divider label="Notes" labelPosition="center" color="dark.6" />
 
             {!!task && (
               <>
-                <TagsManager
-                  connectable={{
-                    ...task,
-                    type: "task",
-                  }}
-                  maxSuggested={2}
+                <DreamWriter
+                  initialContent={task.scratchpad}
+                  readOnly={!task}
+                  collaborationId={task.id.toString()}
+                  connectableId={task.id.toString()}
                 />
-
-                {/* The new Mad Libs / Natural Language Sentence Component */}
-                <TaskSentence
-                  date={taskForm.values.dueDate}
-                  duration={taskForm.values.estimatedTime}
-                  onChange={(field, val) => handleFieldUpdate(field, val)}
-                />
-
-                {/* REMOVED: The large "Mark Complete" button block was here */}
               </>
             )}
           </Stack>
-
-          <Divider label="Notes" labelPosition="center" color="dark.6" />
-
-          {!!task && (
-            <>
-              <DreamWriter
-                initialContent={task.scratchpad}
-                readOnly={!task}
-                collaborationId={task.id.toString()}
-                connectableId={task.id.toString()}
-              />
-            </>
-          )}
-        </Stack>
+        </div>
       </Content>
       <Nav />
       <RightSidebar>

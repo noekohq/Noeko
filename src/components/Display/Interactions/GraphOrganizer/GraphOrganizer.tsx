@@ -15,6 +15,9 @@ import TagButton from "../../Tags/TagButton";
 import ConnectableThing from "../Connections/ConnectableThing";
 import { useGraph } from "../../../../contexts/GraphContext";
 import { SelectionIcon } from "@phosphor-icons/react";
+import { getThingPropsFromConnectable } from "../../Paper/Things/thingUtils";
+import PaperThing from "../../Paper/Things/PaperThing";
+import PaperTag from "../../Paper/Tags/PaperTag";
 
 interface IGraphOrganizerProps {
   nodes: INode[];
@@ -78,24 +81,29 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
             />
           );
         })}
-        {tags.map((tag) => {
-          return (
-            <TagButton
-              key={tag.id.toString()}
-              tag={tag}
-              onClick={(node) => {
-                setFocused(node.id.toString());
-              }}
-            />
-          );
-        })}
+        <Group wrap="wrap" gap="xs">
+          {tags.map((tag) => {
+            return (
+              <PaperTag
+                key={tag.id.toString()}
+                tag={tag}
+                state="applied"
+                onClick={() => {
+                  setFocused(tag.id.toString());
+                }}
+              />
+            );
+          })}
+        </Group>
         {connectables.map((connectable) => {
+          const props = getThingPropsFromConnectable(connectable, {}, true);
           return (
-            <ConnectableThing
+            <PaperThing
               key={connectable.id.toString()}
-              thing={connectable}
+              {...props}
+              preventClickDefault
               onClick={(node) => {
-                setFocused(node.id.toString());
+                setFocused(node);
               }}
             />
           );

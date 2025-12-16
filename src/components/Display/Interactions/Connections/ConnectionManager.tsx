@@ -2,19 +2,9 @@ import { useEffect, useState, useMemo } from "react";
 import { IConnectable } from "../../../../../app/services/Graph";
 import styles from "./ConnectionManager.module.scss";
 import useConnectable from "../../../../hooks/useConnectable";
-import {
-  Box,
-  Group,
-  Overlay,
-  Stack,
-  Text,
-  Transition,
-  ActionIcon,
-  Tooltip,
-  Divider,
-} from "@mantine/core";
+import { Box, Group, Overlay, Stack, Text, Transition } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import { NotePencilIcon, PlusIcon, SubtractIcon } from "@phosphor-icons/react";
+import { PlusIcon, SubtractIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../../contexts/InteractionContext";
 import { useTourStep } from "../../../../contexts/TourGuideContext";
 import PaperThing from "../../Paper/Things/PaperThing";
