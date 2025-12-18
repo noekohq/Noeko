@@ -1012,6 +1012,7 @@ export default class GraphService {
           const excerpt = await Excerpt.get(thingId, "full");
           return excerpt?.embeddings;
       }
+      return getEmbedder().getEmptyEmbeddings();
     } catch (error) {
       console.error(
         "Error getting connectable embedding vector: ",
