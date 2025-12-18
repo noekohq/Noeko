@@ -120,6 +120,7 @@ const collabServer = new Server({
       },
     };
   },
+  debounce: 500,
 });
 
 export default collabServer;
