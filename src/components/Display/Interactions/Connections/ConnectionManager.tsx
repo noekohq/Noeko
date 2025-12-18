@@ -35,10 +35,6 @@ export default function ConnectionManager({
     isConnected,
   } = useConnectable({ connectable });
 
-  const {
-    actions: { newConnectedIdea },
-  } = useInteraction();
-
   useEffect(() => {
     load();
   }, []);
@@ -60,6 +56,10 @@ export default function ConnectionManager({
 
   const suggestionsToShow = filteredSimilar.slice(0, maxSuggested);
   const otherSuggestions = filteredSimilar.slice(maxSuggested);
+
+  const suggestionsFingerprint = useMemo(() => {
+    return suggestionsToShow.map((s) => s.id).join(",");
+  }, [suggestionsToShow]);
 
   const [draggingOver, setDraggingOver] = useState(false);
 
@@ -129,6 +129,7 @@ export default function ConnectionManager({
         )}
 
         <Stack gap="md">
+          {/* Connected Items */}
           <Transition mounted={hasConnections} transition="fade" duration={200}>
             {(styles) => (
               <div style={styles}>
@@ -157,34 +158,41 @@ export default function ConnectionManager({
           </Transition>
 
           <Transition mounted={hasSuggestions} transition="fade" duration={200}>
-            {(styles) => (
-              <div style={styles}>
-                <Stack gap="xs">
+            {(transitionStyles) => (
+              <div style={transitionStyles}>
+                <Stack
+                  gap="xs"
+                  className={styles.suggestionsWrapper}
+                  key={suggestionsFingerprint}
+                >
                   {suggestionsToShow.map((thing) => {
-                    // Example: Add similarity info to the detail
                     const distance = (thing as any).distance || 0;
                     const level = similarityToLevel(distance);
                     const baseDetail =
                       getThingPropsFromConnectable(thing).detail;
 
                     return (
-                      <PaperThing
-                        draggable
+                      <div
                         key={thing.id.toString()}
-                        {...getThingPropsFromConnectable(
-                          thing,
-                          {
-                            state: "suggested",
-                            detail: `${capitalize(level)} Match • ${baseDetail}`,
-                            action: {
-                              icon: PlusIcon,
-                              tooltip: "Connect",
-                              onClick: (id) => connect(id),
+                        className={styles.suggestedItemWrapper}
+                      >
+                        <PaperThing
+                          draggable
+                          {...getThingPropsFromConnectable(
+                            thing,
+                            {
+                              state: "suggested",
+                              detail: `${capitalize(level)} Match • ${baseDetail}`,
+                              action: {
+                                icon: PlusIcon,
+                                tooltip: "Connect",
+                                onClick: (id) => connect(id),
+                              },
                             },
-                          },
-                          true,
-                        )}
-                      />
+                            true,
+                          )}
+                        />
+                      </div>
                     );
                   })}
                 </Stack>

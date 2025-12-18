@@ -1473,13 +1473,20 @@ export class Search {
       return [];
     }
     try {
-      const limit = options?.limit ?? 15;
+      const limit = Number(options?.limit) ? Number(options?.limit) : 15;
 
-      const results = await this.comprehensiveSearch(userId, query, options);
+      const results = await this.searchConnectables(userId, {
+        query,
+        rabbithole: options?.rabbitholeId,
+      });
+      if (!results) {
+        return [];
+      }
 
-      return results.slice(0, limit).map((result) => {
+      const parsed = results.slice(0, limit).map((result) => {
         return result.value;
       });
+      return parsed;
     } catch (error) {
       console.error("Error during suggest:", error);
       return [];

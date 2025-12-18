@@ -5,13 +5,13 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: nowrap;
-    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md) !important;
+    padding: var(--layout-spacing) var(--mantine-spacing-md) !important;
     border-radius: var(--mantine-radius-lg);
     border: 1px solid var(--mantine-color-dark-7);
     transition: all 0.15s ease-in-out !important;
 
     &.focused {
-        padding: var(--mantine-spacing-sm) var(--mantine-spacing-xs) !important;
+        padding: var(--layout-spacing) var(--mantine-spacing-xs) !important;
         background-color: var(--mantine-color-dark-9) !important;
         border-color: var(--mantine-color-dark-7) !important;
         border-radius: var(--mantine-radius-md) !important;
@@ -36,7 +36,7 @@
     padding: var(--layout-spacing) 0 !important;
 
     &.focused {
-        padding: 0 !important;
+        padding: var(--layout-spacing) 0 !important;
         background-color: var(--mantine-color-dark-9) !important;
     }
 

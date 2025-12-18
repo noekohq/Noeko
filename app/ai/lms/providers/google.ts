@@ -14,9 +14,9 @@ const GCP_LOCATION = process.env.GCP_LOCATION || "us-west1";
 
 const ModelMap: IModelMap = {
   simple: "gemini-2.5-flash-lite",
-  advanced: "gemini-2.5-pro",
-  "fast-accurate": "gemini-2.5-flash",
-  general: "gemini-2.5-flash",
+  advanced: "gemini-3-pro",
+  "fast-accurate": "gemini-3-flash",
+  general: "gemini-3-flash",
 };
 
 export default class GeminiProvider implements LMProvider {
@@ -65,8 +65,8 @@ export default class GeminiProvider implements LMProvider {
 
   private get canThink() {
     const thinkingModels = [
-      "gemini-2.5-pro",
-      "gemini-2.5-flash",
+      "gemini-3-pro",
+      "gemini-3-flash",
       "gemini-2.5-flash-lite",
     ];
     if (thinkingModels.includes(this.model)) {
