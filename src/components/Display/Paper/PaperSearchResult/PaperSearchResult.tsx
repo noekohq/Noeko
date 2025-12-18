@@ -116,7 +116,7 @@ export default function PaperSearchResult({
                   match={(text) => (
                     <Text
                       component="span"
-                      c="dark.1"
+                      c="black"
                       bg="highlight.6"
                       style={{ borderRadius: "2px", padding: "0 2px" }}
                     >
