@@ -720,7 +720,7 @@ export default class GraphService {
       if (!db) throw new Error("Database not initialized");
 
       const limit =
-        options.limit && isFinite(options.limit) ? Number(options.limit) : 10;
+        options.limit && isFinite(options.limit) ? Number(options.limit) : 50;
       const defaultCandidates = 300;
       const candidates = Number(options.candidates ?? defaultCandidates);
 
@@ -1654,7 +1654,6 @@ export default class GraphService {
     targetIds: (string | RecordId)[],
   ) {
     try {
-      console.log("Ensuring connections: ", sourceId, targetIds);
       if (!this.isConnectable(sourceId)) {
         throw new Error("Source is not connectable");
       }

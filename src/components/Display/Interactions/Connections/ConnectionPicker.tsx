@@ -41,7 +41,7 @@ export function ConnectionPicker({
   const [opened, { toggle, close }] = useDisclosure(false);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery] = useDebouncedValue(searchQuery, 400);
+  const [debouncedQuery] = useDebouncedValue(searchQuery, 500);
 
   const handleClose = () => {
     close();
@@ -87,9 +87,6 @@ export function ConnectionPicker({
       async (newIdea) => {
         try {
           await onSelect(newIdea.id.toString());
-          if (connectableId) {
-            await connect(connectableId, newIdea.id.toString());
-          }
           handleClose();
         } catch (e) {
           console.error("Created but failed to connect", e);
@@ -135,8 +132,8 @@ export function ConnectionPicker({
       onSearch={setSearchQuery}
       onClear={() => setSearchQuery("")}
       onClose={handleClose}
-      isLoading={loading} // loading from useFetch handles the debounce delay visual
-      formPrompt={(q) => `Create new note "${q}"`}
+      isLoading={loading}
+      formPrompt={(q) => `Create new idea "${q}"`}
     >
       <PaperSelection.Menu>
         {showInitialSuggestions &&

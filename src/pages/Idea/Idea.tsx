@@ -203,7 +203,6 @@ export default function Idea() {
     });
   }, [loadingDelete, triggerDeleteIdea, isOptimistic]);
 
-  // --- API: Compute (Embeddings, Cascade, Title) ---
   const { load: triggerEmbedIdea, loading: loadingEmbeddings } = useFetch({
     url: `/ideas/${ideaId}/embed`,
     method: "POST",
@@ -215,8 +214,12 @@ export default function Idea() {
       url: `/ideas/${ideaId}/cascade`,
       dependencies: [ideaId],
       method: "POST",
-      onFinally: reloadIdea,
     });
+
+  const handleComputation = async () => {
+    await triggerEmbedIdea();
+    await triggerDerivedCascade();
+  };
 
   const { load: triggerTitleGeneration, loading: loadingTitleGeneration } =
     useFetch({
@@ -281,7 +284,6 @@ export default function Idea() {
       isMountedRef.current = false;
       const state = computeStateRef.current;
 
-      // FIX: This flag is now reliable because we set it locally in handleDeleteIdea
       if (isDeletingRef.current) return;
 
       if (!state.isOptimistic && state.ideaId) {
@@ -295,7 +297,6 @@ export default function Idea() {
     };
   }, []);
 
-  // --- Layout Effects ---
   useDocumentTitle(`${title || "Loading..."} - Noeko`);
 
   useEffect(() => {
@@ -327,20 +328,6 @@ export default function Idea() {
     return () => setStatusMessage("");
   }, [ideaToRender, isOptimistic, loadingEmbeddings, setStatusMessage]);
 
-  const handleEditorBlur = useCallback(async () => {
-    if (isOptimistic || isDeletingRef.current) return;
-    if (embeddingsOutOfDate() && !loadingEmbeddings) triggerEmbedIdea();
-    if (derivedOutOfDate() && !loadingDerivedCascade) triggerDerivedCascade();
-  }, [
-    isOptimistic,
-    embeddingsOutOfDate,
-    derivedOutOfDate,
-    loadingEmbeddings,
-    loadingDerivedCascade,
-    triggerEmbedIdea,
-    triggerDerivedCascade,
-  ]);
-
   const updateTitle = async (newTitle: string) => {
     if (isOptimistic) return;
     await api
@@ -363,6 +350,13 @@ export default function Idea() {
   const { connect, isConnected } = connectable;
 
   const safeIdea = isOptimistic ? undefined : (ideaToRender as ISafeIdea);
+
+  const compute = useDebouncedCallback(() => {
+    handleComputation();
+  }, 3000);
+  const handleEditorChange = () => {
+    compute();
+  };
 
   return (
     <PageWrapper>
@@ -411,11 +405,12 @@ export default function Idea() {
                 </Card>
               )}
 
-              {safeIdea && (
+              {safeIdea && !isOptimistic && (
                 <>
                   <Space my="lg" />
                   <ConnectionManager
                     connectable={{ ...safeIdea, type: "idea" }}
+                    maxSuggested={5}
                   />
                   <Space my="lg" />
                 </>
@@ -446,7 +441,6 @@ export default function Idea() {
                   reloadIdea={reloadIdea}
                   loadingIdea={loadingIdea}
                   isOptimistic={isOptimistic}
-                  // FIX: Pass the deletion state and handler down
                   onDelete={handleDeleteIdea}
                   loadingDelete={loadingDelete}
                 />
@@ -548,8 +542,9 @@ export default function Idea() {
             <div className={styles.contentArea}>
               {ideaToRender && (
                 <DreamWriter
+                  readOnly={isOptimistic}
                   stickyMenu={false}
-                  onBlur={handleEditorBlur}
+                  onChange={handleEditorChange}
                   onContentReady={handleContentReady}
                   dependencies={[ideaId, ideaToRender.id]}
                   ref={editorRef}

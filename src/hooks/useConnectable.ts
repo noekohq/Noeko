@@ -95,14 +95,19 @@ export default function useConnectable({
       : null,
     dependencies: [
       connectable?.id.toString(),
-      connectable?.embeddingsUpdatedAt, // <--- CRITICAL
+      connectable?.embeddingsUpdatedAt,
     ],
   });
 
   const load = useCallback(() => {
     if (isOptimistic || !connectable?.id) {
+      console.error(
+        "Cancelling load due to non-existent connectable: ",
+        connectable?.id,
+      );
       return;
     }
+    console.log("Loading all other things...");
     loadConnected();
     loadSimilar();
     loadTags();

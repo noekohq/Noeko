@@ -1,7 +1,18 @@
 @use "../../../../styles/mixins.scss" as *;
 
+@keyframes thingIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .paperThing {
-    // Layout
+    animation: tagIn 0.2s ease-in-out;
     display: flex;
     flex-direction: row;
     align-items: center;
