@@ -15,8 +15,8 @@ const GCP_LOCATION = process.env.GCP_LOCATION || "us-west1";
 const ModelMap: IModelMap = {
   simple: "gemini-2.5-flash-lite",
   advanced: "gemini-3-pro",
-  "fast-accurate": "gemini-3-flash",
-  general: "gemini-3-flash",
+  "fast-accurate": "gemini-2.5-flash",
+  general: "gemini-2.5-flash",
 };
 
 export default class GeminiProvider implements LMProvider {
