@@ -17,10 +17,19 @@
     align-items: center;
     justify-content: center;
     gap: 0;
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.hidden {
         transform: translateY(calc(100% + var(--layout-spacing)));
+    }
+
+    &.collapsed {
+        cursor: pointer;
+        transform: translateY(calc(100% - 20px));
+
+        &:hover {
+            transform: translateY(calc(100% - 30px));
+        }
     }
 
     @include desktop {
@@ -197,5 +206,13 @@
                 }
             }
         }
+    }
+}
+
+.collapseButton {
+    transition: all .2s ease-in-out;
+
+    &.collapsed {
+        transform: rotate(180deg);
     }
 }

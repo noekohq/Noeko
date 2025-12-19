@@ -351,10 +351,14 @@ export default function Idea() {
 
   const safeIdea = isOptimistic ? undefined : (ideaToRender as ISafeIdea);
 
+  const [outOfDate, setOutOfDate] = useState(false);
   const compute = useDebouncedCallback(() => {
-    handleComputation();
-  }, 3000);
+    handleComputation().finally(() => {
+      setOutOfDate(false);
+    });
+  }, 2000);
   const handleEditorChange = () => {
+    setOutOfDate(true);
     compute();
   };
 
@@ -411,6 +415,7 @@ export default function Idea() {
                   <ConnectionManager
                     connectable={{ ...safeIdea, type: "idea" }}
                     maxSuggested={5}
+                    outofdate={outOfDate}
                   />
                   <Space my="lg" />
                 </>

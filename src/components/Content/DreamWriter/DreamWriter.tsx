@@ -26,6 +26,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { assignMantineColor } from "../../../utils/colors";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 import { useDreamHealer } from "./hooks/useDreamHealer";
+import MobileEditorToolbar from "./MobileEditorToolbar";
 
 interface EditorData {
   comments: [];
@@ -232,10 +233,17 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         leftSidebar: {
           mode: { get: leftMode },
         },
+        mobileEditorToolbar,
       },
     } = useLayout();
 
     const [bubbleMenuVisible, setBubbleMenuVisible] = useState(false);
+
+    useEffect(() => {
+      if (isMobile) {
+        mobileEditorToolbar.setIsVisible(bubbleMenuVisible);
+      }
+    }, [bubbleMenuVisible, isMobile, mobileEditorToolbar]);
 
     const isContentReady = provider ? status === "synced" : true;
     useDreamHealer(editor, connectableId, isContentReady);
@@ -280,6 +288,9 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           }}
           boundaryRef={editorContainerRef}
         />
+        {isMobile && (
+          <MobileEditorToolbar editor={editor} isVisible={bubbleMenuVisible} />
+        )}
         <EditorContent
           onContextMenuCapture={(e) => {
             if (isMobile && bubbleMenuVisible) {

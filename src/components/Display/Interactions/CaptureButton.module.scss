@@ -39,8 +39,9 @@
     }
 
     &.opened {
-        background-color: var(--mantine-color-dark-1);
-        color: var(--mantine-color-dark-9);
+        background-color: var(--mantine-color-dark-8);
+        border: 1px solid var(--mantine-color-dark-7);
+        color: var(--mantine-color-dark-1);
         z-index: var(--z-index-capture-button);
 
         .icon {

@@ -1,0 +1,47 @@
+@use "../../../styles/mixins.scss" as *;
+
+.toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: var(--mantine-color-dark-8);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.15), 0 -1px 3px rgba(0,0,0,0.1);
+    border-top: 1px solid var(--mantine-color-dark-6);
+    z-index: var(--z-index-ui-controls);
+    padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+
+    &.visible {
+        transform: translateY(0);
+    }
+}
+
+.scroller {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: none; /* For Firefox */
+    &::-webkit-scrollbar {
+        display: none; /* For Chrome, Safari, and Opera */
+    }
+}
+
+.buttonGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    & + & {
+        margin-left: 8px;
+        padding-left: 8px;
+        border-left: 1px solid var(--mantine-color-dark-6);
+    }
+}
