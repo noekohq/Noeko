@@ -180,7 +180,7 @@ export function TagPicker({
       position="bottom-start"
       withArrow
       shadow="md"
-      width={320}
+      width={400}
       trapFocus
     >
       <Popover.Target>
@@ -280,7 +280,7 @@ function TagCreateForm({
           loading={isSubmitting}
           size="sm"
           radius="lg"
-          color="gray"
+          color="dark.1"
           variant="light"
         >
           Create & Apply

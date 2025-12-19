@@ -2,6 +2,7 @@ import { Avatar, Group } from "@mantine/core";
 import styles from "./Nav.module.scss";
 import {
   CalendarCheckIcon,
+  CaretDownIcon,
   CaretUpIcon,
   HouseIcon,
   MagnifyingGlassIcon,
@@ -44,6 +45,7 @@ export default function Nav({ children }: INavProps) {
           hasContent: hasDrawerContent,
         },
       },
+      mobileEditorToolbar,
     },
   } = useLayout();
   const { isSuperuser } = useAuth();
@@ -56,6 +58,8 @@ export default function Nav({ children }: INavProps) {
   const iconSize = isMobile ? 20 : 16;
 
   const { pathname } = useLocation();
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   let drawerContent: React.ReactNode = null;
 
@@ -114,14 +118,22 @@ export default function Nav({ children }: INavProps) {
     if (isZen) {
       return true;
     }
+    if (isMobile && mobileEditorToolbar.isVisible) {
+      return true;
+    }
     return false;
+  };
+
+  const handleCollapseToggle = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
     <div
       className={`${styles.nav} ${isHidden() ? styles.hidden : ""} ${
         hasDrawerContent && isMobile ? styles.hasDrawer : ""
-      }`}
+      } ${isCollapsed ? styles.collapsed : ""}`}
+      onClick={isCollapsed ? handleCollapseToggle : undefined}
     >
       {isDrawerOpen && <div className={styles.backdrop} />}
       {hasDrawerContent && isMobile && (
@@ -228,6 +240,14 @@ export default function Nav({ children }: INavProps) {
         </button>
         {isMobile && <MyButton />}
         {!isMobile && <CaptureButton />}
+        {!isMobile && (
+          <button
+            className={`${styles.action} ${styles.collapseButton} ${isCollapsed ? styles.collapsed : ""}`}
+            onClick={handleCollapseToggle}
+          >
+            <CaretDownIcon weight="bold" />
+          </button>
+        )}
       </div>
     </div>
   );

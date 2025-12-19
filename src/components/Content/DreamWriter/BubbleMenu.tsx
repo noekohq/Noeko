@@ -55,16 +55,14 @@ export default function BubbleMenu({
   const { isMobile } = useLayout();
 
   const [visible, setVisible] = useState(false);
-  const handleVisibilityChange = (v: boolean) => {
-    setVisible(v);
-    onVisibilityChange?.(v);
-  };
 
   const shouldShowHandler = ({
     editor: currentEditor,
     state,
+    view,
   }: any): boolean => {
     if (hidden) {
+      onVisibilityChange?.(false);
       return false;
     }
 
@@ -73,6 +71,7 @@ export default function BubbleMenu({
 
     // Don't show for empty documents.
     if (state.doc.content.size === 0) {
+      onVisibilityChange?.(false);
       return false;
     }
 
@@ -86,12 +85,12 @@ export default function BubbleMenu({
         selection.node.type.name,
       );
 
-    // Combine the conditions
     const shouldBeVisible = isTextSelected || isNodeSelected;
 
-    handleVisibilityChange(shouldBeVisible);
+    onVisibilityChange?.(shouldBeVisible);
+    setVisible(shouldBeVisible);
 
-    return shouldBeVisible;
+    return shouldBeVisible && !isMobile;
   };
 
   const menuProps: BubbleMenuProps = {
@@ -154,42 +153,30 @@ export default function BubbleMenu({
       {!hidden && (
         <>
           {isMobile && (
-            <div className={styles.row}>
-              <div className={styles.buttonGroup}>
-                <CopySelectionButton visible={visible} editor={editor} />
-                <CutButton visible={visible} editor={editor} />
-                <PasteButton visible={visible} editor={editor} />
-                <SelectAllButton visible={visible} editor={editor} />
-              </div>
-              <div className={styles.buttonGroup}>
-                <MagicMenuButton visible={visible} editor={editor} />
-              </div>
+            <div className={styles.buttonGroup}>
+              <CopySelectionButton visible={visible} editor={editor} />
+              <CutButton visible={visible} editor={editor} />
+              <PasteButton visible={visible} editor={editor} />
+              <SelectAllButton visible={visible} editor={editor} />
             </div>
           )}
-          <div className={styles.row}>
-            {!isMobile && (
-              <div className={styles.buttonGroup}>
-                <MagicMenuButton visible={visible} editor={editor} />
-              </div>
-            )}
-            <div className={styles.buttonGroup}>
-              <BoldButton visible={visible} editor={editor} />
-              <ItalicButton visible={visible} editor={editor} />
-              <UnderlineButton visible={visible} editor={editor} />
-              <StrikeThroughButton visible={visible} editor={editor} />
-              <LinkButton visible={visible} editor={editor} />
-              <BlockquoteButton visible={visible} editor={editor} />
-              <HighlightButton visible={visible} editor={editor} />
-            </div>
+          <div className={styles.buttonGroup}>
+            <MagicMenuButton visible={visible} editor={editor} />
           </div>
-
-          <div className={styles.row}>
-            <div className={styles.buttonGroup}>
-              <HeadingMenuButton visible={visible} editor={editor} />
-              <ListMenuButton visible={visible} editor={editor} />
-              <CodeMenuButton visible={visible} editor={editor} />
-              <MathMenuButton visible={visible} editor={editor} />
-            </div>
+          <div className={styles.buttonGroup}>
+            <BoldButton visible={visible} editor={editor} />
+            <ItalicButton visible={visible} editor={editor} />
+            <UnderlineButton visible={visible} editor={editor} />
+            <StrikeThroughButton visible={visible} editor={editor} />
+            <LinkButton visible={visible} editor={editor} />
+            <BlockquoteButton visible={visible} editor={editor} />
+            <HighlightButton visible={visible} editor={editor} />
+          </div>
+          <div className={styles.buttonGroup}>
+            <HeadingMenuButton visible={visible} editor={editor} />
+            <ListMenuButton visible={visible} editor={editor} />
+            <CodeMenuButton visible={visible} editor={editor} />
+            <MathMenuButton visible={visible} editor={editor} />
           </div>
         </>
       )}

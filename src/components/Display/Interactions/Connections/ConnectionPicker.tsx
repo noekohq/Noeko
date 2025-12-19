@@ -173,6 +173,7 @@ export function ConnectionPicker({
           }
           onClick={toggle}
           size="md"
+          withBorder
         >
           {opened ? "Cancel" : "Add Connection"}
         </PaperButton>
@@ -205,6 +206,7 @@ export function ConnectionPicker({
             }
             onClick={toggle}
             size="md"
+            withBorder
           >
             {opened ? "Cancel" : "Add Connection"}
           </PaperButton>

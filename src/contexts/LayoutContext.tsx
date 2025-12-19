@@ -61,6 +61,10 @@ type ILayoutContext = {
         setHasContent: (hasContent: boolean) => void;
       };
     };
+    mobileEditorToolbar: {
+      isVisible: boolean;
+      setIsVisible: (isVisible: boolean) => void;
+    };
   };
   scroll: {
     isScrolled: boolean;
@@ -122,6 +126,10 @@ const initialLayoutContext: ILayoutContext = {
         setHasContent: () => {},
       },
     },
+    mobileEditorToolbar: {
+      isVisible: false,
+      setIsVisible: () => {},
+    },
   },
   scroll: {
     isScrolled: false,
@@ -182,6 +190,9 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [navDrawerHasContent, setNavDrawerHasContent] = useState(false);
   const [navDrawerIsOpen, setNavDrawerIsOpen] = useState(false);
+
+  const [mobileEditorToolbarVisible, setMobileEditorToolbarVisible] =
+    useState(false);
 
   const [statusBarMode, setStatusbarMode] =
     useState<ILayoutContext["elements"]["statusBar"]["mode"]["get"]>("showing");
@@ -372,6 +383,10 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
           hasContent: navDrawerHasContent,
           setHasContent: setNavDrawerHasContent,
         },
+      },
+      mobileEditorToolbar: {
+        isVisible: mobileEditorToolbarVisible,
+        setIsVisible: setMobileEditorToolbarVisible,
       },
     },
     scroll: {

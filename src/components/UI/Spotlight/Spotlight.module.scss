@@ -6,7 +6,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    backdrop-filter: blur(4px) brightness(0.45);
+    background-color: rgba(10, 10, 10, 0.1);
+    backdrop-filter: blur(8px) brightness(0.6);
     z-index: var(--z-index-top-bar);
     text-align: center;
     padding-top: 15vh;
@@ -23,13 +24,13 @@
 
 .tipText {
     margin-bottom: var(--mantine-spacing-xl);
-    color: var(--mantine-color-body);
+    color: var(--mantine-color-white);
 }
 
 @keyframes spotlightFadeIn {
     from {
-        transform: translateY(-4px);
-        opacity: 0.5;
+        transform: translateY(-10px);
+        opacity: 0;
     }
     to {
         transform: translateY(0);
@@ -39,7 +40,7 @@
 
 .spotlight {
     background-color: transparent;
-    animation: spotlightFadeIn 0.1s ease-in forwards;
+    animation: spotlightFadeIn 0.15s ease-out forwards;
     position: relative;
 
     .backButton {
@@ -67,20 +68,20 @@
 
     .input {
         font-family: var(--mantine-font-family);
-        /* font-stretch: 80%; */
         font-size: var(--mantine-font-size-lg);
-        border-radius: var(--mantine-radius-md);
-        background-color: var(--mantine-color-body);
-        border: 1px solid var(--mantine-color-dark-7);
-        box-shadow: 0.2px 0.2px 24px 5px var(--mantine-color-dark-8);
-        padding: var(--mantine-spacing-xs) var(--mantine-spacing-xl);
+        border-radius: var(--mantine-radius-xl);
+        background-color: var(--mantine-color-dark-8);
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.1);
+        padding: var(--mantine-spacing-md) var(--mantine-spacing-xl);
         width: var(--spotlight-width);
         transition: all 0.2s ease-in-out;
-        color: var(--mantine-color-dark-2);
+        color: var(--mantine-color-dark-0);
         z-index: var(--z-index-spotlight-overlay);
 
         &:focus {
             outline: none;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25), 0 2px 5px rgba(0,0,0,0.15), 0 0 0 2px var(--mantine-primary-color-5);
         }
     }
 }
@@ -89,18 +90,18 @@
     margin-top: var(--mantine-spacing-xl);
     width: var(--spotlight-width);
     height: 50vh;
-    overflow-y: scroll;
+    overflow-y: auto;
     scrollbar-width: none;
-    border-radius: var(--mantine-radius-md);
+    padding: 12px;
 
     .results {
         text-align: left;
-        background-color: var(--mantine-color-dark-9);
-        overflow: hidden;
 
         .result {
             color: var(--mantine-color-text);
-            border-bottom: 1px solid var(--mantine-color-dark-8);
+            border-radius: var(--mantine-radius-lg);
+            margin: 0 0 8px;
+            transition: all 0.15s ease-out;
 
             &.inSubview {
                 .content {
@@ -115,38 +116,40 @@
                 justify-content: space-between;
                 gap: 14px;
                 align-items: center;
-                padding: 8px 14px 8px 14px;
+                padding: 12px 14px;
                 font-size: var(--mantine-font-size-lg);
                 cursor: pointer;
 
                 .icon {
-                    position: relative;
-                    top: 2px;
+                    background-color: rgba(255, 255, 255, 0.05);
+                    border-radius: var(--mantine-radius-sm);
+                    padding: 6px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
                 }
             }
 
             .description {
-                padding: 0px 14px 8px 14px;
+                padding: 0px 14px 12px 14px;
                 margin: 0;
                 font-size: var(--mantine-font-size-xs);
-
-                &[prefers-color-scheme="dark"] {
-                    color: var(--mantine-color-dark-3);
-                }
-
-                &[prefers-color-scheme="light"] {
-                    color: var(--mantine-color-dark-6);
-                }
-            }
-
-            &.active {
-                color: var(--mantine-color-white);
-                background-color: var(--mantine-primary-color-8) !important;
+                color: var(--mantine-color-dark-2);
             }
 
             &.hovering {
                 color: var(--mantine-color-white);
-                background-color: var(--mantine-primary-color-7);
+                background-color: var(--mantine-primary-color-8);
+                transform: scale(1.015);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            }
+
+            &.active {
+                color: var(--mantine-color-white);
+                background-color: var(--mantine-primary-color-9);
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 0 0 2px var(--mantine-primary-color-7);
             }
         }
     }
