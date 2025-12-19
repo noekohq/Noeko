@@ -15,6 +15,7 @@ import {
   UnderlineButton,
 } from "./Options";
 import { createPortal } from "react-dom";
+import { useKeyboardOffset } from "../../../hooks/useKeyboardOffset";
 
 interface IMobileEditorToolbarProps {
   editor: IEditor | null;
@@ -25,12 +26,17 @@ export default function MobileEditorToolbar({
   editor,
   isVisible,
 }: IMobileEditorToolbarProps) {
+  const keyboardOffset = useKeyboardOffset();
+
   if (!editor) {
     return null;
   }
 
   return createPortal(
-    <div className={`${styles.toolbar} ${isVisible ? styles.visible : ""}`}>
+    <div
+      className={`${styles.toolbar} ${isVisible ? styles.visible : ""}`}
+      style={{ bottom: `${keyboardOffset}px` }}
+    >
       <div className={styles.scroller}>
         <div className={styles.buttonGroup}>
           <MagicMenuButton visible={isVisible} editor={editor} />
