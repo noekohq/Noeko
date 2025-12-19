@@ -248,7 +248,7 @@ export default function Idea() {
   const titleNeedsGeneration = useCallback(() => {
     if (!ideaToRender) return false;
     const cleanTitle = ideaToRender.title
-      .replaceAll(/_/g, "")
+      ?.replaceAll(/_/g, "")
       .replaceAll(/\n/g, "");
     return !cleanTitle || cleanTitle === "Untitled Idea";
   }, [ideaToRender]);
