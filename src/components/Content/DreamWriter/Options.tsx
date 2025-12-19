@@ -1,3 +1,4 @@
+import styles from "./Options.module.scss";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Editor as IEditor } from "@tiptap/react";
 import katex from "katex";
@@ -35,7 +36,6 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import {
-  ActionIcon,
   Button,
   CopyButton,
   Flex,
@@ -73,8 +73,7 @@ interface IGetButtonPropsArgs {
   isActive: boolean;
 }
 const getButtonProps = ({ isActive }: IGetButtonPropsArgs) => ({
-  color: isActive ? "blue.7" : "dark.1",
-  variant: isActive ? "filled" : "light",
+  className: `${styles.option} ${isActive ? styles.optionActive : ""}`,
 });
 
 export function CopySelectionButton({ editor }: OptionProps) {
@@ -91,14 +90,14 @@ export function CopySelectionButton({ editor }: OptionProps) {
     <CopyButton value={getCopyText()}>
       {({ copied, copy }) => {
         return (
-          <ActionIcon
+          <button
             {...getButtonProps({ isActive: false })}
             onClick={copy}
             title="Copy"
             disabled={isDisabled}
           >
             {copied ? <CheckIcon weight="bold" /> : <CopyIcon weight="bold" />}
-          </ActionIcon>
+          </button>
         );
       }}
     </CopyButton>
@@ -121,14 +120,14 @@ export function CutButton({ editor }: OptionProps) {
   const isDisabled = !editor || editor.state.selection.empty;
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: false })}
       onClick={handleCut}
       title="Cut"
       disabled={isDisabled}
     >
       <ScissorsIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -146,14 +145,14 @@ export function PasteButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: false })}
       onClick={handlePaste}
       title="Paste"
       disabled={!editor}
     >
       <ClipboardTextIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -163,14 +162,14 @@ export function SelectAllButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: false })}
       onClick={handleSelectAll}
       title="Select All"
       disabled={!editor}
     >
       <SelectionAllIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -180,13 +179,13 @@ export function BoldButton({ editor }: OptionProps) {
   const isBold = !!editor?.isActive("bold");
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: isBold })}
       onClick={makeBold}
       title="Toggle Bold"
     >
       <TextBIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -196,13 +195,13 @@ export function ItalicButton({ editor }: OptionProps) {
   const isItalic = !!editor?.isActive("italic");
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: isItalic })}
       onClick={makeItalic}
       title="Toggle Italic"
     >
       <TextItalicIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -210,13 +209,13 @@ export function StrikeThroughButton({ editor }: OptionProps) {
   const isStrike = !!editor?.isActive("strike");
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: isStrike })}
       onClick={() => editor?.chain().focus().toggleStrike().run()}
       title="Toggle Strike Through"
     >
       <TextStrikethroughIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -224,13 +223,13 @@ export function HighlightButton({ editor }: OptionProps) {
   const isHighlighted = !!editor?.isActive("dreamHighlight");
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: isHighlighted })}
       onClick={() => editor?.chain().focus().toggleDreamHighlight().run()}
       title="Toggle Strike Through"
     >
       <HighlighterIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -240,13 +239,13 @@ export function UnderlineButton({ editor }: OptionProps) {
   const isUnderline = !!editor?.isActive("underline");
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive: isUnderline })}
       onClick={makeUnderline}
       title="Toggle Underline"
     >
       <TextUnderlineIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -257,13 +256,13 @@ export function BlockquoteButton({ editor }: OptionProps) {
   const isActive = !!editor?.isActive("blockquote");
 
   return (
-    <ActionIcon
+    <button
       {...getButtonProps({ isActive })}
       onClick={toggleBlockquote}
       title="Toggle Blockquote"
     >
       <QuotesIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -328,14 +327,14 @@ export function LinkButton({ editor }: OptionProps) {
       trapFocus
     >
       <Popover.Target>
-        <ActionIcon
+        <button
           {...getButtonProps({ isActive: isLink })}
           onClick={handleButtonClick}
           title={isLink ? "Remove Link" : "Set Link"}
           disabled={!editor}
         >
           <LinkIcon weight="bold" />
-        </ActionIcon>
+        </button>
       </Popover.Target>
       <Popover.Dropdown>
         <Flex direction="column" gap="xs">
@@ -393,16 +392,16 @@ export function HeadingMenuButton({ editor }: OptionProps) {
   return (
     <Menu shadow="md" withArrow position="bottom-start">
       <Menu.Target>
-        <Button
-          size="xs"
+        <button
           {...getButtonProps({ isActive: false })}
+          className={`${styles.option} ${styles.menuButton}`}
           title={`Change ${currentlyActive?.name || "style"}`}
-          rightSection={
-            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
-          }
         >
-          {currentlyActive?.icon || <TextTIcon />}
-        </Button>
+          <span className={styles.menuButtonContent}>
+            {currentlyActive?.icon || <TextTIcon />}
+          </span>
+          <CaretDownIcon weight="bold" className={styles.menuButtonCaret} />
+        </button>
       </Menu.Target>
 
       <Menu.Dropdown>
@@ -451,16 +450,16 @@ export function ListMenuButton({ editor }: OptionProps) {
   return (
     <Menu shadow="md" withArrow position="bottom-start">
       <Menu.Target>
-        <Button
-          size="xs"
+        <button
           {...getButtonProps({ isActive: false })}
+          className={`${styles.option} ${styles.menuButton}`}
           title="Change list type"
-          rightSection={
-            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
-          }
         >
-          {currentlyActive?.icon || <ListIcon weight="bold" />}
-        </Button>
+          <span className={styles.menuButtonContent}>
+            {currentlyActive?.icon || <ListIcon weight="bold" />}
+          </span>
+          <CaretDownIcon weight="bold" className={styles.menuButtonCaret} />
+        </button>
       </Menu.Target>
 
       <Menu.Dropdown>
@@ -503,16 +502,16 @@ export function CodeMenuButton({ editor }: OptionProps) {
   return (
     <Menu shadow="md" withArrow position="bottom-start">
       <Menu.Target>
-        <Button
-          size="xs"
+        <button
           {...getButtonProps({ isActive: false })}
+          className={`${styles.option} ${styles.menuButton}`}
           title="Code options"
-          rightSection={
-            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
-          }
         >
-          {currentlyActive?.icon || <CodeSimpleIcon weight="bold" />}
-        </Button>
+          <span className={styles.menuButtonContent}>
+            {currentlyActive?.icon || <CodeSimpleIcon weight="bold" />}
+          </span>
+          <CaretDownIcon weight="bold" className={styles.menuButtonCaret} />
+        </button>
       </Menu.Target>
 
       <Menu.Dropdown>
@@ -618,16 +617,16 @@ export function MathMenuButton({ editor }: OptionProps) {
   return (
     <Menu shadow="md" withArrow position="bottom-start">
       <Menu.Target>
-        <Button
-          size="xs"
+        <button
           {...getButtonProps({ isActive: false })}
+          className={`${styles.option} ${styles.menuButton}`}
           title="Math options"
-          rightSection={
-            <CaretDownIcon weight="bold" color="var(--mantine-color-dark-4)" />
-          }
         >
-          {currentlyActive?.icon || <MathOperationsIcon weight="bold" />}
-        </Button>
+          <span className={styles.menuButtonContent}>
+            {currentlyActive?.icon || <MathOperationsIcon weight="bold" />}
+          </span>
+          <CaretDownIcon weight="bold" className={styles.menuButtonCaret} />
+        </button>
       </Menu.Target>
 
       <Menu.Dropdown>
@@ -731,14 +730,14 @@ export function NewIdea({ editor }: OptionProps) {
   return (
     <Popover opened={opened} width={"400px"} radius="lg" withArrow>
       <Popover.Target>
-        <ActionIcon
+        <button
           {...getButtonProps({ isActive: isIdea })}
           onClick={toggle}
-          loading={loading}
+          disabled={loading}
           title="Create a new idea"
         >
           <LightbulbIcon weight="bold" />
-        </ActionIcon>
+        </button>
       </Popover.Target>
       <Popover.Dropdown style={{ overflowY: "scroll", maxHeight: "400px" }}>
         <Stack>
@@ -748,18 +747,15 @@ export function NewIdea({ editor }: OptionProps) {
             }}
           />
           <Group justify="flex-end">
-            <ActionIcon onClick={close} variant="light" color="dark.1">
+            <button onClick={close}>
               <XIcon />
-            </ActionIcon>
-            <ActionIcon
+            </button>
+            <button
               onClick={handleCreateNewIdea}
-              variant="light"
-              color="dark.1"
-              disabled={!newIdeaForm.values.content}
-              loading={loading}
+              disabled={!newIdeaForm.values.content || loading}
             >
               <CheckIcon />
-            </ActionIcon>
+            </button>
           </Group>
         </Stack>
       </Popover.Dropdown>
@@ -848,22 +844,22 @@ export function ConnectIdea({ editor }: OptionProps) {
       onClose={() => close()}
     >
       <Popover.Target>
-        <ActionIcon
+        <button
           {...getButtonProps({ isActive: isIdea })}
           onClick={toggle}
-          loading={loading}
+          disabled={loading}
           title="Search and connect an idea"
         >
           <UniteSquareIcon weight="bold" />
-        </ActionIcon>
+        </button>
       </Popover.Target>
       <Popover.Dropdown style={{ overflowY: "scroll", maxHeight: "400px" }}>
         <Stack>
           <Group justify="flex-end" wrap="nowrap">
             <SearchBar placeholder="Search for an idea to connect" />
-            <ActionIcon onClick={close} variant="light" color="dark.1">
+            <button onClick={close}>
               <XIcon />
-            </ActionIcon>
+            </button>
           </Group>
           <Stack>
             {filteredResults
@@ -913,9 +909,9 @@ export function SpyglassButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon {...getButtonProps({ isActive: false })} onClick={handleOpen}>
+    <button {...getButtonProps({ isActive: false })} onClick={handleOpen}>
       <SpyglassIcon size={16} />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -945,9 +941,9 @@ export function TaskButton({ editor }: OptionProps) {
   };
 
   return (
-    <ActionIcon {...getButtonProps({ isActive: false })} onClick={handleOpen}>
+    <button {...getButtonProps({ isActive: false })} onClick={handleOpen}>
       <CheckIcon weight="bold" />
-    </ActionIcon>
+    </button>
   );
 }
 
@@ -971,7 +967,7 @@ export function MagicMenuButton({ editor, visible }: OptionProps) {
       closeOnClickOutside={false}
     >
       <Popover.Target>
-        <ActionIcon
+        <button
           {...getButtonProps({ isActive: opened })}
           title="Magic features"
           onClick={() => {
@@ -979,7 +975,7 @@ export function MagicMenuButton({ editor, visible }: OptionProps) {
           }}
         >
           <MagicWandIcon weight="bold" />
-        </ActionIcon>
+        </button>
       </Popover.Target>
       <Popover.Dropdown>
         <Group gap="xs">

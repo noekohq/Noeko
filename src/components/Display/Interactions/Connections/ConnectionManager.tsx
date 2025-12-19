@@ -2,7 +2,15 @@ import { useEffect, useState, useMemo } from "react";
 import { IConnectable } from "../../../../../app/services/Graph";
 import styles from "./ConnectionManager.module.scss";
 import useConnectable from "../../../../hooks/useConnectable";
-import { Box, Group, Overlay, Stack, Text, Transition } from "@mantine/core";
+import {
+  Box,
+  Group,
+  Overlay,
+  Space,
+  Stack,
+  Text,
+  Transition,
+} from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon, SubtractIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../../contexts/InteractionContext";
@@ -17,12 +25,14 @@ interface IConnectionManagerProps {
   connectable: IConnectable;
   maxSuggested?: number;
   shouldUpdate?: boolean;
+  outofdate?: boolean;
 }
 
 export default function ConnectionManager({
   connectable,
   maxSuggested = 3,
   shouldUpdate,
+  outofdate,
 }: IConnectionManagerProps) {
   const {
     connected,
@@ -208,6 +218,17 @@ export default function ConnectionManager({
             omitIds={omitIds}
             initialSuggestions={otherSuggestions}
           />
+          <Space my="sm" />
+
+          <Transition mounted={!!outofdate} transition="slide-up">
+            {(style) => {
+              return (
+                <Text style={style} c="dark.3" size="xs" ta="center">
+                  Pause to refresh.
+                </Text>
+              );
+            }}
+          </Transition>
         </Stack>
       </Box>
     </div>

@@ -12,46 +12,30 @@
 .bubbleMenu {
     animation: bubbleIn 0.2s ease-in-out;
     display: flex;
-    flex-direction: column;
-    gap: var(--layout-spacing);
-    max-width: 100%;
-    overflow-y: auto;
-
-    @include desktop {
-        width: fit-content;
-        /* flex-direction: row; */
-    }
-
-    background-color: var(--mantine-color-dark-9);
-
-    padding: var(--layout-spacing);
-    border-radius: var(--mantine-radius-lg);
-    border: 1px solid var(--mantine-color-dark-7);
-    box-shadow: var(--mantine-shadow-xl);
-}
-
-.row {
-    display: flex;
     flex-direction: row;
     align-items: center;
-    gap: var(--layout-spacing);
-    flex-wrap: wrap;
-    margin-inline: auto;
-    flex-wrap: nowrap;
+    gap: 0;
+    max-width: 100%;
+    overflow-y: auto;
+    width: fit-content;
 
-    @include desktop {
-    }
+    background-color: var(--mantine-color-dark-8);
+    padding: 6px;
+    border-radius: var(--mantine-radius-xl);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .buttonGroup {
     display: flex;
     align-items: center;
-    overflow: hidden;
-    box-sizing: border-box;
-    gap: var(--mantine-spacing-xs);
-    padding: var(--layout-spacing);
-    border-radius: var(--mantine-radius-md);
-    background-color: var(--mantine-color-dark-8);
+    gap: 6px;
+
+    & + & {
+        margin-left: 8px;
+        padding-left: 8px;
+        border-left: 1px solid var(--mantine-color-dark-6);
+    }
 }
 
 /* @media (max-width: 480px) {
