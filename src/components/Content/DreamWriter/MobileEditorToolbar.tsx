@@ -14,6 +14,7 @@ import {
   StrikeThroughButton,
   UnderlineButton,
 } from "./Options";
+import { createPortal } from "react-dom";
 
 interface IMobileEditorToolbarProps {
   editor: IEditor | null;
@@ -24,13 +25,11 @@ export default function MobileEditorToolbar({
   editor,
   isVisible,
 }: IMobileEditorToolbarProps) {
-  console.log("Toolbar rendering");
-
   if (!editor) {
     return null;
   }
 
-  return (
+  return createPortal(
     <div className={`${styles.toolbar} ${isVisible ? styles.visible : ""}`}>
       <div className={styles.scroller}>
         <div className={styles.buttonGroup}>
@@ -52,6 +51,7 @@ export default function MobileEditorToolbar({
           <MathMenuButton visible={isVisible} editor={editor} />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
