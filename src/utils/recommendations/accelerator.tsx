@@ -28,6 +28,8 @@ export interface IAcceleratorItemFields {
   icon: React.FC<IconProps>;
   label: string;
   reason: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const acceleratorItemFieldResolvers: {
@@ -137,6 +139,8 @@ export const getAcceleratorItemFields = (
     icon: resolver.icon(item as any),
     label: item.context.label,
     reason: item.context.reason,
+    createdAt: item.payload.createdAt.toString(),
+    updatedAt: item.payload.updatedAt.toString(),
   };
 };
 
