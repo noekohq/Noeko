@@ -8,6 +8,8 @@ export type IThing = {
   onClick?: (id: string, e: React.MouseEvent | React.KeyboardEvent) => void;
   preventClickDefault?: boolean;
   draggable?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 
   // The action on the right side (e.g., the "+" button)
   action?: {

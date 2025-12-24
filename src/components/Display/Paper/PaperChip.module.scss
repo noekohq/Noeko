@@ -43,6 +43,17 @@
         border-color: var(--mantine-color-dark-9);
     }
 
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        
+        &:hover {
+            transform: none;
+            box-shadow: none;
+            background-color: var(--mantine-color-dark-8);
+        }
+    }
+
     svg {
         font-size: var(--mantine-font-size-md);
     }

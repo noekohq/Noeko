@@ -201,34 +201,35 @@ export default function TopBar() {
             }}
           >
             <Stack gap="md">
-              {query.length < 1 && (
-                <div className={styles.filters}>
-                  <Stack gap="sm">
-                    <Text fw="bold" c="dimmed">
-                      FILTERS
-                    </Text>
-                    <Group>
-                      <PaperChip
-                        onClick={() =>
-                          setDateAfter((prev) =>
-                            prev === pastWeekISO ? undefined : pastWeekISO,
-                          )
-                        }
-                        active={dateAfter === pastWeekISO}
-                      >
-                        Past Week
-                      </PaperChip>
-                      <PaperChip
-                        onClick={() =>
-                          setDateAfter((prev) =>
-                            prev === pastMonthISO ? undefined : pastMonthISO,
-                          )
-                        }
-                        active={dateAfter === pastMonthISO}
-                      >
-                        Past Month
-                      </PaperChip>
-                      {/*<PaperChip
+              <div className={styles.filters}>
+                <Stack gap="sm">
+                  <Text fw="bold" c="dimmed">
+                    FILTERS
+                  </Text>
+                  <Group>
+                    <PaperChip
+                      onClick={() =>
+                        setDateAfter((prev) =>
+                          prev === pastWeekISO ? undefined : pastWeekISO,
+                        )
+                      }
+                      active={dateAfter === pastWeekISO}
+                      disabled={loading}
+                    >
+                      Past Week
+                    </PaperChip>
+                    <PaperChip
+                      onClick={() =>
+                        setDateAfter((prev) =>
+                          prev === pastMonthISO ? undefined : pastMonthISO,
+                        )
+                      }
+                      active={dateAfter === pastMonthISO}
+                      disabled={loading}
+                    >
+                      Past Month
+                    </PaperChip>
+                    {/*<PaperChip
                         onClick={() =>
                           setDateAfter((prev) =>
                             prev === pastYearISO ? undefined : pastYearISO,
@@ -238,10 +239,9 @@ export default function TopBar() {
                       >
                         Past Year
                       </PaperChip>*/}
-                    </Group>
-                  </Stack>
-                </div>
-              )}
+                  </Group>
+                </Stack>
+              </div>
               {loading && (
                 <Center h={500}>
                   <LangtonsAntLoader cellSize={18} stepsPerSecond={10} />
