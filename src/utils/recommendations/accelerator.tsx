@@ -127,6 +127,8 @@ export const getAcceleratorItemFields = (
       icon: FileIcon,
       label: item.context.label,
       reason: item.context.reason,
+      createdAt: item.payload.createdAt.toString(),
+      updatedAt: item.payload.updatedAt.toString(),
     };
   }
 
