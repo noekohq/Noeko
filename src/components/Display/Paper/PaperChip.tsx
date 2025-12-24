@@ -5,17 +5,22 @@ interface IPaperChipProps {
   children: React.ReactNode;
   onClick?: () => void;
   active?: boolean;
+  disabled?: boolean;
 }
 
 export default function PaperChip({
   children,
   onClick,
   active = false,
+  disabled = false,
 }: IPaperChipProps) {
   return (
     <button
-      className={`${styles.paperChip} ${active ? styles.active : ""}`}
+      className={`${styles.paperChip} ${active ? styles.active : ""} ${
+        disabled ? styles.disabled : ""
+      }`}
       onClick={onClick}
+      disabled={disabled}
     >
       {active && <CheckIcon weight="bold" />}
       {children}
