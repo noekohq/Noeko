@@ -1,0 +1,45 @@
+.paperThings {
+    width: 100%;
+}
+
+.content {
+    width: 100%;
+}
+
+.thingList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .thingListItem {
+        width: 100%;
+        box-sizing: border-box;
+        padding: var(--mantine-spacing-xs);
+        background-color: var(--mantine-color-dark-8);
+        border-radius: var(--mantine-radius-sm);
+
+        &.oneChild {
+            border-radius: var(--mantine-radius-sm) !important;
+        }
+
+        &:first-child {
+            border-radius: var(--mantine-radius-lg) var(--mantine-radius-lg)
+                var(--mantine-radius-sm) var(--mantine-radius-sm);
+        }
+
+        &:last-child {
+            border-radius: var(--mantine-radius-sm) var(--mantine-radius-sm)
+                var(--mantine-radius-lg) var(--mantine-radius-lg);
+        }
+
+        .left {
+            padding: var(--layout-spacing);
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-size: var(--mantine-font-size-xl);
+        }
+    }
+}

@@ -16,7 +16,7 @@
     align-items: center;
     flex-wrap: nowrap;
     gap: var(--mantine-spacing-xs);
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.4s .2s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.hidden {
         transform: translateY(-150%);
@@ -144,9 +144,10 @@
     background-color: var(--mantine-color-dark-9);
     border-radius: var(--mantine-radius-md);
     padding: 0;
+    padding-bottom: var(--mantine-spacing-xl);
     overflow-y: auto;
     height: calc(
-        100vh - var(--total-bottom-offset) - var(--total-top-offset)
+        100vh - var(--total-bottom-offset)
     );
 }
 

@@ -125,7 +125,7 @@ export default function PaperThing({
               draggable={!!id && draggable}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
-              onClick={(e) => e.stopPropagation()} // Prevent triggering the main click
+              onClick={(e) => e.stopPropagation()}
             >
               {IconComponent && !(draggable && hovering) ? (
                 <IconComponent

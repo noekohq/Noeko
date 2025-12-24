@@ -15,12 +15,13 @@ import {
 } from "../../../../utils/recommendations/accelerator";
 import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
 import { IPaperThingProps } from "./PaperThing";
+import { IThing } from "./things";
 
 export function getThingPropsFromConnectable(
   connectable: IConnectable,
   overrides?: Partial<IPaperThingProps>,
   eager?: boolean,
-): IPaperThingProps {
+): IThing | IPaperThingProps {
   const id = overrides?.id ?? connectable.id.toString();
   const title = (overrides?.title ?? getNodeTitle(connectable)) || "No Title";
   const detail =
@@ -46,7 +47,19 @@ export function getThingPropsFromConnectable(
     link,
     action,
     preview,
-  } satisfies IPaperThingProps;
+    createdAt: connectable.createdAt.toString(),
+    updatedAt: connectable.updatedAt.toString(),
+  } satisfies IThing | IPaperThingProps;
+}
+
+export function getThingsFromConnectables(
+  connectables: IConnectable[],
+  overrides?: Partial<IPaperThingProps>,
+  eager?: boolean,
+) {
+  return connectables.map((connectable) =>
+    getThingPropsFromConnectable(connectable, overrides, eager),
+  );
 }
 
 export function getThingPropsFromRabbithole(
@@ -66,6 +79,8 @@ export function getThingPropsFromRabbithole(
     link: overrides?.link ?? `/rabbitholes/${id.toString()}`,
     action: overrides?.action,
     preview: overrides?.preview,
+    createdAt: rabbithole.createdAt.toString(),
+    updatedAt: rabbithole.updatedAt.toString(),
   };
 }
 
@@ -74,7 +89,8 @@ export function getThingPropsFromAcceleratorItem(
   overrides?: Partial<IPaperThingProps>,
 ): IPaperThingProps {
   const resolved = getAcceleratorItemFields(item);
-  const { id, name, link, detail, icon, preview } = resolved;
+  const { id, name, link, detail, icon, preview, createdAt, updatedAt } =
+    resolved;
   const state = overrides?.state ?? "default";
   const action = overrides?.action;
 
@@ -87,5 +103,7 @@ export function getThingPropsFromAcceleratorItem(
     link,
     action,
     preview,
+    createdAt,
+    updatedAt,
   } satisfies IPaperThingProps;
 }
