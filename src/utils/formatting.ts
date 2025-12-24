@@ -178,3 +178,22 @@ export const sanitizeMarkdownForDescription = (markdown: string): string => {
     .replace(/\t/g, " ")
     .replace(/  +/g, " ");
 };
+
+/**
+ * Formats a date or string into a short format like "Dec 23"
+ * @param date - The Date object or date string to format
+ * @returns A formatted string (e.g., "Dec 23")
+ */
+export const formatDateShort = (date: Date | string): string => {
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  // Check for Invalid Date
+  if (isNaN(d.getTime())) {
+    return "Invalid Date";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(d);
+};
