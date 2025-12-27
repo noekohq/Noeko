@@ -65,9 +65,9 @@
 
       // === RESTING STATE (COLLAPSED) ===
       .options {
-        background-color: transparent;
-        border-color: transparent;
         box-shadow: none;
+        border-color: var(--mantine-color-dark-7);
+        background-color: var(--mantine-color-dark-8);
 
         // Disable clicks on the empty ghost bar
         pointer-events: none;
