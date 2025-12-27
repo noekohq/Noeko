@@ -13,15 +13,20 @@
     background-color: var(--mantine-color-dark-9);
     color: var(--mantine-color-text);
     border: none;
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease-in-out;
+    cursor: pointer;
 
     &.active {
-        background-color: var(--mantine-primary-color-7);
-        color: var(--mantine-color-white);
+        background-color: var(--mantine-color-dark-7);
+        color: var(--mantine-color-dark-1);
+    }
+
+    &:hover {
+        background-color: var(--mantine-color-dark-8);
     }
 
     &:focus {

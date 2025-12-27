@@ -3,7 +3,7 @@ import { useToggle } from "@mantine/hooks";
 import { Icon, IconProps } from "@phosphor-icons/react";
 import React from "react";
 
-type IIconToggleOption = {
+export type IIconToggleOption = {
   icon: Icon;
   value: string;
 };

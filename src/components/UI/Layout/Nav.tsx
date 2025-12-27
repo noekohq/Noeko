@@ -1,13 +1,11 @@
 import { Avatar, Group } from "@mantine/core";
 import styles from "./Nav.module.scss";
 import {
+  ArrowLineDownIcon, // New Icon: "Dock it"
   CalendarCheckIcon,
-  CaretDownIcon,
-  CaretUpIcon,
   HouseIcon,
-  MagnifyingGlassIcon,
+  PushPinIcon, // New Icon: "Pin it"
   TagIcon,
-  UserIcon,
 } from "@phosphor-icons/react";
 import {
   ConstellationIcon,
@@ -22,6 +20,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import MyButton from "../../Display/Interactions/MyButton";
 import { useAuth } from "../../../contexts/AuthContext";
 import useRabbithole from "../../../hooks/useRabbithole";
+import { CaretUpIcon } from "@phosphor-icons/react/dist/ssr";
 
 type INavProps = {
   children?: React.ReactNode | React.ReactNode[];
@@ -82,27 +81,13 @@ export default function Nav({ children }: INavProps) {
   const { currentRabbithole } = useRabbithole();
 
   const activeMap = {
-    search: () => {
-      return pathname.startsWith("/search");
-    },
-    rabbitholes: () => {
-      return pathname.startsWith("/rabbithole");
-    },
-    tags: () => {
-      return pathname.startsWith("/tag");
-    },
-    constellation: () => {
-      return pathname.startsWith("/constellation");
-    },
-    spyglass: () => {
-      return pathname.startsWith("/spyglass");
-    },
-    agenda: () => {
-      return pathname.startsWith("/agenda");
-    },
-    home: () => {
-      return pathname === "/";
-    },
+    search: () => pathname.startsWith("/search"),
+    rabbitholes: () => pathname.startsWith("/rabbithole"),
+    tags: () => pathname.startsWith("/tag"),
+    constellation: () => pathname.startsWith("/constellation"),
+    spyglass: () => pathname.startsWith("/spyglass"),
+    agenda: () => pathname.startsWith("/agenda"),
+    home: () => pathname === "/",
   };
 
   useEffect(() => {
@@ -133,7 +118,6 @@ export default function Nav({ children }: INavProps) {
       className={`${styles.nav} ${isHidden() ? styles.hidden : ""} ${
         hasDrawerContent && isMobile ? styles.hasDrawer : ""
       } ${isCollapsed ? styles.collapsed : ""}`}
-      onClick={isCollapsed ? handleCollapseToggle : undefined}
     >
       {isDrawerOpen && <div className={styles.backdrop} />}
       {hasDrawerContent && isMobile && (
@@ -154,7 +138,9 @@ export default function Nav({ children }: INavProps) {
         </>
       )}
       <div
-        className={`${styles.options} ${hasDrawerContent && isMobile ? styles.hasDrawer : ""}`}
+        className={`${styles.options} ${
+          hasDrawerContent && isMobile ? styles.hasDrawer : ""
+        }`}
       >
         {!isMobile && (
           <button
@@ -242,10 +228,20 @@ export default function Nav({ children }: INavProps) {
         {!isMobile && <CaptureButton />}
         {!isMobile && (
           <button
-            className={`${styles.action} ${styles.collapseButton} ${isCollapsed ? styles.collapsed : ""}`}
-            onClick={handleCollapseToggle}
+            className={`${styles.action} ${styles.collapseButton} ${
+              isCollapsed ? styles.collapsed : ""
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCollapseToggle();
+            }}
+            title={isCollapsed ? "Pin Open" : "Dock to Bottom"}
           >
-            <CaretDownIcon weight="bold" />
+            {isCollapsed ? (
+              <PushPinIcon weight="bold" />
+            ) : (
+              <ArrowLineDownIcon weight="bold" />
+            )}
           </button>
         )}
       </div>
