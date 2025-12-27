@@ -15,7 +15,6 @@ import {
   UnderlineButton,
 } from "./Options";
 import { createPortal } from "react-dom";
-import { useKeyboardOffset } from "../../../hooks/useKeyboardOffset";
 
 interface IMobileEditorToolbarProps {
   editor: IEditor | null;
@@ -26,7 +25,7 @@ export default function MobileEditorToolbar({
   editor,
   isVisible,
 }: IMobileEditorToolbarProps) {
-  const keyboardOffset = useKeyboardOffset();
+  // Removed: useKeyboardOffset hook (caused the jitter)
 
   if (!editor) {
     return null;
@@ -34,8 +33,8 @@ export default function MobileEditorToolbar({
 
   return createPortal(
     <div
+      // Removed: style={{ bottom: ... }}
       className={`${styles.toolbar} ${isVisible ? styles.visible : ""}`}
-      style={{ bottom: `${keyboardOffset}px` }}
     >
       <div className={styles.scroller}>
         <div className={styles.buttonGroup}>
