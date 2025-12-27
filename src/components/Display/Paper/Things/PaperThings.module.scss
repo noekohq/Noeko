@@ -1,3 +1,14 @@
+@keyframes slideUpAndFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .paperThings {
     width: 100%;
 }
@@ -9,27 +20,56 @@
 .thingList {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 5px;
 
     .thingListItem {
         width: 100%;
         box-sizing: border-box;
         padding: var(--mantine-spacing-xs);
-        background-color: var(--mantine-color-dark-8);
+        background-color: transparent;
         border-radius: var(--mantine-radius-sm);
+        cursor: pointer;
+        border: 1px solid var(--mantine-color-dark-7);
+        border-radius: 3px;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+        opacity: 0;
+        animation: slideUpAndFadeIn 0.3s ease-out forwards;
 
         &.oneChild {
-            border-radius: var(--mantine-radius-sm) !important;
+            border-radius: var(--mantine-radius-lg) !important;
         }
 
         &:first-child {
-            border-radius: var(--mantine-radius-lg) var(--mantine-radius-lg)
-                var(--mantine-radius-sm) var(--mantine-radius-sm);
+            border-top-left-radius: var(--mantine-radius-lg);
+            border-top-right-radius: var(--mantine-radius-lg);
         }
 
         &:last-child {
-            border-radius: var(--mantine-radius-sm) var(--mantine-radius-sm)
-                var(--mantine-radius-lg) var(--mantine-radius-lg);
+            border-bottom-left-radius: var(--mantine-radius-lg);
+            border-bottom-right-radius: var(--mantine-radius-lg);
+        }
+
+        &:hover {
+            border-color: var(--mantine-color-dark-5);
+            border-radius: var(--mantine-radius-md);
+
+            .innerContent {
+            }
+
+            .left {
+                width: 20px;
+            }
+        }
+
+        &:active {
+            .innerContent {
+                transform: scale(0.99);
+            }
+
+            .left {
+                /* width: 24px; */
+            }
         }
 
         .left {
@@ -40,6 +80,22 @@
             justify-content: center;
             flex-direction: column;
             font-size: var(--mantine-font-size-xl);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .innerContent {
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
     }
+}
+
+.thingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--mantine-spacing-md);
+}
+
+.thingGridItem {
+    opacity: 0;
+    animation: slideUpAndFadeIn 0.3s ease-out forwards;
 }

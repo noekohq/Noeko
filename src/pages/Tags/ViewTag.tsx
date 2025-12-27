@@ -11,7 +11,6 @@ import {
   ActionIcon,
   Modal,
   TextInput,
-  SimpleGrid,
   HoverCard,
   Textarea,
   Blockquote,
@@ -26,12 +25,14 @@ import { ITagDescribes } from "../../../app/database/models/tag";
 import {
   ArrowLeftIcon,
   FloppyDiskIcon,
+  GraphIcon,
   InfoIcon,
   LightbulbIcon,
+  ListIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
+  SquaresFourIcon,
   TagIcon,
-  TagSimpleIcon,
   TrashIcon,
   WarningCircleIcon,
   XIcon,
@@ -39,22 +40,24 @@ import {
 import { BlockTag } from "../../components/Display/Tags/TagDisplay";
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useForm } from "@mantine/form";
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
 import { useLayout } from "../../contexts/LayoutContext";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import { getNodeDescription, getNodeTitle } from "../../utils/graph";
-import CollapseButton from "../../components/Display/Interactions/CollapseButton";
-import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 import { RecordId } from "surrealdb";
 import { applyTagToThing, removeTagFromThing } from "../../utils/tags";
 import ConnectableTable from "../../components/Display/Data/ConnectableTable";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
-import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
+import {
+  getThingPropsFromConnectable,
+  getThingsFromConnectables,
+} from "../../components/Display/Paper/Things/thingUtils";
 import PaperThing from "../../components/Display/Paper/Things/PaperThing";
+import PaperThings from "../../components/Display/Paper/Things/PaperThings";
+import GraphContainer from "../../components/Graph/Graph";
+import { fromConstellation } from "../../utils/graph";
 
 export default function ViewTag() {
   const navigate = useNavigate();
@@ -208,7 +211,7 @@ export default function ViewTag() {
         title: "Success",
         message: "Tag deleted successfully",
       });
-      navigate("/tags"); // Navigate back to tags list
+      navigate("/tags");
     },
     onError: (error) => {
       console.error("Failed to delete tag:", error);
@@ -265,7 +268,7 @@ export default function ViewTag() {
     if (Object.keys(valuesToUpdate).length > 0) {
       await updateTag();
     } else {
-      setIsEditing(false); // No changes, just exit edit mode
+      setIsEditing(false);
     }
   };
 
@@ -295,18 +298,62 @@ export default function ViewTag() {
     isMobile,
   } = useLayout();
 
-  const [filterQuery, setFilterQuery] = useState(""); // State for filter query
-  const filteredThings = useMemo(() => {
-    if (!things) return [];
-    if (!filterQuery.trim()) return things;
+  const graphData = useMemo(() => {
+    if (!things) return undefined;
+    return fromConstellation({ things: things });
+  }, [things]);
 
-    const query = filterQuery.toLowerCase();
-    return things.filter((thing) => {
-      const name = JSON.stringify(thing);
-      const contains = !!name?.toLowerCase().includes(query);
-      return contains;
-    });
-  }, [things, filterQuery]);
+  function TagConstellationView({ graph }: { graph: any }) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+      const updateDimensions = () => {
+        if (containerRef.current) {
+          setDimensions({
+            width: containerRef.current.clientWidth,
+            height: containerRef.current.clientHeight,
+          });
+        }
+      };
+
+      const resizeObserver = new ResizeObserver(updateDimensions);
+      if (containerRef.current) {
+        resizeObserver.observe(containerRef.current);
+      }
+      updateDimensions();
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }, []);
+
+    return (
+      <div ref={containerRef} className={styles.constellationContainer}>
+        {dimensions.width > 0 && (
+          <GraphContainer
+            graph={graph}
+            width={dimensions.width}
+            height={dimensions.height}
+          />
+        )}
+      </div>
+    );
+  }
+
+  const paperThingsModes = [
+    { value: "list", icon: ListIcon },
+    { value: "grid", icon: SquaresFourIcon },
+    // { value: "constellation", icon: GraphIcon },
+  ];
+
+  const customPaperThingViews = {
+    constellation: graphData ? (
+      <TagConstellationView graph={graphData} />
+    ) : (
+      <Loader />
+    ),
+  };
 
   return (
     <PageWrapper>
@@ -559,10 +606,13 @@ export default function ViewTag() {
               </Card>
 
               <Stack gap="md">
-                <Group>
-                  <Title order={3}>Items with this tag</Title>
-                  {loadingThings && <Loader size="md" />}
-                </Group>
+                {things && things.length > 0 && (
+                  <PaperThings
+                    modes={paperThingsModes}
+                    things={getThingsFromConnectables(things, {}, true)}
+                    // customViews={customPaperThingViews}
+                  />
+                )}
                 {thingErrors && thingErrors.length > 0 && (
                   <Alert
                     icon={<WarningCircleIcon size={24} />}
@@ -573,10 +623,7 @@ export default function ViewTag() {
                     Failed to load items for this tag: {thingErrors.join(", ")}
                   </Alert>
                 )}
-                {filteredThings.length > 0 && (
-                  <ConnectableTable connectables={filteredThings} />
-                )}
-                {!filteredThings.length && (
+                {(!things || things.length === 0) && (
                   <Text size="sm">
                     {isMobile
                       ? "Nothing here yet :/"
