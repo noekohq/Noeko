@@ -1,0 +1,52 @@
+name: "🚀 Update"
+description: "Define a new feature or high-impact improvement with strategic alignment."
+title: "[STRATEGY]: "
+labels: ["triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Overview
+        Describe the core purpose of this task and the problem it solves for Noeko.
+  - type: textarea
+    id: overview
+    attributes:
+      label: "Strategic Intent"
+      placeholder: "e.g. Reduce friction in the initial workspace setup by automating the first three steps..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: signal
+    attributes:
+      label: "Evidence Level"
+      options:
+        - "Vibes Only (Internal Theory)"
+        - "Anecdotal (Single User/Mention)"
+        - "Validated (Hard Data/Multiple Requests)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: "Supporting Data / Context"
+      placeholder: "Link to Discord, PostHog logs, or paste specific user quotes."
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: "Definition of Done"
+      description: "A checklist of exactly what must be true for this task to be considered finished."
+      placeholder: |
+        - [ ] Feature X works in the mobile view
+        - [ ] API endpoint handles empty states
+        - [ ] Animation is under 200ms
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: "Scope & Constraints"
+      placeholder: "Include 'Out of Scope' items or specific technical limitations here."
