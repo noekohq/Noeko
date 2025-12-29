@@ -1,6 +1,6 @@
 name: "🚀 Update"
 description: "Define a new feature or high-impact improvement with strategic alignment."
-title: "[STRATEGY]: "
+title: ""
 labels: ["triage"]
 body:
   - type: markdown
@@ -13,17 +13,6 @@ body:
     attributes:
       label: "Strategic Intent"
       placeholder: "e.g. Reduce friction in the initial workspace setup by automating the first three steps..."
-    validations:
-      required: true
-
-  - type: dropdown
-    id: signal
-    attributes:
-      label: "Evidence Level"
-      options:
-        - "Vibes Only (Internal Theory)"
-        - "Anecdotal (Single User/Mention)"
-        - "Validated (Hard Data/Multiple Requests)"
     validations:
       required: true
 
