@@ -38,7 +38,6 @@ export default function MyButton() {
 
   const menuNavItems = [
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
-    { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
     { label: "Sharing", icon: LightbulbIcon, path: "/sharing" },
     { label: "Tasks", icon: CheckIcon, path: "/tasks" },
     { label: "Sources", icon: FileIcon, path: "/sources" },
