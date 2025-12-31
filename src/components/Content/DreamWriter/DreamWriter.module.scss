@@ -4,7 +4,7 @@
 
     &.collaborationActive {
         .tippyEditor {
-            padding-top: 24px;
+            padding-top: 36px;
         }
     }
 }
@@ -106,6 +106,7 @@
 
 .syncingStatus {
     background-color: var(--mantine-color-dark-8);
+    box-shadow: var(--mantine-shadow-xs);
     padding: 4px 8px;
     border-radius: var(--mantine-radius-md);
     transition: all 0.2s ease-in-out;
