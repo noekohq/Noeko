@@ -168,7 +168,6 @@ export const handleFileUpload = (
       return;
     }
 
-    // A. Explicitly Embed (The "Write" Step)
     if (options.connectableId) {
       await linkFileToConnectable(
         response.id.toString(),
@@ -176,7 +175,6 @@ export const handleFileUpload = (
       );
     }
 
-    // B. Insert Content
     if (response.mimeType.startsWith("image/")) {
       editor
         .chain()

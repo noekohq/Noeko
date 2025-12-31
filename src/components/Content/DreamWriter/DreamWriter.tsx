@@ -80,7 +80,7 @@ const CollaborationStatus = ({ status }: { status: ICollaborationStatus }) => {
   switch (status) {
     case "connecting":
       statusContent = (
-        <Text size="xs" c="dimmed">
+        <Text size="xs">
           <Group gap="8px" wrap="nowrap">
             <Loader size="12px" color="gray" />
             Connecting
@@ -90,7 +90,7 @@ const CollaborationStatus = ({ status }: { status: ICollaborationStatus }) => {
       break;
     case "synced":
       statusContent = (
-        <Text size="xs" c="dimmed">
+        <Text size="xs">
           <Group gap="4px">
             <CloudCheckIcon />
             Synced
@@ -100,7 +100,7 @@ const CollaborationStatus = ({ status }: { status: ICollaborationStatus }) => {
       break;
     case "disconnected":
       statusContent = (
-        <Text size="xs" c="dimmed" fw="bold">
+        <Text size="xs" fw="bold">
           <Group gap="4px">
             <CloudXIcon weight="bold" />
             Offline
@@ -110,7 +110,7 @@ const CollaborationStatus = ({ status }: { status: ICollaborationStatus }) => {
       break;
     default:
       statusContent = (
-        <Text size="xs" c="dimmed" fw="bold">
+        <Text size="xs" fw="bold">
           <Group gap="4px">
             <CloudArrowUpIcon weight="bold" />
             Saving

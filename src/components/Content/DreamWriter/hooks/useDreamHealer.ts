@@ -1,6 +1,7 @@
 import { Editor } from "@tiptap/react";
 import { useEffect } from "react";
 import { api } from "../../../../server/api";
+import { debounce } from "lodash";
 
 /**
  * Scans the editor content for:
@@ -8,7 +9,7 @@ import { api } from "../../../../server/api";
  * 2. DreamIdea/DreamTask/DreamSource nodes -> Ensures "connected" edge
  *
  * This acts as an automatic migration/repair tool ("The Healer")
- * that runs once when the editor loads to ensure the Graph DB matches the Editor State.
+ * that runs when the editor content changes to ensure the Graph DB matches the Editor State.
  */
 export const useDreamHealer = (
   editor: Editor | undefined,
@@ -16,36 +17,34 @@ export const useDreamHealer = (
   isReady: boolean,
 ) => {
   useEffect(() => {
-    if (!editor || !connectableId) return;
+    if (!editor || !connectableId || !isReady) return;
 
-    const fileIds = new Set<string>();
-    const connectionIds = new Set<string>();
+    const healConnections = debounce(() => {
+      const fileIds = new Set<string>();
+      const connectionIds = new Set<string>();
 
-    editor.state.doc.descendants((node) => {
-      if (node.type.name === "dreamImage" || node.type.name === "dreamFile") {
-        if (node.attrs.fileId) {
-          fileIds.add(node.attrs.fileId);
+      editor.state.doc.descendants((node) => {
+        if (node.type.name === "dreamImage" || node.type.name === "dreamFile") {
+          if (node.attrs.fileId) {
+            fileIds.add(node.attrs.fileId);
+          }
         }
-      }
 
-      if (
-        node.type.name === "dreamIdea" ||
-        node.type.name === "dreamTask" ||
-        node.type.name === "dreamSource"
-      ) {
-        const id =
-          node.attrs.ideaId || node.attrs.taskId || node.attrs.sourceId;
+        if (
+          node.type.name === "dreamIdea" ||
+          node.type.name === "dreamTask" ||
+          node.type.name === "dreamSource"
+        ) {
+          const id =
+            node.attrs.ideaId || node.attrs.taskId || node.attrs.sourceId;
 
-        if (id) {
-          connectionIds.add(id);
+          if (id) {
+            connectionIds.add(id);
+          }
         }
-      }
-    });
+      });
 
-    const timers: NodeJS.Timeout[] = [];
-
-    if (fileIds.size > 0) {
-      const fileTimer = setTimeout(() => {
+      if (fileIds.size > 0) {
         console.log(`Healing dream embeddings for ${fileIds.size} files...`);
         api
           .post("/files/ensure-embedded", {
@@ -55,12 +54,9 @@ export const useDreamHealer = (
           .catch((err) => {
             console.warn("Dream file healing failed", err);
           });
-      }, 1000);
-      timers.push(fileTimer);
-    }
+      }
 
-    if (connectionIds.size > 0) {
-      const connectionTimer = setTimeout(() => {
+      if (connectionIds.size > 0) {
         console.log(
           `Healing dream connections for ${connectionIds.size} nodes...`,
         );
@@ -72,13 +68,14 @@ export const useDreamHealer = (
           .catch((err) => {
             console.warn("Dream connection healing failed", err);
           });
-      }, 1200);
-      timers.push(connectionTimer);
-    }
+      }
+    }, 2000); // Debounce time in milliseconds
 
-    // Cleanup all timers
+    healConnections();
+
+    // Cleanup the debounced function
     return () => {
-      timers.forEach((t) => clearTimeout(t));
+      healConnections.cancel();
     };
-  }, [editor, connectableId, isReady]);
+  }, [editor, connectableId, isReady, editor?.state.doc]);
 };
