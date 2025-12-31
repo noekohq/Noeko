@@ -34,15 +34,13 @@ export default function ProfileButton() {
 
   const menuNavItems = [
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
-    { label: "All Ideas", icon: LightbulbIcon, path: "/ideas" },
-    { label: "Shared Ideas", icon: LightbulbIcon, path: "/ideas/shared" },
+    { label: "Sharing", icon: LightbulbIcon, path: "/sharing" },
     { label: "Tasks", icon: CheckIcon, path: "/tasks" },
     { label: "Sources", icon: FileIcon, path: "/sources" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },
     { label: "Constellation", icon: GraphIcon, path: "/constellation" },
     { label: "Tags", icon: TagIcon, path: "/tags" },
-    { label: "Updates", icon: ScrollIcon, path: "/updates" },
     { label: "Files", icon: FileIcon, path: "/files" },
     ...(isSuperuser
       ? [{ label: "Admin Panel", icon: ShieldStarIcon, path: "/admin" }]
