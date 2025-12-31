@@ -242,8 +242,6 @@ const suggestionOptionsDefinition = (
     command: ({ editor, range, props }) => {
       const triggerText = editor.state.doc.textBetween(range.from, range.to);
 
-      console.log("Triggering command with ");
-
       const queryStartIndex = triggerText.lastIndexOf("[[");
       const originalQuery = triggerText.substring(queryStartIndex + 2);
 
@@ -252,8 +250,6 @@ const suggestionOptionsDefinition = (
         from: range.from,
         to: textAfter === "]]" ? range.to + 2 : range.to,
       };
-
-      console.log("Running command with props: ", props);
 
       if (props.id === "new-idea") {
         createIdea({
@@ -349,7 +345,6 @@ const suggestionOptionsDefinition = (
         props.type === "task"
       ) {
         const cmd = commandMap[props.type];
-        console.log("Command map: ", cmd, props);
         cmd();
       }
     },

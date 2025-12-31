@@ -5,6 +5,7 @@ import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { ISafeIdea } from "../../../app/database/models/ideas";
+import { IShareAccess } from "../../../app/database/models/share";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
@@ -20,6 +21,7 @@ import {
   Tooltip,
   Loader,
   CopyButton,
+  Badge,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import {
@@ -76,7 +78,9 @@ import { modals } from "@mantine/modals";
 import { downloadTextAsFile } from "../../utils/files";
 
 // --- Types ---
-type IdeaUnion = ISafeIdea | IOptimisticIdea;
+type IdeaUnion =
+  | (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null })
+  | IOptimisticIdea;
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -137,7 +141,10 @@ export default function Idea() {
     data: fetchedIdea,
     load: reloadIdea,
     loading: loadingIdea,
-  } = useFetch<undefined, ISafeIdea>({
+  } = useFetch<
+    undefined,
+    ISafeIdea & { accessLevel: "owner" | IShareAccess | null }
+  >({
     url: fetchUrl,
     dependencies: [ideaId],
     query: { withDerived: "true" },
@@ -147,6 +154,13 @@ export default function Idea() {
 
   const ideaToRender: IdeaUnion | undefined =
     optimisticFromStore || fetchedIdea;
+
+  const isViewOnly =
+    !isOptimistic &&
+    !!ideaToRender &&
+    "accessLevel" in ideaToRender &&
+    ideaToRender.accessLevel === "viewonly";
+  const canEdit = !isOptimistic && !isViewOnly;
 
   const [title, setTitle] = useState<string>("");
 
@@ -158,7 +172,6 @@ export default function Idea() {
     }
   }, [ideaToRender?.title, ideaToRender?.id]);
 
-  // --- API: Delete Idea (Hoisted) ---
   const { load: triggerDeleteIdea, loading: loadingDelete } = useFetch({
     url: `/ideas/${ideaId}`,
     dependencies: [ideaId],
@@ -172,7 +185,6 @@ export default function Idea() {
       });
     },
     onError: (error: any) => {
-      // If error, reset the deleting flag so auto-save can resume if needed
       isDeletingRef.current = false;
       showNotification({
         title: "Error Deleting",
@@ -196,7 +208,6 @@ export default function Idea() {
       labels: { confirm: "Delete Idea", cancel: "Cancel" },
       confirmProps: { color: "red" },
       onConfirm: () => {
-        // CRITICAL: Set the flag synchronously before triggering the delete/nav
         isDeletingRef.current = true;
         triggerDeleteIdea();
       },
@@ -229,7 +240,6 @@ export default function Idea() {
       onFinally: reloadIdea,
     });
 
-  // --- Helpers ---
   const embeddingsOutOfDate = useCallback(() => {
     if (!fetchedIdea || !fetchedIdea.embeddingsUpdatedAt) return true;
     return (
@@ -253,7 +263,6 @@ export default function Idea() {
     return !cleanTitle || cleanTitle === "Untitled Idea";
   }, [ideaToRender]);
 
-  // --- Logic Loop Prevention ---
   const computeStateRef = useRef({
     isOptimistic,
     ideaId,
@@ -457,7 +466,7 @@ export default function Idea() {
                   order={1}
                   m="0"
                   pr="md"
-                  contentEditable={!isOptimistic}
+                  contentEditable={canEdit}
                   suppressContentEditableWarning
                   onBlur={(e) => {
                     if (isOptimistic) return;
@@ -469,12 +478,18 @@ export default function Idea() {
                   }}
                   className={styles.editableTitle}
                   style={{
-                    opacity: isOptimistic ? 0.7 : 1,
-                    cursor: isOptimistic ? "not-allowed" : "text",
+                    opacity: canEdit ? 1 : 0.7,
+                    cursor: canEdit ? "text" : "default",
                   }}
                 >
                   {title || ""}
                 </Title>
+
+                {isViewOnly && (
+                  <Badge color="gray" variant="outline">
+                    View Only
+                  </Badge>
+                )}
 
                 {titleNeedsGeneration() && !isOptimistic && (
                   <ActionIcon
@@ -547,15 +562,16 @@ export default function Idea() {
             <div className={styles.contentArea}>
               {ideaToRender && (
                 <DreamWriter
-                  readOnly={isOptimistic}
+                  readOnly={isOptimistic || isViewOnly}
                   stickyMenu={false}
                   onChange={handleEditorChange}
                   onContentReady={handleContentReady}
                   dependencies={[ideaId, ideaToRender.id]}
                   ref={editorRef}
                   collaborationId={
-                    !isOptimistic ? ideaToRender.id.toString() : undefined
+                    canEdit ? ideaToRender.id.toString() : undefined
                   }
+                  initialContent={canEdit ? undefined : ideaToRender.content}
                   connectableId={ideaToRender.id.toString()}
                 />
               )}
@@ -811,10 +827,6 @@ function Tools({
                   Delete
                 </Menu.Item>
               </Tooltip>
-
-              <Link to="view" style={{ textDecoration: "none" }}>
-                <Menu.Item leftSection={<BookOpenIcon />}>View only</Menu.Item>
-              </Link>
 
               <CopyButton value={getMarkdownContent()}>
                 {({ copied, copy }) => (

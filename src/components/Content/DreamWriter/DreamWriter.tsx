@@ -10,16 +10,38 @@ import "./DreamWriter.scss";
 import styles from "./DreamWriter.module.scss";
 import contentStyles from "./Content.module.scss";
 import { useEditor, EditorContent, Editor as IEditor } from "@tiptap/react";
-import { FileIcon } from "@phosphor-icons/react";
+import {
+  FileIcon,
+  Check,
+  X,
+  CheckIcon,
+  XIcon,
+  CloudArrowUpIcon,
+  CloudSlashIcon,
+  CloudCheckIcon,
+  SpinnerGapIcon,
+  CloudXIcon,
+} from "@phosphor-icons/react";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { getExtensionConfig } from "./extensions";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "../../../contexts/LayoutContext";
-import { Group, Loader, Overlay, Text } from "@mantine/core";
+import {
+  Group,
+  Loader,
+  Overlay,
+  Text,
+  Tooltip,
+  Avatar,
+  Center,
+} from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
 import { getOS } from "../../../utils/platform";
-import { useCollaboration } from "../../../hooks/useCollaboration";
+import {
+  ICollaborationStatus,
+  useCollaboration,
+} from "../../../hooks/useCollaboration";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -27,6 +49,7 @@ import { assignMantineColor } from "../../../utils/colors";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 import { useDreamHealer } from "./hooks/useDreamHealer";
 import MobileEditorToolbar from "./MobileEditorToolbar";
+import LangtonsAntLoader from "../../Utils/Loading/AntLoader";
 
 interface EditorData {
   comments: [];
@@ -52,6 +75,57 @@ interface EditorProps {
 
 const defaultContent = ``;
 
+const CollaborationStatus = ({ status }: { status: ICollaborationStatus }) => {
+  let statusContent = null;
+  switch (status) {
+    case "connecting":
+      statusContent = (
+        <Text size="xs" c="dimmed">
+          <Group gap="8px" wrap="nowrap">
+            <Loader size="12px" color="gray" />
+            Connecting
+          </Group>
+        </Text>
+      );
+      break;
+    case "synced":
+      statusContent = (
+        <Text size="xs" c="dimmed">
+          <Group gap="4px">
+            <CloudCheckIcon />
+            Synced
+          </Group>
+        </Text>
+      );
+      break;
+    case "disconnected":
+      statusContent = (
+        <Text size="xs" c="dimmed" fw="bold">
+          <Group gap="4px">
+            <CloudXIcon weight="bold" />
+            Offline
+          </Group>
+        </Text>
+      );
+      break;
+    default:
+      statusContent = (
+        <Text size="xs" c="dimmed" fw="bold">
+          <Group gap="4px">
+            <CloudArrowUpIcon weight="bold" />
+            Saving
+          </Group>
+        </Text>
+      );
+  }
+
+  return (
+    <div className={`${styles.syncingStatus} ${styles[`status_${status}`]}`}>
+      {statusContent}
+    </div>
+  );
+};
+
 const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
   (
     {
@@ -73,6 +147,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     },
     ref,
   ) => {
+    const [collaborators, setCollaborators] = useState<any[]>([]);
     const { user } = useAuth();
     const content = initialContent || defaultContent.trim();
 
@@ -110,6 +185,27 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
 
     const isLocked = !!collaborationId && status !== "synced";
     const isEditable = !isLocked && !readOnly;
+
+    useEffect(() => {
+      if (provider?.awareness) {
+        const awareness = provider.awareness;
+        const updateHandler = () => {
+          const states = Array.from(awareness.getStates().entries());
+          const otherUsers = states
+            .filter(([clientID]) => clientID !== awareness.clientID)
+            .map(([, state]) => state.user)
+            .filter(Boolean); // filter out undefined/null users
+          setCollaborators(otherUsers);
+        };
+        awareness.on("change", updateHandler);
+        updateHandler(); // initial
+        return () => {
+          awareness.off("change", updateHandler);
+        };
+      } else {
+        setCollaborators([]);
+      }
+    }, [provider]);
 
     const editor = useEditor(
       {
@@ -251,8 +347,31 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     return (
       <div
         ref={editorContainerRef}
-        className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""}`}
+        className={`${styles.editor} ${
+          droppingOver ? styles.droppingOver : ""
+        } ${collaborationId ? styles.collaborationActive : ""}`}
       >
+        {collaborationId && (
+          <div className={styles.collaborationInfo}>
+            <CollaborationStatus status={status} />
+            <Group gap="xs">
+              {collaborators.map((collaborator) => (
+                <Tooltip
+                  transitionProps={{ transition: "fade-up", duration: 300 }}
+                  label={collaborator.name}
+                  key={collaborator.name}
+                >
+                  <Avatar color={collaborator.color} size="sm" radius="xl">
+                    {collaborator.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")}
+                  </Avatar>
+                </Tooltip>
+              ))}
+            </Group>
+          </div>
+        )}
         {droppingOver && (
           <Overlay
             backgroundOpacity={0.5}
@@ -270,24 +389,16 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             </Group>
           </Overlay>
         )}
-        {isLocked && (
-          <div className={styles.syncing}>
-            <Group gap="xs">
-              <Text size="sm" c="dimmed" fw="bold">
-                Syncing
-              </Text>
-              <Loader size="xs" color="gray" />
-            </Group>
-          </div>
-        )}
         {/*<FloatingMenu editor={editor} />*/}
-        <BubbleMenu
-          editor={editor}
-          onVisibilityChange={(isVisible) => {
-            setBubbleMenuVisible(isVisible);
-          }}
-          boundaryRef={editorContainerRef}
-        />
+        {isEditable && (
+          <BubbleMenu
+            editor={editor}
+            onVisibilityChange={(isVisible) => {
+              setBubbleMenuVisible(isVisible);
+            }}
+            boundaryRef={editorContainerRef}
+          />
+        )}
         {isMobile && (
           <MobileEditorToolbar editor={editor} isVisible={bubbleMenuVisible} />
         )}
@@ -297,7 +408,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               e.preventDefault();
             }
           }}
-          className={styles.tippyContent}
+          className={`${styles.tippyContent}`}
           editor={editor}
         />
       </div>

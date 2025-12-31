@@ -1,6 +1,12 @@
 .editor {
     height: fit-content;
     position: relative;
+
+    &.collaborationActive {
+        .tippyEditor {
+            padding-top: 24px;
+        }
+    }
 }
 
 .droppingOver {
@@ -22,7 +28,6 @@
     }
 
     p.emptyEditor:first-child::before {
-        // Replaced rgba(var(--color-text-rgb), 0.5) with Mantine's standard dimmed text color
         color: var(--mantine-color-dimmed);
         content: attr(data-placeholder);
         float: left;
@@ -36,16 +41,13 @@
     height: 18px;
     width: 1.5px;
     margin-inline: 8px;
-    // Replaced --color-text with --mantine-color-text
     background-color: var(--mantine-color-text);
 }
 
 .stickyMenu {
     position: sticky;
-    // Non-color variables kept
     top: calc(var(--topnav-height) + var(--navbar-height));
     z-index: var(--z-index-selection);
-    // Replaced --color-background with --mantine-color-body
     background-color: var(--mantine-color-body);
     display: flex;
     align-items: center;
@@ -53,29 +55,24 @@
     gap: 8px;
     transition: all 0.2s ease-in-out;
     box-sizing: border-box;
-    // Replaced rgba(var(--color-text-rgb), 0) with transparent, as alpha is 0
     outline: 1px solid transparent;
     padding: 14px 0;
 
     @media screen and (min-width: 768px) {
         top: calc(var(--topnav-height) + 8px);
-        // Non-color variable kept
         border-radius: var(--border-radius-small);
     }
 
     &.navCollapsed {
         @media screen and (min-width: 768px) {
             top: 14px;
-            // Non-color variable kept
             border-radius: var(--border-radius-small);
         }
     }
 
-    // Non-color variable definition kept
     --sticky-offset: 14px;
 
     @media screen and (min-width: 1024px) {
-        // Non-color variable definition kept
         --sticky-offset: 36px;
     }
     &.stickyMenuFixed {
@@ -83,10 +80,7 @@
 
         @media screen and (min-width: 768px) {
             padding: 14px 14px;
-            // Replaced rgba(var(--color-text-rgb), 0.1) with Mantine's default border color or a light gray
-            // Using default-border is usually appropriate here. Adjust if needed (e.g., --mantine-color-gray-3)
             outline: 1px solid var(--mantine-color-default-border);
-            // Non-color variables kept
             margin-left: calc(-1 * var(--sticky-offset));
             margin-right: calc(-1 * var(--sticky-offset));
             left: initial;
@@ -100,5 +94,28 @@
     }
 }
 
-.syncing {
+.collaborationInfo {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--mantine-spacing-sm);
+    z-index: 10;
+}
+
+.syncingStatus {
+    background-color: var(--mantine-color-dark-8);
+    padding: 4px 8px;
+    border-radius: var(--mantine-radius-md);
+    transition: all 0.2s ease-in-out;
+
+    & > div {
+        height: auto;
+        align-items: center;
+    }
+
+    &.status_disconnected {
+        background-color: var(--mantine-color-red-7);
+    }
 }

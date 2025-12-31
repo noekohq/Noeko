@@ -30,6 +30,56 @@ export default class Authorization {
     );
   }
 
+  static async getAccessLevel(
+    userId: string | RecordId,
+    thingId: string | RecordId,
+  ): Promise<"owner" | IShareAccess | null> {
+    try {
+      const isOwner = await this.checkOwns(userId, thingId);
+      if (isOwner) {
+        return "owner";
+      }
+
+      const sharedAccessLevel = await this.getSharedAccessLevel(
+        thingId,
+        userId,
+      );
+      if (sharedAccessLevel) {
+        return sharedAccessLevel;
+      }
+
+      if (thingId.toString().startsWith("user_file")) {
+        const hasEmbeddedAccess = await this.hasEmbeddedAccess(
+          thingId,
+          userId,
+          "viewonly",
+        );
+        if (hasEmbeddedAccess) {
+          return "viewonly";
+        }
+      }
+
+      const hasConnectedAccess = await this.hasConnectedAccess(
+        thingId,
+        userId,
+        "viewonly",
+      );
+      if (hasConnectedAccess) {
+        return "viewonly";
+      }
+
+      return null;
+    } catch (error) {
+      console.error(
+        "Error getting user access level: ",
+        userId,
+        thingId,
+        error,
+      );
+      return null;
+    }
+  }
+
   static async checkOwns(
     userId: string | RecordId,
     thingId: string | RecordId,
@@ -105,17 +155,15 @@ export default class Authorization {
     }
   }
 
-  static async hasSharedAccess(
+  static async getSharedAccessLevel(
     thingId: string | RecordId,
     userId: string | RecordId,
-    requiredAccess?: IShareAccess,
-  ) {
+  ): Promise<IShareAccess | null> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not available.");
       }
-      // We check the edge 'shared_with' connecting Thing -> User
       const query = `SELECT VALUE accessLevel FROM shared_with WHERE in = $thingId AND out = $userId LIMIT 1`;
       const results = await db.query<[IShareAccess[]]>(query, {
         userId: new StringRecordId(userId),
@@ -123,10 +171,26 @@ export default class Authorization {
       });
 
       if (!results || !results[0] || !results[0][0]) {
-        return false;
+        return null;
       }
 
-      const sharedAccessLevel = results[0][0];
+      return results[0][0];
+    } catch (error) {
+      console.error("Error checking user access: ", userId, thingId, error);
+      return null;
+    }
+  }
+
+  static async hasSharedAccess(
+    thingId: string | RecordId,
+    userId: string | RecordId,
+    requiredAccess?: IShareAccess,
+  ) {
+    try {
+      const sharedAccessLevel = await this.getSharedAccessLevel(
+        thingId,
+        userId,
+      );
       if (!sharedAccessLevel) {
         return false;
       }
@@ -152,18 +216,12 @@ export default class Authorization {
     }
   }
 
-  /**
-   * Checks if the item is connected (neighbor) to an item the user has access to.
-   * Path: Item <-> connected <-> Neighbor -> (owns OR shared_with) -> User
-   * Constraint: Connected access is strictly VIEWONLY.
-   */
   static async hasConnectedAccess(
     thingId: string | RecordId,
     userId: string | RecordId,
     requiredAccess?: IShareAccess,
   ) {
     try {
-      // 1. Constraint: Connected access never grants 'editor' permissions.
       if (requiredAccess === "editor") {
         return false;
       }
@@ -171,14 +229,8 @@ export default class Authorization {
       const db = await getDatabase();
       if (!db) throw new Error("Database not available.");
 
-      // 2. The neighbor (proxy) must be accessible to the user (either viewonly or editor)
       const proxyAccessFilter = `(accessLevel = 'viewonly' OR accessLevel = 'editor')`;
 
-      // 3. The Query
-      // We start at the Thing ($thingId).
-      // We look at all neighbors (outgoing or incoming connections).
-      // We filter those neighbors: Do we own them? OR Are they shared with us?
-      // If count > 0, we have access.
       const query = `
           SELECT count(
             (->connected.out + <-connected.in)[
@@ -210,10 +262,6 @@ export default class Authorization {
     }
   }
 
-  /**
-   * Checks if the user has access to a parent container that this item is embedded within.
-   * Path: Item -> embedded_within -> Container -> (owns OR shared_with) -> User
-   */
   static async hasEmbeddedAccess(
     thingId: string | RecordId,
     userId: string | RecordId,
@@ -223,7 +271,6 @@ export default class Authorization {
       const db = await getDatabase();
       if (!db) throw new Error("Database not available.");
 
-      // define the filter WITHOUT the 'AND' prefix
       let accessFilter = "";
       if (requiredAccess === "editor") {
         accessFilter = `accessLevel = 'editor'`;
@@ -296,19 +343,14 @@ export default class Authorization {
       const formattedIds = thingIds.map((id) => new StringRecordId(id));
       const formattedUserId = new StringRecordId(userId);
 
-      // 2. The Bulk Query
-      // We select from the input array ($ids).
-      // For each ID, we check if it meets ANY of the 3 criteria.
       let query = "";
 
       if (requiredAccess === "owner") {
-        // Strict ownership check
         query = `
             SELECT VALUE id FROM $ids
             WHERE (<-owns.in CONTAINS $userId)
           `;
       } else {
-        // Standard access check (Owns OR Direct Share OR Transitive/Embedded Share)
         query = `
             SELECT VALUE id FROM $ids
             WHERE
@@ -336,11 +378,9 @@ export default class Authorization {
         userId: formattedUserId,
       });
 
-      // Return a Set of strings for fast O(1) lookups
       return new Set(allowedIds?.map((id) => id.toString()) || []);
     } catch (error) {
       console.error("Error checking bulk access:", error);
-      // Fail safe: return empty set if DB error
       return new Set();
     }
   }

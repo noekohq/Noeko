@@ -59,6 +59,19 @@ export type IPublicUser = Omit<
   | "updatedAt"
 >;
 
+export type IFriendUser = Omit<
+  IUser,
+  | "password"
+  | "roles"
+  | "disabled"
+  | "referralCode"
+  | "scratchpadContent"
+  | "acceptedTermsOfServiceAt"
+  | "acceptedPrivacyPolicyAt"
+  | "settings"
+  | "updatedAt"
+>;
+
 export type IToken = {
   id: string;
   value: string;
@@ -468,6 +481,37 @@ export class User {
       console.error("Error getting all users:", error);
       throw error;
     }
+  }
+
+  static async getFriends(id: string | RecordId) {
+    const db = await getDatabase();
+    const result = await db?.query<
+      [{ incomingFriends: IFriendUser[]; outgoingFriends: IFriendUser[] }]
+    >(
+      `
+      SELECT
+          <-shared_with<-(?)<-owns<-user.{ id, createdAt, firstName, lastName, email } as incomingFriends,
+          ->owns->(?)->shared_with->user.{ id, createdAt, firstName, lastName, email } as outgoingFriends
+      FROM ONLY $userId
+      FETCH incomingFriends, outgoingFriends;
+      `,
+      { userId: new StringRecordId(id) },
+    );
+
+    if (!result || !result[0]) {
+      throw new Error("Couldn't get results.");
+    }
+
+    const [friends] = result;
+
+    const { incomingFriends, outgoingFriends } = friends;
+    const joint: IFriendUser[] = [];
+    for (const friend of [...incomingFriends, ...outgoingFriends]) {
+      if (!joint.find((f) => f.id.toString() === friend.id.toString())) {
+        joint.push(friend);
+      }
+    }
+    return joint;
   }
 
   static async findByEmail(email: string, unsafe?: true): Promise<IUser>;

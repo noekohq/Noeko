@@ -1,0 +1,4 @@
+- To maximize clarity, display only the most essential text on the dashboard and eliminate all unnecessary visual clutter.
+- Every icon must be the exact same size, regardless of its location (e.g., sidebar, main view).
+- Maintain consistent sizing for all text elements to avoid visual inconsistencies.
+- Do not add any new elements unless they are absolutely necessary.

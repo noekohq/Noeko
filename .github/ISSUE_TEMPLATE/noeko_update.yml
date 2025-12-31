@@ -1,0 +1,38 @@
+name: "🚀 New Feature"
+description: "Define a new feature or high-impact improvement with strategic alignment."
+title: "[FEATURE]: "
+labels: ["triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Overview
+        Describe the core purpose of this task and the problem it solves for Noeko.
+  - type: textarea
+    id: overview
+    attributes:
+      label: "Strategic Intent"
+      placeholder: "e.g. Reduce friction in the initial workspace setup by automating the first three steps..."
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: "Supporting Evidence / Context"
+      placeholder: "Link to Discord, PostHog logs, or paste specific user quotes."
+  - type: textarea
+    id: dod
+    attributes:
+      label: "Definition of Done"
+      description: "A checklist of exactly what must be true for this task to be considered finished."
+      placeholder: |
+        - [ ] _Feature X works in the mobile view_
+        - [ ] _API endpoint handles empty states_
+        - [ ] _Animation is under 200ms_
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: "Scope & Constraints"
+      placeholder: "Include 'Out of Scope' items or specific technical limitations here."
