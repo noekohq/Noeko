@@ -135,7 +135,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
 
             // Only fire for the specific IDs identified in the paste/drop transaction
             state?.toLink.forEach((id) => {
-              console.log("Live linking file:", id); // Debug
               linkFileToConnectable(id, connectableId);
             });
           },

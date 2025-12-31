@@ -18,7 +18,7 @@ body:
   - type: textarea
     id: data
     attributes:
-      label: "Supporting Data / Context"
+      label: "Supporting Evidence / Context"
       placeholder: "Link to Discord, PostHog logs, or paste specific user quotes."
   - type: textarea
     id: dod
@@ -26,9 +26,9 @@ body:
       label: "Definition of Done"
       description: "A checklist of exactly what must be true for this task to be considered finished."
       placeholder: |
-        - [ ] Feature X works in the mobile view
-        - [ ] API endpoint handles empty states
-        - [ ] Animation is under 200ms
+        - [ ] _Feature X works in the mobile view_
+        - [ ] _API endpoint handles empty states_
+        - [ ] _Animation is under 200ms_
     validations:
       required: true
   - type: textarea

@@ -14,6 +14,7 @@ import {
 import { getLM } from "../../ai/lms/lm";
 import { first } from "../../templates/onboarding";
 import Authorization from "../../services/Authorization";
+import { IShareAccess } from "../../database/models/share";
 
 const router = Router();
 
@@ -239,7 +240,8 @@ router.put("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const hasAccess = await Idea.checkUserOwnership(ideaId, user.id);
+    const auth = new Authorization(user.id);
+    const hasAccess = await auth.hasAccess(ideaId, "editor");
     if (!hasAccess) {
       res.status(403).json({
         message: "Unauthorized",
@@ -279,16 +281,15 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(404).json({ message: "Idea not found" });
       return;
     }
-    const auth = new Authorization(user.id);
-    const hasAccess = await auth.hasAccess(ideaId);
-    if (!hasAccess) {
+    const accessLevel = await Authorization.getAccessLevel(user.id, ideaId);
+
+    if (!accessLevel) {
       res.status(403).json({
         message: "Unauthorized.",
       });
       return;
     }
-    const isOwner = await User.checkOwns(user.id, ideaId);
-    if (isOwner) {
+    if (accessLevel === "owner") {
       Idea.update(ideaId, {
         viewedAt: new Date(),
       });
@@ -298,7 +299,8 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       connections?: IIdea[];
       relatedIdeas?: IIdeaAsRelation[];
       derived?: IIdeaDerivedMap;
-    } = { ...idea };
+      accessLevel?: "owner" | IShareAccess | null;
+    } = { ...idea, accessLevel };
     if (withDerived) {
       const derived = await Idea.getDerivedMap(ideaId);
       toSend.derived = derived;

@@ -365,7 +365,7 @@ const noeko: IOverrideResolver = (t) => {
       fontWeight: "550",
     },
     colors: colorsToUse()?.colors,
-    primaryColor: "blue",
+    primaryColor: "green",
     primaryShade: 7,
     white: colorsToUse()?.white,
     black: colorsToUse()?.black,

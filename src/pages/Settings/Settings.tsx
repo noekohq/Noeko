@@ -72,6 +72,11 @@ const AppearanceSettings = () => {
       value: "pinkLady" as const,
       disabled: override === "pinkLady",
     },
+    // {
+    //   label: "Dracula",
+    //   value: "dracula" as const,
+    //   disabled: override === "dracula",
+    // },
   ];
 
   const schemeData = [

@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import { ITask, ITaskForm } from "../../../app/database/models/task";
+import { IShareAccess } from "../../../app/database/models/share";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import useFetch from "../../hooks/useFetch";
 import { useCallback, useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import Content from "../../components/UI/Layout/Content";
 import {
   ActionIcon,
+  Badge,
   Button,
   Collapse,
   Divider,
@@ -67,10 +69,16 @@ export default function Task() {
     data: task,
     load: loadTask,
     loading: loadingTask,
-  } = useFetch<undefined, ITask>({
+  } = useFetch<
+    undefined,
+    ITask & { accessLevel: "owner" | IShareAccess | null }
+  >({
     url: `/tasks/${taskId}`,
     dependencies: [taskId],
   });
+
+  const isViewOnly = task?.accessLevel === "viewonly";
+  const canEdit = !isViewOnly;
 
   useEffect(() => {
     loadTask();
@@ -210,20 +218,35 @@ export default function Task() {
                   )}
                 </ActionIcon>
 
-                <Title
-                  contentEditable
-                  suppressContentEditableWarning
-                  className={styles.editableTitle}
-                  style={{
-                    flex: 1,
-                    textDecoration: isComplete ? "line-through" : "none",
-                    opacity: isComplete ? 0.6 : 1,
-                  }}
-                  onBlur={(e) => {
-                    handleFieldUpdate("description", e.currentTarget.innerText);
-                  }}
-                  dangerouslySetInnerHTML={{ __html: task?.description || "" }}
-                />
+                <Stack gap={4} style={{ flex: 1 }}>
+                  <Group>
+                    <Title
+                      contentEditable={canEdit}
+                      suppressContentEditableWarning
+                      className={styles.editableTitle}
+                      style={{
+                        textDecoration: isComplete ? "line-through" : "none",
+                        opacity: isComplete ? 0.6 : 1,
+                      }}
+                      onBlur={(e) => {
+                        if (canEdit) {
+                          handleFieldUpdate(
+                            "description",
+                            e.currentTarget.innerText,
+                          );
+                        }
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: task?.description || "",
+                      }}
+                    />
+                    {isViewOnly && (
+                      <Badge color="gray" variant="outline">
+                        View Only
+                      </Badge>
+                    )}
+                  </Group>
+                </Stack>
               </Group>
 
               {!!task && (
@@ -241,6 +264,7 @@ export default function Task() {
                     date={taskForm.values.dueDate}
                     duration={taskForm.values.estimatedTime}
                     onChange={(field, val) => handleFieldUpdate(field, val)}
+                    readOnly={!canEdit}
                   />
 
                   {/* REMOVED: The large "Mark Complete" button block was here */}
@@ -253,9 +277,9 @@ export default function Task() {
             {!!task && (
               <>
                 <DreamWriter
-                  initialContent={task.scratchpad}
-                  readOnly={!task}
-                  collaborationId={task.id.toString()}
+                  initialContent={canEdit ? undefined : task.scratchpad}
+                  readOnly={!task || !canEdit}
+                  collaborationId={canEdit ? task.id.toString() : undefined}
                   connectableId={task.id.toString()}
                 />
               </>
@@ -317,9 +341,10 @@ interface ITaskSentence {
   date: string | null;
   duration: string | null;
   onChange: (field: "dueDate" | "estimatedTime", value: any) => void;
+  readOnly: boolean;
 }
 
-function TaskSentence({ date, duration, onChange }: ITaskSentence) {
+function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
   const [activeSelector, setActiveSelector] = useState<
     "date" | "duration" | null
   >(null);
@@ -340,6 +365,7 @@ function TaskSentence({ date, duration, onChange }: ITaskSentence) {
   };
 
   const toggle = (mode: "date" | "duration") => {
+    if (readOnly) return;
     setActiveSelector((current) => (current === mode ? null : mode));
   };
 
@@ -351,7 +377,11 @@ function TaskSentence({ date, duration, onChange }: ITaskSentence) {
           Should take
         </Text>
 
-        <UnstyledButton onClick={() => toggle("duration")}>
+        <UnstyledButton
+          onClick={() => toggle("duration")}
+          disabled={readOnly}
+          style={{ cursor: readOnly ? "default" : "pointer" }}
+        >
           <Text
             size="sm"
             fw={duration ? 700 : 500}
@@ -367,7 +397,11 @@ function TaskSentence({ date, duration, onChange }: ITaskSentence) {
           Done by
         </Text>
 
-        <UnstyledButton onClick={() => toggle("date")}>
+        <UnstyledButton
+          onClick={() => toggle("date")}
+          disabled={readOnly}
+          style={{ cursor: readOnly ? "default" : "pointer" }}
+        >
           <Text
             size="sm"
             fw={date ? 700 : 500}

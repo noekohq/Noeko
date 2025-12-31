@@ -11,10 +11,10 @@ import { ITag } from "../database/models/tag";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IPublicTask, ITask } from "../database/models/task";
 import { IExcerpt } from "../database/models/excerpt";
-import { IConnectable, IConnectableTypes } from "./Graph";
+import { IConnectable, IConnectableTypes, ISharedConnectable } from "./Graph";
 import { ISource } from "../database/models/source";
 
-export type ISearchResultValue = IConnectable;
+export type ISearchResultValue = IConnectable | ISharedConnectable;
 
 export type ISearchResult = {
   id: string | RecordId;

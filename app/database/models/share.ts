@@ -10,7 +10,7 @@ export type ISharedThing = IConnectable & {
   sharedAt: Date;
 };
 
-export type IShareAccess = "viewonly" | "editor";
+export type IShareAccess = "viewonly" | "editor" | "owner";
 
 export type IShareDetails = {
   user: IPublicUser;
@@ -188,55 +188,64 @@ export class Share {
     try {
       const db = await getDatabase();
       const query = `
-        SELECT VALUE
-            (
-                SELECT
-                    (
-                        SELECT * OMIT embeddings FROM $parent.in
-                    )[0] as thing,
-                    createdAt AS sharedAt,
-                    accessLevel,
-                    (
-                        SELECT
-                            id,
-                            firstName,
-                            lastName
-                        FROM
-                            in<-owns<-user
-                    )[0] as owner,
-                    (
-                        SELECT
-                            id,
-                            firstName,
-                            lastName
-                        FROM
-                            in->shared_with->user
-                    ) as users
-                OMIT embeddings
-                FROM shared_with
-                WHERE out = $parent.id
-            ) as things
-        FROM ONLY $userId;
-      `;
-      const result = await db?.query<[ISharedThingsQueryResult[]]>(query, {
+          SELECT
+              *,
+              -- 1. Fetch Owner
+              (<-owns<-user)[0].{ id, firstName, lastName, email, createdAt } AS owner,
+
+              -- 2. Fetch All Recipients
+              (
+                  SELECT
+                      id,
+                      firstName,
+                      lastName,
+                      email,
+                      createdAt
+                  FROM ->shared_with->user
+              ) AS users,
+
+              -- 3. Calculate Access Level
+              (
+                  IF (<-owns<-user)[0].id == $userId THEN
+                      'owner'
+                  ELSE
+                      -- Find the specific edge for this user to get their permission
+                      (SELECT VALUE accessLevel FROM shared_with WHERE in = $parent.id AND out = $userId)[0]
+                  END
+              ) AS accessLevel,
+
+              (
+                  IF (<-owns<-user)[0].id == $userId THEN
+                      createdAt
+                  ELSE
+                      (SELECT VALUE createdAt FROM shared_with WHERE in = $parent.id AND out = $userId)[0]
+                  END
+              ) AS sharedAt
+
+          OMIT embeddings, yState
+          FROM array::distinct(array::union(
+              (SELECT VALUE in FROM shared_with WHERE out = $userId),
+
+              (SELECT VALUE out FROM owns WHERE in = $userId AND array::len(out->shared_with) > 0)
+          ));
+        `;
+
+      const result = await db?.query<[ISharedThing[]]>(query, {
         userId: new StringRecordId(userId),
       });
-      if (!result || !result[0] || result[0].length === 0) {
-        return [];
+
+      if (!result || !result[0]) {
+        throw new Error("Couldn't fetch shared things");
       }
-      const mappedToShared: ISharedThing[] = result[0].map((item) => {
-        const c = new Connectable(item.thing.id);
-        const type = c.type;
+
+      return result[0].map((item) => {
+        const c = new Connectable(item.id);
         return {
-          ...item.thing,
-          type: type,
-          sharedAt: item.sharedAt,
-          accessLevel: item.accessLevel as IShareAccess,
-          owner: item.owner,
-          users: item.users,
+          ...item,
+          type: c.type,
+          sharedAt: new Date(item.sharedAt),
         } as ISharedThing;
       });
-      return mappedToShared;
     } catch (error) {
       console.error("Error fetching shared things", error);
       return undefined;

@@ -109,12 +109,30 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
-    console.log("Getting user shares: ", user.id);
     const shares = await Share.getUserSharedThings(user.id.toString());
-    console.log("Got shares: ", shares);
     res.json({
       message: "Success",
       data: shares,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/friends", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<ISafeUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const friends = await User.getFriends(user.id.toString());
+
+    res.send({
+      message: "Successfully fetched friends",
+      data: friends,
     });
   } catch (error) {
     console.error(error);

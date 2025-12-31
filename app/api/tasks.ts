@@ -14,6 +14,9 @@ import { LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
 
+import Authorization from "../services/Authorization";
+import { IShareAccess } from "../database/models/share";
+
 const router = Router();
 
 router.use(checkToken, disallowDisabled);
@@ -208,19 +211,29 @@ router.get("/:taskId", async (req, res) => {
       });
       return;
     }
-    const owns = await User.checkOwns(user.id, task.id);
-    if (!owns) {
+    const accessLevel = await Authorization.getAccessLevel(user.id, taskId);
+
+    if (!accessLevel) {
       res.status(403).send({
         message: "Unauthorized.",
       });
       return;
     }
-    Task.update(task.id, {
-      viewedAt: new Date(),
-    });
+
+    if (accessLevel === "owner") {
+      Task.update(task.id, {
+        viewedAt: new Date(),
+      });
+    }
+
+    const toSend: ITask & { accessLevel: "owner" | IShareAccess | null } = {
+      ...task,
+      accessLevel,
+    };
+
     res.send({
       message: "Task retrieved successfully",
-      data: task,
+      data: toSend,
     });
   } catch (error) {
     console.error("Error getting task: ", error);
@@ -288,7 +301,6 @@ router.post("/", async (req, res) => {
         description:
           "The closest estimated amount of time it would take to complete the task",
       });
-      console.log("Estimated time: ", et);
       if (et) {
         creator.estimatedTime = new Duration(et);
       }
@@ -325,12 +337,10 @@ router.post("/", async (req, res) => {
           "An ISO string containing the estimated due date. LEAVE EMPTY if no due date can be accurately derived.",
       });
       if (dd) {
-        console.log("Estimated due date: ", dd);
         const parsedDate = new Date(dd);
         creator.dueDate = parsedDate.toISOString();
       }
     }
-    console.log("Creating task with form: ", creator);
 
     const task = await Task.create(user.id, {
       ...creator,
@@ -357,7 +367,8 @@ router.put("/:taskId", async (req, res) => {
       return;
     }
     const taskId = req.params.taskId;
-    const hasAccess = await User.checkOwns(user.id, taskId);
+    const auth = new Authorization(user.id);
+    const hasAccess = await auth.hasAccess(taskId, "editor");
     if (!hasAccess) {
       res.status(403).send({
         message: "Unauthorized.",
