@@ -34,10 +34,8 @@ import ViewIdea from "./pages/Idea/ViewIdea";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import SpyglassRecords from "./pages/Spyglass/Spyglass/Records";
-// import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
-import SharedIdeas from "./pages/Idea/Shared/Shared";
 import Sharing from "./pages/Sharing/Sharing";
-import ViewonlyIdea from "./pages/Idea/Shared/Viewonly";
+
 import Rabbithole from "./pages/Rabbitholes/Rabbithole";
 import Rabbitholes from "./pages/Rabbitholes/List";
 import { useConnection } from "./hooks/useConnection";
@@ -199,12 +197,6 @@ export default function App() {
                   </Route>
                   <Route path="ideas">
                     <Route index element={<Ideas />} />
-                    <Route path="shared">
-                      <Route index element={<SharedIdeas />} />
-                      <Route path=":ideaId">
-                        <Route path="viewonly" element={<ViewonlyIdea />} />
-                      </Route>
-                    </Route>
                   </Route>
                   <Route path="tasks">
                     <Route index element={<Tasks />} />

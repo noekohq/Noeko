@@ -59,7 +59,6 @@ type PaperSelectionProps = {
   formPrompt: (query: string) => string;
   isLoading?: boolean;
   placeholder?: string;
-  /** Whether to allow the 'Create' workflow. Defaults to true. */
   allowCreation?: boolean;
 };
 

@@ -16,6 +16,7 @@ import {
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
+  Autocomplete,
   Box,
   Button,
   CopyButton,
@@ -38,6 +39,7 @@ import {
 import { userFormattedName } from "../../../../utils/user";
 import { PaperContextMenu } from "../../Paper/PaperContextMenu";
 import { getNodeLink } from "../../../../utils/graph";
+import { IFriendUser } from "../../../../../app/database/models/user";
 
 const { VITE_DEPLOYED_URL } = import.meta.env;
 
@@ -61,6 +63,13 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     dependencies: [connectable.id.toString()],
   });
 
+  const { load: loadFriends, data: friends } = useFetch<
+    undefined,
+    IFriendUser[]
+  >({
+    url: "/sharing/friends",
+  });
+
   useEffect(() => {
     if (connectable) {
       loadShared();
@@ -82,6 +91,12 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
   });
 
   const [shareModal, setShareModal] = useState(false);
+
+  useEffect(() => {
+    if (shareModal) {
+      loadFriends();
+    }
+  }, [shareModal]);
 
   const { user } = useAuth();
 
@@ -138,17 +153,18 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
         connectable.id.toString(),
         form.values.email,
         form.values.accessLevel,
-      );
-      showNotification({
-        title: (
-          <Text>
-            <Group>
-              <ShareNetworkIcon />
-              Shared!
-            </Group>
-          </Text>
-        ),
-        message: `Successfully shared idea!`,
+      ).then(() => {
+        showNotification({
+          title: (
+            <Text>
+              <Group>
+                <ShareNetworkIcon />
+                Shared!
+              </Group>
+            </Text>
+          ),
+          message: `Successfully shared idea!`,
+        });
       });
       await loadShared();
       setShareModal(false);
@@ -165,11 +181,8 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     }
   };
 
-  const getShareLink = (mode: IShareAccess) => {
+  const getShareLink = () => {
     const baseRoute = getNodeLink(connectable);
-    if (mode === "viewonly") {
-      return `${VITE_DEPLOYED_URL}${baseRoute}/viewonly`;
-    }
     return `${VITE_DEPLOYED_URL}${baseRoute}`;
   };
 
@@ -252,7 +265,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
                     >
                       Remove Access
                     </PaperContextMenu.Item>
-                    <CopyButton value={getShareLink(share.accessLevel)}>
+                    <CopyButton value={getShareLink()}>
                       {({ copy, copied }) => (
                         <PaperContextMenu.Item
                           icon={
@@ -279,16 +292,23 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
         onClose={() => {
           setShareModal(false);
         }}
-        title={<Text component="span">Share Idea</Text>}
+        title={<Text component="span">Share</Text>}
       >
         <Stack>
-          <TextInput
-            label="Email"
-            placeholder="Enter the recipient's email..."
+          <Autocomplete
+            label="Share with"
+            placeholder="Name or email address"
             size="md"
             radius="md"
             required
+            data={
+              friends?.map((f) => ({
+                value: f.email,
+              })) || []
+            }
+            comboboxProps={{ styles: { dropdown: { zIndex: 2001 } } }}
             {...form.getInputProps("email")}
+            autoComplete="nope"
             mb="xs"
           />
           <SegmentedControl

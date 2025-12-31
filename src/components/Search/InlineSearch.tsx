@@ -47,7 +47,7 @@ export function InlineSearch({
     load: searchIdeas,
     loading: loadingIdeas,
   } = useFetch<{ query: string }, ISearchResult[]>({
-    url: "/search/comprehensive",
+    url: "/search",
     method: "POST",
     body: {
       query,

@@ -50,8 +50,6 @@ export const sendEmail = async (
       html: body,
     });
 
-    console.log("Response from mail service: ", response);
-
     const { data } = response;
 
     return true;

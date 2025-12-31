@@ -30,6 +30,7 @@ import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
 import CreateTaskForm from "../components/Forms/CreateTask";
 import AddSourceForm from "../components/Forms/AddSource";
 import PaperDrawer from "../components/Display/Paper/PaperDrawer";
+import { createTask } from "../utils/tasks";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -236,10 +237,11 @@ export function InteractionProvider({
   };
 
   const handleNewTask = async (description?: string) => {
-    setCreatingTask(true);
-    if (description) {
-      setInitialTaskDescription(description);
-    }
+    const newTask = await createTask({
+      auto: false,
+      description: description || "New task",
+    });
+    navigate(`/task/${newTask?.id}`);
   };
 
   const handleNewSource = async () => {
@@ -388,7 +390,7 @@ export function InteractionProvider({
         navigate("/admin");
       },
       sharedIdeas: () => {
-        navigate("/ideas/shared");
+        navigate("/sharing");
       },
     },
     state: {

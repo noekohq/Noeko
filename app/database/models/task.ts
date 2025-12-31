@@ -248,6 +248,7 @@ export default class Task {
         safety === "public"
           ? "fn::get_task_record"
           : "fn::get_full_task_record";
+
       const task = await db.run<ITask>(fn, [new StringRecordId(taskId)]);
       if (!task) {
         throw new Error("Task is falsey");

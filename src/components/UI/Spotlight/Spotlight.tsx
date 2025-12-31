@@ -33,6 +33,8 @@ import {
   DesktopIcon,
   UploadSimpleIcon,
   SignOutIcon,
+  NetworkIcon,
+  ShareIcon,
 } from "@phosphor-icons/react";
 import { userIsSuperuser } from "../../../utils/user";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -552,6 +554,15 @@ const useSpotlightConfig = ({
         ),
       },
       {
+        id: "sharing",
+        title: "Sharing",
+        icon: <ShareNetworkIcon />,
+        action: () => {
+          navigate("/sharing");
+          onClose();
+        },
+      },
+      {
         id: "ideas",
         title: "Ideas",
         icon: <LightbulbIcon />,
@@ -860,15 +871,6 @@ const useSpotlightConfig = ({
                 icon: <LightbulbIcon />,
                 action: () => {
                   ideas();
-                  onClose();
-                },
-              },
-              {
-                id: "sharedIdeasCmd",
-                title: "Shared Ideas",
-                icon: <ShareNetworkIcon />,
-                action: () => {
-                  sharedIdeas();
                   onClose();
                 },
               },

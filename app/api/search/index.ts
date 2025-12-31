@@ -56,40 +56,6 @@ router.post("/", checkToken, async (req, res) => {
   }
 });
 
-router.post("/comprehensive", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const query = req.body.query as string;
-    const limit = req.body.options as number;
-    const rabbitholeId = req.body.rabbitholeId as string | undefined;
-    const results = await Search.comprehensiveSearch(user.id, query, {
-      limit,
-      rabbitholeId,
-    });
-    if (!results) {
-      throw new Error("Could not get results.");
-    }
-    const toSend: {
-      results: ISearchResult[];
-      overview: ISearchOverview | undefined;
-    } = {
-      results,
-      overview: undefined,
-    };
-    res.json({
-      message: "Results fetched successfully",
-      data: toSend,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 router.get("/suggest", checkToken, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
@@ -131,55 +97,6 @@ router.get("/smartSuggest", checkToken, async (req, res) => {
     const suggestions = await Search.smartSuggest(user.id, query, {
       rabbitholeId,
       limit,
-    });
-    res.json({
-      message: "Suggestions fetched successfully",
-      data: suggestions,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.get("/ideas/suggest", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const query = req.query.query as string;
-    const rabbitholeId = req.query.rabbitholeId as string;
-    const suggestions = await Search.ftsSearchIdeas(user.id, query, {
-      rabbitholeId,
-    });
-    const ideas = suggestions
-      ?.map((suggestion) => {
-        return suggestion.value.type === "idea" ? suggestion.value : null;
-      })
-      .filter((idea) => idea !== null);
-    res.json({
-      message: "Suggestions fetched successfully",
-      data: ideas,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-router.post("/ideas/suggest", checkToken, async (req, res) => {
-  try {
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(403).json({ error: "Unauthorized" });
-      return;
-    }
-    const query = req.body.query as string;
-    const rabbitholeId = req.body.rabbitholeId as string | undefined;
-    const suggestions = await Search.suggest(user.id, query, {
-      rabbitholeId,
     });
     res.json({
       message: "Suggestions fetched successfully",

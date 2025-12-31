@@ -15,6 +15,7 @@ import Rabbithole, {
 import { Search } from "./Search";
 import { averageEmbeddings, weightedAverage } from "../utils/math";
 import { getEmbedder } from "../ai/embeddings/embeddings";
+import { IPublicUser } from "../database/models/user";
 
 export type IConnectableTypes = "idea" | "source" | "task" | "excerpt";
 
@@ -32,6 +33,10 @@ export type IConnectable =
 
 export type ITaggedConnectable = IConnectable & {
   appliedTags: ITag[];
+};
+
+export type ISharedConnectable = IConnectable & {
+  author: IPublicUser;
 };
 
 export type IConnectableTypeMap = {
