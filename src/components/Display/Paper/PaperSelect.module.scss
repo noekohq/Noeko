@@ -11,6 +11,7 @@
 
 .paperSelectWrapper {
   width: 100%;
+  position: relative;
 }
 
 .label {
@@ -19,6 +20,51 @@
   color: var(--mantine-color-dark-2);
   margin-bottom: var(--mantine-spacing-xs);
   display: block;
+}
+
+.targetButton {
+  // Similar to PaperInput
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  width: 100%;
+  border: 1px solid var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-lg);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  transition: all 0.15s ease-in-out;
+  background-color: var(--mantine-color-dark-9);
+  color: var(--mantine-color-dark-1);
+  text-align: left;
+  font-size: var(--mantine-font-size-sm);
+
+  &[data-active="true"] {
+    background-color: var(--mantine-color-dark-8);
+    border-color: var(--mantine-color-blue-6);
+    box-shadow: var(--mantine-shadow-sm);
+  }
+
+  .targetLabel {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .targetChevron {
+    transition: transform 0.2s ease;
+  }
+
+  &[data-active="true"] .targetChevron {
+    transform: rotate(180deg);
+  }
+}
+
+.dropdown {
+  background-color: var(--mantine-color-dark-8) !important;
+  border: 1px solid var(--mantine-color-dark-6) !important;
+  border-radius: var(--mantine-radius-md) !important;
+  padding: var(--mantine-spacing-xs) !important;
 }
 
 .optionsContainer {

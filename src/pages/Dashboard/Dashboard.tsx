@@ -309,7 +309,6 @@ function JumpBackIn() {
     runOnDependencies: [start, sortField],
     onSuccess: (d) => {
       if (start === 0) {
-        console.log("Data from 0: ", d);
       }
     },
   });

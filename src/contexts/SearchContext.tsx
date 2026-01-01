@@ -1,6 +1,14 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ISearchResult } from "../../app/services/Search";
 
+export type IComponentFilter = {
+  query?: string;
+  sort?: {
+    field: string;
+    direction: "asc" | "desc";
+  };
+};
+
 type ISearchContext = {
   global: {
     query: {
@@ -15,6 +23,10 @@ type ISearchContext = {
       get: boolean;
       set: (loading: boolean) => void;
     };
+  };
+  component: {
+    getFilter: (key: string) => IComponentFilter | undefined;
+    setFilter: (key: string, value: IComponentFilter) => void;
   };
 };
 
@@ -33,6 +45,10 @@ const initialSearch: ISearchContext = {
       set: (loading: boolean) => {},
     },
   },
+  component: {
+    getFilter: (key: string) => undefined,
+    setFilter: (key: string, value: IComponentFilter) => {},
+  },
 };
 
 const SearchContext = createContext(initialSearch);
@@ -47,6 +63,28 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
     null,
   );
   const [loading, setLoading] = useState(false);
+
+  const [componentFilters, setComponentFilters] = useState<{
+    [key: string]: IComponentFilter;
+  }>({});
+
+  useEffect(() => {
+    try {
+      const savedFilters = localStorage.getItem("componentFilters");
+      if (savedFilters) {
+        setComponentFilters(JSON.parse(savedFilters));
+      }
+    } catch (error) {
+      console.error(
+        "Failed to parse componentFilters from localStorage",
+        error,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("componentFilters", JSON.stringify(componentFilters));
+  }, [componentFilters]);
 
   const value: ISearchContext = {
     global: {
@@ -68,6 +106,12 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
             setSearchResults(null);
           }
         },
+      },
+    },
+    component: {
+      getFilter: (key: string) => componentFilters[key],
+      setFilter: (key: string, value: IComponentFilter) => {
+        setComponentFilters((prev) => ({ ...prev, [key]: value }));
       },
     },
   };

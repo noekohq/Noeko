@@ -104,7 +104,6 @@ function Overview({ setTab }: IOverviewProps) {
 
   const { pins } = usePins();
   const firstPins = pins.slice(0, 3);
-  console.log("First pins : ", firstPins, pins);
 
   return (
     <div className={styles.overview}>

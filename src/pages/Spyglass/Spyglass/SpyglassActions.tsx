@@ -15,8 +15,6 @@ export default function SpyglassActions({
   intent,
   results,
 }: ISpyglassActionsProps) {
-  console.log("Results: ", results);
-
   return (
     <>
       {intent && (

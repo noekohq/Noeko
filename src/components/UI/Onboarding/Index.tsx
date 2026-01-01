@@ -44,8 +44,6 @@ export default function Onboarding() {
     ChooseYourPath,
   ];
 
-  console.log("All stages: ", StageToView);
-
   const Stage = StageToView[stage];
 
   return <Stage next={nextStep} complete={handleMarkComplete} />;

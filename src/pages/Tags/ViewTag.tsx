@@ -610,6 +610,7 @@ export default function ViewTag() {
                   <PaperThings
                     modes={paperThingsModes}
                     things={getThingsFromConnectables(things, {}, true)}
+                    storageKey={tag.id.toString()}
                     // customViews={customPaperThingViews}
                   />
                 )}
