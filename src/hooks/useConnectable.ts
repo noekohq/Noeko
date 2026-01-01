@@ -107,7 +107,6 @@ export default function useConnectable({
       );
       return;
     }
-    console.log("Loading all other things...");
     loadConnected();
     loadSimilar();
     loadTags();

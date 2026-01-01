@@ -105,7 +105,6 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
         ids?.forEach((id) => selected.add(id));
       },
       add: (id: string) => {
-        console.log("Adding to selected...", id);
         selected.add(id);
       },
       remove: (id: string) => {

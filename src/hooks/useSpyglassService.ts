@@ -198,7 +198,6 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     }
 
     try {
-      console.log("Saving...");
       await api.post(`/search/spyglass/save`, {
         baseQuery: searchArgsRef.current.query,
         scope: searchArgsRef.current.scope || [],

@@ -12,9 +12,13 @@ import { useSearch } from "../../contexts/SearchContext";
 import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 import { useNavigate } from "react-router";
 import PaperThing from "../../components/Display/Paper/Things/PaperThing";
-import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
-import { PushPinIcon } from "@phosphor-icons/react";
+import {
+  getThingPropsFromConnectable,
+  getThingsFromConnectables,
+} from "../../components/Display/Paper/Things/thingUtils";
+import { GridFourIcon, ListIcon, PushPinIcon } from "@phosphor-icons/react";
 import GridCard from "../../components/Display/Paper/Things/GridCard";
+import PaperThings from "../../components/Display/Paper/Things/PaperThings";
 
 export default function PinsPage() {
   const {
@@ -24,8 +28,6 @@ export default function PinsPage() {
   } = useFetch<undefined, IConnectable[]>({
     url: "/pins/things",
   });
-
-  console.log("Got pins: ", pins);
 
   const {
     global: {
@@ -66,22 +68,19 @@ export default function PinsPage() {
             </Text>
           )}
 
-          {!loading && pins && pins.length > 0 && (
-            <SimpleGrid
-              spacing="xs"
-              cols={{
-                base: 2,
-                sm: 2,
-                md: 3,
-                lg: 4,
-              }}
-            >
-              {pins.map((thing) => {
-                const props = getThingPropsFromConnectable(thing, {}, true);
-                return <GridCard key={thing.id.toString()} {...props} />;
-              })}
-            </SimpleGrid>
-          )}
+          <PaperThings
+            modes={[
+              {
+                value: "list",
+                icon: ListIcon,
+              },
+              {
+                value: "grid",
+                icon: GridFourIcon,
+              },
+            ]}
+            things={pins ? getThingsFromConnectables(pins, {}, true) : []}
+          />
         </Stack>
       </Content>
       <Nav />

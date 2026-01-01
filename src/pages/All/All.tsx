@@ -39,8 +39,6 @@ export default function All() {
   const [loading, setLoading] = useState(false);
   const [appliedTags, setAppliedTags] = useState<ITag[]>([]);
 
-  console.log("Items: ", items);
-
   const fetchPage = useCallback(
     async (options: {
       cursor?: string | null;

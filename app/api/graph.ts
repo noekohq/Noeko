@@ -244,7 +244,6 @@ router.get(
       const { thingId } = req.params;
       const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
-        console.log("Does not have access for similar: ", user.id, thingId);
         res.status(403).send({
           message: "Unauthorized.",
         });
@@ -287,7 +286,6 @@ router.get(
       const { thingId } = req.params;
       const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
-        console.log("Does not have access for similar: ", user.id, thingId);
         res.status(403).send({
           message: "Unauthorized.",
         });
@@ -337,7 +335,6 @@ router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
     const { thingId } = req.params;
     const hasAccess = await User.checkHasAccess(user.id, thingId);
     if (!hasAccess) {
-      console.log("Does not have access for tags: ", user.id, thingId);
       res.status(403).send({
         message: "Unauthorized.",
       });
