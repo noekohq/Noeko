@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ISharedThing } from "../../../app/database/models/share";
+import { useNavigate } from "react-router";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -17,6 +18,9 @@ import {
   Title,
   Badge,
   Box,
+  UnstyledButton,
+  Button,
+  ActionIcon,
 } from "@mantine/core";
 import {
   ListIcon,
@@ -24,6 +28,11 @@ import {
   ShareNetworkIcon,
   ArrowDownLeftIcon,
   ArrowUpRightIcon,
+  ArrowLeftIcon,
+  CaretUpIcon,
+  CaretDownIcon,
+  ArrowsOutSimpleIcon,
+  ArrowsInSimpleIcon,
 } from "@phosphor-icons/react";
 import { userInitials } from "../../utils/user";
 import { formatDateTime } from "../../utils/formatting";
@@ -31,18 +40,19 @@ import PaperThings from "../../components/Display/Paper/Things/PaperThings";
 import { getThingsFromConnectables } from "../../components/Display/Paper/Things/thingUtils";
 import Search from "../../components/Search/Search";
 import { useAuth } from "../../contexts/AuthContext";
-import { IPublicUser } from "../../../app/database/models/user";
+import { IFriendUser } from "../../../app/database/models/user";
+import { useLayout } from "../../contexts/LayoutContext";
 
-// Helper interface for our pivoted data structure
 interface IRelationship {
-  user: IPublicUser; // The "Other Person"
-  incoming: ISharedThing[]; // Things they shared with you
-  outgoing: ISharedThing[]; // Things you shared with them
-  lastActivity: Date; // Most recent interaction (for sorting)
+  user: IFriendUser;
+  incoming: ISharedThing[];
+  outgoing: ISharedThing[];
+  lastActivity: Date;
 }
 
 export default function Sharing() {
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const { load: loadShared, data: sharedThings } = useFetch<
     undefined,
@@ -51,27 +61,35 @@ export default function Sharing() {
     url: "/sharing",
   });
 
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({});
+
   useEffect(() => {
     loadShared();
   }, []);
 
-  // === Pivot Logic: Transform "List of Things" -> "List of Relationships" ===
+  const toggleSection = (key: string) => {
+    setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const relationships = useMemo(() => {
     if (!sharedThings || !currentUser) return [];
 
     const map = new Map<string, IRelationship>();
 
-    // Helper to initialize or retrieve a relationship entry
-    const getEntry = (u: IPublicUser) => {
-      if (!map.has(u.id)) {
-        map.set(u.id, {
+    const getEntry = (u: IFriendUser) => {
+      const id = u.id;
+
+      if (!map.has(id)) {
+        map.set(id, {
           user: u,
           incoming: [],
           outgoing: [],
-          lastActivity: new Date(0), // Default to epoch
+          lastActivity: new Date(0),
         });
       }
-      return map.get(u.id)!;
+      return map.get(id)!;
     };
 
     sharedThings.forEach((thing) => {
@@ -79,7 +97,7 @@ export default function Sharing() {
 
       if (thing.accessLevel === "owner") {
         thing.users.forEach((recipient) => {
-          if (recipient.id === currentUser.id) return;
+          if ("id" in recipient && recipient.id === currentUser.id) return;
 
           const entry = getEntry(recipient);
           entry.outgoing.push(thing);
@@ -100,6 +118,50 @@ export default function Sharing() {
     );
   }, [sharedThings, currentUser]);
 
+  const allCollapsed = useMemo(() => {
+    if (relationships.length === 0) return true;
+    return relationships.every((rel) => {
+      const userId = rel.user.id;
+      const incomingKey = `${userId}_incoming`;
+      const outgoingKey = `${userId}_outgoing`;
+      const isIncomingCollapsed =
+        rel.incoming.length === 0 || collapsedSections[incomingKey];
+      const isOutgoingCollapsed =
+        rel.outgoing.length === 0 || collapsedSections[outgoingKey];
+      return isIncomingCollapsed && isOutgoingCollapsed;
+    });
+  }, [relationships, collapsedSections]);
+
+  const toggleAll = () => {
+    if (allCollapsed) {
+      setCollapsedSections({});
+    } else {
+      const newCollapsedState: Record<string, boolean> = {};
+      relationships.forEach((rel) => {
+        const userId =
+          "id" in rel.user ? rel.user.id : (rel.user as IFriendUser).email;
+        if (rel.incoming.length > 0) {
+          newCollapsedState[`${userId}_incoming`] = true;
+        }
+        if (rel.outgoing.length > 0) {
+          newCollapsedState[`${userId}_outgoing`] = true;
+        }
+      });
+      setCollapsedSections(newCollapsedState);
+    }
+  };
+
+  const getPrincipalName = (p: IFriendUser) => {
+    return "firstName" in p
+      ? `${p.firstName} ${p.lastName}`
+      : (p as IFriendUser).email;
+  };
+
+  const { isMobile } = useLayout();
+
+  const size = isMobile ? "lg" : "md";
+  const radius = "md";
+
   return (
     <PageWrapper>
       <LeftSidebar>
@@ -112,7 +174,35 @@ export default function Sharing() {
       </LeftSidebar>
       <TopBar />
       <Content>
-        <Stack gap="xl" pt="mb">
+        <Stack gap="xl" pt="md">
+          <Group justify="space-between">
+            <ActionIcon
+              onClick={() => navigate(-1)}
+              color="gray"
+              variant="subtle"
+              size={size}
+              radius={radius}
+            >
+              <ArrowLeftIcon weight="bold" />
+            </ActionIcon>
+            {relationships.length > 0 && (
+              <Button
+                size="xs"
+                variant="default"
+                onClick={toggleAll}
+                leftSection={
+                  allCollapsed ? (
+                    <ArrowsOutSimpleIcon />
+                  ) : (
+                    <ArrowsInSimpleIcon />
+                  )
+                }
+              >
+                {allCollapsed ? "Expand All" : "Collapse All"}
+              </Button>
+            )}
+          </Group>
+
           <Title order={2}>
             <Group gap="xs" align="center">
               <ShareNetworkIcon />
@@ -124,78 +214,136 @@ export default function Sharing() {
             <Text c="dimmed">You haven't shared anything with anyone yet.</Text>
           )}
 
-          {relationships.map((rel) => (
-            <Card key={rel.user.id} radius="lg" padding="lg">
-              <Stack gap="md">
-                <Group justify="space-between" align="start">
-                  <Group>
-                    <Avatar variant="filled" color="blue" size={42} radius="xl">
-                      {userInitials(rel.user)}
-                    </Avatar>
-                    <Stack gap="4px">
-                      <Text fw={700} size="lg" lh={1.2}>
-                        {rel.user.firstName} {rel.user.lastName}
-                      </Text>
-                      <Text c="dimmed" size="xs">
-                        Last active {formatDateTime(rel.lastActivity)}
-                      </Text>
+          {relationships.map((rel) => {
+            const userId =
+              "id" in rel.user ? rel.user.id : (rel.user as IFriendUser).email;
+            const incomingKey = `${userId}_incoming`;
+            const outgoingKey = `${userId}_outgoing`;
+            const isIncomingCollapsed = collapsedSections[incomingKey];
+            const isOutgoingCollapsed = collapsedSections[outgoingKey];
+            const userName =
+              "firstName" in rel.user
+                ? rel.user.firstName
+                : (rel.user as IFriendUser).email;
+
+            return (
+              <Card key={userId} radius="lg" padding="md">
+                <Stack gap="md">
+                  <Group justify="space-between" align="start">
+                    <Group>
+                      <Avatar
+                        variant="filled"
+                        color="blue"
+                        size={42}
+                        radius="xl"
+                      >
+                        {userInitials(rel.user)}
+                      </Avatar>
+                      <Stack gap="4px">
+                        <Text fw={700} size="lg" lh={1.2}>
+                          {getPrincipalName(rel.user)}
+                        </Text>
+                        <Text c="dimmed" size="xs">
+                          Last active {formatDateTime(rel.lastActivity)}
+                        </Text>
+                      </Stack>
+                    </Group>
+                    <Group gap={4}>
+                      {rel.incoming.length > 0 && (
+                        <Badge variant="light" color="green">
+                          Received {rel.incoming.length}
+                        </Badge>
+                      )}
+                      {rel.outgoing.length > 0 && (
+                        <Badge variant="light" color="blue">
+                          Sent {rel.outgoing.length}
+                        </Badge>
+                      )}
+                    </Group>
+                  </Group>
+
+                  <Divider />
+
+                  {rel.incoming.length > 0 && (
+                    <Stack gap="xs">
+                      <UnstyledButton
+                        w="100%"
+                        onClick={() => toggleSection(incomingKey)}
+                      >
+                        <Group justify="space-between" c="gray">
+                          <Group gap="xs">
+                            <ArrowDownLeftIcon weight="bold" />
+                            <Text size="xs" fw={700} tt="uppercase">
+                              Shared by {userName}
+                            </Text>
+                          </Group>
+                          {isIncomingCollapsed ? (
+                            <CaretDownIcon />
+                          ) : (
+                            <CaretUpIcon />
+                          )}
+                        </Group>
+                      </UnstyledButton>
+                      {!isIncomingCollapsed && (
+                        <PaperThings
+                          modes={[
+                            { value: "list", icon: ListIcon },
+                            { value: "grid", icon: SquaresFourIcon },
+                          ]}
+                          things={getThingsFromConnectables(
+                            rel.incoming,
+                            {},
+                            true,
+                          )}
+                          storageKey={`incoming_${userId.toString()}`}
+                        />
+                      )}
                     </Stack>
-                  </Group>
-                  <Group gap={4}>
-                    {rel.incoming.length > 0 && (
-                      <Badge variant="light" color="green">
-                        Received {rel.incoming.length}
-                      </Badge>
-                    )}
-                    {rel.outgoing.length > 0 && (
-                      <Badge variant="light" color="blue">
-                        Sent {rel.outgoing.length}
-                      </Badge>
-                    )}
-                  </Group>
-                </Group>
+                  )}
 
-                <Divider />
-
-                {rel.incoming.length > 0 && (
-                  <Stack gap="xs">
-                    <Group gap="xs" c="gray">
-                      <ArrowDownLeftIcon weight="bold" />
-                      <Text size="xs" fw={700} tt="uppercase">
-                        Shared by {rel.user.firstName}
-                      </Text>
-                    </Group>
-                    <PaperThings
-                      modes={[
-                        { value: "list", icon: ListIcon },
-                        { value: "grid", icon: SquaresFourIcon },
-                      ]}
-                      things={getThingsFromConnectables(rel.incoming, {}, true)}
-                    />
-                  </Stack>
-                )}
-
-                {rel.outgoing.length > 0 && (
-                  <Stack gap="xs">
-                    {rel.incoming.length > 0 && <Box h={8} />}
-                    <Group gap="xs" c="gray">
-                      <ArrowUpRightIcon weight="bold" />
-                      <Text size="xs" fw={700} tt="uppercase">
-                        Shared by You
-                      </Text>
-                    </Group>
-                    <PaperThings
-                      modes={[
-                        { value: "list", icon: ListIcon },
-                        { value: "grid", icon: SquaresFourIcon },
-                      ]}
-                      things={getThingsFromConnectables(rel.outgoing, {}, true)}
-                    />
-                  </Stack>
-                )}
-              </Stack>
-            </Card>
-          ))}
+                  {rel.outgoing.length > 0 && (
+                    <Stack gap="xs">
+                      {rel.incoming.length > 0 && !isIncomingCollapsed && (
+                        <Box h={8} />
+                      )}
+                      <UnstyledButton
+                        w="100%"
+                        onClick={() => toggleSection(outgoingKey)}
+                      >
+                        <Group justify="space-between" c="gray">
+                          <Group gap="xs">
+                            <ArrowUpRightIcon weight="bold" />
+                            <Text size="xs" fw={700} tt="uppercase">
+                              Shared by You
+                            </Text>
+                          </Group>
+                          {isOutgoingCollapsed ? (
+                            <CaretDownIcon />
+                          ) : (
+                            <CaretUpIcon />
+                          )}
+                        </Group>
+                      </UnstyledButton>
+                      {!isOutgoingCollapsed && (
+                        <PaperThings
+                          modes={[
+                            { value: "list", icon: ListIcon },
+                            { value: "grid", icon: SquaresFourIcon },
+                          ]}
+                          things={getThingsFromConnectables(
+                            rel.outgoing,
+                            {},
+                            true,
+                          )}
+                          storageKey={`outgoing_${userId.toString()}`}
+                        />
+                      )}
+                    </Stack>
+                  )}
+                </Stack>
+              </Card>
+            );
+          })}
         </Stack>
       </Content>
       <Nav />

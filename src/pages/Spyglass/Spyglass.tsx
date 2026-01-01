@@ -104,10 +104,8 @@ export default function Spyglass() {
 
   const [searchParams, setParams] = useSearchParams();
   useEffect(() => {
-    console.log("Search params: ", searchParams);
     if (searchParams.get("q")) {
       const q = searchParams.get("q") || "";
-      console.log("Got q: ", q);
       const deepAnalysis = searchParams.get("deep") === "true";
       setQuery(q);
       setDeepAnalysis(deepAnalysis);

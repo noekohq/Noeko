@@ -137,11 +137,9 @@ const NodeComponent = ({
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
   ) => {
     if (selected.has(node.id.toString())) {
-      console.log("Unselecting cluster from: ", node.id.toString());
       onClusterDeselect(event, node);
       return;
     }
-    console.log("Selecting cluster from: ", node.id.toString());
     onClusterSelect(event, node);
   };
 
@@ -187,10 +185,6 @@ const NodeComponent = ({
 
   const glowFilterId = `glow-filter-${node.id}`;
   const mainCircleRadius = parseInt(circleRef.current?.style.r || "24", 10);
-
-  if (iAmHighlighted) {
-    console.log("Highlighted: ", nodeTitle);
-  }
 
   return (
     <g

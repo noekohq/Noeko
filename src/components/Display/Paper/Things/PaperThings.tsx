@@ -1,14 +1,26 @@
 import React, { useMemo, useState } from "react";
 import styles from "./PaperThings.module.scss";
 import { IThing } from "./things";
-import { Group, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Group, Stack, Text, Title } from "@mantine/core";
 import { formatDateShort } from "../../../../utils/formatting";
 import IconToggle from "../../Interactions/Toggle/IconToggle";
 import ContextMenuWrapper from "./ContextMenuWrapper";
 import GridCard from "./GridCard";
-import { Icon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import {
+  Icon,
+  MagnifyingGlassIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
 import { useLayout } from "../../../../contexts/LayoutContext";
+import {
+  IComponentFilter,
+  useSearch,
+} from "../../../../contexts/SearchContext";
+import PaperIcon from "../PaperIcon";
+import PaperInput from "../PaperInput";
+import PaperSelect from "../PaperSelect";
 
 interface IPaperThingsProps {
   things: IThing[];
@@ -18,6 +30,7 @@ interface IPaperThingsProps {
   }[];
   defaultMode?: string;
   customViews?: Record<string, React.ReactNode>;
+  storageKey?: string;
 }
 
 export default function PaperThings({
@@ -25,68 +38,192 @@ export default function PaperThings({
   modes,
   defaultMode,
   customViews,
+  storageKey,
 }: IPaperThingsProps) {
   if (modes.length === 0) {
     throw new Error("No modes provided");
   }
 
   const { isMobile } = useLayout();
+  const searchContext = useSearch();
 
   const [mode, setMode] = useState(defaultMode || modes[0].value);
-  const [filterQuery, setFilterQuery] = useState("");
 
-  const filteredThings = useMemo(() => {
-    if (!filterQuery.trim()) {
-      return things;
+  const getInitialFilters = (): IComponentFilter => {
+    if (storageKey) {
+      return searchContext.component.getFilter(storageKey) || {};
     }
-    const query = filterQuery.toLowerCase();
-    return things.filter((thing) => {
-      const titleMatch = thing.title?.toLowerCase().includes(query);
-      const detailMatch =
-        typeof thing.detail === "string"
-          ? thing.detail.toLowerCase().includes(query)
-          : false;
-      return titleMatch || detailMatch;
-    });
-  }, [things, filterQuery]);
+    return {};
+  };
+
+  const [filters, setFilters] = useState<IComponentFilter>(getInitialFilters());
+
+  const handleFilterChange = (newFilters: IComponentFilter) => {
+    setFilters(newFilters);
+    if (storageKey) {
+      searchContext.component.setFilter(storageKey, newFilters);
+    }
+  };
+
+  const { query: filterQuery = "", sort } = filters;
+
+  const filteredAndSortedThings = useMemo(() => {
+    let processedThings = [...things];
+
+    // Filtering
+    if (filterQuery.trim()) {
+      const query = filterQuery.toLowerCase();
+      processedThings = processedThings.filter((thing) => {
+        const titleMatch = thing.title?.toLowerCase().includes(query);
+        const detailMatch =
+          typeof thing.detail === "string"
+            ? thing.detail.toLowerCase().includes(query)
+            : false;
+        return titleMatch || detailMatch;
+      });
+    }
+
+    // Sorting
+    if (sort?.field) {
+      const { field, direction } = sort;
+      processedThings.sort((a, b) => {
+        const valA = a[field as keyof IThing];
+        const valB = b[field as keyof IThing];
+        const dir = direction === "asc" ? 1 : -1;
+
+        if (valA === undefined || valB === undefined) {
+          if (valA === undefined && valB === undefined) return 0;
+          return (valA === undefined ? 1 : -1) * dir;
+        }
+
+        if (field === "createdAt" || field === "updatedAt") {
+          return (
+            (new Date(valA as string).getTime() -
+              new Date(valB as string).getTime()) *
+            dir
+          );
+        }
+
+        if (typeof valA === "string" && typeof valB === "string") {
+          return valA.localeCompare(valB) * dir;
+        }
+
+        return 0;
+      });
+    }
+
+    return processedThings;
+  }, [things, filterQuery, sort]);
 
   const builtInViews: Record<string, React.FC<{ things: IThing[] }>> = {
     list: ThingList,
     grid: ThingGrid,
   };
 
+  const sortOptions = [
+    { value: "title", label: "Title" },
+    { value: "createdAt", label: "Created" },
+    { value: "updatedAt", label: "Updated" },
+  ];
+
   const ViewComponent = builtInViews[mode];
   const CustomView = customViews?.[mode];
+
+  const filterInput = (
+    <PaperInput
+      value={filterQuery}
+      onChange={(event) =>
+        handleFilterChange({
+          ...filters,
+          query: event.currentTarget.value,
+        })
+      }
+      placeholder="Filter items..."
+      leftSection={<MagnifyingGlassIcon />}
+      className={styles.filterInput}
+    />
+  );
+
+  const sortControls = (
+    <Group gap="xs" wrap="nowrap">
+      <PaperSelect
+        placeholder="Sort by..."
+        data={sortOptions}
+        value={sort?.field || null}
+        onChange={(value) => {
+          handleFilterChange({
+            ...filters,
+            sort: { field: value, direction: sort?.direction || "asc" },
+          });
+        }}
+        onClear={() => {
+          const { sort, ...rest } = filters;
+          handleFilterChange(rest);
+        }}
+      />
+      <PaperIcon
+        aria-label="Toggle sort direction"
+        onClick={() => {
+          if (sort?.field) {
+            handleFilterChange({
+              ...filters,
+              sort: {
+                field: sort.field,
+                direction: sort.direction === "asc" ? "desc" : "asc",
+              },
+            });
+          }
+        }}
+        disabled={!sort?.field}
+      >
+        {sort?.direction === "asc" ? (
+          <ArrowUpIcon weight="bold" />
+        ) : (
+          <ArrowDownIcon weight="bold" />
+        )}
+      </PaperIcon>
+    </Group>
+  );
+
+  const viewToggle = (
+    <IconToggle
+      options={modes}
+      value={mode}
+      onChange={(v) => {
+        setMode(v);
+      }}
+    />
+  );
 
   return (
     <div className={styles.paperThings}>
       <Stack gap="md">
-        <Group justify="space-between">
+        <Group justify="space-between" align="flex-start">
           <Title order={2}>
-            {filteredThings.length} Item
-            {filteredThings.length === 1 ? "" : "s"}
+            {filteredAndSortedThings.length} Item
+            {filteredAndSortedThings.length === 1 ? "" : "s"}
           </Title>
-          <Group justify="space-between" w={isMobile ? "100%" : ""}>
-            <TextInput
-              value={filterQuery}
-              onChange={(event) => setFilterQuery(event.currentTarget.value)}
-              placeholder="Filter items..."
-              leftSection={<MagnifyingGlassIcon />}
-            />
-            <IconToggle
-              options={modes}
-              value={mode}
-              onChange={(v) => {
-                setMode(v);
-              }}
-            />
-          </Group>
+          {isMobile ? (
+            <Stack w="100%" gap="md">
+              {filterInput}
+              <Group justify="space-between">
+                {sortControls}
+                {viewToggle}
+              </Group>
+            </Stack>
+          ) : (
+            <Group>
+              {filterInput}
+              {sortControls}
+              {viewToggle}
+            </Group>
+          )}
         </Group>
         <div className={styles.content}>
           {CustomView ? (
             CustomView
           ) : ViewComponent ? (
-            <ViewComponent things={filteredThings} />
+            <ViewComponent things={filteredAndSortedThings} />
           ) : (
             <div>
               View '<strong>{mode}</strong>' not supported

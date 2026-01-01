@@ -874,11 +874,8 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         clientY = event.clientY;
       }
 
-      console.log("Client XY: ", clientX, clientY);
-
       setNodePanel(null);
       setTimeout(() => {
-        console.log("Setting to XY: ", clientX, clientY);
         setNodePanel({
           node,
           position: { x: clientX || 0, y: clientY || 0 },
@@ -966,8 +963,6 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
     const focusOnNode = (nodeId: string, targetZoom: number = 1.5) => {
       const node = nodeMap[nodeId];
-
-      console.log("Focusing on node: ", node);
 
       if (
         !node ||

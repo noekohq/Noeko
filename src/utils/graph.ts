@@ -301,7 +301,6 @@ export const getNodeLinkFromId = (id: string | RecordId) => {
     return `/idea/${realId}`;
   }
   if (realId.startsWith("source")) {
-    console.log("Started with source: ", realId);
     return `/source/${realId}`;
   }
   if (realId.startsWith("task")) {

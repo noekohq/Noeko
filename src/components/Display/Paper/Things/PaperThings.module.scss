@@ -10,12 +10,13 @@
 }
 
 .paperThings {
-    width: 100%;
+  width: 100%;
 }
 
 .content {
-    width: 100%;
+  width: 100%;
 }
+
 
 .thingList {
     display: flex;
@@ -99,3 +100,10 @@
     opacity: 0;
     animation: slideUpAndFadeIn 0.3s ease-out forwards;
 }
+
+.filterInput {
+    @media (min-width: 769px) {
+        flex: 1;
+    }
+}
+
