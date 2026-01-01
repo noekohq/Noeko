@@ -124,10 +124,12 @@ router.get("/friends", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
+      console.log("Unauthorized due to no user in request object");
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
 
+    console.log("Made it to getting friends");
     const friends = await User.getFriends(user.id.toString());
 
     res.send({
