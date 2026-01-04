@@ -1,0 +1,42 @@
+name: "🐛 Bug Report"
+description: "Report a broken feature or error."
+title: "[BUG]: "
+labels: ["triage", "type: fix"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "What happened?"
+      placeholder: "Explain specifically what was expected, and what happened instead"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: "Steps to Reproduce"
+      description: "Specific steps to reproduce this behavior, every action should be described"
+      placeholder: |
+        1. Go to 'Home'
+        2. Click '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: "Environment"
+      description: "Describe your environment, including operating system, browser, and any other relevant details."
+      placeholder: "My environment is..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance Criteria (The Fix)"
+      description: "What exactly needs to happen for this to be considered fixed?"
+      placeholder: "Clicking 'New Note' should successfully open a blank note at /node/[id]."
+    validations:
+      required: true
