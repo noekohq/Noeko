@@ -1,5 +1,5 @@
-# Twig
-Twig is an app for knowledge base management with a focus on semantic connections.
+# Noeko
+Noeko is an app for knowledge base management with a focus on semantic connections.
 
 
 ## Setup
@@ -18,13 +18,13 @@ Go [here](https://bun.sh/) to download bun.
 Clone this repository locally:
 
 ```sh
-git clone https://github.com/Twig-io/Twig.git ./twig
+git clone https://github.com/noekohq/Noeko.git
 ```
 
 Then navigate to it
 
 ```sh
-cd twig
+cd Noeko
 ```
 
 ### Step 4: Run the start command
@@ -32,4 +32,4 @@ cd twig
 bun run server
 ```
 
-Now it should work, you'll see something like "Twig server started at port 3400"
+Now it should work, you'll see something like "Noeko server started at port 3400"
