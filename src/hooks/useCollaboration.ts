@@ -8,6 +8,11 @@ export type ICollaborationStatus =
   | "connected"
   | "synced";
 
+export interface ICollaborator {
+  name: string;
+  color: string;
+}
+
 export const useCollaboration = ({
   roomId,
   enabled = true,
@@ -15,6 +20,7 @@ export const useCollaboration = ({
 }: any) => {
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
   const [status, setStatus] = useState<ICollaborationStatus>("disconnected");
+  const [members, setMembers] = useState<ICollaborator[]>([]);
 
   const activeRoomRef = useRef<string | null>(null);
 
@@ -22,6 +28,7 @@ export const useCollaboration = ({
     if (!roomId || !enabled) {
       setProvider(null);
       setStatus("disconnected");
+      setMembers([]);
       return;
     }
 
@@ -29,6 +36,7 @@ export const useCollaboration = ({
 
     setProvider(null);
     setStatus("connecting");
+    setMembers([]);
 
     let newProvider: HocuspocusProvider | null = null;
 
@@ -53,6 +61,7 @@ export const useCollaboration = ({
           onClose: () => {
             if (activeRoomRef.current === roomId) {
               setStatus("disconnected");
+              setMembers([]);
             }
           },
           onAuthenticationFailed: async () => {
@@ -65,6 +74,19 @@ export const useCollaboration = ({
             }
           },
         });
+
+        const awareness = newProvider.awareness;
+        const updateHandler = () => {
+          if (activeRoomRef.current !== roomId) return;
+          const states = Array.from(awareness.getStates().entries());
+          const otherUsers = states
+            .filter(([clientID]) => clientID !== awareness.clientID)
+            .map(([, state]) => state.user)
+            .filter(Boolean) as ICollaborator[];
+          setMembers(otherUsers);
+        };
+        awareness.on("change", updateHandler);
+        updateHandler();
 
         newProvider.on(
           "status",
@@ -107,5 +129,5 @@ export const useCollaboration = ({
     };
   }, [roomId, enabled]);
 
-  return { provider, status };
+  return { provider, status, members };
 };

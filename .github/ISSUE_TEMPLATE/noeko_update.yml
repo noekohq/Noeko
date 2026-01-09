@@ -19,7 +19,7 @@ body:
     id: data
     attributes:
       label: "Supporting Evidence / Context"
-      placeholder: "Link to Discord, PostHog logs, or paste specific user quotes."
+      placeholder: "Link to specific Signal Cards or other sources of context."
   - type: textarea
     id: dod
     attributes:

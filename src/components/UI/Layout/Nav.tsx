@@ -156,7 +156,7 @@ export default function Nav({ children }: INavProps) {
             />
           </button>
         )}
-        {!isMobile && isSuperuser && (
+        {/*{!isMobile && isSuperuser && (
           <button
             className={`${styles.action} ${
               activeMap.agenda() ? styles.active : ""
@@ -169,7 +169,7 @@ export default function Nav({ children }: INavProps) {
               size={iconSize}
             />
           </button>
-        )}
+        )}*/}
         <button
           className={`${styles.action} ${
             activeMap.spyglass() ? styles.active : ""

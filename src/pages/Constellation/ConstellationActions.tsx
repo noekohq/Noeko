@@ -130,7 +130,7 @@ export default function ConstellationActions({
                       ?.map((thing, i) => {
                         const props = getThingPropsFromConnectable(
                           thing,
-                          {},
+                          { link: undefined },
                           true,
                         );
 
@@ -182,7 +182,11 @@ export default function ConstellationActions({
         <Stack>
           {searchResults
             ?.map((s, i) => {
-              const props = getThingPropsFromConnectable(s.value, {}, true);
+              const props = getThingPropsFromConnectable(
+                s.value,
+                { link: undefined },
+                true,
+              );
               return (
                 <PaperThing
                   key={s.id.toString()}

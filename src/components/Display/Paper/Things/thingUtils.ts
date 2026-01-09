@@ -29,11 +29,12 @@ export function getThingPropsFromConnectable(
     "No details available.";
   const icon = overrides?.icon ?? IconMap[connectable.type];
   const state = overrides?.state ?? "default";
-  const link = overrides?.link
-    ? overrides.link
-    : eager
-      ? getNodeLinkFromId(connectable.id)
-      : undefined;
+  const link =
+    overrides && Object.hasOwn(overrides, "link")
+      ? overrides.link
+      : eager
+        ? getNodeLinkFromId(connectable.id)
+        : undefined;
   const action = overrides?.action;
   const preview: IPaperThingProps["preview"] | undefined =
     overrides?.preview ??

@@ -248,12 +248,10 @@ router.post(
         return;
       }
 
-      // 1. Check Write Access to the Target Container (The Idea)
-      // You must be able to edit the idea to embed things in it.
       const canEditContainer = await Authorization.checkHasAccess(
         user.id,
         connectableId,
-        "editor", // IMPORTANT: Require editor access to the Idea
+        "editor",
       );
 
       if (!canEditContainer) {

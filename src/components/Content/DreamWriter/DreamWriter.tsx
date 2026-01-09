@@ -41,6 +41,7 @@ import { getOS } from "../../../utils/platform";
 import {
   ICollaborationStatus,
   useCollaboration,
+  ICollaborator,
 } from "../../../hooks/useCollaboration";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
@@ -51,8 +52,11 @@ import { useDreamHealer } from "./hooks/useDreamHealer";
 import MobileEditorToolbar from "./MobileEditorToolbar";
 import LangtonsAntLoader from "../../Utils/Loading/AntLoader";
 
-interface EditorData {
-  comments: [];
+interface IEditorState {
+  collaboration: {
+    status: ICollaborationStatus;
+    members: ICollaborator[];
+  };
 }
 
 interface EditorProps {
@@ -61,8 +65,8 @@ interface EditorProps {
   outputType?: "html" | "json";
   stickyMenu?: boolean;
   devTools?: boolean;
-  editorData?: EditorData;
-  highlightText?: string; // Text to highlight when editor loads
+  editorData?: IEditorState;
+  highlightText?: string;
   onChange?: (output: string) => void;
   onBlur?: (output: string) => void;
   onContentReady?: () => void;
@@ -71,6 +75,7 @@ interface EditorProps {
   autofocus?: boolean;
   collaborationId?: string;
   connectableId?: string;
+  onStateChange?: (state: IEditorState) => void;
 }
 
 const defaultContent = ``;
@@ -144,17 +149,28 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       autofocus = true,
       collaborationId,
       connectableId,
+      onStateChange,
     },
     ref,
   ) => {
-    const [collaborators, setCollaborators] = useState<any[]>([]);
     const { user } = useAuth();
     const content = initialContent || defaultContent.trim();
 
-    const { provider, status } = useCollaboration({
+    const { provider, status, members } = useCollaboration({
       roomId: collaborationId,
       enabled: !!collaborationId,
     });
+
+    useEffect(() => {
+      if (collaborationId && onStateChange) {
+        onStateChange({
+          collaboration: {
+            status,
+            members,
+          },
+        });
+      }
+    }, [status, members, collaborationId, onStateChange]);
 
     const userName = user?.firstName + " " + user?.lastName;
 
@@ -185,27 +201,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
 
     const isLocked = !!collaborationId && status !== "synced";
     const isEditable = !isLocked && !readOnly;
-
-    useEffect(() => {
-      if (provider?.awareness) {
-        const awareness = provider.awareness;
-        const updateHandler = () => {
-          const states = Array.from(awareness.getStates().entries());
-          const otherUsers = states
-            .filter(([clientID]) => clientID !== awareness.clientID)
-            .map(([, state]) => state.user)
-            .filter(Boolean); // filter out undefined/null users
-          setCollaborators(otherUsers);
-        };
-        awareness.on("change", updateHandler);
-        updateHandler(); // initial
-        return () => {
-          awareness.off("change", updateHandler);
-        };
-      } else {
-        setCollaborators([]);
-      }
-    }, [provider]);
 
     const editor = useEditor(
       {
@@ -351,27 +346,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
           droppingOver ? styles.droppingOver : ""
         } ${collaborationId ? styles.collaborationActive : ""}`}
       >
-        {collaborationId && (
-          <div className={styles.collaborationInfo}>
-            <CollaborationStatus status={status} />
-            <Group gap="xs">
-              {collaborators.map((collaborator) => (
-                <Tooltip
-                  transitionProps={{ transition: "fade-up", duration: 300 }}
-                  label={collaborator.name}
-                  key={collaborator.name}
-                >
-                  <Avatar color={collaborator.color} size="sm" radius="xl">
-                    {collaborator.name
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .join("")}
-                  </Avatar>
-                </Tooltip>
-              ))}
-            </Group>
-          </div>
-        )}
         {droppingOver && (
           <Overlay
             backgroundOpacity={0.5}

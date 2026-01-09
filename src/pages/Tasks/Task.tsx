@@ -280,7 +280,7 @@ export default function Task() {
                   initialContent={canEdit ? undefined : task.scratchpad}
                   readOnly={!task || !canEdit}
                   collaborationId={canEdit ? task.id.toString() : undefined}
-                  connectableId={task.id.toString()}
+                  connectableId={isViewOnly ? undefined : task.id.toString()}
                 />
               </>
             )}

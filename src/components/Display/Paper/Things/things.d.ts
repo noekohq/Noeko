@@ -11,13 +11,16 @@ export type IThing = {
   createdAt?: string;
   updatedAt?: string;
 
-  // The action on the right side (e.g., the "+" button)
   action?: {
     icon: React.FC<IconProps>;
     tooltip: string;
     onClick: (id: string, e: React.MouseEvent) => void;
   };
 
-  // The hover card content
+  artifacts?: {
+    icon: React.FC<IconProps>;
+    label: string;
+  }[];
+
   preview?: React.ReactNode;
 };
