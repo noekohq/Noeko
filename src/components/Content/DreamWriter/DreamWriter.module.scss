@@ -1,12 +1,6 @@
 .editor {
     height: fit-content;
     position: relative;
-
-    &.collaborationActive {
-        .tippyEditor {
-            padding-top: 36px;
-        }
-    }
 }
 
 .droppingOver {
@@ -91,32 +85,5 @@
 
     &.hidden {
         display: none;
-    }
-}
-
-.collaborationInfo {
-    position: absolute;
-    top: 8px;
-    left: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--mantine-spacing-sm);
-    z-index: 10;
-}
-
-.syncingStatus {
-    background-color: var(--mantine-color-dark-8);
-    box-shadow: var(--mantine-shadow-xs);
-    padding: 4px 8px;
-    border-radius: var(--mantine-radius-md);
-    transition: all 0.2s ease-in-out;
-
-    & > div {
-        height: auto;
-        align-items: center;
-    }
-
-    &.status_disconnected {
-        background-color: var(--mantine-color-red-7);
     }
 }

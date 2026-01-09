@@ -35,8 +35,8 @@ body:
   - type: textarea
     id: acceptance
     attributes:
-      label: "Acceptance Criteria (The Fix)"
-      description: "What exactly needs to happen for this to be considered fixed?"
-      placeholder: "Clicking 'New Note' should successfully open a blank note at /node/[id]."
+      label: "Acceptance Criteria"
+      description: "Binary checkboxes that describe exactly what needs to be true for this to be considered fixed."
+      placeholder: "- [ ] Clicking 'New idea' should take the user directly to an 'Untitle Idea'"
     validations:
       required: true
