@@ -76,17 +76,19 @@ export const useCollaboration = ({
         });
 
         const awareness = newProvider.awareness;
-        const updateHandler = () => {
-          if (activeRoomRef.current !== roomId) return;
-          const states = Array.from(awareness.getStates().entries());
-          const otherUsers = states
-            .filter(([clientID]) => clientID !== awareness.clientID)
-            .map(([, state]) => state.user)
-            .filter(Boolean) as ICollaborator[];
-          setMembers(otherUsers);
-        };
-        awareness.on("change", updateHandler);
-        updateHandler();
+        if (awareness) {
+          const updateHandler = () => {
+            if (activeRoomRef.current !== roomId) return;
+            const states = Array.from(awareness.getStates().entries());
+            const otherUsers = states
+              .filter(([clientID]) => clientID !== awareness.clientID)
+              .map(([, state]) => state.user)
+              .filter(Boolean) as ICollaborator[];
+            setMembers(otherUsers);
+          };
+          awareness.on("change", updateHandler);
+          updateHandler();
+        }
 
         newProvider.on(
           "status",
