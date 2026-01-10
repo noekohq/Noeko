@@ -22,6 +22,7 @@ import {
   Loader,
   CopyButton,
   Badge,
+  Avatar,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import {
@@ -29,6 +30,8 @@ import {
   BookOpenIcon,
   BracketsAngleIcon,
   CheckIcon,
+  CloudCheckIcon,
+  CloudSlashIcon,
   ClockIcon,
   CursorTextIcon,
   DotsThreeVerticalIcon,
@@ -76,11 +79,103 @@ import usePins from "../../hooks/usePins";
 import { showNotification } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
 import { downloadTextAsFile } from "../../utils/files";
+import {
+  ICollaborationStatus,
+  ICollaborator,
+} from "../../hooks/useCollaboration";
 
 // --- Types ---
 type IdeaUnion =
   | (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null })
   | IOptimisticIdea;
+
+function CollaborationInfo({
+  status,
+  members,
+}: {
+  status: ICollaborationStatus;
+  members: ICollaborator[];
+}) {
+  let statusContent = null;
+  switch (status) {
+    case "connecting":
+      statusContent = (
+        <Group gap="4px" wrap="nowrap" align="center">
+          <Loader size="12px" color="blue" />
+          <Text size="xs" c="blue">
+            Connecting...
+          </Text>
+        </Group>
+      );
+      break;
+    case "synced":
+      statusContent = (
+        <Group gap="4px" wrap="nowrap" align="center">
+          <CloudCheckIcon
+            size={14}
+            color="var(--mantine-color-green-6)"
+            weight="bold"
+          />
+          <Text size="xs" c="green.6">
+            All changes saved
+          </Text>
+        </Group>
+      );
+      break;
+    case "disconnected":
+      statusContent = (
+        <Group gap="4px" wrap="nowrap" align="center">
+          <CloudSlashIcon
+            size={14}
+            color="var(--mantine-color-red-7)"
+            weight="bold"
+          />
+          <Text size="xs" c="red.7" fw="bold">
+            You're offline
+          </Text>
+        </Group>
+      );
+      break;
+    default:
+      statusContent = (
+        <Group gap="4px" wrap="nowrap" align="center">
+          <Loader size={12} />
+          <Text size="xs" c="dimmed">
+            Saving...
+          </Text>
+        </Group>
+      );
+  }
+
+  return (
+    <Group gap="xs" align="center">
+      {statusContent}
+      {members.length > 0 && (
+        <Avatar.Group>
+          {members.map((collaborator) => (
+            <Tooltip
+              transitionProps={{ transition: "fade-up", duration: 300 }}
+              label={collaborator.name}
+              key={collaborator.name}
+            >
+              <Avatar
+                color={collaborator.color}
+                size="sm"
+                radius="xl"
+                variant="filled"
+              >
+                {collaborator.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")}
+              </Avatar>
+            </Tooltip>
+          ))}
+        </Avatar.Group>
+      )}
+    </Group>
+  );
+}
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -94,6 +189,11 @@ export default function Idea() {
 
   const isDeletingRef = useRef(false);
   const isMountedRef = useRef(false);
+
+  const [collaborationState, setCollaborationState] = useState<{
+    status: ICollaborationStatus;
+    members: ICollaborator[];
+  } | null>(null);
 
   const {
     ideas: {
@@ -519,8 +619,9 @@ export default function Idea() {
                 bg="dark.9"
                 c="dark.1"
                 style={{ borderRadius: "var(--mantine-radius-md)" }}
+                p="4px 8px"
               >
-                <Flex gap="xs" direction={"row"}>
+                <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
                   <Group gap="4px" align="center">
                     <ClockIcon
                       color="var(--mantine-color-dark-3)"
@@ -548,6 +649,17 @@ export default function Idea() {
                         : "Now"}
                     </Text>
                   </Group>
+                  {collaborationState && (
+                    <>
+                      <Text size="sm" fw="bold" c="dark.4">
+                        •
+                      </Text>
+                      <CollaborationInfo
+                        status={collaborationState.status}
+                        members={collaborationState.members}
+                      />
+                    </>
+                  )}
                 </Flex>
               </Box>
 
@@ -562,17 +674,23 @@ export default function Idea() {
             <div className={styles.contentArea}>
               {ideaToRender && (
                 <DreamWriter
+                  autofocus
                   readOnly={isOptimistic || isViewOnly}
                   stickyMenu={false}
                   onChange={handleEditorChange}
                   onContentReady={handleContentReady}
                   dependencies={[ideaId, ideaToRender.id]}
                   ref={editorRef}
+                  onStateChange={({ collaboration }) =>
+                    setCollaborationState(collaboration)
+                  }
                   collaborationId={
                     canEdit ? ideaToRender.id.toString() : undefined
                   }
                   initialContent={canEdit ? undefined : ideaToRender.content}
-                  connectableId={ideaToRender.id.toString()}
+                  connectableId={
+                    isViewOnly ? undefined : ideaToRender.id.toString()
+                  }
                 />
               )}
             </div>

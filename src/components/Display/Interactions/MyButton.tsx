@@ -10,6 +10,7 @@ import {
   ScrollIcon,
   ShieldStarIcon,
   TagIcon,
+  UserCircleIcon,
   UserIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -111,7 +112,7 @@ export default function MyButton() {
       >
         <div className={styles.iconContainer}>
           <UserIcon
-            weight="regular"
+            weight="bold"
             size={20}
             className={`${styles.icon} ${styles.userIcon}`}
           />

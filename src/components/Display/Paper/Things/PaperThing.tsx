@@ -4,9 +4,12 @@ import {
   DotsSixVertical,
   DotsSixVerticalIcon,
   TrashSimpleIcon,
+  PersonIcon,
+  UserCircleIcon,
+  UserIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { CopyButton, Modal, Stack, Text } from "@mantine/core";
+import { CopyButton, Group, Modal, Stack, Text } from "@mantine/core";
 import {
   CopyIcon,
   EyeIcon,
@@ -36,6 +39,7 @@ export default function PaperThing({
   onClick,
   preventClickDefault,
   action,
+  artifacts,
   preview,
   draggable = false,
 }: IPaperThingProps) {
@@ -151,6 +155,17 @@ export default function PaperThing({
                 >
                   {detail}
                 </Text>
+                {artifacts?.length &&
+                  artifacts.map((a) => {
+                    const Icon = a.icon;
+                    return (
+                      <div className={styles.artifacts}>
+                        <div className={styles.artifact}>
+                          <Icon weight="bold" /> {a.label}
+                        </div>
+                      </div>
+                    );
+                  })}
               </Stack>
             </div>
 
