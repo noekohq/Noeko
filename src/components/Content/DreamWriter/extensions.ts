@@ -150,7 +150,6 @@ export const getExtensionConfig = ({
 
     DreamHighlight.configure(), // Shared Mark
 
-    // 4. BEHAVIOR EXTENSIONS (Client Only)
     ...(connectableId
       ? [
           DreamFileHandler.configure({
