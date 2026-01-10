@@ -4,19 +4,19 @@ import {
   NodeViewContent,
   NodeViewWrapper,
   ReactNodeViewRenderer,
+  NodeViewProps,
 } from "@tiptap/react";
 import contentStyles from "../Content.module.scss";
-import {
-  Check,
-  CheckIcon,
-  DotsSixVertical,
-  DotsSixVerticalIcon,
-} from "@phosphor-icons/react";
+import { CheckIcon, DotsSixVerticalIcon } from "@phosphor-icons/react";
 import React from "react";
 
 export const taskItemInputRegex = /^\s*(\[ \])\s$/;
 
-const TaskItemComponent = ({ node, updateAttributes, editor }) => {
+const TaskItemComponent: React.FC<NodeViewProps> = ({
+  node,
+  updateAttributes,
+  editor,
+}) => {
   const isChecked = node.attrs.checked;
 
   return (
