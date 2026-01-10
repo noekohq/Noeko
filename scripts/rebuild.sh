@@ -6,6 +6,6 @@ bun install
 
 bun run client:build
 
-supervisor restart noeko-prod
+supervisorctl restart noeko-prod
 
 bun run ./scripts/pushDB.ts
