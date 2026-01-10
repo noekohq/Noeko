@@ -31,7 +31,7 @@ import {
   BracketsAngleIcon,
   CheckIcon,
   CloudCheckIcon,
-  CloudXIcon,
+  CloudSlashIcon,
   ClockIcon,
   CursorTextIcon,
   DotsThreeVerticalIcon,
@@ -101,8 +101,10 @@ function CollaborationInfo({
     case "connecting":
       statusContent = (
         <Group gap="4px" wrap="nowrap" align="center">
-          <Loader size="12px" color="gray" />
-          <Text size="xs">Connecting</Text>
+          <Loader size="12px" color="blue" />
+          <Text size="xs" c="blue">
+            Connecting...
+          </Text>
         </Group>
       );
       break;
@@ -110,12 +112,12 @@ function CollaborationInfo({
       statusContent = (
         <Group gap="4px" wrap="nowrap" align="center">
           <CloudCheckIcon
-            size={12}
-            color="var(--mantine-color-dark-3)"
+            size={14}
+            color="var(--mantine-color-green-6)"
             weight="bold"
           />
-          <Text size="xs" c="dimmed">
-            Synced
+          <Text size="xs" c="green.6">
+            All changes saved
           </Text>
         </Group>
       );
@@ -123,13 +125,13 @@ function CollaborationInfo({
     case "disconnected":
       statusContent = (
         <Group gap="4px" wrap="nowrap" align="center">
-          <CloudXIcon
-            size={12}
+          <CloudSlashIcon
+            size={14}
             color="var(--mantine-color-red-7)"
             weight="bold"
           />
-          <Text size="xs" c="red.7">
-            Offline
+          <Text size="xs" c="red.7" fw="bold">
+            You're offline
           </Text>
         </Group>
       );
@@ -137,16 +139,16 @@ function CollaborationInfo({
     default:
       statusContent = (
         <Group gap="4px" wrap="nowrap" align="center">
-          <Loader size="12px" color="gray" />
+          <Loader size={12} />
           <Text size="xs" c="dimmed">
-            Saving
+            Saving...
           </Text>
         </Group>
       );
   }
 
   return (
-    <Group gap="xs">
+    <Group gap="xs" align="center">
       {statusContent}
       {members.length > 0 && (
         <Avatar.Group>
@@ -617,8 +619,9 @@ export default function Idea() {
                 bg="dark.9"
                 c="dark.1"
                 style={{ borderRadius: "var(--mantine-radius-md)" }}
+                p="4px 8px"
               >
-                <Flex gap="xs" direction={"row"}>
+                <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
                   <Group gap="4px" align="center">
                     <ClockIcon
                       color="var(--mantine-color-dark-3)"
@@ -646,6 +649,17 @@ export default function Idea() {
                         : "Now"}
                     </Text>
                   </Group>
+                  {collaborationState && (
+                    <>
+                      <Text size="sm" fw="bold" c="dark.4">
+                        •
+                      </Text>
+                      <CollaborationInfo
+                        status={collaborationState.status}
+                        members={collaborationState.members}
+                      />
+                    </>
+                  )}
                 </Flex>
               </Box>
 
@@ -667,6 +681,9 @@ export default function Idea() {
                   onContentReady={handleContentReady}
                   dependencies={[ideaId, ideaToRender.id]}
                   ref={editorRef}
+                  onStateChange={({ collaboration }) =>
+                    setCollaborationState(collaboration)
+                  }
                   collaborationId={
                     canEdit ? ideaToRender.id.toString() : undefined
                   }

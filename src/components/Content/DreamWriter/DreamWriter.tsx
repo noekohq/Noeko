@@ -80,57 +80,6 @@ interface EditorProps {
 
 const defaultContent = ``;
 
-const CollaborationStatus = ({ status }: { status: ICollaborationStatus }) => {
-  let statusContent = null;
-  switch (status) {
-    case "connecting":
-      statusContent = (
-        <Text size="xs">
-          <Group gap="8px" wrap="nowrap">
-            <Loader size="12px" color="gray" />
-            Connecting
-          </Group>
-        </Text>
-      );
-      break;
-    case "synced":
-      statusContent = (
-        <Text size="xs">
-          <Group gap="4px">
-            <CloudCheckIcon />
-            Synced
-          </Group>
-        </Text>
-      );
-      break;
-    case "disconnected":
-      statusContent = (
-        <Text size="xs" fw="bold">
-          <Group gap="4px">
-            <CloudXIcon weight="bold" />
-            Offline
-          </Group>
-        </Text>
-      );
-      break;
-    default:
-      statusContent = (
-        <Text size="xs" fw="bold">
-          <Group gap="4px">
-            <CloudArrowUpIcon weight="bold" />
-            Saving
-          </Group>
-        </Text>
-      );
-  }
-
-  return (
-    <div className={`${styles.syncingStatus} ${styles[`status_${status}`]}`}>
-      {statusContent}
-    </div>
-  );
-};
-
 const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
   (
     {
@@ -156,7 +105,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     const { user } = useAuth();
     const content = initialContent || defaultContent.trim();
 
-    const { provider, status, members } = useCollaboration({
+    const { provider, members, status } = useCollaboration({
       roomId: collaborationId,
       enabled: !!collaborationId,
     });
@@ -339,12 +288,18 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     const isContentReady = provider ? status === "synced" : true;
     useDreamHealer(editor, connectableId, isContentReady);
 
+    useEffect(() => {
+      if (autofocus && editor && isEditable) {
+        editor.commands.focus("end");
+      }
+    }, [autofocus, editor, isEditable]);
+
     return (
       <div
         ref={editorContainerRef}
         className={`${styles.editor} ${
           droppingOver ? styles.droppingOver : ""
-        } ${collaborationId ? styles.collaborationActive : ""}`}
+        } ${styles[status]}`}
       >
         {droppingOver && (
           <Overlay
