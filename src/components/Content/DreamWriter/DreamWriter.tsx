@@ -290,7 +290,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
 
     useEffect(() => {
       if (autofocus && editor && isEditable) {
-        editor.commands.focus("end");
+        editor.commands.focus("start");
       }
     }, [autofocus, editor, isEditable]);
 
