@@ -1870,6 +1870,7 @@ export default class Spyglass {
 
       yield { type: "resources_loaded", data: resources };
       yield { type: "full_results_loaded", data: fullResults };
+      const finalFindings: IFinding[] = [];
 
       if (deepAnalysis) {
         yield { type: "status", data: "Generating deep analysis findings..." };

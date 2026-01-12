@@ -1,4 +1,40 @@
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Group,
+  HoverCard,
+  Loader,
+  Space,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
+import styles from "./Spyglass.module.scss";
+import { useInteraction } from "../../contexts/InteractionContext";
+import { useLayout } from "../../contexts/LayoutContext";
+import useRabbithole from "../../hooks/useRabbithole";
+import { useEffect, useState } from "react";
+import { useSpyglassService } from "../../hooks/useSpyglassService";
+import { Link, useSearchParams } from "react-router";
+import PageWrapper from "../../components/Layout/PageWrapper";
+import TopBar from "../../components/UI/Layout/TopBar";
+import LeftSidebar from "../../components/UI/Layout/Left";
+import {
+  ClockCounterClockwiseIcon,
+  MegaphoneIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import SpyglassContext from "./Spyglass/SpyglassContext";
+import ScopeBuilder from "../../components/Search/ScopeBuilder/ScopeBuilder";
+import Content from "../../components/UI/Layout/Content";
+import Textbox from "./Textbox";
+import CountUp from "../../components/Utils/Animations/Countup";
+import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
+import Nav from "../../components/UI/Layout/Nav";
+import RightSidebar from "../../components/UI/Layout/Right";
+import SpyglassActions from "./Spyglass/SpyglassActions";
 
 export default function Spyglass() {
   const {
@@ -189,55 +225,13 @@ export default function Spyglass() {
               />
             </div>
           )}
-          {!initialized && isDownRabbithole && (
-            <>
-              <Space my="sm" />
-              <div className={styles.scopeWrapper}>
-                <Stack gap="sm">
-                  <Text size="sm" fw="bold" c="dimmed">
-                    SCOPE
-                  </Text>
-                  <Button
-                    radius="xl"
-                    size="xs"
-                    variant="light"
-                    color="green"
-                    rightSection={
-                      <>
-                        <ActionIcon
-                          variant="subtle"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            exitRabbithole();
-                          }}
-                          size="sm"
-                          color="green"
-                        >
-                          <XIcon weight="bold" />
-                        </ActionIcon>
-                      </>
-                    }
-                  >
-                    <Group
-                      gap="xs"
-                      wrap="nowrap"
-                      style={{ flex: 1, minWidth: 0 }}
-                    >
-                      <Text
-                        w={"100%"}
-                        truncate={"end"}
-                        size="xs"
-                        tt="uppercase"
-                        fw="bold"
-                        title={currentRabbithole?.name}
-                      >
-                        {currentRabbithole?.name}
-                      </Text>
-                    </Group>
-                  </Button>
-                </Stack>
-              </div>
-            </>
+          {!initialized && (
+            <div className={styles.scopeWrapper}>
+              <ScopeBuilder
+                value={{}}
+                onChange={() => {}}
+              />
+            </div>
           )}
           <div
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
