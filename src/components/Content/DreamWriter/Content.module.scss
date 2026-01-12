@@ -179,13 +179,6 @@ h5 {
             }
         }
     }
-
-    // Hide drag handle on mobile
-    @media (max-width: 768px) {
-        .taskItem .dragHandle {
-            display: none;
-        }
-    }
 }
 
 hr {

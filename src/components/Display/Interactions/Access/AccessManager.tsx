@@ -200,8 +200,6 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     return `${VITE_DEPLOYED_URL}${baseRoute}`;
   };
 
-  console.log("Friends: ", friends);
-
   return (
     <div>
       <Stack>
@@ -306,7 +304,6 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
       <Modal
         opened={shareModal}
         onClose={() => {
-          console.log("Opening share modal");
           setShareModal(false);
         }}
         title={<Text component="span">Share</Text>}
