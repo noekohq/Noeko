@@ -1,6 +1,10 @@
 import { useCallback, useRef, useState } from "react";
 import { api, getAccessToken, serverLocation } from "../server/api";
-import { IFinding, ISpyglassIntent } from "../../app/services/Spyglass";
+import {
+  IFinding,
+  IGlimpseResult,
+  ISpyglassIntent,
+} from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
 
 export type ICitationMap = Record<
@@ -28,6 +32,7 @@ interface ISpyglassServiceReturn {
   fullResults: IConnectable[];
   findings: IFinding[];
   overview: string;
+  glimpseResult: IGlimpseResult | null;
   status: string | null;
   citationMap: ICitationMap;
   resultsMap: IResultsMap;
@@ -47,11 +52,15 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   const [fullResults, setFullResults] = useState<IConnectable[]>([]);
   const [findings, setFindings] = useState<IFinding[]>([]);
   const [overview, setOverview] = useState("");
+  const [glimpseResult, setGlimpseResult] = useState<IGlimpseResult | null>(
+    null,
+  );
   const [status, setStatus] = useState<string | null>(null);
   const searchArgsRef = useRef<ISearchArgs | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const fullFindings = useRef<IFinding[]>([]);
   const fullOverview = useRef<string>("");
+  const fullGlimpseResult = useRef<string>("");
 
   const resetState = useCallback(() => {
     if (abortControllerRef.current) {
@@ -63,8 +72,12 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     setResults([]);
     setFindings([]);
     setOverview("");
+    setGlimpseResult(null);
     setStatus(null);
     searchArgsRef.current = null;
+    fullGlimpseResult.current = "";
+    fullFindings.current = [];
+    fullOverview.current = "";
   }, []);
 
   const uninitialize = useCallback(() => {
@@ -157,6 +170,17 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                         return;
                       }
                       setOverview(fullOverview.current);
+                      break;
+                    case "glimpse_chunk":
+                      fullGlimpseResult.current += data;
+                      try {
+                        const parsedGlimpse = JSON.parse(
+                          fullGlimpseResult.current,
+                        );
+                        setGlimpseResult(parsedGlimpse);
+                      } catch (e) {
+                        // JSON is not yet complete, do nothing
+                      }
                       break;
                     case "completed":
                       setLoading(false);
@@ -260,6 +284,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     complete,
     intent,
     overview,
+    glimpseResult,
     status,
     results,
     fullResults,
