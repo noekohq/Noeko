@@ -130,7 +130,7 @@ export default function ConstellationActions({
                       ?.map((thing, i) => {
                         const props = getThingPropsFromConnectable(
                           thing,
-                          { link: undefined },
+                          { preventClickDefault: true },
                           true,
                         );
 

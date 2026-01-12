@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   IShareAccess,
   IShareDetails,
@@ -16,7 +16,7 @@ import {
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
-  Autocomplete,
+  Select,
   Box,
   Button,
   CopyButton,
@@ -74,21 +74,26 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     if (connectable) {
       loadShared();
     }
-  }, [connectable]);
+  }, [connectable.id]);
 
-  const form = useForm({
-    initialValues: {
-      email: "",
-      accessLevel: "viewonly" as IShareAccess,
-    },
-    validate: {
-      email: (v) => {
-        if (!validateEmail(v)) {
-          return "Email is invalid.";
-        }
-      },
-    },
-  });
+  const form = useForm(
+    useMemo(
+      () => ({
+        initialValues: {
+          email: "",
+          accessLevel: "viewonly" as IShareAccess,
+        },
+        validate: {
+          email: (v: string) => {
+            if (!validateEmail(v)) {
+              return "Email is invalid.";
+            }
+          },
+        },
+      }),
+      [],
+    ),
+  );
 
   const [shareModal, setShareModal] = useState(false);
 
@@ -96,7 +101,16 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     if (shareModal) {
       loadFriends();
     }
-  }, [shareModal]);
+  }, [shareModal, loadFriends]);
+
+  const friendsData = useMemo(
+    () =>
+      friends?.map((f) => ({
+        label: userFormattedName(f),
+        value: f.email,
+      })) || [],
+    [friends],
+  );
 
   const { user } = useAuth();
 
@@ -186,6 +200,8 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     return `${VITE_DEPLOYED_URL}${baseRoute}`;
   };
 
+  console.log("Friends: ", friends);
+
   return (
     <div>
       <Stack>
@@ -220,7 +236,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
             return (
               <Group
                 gap={"xs"}
-                key={share.user + share.accessLevel}
+                key={share.user.id.toString()}
                 align="flex-start"
                 justify="space-between"
               >
@@ -290,22 +306,20 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
       <Modal
         opened={shareModal}
         onClose={() => {
+          console.log("Opening share modal");
           setShareModal(false);
         }}
         title={<Text component="span">Share</Text>}
       >
         <Stack>
-          <Autocomplete
+          <Select
             label="Share with"
             placeholder="Name or email address"
             size="md"
             radius="md"
             required
-            data={
-              friends?.map((f) => ({
-                value: f.email,
-              })) || []
-            }
+            searchable
+            data={friendsData}
             comboboxProps={{ styles: { dropdown: { zIndex: 2001 } } }}
             {...form.getInputProps("email")}
             autoComplete="nope"
