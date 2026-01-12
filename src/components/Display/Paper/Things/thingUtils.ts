@@ -50,6 +50,7 @@ export function getThingPropsFromConnectable(
     preview,
     createdAt: connectable.createdAt.toString(),
     updatedAt: connectable.updatedAt.toString(),
+    ...overrides,
   } satisfies IThing | IPaperThingProps;
 }
 

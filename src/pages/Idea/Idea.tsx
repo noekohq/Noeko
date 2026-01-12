@@ -429,13 +429,19 @@ export default function Idea() {
     );
     let text = `Saved. ${wordCount} word${
       wordCount === 1 ? "" : "s"
-    }. ${characterCount} char${characterCount === 1 ? "" : "s"}. ${sentenceCount} sentence${
-      sentenceCount === 1 ? "" : "s"
-    }.`;
+    }. ${characterCount} char${
+      characterCount === 1 ? "" : "s"
+    }. ${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}.`;
     if (loadingEmbeddings) text += " Indexing...";
     setStatusMessage(text);
     return () => setStatusMessage("");
-  }, [ideaToRender, isOptimistic, loadingEmbeddings, setStatusMessage]);
+  }, [
+    ideaToRender?.id,
+    ideaToRender?.content,
+    isOptimistic,
+    loadingEmbeddings,
+    setStatusMessage,
+  ]);
 
   const updateTitle = async (newTitle: string) => {
     if (isOptimistic) return;
@@ -681,9 +687,22 @@ export default function Idea() {
                   onContentReady={handleContentReady}
                   dependencies={[ideaId, ideaToRender.id]}
                   ref={editorRef}
-                  onStateChange={({ collaboration }) =>
-                    setCollaborationState(collaboration)
-                  }
+                  onStateChange={({ collaboration }) => {
+                    setCollaborationState((prev) => {
+                      if (!prev) return collaboration;
+                      if (
+                        prev.status === collaboration.status &&
+                        prev.members.length === collaboration.members.length &&
+                        prev.members.every(
+                          (member, i) =>
+                            member.name === collaboration.members[i].name,
+                        )
+                      ) {
+                        return prev;
+                      }
+                      return collaboration;
+                    });
+                  }}
                   collaborationId={
                     canEdit ? ideaToRender.id.toString() : undefined
                   }

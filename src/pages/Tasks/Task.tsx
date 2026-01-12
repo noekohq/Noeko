@@ -390,9 +390,22 @@ export default function Task() {
                   readOnly={!task || !canEdit}
                   collaborationId={canEdit ? task.id.toString() : undefined}
                   connectableId={isViewOnly ? undefined : task.id.toString()}
-                  onStateChange={({ collaboration }) =>
-                    setCollaborationState(collaboration)
-                  }
+                  onStateChange={({ collaboration }) => {
+                    setCollaborationState((prev) => {
+                      if (!prev) return collaboration;
+                      if (
+                        prev.status === collaboration.status &&
+                        prev.members.length === collaboration.members.length &&
+                        prev.members.every(
+                          (member, i) =>
+                            member.name === collaboration.members[i].name,
+                        )
+                      ) {
+                        return prev;
+                      }
+                      return collaboration;
+                    });
+                  }}
                 />
               </>
             )}
