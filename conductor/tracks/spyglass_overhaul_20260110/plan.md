@@ -8,7 +8,7 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
 
 *Objective: Modify backend services to support the new search modes and create the initial UI shells for the main components.*
 
--   [x] **Task: Update Spyglass Service**
+-   [x] **Task: Update Spyglass Service** `ef9f6a6`
     -   [ ] Sub-task: In `app/services/Spyglass.ts`, refactor the main service to differentiate between "Glimpse Mode" and "Deep Focus" logic.
     -   [ ] Sub-task: Modify LLM response structures to provide data for the new UI (e.g., raw excerpts for Deep Focus, summaries for Glimpse).
     -   [ ] Sub-task: Manually test the service endpoints to ensure they behave as expected for each mode.
