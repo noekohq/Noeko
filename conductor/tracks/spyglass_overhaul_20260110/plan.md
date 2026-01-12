@@ -12,10 +12,10 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
     -   [ ] Sub-task: In `app/services/Spyglass.ts`, refactor the main service to differentiate between "Glimpse Mode" and "Deep Focus" logic.
     -   [ ] Sub-task: Modify LLM response structures to provide data for the new UI (e.g., raw excerpts for Deep Focus, summaries for Glimpse).
     -   [ ] Sub-task: Manually test the service endpoints to ensure they behave as expected for each mode.
--   [ ] **Task: Design Abstract Scope Builder Component**
-    -   [ ] Sub-task: Create the initial file structure and scaffolding for the new reusable Scope Builder UI component.
-    -   [ ] Sub-task: Design the component's props and state management to handle tags, rabbitholes, and dates.
-    -   [ ] Sub-task: Implement a basic, non-functional version of the component to be integrated in the sidebar and main Spyglass page.
+-   [x] **Task: Design Abstract Scope Builder Component**
+    -   [x] Sub-task: Create the initial file structure and scaffolding for the new reusable Scope Builder UI component.
+    -   [x] Sub-task: Design the component's props and state management to handle tags, rabbitholes, and dates.
+    -   [x] Sub-task: Implement a basic, non-functional version of the component to be integrated in the sidebar and main Spyglass page.
 -   [ ] **Task: Scaffold New Spyglass Page UI**
     -   [ ] Sub-task: In `@src/pages/Spyglass/Spyglass.tsx`, restructure the page to support toggling between "Glimpse" and "Deep Focus" modes.
     -   [ ] Sub-task: Create placeholder components for the new "Guided Survey" layout and the full-width block display.
