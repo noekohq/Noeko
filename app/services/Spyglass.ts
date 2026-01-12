@@ -21,6 +21,23 @@ export type ISpyglassScope = {
   tags: string[];
 };
 
+export interface IGlimpseResult {
+  summary: string;
+  contentMap: IResultSet[];
+}
+
+export interface IResultSet {
+  title: string;
+  description: string;
+  results: IResultItem[];
+}
+
+export interface IResultItem {
+  resourceId: string;
+  title: string;
+  explanation: string;
+}
+
 type ICitationMap = Record<string, ISearchResult>;
 
 interface ISpyglassMode {
@@ -1549,40 +1566,101 @@ export default class Spyglass {
     return r;
   }
 
-  public static scopedOverviewPromptBuilder(
+  public static glimpseModeSchema(
+    resources: IConnectableFields[],
+  ): LMSchema {
+    return {
+      type: LMSchemaType.OBJECT,
+      description:
+        "A structured 'Map of Content' generated from a user's query and a set of source documents.",
+      properties: {
+        summary: {
+          type: LMSchemaType.STRING,
+          description:
+            "A concise, high-level summary of the findings related to the user's query, written in Markdown.",
+        },
+        contentMap: {
+          type: LMSchemaType.ARRAY,
+          description:
+            "An array of content sections, where each section groups related results.",
+          items: {
+            type: LMSchemaType.OBJECT,
+            description: "A single section of related results.",
+            properties: {
+              title: {
+                type: LMSchemaType.STRING,
+                description:
+                  "A short, descriptive title for this section (e.g., 'Core Concepts', 'Related Case Studies').",
+              },
+              description: {
+                type: LMSchemaType.STRING,
+                description:
+                  "A single sentence describing this group of results.",
+              },
+              results: {
+                type: LMSchemaType.ARRAY,
+                description: "The list of individual results in this section.",
+                items: {
+                  type: LMSchemaType.OBJECT,
+                  description: "A single result item.",
+                  properties: {
+                    resourceId: {
+                      type: LMSchemaType.STRING,
+                      description:
+                        "The unique identifier of the resource being cited.",
+                      enum: resources.map((r) => r.id.toString()),
+                    },
+                    title: {
+                      type: LMSchemaType.STRING,
+                      description: "The title of the result.",
+                    },
+                    explanation: {
+                      type: LMSchemaType.STRING,
+                      description:
+                        "A brief explanation of *why* this specific result is relevant to the user's query.",
+                    },
+                  },
+                  required: ["resourceId", "title", "explanation"],
+                },
+              },
+            },
+            required: ["title", "description", "results"],
+          },
+        },
+      },
+      required: ["summary", "contentMap"],
+    };
+  }
+
+  public static glimpseModePromptBuilder(
     query: string,
     resources: IConnectableFields[],
   ) {
     const builder = new PromptBuilder()
       .addText(
-        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided source documents.",
+        "You are Spyglass, an AI assistant that functions as a 'Map of Content Generator'. Your goal is to analyze a user's query and a set of provided source documents to produce a structured, explorable overview that helps the user understand the key themes and find the most relevant information within their notes.",
       )
-      .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
-        "Output and Citation Rules",
+        "Core Mission",
         `
-          - Your entire response MUST be valid Markdown.
-          - At the end of any sentence that uses information from a source, you MUST add a citation.
-          - Place the citation immediately after the last word of the sentence, with no space.
-          - The format is the resource's type and ID inside brackets, like \[idea:xxxx\] or \[source:yyyy\].
-          - If multiple sources support a sentence, list each citation in its own separate brackets, like \[idea:xxxx\]\[source:yyyy\].
+          Instead of just answering the query directly, your mission is to create a structured 'Map of Content'. This involves three main steps:
+          1.  **Summarize:** Provide a brief, high-level summary that captures the main themes discovered in the source documents related to the user's query.
+          2.  **Categorize & Group:** Group the most relevant source documents into logical sections or categories based on common themes. Each group should have a clear title and a concise description.
+          3.  **Explain Relevance:** For each document within a group, explain precisely *why* it is relevant to the user's original query.
           `,
       )
       .addBlock(
-        "Tone and Style",
-        `
-          - Your tone should be informative and professional.
-          - Your writing style should be clear and concise.
-          - Use active voice whenever possible.
-          - Match the user's level of formality and technical language.
-          - Talk in the second person, directly to the user
-          `,
+        "Output Format",
+        "You MUST output a JSON object that strictly conforms to the provided schema. The JSON object should contain a summary and a 'contentMap' array, where each element represents a themed section of results.",
       )
       .addBlock(
         "Strict Rules",
         `
-          - **ALWAYS** cite relevant sources for statements made to ensure accuracy and verifiability.
-          - **NEVER** use information that is not explicitly present in the source documents. If the documents do not contain the answer, state that you cannot answer based on the information provided.
+          - **Generate Structured JSON:** Your entire output must be a single, valid JSON object that adheres to the schema.
+          - **Group Logically:** Create meaningful groups of results. It is better to have a few well-defined groups than many small, overlapping ones. A group can have a single item if it is unique and important.
+          - **Explain Concisely:** The 'explanation' for each result should be a single, clear sentence.
+          - **Be Comprehensive:** Ensure that the most relevant documents from the provided sources are included in your map.
+          - **Adhere to Source:** All titles, summaries, and explanations must be derived solely from the provided 'Source Documents' and the 'User Query'. Do not invent information.
           `,
       )
       .addBlock("User Query", `<userQuery>${query}</userQuery>`)
@@ -1602,7 +1680,7 @@ export default class Spyglass {
     return builder;
   }
 
-  public static async *generateOverviewFromScope({
+  public static async *generateGlimpseStream({
     query,
     scope,
   }: {
@@ -1610,13 +1688,17 @@ export default class Spyglass {
     scope: IConnectableFields[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.scopedOverviewPromptBuilder(query, scope);
+      const overviewPrompt = this.glimpseModePromptBuilder(query, scope);
+      const schema = this.glimpseModeSchema(scope);
       const lm = getLM().withModel("fast-accurate");
-      for await (const chunk of lm.generateStream(overviewPrompt.get())) {
+      for await (const chunk of lm.generateJSONStream(
+        overviewPrompt.get(),
+        schema,
+      )) {
         yield chunk;
       }
     } catch (error) {
-      console.error("Error generating overview stream from scope:", error);
+      console.error("Error generating glimpse stream from scope:", error);
       throw error;
     }
   }
@@ -1789,9 +1871,6 @@ export default class Spyglass {
       yield { type: "resources_loaded", data: resources };
       yield { type: "full_results_loaded", data: fullResults };
 
-      let fullOverview = "";
-      const finalFindings: IFinding[] = [];
-
       if (deepAnalysis) {
         yield { type: "status", data: "Generating deep analysis findings..." };
         const findingGenerator = Spyglass.generateFindingsFromResources(
@@ -1810,25 +1889,23 @@ export default class Spyglass {
             findings: finalFindings,
           });
         for await (const chunk of overviewGenerator) {
-          fullOverview += chunk;
           yield { type: "overview_chunk", data: chunk };
         }
       } else {
-        yield { type: "status", data: "Generating overview from resources..." };
-        const overviewGenerator = Spyglass.generateOverviewFromScope({
+        yield { type: "status", data: "Generating glimpse mode map..." };
+        const glimpseGenerator = Spyglass.generateGlimpseStream({
           query,
           scope: resources,
         });
-        for await (const chunk of overviewGenerator) {
-          fullOverview += chunk;
-          yield { type: "overview_chunk", data: chunk };
+        for await (const chunk of glimpseGenerator) {
+          yield { type: "glimpse_chunk", data: chunk };
         }
       }
 
       yield {
         type: "completed",
         data: {
-          overview: fullOverview,
+          overview: "",
           findings: finalFindings,
           results: resources,
         },
