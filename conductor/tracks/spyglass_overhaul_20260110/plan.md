@@ -12,7 +12,7 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
     -   [ ] Sub-task: In `app/services/Spyglass.ts`, refactor the main service to differentiate between "Glimpse Mode" and "Deep Focus" logic.
     -   [ ] Sub-task: Modify LLM response structures to provide data for the new UI (e.g., raw excerpts for Deep Focus, summaries for Glimpse).
     -   [ ] Sub-task: Manually test the service endpoints to ensure they behave as expected for each mode.
--   [x] **Task: Design Abstract Scope Builder Component**
+-   [x] **Task: Design Abstract Scope Builder Component** `d8863ce`
     -   [x] Sub-task: Create the initial file structure and scaffolding for the new reusable Scope Builder UI component.
     -   [x] Sub-task: Design the component's props and state management to handle tags, rabbitholes, and dates.
     -   [x] Sub-task: Implement a basic, non-functional version of the component to be integrated in the sidebar and main Spyglass page.
