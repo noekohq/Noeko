@@ -1,44 +1,4 @@
-import { Link, useSearchParams } from "react-router";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import styles from "./Spyglass.module.scss";
-import {
-  ActionIcon,
-  Badge,
-  Button,
-  Group,
-  HoverCard,
-  Loader,
-  Paper,
-  Space,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import {
-  ClockCounterClockwiseIcon,
-  MegaphoneIcon,
-  XIcon,
-} from "@phosphor-icons/react";
-import SpyglassContext from "./Spyglass/SpyglassContext";
-import { useSpyglassService } from "../../hooks/useSpyglassService";
-import { useInteraction } from "../../contexts/InteractionContext";
-import { useLayout } from "../../contexts/LayoutContext";
-import RightSidebar from "../../components/UI/Layout/Right";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
-import SpyglassActions from "./Spyglass/SpyglassActions";
-import { useEffect, useState } from "react";
-import Textbox from "./Textbox";
-import CountUp from "../../components/Utils/Animations/Countup";
-import { getNodeTitle } from "../../utils/graph";
-import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
-import useRabbithole from "../../hooks/useRabbithole";
-import { RabbitholeIcon } from "../../components/Utils/Icons/Icons";
-import PaperCard from "../../components/Display/Paper/PaperCard";
-import PaperInset from "../../components/Display/Paper/PaperInset";
-import Search from "../../components/Search/Search";
+import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
 
 export default function Spyglass() {
   const {
@@ -76,6 +36,7 @@ export default function Spyglass() {
     fullResults,
     findings,
     overview,
+    glimpseResult,
     citationMap,
     resultsMap,
     uninitialize,
@@ -365,20 +326,26 @@ export default function Spyglass() {
                 )}
               </div>
             )}
-            {overview && (
-              <>
-                <div className={styles.overviewDisplay}>
-                  <DisplayOverview
-                    overview={overview}
-                    findings={findings}
-                    resultsMap={resultsMap ?? {}}
-                    citationMap={citationMap ?? {}}
-                    query={currentQuery}
-                    results={results}
-                    loading={loading}
-                  />
-                </div>
-              </>
+            {deepAnalysis && overview && (
+              <div className={styles.overviewDisplay}>
+                <DisplayOverview
+                  overview={overview}
+                  findings={findings}
+                  resultsMap={resultsMap ?? {}}
+                  citationMap={citationMap ?? {}}
+                  query={currentQuery}
+                  results={results}
+                  loading={loading}
+                />
+              </div>
+            )}
+            {!deepAnalysis && glimpseResult && (
+              <div className={styles.overviewDisplay}>
+                <GlimpseModeDisplay
+                  glimpseResult={glimpseResult}
+                  resultsMap={resultsMap ?? {}}
+                />
+              </div>
             )}
           </div>
         </div>

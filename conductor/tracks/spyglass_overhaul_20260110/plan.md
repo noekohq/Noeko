@@ -16,9 +16,9 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
     -   [x] Sub-task: Create the initial file structure and scaffolding for the new reusable Scope Builder UI component.
     -   [x] Sub-task: Design the component's props and state management to handle tags, rabbitholes, and dates.
     -   [x] Sub-task: Implement a basic, non-functional version of the component to be integrated in the sidebar and main Spyglass page.
--   [ ] **Task: Scaffold New Spyglass Page UI**
-    -   [ ] Sub-task: In `@src/pages/Spyglass/Spyglass.tsx`, restructure the page to support toggling between "Glimpse" and "Deep Focus" modes.
-    -   [ ] Sub-task: Create placeholder components for the new "Guided Survey" layout and the full-width block display.
+-   [x] **Task: Scaffold New Spyglass Page UI**
+    -   [x] Sub-task: In `@src/pages/Spyglass/Spyglass.tsx`, restructure the page to support toggling between "Glimpse" and "Deep Focus" modes.
+    -   [x] Sub-task: Create placeholder components for the new "Guided Survey" layout and the full-width block display.
 -   [ ] **Task: Conductor - User Manual Verification 'Phase 1: Foundational Backend & UI Scaffolding' (Protocol in workflow.md)**
 
 ---
