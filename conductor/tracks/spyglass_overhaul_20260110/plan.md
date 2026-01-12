@@ -4,7 +4,7 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
 
 ---
 
-## Phase 1: Foundational Backend & UI Scaffolding
+## Phase 1: Foundational Backend & UI Scaffolding [checkpoint: 90dfed6]
 
 *Objective: Modify backend services to support the new search modes and create the initial UI shells for the main components.*
 
@@ -19,7 +19,7 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
 -   [x] **Task: Scaffold New Spyglass Page UI** `3584086`
     -   [x] Sub-task: In `@src/pages/Spyglass/Spyglass.tsx`, restructure the page to support toggling between "Glimpse" and "Deep Focus" modes.
     -   [x] Sub-task: Create placeholder components for the new "Guided Survey" layout and the full-width block display.
--   [ ] **Task: Conductor - User Manual Verification 'Phase 1: Foundational Backend & UI Scaffolding' (Protocol in workflow.md)**
+-   [x] **Task: Conductor - User Manual Verification 'Phase 1: Foundational Backend & UI Scaffolding' (Protocol in workflow.md)** `90dfed6`
 
 ---
 
