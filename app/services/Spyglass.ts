@@ -1,7 +1,12 @@
 import { getLM } from "../ai/lms/lm";
 import { LMSchema, LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
-import { IConnectableSearchQuery, ISearchResult, Search } from "./Search";
+import {
+  IConnectableSearchQuery,
+  IConnectableSearchQueryTagFilter,
+  ISearchResult,
+  Search,
+} from "./Search";
 import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
@@ -1781,11 +1786,17 @@ export default class Spyglass {
     query,
     scope,
     deepAnalysis,
+    rabbithole,
+    tags,
+    date,
   }: {
     userId: string;
     query: string;
     scope?: string[];
     deepAnalysis: boolean;
+    rabbithole?: string;
+    tags?: IConnectableSearchQueryTagFilter;
+    date?: IConnectableSearchQuery["date"];
   }) {
     try {
       yield { type: "status", data: "Starting analysis..." };
@@ -1848,6 +1859,9 @@ export default class Spyglass {
         const searches = intent.searches.map((s) => {
           return {
             ...s,
+            rabbithole: rabbithole || s.rabbithole,
+            tags: tags || s.tags,
+            date: date || s.date,
             tables: s.tables ?? ["idea", "excerpt", "source"],
             vectorSettings: {
               effort: "high",
