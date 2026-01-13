@@ -42,18 +42,18 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
 
 ---
 
-## Phase 3: Deep Focus Spyglass Implementation
+## Phase 3: Deep Focus Spyglass Implementation [checkpoint: 26eb012]
 
 *Objective: Fully implement the "Deep Focus" experience on the main Spyglass page.*
 
--   [ ] **Task: Implement "Deep Focus" Mode UI**
-    -   [ ] Sub-task: Build the "Guided Survey" UI, displaying raw excerpts from search results directly intertwined with the LLM's output.
-    -   [ ] Sub-task: Ensure the UI correctly reflects the granularity of the "Deep Focus" response data from the backend.
-    -   [ ] Sub-task: Manually test the rendering and interactivity of the Deep Focus results.
--   [ ] **Task: Integrate Full Scope Builder**
-    -   [ ] Sub-task: Integrate the expanded version of the abstract Scope Builder component onto the main Spyglass page.
-    -   [ ] Sub-task: Ensure the component correctly passes the selected scope to the "Deep Focus" backend query.
--   [ ] **Task: Conductor - User Manual Verification 'Phase 3: Deep Focus Spyglass Implementation' (Protocol in workflow.md)**
+-   [x] **Task: Implement "Deep Focus" Mode UI**
+    -   [x] Sub-task: Build the "Guided Survey" UI, displaying raw excerpts from search results directly intertwined with the LLM's output.
+    -   [x] Sub-task: Ensure the UI correctly reflects the granularity of the "Deep Focus" response data from the backend.
+    -   [x] Sub-task: Manually test the rendering and interactivity of the Deep Focus results.
+-   [x] **Task: Integrate Full Scope Builder**
+    -   [x] Sub-task: Integrate the expanded version of the abstract Scope Builder component onto the main Spyglass page.
+    -   [x] Sub-task: Ensure the component correctly passes the selected scope to the "Deep Focus" backend query.
+-   [x] **Task: Conductor - User Manual Verification 'Phase 3: Deep Focus Spyglass Implementation' (Protocol in workflow.md)** `26eb012`
 
 ---
 
