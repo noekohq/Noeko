@@ -23,19 +23,22 @@ This plan breaks down the Spyglass 2.0 Overhaul into manageable phases. Each tas
 
 ---
 
-## Phase 2: Simple Search & Sidebar Integration
+## Phase 2: Simple Search & Sidebar Integration [checkpoint: 0f010af]
 
 *Objective: Implement the first tier of search and integrate the new scope and Glimpse functionalities into the sidebar.*
 
--   [ ] **Task: Implement Scope Builder in Sidebar**
-    -   [ ] Sub-task: Integrate the abstract Scope Builder component into the sidebar UI.
-    -   [ ] Sub-task: Wire up the component to filter the "Simple Search" results based on user selections (tags, dates, etc.).
-    -   [ ] Sub-task: Manually test the filter functionality in the sidebar.
--   [ ] **Task: Implement Sidebar Glimpse Mode**
+-   [x] **Task: Implement Scope Builder in Sidebar**
+    -   [x] Sub-task: Integrate the abstract Scope Builder component into the sidebar UI.
+    -   [x] Sub-task: Wire up the component to filter the "Simple Search" results based on user selections (tags, dates, etc.).
+    -   [x] Sub-task: Manually test the filter functionality in the sidebar.
+-   [x] **Task: Implement Sidebar Glimpse Mode**
+    -   [x] Sub-task: Integrate a slimmed-down "Glimpse Mode" into the sidebar that allows for quick, summarized searches.
+    -   [x] Sub-task: Implement the "Export to Spyglass" feature, allowing a user to send the current sidebar search and scope to the main Spyglass page for a "Deep Focus" query.
+    -   [x] Sub-task: Manually test the Glimpse Mode and Export functionality.
     -   [ ] Sub-task: Integrate a slimmed-down "Glimpse Mode" into the sidebar that allows for quick, summarized searches.
     -   [ ] Sub-task: Implement the "Export to Spyglass" feature, allowing a user to send the current sidebar search and scope to the main Spyglass page for a "Deep Focus" query.
     -   [ ] Sub-task: Manually test the Glimpse Mode and Export functionality.
--   [ ] **Task: Conductor - User Manual Verification 'Phase 2: Simple Search & Sidebar Integration' (Protocol in workflow.md)**
+-   [x] **Task: Conductor - User Manual Verification 'Phase 2: Simple Search & Sidebar Integration' (Protocol in workflow.md)** `0f010af`
 
 ---
 
