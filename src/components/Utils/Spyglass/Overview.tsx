@@ -13,6 +13,8 @@ import {
   Group,
   Stack,
   Text,
+  Title,
+  Button,
 } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import {
@@ -104,165 +106,110 @@ export function DisplayOverviewComponent({
   };
 
   return (
-    <div>
-      <Pillbar defaultValue="overview">
-        <Pillbar.List>
-          <Pillbar.Tab value="overview" leftSection={<TextAlignLeftIcon />}>
-            Overview
-          </Pillbar.Tab>
-          <Pillbar.Tab value="findings" leftSection={<MagnifyingGlassIcon />}>
-            Findings
-          </Pillbar.Tab>
-        </Pillbar.List>
-        <Pillbar.Panel value="overview">
-          <Group justify="space-between" className={styles.overviewUI}>
-            <Group justify="end">
-              {!loading && (
-                <Group>
+    <div className={styles.guidedSurveyWrapper}>
+      <Group justify="space-between" mb="lg">
+        <Title order={4}>Guided Survey</Title>
+        {!loading && (
+          <Group>
+            <ActionIcon
+              variant="light"
+              size="md"
+              radius="md"
+              color="gray"
+              onClick={() => {
+                handleDownloadAsMarkdown();
+              }}
+              aria-label="Download as markdown"
+            >
+              <DownloadSimpleIcon />
+            </ActionIcon>
+            <CopyButton
+              value={getOverviewAsMarkdown(
+                overview,
+                findings,
+                resultsMap,
+              )}
+            >
+              {({ copied, copy }) => {
+                return (
                   <ActionIcon
                     variant="light"
                     size="md"
                     radius="md"
                     color="gray"
-                    onClick={() => {
-                      handleDownloadAsMarkdown();
-                    }}
-                    aria-label="Download as markdown"
+                    onClick={copy}
+                    aria-label="Copy as markdown"
                   >
-                    <DownloadSimpleIcon />
+                    {!copied ? <CopyIcon /> : <CheckIcon />}
                   </ActionIcon>
-                  <CopyButton
-                    value={getOverviewAsMarkdown(
-                      overview,
-                      findings,
-                      resultsMap,
-                    )}
-                  >
-                    {({ copied, copy }) => {
-                      return (
-                        <ActionIcon
-                          variant="light"
-                          size="md"
-                          radius="md"
-                          color="gray"
-                          onClick={copy}
-                          aria-label="Copy as markdown"
-                        >
-                          {!copied ? <CopyIcon /> : <CheckIcon />}
-                        </ActionIcon>
-                      );
-                    }}
-                  </CopyButton>
-                </Group>
-              )}
-            </Group>
+                );
+              }}
+            </CopyButton>
           </Group>
+        )}
+      </Group>
+
+      <Stack gap="xl">
+        <div className={styles.overviewSection}>
           <OverviewParser
             markdown={overview}
             resultsMap={resultsMap}
             findings={findings}
           />
-        </Pillbar.Panel>
-        <Pillbar.Panel value="findings">
-          {!findings.length && (
-            <Text c="dimmed" size="sm">
-              No findings for this query.
-            </Text>
-          )}
-          <Accordion radius="lg" variant="contained">
-            {Array.from(findingsBySource.entries())
-              .filter(([sourceId]) => {
-                return sourceId in resultsMap;
-              })
-              .map(([sourceId, findings], index) => {
-                const resource = resultsMap[sourceId];
-                const title = resource.name;
+        </div>
+
+        {findings.length > 0 && (
+          <div className={styles.findingsSection}>
+            <Title order={5} mb="md" c="dimmed">Key Findings</Title>
+            <Stack gap="lg">
+              {findings.map((finding, index) => {
+                const resource = resultsMap[finding.sourceId];
+                if (!resource) return null;
 
                 return (
-                  <Accordion.Item key={sourceId} value={sourceId}>
-                    <Accordion.Control>
-                      <Group align="center" justify="space-between">
-                        <Text size="sm">{title}</Text>
-                        <Group gap="2px">
-                          {findings.map((finding) => {
-                            return (
-                              <button
-                                key={finding.index}
-                                className={styles.citationIcon}
-                              >
-                                {finding.index + 1}
-                              </button>
-                            );
-                          })}
-                        </Group>
+                  <div key={index} className={styles.findingBlock}>
+                    <Group justify="space-between" mb="xs">
+                      <Group gap="xs">
+                        <Badge variant="filled" size="sm" color="blue" radius="sm">
+                          {index + 1}
+                        </Badge>
+                        <Text size="sm" fw="bold">{resource.name}</Text>
                       </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <Stack>
-                        <Text>
-                          <Link
-                            to={`/idea/${sourceId}`}
-                            target="_blank"
-                            style={{
-                              textDecoration: "none",
-                            }}
-                          >
-                            <Group gap="xs" c="dimmed">
-                              <Text size="sm">View</Text>
-                              <ArrowRightIcon size={14} />
-                            </Group>
-                          </Link>
-                        </Text>
-                        {findings.map((finding) => {
-                          return (
-                            <Box mb="sm">
-                              <Group gap="xs" align="center" mb="xs">
-                                <Badge
-                                  key={finding.index}
-                                  variant="light"
-                                  size="xs"
-                                  mx="2px"
-                                  p="xs"
-                                  radius="sm"
-                                  color="blue"
-                                >
-                                  <Text size="xs" fw="bold">
-                                    {finding.index + 1}
-                                  </Text>
-                                </Badge>
-                                <Badge
-                                  key={finding.findingType}
-                                  variant="light"
-                                  size="xs"
-                                  mx="2px"
-                                  p="xs"
-                                  radius="lg"
-                                  color="gray"
-                                >
-                                  {finding.findingType}
-                                </Badge>
-                              </Group>
-                              <Blockquote color="gray" p="xs" mb="xs">
-                                <Text
-                                  size="sm"
-                                  p="0"
-                                  dangerouslySetInnerHTML={{
-                                    __html: markdownToHtml(finding.excerpt),
-                                  }}
-                                />
-                              </Blockquote>
-                              <Text>{finding.analysis}</Text>
-                            </Box>
-                          );
-                        })}
-                      </Stack>
-                    </Accordion.Panel>
-                  </Accordion.Item>
+                      <Badge variant="light" size="xs" color="gray">
+                        {finding.findingType.replaceAll('_', ' ')}
+                      </Badge>
+                    </Group>
+                    
+                    <Blockquote color="blue" p="md" radius="md" mb="sm" className={styles.findingExcerpt}>
+                      <Text
+                        size="sm"
+                        dangerouslySetInnerHTML={{
+                          __html: markdownToHtml(finding.excerpt),
+                        }}
+                      />
+                    </Blockquote>
+                    
+                    <Text size="sm" className={styles.findingAnalysis}>
+                      {finding.analysis}
+                    </Text>
+                    
+                    <Group justify="flex-end" mt="xs">
+                      <Link 
+                        to={`/${resource.type}/${resource.id.toString()}`}
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <Button variant="subtle" size="compact-xs" rightSection={<ArrowRightIcon size={12} />}>
+                          View Source
+                        </Button>
+                      </Link>
+                    </Group>
+                  </div>
                 );
               })}
-          </Accordion>
-        </Pillbar.Panel>
-      </Pillbar>
+            </Stack>
+          </div>
+        )}
+      </Stack>
     </div>
   );
 }

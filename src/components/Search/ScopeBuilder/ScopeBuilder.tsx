@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './ScopeBuilder.module.scss';
 import { IConnectableSearchQuery } from '../../../../app/services/Search';
-import { MultiSelect, Select, Stack, Group, Text, SegmentedControl, ComboboxItem, Loader } from '@mantine/core';
+import { MultiSelect, Select, Stack, Group, Text, SegmentedControl, ComboboxItem, Loader, Divider } from '@mantine/core';
 import useFetch from '../../../hooks/useFetch';
 import { ITag } from '../../../../app/database/models/tag';
 import { IRabbithole } from '../../../../app/database/models/rabbithole';
 import { useDebouncedValue } from '@mantine/hooks';
+import { DatePickerInput } from '@mantine/dates';
 
 export type IScope = Pick<IConnectableSearchQuery, 'tags' | 'rabbithole' | 'date'>;
 
@@ -22,7 +23,7 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
   const [debouncedRabbitholeSearch] = useDebouncedValue(rabbitholeSearch, 300);
 
   // Fetch tag suggestions
-  const { data: tagSuggestions, load: loadTags, loading: loadingTags } = useFetch<undefined, ITag[]>({
+  const { data: tagSuggestions, load: loadTags, loading: loadingTags } = useFetch<undefined, ITag[]> ({
     url: '/search/tags/suggest',
     method: 'GET',
     query: { query: debouncedTagSearch || '', limit: '10' },
@@ -31,7 +32,7 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
   });
 
   // Fetch rabbithole suggestions
-  const { data: rabbitholeSuggestions, load: loadRabbitholes, loading: loadingRabbitholes } = useFetch<undefined, IRabbithole[]>({
+  const { data: rabbitholeSuggestions, load: loadRabbitholes, loading: loadingRabbitholes } = useFetch<undefined, IRabbithole[]> ({
     url: '/search/rabbitholes/suggest',
     method: 'GET',
     query: { query: debouncedRabbitholeSearch || '', limit: '10' },
@@ -40,13 +41,13 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
   });
 
   // Fetch full objects for currently selected IDs to ensure labels are visible
-  const { data: selectedTagsData } = useFetch<undefined, ITag[]>({
+  const { data: selectedTagsData } = useFetch<undefined, ITag[]> ({
     url: '/tags',
     method: 'GET',
     runOnMount: true,
   });
 
-  const { data: selectedRabbitholesData } = useFetch<undefined, IRabbithole[]>({
+  const { data: selectedRabbitholesData } = useFetch<undefined, IRabbithole[]> ({
     url: '/rabbithole',
     method: 'GET',
     runOnMount: true,
@@ -85,6 +86,24 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
     return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
   }, [rabbitholeSuggestions, selectedRabbitholesData]);
 
+
+  const handleDateChange = (val: any) => {
+    const [start, end] = val as [Date | null, Date | null];
+    onChange({
+      ...value,
+      date: {
+        updatedAt: {
+          after: start?.toISOString(),
+          before: end?.toISOString(),
+        }
+      }
+    });
+  };
+
+  const dateValue: [Date | null, Date | null] = [
+    value.date?.updatedAt?.after ? new Date(value.date.updatedAt.after) : null,
+    value.date?.updatedAt?.before ? new Date(value.date.updatedAt.before) : null,
+  ];
 
   return (
     <div className={styles.scopeBuilder}>
@@ -142,6 +161,18 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
             size="xs"
           />
         </Stack>
+
+        <Divider my="xs" label="Time Range" labelPosition="center" />
+
+        <DatePickerInput
+          type="range"
+          label="Updated Between"
+          placeholder="Pick date range"
+          value={dateValue}
+          onChange={handleDateChange}
+          clearable
+          size="xs"
+        />
       </Stack>
     </div>
   );
