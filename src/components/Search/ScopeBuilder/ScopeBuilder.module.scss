@@ -1,5 +1,7 @@
 .scopeBuilder {
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 12px;
+  background: var(--mantine-color-dark-8);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--mantine-color-dark-4);
 }

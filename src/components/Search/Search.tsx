@@ -10,6 +10,11 @@ import {
   Stack,
   Text,
   Transition,
+  Switch,
+  Button,
+  Collapse,
+  ActionIcon,
+  Tooltip,
 } from "@mantine/core";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
@@ -18,7 +23,7 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import useRabbithole from "../../hooks/useRabbithole";
 import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
-import { ArrowClockwiseIcon, IconProps, PlusIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, FunnelIcon, IconProps, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { ISearchResultValue } from "../../../app/services/Search";
 import useFetch from "../../hooks/useFetch";
 import { IConnectable } from "../../../app/services/Graph";
@@ -27,6 +32,9 @@ import { getThingPropsFromConnectable } from "../Display/Paper/Things/thingUtils
 import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { getNodeDescription, getNodeTitle } from "../../utils/graph";
 import { formatDateTime } from "../../utils/formatting";
+import ScopeBuilder from "./ScopeBuilder/ScopeBuilder";
+import { useSpyglassService } from "../../hooks/useSpyglassService";
+import GlimpseModeDisplay from "../Utils/Spyglass/GlimpseModeDisplay";
 
 export type ISearchResultAction = {
   id: string;
@@ -73,8 +81,41 @@ export default function Search({
     global: {
       results: { get: searchResults, set: setResults },
       query: { get: searchQuery },
+      scope: { get: scope, set: setScope },
+      glimpseMode: { get: glimpseMode, set: setGlimpseMode },
+      showScope: { get: showScope, set: setShowScope },
     },
   } = useSearch();
+
+  const {
+    search: searchGlimpse,
+    glimpseResult,
+    resultsMap,
+    loading: loadingGlimpse,
+    error: errorGlimpse,
+    reset: resetGlimpse,
+  } = useSpyglassService();
+
+  const handleGlimpseSearch = () => {
+    if (!searchQuery) return;
+    searchGlimpse({
+      query: searchQuery,
+      deepAnalysis: false,
+      rabbithole: scope.rabbithole,
+      tags: scope.tags,
+      date: scope.date,
+    });
+  };
+
+  useEffect(() => {
+    if (glimpseMode && searchQuery) {
+      // Debounce or trigger on explicit action? 
+      // For now, let's trigger on explicit "Enter" or button press if we can hook into SearchBar.
+      // SearchBar triggers global query update.
+    } else {
+      resetGlimpse();
+    }
+  }, [glimpseMode]);
 
   const startTimeRef = useRef<number | null>(null);
   const resultsTimeRef = useRef<number | null>(null);
@@ -125,7 +166,86 @@ export default function Search({
           isMobile ? "Search..." : `Press ${primaryKey} + / to focus...`
         }
       />
-      {!!searchQuery && !searchResults && !loading && (
+      
+      <Group justify="flex-end" mb="xs">
+        <Tooltip label="Adjust Scope" position="left" withArrow>
+          <ActionIcon 
+            variant={showScope ? "filled" : "light"} 
+            size="sm" 
+            onClick={() => setShowScope(!showScope)}
+            color="gray"
+          >
+            <FunnelIcon size={14} />
+          </ActionIcon>
+        </Tooltip>
+      </Group>
+
+      <Collapse in={showScope}>
+        <ScopeBuilder value={scope} onChange={setScope} />
+      </Collapse>
+      
+      <Group justify="space-between" mb="sm">
+        <Switch
+          label="Glimpse Mode"
+          size="xs"
+          checked={glimpseMode}
+          onChange={(event) => setGlimpseMode(event.currentTarget.checked)}
+          color="blue"
+          thumbIcon={
+            glimpseMode ? (
+              <SparkleIcon size={12} weight="bold" color="var(--mantine-color-blue-6)" />
+            ) : (
+              <SpyglassIcon size={12} color="var(--mantine-color-gray-6)" />
+            )
+          }
+        />
+        {glimpseMode && (
+           <Button 
+             size="xs" 
+             variant="light" 
+             disabled={!searchQuery || loadingGlimpse}
+             onClick={handleGlimpseSearch}
+           >
+             Go
+           </Button>
+        )}
+      </Group>
+
+      {glimpseMode && (
+        <div className={styles.glimpseContainer}>
+          {loadingGlimpse && (
+            <Group justify="center" my="md">
+              <Loader size="sm" type="dots" />
+              <Text size="sm" c="dimmed">Glimpsing...</Text>
+            </Group>
+          )}
+          {errorGlimpse && <Text c="red" size="sm">{errorGlimpse}</Text>}
+          {glimpseResult && (
+            <>
+              <GlimpseModeDisplay
+                glimpseResult={glimpseResult}
+                resultsMap={resultsMap || {}}
+              />
+              <Group justify="flex-end" mt="sm">
+                 <Link
+                  to={`/spyglass?q=${encodeURIComponent(searchQuery)}&deep=true`}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Button 
+                    size="xs" 
+                    variant="default"
+                    leftSection={<SpyglassIcon size={14} />}
+                  >
+                    Deep Focus in Spyglass
+                  </Button>
+                </Link>
+              </Group>
+            </>
+          )}
+        </div>
+      )}
+
+      {!glimpseMode && !!searchQuery && !searchResults && !loading && (
         <>
           <Space my="lg" />
           <Group>

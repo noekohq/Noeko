@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ISearchResult } from "../../app/services/Search";
+import { IScope } from "../components/Search/ScopeBuilder/ScopeBuilder";
 
 export type IComponentFilter = {
   query?: string;
@@ -23,6 +24,18 @@ type ISearchContext = {
       get: boolean;
       set: (loading: boolean) => void;
     };
+    scope: {
+      get: IScope;
+      set: (scope: IScope) => void;
+    };
+    glimpseMode: {
+      get: boolean;
+      set: (mode: boolean) => void;
+    };
+    showScope: {
+      get: boolean;
+      set: (show: boolean) => void;
+    };
   };
   component: {
     getFilter: (key: string) => IComponentFilter | undefined;
@@ -44,6 +57,18 @@ const initialSearch: ISearchContext = {
       get: false,
       set: (loading: boolean) => {},
     },
+    scope: {
+      get: {},
+      set: (scope: IScope) => {},
+    },
+    glimpseMode: {
+      get: false,
+      set: (mode: boolean) => {},
+    },
+    showScope: {
+      get: false,
+      set: (show: boolean) => {},
+    },
   },
   component: {
     getFilter: (key: string) => undefined,
@@ -63,6 +88,9 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
     null,
   );
   const [loading, setLoading] = useState(false);
+  const [scope, setScope] = useState<IScope>({});
+  const [glimpseMode, setGlimpseMode] = useState(false);
+  const [showScope, setShowScope] = useState(false);
 
   const [componentFilters, setComponentFilters] = useState<{
     [key: string]: IComponentFilter;
@@ -106,6 +134,18 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
             setSearchResults(null);
           }
         },
+      },
+      scope: {
+        get: scope,
+        set: setScope,
+      },
+      glimpseMode: {
+        get: glimpseMode,
+        set: setGlimpseMode,
+      },
+      showScope: {
+        get: showScope,
+        set: setShowScope,
       },
     },
     component: {

@@ -9,6 +9,8 @@ import {
   Stack,
   Text,
   Title,
+  Collapse,
+  Tooltip,
 } from "@mantine/core";
 import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
 import styles from "./Spyglass.module.scss";
@@ -23,6 +25,7 @@ import TopBar from "../../components/UI/Layout/TopBar";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import {
   ClockCounterClockwiseIcon,
+  FunnelIcon,
   MegaphoneIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -35,6 +38,7 @@ import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
 import Nav from "../../components/UI/Layout/Nav";
 import RightSidebar from "../../components/UI/Layout/Right";
 import SpyglassActions from "./Spyglass/SpyglassActions";
+import { useSearch } from "../../contexts/SearchContext";
 
 export default function Spyglass() {
   const {
@@ -52,6 +56,13 @@ export default function Spyglass() {
 
   const { isDownRabbithole, currentRabbithole, exitRabbithole } =
     useRabbithole();
+
+  const {
+    global: {
+      scope: { get: scope, set: setScope },
+      showScope: { get: showScope, set: setShowScope },
+    },
+  } = useSearch();
 
   // SPYGLASS PARAMS
   const [query, setQuery] = useState("");
@@ -85,9 +96,11 @@ export default function Spyglass() {
       {
         query,
         deepAnalysis,
-        scope: currentRabbithole
-          ? [currentRabbithole.id.toString()]
-          : undefined,
+        rabbithole: currentRabbithole
+          ? currentRabbithole.id.toString()
+          : scope.rabbithole || undefined,
+        tags: scope.tags,
+        date: scope.date,
       },
       true,
     );
@@ -227,10 +240,25 @@ export default function Spyglass() {
           )}
           {!initialized && (
             <div className={styles.scopeWrapper}>
-              <ScopeBuilder
-                value={{}}
-                onChange={() => {}}
-              />
+              <Group justify="center" mb="xs">
+                <Tooltip label="Adjust Scope" position="top" withArrow>
+                  <ActionIcon 
+                    variant={showScope ? "filled" : "light"} 
+                    size="md" 
+                    onClick={() => setShowScope(!showScope)}
+                    color="gray"
+                    radius="xl"
+                  >
+                    <FunnelIcon size={18} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+              <Collapse in={showScope}>
+                <ScopeBuilder
+                  value={scope}
+                  onChange={setScope}
+                />
+              </Collapse>
             </div>
           )}
           <div

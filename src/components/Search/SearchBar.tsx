@@ -68,6 +68,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
         query: { get: query, set: setQuery },
         results: { set: setResults },
         loading: { set: setLoading },
+        scope: { get: scope },
       },
     } = useSearch();
 
@@ -85,7 +86,9 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
         query,
         rabbithole: withinRabbithole
           ? currentRabbithole?.id.toString()
-          : undefined,
+          : scope.rabbithole || undefined,
+        tags: scope.tags,
+        date: scope.date,
         tables: ["idea", "task", "source", "excerpt"],
         searchType: {
           fts: true,
@@ -96,7 +99,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
         },
         limit: 50,
       },
-      dependencies: [query, withOverview],
+      dependencies: [query, withOverview, scope],
       onBefore: () => {
         onSearchStart?.();
         setLoading(true);

@@ -6,6 +6,8 @@ import {
   ISpyglassIntent,
 } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
+import { IConnectableSearchQueryTagFilter } from "../../app/services/Search";
+import { RecordId } from "surrealdb";
 
 export type ICitationMap = Record<
   string,
@@ -20,6 +22,18 @@ interface ISearchArgs {
   query: string;
   scope?: string[];
   deepAnalysis: boolean;
+  rabbithole?: string | RecordId;
+  tags?: IConnectableSearchQueryTagFilter;
+  date?: {
+    createdAt?: {
+      after?: string;
+      before?: string;
+    };
+    updatedAt?: {
+      after?: string;
+      before?: string;
+    };
+  };
 }
 
 interface ISpyglassServiceReturn {
@@ -85,12 +99,22 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   }, [resetState]);
 
   const search = useCallback(
-    async ({ query, scope, deepAnalysis }: ISearchArgs, autosave?: boolean) => {
+    async (
+      { query, scope, deepAnalysis, rabbithole, tags, date }: ISearchArgs,
+      autosave?: boolean,
+    ) => {
       setInitialized(true);
       resetState();
       setLoading(true);
       setStatus("Initiating analysis...");
-      searchArgsRef.current = { query, scope, deepAnalysis };
+      searchArgsRef.current = {
+        query,
+        scope,
+        deepAnalysis,
+        rabbithole,
+        tags,
+        date,
+      };
       abortControllerRef.current = new AbortController();
 
       try {
@@ -107,7 +131,14 @@ export function useSpyglassService(): ISpyglassServiceReturn {
           {
             method: "POST",
             headers,
-            body: JSON.stringify({ query, scope, deepAnalysis }),
+            body: JSON.stringify({
+              query,
+              scope,
+              deepAnalysis,
+              rabbithole,
+              tags,
+              date,
+            }),
             signal: abortControllerRef.current.signal,
             credentials: "include",
           },

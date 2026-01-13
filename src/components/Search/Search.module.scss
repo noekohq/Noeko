@@ -13,3 +13,11 @@
     background-color: var(--mantine-color-highlight-7);
     font-weight: bold;
 }
+
+.glimpseContainer {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--mantine-color-body);
+    border: 1px solid var(--mantine-color-default-border);
+    border-radius: var(--mantine-radius-md);
+}
