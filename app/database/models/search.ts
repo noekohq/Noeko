@@ -347,7 +347,15 @@ export class SpyglassSearch {
       }
       const intent = await Spyglass.getIntentFromQuery(
         search.baseQuery,
-        search.parent,
+        search.parent
+          ? [
+              {
+                query: search.parent.baseQuery,
+                intent: search.parent.intent?.intent || "General inquiry",
+                response: search.parent.analysis?.overview || "",
+              },
+            ]
+          : undefined,
       );
       if (!intent) {
         throw new Error("Failed to load intent");

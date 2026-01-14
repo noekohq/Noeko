@@ -13,8 +13,16 @@ import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { ISpyglassIntent } from "../../../../app/services/Spyglass";
 import useRabbithole from "../../../hooks/useRabbithole";
+import {
+  getNodeContent,
+  getNodeDescription,
+  getNodeTitle,
+} from "../../../utils/graph";
 import { ISpyglassRecord } from "../../../../app/database/models/spyglass_record";
-import { IConnectable } from "../../../../app/services/Graph";
+import {
+  IConnectable,
+  IConnectableFields,
+} from "../../../../app/services/Graph";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -28,7 +36,7 @@ interface IUseSpyglassArgs {
   onAnalysisChange?: (analysis: ISearchOverview | null) => void;
 }
 
-export type IResultsMap = Record<string, ISearchResultValue>;
+export type IResultsMap = Record<string, IConnectableFields>;
 
 export type ICitationMap = Record<
   string,
@@ -366,7 +374,14 @@ export default function useSpyglass({
   const getResultsMap = () => {
     return spyglass?.fullResults?.reduce((acc, curr, i) => {
       if (curr.value) {
-        acc[curr.id.toString()] = curr.value;
+        const value = curr.value as IConnectable;
+        acc[curr.id.toString()] = {
+          id: value.id.toString(),
+          name: getNodeTitle(value) || "Untitled",
+          description: getNodeDescription(value) || "",
+          content: getNodeContent(value) || "",
+          type: value.type,
+        };
       }
       return acc;
     }, {} as IResultsMap);
@@ -442,6 +457,7 @@ interface IUseSpyglassRecordReturn {
   spyglass?: ISpyglassRecord;
   resultMap?: IResultsMap;
   citationMap?: ICitationMap;
+  results?: IConnectableFields[];
   fullResults?: IConnectable[];
 }
 
@@ -497,7 +513,13 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
   const getResultsMap = () => {
     return fullResults?.reduce((acc, curr, i) => {
       if (curr) {
-        acc[curr.id.toString()] = curr;
+        acc[curr.id.toString()] = {
+          id: curr.id.toString(),
+          name: getNodeTitle(curr) || "Untitled",
+          description: getNodeDescription(curr) || "",
+          content: getNodeContent(curr) || "",
+          type: curr.type,
+        };
       }
       return acc;
     }, {} as IResultsMap);
@@ -533,11 +555,20 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
 
   const citationMap = buildCitationMap();
 
+  const mappedResults: IConnectableFields[] = fullResults.map((curr) => ({
+    id: curr.id.toString(),
+    name: getNodeTitle(curr) || "Untitled",
+    description: getNodeDescription(curr) || "",
+    content: getNodeContent(curr) || "",
+    type: curr.type,
+  }));
+
   return {
     loading,
     spyglass,
     resultMap,
     citationMap,
+    results: mappedResults,
     fullResults,
   } satisfies IUseSpyglassRecordReturn;
 };

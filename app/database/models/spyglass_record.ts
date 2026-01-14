@@ -29,7 +29,10 @@ export type ISpyglassHistoryResponse = {
 };
 
 export type ISpyglassLightHistoryResponse = {
-  history: Pick<ISpyglassRecord, "id" | "baseQuery" | "createdAt">[];
+  history: Pick<
+    ISpyglassRecord,
+    "id" | "baseQuery" | "createdAt" | "isDeepAnalysis"
+  >[];
   total: number;
   limit: number;
   page: number;
@@ -63,10 +66,12 @@ export class SpyglassRecord {
       );
 
       if (!result || !result[0]) {
+        console.error("Failed to create SpyglassRecord: result is empty", result);
         return null;
       }
 
       const record = result[0];
+      console.log("SpyglassRecord created:", record.id);
 
       await db.query(
         `RELATE $userId->owns->$recordId CONTENT {
@@ -78,6 +83,7 @@ export class SpyglassRecord {
           now: new Date(),
         },
       );
+      console.log("SpyglassRecord related to user:", userId);
 
       return record;
     } catch (error) {
@@ -199,13 +205,18 @@ export class SpyglassRecord {
       }
 
       const historyQuery = `
-        SELECT id, baseQuery, createdAt FROM ${this.table}
+        SELECT id, baseQuery, createdAt, isDeepAnalysis FROM ${this.table}
         WHERE <-owns<-(user WHERE id = $userId)
         ORDER BY createdAt DESC
         LIMIT $limit START $offset
       `;
       const historyResult = await db.query<
-        [Pick<ISpyglassRecord, "id" | "baseQuery" | "createdAt">[]]
+        [
+          Pick<
+            ISpyglassRecord,
+            "id" | "baseQuery" | "createdAt" | "isDeepAnalysis"
+          >[],
+        ]
       >(historyQuery, {
         userId,
         limit,

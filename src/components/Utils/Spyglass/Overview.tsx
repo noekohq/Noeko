@@ -124,11 +124,7 @@ export function DisplayOverviewComponent({
               <DownloadSimpleIcon />
             </ActionIcon>
             <CopyButton
-              value={getOverviewAsMarkdown(
-                overview,
-                findings,
-                resultsMap,
-              )}
+              value={getOverviewAsMarkdown(overview, findings, resultsMap)}
             >
               {({ copied, copy }) => {
                 return (
@@ -160,7 +156,9 @@ export function DisplayOverviewComponent({
 
         {findings.length > 0 && (
           <div className={styles.findingsSection}>
-            <Title order={5} mb="md" c="dimmed">Key Findings</Title>
+            <Title order={5} mb="md" c="dimmed">
+              Key Findings
+            </Title>
             <Stack gap="lg">
               {findings.map((finding, index) => {
                 const resource = resultsMap[finding.sourceId];
@@ -170,17 +168,30 @@ export function DisplayOverviewComponent({
                   <div key={index} className={styles.findingBlock}>
                     <Group justify="space-between" mb="xs">
                       <Group gap="xs">
-                        <Badge variant="filled" size="sm" color="blue" radius="sm">
+                        <Badge
+                          variant="filled"
+                          size="sm"
+                          color="blue"
+                          radius="sm"
+                        >
                           {index + 1}
                         </Badge>
-                        <Text size="sm" fw="bold">{resource.name}</Text>
+                        <Text size="sm" fw="bold">
+                          {resource.name}
+                        </Text>
                       </Group>
                       <Badge variant="light" size="xs" color="gray">
-                        {finding.findingType.replaceAll('_', ' ')}
+                        {finding.findingType.replaceAll("_", " ")}
                       </Badge>
                     </Group>
-                    
-                    <Blockquote color="blue" p="md" radius="md" mb="sm" className={styles.findingExcerpt}>
+
+                    <Blockquote
+                      color="blue"
+                      p="md"
+                      radius="md"
+                      mb="sm"
+                      className={styles.findingExcerpt}
+                    >
                       <Text
                         size="sm"
                         dangerouslySetInnerHTML={{
@@ -188,17 +199,21 @@ export function DisplayOverviewComponent({
                         }}
                       />
                     </Blockquote>
-                    
+
                     <Text size="sm" className={styles.findingAnalysis}>
                       {finding.analysis}
                     </Text>
-                    
+
                     <Group justify="flex-end" mt="xs">
-                      <Link 
+                      <Link
                         to={`/${resource.type}/${resource.id.toString()}`}
-                        style={{ textDecoration: 'none' }}
+                        style={{ textDecoration: "none" }}
                       >
-                        <Button variant="subtle" size="compact-xs" rightSection={<ArrowRightIcon size={12} />}>
+                        <Button
+                          variant="subtle"
+                          size="compact-xs"
+                          rightSection={<ArrowRightIcon size={12} />}
+                        >
                           View Source
                         </Button>
                       </Link>

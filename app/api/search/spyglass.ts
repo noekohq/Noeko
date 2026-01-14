@@ -16,7 +16,8 @@ router.post("/stream", checkToken, async (req, res) => {
       return;
     }
 
-    const { query, scope, deepAnalysis, rabbithole, tags, date } = req.body;
+    const { query, scope, deepAnalysis, rabbithole, tags, date, history } =
+      req.body;
     if (!query) {
       res.status(400).json({ error: "Query is required" });
       return;
@@ -35,6 +36,7 @@ router.post("/stream", checkToken, async (req, res) => {
       rabbithole,
       tags,
       date,
+      history,
     });
 
     req.on("close", () => {
