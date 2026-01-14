@@ -43,6 +43,12 @@ export interface IResultItem {
   explanation: string;
 }
 
+export interface ISpyglassHistoryItem {
+  query: string;
+  intent: string;
+  response: string;
+}
+
 type ICitationMap = Record<string, ISearchResult>;
 
 interface ISpyglassMode {
@@ -511,7 +517,7 @@ export default class Spyglass {
     }, {} as ICitationMap);
   }
 
-  static intentPromptBuilder(query: string, parent?: ISpyglassSearch | null) {
+  static intentPromptBuilder(query: string, history?: ISpyglassHistoryItem[]) {
     const builder = new PromptBuilder()
       .addText(
         "You are an intelligent user query parser called Spyglass Q, responsible for understanding the user's intent, and deciding how to respond.",
@@ -530,22 +536,23 @@ export default class Spyglass {
         `,
       );
 
-    if (parent && parent.intent) {
+    if (history && history.length > 0) {
       builder.addBlock(
-        "Follow-Up Context",
+        "Conversation History",
         `
-        Crucially, this is a follow-up to a previous query. Thus, your response should be based on the previous query and the user's intent.
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
 
-        Keep the fact that this is a follow-up question in mind, as it should influence your sources and the way you approach the query.
-
-        <previousQuery>
-        ${parent.baseQuery}
-        </previousQuery>
-
-        The user's intent was classified as:
-        <previousIntent>
-        ${parent.intent.intent}
-        </previousIntent>
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
       `,
       );
     }
@@ -731,7 +738,7 @@ export default class Spyglass {
   static overviewPromptBuilder(
     query: string,
     mode: ISpyglassMode,
-    parent?: ISpyglassSearch | null,
+    history?: ISpyglassHistoryItem[],
   ) {
     const builder = new PromptBuilder()
       // --- Insight: Adopting the more polished persona we discussed.
@@ -746,33 +753,25 @@ export default class Spyglass {
           `,
       );
 
-    if (parent) {
-      let parentContext = `
-      Crucially, this question is a follow-up to a previous query.
-      The response should flow from the previous query and response.
-      Previous Query:
-      <previousQuery>
-        ${parent.baseQuery}
-      </previousQuery>
+    if (history && history.length > 0) {
+      builder.addBlock(
+        "Conversation History",
+        `
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
 
-      `;
-
-      if (parent.analysis?.findings && parent.analysis.findings.length > 0) {
-        const findingsText = parent.analysis?.findings
-          .map((f, i) => `* Finding ${i + 1}: ${f.analysis}`)
-          .join("\n");
-        parentContext += `\n\nHere are the findings from the previous query:\n${findingsText}`;
-      }
-
-      if (parent.analysis) {
-        parentContext += `
-        And here was the final response based on those findings:
-        <previousResponse>
-          ${parent.analysis?.overview}
-        </previousResponse>
-        `;
-      }
-      builder.addBlock("Follow-Up Context", parentContext);
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
+      `,
+      );
     }
 
     builder
@@ -919,14 +918,14 @@ export default class Spyglass {
 
   static async getIntentFromQuery(
     query: string,
-    parent?: ISpyglassSearch | null,
+    history?: ISpyglassHistoryItem[],
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
         return undefined;
       }
       const lm = getLM().withModel("fast-accurate");
-      const prompt = this.intentPromptBuilder(query, parent).get();
+      const prompt = this.intentPromptBuilder(query, history).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
@@ -1266,7 +1265,7 @@ export default class Spyglass {
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
     results: ISearchResult[],
-    parent?: ISpyglassSearch,
+    history?: ISpyglassHistoryItem[],
   ): AsyncGenerator<string, void, unknown> {
     try {
       const findingsString: string[] = [];
@@ -1279,7 +1278,7 @@ export default class Spyglass {
       const overviewPrompt = this.overviewPromptBuilder(
         query,
         Modes[intent.mode],
-        parent,
+        history,
       );
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -1485,13 +1484,14 @@ export default class Spyglass {
 
   static async getIntentConfigFromQuery(
     query: string,
+    history?: ISpyglassHistoryItem[],
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
         return undefined;
       }
       const lm = getLM().withModel("fast-accurate");
-      const prompt = this.intentPromptBuilder(query, undefined).get();
+      const prompt = this.intentPromptBuilder(query, history).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
@@ -1640,11 +1640,43 @@ export default class Spyglass {
   public static glimpseModePromptBuilder(
     query: string,
     resources: IConnectableFields[],
+    history?: ISpyglassHistoryItem[],
   ) {
     const builder = new PromptBuilder()
       .addText(
-        "You are Spyglass, an AI assistant that functions as a 'Map of Content Generator'. Your goal is to analyze a user's query and a set of provided source documents to produce a structured, explorable overview that helps the user understand the key themes and find the most relevant information within their notes.",
+        "You are Spyglass Glimpse, a fast and efficient search assistant. Your goal is to provide a concise, high-level overview of findings based on the user's query and the provided sources.",
       )
+      .addBlock(
+        "Context",
+        `
+          It is currently ${getFormattedDateTimeToday()}.
+          You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          `,
+      );
+
+    if (history && history.length > 0) {
+      builder.addBlock(
+        "Conversation History",
+        `
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
+
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
+      `,
+      );
+    }
+
+    builder
+      .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
         "Core Mission",
         `
@@ -1688,12 +1720,14 @@ export default class Spyglass {
   public static async *generateGlimpseStream({
     query,
     scope,
+    history,
   }: {
     query: string;
     scope: IConnectableFields[];
+    history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.glimpseModePromptBuilder(query, scope);
+      const overviewPrompt = this.glimpseModePromptBuilder(query, scope, history);
       const schema = this.glimpseModeSchema(scope);
       const lm = getLM().withModel("fast-accurate");
       for await (const chunk of lm.generateJSONStream(
@@ -1711,11 +1745,42 @@ export default class Spyglass {
   public static overviewFromFindingsPromptBuilder(
     query: string,
     findings: IFinding[],
+    history?: ISpyglassHistoryItem[],
   ) {
     const builder = new PromptBuilder()
       .addText(
         "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
       )
+      .addBlock(
+        "Context",
+        `
+          It is currently ${getFormattedDateTimeToday()}.
+          You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          `,
+      );
+
+    if (history && history.length > 0) {
+      builder.addBlock(
+        "Conversation History",
+        `
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
+
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
+      `,
+      );
+    }
+
+    builder
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
         "Output and Citation Rules",
@@ -1759,14 +1824,17 @@ export default class Spyglass {
   public static async *generateOverviewFromGeneratedFindings({
     query,
     findings,
+    history,
   }: {
     query: string;
     findings: IFinding[];
+    history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
       const overviewPrompt = this.overviewFromFindingsPromptBuilder(
         query,
         findings,
+        history,
       );
       const lm = getLM().withModel("simple").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
@@ -1789,6 +1857,7 @@ export default class Spyglass {
     rabbithole,
     tags,
     date,
+    history,
   }: {
     userId: string;
     query: string;
@@ -1797,6 +1866,7 @@ export default class Spyglass {
     rabbithole?: string;
     tags?: IConnectableSearchQueryTagFilter;
     date?: IConnectableSearchQuery["date"];
+    history?: ISpyglassHistoryItem[];
   }) {
     try {
       yield { type: "status", data: "Starting analysis..." };
@@ -1850,7 +1920,7 @@ export default class Spyglass {
           }
         }
       } else {
-        const _intent = await this.getIntentConfigFromQuery(query);
+        const _intent = await this.getIntentConfigFromQuery(query, history);
         if (!_intent) {
           yield { type: "error", data: "No intent found for the query." };
           return;
@@ -1902,6 +1972,7 @@ export default class Spyglass {
           Spyglass.generateOverviewFromGeneratedFindings({
             query,
             findings: finalFindings,
+            history,
           });
         for await (const chunk of overviewGenerator) {
           yield { type: "overview_chunk", data: chunk };
@@ -1911,6 +1982,7 @@ export default class Spyglass {
         const glimpseGenerator = Spyglass.generateGlimpseStream({
           query,
           scope: resources,
+          history,
         });
         for await (const chunk of glimpseGenerator) {
           yield { type: "glimpse_chunk", data: chunk };

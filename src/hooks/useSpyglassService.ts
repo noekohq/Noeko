@@ -3,6 +3,7 @@ import { api, getAccessToken, serverLocation } from "../server/api";
 import {
   IFinding,
   IGlimpseResult,
+  ISpyglassHistoryItem,
   ISpyglassIntent,
 } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
@@ -34,6 +35,7 @@ interface ISearchArgs {
       before?: string;
     };
   };
+  history?: ISpyglassHistoryItem[];
 }
 
 interface ISpyglassServiceReturn {
@@ -48,10 +50,11 @@ interface ISpyglassServiceReturn {
   overview: string;
   glimpseResult: IGlimpseResult | null;
   status: string | null;
+  history: ISpyglassHistoryItem[];
   citationMap: ICitationMap;
   resultsMap: IResultsMap;
   search: (args: ISearchArgs, autosave?: boolean) => Promise<void>;
-  save: () => Promise<void>;
+  save: (force?: boolean) => Promise<void>;
   reset: () => void;
   uninitialize: () => void;
 }
@@ -70,11 +73,14 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     null,
   );
   const [status, setStatus] = useState<string | null>(null);
+  const [history, setHistory] = useState<ISpyglassHistoryItem[]>([]);
   const searchArgsRef = useRef<ISearchArgs | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const fullFindings = useRef<IFinding[]>([]);
   const fullOverview = useRef<string>("");
   const fullGlimpseResult = useRef<string>("");
+  const intentRef = useRef<ISpyglassIntent | undefined>(undefined);
+  const resultsRef = useRef<IConnectableFields[]>([]);
 
   const resetState = useCallback(() => {
     if (abortControllerRef.current) {
@@ -88,10 +94,13 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     setOverview("");
     setGlimpseResult(null);
     setStatus(null);
+    setHistory([]);
     searchArgsRef.current = null;
     fullGlimpseResult.current = "";
     fullFindings.current = [];
     fullOverview.current = "";
+    intentRef.current = undefined;
+    resultsRef.current = [];
   }, []);
 
   const uninitialize = useCallback(() => {
@@ -100,13 +109,31 @@ export function useSpyglassService(): ISpyglassServiceReturn {
 
   const search = useCallback(
     async (
-      { query, scope, deepAnalysis, rabbithole, tags, date }: ISearchArgs,
+      {
+        query,
+        scope,
+        deepAnalysis,
+        rabbithole,
+        tags,
+        date,
+        history: providedHistory,
+      }: ISearchArgs,
       autosave?: boolean,
     ) => {
       setInitialized(true);
-      resetState();
+      // We don't call resetState() here because we want to preserve history for multi-turn.
+      // But we reset the result-specific state.
       setLoading(true);
+      setComplete(false);
+      setError(null);
+      setResults([]);
+      setFindings([]);
+      setOverview("");
+      setGlimpseResult(null);
       setStatus("Initiating analysis...");
+
+      const activeHistory = providedHistory || history;
+
       searchArgsRef.current = {
         query,
         scope,
@@ -114,8 +141,13 @@ export function useSpyglassService(): ISpyglassServiceReturn {
         rabbithole,
         tags,
         date,
+        history: activeHistory,
       };
       abortControllerRef.current = new AbortController();
+
+      fullGlimpseResult.current = "";
+      fullFindings.current = [];
+      fullOverview.current = "";
 
       try {
         const token = getAccessToken();
@@ -138,6 +170,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
               rabbithole,
               tags,
               date,
+              history: activeHistory,
             }),
             signal: abortControllerRef.current.signal,
             credentials: "include",
@@ -180,9 +213,11 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                       break;
                     case "intent_loaded":
                       setIntent(data);
+                      intentRef.current = data;
                       break;
                     case "resources_loaded":
                       setResults(data);
+                      resultsRef.current = data;
                       setStatus("Analyzing resources...");
                       break;
                     case "full_results_loaded":
@@ -217,8 +252,20 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                       setLoading(false);
                       setComplete(true);
                       setStatus("Analysis complete.");
+
+                      // Update history
+                      const newHistoryItem: ISpyglassHistoryItem = {
+                        query: query,
+                        intent: intentRef.current?.intent || "General inquiry",
+                        response: deepAnalysis
+                          ? fullOverview.current
+                          : fullGlimpseResult.current,
+                      };
+                      setHistory((prev) => [...prev, newHistoryItem]);
+
                       if (autosave) {
-                        await save();
+                        // Pass data directly to save to avoid stale state in closure
+                        await save(true);
                       }
                       break;
                     case "error":
@@ -246,29 +293,45 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     [resetState],
   );
 
-  const save = useCallback(async () => {
-    if (!complete || !searchArgsRef.current) {
-      console.error("Cannot save an incomplete or non-existent analysis.");
-      return;
-    }
+  const save = useCallback(
+    async (force?: boolean) => {
+      // Use refs for latest data
+      if ((!complete && !force) || !searchArgsRef.current) {
+        console.error("Cannot save an incomplete or non-existent analysis.");
+        return;
+      }
 
-    try {
-      await api.post(`/search/spyglass/save`, {
-        baseQuery: searchArgsRef.current.query,
-        scope: searchArgsRef.current.scope || [],
-        isDeepAnalysis: searchArgsRef.current.deepAnalysis,
-        searchPerformed:
-          !searchArgsRef.current.scope ||
-          searchArgsRef.current.scope.length === 0,
-        intent: intent,
-        results: results,
-        findings: findings,
-        overview: overview,
+      console.log("Saving Spyglass analysis...", {
+        args: searchArgsRef.current,
+        intent: intentRef.current,
+        results: resultsRef.current.length,
+        findings: fullFindings.current.length,
+        overviewLength: fullOverview.current.length,
+        glimpseLength: fullGlimpseResult.current.length,
       });
-    } catch (error) {
-      console.error("Failed to save analysis:", error);
-    }
-  }, [searchArgsRef, intent, results, findings, overview]);
+
+      try {
+        const response = await api.post(`/search/spyglass/save`, {
+          baseQuery: searchArgsRef.current.query,
+          scope: searchArgsRef.current.scope || [],
+          isDeepAnalysis: searchArgsRef.current.deepAnalysis,
+          searchPerformed:
+            !searchArgsRef.current.scope ||
+            searchArgsRef.current.scope.length === 0,
+          intent: intentRef.current,
+          results: resultsRef.current,
+          findings: fullFindings.current,
+          overview: searchArgsRef.current.deepAnalysis
+            ? fullOverview.current
+            : fullGlimpseResult.current,
+        });
+        console.log("Spyglass analysis saved:", response.data);
+      } catch (error) {
+        console.error("Failed to save analysis:", error);
+      }
+    },
+    [complete],
+  );
 
   const buildCitationMap = (): ICitationMap => {
     if (!findings) {
@@ -317,6 +380,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     overview,
     glimpseResult,
     status,
+    history,
     results,
     fullResults,
     findings,

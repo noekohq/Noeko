@@ -13,6 +13,8 @@ import {
   Title,
   Center,
   Button,
+  Card,
+  Badge,
 } from "@mantine/core";
 import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
@@ -165,8 +167,10 @@ export default function SpyglassHistory() {
               <Grid>
                 {allHistory.map((item) => (
                   <Grid.Col span={{ base: 12 }} key={item.id.toString()}>
-                    <Box
-                      p="sm"
+                    <Card
+                      p="md"
+                      radius="md"
+                      withBorder
                       className={styles.historyItem}
                       onClick={() => navigate(`/spyglass/records/${item.id}`)}
                       style={{ cursor: "pointer" }}
@@ -183,18 +187,30 @@ export default function SpyglassHistory() {
                         align="center"
                       >
                         <Stack
-                          gap="xs"
+                          gap={4}
                           style={{ flexGrow: 1, overflow: "hidden" }}
                         >
-                          <Text lineClamp={2} fw={500}>
-                            "{item.baseQuery}"
-                          </Text>
-                          <Text size="sm" c="dimmed">
-                            {formatDateTime(item.createdAt).toLowerCase()}
+                          <Group gap="xs">
+                            <Text lineClamp={1} fw={600} size="sm">
+                              "{item.baseQuery}"
+                            </Text>
+                            {item.isDeepAnalysis ? (
+                              <Badge size="xs" variant="light" color="blue">
+                                Deep Focus
+                              </Badge>
+                            ) : (
+                              <Badge size="xs" variant="light" color="gray">
+                                Glimpse
+                              </Badge>
+                            )}
+                          </Group>
+                          <Text size="xs" c="dimmed">
+                            {formatDateTime(item.createdAt)}
                           </Text>
                         </Stack>
+                        <ArrowRightIcon color="var(--mantine-color-dimmed)" />
                       </Group>
-                    </Box>
+                    </Card>
                   </Grid.Col>
                 ))}
               </Grid>
