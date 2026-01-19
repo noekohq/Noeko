@@ -500,15 +500,17 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     }
   }, [spyglassId]);
 
-  // useEffect(() => {
-  //   if (spyglass?.scope) {
-  //     fetchScope({
-  //       loader: {
-  //         ids: spyglass.scope,
-  //       },
-  //     });
-  //   }
-  // }, [spyglass]);
+  useEffect(() => {
+    if (spyglass?.scope) {
+      fetchScope({
+        updatedBody: {
+          loader: {
+            ids: spyglass.scope,
+          },
+        },
+      });
+    }
+  }, [spyglass]);
 
   const getResultsMap = () => {
     return fullResults?.reduce((acc, curr, i) => {

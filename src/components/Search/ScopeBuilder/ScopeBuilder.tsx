@@ -1,180 +1,246 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import styles from './ScopeBuilder.module.scss';
-import { IConnectableSearchQuery } from '../../../../app/services/Search';
-import { MultiSelect, Select, Stack, Group, Text, SegmentedControl, ComboboxItem, Loader, Divider } from '@mantine/core';
-import useFetch from '../../../hooks/useFetch';
-import { ITag } from '../../../../app/database/models/tag';
-import { IRabbithole } from '../../../../app/database/models/rabbithole';
-import { useDebouncedValue } from '@mantine/hooks';
-import { DatePickerInput } from '@mantine/dates';
+import React, { useMemo, useState } from "react";
+import styles from "./ScopeBuilder.module.scss";
+import { IConnectableSearchQuery } from "../../../../app/services/Search";
+import { Group, Popover } from "@mantine/core";
+import useFetch from "../../../hooks/useFetch";
+import { ITag } from "../../../../app/database/models/tag";
+import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import PaperTag from "../../Display/Paper/Tags/PaperTag";
+import { CalendarIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
+import { RabbitholeIcon } from "../../Utils/Icons/Icons";
+import PaperButton from "../../Display/Paper/PaperButton";
+import { Tabs } from "../../UI/Layout/Utils/Tabs";
+import HorizonSelector from "../../Display/Paper/Inputs/HorizonSelector";
+import { toYYYYMMDD } from "../../../utils/datetime";
+import { TagPickerContent } from "../../Display/Interactions/Tags/TagPicker";
+import { RabbitholePickerContent } from "../../Display/Interactions/Rabbitholes/RabbitholePicker";
+import { useLandscape } from "../../../contexts/LandscapeContext";
 
-export type IScope = Pick<IConnectableSearchQuery, 'tags' | 'rabbithole' | 'date'>;
+export type IScope = Pick<
+  IConnectableSearchQuery,
+  "tags" | "rabbithole" | "date"
+> & {
+  showShared?: boolean;
+  showFriends?: boolean;
+};
 
 export interface IScopeBuilderProps {
   value: IScope;
   onChange: (scope: IScope) => void;
 }
 
+const ScopePill = ({
+  icon,
+  label,
+  onRemove,
+  className,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onRemove: () => void;
+  className?: string;
+}) => {
+  return (
+    <button
+      className={`${styles.scopePill} ${className || ""}`}
+      onClick={onRemove}
+    >
+      <span className={styles.icon}>{icon}</span>
+      <span className={styles.label}>{label}</span>
+    </button>
+  );
+};
+
 const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
-  const [tagSearch, setTagSearch] = useState('');
-  const [debouncedTagSearch] = useDebouncedValue(tagSearch, 300);
-  
-  const [rabbitholeSearch, setRabbitholeSearch] = useState('');
-  const [debouncedRabbitholeSearch] = useDebouncedValue(rabbitholeSearch, 300);
+  const [existingTags, setExistingTags] = useState<ITag[]>([]);
+  const [popoverOpened, setPopoverOpened] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("tag");
 
-  // Fetch tag suggestions
-  const { data: tagSuggestions, load: loadTags, loading: loadingTags } = useFetch<undefined, ITag[]> ({
-    url: '/search/tags/suggest',
-    method: 'GET',
-    query: { query: debouncedTagSearch || '', limit: '10' },
-    dependencies: [debouncedTagSearch],
-    runOnMount: true,
-  });
+  const {
+    rabbitholes: {
+      entered: { set: setRabbithole, get: currentRabbithole },
+    },
+  } = useLandscape();
 
-  // Fetch rabbithole suggestions
-  const { data: rabbitholeSuggestions, load: loadRabbitholes, loading: loadingRabbitholes } = useFetch<undefined, IRabbithole[]> ({
-    url: '/search/rabbitholes/suggest',
-    method: 'GET',
-    query: { query: debouncedRabbitholeSearch || '', limit: '10' },
-    dependencies: [debouncedRabbitholeSearch],
-    runOnMount: true,
-  });
+  const handleAddTag = (tag: ITag) => {
+    setExistingTags((prev) => {
+      if (prev.some((t) => t.id.toString() === tag.id.toString())) return prev;
+      return [...prev, tag];
+    });
+    const currentSet = value.tags?.set || [];
+    if (!currentSet.some((id) => id.toString() === tag.id.toString())) {
+      onChange({
+        ...value,
+        tags: {
+          set: [...currentSet, tag.id.toString()],
+          behavior: value.tags?.behavior || "or",
+        },
+      });
+    }
+  };
 
-  // Fetch full objects for currently selected IDs to ensure labels are visible
-  const { data: selectedTagsData } = useFetch<undefined, ITag[]> ({
-    url: '/tags',
-    method: 'GET',
-    runOnMount: true,
-  });
+  const handleRemoveTag = (tagId: string) => {
+    const currentSet = value.tags?.set || [];
+    onChange({
+      ...value,
+      tags: {
+        ...value.tags,
+        set: currentSet.filter((id) => id.toString() !== tagId),
+        behavior: value.tags?.behavior || "or",
+      },
+    });
+  };
 
-  const { data: selectedRabbitholesData } = useFetch<undefined, IRabbithole[]> ({
-    url: '/rabbithole',
-    method: 'GET',
-    runOnMount: true,
-  });
+  const handleSetRabbithole = (rh: IRabbithole) => {
+    setRabbithole(rh);
+    setPopoverOpened(false);
+  };
 
-  useEffect(() => {
-    loadTags();
-  }, [debouncedTagSearch]);
+  const handleRemoveRabbithole = () => {
+    setRabbithole(null);
+  };
 
-  useEffect(() => {
-    loadRabbitholes();
-  }, [debouncedRabbitholeSearch]);
+  // --- Date Logic ---
+  const handleDateChange = (val: string | null) => {
+    if (!val) {
+      onChange({ ...value, date: undefined });
+      return;
+    }
+    // Assume val is YYYY-MM-DD. Set as "After" this date? Or "On" this date?
+    // For a single date selection, usually implies "On".
+    // "After": new Date(val).toISOString()
+    const d = new Date(val);
+    const nextDay = new Date(d);
+    nextDay.setDate(d.getDate() + 1);
 
-  // Merge suggestions with selected items to ensure labels persist
-  const tagOptions: ComboboxItem[] = useMemo(() => {
-    const optionsMap = new Map<string, string>();
-    
-    // Add all user tags (since /tags is relatively small usually)
-    (selectedTagsData || []).forEach(t => optionsMap.set(t.id.toString(), t.name));
-    
-    // Add search suggestions
-    (tagSuggestions || []).forEach(t => optionsMap.set(t.id.toString(), t.name));
-    
-    return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
-  }, [tagSuggestions, selectedTagsData]);
-
-  const rabbitholeOptions: ComboboxItem[] = useMemo(() => {
-    const optionsMap = new Map<string, string>();
-    
-    // Add all user rabbitholes
-    (selectedRabbitholesData || []).forEach(r => optionsMap.set(r.id.toString(), r.name));
-    
-    // Add search suggestions
-    (rabbitholeSuggestions || []).forEach(r => optionsMap.set(r.id.toString(), r.name));
-    
-    return Array.from(optionsMap.entries()).map(([value, label]) => ({ value, label }));
-  }, [rabbitholeSuggestions, selectedRabbitholesData]);
-
-
-  const handleDateChange = (val: any) => {
-    const [start, end] = val as [Date | null, Date | null];
     onChange({
       ...value,
       date: {
         updatedAt: {
-          after: start?.toISOString(),
-          before: end?.toISOString(),
-        }
-      }
+          after: d.toISOString(),
+          before: nextDay.toISOString(),
+        },
+      },
     });
+    setPopoverOpened(false);
   };
 
-  const dateValue: [Date | null, Date | null] = [
-    value.date?.updatedAt?.after ? new Date(value.date.updatedAt.after) : null,
-    value.date?.updatedAt?.before ? new Date(value.date.updatedAt.before) : null,
-  ];
+  const handleRemoveDate = () => {
+    onChange({ ...value, date: undefined });
+  };
+
+  // Date Label
+  const dateLabel = useMemo(() => {
+    if (!value.date?.updatedAt?.after) return "Date";
+    // Convert to local date string to match input
+    return new Date(value.date.updatedAt.after).toLocaleDateString();
+  }, [value.date]);
 
   return (
-    <div className={styles.scopeBuilder}>
-      <Stack gap="xs">
-        <Text size="xs" fw="bold" c="dimmed">SCOPE FILTERS</Text>
-        
-        <Select
-          label="Rabbithole"
-          placeholder="Select or search..."
-          data={rabbitholeOptions}
-          value={value.rabbithole?.toString() || null}
-          onChange={(v) => onChange({ ...value, rabbithole: v || undefined })}
-          searchable
-          onSearchChange={setRabbitholeSearch}
-          searchValue={rabbitholeSearch}
-          rightSection={loadingRabbitholes ? <Loader size={12} /> : null}
-          clearable
-          size="xs"
+    <Group className={styles.scopeBuilderContainer} gap="xs">
+      {/* Rabbithole Pill */}
+      {currentRabbithole && (
+        <ScopePill
+          className={styles.rabbitholePill}
+          icon={<RabbitholeIcon size={12} />}
+          label={currentRabbithole.name}
+          onRemove={handleRemoveRabbithole}
         />
+      )}
 
-        <Stack gap={4}>
-          <Group justify="space-between" align="center">
-            <Text size="xs" fw={500}>Tags</Text>
-            <SegmentedControl
-              size="xs"
-              value={value.tags?.behavior || 'or'}
-              onChange={(v) => onChange({
-                ...value,
-                tags: {
-                  set: value.tags?.set || [],
-                  behavior: v as 'and' | 'or'
-                }
-              })}
-              data={[
-                { label: 'ANY', value: 'or' },
-                { label: 'ALL', value: 'and' },
-              ]}
-            />
-          </Group>
-          <MultiSelect
-            placeholder="Select or search tags..."
-            data={tagOptions}
-            value={value.tags?.set.map(s => s.toString()) || []}
-            onChange={(v) => onChange({
-              ...value,
-              tags: {
-                set: v,
-                behavior: value.tags?.behavior || 'or'
-              }
-            })}
-            searchable
-            onSearchChange={setTagSearch}
-            searchValue={tagSearch}
-            rightSection={loadingTags ? <Loader size={12} /> : null}
-            size="xs"
+      {/* Date Pill */}
+      {value.date && (
+        <ScopePill
+          className={styles.datePill}
+          icon={<CalendarIcon size={14} weight="bold" />}
+          label={dateLabel}
+          onRemove={handleRemoveDate}
+        />
+      )}
+
+      {/* Tag Pills */}
+      {value.tags?.set.map((tagId) => {
+        const tag = existingTags?.find(
+          (t) => t.id.toString() === tagId.toString(),
+        );
+        // If we don't have the tag object yet (e.g. initial load), we might render a skeleton or just wait.
+        // For now, only render if we have it.
+        if (!tag) return null;
+
+        return (
+          <PaperTag
+            key={tagId.toString()}
+            state="applied"
+            tag={tag}
+            onRemove={() => handleRemoveTag(tagId.toString())}
+            active={true}
           />
-        </Stack>
+        );
+      })}
 
-        <Divider my="xs" label="Time Range" labelPosition="center" />
+      <Popover
+        position="bottom-start"
+        withArrow
+        opened={popoverOpened}
+        onChange={setPopoverOpened}
+        trapFocus
+        shadow="md"
+        width={360}
+      >
+        <Popover.Target>
+          <div onClick={() => setPopoverOpened((o) => !o)}>
+            <button className={styles.filterPill}>
+              <span className={styles.icon}>
+                {popoverOpened ? (
+                  <XIcon weight="bold" size={12} />
+                ) : (
+                  <FunnelIcon weight="bold" size={12} />
+                )}
+              </span>
+              <span className={styles.label}>Add Filter</span>
+            </button>
+          </div>
+        </Popover.Target>
+        <Popover.Dropdown className={styles.popoverContent} p="xs">
+          <Tabs defaultValue="tag" onChange={setActiveTab}>
+            <Tabs.List>
+              <Tabs.Tab value="tag">Tags</Tabs.Tab>
+              <Tabs.Tab value="rabbithole">Rabbitholes</Tabs.Tab>
+              <Tabs.Tab value="date">Date</Tabs.Tab>
+            </Tabs.List>
 
-        <DatePickerInput
-          type="range"
-          label="Updated Between"
-          placeholder="Pick date range"
-          value={dateValue}
-          onChange={handleDateChange}
-          clearable
-          size="xs"
-        />
-      </Stack>
-    </div>
+            <Tabs.Panel value="tag">
+              <TagPickerContent
+                onSelectExisting={handleAddTag}
+                allowCreation={false}
+                onClose={() => setPopoverOpened(false)}
+                omitIds={value.tags?.set.map((id) => id.toString())}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="rabbithole">
+              <RabbitholePickerContent
+                onSelectExisting={handleSetRabbithole}
+                allowCreation={false}
+                onClose={() => setPopoverOpened(false)}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="date">
+              <HorizonSelector
+                type="date"
+                value={
+                  value.date?.updatedAt?.after
+                    ? toYYYYMMDD(new Date(value.date.updatedAt.after))
+                    : null
+                }
+                onChange={handleDateChange}
+              />
+            </Tabs.Panel>
+          </Tabs>
+        </Popover.Dropdown>
+      </Popover>
+    </Group>
   );
 };
 

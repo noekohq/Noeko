@@ -25,6 +25,7 @@ import {
 import GraphLoader from "../../components/Utils/Loading/GraphLoader";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useGraph } from "../../contexts/GraphContext";
+import { useSearch } from "../../contexts/SearchContext";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 
@@ -37,6 +38,12 @@ export default function GraphPage() {
       entered: { get: currentRabbithole },
     },
   } = useLandscape();
+
+  const {
+    global: {
+      scope: { get: scope },
+    },
+  } = useSearch();
 
   const {
     data: constellationData,
@@ -57,14 +64,45 @@ export default function GraphPage() {
         inclusions: true,
         descriptions: true,
         references: true,
+        friends: !!scope.showFriends,
+        shares: !!scope.showFriends,
       },
       filters: {
-        ...(!!currentRabbithole && {
-          rabbithole: currentRabbithole?.id.toString(),
-        }),
+        rabbithole:
+          currentRabbithole?.id.toString() || scope.rabbithole?.toString(),
+        tags: scope.tags
+          ? {
+              set: scope.tags.set.map((s) => s.toString()),
+              behavior: scope.tags.behavior,
+            }
+          : undefined,
+        date: scope.date
+          ? {
+              createdAt: scope.date.createdAt
+                ? {
+                    after: scope.date.createdAt.after || "",
+                    before: scope.date.createdAt.before || "",
+                  }
+                : undefined,
+              updatedAt: scope.date.updatedAt
+                ? {
+                    after: scope.date.updatedAt.after || "",
+                    before: scope.date.updatedAt.before || "",
+                  }
+                : undefined,
+              viewedAt: scope.date.viewedAt
+                ? {
+                    after: scope.date.viewedAt.after || "",
+                    before: scope.date.viewedAt.before || "",
+                  }
+                : undefined,
+            }
+          : undefined,
+        showShared: scope.showShared,
+        showFriends: scope.showFriends,
       },
     },
-    dependencies: [currentRabbithole?.id],
+    dependencies: [currentRabbithole?.id, scope],
     onFinally: () => {
       graphRef.current?.reset();
     },
@@ -77,7 +115,7 @@ export default function GraphPage() {
   useEffect(() => {
     reloadConstellation();
     setFocused(currentRabbithole?.id.toString() || "");
-  }, [currentRabbithole]);
+  }, [currentRabbithole, scope]);
 
   useEffect(() => {
     setIsNavigating(false);

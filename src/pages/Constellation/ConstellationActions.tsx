@@ -1,23 +1,23 @@
 import { useCallback, useEffect } from "react";
-import { IDBGraph } from "../../../app/database/models/ideas";
-import { ISearchResult } from "../../../app/services/Search";
 import styles from "./ConstellationActions.module.scss";
-import { IGraph, INode } from "../../declarations/graph";
+import { IGraph } from "../../declarations/graph";
 import { useGraph } from "../../contexts/GraphContext";
-
-import { useAuth } from "../../contexts/AuthContext";
-import { useSearch } from "../../contexts/SearchContext";
-import Search from "../../components/Search/Search";
 import { SearchBar } from "../../components/Search/SearchBar";
 import { Button, Group, Loader, Stack, Text, Transition } from "@mantine/core";
-import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
 import { getOS } from "../../utils/platform";
 import { useLayout } from "../../contexts/LayoutContext";
 import PaperThing from "../../components/Display/Paper/Things/PaperThing";
 import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
-import useFetch from "../../hooks/useFetch";
-import { IConnectable } from "../../../app/services/Graph";
-import { ArrowClockwiseIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  BrainIcon,
+  SparkleIcon,
+} from "@phosphor-icons/react";
+import useSearchQuery from "../../hooks/useSearchQuery";
+import PaperButton from "../../components/Display/Paper/PaperButton";
+import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
+import { Link } from "react-router";
+import { SpyglassIcon } from "../../components/Utils/Icons/Icons";
 
 type IConstellationActionsProps = {
   graphData: IGraph;
@@ -26,7 +26,6 @@ type IConstellationActionsProps = {
 export default function ConstellationActions({
   graphData,
 }: IConstellationActionsProps) {
-  const { user } = useAuth();
   const os = getOS();
   const primaryKey = os === "macos" ? "⌘" : "Ctrl";
   const ctrl = os !== "macos";
@@ -40,57 +39,50 @@ export default function ConstellationActions({
   } = useGraph();
 
   const {
-    global: {
-      results: { get: searchResults },
-      loading: { get: loadingSearch },
-      query: { get: searchQuery },
-    },
-  } = useSearch();
+    inputValue,
+    setInputValue,
+    handleSearchSubmit,
+    results,
+    loading,
+    recent,
+    loadingRecent,
+    reset,
+    glimpseMode,
+    setGlimpseMode,
+    glimpseResult,
+    resultsMap,
+    loadingGlimpse,
+    errorGlimpse,
+    searchQuery,
+  } = useSearchQuery({});
 
   useEffect(() => {
-    setLoading(loadingSearch);
-  }, [loadingSearch]);
-
-  const handleResults = useCallback((results: ISearchResult[]) => {
-    setHighlighted([...results.map((r) => r.id.toString())]);
-  }, []);
+    setLoading(loading || loadingGlimpse);
+  }, [loading, loadingGlimpse, setLoading]);
 
   useEffect(() => {
-    if (searchResults) {
-      handleResults(searchResults);
+    if (results) {
+      setHighlighted([...results.map((r) => r.id.toString())]);
     } else {
       clearHighlighted();
     }
-  }, [searchResults, handleResults]);
+  }, [results, setHighlighted, clearHighlighted]);
 
   const handleSelectAllResults = useCallback(() => {
-    if (searchResults) {
-      searchResults.forEach((r) => {
+    if (results) {
+      results.forEach((r) => {
         addSelected(r.id.toString());
       });
     }
-  }, [searchResults, addSelected]);
+  }, [results, addSelected]);
 
   const handleDeselectAllResults = useCallback(() => {
-    if (searchResults) {
-      searchResults.forEach((r) => {
+    if (results) {
+      results.forEach((r) => {
         removeSelected(r.id.toString());
       });
     }
-  }, [searchResults, addSelected]);
-  const {
-    data: recent,
-    load: loadRecent,
-    loading: loadingRecent,
-  } = useFetch<undefined, IConnectable[]>({
-    url: `/insights/recent?limit=20`,
-    method: "GET",
-  });
-  useEffect(() => {
-    if (!searchResults?.length && !searchQuery.length) {
-      loadRecent();
-    }
-  }, [searchResults]);
+  }, [results, removeSelected]);
 
   const { isMobile } = useLayout();
 
@@ -98,108 +90,159 @@ export default function ConstellationActions({
     <div className={`${styles.ui}`}>
       <div className={styles.searchWrapper}>
         <SearchBar
-          onResultsClear={() => {
-            clearHighlighted();
-          }}
+          query={inputValue}
+          setQuery={setInputValue}
+          loading={loading}
+          onClear={reset}
           onShortcuts={[{ key: "/", ctrl, meta }]}
+          onSearchSubmit={handleSearchSubmit}
           placeholder={
             isMobile ? "Search..." : `Press ${primaryKey} + / to focus...`
           }
         />
-        {!searchQuery.length && !searchResults?.length && (
+        <Stack gap="xs" my="md">
+          <PaperButton
+            withBorder
+            fullWidth
+            size="md"
+            onClick={() => setGlimpseMode(!glimpseMode)}
+          >
+            <Group gap="xs" justify="center" w={"100%"}>
+              {glimpseMode ? (
+                <SparkleIcon size={12} weight="fill" />
+              ) : (
+                <BrainIcon size={12} weight="fill" />
+              )}
+              {glimpseMode ? "Spyglass" : "Smart"}
+            </Group>
+          </PaperButton>
+        </Stack>
+        {glimpseMode && (
+          <div className={styles.glimpseContainer}>
+            {loadingGlimpse && (
+              <Group justify="center" my="md">
+                <Loader size="sm" type="dots" />
+                <Text size="sm" c="dimmed">
+                  Analyzing...
+                </Text>
+              </Group>
+            )}
+            {errorGlimpse && (
+              <Text c="red" size="sm">
+                {errorGlimpse}
+              </Text>
+            )}
+            {glimpseResult && (
+              <>
+                <GlimpseModeDisplay
+                  view="compact"
+                  glimpseResult={glimpseResult}
+                  resultsMap={resultsMap || {}}
+                  query={searchQuery}
+                  loading={loadingGlimpse}
+                />
+              </>
+            )}
+          </div>
+        )}
+        {!glimpseMode && (
           <>
-            <Text size="sm" c="dark.4" fw="bold" my="md">
-              <Group gap="xs">
-                <ArrowClockwiseIcon weight="bold" />
-                RECENT
-                <Transition mounted={loadingRecent} transition="fade-left">
+            {!inputValue.length && !results?.length && (
+              <>
+                <Text size="sm" c="dark.4" fw="bold" my="md">
+                  <Group gap="xs">
+                    <ArrowClockwiseIcon weight="bold" />
+                    RECENT
+                    <Transition mounted={loadingRecent} transition="fade-left">
+                      {(style) => {
+                        return <Loader style={style} size="xs" color="gray" />;
+                      }}
+                    </Transition>
+                  </Group>
+                </Text>
+                <Transition
+                  mounted={!!recent && recent.length > 0}
+                  transition="fade-up"
+                >
                   {(style) => {
-                    return <Loader style={style} size="xs" color="gray" />;
+                    return (
+                      <Stack style={style} gap="sm">
+                        {recent
+                          ?.map((thing, i) => {
+                            const props = getThingPropsFromConnectable(
+                              thing,
+                              { preventClickDefault: true },
+                              true,
+                            );
+
+                            return (
+                              <PaperThing
+                                key={thing.id.toString()}
+                                {...props}
+                                onClick={(node) => {
+                                  setFocused(node);
+                                }}
+                                draggable={true}
+                                preventClickDefault
+                              />
+                            );
+                          })
+                          .filter((r) => !!r)}
+                      </Stack>
+                    );
                   }}
                 </Transition>
+              </>
+            )}
+            {!!results?.length && (
+              <Group gap="xs" my="md">
+                <Button
+                  onClick={() => {
+                    handleSelectAllResults();
+                  }}
+                  size="xs"
+                  radius="lg"
+                  color="gray"
+                  variant="light"
+                >
+                  Select All
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleDeselectAllResults();
+                  }}
+                  size="xs"
+                  radius="lg"
+                  color="gray"
+                  variant="light"
+                >
+                  Deselect All
+                </Button>
               </Group>
-            </Text>
-            <Transition
-              mounted={!!recent && recent.length > 0}
-              transition="fade-up"
-            >
-              {(style) => {
-                return (
-                  <Stack style={style} gap="sm">
-                    {recent
-                      ?.map((thing, i) => {
-                        const props = getThingPropsFromConnectable(
-                          thing,
-                          { preventClickDefault: true },
-                          true,
-                        );
-
-                        return (
-                          <PaperThing
-                            key={thing.id.toString()}
-                            {...props}
-                            onClick={(node) => {
-                              setFocused(node);
-                            }}
-                            draggable={true}
-                            preventClickDefault
-                          />
-                        );
-                      })
-                      .filter((r) => !!r)}
-                  </Stack>
-                );
-              }}
-            </Transition>
+            )}
+            <Stack>
+              {results
+                ?.map((s, i) => {
+                  const props = getThingPropsFromConnectable(
+                    s.value,
+                    { link: undefined },
+                    true,
+                  );
+                  return (
+                    <PaperThing
+                      key={s.id.toString()}
+                      {...props}
+                      onClick={(node) => {
+                        setFocused(node);
+                      }}
+                      draggable
+                    />
+                  );
+                })
+                .filter((r) => !!r)}
+            </Stack>
           </>
         )}
-        {!!searchResults?.length && (
-          <Group gap="xs" my="md">
-            <Button
-              onClick={() => {
-                handleSelectAllResults();
-              }}
-              size="xs"
-              radius="lg"
-              color="gray"
-              variant="light"
-            >
-              Select All
-            </Button>
-            <Button
-              onClick={() => {
-                handleDeselectAllResults();
-              }}
-              size="xs"
-              radius="lg"
-              color="gray"
-              variant="light"
-            >
-              Deselect All
-            </Button>
-          </Group>
-        )}
-        <Stack>
-          {searchResults
-            ?.map((s, i) => {
-              const props = getThingPropsFromConnectable(
-                s.value,
-                { link: undefined },
-                true,
-              );
-              return (
-                <PaperThing
-                  key={s.id.toString()}
-                  {...props}
-                  onClick={(node) => {
-                    setFocused(node);
-                  }}
-                  draggable
-                />
-              );
-            })
-            .filter((r) => !!r)}
-        </Stack>
       </div>
     </div>
   );

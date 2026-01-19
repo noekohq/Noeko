@@ -1,16 +1,12 @@
 import {
   ActionIcon,
   Badge,
-  Button,
   Group,
   HoverCard,
   Loader,
-  Space,
   Stack,
   Text,
   Title,
-  Collapse,
-  Tooltip,
 } from "@mantine/core";
 import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
 import styles from "./Spyglass.module.scss";
@@ -25,20 +21,20 @@ import TopBar from "../../components/UI/Layout/TopBar";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import {
   ClockCounterClockwiseIcon,
-  FunnelIcon,
   MegaphoneIcon,
-  XIcon,
 } from "@phosphor-icons/react";
 import SpyglassContext from "./Spyglass/SpyglassContext";
-import ScopeBuilder from "../../components/Search/ScopeBuilder/ScopeBuilder";
 import Content from "../../components/UI/Layout/Content";
 import Textbox from "./Textbox";
 import CountUp from "../../components/Utils/Animations/Countup";
 import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
 import Nav from "../../components/UI/Layout/Nav";
+import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 import RightSidebar from "../../components/UI/Layout/Right";
 import SpyglassActions from "./Spyglass/SpyglassActions";
 import { useSearch } from "../../contexts/SearchContext";
+import GlimpseNavigation from "../../components/Utils/Spyglass/GlimpseNavigation";
+import DeepFocusNavigation from "../../components/Utils/Spyglass/DeepFocusNavigation";
 
 export default function Spyglass() {
   const {
@@ -54,13 +50,11 @@ export default function Spyglass() {
     },
   } = useLayout();
 
-  const { isDownRabbithole, currentRabbithole, exitRabbithole } =
-    useRabbithole();
+  const { isDownRabbithole, currentRabbithole } = useRabbithole();
 
   const {
     global: {
       scope: { get: scope, set: setScope },
-      showScope: { get: showScope, set: setShowScope },
     },
   } = useSearch();
 
@@ -73,7 +67,6 @@ export default function Spyglass() {
   const {
     search,
     reset,
-    save,
     error,
     initialized,
     loading,
@@ -88,6 +81,8 @@ export default function Spyglass() {
     resultsMap,
     uninitialize,
   } = useSpyglassService();
+
+  console.log("Glimpse result: ", glimpseResult);
 
   const handleSubmit = () => {
     if (!query) return;
@@ -112,15 +107,23 @@ export default function Spyglass() {
     }
   }, [complete]);
 
-  const [searchParams, setParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   useEffect(() => {
     if (searchParams.get("q")) {
       const q = searchParams.get("q") || "";
-      const deepAnalysis = searchParams.get("deep") === "true";
+      const deep = searchParams.get("deep") === "true";
       setQuery(q);
-      setDeepAnalysis(deepAnalysis);
+      setDeepAnalysis(deep);
     }
   }, [searchParams]);
+
+  // Determine if we should show the loading state (initialized but no content yet)
+  const showLoadingState =
+    initialized && loading && !overview && !glimpseResult;
+
+  // Show analysis state for Deep Focus when we have sources but are still analyzing
+  const showDeepFocusAnalysis =
+    initialized && loading && deepAnalysis && results.length > 0 && !overview;
 
   return (
     <PageWrapper>
@@ -139,26 +142,30 @@ export default function Spyglass() {
         }}
       >
         <LeftSidebar.Open>
-          <SpyglassContext
-            citationMap={citationMap}
-            results={fullResults || []}
-          />
+          {!deepAnalysis && glimpseResult && glimpseResult.contentMap.length > 0 ? (
+            <GlimpseNavigation
+              glimpseResult={glimpseResult}
+              resultsMap={resultsMap ?? {}}
+            />
+          ) : deepAnalysis && overview ? (
+            <DeepFocusNavigation
+              overview={overview}
+              findings={findings}
+              resultsMap={resultsMap ?? {}}
+            />
+          ) : (
+            <Stack gap="xs">
+              <Text fw="bold" c="dimmed" size="sm">
+                No results yet
+              </Text>
+              <Text size="xs" c="dimmed">
+                Ask something to see the outline here
+              </Text>
+            </Stack>
+          )}
         </LeftSidebar.Open>
         <LeftSidebar.Collapsed>
           <Stack>
-            {findings.length > 0 && (
-              <ActionIcon
-                variant="light"
-                size="sm"
-                radius="md"
-                color="gray"
-                onClick={() => {
-                  setLeftSidebar("open");
-                }}
-              >
-                <Text size="xs">{findings.length}</Text>
-              </ActionIcon>
-            )}
             <Link to="/spyglass/history">
               <ActionIcon color="gray" variant="light" size="sm">
                 <ClockCounterClockwiseIcon />
@@ -208,6 +215,124 @@ export default function Spyglass() {
               </HoverCard>
             </Group>
           )}
+
+          <div
+            className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
+          >
+            {/* Loading State - Shows immediately after query submission */}
+            {showLoadingState && !showDeepFocusAnalysis && (
+              <div className={styles.loadingState}>
+                <Title order={1} className={styles.loadingQuery}>
+                  {currentQuery}
+                </Title>
+                <div className={styles.loadingIndicator}>
+                  <div className={styles.loadingDots}>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <Text size="sm" c="dimmed" className={styles.loadingText}>
+                    {results.length <= 0 ? (
+                      <>
+                        {!!intent && intent.searches?.length > 0 ? (
+                          <span>
+                            Running{" "}
+                            <Badge variant="light" color="gray" size="sm">
+                              <CountUp targetNumber={intent.searches.length} />
+                            </Badge>{" "}
+                            search{intent.searches.length === 1 ? "" : "es"}
+                          </span>
+                        ) : isDownRabbithole ? (
+                          "Accessing your Rabbithole"
+                        ) : (
+                          "Searching your ideas"
+                        )}
+                      </>
+                    ) : (
+                      <span>
+                        Reading{" "}
+                        <Badge variant="light" color="gray" size="sm">
+                          <CountUp targetNumber={results.length} />
+                        </Badge>{" "}
+                        source{results.length === 1 ? "" : "s"}
+                      </span>
+                    )}
+                  </Text>
+                </div>
+              </div>
+            )}
+
+            {/* Deep Focus Analysis State - Shows AntLoader while analyzing sources */}
+            {showDeepFocusAnalysis && (
+              <div className={styles.analysisState}>
+                <Title order={1} className={styles.loadingQuery}>
+                  {currentQuery}
+                </Title>
+                <div className={styles.analysisLoader}>
+                  <LangtonsAntLoader
+                    stepsPerSecond={15}
+                    cellSize={20}
+                    numAnts={6}
+                    loadingText={`Analyzing ${results.length} source${results.length === 1 ? "" : "s"}`}
+                  />
+                </div>
+                {/* Source badges being analyzed */}
+                <div className={styles.loadingSources}>
+                  {results.map((result) => (
+                    <Badge
+                      key={result.id.toString()}
+                      variant="light"
+                      color="gray"
+                      size="sm"
+                      className={styles.sourceChip}
+                      styles={{
+                        label: { textTransform: "none" },
+                      }}
+                    >
+                      {result.name || "Unknown source"}
+                    </Badge>
+                  ))}
+                </div>
+                {findings.length > 0 && (
+                  <Text size="xs" c="dimmed" mt="md">
+                    Found {findings.length} finding
+                    {findings.length === 1 ? "" : "s"}...
+                  </Text>
+                )}
+              </div>
+            )}
+
+            {/* Deep Focus Overview */}
+            {deepAnalysis && overview && (
+              <div className={styles.overviewDisplay}>
+                <DisplayOverview
+                  overview={overview}
+                  findings={findings}
+                  resultsMap={resultsMap ?? {}}
+                  citationMap={citationMap ?? {}}
+                  query={currentQuery}
+                  results={results}
+                  loading={loading}
+                />
+              </div>
+            )}
+
+            {/* Glimpse Mode */}
+            {!deepAnalysis &&
+              glimpseResult &&
+              (glimpseResult.summary ||
+                (glimpseResult.contentMap?.length ?? 0) > 0) && (
+                <div className={styles.overviewDisplay}>
+                  <GlimpseModeDisplay
+                    glimpseResult={glimpseResult}
+                    resultsMap={resultsMap ?? {}}
+                    query={currentQuery}
+                    loading={loading}
+                  />
+                </div>
+              )}
+          </div>
+
           {!loading && (
             <div
               className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
@@ -235,147 +360,16 @@ export default function Spyglass() {
                 setDeepAnalysis={(v) => {
                   setDeepAnalysis(v);
                 }}
+                scope={scope}
+                onScopeChange={setScope}
               />
             </div>
           )}
-          {!initialized && (
-            <div className={styles.scopeWrapper}>
-              <Group justify="center" mb="xs">
-                <Tooltip label="Adjust Scope" position="top" withArrow>
-                  <ActionIcon 
-                    variant={showScope ? "filled" : "light"} 
-                    size="md" 
-                    onClick={() => setShowScope(!showScope)}
-                    color="gray"
-                    radius="xl"
-                  >
-                    <FunnelIcon size={18} />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-              <Collapse in={showScope}>
-                <ScopeBuilder
-                  value={scope}
-                  onChange={setScope}
-                />
-              </Collapse>
-            </div>
-          )}
-          <div
-            className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
-          >
-            {initialized && (
-              <Text className={styles.queryHeader} mb="lg" size="lg" fw="565">
-                <Group wrap="nowrap" gap="xs" component="span">
-                  {currentQuery}
-                  {loading && <Loader size="14px" color="gray" />}
-                </Group>
-              </Text>
-            )}
-            {initialized && (
-              <div
-                className={`${styles.preview} ${overview.length ? styles.hide : ""}`}
-              >
-                {results.length <= 0 && (
-                  <Text mb="lg" size="sm">
-                    {!!intent && intent.searches?.length > 0 ? (
-                      <span>
-                        Running{" "}
-                        <Badge variant="light" color="gray">
-                          <CountUp targetNumber={intent.searches.length} />
-                        </Badge>{" "}
-                        search{intent.searches.length === 1 ? "" : "es"}...
-                      </span>
-                    ) : isDownRabbithole ? (
-                      "Accessing your Rabbithole..."
-                    ) : (
-                      "Searching your ideas..."
-                    )}
-                  </Text>
-                )}
-                {results.length > 0 && (
-                  <Text mb="lg" size="sm">
-                    Reading{" "}
-                    <Badge variant="light" color="gray" component="span">
-                      {<CountUp targetNumber={results.length} />}
-                    </Badge>{" "}
-                    resource{results.length === 1 ? "" : "s"}...
-                  </Text>
-                )}
-                {Object.entries(citationMap).map(([sourceId, citation]) => {
-                  const { excerpts, index } = citation;
-                  const result = resultsMap[sourceId];
-                  if (!result) {
-                    return null;
-                  }
-                  const title = result.name;
-
-                  return (
-                    <Group
-                      gap="xs"
-                      className={styles.previewItem}
-                      key={sourceId.toString()}
-                    >
-                      <Text size="sm" c="dimmed">
-                        Read
-                      </Text>
-                      <Badge
-                        variant="light"
-                        color="gray"
-                        styles={{
-                          label: {
-                            textTransform: "none",
-                          },
-                        }}
-                      >
-                        {title ? title : "Unknown source"}
-                      </Badge>
-                    </Group>
-                  );
-                })}
-                {deepAnalysis && results.length > 0 && (
-                  <>
-                    <Text className={styles.previewItem} mt="lg" size="sm">
-                      <Group component="span" align="center" gap="xs">
-                        Analyzing results...
-                      </Group>
-                    </Text>
-                    <Text size="sm" className={styles.previewItem}>
-                      {findings.length} finding
-                      {findings.length === 1 ? "" : "s"}...
-                    </Text>
-                  </>
-                )}
-              </div>
-            )}
-            {deepAnalysis && overview && (
-              <div className={styles.overviewDisplay}>
-                <DisplayOverview
-                  overview={overview}
-                  findings={findings}
-                  resultsMap={resultsMap ?? {}}
-                  citationMap={citationMap ?? {}}
-                  query={currentQuery}
-                  results={results}
-                  loading={loading}
-                />
-              </div>
-            )}
-            {!deepAnalysis && glimpseResult && (
-              <div className={styles.overviewDisplay}>
-                <GlimpseModeDisplay
-                  glimpseResult={glimpseResult}
-                  resultsMap={resultsMap ?? {}}
-                />
-              </div>
-            )}
-          </div>
         </div>
       </Content>
       <Nav />
       <RightSidebar>
         <RightSidebar.Open>
-          {/*<Search />*/}
           <SpyglassActions intent={intent} results={fullResults} />
         </RightSidebar.Open>
       </RightSidebar>

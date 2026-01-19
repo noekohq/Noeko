@@ -66,24 +66,25 @@ export class SpyglassRecord {
       );
 
       if (!result || !result[0]) {
-        console.error("Failed to create SpyglassRecord: result is empty", result);
+        console.error(
+          "Failed to create SpyglassRecord: result is empty",
+          result,
+        );
         return null;
       }
 
       const record = result[0];
-      console.log("SpyglassRecord created:", record.id);
 
       await db.query(
         `RELATE $userId->owns->$recordId CONTENT {
         createdAt: $now
       };`,
         {
-          userId,
+          userId: new StringRecordId(userId),
           recordId: new StringRecordId(record.id),
           now: new Date(),
         },
       );
-      console.log("SpyglassRecord related to user:", userId);
 
       return record;
     } catch (error) {
@@ -218,7 +219,7 @@ export class SpyglassRecord {
           >[],
         ]
       >(historyQuery, {
-        userId,
+        userId: new StringRecordId(userId),
         limit,
         offset,
       });

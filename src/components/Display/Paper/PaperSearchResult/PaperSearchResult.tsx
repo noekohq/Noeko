@@ -7,6 +7,7 @@ import {
   CheckIcon,
   CopyIcon,
   QuestionMarkIcon,
+  IconProps,
 } from "@phosphor-icons/react";
 import { INode } from "../../../../declarations/graph";
 import styles from "./PaperSearchResult.module.scss";
@@ -21,6 +22,16 @@ interface IPaperSearchResult {
   snippet: string;
   onSelect?: (node: INode) => void;
   draggable?: boolean;
+  artifacts?: {
+    icon: React.FC<IconProps>;
+    label: string;
+  }[];
+  actions?: {
+    label: string;
+    onClick: () => void;
+    icon?: React.ReactElement<IconProps>;
+    disabled?: boolean;
+  }[];
 }
 
 export default function PaperSearchResult({
@@ -29,6 +40,8 @@ export default function PaperSearchResult({
   snippet,
   onSelect,
   draggable,
+  artifacts,
+  actions,
 }: IPaperSearchResult) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -128,6 +141,23 @@ export default function PaperSearchResult({
                 </Match>
               </Text>
             </div>
+
+            {/* Row 3: Artifacts */}
+            {artifacts && artifacts.length > 0 && (
+              <div className={styles.artifacts}>
+                {artifacts.map((a, idx) => {
+                  const Icon = a.icon;
+                  return (
+                    <div key={idx} className={styles.artifact}>
+                      <Icon weight="bold" size={12} />
+                      <Text size="xs" c="dimmed">
+                        {a.label}
+                      </Text>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </PaperContextMenu.Target>
@@ -136,6 +166,17 @@ export default function PaperSearchResult({
           {title}
         </PaperContextMenu.Detail>
         <PaperContextMenu.Label>Actions</PaperContextMenu.Label>
+        {actions &&
+          actions.map((action, idx) => (
+            <PaperContextMenu.Item
+              key={idx}
+              icon={action.icon}
+              onClick={action.onClick}
+              disabled={action.disabled}
+            >
+              {action.label}
+            </PaperContextMenu.Item>
+          ))}
         <PaperContextMenu.Item
           icon={<ArrowRightIcon weight="bold" />}
           onClick={handleOnSelect}

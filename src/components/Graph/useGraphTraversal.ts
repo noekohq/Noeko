@@ -98,6 +98,22 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         return;
       }
 
+      // Handle user nodes - select user and all their shared items
+      if (startNode.type === "user") {
+        addSelected(startNode.id.toString());
+        const directConnections = adjacencyList[startNode.id.toString()] || [];
+        directConnections.forEach((edge) => {
+          if (edge.type === "share") {
+            const neighborId =
+              edge.source === startNode.id.toString()
+                ? edge.target
+                : edge.source;
+            addSelected(neighborId);
+          }
+        });
+        return;
+      }
+
       console.error("Cluster select: unhandled type:", startNode.type);
     },
     [adjacencyList, nodeMap, addSelected, findConnectableCluster],
@@ -158,6 +174,22 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         const clusterIds = new Set<string>();
         findConnectableCluster(startNode.id.toString(), clusterIds);
         clusterIds.forEach((nodeId) => removeSelected(nodeId));
+        return;
+      }
+
+      // Handle user nodes - deselect user and all their shared items
+      if (startNode.type === "user") {
+        removeSelected(startNode.id.toString());
+        const directConnections = adjacencyList[startNode.id.toString()] || [];
+        directConnections.forEach((edge) => {
+          if (edge.type === "share") {
+            const neighborId =
+              edge.source === startNode.id.toString()
+                ? edge.target
+                : edge.source;
+            removeSelected(neighborId);
+          }
+        });
         return;
       }
 

@@ -28,12 +28,40 @@ export type ISpyglassScope = {
 
 export interface IGlimpseResult {
   summary: string;
+  entryPoint?: IGlimpseEntryPoint;
   contentMap: IResultSet[];
+  connections?: IGlimpseConnection[];
 }
+
+export interface IGlimpseEntryPoint {
+  resourceId: string;
+  title: string;
+  reason: string;
+}
+
+export interface IGlimpseConnection {
+  theme: string;
+  resourceIds: string[];
+}
+
+export type IResultSetType =
+  | "foundational"
+  | "examples"
+  | "questions"
+  | "actions"
+  | "related";
+
+export type IResultRelationship =
+  | "answers"
+  | "expands"
+  | "contrasts"
+  | "supports"
+  | "questions";
 
 export interface IResultSet {
   title: string;
   description: string;
+  sectionType: IResultSetType;
   results: IResultItem[];
 }
 
@@ -41,6 +69,7 @@ export interface IResultItem {
   resourceId: string;
   title: string;
   explanation: string;
+  relationship?: IResultRelationship;
 }
 
 export interface ISpyglassHistoryItem {
@@ -1574,62 +1603,134 @@ export default class Spyglass {
   public static glimpseModeSchema(
     resources: IConnectableFields[],
   ): LMSchema {
+    const resourceIds = resources.map((r) => r.id.toString());
     return {
       type: LMSchemaType.OBJECT,
       description:
-        "A structured 'Map of Content' generated from a user's query and a set of source documents.",
+        "A Zettelkasten-style 'Map of Content' (MOC) that guides the user through their knowledge related to their query. Think of this as a curated navigation map, not just a list of results.",
       properties: {
         summary: {
           type: LMSchemaType.STRING,
           description:
-            "A concise, high-level summary of the findings related to the user's query, written in Markdown.",
+            "A narrative summary (2-4 sentences) that tells the story of what the user's notes reveal about their query. Frame it as a guide: 'Your notes suggest...', 'Based on your knowledge base...'. Help them understand the landscape of their own thinking.",
+        },
+        entryPoint: {
+          type: LMSchemaType.OBJECT,
+          description:
+            "The single best starting point for the user to begin exploring this topic. This is the note that provides the most foundational or comprehensive coverage.",
+          properties: {
+            resourceId: {
+              type: LMSchemaType.STRING,
+              description: "The ID of the recommended starting note.",
+              enum: resourceIds,
+            },
+            title: {
+              type: LMSchemaType.STRING,
+              description: "The title of the starting note.",
+            },
+            reason: {
+              type: LMSchemaType.STRING,
+              description:
+                "A brief explanation of why this is the best place to start (e.g., 'This note provides a comprehensive overview...', 'Start here for the foundational concepts...').",
+            },
+          },
+          required: ["resourceId", "title", "reason"],
         },
         contentMap: {
           type: LMSchemaType.ARRAY,
           description:
-            "An array of content sections, where each section groups related results.",
+            "Sections that organize the user's notes by their role in understanding the query. Each section should tell part of the story.",
           items: {
             type: LMSchemaType.OBJECT,
-            description: "A single section of related results.",
+            description: "A thematic section grouping related notes.",
             properties: {
               title: {
                 type: LMSchemaType.STRING,
                 description:
-                  "A short, descriptive title for this section (e.g., 'Core Concepts', 'Related Case Studies').",
+                  "A clear title for this section that describes its role (e.g., 'Core Concepts', 'Practical Examples', 'Open Questions', 'Action Items').",
               },
               description: {
                 type: LMSchemaType.STRING,
                 description:
-                  "A single sentence describing this group of results.",
+                  "A sentence explaining what this section contributes to understanding the query.",
+              },
+              sectionType: {
+                type: LMSchemaType.STRING,
+                description:
+                  "The role this section plays in the Map of Content.",
+                enum: [
+                  "foundational",
+                  "examples",
+                  "questions",
+                  "actions",
+                  "related",
+                ],
+                format: "enum",
               },
               results: {
                 type: LMSchemaType.ARRAY,
-                description: "The list of individual results in this section.",
+                description: "The notes in this section.",
                 items: {
                   type: LMSchemaType.OBJECT,
-                  description: "A single result item.",
+                  description: "A single note with its relevance explained.",
                   properties: {
                     resourceId: {
                       type: LMSchemaType.STRING,
-                      description:
-                        "The unique identifier of the resource being cited.",
-                      enum: resources.map((r) => r.id.toString()),
+                      description: "The unique identifier of the note.",
+                      enum: resourceIds,
                     },
                     title: {
                       type: LMSchemaType.STRING,
-                      description: "The title of the result.",
+                      description: "The title of the note.",
                     },
                     explanation: {
                       type: LMSchemaType.STRING,
                       description:
-                        "A brief explanation of *why* this specific result is relevant to the user's query.",
+                        "How this note relates to the query - what insight or value does it provide?",
+                    },
+                    relationship: {
+                      type: LMSchemaType.STRING,
+                      description:
+                        "How this note relates to the user's query.",
+                      enum: [
+                        "answers",
+                        "expands",
+                        "contrasts",
+                        "supports",
+                        "questions",
+                      ],
+                      format: "enum",
                     },
                   },
                   required: ["resourceId", "title", "explanation"],
                 },
               },
             },
-            required: ["title", "description", "results"],
+            required: ["title", "description", "sectionType", "results"],
+          },
+        },
+        connections: {
+          type: LMSchemaType.ARRAY,
+          description:
+            "Optional: Interesting thematic threads that connect multiple notes in unexpected ways. Only include if there are genuine cross-cutting themes worth highlighting.",
+          items: {
+            type: LMSchemaType.OBJECT,
+            properties: {
+              theme: {
+                type: LMSchemaType.STRING,
+                description:
+                  "A brief description of the connecting theme (e.g., 'These notes all touch on the importance of iteration').",
+              },
+              resourceIds: {
+                type: LMSchemaType.ARRAY,
+                description: "The IDs of notes that share this theme.",
+                items: {
+                  type: LMSchemaType.STRING,
+                  enum: resourceIds,
+                },
+              },
+            },
+            required: ["theme", "resourceIds"],
           },
         },
       },
@@ -1644,13 +1745,15 @@ export default class Spyglass {
   ) {
     const builder = new PromptBuilder()
       .addText(
-        "You are Spyglass Glimpse, a fast and efficient search assistant. Your goal is to provide a concise, high-level overview of findings based on the user's query and the provided sources.",
+        "You are Spyglass Glimpse, a knowledge cartographer. Your role is to create a 'Map of Content' (MOC) - a navigational guide through the user's own notes and knowledge. Think like a librarian curating a reading list, or a professor designing a syllabus from the user's personal writings.",
       )
       .addBlock(
         "Context",
         `
           It is currently ${getFormattedDateTimeToday()}.
-          You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          You are part of Noeko, a personal knowledge management app. The user has built their own knowledge base of notes, ideas, and saved sources. Your job is to help them navigate and rediscover their own thinking.
+          
+          This is NOT a web search - these are the user's own words and ideas. Treat them with respect and help the user see the value in what they've already written.
           `,
       );
 
@@ -1678,39 +1781,65 @@ export default class Spyglass {
     builder
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
-        "Core Mission",
+        "The Map of Content Philosophy",
         `
-          Instead of just answering the query directly, your mission is to create a structured 'Map of Content'. This involves three main steps:
-          1.  **Summarize:** Provide a brief, high-level summary that captures the main themes discovered in the source documents related to the user's query.
-          2.  **Categorize & Group:** Group the most relevant source documents into logical sections or categories based on common themes. Each group should have a clear title and a concise description.
-          3.  **Explain Relevance:** For each document within a group, explain precisely *why* it is relevant to the user's original query.
+          A Map of Content (MOC) is a Zettelkasten concept - it's a navigational note that helps someone find their way through a topic. Your job is to create one dynamically from the user's query.
+
+          A good MOC:
+          1. **Tells a story** - It's not just a list. It guides the reader through the landscape of ideas.
+          2. **Has a clear entry point** - Where should someone start if they're new to this topic?
+          3. **Groups by purpose, not just topic** - "Foundational concepts" vs "Practical examples" vs "Open questions" vs "Action items"
+          4. **Shows relationships** - How do these notes connect to each other and to the query?
+          5. **Reveals the user's own thinking** - Help them see patterns in their own knowledge they might have missed.
           `,
       )
       .addBlock(
-        "Output Format",
-        "You MUST output a JSON object that strictly conforms to the provided schema. The JSON object should contain a summary and a 'contentMap' array, where each element represents a themed section of results.",
+        "Your Task",
+        `
+          Create a Map of Content that answers: "What do I know about [query]?"
+
+          1. **Narrative Summary**: Write 2-4 sentences that tell the story of what the user's notes reveal. Start with "Your notes suggest..." or "Based on your knowledge base...". Make it feel like a guide, not a search result.
+          
+          2. **Entry Point**: Identify the ONE best note to start with. This should be the most foundational or comprehensive note on the topic. Explain why it's the best starting point.
+          
+          3. **Content Sections**: Organize notes by their ROLE in understanding the topic:
+             - "foundational" - Core concepts, definitions, foundational knowledge
+             - "examples" - Practical examples, case studies, applications
+             - "questions" - Open questions, uncertainties, areas to explore
+             - "actions" - Tasks, next steps, things to do
+             - "related" - Tangentially related notes that add context
+          
+          4. **Relationships**: For each note, indicate how it relates to the query:
+             - "answers" - Directly answers the query
+             - "expands" - Adds depth or nuance
+             - "contrasts" - Offers a different perspective
+             - "supports" - Provides evidence or backing
+             - "questions" - Raises questions or challenges
+          
+          5. **Connections** (optional): If you notice interesting themes that connect multiple notes in unexpected ways, highlight them.
+          `,
       )
       .addBlock(
-        "Strict Rules",
+        "Quality Guidelines",
         `
-          - **Generate Structured JSON:** Your entire output must be a single, valid JSON object that adheres to the schema.
-          - **Group Logically:** Create meaningful groups of results. It is better to have a few well-defined groups than many small, overlapping ones. A group can have a single item if it is unique and important.
-          - **Explain Concisely:** The 'explanation' for each result should be a single, clear sentence.
-          - **Be Comprehensive:** Ensure that the most relevant documents from the provided sources are included in your map.
-          - **Adhere to Source:** All titles, summaries, and explanations must be derived solely from the provided 'Source Documents' and the 'User Query'. Do not invent information.
+          - **Be selective**: Not every note needs to be included. Prioritize relevance and value.
+          - **Be honest**: If the notes don't really address the query, say so in the summary. Don't force connections.
+          - **Be helpful**: Your goal is to help the user navigate their own knowledge. Make it easy for them.
+          - **Use their words**: When explaining relevance, reference specific things from their notes.
+          - **Think in journeys**: What path would you recommend through these notes?
           `,
       )
       .addBlock("User Query", `<userQuery>${query}</userQuery>`)
       .addBlock(
-        "Source Documents",
-        "The source documents to use for your answer are as follows:\n" +
+        "The User's Notes",
+        "These are the notes from the user's knowledge base:\n\n" +
           resources
             .map((r) => {
               let content = "";
               if (r.name) content += `<title>${r.name}</title>\n`;
               if (r.content)
                 content += `<content>${htmlToMarkdown(r.content)}</content>`;
-              return `<document id=\"${r.id.toString()}\" type=\"${r.type}\">${content}</document>`;
+              return `<note id="${r.id.toString()}" type="${r.type}">\n${content}</note>`;
             })
             .join("\n\n"),
       );

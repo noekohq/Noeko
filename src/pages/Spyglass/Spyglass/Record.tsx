@@ -19,6 +19,7 @@ import Nav from "../../../components/UI/Layout/Nav";
 import { Link, useParams } from "react-router";
 import GlimpseModeDisplay from "../../../components/Utils/Spyglass/GlimpseModeDisplay";
 import { IGlimpseResult } from "../../../../app/services/Spyglass";
+import { PartialGlimpseResult } from "../../../utils/partialJsonParser";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
@@ -33,10 +34,16 @@ export default function SpyglassRecord() {
   const baseQuery = spyglass?.baseQuery;
   const isDeepAnalysis = spyglass?.isDeepAnalysis ?? true;
 
-  let glimpseResult: IGlimpseResult | null = null;
+  let glimpseResult: PartialGlimpseResult | null = null;
   if (!isDeepAnalysis && overview) {
     try {
-      glimpseResult = JSON.parse(overview);
+      const parsed: IGlimpseResult = JSON.parse(overview);
+      // Convert IGlimpseResult to PartialGlimpseResult (complete record, so summaryComplete is true)
+      glimpseResult = {
+        summary: parsed.summary,
+        summaryComplete: true,
+        contentMap: parsed.contentMap,
+      };
     } catch (e) {
       console.error("Failed to parse glimpse result", e);
     }
@@ -134,6 +141,8 @@ export default function SpyglassRecord() {
                   <GlimpseModeDisplay
                     glimpseResult={glimpseResult}
                     resultsMap={resultMap ?? {}}
+                    query={baseQuery ?? ""}
+                    loading={loading}
                   />
                 ) : (
                   <Text c="dimmed">No content available for this record.</Text>

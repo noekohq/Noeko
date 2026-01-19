@@ -54,6 +54,15 @@
         }
     }
 
+    &.compact {
+        padding: 4px 12px;
+        font-size: var(--mantine-font-size-xs);
+        
+        svg {
+            font-size: var(--mantine-font-size-sm);
+        }
+    }
+
     svg {
         font-size: var(--mantine-font-size-md);
     }

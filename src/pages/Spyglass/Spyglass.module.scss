@@ -1,5 +1,73 @@
 @use "../../styles/mixins.scss" as *;
 
+/* Entry Animations */
+@keyframes slideToBottom {
+    from {
+        transform: translateY(-10vh);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes headerFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+/* Loading dots animation */
+@keyframes loadingDot {
+    0%, 80%, 100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes loadingQueryIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sourceChipIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .spyglass {
     display: flex;
     flex-direction: column;
@@ -13,7 +81,6 @@
         flex-direction: column;
         justify-content: flex-start;
         overflow: hidden;
-        /* padding-block-start: var(--mantine-spacing-lg); */
         max-width: 100%;
 
         @include desktop {
@@ -31,6 +98,7 @@
     justify-content: center;
     align-items: center;
     gap: var(--mantine-spacing-md);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
 }
 
 .textboxContainer {
@@ -39,13 +107,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    display: flex;
-    justify-content: center;
     gap: var(--mantine-spacing-md);
-    align-items: center;
-
-    @include desktop {
-    }
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
     @include widescreen {
         width: 80%;
@@ -60,6 +123,7 @@
         height: fit-content;
         width: 100%;
         flex-shrink: 0;
+        animation: slideToBottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
 
         @include desktop {
             bottom: calc(var(--layout-spacing) * 3);
@@ -81,9 +145,96 @@
         min-height: 0;
         padding-top: var(--mantine-spacing-md);
         padding-bottom: 20vh;
+        opacity: 0;
+        animation: contentFadeIn 0.3s ease-out 0.1s forwards;
     }
 }
 
+/* Loading State - Immediate feedback after query submission */
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    animation: loadingQueryIn 0.3s ease-out forwards;
+}
+
+.loadingQuery {
+    font-family: var(--mantine-font-family-headings);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    line-height: 1.2;
+    margin-bottom: var(--mantine-spacing-lg);
+    color: var(--mantine-color-text);
+}
+
+.loadingIndicator {
+    display: flex;
+    align-items: center;
+    gap: var(--mantine-spacing-md);
+    margin-bottom: var(--mantine-spacing-md);
+}
+
+.loadingDots {
+    display: flex;
+    gap: 4px;
+
+    span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--mantine-color-primary-filled);
+        animation: loadingDot 1.4s ease-in-out infinite;
+
+        &:nth-child(1) {
+            animation-delay: 0s;
+        }
+        &:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        &:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    }
+}
+
+.loadingText {
+    animation: contentFadeIn 0.3s ease-out 0.2s forwards;
+    opacity: 0;
+}
+
+.loadingSources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mantine-spacing-xs);
+    margin-top: var(--mantine-spacing-sm);
+}
+
+.sourceChip {
+    animation: sourceChipIn 0.2s ease-out forwards;
+}
+
+/* Deep Focus Analysis State - with AntLoader */
+.analysisState {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    animation: loadingQueryIn 0.3s ease-out forwards;
+}
+
+.analysisLoader {
+    width: 100%;
+    height: 200px;
+    border-radius: var(--mantine-radius-lg);
+    overflow: hidden;
+    margin-bottom: var(--mantine-spacing-md);
+}
+
+/* Overview display container */
+.overviewDisplay {
+    animation: contentFadeIn 0.3s ease-out forwards;
+}
+
+/* Legacy styles - kept for compatibility */
 @keyframes queryHeaderIn {
     0% {
         opacity: 0;
@@ -152,16 +303,4 @@
 
 .previewItem {
     animation: previewItemIn 0.5s ease-in-out;
-}
-
-.scopeWrapper {
-    width: 100%;
-    margin-inline: auto;
-    background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-lg);
-
-    @include desktop {
-        width: 50%;
-    }
 }

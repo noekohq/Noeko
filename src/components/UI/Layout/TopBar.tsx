@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./TopBar.module.scss";
-import { useSearch } from "../../../contexts/SearchContext";
-import { MagnifyingGlassIcon, PushPinIcon, XIcon } from "@phosphor-icons/react";
+import {
+  MagnifyingGlassIcon,
+  PushPinIcon,
+  XIcon,
+  UserIcon,
+} from "@phosphor-icons/react";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   ActionIcon,
   Center,
@@ -15,19 +20,14 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import useSearchQuery from "../../../hooks/useSearchQuery";
 import useRabbithole from "../../../hooks/useRabbithole";
 import PaperChip from "../../Display/Paper/PaperChip";
-import { getRelativeDateISO } from "../../../utils/datetime";
-import ConnectableThing from "../../Display/Interactions/Connections/ConnectableThing";
-import { Link, useLocation, useNavigate } from "react-router";
+
 import { getNodeDescription, getNodeTitle } from "../../../utils/graph";
 import { formatDateTime } from "../../../utils/formatting";
 import PaperSearchResult from "../../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { useInteraction } from "../../../contexts/InteractionContext";
-import PaperIcon from "../../Display/Paper/PaperIcon";
-import useFetch from "../../../hooks/useFetch";
-import { ITag } from "../../../../app/database/models/tag";
-import { TagPicker } from "../../Display/Interactions/Tags/TagPicker";
 import PaperButton from "../../Display/Paper/PaperButton";
 import LangtonsAntLoader from "../../Utils/Loading/AntLoader";
+import { getRelativeDateISO } from "../../../utils/datetime";
 
 export default function TopBar() {
   const quips = [
@@ -52,12 +52,18 @@ export default function TopBar() {
     return quips[Math.floor(Math.random() * quips.length)];
   }, []);
 
-  const [query, setQuery] = useState("");
   const [dateAfter, setDateAfter] = useState<string | undefined>();
 
-  const { isDownRabbithole, currentRabbithole } = useRabbithole();
-  const { search, results, loading, complete, reset } = useSearchQuery({
-    query,
+  const { isDownRabbithole } = useRabbithole();
+  const {
+    inputValue,
+    setInputValue,
+    handleSearchSubmit,
+    results,
+    loading,
+    complete,
+    reset,
+  } = useSearchQuery({
     params: {
       ...(dateAfter && {
         date: {
@@ -86,44 +92,21 @@ export default function TopBar() {
     }
   }, [isFocused, getRandomQuip]);
 
-  const showResults = isFocused || query.length > 0;
+  const showResults = isFocused || inputValue.length > 0;
 
   const clear = () => {
     reset();
-    setQuery("");
     setDateAfter("");
   };
 
-  // const { data: recentTags, load: loadRecentTags } = useFetch<
-  //   undefined,
-  //   ITag[]
-  // >({
-  //   url: "/tags?limit=10",
-  // });
-  // useEffect(() => {
-  //   loadRecentTags();
-  // }, [isFocused]);
-
-  const handleSearch = useCallback(() => {
-    if (!query) {
-      return;
-    }
-    search();
-  }, [query, dateAfter]);
-
   useEffect(() => {
-    handleSearch();
+    handleSearchSubmit();
   }, [dateAfter]);
 
   const pastWeekISO = getRelativeDateISO("week");
   const pastMonthISO = getRelativeDateISO("month");
-  const pastYearISO = getRelativeDateISO("year");
 
   const navigate = useNavigate();
-
-  const {
-    actions: { newRabbithole },
-  } = useInteraction();
 
   const location = useLocation();
   const actionIconActive = location.pathname.includes("pinned");
@@ -162,14 +145,14 @@ export default function TopBar() {
         >
           <input
             className={styles.input}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             placeholder={quip}
             ref={inputRef}
             onFocus={() => setIsFocused(true)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                handleSearch();
+                handleSearchSubmit();
               }
             }}
           />
@@ -229,16 +212,6 @@ export default function TopBar() {
                     >
                       Past Month
                     </PaperChip>
-                    {/*<PaperChip
-                        onClick={() =>
-                          setDateAfter((prev) =>
-                            prev === pastYearISO ? undefined : pastYearISO,
-                          )
-                        }
-                        active={dateAfter === pastYearISO}
-                      >
-                        Past Year
-                      </PaperChip>*/}
                   </Group>
                 </Stack>
               </div>
@@ -272,6 +245,17 @@ export default function TopBar() {
                             onSelect={(node) => {
                               navigate(`/${node.type}/${node.id.toString()}`);
                             }}
+                            artifacts={
+                              "author" in s.value && s.value.author
+                                ? [
+                                    {
+                                      icon: UserIcon,
+                                      label:
+                                        `Shared by ${s.value.author.firstName} ${s.value.author.lastName}`.trim(),
+                                    },
+                                  ]
+                                : undefined
+                            }
                           />
                         );
                       })}
@@ -285,7 +269,7 @@ export default function TopBar() {
                     There's nothing here!
                   </Text>
                   <Link
-                    to={`/spyglass?q=${query}`}
+                    to={`/spyglass?q=${inputValue}`}
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setIsFocused(false);
