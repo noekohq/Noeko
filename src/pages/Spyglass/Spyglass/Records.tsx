@@ -71,7 +71,13 @@ export default function SpyglassHistory() {
         );
         const updatedHistory = [...prevHistory, ...uniqueNewItems];
 
-        setHasMore(updatedHistory.length < total);
+        // Robust check for end of list:
+        // 1. If we received fewer items than requested, we are at the end.
+        // 2. If the total count matches our current count, we are at the end.
+        // 3. Safety valve: if we got 0 new items, stop.
+        const isEnd = newItems.length < pageSize || updatedHistory.length >= total || newItems.length === 0;
+        
+        setHasMore(!isEnd);
         return updatedHistory;
       });
 

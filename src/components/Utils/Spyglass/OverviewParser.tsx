@@ -26,6 +26,7 @@ interface IOverviewParserProps {
   markdown: string;
   resultsMap: IResultsMap;
   findings: IFinding[];
+  loading?: boolean;
 }
 
 interface IFindingBadgeProps {
@@ -275,6 +276,7 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
   markdown,
   resultsMap,
   findings,
+  loading = false,
 }) => {
   const processedMarkdown = React.useMemo(() => {
     if (!markdown) return "";
@@ -342,6 +344,7 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
       >
         {processedMarkdown}
       </ReactMarkdown>
+      {loading && <span className={styles.streamingCursor}>▌</span>}
     </div>
   );
 };

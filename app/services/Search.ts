@@ -13,6 +13,7 @@ import { IPublicTask, ITask } from "../database/models/task";
 import { IExcerpt } from "../database/models/excerpt";
 import { IConnectable, IConnectableTypes, ISharedConnectable } from "./Graph";
 import { ISource } from "../database/models/source";
+import { IPublicUser } from "../database/models/user";
 
 export type ISearchResultValue = IConnectable | ISharedConnectable;
 
@@ -407,7 +408,11 @@ export class Search {
         FROM idea
         WHERE
             (contentPlain @0@ $query OR title @1@ $query)
-            AND <-owns<-(user WHERE id = <record> $userId)
+            AND (
+              <-owns<-(user WHERE id = <record> $userId)
+              OR
+              (count(->shared_with[WHERE out = $userId]) > 0)
+            )
         ORDER BY
             titleScore DESC,
             contentScore DESC;
@@ -431,7 +436,11 @@ export class Search {
             WHERE
                 (description @0@ $query OR scratchpad @1@ $query)
                 AND completedAt = NULL
-                AND <-owns<-(user WHERE id = <record> $userId);
+                AND (
+                  <-owns<-(user WHERE id = <record> $userId)
+                  OR
+                  (count(->shared_with[WHERE out = $userId]) > 0)
+                );
 
             return $tasks;
           }`;
@@ -760,7 +769,10 @@ export class Search {
 
       const merged = this._fuseResults(ftsResults, semanticResults);
 
-      return merged;
+      // Enrich with owner info for shared items
+      const enriched = await this.enrichWithOwnerInfo(merged, userId);
+
+      return enriched;
     } catch (error) {
       console.error("Error searching connectables: ", userId, query, error);
       return undefined;
@@ -1080,7 +1092,11 @@ export class Search {
     const threshold = options.threshold ?? this.SEMANTIC_THRESHOLD;
 
     const subqueryWhere = [
-      `<-owns<-(user WHERE id = $userId)`,
+      `(
+        <-owns<-(user WHERE id = $userId)
+        OR
+        (count(->shared_with[WHERE out = $userId]) > 0)
+      )`,
       "embeddings != NULL",
     ];
     if (options.rabbitholeId) {
@@ -1182,7 +1198,11 @@ export class Search {
         SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
         OMIT embeddings FROM task
         WHERE
-          <-owns<-(user WHERE id = $userId) AND
+          (
+            <-owns<-(user WHERE id = $userId)
+            OR
+            (count(->shared_with[WHERE out = $userId]) > 0)
+          ) AND
           completedAt = NULL AND
           embeddings != NULL AND
           embeddings <|${limit}, ${candidates}|> $embedding
@@ -1250,6 +1270,78 @@ export class Search {
         debug: { semanticScore: excerpt.distance, source: "semantic" },
       }),
     );
+  }
+
+  // =================================================================
+  // Owner Info Enrichment
+  // =================================================================
+
+  /**
+   * Enriches search results with owner information for shared items.
+   * Only applies to ideas and tasks (items that support sharing).
+   * @param results - Search results to enrich
+   * @param userId - Current user ID
+   * @returns Results with author field added to shared items
+   */
+  private static async enrichWithOwnerInfo(
+    results: ISearchResult[],
+    userId: string | RecordId,
+  ): Promise<ISearchResult[]> {
+    try {
+      const db = await getDatabase();
+      if (!db) return results;
+
+      // Filter to only shareable types (idea, task)
+      const shareableResults = results.filter((r) => {
+        const type = r.value.type;
+        return type === "idea" || type === "task";
+      });
+
+      if (shareableResults.length === 0) return results;
+
+      const resultIds = shareableResults.map((r) => new StringRecordId(r.id));
+
+      // Fetch owner info for items NOT owned by current user
+      const [ownerInfo] = await db.query<
+        [{ id: string; author: IPublicUser }[]]
+      >(
+        `SELECT 
+           id,
+           (<-owns<-user)[0].{ id, firstName, lastName, createdAt } AS author
+         FROM $ids
+         WHERE NOT (<-owns.in CONTAINS $userId)`,
+        {
+          ids: resultIds,
+          userId: new StringRecordId(userId),
+        },
+      );
+
+      if (!ownerInfo || ownerInfo.length === 0) return results;
+
+      // Create map of id -> author for quick lookup
+      const ownerMap = new Map(
+        ownerInfo.map((o) => [o.id.toString(), o.author]),
+      );
+
+      // Merge owner info into results
+      return results.map((result) => {
+        const author = ownerMap.get(result.id.toString());
+        if (author) {
+          // Transform to ISharedConnectable
+          return {
+            ...result,
+            value: {
+              ...result.value,
+              author,
+            } as ISharedConnectable,
+          };
+        }
+        return result;
+      });
+    } catch (error) {
+      console.error("Error enriching results with owner info:", error);
+      return results; // Return original results on error
+    }
   }
 
   // =================================================================
@@ -1389,7 +1481,12 @@ export class Search {
       ];
       allResults.sort((a, b) => b.score - a.score);
 
-      return allResults.slice(0, limit);
+      const topResults = allResults.slice(0, limit);
+
+      // Enrich with owner info for shared items
+      const enriched = await this.enrichWithOwnerInfo(topResults, userId);
+
+      return enriched;
     } catch (error) {
       console.error(
         `Error during comprehensive search for query "${query}":`,
@@ -1421,7 +1518,12 @@ export class Search {
       ];
       allResults.sort((a, b) => b.score - a.score);
 
-      return allResults.slice(0, options.limit ?? 50);
+      const topResults = allResults.slice(0, options.limit ?? 50);
+
+      // Enrich with owner info for shared items
+      const enriched = await this.enrichWithOwnerInfo(topResults, userId);
+
+      return enriched;
     } catch (error) {
       console.error(`Error during search by embedding:`, error);
       return [];
@@ -1795,6 +1897,20 @@ export class ConnectableSearchQueryBuilder {
     return this;
   }
 
+  /**
+   * Filters items that the user has access to (owned OR shared with them).
+   * Use this for general search and discovery features.
+   */
+  public accessibleBy(userId: string | RecordId): this {
+    this.whereClauses.push(`(
+      <-owns<-(user WHERE id = $userId)
+      OR
+      (count(->shared_with[WHERE out = $userId]) > 0)
+    )`);
+    this.params.userId = new StringRecordId(userId);
+    return this;
+  }
+
   public withDateRange(
     field: "createdAt" | "updatedAt" | "viewedAt",
     options: { after?: string; before?: string },
@@ -2066,7 +2182,7 @@ export class ConnectableTableSearchBuilder {
     const builder = this.queryBuilder;
 
     if (this.userId) {
-      builder.ownedBy(this.userId.toString());
+      builder.accessibleBy(this.userId.toString());
     }
 
     const { date, tags, rabbithole, scope } = this.searchQuery;

@@ -1,45 +1,33 @@
 import { useState, useEffect } from "react";
-import styles from "./TagPicker.module.scss";
-import {
-  Popover,
-  Textarea,
-  Button,
-  Stack,
-  Text,
-  TextInput,
-  Group,
-} from "@mantine/core";
+import styles from "./RabbitholePicker.module.scss";
+import { Popover, Button, Stack, Text, TextInput, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
-import { ITag } from "../../../../../app/database/models/tag";
+import { XIcon, PlusIcon, RowsIcon } from "@phosphor-icons/react";
+import { IRabbithole } from "../../../../../app/database/models/rabbithole";
 import useFetch from "../../../../hooks/useFetch";
 import { useDisclosure } from "@mantine/hooks";
 import PaperButton from "../../Paper/PaperButton";
 import { PaperSelection, usePaperSelection } from "../../Paper/PaperSelection";
-import PaperTag from "../../Paper/Tags/PaperTag";
 import { useLayout } from "../../../../contexts/LayoutContext";
 import PaperDrawer from "../../Paper/PaperDrawer";
+import PaperRabbithole from "../../Paper/Rabbitholes/PaperRabbithole";
 
-interface TagPickerProps {
-  onSelectExisting: (tag: ITag) => void;
-  onCreateNew?: (
-    name: string,
-    description: string,
-    color: string,
-  ) => Promise<void>;
+interface RabbitholePickerProps {
+  onSelectExisting: (rabbithole: IRabbithole) => void;
+  onCreateNew?: (name: string) => Promise<void>;
   omitIds?: string[];
-  initialSuggestions?: ITag[];
+  initialSuggestions?: IRabbithole[];
   allowCreation?: boolean;
 }
 
-export function TagPickerContent({
+export function RabbitholePickerContent({
   onSelectExisting,
   onCreateNew,
   omitIds = [],
   initialSuggestions,
   allowCreation = true,
   onClose,
-}: TagPickerProps & { onClose: () => void }) {
+}: RabbitholePickerProps & { onClose: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleClose = () => {
@@ -47,8 +35,8 @@ export function TagPickerContent({
     setSearchQuery("");
   };
 
-  const { data: suggestions, loading } = useFetch<undefined, ITag[]>({
-    url: "/search/tags/suggest",
+  const { data: suggestions, loading } = useFetch<undefined, IRabbithole[]>({
+    url: "/search/rabbitholes/suggest",
     method: "GET",
     query: { query: searchQuery, limit: "5" },
     runOnDependencies: [searchQuery],
@@ -60,16 +48,12 @@ export function TagPickerContent({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateSubmit = async (values: {
-    name: string;
-    description: string;
-    color: string;
-  }) => {
+  const handleCreateSubmit = async (values: { name: string }) => {
     if (!onCreateNew) return;
 
     setIsSubmitting(true);
     try {
-      await onCreateNew(values.name, values.description, values.color);
+      await onCreateNew(values.name);
       handleClose();
     } catch (e) {
       console.error(e);
@@ -88,17 +72,20 @@ export function TagPickerContent({
   const showFilteredSuggestions = isSearching && hasFilteredSuggestions;
   const showNoResults = isSearching && !hasFilteredSuggestions;
 
-  const renderSuggestions = (tags: ITag[]) => (
+  console.log("Suggestions: ", suggestions);
+
+  const renderSuggestions = (rabbitholes: IRabbithole[]) => (
     <Group gap="xs" wrap="wrap" align="center" pt="xs">
-      {tags.map((tag) => (
-        <PaperTag
-          key={tag.id.toString()}
+      {rabbitholes.map((rh) => (
+        <PaperRabbithole
+          key={rh.id.toString()}
+          size="xs"
           state="suggested"
-          onApply={() => {
-            onSelectExisting(tag);
+          rabbithole={rh}
+          onClick={() => {
+            onSelectExisting(rh);
             handleClose();
           }}
-          tag={tag}
         />
       ))}
     </Group>
@@ -110,8 +97,8 @@ export function TagPickerContent({
       onClear={() => setSearchQuery("")}
       onClose={handleClose}
       isLoading={loading}
-      formPrompt={(q) => `Add "${q}"`}
-      placeholder={allowCreation ? "Find or create..." : "Find a tag..."}
+      formPrompt={(q) => `Create "${q}"`}
+      placeholder={allowCreation ? "Find or create..." : "Find a rabbithole..."}
       allowCreation={allowCreation}
     >
       <PaperSelection.Menu>
@@ -134,12 +121,9 @@ export function TagPickerContent({
         )}
       </PaperSelection.Menu>
 
-      {/* Only render the creation form if enabled.
-        This is useful for 'Filter' contexts where we only want selection.
-      */}
       {allowCreation && onCreateNew && (
-        <PaperSelection.Form title="New Tag">
-          <TagCreateForm
+        <PaperSelection.Form title="New Rabbithole">
+          <RabbitholeCreateForm
             onSubmit={handleCreateSubmit}
             isSubmitting={isSubmitting}
           />
@@ -149,13 +133,13 @@ export function TagPickerContent({
   );
 }
 
-export function TagPicker({
+export function RabbitholePicker({
   onSelectExisting,
   onCreateNew,
   omitIds = [],
   initialSuggestions,
   allowCreation = true,
-}: TagPickerProps) {
+}: RabbitholePickerProps) {
   const { isMobile } = useLayout();
 
   const [opened, { open, close, toggle }] = useDisclosure(false);
@@ -178,10 +162,14 @@ export function TagPicker({
           onClick={toggle}
           size="md"
         >
-          {opened ? "Cancel" : "Add Tag"}
+          {opened ? "Cancel" : "Add Rabbithole"}
         </PaperButton>
-        <PaperDrawer title="Add a tag" opened={opened} onClose={handleClose}>
-          <TagPickerContent
+        <PaperDrawer
+          title="Add to Rabbithole"
+          opened={opened}
+          onClose={handleClose}
+        >
+          <RabbitholePickerContent
             onSelectExisting={onSelectExisting}
             onCreateNew={onCreateNew}
             omitIds={omitIds}
@@ -217,13 +205,13 @@ export function TagPicker({
             onClick={toggle}
             size="md"
           >
-            {opened ? "Cancel" : "Add Tag"}
+            {opened ? "Cancel" : "Add Rabbithole"}
           </PaperButton>
         </div>
       </Popover.Target>
 
       <Popover.Dropdown p="xs">
-        <TagPickerContent
+        <RabbitholePickerContent
           onSelectExisting={onSelectExisting}
           onCreateNew={onCreateNew}
           omitIds={omitIds}
@@ -236,25 +224,18 @@ export function TagPicker({
   );
 }
 
-function TagCreateForm({
+function RabbitholeCreateForm({
   onSubmit,
   isSubmitting,
 }: {
-  onSubmit: (values: {
-    name: string;
-    description: string;
-    color: string;
-  }) => Promise<void>;
+  onSubmit: (values: { name: string }) => Promise<void>;
   isSubmitting: boolean;
 }) {
   const { searchQuery } = usePaperSelection();
-  const [descriptionVisible, setDescriptionVisible] = useState(false);
 
   const form = useForm({
     initialValues: {
       name: searchQuery,
-      description: "",
-      color: "",
     },
   });
 
@@ -266,7 +247,7 @@ function TagCreateForm({
     <form onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap="xs">
         <TextInput
-          placeholder="Name"
+          placeholder="Rabbithole Name"
           variant="unstyled"
           {...form.getInputProps("name")}
           size="md"
@@ -276,34 +257,7 @@ function TagCreateForm({
             input: styles.input,
           }}
         />
-        {descriptionVisible ? (
-          <Textarea
-            placeholder="What does this mean?"
-            variant="unstyled"
-            autosize
-            minRows={3}
-            maxRows={4}
-            {...form.getInputProps("description")}
-            size="md"
-            classNames={{
-              root: styles.textRoot,
-              input: styles.input,
-              label: styles.label,
-            }}
-          />
-        ) : (
-          <Group justify="flex-end">
-            <Button
-              variant="subtle"
-              color="gray"
-              size="xs"
-              onClick={() => setDescriptionVisible(true)}
-              leftSection={<ArrowBendDownLeftIcon weight="bold" />}
-            >
-              Add description
-            </Button>
-          </Group>
-        )}
+
         <Button
           type="submit"
           fullWidth

@@ -1,10 +1,9 @@
 import { Divider, Stack, Text } from "@mantine/core";
 import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
-import {
-  IConnectable,
-  IConnectableFields,
-} from "../../../../app/services/Graph";
+import { IConnectable } from "../../../../app/services/Graph";
 import { ISpyglassIntent } from "../../../../app/services/Spyglass";
+import { getThingPropsFromConnectable } from "../../../components/Display/Paper/Things/thingUtils";
+import PaperThing from "../../../components/Display/Paper/Things/PaperThing";
 
 interface ISpyglassActionsProps {
   intent?: ISpyglassIntent;
@@ -40,7 +39,8 @@ export default function SpyglassActions({
           {results.length} RESULT{results.length === 1 ? "" : "S"}...
         </Text>
         {results.map((c) => {
-          return <ConnectableThing key={c.id.toString()} thing={c} />;
+          const props = getThingPropsFromConnectable(c, {}, true);
+          return <PaperThing key={c.id.toString()} {...props} />;
         })}
       </Stack>
     </>

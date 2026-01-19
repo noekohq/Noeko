@@ -19,6 +19,14 @@
         border-radius: var(--mantine-radius-lg);
         color: var(--mantine-color-dark-2);
     }
+
+    &.syncing {
+        background-color: var(--mantine-color-dark-8);
+        border-radius: var(--mantine-radius-lg);
+        border: 1px solid var(--mantine-color-dark-7);
+        padding: 0 var(--mantine-spacing-md);
+        color: var(--mantine-color-dark-2);
+    }
 }
 
 .droppingOver {

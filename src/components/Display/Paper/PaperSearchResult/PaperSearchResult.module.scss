@@ -75,6 +75,29 @@
     }
 }
 
+.artifacts {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    .artifact {
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        gap: 2px;
+        font-weight: 565;
+        background-color: var(--mantine-color-dark-8);
+        color: var(--mantine-color-dark-1);
+        border: 1px solid var(--mantine-color-dark-5);
+        border-radius: var(--mantine-radius-lg);
+        padding: 4px 8px;
+    }
+}
+
 .footer {
     display: flex;
     justify-content: flex-end; // Pushes content to right

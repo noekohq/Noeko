@@ -2,13 +2,16 @@ import { useCallback, useRef, useState } from "react";
 import { api, getAccessToken, serverLocation } from "../server/api";
 import {
   IFinding,
-  IGlimpseResult,
   ISpyglassHistoryItem,
   ISpyglassIntent,
 } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
 import { IConnectableSearchQueryTagFilter } from "../../app/services/Search";
 import { RecordId } from "surrealdb";
+import {
+  parsePartialGlimpseResult,
+  PartialGlimpseResult,
+} from "../utils/partialJsonParser";
 
 export type ICitationMap = Record<
   string,
@@ -48,7 +51,7 @@ interface ISpyglassServiceReturn {
   fullResults: IConnectable[];
   findings: IFinding[];
   overview: string;
-  glimpseResult: IGlimpseResult | null;
+  glimpseResult: PartialGlimpseResult | null;
   status: string | null;
   history: ISpyglassHistoryItem[];
   citationMap: ICitationMap;
@@ -69,7 +72,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   const [fullResults, setFullResults] = useState<IConnectable[]>([]);
   const [findings, setFindings] = useState<IFinding[]>([]);
   const [overview, setOverview] = useState("");
-  const [glimpseResult, setGlimpseResult] = useState<IGlimpseResult | null>(
+  const [glimpseResult, setGlimpseResult] = useState<PartialGlimpseResult | null>(
     null,
   );
   const [status, setStatus] = useState<string | null>(null);
@@ -239,13 +242,11 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                       break;
                     case "glimpse_chunk":
                       fullGlimpseResult.current += data;
-                      try {
-                        const parsedGlimpse = JSON.parse(
-                          fullGlimpseResult.current,
-                        );
-                        setGlimpseResult(parsedGlimpse);
-                      } catch (e) {
-                        // JSON is not yet complete, do nothing
+                      const partialResult = parsePartialGlimpseResult(
+                        fullGlimpseResult.current,
+                      );
+                      if (partialResult) {
+                        setGlimpseResult(partialResult);
                       }
                       break;
                     case "completed":

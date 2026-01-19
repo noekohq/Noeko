@@ -1,43 +1,26 @@
-import { Link, useNavigate } from "react-router";
-import { memo, useCallback, useState } from "react";
+import { useNavigate } from "react-router";
+import { memo, useCallback, useMemo } from "react";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
-import { useLayout } from "../../../contexts/LayoutContext";
 import OverviewParser from "./OverviewParser";
 import {
-  Accordion,
   ActionIcon,
-  Badge,
-  Blockquote,
-  Box,
   CopyButton,
   Group,
-  Stack,
   Text,
   Title,
-  Button,
 } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import {
-  ArrowRightIcon,
   CheckIcon,
   CopyIcon,
   DownloadSimpleIcon,
-  MagnifyingGlassIcon,
-  TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { markdownToHtml } from "../../../utils/formatting";
 import { IFinding } from "../../../../app/services/Spyglass";
-import { getNodeTitle, getTypeFromId } from "../../../utils/graph";
-import { INode } from "../../../declarations/graph";
 import { getOverviewAsMarkdown } from "../../../utils/spyglass";
 import { downloadTextAsFile } from "../../../utils/files";
-import {
-  IConnectable,
-  IConnectableFields,
-} from "../../../../app/services/Graph";
-import { Tabs } from "../../UI/Layout/Utils/Tabs";
+import { IConnectableFields } from "../../../../app/services/Graph";
 import { ICitationMap, IResultsMap } from "../../../hooks/useSpyglassService";
-import { Pillbar } from "../../UI/Layout/Utils/Pillbar";
+import FindingGroupCard from "./FindingGroupCard";
 
 export type IDisplayOverview = {
   overview: string;
@@ -74,28 +57,6 @@ export function DisplayOverviewComponent({
     [navigate],
   );
 
-  const [showFindings, setShowFindings] = useState(false);
-
-  const {
-    elements: {
-      rightSidebar: {
-        mode: { toggle: toggleRightSidebar, get: rightSidebarMode },
-      },
-    },
-  } = useLayout();
-
-  const findingsBySource = findings.reduce((acc, current, findingNumber) => {
-    if (acc.has(current.sourceId)) {
-      acc.get(current.sourceId)?.push({
-        ...current,
-        index: findingNumber,
-      });
-    } else {
-      acc.set(current.sourceId, [{ ...current, index: findingNumber }]);
-    }
-    return acc;
-  }, new Map<string, (IFinding & { index: number })[]>([]));
-
   const handleDownloadAsMarkdown = () => {
     const content = getOverviewAsMarkdown(overview, findings, resultsMap);
     return downloadTextAsFile(content, {
@@ -105,126 +66,124 @@ export function DisplayOverviewComponent({
     });
   };
 
+  const sourceCount = Object.keys(resultsMap).length;
+
+  // Group findings by sourceId to avoid duplicate cards
+  const groupedFindings = useMemo(() => {
+    const groups = new Map<
+      string,
+      { sourceId: string; resource: IConnectableFields; findings: IFinding[] }
+    >();
+
+    for (const finding of findings) {
+      const resource = resultsMap[finding.sourceId];
+      if (!resource) continue;
+
+      const existing = groups.get(finding.sourceId);
+      if (existing) {
+        existing.findings.push(finding);
+      } else {
+        groups.set(finding.sourceId, {
+          sourceId: finding.sourceId,
+          resource,
+          findings: [finding],
+        });
+      }
+    }
+
+    return Array.from(groups.values());
+  }, [findings, resultsMap]);
+
   return (
-    <div className={styles.guidedSurveyWrapper}>
-      <Group justify="space-between" mb="lg">
-        <Title order={4}>Guided Survey</Title>
-        {!loading && (
-          <Group>
-            <ActionIcon
-              variant="light"
-              size="md"
-              radius="md"
-              color="gray"
-              onClick={() => {
-                handleDownloadAsMarkdown();
-              }}
-              aria-label="Download as markdown"
-            >
-              <DownloadSimpleIcon />
-            </ActionIcon>
-            <CopyButton
-              value={getOverviewAsMarkdown(overview, findings, resultsMap)}
-            >
-              {({ copied, copy }) => {
-                return (
-                  <ActionIcon
-                    variant="light"
-                    size="md"
-                    radius="md"
-                    color="gray"
-                    onClick={copy}
-                    aria-label="Copy as markdown"
-                  >
-                    {!copied ? <CopyIcon /> : <CheckIcon />}
-                  </ActionIcon>
-                );
-              }}
-            </CopyButton>
-          </Group>
+    <div className={styles.editorialWrapper}>
+      {/* Editorial Header: Query as H1 */}
+      <Title order={1} className={styles.queryTitle}>
+        {query}
+      </Title>
+
+      {/* Metadata Byline */}
+      <Text size="xs" c="dimmed" className={styles.byline}>
+        {sourceCount > 0 && (
+          <span>
+            Reading {sourceCount} source{sourceCount !== 1 ? "s" : ""}
+          </span>
         )}
-      </Group>
-
-      <Stack gap="xl">
-        <div className={styles.overviewSection}>
-          <OverviewParser
-            markdown={overview}
-            resultsMap={resultsMap}
-            findings={findings}
-          />
-        </div>
-
+        {sourceCount > 0 && findings.length > 0 && (
+          <span className={styles.bylineDot}> • </span>
+        )}
         {findings.length > 0 && (
-          <div className={styles.findingsSection}>
-            <Title order={5} mb="md" c="dimmed">
-              Key Findings
-            </Title>
-            <Stack gap="lg">
-              {findings.map((finding, index) => {
-                const resource = resultsMap[finding.sourceId];
-                if (!resource) return null;
-
-                return (
-                  <div key={index} className={styles.findingBlock}>
-                    <Group justify="space-between" mb="xs">
-                      <Group gap="xs">
-                        <Badge
-                          variant="filled"
-                          size="sm"
-                          color="blue"
-                          radius="sm"
-                        >
-                          {index + 1}
-                        </Badge>
-                        <Text size="sm" fw="bold">
-                          {resource.name}
-                        </Text>
-                      </Group>
-                      <Badge variant="light" size="xs" color="gray">
-                        {finding.findingType.replaceAll("_", " ")}
-                      </Badge>
-                    </Group>
-
-                    <Blockquote
-                      color="blue"
-                      p="md"
-                      radius="md"
-                      mb="sm"
-                      className={styles.findingExcerpt}
-                    >
-                      <Text
-                        size="sm"
-                        dangerouslySetInnerHTML={{
-                          __html: markdownToHtml(finding.excerpt),
-                        }}
-                      />
-                    </Blockquote>
-
-                    <Text size="sm" className={styles.findingAnalysis}>
-                      {finding.analysis}
-                    </Text>
-
-                    <Group justify="flex-end" mt="xs">
-                      <Link
-                        to={`/${resource.type}/${resource.id.toString()}`}
-                        style={{ textDecoration: "none" }}
-                      >
-                        <Button
-                          variant="subtle"
-                          size="compact-xs"
-                          rightSection={<ArrowRightIcon size={12} />}
-                        >
-                          View Source
-                        </Button>
-                      </Link>
-                    </Group>
-                  </div>
-                );
-              })}
-            </Stack>
-          </div>
+          <span>
+            {findings.length} finding{findings.length !== 1 ? "s" : ""}
+          </span>
         )}
-      </Stack>
+      </Text>
+
+      {/* Clean Prose Body */}
+      <div id="deep-focus-summary" className={styles.proseBody}>
+        <OverviewParser
+          markdown={overview}
+          resultsMap={resultsMap}
+          findings={findings}
+          loading={loading}
+        />
+      </div>
+
+      {/* Actions Row - After prose */}
+      {!loading && overview && (
+        <Group gap="xs" className={styles.actionsRow}>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            radius="md"
+            color="gray"
+            onClick={() => {
+              handleDownloadAsMarkdown();
+            }}
+            aria-label="Download as markdown"
+          >
+            <DownloadSimpleIcon size={14} />
+          </ActionIcon>
+          <CopyButton
+            value={getOverviewAsMarkdown(overview, findings, resultsMap)}
+          >
+            {({ copied, copy }) => {
+              return (
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  radius="md"
+                  color="gray"
+                  onClick={copy}
+                  aria-label="Copy as markdown"
+                >
+                  {!copied ? <CopyIcon size={14} /> : <CheckIcon size={14} />}
+                </ActionIcon>
+              );
+            }}
+          </CopyButton>
+        </Group>
+      )}
+
+      {/* Key Findings - Bottom Grid using FindingGroupCard */}
+      {groupedFindings.length > 0 && !loading && (
+        <div id="deep-focus-findings" className={styles.findingsSection}>
+          <Text size="sm" fw={500} c="dimmed" mb="md">
+            Key Findings
+          </Text>
+          <div className={styles.findingsGrid}>
+            {groupedFindings.map((group, index) => (
+              <div
+                key={group.sourceId}
+                id={`finding-${group.sourceId}`}
+                className={styles.findingGridItem}
+                style={{ animationDelay: `${Math.log(index + 1) * 75}ms` }}
+              >
+                <FindingGroupCard group={group} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,16 +1,15 @@
-import { ActionIcon, Button, Chip, Group, Text } from "@mantine/core";
+import { Group } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import {
   ArrowsClockwiseIcon,
   PaperPlaneRightIcon,
-  RabbitIcon,
-  XIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import useRabbithole from "../../hooks/useRabbithole";
-import PaperButton from "../../components/Display/Paper/PaperButton";
 import PaperChip from "../../components/Display/Paper/PaperChip";
 import PaperIcon from "../../components/Display/Paper/PaperIcon";
+import ScopeBuilder, {
+  IScope,
+} from "../../components/Search/ScopeBuilder/ScopeBuilder";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -21,6 +20,9 @@ interface ITextboxProps {
   initialized?: boolean;
   deepAnalysis: boolean;
   setDeepAnalysis: (value: boolean) => void;
+  // New props for integrated scope
+  scope: IScope;
+  onScopeChange: (scope: IScope) => void;
 }
 
 export default function Textbox({
@@ -32,6 +34,8 @@ export default function Textbox({
   initialized,
   deepAnalysis,
   setDeepAnalysis,
+  scope,
+  onScopeChange,
 }: ITextboxProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [sendingAnimation, setSendingAnimation] = useState(false);
@@ -83,6 +87,13 @@ export default function Textbox({
     return true;
   };
 
+  // Check if any filters are active
+  const hasActiveFilters = !!(
+    scope.rabbithole ||
+    scope.date ||
+    (scope.tags?.set && scope.tags.set.length > 0)
+  );
+
   return (
     <div
       className={`${styles.textbox} ${isFocused ? styles.focused : ""} ${initialized ? styles.initialized : ""}`}
@@ -119,7 +130,14 @@ export default function Textbox({
       />
       {showUI() && (
         <div className={styles.ui}>
-          <Group justify="start">
+          <div className={styles.uiLeft}>
+            <Group gap="xs" wrap="wrap">
+              {!initialized && (
+                <ScopeBuilder value={scope} onChange={onScopeChange} />
+              )}
+            </Group>
+          </div>
+          <Group justify="end" gap="sm" className={styles.uiRight}>
             <PaperChip
               active={deepAnalysis}
               onClick={() => {
@@ -128,8 +146,6 @@ export default function Textbox({
             >
               Deep Focus
             </PaperChip>
-          </Group>
-          <Group justify="end" gap="sm">
             {initialized && (
               <PaperIcon
                 aria-label="Reset Spyglass"
