@@ -1,5 +1,6 @@
 import { RecordId } from "surrealdb";
-import { IDBGraph, IIdea, ISafeIdea } from "../../app/database/models/ideas";
+import { IIdea, ISafeIdea } from "../../shared/types/idea";
+import { IDBGraph } from "../../shared/types/constellation";
 import { ISearchResult, ISearchResultValue } from "../../shared/types/search";
 import { htmlToMarkdown } from "../../app/utils/formatting";
 import {
@@ -29,7 +30,7 @@ import {
 } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../components/Utils/Icons/Icons";
 import { ILoadedConstellation } from "../../app/services/Graph";
-import { IExcerptReference } from "../../app/database/models/excerpt";
+import { IExcerptReference } from "../../shared/types/excerpt";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1

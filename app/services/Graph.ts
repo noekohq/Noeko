@@ -1,101 +1,52 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
+import { Idea } from "../database/models/ideas";
+import { IIdea, ISafeIdea } from "../../shared/types/idea";
 import Source, { ISource } from "../database/models/source";
 import Task, { IPublicTask, ITask } from "../database/models/task";
-import Excerpt, {
-  IExcerpt,
-  IVirtualExcerptReference,
-} from "../database/models/excerpt";
-import { ITag, ITagDescriptionRelationship, Tag } from "../database/models/tag";
+import Excerpt from "../database/models/excerpt";
+import { IExcerpt, IVirtualExcerptReference } from "../../shared/types/excerpt";
+import { ITag, ITagDescriptionRelationship } from "../../shared/types/tags";
 import { IShare } from "../database/models/share";
-import Rabbithole, {
+import {
   IRabbithole,
   IRabbitholeInclusion,
-} from "../database/models/rabbithole";
+} from "../../shared/types/rabbithole";
 import { Search } from "./Search";
 import { averageEmbeddings, weightedAverage } from "../utils/math";
 import { getEmbedder } from "../ai/embeddings/embeddings";
-import { IPublicUser, User } from "../database/models/user";
+import { User } from "../database/models/user";
+import { IPublicUser } from "../../shared/types/user";
+import {
+  IConnectable,
+  IConnectableTypeMap,
+  IConnectableTypes,
+  IConnection,
+  IGetAllConnectables_Options,
+  IGraphFilters,
+  IGraphTagFilter,
+  ISimilarConnectable,
+  ITaggedConnectable,
+  ISharedConnectable,
+  ILoadedConstellation,
+  IConstellationLoader,
+} from "../../shared/types/constellation";
 
-export type IConnectableTypes = "idea" | "source" | "task" | "excerpt";
-
-export type IConnectable =
-  | ((ISafeIdea | IIdea) & {
-      type: "idea";
-      direction?: "incoming" | "outgoing";
-    })
-  | ((ITask | IPublicTask) & {
-      type: "task";
-      direction?: "incoming" | "outgoing";
-    })
-  | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
-  | (IExcerpt & { type: "excerpt"; direction?: "incoming" | "outgoing" });
-
-export type ITaggedConnectable = IConnectable & {
-  appliedTags: ITag[];
+// Re-export types from shared/types for backward compatibility
+export type {
+  IConnectable,
+  IConnectableTypeMap,
+  IConnectableTypes,
+  IConnection,
+  IGetAllConnectables_Options,
+  IGraphFilters,
+  IGraphTagFilter,
+  ISimilarConnectable,
+  ITaggedConnectable,
+  ISharedConnectable,
+  ILoadedConstellation,
+  IConstellationLoader,
 };
-
-export type ISharedConnectable = IConnectable & {
-  author: IPublicUser;
-};
-
-export type IConnectableTypeMap = {
-  idea: IIdea;
-  source: ISource;
-  task: ITask | IPublicTask;
-  excerpt: IExcerpt;
-};
-
-export type ISimilarConnectable = IConnectable & { similarity: number };
-
-export type IConnection = {
-  id: string | RecordId;
-  in: string | RecordId;
-  out: string | RecordId;
-};
-
-export type IGraphTagFilter = {
-  set: string[];
-  behavior: "and" | "or";
-};
-
-export type IGraphFilters = Partial<{
-  rabbithole: string;
-  date: {
-    createdAt?: {
-      after: string;
-      before: string;
-    };
-    updatedAt?: {
-      after: string;
-      before: string;
-    };
-    viewedAt?: {
-      after: string;
-      before: string;
-    };
-  };
-  tags: IGraphTagFilter;
-  showShared?: boolean;
-  showFriends?: boolean;
-}>;
-
-export type IGetAllConnectables_SortOptions = Partial<{
-  sortField: "createdAt" | "updatedAt" | "viewedAt";
-  sortDirection: "ASC" | "DESC";
-}>;
-
-export type IGetAllConnectables_PaginationOptions = Partial<{
-  limit: number;
-  cursor: string;
-}>;
-
-export type IGetAllConnectables_Options =
-  IGetAllConnectables_PaginationOptions &
-    IGetAllConnectables_SortOptions & {
-      filters?: IGraphFilters;
-    };
 
 export default class GraphService {
   static readonly SUGGESTION_WEIGHT = 0.25;
@@ -1329,10 +1280,7 @@ export default class GraphService {
         return `${field}<-owns.in CONTAINS $userId`;
       };
 
-      const queryWhere: string[] = [
-        accessClause("in"),
-        accessClause("out"),
-      ];
+      const queryWhere: string[] = [accessClause("in"), accessClause("out")];
 
       const builder = new GraphFilterQueryBuilder();
 
@@ -1683,10 +1631,12 @@ export default class GraphService {
       if (filters?.tags?.set?.length) {
         const filterTagIds = new Set(filters.tags.set);
         const resultTagIds = new Set(results.map((t) => t.id.toString()));
-        
+
         // Find filter tags that are missing from results
-        const missingTagIds = [...filterTagIds].filter((id) => !resultTagIds.has(id));
-        
+        const missingTagIds = [...filterTagIds].filter(
+          (id) => !resultTagIds.has(id),
+        );
+
         if (missingTagIds.length > 0) {
           const missingTagsQuery = `
             SELECT
@@ -1805,30 +1755,6 @@ export const initGraph = async () => {
   await GraphService.up();
   console.info("Graph service initialized ✅");
 };
-
-export type ILoadedConstellation = Partial<{
-  things: IConnectable[];
-  rabbitholes: IRabbithole[];
-  tags: ITag[];
-  connections: IConnection[];
-  inclusions: IRabbitholeInclusion[];
-  descriptions: ITagDescriptionRelationship[];
-  references: IVirtualExcerptReference[];
-  friends: IPublicUser[];
-  shares: IShare[];
-}>;
-
-export type IConstellationLoader = Partial<{
-  things: boolean;
-  rabbitholes: boolean;
-  tags: boolean;
-  connections: boolean;
-  inclusions: boolean;
-  descriptions: boolean;
-  references: boolean;
-  friends: boolean;
-  shares: boolean;
-}>;
 
 export class ConstellationLoader {
   private userId: StringRecordId;
@@ -2020,7 +1946,10 @@ export class ConstellationLoader {
 
   public async shares(): Promise<IShare[] | undefined> {
     try {
-      const shares = await GraphService.getUserShares(this.userId, this.filters);
+      const shares = await GraphService.getUserShares(
+        this.userId,
+        this.filters,
+      );
       if (!shares) {
         throw new Error("Couldn't get shares");
       }
@@ -2150,7 +2079,10 @@ export class GraphFilterQueryBuilder {
     return this;
   }
 
-  public applyFilters(filters: IGraphFilters, userId?: string | RecordId): this {
+  public applyFilters(
+    filters: IGraphFilters,
+    userId?: string | RecordId,
+  ): this {
     if (userId) {
       this.withAccess(userId, !!filters.showShared);
     }

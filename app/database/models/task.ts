@@ -2,65 +2,31 @@ import { Duration, RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { htmlToMarkdown } from "../../utils/formatting";
-import { Idea, IIdea, IIdeaDerived } from "./ideas";
+import { Idea } from "./ideas";
+import { IIdea, IIdeaDerived } from "../../../shared/types/idea";
 import { Search } from "../../services/Search";
-
-export type ITask = {
-  id: string | RecordId;
-  description: string;
-  scratchpad: string;
-  yState?: string | null;
-  estimatedTime: Duration;
-  dueDate: string | null;
-  embeddings: number[];
-  embeddingsUpdatedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  viewedAt: Date;
-  completedAt: Date | null;
-};
-
-export type IPublicTask = Omit<ITask, "embeddings">;
-
-export type ITaskCreator = Omit<ITask, "id">;
-
-export type ITaskForm = Omit<
+import {
+  ITask,
+  IPublicTask,
   ITaskCreator,
-  "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt" | "viewedAt"
->;
+  ITaskForm,
+  ITaskSortFields,
+  ITaskSortDirection,
+  ITaskDurationBehavior,
+  ITaskQuery,
+} from "../../../shared/types/task";
 
-export type ITaskSortFields =
-  | "createdAt"
-  | "updatedAt"
-  | "completedAt"
-  | "viewedAt"
-  | "dueDate";
-
-export type ITaskSortDirection = "desc" | "asc";
-
-export type ITaskDurationBehavior =
-  | "under"
-  | "under-inclusive"
-  | "over"
-  | "over-inclusive"
-  | "equals";
-
-export type ITaskQuery = Partial<{
-  sort?: {
-    field: ITaskSortFields;
-    direction: ITaskSortDirection;
-  };
-  duration?: {
-    value: string;
-    behavior: ITaskDurationBehavior;
-  };
-  dateRange?: {
-    start?: string;
-    end?: string;
-  };
-  limit?: number;
-  start?: number;
-}>;
+// Re-export types for backward compatibility
+export type {
+  ITask,
+  IPublicTask,
+  ITaskCreator,
+  ITaskForm,
+  ITaskSortFields,
+  ITaskSortDirection,
+  ITaskDurationBehavior,
+  ITaskQuery,
+};
 
 export default class Task {
   constructor() {}

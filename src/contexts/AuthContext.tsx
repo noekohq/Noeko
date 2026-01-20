@@ -5,7 +5,7 @@ import React, {
   createContext,
   useCallback,
 } from "react";
-import { ISafeUser } from "../../app/database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { getReferralLinkFromCode } from "../vars/users";

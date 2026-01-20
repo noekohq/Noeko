@@ -43,7 +43,7 @@ import { useLayout } from "../../../contexts/LayoutContext";
 import { useSettings } from "../../../contexts/SettingsContext";
 import { useNavigate } from "react-router";
 import { api } from "../../../server/api";
-import type { IIdea } from "../../../../app/database/models/ideas";
+import type { IIdea } from "../../../../shared/types/idea";
 import { Option } from "./Option";
 import type {
   ISubviewDefinition,

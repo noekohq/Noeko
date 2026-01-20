@@ -18,7 +18,7 @@ import useFetch from "../../hooks/useFetch";
 import { TrashSimple, CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
-import { IFeedback } from "../../../app/database/models/feedback";
+import { IFeedback } from "../../../shared/types/feedback";
 import { api } from "../../server/api";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";

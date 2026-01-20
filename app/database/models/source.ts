@@ -3,65 +3,36 @@ import Spyglass from "../../services/Spyglass";
 import { getDatabase } from "../db";
 import { IUserFile, UserFile } from "./userfile";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
-
-export interface ISourceable {
-  id: string | RecordId;
-  owner: string | RecordId;
-  content: string;
-  name: string;
-}
+import {
+  ISource,
+  ISourceable,
+  ISourceAnalysis,
+  ISourceCreator,
+  ISourceForm,
+  ISourceOwnership,
+  ISourceForUser,
+  ISourceVisibility,
+  ISourceOutlineItem,
+  ISourceReference as ISourceReferenceBase,
+} from "../../../shared/types/source";
 
 export const Sourceables = ["user_file"];
-export type ISourceReference = IUserFile;
 
-export type ISourceVisibility = "private" | "unlisted" | "public";
-
-export type ISource = {
-  id: string | RecordId;
-  displayName: string;
-  content: string;
-  visibility: ISourceVisibility;
-  embeddings: number[];
-  embeddingsUpdatedAt: Date;
-  analysis?: ISourceAnalysis;
-  references?: StringRecordId | ISourceReference;
-  createdAt: Date;
-  updatedAt: Date;
-  viewedAt: Date;
-};
-
-export type ISourceCreator = Omit<ISource, "id">;
-
-export type ISourceForm = Omit<
+// Re-export types for backward compatibility
+export type {
+  ISource,
+  ISourceable,
+  ISourceAnalysis,
   ISourceCreator,
-  | "createdAt"
-  | "updatedAt"
-  | "viewedAt"
-  | "embeddings"
-  | "embeddingsGeneratedAt"
->;
-
-export type ISourceAnalysis = {
-  headline: string;
-  abstract: string;
+  ISourceForm,
+  ISourceOwnership,
+  ISourceForUser,
+  ISourceVisibility,
+  ISourceOutlineItem,
 };
 
-export type ISourceOutlineItem = {
-  section: string;
-  summary: string;
-};
-
-export type ISourceOwnership = {
-  in: string | RecordId;
-  out: string | RecordId;
-  createdAt: Date;
-};
-
-export type ISourceForUser = {
-  in: string | RecordId;
-  out: string | RecordId;
-  createdAt: Date;
-};
+// Define the concrete ISourceReference for this module
+export type ISourceReference = IUserFile;
 
 export default class Source {
   constructor() {}

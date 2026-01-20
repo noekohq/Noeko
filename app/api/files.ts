@@ -3,7 +3,8 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import multer from "multer";
 import { UserFile } from "../database/models/userfile";
 import { getFromReq, multerToStandardFile } from "../utils/requests";
-import { ISafeUser, User } from "../database/models/user";
+import { User } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import Authorization from "../services/Authorization";
 
 const router = Router();

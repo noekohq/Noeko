@@ -4,10 +4,7 @@ import useFetch from "./useFetch";
 import { connect, disconnect } from "../utils/graph";
 import { useCallback, useEffect, useState } from "react";
 import useRabbithole from "./useRabbithole";
-import {
-  ITag,
-  ITagDescriptionRelationship,
-} from "../../app/database/models/tag";
+import { ITag, ITagDescriptionRelationship } from "../../shared/types/tags";
 import { applyTagToThing, removeTagFromThing } from "../utils/tags";
 
 export type IUseConnectableArgs = {

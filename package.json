@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "bun run server:test && bun run client:test",
     "client:build": "tsc && vite build",
     "client:check": "tsc",
     "client:dev": "vite",
@@ -12,6 +12,8 @@
     "server": "bun run app/index.ts",
     "db": "docker-compose -f docker-compose.yml up",
     "db:detached": "docker-compose -f docker-compose.yml up -d",
+    "server:test": "bun test --preload ./tests/setup.server.ts ./tests",
+    "client:test": "vitest run",
     "server:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "server:build": "bun build app/index.ts",
     "docker:build": "docker-compose build"

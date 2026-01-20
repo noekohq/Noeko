@@ -16,7 +16,7 @@ import {
 import useFetch from "../../hooks/useFetch";
 import { useForm } from "@mantine/form";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { ISafeUser } from "../../../app/database/models/user";
+import { ISafeUser } from "../../../shared/types/user";
 import { useAuth } from "../../contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import { validateEmail } from "../../utils/data";

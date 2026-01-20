@@ -16,7 +16,7 @@ import styles from "./styles/DreamIdea.module.scss";
 import { ActionIcon, Group, Popover, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
-import { IIdea } from "../../../../../app/database/models/ideas";
+import { IIdea } from "../../../../../shared/types/idea";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { DreamIdeaSchema } from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
 import { useEffect } from "react";

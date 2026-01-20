@@ -18,7 +18,7 @@ import {
   Group,
 } from "@mantine/core";
 import { formatFileSize, markdownToHtml } from "../../../utils/formatting";
-import { IIdea, IIdeaForm } from "../../../../app/database/models/ideas";
+import { IIdea, IIdeaForm } from "../../../../shared/types/idea";
 import { useNavigate } from "react-router";
 
 export default function TextFileImporter() {

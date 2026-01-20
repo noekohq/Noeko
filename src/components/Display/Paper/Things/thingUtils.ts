@@ -1,6 +1,9 @@
 import { IRabbithole } from "../../../../../app/database/models/rabbithole";
-import { IFriendUser } from "../../../../../app/database/models/user";
-import { IConnectable, ISharedConnectable } from "../../../../../app/services/Graph";
+import { IFriendUser } from "../../../../../shared/types/user";
+import {
+  IConnectable,
+  ISharedConnectable,
+} from "../../../../../app/services/Graph";
 import { IAcceleratorItem } from "../../../../../app/services/Recommendations";
 import { formatDateTime } from "../../../../utils/formatting";
 import {

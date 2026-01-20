@@ -2,6 +2,8 @@
 import { config } from "dotenv";
 config({ path: ".env.test" });
 
+import { mock } from "bun:test";
+
 // Mock crypto utilities before they get imported
 import { beforeAll, vi } from "vitest";
 
@@ -17,11 +19,33 @@ vi.mock("../app/emails/types", () => ({
   invitationTemplate: vi.fn(() => ({ subject: "Test", html: "<p>Test</p>", text: "Test" })),
 }));
 
+mock.module("../app/utils/mailbaby", () => ({
+  mailbaby: {
+    post: () => Promise.resolve({ data: {} }),
+    defaults: { headers: { common: {} } },
+  },
+  MailBabyService: class {
+    verifyConnection() { return Promise.resolve(true); }
+    get transporter() {
+      return {
+        verify: () => Promise.resolve(true),
+        sendMail: () => Promise.resolve({ data: {} })
+      };
+    }
+  }
+}));
+
+mock.module("../app/utils/aws/s3", () => ({
+  writeToS3: () => Promise.resolve({ written: 0, completed: true }),
+  deleteFromS3: () => Promise.resolve(true),
+  existsS3: () => Promise.resolve(true),
+  downloadLinkS3: () => Promise.resolve("http://localhost/test-file"),
+  getStreamS3: () => null,
+}));
+
 import { getDatabase } from "../app/database/db";
 import { initServices } from "../app/services";
 import "@testing-library/jest-dom/vitest";
-
-vi.mock("../app/utils/mailbaby");
 
 const db = await getDatabase();
 

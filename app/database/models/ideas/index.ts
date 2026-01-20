@@ -2,131 +2,44 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
 import { getEmbedder } from "../../../ai/embeddings/embeddings";
 import { getLM } from "../../../ai/lms/lm";
-import { IPublicUser, ISafeUser, IUser, User } from "../user";
-import { GenerativeSummary, IGenerativeSummary } from "./summaries";
-import { IUserFile } from "../userfile";
+import { User } from "../user";
+import { IPublicUser, ISafeUser, IUser } from "../../../../shared/types/user";
+import { GenerativeSummary } from "./summaries";
+import {
+  IDerivedType,
+  IGenerativeSummary,
+} from "../../../../shared/types/idea";
 import { htmlToMarkdown } from "../../../utils/formatting";
 import { max_embeddable_characters, max_user_notes } from "../../../settings";
-import { ITag, ITagDescriptionRelationship } from "../tag";
 import { logger } from "../../../services/Logger";
 import { Search } from "../../../services/Search";
-
-export const embeddableContentLimit = max_embeddable_characters;
-
-export type IIdea = {
-  id: string | RecordId;
-  title: string;
-  content: string;
-  contentPlain?: string;
-  yState?: string;
-  embeddings: number[] | null;
-  visibility: IIdeaVisibility;
-  createdAt: Date;
-  updatedAt: Date;
-  viewedAt: Date;
-  contentUpdatedAt: Date;
-  contentPlainUpdatedAt: Date;
-  embeddingsUpdatedAt: Date;
-  titleGeneratedAt?: Date;
-  connections?: IIdea[];
-  relatedIdeas?: IIdeaAsRelation[];
-  derived?: IIdeaDerivedMap;
-  similar?: IIdeaAsRelation[];
-  importedAt?: Date;
-};
-
-export type IIdeaVisibility = "private" | "public";
-
-export type IIdeaWithComputedFields = (IIdea | ISafeIdea) & {
-  embeddingsOutOfDate: boolean;
-};
-
-export type IIdeaAsRelation = ISafeIdea & {
-  distance: number;
-  derivedList: IIdeaDerived[];
-};
-
-export type IIdeaForm = Omit<
+import {
   IIdea,
-  | "id"
-  | "createdAt"
-  | "updatedAt"
-  | "viewedAt"
-  | "contentUpdatedAt"
-  | "contentPlainUpdatedAt"
-  | "embeddingsUpdatedAt"
->;
-
-export type IIdeaConnection = {
-  id: string;
-  in: string;
-  out: string;
-};
-
-export type IIdeaShareAccess = "editor" | "viewonly";
-
-export type IIdeaShare = {
-  id: string;
-  in: string;
-  out: string;
-  accessLevel: IIdeaShareAccess;
-};
-
-export type IIdeaShareDetails = {
-  user: IPublicUser;
-  accessLevel: IIdeaShareAccess;
-};
-
-export type IDerivedType = "generative_summary";
-export type IIdeaDerived = IGenerativeSummary;
-
-export type IIdeaDerivedMap = {
-  generative_summary?: IGenerativeSummary;
-};
-
-export type IIdeaUserOwnership = {
-  id: string;
-  in: string;
-  out: string;
-};
-
-export type IDBGraph = {
-  ideas: (IIdea & { derivedList: IIdeaDerived[] })[];
-  tags: ITag[];
-  ideaConnections: IIdeaConnection[];
-  tagConnections: ITagDescriptionRelationship[];
-  files: IUserFile[];
-  flags: {
-    embeddings: {
-      synced: boolean;
-    };
-  };
-};
-
-export type IDBGraphWithComputedFields = IDBGraph & {
-  ideas: IIdeaWithComputedFields[];
-};
-
-export type IUserIdeaStats = {
-  total: number;
-};
-
-export type ISafeIdea = Omit<IIdea, "embeddings">;
-
-export type IViewOnlyIdea = Pick<
+  IIdeaAsRelation,
+  IIdeaConnection,
+  IIdeaDerived,
+  IIdeaDerivedMap,
+  IIdeaForm,
+  IIdeaQuery,
+  IIdeaSortFields,
+  IIdeaUserOwnership,
+  IIdeaVisibility,
+  IIdeaWithComputedFields,
   ISafeIdea,
-  "id" | "title" | "content" | "createdAt" | "updatedAt"
->;
+  IUserIdeaStats,
+  IViewOnlyIdea,
+} from "../../../../shared/types/idea";
+import {
+  IIdeaShare,
+  IIdeaShareAccess,
+  IIdeaShareDetails,
+} from "../../../../shared/types/share";
+import {
+  IDBGraph,
+  IDBGraphWithComputedFields,
+} from "../../../../shared/types/constellation";
 
-export type IIdeaSortFields = "createdAt" | "updatedAt" | "viewedAt";
-export type IIdeaQuery = Partial<{
-  sort?: {
-    field: IIdeaSortFields;
-    direction: "desc" | "asc";
-  };
-  limit?: number;
-  start?: number;
-}>;
+const embeddableContentLimit = max_embeddable_characters;
 
 export class IdeaQueryBuilder {
   private whereClauses: string[] = [];

@@ -1,17 +1,14 @@
 import { RecordId } from "surrealdb";
-import { markdownToHtml } from "../utils/formatting";
-import { Idea, IIdeaForm } from "../database/models/ideas";
+import { Idea } from "../database/models/ideas";
 import { IImport, Import } from "../database/models/import";
-import { IUser, User } from "../database/models/user";
-import { randomUUIDv7 } from "bun";
+import { User } from "../database/models/user";
+import { IUser } from "../../shared/types/user";
+import { IChunk } from "../../shared/types/importer";
 
-export type IChunk = {
-  id: string;
-  items: IIdeaForm[];
-  totalSize: number;
-};
+// Re-export types for backward compatibility
+export type { IChunk };
 
-const maxAge = 30; // Seconds
+const maxAge = 30;
 
 export class ImporterManager {
   private importers: Record<

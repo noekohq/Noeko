@@ -10,7 +10,7 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { ITag } from "../../../../app/database/models/tag";
+import { ITag } from "../../../../shared/types/tags";
 import {
   DotsThreeVertical,
   DotsThreeVerticalIcon,

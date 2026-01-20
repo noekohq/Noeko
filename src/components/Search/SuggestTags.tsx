@@ -15,7 +15,7 @@ import {
   MantineSize,
 } from "@mantine/core";
 import { TagIcon, TagSimpleIcon } from "@phosphor-icons/react";
-import { ITag } from "../../../app/database/models/tag";
+import { ITag } from "../../../shared/types/tags";
 import { useSettings } from "../../contexts/SettingsContext";
 import styles from "./SuggestTags.module.scss";
 

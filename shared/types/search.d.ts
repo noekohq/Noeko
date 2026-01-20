@@ -1,15 +1,15 @@
 import { RecordId } from "surrealdb";
-import { IIdea, ISafeIdea } from "../../app/database/models/ideas";
-import { ITag } from "../../app/database/models/tag";
-import { IRabbithole } from "../../app/database/models/rabbithole";
-import { IPublicTask, ITask } from "../../app/database/models/task";
-import { IExcerpt } from "../../app/database/models/excerpt";
+import { IIdea, ISafeIdea } from "./idea";
+import { ITag } from "./tags";
+import { IRabbithole } from "./rabbithole";
+import { IPublicTask, ITask } from "./task";
+import { IExcerpt } from "./excerpt";
 import {
   IConnectable,
   IConnectableTypes,
   ISharedConnectable,
-} from "../../app/services/Graph";
-import { ISource } from "../../app/database/models/source";
+} from "./constellation";
+import { ISource } from "./source";
 
 export type ISearchResultValue = IConnectable | ISharedConnectable;
 

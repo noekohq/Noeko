@@ -1,8 +1,5 @@
 import { ComponentType } from "react";
-import {
-  IExcerpt,
-  IExcerptForm,
-} from "../../../../../app/database/models/excerpt";
+import { IExcerpt, IExcerptForm } from "../../../../../shared/types/excerpt";
 import { RecordId } from "surrealdb";
 
 export type IDynamicComponentImport = () => Promise<{

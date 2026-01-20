@@ -1,4 +1,4 @@
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import { mailbaby, MailBabyService } from "./mailbaby";
 
 const { EMAIL_FROM } = process.env;

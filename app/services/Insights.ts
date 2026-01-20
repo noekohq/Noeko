@@ -1,6 +1,6 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import { IIdea, ISafeIdea } from "../database/models/ideas";
+import { IIdea, ISafeIdea } from "../../shared/types/idea";
 import { ISource } from "../database/models/source";
 import { IPublicTask } from "../database/models/task";
 import { IConnectable } from "./Graph";

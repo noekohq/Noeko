@@ -1,5 +1,6 @@
 import { initial } from "lodash";
-import Feature, { IFeatureForm } from "../models/feature";
+import Feature from "../models/feature";
+import { IFeatureForm } from "../../../shared/types/feature";
 
 const initialFeatures: IFeatureForm[] = [
   // DASHBOARD STUFF

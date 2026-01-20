@@ -5,15 +5,15 @@ import {
   IIdeaAsRelation,
   IIdeaDerived,
   ISafeIdea,
-} from "../database/models/ideas";
+} from "../../shared/types/idea";
 import { getEmbedder } from "../ai/embeddings/embeddings";
-import { ITag } from "../database/models/tag";
+import { ITag } from "../../shared/types/tags";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IPublicTask, ITask } from "../database/models/task";
-import { IExcerpt } from "../database/models/excerpt";
+import { IExcerpt } from "../../shared/types/excerpt";
 import { IConnectable, IConnectableTypes, ISharedConnectable } from "./Graph";
 import { ISource } from "../database/models/source";
-import { IPublicUser } from "../database/models/user";
+import { IPublicUser } from "../../shared/types/user";
 import {
   IConnectableSearchQuery,
   IConnectableSearchQueryTagFilter,

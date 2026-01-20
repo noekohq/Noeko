@@ -1,12 +1,13 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router";
+import { MantineProvider } from "@mantine/core";
 import Search from "./Search";
 import useSearchQuery, {
   IUseSearchQueryReturn,
 } from "../../hooks/useSearchQuery";
 import * as platformUtils from "../../utils/platform";
-import { ISafeIdea } from "../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../shared/types/idea";
 
 vi.mock("../../hooks/useSearchQuery", () => ({
   default: vi.fn(),
@@ -84,9 +85,11 @@ describe("Search Component", () => {
 
   const renderComponent = () => {
     return render(
-      <MemoryRouter>
-        <Search />
-      </MemoryRouter>,
+      <MantineProvider>
+        <MemoryRouter>
+          <Search />
+        </MemoryRouter>
+      </MantineProvider>,
     );
   };
 

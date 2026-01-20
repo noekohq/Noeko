@@ -1,4 +1,4 @@
-import { ISafeUser } from "../../app/database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import { api } from "../server/api";
 import { triggerDownload } from "./helpers";
 

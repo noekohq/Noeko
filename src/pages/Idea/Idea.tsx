@@ -4,7 +4,7 @@ import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
-import { ISafeIdea } from "../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../shared/types/idea";
 import { IShareAccess } from "../../../app/database/models/share";
 import { Editor as IEditor } from "@tiptap/react";
 import {

@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { Tag, ITag, ITagForm } from "../database/models/tag";
+import { Tag } from "../database/models/tag";
+import { ITag, ITagForm } from "../../shared/types/tags";
 import { Idea } from "../database/models/ideas"; // For type hinting
 import { checkToken, disallowDisabled } from "../middleware/auth"; // Assuming auth middleware
 import { getFromReq } from "../utils/requests"; // Assuming request utility
-import { ISafeUser, User } from "../database/models/user"; // Assuming user type
+import { User } from "../database/models/user"; // Assuming user type
+import { ISafeUser } from "../../shared/types/user";
 import { includeThingInRabbithole } from "../../src/utils/rabbitholes";
 
 const router = Router();

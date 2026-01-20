@@ -15,7 +15,7 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import styles from "./Feedback.module.scss";
 import useFetch from "../../hooks/useFetch";
-import { IFeedback } from "../../../app/database/models/feedback";
+import { IFeedback } from "../../../shared/types/feedback";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { api } from "../../server/api";

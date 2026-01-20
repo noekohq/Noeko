@@ -55,7 +55,7 @@ const getDbConfig = () => {
 
 export const testDB = async () => {
   try {
-    const results = await Database.db?.query("SELECT id FROM role;");
+    const results = await Database.db?.query("RETURN true;");
     if (!results) {
       throw new Error("Error with results");
     }
@@ -68,14 +68,12 @@ export const testDB = async () => {
 
 export const getDatabase = async (): Promise<Surreal | undefined> => {
   // Check if an instance exists and is properly connected
-  const tested = await testDB();
-  if (
-    Database.db &&
-    Database.db.status === ConnectionStatus.Connected &&
-    tested
-  ) {
-    // console.info("Reusing existing and connected database instance.");
-    return Database.db;
+  if (Database.db && Database.db.status === ConnectionStatus.Connected) {
+    const tested = await testDB();
+    if (tested) {
+      // console.info("Reusing existing and connected database instance.");
+      return Database.db;
+    }
   }
 
   // If an instance exists but is not connected (e.g., disconnected, connecting, disconnecting),

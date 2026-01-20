@@ -6,7 +6,7 @@ import {
   Menu,
   Text,
 } from "@mantine/core";
-import { ITag } from "../../../../app/database/models/tag";
+import { ITag } from "../../../../shared/types/tags";
 import { useNavigate } from "react-router";
 import { IconProps } from "../../Utils/Icons/Icon";
 import styles from "./TagCard.module.scss";

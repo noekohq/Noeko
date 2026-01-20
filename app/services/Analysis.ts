@@ -1,9 +1,8 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db"; // Assuming getDatabase is exported from Twig/app/database/index.ts
 import { logger } from "./Logger";
-import { ISafeIdea } from "../database/models/ideas";
-import { ITag } from "../database/models/tag";
-import { User } from "../database/models/user";
+import { ISafeIdea } from "../../shared/types/idea";
+import { ITag } from "../../shared/types/tags";
 
 interface CountQueryResult {
   count: number;

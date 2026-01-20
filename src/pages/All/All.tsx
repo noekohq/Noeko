@@ -24,7 +24,7 @@ import { formatDateTime } from "../../utils/formatting";
 import { api } from "../../server/api";
 import { DefaultResponse } from "../../declarations/server";
 import TagsFilter from "../../components/Display/Interactions/Tags/TagsFilter";
-import { ITag } from "../../../app/database/models/tag";
+import { ITag } from "../../../shared/types/tags";
 import PaperTag from "../../components/Display/Paper/Tags/PaperTag";
 
 interface AllConnectablesResponse {
