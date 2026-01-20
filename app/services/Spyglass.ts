@@ -5,8 +5,8 @@ import {
   IConnectableSearchQuery,
   IConnectableSearchQueryTagFilter,
   ISearchResult,
-  Search,
-} from "./Search";
+} from "../../shared/types/search";
+import { Search } from "./Search";
 import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
@@ -1600,9 +1600,7 @@ export default class Spyglass {
     return r;
   }
 
-  public static glimpseModeSchema(
-    resources: IConnectableFields[],
-  ): LMSchema {
+  public static glimpseModeSchema(resources: IConnectableFields[]): LMSchema {
     const resourceIds = resources.map((r) => r.id.toString());
     return {
       type: LMSchemaType.OBJECT,
@@ -1690,8 +1688,7 @@ export default class Spyglass {
                     },
                     relationship: {
                       type: LMSchemaType.STRING,
-                      description:
-                        "How this note relates to the user's query.",
+                      description: "How this note relates to the user's query.",
                       enum: [
                         "answers",
                         "expands",
@@ -1752,7 +1749,7 @@ export default class Spyglass {
         `
           It is currently ${getFormattedDateTimeToday()}.
           You are part of Noeko, a personal knowledge management app. The user has built their own knowledge base of notes, ideas, and saved sources. Your job is to help them navigate and rediscover their own thinking.
-          
+
           This is NOT a web search - these are the user's own words and ideas. Treat them with respect and help the user see the value in what they've already written.
           `,
       );
@@ -1799,23 +1796,23 @@ export default class Spyglass {
           Create a Map of Content that answers: "What do I know about [query]?"
 
           1. **Narrative Summary**: Write 2-4 sentences that tell the story of what the user's notes reveal. Start with "Your notes suggest..." or "Based on your knowledge base...". Make it feel like a guide, not a search result.
-          
+
           2. **Entry Point**: Identify the ONE best note to start with. This should be the most foundational or comprehensive note on the topic. Explain why it's the best starting point.
-          
+
           3. **Content Sections**: Organize notes by their ROLE in understanding the topic:
              - "foundational" - Core concepts, definitions, foundational knowledge
              - "examples" - Practical examples, case studies, applications
              - "questions" - Open questions, uncertainties, areas to explore
              - "actions" - Tasks, next steps, things to do
              - "related" - Tangentially related notes that add context
-          
+
           4. **Relationships**: For each note, indicate how it relates to the query:
              - "answers" - Directly answers the query
              - "expands" - Adds depth or nuance
              - "contrasts" - Offers a different perspective
              - "supports" - Provides evidence or backing
              - "questions" - Raises questions or challenges
-          
+
           5. **Connections** (optional): If you notice interesting themes that connect multiple notes in unexpected ways, highlight them.
           `,
       )
@@ -1856,7 +1853,11 @@ export default class Spyglass {
     history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.glimpseModePromptBuilder(query, scope, history);
+      const overviewPrompt = this.glimpseModePromptBuilder(
+        query,
+        scope,
+        history,
+      );
       const schema = this.glimpseModeSchema(scope);
       const lm = getLM().withModel("fast-accurate");
       for await (const chunk of lm.generateJSONStream(

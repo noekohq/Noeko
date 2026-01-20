@@ -3,6 +3,7 @@
   "version": "0.1.1",
   "type": "module",
   "scripts": {
+    "test": "vitest",
     "client:build": "tsc && vite build",
     "client:check": "tsc",
     "client:dev": "vite",
@@ -127,6 +128,9 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/bun": "^1.2.22",
     "@types/cookie": "^1.0.0",
     "@types/cookie-parser": "^1.4.9",
@@ -142,15 +146,19 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@types/showdown": "^2.0.6",
+    "@types/supertest": "^6.0.3",
     "@types/turndown": "^5.0.5",
     "@vitejs/plugin-react": "^5.0.3",
     "concurrently": "^9.2.1",
+    "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "1.18.0",
     "postcss-simple-vars": "^7.0.1",
+    "supertest": "^7.2.2",
     "typescript": "^5.9.2",
     "vite": "^7.1.6",
-    "vite-plugin-pwa": "^1.0.3"
+    "vite-plugin-pwa": "^1.0.3",
+    "vitest": "^4.0.17"
   },
   "packageManager": "yarn@4.5.3"
 }

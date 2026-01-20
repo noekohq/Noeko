@@ -121,18 +121,14 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
   const navigate = useNavigate();
   const sourceCount = Object.keys(resultsMap).length;
 
-  // Get entry point resource if available
   const entryPointResource = glimpseResult.entryPoint
     ? resultsMap[glimpseResult.entryPoint.resourceId]
     : null;
 
-  // Entry point resource ID for filtering from sections
   const entryPointId = glimpseResult.entryPoint?.resourceId;
 
-  // Connection count for byline
   const connectionCount = glimpseResult.connections?.length ?? 0;
 
-  // Initial loading state
   if (
     loading &&
     !glimpseResult.summary &&
@@ -151,14 +147,12 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
   }
 
   return (
-    <div className={styles.editorialWrapper}>
+    <div className={`${styles.editorialWrapper} ${styles[view]}`}>
       <Stack gap="8px">
-        {/* Editorial Header */}
-        <Title order={1} className={styles.queryTitle}>
+        <Title order={view === "full" ? 1 : 3} className={styles.queryTitle}>
           {query}
         </Title>
 
-        {/* Metadata Byline */}
         {view === "full" && (
           <Text size="xs" c="dimmed" className={styles.byline}>
             {sourceCount > 0 && (

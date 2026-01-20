@@ -4,7 +4,7 @@ import { ICitationMap, useSpyglassRecord } from "../hooks/useSpyglass";
 import styles from "./SpyglassContext.module.scss";
 import CollapseButton from "../../../components/Display/Interactions/CollapseButton";
 import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
-import { ISearchResult } from "../../../../app/services/Search";
+import { ISearchResult } from "../../../../shared/types/search";
 import { IConnectable } from "../../../../app/services/Graph";
 
 interface ISpyglassContextProps {

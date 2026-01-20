@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ISearchResultValue,
   type ISearchResult,
-} from "../../../../app/services/Search";
+} from "../../../../shared/types/search";
 import { api, refreshToken, serverLocation } from "../../../server/api";
 import {
   ISpyglassGeneratorType,

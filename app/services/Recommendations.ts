@@ -11,7 +11,8 @@ import { ISource } from "../database/models/source";
 import { IExcerpt } from "../database/models/excerpt";
 
 // Import Search Infrastructure
-import { ConnectableTableSearchBuilder, ISearchResult } from "./Search";
+import { ConnectableTableSearchBuilder } from "./Search";
+import { ISearchResult } from "../../shared/types/search";
 import { default_embeddings_dimension } from "../settings";
 
 // --- 1. INTERFACES & TYPES ---

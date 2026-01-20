@@ -7,7 +7,7 @@ import {
   SparkleIcon,
   ArrowClockwiseIcon,
 } from "@phosphor-icons/react";
-import { ISearchResultValue } from "../../../app/services/Search";
+import type { ISearchResultValue } from "../../../shared/types/search";
 import GlimpseModeDisplay from "../Utils/Spyglass/GlimpseModeDisplay";
 import useShortcuts from "../../hooks/useShortcuts";
 import PaperButton from "../Display/Paper/PaperButton";
@@ -18,7 +18,6 @@ import { SpyglassIcon } from "../Utils/Icons/Icons";
 import { IconProps } from "@phosphor-icons/react";
 import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { getNodeDescription, getNodeTitle } from "../../utils/graph";
-import { formatDateTime } from "../../utils/formatting";
 
 export type ISearchResultAction = {
   id: string;
@@ -28,23 +27,19 @@ export type ISearchResultAction = {
   disabled?: boolean;
 };
 
+type ISearchProps = {
+  resultFilter?: (id: string) => boolean;
+  ignoreRabbithole?: boolean;
+  resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
+};
+
 export default function Search({
   resultFilter,
-
   ignoreRabbithole,
-
   resultActions,
-}: {
-  resultFilter?: (id: string) => boolean;
-
-  ignoreRabbithole?: boolean;
-
-  resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
-}) {
+}: ISearchProps) {
   const os = getOS();
-
   const ctrl = os !== "macos";
-
   const meta = os === "macos";
 
   const {
@@ -52,37 +47,22 @@ export default function Search({
     setInputValue,
     loading,
     scope,
-    //
     setScope,
-
     glimpseMode,
-
     setGlimpseMode,
-
     handleSearchSubmit,
-
     reset,
-
     loadingGlimpse,
-
     errorGlimpse,
-
     glimpseResult,
-
     resultsMap,
-
     withinRabbithole,
-
     searchQuery,
-
     filteredResults,
-
     recent,
-
     loadingRecent,
   } = useSearchQuery({
     resultFilter,
-
     ignoreRabbithole,
   });
 
@@ -90,26 +70,19 @@ export default function Search({
     shortcuts: [
       {
         keys: { key: ".", meta: true },
-
         run: () => setGlimpseMode(!glimpseMode),
       },
-
       {
         keys: { meta: true, shift: true, key: "s" },
-
         run: (e) => {
           e.preventDefault();
-
           setGlimpseMode(!glimpseMode);
         },
       },
-
       {
         keys: { ctrl: true, shift: true, key: "s" },
-
         run: (e) => {
           e.preventDefault();
-
           setGlimpseMode(!glimpseMode);
         },
       },
@@ -151,16 +124,6 @@ export default function Search({
 
       {glimpseMode && (
         <div className={styles.glimpseContainer}>
-          {loadingGlimpse && (
-            <Group justify="center" my="md">
-              <Loader size="sm" type="dots" />
-
-              <Text size="sm" c="dimmed">
-                Analyzing...
-              </Text>
-            </Group>
-          )}
-
           {errorGlimpse && (
             <Text c="red" size="sm">
               {errorGlimpse}

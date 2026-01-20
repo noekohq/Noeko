@@ -3,7 +3,7 @@ import {
   IConnectableSearchQuery,
   ISearchResult,
   ISearchResultValue,
-} from "../../services/Search";
+} from "../../../shared/types/search";
 import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";

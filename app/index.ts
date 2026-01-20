@@ -12,7 +12,7 @@ import collaborationServer from "./collaboration";
 
 config();
 
-const { PORT, CLIENT_ORIGIN } = process.env;
+const { PORT, CLIENT_ORIGIN, NODE_ENV } = process.env;
 const isProduction = process.env.NODE_ENV === "production";
 const projectRoot = process.cwd();
 
@@ -21,7 +21,7 @@ if (!PORT) throw new Error("PORT is not defined");
 await initDatabase();
 // await initServices();
 
-const app = Express();
+export const app = Express();
 app.use(Express.json({ limit: max_idea_size }));
 app.use(Express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -72,22 +72,24 @@ if (isProduction) {
   });
 }
 
-const server = app.listen(Number(PORT), () => {
-  console.info(
-    `Express server running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`,
-  );
-  console.info(
-    `Mode: ${chalk.yellow(isProduction ? "Production" : "Development")}`,
-  );
-});
+if (!(NODE_ENV === "test")) {
+  const server = app.listen(Number(PORT), () => {
+    console.info(
+      `Express server running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`,
+    );
+    console.info(
+      `Mode: ${chalk.yellow(isProduction ? "Production" : "Development")}`,
+    );
+  });
 
-server.on("upgrade", (request, socket, head) => {
-  collaborationServer.webSocketServer.handleUpgrade(
-    request,
-    socket,
-    head,
-    (ws) => {
-      collaborationServer.hocuspocus.handleConnection(ws, request);
-    },
-  );
-});
+  server.on("upgrade", (request, socket, head) => {
+    collaborationServer.webSocketServer.handleUpgrade(
+      request,
+      socket,
+      head,
+      (ws) => {
+        collaborationServer.hocuspocus.handleConnection(ws, request);
+      },
+    );
+  });
+}
