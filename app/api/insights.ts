@@ -1,7 +1,7 @@
 import Router from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import Insights from "../services/Insights";
 
 const router = Router();

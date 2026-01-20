@@ -30,7 +30,7 @@ describe("POST /api/users/register-referred", () => {
       });
 
     expect(response.status).toBe(403);
-    expect(response.body.data.message).toBe(
+    expect(response.body.message).toBe(
       "Invalid or expired referral code.",
     );
   });

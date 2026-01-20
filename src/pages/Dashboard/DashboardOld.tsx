@@ -20,7 +20,7 @@ import RightSidebar from "../../components/UI/Layout/Right";
 import { useAuth } from "../../contexts/AuthContext";
 import { getCurrentTimeOfDay } from "../../utils/datetime";
 import useFetch from "../../hooks/useFetch";
-import { IIdea, IUserIdeaStats } from "../../../app/database/models/ideas";
+import { IIdea, IUserIdeaStats } from "../../../shared/types/idea";
 import { useLayout } from "../../contexts/LayoutContext";
 import {
   CompactIdeaCard,

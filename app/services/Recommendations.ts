@@ -3,19 +3,15 @@ import { getDatabase } from "../database/db";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { Connectable, IConnectable, IConnectableTypes } from "./Graph";
 
-// Import Models
 import { ITask } from "../database/models/task";
 import { IRabbithole } from "../database/models/rabbithole";
-import { IIdea } from "../database/models/ideas";
+import { IIdea } from "../../shared/types/idea";
 import { ISource } from "../database/models/source";
-import { IExcerpt } from "../database/models/excerpt";
+import { IExcerpt } from "../../shared/types/excerpt";
 
-// Import Search Infrastructure
 import { ConnectableTableSearchBuilder } from "./Search";
 import { ISearchResult } from "../../shared/types/search";
 import { default_embeddings_dimension } from "../settings";
-
-// --- 1. INTERFACES & TYPES ---
 
 type ITaskWithDiff = ITask & {
   daysDiff: number;

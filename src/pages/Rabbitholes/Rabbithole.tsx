@@ -45,7 +45,7 @@ import {
   TagIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { IIdea } from "../../../app/database/models/ideas";
+import { IIdea } from "../../../shared/types/idea";
 import Search from "../../components/Search/Search";
 import {
   deleteRabbithole,

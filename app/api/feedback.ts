@@ -5,8 +5,9 @@ import {
   disallowDisabled,
 } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { IUser } from "../database/models/user";
-import { Feedback, IFeedbackForm } from "../database/models/feedback";
+import { IUser } from "../../shared/types/user";
+import { Feedback } from "../database/models/feedback";
+import { IFeedbackForm } from "../../shared/types/feedback";
 import { RecordId } from "surrealdb";
 
 const router = Router();

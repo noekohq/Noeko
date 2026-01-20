@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { IUser } from "../database/models/user";
+import { IUser } from "../../shared/types/user";
 import { ILogForm, Log } from "../database/models/log";
 import { z } from "zod";
 

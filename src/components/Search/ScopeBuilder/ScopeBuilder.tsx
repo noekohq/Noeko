@@ -3,7 +3,7 @@ import styles from "./ScopeBuilder.module.scss";
 import { IConnectableSearchQuery } from "../../../../shared/types/search";
 import { Group, Popover } from "@mantine/core";
 import useFetch from "../../../hooks/useFetch";
-import { ITag } from "../../../../app/database/models/tag";
+import { ITag } from "../../../../shared/types/tags";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import PaperTag from "../../Display/Paper/Tags/PaperTag";
 import { CalendarIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";

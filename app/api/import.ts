@@ -2,7 +2,7 @@ import { Router } from "express";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import { ImporterManager } from "../services/Importer";
 import { getFromReq } from "../utils/requests";
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 
 const manager = new ImporterManager();
 

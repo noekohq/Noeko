@@ -39,7 +39,7 @@ import {
 import { userFormattedName } from "../../../../utils/user";
 import { PaperContextMenu } from "../../Paper/PaperContextMenu";
 import { getNodeLink } from "../../../../utils/graph";
-import { IFriendUser } from "../../../../../app/database/models/user";
+import { IFriendUser } from "../../../../../shared/types/user";
 
 const { VITE_DEPLOYED_URL } = import.meta.env;
 

@@ -1,10 +1,7 @@
 import { FormattedSelection } from "@embedpdf/plugin-selection/react";
 import { PdfHighlightAnnoObject } from "@embedpdf/models";
 import { createContext, useContext, useMemo, useState } from "react";
-import {
-  IExcerpt,
-  IExcerptForm,
-} from "../../../../../../app/database/models/excerpt";
+import { IExcerpt, IExcerptForm } from "../../../../../../shared/types/excerpt";
 import { RecordId } from "surrealdb";
 
 type IPDFViewerSelectionFormatted = {

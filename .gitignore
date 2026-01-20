@@ -130,3 +130,7 @@ db_backups/*
 # Auth stuff
 auth/*
 credentials/*
+
+# Agentic Stuff
+.opencode/
+conductor

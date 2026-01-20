@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
-import { ITag } from "../../../../../app/database/models/tag";
+import { ITag } from "../../../../../shared/types/tags";
 import useFetch from "../../../../hooks/useFetch";
 import { useDisclosure } from "@mantine/hooks";
 import PaperButton from "../../Paper/PaperButton";

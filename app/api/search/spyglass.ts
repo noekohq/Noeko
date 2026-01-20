@@ -2,7 +2,8 @@ import { Router } from "express";
 import { logger } from "../../services/Logger";
 import { checkToken } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
-import { ISafeUser, User } from "../../database/models/user";
+import { User } from "../../database/models/user";
+import { ISafeUser } from "../../../shared/types/user";
 import Spyglass from "../../services/Spyglass";
 import { SpyglassRecord } from "../../database/models/spyglass_record";
 

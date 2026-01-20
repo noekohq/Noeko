@@ -35,7 +35,7 @@ import styles from "./Directory.module.scss";
 import { useDebouncedCallback } from "@mantine/hooks";
 import useFetch from "../../../hooks/useFetch";
 import { IChunk } from "../../../../app/services/Importer";
-import { IIdeaForm } from "../../../../app/database/models/ideas";
+import { IIdeaForm } from "../../../../shared/types/idea";
 import {
   finalizeImport,
   getChunkedIdeas,

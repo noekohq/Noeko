@@ -1,4 +1,4 @@
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 
 const { DEPLOYED_URL } = process.env;
 

@@ -10,7 +10,7 @@ import { Search } from "../../services/Search";
 import { parseIncompleteJsonArray } from "../../utils/processing";
 import { max_spyglass_finding_amount } from "../../settings";
 import Spyglass, { IFinding, ISpyglassIntent } from "../../services/Spyglass";
-import { IRabbithole } from "./rabbithole";
+import { IRabbithole } from "../../../shared/types/rabbithole";
 import { IConnectable } from "../../services/Graph";
 import { User } from "./user";
 

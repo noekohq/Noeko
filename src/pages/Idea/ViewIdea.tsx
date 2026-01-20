@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import useFetch from "../../hooks/useFetch";
-import { IIdeaForm } from "../../../app/database/models/ideas";
+import { IIdeaForm } from "../../../shared/types/idea";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./ViewIdea.module.scss";
 import { useAuth } from "../../contexts/AuthContext";
