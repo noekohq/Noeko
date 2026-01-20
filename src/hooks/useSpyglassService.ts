@@ -6,7 +6,7 @@ import {
   ISpyglassIntent,
 } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
-import { IConnectableSearchQueryTagFilter } from "../../app/services/Search";
+import { IConnectableSearchQueryTagFilter } from "../../shared/types/search";
 import { RecordId } from "surrealdb";
 import {
   parsePartialGlimpseResult,
@@ -72,9 +72,8 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   const [fullResults, setFullResults] = useState<IConnectable[]>([]);
   const [findings, setFindings] = useState<IFinding[]>([]);
   const [overview, setOverview] = useState("");
-  const [glimpseResult, setGlimpseResult] = useState<PartialGlimpseResult | null>(
-    null,
-  );
+  const [glimpseResult, setGlimpseResult] =
+    useState<PartialGlimpseResult | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [history, setHistory] = useState<ISpyglassHistoryItem[]>([]);
   const searchArgsRef = useRef<ISearchArgs | null>(null);

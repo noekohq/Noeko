@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ISearchResult } from "../../app/services/Search";
+import { ISearchResult } from "../../shared/types/search";
 import { IScope } from "../components/Search/ScopeBuilder/ScopeBuilder";
 
 export type IComponentFilter = {

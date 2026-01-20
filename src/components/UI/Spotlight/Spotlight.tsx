@@ -59,7 +59,7 @@ import {
 import useRabbithole from "../../../hooks/useRabbithole";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { useLandscape } from "../../../contexts/LandscapeContext";
-import { ISearchResultValue } from "../../../../app/services/Search";
+import { ISearchResultValue } from "../../../../shared/types/search";
 import { showNotification } from "@mantine/notifications";
 
 const minisearch = new MiniSearch<IUnifiedSearchItem>({

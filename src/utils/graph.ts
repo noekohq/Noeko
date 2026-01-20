@@ -1,6 +1,6 @@
 import { RecordId } from "surrealdb";
 import { IDBGraph, IIdea, ISafeIdea } from "../../app/database/models/ideas";
-import { ISearchResult, ISearchResultValue } from "../../app/services/Search";
+import { ISearchResult, ISearchResultValue } from "../../shared/types/search";
 import { htmlToMarkdown } from "../../app/utils/formatting";
 import {
   IDerivedNode,

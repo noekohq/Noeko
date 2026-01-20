@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import styles from "./ScopeBuilder.module.scss";
-import { IConnectableSearchQuery } from "../../../../app/services/Search";
+import { IConnectableSearchQuery } from "../../../../shared/types/search";
 import { Group, Popover } from "@mantine/core";
 import useFetch from "../../../hooks/useFetch";
 import { ITag } from "../../../../app/database/models/tag";
@@ -10,15 +10,13 @@ import { CalendarIcon, FunnelIcon, XIcon } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../../Utils/Icons/Icons";
 import PaperButton from "../../Display/Paper/PaperButton";
 import { Tabs } from "../../UI/Layout/Utils/Tabs";
-import HorizonSelector from "../../Display/Paper/Inputs/HorizonSelector";
-import { toYYYYMMDD } from "../../../utils/datetime";
+import PaperDateRangeFilter from "../../Display/Paper/DateRangeFilter/PaperDateRangeFilter";
 import { TagPickerContent } from "../../Display/Interactions/Tags/TagPicker";
 import { RabbitholePickerContent } from "../../Display/Interactions/Rabbitholes/RabbitholePicker";
 import { useLandscape } from "../../../contexts/LandscapeContext";
 
-export type IScope = Pick<
-  IConnectableSearchQuery,
-  "tags" | "rabbithole" | "date"
+export type IScope = Partial<
+  Pick<IConnectableSearchQuery, "tags" | "rabbithole" | "date">
 > & {
   showShared?: boolean;
   showFriends?: boolean;
@@ -101,24 +99,25 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
   };
 
   // --- Date Logic ---
-  const handleDateChange = (val: string | null) => {
+  const handleDateChange = (
+    val: { field: string; after?: string; before?: string } | null,
+  ) => {
     if (!val) {
       onChange({ ...value, date: undefined });
       return;
     }
-    // Assume val is YYYY-MM-DD. Set as "After" this date? Or "On" this date?
-    // For a single date selection, usually implies "On".
-    // "After": new Date(val).toISOString()
-    const d = new Date(val);
-    const nextDay = new Date(d);
-    nextDay.setDate(d.getDate() + 1);
+
+    // Only update if we have both after and before
+    if (!val.after || !val.before) {
+      return;
+    }
 
     onChange({
       ...value,
       date: {
-        updatedAt: {
-          after: d.toISOString(),
-          before: nextDay.toISOString(),
+        [val.field]: {
+          after: val.after,
+          before: val.before,
         },
       },
     });
@@ -131,9 +130,36 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
 
   // Date Label
   const dateLabel = useMemo(() => {
-    if (!value.date?.updatedAt?.after) return "Date";
-    // Convert to local date string to match input
-    return new Date(value.date.updatedAt.after).toLocaleDateString();
+    if (!value.date) return "Date";
+
+    // Find which field is being filtered
+    const field = Object.keys(value.date)[0] as
+      | "createdAt"
+      | "updatedAt"
+      | "viewedAt";
+    if (!field) return "Date";
+
+    const dateRange = value.date[field];
+    if (!dateRange?.after || !dateRange?.before) return "Date";
+
+    // Format as "MMM DD - MMM DD" or "MMM DD, YYYY - MMM DD, YYYY" if different years
+    const startDate = new Date(dateRange.after);
+    const endDate = new Date(dateRange.before);
+
+    const formatOptions: Intl.DateTimeFormatOptions = {
+      month: "short",
+      day: "numeric",
+    };
+
+    // Add year if different years
+    if (startDate.getFullYear() !== endDate.getFullYear()) {
+      formatOptions.year = "numeric";
+    }
+
+    const fromStr = startDate.toLocaleDateString("en-US", formatOptions);
+    const toStr = endDate.toLocaleDateString("en-US", formatOptions);
+
+    return `${fromStr} - ${toStr}`;
   }, [value.date]);
 
   return (
@@ -227,14 +253,19 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({ value, onChange }) => {
             </Tabs.Panel>
 
             <Tabs.Panel value="date">
-              <HorizonSelector
-                type="date"
+              <PaperDateRangeFilter
                 value={
-                  value.date?.updatedAt?.after
-                    ? toYYYYMMDD(new Date(value.date.updatedAt.after))
+                  value.date
+                    ? {
+                        field: Object.keys(value.date)[0] as any,
+                        ...value.date[
+                          Object.keys(value.date)[0] as keyof typeof value.date
+                        ],
+                      }
                     : null
                 }
                 onChange={handleDateChange}
+                onClose={() => setPopoverOpened(false)}
               />
             </Tabs.Panel>
           </Tabs>

@@ -9,6 +9,7 @@ const {
   MAILBABY_API_URL,
   MAILBABY_USERNAME,
   MAILBABY_PASSWORD,
+  NODE_ENV,
 } = process.env;
 
 if (!MAILBABY_API_KEY) throw Error("MAILBABY_API_KEY not defined.");

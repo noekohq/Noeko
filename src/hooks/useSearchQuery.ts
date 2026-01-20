@@ -2,14 +2,16 @@ import { showNotification } from "@mantine/notifications";
 import {
   IConnectableSearchQuery,
   ISearchResult,
-} from "../../app/services/Search";
+} from "../../shared/types/search";
 import { useSearch } from "../contexts/SearchContext";
 import { api } from "../server/api";
 import useFetch from "./useFetch";
 import useRabbithole from "./useRabbithole";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSpyglassService } from "./useSpyglassService";
+import { useSpyglassService, IResultsMap } from "./useSpyglassService";
 import { IConnectable } from "../../app/services/Graph";
+import { IScope } from "../components/Search/ScopeBuilder/ScopeBuilder";
+import { PartialGlimpseResult } from "../utils/partialJsonParser";
 
 interface IUseSearchQueryParams {
   params?: Partial<IConnectableSearchQuery>;
@@ -17,11 +19,43 @@ interface IUseSearchQueryParams {
   resultFilter?: (id: string) => boolean;
 }
 
+export interface IUseSearchQueryReturn {
+  // query state
+  searchQuery: string;
+  inputValue: string;
+  setInputValue: (value: string) => void;
+  // submission
+  handleSearchSubmit: () => void;
+  // search results
+  results: ISearchResult[] | null;
+  filteredResults: ISearchResult[] | null;
+  // loading states
+  loading: boolean;
+  complete: boolean;
+  // scope
+  scope: IScope;
+  setScope: (scope: IScope) => void;
+  // glimpse mode
+  glimpseMode: boolean;
+  setGlimpseMode: (mode: boolean) => void;
+  loadingGlimpse: boolean;
+  errorGlimpse: string | null;
+  glimpseResult: PartialGlimpseResult | null;
+  resultsMap: IResultsMap;
+  // recent items
+  recent: IConnectable[] | undefined;
+  loadingRecent: boolean;
+  // misc
+  timeTaken: string | null;
+  withinRabbithole: boolean;
+  reset: () => void;
+}
+
 export default function useSearchQuery({
   params,
   ignoreRabbithole = false,
   resultFilter,
-}: IUseSearchQueryParams) {
+}: IUseSearchQueryParams): IUseSearchQueryReturn {
   const { currentRabbithole } = useRabbithole();
   const withinRabbithole = ignoreRabbithole ? false : !!currentRabbithole;
 
