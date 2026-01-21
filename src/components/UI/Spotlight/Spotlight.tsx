@@ -773,6 +773,15 @@ const useSpotlightConfig = ({
                   close();
                 },
               },
+              {
+                id: "pinknew",
+                title: "Pink New",
+                icon: <PaletteIcon />,
+                action: (close) => {
+                  setOverride("pinknew");
+                  close();
+                },
+              },
             ],
           },
         ],

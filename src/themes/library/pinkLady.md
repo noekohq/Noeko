@@ -1,5 +1,4 @@
 import {
-
   createTheme,
   DefaultMantineColor,
   Input,

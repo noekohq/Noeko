@@ -1,5 +1,4 @@
 import {
-
   createTheme,
   DefaultMantineColor,
   Input,
@@ -9,112 +8,51 @@ import {
 import { ICSSApplicator, IOverrideResolver } from "../../declarations/themes";
 import { getCurrentScheme } from "../../utils/dom";
 
-const pinkLady: IOverrideResolver = (t) => {
-  // Define the core gradients for the Pink Lady theme
-  const pinkLadyLightTuple: MantineColorsTuple = [
-    "#45151B",
-    "#5D2E32",
-    "#754749",
-    "#8D6060",
-    "#A57978",
-    "#BE9290",
-    "#D6ACAA",
-    "#EFC6C4",
-    "#FFF0E9",
-    "#FFFBF2",
+const generatedTheme: IOverrideResolver = (t) => {
+  // Generated Primary Palette (10-step tonal scale based on oklch(0.844 0.133 22))
+  const primaryPalette: MantineColorsTuple = [
+    "oklch(0.95 0.096 22)",
+    "oklch(0.85 0.114 22)",
+    "oklch(0.75 0.126 22)",
+    "oklch(0.65 0.132 22)",
+    "oklch(0.55 0.132 22)",
+    "oklch(0.45 0.126 22)",
+    "oklch(0.35 0.114 22)",
+    "oklch(0.25 0.096 22)",
+    "oklch(0.15 0.072 22)",
+    "oklch(0.05 0.042 22)",
   ];
 
-  const pinkDusk: MantineColorsTuple = [
-    "#FDECF4", // Main text - a soft, creamy rose white
-    "#E8DDE2", // Secondary text
-    "#B9AAB2", // Tertiary text / subtle borders
-    "#8E7C84", // Borders
-    "#66545B", // Hovered borders / UI elements
-    "#4F3F46", // Interactive component backgrounds (e.g. inactive tabs)
-    "#3B2E34", // Hovered surfaces (e.g. list items)
-    "#2E262A", // Surface color (Paper, cards)
-    "#211C1F", // Main body background - a deep, warm rosewood
-    "#1A1618", // A slightly deeper variant for contrast if needed
+  // Semantic Palette (Light Mode Mapping)
+  const semanticPalette: MantineColorsTuple = [
+    "oklch(0.557 0.035 150)", // Main text
+    "oklch(0.557 0.041 31.2)", // Secondary text
+    "oklch(0.811 0.02 34)", // Tertiary text
+    "oklch(0.822 0.003 64.4)", // Borders
+    "oklch(0.875 0.096 45.4)", // Hovered borders
+    "oklch(0.993 0.042 51)", // Interactive BG
+    "oklch(0.937 0.027 67)", // Hovered surfaces
+    "oklch(0.948 0.047 41)", // Surface color
+    "oklch(0.948 0.047 41)", // Deeper variant
+    "oklch(0.906 0.041 11)", // Main body background
   ];
 
   const baseColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> = {
-    // A red/pink tuple inspired by Mauvelous and Bittersweet Shimmer
-    red: [
-      "#FBEAEC",
-      "#F2CED3",
-      "#E9B2B9",
-      "#E095A0",
-      "#D77987",
-      "#D26978",
-      "#C74E51",
-      "#B04548",
-      "#993B3E",
-      "#823235",
-    ],
-    // An orange tuple inspired by Royal Orange and Peach Fuzz
-    orange: [
-      "#FFF1E8",
-      "#FAD8C3",
-      "#F5BF9E",
-      "#F0A679",
-      "#EC8D54",
-      "#E87C3E",
-      "#F99256",
-      "#DE6B2D",
-      "#C35A21",
-      "#A84A16",
-    ],
-    // A yellow tuple inspired by Caramel
-    yellow: [
-      "#FEF9E5",
-      "#FBEDB5",
-      "#F9E185",
-      "#F7D555",
-      "#F5C925",
-      "#FBDE9C",
-      "#F7C361",
-      "#DAB050",
-      "#BD9D3E",
-      "#A08A2D",
-    ],
-    pinkPearl: [
-      "#FBE4F5",
-      "#F2C9E5",
-      "#E9ADD5",
-      "#E091C5",
-      "#D775B5",
-      "#D264A9",
-      "#E283C2",
-      "#C6589B",
-      "#AF4D89",
-      "#984277",
-    ],
-    vibrantPink: [
-      "#FFE9F6",
-      "#FFD1E9",
-      "#FA9CD5",
-      "#F564BF",
-      "#F138AB",
-      "#E51E98", // A strong primary shade
-      "#D90B88", // This could be your primary shade (index 6)
-      "#C00075",
-      "#A90067",
-      "#920059",
-    ],
+    // You can add other generated color ramps here
+    primary: primaryPalette,
   };
 
-  const lightColors: Partial<
-    Record<DefaultMantineColor, MantineColorsTuple>
-  > & { dark: MantineColorsTuple } = {
+  const lightColors = {
     ...baseColors,
-    dark: pinkLadyLightTuple,
+    // If this is a light theme, 'semanticPalette' defines the 'dark' key colors.
+    // If currently dark, we use primary as a placeholder or inversion would be needed.
+    dark: semanticPalette, 
   };
 
-  const darkColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> & {
-    dark: MantineColorsTuple;
-  } = {
+  const darkColors = {
     ...baseColors,
-    dark: pinkDusk,
+    // If this is a dark theme, 'semanticPalette' defines the 'dark' key colors.
+    dark: primaryPalette,
   };
 
   const scheme = t.scheme === "auto" ? getCurrentScheme() : t.scheme;
@@ -127,8 +65,7 @@ const pinkLady: IOverrideResolver = (t) => {
       "--mantine-color-default": lightColors.dark[8],
       "--color-code-background": lightColors.dark[9],
       "--color-code-foreground": lightColors.dark[1],
-      "--color-highlight":
-        lightColors.orange?.[6] ?? "--mantine-color-orange-6",
+      "--color-highlight": "var(--mantine-color-primary-6)",
       "--color-highlight-text": lightColors.dark[0],
       "--item-filled-color": lightColors.dark[8],
     },
@@ -138,7 +75,7 @@ const pinkLady: IOverrideResolver = (t) => {
         "background-color": "var(--color-highlight)",
         color: "var(--color-highlight-text)",
       },
-      blockquote: { "border-left": `2.5px solid ${lightColors.red?.[6]}` },
+      blockquote: { "border-left": `2.5px solid ${lightColors.primary?.[6]}` },
       pre: { border: `1px solid ${lightColors.dark[7]}` },
       code: { border: `1px solid ${lightColors.dark[6]}` },
       table: { border: `1px solid ${lightColors.dark[7]}` },
@@ -157,7 +94,7 @@ const pinkLady: IOverrideResolver = (t) => {
       "--ai-bg": darkColors.dark[9],
       "--color-code-background": darkColors.dark[9],
       "--color-code-foreground": darkColors.dark[1],
-      "--color-highlight": darkColors.orange?.[6] ?? "--mantine-color-orange-6",
+      "--color-highlight": "var(--mantine-color-primary-6)",
       "--color-highlight-text": darkColors.dark[9],
       "--item-filled-color": darkColors.dark[8],
     },
@@ -169,7 +106,7 @@ const pinkLady: IOverrideResolver = (t) => {
         padding: "0 0.4rem",
         margin: "0 0.2rem",
       },
-      blockquote: { "border-left": `2.5px solid ${darkColors.red?.[6]}` },
+      blockquote: { "border-left": `2.5px solid ${darkColors.primary?.[6]}` },
       pre: { border: `1px solid ${darkColors.dark[6]}` },
       code: { border: `1px solid ${darkColors.dark[6]}` },
       table: { border: `1px solid ${darkColors.dark[6]}` },
@@ -181,9 +118,9 @@ const pinkLady: IOverrideResolver = (t) => {
 
   const colorsToUse = () => {
     if (scheme === "light") {
-      return { colors: lightColors, white: "#FFFFFF", black: "#45151B" };
+      return { colors: lightColors, white: "#FFFFFF", black: "#000000" };
     }
-    return { colors: darkColors, white: "#FBDE9C", black: "#45151B" };
+    return { colors: darkColors, white: "#FFFFFF", black: "#000000" };
   };
 
   const { colors, white, black } = colorsToUse();
@@ -195,10 +132,10 @@ const pinkLady: IOverrideResolver = (t) => {
       fontFamily: "Bricolage Grotesque",
       fontWeight: "550",
     },
-    colors,
+    colors: colors as any,
     white,
     black,
-    primaryColor: t.scheme === "dark" ? "vibrantPink" : "pinkPearl", // Changed to a thematic color
+    primaryColor: "primary",
     primaryShade: 6,
     components: {
       Paper: Paper.extend({
@@ -226,4 +163,4 @@ const pinkLady: IOverrideResolver = (t) => {
   };
 };
 
-export default pinkLady;
+export default generatedTheme;
