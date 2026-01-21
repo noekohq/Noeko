@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ISearchResultValue,
   type ISearchResult,
@@ -11,7 +11,10 @@ import {
 } from "../../../../app/database/models/search";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { ISpyglassIntent } from "../../../../app/services/Spyglass";
+import {
+  ISpyglassIntent,
+  IGlimpseResult,
+} from "../../../../app/services/Spyglass";
 import useRabbithole from "../../../hooks/useRabbithole";
 import {
   getNodeContent,
@@ -23,6 +26,7 @@ import {
   IConnectable,
   IConnectableFields,
 } from "../../../../app/services/Graph";
+import { PartialGlimpseResult } from "../../../utils/partialJsonParser";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -75,6 +79,9 @@ interface IUseSpyglassReturn {
   error: string;
 }
 
+/**
+ * @deprecated Use useSpyglassService instead. This hook is maintained for legacy support only.
+ */
 export default function useSpyglass({
   query,
   parentId,
@@ -452,6 +459,11 @@ interface IUseSpyglassRecordArgs {
   spyglassId?: string;
 }
 
+import {
+  extractIdsFromFindings,
+  extractIdsFromGlimpseResult,
+} from "../../../utils/spyglass";
+
 interface IUseSpyglassRecordReturn {
   loading: boolean;
   spyglass?: ISpyglassRecord;
@@ -459,6 +471,7 @@ interface IUseSpyglassRecordReturn {
   citationMap?: ICitationMap;
   results?: IConnectableFields[];
   fullResults?: IConnectable[];
+  glimpseResult?: PartialGlimpseResult | null;
 }
 
 export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
@@ -500,17 +513,57 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     }
   }, [spyglassId]);
 
-  useEffect(() => {
-    if (spyglass?.scope) {
-      fetchScope({
-        updatedBody: {
-          loader: {
-            ids: spyglass.scope,
-          },
-        },
-      });
+  const glimpseResult = useMemo(() => {
+    if (!spyglass?.isDeepAnalysis && spyglass?.overview) {
+      try {
+        const parsed: IGlimpseResult = JSON.parse(spyglass.overview);
+        return {
+          summary: parsed.summary,
+          summaryComplete: true,
+          entryPoint: parsed.entryPoint,
+          contentMap: parsed.contentMap,
+          connections: parsed.connections,
+        } as PartialGlimpseResult;
+      } catch (e) {
+        console.error("Failed to parse glimpse result", e);
+        return null;
+      }
     }
+    return null;
   }, [spyglass]);
+
+  useEffect(() => {
+    if (spyglass) {
+      let idsToFetch = new Set<string>();
+
+      // 1. Use the saved scope (primary source)
+      if (spyglass.scope && spyglass.scope.length > 0) {
+        spyglass.scope.forEach((id) => idsToFetch.add(id.toString()));
+      }
+
+      // 2. Fallback: Extract IDs from findings (Deep Analysis legacy)
+      if (spyglass.findings && spyglass.findings.length > 0) {
+        const findingIds = extractIdsFromFindings(spyglass.findings);
+        findingIds.forEach((id) => idsToFetch.add(id));
+      }
+
+      // 3. Fallback: Extract IDs from glimpse result (Glimpse legacy)
+      if (glimpseResult) {
+        const glimpseIds = extractIdsFromGlimpseResult(glimpseResult);
+        glimpseIds.forEach((id) => idsToFetch.add(id));
+      }
+
+      if (idsToFetch.size > 0) {
+        fetchScope({
+          updatedBody: {
+            loader: {
+              ids: Array.from(idsToFetch),
+            },
+          },
+        });
+      }
+    }
+  }, [spyglass, glimpseResult]);
 
   const getResultsMap = () => {
     return fullResults?.reduce((acc, curr, i) => {
@@ -572,5 +625,6 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     citationMap,
     results: mappedResults,
     fullResults,
+    glimpseResult,
   } satisfies IUseSpyglassRecordReturn;
 };

@@ -58,18 +58,19 @@ export type IGraphTagFilter = {
 
 export type IGraphFilters = Partial<{
   rabbithole: string;
+  scope?: string[];
   date: {
     createdAt?: {
-      after: string;
-      before: string;
+      after?: string;
+      before?: string;
     };
     updatedAt?: {
-      after: string;
-      before: string;
+      after?: string;
+      before?: string;
     };
     viewedAt?: {
-      after: string;
-      before: string;
+      after?: string;
+      before?: string;
     };
   };
   tags: IGraphTagFilter;

@@ -65,13 +65,15 @@ export default function TopBar() {
     reset,
   } = useSearchQuery({
     params: {
-      ...(dateAfter && {
-        date: {
-          updatedAt: {
-            after: dateAfter,
+      filters: {
+        ...(dateAfter && {
+          date: {
+            updatedAt: {
+              after: dateAfter,
+            },
           },
-        },
-      }),
+        }),
+      },
     },
   });
   const {

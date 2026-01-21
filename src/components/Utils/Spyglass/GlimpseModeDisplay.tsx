@@ -29,6 +29,8 @@ interface IGlimpseModeDisplayProps {
   query: string;
   loading?: boolean;
   view?: "compact" | "full";
+  includeNavigationPrompt?: boolean;
+  onResultClick?: (node: INode) => void;
 }
 
 /**
@@ -117,6 +119,8 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
   query,
   loading = false,
   view = "full",
+  includeNavigationPrompt = false,
+  onResultClick,
 }) => {
   const navigate = useNavigate();
   const sourceCount = Object.keys(resultsMap).length;
@@ -136,11 +140,14 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
   ) {
     return (
       <div className={styles.loadingState}>
-        <Title order={1} className={styles.queryTitle}>
+        <Title
+          order={view === "full" ? 1 : 3}
+          className={`${styles.queryTitle} ${styles.loading}`}
+        >
           {query}
         </Title>
         <div className={styles.loaderContainer}>
-          <LangtonsAntLoader loadingText="Analyzing..." />
+          <LangtonsAntLoader cellSize={10} stepsPerSecond={4} />
         </div>
       </div>
     );
@@ -149,7 +156,10 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
   return (
     <div className={`${styles.editorialWrapper} ${styles[view]}`}>
       <Stack gap="8px">
-        <Title order={view === "full" ? 1 : 3} className={styles.queryTitle}>
+        <Title
+          order={view === "full" ? 1 : 3}
+          className={`${styles.queryTitle} ${loading && styles.loading}`}
+        >
           {query}
         </Title>
 
@@ -177,9 +187,8 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
         )}
       </Stack>
 
-      <Space my={"lg"} />
+      <Space my={"md"} />
 
-      {/* Narrative Summary */}
       <div className={styles.proseBody}>
         <Text size="sm" style={{ lineHeight: 1.7 }}>
           {glimpseResult.summary || ""}
@@ -188,22 +197,24 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
           )}
         </Text>
       </div>
-
-      {view === "full" && (
-        <Group justify="flex-end" my="sm">
+      {includeNavigationPrompt && (
+        <Group justify="flex-start" my="sm">
           <Link
             to={`/spyglass?q=${encodeURIComponent(query)}&deep=true`}
             style={{ textDecoration: "none" }}
           >
-            <PaperButton withBorder leftSection={<SpyglassIcon size={14} />}>
-              Deep Focus in Spyglass
+            <PaperButton
+              withBorder
+              leftSection={<SpyglassIcon size={12} />}
+              size="sm"
+            >
+              Deep Focus
             </PaperButton>
           </Link>
         </Group>
       )}
 
-      {/* Entry Point - "Start Here" recommendation */}
-      {view === "full" && glimpseResult.entryPoint && entryPointResource && (
+      {glimpseResult.entryPoint && entryPointResource && (
         <div id="glimpse-entry-point" className={styles.entryPointSection}>
           <Group gap="xs" mb="sm">
             <CompassIcon size={16} />
@@ -211,34 +222,58 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
               Start Here
             </Text>
           </Group>
-          <div
-            className={styles.entryPointCard}
-            onClick={() =>
-              navigate(
-                `/${entryPointResource.type}/${entryPointResource.id.toString()}`,
-              )
-            }
-            role="button"
-            tabIndex={0}
-          >
-            <Group justify="space-between" align="center" mb={4}>
-              <Text size="sm" fw={600}>
-                {glimpseResult.entryPoint.title}
-              </Text>
-              <ArrowRightIcon size={16} className={styles.entryPointArrow} />
-            </Group>
-            <Text size="xs" c="dimmed">
-              {glimpseResult.entryPoint.reason}
-            </Text>
-          </div>
+          {view === "compact" ? (
+            <PaperThing
+              id={entryPointResource.id.toString()}
+              title={glimpseResult.entryPoint.title}
+              detail={glimpseResult.entryPoint.reason}
+              icon={TypeIcon(
+                getTypeFromId(
+                  entryPointResource.id.toString(),
+                ) as INode["type"],
+              )}
+              onClick={(id, e) => {
+                if (onResultClick) {
+                  e.stopPropagation();
+                  onResultClick(entryPointResource as unknown as INode);
+                } else {
+                  navigate(
+                    `/${entryPointResource.type}/${entryPointResource.id.toString()}`,
+                  );
+                }
+              }}
+              preventClickDefault={!!onResultClick}
+            />
+          ) : (
+            <GridCard
+              id={entryPointResource.id.toString()}
+              title={glimpseResult.entryPoint.title}
+              detail={glimpseResult.entryPoint.reason}
+              icon={TypeIcon(
+                getTypeFromId(
+                  entryPointResource.id.toString(),
+                ) as INode["type"],
+              )}
+              onClick={(id, e) => {
+                if (onResultClick) {
+                  e.stopPropagation();
+                  onResultClick(entryPointResource as unknown as INode);
+                } else {
+                  navigate(
+                    `/${entryPointResource.type}/${entryPointResource.id.toString()}`,
+                  );
+                }
+              }}
+              preventClickDefault={!!onResultClick}
+              state="suggested"
+            />
+          )}
         </div>
       )}
 
-      {/* Content Sections with GridCards */}
       {(glimpseResult.contentMap || []).map((set, setIndex) => {
-        // Map results to IThing interface for GridCard, filtering out entry point
         const sectionThings: IThing[] = set.results
-          .filter((result) => result.resourceId !== entryPointId) // Skip entry point
+          .filter((result) => result.resourceId !== entryPointId)
           .map((result) => {
             const resource = resultsMap[result.resourceId];
             if (!resource) return null;
@@ -246,7 +281,6 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
             const type = getTypeFromId(result.resourceId);
             const Icon = TypeIcon(type as INode["type"]);
 
-            // Build detail with relationship indicator if available
             const relationshipLabel = getRelationshipLabel(result.relationship);
             const detailText = relationshipLabel
               ? `${relationshipLabel} • ${result.explanation}`
@@ -259,6 +293,14 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
               icon: Icon,
               link: `/${resource.type}/${resource.id.toString()}`,
               draggable: false,
+              onClick: (id: string, e: React.MouseEvent) => {
+                if (onResultClick) {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onResultClick(resource as unknown as INode);
+                }
+              },
+              preventClickDefault: !!onResultClick,
             } as IThing;
           })
           .filter((thing): thing is IThing => thing !== null);
@@ -276,9 +318,17 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
             className={styles.contentSection}
           >
             <Group gap="xs" mb="xs">
-              {SectionIcon && <SectionIcon size={14} />}
               <Text size="sm" fw={500}>
                 {set.title}
+                {SectionIcon && (
+                  <SectionIcon
+                    size={12}
+                    weight="bold"
+                    style={{
+                      marginLeft: "4px",
+                    }}
+                  />
+                )}
               </Text>
               {sectionTypeLabel && view === "full" && (
                 <Badge
@@ -319,7 +369,6 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
         );
       })}
 
-      {/* Connections - Cross-cutting themes */}
       {view === "full" &&
         glimpseResult.connections &&
         glimpseResult.connections.length > 0 && (
@@ -343,11 +392,16 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
                           color="gray"
                           style={{ cursor: "pointer" }}
                           styles={{ label: { textTransform: "none" } }}
-                          onClick={() =>
-                            navigate(
-                              `/${resource.type}/${resource.id.toString()}`,
-                            )
-                          }
+                          onClick={(e) => {
+                            if (onResultClick) {
+                              e.stopPropagation();
+                              onResultClick(resource as unknown as INode);
+                            } else {
+                              navigate(
+                                `/${resource.type}/${resource.id.toString()}`,
+                              );
+                            }
+                          }}
                         >
                           {resource.name}
                         </Badge>

@@ -16,7 +16,6 @@ import { ISource } from "../database/models/source";
 import { IPublicUser } from "../../shared/types/user";
 import {
   IConnectableSearchQuery,
-  IConnectableSearchQueryTagFilter,
   IFTSIdeaResult,
   IFTSResult,
   ISearchResult,
@@ -32,6 +31,7 @@ import {
   ISemanticSourceResult,
   ISemanticExcerptResult,
 } from "../../shared/types/search";
+import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
 
 export class Search {
   public static readonly COMPREHENSIVE_WEIGHTS = {
@@ -1453,7 +1453,9 @@ export class Search {
 
       const results = await this.searchConnectables(userId, {
         query,
-        rabbithole: options?.rabbitholeId,
+        filters: {
+          rabbithole: options?.rabbitholeId,
+        },
       });
       if (!results) {
         return [];
@@ -1759,116 +1761,6 @@ export const dropSearch = async () => {
   await Search.down();
 };
 
-export class ConnectableSearchQueryBuilder {
-  private whereClauses: string[] = [];
-  private params: Record<string, any> = {};
-
-  constructor() {}
-
-  public ownedBy(userId: string | RecordId): this {
-    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
-    this.params.userId = new StringRecordId(userId);
-    return this;
-  }
-
-  /**
-   * Filters items that the user has access to (owned OR shared with them).
-   * Use this for general search and discovery features.
-   */
-  public accessibleBy(userId: string | RecordId): this {
-    this.whereClauses.push(`(
-      <-owns<-(user WHERE id = $userId)
-      OR
-      (count(->shared_with[WHERE out = $userId]) > 0)
-    )`);
-    this.params.userId = new StringRecordId(userId);
-    return this;
-  }
-
-  public withDateRange(
-    field: "createdAt" | "updatedAt" | "viewedAt",
-    options: { after?: string; before?: string },
-  ): this {
-    const { after, before } = options;
-    const afterDate = after ? new Date(after) : null;
-    const beforeDate = before ? new Date(before) : null;
-
-    if (
-      afterDate &&
-      !isNaN(afterDate.getTime()) &&
-      beforeDate &&
-      !isNaN(beforeDate.getTime())
-    ) {
-      this.whereClauses.push(
-        `<datetime> ${field} >= <datetime> $${field}After AND <datetime> ${field} <= <datetime> $${field}Before`,
-      );
-      this.params[`${field}After`] = afterDate;
-      this.params[`${field}Before`] = beforeDate;
-    } else if (afterDate && !isNaN(afterDate.getTime())) {
-      this.whereClauses.push(
-        `<datetime> ${field} >= <datetime> $${field}After`,
-      );
-      this.params[`${field}After`] = afterDate;
-    } else if (beforeDate && !isNaN(beforeDate.getTime())) {
-      this.whereClauses.push(
-        `<datetime> ${field} <= <datetime> $${field}Before`,
-      );
-      this.params[`${field}Before`] = beforeDate;
-    }
-    return this;
-  }
-
-  public inRabbithole(rabbitholeId: string | RecordId): this {
-    const clause = `
-      (
-        id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-        id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-      )
-    `;
-    this.whereClauses.push(clause);
-    this.params.rabbitholeId = new StringRecordId(rabbitholeId);
-    return this;
-  }
-
-  public withTags(filter: IConnectableSearchQueryTagFilter): this {
-    const { set, behavior } = filter;
-    if (!set.length) {
-      return this;
-    }
-
-    switch (behavior) {
-      case "and":
-        this.whereClauses.push(
-          `array::len(<-describes<-(tag WHERE id in $tagSet) = array::len($tagSet)`,
-        );
-        break;
-      case "or":
-        this.whereClauses.push(`<-describes<-(tag WHERE id IN $tagSet)`);
-        break;
-    }
-
-    this.params.tagSet = set.map((s) => new StringRecordId(s));
-
-    return this;
-  }
-
-  public withScope(filter: IConnectableSearchQuery["scope"]): this {
-    if (!filter) {
-      return this;
-    }
-    this.whereClauses.push(`id IN $scopeSet`);
-    this.params.scopeSet = filter?.map((s) => new StringRecordId(s));
-    return this;
-  }
-
-  public build(): { where: string[]; params: Record<string, any> } {
-    return {
-      where: this.whereClauses,
-      params: this.params,
-    };
-  }
-}
-
 interface IConnectableTableSearchBuilderArgs {
   table: IConnectableTypes;
   userId: string | RecordId | StringRecordId;
@@ -1879,7 +1771,7 @@ export class ConnectableTableSearchBuilder {
   private table: IConnectableTypes;
   private searchQuery: IConnectableSearchQuery;
   private userId: StringRecordId;
-  private queryBuilder: ConnectableSearchQueryBuilder;
+  private queryBuilder: FilterQueryBuilder;
   private defaultLimit = 50;
 
   constructor({
@@ -1890,7 +1782,7 @@ export class ConnectableTableSearchBuilder {
     this.table = table;
     this.userId = new StringRecordId(userId.toString());
     this.searchQuery = searchQuery;
-    this.queryBuilder = new ConnectableSearchQueryBuilder();
+    this.queryBuilder = new FilterQueryBuilder();
 
     this.buildFilters();
   }
@@ -2056,31 +1948,11 @@ export class ConnectableTableSearchBuilder {
     const builder = this.queryBuilder;
 
     if (this.userId) {
-      builder.accessibleBy(this.userId.toString());
+      builder.withAccess(this.userId.toString());
     }
 
-    const { date, tags, rabbithole, scope } = this.searchQuery;
-
-    if (date?.createdAt) {
-      builder.withDateRange("createdAt", date.createdAt);
-    }
-    if (date?.updatedAt) {
-      builder.withDateRange("updatedAt", date.updatedAt);
-    }
-    if (date?.viewedAt) {
-      builder.withDateRange("viewedAt", date.viewedAt);
-    }
-
-    if (tags) {
-      builder.withTags(tags);
-    }
-
-    if (rabbithole) {
-      builder.inRabbithole(rabbithole);
-    }
-
-    if (scope?.length) {
-      builder.withScope(scope);
+    if (this.searchQuery.filters) {
+      builder.applyFilters(this.searchQuery.filters);
     }
   }
 

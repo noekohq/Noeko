@@ -6,8 +6,6 @@ import Search from "./Search";
 import useSearchQuery, {
   IUseSearchQueryReturn,
 } from "../../hooks/useSearchQuery";
-import * as platformUtils from "../../utils/platform";
-import { ISafeIdea } from "../../../shared/types/idea";
 
 vi.mock("../../hooks/useSearchQuery", () => ({
   default: vi.fn(),
@@ -229,7 +227,8 @@ describe("Search Component", () => {
 
     renderComponent();
 
-    expect(screen.getByText("Deep Focus in Spyglass")).toBeInTheDocument();
+    // The GlimpseModeDisplay component is mocked, so we just check for its presence
+    expect(screen.getByText("Glimpse Mode Display")).toBeInTheDocument();
   });
 
   it("displays error message when glimpse mode has an error", () => {

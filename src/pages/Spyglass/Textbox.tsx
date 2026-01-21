@@ -7,9 +7,8 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import PaperChip from "../../components/Display/Paper/PaperChip";
 import PaperIcon from "../../components/Display/Paper/PaperIcon";
-import ScopeBuilder, {
-  IScope,
-} from "../../components/Search/ScopeBuilder/ScopeBuilder";
+import { IGraphFilters } from "../../../shared/types/constellation";
+import ScopeBuilder from "../../components/Search/ScopeBuilder/ScopeBuilder";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;
@@ -20,9 +19,8 @@ interface ITextboxProps {
   initialized?: boolean;
   deepAnalysis: boolean;
   setDeepAnalysis: (value: boolean) => void;
-  // New props for integrated scope
-  scope: IScope;
-  onScopeChange: (scope: IScope) => void;
+  scope: IGraphFilters;
+  onScopeChange: (scope: IGraphFilters) => void;
 }
 
 export default function Textbox({
@@ -87,13 +85,6 @@ export default function Textbox({
     return true;
   };
 
-  // Check if any filters are active
-  const hasActiveFilters = !!(
-    scope.rabbithole ||
-    scope.date ||
-    (scope.tags?.set && scope.tags.set.length > 0)
-  );
-
   return (
     <div
       className={`${styles.textbox} ${isFocused ? styles.focused : ""} ${initialized ? styles.initialized : ""}`}
@@ -132,9 +123,7 @@ export default function Textbox({
         <div className={styles.ui}>
           <div className={styles.uiLeft}>
             <Group gap="xs" wrap="wrap">
-              {!initialized && (
-                <ScopeBuilder value={scope} onChange={onScopeChange} />
-              )}
+              {!initialized && <ScopeBuilder />}
             </Group>
           </div>
           <Group justify="end" gap="sm" className={styles.uiRight}>

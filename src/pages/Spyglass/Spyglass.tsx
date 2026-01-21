@@ -35,6 +35,7 @@ import SpyglassActions from "./Spyglass/SpyglassActions";
 import { useSearch } from "../../contexts/SearchContext";
 import GlimpseNavigation from "../../components/Utils/Spyglass/GlimpseNavigation";
 import DeepFocusNavigation from "../../components/Utils/Spyglass/DeepFocusNavigation";
+import ScopeDisplay from "../../components/Search/ScopeBuilder/ScopeDisplay";
 
 export default function Spyglass() {
   const {
@@ -54,11 +55,10 @@ export default function Spyglass() {
 
   const {
     global: {
-      scope: { get: scope, set: setScope },
+      scope: { get: scope, set: setScope, has: hasScope },
     },
   } = useSearch();
 
-  // SPYGLASS PARAMS
   const [query, setQuery] = useState("");
   const [deepAnalysis, setDeepAnalysis] = useState(false);
 
@@ -81,8 +81,6 @@ export default function Spyglass() {
     resultsMap,
     uninitialize,
   } = useSpyglassService();
-
-  console.log("Glimpse result: ", glimpseResult);
 
   const handleSubmit = () => {
     if (!query) return;
@@ -117,7 +115,6 @@ export default function Spyglass() {
     }
   }, [searchParams]);
 
-  // Determine if we should show the loading state (initialized but no content yet)
   const showLoadingState =
     initialized && loading && !overview && !glimpseResult;
 
@@ -142,7 +139,9 @@ export default function Spyglass() {
         }}
       >
         <LeftSidebar.Open>
-          {!deepAnalysis && glimpseResult && glimpseResult.contentMap.length > 0 ? (
+          {!deepAnalysis &&
+          glimpseResult &&
+          glimpseResult.contentMap.length > 0 ? (
             <GlimpseNavigation
               glimpseResult={glimpseResult}
               resultsMap={resultsMap ?? {}}
@@ -226,11 +225,6 @@ export default function Spyglass() {
                   {currentQuery}
                 </Title>
                 <div className={styles.loadingIndicator}>
-                  <div className={styles.loadingDots}>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
                   <Text size="sm" c="dimmed" className={styles.loadingText}>
                     {results.length <= 0 ? (
                       <>
@@ -262,7 +256,6 @@ export default function Spyglass() {
               </div>
             )}
 
-            {/* Deep Focus Analysis State - Shows AntLoader while analyzing sources */}
             {showDeepFocusAnalysis && (
               <div className={styles.analysisState}>
                 <Title order={1} className={styles.loadingQuery}>
@@ -273,10 +266,8 @@ export default function Spyglass() {
                     stepsPerSecond={15}
                     cellSize={20}
                     numAnts={6}
-                    loadingText={`Analyzing ${results.length} source${results.length === 1 ? "" : "s"}`}
                   />
                 </div>
-                {/* Source badges being analyzed */}
                 <div className={styles.loadingSources}>
                   {results.map((result) => (
                     <Badge
@@ -302,7 +293,6 @@ export default function Spyglass() {
               </div>
             )}
 
-            {/* Deep Focus Overview */}
             {deepAnalysis && overview && (
               <div className={styles.overviewDisplay}>
                 <DisplayOverview
@@ -317,7 +307,6 @@ export default function Spyglass() {
               </div>
             )}
 
-            {/* Glimpse Mode */}
             {!deepAnalysis &&
               glimpseResult &&
               (glimpseResult.summary ||
@@ -334,35 +323,45 @@ export default function Spyglass() {
           </div>
 
           {!loading && (
-            <div
-              className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
-            >
-              <Textbox
-                value={query}
-                onSubmit={() => {
-                  handleSubmit();
-                }}
-                onReset={() => {
-                  reset();
-                  uninitialize();
-                  setQuery("");
-                }}
-                onChange={(v) => {
-                  setQuery(v);
-                }}
-                placeholder={
-                  initialized
-                    ? "Ask a follow-up question..."
-                    : "Ask your thoughts anything..."
-                }
-                initialized={initialized}
-                deepAnalysis={deepAnalysis}
-                setDeepAnalysis={(v) => {
-                  setDeepAnalysis(v);
-                }}
-                scope={scope}
-                onScopeChange={setScope}
-              />
+            <div className={`${styles.userInput}`}>
+              <div
+                className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
+              >
+                <Textbox
+                  value={query}
+                  onSubmit={() => {
+                    handleSubmit();
+                  }}
+                  onReset={() => {
+                    reset();
+                    uninitialize();
+                    setQuery("");
+                  }}
+                  onChange={(v) => {
+                    setQuery(v);
+                  }}
+                  placeholder={
+                    initialized
+                      ? "Ask a follow-up question..."
+                      : "Ask your thoughts anything..."
+                  }
+                  initialized={initialized}
+                  deepAnalysis={deepAnalysis}
+                  setDeepAnalysis={(v) => {
+                    setDeepAnalysis(v);
+                  }}
+                  scope={scope}
+                  onScopeChange={setScope}
+                />
+              </div>
+              {hasScope && (
+                <div className={styles.scope}>
+                  <Text fw="bold" c="dimmed" size="sm" mb="xs">
+                    FILTERS
+                  </Text>
+                  <ScopeDisplay />
+                </div>
+              )}
             </div>
           )}
         </div>

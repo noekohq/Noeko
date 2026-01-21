@@ -11,6 +11,15 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .editorialWrapper {
   width: 100%;
   max-width: 100%;
@@ -24,6 +33,20 @@
   line-height: 1.2;
   margin-bottom: var(--mantine-spacing-xs);
   color: var(--mantine-color-text);
+
+  &.loading {
+    background: linear-gradient(
+      90deg,
+      var(--mantine-color-gray-6) 0%,
+      var(--mantine-color-text) 50%,
+      var(--mantine-color-dark-7) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s infinite linear;
+  }
 }
 
 /* Metadata Byline - Subtle row below title */

@@ -1,11 +1,54 @@
-import { ISearchOverview } from "../../app/database/models/search";
-import { IFinding } from "../../app/services/Spyglass";
+import {
+  IFinding,
+  IGlimpseResult,
+} from "../../app/services/Spyglass";
 import { INode } from "../declarations/graph";
 import { IResultsMap } from "../hooks/useSpyglassService";
 import { getNodeTitle, getTypeFromId } from "./graph";
+import { PartialGlimpseResult } from "./partialJsonParser";
 
 // A helper type to make the grouped findings map more explicit
 type GroupedFindings = Map<string, (IFinding & { index: number })[]>;
+
+export const extractIdsFromGlimpseResult = (
+  glimpseResult: PartialGlimpseResult | IGlimpseResult,
+): string[] => {
+  const ids = new Set<string>();
+
+  if (glimpseResult.entryPoint) {
+    ids.add(glimpseResult.entryPoint.resourceId);
+  }
+
+  if (glimpseResult.contentMap) {
+    for (const section of glimpseResult.contentMap) {
+      if (section.results) {
+        for (const result of section.results) {
+          ids.add(result.resourceId);
+        }
+      }
+    }
+  }
+
+  if (glimpseResult.connections) {
+    for (const connection of glimpseResult.connections) {
+      if (connection.resourceIds) {
+        for (const id of connection.resourceIds) {
+          ids.add(id);
+        }
+      }
+    }
+  }
+
+  return Array.from(ids);
+};
+
+export const extractIdsFromFindings = (findings: IFinding[]): string[] => {
+  const ids = new Set<string>();
+  for (const finding of findings) {
+    ids.add(finding.sourceId);
+  }
+  return Array.from(ids);
+};
 
 export const getOverviewAsMarkdown = (
   overview: string,

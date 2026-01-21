@@ -17,14 +17,10 @@ import GraphService, {
   Connectable,
   IConnectable,
   IConnectableFields,
+  IGraphFilters,
 } from "./Graph";
 import { Tag } from "../database/models/tag";
 import Rabbithole from "../database/models/rabbithole";
-
-export type ISpyglassScope = {
-  connectables: string[];
-  tags: string[];
-};
 
 export interface IGlimpseResult {
   summary: string;
@@ -1994,8 +1990,8 @@ export default class Spyglass {
     scope?: string[];
     deepAnalysis: boolean;
     rabbithole?: string;
-    tags?: IConnectableSearchQueryTagFilter;
-    date?: IConnectableSearchQuery["date"];
+    tags?: IGraphFilters["tags"];
+    date?: IGraphFilters["date"];
     history?: ISpyglassHistoryItem[];
   }) {
     try {
@@ -2057,11 +2053,15 @@ export default class Spyglass {
         }
         intent = _intent;
         const searches = intent.searches.map((s) => {
+          const existingFilters = s.filters || {};
           return {
             ...s,
-            rabbithole: rabbithole || s.rabbithole,
-            tags: tags || s.tags,
-            date: date || s.date,
+            filters: {
+              ...existingFilters,
+              rabbithole: rabbithole || existingFilters.rabbithole,
+              tags: tags || existingFilters.tags,
+              date: date || existingFilters.date,
+            },
             tables: s.tables ?? ["idea", "excerpt", "source"],
             vectorSettings: {
               effort: "high",
@@ -2079,7 +2079,9 @@ export default class Spyglass {
           return fields;
         });
         const connectables = await Promise.all(connectablePromises);
-        resources.push(...connectables);
+        resources.push(
+          ...(connectables.filter((c) => c) as IConnectableFields[]),
+        );
       }
 
       yield { type: "resources_loaded", data: resources };
