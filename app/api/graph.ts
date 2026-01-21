@@ -48,6 +48,12 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const loader = req.body.loader as IConstellationLoader;
+    if (!loader) {
+      res.status(400).send({
+        message: "Constellation loader configuration is required.",
+      });
+      return;
+    }
     const filters = req.body.filters;
     const constellationLoader = new ConstellationLoader({
       userId: user.id,

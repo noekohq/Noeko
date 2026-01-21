@@ -200,7 +200,9 @@ export default class Recommendations {
               userId,
               searchQuery: {
                 query: "",
-                tags: { set: [tagId], behavior: "or" },
+                filters: {
+                  tags: { set: [tagId], behavior: "or" },
+                },
                 limit: 3,
                 vectorSettings: { effort: "low" },
               },
@@ -210,7 +212,9 @@ export default class Recommendations {
               userId,
               searchQuery: {
                 query: "",
-                tags: { set: [tagId], behavior: "or" },
+                filters: {
+                  tags: { set: [tagId], behavior: "or" },
+                },
                 limit: 3,
                 vectorSettings: { effort: "low" },
               },

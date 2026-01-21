@@ -29,7 +29,7 @@ export type IDisplayOverview = {
   citationMap: ICitationMap;
   query: string;
   results: IConnectableFields[];
-  loading: boolean;
+  loading?: boolean;
 };
 
 export function DisplayOverviewComponent({
@@ -39,7 +39,7 @@ export function DisplayOverviewComponent({
   citationMap,
   query,
   results,
-  loading,
+  loading = false,
 }: IDisplayOverview) {
   const navigate = useNavigate();
 
@@ -97,7 +97,7 @@ export function DisplayOverviewComponent({
   return (
     <div className={styles.editorialWrapper}>
       {/* Editorial Header: Query as H1 */}
-      <Title order={1} className={styles.queryTitle}>
+      <Title order={1} className={`${styles.queryTitle} ${loading ? styles.loading : ''}`}>
         {query}
       </Title>
 

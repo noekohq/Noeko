@@ -313,7 +313,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
       try {
         const response = await api.post(`/search/spyglass/save`, {
           baseQuery: searchArgsRef.current.query,
-          scope: searchArgsRef.current.scope || [],
+          scope: resultsRef.current.map((r) => r.id.toString()),
           isDeepAnalysis: searchArgsRef.current.deepAnalysis,
           searchPerformed:
             !searchArgsRef.current.scope ||

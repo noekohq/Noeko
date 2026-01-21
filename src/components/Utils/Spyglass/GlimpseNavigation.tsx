@@ -16,7 +16,6 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
 }) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
-  // IntersectionObserver to track active section in viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -32,7 +31,6 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
       },
     );
 
-    // Collect all section IDs
     const sections: string[] = [];
 
     if (glimpseResult.entryPoint) {
@@ -47,7 +45,6 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
       sections.push("glimpse-connections");
     }
 
-    // Observe all sections
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
@@ -58,12 +55,16 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
 
   return (
     <div className={styles.outline}>
-      <Text className={styles.header}>Outline</Text>
+      <Text fw="bold" c="dark.4" size="sm">
+        OUTLINE
+      </Text>
 
       {/* Entry Point */}
       {glimpseResult.entryPoint && (
         <div className={styles.section}>
-          <Text className={styles.sectionLabel}>Entry Point</Text>
+          <Text fw="bold" c="dark.2" size="sm" mb="xs">
+            ENTRY POINT
+          </Text>
           <div
             className={`${styles.navItem} ${activeSection === "glimpse-entry-point" ? styles.active : ""}`}
             onClick={() => scrollToElement("glimpse-entry-point")}
@@ -78,7 +79,9 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
       {/* Content Map */}
       {glimpseResult.contentMap && glimpseResult.contentMap.length > 0 && (
         <div className={styles.section}>
-          <Text className={styles.sectionLabel}>Content Map</Text>
+          <Text fw="bold" size="sm" c="dark.2" mb="xs">
+            CONTENT MAP
+          </Text>
           <Stack gap={2}>
             {glimpseResult.contentMap.map((section, index) => (
               <div
@@ -99,7 +102,9 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
       {glimpseResult.connections && glimpseResult.connections.length > 0 && (
         <div className={styles.section}>
           <Group justify="space-between" mb="xs">
-            <Text className={styles.sectionLabel}>Connections</Text>
+            <Text fw="bold" size="sm" c="dark.2">
+              CONNECTIONS
+            </Text>
             <Badge size="xs" variant="light" color="gray">
               {glimpseResult.connections.length}
             </Badge>

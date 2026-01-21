@@ -32,6 +32,17 @@ import TopBar from "../../components/UI/Layout/TopBar";
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<IGraphController>(null);
+  const [loader, setLoader] = useState<IConstellationLoader>({
+    things: true,
+    rabbitholes: true,
+    tags: true,
+    connections: true,
+    inclusions: true,
+    descriptions: true,
+    references: true,
+    friends: false,
+    shares: false,
+  });
 
   const {
     rabbitholes: {
@@ -56,23 +67,13 @@ export default function GraphPage() {
     url: "/graph",
     method: "POST",
     body: {
-      loader: {
-        things: true,
-        rabbitholes: true,
-        tags: true,
-        connections: true,
-        inclusions: true,
-        descriptions: true,
-        references: true,
-        friends: !!scope.showFriends,
-        shares: !!scope.showFriends,
-      },
+      loader,
       filters: {
         rabbithole:
           currentRabbithole?.id.toString() || scope.rabbithole?.toString(),
         tags: scope.tags
           ? {
-              set: scope.tags.set.map((s) => s.toString()),
+              set: scope.tags.set.map((s: string) => s.toString()),
               behavior: scope.tags.behavior,
             }
           : undefined,
@@ -98,11 +99,9 @@ export default function GraphPage() {
                 : undefined,
             }
           : undefined,
-        showShared: scope.showShared,
-        showFriends: scope.showFriends,
       },
     },
-    dependencies: [currentRabbithole?.id, scope],
+    dependencies: [currentRabbithole?.id, scope, loader],
     onFinally: () => {
       graphRef.current?.reset();
     },
@@ -158,6 +157,8 @@ export default function GraphPage() {
               reloadGraph={async () => {
                 reloadConstellation();
               }}
+              loader={loader}
+              setLoader={setLoader}
             />
           )}
         </LeftSidebar.Open>

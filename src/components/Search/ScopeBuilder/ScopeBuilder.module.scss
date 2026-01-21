@@ -30,13 +30,12 @@
     width: auto;
 
     /* Padding to match PaperTag 'md' size */
-    padding: 8px var(--mantine-spacing-xs);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
 
     /* Interactions */
     cursor: pointer;
     user-select: none;
     transition: all 0.2s ease-in-out;
-    margin: 6px 0;
 
     &::after {
         content: "";
@@ -108,8 +107,8 @@
 .filterPill {
     @extend .scopePill;
     background-color: var(--mantine-color-dark-8);
-    border-color: var(--mantine-color-dark-6);
-    border-radius: var(--mantine-radius-md);
+    border-color: var(--mantine-color-dark-7);
+    border-radius: var(--mantine-radius-lg);
 
     color: var(--mantine-color-dark-0);
 
@@ -118,12 +117,10 @@
     }
 
     &:hover {
-        // Standard hover state (lighter)
         background-color: var(--mantine-color-dark-7);
         border-color: var(--mantine-color-dark-5);
         color: var(--mantine-color-white);
 
-        // Reset icon color on hover
         .icon {
             color: var(--mantine-color-white);
         }

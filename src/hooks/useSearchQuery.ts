@@ -9,8 +9,7 @@ import useFetch from "./useFetch";
 import useRabbithole from "./useRabbithole";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSpyglassService, IResultsMap } from "./useSpyglassService";
-import { IConnectable } from "../../app/services/Graph";
-import { IScope } from "../components/Search/ScopeBuilder/ScopeBuilder";
+import { IConnectable, IGraphFilters } from "../../shared/types/constellation";
 import { PartialGlimpseResult } from "../utils/partialJsonParser";
 
 interface IUseSearchQueryParams {
@@ -20,32 +19,24 @@ interface IUseSearchQueryParams {
 }
 
 export interface IUseSearchQueryReturn {
-  // query state
   searchQuery: string;
   inputValue: string;
   setInputValue: (value: string) => void;
-  // submission
   handleSearchSubmit: () => void;
-  // search results
   results: ISearchResult[] | null;
   filteredResults: ISearchResult[] | null;
-  // loading states
   loading: boolean;
   complete: boolean;
-  // scope
-  scope: IScope;
-  setScope: (scope: IScope) => void;
-  // glimpse mode
+  scope: IGraphFilters;
+  setScope: (scope: IGraphFilters) => void;
   glimpseMode: boolean;
   setGlimpseMode: (mode: boolean) => void;
   loadingGlimpse: boolean;
   errorGlimpse: string | null;
   glimpseResult: PartialGlimpseResult | null;
   resultsMap: IResultsMap;
-  // recent items
   recent: IConnectable[] | undefined;
   loadingRecent: boolean;
-  // misc
   timeTaken: string | null;
   withinRabbithole: boolean;
   reset: () => void;
@@ -96,11 +87,12 @@ export default function useSearchQuery({
     method: "POST",
     body: {
       query: inputValue,
-      rabbithole: withinRabbithole
-        ? currentRabbithole?.id.toString()
-        : scope.rabbithole || undefined,
-      tags: scope.tags,
-      date: scope.date,
+      filters: {
+        ...scope,
+        rabbithole: withinRabbithole
+          ? currentRabbithole?.id.toString()
+          : scope.rabbithole || undefined,
+      },
       tables: ["idea", "task", "source", "excerpt"],
       searchType: { fts: true, vector: true },
       vectorSettings: { effort: "mid" },
@@ -191,7 +183,6 @@ export default function useSearchQuery({
     // loading states
     loading,
     complete,
-    // scope
     scope,
     setScope,
     // glimpse mode

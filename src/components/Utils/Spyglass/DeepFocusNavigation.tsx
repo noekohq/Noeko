@@ -90,13 +90,20 @@ const DeepFocusNavigation: React.FC<IDeepFocusNavigationProps> = ({
 
   return (
     <div className={styles.outline}>
-      <Text className={styles.header}>Outline</Text>
+      <Text fw="bold" c="dark.4" size="sm">
+        OUTLINE
+      </Text>
 
       {/* Summary */}
       {overview && (
         <div className={styles.section}>
+          <Text fw="bold" c="dark.2" size="sm" mb="xs">
+            SUMMARY
+          </Text>
           <div
-            className={`${styles.navItem} ${activeSection === "deep-focus-summary" ? styles.active : ""}`}
+            className={`${styles.navItem} ${
+              activeSection === "deep-focus-summary" ? styles.active : ""
+            }`}
             onClick={() => scrollToElement("deep-focus-summary")}
           >
             <Text size="sm">Summary</Text>
@@ -108,7 +115,9 @@ const DeepFocusNavigation: React.FC<IDeepFocusNavigationProps> = ({
       {groupedFindings.length > 0 && (
         <div className={styles.section}>
           <Group justify="space-between" mb="xs">
-            <Text className={styles.sectionLabel}>Key Findings</Text>
+            <Text fw="bold" size="sm" c="dark.2">
+              KEY FINDINGS
+            </Text>
             <Badge size="xs" variant="light" color="gray">
               {findings.length}
             </Badge>
@@ -143,7 +152,9 @@ const DeepFocusNavigation: React.FC<IDeepFocusNavigationProps> = ({
       {Object.keys(resultsMap).length > 0 && (
         <div className={styles.section}>
           <Group justify="space-between" mb="xs">
-            <Text className={styles.sectionLabel}>Sources Analyzed</Text>
+            <Text fw="bold" size="sm" c="dark.2">
+              SOURCES ANALYZED
+            </Text>
             <Badge size="xs" variant="light" color="gray">
               {Object.keys(resultsMap).length}
             </Badge>

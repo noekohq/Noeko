@@ -3,3 +3,13 @@
     width: 100%;
     scrollbar-width: thin;
 }
+
+.historyItem {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        border-radius: var(--mantine-radius-md);
+        padding: var(--mantine-spacing-sm);
+        background-color: var(--mantine-color-dark-8);
+    }
+}

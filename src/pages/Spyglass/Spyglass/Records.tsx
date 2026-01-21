@@ -71,12 +71,11 @@ export default function SpyglassHistory() {
         );
         const updatedHistory = [...prevHistory, ...uniqueNewItems];
 
-        // Robust check for end of list:
-        // 1. If we received fewer items than requested, we are at the end.
-        // 2. If the total count matches our current count, we are at the end.
-        // 3. Safety valve: if we got 0 new items, stop.
-        const isEnd = newItems.length < pageSize || updatedHistory.length >= total || newItems.length === 0;
-        
+        const isEnd =
+          newItems.length < pageSize ||
+          updatedHistory.length >= total ||
+          newItems.length === 0;
+
         setHasMore(!isEnd);
         return updatedHistory;
       });
@@ -122,24 +121,22 @@ export default function SpyglassHistory() {
         <TopBar />
         <LeftSidebar />
         <Content>
-          <Stack>
-            <Group mb="lg">
-              <Link
-                to="/spyglass"
-                style={{
-                  textDecoration: "none",
-                }}
-              >
-                <Group c="dark.3" gap="xs">
-                  <CaretLeftIcon weight="bold" size={13} />
-                  <Text c="dark.3" size="sm">
-                    Back to Spyglass
-                  </Text>
-                </Group>
-              </Link>
+          <Stack mt="md">
+            <Group justify="space-between" wrap="nowrap">
+              <Group wrap="nowrap">
+                <ActionIcon
+                  onClick={() => navigate(-1)}
+                  color="gray"
+                  variant="subtle"
+                  size={"md"}
+                  radius={"md"}
+                >
+                  <ArrowLeftIcon weight="bold" />
+                </ActionIcon>
+              </Group>
             </Group>
             <Title order={2} mb="sm">
-              Your Spyglass History
+              Spyglass History
             </Title>
 
             {errors &&
@@ -173,10 +170,8 @@ export default function SpyglassHistory() {
               <Grid>
                 {allHistory.map((item) => (
                   <Grid.Col span={{ base: 12 }} key={item.id.toString()}>
-                    <Card
-                      p="md"
-                      radius="md"
-                      withBorder
+                    <Box
+                      py="sm"
                       className={styles.historyItem}
                       onClick={() => navigate(`/spyglass/records/${item.id}`)}
                       style={{ cursor: "pointer" }}
@@ -216,7 +211,7 @@ export default function SpyglassHistory() {
                         </Stack>
                         <ArrowRightIcon color="var(--mantine-color-dimmed)" />
                       </Group>
-                    </Card>
+                    </Box>
                   </Grid.Col>
                 ))}
               </Grid>

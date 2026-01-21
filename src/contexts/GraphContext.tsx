@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
-import { IDerivedNode, IEdge, INode } from "../declarations/graph";
-import { useSet } from "@mantine/hooks";
+import React, { useContext, useState, useCallback, useMemo } from "react";
+import { INode } from "../declarations/graph";
 
 type FilterConfig = {
   filter: (nodeId: string, node?: INode) => boolean;
@@ -81,8 +80,11 @@ const initialGraphContext: IGraphContext = {
 const GraphContext = React.createContext(initialGraphContext);
 
 export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
-  const selected = useSet<string>();
-  const highlighted = useSet<string>();
+  // Use useState instead of useSet to ensure reference changes propagate correctly
+  // through the context and trigger consumer re-renders reliably.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
+
   const [filterConfig, setFilterConfig] = useState<FilterConfig>({
     filter: () => true,
   });
@@ -91,63 +93,126 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [focused, setFocused] = useState<string>("");
 
-  const value: IGraphContext = {
-    focused: {
-      get: focused,
-      set: (focused: string) => {
-        setFocused(focused);
+  const setFocusedHandler = useCallback((f: string) => setFocused(f), []);
+
+  const setSelectedHandler = useCallback((ids: string[] | null) => {
+    setSelected(new Set(ids || []));
+  }, []);
+
+  const addSelectedHandler = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  const removeSelectedHandler = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelectedHandler = useCallback(() => setSelected(new Set()), []);
+
+  const setHighlightedHandler = useCallback((ids: string[]) => {
+    setHighlighted(new Set(ids));
+  }, []);
+
+  const addHighlightedHandler = useCallback((id: string) => {
+    setHighlighted((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  const removeHighlightedHandler = useCallback((id: string) => {
+    setHighlighted((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const clearHighlightedHandler = useCallback(
+    () => setHighlighted(new Set()),
+    [],
+  );
+
+  const setFilterConfigHandler = useCallback(
+    (config: FilterConfig) => setFilterConfig(config),
+    [],
+  );
+
+  const clearFilterConfigHandler = useCallback(
+    () => setFilterConfig({ filter: () => true }),
+    [],
+  );
+
+  const setLoadingHandler = useCallback((l: boolean) => setLoading(l), []);
+  const setQueryHandler = useCallback((q: string) => setQuery(q), []);
+
+  const value: IGraphContext = useMemo(
+    () => ({
+      focused: {
+        get: focused,
+        set: setFocusedHandler,
       },
-    },
-    selected: {
-      get: selected,
-      set: (ids: string[] | null) => {
-        selected.clear();
-        ids?.forEach((id) => selected.add(id));
+      selected: {
+        get: selected,
+        set: setSelectedHandler,
+        add: addSelectedHandler,
+        remove: removeSelectedHandler,
+        clear: clearSelectedHandler,
+        empty: () => selected.size === 0,
       },
-      add: (id: string) => {
-        selected.add(id);
+      highlighted: {
+        get: highlighted,
+        set: setHighlightedHandler,
+        add: addHighlightedHandler,
+        remove: removeHighlightedHandler,
+        clear: clearHighlightedHandler,
+        empty: () => highlighted.size === 0,
       },
-      remove: (id: string) => {
-        selected.delete(id);
+      filter: {
+        set: setFilterConfigHandler,
+        get: () => filterConfig,
+        clear: clearFilterConfigHandler,
       },
-      clear: () => {
-        selected.clear();
+      loading: {
+        get: () => loading,
+        set: setLoadingHandler,
       },
-      empty: () => selected.size === 0,
-    },
-    highlighted: {
-      get: highlighted,
-      set: (ids: string[]) => {
-        highlighted.clear();
-        ids.forEach((id) => highlighted.add(id));
+      query: {
+        get: () => query,
+        set: setQueryHandler,
       },
-      add: (id: string) => {
-        highlighted.add(id);
-      },
-      remove: (id: string) => {
-        highlighted.delete(id);
-      },
-      clear: () => {
-        highlighted.clear();
-      },
-      empty: () => highlighted.size === 0,
-    },
-    filter: {
-      set: (config: FilterConfig) => setFilterConfig(config),
-      get: () => filterConfig,
-      clear: () => setFilterConfig({ filter: () => true }),
-    },
-    loading: {
-      get: () => loading,
-      set: (loading: boolean) => setLoading(loading),
-    },
-    query: {
-      get: () => query,
-      set: (query: string) => {
-        setQuery(query);
-      },
-    },
-  };
+    }),
+    [
+      focused,
+      selected,
+      highlighted,
+      filterConfig,
+      loading,
+      query,
+      setFocusedHandler,
+      setSelectedHandler,
+      addSelectedHandler,
+      removeSelectedHandler,
+      clearSelectedHandler,
+      setHighlightedHandler,
+      addHighlightedHandler,
+      removeHighlightedHandler,
+      clearHighlightedHandler,
+      setFilterConfigHandler,
+      clearFilterConfigHandler,
+      setLoadingHandler,
+      setQueryHandler,
+    ],
+  );
 
   return (
     <GraphContext.Provider value={value}>{children}</GraphContext.Provider>

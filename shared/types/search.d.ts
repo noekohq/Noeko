@@ -7,6 +7,7 @@ import { IExcerpt } from "./excerpt";
 import {
   IConnectable,
   IConnectableTypes,
+  IGraphFilters,
   ISharedConnectable,
 } from "./constellation";
 import { ISource } from "./source";
@@ -131,26 +132,10 @@ export type IConnectableSearchQueryVectorSettings = {
 export type IConnectableSearchQuery = { query: string } & Partial<{
   tables: IConnectableTypes[];
   limit: number;
-  rabbithole: string | RecordId;
-  tags?: IConnectableSearchQueryTagFilter;
+  filters?: IGraphFilters;
   searchType: {
     fts: boolean;
     vector: boolean;
   };
-  date: {
-    createdAt?: {
-      after?: string;
-      before?: string;
-    };
-    updatedAt?: {
-      after?: string;
-      before?: string;
-    };
-    viewedAt?: {
-      after?: string;
-      before?: string;
-    };
-  };
   vectorSettings?: IConnectableSearchQueryVectorSettings;
-  scope?: string[];
 }>;

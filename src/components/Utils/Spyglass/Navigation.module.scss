@@ -19,34 +19,26 @@
   margin-bottom: var(--mantine-spacing-md);
 }
 
-.sectionLabel {
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 500;
-  color: var(--mantine-color-dimmed);
-  margin-bottom: var(--mantine-spacing-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
 .navItem {
-  padding: 6px 8px;
-  font-size: var(--mantine-font-size-sm);
+  padding: var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-xs);
   border-radius: var(--mantine-radius-sm);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
   cursor: pointer;
   transition: all 0.15s ease;
   color: var(--mantine-color-text);
   border-left: 2px solid transparent;
   margin-bottom: 2px;
-  
+
   &:hover {
     background-color: var(--mantine-color-dark-7);
-    border-left-color: var(--mantine-color-dark-5);
   }
-  
+
   &.active {
-    background-color: var(--mantine-color-dark-7);
-    border-left-color: var(--mantine-color-blue-filled);
-    color: var(--mantine-color-blue-4);
+    background-color: var(--mantine-color-dark-8);
+    border-color: var(--mantine-primary-color-7);
+    color: var(--mantine-color-dark-1);
   }
 }
 
