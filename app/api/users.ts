@@ -683,7 +683,7 @@ router.get(
   checkIsSuperuser,
   async (req, res) => {
     try {
-      const user = await User.get(req.params.id);
+      const user = await User.get(req.params.id as string);
       res.json({
         message: "User retrieved successfully",
         data: user,
@@ -702,7 +702,7 @@ router.post(
   checkIsSuperuser,
   async (req, res) => {
     try {
-      const user = await User.enable(req.params.id);
+      const user = await User.enable(req.params.id as string);
       res.json({
         message: "User enabled successfully",
         data: user,
@@ -721,7 +721,7 @@ router.post(
   checkIsSuperuser,
   async (req, res) => {
     try {
-      const user = await User.disable(req.params.id);
+      const user = await User.disable(req.params.id as string);
       res.json({
         message: "User disabled successfully",
         data: user,
@@ -740,7 +740,7 @@ router.delete(
   checkIsSuperuser,
   async (req, res) => {
     try {
-      const user = await User.delete(req.params.id);
+      const user = await User.delete(req.params.id as string);
       res.json({
         message: "User deleted successfully",
         data: user,
@@ -760,6 +760,7 @@ router.post(
   async (req, res) => {
     try {
       const { id } = req.params;
+      const idString = id as string;
       const { type } = req.body;
       const sender = await getFromReq<ISafeUser>(req, "user");
       if (!sender) {
@@ -768,7 +769,7 @@ router.post(
         });
         return;
       }
-      const user = await User.get(id);
+      const user = await User.get(id as string);
       if (!user) {
         res.status(404).json({
           message: "User not found.",

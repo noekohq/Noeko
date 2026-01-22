@@ -9,22 +9,23 @@ import { useEffect } from "react";
 import { api } from "./server/api";
 
 export default function Error({ error, resetErrorBoundary }: FallbackProps) {
+  const err = error as any;
   useEffect(() => {
     api.post("/logs", {
       level: "error",
-      message: error.message,
+      message: err.message,
       context: {
-        stack: error.stack,
+        stack: err.stack,
       },
       source: "ErrorBoundary",
     });
-  }, [error]);
+  }, [err]);
 
   const subject = encodeURIComponent(
-    `Error Report: ${error.message || "Unknown Error"}`,
+    `Error Report: ${err.message || "Unknown Error"}`,
   );
   const body = encodeURIComponent(
-    `Error: ${error.message}\nStack: ${error.stack}`,
+    `Error: ${err.message}\nStack: ${err.stack}`,
   );
   const mailtoLink = `mailto:support@noeko.app?subject=${subject}&body=${body}`;
 
@@ -63,7 +64,7 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
           <a href="https://discord.gg/TY9sna9ZbT">Discord</a>.
           <details className={styles.details}>
             <summary>Show Error Details</summary>
-            <pre>{error.message}</pre>
+            <pre>{err.message}</pre>
           </details>
         </div>
       </div>

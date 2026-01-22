@@ -211,7 +211,7 @@ router.get("/record/:spyglassId", checkToken, async (req, res) => {
       res.status(403).json({ error: "Unauthorized" });
       return;
     }
-    const spyglassId = req.params.spyglassId;
+    const spyglassId = req.params.spyglassId as string;
     const canAccess = await User.checkOwns(user.id.toString(), spyglassId);
     if (!canAccess) {
       res.status(403).json({ error: "Unauthorized" });

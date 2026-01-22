@@ -305,7 +305,7 @@ router.get("/:fileId", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const file = await UserFile.get(req.params.fileId);
+    const file = await UserFile.get(req.params.fileId as string);
     if (!file) {
       res.status(404).json({
         error: "Not Found",
@@ -343,7 +343,7 @@ router.delete("/:fileId", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const file = await UserFile.get(req.params.fileId);
+    const file = await UserFile.get(req.params.fileId as string);
     if (!file) {
       res.status(404).json({
         error: "Not Found",
@@ -381,7 +381,7 @@ router.get("/:id/download", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const file = await UserFile.get(req.params.id);
+    const file = await UserFile.get(req.params.id as string);
     if (!file) {
       res.status(404).json({
         error: "Not Found",
@@ -426,7 +426,7 @@ router.get("/:id/stream", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const file = await UserFile.get(req.params.id);
+    const file = await UserFile.get(req.params.id as string);
     if (!file) {
       res.status(404).json({
         error: "Not Found",

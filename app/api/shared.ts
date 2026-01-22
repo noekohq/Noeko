@@ -143,7 +143,7 @@ router.get("/friends", checkToken, disallowDisabled, async (req, res) => {
 
 router.get("/:thingId", checkToken, disallowDisabled, async (req, res) => {
   try {
-    const { thingId } = req.params;
+    const thingId = req.params.thingId as string;
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
       res.status(403).json({ message: "Unauthorized" });

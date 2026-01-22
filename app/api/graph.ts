@@ -248,7 +248,7 @@ router.get(
         res.status(403).json({ message: "Unauthorized" });
         return;
       }
-      const { thingId } = req.params;
+      const thingId = req.params.thingId as string;
       const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
         res.status(403).send({
@@ -290,7 +290,7 @@ router.get(
         res.status(403).json({ message: "Unauthorized" });
         return;
       }
-      const { thingId } = req.params;
+      const thingId = req.params.thingId as string;
       const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
         res.status(403).send({
@@ -339,7 +339,7 @@ router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const { thingId } = req.params;
+    const thingId = req.params.thingId as string;
     const hasAccess = await User.checkHasAccess(user.id, thingId);
     if (!hasAccess) {
       res.status(403).send({
@@ -377,7 +377,7 @@ router.get(
         res.status(403).json({ message: "Unauthorized" });
         return;
       }
-      const { thingId } = req.params;
+      const thingId = req.params.thingId as string;
       const hasAccess = await User.checkHasAccess(user.id, thingId);
       if (!hasAccess) {
         res.status(403).send({

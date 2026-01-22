@@ -21,7 +21,7 @@ const router = Router();
 
 router.get("/:ideaId/public", async (req, res) => {
   try {
-    const ideaId = req.params.ideaId;
+    const ideaId = req.params.ideaId as string;
     const isPublic = await Idea.checkIsPublic(ideaId);
     if (isPublic) {
       const idea = await Idea.get(ideaId);
@@ -235,7 +235,7 @@ router.post("/first", checkToken, disallowDisabled, async (req, res) => {
 
 router.put("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
   try {
-    const { ideaId } = req.params;
+    const ideaId = req.params.ideaId as string;
     const user = await getFromReq<IUser>(req, "user");
     if (!user) {
       res.status(403).json({ message: "Unauthorized" });
@@ -271,7 +271,7 @@ router.put("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
 
 router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
   try {
-    const { ideaId } = req.params;
+    const ideaId = req.params.ideaId as string;
     const user = await getFromReq<IUser>(req, "user");
     if (!user) {
       res.status(500).json({ message: "Internal Server Error" });
@@ -315,7 +315,7 @@ router.get("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
 
 router.delete("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
   try {
-    const { ideaId } = req.params;
+    const ideaId = req.params.ideaId as string;
     const user = await getFromReq<IUser>(req, "user");
     if (!user) {
       res.status(403).json({ message: "Unauthorized" });
@@ -353,7 +353,7 @@ router.post(
         });
         return;
       }
-      const { ideaId } = req.params;
+      const ideaId = req.params.ideaId as string;
       const hasAccess = await Authorization.checkHasAccess(ideaId, user.id);
       if (!hasAccess) {
         res.status(403).json({
@@ -395,7 +395,7 @@ router.post(
         });
         return;
       }
-      const { ideaId } = req.params;
+      const ideaId = req.params.ideaId as string;
       const hasAccess = await Authorization.checkHasAccess(
         user.id,
         ideaId,
@@ -433,7 +433,7 @@ router.post(
   disallowDisabled,
   async (req, res) => {
     try {
-      const { ideaId } = req.params;
+      const ideaId = req.params.ideaId as string;
       const user = await getFromReq<IUser>(req, "user");
       if (!user) {
         res.status(403).json({ message: "Unauthorized" });
@@ -461,7 +461,7 @@ router.post(
   disallowDisabled,
   async (req, res) => {
     try {
-      const { ideaId } = req.params;
+      const ideaId = req.params.ideaId as string;
       const user = await getFromReq<IUser>(req, "user");
       if (!user) {
         res.status(403).json({ message: "Unauthorized" });

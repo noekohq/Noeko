@@ -48,7 +48,7 @@ router.post(
         });
         return;
       }
-      const { featureId } = req.params;
+      const featureId = req.params.featureId as string;
       const feature = new Feature(featureId);
       const viewedBy = await feature.viewedBy(user.id);
       if (!viewedBy) {
@@ -83,7 +83,7 @@ router.get(
         });
         return;
       }
-      const { featureId } = req.params;
+      const featureId = req.params.featureId as string;
       const feature = new Feature(featureId);
       const isViewed = await feature.isViewedBy(user.id);
       if (!isViewed) {
