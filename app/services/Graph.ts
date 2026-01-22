@@ -1,98 +1,53 @@
 import { RecordId, StringRecordId } from "surrealdb";
+import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
 import { getDatabase } from "../database/db";
-import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
+import { Idea } from "../database/models/ideas";
+import { IIdea, ISafeIdea } from "../../shared/types/idea";
 import Source, { ISource } from "../database/models/source";
 import Task, { IPublicTask, ITask } from "../database/models/task";
-import Excerpt, {
-  IExcerpt,
-  IVirtualExcerptReference,
-} from "../database/models/excerpt";
-import { ITag, ITagDescriptionRelationship, Tag } from "../database/models/tag";
-import Rabbithole, {
+import Excerpt from "../database/models/excerpt";
+import { IExcerpt, IVirtualExcerptReference } from "../../shared/types/excerpt";
+import { ITag, ITagDescriptionRelationship } from "../../shared/types/tags";
+import { IShare } from "../database/models/share";
+import {
   IRabbithole,
   IRabbitholeInclusion,
-} from "../database/models/rabbithole";
+} from "../../shared/types/rabbithole";
 import { Search } from "./Search";
 import { averageEmbeddings, weightedAverage } from "../utils/math";
 import { getEmbedder } from "../ai/embeddings/embeddings";
-import { IPublicUser } from "../database/models/user";
+import { User } from "../database/models/user";
+import { IPublicUser } from "../../shared/types/user";
+import {
+  IConnectable,
+  IConnectableTypeMap,
+  IConnectableTypes,
+  IConnection,
+  IGetAllConnectables_Options,
+  IGraphFilters,
+  IGraphTagFilter,
+  ISimilarConnectable,
+  ITaggedConnectable,
+  ISharedConnectable,
+  ILoadedConstellation,
+  IConstellationLoader,
+} from "../../shared/types/constellation";
 
-export type IConnectableTypes = "idea" | "source" | "task" | "excerpt";
-
-export type IConnectable =
-  | ((ISafeIdea | IIdea) & {
-      type: "idea";
-      direction?: "incoming" | "outgoing";
-    })
-  | ((ITask | IPublicTask) & {
-      type: "task";
-      direction?: "incoming" | "outgoing";
-    })
-  | (ISource & { type: "source"; direction?: "incoming" | "outgoing" })
-  | (IExcerpt & { type: "excerpt"; direction?: "incoming" | "outgoing" });
-
-export type ITaggedConnectable = IConnectable & {
-  appliedTags: ITag[];
+// Re-export types from shared/types for backward compatibility
+export type {
+  IConnectable,
+  IConnectableTypeMap,
+  IConnectableTypes,
+  IConnection,
+  IGetAllConnectables_Options,
+  IGraphFilters,
+  IGraphTagFilter,
+  ISimilarConnectable,
+  ITaggedConnectable,
+  ISharedConnectable,
+  ILoadedConstellation,
+  IConstellationLoader,
 };
-
-export type ISharedConnectable = IConnectable & {
-  author: IPublicUser;
-};
-
-export type IConnectableTypeMap = {
-  idea: IIdea;
-  source: ISource;
-  task: ITask | IPublicTask;
-  excerpt: IExcerpt;
-};
-
-export type ISimilarConnectable = IConnectable & { similarity: number };
-
-export type IConnection = {
-  id: string | RecordId;
-  in: string | RecordId;
-  out: string | RecordId;
-};
-
-export type IGraphTagFilter = {
-  set: string[];
-  behavior: "and" | "or";
-};
-
-export type IGraphFilters = Partial<{
-  rabbithole: string;
-  date: {
-    createdAt?: {
-      after: string;
-      before: string;
-    };
-    updatedAt?: {
-      after: string;
-      before: string;
-    };
-    viewedAt?: {
-      after: string;
-      before: string;
-    };
-  };
-  tags: IGraphTagFilter;
-}>;
-
-export type IGetAllConnectables_SortOptions = Partial<{
-  sortField: "createdAt" | "updatedAt" | "viewedAt";
-  sortDirection: "ASC" | "DESC";
-}>;
-
-export type IGetAllConnectables_PaginationOptions = Partial<{
-  limit: number;
-  cursor: string;
-}>;
-
-export type IGetAllConnectables_Options =
-  IGetAllConnectables_PaginationOptions &
-    IGetAllConnectables_SortOptions & {
-      filters?: IGraphFilters;
-    };
 
 export default class GraphService {
   static readonly SUGGESTION_WEIGHT = 0.25;
@@ -1120,17 +1075,13 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
+      const builder = new FilterQueryBuilder();
+      if (filters) {
+        builder.applyFilters(filters, userId.toString());
+      } else {
+        builder.ownedBy(userId.toString());
+      }
 
-      if (filters?.rabbithole) {
-        builder.inRabbithole(filters.rabbithole);
-      }
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
-      }
-      if (filters?.date?.updatedAt) {
-        builder.withDateRange("updatedAt", filters.date.updatedAt);
-      }
       const { where: queryWhere, params } = builder.build();
 
       const tableQuery = (table: string) => {
@@ -1140,7 +1091,14 @@ export default class GraphService {
         }
         const query = `
           SELECT
-            *
+            *,
+            (
+                IF (<-owns<-user)[0].id == $userId THEN
+                    'owner'
+                ELSE
+                    (SELECT VALUE accessLevel FROM shared_with WHERE in = $parent.id AND out = $userId)[0]
+                END
+            ) AS accessLevel
           OMIT embeddings
           FROM ${table}
           WHERE ${[...queryWhere, ...tableWhere].join(" AND ")}
@@ -1202,7 +1160,7 @@ export default class GraphService {
     const sortField = options.sortField ?? "updatedAt";
     const sortDirection = options.sortDirection ?? "DESC";
 
-    const builder = new GraphFilterQueryBuilder()
+    const builder = new FilterQueryBuilder()
       .ownedBy(userId.toString())
       .sortBy(sortField, sortDirection)
       .limit(limit);
@@ -1212,7 +1170,7 @@ export default class GraphService {
     }
 
     if (options.filters) {
-      builder.applyFilters(options.filters);
+      builder.applyFilters(options.filters, userId.toString());
     }
 
     const {
@@ -1316,18 +1274,18 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere: string[] = [`<->(?)<-owns<-(user WHERE id = $userId)`];
-      const builder = new GraphFilterQueryBuilder();
+      const accessClause = (field: "in" | "out") => {
+        if (filters?.showShared) {
+          return `(${field}<-owns.in CONTAINS $userId OR count(${field}->shared_with[WHERE out = $userId]) > 0)`;
+        }
+        return `${field}<-owns.in CONTAINS $userId`;
+      };
+
+      const queryWhere: string[] = [accessClause("in"), accessClause("out")];
+
+      const builder = new FilterQueryBuilder();
 
       if (filters?.rabbithole) {
-        // queryWhere.push(`
-        //   (
-        //     in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-        //     out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-        //     in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-        //     out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-        //   )
-        //   `);
         queryWhere.push(`
           (
             <->(?)<-includes<-(rabbithole WHERE id = $rabbitholeId) OR
@@ -1336,8 +1294,8 @@ export default class GraphService {
           `);
       }
 
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
+      if (filters) {
+        builder.applyFilters(filters);
       }
 
       const { params: filterParams, where: filterWhere } = builder.build();
@@ -1380,11 +1338,18 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
-      const builder = new GraphFilterQueryBuilder();
+      const accessClause = (field: "in" | "out") => {
+        if (filters?.showShared) {
+          return `(${field}<-owns.in CONTAINS $userId OR count(${field}->shared_with[WHERE out = $userId]) > 0)`;
+        }
+        return `${field}<-owns.in CONTAINS $userId`;
+      };
 
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
+      const queryWhere = [accessClause("in"), accessClause("out")];
+      const builder = new FilterQueryBuilder();
+
+      if (filters) {
+        builder.applyFilters(filters);
       }
 
       if (filters?.rabbithole) {
@@ -1437,15 +1402,22 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere = [`<->(?)<-owns<-(user WHERE id = $userId)`];
+      const accessClause = (field: "in" | "out") => {
+        if (filters?.showShared) {
+          return `(${field}<-owns.in CONTAINS $userId OR count(${field}->shared_with[WHERE out = $userId]) > 0)`;
+        }
+        return `${field}<-owns.in CONTAINS $userId`;
+      };
+
+      const queryWhere = [accessClause("in"), accessClause("out")];
       if (filters?.rabbithole) {
         queryWhere.push(`in = $rabbitholeId`);
       }
 
-      const builder = new GraphFilterQueryBuilder();
+      const builder = new FilterQueryBuilder();
 
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
+      if (filters) {
+        builder.applyFilters(filters);
       }
 
       const { where: filterWhere, params: filterParams } = builder.build();
@@ -1487,16 +1459,19 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere = [`<-owns<-(user WHERE id = $userId)`];
+      const accessClause = (field: "id" | "references") => {
+        if (filters?.showShared) {
+          return `(${field}<-owns.in CONTAINS $userId OR count(${field}->shared_with[WHERE out = $userId]) > 0)`;
+        }
+        return `${field}<-owns.in CONTAINS $userId`;
+      };
 
-      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
+      const queryWhere = [accessClause("id"), accessClause("references")];
 
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
-      }
+      const builder = new FilterQueryBuilder();
 
-      if (filters?.rabbithole) {
-        builder.inRabbithole(filters.rabbithole);
+      if (filters) {
+        builder.applyFilters(filters);
       }
 
       const { params: filterParams, where: filterWhere } = builder.build();
@@ -1568,16 +1543,11 @@ export default class GraphService {
         return result;
       }
 
-      const queryWhere: string[] = [];
-
-      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
-
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
-      }
-
-      if (filters?.date?.updatedAt) {
-        builder.withDateRange("updatedAt", filters.date.updatedAt);
+      const builder = new FilterQueryBuilder();
+      if (filters) {
+        builder.applyFilters(filters, userId.toString());
+      } else {
+        builder.ownedBy(userId.toString());
       }
 
       const { params: filterParams, where: filterWhere } = builder.build();
@@ -1585,9 +1555,16 @@ export default class GraphService {
       const tableWhere: string[] = [];
       const query = `
         SELECT
-          *
+          *,
+          (
+              IF (<-owns<-user)[0].id == $userId THEN
+                  'owner'
+              ELSE
+                  (SELECT VALUE accessLevel FROM shared_with WHERE in = $parent.id AND out = $userId)[0]
+              END
+          ) AS accessLevel
         FROM rabbithole
-        WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
+        WHERE ${[...filterWhere, ...tableWhere].join(" AND ")}
         `;
 
       const [results] = await db.query<[IRabbithole[]]>(query, {
@@ -1613,20 +1590,14 @@ export default class GraphService {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const queryWhere: string[] = [];
-
-      const builder = new GraphFilterQueryBuilder().ownedBy(userId.toString());
-
-      if (filters?.date?.createdAt) {
-        builder.withDateRange("createdAt", filters.date.createdAt);
-      }
-
-      if (filters?.date?.updatedAt) {
-        builder.withDateRange("updatedAt", filters.date.updatedAt);
-      }
-
-      if (filters?.rabbithole) {
-        builder.inRabbithole(filters.rabbithole);
+      const builder = new FilterQueryBuilder();
+      if (filters) {
+        // Don't apply tag filters to the tags query - it doesn't make sense
+        // (tags don't have tags describing them)
+        const { tags: _tagFilter, ...filtersWithoutTags } = filters;
+        builder.applyFilters(filtersWithoutTags, userId.toString());
+      } else {
+        builder.ownedBy(userId.toString());
       }
 
       const { params: filterParams, where: filterWhere } = builder.build();
@@ -1634,9 +1605,17 @@ export default class GraphService {
       const tableWhere: string[] = [];
       const query = `
           SELECT
-            *
+            *,
+            (
+                IF (<-owns<-user)[0].id == $userId THEN
+                    'owner'
+                ELSE
+                    (SELECT VALUE accessLevel FROM shared_with WHERE in = $parent.id AND out = $userId)[0]
+                END
+            ) AS accessLevel
+          OMIT embeddings, cachedCentroidEmbeddings
           FROM tag
-          WHERE ${[...queryWhere, ...filterWhere, ...tableWhere].join(" AND ")}
+          WHERE ${[...filterWhere, ...tableWhere].join(" AND ")}
           `;
 
       const [results] = await db.query<[ITag[]]>(query, {
@@ -1648,9 +1627,77 @@ export default class GraphService {
         throw new Error("Couldn't get inclusions");
       }
 
+      // If there's a tag filter, ensure those specific tags are in the response
+      // (even if they wouldn't normally be returned by the ownership/access query)
+      if (filters?.tags?.set?.length) {
+        const filterTagIds = new Set(filters.tags.set);
+        const resultTagIds = new Set(results.map((t) => t.id.toString()));
+
+        // Find filter tags that are missing from results
+        const missingTagIds = [...filterTagIds].filter(
+          (id) => !resultTagIds.has(id),
+        );
+
+        if (missingTagIds.length > 0) {
+          const missingTagsQuery = `
+            SELECT
+              *,
+              'owner' AS accessLevel
+            OMIT embeddings, cachedCentroidEmbeddings
+            FROM tag
+            WHERE id IN $missingTagIds
+          `;
+          const [missingResults] = await db.query<[ITag[]]>(missingTagsQuery, {
+            missingTagIds: missingTagIds.map((id) => new StringRecordId(id)),
+          });
+          if (missingResults) {
+            results.push(...missingResults);
+          }
+        }
+      }
+
       return results;
     } catch (error) {
       console.error("Couldn't get user rabbitholes: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserFriends(
+    userId: StringRecordId,
+  ): Promise<IPublicUser[] | undefined> {
+    try {
+      const friends = await User.getFriends(userId.toString());
+      return (friends || []) as unknown as IPublicUser[];
+    } catch (error) {
+      console.error("Error getting user friends: ", error);
+      return undefined;
+    }
+  }
+
+  public static async getUserShares(
+    userId: StringRecordId,
+    filters?: IGraphFilters,
+  ): Promise<IShare[] | undefined> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not initialized");
+
+      // We want shares where either the user is the recipient OR the owner
+      // AND optionally filter by rabbithole or date if needed.
+      // For now, let's keep it simple and get all shares involving the user.
+      const query = `
+        SELECT * FROM shared_with
+        WHERE out = $userId OR in<-owns.in CONTAINS $userId
+      `;
+
+      const [results] = await db.query<[IShare[]]>(query, {
+        userId: new StringRecordId(userId),
+      });
+
+      return results || [];
+    } catch (error) {
+      console.error("Error getting user shares: ", error);
       return undefined;
     }
   }
@@ -1710,26 +1757,6 @@ export const initGraph = async () => {
   console.info("Graph service initialized ✅");
 };
 
-export type ILoadedConstellation = Partial<{
-  things: IConnectable[];
-  rabbitholes: IRabbithole[];
-  tags: ITag[];
-  connections: IConnection[];
-  inclusions: IRabbitholeInclusion[];
-  descriptions: ITagDescriptionRelationship[];
-  references: IVirtualExcerptReference[];
-}>;
-
-export type IConstellationLoader = Partial<{
-  things: boolean;
-  rabbitholes: boolean;
-  tags: boolean;
-  connections: boolean;
-  inclusions: boolean;
-  descriptions: boolean;
-  references: boolean;
-}>;
-
 export class ConstellationLoader {
   private userId: StringRecordId;
   private rabbitholeId?: StringRecordId;
@@ -1775,6 +1802,12 @@ export class ConstellationLoader {
       }
       if (loader.references) {
         promises.push(this.references().then((res) => ({ references: res })));
+      }
+      if (loader.friends) {
+        promises.push(this.friends().then((res) => ({ friends: res })));
+      }
+      if (loader.shares) {
+        promises.push(this.shares().then((res) => ({ shares: res })));
       }
 
       const results = await Promise.all(promises);
@@ -1898,155 +1931,34 @@ export class ConstellationLoader {
       return undefined;
     }
   }
-}
 
-export class GraphFilterQueryBuilder {
-  private whereClauses: string[] = [];
-  private params: Record<string, any> = {};
-  private sortClause = "";
-  private limitClause = "";
-
-  constructor() {} // Start with a clean slate
-
-  /**
-   * Adds a filter to ensure all items are owned by the specified user.
-   * This is a fundamental clause that was previously handled outside the builder.
-   * Bringing it inside makes the builder more self-contained.
-   */
-  public ownedBy(userId: string | RecordId): this {
-    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
-    this.params.userId = new StringRecordId(userId);
-    return this;
+  public async friends(): Promise<IPublicUser[] | undefined> {
+    try {
+      const friends = await GraphService.getUserFriends(this.userId);
+      if (!friends) {
+        throw new Error("Couldn't get friends");
+      }
+      return friends;
+    } catch (error) {
+      console.error("Error getting user friends: ", this.userId, error);
+      return undefined;
+    }
   }
 
-  /**
-   * Adds a date-based filter for a specific field.
-   * @param field The database field name (e.g., 'createdAt', 'updatedAt').
-   * @param options An object with optional 'before' and 'after' date strings.
-   */
-  public withDateRange(
-    field: "createdAt" | "updatedAt" | "viewedAt",
-    options: { after?: string; before?: string },
-  ): this {
-    const { after, before } = options;
-    const afterDate = after ? new Date(after) : null;
-    const beforeDate = before ? new Date(before) : null;
-
-    if (
-      afterDate &&
-      !isNaN(afterDate.getTime()) &&
-      beforeDate &&
-      !isNaN(beforeDate.getTime())
-    ) {
-      this.whereClauses.push(
-        `${field} >= $${field}After AND ${field} <= $${field}Before`,
+  public async shares(): Promise<IShare[] | undefined> {
+    try {
+      const shares = await GraphService.getUserShares(
+        this.userId,
+        this.filters,
       );
-      this.params[`${field}After`] = afterDate;
-      this.params[`${field}Before`] = beforeDate;
-    } else if (afterDate && !isNaN(afterDate.getTime())) {
-      this.whereClauses.push(`${field} > $${field}After`);
-      this.params[`${field}After`] = afterDate;
-    } else if (beforeDate && !isNaN(beforeDate.getTime())) {
-      this.whereClauses.push(`${field} < $${field}Before`);
-      this.params[`${field}Before`] = beforeDate;
+      if (!shares) {
+        throw new Error("Couldn't get shares");
+      }
+      return shares;
+    } catch (error) {
+      console.error("Error getting user shares: ", this.userId, error);
+      return undefined;
     }
-    return this; // Return 'this' to allow chaining
-  }
-
-  /**
-   * Adds the rabbithole filter.
-   */
-  public inRabbithole(rabbitholeId: string | RecordId): this {
-    const clause = `
-      (
-        id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-        id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-      )
-    `;
-    this.whereClauses.push(clause);
-    this.params.rabbitholeId = new StringRecordId(rabbitholeId);
-    return this;
-  }
-
-  public sortBy(field: string, direction: "ASC" | "DESC" = "DESC"): this {
-    this.sortClause = `ORDER BY ${field} ${direction}`;
-    return this;
-  }
-
-  public limit(count: number): this {
-    this.limitClause = `LIMIT ${count}`;
-    return this;
-  }
-
-  public withCursor(cursor: string, field: string = "updatedAt"): this {
-    this.whereClauses.push(`${field} < $cursor`);
-    this.params.cursor = new Date(cursor);
-    return this;
-  }
-
-  public withTags(filter: IGraphTagFilter): this {
-    const { set, behavior } = filter;
-    if (!set.length) {
-      return this;
-    }
-
-    switch (behavior) {
-      case "and":
-        this.whereClauses.push(
-          `array::len(<-describes<-(tag WHERE id in $tagSet) = array::len($tagSet)`,
-        );
-        break;
-      case "or":
-        this.whereClauses.push(`<-describes<-(tag WHERE id IN $tagSet)`);
-        break;
-    }
-
-    this.params.tagSet = set.map((s) => new StringRecordId(s));
-
-    return this;
-  }
-
-  public applyFilters(filters: IGraphFilters): this {
-    if (filters.date?.createdAt) {
-      this.withDateRange("createdAt", filters.date.createdAt);
-    }
-    if (filters.date?.updatedAt) {
-      this.withDateRange("updatedAt", filters.date.updatedAt);
-    }
-    if (filters.date?.viewedAt) {
-      this.withDateRange("viewedAt", filters.date.viewedAt);
-    }
-    if (filters.rabbithole) {
-      this.inRabbithole(filters.rabbithole);
-    }
-    if (filters.tags) {
-      this.withTags(filters.tags);
-    }
-    return this;
-  }
-
-  /**
-   * Finalizes the chain and returns the generated clauses and parameters.
-   */
-  public build(): { where: string[]; params: Record<string, any> } {
-    return {
-      where: this.whereClauses,
-      params: this.params,
-    };
-  }
-
-  public buildQueryParts(): {
-    where: string[];
-    params: Record<string, any>;
-    sort: string;
-    limit: string;
-  } {
-    return {
-      where: this.whereClauses,
-      params: this.params,
-      sort: this.sortClause,
-      limit: this.limitClause,
-    };
   }
 }
 

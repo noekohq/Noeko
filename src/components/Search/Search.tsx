@@ -1,180 +1,141 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearch } from "../../contexts/SearchContext";
-import { SearchBar } from "./SearchBar";
-import {
-  Container,
-  Group,
-  Loader,
-  MantineColor,
-  Space,
-  Stack,
-  Text,
-  Transition,
-} from "@mantine/core";
+import React, { useEffect, useMemo } from "react";
+import { Group, Loader, Stack, Text, Button, Transition } from "@mantine/core";
 import { getOS } from "../../utils/platform";
-import { useLayout } from "../../contexts/LayoutContext";
 import styles from "./Search.module.scss";
-import { Link, useNavigate } from "react-router";
-import { useAuth } from "../../contexts/AuthContext";
-import useRabbithole from "../../hooks/useRabbithole";
-import { RabbitholeIcon, SpyglassIcon } from "../Utils/Icons/Icons";
-import { ArrowClockwiseIcon, IconProps, PlusIcon } from "@phosphor-icons/react";
-import { ISearchResultValue } from "../../../app/services/Search";
-import useFetch from "../../hooks/useFetch";
-import { IConnectable } from "../../../app/services/Graph";
-import PaperThing from "../Display/Paper/Things/PaperThing";
-import { getThingPropsFromConnectable } from "../Display/Paper/Things/thingUtils";
+import { Link } from "react-router";
+import {
+  BrainIcon,
+  SparkleIcon,
+  ArrowClockwiseIcon,
+  IconProps,
+} from "@phosphor-icons/react";
+import type {
+  ISearchResultValue,
+  ISearchResult,
+} from "../../../shared/types/search";
+import { IConnectable } from "../../../shared/types/constellation";
+import { INode } from "../../declarations/graph";
+import { PartialGlimpseResult } from "../../utils/partialJsonParser";
+import { IResultsMap } from "../../hooks/useSpyglassService";
+import GlimpseModeDisplay from "../Utils/Spyglass/GlimpseModeDisplay";
+import useShortcuts from "../../hooks/useShortcuts";
+import PaperButton from "../Display/Paper/PaperButton";
+import ScopeBuilder from "./ScopeBuilder/ScopeBuilder";
+import { SearchBar } from "./SearchBar";
+import useSearchQuery from "../../hooks/useSearchQuery";
+import { SpyglassIcon } from "../Utils/Icons/Icons";
 import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { getNodeDescription, getNodeTitle } from "../../utils/graph";
-import { formatDateTime } from "../../utils/formatting";
+import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
+import { useSearch } from "../../contexts/SearchContext";
 
 export type ISearchResultAction = {
   id: string;
   label: string;
   icon?: React.ReactElement<IconProps>;
-  onClick: (event: React.MouseEvent, thing: ISearchResultValue) => void;
-  color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  onClick: () => void;
   disabled?: boolean;
 };
 
-interface ISearchProps {
-  resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
+type ISearchProps = {
   resultFilter?: (id: string) => boolean;
   ignoreRabbithole?: boolean;
-}
+  resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
+  resultsHeader?: (results: ISearchResult[] | null) => React.ReactNode;
+  onResultClick?: (node: INode) => void;
+  onResults?: (results: ISearchResult[]) => void;
+  onSearchLoading?: (loading: boolean) => void;
+};
 
-export default function Search({
-  resultActions,
-  resultFilter,
-  ignoreRabbithole,
-}: ISearchProps) {
-  const [loading, setLoading] = useState(false);
-  const os = getOS();
-  const ctrl = os !== "macos";
-  const meta = os === "macos";
-  const primaryKey = os === "macos" ? "⌘" : "Ctrl";
+type IGlimpseViewProps = {
+  error: string | null;
+  result: PartialGlimpseResult | null;
+  resultsMap: IResultsMap;
+  query: string;
+  loading: boolean;
+  status?: string | null;
+  onResultClick?: (node: INode) => void;
+  resultsHeader?: (results: ISearchResult[]) => React.ReactNode;
+};
 
-  const { isSuperuser } = useAuth();
-
-  const { isMobile } = useLayout();
-
-  const { currentRabbithole } = useRabbithole();
-  const withinRabbithole = ignoreRabbithole ? false : !!currentRabbithole;
-
-  const {
-    global: {
-      results: { get: searchResults, set: setResults },
-      query: { get: searchQuery },
-    },
-  } = useSearch();
-
-  const startTimeRef = useRef<number | null>(null);
-  const resultsTimeRef = useRef<number | null>(null);
-
-  const filteredResults = useMemo(() => {
-    if (!searchResults) return null;
-    if (!resultFilter) return searchResults;
-    return searchResults.filter((r) => {
-      return resultFilter(r.id.toString());
-    });
-  }, [searchResults, resultFilter]);
-
-  const timeTaken = useMemo(() => {
-    if (!startTimeRef.current || !resultsTimeRef.current) return null;
-    return ((resultsTimeRef.current - startTimeRef.current) / 1000).toFixed(2);
-  }, [startTimeRef.current, resultsTimeRef.current]);
-
-  const navigate = useNavigate();
-
-  const {
-    data: recent,
-    load: loadRecent,
-    loading: loadingRecent,
-  } = useFetch<undefined, IConnectable[]>({
-    url: `/insights/recent?limit=20`,
-    method: "GET",
-  });
-  useEffect(() => {
-    if (!searchResults?.length && !searchQuery.length) {
-      loadRecent();
-    }
-  }, [searchResults]);
+const GlimpseView = ({
+  error,
+  result,
+  resultsMap,
+  query,
+  loading,
+  status,
+  onResultClick,
+  resultsHeader,
+}: IGlimpseViewProps) => {
+  const flatResults = useMemo(() => {
+    if (!resultsMap) return [];
+    return Object.values(resultsMap).map((node) => ({
+      id: node.id,
+      value: node,
+      score: 1,
+    })) as unknown as ISearchResult[];
+  }, [resultsMap]);
 
   return (
-    <div className={styles.searchWrapper}>
-      <SearchBar
-        ignoreRabbithole={ignoreRabbithole}
-        onSearchStart={() => {
-          startTimeRef.current = Date.now();
-          setLoading(true);
-        }}
-        onSearchEnd={() => {
-          resultsTimeRef.current = Date.now();
-          setLoading(false);
-        }}
-        onShortcuts={[{ key: "/", ctrl, meta }]}
-        placeholder={
-          isMobile ? "Search..." : `Press ${primaryKey} + / to focus...`
-        }
-      />
-      {!!searchQuery && !searchResults && !loading && (
+    <div className={styles.glimpseContainer}>
+      {resultsHeader && flatResults.length > 0 && resultsHeader(flatResults)}
+      {error && (
+        <Text c="red" size="sm">
+          {error}
+        </Text>
+      )}
+
+      {(result || loading) && (
         <>
-          <Space my="lg" />
-          <Group>
-            <Link
-              to={`/spyglass?q=${encodeURIComponent(searchQuery)}`}
-              style={{
-                textDecoration: "none",
-              }}
-            >
-              <Group c="dark.3" gap="xs">
-                <Text size="xs">
-                  <Group gap="xs">
-                    Open in Spyglass
-                    <SpyglassIcon
-                      size={12}
-                      color="var(--mantine-color-dark-3)"
-                    />
-                  </Group>
-                </Text>
-              </Group>
-            </Link>
-          </Group>
+          <GlimpseModeDisplay
+            view="compact"
+            glimpseResult={
+              result || {
+                summary: "",
+                contentMap: [],
+                connections: [],
+                summaryComplete: false,
+              }
+            }
+            resultsMap={resultsMap || {}}
+            query={query}
+            loading={loading}
+            status={status}
+            includeNavigationPrompt
+            onResultClick={onResultClick}
+          />
         </>
       )}
-      {!searchQuery &&
-        (!searchResults || !filteredResults?.length) &&
-        !loading && (
-          <>
-            <Space my="lg" />
-            <Group gap="xs">
-              {withinRabbithole && (
-                <RabbitholeIcon size={12} color="var(--mantine-color-dimmed)" />
-              )}
-              <Text c="dimmed" size="sm">
-                <Group gap="xs" component="span">
-                  Search{" "}
-                  {withinRabbithole ? (
-                    <>"{currentRabbithole?.name}"</>
-                  ) : (
-                    "anything..."
-                  )}
-                </Group>
-              </Text>
-            </Group>
-          </>
-        )}
-      {!searchQuery.length && !searchResults?.length && (
+    </div>
+  );
+};
+
+type IResultsViewProps = {
+  query: string;
+  results: ISearchResult[] | null;
+  recent: IConnectable[] | undefined;
+  loadingRecent: boolean;
+  resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
+  resultsHeader?: (results: ISearchResult[] | null) => React.ReactNode;
+  onResultClick?: (node: INode) => void;
+};
+
+const ResultsView = ({
+  query,
+  results,
+  recent,
+  loadingRecent,
+  resultActions,
+  resultsHeader,
+  onResultClick,
+}: IResultsViewProps) => {
+  return (
+    <Stack gap="xs">
+      {resultsHeader && resultsHeader(results)}
+      {!query.length && !results?.length && (
         <>
-          <Text size="sm" c="dark.4" fw="bold" my="md">
+          <Text size="sm" c="dark.4" fw="bold">
             <Group gap="xs">
               <ArrowClockwiseIcon weight="bold" />
               RECENT
@@ -185,6 +146,7 @@ export default function Search({
               </Transition>
             </Group>
           </Text>
+
           <Transition
             mounted={!!recent && recent.length > 0}
             transition="fade-up"
@@ -192,68 +154,206 @@ export default function Search({
             {(style) => {
               return (
                 <Stack style={style} gap="sm">
-                  {recent
-                    ?.map((thing, i) => {
-                      const props = getThingPropsFromConnectable(
-                        thing,
-                        {},
-                        true,
-                      );
+                  {recent?.map((r) => {
+                    const title = getNodeTitle(r);
+                    const preview = getNodeDescription(r);
 
-                      return (
-                        <PaperThing
-                          key={thing.id.toString()}
-                          {...props}
-                          draggable={true}
-                        />
-                      );
-                    })
-                    .filter((r) => !!r)}
+                    if (!title || !preview) return null;
+
+                    return (
+                      <PaperSearchResult
+                        key={r.id.toString()}
+                        node={r as INode}
+                        title={title}
+                        snippet={preview}
+                        onSelect={onResultClick}
+                      />
+                    );
+                  })}
                 </Stack>
               );
             }}
           </Transition>
         </>
       )}
-      {filteredResults && (
-        <Container w="100%" className={styles.results} p="0">
-          <Space my="lg" />
-          <Text c="dimmed" size="sm">
-            Found {filteredResults.length} result
-            {filteredResults.length === 1 ? "" : "s"}
-            {isSuperuser && !!timeTaken ? ` in ${timeTaken}s` : ""}
-            {withinRabbithole ? ` in "${currentRabbithole?.name}"` : ""}
-          </Text>
-          <Space my="sm" />
-          {!filteredResults.length && <Text size="sm">No results :(</Text>}
-          <Stack>
-            {filteredResults
-              ?.map((s, i) => {
-                const title = getNodeTitle(s.value);
-                const preview =
-                  (s.highlightText ?? getNodeDescription(s.value)) ||
-                  "No preview available.";
-                const updatedAt = formatDateTime(s.value.updatedAt);
 
-                if (!title || !preview || !updatedAt) {
-                  return null;
-                }
+      {results?.map((r) => {
+        const title = getNodeTitle(r.value);
+        const preview = r.highlightText ?? getNodeDescription(r.value);
 
-                return (
-                  <PaperSearchResult
-                    draggable={true}
-                    node={s.value}
-                    title={title || "Untitled Thing"}
-                    snippet={preview}
-                    onSelect={(node) => {
-                      navigate(`/${node.type}/${node.id.toString()}`);
-                    }}
-                  />
-                );
-              })
-              .filter((r) => !!r)}
-          </Stack>
-        </Container>
+        if (!title || !preview) return null;
+
+        const actions = resultActions
+          ? resultActions.map((f) => f(r.value))
+          : undefined;
+
+        return (
+          <PaperSearchResult
+            key={r.id.toString()}
+            node={r.value as INode}
+            title={title}
+            snippet={preview}
+            actions={actions}
+            onSelect={onResultClick}
+            draggable
+          />
+        );
+      })}
+    </Stack>
+  );
+};
+
+export default function Search({
+  resultFilter,
+  ignoreRabbithole,
+  resultActions,
+  resultsHeader,
+  onResultClick,
+  onResults,
+  onSearchLoading,
+}: ISearchProps) {
+  const os = getOS();
+  const ctrl = os !== "macos";
+  const meta = os === "macos";
+
+  const {
+    global: {
+      results: { set: setGlobalResults },
+      topResult: { set: setGlobalTopResult },
+    },
+  } = useSearch();
+
+  const {
+    searchQuery,
+    setQuery,
+    loading,
+    glimpseMode,
+    setGlimpseMode,
+    handleSearchSubmit,
+    reset,
+    loadingGlimpse,
+    errorGlimpse,
+    statusGlimpse,
+    glimpseResult,
+    resultsMap,
+    withinRabbithole,
+    filteredResults,
+    recent,
+    loadingRecent,
+  } = useSearchQuery({
+    resultFilter,
+    ignoreRabbithole,
+    onResults,
+    onLoading: onSearchLoading,
+  });
+
+  const glimpseResultsArray = useMemo(() => {
+    if (!resultsMap || Object.keys(resultsMap).length === 0) return null;
+    return Object.values(resultsMap).map((node) => ({
+      id: node.id,
+      value: node,
+      score: 1,
+    })) as unknown as ISearchResult[];
+  }, [resultsMap]);
+
+  useEffect(() => {
+    if (glimpseMode) {
+      setGlobalResults(glimpseResultsArray);
+    } else {
+      setGlobalResults(filteredResults);
+    }
+  }, [glimpseMode, glimpseResultsArray, filteredResults, setGlobalResults]);
+
+  useEffect(() => {
+    if (glimpseMode) {
+      const entryPointId = glimpseResult?.entryPoint?.resourceId || null;
+      setGlobalTopResult(entryPointId);
+    } else {
+      const firstResultId = filteredResults?.[0]?.id.toString() || null;
+      setGlobalTopResult(firstResultId);
+    }
+  }, [glimpseMode, glimpseResult, filteredResults, setGlobalTopResult]);
+
+  useShortcuts({
+    shortcuts: [
+      {
+        keys: { key: ".", meta: true },
+        run: () => setGlimpseMode(!glimpseMode),
+      },
+      {
+        keys: { meta: true, shift: true, key: "s" },
+        run: (e) => {
+          e.preventDefault();
+          setGlimpseMode(!glimpseMode);
+        },
+      },
+      {
+        keys: { ctrl: true, shift: true, key: "s" },
+        run: (e) => {
+          e.preventDefault();
+          setGlimpseMode(!glimpseMode);
+        },
+      },
+    ],
+  });
+
+  return (
+    <div className={styles.searchWrapper}>
+      <SearchBar
+        query={searchQuery || ""}
+        setQuery={setQuery}
+        loading={loading}
+        onClear={reset}
+        withinRabbithole={withinRabbithole}
+        onSearchSubmit={handleSearchSubmit}
+        onShortcuts={[{ key: "/", ctrl, meta }]}
+      />
+
+      <Stack gap="xs">
+        <PaperButton
+          withBorder
+          fullWidth
+          size="md"
+          onClick={() => setGlimpseMode(!glimpseMode)}
+        >
+          <Group gap="xs" justify="center" w={"100%"}>
+            {glimpseMode ? (
+              <SparkleIcon size={12} weight="fill" />
+            ) : (
+              <BrainIcon size={12} weight="fill" />
+            )}
+
+            {glimpseMode ? "Spyglass" : "Smart"}
+          </Group>
+        </PaperButton>
+
+        <Group gap="xs">
+          <ScopeDisplay />
+          <ScopeBuilder />
+        </Group>
+      </Stack>
+
+      {glimpseMode ? (
+        <GlimpseView
+          error={errorGlimpse}
+          result={glimpseResult}
+          resultsMap={resultsMap || {}}
+          query={searchQuery}
+          loading={loadingGlimpse}
+          status={statusGlimpse}
+          onResultClick={onResultClick}
+          resultsHeader={resultsHeader}
+        />
+      ) : (
+        <ResultsView
+          query={searchQuery}
+          results={filteredResults}
+          recent={recent}
+          loadingRecent={loadingRecent}
+          resultActions={resultActions}
+          resultsHeader={resultsHeader}
+          onResultClick={onResultClick}
+        />
       )}
     </div>
   );

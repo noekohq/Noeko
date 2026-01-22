@@ -1,21 +1,8 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import { IUser, User } from "./user";
+import { IUser } from "../../../shared/types/user";
 import { getDatabase } from "../db";
-
-export type IFeedback = {
-  id: RecordId | string;
-  content: string;
-  consentToContact: boolean;
-  status: "unaddressed" | "in-progress" | "addressed";
-  user?: IUser;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type IFeedbackForm = Omit<
-  IFeedback,
-  "id" | "createdAt" | "updatedAt" | "user"
->;
+import { IFeedback, IFeedbackForm } from "../../../shared/types/feedback";
+import { User } from "./user";
 
 export class Feedback {
   constructor() {}

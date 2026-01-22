@@ -1,5 +1,5 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { ISafeUser, IUser } from "../../../../app/database/models/user";
+import { ISafeUser, IUser } from "../../../../shared/types/user";
 import styles from "./UserCard.module.scss";
 import { formatDate } from "../../../../app/utils/formatting";
 import { formatDateTime } from "../../../utils/formatting";

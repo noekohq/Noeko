@@ -1,5 +1,5 @@
 import { DoorOpenIcon, IconProps } from "@phosphor-icons/react";
-import { ITag } from "../../../../app/database/models/tag";
+import { ITag } from "../../../../shared/types/tags";
 import { IIdea } from "../Ideas/IdeaCardTypes";
 import IdeaCard from "../Ideas/Interactions/IdeaCard";
 import {

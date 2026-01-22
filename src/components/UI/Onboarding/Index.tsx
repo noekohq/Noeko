@@ -1,5 +1,3 @@
-import { Stack } from "@mantine/core";
-import { IUserForm } from "../../../../app/database/models/user";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useState } from "react";
 import { updateUser } from "../../../utils/user";

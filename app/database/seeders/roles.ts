@@ -1,4 +1,5 @@
-import { IRole, Role } from "../models/user";
+import { Role } from "../models/user";
+import { IRole } from "../../../shared/types/user";
 
 const initialRoles: IRole[] = [
   {

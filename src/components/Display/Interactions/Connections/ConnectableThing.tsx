@@ -7,7 +7,7 @@ import { IConnectable } from "../../../../../app/services/Graph";
 import IdeaButton from "../../Ideas/Interactions/IdeaButton";
 import TaskButton from "../../Tasks/TaskButton";
 import SourceButton from "../../Sources/SourceButton";
-import { IExcerpt } from "../../../../../app/database/models/excerpt";
+import { IExcerpt } from "../../../../../shared/types/excerpt";
 import ExcerptButton from "../../Excerpts/ExcerptButton";
 
 interface IConnectableThingAction {

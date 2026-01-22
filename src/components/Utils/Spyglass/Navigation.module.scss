@@ -1,0 +1,53 @@
+/* Navigation Outline - Shared styles for Glimpse and Deep Focus navigation */
+
+.outline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+}
+
+.header {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--mantine-color-dimmed);
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.section {
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+.navItem {
+  padding: var(--mantine-spacing-xs);
+  font-size: var(--mantine-font-size-xs);
+  border-radius: var(--mantine-radius-sm);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--mantine-color-text);
+  border-left: 2px solid transparent;
+  margin-bottom: 2px;
+
+  &:hover {
+    background-color: var(--mantine-color-dark-7);
+  }
+
+  &.active {
+    background-color: var(--mantine-color-dark-8);
+    border-color: var(--mantine-primary-color-7);
+    color: var(--mantine-color-dark-1);
+  }
+}
+
+.nestedItem {
+  padding-left: var(--mantine-spacing-lg);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.badge {
+  margin-left: auto;
+}

@@ -1,6 +1,7 @@
 import { RecordId } from "surrealdb";
-import { IDBGraph, IIdea, ISafeIdea } from "../../app/database/models/ideas";
-import { ISearchResult, ISearchResultValue } from "../../app/services/Search";
+import { IIdea, ISafeIdea } from "../../shared/types/idea";
+import { IDBGraph } from "../../shared/types/constellation";
+import { ISearchResult, ISearchResultValue } from "../../shared/types/search";
 import { htmlToMarkdown } from "../../app/utils/formatting";
 import {
   IDerivedNode,
@@ -25,10 +26,11 @@ import {
   LightbulbIcon,
   TagIcon,
   TextAlignLeftIcon,
+  UserIcon,
 } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../components/Utils/Icons/Icons";
 import { ILoadedConstellation } from "../../app/services/Graph";
-import { IExcerptReference } from "../../app/database/models/excerpt";
+import { IExcerptReference } from "../../shared/types/excerpt";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
@@ -60,6 +62,8 @@ export const fromConstellation = (
     rabbitholes,
     inclusions,
     references,
+    friends,
+    shares,
   } = constellation;
 
   if (things) {
@@ -69,6 +73,16 @@ export const fromConstellation = (
       } satisfies INode;
     });
     graph.nodes.push(...connectableNodes);
+  }
+
+  if (friends) {
+    const friendNodes: INode[] = friends.map((friend) => {
+      return {
+        ...friend,
+        type: "user",
+      } satisfies INode;
+    });
+    graph.nodes.push(...friendNodes);
   }
 
   if (connections) {
@@ -85,6 +99,22 @@ export const fromConstellation = (
       };
     });
     graph.edges.push(...connectableEdges);
+  }
+
+  if (shares) {
+    const shareEdges: IEdge[] = shares.map((share) => {
+      return {
+        ...share,
+        type: "share",
+        id: share.id.toString(),
+        source: share.in.toString(),
+        target: share.out.toString(),
+        distance: GRAPH_DISTS.medium,
+        strength: 0.5,
+        visibility: "medium" as const,
+      };
+    });
+    graph.edges.push(...shareEdges);
   }
 
   if (tags) {
@@ -119,7 +149,7 @@ export const fromConstellation = (
       return {
         ...rabbithole,
         type: "rabbithole",
-      };
+      } satisfies INode;
     });
     graph.nodes.push(...rabbitholeNodes);
   }
@@ -195,6 +225,9 @@ export const getTypeFromId = (id: string): INode["type"] | undefined => {
   if (id.startsWith("tag")) {
     return "tag";
   }
+  if (id.startsWith("user")) {
+    return "user";
+  }
 };
 
 export const getNodeTitle = (node: INode): string | undefined => {
@@ -215,6 +248,9 @@ export const getNodeTitle = (node: INode): string | undefined => {
   }
   if (node.type === "excerpt") {
     return node.sourceText.slice(0, 124) + "...";
+  }
+  if (node.type === "user") {
+    return `${node.firstName} ${node.lastName}`;
   }
 };
 
@@ -256,6 +292,9 @@ export const getNodeDescription = (
   if (node.type === "excerpt") {
     return node.note.slice(0, 256);
   }
+  if (node.type === "user") {
+    return `Joined ${formatDate(node.createdAt)}`;
+  }
 };
 
 export const getNodeContent = (node: INode) => {
@@ -293,6 +332,9 @@ export const getNodeLink = (node: INode) => {
   if (node.type === "excerpt") {
     return `/sources/${typeof node.references === "string" ? node.references : (node.references as IExcerptReference).id.toString()}`;
   }
+  if (node.type === "user") {
+    return `/profile/${node.id.toString()}`;
+  }
 };
 
 export const getNodeLinkFromId = (id: string | RecordId) => {
@@ -312,6 +354,9 @@ export const getNodeLinkFromId = (id: string | RecordId) => {
   if (realId.startsWith("tag")) {
     return `/tag/${realId}`;
   }
+  if (realId.startsWith("user")) {
+    return `/profile/${realId}`;
+  }
 };
 
 export const getNodeEdgeType = (node: INode): IEdge["type"] => {
@@ -323,6 +368,9 @@ export const getNodeEdgeType = (node: INode): IEdge["type"] => {
   }
   if (node.type === "tag") {
     return "description";
+  }
+  if (node.type === "user") {
+    return "share";
   }
 };
 
@@ -340,6 +388,8 @@ export const NodeIcon = (node: INode) => {
       return TagIcon;
     case "excerpt":
       return TextAlignLeftIcon;
+    case "user":
+      return UserIcon;
     default:
       return undefined;
   }
@@ -364,6 +414,9 @@ export const TypeIcon = (type: INode["type"]) => {
   if (type === "excerpt") {
     return TextAlignLeftIcon;
   }
+  if (type === "user") {
+    return UserIcon;
+  }
 };
 
 export const IconMap: Record<INode["type"], React.FC> = {
@@ -373,6 +426,7 @@ export const IconMap: Record<INode["type"], React.FC> = {
   rabbithole: RabbitholeIcon,
   tag: TagIcon,
   excerpt: TextAlignLeftIcon,
+  user: UserIcon,
 };
 
 export const isIncluded = (

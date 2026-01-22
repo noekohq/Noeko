@@ -48,7 +48,7 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
 
   return (
     <div className={styles.organizer}>
-      <Stack>
+      <Stack gap="xs">
         {!selectionEmpty() && (
           <Group justify="space-between" align="center">
             <Text size="sm" c="dark.4" fw="bold">

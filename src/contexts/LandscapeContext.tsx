@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 import useFetch from "../hooks/useFetch";
 import { IConnectable } from "../../app/services/Graph";
-import { IIdea } from "../../app/database/models/ideas";
+import { IIdea } from "../../shared/types/idea";
 
 export type IOptimisticIdea = IIdea & { isOptimistic: true };
 

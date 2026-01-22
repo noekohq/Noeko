@@ -177,14 +177,14 @@ export function InteractionProvider({
     navigate(`idea/${optimisticIdea.id.toString()}`);
 
     promise
-      .then((realIdea) => {
+      .then((realIdea: any) => {
         removeOptimisticIdea(optimisticIdea.id.toString());
         navigate(`idea/${realIdea.id.toString()}`, { replace: true });
         if (currentRabbithole) {
           includeThing(realIdea.id.toString());
         }
       })
-      .catch((err) => {
+      .catch((err: any) => {
         removeOptimisticIdea(optimisticIdea.id.toString());
         navigate("/");
         showNotification({

@@ -13,7 +13,7 @@ import { getNodeTitle, getTypeFromId, NodeIcon } from "../../../../utils/graph";
 import { PluginKey } from "@tiptap/pm/state";
 import { debounce } from "lodash";
 import { IConnectable } from "../../../../../app/services/Graph";
-import { ISearchResultValue } from "../../../../../app/services/Search";
+import { ISearchResultValue } from "../../../../../shared/types/search";
 import {
   createIdea,
   handleCreateNewConnectedIdea,

@@ -13,7 +13,7 @@ import {
 } from "../declarations/themes";
 import { ResolveTheme } from "../themes";
 import { isDarkScheme } from "../utils/dom";
-import { IUserSettings } from "../../app/database/models/user";
+import { IUserSettings } from "../../shared/types/user";
 import { useAuth } from "./AuthContext";
 import { api } from "../server/api";
 
@@ -176,7 +176,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [headingFont]);
 
   const resolvedTheme = useCallback(
-    (): IThemeResolved => // Explicit return type
+    (): IThemeResolved =>
+      // Explicit return type
       ResolveTheme({
         override,
         scheme,

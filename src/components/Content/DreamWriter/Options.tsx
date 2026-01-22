@@ -57,7 +57,7 @@ import { SearchBar } from "../../Search/SearchBar";
 import { useSearch } from "../../../contexts/SearchContext";
 import { connect, getNodeAsIdeaOrNull } from "../../../utils/graph";
 import IdeaButton from "../../Display/Ideas/Interactions/IdeaButton";
-import { ISafeIdea } from "../../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../../shared/types/idea";
 import { useNavigate } from "react-router";
 import { SpyglassIcon } from "../../Utils/Icons/Icons";
 import useRabbithole from "../../../hooks/useRabbithole";
@@ -792,6 +792,7 @@ export function ConnectIdea({ editor }: OptionProps) {
     global: {
       results: { get: searchResults, set: setResults },
       query: { get: searchQuery, set: setQuery },
+      loading: { get: searchLoading },
     },
   } = useSearch();
 
@@ -856,7 +857,13 @@ export function ConnectIdea({ editor }: OptionProps) {
       <Popover.Dropdown style={{ overflowY: "scroll", maxHeight: "400px" }}>
         <Stack>
           <Group justify="flex-end" wrap="nowrap">
-            <SearchBar placeholder="Search for an idea to connect" />
+            <SearchBar
+              placeholder="Search for an idea to connect"
+              query={searchQuery}
+              setQuery={setQuery}
+              loading={searchLoading}
+              onClear={clearResults}
+            />
             <button onClick={close}>
               <XIcon />
             </button>

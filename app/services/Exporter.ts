@@ -1,7 +1,8 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import JSZip from "jszip";
 import Task, { ITask } from "../database/models/task";
-import { Idea, IIdea, ISafeIdea } from "../database/models/ideas";
+import { Idea } from "../database/models/ideas";
+import { ISafeIdea } from "../../shared/types/idea";
 import { htmlToMarkdown } from "../utils/formatting";
 
 interface IExportable {

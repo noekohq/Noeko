@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/crypto";
-import { ISafeUser, IUser, User } from "../database/models/user";
+import { User } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import {
   addToReq,
   getAccessTokenFromReq,

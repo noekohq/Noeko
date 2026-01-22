@@ -1,10 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import useFetch from "../../../hooks/useFetch";
 import styles from "./Think.module.scss";
-import {
-  IIdeaSortFields,
-  ISafeIdea,
-} from "../../../../app/database/models/ideas";
+import { IIdeaSortFields, ISafeIdea } from "../../../../shared/types/idea";
 import IdeaButton from "../../../components/Display/Ideas/Interactions/IdeaButton";
 import { Box, Group, Stack, Text, Loader, Center } from "@mantine/core";
 import { SearchBar } from "../../../components/Search/SearchBar";

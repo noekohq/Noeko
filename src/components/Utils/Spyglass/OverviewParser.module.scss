@@ -70,3 +70,21 @@
         background-color: var(--mantine-color-dark-8);
     }
 }
+
+/* Streaming cursor animation */
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.streamingCursor {
+    display: inline-block;
+    animation: pulse 1s ease-in-out infinite;
+    color: var(--mantine-color-primary-filled);
+    margin-left: 2px;
+}

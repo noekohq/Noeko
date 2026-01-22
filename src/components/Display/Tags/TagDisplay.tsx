@@ -7,7 +7,7 @@ import {
   Text,
   useMantineTheme,
 } from "@mantine/core";
-import { ITag } from "../../../../app/database/models/tag";
+import { ITag } from "../../../../shared/types/tags";
 import { useSettings } from "../../../contexts/SettingsContext";
 import { Link } from "react-router";
 import { Tag, TagIcon } from "@phosphor-icons/react";

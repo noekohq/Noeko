@@ -15,7 +15,7 @@ import { useState } from "react";
 import { IconProps, ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
 import { getNodeDescription } from "../../../utils/graph";
-import { ITag } from "../../../../app/database/models/tag";
+import { ITag } from "../../../../shared/types/tags";
 import { useDisclosure } from "@mantine/hooks";
 
 type ITagButtonAction = {

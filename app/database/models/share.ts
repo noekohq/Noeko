@@ -1,7 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { Connectable, IConnectable } from "../../services/Graph";
 import { getDatabase } from "../db";
-import { IFriendUser, IPublicUser } from "./user";
+import { IFriendUser, IPublicUser } from "../../../shared/types/user";
 
 export type ISharedThing = IConnectable & {
   owner: IFriendUser;

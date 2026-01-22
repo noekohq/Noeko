@@ -2,7 +2,8 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { User } from "./user";
 import { randomUUIDv7 } from "bun";
-import { Idea, IIdeaForm } from "./ideas";
+import { Idea } from "./ideas";
+import { IIdeaForm } from "../../../shared/types/idea";
 
 export type IImport = {
   id: string | RecordId;

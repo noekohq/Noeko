@@ -20,7 +20,7 @@ import {
   ArrowsOutIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { ISafeIdea } from "../../../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../../../shared/types/idea";
 import { useDisclosure } from "@mantine/hooks";
 import { useLayout } from "../../../../contexts/LayoutContext";
 import { useLandscape } from "../../../../contexts/LandscapeContext";

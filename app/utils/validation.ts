@@ -21,41 +21,43 @@ export const ConnectableTypesSchema = z.enum([
   "source",
 ]);
 
-export const ConnectableSearchQueryTagFilterSchema = z.object({
-  include: z.array(z.string()).optional(),
-  exclude: z.array(z.string()).optional(),
+export const GraphTagFilterSchema = z.object({
+  set: z.array(z.string()),
+  behavior: z.enum(["and", "or"]),
 });
 
 export const ConnectableSearchQueryVectorSettingsSchema = z.object({
   threshold: z.number().min(0).max(1).optional(),
 });
 export const DateRangeSchema = z.object({
-  after: z.iso.datetime().optional(),
-  before: z.iso.datetime().optional(),
+  after: z.string().datetime().optional(),
+  before: z.string().datetime().optional(),
 });
-export const ConnectableSearchQuerySchema = z
-  .object({
-    query: z.string(),
-  })
-  .extend(
-    z.object({
-      tables: z.array(ConnectableTypesSchema).optional(),
-      limit: z.number().int().positive().optional(),
-      rabbithole: z.union([z.string(), RecordIdSchema]).optional(),
-      tags: ConnectableSearchQueryTagFilterSchema.optional(),
-      searchType: z
-        .object({
-          fts: z.boolean(),
-          vector: z.boolean(),
-        })
-        .optional(),
-      date: z
-        .object({
-          createdAt: DateRangeSchema.optional(),
-          updatedAt: DateRangeSchema.optional(),
-          viewedAt: DateRangeSchema.optional(),
-        })
-        .optional(),
-      vectorSettings: ConnectableSearchQueryVectorSettingsSchema.optional(),
-    }).shape,
-  );
+
+export const GraphFiltersSchema = z.object({
+  rabbithole: z.string().optional(),
+  date: z
+    .object({
+      createdAt: DateRangeSchema.optional(),
+      updatedAt: DateRangeSchema.optional(),
+      viewedAt: DateRangeSchema.optional(),
+    })
+    .optional(),
+  tags: GraphTagFilterSchema.optional(),
+  showShared: z.boolean().optional(),
+  showFriends: z.boolean().optional(),
+});
+
+export const ConnectableSearchQuerySchema = z.object({
+  query: z.string(),
+  filters: GraphFiltersSchema.optional(),
+  tables: z.array(ConnectableTypesSchema).optional(),
+  limit: z.number().int().positive().optional(),
+  searchType: z
+    .object({
+      fts: z.boolean(),
+      vector: z.boolean(),
+    })
+    .optional(),
+  vectorSettings: ConnectableSearchQueryVectorSettingsSchema.optional(),
+});

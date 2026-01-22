@@ -4,13 +4,8 @@ import {
   checkToken,
   disallowDisabled,
 } from "../middleware/auth";
-import {
-  initialSettings,
-  ISafeUser,
-  IUser,
-  IUserForm,
-  User,
-} from "../database/models/user";
+import { initialSettings, User } from "../database/models/user";
+import { ISafeUser, IUser, IUserForm } from "../../shared/types/user";
 import {
   getRandomPassword,
   hashPassword,

@@ -1,8 +1,5 @@
 import { RecordId } from "surrealdb";
-import {
-  IExcerpt,
-  IPDFMetadata,
-} from "../../../../../../app/database/models/excerpt";
+import { IExcerpt, IPDFMetadata } from "../../../../../../shared/types/excerpt";
 import { useCallback, useEffect, useState } from "react";
 import { getFileDownloadLink } from "../../../../../utils/userfiles";
 import {

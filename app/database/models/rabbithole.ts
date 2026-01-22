@@ -1,38 +1,25 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import { IIdea, ISafeIdea } from "./ideas";
+import { ISafeIdea } from "../../../shared/types/idea";
 import { getDatabase } from "../db";
 import { logger } from "../../services/Logger";
-import { ITag } from "./tag";
+import { ITag } from "../../../shared/types/tags";
 import { averageEmbeddings } from "../../utils/math";
-import { Search } from "../../services/Search";
-import { ITask } from "./task";
-import { IUserFile } from "./userfile";
-import { ISource } from "./source";
 import GraphService, { IConnectable } from "../../services/Graph";
-
-export type IRabbitholeIncludes = IConnectable | (ITag & { type: "tag" });
-
-export type IRabbithole = {
-  id: string | RecordId;
-  name: string;
-  includes?: IRabbitholeIncludes[];
-  cachedCentroidEmbeddings?: number[];
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type IRabbitholeCreator = Omit<IRabbithole, "id" | "includes">;
-
-export type IRabbitholeForm = Omit<
+import {
+  IRabbithole,
   IRabbitholeCreator,
-  "createdAt" | "updatedAt"
->;
+  IRabbitholeForm,
+  IRabbitholeIncludes,
+  IRabbitholeInclusion,
+} from "../../../shared/types/rabbithole";
 
-export type IRabbitholeInclusion = {
-  id: string | RecordId;
-  in: string | RecordId;
-  out: string | RecordId;
-  createdAt: Date;
+// Re-export types for backward compatibility
+export type {
+  IRabbithole,
+  IRabbitholeCreator,
+  IRabbitholeForm,
+  IRabbitholeIncludes,
+  IRabbitholeInclusion,
 };
 
 export default class Rabbithole {

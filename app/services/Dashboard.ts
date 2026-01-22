@@ -1,5 +1,6 @@
 import { RecordId } from "surrealdb";
-import { Idea, ISafeIdea, IUserIdeaStats } from "../database/models/ideas";
+import { Idea } from "../database/models/ideas";
+import { ISafeIdea, IUserIdeaStats } from "../../shared/types/idea";
 import { AnalysisService } from "./Analysis";
 
 export type IDashboard = {

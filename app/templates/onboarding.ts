@@ -1,8 +1,8 @@
 import { Duration } from "surrealdb";
-import { IIdeaForm, ISafeIdea } from "../database/models/ideas";
+import { IIdeaForm, ISafeIdea } from "../../shared/types/idea";
 import { ITaskForm } from "../database/models/task";
-import { ISafeUser } from "../database/models/user";
-import { ITagForm } from "../database/models/tag";
+import { ISafeUser } from "../../shared/types/user";
+import { ITagForm } from "../../shared/types/tags";
 
 export const first: IIdeaForm = {
   title: "Your first idea!",
