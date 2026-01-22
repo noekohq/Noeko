@@ -21,6 +21,10 @@ type ISearchContext = {
       get: ISearchResult[] | null;
       set: (results: ISearchResult[] | null) => void;
     };
+    topResult: {
+      get: string | null;
+      set: (id: string | null) => void;
+    };
     loading: {
       get: boolean;
       set: (loading: boolean) => void;
@@ -62,6 +66,10 @@ const initialSearch: ISearchContext = {
     results: {
       get: null,
       set: (results: ISearchResult[] | null) => {},
+    },
+    topResult: {
+      get: null,
+      set: (id: string | null) => {},
     },
     loading: {
       get: false,
@@ -106,6 +114,7 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
   const [searchResults, setSearchResults] = useState<ISearchResult[] | null>(
     null,
   );
+  const [topResult, setTopResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [scope, setScope] = useState<IGraphFilters>({});
   const [scopeTags, setScopeTags] = useState<ITag[]>([]);
@@ -168,6 +177,10 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
         set: (r: ISearchResult[] | null) => {
           setSearchResults(r);
         },
+      },
+      topResult: {
+        get: topResult,
+        set: setTopResult,
       },
       loading: {
         get: loading,

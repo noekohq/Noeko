@@ -1,5 +1,5 @@
 import { getLM } from "../ai/lms/lm";
-import { LMSchema, LMSchemaType } from "../ai/lms";
+import { IModelTypes, LMProvider, LMSchema, LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
 import {
   IConnectableSearchQuery,
@@ -1509,13 +1509,14 @@ export default class Spyglass {
 
   static async getIntentConfigFromQuery(
     query: string,
+    model: IModelTypes,
     history?: ISpyglassHistoryItem[],
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
         return undefined;
       }
-      const lm = getLM().withModel("fast-accurate");
+      const lm = getLM().withModel(model);
       const prompt = this.intentPromptBuilder(query, history).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
@@ -1855,7 +1856,7 @@ export default class Spyglass {
         history,
       );
       const schema = this.glimpseModeSchema(scope);
-      const lm = getLM().withModel("fast-accurate");
+      const lm = getLM().withModel("simple");
       for await (const chunk of lm.generateJSONStream(
         overviewPrompt.get(),
         schema,
@@ -2046,7 +2047,11 @@ export default class Spyglass {
           }
         }
       } else {
-        const _intent = await this.getIntentConfigFromQuery(query, history);
+        const _intent = await this.getIntentConfigFromQuery(
+          query,
+          deepAnalysis ? "fast-accurate" : "simple",
+          history,
+        );
         if (!_intent) {
           yield { type: "error", data: "No intent found for the query." };
           return;

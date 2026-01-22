@@ -76,10 +76,10 @@
         padding: var(--mantine-spacing-xs) var(--mantine-spacing-md) 8px
             var(--mantine-spacing-md);
         gap: var(--mantine-spacing-sm);
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
 
         @include mobile {
-            flex-direction: column;
+            flex-direction: row;
             gap: var(--mantine-spacing-xs);
         }
     }

@@ -104,10 +104,11 @@ describe("GlimpseModeDisplay Component", () => {
       resultsMap: {},
       query: "Loading Query",
       loading: true,
+      status: "Initiating analysis...",
     });
-    // This expects the AntLoader to be present with "Analyzing..." text
+    // This expects the AntLoader to be present with "Initiating analysis..." text
     expect(screen.getByTestId("ant-loader")).toBeInTheDocument();
-    expect(screen.getByText("Analyzing...")).toBeInTheDocument();
+    expect(screen.getByText("Initiating analysis...")).toBeInTheDocument();
   });
 
   it("shows 'Spyglass is running' text when initial loading", () => {
@@ -116,6 +117,7 @@ describe("GlimpseModeDisplay Component", () => {
       resultsMap: {},
       query: "Running Query",
       loading: true,
+      status: "Spyglass is running...",
     });
     expect(screen.getByText(/Spyglass is running/i)).toBeInTheDocument();
   });

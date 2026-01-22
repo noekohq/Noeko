@@ -80,8 +80,6 @@ const initialGraphContext: IGraphContext = {
 const GraphContext = React.createContext(initialGraphContext);
 
 export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
-  // Use useState instead of useSet to ensure reference changes propagate correctly
-  // through the context and trigger consumer re-renders reliably.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
 

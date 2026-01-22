@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Group, Loader, Stack, Text, Button, Transition } from "@mantine/core";
 import { getOS } from "../../utils/platform";
 import styles from "./Search.module.scss";
@@ -27,6 +27,7 @@ import { SpyglassIcon } from "../Utils/Icons/Icons";
 import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
 import { getNodeDescription, getNodeTitle } from "../../utils/graph";
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
+import { useSearch } from "../../contexts/SearchContext";
 
 export type ISearchResultAction = {
   id: string;
@@ -42,6 +43,8 @@ type ISearchProps = {
   resultActions?: ((value: ISearchResultValue) => ISearchResultAction)[];
   resultsHeader?: (results: ISearchResult[] | null) => React.ReactNode;
   onResultClick?: (node: INode) => void;
+  onResults?: (results: ISearchResult[]) => void;
+  onSearchLoading?: (loading: boolean) => void;
 };
 
 type IGlimpseViewProps = {
@@ -50,6 +53,7 @@ type IGlimpseViewProps = {
   resultsMap: IResultsMap;
   query: string;
   loading: boolean;
+  status?: string | null;
   onResultClick?: (node: INode) => void;
   resultsHeader?: (results: ISearchResult[]) => React.ReactNode;
 };
@@ -60,6 +64,7 @@ const GlimpseView = ({
   resultsMap,
   query,
   loading,
+  status,
   onResultClick,
   resultsHeader,
 }: IGlimpseViewProps) => {
@@ -96,6 +101,7 @@ const GlimpseView = ({
             resultsMap={resultsMap || {}}
             query={query}
             loading={loading}
+            status={status}
             includeNavigationPrompt
             onResultClick={onResultClick}
           />
@@ -104,8 +110,6 @@ const GlimpseView = ({
     </div>
   );
 };
-
-
 
 type IResultsViewProps = {
   query: string;
@@ -205,14 +209,23 @@ export default function Search({
   resultActions,
   resultsHeader,
   onResultClick,
+  onResults,
+  onSearchLoading,
 }: ISearchProps) {
   const os = getOS();
   const ctrl = os !== "macos";
   const meta = os === "macos";
 
   const {
-    inputValue,
-    setInputValue,
+    global: {
+      results: { set: setGlobalResults },
+      topResult: { set: setGlobalTopResult },
+    },
+  } = useSearch();
+
+  const {
+    searchQuery,
+    setQuery,
     loading,
     glimpseMode,
     setGlimpseMode,
@@ -220,17 +233,46 @@ export default function Search({
     reset,
     loadingGlimpse,
     errorGlimpse,
+    statusGlimpse,
     glimpseResult,
     resultsMap,
     withinRabbithole,
-    searchQuery,
     filteredResults,
     recent,
     loadingRecent,
   } = useSearchQuery({
     resultFilter,
     ignoreRabbithole,
+    onResults,
+    onLoading: onSearchLoading,
   });
+
+  const glimpseResultsArray = useMemo(() => {
+    if (!resultsMap || Object.keys(resultsMap).length === 0) return null;
+    return Object.values(resultsMap).map((node) => ({
+      id: node.id,
+      value: node,
+      score: 1,
+    })) as unknown as ISearchResult[];
+  }, [resultsMap]);
+
+  useEffect(() => {
+    if (glimpseMode) {
+      setGlobalResults(glimpseResultsArray);
+    } else {
+      setGlobalResults(filteredResults);
+    }
+  }, [glimpseMode, glimpseResultsArray, filteredResults, setGlobalResults]);
+
+  useEffect(() => {
+    if (glimpseMode) {
+      const entryPointId = glimpseResult?.entryPoint?.resourceId || null;
+      setGlobalTopResult(entryPointId);
+    } else {
+      const firstResultId = filteredResults?.[0]?.id.toString() || null;
+      setGlobalTopResult(firstResultId);
+    }
+  }, [glimpseMode, glimpseResult, filteredResults, setGlobalTopResult]);
 
   useShortcuts({
     shortcuts: [
@@ -258,8 +300,8 @@ export default function Search({
   return (
     <div className={styles.searchWrapper}>
       <SearchBar
-        query={inputValue || ""}
-        setQuery={setInputValue}
+        query={searchQuery || ""}
+        setQuery={setQuery}
         loading={loading}
         onClear={reset}
         withinRabbithole={withinRabbithole}
@@ -298,6 +340,7 @@ export default function Search({
           resultsMap={resultsMap || {}}
           query={searchQuery}
           loading={loadingGlimpse}
+          status={statusGlimpse}
           onResultClick={onResultClick}
           resultsHeader={resultsHeader}
         />

@@ -11,6 +11,20 @@ vi.mock("../../hooks/useSearchQuery", () => ({
   default: vi.fn(),
 }));
 
+vi.mock("../../contexts/SearchContext", () => ({
+  useSearch: vi.fn(() => ({
+    global: {
+      results: { set: vi.fn() },
+      topResult: { set: vi.fn() },
+      scope: { get: {}, set: vi.fn() },
+      scopeData: {
+        tags: { get: [], remove: vi.fn() },
+      },
+      showScope: { get: false, set: vi.fn() },
+    },
+  })),
+}));
+
 vi.mock("../../utils/platform", () => ({
   getOS: vi.fn(() => "windows"),
 }));
@@ -53,8 +67,8 @@ vi.mock("../Display/Paper/PaperSearchResult/PaperSearchResult", () => ({
 }));
 
 const defaultHookState: IUseSearchQueryReturn = {
-  inputValue: "",
-  setInputValue: vi.fn(),
+  searchQuery: "",
+  setQuery: vi.fn(),
   loading: false,
   scope: {},
   setScope: vi.fn(),
@@ -64,10 +78,10 @@ const defaultHookState: IUseSearchQueryReturn = {
   reset: vi.fn(),
   loadingGlimpse: false,
   errorGlimpse: null,
+  statusGlimpse: null,
   glimpseResult: null,
   resultsMap: {},
   withinRabbithole: false,
-  searchQuery: "",
   results: null,
   filteredResults: null,
   complete: false,
@@ -165,11 +179,11 @@ describe("Search Component", () => {
     expect(screen.getByText("Smart")).toBeInTheDocument();
   });
 
-  it("updates input value when user types", () => {
-    const setInputValue = vi.fn();
+  it("updates search query when user types", () => {
+    const setQuery = vi.fn();
     (useSearchQuery as any).mockReturnValue({
       ...defaultHookState,
-      setInputValue,
+      setQuery,
     });
 
     renderComponent();
@@ -177,7 +191,7 @@ describe("Search Component", () => {
     const searchInput = screen.getByRole("textbox");
     fireEvent.change(searchInput, { target: { value: "test query" } });
 
-    expect(setInputValue).toHaveBeenCalledWith("test query");
+    expect(setQuery).toHaveBeenCalledWith("test query");
   });
 
   it("renders search results when available", () => {
