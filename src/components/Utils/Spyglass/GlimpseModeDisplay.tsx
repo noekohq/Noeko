@@ -28,6 +28,7 @@ interface IGlimpseModeDisplayProps {
   resultsMap: IResultsMap;
   query: string;
   loading?: boolean;
+  status?: string | null;
   view?: "compact" | "full";
   includeNavigationPrompt?: boolean;
   onResultClick?: (node: INode) => void;
@@ -118,6 +119,7 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
   resultsMap,
   query,
   loading = false,
+  status,
   view = "full",
   includeNavigationPrompt = false,
   onResultClick,
@@ -146,6 +148,11 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
         >
           {query}
         </Title>
+        {status && (
+          <Text size="sm" c="dimmed" mt="xs">
+            {status}
+          </Text>
+        )}
         <div className={styles.loaderContainer}>
           <LangtonsAntLoader cellSize={10} stepsPerSecond={4} />
         </div>
@@ -243,6 +250,7 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
                 }
               }}
               preventClickDefault={!!onResultClick}
+              preview={resultsMap[glimpseResult.entryPoint.resourceId].content}
             />
           ) : (
             <GridCard
@@ -265,7 +273,8 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
                 }
               }}
               preventClickDefault={!!onResultClick}
-              state="suggested"
+              state="default"
+              preview={resultsMap[glimpseResult.entryPoint.resourceId].content}
             />
           )}
         </div>
@@ -301,6 +310,7 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
                 }
               },
               preventClickDefault: !!onResultClick,
+              preview: resultsMap[resource.id.toString()].content,
             } as IThing;
           })
           .filter((thing): thing is IThing => thing !== null);

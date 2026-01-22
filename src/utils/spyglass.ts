@@ -6,6 +6,8 @@ import { INode } from "../declarations/graph";
 import { IResultsMap } from "../hooks/useSpyglassService";
 import { getNodeTitle, getTypeFromId } from "./graph";
 import { PartialGlimpseResult } from "./partialJsonParser";
+import { ISearchResult } from "../../shared/types/search";
+import { IConnectable } from "../../shared/types/constellation";
 
 // A helper type to make the grouped findings map more explicit
 type GroupedFindings = Map<string, (IFinding & { index: number })[]>;
@@ -48,6 +50,27 @@ export const extractIdsFromFindings = (findings: IFinding[]): string[] => {
     ids.add(finding.sourceId);
   }
   return Array.from(ids);
+};
+
+/**
+ * Transforms IConnectable array to ISearchResult array with binary scoring
+ * based on which results were selected by the model.
+ * 
+ * @param connectables - All search results from the search phase
+ * @param selectedIds - IDs of results that were selected/referenced by the model
+ * @returns Search results with binary scores (1 if selected, 0 if not)
+ */
+export const scoreConnectablesBySelection = (
+  connectables: IConnectable[],
+  selectedIds: string[]
+): ISearchResult[] => {
+  const selectedIdSet = new Set(selectedIds);
+  
+  return connectables.map(connectable => ({
+    id: connectable.id,
+    value: connectable,
+    score: selectedIdSet.has(connectable.id.toString()) ? 1 : 0,
+  }));
 };
 
 export const getOverviewAsMarkdown = (

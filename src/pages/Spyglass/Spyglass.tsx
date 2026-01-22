@@ -79,6 +79,7 @@ export default function Spyglass() {
     glimpseResult,
     citationMap,
     resultsMap,
+    status,
     uninitialize,
   } = useSpyglassService();
 
@@ -218,7 +219,6 @@ export default function Spyglass() {
           <div
             className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
           >
-            {/* Loading State - Shows immediately after query submission */}
             {showLoadingState && !showDeepFocusAnalysis && (
               <div className={styles.loadingState}>
                 <Title order={1} className={styles.loadingQuery}>
@@ -317,6 +317,7 @@ export default function Spyglass() {
                     resultsMap={resultsMap ?? {}}
                     query={currentQuery}
                     loading={loading}
+                    status={status}
                   />
                 </div>
               )}
@@ -354,7 +355,7 @@ export default function Spyglass() {
                   onScopeChange={setScope}
                 />
               </div>
-              {hasScope && (
+              {hasScope && !initialized && (
                 <div className={styles.scope}>
                   <Text fw="bold" c="dimmed" size="sm" mb="xs">
                     FILTERS

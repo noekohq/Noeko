@@ -56,8 +56,8 @@ export default function TopBar() {
 
   const { isDownRabbithole } = useRabbithole();
   const {
-    inputValue,
-    setInputValue,
+    searchQuery,
+    setQuery,
     handleSearchSubmit,
     results,
     loading,
@@ -94,7 +94,7 @@ export default function TopBar() {
     }
   }, [isFocused, getRandomQuip]);
 
-  const showResults = isFocused || inputValue.length > 0;
+  const showResults = isFocused || searchQuery.length > 0;
 
   const clear = () => {
     reset();
@@ -147,8 +147,8 @@ export default function TopBar() {
         >
           <input
             className={styles.input}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder={quip}
             ref={inputRef}
             onFocus={() => setIsFocused(true)}
@@ -271,7 +271,7 @@ export default function TopBar() {
                     There's nothing here!
                   </Text>
                   <Link
-                    to={`/spyglass?q=${inputValue}`}
+                    to={`/spyglass?q=${searchQuery}`}
                     style={{ textDecoration: "none" }}
                     onClick={() => {
                       setIsFocused(false);

@@ -16,12 +16,13 @@ interface IUseSearchQueryParams {
   params?: Partial<IConnectableSearchQuery>;
   ignoreRabbithole?: boolean;
   resultFilter?: (id: string) => boolean;
+  onResults?: (results: ISearchResult[]) => void;
+  onLoading?: (loading: boolean) => void;
 }
 
 export interface IUseSearchQueryReturn {
   searchQuery: string;
-  inputValue: string;
-  setInputValue: (value: string) => void;
+  setQuery: (query: string) => void;
   handleSearchSubmit: () => void;
   results: ISearchResult[] | null;
   filteredResults: ISearchResult[] | null;
@@ -33,6 +34,7 @@ export interface IUseSearchQueryReturn {
   setGlimpseMode: (mode: boolean) => void;
   loadingGlimpse: boolean;
   errorGlimpse: string | null;
+  statusGlimpse: string | null;
   glimpseResult: PartialGlimpseResult | null;
   resultsMap: IResultsMap;
   recent: IConnectable[] | undefined;
@@ -46,6 +48,7 @@ export default function useSearchQuery({
   params,
   ignoreRabbithole = false,
   resultFilter,
+  onResults,
 }: IUseSearchQueryParams): IUseSearchQueryReturn {
   const { currentRabbithole } = useRabbithole();
   const withinRabbithole = ignoreRabbithole ? false : !!currentRabbithole;
@@ -60,12 +63,7 @@ export default function useSearchQuery({
     },
   } = useSearch();
 
-  const [inputValue, setInputValue] = useState(searchQuery);
   const [complete, setComplete] = useState(false);
-
-  useEffect(() => {
-    setInputValue(searchQuery);
-  }, [searchQuery]);
 
   const {
     search: searchGlimpse,
@@ -73,6 +71,7 @@ export default function useSearchQuery({
     resultsMap,
     loading: loadingGlimpse,
     error: errorGlimpse,
+    status: statusGlimpse,
     reset: resetGlimpse,
   } = useSpyglassService();
 
@@ -86,7 +85,7 @@ export default function useSearchQuery({
     url: "/search",
     method: "POST",
     body: {
-      query: inputValue,
+      query: searchQuery,
       filters: {
         ...scope,
         rabbithole: withinRabbithole
@@ -99,9 +98,9 @@ export default function useSearchQuery({
       limit: 50,
       ...params,
     },
-    dependencies: [scope, glimpseMode, inputValue, withinRabbithole, params],
+    dependencies: [scope, glimpseMode, searchQuery, withinRabbithole, params],
     onBefore: () => {
-      if (!glimpseMode && inputValue.length > 0) {
+      if (!glimpseMode && searchQuery.length > 0) {
         setComplete(false);
         startTimeRef.current = Date.now();
         setLoading(true);
@@ -118,11 +117,10 @@ export default function useSearchQuery({
   });
 
   const handleSearchSubmit = () => {
-    setQuery(inputValue);
     if (glimpseMode) {
-      if (!inputValue) return;
+      if (!searchQuery) return;
       searchGlimpse({
-        query: inputValue,
+        query: searchQuery,
         deepAnalysis: false,
         rabbithole: scope.rabbithole,
         tags: scope.tags,
@@ -134,8 +132,16 @@ export default function useSearchQuery({
   };
 
   useEffect(() => {
-    if (!glimpseMode) resetGlimpse();
-  }, [glimpseMode]);
+    if (!glimpseMode || !searchQuery) resetGlimpse();
+  }, [glimpseMode, searchQuery]);
+
+  // Clear results when search query is empty
+  useEffect(() => {
+    if (searchQuery === "") {
+      setResults(null);
+      resetGlimpse();
+    }
+  }, [searchQuery, setResults, resetGlimpse]);
 
   const {
     data: recent,
@@ -157,13 +163,18 @@ export default function useSearchQuery({
       : searchResults;
   }, [searchResults, resultFilter]);
 
+  useEffect(() => {
+    if (complete && filteredResults) {
+      onResults?.(filteredResults);
+    }
+  }, [complete, filteredResults]);
+
   const timeTaken = useMemo(() => {
     if (!startTimeRef.current || !resultsTimeRef.current) return null;
     return ((resultsTimeRef.current - startTimeRef.current) / 1000).toFixed(2);
   }, [startTimeRef.current, resultsTimeRef.current]);
 
   const handleReset = () => {
-    setInputValue("");
     setQuery("");
     setResults(null);
     setLoading(false);
@@ -173,8 +184,7 @@ export default function useSearchQuery({
   return {
     // query state
     searchQuery,
-    inputValue,
-    setInputValue,
+    setQuery,
     // submission
     handleSearchSubmit,
     // search results
@@ -190,6 +200,7 @@ export default function useSearchQuery({
     setGlimpseMode,
     loadingGlimpse,
     errorGlimpse,
+    statusGlimpse,
     glimpseResult,
     resultsMap,
     // recent items

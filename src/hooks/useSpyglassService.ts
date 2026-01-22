@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, getAccessToken, serverLocation } from "../server/api";
 import {
   IFinding,
@@ -6,12 +6,90 @@ import {
   ISpyglassIntent,
 } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
-import { IConnectableSearchQueryTagFilter } from "../../shared/types/search";
+import { IConnectableSearchQueryTagFilter, ISearchResult } from "../../shared/types/search";
 import { RecordId } from "surrealdb";
 import {
   parsePartialGlimpseResult,
   PartialGlimpseResult,
 } from "../utils/partialJsonParser";
+import {
+  scoreConnectablesBySelection,
+  extractIdsFromFindings,
+  extractIdsFromGlimpseResult,
+} from "../utils/spyglass";
+
+// ===== Parameter Types (exported for DX) =====
+
+export type OnFullResultsLoadedParams = {
+  fullResults: IConnectable[];
+};
+
+export type OnSelectedResultsUpdateParams = {
+  fullResults: IConnectable[];
+  selectedResults: ISearchResult[];
+  mode: 'deep' | 'glimpse';
+  partial: boolean;
+};
+
+export type OnSelectedResultsCompleteParams = {
+  fullResults: IConnectable[];
+  selectedResults: ISearchResult[];
+  mode: 'deep' | 'glimpse';
+};
+
+export type OnSearchEndParams = {
+  complete: boolean;
+  error?: string | null;
+};
+
+// ===== Main Interface =====
+
+export interface ISpyglassServiceArgs {
+  // Lifecycle Callbacks
+  
+  /**
+   * Fires when a search operation begins.
+   * Use this to show loading states, clear previous results, etc.
+   */
+  onSearchStart?: () => void;
+  
+  /**
+   * Fires when search operation ends (success or failure).
+   */
+  onSearchEnd?: (params: OnSearchEndParams) => void;
+  
+  /**
+   * Fires when the search is manually reset via reset().
+   */
+  onSearchReset?: () => void;
+  
+  /**
+   * Fires whenever the search status message changes.
+   */
+  onStatusChange?: (status: string | null) => void;
+  
+  // Results Callbacks
+  
+  /**
+   * Fires when raw search results are loaded (Phase 1: Search).
+   * These are ALL results found by the search, before model filtering.
+   * Fires once, early in the process.
+   */
+  onFullResultsLoaded?: (params: OnFullResultsLoadedParams) => void;
+  
+  /**
+   * Fires progressively as the model selects results (Phase 2: Selection).
+   * Throttled to ~100ms intervals for performance.
+   * Fires multiple times including final update (partial: false).
+   */
+  onSelectedResultsUpdate?: (params: OnSelectedResultsUpdateParams) => void;
+  
+  /**
+   * Fires once when model has finished selecting results (Phase 2: Complete).
+   * This is the final, authoritative set of selected results.
+   */
+  onSelectedResultsComplete?: (params: OnSelectedResultsCompleteParams) => void;
+}
 
 export type ICitationMap = Record<
   string,
@@ -62,7 +140,7 @@ interface ISpyglassServiceReturn {
   uninitialize: () => void;
 }
 
-export function useSpyglassService(): ISpyglassServiceReturn {
+export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServiceReturn {
   const [initialized, setInitialized] = useState(false);
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(false);
@@ -83,6 +161,14 @@ export function useSpyglassService(): ISpyglassServiceReturn {
   const fullGlimpseResult = useRef<string>("");
   const intentRef = useRef<ISpyglassIntent | undefined>(undefined);
   const resultsRef = useRef<IConnectableFields[]>([]);
+  const callbacksRef = useRef<ISpyglassServiceArgs | undefined>(args);
+  const fullResultsRef = useRef<IConnectable[]>([]);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const THROTTLE_MS = 100; // Throttle streaming updates to 100ms
+
+  useEffect(() => {
+    callbacksRef.current = args;
+  }, [args]);
 
   const resetState = useCallback(() => {
     if (abortControllerRef.current) {
@@ -103,11 +189,73 @@ export function useSpyglassService(): ISpyglassServiceReturn {
     fullOverview.current = "";
     intentRef.current = undefined;
     resultsRef.current = [];
+    fullResultsRef.current = []; // Reset full results ref
+    lastUpdateTimeRef.current = 0; // Reset throttle timer
+    
+    // Fire reset callback
+    callbacksRef.current?.onSearchReset?.();
   }, []);
 
   const uninitialize = useCallback(() => {
     setInitialized(false);
   }, [resetState]);
+
+  const updateStatus = useCallback((newStatus: string | null) => {
+    setStatus(newStatus);
+    callbacksRef.current?.onStatusChange?.(newStatus);
+  }, []);
+
+  const fireSelectedResultsUpdate = useCallback((partial: boolean, forceImmediate: boolean = false) => {
+    // Throttle streaming updates (but not final update)
+    if (partial && !forceImmediate) {
+      const now = Date.now();
+      if (now - lastUpdateTimeRef.current < THROTTLE_MS) {
+        return; // Skip this update due to throttling
+      }
+      lastUpdateTimeRef.current = now;
+    }
+    
+    if (!callbacksRef.current?.onSelectedResultsUpdate && 
+        !callbacksRef.current?.onSelectedResultsComplete) {
+      return; // No callbacks registered, skip computation
+    }
+    
+    const mode: 'deep' | 'glimpse' = searchArgsRef.current?.deepAnalysis ? 'deep' : 'glimpse';
+    let selectedIds: string[] = [];
+    
+    if (mode === 'deep') {
+      // Use accumulated findings
+      selectedIds = extractIdsFromFindings(fullFindings.current);
+    } else {
+      // Parse current glimpse result
+      const currentGlimpse = parsePartialGlimpseResult(fullGlimpseResult.current);
+      if (currentGlimpse) {
+        selectedIds = extractIdsFromGlimpseResult(currentGlimpse);
+      }
+    }
+    
+    const selectedResults = scoreConnectablesBySelection(
+      fullResultsRef.current,
+      selectedIds
+    );
+    
+    const params = {
+      fullResults: fullResultsRef.current,
+      selectedResults,
+      mode,
+    };
+    
+    // Always fire update callback
+    callbacksRef.current?.onSelectedResultsUpdate?.({
+      ...params,
+      partial,
+    });
+    
+    // Also fire complete callback if this is the final update
+    if (!partial) {
+      callbacksRef.current?.onSelectedResultsComplete?.(params);
+    }
+  }, []);
 
   const search = useCallback(
     async (
@@ -132,7 +280,10 @@ export function useSpyglassService(): ISpyglassServiceReturn {
       setFindings([]);
       setOverview("");
       setGlimpseResult(null);
-      setStatus("Initiating analysis...");
+      updateStatus("Initiating analysis..."); // Use helper instead of setStatus
+
+      // Fire search start callback
+      callbacksRef.current?.onSearchStart?.();
 
       const activeHistory = providedHistory || history;
 
@@ -211,7 +362,7 @@ export function useSpyglassService(): ISpyglassServiceReturn {
 
                   switch (type) {
                     case "status":
-                      setStatus(data);
+                      updateStatus(data);
                       break;
                     case "intent_loaded":
                       setIntent(data);
@@ -220,10 +371,17 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                     case "resources_loaded":
                       setResults(data);
                       resultsRef.current = data;
-                      setStatus("Analyzing resources...");
+                      updateStatus("Analyzing resources...");
                       break;
                     case "full_results_loaded":
                       setFullResults(data);
+                      fullResultsRef.current = data; // Store for later scoring
+                      updateStatus("Analyzing resources...");
+
+                      // Fire callback for full results
+                      callbacksRef.current?.onFullResultsLoaded?.({
+                        fullResults: data,
+                      });
                       break;
                     case "findings_chunk":
                       fullFindings.current = [...fullFindings.current, ...data];
@@ -231,6 +389,9 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                         return;
                       }
                       setFindings(fullFindings.current);
+
+                      // Fire throttled streaming update for selected results
+                      fireSelectedResultsUpdate(true); // partial = true, will be throttled
                       break;
                     case "overview_chunk":
                       fullOverview.current = fullOverview.current + data;
@@ -246,12 +407,18 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                       );
                       if (partialResult) {
                         setGlimpseResult(partialResult);
+
+                        // Fire throttled streaming update for selected results
+                        fireSelectedResultsUpdate(true); // partial = true, will be throttled
                       }
                       break;
                     case "completed":
                       setLoading(false);
                       setComplete(true);
-                      setStatus("Analysis complete.");
+                      updateStatus("Analysis complete.");
+
+                      // Fire final selected results (force immediate, not throttled)
+                      fireSelectedResultsUpdate(false, true); // partial = false, force immediate
 
                       // Update history
                       const newHistoryItem: ISpyglassHistoryItem = {
@@ -267,10 +434,15 @@ export function useSpyglassService(): ISpyglassServiceReturn {
                         // Pass data directly to save to avoid stale state in closure
                         await save(true);
                       }
+
+                      // Fire search end callback
+                      callbacksRef.current?.onSearchEnd?.({ complete: true });
                       break;
                     case "error":
                       setError(data);
                       setLoading(false);
+                      updateStatus(null);
+                      callbacksRef.current?.onSearchEnd?.({ complete: false, error: data });
                       break;
                   }
                 }
@@ -283,11 +455,19 @@ export function useSpyglassService(): ISpyglassServiceReturn {
       } catch (error: any) {
         if (error.name === "AbortError") {
           console.error("Search aborted");
+          updateStatus(null);
+          callbacksRef.current?.onSearchEnd?.({ complete: false, error: "Aborted" });
           return;
         }
         console.error("Search failed:", error);
         setLoading(false);
-        setError("An error occurred during the analysis.");
+        const errorMsg = "An error occurred during the analysis.";
+        setError(errorMsg);
+        updateStatus(null);
+        callbacksRef.current?.onSearchEnd?.({ 
+          complete: false, 
+          error: errorMsg 
+        });
       }
     },
     [resetState],
