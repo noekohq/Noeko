@@ -6,9 +6,10 @@ import { generateHTML, generateJSON } from "@tiptap/html";
 import { parse } from "cookie";
 import { applyUpdate, Doc, encodeStateAsUpdate } from "yjs";
 
-import { Idea, ISafeIdea } from "../database/models/ideas";
+import { Idea } from "../database/models/ideas";
+import { ISafeIdea } from "../../shared/types/idea";
 import Task, { ITask } from "../database/models/task";
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import { extensions } from "../lib/editing/tiptap/extensions";
 import Authorization from "../services/Authorization";
 import { Connectable } from "../services/Graph";

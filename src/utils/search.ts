@@ -1,4 +1,4 @@
-import { ISearchResult } from "../../app/services/Search";
+import { ISearchResult } from "../../shared/types/search";
 import { getNodeDescription } from "./graph";
 import { matchSegments, splitBySentences } from "./processing";
 

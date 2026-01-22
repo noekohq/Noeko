@@ -23,7 +23,7 @@ import Content from "../../components/UI/Layout/Content";
 import WidgetWrapper from "../../components/Widgets/Wrapper";
 import Search from "../../components/Search/Search";
 import useFetch from "../../hooks/useFetch";
-import { IIdeaSortFields, ISafeIdea } from "../../../app/database/models/ideas";
+import { IIdeaSortFields, ISafeIdea } from "../../../shared/types/idea";
 import {
   ArticleIcon,
   ClockClockwiseIcon,

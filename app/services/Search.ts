@@ -5,158 +5,33 @@ import {
   IIdeaAsRelation,
   IIdeaDerived,
   ISafeIdea,
-} from "../database/models/ideas";
+} from "../../shared/types/idea";
 import { getEmbedder } from "../ai/embeddings/embeddings";
-import { ITag } from "../database/models/tag";
+import { ITag } from "../../shared/types/tags";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IPublicTask, ITask } from "../database/models/task";
-import { IExcerpt } from "../database/models/excerpt";
+import { IExcerpt } from "../../shared/types/excerpt";
 import { IConnectable, IConnectableTypes, ISharedConnectable } from "./Graph";
 import { ISource } from "../database/models/source";
-
-export type ISearchResultValue = IConnectable | ISharedConnectable;
-
-export type ISearchResult = {
-  id: string | RecordId;
-  score: number;
-  value: ISearchResultValue;
-  highlightText?: string;
-  debug?: {
-    semanticScore?: number;
-    ftsContentScore?: number;
-    ftsTitleScore?: number;
-    exactTitleBonus?: number;
-    source: "semantic" | "fts" | "hybrid";
-  };
-};
-
-export type IFTSIdeaResult = ISafeIdea & {
-  contentScore: number;
-  titleScore: number;
-  preview: string;
-};
-
-export type IFTSTaskResult = IPublicTask & {
-  descriptionScore: number;
-  scratchpadScore: number;
-  preview: string;
-};
-
-export type IFTSSourceResult = ISource & {
-  contentScore: number;
-  displayNameScore: number;
-  preview: string;
-};
-
-export type IFTSExcerptResult = IExcerpt & {
-  noteScore: number;
-  sourceTextScore: number;
-  preview: string;
-};
-
-export type IFTSResult =
-  | (IFTSIdeaResult & {
-      preview?: string;
-    })
-  | (IFTSTaskResult & {
-      preview?: string;
-    })
-  | (IFTSSourceResult & {
-      preview?: string;
-    })
-  | (IFTSExcerptResult & {
-      preview?: string;
-    });
-
-export type ISemanticIdeaResult = IIdea & { similarity: number };
-export type ISemanticTaskResult = ITask & { similarity: number };
-export type ISemanticSourceResult = ISource & { similarity: number };
-export type ISemanticExcerptResult = IExcerpt & { similarity: number };
-
-export type ISemanticResult =
-  | ISemanticIdeaResult
-  | ISemanticTaskResult
-  | ISemanticSourceResult
-  | ISemanticExcerptResult;
-
-export type ITagSearchResultValue = ITag;
-
-export type ITagSearchResult = {
-  id: string | RecordId;
-  value: ITagSearchResultValue;
-  score: number;
-  searchType: "fts" | "semantic" | "comprehensive";
-};
-
-export type IRabbitholeSearchResultValue = IRabbithole;
-
-export type IRabbitholeSearchResult = {
-  id: string | RecordId;
-  value: IRabbitholeSearchResultValue;
-  score: number;
-  searchType: "fts" | "semantic" | "comprehensive";
-};
-
-export type ITaskSearchResultValue = ITask;
-
-export type ITaskSearchResult = {
-  id: string | RecordId;
-  value: ITaskSearchResultValue;
-  score: number;
-  searchType: "fts" | "semantic" | "comprehensive";
-};
-
-export type IExcerptSearchResultValue = Omit<IExcerpt, "embeddings">;
-
-export type IExcerptSearchResult = {
-  score: number;
-  result: IExcerptSearchResultValue;
-  search_type?: "fts" | "semantic";
-};
-
-export type ISearchableTable =
-  | "task"
-  | "idea"
-  | "source"
-  | "excerpt"
-  | "rabbithole"
-  | "tag";
-
-export type IConnectableSearchQueryTagFilter = {
-  set: (string | RecordId)[];
-  behavior: "and" | "or";
-};
-
-export type IConnectableSearchQueryVectorSettings = {
-  effort: number | "low" | "mid" | "high";
-};
-
-export type IConnectableSearchQuery = { query: string } & Partial<{
-  tables: IConnectableTypes[];
-  limit: number;
-  rabbithole: string | RecordId;
-  tags?: IConnectableSearchQueryTagFilter;
-  searchType: {
-    fts: boolean;
-    vector: boolean;
-  };
-  date: {
-    createdAt?: {
-      after?: string;
-      before?: string;
-    };
-    updatedAt?: {
-      after?: string;
-      before?: string;
-    };
-    viewedAt?: {
-      after?: string;
-      before?: string;
-    };
-  };
-  vectorSettings?: IConnectableSearchQueryVectorSettings;
-  scope?: string[];
-}>;
+import { IPublicUser } from "../../shared/types/user";
+import {
+  IConnectableSearchQuery,
+  IFTSIdeaResult,
+  IFTSResult,
+  ISearchResult,
+  ISemanticIdeaResult,
+  ISemanticResult,
+  ITagSearchResult,
+  IRabbitholeSearchResult,
+  ISearchResultValue,
+  IFTSTaskResult,
+  IFTSSourceResult,
+  IFTSExcerptResult,
+  ISemanticTaskResult,
+  ISemanticSourceResult,
+  ISemanticExcerptResult,
+} from "../../shared/types/search";
+import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
 
 export class Search {
   public static readonly COMPREHENSIVE_WEIGHTS = {
@@ -407,7 +282,11 @@ export class Search {
         FROM idea
         WHERE
             (contentPlain @0@ $query OR title @1@ $query)
-            AND <-owns<-(user WHERE id = <record> $userId)
+            AND (
+              <-owns<-(user WHERE id = <record> $userId)
+              OR
+              (count(->shared_with[WHERE out = $userId]) > 0)
+            )
         ORDER BY
             titleScore DESC,
             contentScore DESC;
@@ -431,7 +310,11 @@ export class Search {
             WHERE
                 (description @0@ $query OR scratchpad @1@ $query)
                 AND completedAt = NULL
-                AND <-owns<-(user WHERE id = <record> $userId);
+                AND (
+                  <-owns<-(user WHERE id = <record> $userId)
+                  OR
+                  (count(->shared_with[WHERE out = $userId]) > 0)
+                );
 
             return $tasks;
           }`;
@@ -760,7 +643,10 @@ export class Search {
 
       const merged = this._fuseResults(ftsResults, semanticResults);
 
-      return merged;
+      // Enrich with owner info for shared items
+      const enriched = await this.enrichWithOwnerInfo(merged, userId);
+
+      return enriched;
     } catch (error) {
       console.error("Error searching connectables: ", userId, query, error);
       return undefined;
@@ -1080,7 +966,11 @@ export class Search {
     const threshold = options.threshold ?? this.SEMANTIC_THRESHOLD;
 
     const subqueryWhere = [
-      `<-owns<-(user WHERE id = $userId)`,
+      `(
+        <-owns<-(user WHERE id = $userId)
+        OR
+        (count(->shared_with[WHERE out = $userId]) > 0)
+      )`,
       "embeddings != NULL",
     ];
     if (options.rabbitholeId) {
@@ -1182,7 +1072,11 @@ export class Search {
         SELECT *, vector::similarity::cosine(embeddings, $embedding) AS distance
         OMIT embeddings FROM task
         WHERE
-          <-owns<-(user WHERE id = $userId) AND
+          (
+            <-owns<-(user WHERE id = $userId)
+            OR
+            (count(->shared_with[WHERE out = $userId]) > 0)
+          ) AND
           completedAt = NULL AND
           embeddings != NULL AND
           embeddings <|${limit}, ${candidates}|> $embedding
@@ -1250,6 +1144,78 @@ export class Search {
         debug: { semanticScore: excerpt.distance, source: "semantic" },
       }),
     );
+  }
+
+  // =================================================================
+  // Owner Info Enrichment
+  // =================================================================
+
+  /**
+   * Enriches search results with owner information for shared items.
+   * Only applies to ideas and tasks (items that support sharing).
+   * @param results - Search results to enrich
+   * @param userId - Current user ID
+   * @returns Results with author field added to shared items
+   */
+  private static async enrichWithOwnerInfo(
+    results: ISearchResult[],
+    userId: string | RecordId,
+  ): Promise<ISearchResult[]> {
+    try {
+      const db = await getDatabase();
+      if (!db) return results;
+
+      // Filter to only shareable types (idea, task)
+      const shareableResults = results.filter((r) => {
+        const type = r.value.type;
+        return type === "idea" || type === "task";
+      });
+
+      if (shareableResults.length === 0) return results;
+
+      const resultIds = shareableResults.map((r) => new StringRecordId(r.id));
+
+      // Fetch owner info for items NOT owned by current user
+      const [ownerInfo] = await db.query<
+        [{ id: string; author: IPublicUser }[]]
+      >(
+        `SELECT
+           id,
+           (<-owns<-user)[0].{ id, firstName, lastName, createdAt } AS author
+         FROM $ids
+         WHERE NOT (<-owns.in CONTAINS $userId)`,
+        {
+          ids: resultIds,
+          userId: new StringRecordId(userId),
+        },
+      );
+
+      if (!ownerInfo || ownerInfo.length === 0) return results;
+
+      // Create map of id -> author for quick lookup
+      const ownerMap = new Map(
+        ownerInfo.map((o) => [o.id.toString(), o.author]),
+      );
+
+      // Merge owner info into results
+      return results.map((result) => {
+        const author = ownerMap.get(result.id.toString());
+        if (author) {
+          // Transform to ISharedConnectable
+          return {
+            ...result,
+            value: {
+              ...result.value,
+              author,
+            } as ISharedConnectable,
+          };
+        }
+        return result;
+      });
+    } catch (error) {
+      console.error("Error enriching results with owner info:", error);
+      return results; // Return original results on error
+    }
   }
 
   // =================================================================
@@ -1389,7 +1355,12 @@ export class Search {
       ];
       allResults.sort((a, b) => b.score - a.score);
 
-      return allResults.slice(0, limit);
+      const topResults = allResults.slice(0, limit);
+
+      // Enrich with owner info for shared items
+      const enriched = await this.enrichWithOwnerInfo(topResults, userId);
+
+      return enriched;
     } catch (error) {
       console.error(
         `Error during comprehensive search for query "${query}":`,
@@ -1421,7 +1392,12 @@ export class Search {
       ];
       allResults.sort((a, b) => b.score - a.score);
 
-      return allResults.slice(0, options.limit ?? 50);
+      const topResults = allResults.slice(0, options.limit ?? 50);
+
+      // Enrich with owner info for shared items
+      const enriched = await this.enrichWithOwnerInfo(topResults, userId);
+
+      return enriched;
     } catch (error) {
       console.error(`Error during search by embedding:`, error);
       return [];
@@ -1477,7 +1453,9 @@ export class Search {
 
       const results = await this.searchConnectables(userId, {
         query,
-        rabbithole: options?.rabbitholeId,
+        filters: {
+          rabbithole: options?.rabbitholeId,
+        },
       });
       if (!results) {
         return [];
@@ -1783,102 +1761,6 @@ export const dropSearch = async () => {
   await Search.down();
 };
 
-export class ConnectableSearchQueryBuilder {
-  private whereClauses: string[] = [];
-  private params: Record<string, any> = {};
-
-  constructor() {}
-
-  public ownedBy(userId: string | RecordId): this {
-    this.whereClauses.push(`<-owns<-(user WHERE id = $userId)`);
-    this.params.userId = new StringRecordId(userId);
-    return this;
-  }
-
-  public withDateRange(
-    field: "createdAt" | "updatedAt" | "viewedAt",
-    options: { after?: string; before?: string },
-  ): this {
-    const { after, before } = options;
-    const afterDate = after ? new Date(after) : null;
-    const beforeDate = before ? new Date(before) : null;
-
-    if (
-      afterDate &&
-      !isNaN(afterDate.getTime()) &&
-      beforeDate &&
-      !isNaN(beforeDate.getTime())
-    ) {
-      this.whereClauses.push(
-        `<datetime> ${field} >= <datetime> $${field}After AND <datetime> ${field} <= <datetime> $${field}Before`,
-      );
-      this.params[`${field}After`] = afterDate;
-      this.params[`${field}Before`] = beforeDate;
-    } else if (afterDate && !isNaN(afterDate.getTime())) {
-      this.whereClauses.push(
-        `<datetime> ${field} >= <datetime> $${field}After`,
-      );
-      this.params[`${field}After`] = afterDate;
-    } else if (beforeDate && !isNaN(beforeDate.getTime())) {
-      this.whereClauses.push(
-        `<datetime> ${field} <= <datetime> $${field}Before`,
-      );
-      this.params[`${field}Before`] = beforeDate;
-    }
-    return this;
-  }
-
-  public inRabbithole(rabbitholeId: string | RecordId): this {
-    const clause = `
-      (
-        id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-        id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
-      )
-    `;
-    this.whereClauses.push(clause);
-    this.params.rabbitholeId = new StringRecordId(rabbitholeId);
-    return this;
-  }
-
-  public withTags(filter: IConnectableSearchQueryTagFilter): this {
-    const { set, behavior } = filter;
-    if (!set.length) {
-      return this;
-    }
-
-    switch (behavior) {
-      case "and":
-        this.whereClauses.push(
-          `array::len(<-describes<-(tag WHERE id in $tagSet) = array::len($tagSet)`,
-        );
-        break;
-      case "or":
-        this.whereClauses.push(`<-describes<-(tag WHERE id IN $tagSet)`);
-        break;
-    }
-
-    this.params.tagSet = set.map((s) => new StringRecordId(s));
-
-    return this;
-  }
-
-  public withScope(filter: IConnectableSearchQuery["scope"]): this {
-    if (!filter) {
-      return this;
-    }
-    this.whereClauses.push(`id IN $scopeSet`);
-    this.params.scopeSet = filter?.map((s) => new StringRecordId(s));
-    return this;
-  }
-
-  public build(): { where: string[]; params: Record<string, any> } {
-    return {
-      where: this.whereClauses,
-      params: this.params,
-    };
-  }
-}
-
 interface IConnectableTableSearchBuilderArgs {
   table: IConnectableTypes;
   userId: string | RecordId | StringRecordId;
@@ -1889,7 +1771,7 @@ export class ConnectableTableSearchBuilder {
   private table: IConnectableTypes;
   private searchQuery: IConnectableSearchQuery;
   private userId: StringRecordId;
-  private queryBuilder: ConnectableSearchQueryBuilder;
+  private queryBuilder: FilterQueryBuilder;
   private defaultLimit = 50;
 
   constructor({
@@ -1900,7 +1782,7 @@ export class ConnectableTableSearchBuilder {
     this.table = table;
     this.userId = new StringRecordId(userId.toString());
     this.searchQuery = searchQuery;
-    this.queryBuilder = new ConnectableSearchQueryBuilder();
+    this.queryBuilder = new FilterQueryBuilder();
 
     this.buildFilters();
   }
@@ -2066,31 +1948,11 @@ export class ConnectableTableSearchBuilder {
     const builder = this.queryBuilder;
 
     if (this.userId) {
-      builder.ownedBy(this.userId.toString());
+      builder.withAccess(this.userId.toString());
     }
 
-    const { date, tags, rabbithole, scope } = this.searchQuery;
-
-    if (date?.createdAt) {
-      builder.withDateRange("createdAt", date.createdAt);
-    }
-    if (date?.updatedAt) {
-      builder.withDateRange("updatedAt", date.updatedAt);
-    }
-    if (date?.viewedAt) {
-      builder.withDateRange("viewedAt", date.viewedAt);
-    }
-
-    if (tags) {
-      builder.withTags(tags);
-    }
-
-    if (rabbithole) {
-      builder.inRabbithole(rabbithole);
-    }
-
-    if (scope?.length) {
-      builder.withScope(scope);
+    if (this.searchQuery.filters) {
+      builder.applyFilters(this.searchQuery.filters);
     }
   }
 

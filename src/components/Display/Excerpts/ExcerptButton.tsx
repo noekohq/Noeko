@@ -20,10 +20,7 @@ import {
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import {
-  IExcerpt,
-  IExcerptReference,
-} from "../../../../app/database/models/excerpt";
+import { IExcerpt, IExcerptReference } from "../../../../shared/types/excerpt";
 import { useDisclosure } from "@mantine/hooks";
 import { useLayout } from "../../../contexts/LayoutContext";
 import ExcerptableThing from "./ExcerptableThing";

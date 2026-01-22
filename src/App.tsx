@@ -53,6 +53,7 @@ import GlobalTourManager from "./components/Utils/Onboarding/GlobalTourManager";
 import Agenda from "./pages/Agenda/Agenda";
 import All from "./pages/All/All";
 import PinsPage from "./pages/Pins/Pins";
+import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
 
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 const Onboarding = lazy(() => import("./components/UI/Onboarding/Index"));
@@ -246,7 +247,7 @@ export default function App() {
                     <Route path="history" element={<SpyglassRecords />} />
                     <Route path="records">
                       <Route index element={<SpyglassRecords />} />
-                      {/*<Route path=":spyglassId" element={<SpyglassRecord />} />*/}
+                      <Route path=":spyglassId" element={<SpyglassRecord />} />
                     </Route>
                   </Route>
                   {isSuperuser && (

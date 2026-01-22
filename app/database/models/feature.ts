@@ -1,19 +1,10 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
-
-export type IFeature = {
-  id: string | RecordId;
-  name: string;
-};
-
-export type IFeatureForm = Omit<IFeature, "id">;
-
-interface IUserViewRelation {
-  id: string | RecordId;
-  in: string | RecordId;
-  out: string | RecordId;
-  createdAt: Date;
-}
+import {
+  IFeature,
+  IFeatureForm,
+  IUserViewRelation,
+} from "../../../shared/types/feature";
 
 export default class Feature {
   private _id: StringRecordId;

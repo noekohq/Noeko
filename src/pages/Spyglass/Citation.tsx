@@ -1,7 +1,7 @@
 // Citation.tsx (or wherever you want to place this component)
 import { Text, Popover, Button } from "@mantine/core";
 import { Link } from "react-router"; // Assuming you use react-router-dom
-import { ISearchResultValue } from "../../../app/services/Search";
+import { ISearchResultValue } from "../../../shared/types/search";
 
 interface CitationProps {
   id: string;

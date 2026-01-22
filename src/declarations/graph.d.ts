@@ -1,18 +1,17 @@
 // graph.d.ts
-import {
-  IIdea,
-  IIdeaDerived,
-  ISafeIdea,
-} from "../../app/database/models/ideas";
+import { IIdea, IIdeaDerived, ISafeIdea } from "../../shared/types/idea";
 import { ITag } from "../../app/database/models/tag";
 import { IUserFile } from "../../app/database/models/userfile";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 import { ISource } from "../../app/database/models/source";
 import { IPublicTask, ITask } from "../../app/database/models/task";
-import { IExcerpt } from "../../app/database/models/excerpt";
+import { IExcerpt } from "../../shared/types/excerpt";
+import { IPublicUser } from "../../app/database/models/user";
+import { IShareAccess } from "../../app/database/models/share";
 
 export type IIdeaNode = ISafeIdea & {
   type: "idea";
+  accessLevel?: IShareAccess;
   x?: number;
   y?: number;
   vx?: number;
@@ -23,6 +22,7 @@ export type IIdeaNode = ISafeIdea & {
 
 export type ITagNode = ITag & {
   type: "tag";
+  accessLevel?: IShareAccess;
   x?: number;
   y?: number;
   vx?: number;
@@ -53,6 +53,7 @@ export type IFileNode = IUserFile & {
 
 export type IRabbitholeNode = IRabbithole & {
   type: "rabbithole";
+  accessLevel?: IShareAccess;
   x?: number;
   y?: number;
   vx?: number;
@@ -63,6 +64,7 @@ export type IRabbitholeNode = IRabbithole & {
 
 export type ISourceNode = ISource & {
   type: "source";
+  accessLevel?: IShareAccess;
   x?: number;
   y?: number;
   vx?: number;
@@ -73,6 +75,7 @@ export type ISourceNode = ISource & {
 
 export type ITaskNode = (ITask | IPublicTask) & {
   type: "task";
+  accessLevel?: IShareAccess;
   x?: number;
   y?: number;
   vx?: number;
@@ -83,6 +86,17 @@ export type ITaskNode = (ITask | IPublicTask) & {
 
 export type IExcerptNode = IExcerpt & {
   type: "excerpt";
+  accessLevel?: IShareAccess;
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+  fx?: number | null;
+  fy?: number | null;
+};
+
+export type IUserNode = IPublicUser & {
+  type: "user";
   x?: number;
   y?: number;
   vx?: number;
@@ -98,7 +112,7 @@ export interface IEdge {
   distance: number;
   strength: number;
   visibility: "high" | "medium" | "low";
-  type?: "connection" | "description" | "inclusion" | "reference";
+  type?: "connection" | "description" | "inclusion" | "reference" | "share";
 }
 
 export type INode =
@@ -107,7 +121,8 @@ export type INode =
   | IRabbitholeNode
   | ITaskNode
   | IExcerptNode
-  | ISourceNode;
+  | ISourceNode
+  | IUserNode;
 
 export type IGraph = {
   nodes: INode[];

@@ -1,16 +1,17 @@
 import { Router } from "express";
 import { checkToken, disallowDisabled } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
-import { ISafeUser, IUser, User } from "../../database/models/user";
+import { User } from "../../database/models/user";
+import { ISafeUser, IUser } from "../../../shared/types/user";
+import { Idea } from "../../database/models/ideas";
 import {
-  Idea,
   IIdea,
   IIdeaAsRelation,
   IIdeaDerivedMap,
   IIdeaForm,
   IIdeaQuery,
   ISafeIdea,
-} from "../../database/models/ideas";
+} from "../../../shared/types/idea";
 import { getLM } from "../../ai/lms/lm";
 import { first } from "../../templates/onboarding";
 import Authorization from "../../services/Authorization";

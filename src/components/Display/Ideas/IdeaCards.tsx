@@ -19,7 +19,7 @@ import { IdeaArtifactsDisplay } from "./IdeaArtifactsDisplay"; // Could be used 
 import styles from "./IdeaCards.module.scss";
 import { getNodeDescription } from "../../../utils/graph";
 import { Link, useNavigate } from "react-router";
-import { ISafeIdea } from "../../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../../shared/types/idea";
 
 export interface CompactIdeaCardProps extends IdeaCardSharedProps {
   detailsForHoverCard?: React.ReactNode;

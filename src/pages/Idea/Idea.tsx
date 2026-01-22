@@ -4,7 +4,7 @@ import styles from "./Idea.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
-import { ISafeIdea } from "../../../app/database/models/ideas";
+import { ISafeIdea } from "../../../shared/types/idea";
 import { IShareAccess } from "../../../app/database/models/share";
 import { Editor as IEditor } from "@tiptap/react";
 import {
@@ -261,6 +261,10 @@ export default function Idea() {
     "accessLevel" in ideaToRender &&
     ideaToRender.accessLevel === "viewonly";
   const canEdit = !isOptimistic && !isViewOnly;
+  const isOwner =
+    !!ideaToRender &&
+    "accessLevel" in ideaToRender &&
+    ideaToRender.accessLevel === "owner";
 
   const [title, setTitle] = useState<string>("");
 
@@ -727,12 +731,14 @@ export default function Idea() {
                   Search
                 </Group>
               </Tabs.Tab>
-              <Tabs.Tab value="access" disabled={isOptimistic}>
-                <Group gap="xs">
-                  <UserCirclePlusIcon weight="fill" size={14} />
-                  Access
-                </Group>
-              </Tabs.Tab>
+              {isOwner && (
+                <Tabs.Tab value="access" disabled={isOptimistic}>
+                  <Group gap="xs">
+                    <UserCirclePlusIcon weight="fill" size={14} />
+                    Access
+                  </Group>
+                </Tabs.Tab>
+              )}
             </Tabs.List>
             <Tabs.Panel value="search">
               <Search
@@ -747,19 +753,23 @@ export default function Idea() {
                 ]}
               />
             </Tabs.Panel>
-            <Tabs.Panel value="access">
-              {safeIdea &&
-                (isMobile ? (
-                  <Box p="md">
-                    <Text size="sm" c="dimmed" ta="center">
-                      Access controls are in the top toolbar.
-                    </Text>
-                  </Box>
-                ) : (
-                  <AccessManager connectable={{ ...safeIdea, type: "idea" }} />
-                ))}
-              {!safeIdea && <Loading size="sm" />}
-            </Tabs.Panel>
+            {isOwner && (
+              <Tabs.Panel value="access">
+                {safeIdea &&
+                  (isMobile ? (
+                    <Box p="md">
+                      <Text size="sm" c="dimmed" ta="center">
+                        Access controls are in the top toolbar.
+                      </Text>
+                    </Box>
+                  ) : (
+                    <AccessManager
+                      connectable={{ ...safeIdea, type: "idea" }}
+                    />
+                  ))}
+                {!safeIdea && <Loading size="sm" />}
+              </Tabs.Panel>
+            )}
           </Tabs>
         </RightSidebar.Open>
       </RightSidebar>

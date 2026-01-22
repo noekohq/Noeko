@@ -1,56 +1,98 @@
-@keyframes overviewIn {
-    0% {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* Editorial Layout - "Deep Dive" Aesthetic */
 
-.overviewText {
+@keyframes slideUpAndFadeIn {
+  from {
     opacity: 0;
-    animation: overviewIn 0.5s ease-in-out forwards;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes overviewUI {
-    0% {
-        opacity: 0;
-        transform: translateY(2px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-.overviewUI {
-    animation: overviewUI 0.5s ease-in-out forwards;
+.editorialWrapper {
+  width: 100%;
+  max-width: 100%;
 }
 
-.citationIcon {
-    border: 1px solid var(--mantine-color-dark-7);
-    display: inline-flex;
-    background: var(--mantine-color-dark-9);
-    box-shadow: var(--mantine-shadow-sm);
-    margin-inline: 2px;
-    border-radius: var(--mantine-radius-md);
-    align-items: center;
-    justify-content: center;
-    transition:
-        border-color 0.2s ease-in-out,
-        width 0.2s ease-in-out;
-    font-size: calc(var(--mantine-font-size-xs) * .8);
-    text-transform: none;
-    cursor: pointer;
+/* H1 Query Title - Editorial Header */
+.queryTitle {
+  font-family: var(--mantine-font-family-headings);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.2;
+  margin-bottom: var(--mantine-spacing-xs);
+  color: var(--mantine-color-text);
 
-    &.hovering {
-        border-color: var(--mantine-color-dark-4);
-    }
+  &.loading {
+    background: linear-gradient(
+      90deg,
+      var(--mantine-color-gray-6) 0%,
+      var(--mantine-color-text) 50%,
+      var(--mantine-color-dark-7) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 4s infinite linear;
+  }
+}
 
-    &:hover {
-        border-color: var(--mantine-color-dark-2);
-        background-color: var(--mantine-color-dark-8);
-    }
+/* Metadata Byline - Subtle row below title */
+.byline {
+  margin-bottom: var(--mantine-spacing-lg);
+  font-weight: 500;
+}
+
+.bylineDot {
+  color: var(--mantine-color-dark-5);
+}
+
+/* Clean Prose Body - No containers, just text on canvas */
+.proseBody {
+  line-height: 1.7;
+  font-size: var(--mantine-font-size-sm);
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+/* Actions Row - Subtle, after prose */
+.actionsRow {
+  justify-content: flex-end;
+  margin-bottom: var(--mantine-spacing-xl);
+  padding-top: var(--mantine-spacing-sm);
+  border-top: 1px solid var(--mantine-color-dark-8);
+}
+
+/* Findings Section - Bottom Grid */
+.findingsSection {
+  margin-top: var(--mantine-spacing-xl);
+  padding-top: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--mantine-color-dark-7);
+}
+
+/* Findings Grid - Using same pattern as PaperThings */
+.findingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--mantine-spacing-md);
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.findingGridItem {
+  opacity: 0;
+  animation: slideUpAndFadeIn 0.3s ease-out forwards;
 }

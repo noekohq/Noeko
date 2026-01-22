@@ -25,18 +25,36 @@ import {
 import GraphLoader from "../../components/Utils/Loading/GraphLoader";
 import { useLandscape } from "../../contexts/LandscapeContext";
 import { useGraph } from "../../contexts/GraphContext";
+import { useSearch } from "../../contexts/SearchContext";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<IGraphController>(null);
+  const [loader, setLoader] = useState<IConstellationLoader>({
+    things: true,
+    rabbitholes: true,
+    tags: true,
+    connections: true,
+    inclusions: true,
+    descriptions: true,
+    references: true,
+    friends: false,
+    shares: false,
+  });
 
   const {
     rabbitholes: {
       entered: { get: currentRabbithole },
     },
   } = useLandscape();
+
+  const {
+    global: {
+      scope: { get: scope },
+    },
+  } = useSearch();
 
   const {
     data: constellationData,
@@ -49,22 +67,41 @@ export default function GraphPage() {
     url: "/graph",
     method: "POST",
     body: {
-      loader: {
-        things: true,
-        rabbitholes: true,
-        tags: true,
-        connections: true,
-        inclusions: true,
-        descriptions: true,
-        references: true,
-      },
+      loader,
       filters: {
-        ...(!!currentRabbithole && {
-          rabbithole: currentRabbithole?.id.toString(),
-        }),
+        rabbithole:
+          currentRabbithole?.id.toString() || scope.rabbithole?.toString(),
+        tags: scope.tags
+          ? {
+              set: scope.tags.set.map((s: string) => s.toString()),
+              behavior: scope.tags.behavior,
+            }
+          : undefined,
+        date: scope.date
+          ? {
+              createdAt: scope.date.createdAt
+                ? {
+                    after: scope.date.createdAt.after || "",
+                    before: scope.date.createdAt.before || "",
+                  }
+                : undefined,
+              updatedAt: scope.date.updatedAt
+                ? {
+                    after: scope.date.updatedAt.after || "",
+                    before: scope.date.updatedAt.before || "",
+                  }
+                : undefined,
+              viewedAt: scope.date.viewedAt
+                ? {
+                    after: scope.date.viewedAt.after || "",
+                    before: scope.date.viewedAt.before || "",
+                  }
+                : undefined,
+            }
+          : undefined,
       },
     },
-    dependencies: [currentRabbithole?.id],
+    dependencies: [currentRabbithole?.id, scope, loader],
     onFinally: () => {
       graphRef.current?.reset();
     },
@@ -77,7 +114,7 @@ export default function GraphPage() {
   useEffect(() => {
     reloadConstellation();
     setFocused(currentRabbithole?.id.toString() || "");
-  }, [currentRabbithole]);
+  }, [currentRabbithole, scope]);
 
   useEffect(() => {
     setIsNavigating(false);
@@ -120,6 +157,8 @@ export default function GraphPage() {
               reloadGraph={async () => {
                 reloadConstellation();
               }}
+              loader={loader}
+              setLoader={setLoader}
             />
           )}
         </LeftSidebar.Open>

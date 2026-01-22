@@ -1,139 +1,144 @@
 import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
 import RightSidebar from "../../../components/UI/Layout/Right";
-import { ActionIcon, Grid, Group, Stack, Text } from "@mantine/core";
+import { ActionIcon, Group, Stack, Text } from "@mantine/core";
 import { useSpyglassRecord } from "../hooks/useSpyglass";
 
 import styles from "./Record.module.scss";
 import { DisplayOverview } from "../../../components/Utils/Spyglass/Overview";
 import Content from "../../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
-import { useLayout } from "../../../contexts/LayoutContext";
 import {
-  CaretLeftIcon,
+  ArrowLeftIcon,
   ClockCounterClockwiseIcon,
 } from "@phosphor-icons/react";
-import SpyglassContext from "./SpyglassContext";
 import SpyglassActions from "./SpyglassActions";
 import Nav from "../../../components/UI/Layout/Nav";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
+import GlimpseModeDisplay from "../../../components/Utils/Spyglass/GlimpseModeDisplay";
+import GlimpseNavigation from "../../../components/Utils/Spyglass/GlimpseNavigation";
+import DeepFocusNavigation from "../../../components/Utils/Spyglass/DeepFocusNavigation";
 
-// export default function SpyglassRecord() {
-//   const { spyglassId } = useParams<{ spyglassId: string }>();
+export default function SpyglassRecord() {
+  const { spyglassId } = useParams<{ spyglassId: string }>();
+  const navigate = useNavigate();
 
-//   const { spyglass, resultMap, citationMap, loading, fullResults } =
-//     useSpyglassRecord({
-//       spyglassId,
-//     });
+  const {
+    spyglass,
+    resultMap,
+    citationMap,
+    results,
+    fullResults,
+    glimpseResult,
+  } = useSpyglassRecord({
+    spyglassId,
+  });
 
-//   const overview = spyglass?.overview ?? "";
-//   const findings = spyglass?.findings ?? [];
-//   const baseQuery = spyglass?.baseQuery;
-//   const results = fullResults;
+  const overview = spyglass?.overview ?? "";
+  const findings = spyglass?.findings ?? [];
+  const baseQuery = spyglass?.baseQuery;
+  const isDeepAnalysis = spyglass?.isDeepAnalysis ?? true;
 
-//   useDocumentTitle(baseQuery ? `${baseQuery} - Noeko` : "Noeko");
+  useDocumentTitle(baseQuery ? `${baseQuery} - Noeko` : "Noeko");
 
-//   const {
-//     elements: {
-//       leftSidebar: {
-//         mode: { set: setLeftSidebar },
-//       },
-//     },
-//   } = useLayout();
-
-//   return (
-//     <PageWrapper>
-//       <LeftSidebar
-//         topLevel={{
-//           open: (
-//             <>
-//               <Link to="/spyglass/history">
-//                 <ActionIcon color="gray" radius="lg" variant="light">
-//                   <ClockCounterClockwiseIcon />
-//                 </ActionIcon>
-//               </Link>
-//             </>
-//           ),
-//         }}
-//       >
-//         <LeftSidebar.Open>
-//           {!!spyglass && citationMap && results && (
-//             <SpyglassContext citationMap={citationMap} results={results} />
-//           )}
-//         </LeftSidebar.Open>
-//         <LeftSidebar.Collapsed>
-//           <Stack>
-//             {findings && findings.length > 0 && (
-//               <ActionIcon
-//                 variant="light"
-//                 size="sm"
-//                 radius="md"
-//                 color="gray"
-//                 onClick={() => {
-//                   setLeftSidebar("open");
-//                 }}
-//               >
-//                 <Text size="xs">{findings.length}</Text>
-//               </ActionIcon>
-//             )}
-//             <Link to="/spyglass/history">
-//               <ActionIcon color="gray" variant="light" size="sm">
-//                 <ClockCounterClockwiseIcon />
-//               </ActionIcon>
-//             </Link>
-//           </Stack>
-//         </LeftSidebar.Collapsed>
-//       </LeftSidebar>
-//       <Content>
-//         <Grid>
-//           <Grid.Col>
-//             <Link
-//               to="/spyglass"
-//               style={{
-//                 textDecoration: "none",
-//               }}
-//             >
-//               <Group c="dark.3" gap="xs">
-//                 <CaretLeftIcon weight="bold" size={13} />
-//                 <Text c="dark.3" size="sm">
-//                   Back to Spyglass
-//                 </Text>
-//               </Group>
-//             </Link>
-//           </Grid.Col>
-//           <Grid.Col>
-//             <Text className={styles.queryHeader} size="lg" fs="italic">
-//               {spyglass?.baseQuery ? spyglass?.baseQuery : "No title"}
-//             </Text>
-//           </Grid.Col>
-//           {spyglass && (
-//             <Grid.Col>
-//               <div className={styles.overviewDisplay}>
-//                 <DisplayOverview
-//                   overview={overview}
-//                   findings={findings}
-//                   resultsMap={resultMap ?? {}}
-//                   citationMap={citationMap ?? {}}
-//                   query={baseQuery ?? ""}
-//                   results={results ?? []}
-//                   loading={loading}
-//                 />
-//               </div>
-//             </Grid.Col>
-//           )}
-//         </Grid>
-//       </Content>
-//       <Nav />
-//       <RightSidebar>
-//         <RightSidebar.Open>
-//           {!!spyglass && (
-//             <SpyglassActions
-//               intent={spyglass?.intent}
-//               results={results ?? []}
-//             />
-//           )}
-//         </RightSidebar.Open>
-//       </RightSidebar>
-//     </PageWrapper>
-//   );
-// }
+  return (
+    <PageWrapper>
+      <LeftSidebar
+        topLevel={{
+          open: (
+            <>
+              <Link to="/spyglass/history">
+                <ActionIcon color="gray" radius="lg" variant="light">
+                  <ClockCounterClockwiseIcon />
+                </ActionIcon>
+              </Link>
+            </>
+          ),
+        }}
+      >
+        <LeftSidebar.Open>
+          {!isDeepAnalysis &&
+          glimpseResult &&
+          glimpseResult.contentMap.length > 0 ? (
+            <GlimpseNavigation
+              glimpseResult={glimpseResult}
+              resultsMap={resultMap ?? {}}
+            />
+          ) : isDeepAnalysis && overview ? (
+            <DeepFocusNavigation
+              overview={overview}
+              findings={findings}
+              resultsMap={resultMap ?? {}}
+            />
+          ) : (
+            <Stack gap="xs">
+              <Text fw="bold" c="dimmed" size="sm">
+                No results yet
+              </Text>
+              <Text size="xs" c="dimmed">
+                Ask something to see the outline here
+              </Text>
+            </Stack>
+          )}
+        </LeftSidebar.Open>
+        <LeftSidebar.Collapsed>
+          <Stack>
+            <Link to="/spyglass/history">
+              <ActionIcon color="gray" variant="light" size="sm">
+                <ClockCounterClockwiseIcon />
+              </ActionIcon>
+            </Link>
+          </Stack>
+        </LeftSidebar.Collapsed>
+      </LeftSidebar>
+      <Content>
+        <Stack mt="md">
+          <Group justify="space-between" wrap="nowrap">
+            <Group wrap="nowrap">
+              <ActionIcon
+                onClick={() => navigate(-1)}
+                color="gray"
+                variant="subtle"
+                size="md"
+                radius="md"
+              >
+                <ArrowLeftIcon weight="bold" />
+              </ActionIcon>
+            </Group>
+          </Group>
+          <div className={styles.overviewDisplay}>
+            {isDeepAnalysis ? (
+              <DisplayOverview
+                overview={overview}
+                findings={findings}
+                resultsMap={resultMap ?? {}}
+                citationMap={citationMap ?? {}}
+                query={baseQuery ?? ""}
+                results={results ?? []}
+              />
+            ) : glimpseResult ? (
+              <GlimpseModeDisplay
+                glimpseResult={glimpseResult}
+                resultsMap={resultMap ?? {}}
+                query={baseQuery ?? ""}
+              />
+            ) : (
+              <Text c="dimmed">No content available for this record.</Text>
+            )}
+          </div>
+        </Stack>
+      </Content>
+      <Nav />
+      <RightSidebar>
+        <RightSidebar.Open>
+          {!!spyglass && (
+            <SpyglassActions
+              intent={spyglass?.intent}
+              results={fullResults ?? []}
+            />
+          )}
+        </RightSidebar.Open>
+      </RightSidebar>
+    </PageWrapper>
+  );
+}

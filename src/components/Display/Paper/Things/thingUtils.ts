@@ -1,5 +1,9 @@
 import { IRabbithole } from "../../../../../app/database/models/rabbithole";
-import { IConnectable } from "../../../../../app/services/Graph";
+import { IFriendUser } from "../../../../../shared/types/user";
+import {
+  IConnectable,
+  ISharedConnectable,
+} from "../../../../../app/services/Graph";
 import { IAcceleratorItem } from "../../../../../app/services/Recommendations";
 import { formatDateTime } from "../../../../utils/formatting";
 import {
@@ -16,9 +20,10 @@ import {
 import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
 import { IPaperThingProps } from "./PaperThing";
 import { IThing } from "./things";
+import { UserIcon } from "@phosphor-icons/react";
 
 export function getThingPropsFromConnectable(
-  connectable: IConnectable,
+  connectable: IConnectable | ISharedConnectable,
   overrides?: Partial<IPaperThingProps>,
   eager?: boolean,
 ): IThing | IPaperThingProps {
@@ -39,6 +44,21 @@ export function getThingPropsFromConnectable(
   const preview: IPaperThingProps["preview"] | undefined =
     overrides?.preview ??
     (getNodeContent(connectable) || "No content available.");
+
+  // Check if item has author field (indicates shared item)
+  let artifacts: IPaperThingProps["artifacts"] = overrides?.artifacts;
+  if (!artifacts && "author" in connectable && connectable.author) {
+    const { firstName, lastName } = connectable.author;
+    const ownerName = `${firstName} ${lastName}`.trim();
+
+    artifacts = [
+      {
+        icon: UserIcon,
+        label: `Shared by ${ownerName}`,
+      },
+    ];
+  }
+
   return {
     id,
     title,
@@ -48,6 +68,7 @@ export function getThingPropsFromConnectable(
     link,
     action,
     preview,
+    artifacts,
     createdAt: connectable.createdAt.toString(),
     updatedAt: connectable.updatedAt.toString(),
     ...overrides,
@@ -55,7 +76,7 @@ export function getThingPropsFromConnectable(
 }
 
 export function getThingsFromConnectables(
-  connectables: IConnectable[],
+  connectables: (IConnectable | ISharedConnectable)[],
   overrides?: Partial<IPaperThingProps>,
   eager?: boolean,
 ) {
@@ -108,4 +129,23 @@ export function getThingPropsFromAcceleratorItem(
     createdAt,
     updatedAt,
   } satisfies IPaperThingProps;
+}
+
+export function getThingPropsFromFriendUser(
+  user: IFriendUser,
+  overrides?: Partial<IPaperThingProps>,
+): IPaperThingProps {
+  const { id, firstName, lastName, email } = user;
+  const fullName = `${firstName} ${lastName}`.trim() || email;
+
+  return {
+    id: id.toString(),
+    title: fullName,
+    detail: email,
+    icon: UserIcon,
+    state: overrides?.state ?? "default",
+    createdAt: user.createdAt.toString(),
+    updatedAt: user.createdAt.toString(),
+    ...overrides,
+  };
 }

@@ -6,7 +6,8 @@ import {
   disallowDisabled,
 } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
-import { ISafeUser, IUser, User } from "../database/models/user";
+import { User } from "../database/models/user";
+import { ISafeUser, IUser } from "../../shared/types/user";
 import GraphService, {
   ConstellationLoader,
   IConstellationLoader,
@@ -47,6 +48,12 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const loader = req.body.loader as IConstellationLoader;
+    if (!loader) {
+      res.status(400).send({
+        message: "Constellation loader configuration is required.",
+      });
+      return;
+    }
     const filters = req.body.filters;
     const constellationLoader = new ConstellationLoader({
       userId: user.id,

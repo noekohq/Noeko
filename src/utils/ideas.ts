@@ -4,16 +4,16 @@ import {
   IIdeaForm,
   IIdeaDerived,
   ISafeIdea,
-  IIdeaShareAccess,
-} from "../../app/database/models/ideas";
-import { api } from "../server/api";
-import { IChunk } from "../../app/services/Importer";
-import { IGenerativeSummary } from "../../app/database/models/ideas/summaries";
+} from "../../shared/types/idea";
+import { IIdeaShareAccess } from "../../shared/types/share";
+import { IGenerativeSummary } from "../../shared/types/idea";
 import {
   ITag,
   ITagDescriptionRelationship,
 } from "../../app/database/models/tag";
 import { applyTagToThing } from "./tags";
+import { api } from "../server/api";
+import { IChunk } from "../../shared/types/importer";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};

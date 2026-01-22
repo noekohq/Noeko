@@ -3,14 +3,14 @@ import {
   IConnectableSearchQuery,
   ISearchResult,
   ISearchResultValue,
-} from "../../services/Search";
+} from "../../../shared/types/search";
 import { logger } from "../../services/Logger";
 import { getDatabase } from "../db";
 import { Search } from "../../services/Search";
 import { parseIncompleteJsonArray } from "../../utils/processing";
 import { max_spyglass_finding_amount } from "../../settings";
 import Spyglass, { IFinding, ISpyglassIntent } from "../../services/Spyglass";
-import { IRabbithole } from "./rabbithole";
+import { IRabbithole } from "../../../shared/types/rabbithole";
 import { IConnectable } from "../../services/Graph";
 import { User } from "./user";
 
@@ -347,7 +347,15 @@ export class SpyglassSearch {
       }
       const intent = await Spyglass.getIntentFromQuery(
         search.baseQuery,
-        search.parent,
+        search.parent
+          ? [
+              {
+                query: search.parent.baseQuery,
+                intent: search.parent.intent?.intent || "General inquiry",
+                response: search.parent.analysis?.overview || "",
+              },
+            ]
+          : undefined,
       );
       if (!intent) {
         throw new Error("Failed to load intent");

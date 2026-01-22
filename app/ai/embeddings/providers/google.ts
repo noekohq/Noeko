@@ -99,6 +99,9 @@ export default class GoogleProvider implements EmbeddingsProvider {
   }
 
   async embedContent(content: string): Promise<number[] | null> {
+    if (!content) {
+      throw new Error("Can't embed empty content!");
+    }
     try {
       const startTime = Date.now();
       const truncatedContent = await this.truncate(content);

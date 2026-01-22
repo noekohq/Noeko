@@ -13,6 +13,8 @@ import {
   Title,
   Center,
   Button,
+  Card,
+  Badge,
 } from "@mantine/core";
 import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
@@ -69,7 +71,12 @@ export default function SpyglassHistory() {
         );
         const updatedHistory = [...prevHistory, ...uniqueNewItems];
 
-        setHasMore(updatedHistory.length < total);
+        const isEnd =
+          newItems.length < pageSize ||
+          updatedHistory.length >= total ||
+          newItems.length === 0;
+
+        setHasMore(!isEnd);
         return updatedHistory;
       });
 
@@ -114,24 +121,22 @@ export default function SpyglassHistory() {
         <TopBar />
         <LeftSidebar />
         <Content>
-          <Stack>
-            <Group mb="lg">
-              <Link
-                to="/spyglass"
-                style={{
-                  textDecoration: "none",
-                }}
-              >
-                <Group c="dark.3" gap="xs">
-                  <CaretLeftIcon weight="bold" size={13} />
-                  <Text c="dark.3" size="sm">
-                    Back to Spyglass
-                  </Text>
-                </Group>
-              </Link>
+          <Stack mt="md">
+            <Group justify="space-between" wrap="nowrap">
+              <Group wrap="nowrap">
+                <ActionIcon
+                  onClick={() => navigate(-1)}
+                  color="gray"
+                  variant="subtle"
+                  size={"md"}
+                  radius={"md"}
+                >
+                  <ArrowLeftIcon weight="bold" />
+                </ActionIcon>
+              </Group>
             </Group>
             <Title order={2} mb="sm">
-              Your Spyglass History
+              Spyglass History
             </Title>
 
             {errors &&
@@ -166,7 +171,7 @@ export default function SpyglassHistory() {
                 {allHistory.map((item) => (
                   <Grid.Col span={{ base: 12 }} key={item.id.toString()}>
                     <Box
-                      p="sm"
+                      py="sm"
                       className={styles.historyItem}
                       onClick={() => navigate(`/spyglass/records/${item.id}`)}
                       style={{ cursor: "pointer" }}
@@ -183,16 +188,28 @@ export default function SpyglassHistory() {
                         align="center"
                       >
                         <Stack
-                          gap="xs"
+                          gap={4}
                           style={{ flexGrow: 1, overflow: "hidden" }}
                         >
-                          <Text lineClamp={2} fw={500}>
-                            "{item.baseQuery}"
-                          </Text>
-                          <Text size="sm" c="dimmed">
-                            {formatDateTime(item.createdAt).toLowerCase()}
+                          <Group gap="xs">
+                            <Text lineClamp={1} fw={600} size="sm">
+                              "{item.baseQuery}"
+                            </Text>
+                            {item.isDeepAnalysis ? (
+                              <Badge size="xs" variant="light" color="blue">
+                                Deep Focus
+                              </Badge>
+                            ) : (
+                              <Badge size="xs" variant="light" color="gray">
+                                Glimpse
+                              </Badge>
+                            )}
+                          </Group>
+                          <Text size="xs" c="dimmed">
+                            {formatDateTime(item.createdAt)}
                           </Text>
                         </Stack>
+                        <ArrowRightIcon color="var(--mantine-color-dimmed)" />
                       </Group>
                     </Box>
                   </Grid.Col>

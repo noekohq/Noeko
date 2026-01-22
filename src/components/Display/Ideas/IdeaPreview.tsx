@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IIdea } from "../../../../app/database/models/ideas";
+import { IIdea } from "../../../../shared/types/idea";
 import {
   Card,
   Container,

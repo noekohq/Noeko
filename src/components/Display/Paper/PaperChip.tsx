@@ -6,6 +6,7 @@ interface IPaperChipProps {
   onClick?: () => void;
   active?: boolean;
   disabled?: boolean;
+  size?: "default" | "compact";
 }
 
 export default function PaperChip({
@@ -13,12 +14,13 @@ export default function PaperChip({
   onClick,
   active = false,
   disabled = false,
+  size = "default",
 }: IPaperChipProps) {
   return (
     <button
       className={`${styles.paperChip} ${active ? styles.active : ""} ${
         disabled ? styles.disabled : ""
-      }`}
+      } ${size === "compact" ? styles.compact : ""}`}
       onClick={onClick}
       disabled={disabled}
     >

@@ -1,0 +1,88 @@
+/* FindingGroupCard Styles */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-lg);
+  background-color: var(--mantine-color-dark-8);
+  border: 1px solid var(--mantine-color-dark-6);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--mantine-color-dark-1);
+
+  &:hover {
+    border-color: var(--mantine-color-dark-4);
+    background-color: var(--mantine-color-dark-7);
+  }
+
+  /* Touch device styling */
+  @media (hover: none) {
+    &:active {
+      transform: scale(0.98);
+      background-color: var(--mantine-color-dark-7);
+    }
+  }
+}
+
+/* Highlight state for navigation scroll targeting */
+:global(.highlight-pulse) .card {
+  border-color: var(--mantine-color-blue-filled);
+  background-color: var(--mantine-color-blue-9);
+  animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    background-color: var(--mantine-color-blue-9);
+    border-color: var(--mantine-color-blue-filled);
+  }
+  50% {
+    background-color: var(--mantine-color-blue-8);
+    border-color: var(--mantine-color-blue-5);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--mantine-radius-sm);
+  background-color: var(--mantine-color-dark-7);
+  color: var(--mantine-color-dark-1);
+  flex-shrink: 0;
+}
+
+.title {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+  color: var(--mantine-color-dark-1);
+}
+
+/* Findings detail styles (used in HoverCard and Modal) */
+.findingItem {
+  padding-bottom: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-dark-6);
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.excerpt {
+  font-style: italic;
+  
+  /* Limit excerpt height in dropdown */
+  max-height: 80px;
+  overflow: hidden;
+}

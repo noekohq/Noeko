@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { checkToken, disallowDisabled } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
-import { ISafeUser } from "../../database/models/user";
+import { ISafeUser } from "../../../shared/types/user";
+import { Search } from "../../services/Search";
 import {
+  IConnectableSearchQuery,
   ISearchResult,
-  Search,
   ITagSearchResult,
-  IConnectableSearchQuery, // Added for tag search results
-} from "../../services/Search";
+} from "../../../shared/types/search";
 import { ISearchOverview } from "../../database/models/search";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
-import { ITag } from "../../database/models/tag";
+import { ITag } from "../../../shared/types/tags";
 import spyglassRouter from "./spyglass";
-import { IRabbithole } from "../../database/models/rabbithole";
+import { IRabbithole } from "../../../shared/types/rabbithole";
 import z from "zod";
 import { ConnectableSearchQuerySchema } from "../../utils/validation";
 

@@ -3,6 +3,7 @@ import {
   ArrowUpRightIcon,
   DotsSixVertical,
   DotsSixVerticalIcon,
+  IconProps,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { CopyButton, Modal, Stack, Text, Box } from "@mantine/core";
@@ -36,6 +37,7 @@ export default function GridCard({
   onClick,
   preventClickDefault,
   action,
+  artifacts,
   preview,
   draggable = false,
   footerContent,
@@ -146,6 +148,23 @@ export default function GridCard({
                 {detail}
               </Text>
             </div>
+
+            {/* Artifacts */}
+            {artifacts && artifacts.length > 0 && (
+              <div className={styles.artifacts}>
+                {artifacts.map((a, idx) => {
+                  const Icon = a.icon;
+                  return (
+                    <div key={idx} className={styles.artifact}>
+                      <Icon weight="bold" size={12} />
+                      <Text size="xs" c="dimmed">
+                        {a.label}
+                      </Text>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Additional footer content */}
             {footerContent && (

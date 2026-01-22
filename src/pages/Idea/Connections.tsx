@@ -18,7 +18,7 @@ import {
   IIdeaAsRelation,
   IIdeaConnection,
   ISafeIdea,
-} from "../../../app/database/models/ideas";
+} from "../../../shared/types/idea";
 import { Link, useNavigate } from "react-router";
 import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
 import { useEffect, useState } from "react";

@@ -2,7 +2,7 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import TourGuide from "../services/TourGuide";
 import { Router } from "express";
 import { getFromReq } from "../utils/requests";
-import { ISafeUser } from "../database/models/user";
+import { ISafeUser } from "../../shared/types/user";
 import Feature from "../database/models/feature";
 
 const router = Router();

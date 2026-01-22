@@ -2,7 +2,8 @@ import { Router } from "express";
 import { logger } from "../../services/Logger";
 import { checkToken } from "../../middleware/auth";
 import { getFromReq } from "../../utils/requests";
-import { ISafeUser, User } from "../../database/models/user";
+import { User } from "../../database/models/user";
+import { ISafeUser } from "../../../shared/types/user";
 import Spyglass from "../../services/Spyglass";
 import { SpyglassRecord } from "../../database/models/spyglass_record";
 
@@ -16,7 +17,8 @@ router.post("/stream", checkToken, async (req, res) => {
       return;
     }
 
-    const { query, scope, deepAnalysis } = req.body;
+    const { query, scope, deepAnalysis, rabbithole, tags, date, history } =
+      req.body;
     if (!query) {
       res.status(400).json({ error: "Query is required" });
       return;
@@ -32,6 +34,10 @@ router.post("/stream", checkToken, async (req, res) => {
       query,
       scope,
       deepAnalysis,
+      rabbithole,
+      tags,
+      date,
+      history,
     });
 
     req.on("close", () => {

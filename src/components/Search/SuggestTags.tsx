@@ -14,8 +14,8 @@ import {
   Badge,
   MantineSize,
 } from "@mantine/core";
-import { TagIcon } from "@phosphor-icons/react";
-import { ITag } from "../../../app/database/models/tag";
+import { TagIcon, TagSimpleIcon } from "@phosphor-icons/react";
+import { ITag } from "../../../shared/types/tags";
 import { useSettings } from "../../contexts/SettingsContext";
 import styles from "./SuggestTags.module.scss";
 
@@ -31,7 +31,7 @@ interface SuggestTagsProps {
 const SuggestTags: React.FC<SuggestTagsProps> = ({
   onSelect,
   limit,
-  placeholder = "Search or add tags...",
+  placeholder = "Search tags...",
   omit = [],
   debounce = 300,
   size = "xs",
@@ -138,40 +138,41 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
       width="100%"
     >
       <Combobox.Target>
-        <TextInput
-          ref={inputRef}
-          width={"100%"}
-          placeholder={placeholder}
-          value={searchQuery}
-          size={size}
-          radius="md"
-          classNames={{
-            input: styles.input,
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              inputRef.current?.blur();
-            }
-          }}
-          onChange={(event) => {
-            setSearchQuery(event.currentTarget.value);
-            combobox.openDropdown();
-            combobox.updateSelectedOptionIndex();
-          }}
-          onClick={() => combobox.openDropdown()}
-          onFocus={() => combobox.openDropdown()}
-          onBlur={() => {
-            setTimeout(() => {
-              if (!combobox.dropdownOpened) {
-                combobox.closeDropdown();
+        <div className={styles.inputContainer}>
+          <input
+            ref={inputRef}
+            placeholder={placeholder}
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.currentTarget.value);
+              combobox.openDropdown();
+              combobox.updateSelectedOptionIndex();
+            }}
+            onClick={() => combobox.openDropdown()}
+            onFocus={() => combobox.openDropdown()}
+            onBlur={() => {
+              setTimeout(() => {
+                if (!combobox.dropdownOpened) {
+                  combobox.closeDropdown();
+                }
+              }, 150);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                inputRef.current?.blur();
               }
-            }, 150);
-          }}
-          leftSection={<TagIcon size={16} />}
-          rightSection={rightSection}
-          rightSectionWidth={40}
-          error={errors && errors.length > 0 ? errors.join(", ") : false}
-        />
+            }}
+            autoFocus
+            className={styles.input}
+          />
+          <div className={styles.icon}>
+            {loading ? (
+              <Loader size={16} color="gray" />
+            ) : (
+              <TagIcon size={16} />
+            )}
+          </div>
+        </div>
       </Combobox.Target>
 
       <Combobox.Dropdown>

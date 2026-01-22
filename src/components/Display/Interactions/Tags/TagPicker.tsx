@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
-import { ITag } from "../../../../../app/database/models/tag";
+import { ITag } from "../../../../../shared/types/tags";
 import useFetch from "../../../../hooks/useFetch";
 import { useDisclosure } from "@mantine/hooks";
 import PaperButton from "../../Paper/PaperButton";
@@ -32,20 +32,18 @@ interface TagPickerProps {
   allowCreation?: boolean;
 }
 
-export function TagPicker({
+export function TagPickerContent({
   onSelectExisting,
   onCreateNew,
   omitIds = [],
   initialSuggestions,
   allowCreation = true,
-}: TagPickerProps) {
-  const { isMobile } = useLayout();
-
-  const [opened, { open, close, toggle }] = useDisclosure(false);
+  onClose,
+}: TagPickerProps & { onClose: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleClose = () => {
-    close();
+    onClose();
     setSearchQuery("");
   };
 
@@ -106,7 +104,7 @@ export function TagPicker({
     </Group>
   );
 
-  const paperSelectionContent = (
+  return (
     <PaperSelection
       onSearch={setSearchQuery}
       onClear={() => setSearchQuery("")}
@@ -149,6 +147,22 @@ export function TagPicker({
       )}
     </PaperSelection>
   );
+}
+
+export function TagPicker({
+  onSelectExisting,
+  onCreateNew,
+  omitIds = [],
+  initialSuggestions,
+  allowCreation = true,
+}: TagPickerProps) {
+  const { isMobile } = useLayout();
+
+  const [opened, { open, close, toggle }] = useDisclosure(false);
+
+  const handleClose = () => {
+    close();
+  };
 
   if (isMobile) {
     return (
@@ -167,7 +181,14 @@ export function TagPicker({
           {opened ? "Cancel" : "Add Tag"}
         </PaperButton>
         <PaperDrawer title="Add a tag" opened={opened} onClose={handleClose}>
-          {paperSelectionContent}
+          <TagPickerContent
+            onSelectExisting={onSelectExisting}
+            onCreateNew={onCreateNew}
+            omitIds={omitIds}
+            initialSuggestions={initialSuggestions}
+            allowCreation={allowCreation}
+            onClose={handleClose}
+          />
         </PaperDrawer>
       </>
     );
@@ -201,7 +222,16 @@ export function TagPicker({
         </div>
       </Popover.Target>
 
-      <Popover.Dropdown p="xs">{paperSelectionContent}</Popover.Dropdown>
+      <Popover.Dropdown p="xs">
+        <TagPickerContent
+          onSelectExisting={onSelectExisting}
+          onCreateNew={onCreateNew}
+          omitIds={omitIds}
+          initialSuggestions={initialSuggestions}
+          allowCreation={allowCreation}
+          onClose={handleClose}
+        />
+      </Popover.Dropdown>
     </Popover>
   );
 }

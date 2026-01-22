@@ -1,7 +1,12 @@
 import { getLM } from "../ai/lms/lm";
-import { LMSchema, LMSchemaType } from "../ai/lms";
+import { IModelTypes, LMProvider, LMSchema, LMSchemaType } from "../ai/lms";
 import { PromptBuilder } from "../ai/lms/utils";
-import { IConnectableSearchQuery, ISearchResult, Search } from "./Search";
+import {
+  IConnectableSearchQuery,
+  IConnectableSearchQueryTagFilter,
+  ISearchResult,
+} from "../../shared/types/search";
+import { Search } from "./Search";
 import { htmlToMarkdown } from "../utils/formatting";
 import { max_lm_prompt_size } from "../settings";
 import { getFormattedDateTimeToday } from "../utils/prompts/components";
@@ -12,14 +17,62 @@ import GraphService, {
   Connectable,
   IConnectable,
   IConnectableFields,
+  IGraphFilters,
 } from "./Graph";
 import { Tag } from "../database/models/tag";
 import Rabbithole from "../database/models/rabbithole";
 
-export type ISpyglassScope = {
-  connectables: string[];
-  tags: string[];
-};
+export interface IGlimpseResult {
+  summary: string;
+  entryPoint?: IGlimpseEntryPoint;
+  contentMap: IResultSet[];
+  connections?: IGlimpseConnection[];
+}
+
+export interface IGlimpseEntryPoint {
+  resourceId: string;
+  title: string;
+  reason: string;
+}
+
+export interface IGlimpseConnection {
+  theme: string;
+  resourceIds: string[];
+}
+
+export type IResultSetType =
+  | "foundational"
+  | "examples"
+  | "questions"
+  | "actions"
+  | "related";
+
+export type IResultRelationship =
+  | "answers"
+  | "expands"
+  | "contrasts"
+  | "supports"
+  | "questions";
+
+export interface IResultSet {
+  title: string;
+  description: string;
+  sectionType: IResultSetType;
+  results: IResultItem[];
+}
+
+export interface IResultItem {
+  resourceId: string;
+  title: string;
+  explanation: string;
+  relationship?: IResultRelationship;
+}
+
+export interface ISpyglassHistoryItem {
+  query: string;
+  intent: string;
+  response: string;
+}
 
 type ICitationMap = Record<string, ISearchResult>;
 
@@ -489,7 +542,7 @@ export default class Spyglass {
     }, {} as ICitationMap);
   }
 
-  static intentPromptBuilder(query: string, parent?: ISpyglassSearch | null) {
+  static intentPromptBuilder(query: string, history?: ISpyglassHistoryItem[]) {
     const builder = new PromptBuilder()
       .addText(
         "You are an intelligent user query parser called Spyglass Q, responsible for understanding the user's intent, and deciding how to respond.",
@@ -508,22 +561,23 @@ export default class Spyglass {
         `,
       );
 
-    if (parent && parent.intent) {
+    if (history && history.length > 0) {
       builder.addBlock(
-        "Follow-Up Context",
+        "Conversation History",
         `
-        Crucially, this is a follow-up to a previous query. Thus, your response should be based on the previous query and the user's intent.
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
 
-        Keep the fact that this is a follow-up question in mind, as it should influence your sources and the way you approach the query.
-
-        <previousQuery>
-        ${parent.baseQuery}
-        </previousQuery>
-
-        The user's intent was classified as:
-        <previousIntent>
-        ${parent.intent.intent}
-        </previousIntent>
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
       `,
       );
     }
@@ -709,7 +763,7 @@ export default class Spyglass {
   static overviewPromptBuilder(
     query: string,
     mode: ISpyglassMode,
-    parent?: ISpyglassSearch | null,
+    history?: ISpyglassHistoryItem[],
   ) {
     const builder = new PromptBuilder()
       // --- Insight: Adopting the more polished persona we discussed.
@@ -724,33 +778,25 @@ export default class Spyglass {
           `,
       );
 
-    if (parent) {
-      let parentContext = `
-      Crucially, this question is a follow-up to a previous query.
-      The response should flow from the previous query and response.
-      Previous Query:
-      <previousQuery>
-        ${parent.baseQuery}
-      </previousQuery>
+    if (history && history.length > 0) {
+      builder.addBlock(
+        "Conversation History",
+        `
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
 
-      `;
-
-      if (parent.analysis?.findings && parent.analysis.findings.length > 0) {
-        const findingsText = parent.analysis?.findings
-          .map((f, i) => `* Finding ${i + 1}: ${f.analysis}`)
-          .join("\n");
-        parentContext += `\n\nHere are the findings from the previous query:\n${findingsText}`;
-      }
-
-      if (parent.analysis) {
-        parentContext += `
-        And here was the final response based on those findings:
-        <previousResponse>
-          ${parent.analysis?.overview}
-        </previousResponse>
-        `;
-      }
-      builder.addBlock("Follow-Up Context", parentContext);
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
+      `,
+      );
     }
 
     builder
@@ -897,14 +943,14 @@ export default class Spyglass {
 
   static async getIntentFromQuery(
     query: string,
-    parent?: ISpyglassSearch | null,
+    history?: ISpyglassHistoryItem[],
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
         return undefined;
       }
       const lm = getLM().withModel("fast-accurate");
-      const prompt = this.intentPromptBuilder(query, parent).get();
+      const prompt = this.intentPromptBuilder(query, history).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
@@ -1244,7 +1290,7 @@ export default class Spyglass {
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
     results: ISearchResult[],
-    parent?: ISpyglassSearch,
+    history?: ISpyglassHistoryItem[],
   ): AsyncGenerator<string, void, unknown> {
     try {
       const findingsString: string[] = [];
@@ -1257,7 +1303,7 @@ export default class Spyglass {
       const overviewPrompt = this.overviewPromptBuilder(
         query,
         Modes[intent.mode],
-        parent,
+        history,
       );
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -1463,13 +1509,15 @@ export default class Spyglass {
 
   static async getIntentConfigFromQuery(
     query: string,
+    model: IModelTypes,
+    history?: ISpyglassHistoryItem[],
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
         return undefined;
       }
-      const lm = getLM().withModel("fast-accurate");
-      const prompt = this.intentPromptBuilder(query, undefined).get();
+      const lm = getLM().withModel(model);
+      const prompt = this.intentPromptBuilder(query, history).get();
       const intent = await lm.generateJSON<ISpyglassIntent>(
         prompt,
         this.intentSchema(),
@@ -1549,74 +1597,274 @@ export default class Spyglass {
     return r;
   }
 
-  public static scopedOverviewPromptBuilder(
+  public static glimpseModeSchema(resources: IConnectableFields[]): LMSchema {
+    const resourceIds = resources.map((r) => r.id.toString());
+    return {
+      type: LMSchemaType.OBJECT,
+      description:
+        "A Zettelkasten-style 'Map of Content' (MOC) that guides the user through their knowledge related to their query. Think of this as a curated navigation map, not just a list of results.",
+      properties: {
+        summary: {
+          type: LMSchemaType.STRING,
+          description:
+            "A narrative summary (2-4 sentences) that tells the story of what the user's notes reveal about their query. Frame it as a guide: 'Your notes suggest...', 'Based on your knowledge base...'. Help them understand the landscape of their own thinking.",
+        },
+        entryPoint: {
+          type: LMSchemaType.OBJECT,
+          description:
+            "The single best starting point for the user to begin exploring this topic. This is the note that provides the most foundational or comprehensive coverage.",
+          properties: {
+            resourceId: {
+              type: LMSchemaType.STRING,
+              description: "The ID of the recommended starting note.",
+              enum: resourceIds,
+            },
+            title: {
+              type: LMSchemaType.STRING,
+              description: "The title of the starting note.",
+            },
+            reason: {
+              type: LMSchemaType.STRING,
+              description:
+                "A brief explanation of why this is the best place to start (e.g., 'This note provides a comprehensive overview...', 'Start here for the foundational concepts...').",
+            },
+          },
+          required: ["resourceId", "title", "reason"],
+        },
+        contentMap: {
+          type: LMSchemaType.ARRAY,
+          description:
+            "Sections that organize the user's notes by their role in understanding the query. Each section should tell part of the story.",
+          items: {
+            type: LMSchemaType.OBJECT,
+            description: "A thematic section grouping related notes.",
+            properties: {
+              title: {
+                type: LMSchemaType.STRING,
+                description:
+                  "A clear title for this section that describes its role (e.g., 'Core Concepts', 'Practical Examples', 'Open Questions', 'Action Items').",
+              },
+              description: {
+                type: LMSchemaType.STRING,
+                description:
+                  "A sentence explaining what this section contributes to understanding the query.",
+              },
+              sectionType: {
+                type: LMSchemaType.STRING,
+                description:
+                  "The role this section plays in the Map of Content.",
+                enum: [
+                  "foundational",
+                  "examples",
+                  "questions",
+                  "actions",
+                  "related",
+                ],
+                format: "enum",
+              },
+              results: {
+                type: LMSchemaType.ARRAY,
+                description: "The notes in this section.",
+                items: {
+                  type: LMSchemaType.OBJECT,
+                  description: "A single note with its relevance explained.",
+                  properties: {
+                    resourceId: {
+                      type: LMSchemaType.STRING,
+                      description: "The unique identifier of the note.",
+                      enum: resourceIds,
+                    },
+                    title: {
+                      type: LMSchemaType.STRING,
+                      description: "The title of the note.",
+                    },
+                    explanation: {
+                      type: LMSchemaType.STRING,
+                      description:
+                        "How this note relates to the query - what insight or value does it provide?",
+                    },
+                    relationship: {
+                      type: LMSchemaType.STRING,
+                      description: "How this note relates to the user's query.",
+                      enum: [
+                        "answers",
+                        "expands",
+                        "contrasts",
+                        "supports",
+                        "questions",
+                      ],
+                      format: "enum",
+                    },
+                  },
+                  required: ["resourceId", "title", "explanation"],
+                },
+              },
+            },
+            required: ["title", "description", "sectionType", "results"],
+          },
+        },
+        connections: {
+          type: LMSchemaType.ARRAY,
+          description:
+            "Optional: Interesting thematic threads that connect multiple notes in unexpected ways. Only include if there are genuine cross-cutting themes worth highlighting.",
+          items: {
+            type: LMSchemaType.OBJECT,
+            properties: {
+              theme: {
+                type: LMSchemaType.STRING,
+                description:
+                  "A brief description of the connecting theme (e.g., 'These notes all touch on the importance of iteration').",
+              },
+              resourceIds: {
+                type: LMSchemaType.ARRAY,
+                description: "The IDs of notes that share this theme.",
+                items: {
+                  type: LMSchemaType.STRING,
+                  enum: resourceIds,
+                },
+              },
+            },
+            required: ["theme", "resourceIds"],
+          },
+        },
+      },
+      required: ["summary", "contentMap"],
+    };
+  }
+
+  public static glimpseModePromptBuilder(
     query: string,
     resources: IConnectableFields[],
+    history?: ISpyglassHistoryItem[],
   ) {
     const builder = new PromptBuilder()
       .addText(
-        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided source documents.",
+        "You are Spyglass Glimpse, a knowledge cartographer. Your role is to create a 'Map of Content' (MOC) - a navigational guide through the user's own notes and knowledge. Think like a librarian curating a reading list, or a professor designing a syllabus from the user's personal writings.",
       )
+      .addBlock(
+        "Context",
+        `
+          It is currently ${getFormattedDateTimeToday()}.
+          You are part of Noeko, a personal knowledge management app. The user has built their own knowledge base of notes, ideas, and saved sources. Your job is to help them navigate and rediscover their own thinking.
+
+          This is NOT a web search - these are the user's own words and ideas. Treat them with respect and help the user see the value in what they've already written.
+          `,
+      );
+
+    if (history && history.length > 0) {
+      builder.addBlock(
+        "Conversation History",
+        `
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
+
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
+      `,
+      );
+    }
+
+    builder
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
-        "Output and Citation Rules",
+        "The Map of Content Philosophy",
         `
-          - Your entire response MUST be valid Markdown.
-          - At the end of any sentence that uses information from a source, you MUST add a citation.
-          - Place the citation immediately after the last word of the sentence, with no space.
-          - The format is the resource's type and ID inside brackets, like \[idea:xxxx\] or \[source:yyyy\].
-          - If multiple sources support a sentence, list each citation in its own separate brackets, like \[idea:xxxx\]\[source:yyyy\].
+          A Map of Content (MOC) is a Zettelkasten concept - it's a navigational note that helps someone find their way through a topic. Your job is to create one dynamically from the user's query.
+
+          A good MOC:
+          1. **Tells a story** - It's not just a list. It guides the reader through the landscape of ideas.
+          2. **Has a clear entry point** - Where should someone start if they're new to this topic?
+          3. **Groups by purpose, not just topic** - "Foundational concepts" vs "Practical examples" vs "Open questions" vs "Action items"
+          4. **Shows relationships** - How do these notes connect to each other and to the query?
+          5. **Reveals the user's own thinking** - Help them see patterns in their own knowledge they might have missed.
           `,
       )
       .addBlock(
-        "Tone and Style",
+        "Your Task",
         `
-          - Your tone should be informative and professional.
-          - Your writing style should be clear and concise.
-          - Use active voice whenever possible.
-          - Match the user's level of formality and technical language.
-          - Talk in the second person, directly to the user
+          Create a Map of Content that answers: "What do I know about [query]?"
+
+          1. **Narrative Summary**: Write 2-4 sentences that tell the story of what the user's notes reveal. Start with "Your notes suggest..." or "Based on your knowledge base...". Make it feel like a guide, not a search result.
+
+          2. **Entry Point**: Identify the ONE best note to start with. This should be the most foundational or comprehensive note on the topic. Explain why it's the best starting point.
+
+          3. **Content Sections**: Organize notes by their ROLE in understanding the topic:
+             - "foundational" - Core concepts, definitions, foundational knowledge
+             - "examples" - Practical examples, case studies, applications
+             - "questions" - Open questions, uncertainties, areas to explore
+             - "actions" - Tasks, next steps, things to do
+             - "related" - Tangentially related notes that add context
+
+          4. **Relationships**: For each note, indicate how it relates to the query:
+             - "answers" - Directly answers the query
+             - "expands" - Adds depth or nuance
+             - "contrasts" - Offers a different perspective
+             - "supports" - Provides evidence or backing
+             - "questions" - Raises questions or challenges
+
+          5. **Connections** (optional): If you notice interesting themes that connect multiple notes in unexpected ways, highlight them.
           `,
       )
       .addBlock(
-        "Strict Rules",
+        "Quality Guidelines",
         `
-          - **ALWAYS** cite relevant sources for statements made to ensure accuracy and verifiability.
-          - **NEVER** use information that is not explicitly present in the source documents. If the documents do not contain the answer, state that you cannot answer based on the information provided.
+          - **Be selective**: Not every note needs to be included. Prioritize relevance and value.
+          - **Be honest**: If the notes don't really address the query, say so in the summary. Don't force connections.
+          - **Be helpful**: Your goal is to help the user navigate their own knowledge. Make it easy for them.
+          - **Use their words**: When explaining relevance, reference specific things from their notes.
+          - **Think in journeys**: What path would you recommend through these notes?
           `,
       )
       .addBlock("User Query", `<userQuery>${query}</userQuery>`)
       .addBlock(
-        "Source Documents",
-        "The source documents to use for your answer are as follows:\n" +
+        "The User's Notes",
+        "These are the notes from the user's knowledge base:\n\n" +
           resources
             .map((r) => {
               let content = "";
               if (r.name) content += `<title>${r.name}</title>\n`;
               if (r.content)
                 content += `<content>${htmlToMarkdown(r.content)}</content>`;
-              return `<document id=\"${r.id.toString()}\" type=\"${r.type}\">${content}</document>`;
+              return `<note id="${r.id.toString()}" type="${r.type}">\n${content}</note>`;
             })
             .join("\n\n"),
       );
     return builder;
   }
 
-  public static async *generateOverviewFromScope({
+  public static async *generateGlimpseStream({
     query,
     scope,
+    history,
   }: {
     query: string;
     scope: IConnectableFields[];
+    history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.scopedOverviewPromptBuilder(query, scope);
-      const lm = getLM().withModel("fast-accurate");
-      for await (const chunk of lm.generateStream(overviewPrompt.get())) {
+      const overviewPrompt = this.glimpseModePromptBuilder(
+        query,
+        scope,
+        history,
+      );
+      const schema = this.glimpseModeSchema(scope);
+      const lm = getLM().withModel("simple");
+      for await (const chunk of lm.generateJSONStream(
+        overviewPrompt.get(),
+        schema,
+      )) {
         yield chunk;
       }
     } catch (error) {
-      console.error("Error generating overview stream from scope:", error);
+      console.error("Error generating glimpse stream from scope:", error);
       throw error;
     }
   }
@@ -1624,11 +1872,42 @@ export default class Spyglass {
   public static overviewFromFindingsPromptBuilder(
     query: string,
     findings: IFinding[],
+    history?: ISpyglassHistoryItem[],
   ) {
     const builder = new PromptBuilder()
       .addText(
         "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
       )
+      .addBlock(
+        "Context",
+        `
+          It is currently ${getFormattedDateTimeToday()}.
+          You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
+          `,
+      );
+
+    if (history && history.length > 0) {
+      builder.addBlock(
+        "Conversation History",
+        `
+        This is a follow-up query in an ongoing conversation. Use the following history to understand the context and refer to previous topics if necessary.
+
+        ${history
+          .map((item, index) => {
+            return `
+          <historyItem index="${index + 1}">
+            <query>${item.query}</query>
+            <intent>${item.intent}</intent>
+            <response>${item.response}</response>
+          </historyItem>
+          `;
+          })
+          .join("\n")}
+      `,
+      );
+    }
+
+    builder
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
         "Output and Citation Rules",
@@ -1672,14 +1951,17 @@ export default class Spyglass {
   public static async *generateOverviewFromGeneratedFindings({
     query,
     findings,
+    history,
   }: {
     query: string;
     findings: IFinding[];
+    history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
       const overviewPrompt = this.overviewFromFindingsPromptBuilder(
         query,
         findings,
+        history,
       );
       const lm = getLM().withModel("simple").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
@@ -1699,11 +1981,19 @@ export default class Spyglass {
     query,
     scope,
     deepAnalysis,
+    rabbithole,
+    tags,
+    date,
+    history,
   }: {
     userId: string;
     query: string;
     scope?: string[];
     deepAnalysis: boolean;
+    rabbithole?: string;
+    tags?: IGraphFilters["tags"];
+    date?: IGraphFilters["date"];
+    history?: ISpyglassHistoryItem[];
   }) {
     try {
       yield { type: "status", data: "Starting analysis..." };
@@ -1757,15 +2047,26 @@ export default class Spyglass {
           }
         }
       } else {
-        const _intent = await this.getIntentConfigFromQuery(query);
+        const _intent = await this.getIntentConfigFromQuery(
+          query,
+          deepAnalysis ? "fast-accurate" : "simple",
+          history,
+        );
         if (!_intent) {
           yield { type: "error", data: "No intent found for the query." };
           return;
         }
         intent = _intent;
         const searches = intent.searches.map((s) => {
+          const existingFilters = s.filters || {};
           return {
             ...s,
+            filters: {
+              ...existingFilters,
+              rabbithole: rabbithole || existingFilters.rabbithole,
+              tags: tags || existingFilters.tags,
+              date: date || existingFilters.date,
+            },
             tables: s.tables ?? ["idea", "excerpt", "source"],
             vectorSettings: {
               effort: "high",
@@ -1783,13 +2084,13 @@ export default class Spyglass {
           return fields;
         });
         const connectables = await Promise.all(connectablePromises);
-        resources.push(...connectables);
+        resources.push(
+          ...(connectables.filter((c) => c) as IConnectableFields[]),
+        );
       }
 
       yield { type: "resources_loaded", data: resources };
       yield { type: "full_results_loaded", data: fullResults };
-
-      let fullOverview = "";
       const finalFindings: IFinding[] = [];
 
       if (deepAnalysis) {
@@ -1808,27 +2109,27 @@ export default class Spyglass {
           Spyglass.generateOverviewFromGeneratedFindings({
             query,
             findings: finalFindings,
+            history,
           });
         for await (const chunk of overviewGenerator) {
-          fullOverview += chunk;
           yield { type: "overview_chunk", data: chunk };
         }
       } else {
-        yield { type: "status", data: "Generating overview from resources..." };
-        const overviewGenerator = Spyglass.generateOverviewFromScope({
+        yield { type: "status", data: "Generating glimpse mode map..." };
+        const glimpseGenerator = Spyglass.generateGlimpseStream({
           query,
           scope: resources,
+          history,
         });
-        for await (const chunk of overviewGenerator) {
-          fullOverview += chunk;
-          yield { type: "overview_chunk", data: chunk };
+        for await (const chunk of glimpseGenerator) {
+          yield { type: "glimpse_chunk", data: chunk };
         }
       }
 
       yield {
         type: "completed",
         data: {
-          overview: fullOverview,
+          overview: "",
           findings: finalFindings,
           results: resources,
         },

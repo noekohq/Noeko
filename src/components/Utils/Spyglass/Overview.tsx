@@ -1,41 +1,26 @@
-import { Link, useNavigate } from "react-router";
-import { memo, useCallback, useState } from "react";
+import { useNavigate } from "react-router";
+import { memo, useCallback, useMemo } from "react";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
-import { useLayout } from "../../../contexts/LayoutContext";
 import OverviewParser from "./OverviewParser";
 import {
-  Accordion,
   ActionIcon,
-  Badge,
-  Blockquote,
-  Box,
   CopyButton,
   Group,
-  Stack,
   Text,
+  Title,
 } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import {
-  ArrowRightIcon,
   CheckIcon,
   CopyIcon,
   DownloadSimpleIcon,
-  MagnifyingGlassIcon,
-  TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { markdownToHtml } from "../../../utils/formatting";
 import { IFinding } from "../../../../app/services/Spyglass";
-import { getNodeTitle, getTypeFromId } from "../../../utils/graph";
-import { INode } from "../../../declarations/graph";
 import { getOverviewAsMarkdown } from "../../../utils/spyglass";
 import { downloadTextAsFile } from "../../../utils/files";
-import {
-  IConnectable,
-  IConnectableFields,
-} from "../../../../app/services/Graph";
-import { Tabs } from "../../UI/Layout/Utils/Tabs";
+import { IConnectableFields } from "../../../../app/services/Graph";
 import { ICitationMap, IResultsMap } from "../../../hooks/useSpyglassService";
-import { Pillbar } from "../../UI/Layout/Utils/Pillbar";
+import FindingGroupCard from "./FindingGroupCard";
 
 export type IDisplayOverview = {
   overview: string;
@@ -44,7 +29,7 @@ export type IDisplayOverview = {
   citationMap: ICitationMap;
   query: string;
   results: IConnectableFields[];
-  loading: boolean;
+  loading?: boolean;
 };
 
 export function DisplayOverviewComponent({
@@ -54,7 +39,7 @@ export function DisplayOverviewComponent({
   citationMap,
   query,
   results,
-  loading,
+  loading = false,
 }: IDisplayOverview) {
   const navigate = useNavigate();
 
@@ -72,28 +57,6 @@ export function DisplayOverviewComponent({
     [navigate],
   );
 
-  const [showFindings, setShowFindings] = useState(false);
-
-  const {
-    elements: {
-      rightSidebar: {
-        mode: { toggle: toggleRightSidebar, get: rightSidebarMode },
-      },
-    },
-  } = useLayout();
-
-  const findingsBySource = findings.reduce((acc, current, findingNumber) => {
-    if (acc.has(current.sourceId)) {
-      acc.get(current.sourceId)?.push({
-        ...current,
-        index: findingNumber,
-      });
-    } else {
-      acc.set(current.sourceId, [{ ...current, index: findingNumber }]);
-    }
-    return acc;
-  }, new Map<string, (IFinding & { index: number })[]>([]));
-
   const handleDownloadAsMarkdown = () => {
     const content = getOverviewAsMarkdown(overview, findings, resultsMap);
     return downloadTextAsFile(content, {
@@ -103,166 +66,124 @@ export function DisplayOverviewComponent({
     });
   };
 
-  return (
-    <div>
-      <Pillbar defaultValue="overview">
-        <Pillbar.List>
-          <Pillbar.Tab value="overview" leftSection={<TextAlignLeftIcon />}>
-            Overview
-          </Pillbar.Tab>
-          <Pillbar.Tab value="findings" leftSection={<MagnifyingGlassIcon />}>
-            Findings
-          </Pillbar.Tab>
-        </Pillbar.List>
-        <Pillbar.Panel value="overview">
-          <Group justify="space-between" className={styles.overviewUI}>
-            <Group justify="end">
-              {!loading && (
-                <Group>
-                  <ActionIcon
-                    variant="light"
-                    size="md"
-                    radius="md"
-                    color="gray"
-                    onClick={() => {
-                      handleDownloadAsMarkdown();
-                    }}
-                    aria-label="Download as markdown"
-                  >
-                    <DownloadSimpleIcon />
-                  </ActionIcon>
-                  <CopyButton
-                    value={getOverviewAsMarkdown(
-                      overview,
-                      findings,
-                      resultsMap,
-                    )}
-                  >
-                    {({ copied, copy }) => {
-                      return (
-                        <ActionIcon
-                          variant="light"
-                          size="md"
-                          radius="md"
-                          color="gray"
-                          onClick={copy}
-                          aria-label="Copy as markdown"
-                        >
-                          {!copied ? <CopyIcon /> : <CheckIcon />}
-                        </ActionIcon>
-                      );
-                    }}
-                  </CopyButton>
-                </Group>
-              )}
-            </Group>
-          </Group>
-          <OverviewParser
-            markdown={overview}
-            resultsMap={resultsMap}
-            findings={findings}
-          />
-        </Pillbar.Panel>
-        <Pillbar.Panel value="findings">
-          {!findings.length && (
-            <Text c="dimmed" size="sm">
-              No findings for this query.
-            </Text>
-          )}
-          <Accordion radius="lg" variant="contained">
-            {Array.from(findingsBySource.entries())
-              .filter(([sourceId]) => {
-                return sourceId in resultsMap;
-              })
-              .map(([sourceId, findings], index) => {
-                const resource = resultsMap[sourceId];
-                const title = resource.name;
+  const sourceCount = Object.keys(resultsMap).length;
 
-                return (
-                  <Accordion.Item key={sourceId} value={sourceId}>
-                    <Accordion.Control>
-                      <Group align="center" justify="space-between">
-                        <Text size="sm">{title}</Text>
-                        <Group gap="2px">
-                          {findings.map((finding) => {
-                            return (
-                              <button
-                                key={finding.index}
-                                className={styles.citationIcon}
-                              >
-                                {finding.index + 1}
-                              </button>
-                            );
-                          })}
-                        </Group>
-                      </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <Stack>
-                        <Text>
-                          <Link
-                            to={`/idea/${sourceId}`}
-                            target="_blank"
-                            style={{
-                              textDecoration: "none",
-                            }}
-                          >
-                            <Group gap="xs" c="dimmed">
-                              <Text size="sm">View</Text>
-                              <ArrowRightIcon size={14} />
-                            </Group>
-                          </Link>
-                        </Text>
-                        {findings.map((finding) => {
-                          return (
-                            <Box mb="sm">
-                              <Group gap="xs" align="center" mb="xs">
-                                <Badge
-                                  key={finding.index}
-                                  variant="light"
-                                  size="xs"
-                                  mx="2px"
-                                  p="xs"
-                                  radius="sm"
-                                  color="blue"
-                                >
-                                  <Text size="xs" fw="bold">
-                                    {finding.index + 1}
-                                  </Text>
-                                </Badge>
-                                <Badge
-                                  key={finding.findingType}
-                                  variant="light"
-                                  size="xs"
-                                  mx="2px"
-                                  p="xs"
-                                  radius="lg"
-                                  color="gray"
-                                >
-                                  {finding.findingType}
-                                </Badge>
-                              </Group>
-                              <Blockquote color="gray" p="xs" mb="xs">
-                                <Text
-                                  size="sm"
-                                  p="0"
-                                  dangerouslySetInnerHTML={{
-                                    __html: markdownToHtml(finding.excerpt),
-                                  }}
-                                />
-                              </Blockquote>
-                              <Text>{finding.analysis}</Text>
-                            </Box>
-                          );
-                        })}
-                      </Stack>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                );
-              })}
-          </Accordion>
-        </Pillbar.Panel>
-      </Pillbar>
+  // Group findings by sourceId to avoid duplicate cards
+  const groupedFindings = useMemo(() => {
+    const groups = new Map<
+      string,
+      { sourceId: string; resource: IConnectableFields; findings: IFinding[] }
+    >();
+
+    for (const finding of findings) {
+      const resource = resultsMap[finding.sourceId];
+      if (!resource) continue;
+
+      const existing = groups.get(finding.sourceId);
+      if (existing) {
+        existing.findings.push(finding);
+      } else {
+        groups.set(finding.sourceId, {
+          sourceId: finding.sourceId,
+          resource,
+          findings: [finding],
+        });
+      }
+    }
+
+    return Array.from(groups.values());
+  }, [findings, resultsMap]);
+
+  return (
+    <div className={styles.editorialWrapper}>
+      {/* Editorial Header: Query as H1 */}
+      <Title order={1} className={`${styles.queryTitle} ${loading ? styles.loading : ''}`}>
+        {query}
+      </Title>
+
+      {/* Metadata Byline */}
+      <Text size="xs" c="dimmed" className={styles.byline}>
+        {sourceCount > 0 && (
+          <span>
+            Reading {sourceCount} source{sourceCount !== 1 ? "s" : ""}
+          </span>
+        )}
+        {sourceCount > 0 && findings.length > 0 && (
+          <span className={styles.bylineDot}> • </span>
+        )}
+        {findings.length > 0 && (
+          <span>
+            {findings.length} finding{findings.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </Text>
+
+      {/* Clean Prose Body */}
+      <div id="deep-focus-summary" className={styles.proseBody}>
+        <OverviewParser
+          markdown={overview}
+          resultsMap={resultsMap}
+          findings={findings}
+          loading={loading}
+        />
+      </div>
+
+      {/* Actions Row - After prose */}
+      {!loading && overview && (
+        <Group gap="xs" className={styles.actionsRow}>
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            radius="md"
+            color="gray"
+            onClick={() => {
+              handleDownloadAsMarkdown();
+            }}
+            aria-label="Download as markdown"
+          >
+            <DownloadSimpleIcon size={14} />
+          </ActionIcon>
+          <CopyButton
+            value={getOverviewAsMarkdown(overview, findings, resultsMap)}
+          >
+            {({ copied, copy }) => {
+              return (
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  radius="md"
+                  color="gray"
+                  onClick={copy}
+                  aria-label="Copy as markdown"
+                >
+                  {!copied ? <CopyIcon size={14} /> : <CheckIcon size={14} />}
+                </ActionIcon>
+              );
+            }}
+          </CopyButton>
+        </Group>
+      )}
+
+      {/* Key Findings - Bottom Grid using FindingGroupCard */}
+      {groupedFindings.length > 0 && !loading && (
+        <div id="deep-focus-findings" className={styles.findingsSection}>
+          <Text size="sm" fw={500} c="dimmed" mb="md">
+            Key Findings
+          </Text>
+          <div className={styles.findingsGrid}>
+            {groupedFindings.map((group, index) => (
+              <div
+                key={group.sourceId}
+                id={`finding-${group.sourceId}`}
+                className={styles.findingGridItem}
+                style={{ animationDelay: `${Math.log(index + 1) * 75}ms` }}
+              >
+                <FindingGroupCard group={group} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

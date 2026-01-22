@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ISearchResultValue,
   type ISearchResult,
-} from "../../../../app/services/Search";
+} from "../../../../shared/types/search";
 import { api, refreshToken, serverLocation } from "../../../server/api";
 import {
   ISpyglassGeneratorType,
@@ -11,10 +11,22 @@ import {
 } from "../../../../app/database/models/search";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { ISpyglassIntent } from "../../../../app/services/Spyglass";
+import {
+  ISpyglassIntent,
+  IGlimpseResult,
+} from "../../../../app/services/Spyglass";
 import useRabbithole from "../../../hooks/useRabbithole";
+import {
+  getNodeContent,
+  getNodeDescription,
+  getNodeTitle,
+} from "../../../utils/graph";
 import { ISpyglassRecord } from "../../../../app/database/models/spyglass_record";
-import { IConnectable } from "../../../../app/services/Graph";
+import {
+  IConnectable,
+  IConnectableFields,
+} from "../../../../app/services/Graph";
+import { PartialGlimpseResult } from "../../../utils/partialJsonParser";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -28,7 +40,7 @@ interface IUseSpyglassArgs {
   onAnalysisChange?: (analysis: ISearchOverview | null) => void;
 }
 
-export type IResultsMap = Record<string, ISearchResultValue>;
+export type IResultsMap = Record<string, IConnectableFields>;
 
 export type ICitationMap = Record<
   string,
@@ -67,6 +79,9 @@ interface IUseSpyglassReturn {
   error: string;
 }
 
+/**
+ * @deprecated Use useSpyglassService instead. This hook is maintained for legacy support only.
+ */
 export default function useSpyglass({
   query,
   parentId,
@@ -366,7 +381,14 @@ export default function useSpyglass({
   const getResultsMap = () => {
     return spyglass?.fullResults?.reduce((acc, curr, i) => {
       if (curr.value) {
-        acc[curr.id.toString()] = curr.value;
+        const value = curr.value as IConnectable;
+        acc[curr.id.toString()] = {
+          id: value.id.toString(),
+          name: getNodeTitle(value) || "Untitled",
+          description: getNodeDescription(value) || "",
+          content: getNodeContent(value) || "",
+          type: value.type,
+        };
       }
       return acc;
     }, {} as IResultsMap);
@@ -437,12 +459,19 @@ interface IUseSpyglassRecordArgs {
   spyglassId?: string;
 }
 
+import {
+  extractIdsFromFindings,
+  extractIdsFromGlimpseResult,
+} from "../../../utils/spyglass";
+
 interface IUseSpyglassRecordReturn {
   loading: boolean;
   spyglass?: ISpyglassRecord;
   resultMap?: IResultsMap;
   citationMap?: ICitationMap;
+  results?: IConnectableFields[];
   fullResults?: IConnectable[];
+  glimpseResult?: PartialGlimpseResult | null;
 }
 
 export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
@@ -484,20 +513,68 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     }
   }, [spyglassId]);
 
-  // useEffect(() => {
-  //   if (spyglass?.scope) {
-  //     fetchScope({
-  //       loader: {
-  //         ids: spyglass.scope,
-  //       },
-  //     });
-  //   }
-  // }, [spyglass]);
+  const glimpseResult = useMemo(() => {
+    if (!spyglass?.isDeepAnalysis && spyglass?.overview) {
+      try {
+        const parsed: IGlimpseResult = JSON.parse(spyglass.overview);
+        return {
+          summary: parsed.summary,
+          summaryComplete: true,
+          entryPoint: parsed.entryPoint,
+          contentMap: parsed.contentMap,
+          connections: parsed.connections,
+        } as PartialGlimpseResult;
+      } catch (e) {
+        console.error("Failed to parse glimpse result", e);
+        return null;
+      }
+    }
+    return null;
+  }, [spyglass]);
+
+  useEffect(() => {
+    if (spyglass) {
+      let idsToFetch = new Set<string>();
+
+      // 1. Use the saved scope (primary source)
+      if (spyglass.scope && spyglass.scope.length > 0) {
+        spyglass.scope.forEach((id) => idsToFetch.add(id.toString()));
+      }
+
+      // 2. Fallback: Extract IDs from findings (Deep Analysis legacy)
+      if (spyglass.findings && spyglass.findings.length > 0) {
+        const findingIds = extractIdsFromFindings(spyglass.findings);
+        findingIds.forEach((id) => idsToFetch.add(id));
+      }
+
+      // 3. Fallback: Extract IDs from glimpse result (Glimpse legacy)
+      if (glimpseResult) {
+        const glimpseIds = extractIdsFromGlimpseResult(glimpseResult);
+        glimpseIds.forEach((id) => idsToFetch.add(id));
+      }
+
+      if (idsToFetch.size > 0) {
+        fetchScope({
+          updatedBody: {
+            loader: {
+              ids: Array.from(idsToFetch),
+            },
+          },
+        });
+      }
+    }
+  }, [spyglass, glimpseResult]);
 
   const getResultsMap = () => {
     return fullResults?.reduce((acc, curr, i) => {
       if (curr) {
-        acc[curr.id.toString()] = curr;
+        acc[curr.id.toString()] = {
+          id: curr.id.toString(),
+          name: getNodeTitle(curr) || "Untitled",
+          description: getNodeDescription(curr) || "",
+          content: getNodeContent(curr) || "",
+          type: curr.type,
+        };
       }
       return acc;
     }, {} as IResultsMap);
@@ -533,11 +610,21 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
 
   const citationMap = buildCitationMap();
 
+  const mappedResults: IConnectableFields[] = fullResults.map((curr) => ({
+    id: curr.id.toString(),
+    name: getNodeTitle(curr) || "Untitled",
+    description: getNodeDescription(curr) || "",
+    content: getNodeContent(curr) || "",
+    type: curr.type,
+  }));
+
   return {
     loading,
     spyglass,
     resultMap,
     citationMap,
+    results: mappedResults,
     fullResults,
+    glimpseResult,
   } satisfies IUseSpyglassRecordReturn;
 };

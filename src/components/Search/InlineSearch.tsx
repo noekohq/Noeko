@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ISearchResult,
   ISearchResultValue,
-} from "../../../app/services/Search";
+} from "../../../shared/types/search";
 import useFetch from "../../hooks/useFetch";
 import { Menu, TextInput, Loader, Text, ActionIcon } from "@mantine/core";
 import styles from "./InlineSearch.module.scss";

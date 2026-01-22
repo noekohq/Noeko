@@ -2,29 +2,13 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getLM } from "../../../ai/lms/lm";
 import { PromptBuilder } from "../../../ai/lms/utils";
 import { LMSchema, LMSchemaType } from "../../../ai/lms";
-import { Idea, IIdea } from ".";
-import { getDatabase } from "../../db";
-
-export type IGenerativeSummary = {
-  id: RecordId;
-  createdAt: Date;
-  sentenceOverview: string;
-  sentenceSummary: string;
-  paragraphOverview?: string;
-  paragraphSummary?: string;
-  abstractSummary?: string;
-  simplifiedSummary?: string;
-  outline?: string[];
-  keyPoints?: string[];
-  highlights?: string[];
-  questions?: string[];
-  tasks?: string[];
-};
-
-export type IGenerativeSummaryForm = Omit<
+import { Idea } from ".";
+import { IIdea } from "../../../../shared/types/idea";
+import {
   IGenerativeSummary,
-  "id" | "createdAt"
->;
+  IGenerativeSummaryForm,
+} from "../../../../shared/types/idea";
+import { getDatabase } from "../../db";
 
 export const GenerativeSummarySchema: LMSchema = {
   type: LMSchemaType.OBJECT,
