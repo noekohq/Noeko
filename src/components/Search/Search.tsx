@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from "react";
 import { Group, Loader, Stack, Text, Button, Transition } from "@mantine/core";
 import { getOS } from "../../utils/platform";
 import styles from "./Search.module.scss";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   BrainIcon,
   SparkleIcon,
@@ -25,7 +25,11 @@ import { SearchBar } from "./SearchBar";
 import useSearchQuery from "../../hooks/useSearchQuery";
 import { SpyglassIcon } from "../Utils/Icons/Icons";
 import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
-import { getNodeDescription, getNodeTitle } from "../../utils/graph";
+import {
+  getNodeDescription,
+  getNodeLink,
+  getNodeTitle,
+} from "../../utils/graph";
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
 import { useSearch } from "../../contexts/SearchContext";
 
@@ -297,6 +301,19 @@ export default function Search({
     ],
   });
 
+  const navigate = useNavigate();
+
+  const handleResultClick = (r: INode) => {
+    if (onResultClick) {
+      onResultClick(r);
+      return;
+    }
+    const link = getNodeLink(r);
+    if (link) {
+      navigate(link);
+    }
+  };
+
   return (
     <div className={styles.searchWrapper}>
       <SearchBar
@@ -341,7 +358,7 @@ export default function Search({
           query={searchQuery}
           loading={loadingGlimpse}
           status={statusGlimpse}
-          onResultClick={onResultClick}
+          onResultClick={handleResultClick}
           resultsHeader={resultsHeader}
         />
       ) : (
@@ -352,7 +369,7 @@ export default function Search({
           loadingRecent={loadingRecent}
           resultActions={resultActions}
           resultsHeader={resultsHeader}
-          onResultClick={onResultClick}
+          onResultClick={handleResultClick}
         />
       )}
     </div>
