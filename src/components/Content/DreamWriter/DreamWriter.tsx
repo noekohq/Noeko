@@ -148,7 +148,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         extensions,
         loader,
       };
-    }, [provider, connectableId, placeholder]);
+    }, [provider, connectableId, placeholder, isEditable]);
 
     const editor = useEditor(
       {
