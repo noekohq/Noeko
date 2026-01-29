@@ -2,7 +2,7 @@ import { IRabbithole } from "../../../../../app/database/models/rabbithole";
 import { IFriendUser } from "../../../../../shared/types/user";
 import {
   IConnectable,
-  ISharedConnectable,
+  IPotentiallySharedConnectable,
 } from "../../../../../app/services/Graph";
 import { IAcceleratorItem } from "../../../../../app/services/Recommendations";
 import { formatDateTime } from "../../../../utils/formatting";
@@ -23,7 +23,7 @@ import { IThing } from "./things";
 import { UserIcon } from "@phosphor-icons/react";
 
 export function getThingPropsFromConnectable(
-  connectable: IConnectable | ISharedConnectable,
+  connectable: IConnectable | IPotentiallySharedConnectable,
   overrides?: Partial<IPaperThingProps>,
   eager?: boolean,
 ): IThing | IPaperThingProps {
@@ -76,7 +76,7 @@ export function getThingPropsFromConnectable(
 }
 
 export function getThingsFromConnectables(
-  connectables: (IConnectable | ISharedConnectable)[],
+  connectables: (IConnectable | IPotentiallySharedConnectable)[],
   overrides?: Partial<IPaperThingProps>,
   eager?: boolean,
 ) {

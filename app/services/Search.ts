@@ -11,7 +11,11 @@ import { ITag } from "../../shared/types/tags";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IPublicTask, ITask } from "../database/models/task";
 import { IExcerpt } from "../../shared/types/excerpt";
-import { IConnectable, IConnectableTypes, ISharedConnectable } from "./Graph";
+import {
+  IConnectable,
+  IConnectableTypes,
+  IPotentiallySharedConnectable,
+} from "./Graph";
 import { ISource } from "../database/models/source";
 import { IPublicUser } from "../../shared/types/user";
 import {
@@ -1211,7 +1215,7 @@ export class Search {
             value: {
               ...result.value,
               author,
-            } as ISharedConnectable,
+            } as IPotentiallySharedConnectable,
           };
         }
         return result;

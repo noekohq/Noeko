@@ -28,7 +28,7 @@ import {
   IGraphTagFilter,
   ISimilarConnectable,
   ITaggedConnectable,
-  ISharedConnectable,
+  IPotentiallySharedConnectable,
   ILoadedConstellation,
   IConstellationLoader,
 } from "../../shared/types/constellation";
@@ -44,7 +44,7 @@ export type {
   IGraphTagFilter,
   ISimilarConnectable,
   ITaggedConnectable,
-  ISharedConnectable,
+  IPotentiallySharedConnectable,
   ILoadedConstellation,
   IConstellationLoader,
 };
