@@ -44,9 +44,10 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
+  extension,
 }) => {
   const { sourceId } = node.attrs;
-  const { editable } = editor.extensionManager.options.dreamSource;
+  const isEditable = extension.options.editable as boolean;
 
   const isEmpty = node.content.size === 0;
 
@@ -55,10 +56,10 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
   });
 
   useEffect(() => {
-    if (editable) {
+    if (isEditable) {
       fetchSource();
     }
-  }, [editable]);
+  }, [isEditable]);
 
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;

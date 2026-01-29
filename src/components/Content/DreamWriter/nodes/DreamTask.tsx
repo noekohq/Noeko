@@ -36,9 +36,10 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
+  extension,
 }) => {
   const { taskId } = node.attrs;
-  const { editable } = editor.extensionManager.options.dreamTask;
+  const isEditable = extension.options.editable as boolean;
   const isEmpty = node.content.size === 0;
 
   const { data: task, load: fetchTask } = useFetch<undefined, ITask>({
@@ -46,10 +47,10 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
   });
 
   useEffect(() => {
-    if (editable) {
+    if (isEditable) {
       fetchTask();
     }
-  }, [editable]);
+  }, [isEditable]);
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;

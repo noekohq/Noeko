@@ -179,7 +179,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     try {
       const { hasErrors, errors } = form.validate();
       if (hasErrors) {
-        setShareErrors(Object.values(errors));
+        setShareErrors(["Couldn't create a share."]);
         return;
       }
       setLoadingShare(true);
