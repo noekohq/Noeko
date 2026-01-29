@@ -79,13 +79,13 @@ h6 {
 }
 
 a {
-    color: var(--mantine-color-anchor);
+    color: var(--mantine-color-blue-6);
     cursor: pointer;
     text-decoration: underline;
     transition: all 0.2s ease-in-out;
 
     &:hover {
-        color: var(--mantine-primary-color-6);
+        color: var(--mantine-color-blue-7);
     }
 }
 

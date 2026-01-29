@@ -29,8 +29,9 @@
     cursor: pointer;
     transition: color 0.2s ease-in-out;
 
+    &.hovered,
     &:hover {
-        color: var(--mantine-color-dark-1);
+        color: var(--mantine-color-blue-5);
     }
 }
 

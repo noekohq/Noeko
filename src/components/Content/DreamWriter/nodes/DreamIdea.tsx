@@ -22,6 +22,7 @@ import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { DreamIdeaSchema } from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
 import { useEffect, useState } from "react";
 import PaperButton from "../../../Display/Paper/PaperButton";
+import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -68,6 +69,8 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
     fetchIdea();
   }, []);
 
+  const [iconHovered, { toggle, open, close }] = useDisclosure(false);
+
   if (!ideaId) {
     return <span className={styles.dreamIdeaError}>[ERROR]</span>;
   }
@@ -78,19 +81,28 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamIdeaWrapper}
       data-selected={selected || undefined}
     >
-      <Popover width={"400px"} shadow="md" position="top" radius="lg">
+      <Popover
+        width={"400px"}
+        shadow="md"
+        position="top"
+        radius="lg"
+        opened={iconHovered}
+      >
         <Popover.Target>
-          <Flex align={"center"} justify={"center"}>
+          <Flex
+            align={"center"}
+            justify={"center"}
+            onClick={() => {
+              toggle();
+            }}
+          >
             {hasAccess ? (
               <LightbulbIcon
-                className={styles.dreamIdeaIcon}
-                weight="regular"
+                className={`${styles.dreamIdeaIcon} ${iconHovered ? styles.hovered : ""}`}
+                weight={iconHovered ? "fill" : "regular"}
               />
             ) : (
-              <ShieldSlashIcon
-                className={styles.dreamIdeaIcon}
-                weight="regular"
-              />
+              <ShieldSlashIcon className={styles.dreamIdeaIcon} weight="fill" />
             )}
           </Flex>
         </Popover.Target>

@@ -20,6 +20,7 @@ import useFetch from "../../../../hooks/useFetch";
 import { ITask } from "../../../../../app/database/models/task";
 import { DreamTaskSchema } from "../../../../../shared/editing/tiptap/nodes/DreamTask";
 import { useEffect, useState } from "react";
+import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -66,6 +67,8 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
     fetchTask();
   }, []);
 
+  const [iconHovered, { toggle }] = useDisclosure(false);
+
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;
   }
@@ -76,13 +79,27 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamTaskWrapper}
       data-selected={selected || undefined}
     >
-      <Popover width={"400px"} shadow="md" position="top" radius="lg">
+      <Popover
+        width={"400px"}
+        shadow="md"
+        position="top"
+        radius="lg"
+        opened={iconHovered}
+      >
         <Popover.Target>
-          <Flex align={"center"} justify={"center"}>
+          <Flex
+            align={"center"}
+            justify={"center"}
+            onClick={() => {
+              toggle();
+            }}
+          >
             {hasAccess ? (
               <CheckIcon
-                className={styles.dreamTaskIcon}
-                weight="bold"
+                className={`${styles.dreamTaskIcon} ${
+                  iconHovered ? styles.hovered : ""
+                }`}
+                weight={iconHovered ? "bold" : "regular"}
               />
             ) : (
               <ShieldSlashIcon

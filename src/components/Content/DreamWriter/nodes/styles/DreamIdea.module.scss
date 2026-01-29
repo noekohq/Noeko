@@ -1,19 +1,22 @@
 .dreamIdeaWrapper {
     display: inline-flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 1px;
 }
 
 .dreamIdeaInline {
     cursor: pointer;
     text-decoration: none;
-    color: var(--mantine-primary-color-6);
+    font-style: italic;
+    color: var(--mantine-color-anchor);
     transition: color 0.2s ease-in-out;
+    /* font-weight: 500; */
     padding: 0;
     font-size: inherit;
 
     &:hover {
-        color: var(--mantine-primary-color-6);
+        color: var(--mantine-color-anchor);
+        text-decoration: underline;
     }
 
     &[data-selected="true"] {
@@ -23,14 +26,16 @@
 }
 
 .dreamIdeaIcon {
-    color: var(--mantine-color-dark-5);
+    color: var(--mantine-color-anchor);
     font-size: 12px;
     pointer-events: all;
     cursor: pointer;
-    transition: color 0.2s ease-in-out;
+    transition: filter 0.2s ease-in-out, color 0.2s ease-in-out;
 
+    &.hovered,
     &:hover {
-        color: var(--mantine-color-dark-1);
+        color: var(--mantine-color-yellow-6);
+        filter: drop-shadow(0 0 4px var(--mantine-color-yellow-6));
     }
 }
 
@@ -39,7 +44,6 @@
     padding: 0;
 
     &:hover {
-        text-decoration: underline;
     }
 
     &:empty::before {

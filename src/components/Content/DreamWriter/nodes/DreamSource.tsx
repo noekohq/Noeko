@@ -20,6 +20,7 @@ import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { ISource } from "../../../../../app/database/models/source";
 import { DreamSourceSchema } from "../../../../../shared/editing/tiptap/nodes/DreamSource";
+import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -66,6 +67,8 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
     fetchSource();
   }, []);
 
+  const [iconHovered, { open, close }] = useDisclosure(false);
+
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;
   }
@@ -76,13 +79,26 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamSourceWrapper}
       data-selected={selected || undefined}
     >
-      <Popover width={"400px"} shadow="md" position="top" radius="lg">
+      <Popover
+        width={"400px"}
+        shadow="md"
+        position="top"
+        radius="lg"
+        opened={iconHovered}
+      >
         <Popover.Target>
-          <Flex align={"center"} justify={"center"}>
+          <Flex
+            align={"center"}
+            justify={"center"}
+            onMouseEnter={open}
+            onMouseLeave={close}
+          >
             {hasAccess ? (
               <FileTextIcon
-                className={styles.dreamSourceIcon}
-                weight="regular"
+                className={`${styles.dreamSourceIcon} ${
+                  iconHovered ? styles.hovered : ""
+                }`}
+                weight={iconHovered ? "fill" : "regular"}
               />
             ) : (
               <ShieldSlashIcon
