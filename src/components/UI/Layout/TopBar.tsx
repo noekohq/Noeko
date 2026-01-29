@@ -246,6 +246,7 @@ export default function TopBar() {
                             snippet={preview}
                             onSelect={(node) => {
                               navigate(`/${node.type}/${node.id.toString()}`);
+                              setIsFocused(false);
                             }}
                             artifacts={
                               "author" in s.value && s.value.author

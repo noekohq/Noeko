@@ -3,6 +3,7 @@ import { mergeAttributes, Node } from "@tiptap/core";
 
 export interface IDreamIdeaOptions {
   HTMLAttributes: Record<string, any>;
+  editable: boolean;
 }
 
 export const DreamIdeaSchema = Node.create<IDreamIdeaOptions>({
@@ -15,6 +16,7 @@ export const DreamIdeaSchema = Node.create<IDreamIdeaOptions>({
   addOptions() {
     return {
       HTMLAttributes: {},
+      editable: false,
     };
   },
 

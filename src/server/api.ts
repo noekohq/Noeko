@@ -197,7 +197,12 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 403) {
-      window.location.href = "/";
+      const message =
+        (error.response?.data as { message: string })?.message ||
+        "You are not authorized to perform this action.";
+      window.location.href = `/unauthorized?message=${encodeURIComponent(
+        message,
+      )}`;
     }
 
     // For errors other than 401 or handled retries, just return the promise rejection

@@ -129,7 +129,10 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
             onKeyDown={(e) => {
               if (!e.shiftKey && e.key === "Enter") {
                 e.preventDefault();
-                onSearchSubmit?.();
+                console.log("Submitting search from search bar");
+                if (query) {
+                  onSearchSubmit?.();
+                }
               }
             }}
           />

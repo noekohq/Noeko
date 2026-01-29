@@ -67,28 +67,15 @@ export const shareAccessWithEmail = async (
   accessLevel?: IShareAccess,
 ) => {
   try {
-    return await api
-      .post(`/sharing`, {
-        thingId,
-        email,
-        accessLevel,
-      })
-      .then(() => {
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        console.error(
-          `Something went wrong creating share between ${thingId} and ${email}`,
-          error,
-        );
-        showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong sharing the thing",
-          color: "red",
-        });
-      });
+    await api.post(`/sharing`, {
+      thingId,
+      email,
+      accessLevel,
+    });
+    return true;
   } catch (error) {
     console.error("Error sharing thing: ", error);
+    return false;
   }
 };
 

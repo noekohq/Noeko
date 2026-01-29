@@ -19,10 +19,10 @@ export class FilterQueryBuilder {
   public withAccess(userId: string | RecordId, includeShared = false): this {
     if (includeShared) {
       this.whereClauses.push(
-        `(<-owns.in CONTAINS $userId OR count(->shared_with[WHERE out = $userId]) > 0)`,
+        `(count(<-owns.in[WHERE id = $userId]) > 0 OR count(->shared_with[WHERE out = $userId AND (accessLevel = 'viewonly' OR accessLevel = 'editor')]) > 0)`,
       );
     } else {
-      this.whereClauses.push(`<-owns.in CONTAINS $userId`);
+      this.whereClauses.push(`count(<-owns.in[WHERE id = $userId]) > 0`);
     }
     this.params.userId = new StringRecordId(userId);
     return this;

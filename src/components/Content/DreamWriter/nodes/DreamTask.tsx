@@ -1,4 +1,5 @@
 import { NodeViewProps } from "@tiptap/core";
+import { useEffect } from "react";
 import useFetch from "../../../../hooks/useFetch";
 import { ITask } from "../../../../../app/database/models/task";
 import {
@@ -31,18 +32,24 @@ export const DreamTask = DreamTaskSchema.extend({
 });
 
 export const DreamTaskComponent: React.FC<NodeViewProps> = ({
+  editor,
   node,
   deleteNode,
   selected,
 }) => {
   const { taskId } = node.attrs;
-
+  const { editable } = editor.extensionManager.options.dreamTask;
   const isEmpty = node.content.size === 0;
 
-  const { data: task } = useFetch<undefined, ITask>({
+  const { data: task, load: fetchTask } = useFetch<undefined, ITask>({
     url: `/tasks/${taskId}`,
-    runOnMount: !!taskId,
   });
+
+  useEffect(() => {
+    if (editable) {
+      fetchTask();
+    }
+  }, [editable]);
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;

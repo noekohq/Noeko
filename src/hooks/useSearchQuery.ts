@@ -117,8 +117,13 @@ export default function useSearchQuery({
   });
 
   const handleSearchSubmit = () => {
+    if (!searchQuery) {
+      console.error(
+        "Tried to submit search query with empty query. This is likely unintentional.",
+      );
+      return;
+    }
     if (glimpseMode) {
-      if (!searchQuery) return;
       searchGlimpse({
         query: searchQuery,
         deepAnalysis: false,
@@ -165,6 +170,7 @@ export default function useSearchQuery({
 
   useEffect(() => {
     if (complete && filteredResults) {
+      console.log("Got results: ", filteredResults);
       onResults?.(filteredResults);
     }
   }, [complete, filteredResults]);

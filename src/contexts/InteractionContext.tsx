@@ -31,6 +31,7 @@ import CreateTaskForm from "../components/Forms/CreateTask";
 import AddSourceForm from "../components/Forms/AddSource";
 import PaperDrawer from "../components/Display/Paper/PaperDrawer";
 import { createTask } from "../utils/tasks";
+import { ISafeIdea } from "../../shared/types/idea";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -177,14 +178,15 @@ export function InteractionProvider({
     navigate(`idea/${optimisticIdea.id.toString()}`);
 
     promise
-      .then((realIdea: any) => {
+      .then((realIdea: ISafeIdea) => {
         removeOptimisticIdea(optimisticIdea.id.toString());
         navigate(`idea/${realIdea.id.toString()}`, { replace: true });
         if (currentRabbithole) {
           includeThing(realIdea.id.toString());
         }
       })
-      .catch((err: any) => {
+      .catch((err: ISafeIdea) => {
+        console.error("Error creating idea: ", err);
         removeOptimisticIdea(optimisticIdea.id.toString());
         navigate("/");
         showNotification({

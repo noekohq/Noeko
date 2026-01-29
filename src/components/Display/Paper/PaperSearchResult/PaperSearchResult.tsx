@@ -12,7 +12,7 @@ import {
 import { INode } from "../../../../declarations/graph";
 import styles from "./PaperSearchResult.module.scss";
 import Match from "../../../Utils/Match";
-import { IconMap } from "../../../../utils/graph";
+import { getNodeLinkFromId, IconMap } from "../../../../utils/graph";
 import { useLandscape } from "../../../../contexts/LandscapeContext";
 import { PaperContextMenu } from "../PaperContextMenu";
 
@@ -46,7 +46,7 @@ export default function PaperSearchResult({
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const link = `/constellation/node/${node.id}`;
+  const link = getNodeLinkFromId(node.id.toString());
 
   const handleOnSelect = () => {
     onSelect?.(node);
@@ -142,17 +142,14 @@ export default function PaperSearchResult({
               </Text>
             </div>
 
-            {/* Row 3: Artifacts */}
             {artifacts && artifacts.length > 0 && (
               <div className={styles.artifacts}>
                 {artifacts.map((a, idx) => {
                   const Icon = a.icon;
                   return (
                     <div key={idx} className={styles.artifact}>
-                      <Icon weight="bold" size={12} />
-                      <Text size="xs" c="dimmed">
-                        {a.label}
-                      </Text>
+                      <Icon weight="fill" size={12} />
+                      <Text size="xs">{a.label}</Text>
                     </div>
                   );
                 })}

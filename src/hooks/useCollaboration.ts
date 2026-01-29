@@ -13,6 +13,11 @@ export interface ICollaborator {
   color: string;
 }
 
+export interface ICollaborationState {
+  status: ICollaborationStatus;
+  members: ICollaborator[];
+}
+
 export const useCollaboration = ({
   roomId,
   enabled = true,

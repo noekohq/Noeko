@@ -4,6 +4,7 @@ import { Node } from "@tiptap/core";
 
 export interface IDreamTaskOptions {
   HTMLAttributes: Record<string, any>;
+  editable: boolean;
 }
 
 export const DreamTaskSchema = Node.create<IDreamTaskOptions>({
@@ -16,6 +17,7 @@ export const DreamTaskSchema = Node.create<IDreamTaskOptions>({
   addOptions() {
     return {
       HTMLAttributes: {},
+      editable: false,
     };
   },
 

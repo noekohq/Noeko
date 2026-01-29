@@ -7,7 +7,7 @@ type FilterConfig = {
 
 type IGraphContext = {
   focused: {
-    get: string;
+    get: string | undefined;
     set: (focused: string) => void;
   };
   selected: {
@@ -89,9 +89,14 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
 
-  const [focused, setFocused] = useState<string>("");
+  const [focused, setFocused] = useState<string>();
 
-  const setFocusedHandler = useCallback((f: string) => setFocused(f), []);
+  const setFocusedHandler = useCallback((f: string) => {
+    setFocused(f);
+    setTimeout(() => {
+      setFocused(undefined);
+    }, 400);
+  }, []);
 
   const setSelectedHandler = useCallback((ids: string[] | null) => {
     setSelected(new Set(ids || []));

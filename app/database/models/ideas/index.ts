@@ -951,19 +951,26 @@ export class Idea {
   ): Promise<ISafeIdea | IIdea | undefined> {
     try {
       const db = await getDatabase();
-      const recordId = typeof id === "string" ? new StringRecordId(id) : id;
-      const result = await db?.select<IIdea>(recordId);
+      const recordId = new StringRecordId(id);
+      const omitFields: string[] = [];
+      if (safety === "public") {
+        omitFields.push("embeddings");
+      }
+      const result = await db?.query<[ISafeIdea[]]>(
+        `
+        SELECT * ${omitFields.length > 0 ? `OMIT ${omitFields.map((f, i) => `${f}${i === omitFields.length - 1 ? "" : ", "}`)}` : ""}
+        FROM idea
+        WHERE id = $ideaId;`,
+        {
+          ideaId: recordId,
+        },
+      );
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return;
       }
-      if (safety === "public") {
-        return this.filterSafeFields(result);
-      }
-      if (safety === "full") {
-        return result;
-      }
-      return undefined;
+      const [idea] = result[0];
+      return idea;
     } catch (err) {
       console.error(err);
       return undefined;

@@ -12,7 +12,7 @@
     "server": "bun run app/index.ts",
     "db": "docker-compose -f docker-compose.yml up",
     "db:detached": "docker-compose -f docker-compose.yml up -d",
-    "server:test": "bun test --preload ./tests/setup.server.ts ./tests",
+    "server:test": "bun test --test-sequential --preload ./tests/setup.server.ts ./tests",
     "client:test": "vitest run",
     "server:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "server:build": "bun build app/index.ts",

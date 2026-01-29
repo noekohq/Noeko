@@ -16,7 +16,6 @@ import {
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
-  Select,
   Box,
   Button,
   CopyButton,
@@ -28,6 +27,8 @@ import {
   Stack,
   Text,
   TextInput,
+  Combobox,
+  useCombobox,
 } from "@mantine/core";
 import {
   CheckIcon,
@@ -112,6 +113,27 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     [friends],
   );
 
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+  });
+
+  const options = friendsData
+    .filter(({ label, value }) => {
+      const searchTerm = form.values.email.toLowerCase().trim();
+      if (searchTerm === "") {
+        return true;
+      }
+      return (
+        label.toLowerCase().includes(searchTerm) ||
+        value.toLowerCase().includes(searchTerm)
+      );
+    })
+    .map((item) => (
+      <Combobox.Option value={item.value} key={item.value}>
+        {item.label}
+      </Combobox.Option>
+    ));
+
   const { user } = useAuth();
 
   const handleStopSharing = async (userId: string) => {
@@ -151,23 +173,22 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     }
   };
 
+  const [shareErrors, setShareErrors] = useState<string[]>([]);
   const handleCreateShare = async () => {
+    setShareErrors([]);
     try {
       const { hasErrors, errors } = form.validate();
       if (hasErrors) {
-        showNotification({
-          title: "Hmm, that doesn't look right",
-          message: Object.values(errors)[0],
-          color: "red",
-        });
+        setShareErrors(Object.values(errors));
         return;
       }
       setLoadingShare(true);
-      await shareAccessWithEmail(
+      const success = await shareAccessWithEmail(
         connectable.id.toString(),
         form.values.email,
         form.values.accessLevel,
-      ).then(() => {
+      );
+      if (success) {
         showNotification({
           title: (
             <Text>
@@ -179,18 +200,18 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
           ),
           message: `Successfully shared idea!`,
         });
-      });
-      await loadShared();
-      setShareModal(false);
-      form.reset();
+        setShareModal(false);
+        form.reset();
+      } else {
+        throw new Error("Something went wrong sharing");
+      }
     } catch (error) {
       console.error("Error creating share: ", error);
-      showNotification({
-        title: "Error",
-        message: "There was an error creating the share.",
-        color: "red",
-      });
+      setShareErrors([
+        "Something went wrong creating this share. This account may not exist.",
+      ]);
     } finally {
+      await loadShared();
       setLoadingShare(false);
     }
   };
@@ -207,6 +228,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
           <Button
             leftSection={<ShareNetworkIcon />}
             onClick={() => {
+              setShareErrors([]);
               setShareModal(true);
             }}
             variant="light"
@@ -305,23 +327,53 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
         opened={shareModal}
         onClose={() => {
           setShareModal(false);
+          setShareErrors([]);
+          form.reset();
         }}
         title={<Text component="span">Share</Text>}
       >
         <Stack>
-          <Select
-            label="Share with"
-            placeholder="Name or email address"
-            size="md"
-            radius="md"
-            required
-            searchable
-            data={friendsData}
-            comboboxProps={{ styles: { dropdown: { zIndex: 2001 } } }}
-            {...form.getInputProps("email")}
-            autoComplete="nope"
-            mb="xs"
-          />
+          <Combobox
+            store={combobox}
+            withinPortal
+            onOptionSubmit={(optionValue) => {
+              form.setFieldValue("email", optionValue);
+              combobox.closeDropdown();
+            }}
+          >
+            <Combobox.Target>
+              <TextInput
+                label="Share with"
+                placeholder="Name or email address"
+                size="md"
+                radius="md"
+                required
+                value={form.values.email}
+                onChange={(event) => {
+                  form.setFieldValue("email", event.currentTarget.value);
+                  combobox.openDropdown();
+                  combobox.updateSelectedOptionIndex();
+                }}
+                onClick={() => combobox.openDropdown()}
+                onFocus={() => combobox.openDropdown()}
+                onBlur={() => {
+                  combobox.closeDropdown();
+                }}
+                autoComplete="nope"
+                mb="xs"
+              />
+            </Combobox.Target>
+
+            <Combobox.Dropdown>
+              <Combobox.Options>
+                {options.length > 0 ? (
+                  options
+                ) : (
+                  <Combobox.Empty>Nothing found</Combobox.Empty>
+                )}
+              </Combobox.Options>
+            </Combobox.Dropdown>
+          </Combobox>
           <SegmentedControl
             fullWidth
             size="sm"
@@ -332,12 +384,22 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
             {...form.getInputProps("accessLevel")}
           />
           <Space h="md" />
+          {shareErrors.length > 0 && (
+            <Stack gap="xs" mb="md">
+              {shareErrors.map((error, index) => (
+                <Text key={index} c="red" size="sm">
+                  {error}
+                </Text>
+              ))}
+            </Stack>
+          )}
           <Group justify="right">
             <Button
               variant="default"
               onClick={() => {
                 setShareModal(false);
                 form.reset();
+                setShareErrors([]);
               }}
             >
               Cancel
@@ -355,7 +417,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
               }}
               disabled={loadingShare}
             >
-              Share!
+              Share Access
             </Button>
           </Group>
         </Stack>

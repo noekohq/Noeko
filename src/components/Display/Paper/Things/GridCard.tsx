@@ -35,7 +35,9 @@ export default function GridCard({
   link,
   state = "default",
   onClick,
+  onDoubleClick,
   preventClickDefault,
+  preventDoubleClickDefault,
   action,
   artifacts,
   preview,
@@ -54,6 +56,13 @@ export default function GridCard({
       navigate(link);
     }
     onClick?.(id, e);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (link && !preventDoubleClickDefault) {
+      navigate(link);
+    }
+    onDoubleClick?.(id, e);
   };
 
   const {
@@ -100,6 +109,7 @@ export default function GridCard({
             ref={rootRef}
             className={rootClasses}
             onClick={handleMainClick}
+            onDoubleClick={handleDoubleClick}
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
             tabIndex={0}

@@ -37,7 +37,9 @@ export default function PaperThing({
   onDelete,
   state = "default",
   onClick,
+  onDoubleClick,
   preventClickDefault,
+  preventDoubleClickDefault,
   action,
   artifacts,
   preview,
@@ -58,6 +60,13 @@ export default function PaperThing({
     onClick?.(id, e);
   };
 
+  const handleDoubleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (link && !preventDoubleClickDefault) {
+      navigate(link);
+    }
+    onDoubleClick?.(id, e);
+  };
+
   const {
     dragging: {
       current: { set: setDragging },
@@ -65,14 +74,11 @@ export default function PaperThing({
   } = useLandscape();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    // IMPORTANT: Stop propagation so the root doesn't try to drag if it accidentally had the attribute
     e.stopPropagation();
 
     setIsInternallyDragging(true);
     setDragging(id);
 
-    // Force the browser to use the whole row (rootRef) as the ghost image
-    // instead of just the small icon being dragged.
     if (rootRef.current) {
       e.dataTransfer.setDragImage(rootRef.current, 0, 0);
     }
@@ -108,6 +114,7 @@ export default function PaperThing({
             ref={rootRef}
             className={rootClasses}
             onClick={handleMainClick}
+            onDoubleClick={handleDoubleClick}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleMainClick(e);

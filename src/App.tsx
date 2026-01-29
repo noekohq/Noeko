@@ -54,6 +54,7 @@ import Agenda from "./pages/Agenda/Agenda";
 import All from "./pages/All/All";
 import PinsPage from "./pages/Pins/Pins";
 import SpyglassRecord from "./pages/Spyglass/Spyglass/Record";
+import Unauthorized from "./pages/Auth/Unauthorized";
 
 const Updates = lazy(() => import("./pages/Feedback/Updates"));
 const Onboarding = lazy(() => import("./components/UI/Onboarding/Index"));
@@ -143,6 +144,7 @@ export default function App() {
         </Overlay>
       )}*/}
       <Routes>
+        <Route path="/unauthorized" element={<Unauthorized />} />
         {!loggedIn && (
           <>
             <Route path="/login" element={<Login />} />

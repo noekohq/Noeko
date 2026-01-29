@@ -495,7 +495,7 @@ router.get("/:taskId/similar-ideas", async (req, res): Promise<void> => {
     }
     if (!taskExists.embeddings || taskExists.embeddings.length === 0) {
       res.status(200).json({
-        message: "Tag has no embeddings to compare, no similar ideas found.",
+        message: "Task has no embeddings to compare, no similar ideas found.",
         data: [],
       });
       return;

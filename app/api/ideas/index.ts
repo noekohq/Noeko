@@ -106,7 +106,7 @@ router.get("/", checkToken, disallowDisabled, async (req, res) => {
     }
     res.send({ message: "Successfully retrieved user ideas.", data: ideas });
   } catch (err) {
-    console.error(err);
+    console.error("Error getting user ideas: ", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -145,7 +145,7 @@ router.get("/page", checkToken, disallowDisabled, async (req, res) => {
     }
     res.send({ message: "Successfully retrieved user ideas.", data: ideas });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching user paginated ideas: ", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -159,6 +159,11 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const form = { ...body };
+    if (!body.generateTitle && !body.title) {
+      res.status(400).send({
+        message: "Either generateTitle should be true, or a title is required",
+      });
+    }
     if (body.generateTitle) {
       const lm = getLM();
       form.title = await lm.utils.entitle(
@@ -178,7 +183,7 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
     }
     res.send({ message: "Successfully created idea.", data: i });
   } catch (err) {
-    console.error(err);
+    console.error("Error creating new idea:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -206,7 +211,7 @@ router.post("/new", checkToken, disallowDisabled, async (req, res) => {
     }
     res.send({ message: "Successfully created idea.", data: i });
   } catch (err) {
-    console.error(err);
+    console.error("Error creating a 'new' idea: ", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

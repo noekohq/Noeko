@@ -12,6 +12,7 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
+import { useEffect } from "react";
 import styles from "./styles/DreamSource.module.scss";
 import { ActionIcon, Group, HoverCard, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
@@ -39,18 +40,25 @@ export const DreamSource = DreamSourceSchema.extend({
 });
 
 export const DreamSourceComponent: React.FC<NodeViewProps> = ({
+  editor,
   node,
   deleteNode,
   selected,
 }) => {
   const { sourceId } = node.attrs;
+  const { editable } = editor.extensionManager.options.dreamSource;
 
   const isEmpty = node.content.size === 0;
 
-  const { data: source } = useFetch<undefined, ISource>({
+  const { data: source, load: fetchSource } = useFetch<undefined, ISource>({
     url: `/sources/${sourceId}`,
-    runOnMount: !!sourceId,
   });
+
+  useEffect(() => {
+    if (editable) {
+      fetchSource();
+    }
+  }, [editable]);
 
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;

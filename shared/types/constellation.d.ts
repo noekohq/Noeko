@@ -32,8 +32,8 @@ export type ITaggedConnectable = IConnectable & {
   appliedTags: ITag[];
 };
 
-export type ISharedConnectable = IConnectable & {
-  author: IPublicUser;
+export type IPotentiallySharedConnectable = IConnectable & {
+  author?: IPublicUser;
 };
 
 export type IConnectableTypeMap = {

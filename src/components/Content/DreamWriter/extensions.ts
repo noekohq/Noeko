@@ -30,6 +30,7 @@ import { Focus, Placeholder, Dropcursor, Gapcursor } from "@tiptap/extensions";
 const lowlight = createLowlight(all);
 
 interface IGetExtensionConfigOptions {
+  editable: boolean;
   placeholder?: string;
   connectableId?: string;
 }
@@ -42,6 +43,7 @@ interface IGetExtensionConfigReturn {
 // THIS MUST BE SYNCHRONIZED WITH THE BACKEND VERSION
 // (TODO: consolidate the two extension configurations into a single source of truth)
 export const getExtensionConfig = ({
+  editable,
   placeholder,
   connectableId,
 }: IGetExtensionConfigOptions): IGetExtensionConfigReturn => ({
@@ -134,21 +136,22 @@ export const getExtensionConfig = ({
 
     DreamIdea.configure({
       HTMLAttributes: { class: contentStyles.idea },
+      editable,
     }),
-
     DreamTask.configure({
       HTMLAttributes: { class: contentStyles.task },
+      editable,
     }),
-
     DreamSource.configure({
       HTMLAttributes: { class: contentStyles.source },
+      editable,
     }),
 
     DreamYouTube.configure({
       HTMLAttributes: { class: styles.dreamYouTube },
     }),
 
-    DreamHighlight.configure(), // Shared Mark
+    DreamHighlight.configure(),
 
     ...(connectableId
       ? [

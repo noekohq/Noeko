@@ -79,103 +79,14 @@ import usePins from "../../hooks/usePins";
 import { showNotification } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
 import { downloadTextAsFile } from "../../utils/files";
-import {
-  ICollaborationStatus,
-  ICollaborator,
-} from "../../hooks/useCollaboration";
+import { CollaborationInfo } from "../../components/Collaboration/CollaborationInfo";
+
+import { ICollaborationState } from "../../hooks/useCollaboration";
 
 // --- Types ---
 type IdeaUnion =
   | (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null })
   | IOptimisticIdea;
-
-function CollaborationInfo({
-  status,
-  members,
-}: {
-  status: ICollaborationStatus;
-  members: ICollaborator[];
-}) {
-  let statusContent = null;
-  switch (status) {
-    case "connecting":
-      statusContent = (
-        <Group gap="4px" wrap="nowrap" align="center">
-          <Loader size="12px" color="blue" />
-          <Text size="xs" c="blue">
-            Connecting...
-          </Text>
-        </Group>
-      );
-      break;
-    case "synced":
-      statusContent = (
-        <Group gap="4px" wrap="nowrap" align="center">
-          <CloudCheckIcon
-            size={14}
-            color="var(--mantine-color-green-6)"
-            weight="bold"
-          />
-          <Text size="xs" c="green.6">
-            All changes saved
-          </Text>
-        </Group>
-      );
-      break;
-    case "disconnected":
-      statusContent = (
-        <Group gap="4px" wrap="nowrap" align="center">
-          <CloudSlashIcon
-            size={14}
-            color="var(--mantine-color-red-7)"
-            weight="bold"
-          />
-          <Text size="xs" c="red.7" fw="bold">
-            You're offline
-          </Text>
-        </Group>
-      );
-      break;
-    default:
-      statusContent = (
-        <Group gap="4px" wrap="nowrap" align="center">
-          <Loader size={12} />
-          <Text size="xs" c="dimmed">
-            Saving...
-          </Text>
-        </Group>
-      );
-  }
-
-  return (
-    <Group gap="xs" align="center">
-      {statusContent}
-      {members.length > 0 && (
-        <Avatar.Group>
-          {members.map((collaborator) => (
-            <Tooltip
-              transitionProps={{ transition: "fade-up", duration: 300 }}
-              label={collaborator.name}
-              key={collaborator.name}
-            >
-              <Avatar
-                color={collaborator.color}
-                size="sm"
-                radius="xl"
-                variant="filled"
-              >
-                {collaborator.name
-                  .split(" ")
-                  .map((n: string) => n[0])
-                  .join("")}
-              </Avatar>
-            </Tooltip>
-          ))}
-        </Avatar.Group>
-      )}
-    </Group>
-  );
-}
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -190,10 +101,8 @@ export default function Idea() {
   const isDeletingRef = useRef(false);
   const isMountedRef = useRef(false);
 
-  const [collaborationState, setCollaborationState] = useState<{
-    status: ICollaborationStatus;
-    members: ICollaborator[];
-  } | null>(null);
+  const [collaborationState, setCollaborationState] =
+    useState<ICollaborationState | null>(null);
 
   const {
     ideas: {
@@ -659,7 +568,7 @@ export default function Idea() {
                         : "Now"}
                     </Text>
                   </Group>
-                  {collaborationState && (
+                  {collaborationState && canEdit && (
                     <>
                       <Text size="sm" fw="bold" c="dark.4">
                         •

@@ -747,6 +747,10 @@ export class Search {
         throw new Error("Couldn't get database");
       }
 
+      if (!query.query) {
+        throw new Error("Attempting semantic search with no current query");
+      }
+
       const embedder = getEmbedder();
       const embedding = await embedder.embedContent(query.query);
       if (!embedding) {
@@ -1948,7 +1952,7 @@ export class ConnectableTableSearchBuilder {
     const builder = this.queryBuilder;
 
     if (this.userId) {
-      builder.withAccess(this.userId.toString());
+      builder.withAccess(this.userId.toString(), true);
     }
 
     if (this.searchQuery.filters) {

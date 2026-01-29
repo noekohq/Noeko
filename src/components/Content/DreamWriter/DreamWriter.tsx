@@ -42,6 +42,7 @@ import {
   ICollaborationStatus,
   useCollaboration,
   ICollaborator,
+  ICollaborationState,
 } from "../../../hooks/useCollaboration";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
@@ -53,10 +54,7 @@ import MobileEditorToolbar from "./MobileEditorToolbar";
 import LangtonsAntLoader from "../../Utils/Loading/AntLoader";
 
 interface IEditorState {
-  collaboration: {
-    status: ICollaborationStatus;
-    members: ICollaborator[];
-  };
+  collaboration: ICollaborationState;
 }
 
 interface EditorProps {
@@ -123,8 +121,12 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
 
     const userName = user?.firstName + " " + user?.lastName;
 
+    const isLocked = !!collaborationId && status !== "synced";
+    const isEditable = !isLocked && !readOnly;
+
     const { extensions, loader } = useMemo(() => {
       const { extensions, loader } = getExtensionConfig({
+        editable: isEditable,
         placeholder,
         connectableId,
       });
@@ -147,9 +149,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         loader,
       };
     }, [provider, connectableId, placeholder]);
-
-    const isLocked = !!collaborationId && status !== "synced";
-    const isEditable = !isLocked && !readOnly;
 
     const editor = useEditor(
       {
@@ -293,6 +292,8 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         editor.commands.focus("start");
       }
     }, [autofocus, editor, isEditable]);
+
+    console.log("Status: ", status);
 
     return (
       <div

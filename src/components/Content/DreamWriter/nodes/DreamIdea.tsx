@@ -44,8 +44,10 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
+  extension,
 }) => {
   const { ideaId } = node.attrs;
+  const isEditable = extension.options.editable as boolean;
 
   const isEmpty = node.content.size === 0;
 
@@ -57,7 +59,9 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   });
 
   useEffect(() => {
-    fetchIdea();
+    if (isEditable) {
+      fetchIdea();
+    }
   }, []);
 
   if (!ideaId) {

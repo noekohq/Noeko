@@ -8,11 +8,11 @@ import {
   IConnectable,
   IConnectableTypes,
   IGraphFilters,
-  ISharedConnectable,
+  IPotentiallySharedConnectable,
 } from "./constellation";
 import { ISource } from "./source";
 
-export type ISearchResultValue = IConnectable | ISharedConnectable;
+export type ISearchResultValue = IPotentiallySharedConnectable;
 
 export type ISearchResult = {
   id: string | RecordId;

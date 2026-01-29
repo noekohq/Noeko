@@ -45,7 +45,9 @@ export const newIdeaOptimistic = () => {
 
 export const newIdea = async () => {
   try {
-    const results = await api.post("/ideas/new");
+    const results = await api.post("/ideas", {
+      title: "Untitled Idea",
+    });
     return results.data.data as IIdea;
   } catch (error) {
     console.error("Error creating new idea.");

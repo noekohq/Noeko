@@ -19,8 +19,10 @@ if (!isValidProvider(EMBEDDINGS_PROVIDER)) {
 
 type IProviderKey = (typeof SupportedProviders)[number];
 
-const PROVIDER_MAP: Record<IProviderKey, EmbeddingsProvider> = {
-  google: new GoogleProvider(),
+const PROVIDER_INSTANCES: Partial<Record<IProviderKey, EmbeddingsProvider>> = {};
+
+const PROVIDER_CREATORS: Record<IProviderKey, () => EmbeddingsProvider> = {
+  google: () => new GoogleProvider(),
 };
 
 export const getEmbedder = (): EmbeddingsProvider => {
@@ -32,6 +34,11 @@ export const getEmbedder = (): EmbeddingsProvider => {
       `EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`,
     );
   }
-  const LM = PROVIDER_MAP[EMBEDDINGS_PROVIDER];
-  return LM;
+
+  const providerKey = EMBEDDINGS_PROVIDER as IProviderKey;
+  if (!PROVIDER_INSTANCES[providerKey]) {
+    PROVIDER_INSTANCES[providerKey] = PROVIDER_CREATORS[providerKey]();
+  }
+
+  return PROVIDER_INSTANCES[providerKey]!;
 };

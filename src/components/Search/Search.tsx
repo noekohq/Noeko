@@ -8,6 +8,8 @@ import {
   SparkleIcon,
   ArrowClockwiseIcon,
   IconProps,
+  UserIcon,
+  UserCircleIcon,
 } from "@phosphor-icons/react";
 import type {
   ISearchResultValue,
@@ -200,6 +202,17 @@ const ResultsView = ({
             actions={actions}
             onSelect={onResultClick}
             draggable
+            artifacts={
+              "author" in r.value && r.value.author
+                ? [
+                    {
+                      icon: UserCircleIcon,
+                      label:
+                        `${r.value.author.firstName} ${r.value.author.lastName}`.trim(),
+                    },
+                  ]
+                : undefined
+            }
           />
         );
       })}
