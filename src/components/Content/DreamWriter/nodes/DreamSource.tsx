@@ -2,8 +2,9 @@ import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
   FileTextIcon,
+  ShieldSlashIcon,
   TrashIcon,
-  XIcon,
+  TrashSimpleIcon,
 } from "@phosphor-icons/react";
 import { Editor as IEditor } from "@tiptap/core";
 import {
@@ -12,9 +13,9 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import styles from "./styles/DreamSource.module.scss";
-import { ActionIcon, Group, HoverCard, Stack, Text } from "@mantine/core";
+import { ActionIcon, Flex, Group, Popover, Stack, Text } from "@mantine/core";
 import { Link } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { ISource } from "../../../../../app/database/models/source";
@@ -40,26 +41,30 @@ export const DreamSource = DreamSourceSchema.extend({
 });
 
 export const DreamSourceComponent: React.FC<NodeViewProps> = ({
-  editor,
   node,
   deleteNode,
   selected,
   extension,
 }) => {
   const { sourceId } = node.attrs;
-  const isEditable = extension.options.editable as boolean;
 
   const isEmpty = node.content.size === 0;
+  const [hasAccess, setHasAccess] = useState(true);
 
   const { data: source, load: fetchSource } = useFetch<undefined, ISource>({
     url: `/sources/${sourceId}`,
+    skip403Redirect: true,
+    onError: (error) => {
+      console.error("Error getting source to connect: ", error);
+      if ((error as any)?.response?.status === 403) {
+        setHasAccess(false);
+      }
+    },
   });
 
   useEffect(() => {
-    if (isEditable) {
-      fetchSource();
-    }
-  }, [isEditable]);
+    fetchSource();
+  }, []);
 
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;
@@ -68,67 +73,110 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
   return (
     <NodeViewWrapper
       as="span"
-      className={styles.dreamSourceInline}
+      className={styles.dreamSourceWrapper}
       data-selected={selected || undefined}
     >
-      <HoverCard
-        width={"400px"}
-        shadow="md"
-        position="top"
-        openDelay={300}
-        radius="lg"
-      >
-        <HoverCard.Target>
-          <ActionIcon variant="subtle" size="sm" color="gray" radius="md">
-            <FileTextIcon className={styles.dreamSourceIcon} weight="regular" />
-          </ActionIcon>
-        </HoverCard.Target>
+      <Popover width={"400px"} shadow="md" position="top" radius="lg">
+        <Popover.Target>
+          <Flex align={"center"} justify={"center"}>
+            {hasAccess ? (
+              <FileTextIcon
+                className={styles.dreamSourceIcon}
+                weight="regular"
+              />
+            ) : (
+              <ShieldSlashIcon
+                className={styles.dreamSourceIcon}
+                weight="regular"
+              />
+            )}
+          </Flex>
+        </Popover.Target>
 
-        <HoverCard.Dropdown
+        <Popover.Dropdown
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
           {source ? (
-            <Stack>
-              <Group justify="flex-end">
-                <ActionIcon
-                  onClick={deleteNode}
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                >
-                  <XIcon weight="bold" />
-                </ActionIcon>
-                <Link to={`/source/${sourceId}`}>
+            <Stack gap="sm">
+              <Group
+                justify="space-between"
+                align="center"
+                w={"100%"}
+                wrap="nowrap"
+              >
+                <Text fw={500} c="dark.3">
+                  {source.displayName}
+                </Text>
+                <Group justify="flex-end">
                   <ActionIcon
-                    title="Open Source"
-                    variant="subtle"
+                    onClick={deleteNode}
+                    variant="light"
                     color="gray"
                     size="sm"
+                    radius="sm"
                   >
-                    <ArrowRightIcon weight="bold" />
+                    <TrashSimpleIcon weight="bold" size={12} />
                   </ActionIcon>
-                </Link>
+                  <Link to={`/source/${sourceId}`}>
+                    <ActionIcon
+                      title="Open Source"
+                      variant="light"
+                      color="gray"
+                      size="sm"
+                      radius="sm"
+                    >
+                      <ArrowRightIcon weight="bold" size={12} />
+                    </ActionIcon>
+                  </Link>
+                </Group>
               </Group>
-              <Text c="dimmed" fw="bold" size="sm">
-                {source.displayName}
+              {source.analysis?.abstract && (
+                <Text size="sm">{source.analysis.abstract}</Text>
+              )}
+            </Stack>
+          ) : !hasAccess ? (
+            <Stack gap="sm" align="center">
+              <ShieldSlashIcon
+                size={32}
+                weight="regular"
+                color="var(--mantine-color-dimmed)"
+              />
+              <Text c="dimmed" size="sm" ta="center">
+                You don't have access to preview this source
               </Text>
-              <Text size="sm">{source.analysis?.abstract}</Text>
+              <Link to={`/source/${sourceId}`}>
+                <ActionIcon
+                  title="Request Access"
+                  variant="light"
+                  color="gray"
+                  size="md"
+                  radius="md"
+                >
+                  <ArrowRightIcon weight="bold" size={12} />
+                </ActionIcon>
+              </Link>
             </Stack>
           ) : (
             <Text c="dimmed" size="xs">
               Could not find source :/
             </Text>
           )}
-        </HoverCard.Dropdown>
-      </HoverCard>
+        </Popover.Dropdown>
+      </Popover>
 
-      <NodeViewContent
-        className={styles.dreamSourceContent}
-        data-placeholder={
-          isEmpty ? source?.displayName || "Loading title..." : undefined
-        }
-      />
+      <Link
+        to={`/source/${source?.id.toString()}`}
+        className={styles.dreamSourceInline}
+      >
+        <NodeViewContent
+          className={`${styles.dreamSourceContent} ${!source ? styles.notFound : ""}`}
+          data-placeholder={
+            isEmpty ? source?.displayName || "Loading title..." : undefined
+          }
+          title={`Go to "${source?.displayName}"`}
+        />
+      </Link>
     </NodeViewWrapper>
   );
 };

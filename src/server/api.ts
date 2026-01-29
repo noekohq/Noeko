@@ -4,6 +4,12 @@ import axios, {
   AxiosResponse,
 } from "axios";
 
+declare module "axios" {
+  export interface InternalAxiosRequestConfig {
+    skipGlobal403Redirect?: boolean;
+  }
+}
+
 const appEnv = import.meta.env.VITE_APP_ENV ?? "development";
 
 // --- Configuration ---
@@ -197,6 +203,12 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 403) {
+      // Allow specific requests to handle 403 locally
+      if (originalRequest?.skipGlobal403Redirect) {
+        return Promise.reject(error);
+      }
+
+      // Global redirect for other 403s
       const message =
         (error.response?.data as { message: string })?.message ||
         "You are not authorized to perform this action.";

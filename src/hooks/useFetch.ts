@@ -2,6 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { DefaultResponse } from "../declarations/server";
 import { api } from "../server/api";
 
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    skipGlobal403Redirect?: boolean;
+  }
+}
+
 export interface UseFetchConfig<B, D> {
   url: string | null;
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -16,6 +22,7 @@ export interface UseFetchConfig<B, D> {
   runOnMount?: boolean;
   dependencies?: unknown[];
   runOnDependencies?: unknown[];
+  skip403Redirect?: boolean;
 }
 
 function useFetch<B, D>({
@@ -32,6 +39,7 @@ function useFetch<B, D>({
   runOnMount = false,
   dependencies = [],
   runOnDependencies = [],
+  skip403Redirect,
 }: UseFetchConfig<B, D>) {
   const queryStr = query
     ? Object.keys(query)
@@ -68,6 +76,7 @@ function useFetch<B, D>({
         method,
         data: useBody(),
         headers,
+        skipGlobal403Redirect: skip403Redirect,
       })
         .then((res) => {
           onSuccess &&
@@ -138,6 +147,7 @@ function useFetch<B, D>({
           ...body,
         },
         headers,
+        skipGlobal403Redirect: skip403Redirect,
       })
         .then((res) => {
           onSuccess && onSuccess(res.data.data as D, res.data.message);

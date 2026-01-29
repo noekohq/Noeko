@@ -2,6 +2,7 @@ import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
   LightbulbIcon,
+  ShieldSlashIcon,
   TrashIcon,
   TrashSimpleIcon,
 } from "@phosphor-icons/react";
@@ -13,13 +14,14 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import { ActionIcon, Group, Popover, Stack, Text } from "@mantine/core";
-import { Link } from "react-router";
+import { ActionIcon, Flex, Group, Popover, Stack, Text } from "@mantine/core";
+import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../shared/types/idea";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { DreamIdeaSchema } from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import PaperButton from "../../../Display/Paper/PaperButton";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -47,21 +49,23 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   extension,
 }) => {
   const { ideaId } = node.attrs;
-  const isEditable = extension.options.editable as boolean;
 
   const isEmpty = node.content.size === 0;
+  const [hasAccess, setHasAccess] = useState(true);
 
   const { data: idea, load: fetchIdea } = useFetch<undefined, IIdea>({
     url: `/ideas/${ideaId}?withDerived=true`,
+    skip403Redirect: true,
     onError: (error) => {
       console.error("Error getting idea to connect: ", error);
+      if ((error as any)?.response?.status === 403) {
+        setHasAccess(false);
+      }
     },
   });
 
   useEffect(() => {
-    if (isEditable) {
-      fetchIdea();
-    }
+    fetchIdea();
   }, []);
 
   if (!ideaId) {
@@ -71,14 +75,24 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   return (
     <NodeViewWrapper
       as="span"
-      className={styles.dreamIdeaInline}
+      className={styles.dreamIdeaWrapper}
       data-selected={selected || undefined}
     >
       <Popover width={"400px"} shadow="md" position="top" radius="lg">
         <Popover.Target>
-          <ActionIcon variant="subtle" size="sm" color="gray" radius="md">
-            <LightbulbIcon className={styles.dreamIdeaIcon} weight="regular" />
-          </ActionIcon>
+          <Flex align={"center"} justify={"center"}>
+            {hasAccess ? (
+              <LightbulbIcon
+                className={styles.dreamIdeaIcon}
+                weight="regular"
+              />
+            ) : (
+              <ShieldSlashIcon
+                className={styles.dreamIdeaIcon}
+                weight="regular"
+              />
+            )}
+          </Flex>
         </Popover.Target>
 
         <Popover.Dropdown
@@ -128,6 +142,28 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
                 }}
               />
             </Stack>
+          ) : !hasAccess ? (
+            <Stack gap="sm" align="center">
+              <ShieldSlashIcon
+                size={32}
+                weight="regular"
+                color="var(--mantine-color-dimmed)"
+              />
+              <Text c="dimmed" size="sm" ta="center">
+                You don't have access to preview this idea
+              </Text>
+              <Link to={`/idea/${ideaId}`}>
+                <ActionIcon
+                  title="Request Access"
+                  variant="light"
+                  color="gray"
+                  size="md"
+                  radius="md"
+                >
+                  <ArrowRightIcon weight="bold" size={12} />
+                </ActionIcon>
+              </Link>
+            </Stack>
           ) : (
             <Text c="dimmed" size="xs">
               Could not find idea :/
@@ -136,12 +172,18 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <NodeViewContent
-        className={`${styles.dreamIdeaContent} ${!idea ? styles.notFound : ""}`}
-        data-placeholder={
-          isEmpty ? idea?.title || "Loading title..." : undefined
-        }
-      />
+      <Link
+        to={`/idea/${idea?.id.toString()}`}
+        className={styles.dreamIdeaInline}
+      >
+        <NodeViewContent
+          className={`${styles.dreamIdeaContent} ${!idea ? styles.notFound : ""}`}
+          data-placeholder={
+            isEmpty ? idea?.title || "Loading title..." : undefined
+          }
+          title={`Go to "${idea?.title}"`}
+        />
+      </Link>
     </NodeViewWrapper>
   );
 };

@@ -1,16 +1,25 @@
-import { NodeViewProps } from "@tiptap/core";
-import { useEffect } from "react";
-import useFetch from "../../../../hooks/useFetch";
-import { ITask } from "../../../../../app/database/models/task";
 import {
-  NodeViewContent,
-  NodeViewWrapper,
+  ArrowRightIcon,
+  ArrowSquareOutIcon,
+  CheckIcon,
+  ShieldSlashIcon,
+  TrashIcon,
+  TrashSimpleIcon,
+} from "@phosphor-icons/react";
+import { Editor as IEditor } from "@tiptap/core";
+import {
   ReactNodeViewRenderer,
+  NodeViewProps,
+  NodeViewWrapper,
+  NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamTask.module.scss";
-import { Group, Text } from "@mantine/core";
-import { CheckIcon } from "@phosphor-icons/react";
+import { ActionIcon, Flex, Group, Popover, Stack, Text } from "@mantine/core";
+import { Link } from "react-router";
+import useFetch from "../../../../hooks/useFetch";
+import { ITask } from "../../../../../app/database/models/task";
 import { DreamTaskSchema } from "../../../../../shared/editing/tiptap/nodes/DreamTask";
+import { useEffect, useState } from "react";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -32,25 +41,30 @@ export const DreamTask = DreamTaskSchema.extend({
 });
 
 export const DreamTaskComponent: React.FC<NodeViewProps> = ({
-  editor,
   node,
   deleteNode,
   selected,
   extension,
 }) => {
   const { taskId } = node.attrs;
-  const isEditable = extension.options.editable as boolean;
+
   const isEmpty = node.content.size === 0;
+  const [hasAccess, setHasAccess] = useState(true);
 
   const { data: task, load: fetchTask } = useFetch<undefined, ITask>({
     url: `/tasks/${taskId}`,
+    skip403Redirect: true,
+    onError: (error) => {
+      console.error("Error getting task to connect: ", error);
+      if ((error as any)?.response?.status === 403) {
+        setHasAccess(false);
+      }
+    },
   });
 
   useEffect(() => {
-    if (isEditable) {
-      fetchTask();
-    }
-  }, [isEditable]);
+    fetchTask();
+  }, []);
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;
@@ -59,20 +73,139 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
   return (
     <NodeViewWrapper
       as="span"
-      className={styles.dreamTaskInline}
+      className={styles.dreamTaskWrapper}
       data-selected={selected || undefined}
     >
-      <Text>
-        <Group gap="xs">
-          <CheckIcon weight="bold" />
-          <NodeViewContent
-            className={styles.dreamTaskContent}
-            data-placeholder={
-              isEmpty ? task?.description || "Loading task..." : undefined
-            }
-          />
-        </Group>
-      </Text>
+      <Popover width={"400px"} shadow="md" position="top" radius="lg">
+        <Popover.Target>
+          <Flex align={"center"} justify={"center"}>
+            {hasAccess ? (
+              <CheckIcon
+                className={styles.dreamTaskIcon}
+                weight="bold"
+              />
+            ) : (
+              <ShieldSlashIcon
+                className={styles.dreamTaskIcon}
+                weight="regular"
+              />
+            )}
+          </Flex>
+        </Popover.Target>
+
+        <Popover.Dropdown
+          onClick={(e) => e.stopPropagation()}
+          style={{ overflowY: "scroll", maxHeight: "400px" }}
+        >
+          {task ? (
+            <Stack gap="sm">
+              <Group
+                justify="space-between"
+                align="center"
+                w={"100%"}
+                wrap="nowrap"
+              >
+                <Text fw={500} c="dark.3">
+                  {task.description}
+                </Text>
+                <Group justify="flex-end">
+                  <ActionIcon
+                    onClick={deleteNode}
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                    radius="sm"
+                  >
+                    <TrashSimpleIcon weight="bold" size={12} />
+                  </ActionIcon>
+                  <Link to={`/task/${taskId}`}>
+                    <ActionIcon
+                      title="Open Task"
+                      variant="light"
+                      color="gray"
+                      size="sm"
+                      radius="sm"
+                    >
+                      <ArrowRightIcon weight="bold" size={12} />
+                    </ActionIcon>
+                  </Link>
+                </Group>
+              </Group>
+              {task.scratchpad && (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: task.scratchpad,
+                  }}
+                />
+              )}
+            </Stack>
+          ) : !hasAccess ? (
+            <Stack gap="sm" align="center">
+              <ShieldSlashIcon
+                size={32}
+                weight="regular"
+                color="var(--mantine-color-dimmed)"
+              />
+              <Text c="dimmed" size="sm" ta="center">
+                You don't have access to preview this task
+              </Text>
+              <Link to={`/task/${taskId}`}>
+                <ActionIcon
+                  title="Request Access"
+                  variant="light"
+                  color="gray"
+                  size="md"
+                  radius="md"
+                >
+                  <ArrowRightIcon weight="bold" size={12} />
+                </ActionIcon>
+              </Link>
+            </Stack>
+          ) : (
+            <Text c="dimmed" size="xs">
+              Could not find task :/
+            </Text>
+          )}
+        </Popover.Dropdown>
+      </Popover>
+
+      <Link
+        to={`/task/${task?.id.toString()}`}
+        className={styles.dreamTaskInline}
+      >
+        <NodeViewContent
+          className={`${styles.dreamTaskContent} ${!task ? styles.notFound : ""}`}
+          data-placeholder={
+            isEmpty ? task?.description || "Loading task..." : undefined
+          }
+          title={`Go to "${task?.description}"`}
+        />
+      </Link>
     </NodeViewWrapper>
+  );
+};
+
+interface IDreamTaskMenuProps {
+  editor: IEditor;
+}
+
+export const DreamTaskMenu = ({ editor }: IDreamTaskMenuProps) => {
+  const deleteSelectedNode = () => {
+    editor.chain().focus().deleteNode("dreamTask").run();
+  };
+
+  const taskId = editor.getAttributes("dreamTask").taskId;
+
+  return (
+    <>
+      <Link to={`/task/${taskId}`}>
+        <ActionIcon title="Open Task">
+          <ArrowSquareOutIcon />
+        </ActionIcon>
+      </Link>
+      <ActionIcon title="Delete Task" color="red" onClick={deleteSelectedNode}>
+        <TrashIcon />
+      </ActionIcon>
+    </>
   );
 };
