@@ -14,14 +14,21 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import { ActionIcon, Flex, Group, Popover, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Flex,
+  Group,
+  Popover,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../shared/types/idea";
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
 import { DreamIdeaSchema } from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
 import { useEffect, useState } from "react";
-import PaperButton from "../../../Display/Paper/PaperButton";
 import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {
@@ -47,12 +54,13 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
-  extension,
 }) => {
   const { ideaId } = node.attrs;
-
   const isEmpty = node.content.size === 0;
-  const [hasAccess, setHasAccess] = useState(true);
+  const [accessState, setAccessState] = useState<
+    "granted" | "forbidden" | "error"
+  >("granted");
+  const navigate = useNavigate();
 
   const { data: idea, load: fetchIdea } = useFetch<undefined, IIdea>({
     url: `/ideas/${ideaId}?withDerived=true`,
@@ -60,16 +68,38 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
     onError: (error) => {
       console.error("Error getting idea to connect: ", error);
       if ((error as any)?.response?.status === 403) {
-        setHasAccess(false);
+        setAccessState("forbidden");
       }
     },
   });
 
   useEffect(() => {
     fetchIdea();
-  }, []);
+  }, [ideaId]);
 
-  const [iconHovered, { toggle, open, close }] = useDisclosure(false);
+  const [iconHovered, { toggle }] = useDisclosure(false);
+
+  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Standard behavior for opening in a new tab
+    if (event.metaKey || event.ctrlKey) {
+      return;
+    }
+    event.preventDefault();
+    navigate(`/idea/${ideaId}`);
+  };
+
+  const getTooltipLabel = () => {
+    switch (accessState) {
+      case "granted":
+        return idea?.title ? `Preview ”${idea.title}”` : "Loading...";
+      case "forbidden":
+        return "You don't have access to preview this idea";
+      case "error":
+        return "Could not load idea preview";
+      default:
+        return "Loading...";
+    }
+  };
 
   if (!ideaId) {
     return <span className={styles.dreamIdeaError}>[ERROR]</span>;
@@ -89,29 +119,43 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
         opened={iconHovered}
       >
         <Popover.Target>
-          <Flex
-            align={"center"}
-            justify={"center"}
-            onClick={() => {
-              toggle();
+          <Tooltip
+            label={getTooltipLabel()}
+            transitionProps={{
+              duration: 200,
+              transition: "rotate-right",
             }}
           >
-            {hasAccess ? (
-              <LightbulbIcon
-                className={`${styles.dreamIdeaIcon} ${iconHovered ? styles.hovered : ""}`}
-                weight={iconHovered ? "fill" : "regular"}
-              />
-            ) : (
-              <ShieldSlashIcon className={styles.dreamIdeaIcon} weight="fill" />
-            )}
-          </Flex>
+            <Flex
+              className={styles.iconWrapper}
+              align={"center"}
+              justify={"center"}
+              onClick={() => {
+                toggle();
+              }}
+            >
+              {accessState === "granted" ? (
+                <LightbulbIcon
+                  className={`${styles.dreamIdeaIcon} ${
+                    iconHovered ? styles.hovered : ""
+                  }`}
+                  weight={iconHovered ? "fill" : "regular"}
+                />
+              ) : (
+                <ShieldSlashIcon
+                  className={`${styles.dreamIdeaIcon} ${styles.shieldIcon}`}
+                  weight="fill"
+                />
+              )}
+            </Flex>
+          </Tooltip>
         </Popover.Target>
 
         <Popover.Dropdown
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
-          {idea ? (
+          {accessState === "granted" && idea && (
             <Stack gap="sm">
               <Group
                 justify="space-between"
@@ -154,7 +198,15 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
                 }}
               />
             </Stack>
-          ) : !hasAccess ? (
+          )}
+
+          {accessState === "granted" && !idea && (
+            <Text c="dimmed" size="xs">
+              Loading preview...
+            </Text>
+          )}
+
+          {accessState === "forbidden" && (
             <Stack gap="sm" align="center">
               <ShieldSlashIcon
                 size={32}
@@ -176,26 +228,33 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
                 </ActionIcon>
               </Link>
             </Stack>
-          ) : (
-            <Text c="dimmed" size="xs">
-              Could not find idea :/
-            </Text>
+          )}
+
+          {accessState === "error" && (
+            <Stack gap="sm" align="center">
+              <Text c="dimmed" size="sm" ta="center">
+                Could not load idea preview.
+              </Text>
+            </Stack>
           )}
         </Popover.Dropdown>
       </Popover>
 
-      <Link
-        to={`/idea/${idea?.id.toString()}`}
+      <a
+        href={`/idea/${ideaId}`}
+        onClick={handleLinkClick}
         className={styles.dreamIdeaInline}
       >
         <NodeViewContent
-          className={`${styles.dreamIdeaContent} ${!idea ? styles.notFound : ""}`}
+          className={`${styles.dreamIdeaContent} ${
+            !idea && accessState === "granted" ? styles.notFound : ""
+          }`}
           data-placeholder={
             isEmpty ? idea?.title || "Loading title..." : undefined
           }
-          title={`Go to "${idea?.title}"`}
+          title={idea?.title ? `Go to "${idea.title}"` : "Go to idea"}
         />
-      </Link>
+      </a>
     </NodeViewWrapper>
   );
 };

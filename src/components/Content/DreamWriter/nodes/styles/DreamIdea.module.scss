@@ -1,7 +1,16 @@
+@import "../../../../../styles/mixins.scss";
+
 .dreamIdeaWrapper {
     display: inline-flex;
-    align-items: baseline;
-    gap: 1px;
+    align-items: center;
+    gap: 0;
+}
+
+.iconWrapper {
+    @include mobile {
+        min-width: 24px;
+        min-height: 24px;
+    }
 }
 
 .dreamIdeaInline {
@@ -36,6 +45,19 @@
     &:hover {
         color: var(--mantine-color-yellow-6);
         filter: drop-shadow(0 0 4px var(--mantine-color-yellow-6));
+    }
+
+    @include mobile {
+        font-size: 14px;
+    }
+}
+
+.shieldIcon {
+    color: var(--mantine-color-dark-3);
+
+    &:hover {
+      color: var(--mantine-color-dark-1);
+      filter: none;
     }
 }
 

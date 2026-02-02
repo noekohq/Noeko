@@ -958,7 +958,10 @@ export class Idea {
       }
       const result = await db?.query<[ISafeIdea[]]>(
         `
-        SELECT * ${omitFields.length > 0 ? `OMIT ${omitFields.map((f, i) => `${f}${i === omitFields.length - 1 ? "" : ", "}`)}` : ""}
+        SELECT
+          *,
+          (<-owns<-user.{ email, firstName, lastName, createdAt })[0] as author
+          ${omitFields.length > 0 ? `OMIT ${omitFields.map((f, i) => `${f}${i === omitFields.length - 1 ? "" : ", "}`)}` : ""}
         FROM idea
         WHERE id = $ideaId;`,
         {

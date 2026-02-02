@@ -46,6 +46,7 @@ import {
   TrashSimpleIcon,
   UniteSquareIcon,
   UserCirclePlusIcon,
+  FeatherIcon,
 } from "@phosphor-icons/react";
 import Insights from "./Insights";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
@@ -82,6 +83,7 @@ import { downloadTextAsFile } from "../../utils/files";
 import { CollaborationInfo } from "../../components/Collaboration/CollaborationInfo";
 
 import { ICollaborationState } from "../../hooks/useCollaboration";
+import { userFormattedName } from "../../utils/user";
 
 // --- Types ---
 type IdeaUnion =
@@ -525,12 +527,11 @@ export default function Idea() {
                 )}
 
                 {safeIdea?.titleGeneratedAt && (
-                  <div
-                    className={styles.generatedIndicator}
-                    title={"This title was generated automatically."}
-                  >
-                    <SparkleIcon />
-                  </div>
+                  <Tooltip label="This title was generated automatically.">
+                    <div className={styles.generatedIndicator}>
+                      <SparkleIcon />
+                    </div>
+                  </Tooltip>
                 )}
               </Group>
 
@@ -541,33 +542,72 @@ export default function Idea() {
                 p="4px 8px"
               >
                 <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
-                  <Group gap="4px" align="center">
-                    <ClockIcon
-                      color="var(--mantine-color-dark-3)"
-                      size={12}
-                      weight="bold"
-                    />
-                    <Text size="xs" fw="500">
-                      {ideaToRender?.createdAt
-                        ? `${formatDate(ideaToRender.createdAt)}`
-                        : "Now"}
-                    </Text>
-                  </Group>
+                  <Tooltip
+                    label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
+                    transitionProps={{
+                      transition: "rotate-right",
+                      duration: 200,
+                    }}
+                  >
+                    <Group gap="4px" align="center">
+                      <FeatherIcon
+                        color="var(--mantine-color-dark-3)"
+                        size={12}
+                        weight="bold"
+                      />
+                      <Text size="xs" fw="500">
+                        {ideaToRender?.author
+                          ? userFormattedName(ideaToRender?.author)
+                          : "Unknown Author"}
+                      </Text>
+                    </Group>
+                  </Tooltip>
                   <Text size="sm" fw="bold" c="dark.4">
                     •
                   </Text>
-                  <Group gap="4px" align="center">
-                    <PencilSimpleIcon
-                      color="var(--mantine-color-dark-3)"
-                      size={12}
-                      weight="bold"
-                    />
-                    <Text size="xs" fw="500">
-                      {ideaToRender?.updatedAt
-                        ? `${formatDateTime(ideaToRender.updatedAt)}`
-                        : "Now"}
-                    </Text>
-                  </Group>
+                  <Tooltip
+                    label="Created at"
+                    transitionProps={{
+                      transition: "rotate-right",
+                      duration: 200,
+                    }}
+                  >
+                    <Group gap="4px" align="center">
+                      <ClockIcon
+                        color="var(--mantine-color-dark-3)"
+                        size={12}
+                        weight="bold"
+                      />
+                      <Text size="xs" fw="500">
+                        {ideaToRender?.createdAt
+                          ? `${formatDate(ideaToRender.createdAt)}`
+                          : "Now"}
+                      </Text>
+                    </Group>
+                  </Tooltip>
+                  <Text size="sm" fw="bold" c="dark.4">
+                    •
+                  </Text>
+                  <Tooltip
+                    label="Last updated"
+                    transitionProps={{
+                      transition: "rotate-right",
+                      duration: 200,
+                    }}
+                  >
+                    <Group gap="4px" align="center">
+                      <PencilSimpleIcon
+                        color="var(--mantine-color-dark-3)"
+                        size={12}
+                        weight="bold"
+                      />
+                      <Text size="xs" fw="500">
+                        {ideaToRender?.updatedAt
+                          ? `${formatDateTime(ideaToRender.updatedAt)}`
+                          : "Now"}
+                      </Text>
+                    </Group>
+                  </Tooltip>
                   {collaborationState && canEdit && (
                     <>
                       <Text size="sm" fw="bold" c="dark.4">

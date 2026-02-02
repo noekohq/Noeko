@@ -23,6 +23,7 @@ export type IIdea = {
   derived?: IIdeaDerivedMap;
   similar?: IIdeaAsRelation[];
   importedAt?: Date;
+  author?: IPublicUser;
 };
 
 export type IIdeaVisibility = "private" | "public";

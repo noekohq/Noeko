@@ -15,8 +15,16 @@ import {
 } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import styles from "./styles/DreamSource.module.scss";
-import { ActionIcon, Flex, Group, Popover, Stack, Text } from "@mantine/core";
-import { Link } from "react-router";
+import {
+  ActionIcon,
+  Flex,
+  Group,
+  Popover,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
+import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { ISource } from "../../../../../app/database/models/source";
 import { DreamSourceSchema } from "../../../../../shared/editing/tiptap/nodes/DreamSource";
@@ -45,12 +53,13 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
-  extension,
 }) => {
   const { sourceId } = node.attrs;
-
   const isEmpty = node.content.size === 0;
-  const [hasAccess, setHasAccess] = useState(true);
+  const [accessState, setAccessState] = useState<
+    "granted" | "forbidden" | "error"
+  >("granted");
+  const navigate = useNavigate();
 
   const { data: source, load: fetchSource } = useFetch<undefined, ISource>({
     url: `/sources/${sourceId}`,
@@ -58,16 +67,42 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
     onError: (error) => {
       console.error("Error getting source to connect: ", error);
       if ((error as any)?.response?.status === 403) {
-        setHasAccess(false);
+        setAccessState("forbidden");
+      } else {
+        setAccessState("error");
       }
     },
   });
 
   useEffect(() => {
     fetchSource();
-  }, []);
+  }, [sourceId]);
 
-  const [iconHovered, { open, close }] = useDisclosure(false);
+  const [iconHovered, { toggle }] = useDisclosure(false);
+
+  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Standard behavior for opening in a new tab
+    if (event.metaKey || event.ctrlKey) {
+      return;
+    }
+    event.preventDefault();
+    navigate(`/source/${sourceId}`);
+  };
+
+  const getTooltipLabel = () => {
+    switch (accessState) {
+      case "granted":
+        return source?.displayName
+          ? `Preview ${source.displayName}`
+          : "Loading...";
+      case "forbidden":
+        return "You don't have access to preview this source";
+      case "error":
+        return "Could not load source preview";
+      default:
+        return "Loading...";
+    }
+  };
 
   if (!sourceId) {
     return <span className={styles.dreamSourceError}>[ERROR]</span>;
@@ -87,33 +122,37 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
         opened={iconHovered}
       >
         <Popover.Target>
-          <Flex
-            align={"center"}
-            justify={"center"}
-            onMouseEnter={open}
-            onMouseLeave={close}
-          >
-            {hasAccess ? (
-              <FileTextIcon
-                className={`${styles.dreamSourceIcon} ${
-                  iconHovered ? styles.hovered : ""
-                }`}
-                weight={iconHovered ? "fill" : "regular"}
-              />
-            ) : (
-              <ShieldSlashIcon
-                className={styles.dreamSourceIcon}
-                weight="regular"
-              />
-            )}
-          </Flex>
+          <Tooltip label={getTooltipLabel()}>
+            <Flex
+              className={styles.iconWrapper}
+              align={"center"}
+              justify={"center"}
+              onClick={() => {
+                toggle();
+              }}
+            >
+              {accessState === "granted" ? (
+                <FileTextIcon
+                  className={`${styles.dreamSourceIcon} ${
+                    iconHovered ? styles.hovered : ""
+                  }`}
+                  weight={iconHovered ? "fill" : "regular"}
+                />
+              ) : (
+                <ShieldSlashIcon
+                  className={`${styles.dreamSourceIcon} ${styles.shieldIcon}`}
+                  weight="fill"
+                />
+              )}
+            </Flex>
+          </Tooltip>
         </Popover.Target>
 
         <Popover.Dropdown
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
-          {source ? (
+          {accessState === "granted" && source && (
             <Stack gap="sm">
               <Group
                 justify="space-between"
@@ -151,7 +190,15 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
                 <Text size="sm">{source.analysis.abstract}</Text>
               )}
             </Stack>
-          ) : !hasAccess ? (
+          )}
+
+          {accessState === "granted" && !source && (
+            <Text c="dimmed" size="xs">
+              Loading preview...
+            </Text>
+          )}
+
+          {accessState === "forbidden" && (
             <Stack gap="sm" align="center">
               <ShieldSlashIcon
                 size={32}
@@ -173,26 +220,37 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
                 </ActionIcon>
               </Link>
             </Stack>
-          ) : (
-            <Text c="dimmed" size="xs">
-              Could not find source :/
-            </Text>
+          )}
+
+          {accessState === "error" && (
+            <Stack gap="sm" align="center">
+              <Text c="dimmed" size="sm" ta="center">
+                Could not load source preview.
+              </Text>
+            </Stack>
           )}
         </Popover.Dropdown>
       </Popover>
 
-      <Link
-        to={`/source/${source?.id.toString()}`}
+      <a
+        href={`/source/${sourceId}`}
+        onClick={handleLinkClick}
         className={styles.dreamSourceInline}
       >
         <NodeViewContent
-          className={`${styles.dreamSourceContent} ${!source ? styles.notFound : ""}`}
+          className={`${styles.dreamSourceContent} ${
+            !source && accessState === "granted" ? styles.notFound : ""
+          }`}
           data-placeholder={
             isEmpty ? source?.displayName || "Loading title..." : undefined
           }
-          title={`Go to "${source?.displayName}"`}
+          title={
+            source?.displayName
+              ? `Go to "${source.displayName}"`
+              : "Go to source"
+          }
         />
-      </Link>
+      </a>
     </NodeViewWrapper>
   );
 };

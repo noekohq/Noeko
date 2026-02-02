@@ -14,8 +14,16 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamTask.module.scss";
-import { ActionIcon, Flex, Group, Popover, Stack, Text } from "@mantine/core";
-import { Link } from "react-router";
+import {
+  ActionIcon,
+  Flex,
+  Group,
+  Popover,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
+import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { ITask } from "../../../../../app/database/models/task";
 import { DreamTaskSchema } from "../../../../../shared/editing/tiptap/nodes/DreamTask";
@@ -45,12 +53,13 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
   node,
   deleteNode,
   selected,
-  extension,
 }) => {
   const { taskId } = node.attrs;
-
   const isEmpty = node.content.size === 0;
-  const [hasAccess, setHasAccess] = useState(true);
+  const [accessState, setAccessState] = useState<
+    "granted" | "forbidden" | "error"
+  >("granted");
+  const navigate = useNavigate();
 
   const { data: task, load: fetchTask } = useFetch<undefined, ITask>({
     url: `/tasks/${taskId}`,
@@ -58,16 +67,40 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
     onError: (error) => {
       console.error("Error getting task to connect: ", error);
       if ((error as any)?.response?.status === 403) {
-        setHasAccess(false);
+        setAccessState("forbidden");
+      } else {
+        setAccessState("error");
       }
     },
   });
 
   useEffect(() => {
     fetchTask();
-  }, []);
+  }, [taskId]);
 
   const [iconHovered, { toggle }] = useDisclosure(false);
+
+  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Standard behavior for opening in a new tab
+    if (event.metaKey || event.ctrlKey) {
+      return;
+    }
+    event.preventDefault();
+    navigate(`/task/${taskId}`);
+  };
+
+  const getTooltipLabel = () => {
+    switch (accessState) {
+      case "granted":
+        return task?.description ? `Preview ${task.description}` : "Loading...";
+      case "forbidden":
+        return "You don't have access to preview this task";
+      case "error":
+        return "Could not load task preview";
+      default:
+        return "Loading...";
+    }
+  };
 
   if (!taskId) {
     return <span className={styles.dreamTaskError}>[ERROR]</span>;
@@ -87,34 +120,37 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
         opened={iconHovered}
       >
         <Popover.Target>
-          <Flex
-            align={"center"}
-            justify={"center"}
-            onClick={() => {
-              toggle();
-            }}
-          >
-            {hasAccess ? (
-              <CheckIcon
-                className={`${styles.dreamTaskIcon} ${
-                  iconHovered ? styles.hovered : ""
-                }`}
-                weight={iconHovered ? "bold" : "regular"}
-              />
-            ) : (
-              <ShieldSlashIcon
-                className={styles.dreamTaskIcon}
-                weight="regular"
-              />
-            )}
-          </Flex>
+          <Tooltip label={getTooltipLabel()}>
+            <Flex
+              className={styles.iconWrapper}
+              align={"center"}
+              justify={"center"}
+              onClick={() => {
+                toggle();
+              }}
+            >
+              {accessState === "granted" ? (
+                <CheckIcon
+                  className={`${styles.dreamTaskIcon} ${
+                    iconHovered ? styles.hovered : ""
+                  }`}
+                  weight={iconHovered ? "fill" : "regular"}
+                />
+              ) : (
+                <ShieldSlashIcon
+                  className={`${styles.dreamTaskIcon} ${styles.shieldIcon}`}
+                  weight="fill"
+                />
+              )}
+            </Flex>
+          </Tooltip>
         </Popover.Target>
 
         <Popover.Dropdown
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
-          {task ? (
+          {accessState === "granted" && task && (
             <Stack gap="sm">
               <Group
                 justify="space-between"
@@ -156,7 +192,15 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
                 />
               )}
             </Stack>
-          ) : !hasAccess ? (
+          )}
+
+          {accessState === "granted" && !task && (
+            <Text c="dimmed" size="xs">
+              Loading preview...
+            </Text>
+          )}
+
+          {accessState === "forbidden" && (
             <Stack gap="sm" align="center">
               <ShieldSlashIcon
                 size={32}
@@ -178,26 +222,35 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
                 </ActionIcon>
               </Link>
             </Stack>
-          ) : (
-            <Text c="dimmed" size="xs">
-              Could not find task :/
-            </Text>
+          )}
+
+          {accessState === "error" && (
+            <Stack gap="sm" align="center">
+              <Text c="dimmed" size="sm" ta="center">
+                Could not load task preview.
+              </Text>
+            </Stack>
           )}
         </Popover.Dropdown>
       </Popover>
 
-      <Link
-        to={`/task/${task?.id.toString()}`}
+      <a
+        href={`/task/${taskId}`}
+        onClick={handleLinkClick}
         className={styles.dreamTaskInline}
       >
         <NodeViewContent
-          className={`${styles.dreamTaskContent} ${!task ? styles.notFound : ""}`}
+          className={`${styles.dreamTaskContent} ${
+            !task && accessState === "granted" ? styles.notFound : ""
+          }`}
           data-placeholder={
             isEmpty ? task?.description || "Loading task..." : undefined
           }
-          title={`Go to "${task?.description}"`}
+          title={
+            task?.description ? `Go to "${task.description}"` : "Go to task"
+          }
         />
-      </Link>
+      </a>
     </NodeViewWrapper>
   );
 };
