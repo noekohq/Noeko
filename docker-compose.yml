@@ -19,6 +19,7 @@ services:
       - app
     volumes:
       - surrealdb_data:/data # Using the named volume
+      - ./temp_backups:/transfers
     user: root
   # redis:
   #   image: redis:alpine
