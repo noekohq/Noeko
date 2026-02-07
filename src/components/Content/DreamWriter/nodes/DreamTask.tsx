@@ -80,12 +80,13 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
 
   const [iconHovered, { toggle }] = useDisclosure(false);
 
-  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+    event.preventDefault();
     // Standard behavior for opening in a new tab
     if (event.metaKey || event.ctrlKey) {
+      window.open(`/task/${taskId}`, "_blank");
       return;
     }
-    event.preventDefault();
     navigate(`/task/${taskId}`);
   };
 
@@ -234,10 +235,10 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <a
-        href={`/task/${taskId}`}
+      <span
         onClick={handleLinkClick}
         className={styles.dreamTaskInline}
+        role="link"
       >
         <NodeViewContent
           className={`${styles.dreamTaskContent} ${
@@ -250,7 +251,7 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
             task?.description ? `Go to "${task.description}"` : "Go to task"
           }
         />
-      </a>
+      </span>
     </NodeViewWrapper>
   );
 };

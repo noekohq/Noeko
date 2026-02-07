@@ -73,4 +73,15 @@
             border-color: #ebdbb2;
         }
     }
+
+    .secondaryButton {
+        @extend .primaryButton;
+        background-color: transparent;
+        color: #fbf1c7;
+
+        &:hover {
+            background-color: rgba(251, 241, 199, 0.1);
+            border-color: #fbf1c7;
+        }
+    }
 }

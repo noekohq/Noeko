@@ -80,12 +80,13 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
 
   const [iconHovered, { toggle }] = useDisclosure(false);
 
-  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+    event.preventDefault();
     // Standard behavior for opening in a new tab
     if (event.metaKey || event.ctrlKey) {
+      window.open(`/source/${sourceId}`, "_blank");
       return;
     }
-    event.preventDefault();
     navigate(`/source/${sourceId}`);
   };
 
@@ -232,10 +233,10 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <a
-        href={`/source/${sourceId}`}
+      <span
         onClick={handleLinkClick}
         className={styles.dreamSourceInline}
+        role="link"
       >
         <NodeViewContent
           className={`${styles.dreamSourceContent} ${
@@ -250,7 +251,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
               : "Go to source"
           }
         />
-      </a>
+      </span>
     </NodeViewWrapper>
   );
 };

@@ -79,19 +79,20 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
 
   const [iconHovered, { toggle }] = useDisclosure(false);
 
-  const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+    event.preventDefault();
     // Standard behavior for opening in a new tab
     if (event.metaKey || event.ctrlKey) {
+      window.open(`/idea/${ideaId}`, "_blank");
       return;
     }
-    event.preventDefault();
     navigate(`/idea/${ideaId}`);
   };
 
   const getTooltipLabel = () => {
     switch (accessState) {
       case "granted":
-        return idea?.title ? `Preview ”${idea.title}”` : "Loading...";
+        return idea?.title ? `Click to preview ”${idea.title}”` : "Loading...";
       case "forbidden":
         return "You don't have access to preview this idea";
       case "error":
@@ -240,10 +241,10 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <a
-        href={`/idea/${ideaId}`}
+      <span
         onClick={handleLinkClick}
         className={styles.dreamIdeaInline}
+        role="link"
       >
         <NodeViewContent
           className={`${styles.dreamIdeaContent} ${
@@ -254,7 +255,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
           }
           title={idea?.title ? `Go to "${idea.title}"` : "Go to idea"}
         />
-      </a>
+      </span>
     </NodeViewWrapper>
   );
 };
