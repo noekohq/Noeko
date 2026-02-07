@@ -1,5 +1,6 @@
 import {
   CheckIcon,
+  FileIcon,
   // FileIcon,
   Icon,
   LightbulbIcon,
@@ -10,7 +11,14 @@ import {
 } from "@phosphor-icons/react";
 import styles from "./CaptureButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
-import { Loader, Portal, Text } from "@mantine/core"; // Added Portal
+import {
+  Badge,
+  Group,
+  Loader,
+  MantineColor,
+  Portal,
+  Text,
+} from "@mantine/core"; // Added Portal
 import { useEffect, useRef, useState } from "react";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { createIdea } from "../../../utils/ideas";
@@ -24,7 +32,7 @@ export default function CaptureButton() {
   const [isCaptureFocused, setCaptureFocused] = useState(true);
 
   const {
-    actions: { newRabbithole, newIdea, newTask },
+    actions: { newRabbithole, newIdea, newTask, newSource },
   } = useInteraction();
 
   const { isDownRabbithole, includeThing } = useRabbithole();
@@ -33,7 +41,23 @@ export default function CaptureButton() {
     label: string;
     action: () => void;
     icon: Icon;
+    tag?: {
+      label: string;
+      color: MantineColor;
+    };
   }[] = [
+    {
+      label: "Source",
+      icon: FileIcon,
+      action: () => {
+        newSource();
+        toggle();
+      },
+      tag: {
+        label: "EXPERIMENTAL",
+        color: "orange.7",
+      },
+    },
     {
       label: "Rabbithole",
       icon: RabbitIcon,
@@ -183,7 +207,18 @@ export default function CaptureButton() {
                       <div className={styles.icon}>
                         <option.icon weight="bold" />
                       </div>
-                      <div className={styles.label}>{option.label}</div>
+                      <div className={styles.label}>
+                        {option.label}
+                        {option.tag && (
+                          <Badge
+                            size="xs"
+                            variant="light"
+                            color={option.tag.color}
+                          >
+                            {option.tag.label}
+                          </Badge>
+                        )}
+                      </div>
                     </button>
                   );
                 })}

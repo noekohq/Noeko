@@ -191,7 +191,7 @@ export default function AddSourceForm({
         <HoverCard openDelay={400} width="300px">
           <HoverCard.Target>
             <Badge color="orange" size="sm" variant="light">
-              PREVIEW
+              EXPERIMENTAL
             </Badge>
           </HoverCard.Target>
           <HoverCard.Dropdown>

@@ -1,298 +1,310 @@
 @use "../../../styles/mixins.scss" as *;
 
 .capture {
-  width: 64px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-
-  background-color: var(--mantine-primary-color-7);
-  color: var(--mantine-color-white);
-  border: none;
-  border-radius: var(--mantine-radius-xl);
-  box-shadow:
-    0px 1px 4px -1px rgba(0, 0, 0, 0.2),
-    0px 6px 10px -3px rgba(0, 0, 0, 0.1);
-  transition:
-    all 0.3s ease-in-out,
-    transform 0.2s ease-out;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-  }
-
-  &:hover {
-    transform: translateY(-2px) scale(1.01);
-  }
-
-  &:active {
-    transform: scale(0.95) translateY(2px);
-  }
-
-  .icon {
-    transition: transform 0.2s ease-out;
-  }
-
-  &.opened {
-    background-color: var(--mantine-color-dark-2);
-    border: 1px solid var(--mantine-color-dark-7);
-    color: var(--mantine-color-dark-9);
-    // Ensure the button itself stays high in the stack within the Nav
-    z-index: var(--z-index-capture-button);
-
-    .icon {
-      transform: rotate(45deg) scale(1.2);
-      font-weight: 600;
-    }
-  }
-}
-
-@keyframes overlayIn {
-  0% { opacity: 0; }
-  100% {
-    opacity: 1;
-    backdrop-filter: blur(4px) brightness(0.7);
-  }
-}
-
-.overlay {
-  position: fixed;
-  left: 0; right: 0; bottom: 0; top: 0;
-
-  // FIX 1: Place the overlay BEHIND the Navbar (-1)
-  // This ensures the "X" button (which is in the Nav) stays visible on top
-  z-index: calc(var(--z-index-ui-controls) - 1);
-
-  animation: overlayIn 0.1s ease-in-out forwards;
-}
-
-@keyframes menuIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.9) translateY(50%);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.menu {
-  animation: menuIn 0.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
-  position: absolute;
-
-  // Position it visually above the Navbar
-  bottom: 94px;
-
-  display: flex;
-  flex-direction: column;
-  left: var(--layout-spacing);
-  right: var(--layout-spacing);
-  border-radius: var(--mantine-radius-lg);
-  overflow: hidden;
-  background-color: var(--mantine-color-dark-8);
-  padding: var(--mantine-spacing-xs);
-
-  // Ensure the menu itself pops above the overlay
-  z-index: var(--z-index-ui-controls);
-
-  @include desktop {
-    left: calc(var(--sidebar-width) + var(--layout-spacing));
-    right: calc(var(--sidebar-width) + var(--layout-spacing));
-    max-width: 40vw;
-    margin-inline: auto;
-
-    &.focused {
-      max-width: initial;
-    }
-  }
-
-  .options {
-    display: flex;
-    flex-direction: column;
-    transition: all 0.2s ease-in-out;
-  }
-
-  &.focused {
-    .options {
-      flex-direction: row;
-      justify-content: space-around;
-      gap: var(--mantine-spacing-xs);
-      padding-bottom: var(--mantine-spacing-sm);
-      margin-bottom: var(--mantine-spacing-sm);
-    }
-
-    .option {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: var(--mantine-color-dark-9);
-      border-radius: var(--mantine-radius-xl);
-      border: 1px solid transparent;
-
-      .label {
-        display: none;
-      }
-
-      &:hover {
-        background-color: var(--mantine-color-dark-2);
-        svg {
-          color: var(--mantine-color-dark-8);
-        }
-      }
-    }
-  }
-
-  .option {
-    width: 100%;
+    width: 64px;
+    height: 100%;
     display: flex;
     align-items: center;
-    gap: var(--mantine-spacing-sm);
-    padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
-    font-size: var(--mantine-font-size-lg);
-    font-weight: 600;
-    background-color: transparent;
-    color: var(--mantine-color-dark-2);
+    justify-content: center;
+    position: relative;
+
+    background-color: var(--mantine-primary-color-7);
+    color: var(--mantine-color-white);
     border: none;
-    transition: all 0.2s ease-in-out;
+    border-radius: var(--mantine-radius-xl);
+    box-shadow:
+        0px 1px 4px -1px rgba(0, 0, 0, 0.2),
+        0px 6px 10px -3px rgba(0, 0, 0, 0.1);
+    transition:
+        all 0.3s ease-in-out,
+        transform 0.2s ease-out;
     cursor: pointer;
-    margin-bottom: var(--mantine-spacing-xs);
-    border-radius: var(--mantine-radius-lg);
+
+    &:focus {
+        outline: none;
+    }
 
     &:hover {
-      background-color: var(--mantine-color-dark-9);
-      transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.01);
     }
 
     &:active {
-      transform: translateY(1px);
+        transform: scale(0.95) translateY(2px);
     }
 
     .icon {
-      position: relative;
-      top: 2px;
-      color: var(--mantine-color-dark-4);
+        transition: transform 0.2s ease-out;
     }
-  }
+
+    &.opened {
+        background-color: var(--mantine-color-dark-2);
+        border: 1px solid var(--mantine-color-dark-7);
+        color: var(--mantine-color-dark-9);
+        // Ensure the button itself stays high in the stack within the Nav
+        z-index: var(--z-index-capture-button);
+
+        .icon {
+            transform: rotate(45deg) scale(1.2);
+            font-weight: 600;
+        }
+    }
+}
+
+@keyframes overlayIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(4px) brightness(0.7);
+    }
+}
+
+.overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+
+    // FIX 1: Place the overlay BEHIND the Navbar (-1)
+    // This ensures the "X" button (which is in the Nav) stays visible on top
+    z-index: calc(var(--z-index-ui-controls) - 1);
+
+    animation: overlayIn 0.1s ease-in-out forwards;
+}
+
+@keyframes menuIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(50%);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.menu {
+    animation: menuIn 0.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    position: absolute;
+
+    // Position it visually above the Navbar
+    bottom: 94px;
+
+    display: flex;
+    flex-direction: column;
+    left: var(--layout-spacing);
+    right: var(--layout-spacing);
+    border-radius: var(--mantine-radius-lg);
+    overflow: hidden;
+    background-color: var(--mantine-color-dark-8);
+    padding: var(--mantine-spacing-xs);
+
+    // Ensure the menu itself pops above the overlay
+    z-index: var(--z-index-ui-controls);
+
+    @include desktop {
+        left: calc(var(--sidebar-width) + var(--layout-spacing));
+        right: calc(var(--sidebar-width) + var(--layout-spacing));
+        max-width: 40vw;
+        margin-inline: auto;
+
+        &.focused {
+            max-width: initial;
+        }
+    }
+
+    .options {
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease-in-out;
+    }
+
+    &.focused {
+        .options {
+            flex-direction: row;
+            justify-content: space-around;
+            gap: var(--mantine-spacing-xs);
+            padding-bottom: var(--mantine-spacing-sm);
+            margin-bottom: var(--mantine-spacing-sm);
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--mantine-color-dark-9);
+            border-radius: var(--mantine-radius-xl);
+            border: 1px solid transparent;
+
+            .label {
+                display: none;
+            }
+
+            &:hover {
+                background-color: var(--mantine-color-dark-2);
+                svg {
+                    color: var(--mantine-color-dark-8);
+                }
+            }
+        }
+    }
+
+    .option {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: var(--mantine-spacing-sm);
+        padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
+        font-size: var(--mantine-font-size-lg);
+        font-weight: 600;
+        background-color: transparent;
+        color: var(--mantine-color-dark-2);
+        border: none;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        margin-bottom: var(--mantine-spacing-xs);
+        border-radius: var(--mantine-radius-lg);
+
+        &:hover {
+            background-color: var(--mantine-color-dark-9);
+            transform: translateY(-2px);
+        }
+
+        &:active {
+            transform: translateY(1px);
+        }
+
+        .icon {
+            position: relative;
+            top: 2px;
+            color: var(--mantine-color-dark-4);
+        }
+
+        .label {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: var(--mantine-spacing-sm);
+        }
+    }
 }
 
 .quickCapture {
-  display: flex;
-  flex-direction: column;
-  height: fit-content;
-  background-color: var(--mantine-color-dark-9);
-  border-radius: var(--mantine-radius-lg);
-
-  .input {
-    width: 100%;
     display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: var(--mantine-spacing-sm);
-    padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
-    font-size: var(--mantine-font-size-lg);
-    border-radius: var(--mantine-radius-md);
+    flex-direction: column;
+    height: fit-content;
+    background-color: var(--mantine-color-dark-9);
+    border-radius: var(--mantine-radius-lg);
 
-    svg {
-      color: var(--mantine-color-dark-4);
-      position: relative;
-      top: 5px;
+    .input {
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: var(--mantine-spacing-sm);
+        padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
+        font-size: var(--mantine-font-size-lg);
+        border-radius: var(--mantine-radius-md);
+
+        svg {
+            color: var(--mantine-color-dark-4);
+            position: relative;
+            top: 5px;
+        }
+
+        .textarea {
+            background-color: transparent;
+            width: 100%;
+            font-family: var(--mantine-font-family);
+            border: none;
+            overflow: hidden;
+            resize: none;
+            transition: height 0.2s ease-in-out;
+            height: 1.75rem;
+            line-height: 1.5em;
+            color: var(--mantine-color-dark-1);
+
+            &:focus {
+                outline: none;
+            }
+
+            &.focused {
+                height: 6em;
+            }
+
+            &::placeholder {
+                font-family: var(--mantine-font-family);
+                color: var(--mantine-color-dark-4);
+                font-weight: 500;
+            }
+
+            &:disabled {
+                color: var(--mantine-color-dark-3);
+            }
+        }
     }
 
-    .textarea {
-      background-color: transparent;
-      width: 100%;
-      font-family: var(--mantine-font-family);
-      border: none;
-      overflow: hidden;
-      resize: none;
-      transition: height 0.2s ease-in-out;
-      height: 1.75rem;
-      line-height: 1.5em;
-      color: var(--mantine-color-dark-1);
+    .quickCaptureActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--mantine-spacing-xs);
+        margin-top: var(--mantine-spacing-xs);
+        padding: var(--mantine-spacing-xs);
 
-      &:focus {
-        outline: none;
-      }
+        .cancel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+            font-size: var(--mantine-font-size-md);
 
-      &.focused {
-        height: 6em;
-      }
+            background-color: var(--mantine-color-dark-7);
+            color: var(--mantine-color-dark-3);
 
-      &::placeholder {
-        font-family: var(--mantine-font-family);
-        color: var(--mantine-color-dark-4);
-        font-weight: 500;
-      }
+            border-radius: var(--mantine-radius-xl);
+            border: none;
+            margin-right: auto;
+            transition: all 0.3s ease;
+            cursor: pointer;
 
-      &:disabled {
-        color: var(--mantine-color-dark-3);
-      }
+            &:hover {
+                background-color: var(--mantine-color-dark-6);
+                color: var(--mantine-color-dark-0);
+            }
+
+            &:active {
+                background-color: var(--mantine-color-dark-7);
+                color: var(--mantine-color-dark-1);
+                transform: translateY(2px) scale(0.95);
+            }
+        }
+
+        .path {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--mantine-spacing-xs);
+            padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+            font-size: var(--mantine-font-size-md);
+            background-color: var(--mantine-color-dark-8);
+            color: var(--mantine-color-dark-1);
+            border-radius: var(--mantine-radius-xl);
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+
+            &:disabled {
+                background-color: var(--mantine-color-dark-8);
+                color: var(--mantine-color-dark-6);
+            }
+
+            &:active {
+                background-color: var(--mantine-color-dark-7);
+                color: var(--mantine-color-dark-1);
+                transform: translateY(2px) scale(0.95);
+            }
+        }
     }
-  }
-
-  .quickCaptureActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--mantine-spacing-xs);
-    margin-top: var(--mantine-spacing-xs);
-    padding: var(--mantine-spacing-xs);
-
-    .cancel {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-      font-size: var(--mantine-font-size-md);
-
-      background-color: var(--mantine-color-dark-7);
-      color: var(--mantine-color-dark-3);
-
-      border-radius: var(--mantine-radius-xl);
-      border: none;
-      margin-right: auto;
-      transition: all 0.3s ease;
-      cursor: pointer;
-
-      &:hover {
-        background-color: var(--mantine-color-dark-6);
-        color: var(--mantine-color-dark-0);
-      }
-
-      &:active {
-        background-color: var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-1);
-        transform: translateY(2px) scale(0.95);
-      }
-    }
-
-    .path {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--mantine-spacing-xs);
-      padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-      font-size: var(--mantine-font-size-md);
-      background-color: var(--mantine-color-dark-8);
-      color: var(--mantine-color-dark-1);
-      border-radius: var(--mantine-radius-xl);
-      border: 1px solid transparent;
-      transition: all 0.3s ease;
-      cursor: pointer;
-
-      &:disabled {
-        background-color: var(--mantine-color-dark-8);
-        color: var(--mantine-color-dark-6);
-      }
-
-      &:active {
-        background-color: var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-1);
-        transform: translateY(2px) scale(0.95);
-      }
-    }
-  }
 }
