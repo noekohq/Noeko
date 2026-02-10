@@ -43,6 +43,7 @@ export default function GridCard({
   preview,
   draggable = false,
   footerContent,
+  thumbnail,
 }: IGridCardProps) {
   const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
@@ -126,7 +127,20 @@ export default function GridCard({
                 onDragEnd={handleDragEnd}
                 onClick={(e) => e.stopPropagation()}
               >
-                {IconComponent ? (
+                {thumbnail ? (
+                  <img
+                    src={thumbnail}
+                    alt={title}
+                    className={styles.thumbnail}
+                    style={{
+                      width: "100%",
+                      height: 120,
+                      objectFit: "cover",
+                      borderRadius: "var(--mantine-radius-sm)",
+                      marginBottom: "var(--mantine-spacing-xs)",
+                    }}
+                  />
+                ) : IconComponent ? (
                   <IconComponent
                     size={18}
                     weight={state === "suggested" ? "regular" : "bold"}

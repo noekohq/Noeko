@@ -49,8 +49,7 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
     const extension = this;
     const editor = this.editor;
 
-    // 1. Upload Plugin (Intercepts Paste/Drop of raw files)
-    const uploadPlugin = new Plugin({
+const uploadPlugin = new Plugin({
       key: new PluginKey("dreamFileUpload"),
       props: {
         handlePaste: (view, event) => {
@@ -58,15 +57,23 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
           if (!items) return false;
 
           let fileFound = false;
+          const files: File[] = [];
+
           for (let i = 0; i < items.length; i++) {
             const file = items[i].getAsFile();
             if (file) {
-              event.preventDefault();
-              // Pass this.options to ensure we get current connectableId
-              handleFileUpload(file, extension.options, editor);
+              files.push(file);
               fileFound = true;
             }
           }
+
+          if (fileFound) {
+            event.preventDefault();
+            files.forEach((file) => {
+              handleFileUpload(file, this.options, editor);
+            });
+          }
+
           return fileFound;
         },
         handleDrop: (view, event) => {
@@ -74,14 +81,26 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
           if (!items) return false;
 
           let fileFound = false;
+          const files: File[] = [];
+
           for (let i = 0; i < items.length; i++) {
-            const file = items[i].getAsFile();
-            if (file) {
-              event.preventDefault();
-              handleFileUpload(file, extension.options, editor);
-              fileFound = true;
+            const item = items[i];
+            if (item.kind === "file") {
+              const file = item.getAsFile();
+              if (file) {
+                files.push(file);
+                fileFound = true;
+              }
             }
           }
+
+          if (fileFound) {
+            event.preventDefault();
+            files.forEach((file) => {
+              handleFileUpload(file, this.options, editor);
+            });
+          }
+
           return fileFound;
         },
       },
@@ -155,16 +174,57 @@ export const handleFileUpload = (
 ) => {
   if (options.allowedTypes && !options.allowedTypes.includes(file.type)) {
     console.warn(`File type not allowed: ${file.type}`);
-    window.alert(`File type (${file.type}) is not allowed.`);
+    // Optional: show a notification instead of alert
     return;
   }
 
-  console.info(`Uploading ${file.name}...`);
+  const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const isImage = file.type.startsWith("image/");
+  let previewUrl = "";
+
+  if (isImage) {
+    previewUrl = URL.createObjectURL(file);
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "dreamImage",
+        attrs: {
+          src: previewUrl,
+          alt: file.name,
+          title: file.name,
+          fileId: tempId,
+          viewMode: "expanded",
+          uploading: true,
+        },
+      })
+      .run();
+  } else {
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "dreamFile",
+        attrs: {
+          fileId: tempId,
+          fileName: file.name,
+          fileType: file.type,
+          viewMode: "expanded",
+          uploading: true,
+        },
+      })
+      .run();
+  }
 
   uploadFile(file, options.connectableId).then(async (response) => {
-    editor.view.dispatch(editor.view.state.tr.scrollIntoView());
     if (!response) {
       console.error("Failed to upload file");
+      // Remove the temp node
+      editor.state.doc.descendants((node, pos) => {
+        if (node.attrs.fileId === tempId) {
+          editor.commands.deleteRange({ from: pos, to: pos + node.nodeSize });
+        }
+      });
       return;
     }
 
@@ -175,27 +235,43 @@ export const handleFileUpload = (
       );
     }
 
-    if (response.mimeType.startsWith("image/")) {
-      editor
-        .chain()
-        .focus()
-        .setDreamImage({
-          src: streamImageEndpoint(response),
-          alt: response.originalFileName,
-          title: response.originalFileName,
-          fileId: response.id.toString(),
-        })
-        .run();
-    } else {
-      editor
-        .chain()
-        .focus()
-        .setDreamFile({
-          fileId: response.id.toString(),
-          fileName: response.originalFileName,
-          fileType: response.mimeType,
-        })
-        .run();
+    // Update the node with real data
+    // We need to find the node again because its position might have changed
+    // Use `state.doc.descendants` to find the position
+    let posToUpdate = -1;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.attrs.fileId === tempId) {
+        posToUpdate = pos;
+        return false; // Stop iteration
+      }
+      return true;
+    });
+
+    if (posToUpdate > -1) {
+      if (isImage) {
+        editor
+          .chain()
+          .setNodeSelection(posToUpdate)
+          .updateAttributes("dreamImage", {
+            src: streamImageEndpoint(response),
+            fileId: response.id.toString(),
+            uploading: false,
+          })
+          .run();
+        
+        // Revoke object URL to free memory
+        URL.revokeObjectURL(previewUrl);
+      } else {
+        editor
+          .chain()
+          .setNodeSelection(posToUpdate)
+          .updateAttributes("dreamFile", {
+            fileId: response.id.toString(),
+            fileName: response.originalFileName, // Ensure name is from server
+            uploading: false,
+          })
+          .run();
+      }
     }
   });
 };

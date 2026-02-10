@@ -44,6 +44,7 @@ export default function PaperThing({
   artifacts,
   preview,
   draggable = false,
+  thumbnail,
 }: IPaperThingProps) {
   const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
@@ -138,7 +139,19 @@ export default function PaperThing({
               onDragEnd={handleDragEnd}
               onClick={(e) => e.stopPropagation()}
             >
-              {IconComponent && !(draggable && hovering) ? (
+              {thumbnail ? (
+                <img
+                  src={thumbnail}
+                  alt={title}
+                  className={styles.thumbnail}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    objectFit: "cover",
+                    borderRadius: 4,
+                  }}
+                />
+              ) : IconComponent && !(draggable && hovering) ? (
                 <IconComponent
                   size={16}
                   weight={state === "suggested" ? "regular" : "bold"}

@@ -12,7 +12,7 @@
 .paperIcon {
     cursor: pointer;
     animation: buttonIn 0.2s ease-in-out;
-    background-color: var(--mantine-color-dark-8);
+    background-color: transparent;
     padding: var(--mantine-spacing-sm);
     border-radius: var(--mantine-radius-lg);
     display: flex;
@@ -51,6 +51,7 @@
     &:hover {
         transform: translateY(-2px);
         box-shadow: var(--mantine-shadow-sm);
+        background-color: var(--mantine-color-dark-7);
     }
 
     &:active {

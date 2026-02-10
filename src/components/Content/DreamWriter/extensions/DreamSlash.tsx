@@ -19,6 +19,7 @@ import {
   TableIcon,
   YoutubeLogoIcon,
   MathOperationsIcon,
+  ImagesIcon,
 } from "@phosphor-icons/react";
 import { PluginKey } from "@tiptap/pm/state";
 
@@ -172,6 +173,16 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
           latex,
         })
         .run();
+    },
+  },
+
+  {
+    id: "gallery",
+    title: "Image Gallery",
+    description: "Create a responsive image gallery.",
+    icon: <ImagesIcon />,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setDreamGallery().run();
     },
   },
 

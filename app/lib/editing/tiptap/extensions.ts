@@ -13,6 +13,7 @@ import { DreamSourceSchema } from "../../../../shared/editing/tiptap/nodes/Dream
 import { DreamTaskItemSchema } from "../../../../shared/editing/tiptap/nodes/DreamTaskItem";
 import { DreamCodeSchema } from "../../../../shared/editing/tiptap/nodes/DreamCode";
 import { DreamTableSchema } from "../../../../shared/editing/tiptap/nodes/DreamTable";
+import { DreamGallerySchema } from "../../../../shared/editing/tiptap/nodes/DreamGallery";
 import { DreamHighlightSchema } from "../../../../shared/editing/tiptap/marks/DreamHighlight";
 import { DreamYouTubeSchema } from "../../../../shared/editing/tiptap/nodes/DreamYouTube";
 import { Focus, Placeholder, Dropcursor, Gapcursor } from "@tiptap/extensions";
@@ -41,6 +42,7 @@ export const extensions = [
   // DATA: Containers & Structure
   TaskList,
   DreamTableSchema,
+  DreamGallerySchema,
 
   // DATA: Custom Nodes & Marks
   DreamIndentSchema.configure({
@@ -51,6 +53,7 @@ export const extensions = [
       "listItem",
       "codeBlock",
       "dreamTable",
+      "dreamGallery",
       "dreamImage",
       "dreamFile",
       "dreamIdea",

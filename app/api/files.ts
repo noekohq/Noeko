@@ -295,6 +295,59 @@ router.post(
   },
 );
 
+router.get(
+  "/embedded/:connectableId",
+  checkToken,
+  disallowDisabled,
+  async (req, res) => {
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        res.status(401).json({
+          error: "Unauthorized",
+          message: "User not found.",
+        });
+        return;
+      }
+      const connectableId = req.params.connectableId;
+
+      if (!connectableId || Array.isArray(connectableId)) {
+        res.status(400).json({
+          error: "Bad Request",
+          message: "Invalid connectableId.",
+        });
+        return;
+      }
+
+      const hasAccess = await Authorization.checkHasAccess(
+        user.id,
+        connectableId,
+      );
+
+      if (!hasAccess) {
+        res.status(403).json({
+          error: "Forbidden",
+          message: "User does not have access to the connectable.",
+        });
+        return;
+      }
+
+      const files = await UserFile.getFilesForConnectable(connectableId);
+
+      res.status(200).json({
+        message: "Embedded files retrieved successfully.",
+        data: files,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: "Something went wrong.",
+      });
+    }
+  },
+);
+
 router.get("/:fileId", checkToken, disallowDisabled, async (req, res) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");

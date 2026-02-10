@@ -350,6 +350,29 @@ export class UserFile {
     }
   }
 
+  static async getFilesForConnectable(connectableId: string | RecordId) {
+    try {
+      const db = await getDatabase();
+      const result = await db?.query<[IUserFile[]]>(
+        `SELECT * FROM user_file WHERE id IN (SELECT VALUE in FROM embedded_within WHERE out = $connectableId) ORDER BY createdAt DESC;`,
+        {
+          connectableId: new StringRecordId(connectableId),
+        },
+      );
+
+      if (!result || !result[0]) {
+        return [];
+      }
+      return result[0];
+    } catch (err) {
+      console.error(
+        `Error during getFilesForConnectable for connectable "${connectableId}":`,
+        err,
+      );
+      return [];
+    }
+  }
+
   static async getUserFiles(userId: string | RecordId) {
     try {
       const db = await getDatabase();

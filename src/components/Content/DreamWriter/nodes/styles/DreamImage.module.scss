@@ -1,12 +1,80 @@
 .dreamImageWrapper {
     padding: var(--mantine-spacing-xs);
     border-radius: var(--mantine-radius-md);
-    background-color: var(--mantine-color-dark-8);
+    background-color: transparent;
     position: relative;
+    transition: all 0.2s ease;
+    
+    /* Default display */
+    display: flex;
+    justify-content: center;
+
+    /* Selection State */
+    &[data-selected="true"] {
+        outline: 2px solid var(--mantine-color-blue-filled);
+        outline-offset: 2px;
+        background-color: transparent; /* Remove dark background */
+    }
+
+    /* Expanded: Default behavior */
+    &[data-view-mode="expanded"] {
+        width: 100%;
+        .dreamImage {
+             width: 100%;
+             height: auto;
+        }
+    }
+
+    /* Minimal: Centered */
+    &[data-view-mode="minimal"] {
+        width: 100%;
+        .dreamImage {
+            margin: 0 auto;
+            display: block;
+            /* Allow resizing but default to centered behavior */
+        }
+    }
+
+    /* Inline: Floated left or small aligned */
+    &[data-view-mode="inline"] {
+        display: inline-block;
+        float: left;
+        margin-right: var(--mantine-spacing-md);
+        margin-bottom: var(--mantine-spacing-xs);
+        
+        .dreamImage {
+            width: 100%;
+            height: auto;
+        }
+    }
+}
+
+/* When inside a gallery, override behavior */
+:global(.ProseMirror) :global([data-type="dreamGallery"]) .dreamImageWrapper {
+    /* Reset float and display for gallery items */
+    float: none;
+    display: block;
+    width: auto !important; /* Let flex/grid handle it, or use style width */
+    margin: 0;
+    padding: 0;
+    
+    /* Ensure images in gallery are responsive */
+    .dreamImage {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+    }
+    
+    /* Hide resize handle inside gallery */
+    .resizeHandle {
+        display: none !important;
+    }
 }
 
 .dreamImage {
     border-radius: var(--mantine-radius-sm);
+    display: block;
+    max-width: 100%;
 }
 
 @keyframes resizeHandleAnimation {
@@ -29,4 +97,38 @@
     cursor: nwse-resize;
     z-index: var(--z-index-low);
     animation: resizeHandleAnimation .2s forwards;
+    pointer-events: none; /* Let clicks pass through except for resizing logic */
+}
+
+.resizeLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 100;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.redIcon {
+  color: var(--mantine-color-red-6);
+
+  &:hover {
+    background-color: var(--mantine-color-red-9);
+  }
+}
+
+.filledIcon {
+  background-color: var(--mantine-color-blue-filled) !important;
+  color: var(--mantine-color-white) !important;
+
+  &:hover {
+    background-color: var(--mantine-color-blue-filled-hover) !important;
+  }
 }

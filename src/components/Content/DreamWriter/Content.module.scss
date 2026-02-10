@@ -14,8 +14,43 @@
 .link {
 }
 
+.table {
+    width: 100%;
+    margin-bottom: var(--mantine-spacing-md);
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        
+        td, th {
+            border: 1px solid var(--mantine-color-dark-4);
+            padding: 8px;
+        }
+        
+        th {
+            background-color: var(--mantine-color-dark-6);
+            font-weight: bold;
+        }
+    }
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mantine-spacing-md);
+    margin-block: var(--mantine-spacing-md);
+    align-items: center;
+}
+
 .image {
     width: 100%;
+    cursor: pointer;
+    
+    // Default expanded style if no other classes apply
+    
+    &:active {
+        outline: 3px solid var(--mantine-color-primary);
+    }
 }
 
 // Heading styles without color variables remain unchanged
@@ -76,7 +111,10 @@ h5 {
 
 .image {
     cursor: pointer;
-
+    
+    // Default expanded style if no other classes apply
+    width: 100%;
+    
     &:active {
         outline: 3px solid var(--mantine-color-primary);
     }

@@ -17,12 +17,15 @@ import {
   acceleratorItemFieldResolvers,
   getAcceleratorItemFields,
 } from "../../../../utils/recommendations/accelerator";
+import { IUserFile } from "../../../../../app/database/models/userfile";
+import { streamImageEndpoint } from "../../../../vars/files";
+import { FileIcon, FilePdfIcon, FileImageIcon, UserIcon } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "../../../Utils/Icons/Icons";
 import { IPaperThingProps } from "./PaperThing";
 import { IThing } from "./things";
-import { UserIcon } from "@phosphor-icons/react";
 
 export function getThingPropsFromConnectable(
+
   connectable: IConnectable | IPotentiallySharedConnectable,
   overrides?: Partial<IPaperThingProps>,
   eager?: boolean,
@@ -146,6 +149,30 @@ export function getThingPropsFromFriendUser(
     state: overrides?.state ?? "default",
     createdAt: user.createdAt.toString(),
     updatedAt: user.createdAt.toString(),
+    ...overrides,
+  };
+}
+
+export function getThingPropsFromUserFile(
+  file: IUserFile,
+  overrides?: Partial<IPaperThingProps>,
+): IPaperThingProps {
+  const isImage = file.mimeType.startsWith("image/");
+  const isPdf = file.mimeType === "application/pdf";
+
+  const Icon = isImage ? FileImageIcon : isPdf ? FilePdfIcon : FileIcon;
+  const thumbnail = isImage ? streamImageEndpoint(file) : undefined;
+
+  return {
+    id: file.id.toString(),
+    title: file.originalFileName,
+    detail: file.mimeType, // Could format size here if available
+    icon: Icon,
+    thumbnail,
+    state: overrides?.state ?? "default",
+    link: overrides?.link, // Or maybe a direct download/view link?
+    createdAt: file.createdAt.toString(),
+    updatedAt: file.updatedAt.toString(),
     ...overrides,
   };
 }

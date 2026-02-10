@@ -28,4 +28,5 @@ export type IThing = {
   }[];
 
   preview?: React.ReactNode;
+  thumbnail?: string;
 };

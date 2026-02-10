@@ -31,7 +31,7 @@ export default function TagsManager({
 
   useEffect(() => {
     refreshTags();
-  }, [connectable.embeddingsUpdatedAt]);
+  }, [connectable.id.toString(), connectable.embeddingsUpdatedAt.toString()]);
 
   const handleCreateAndAdd = async (
     name: string,

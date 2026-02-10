@@ -41,6 +41,21 @@ export const DreamFileSchema = Node.create<IDreamFileOptions>({
         renderHTML: (attributes) => ({ "data-file-type": attributes.fileType }),
         keepOnSplit: false,
       },
+      viewMode: {
+        default: "expanded",
+        parseHTML: (element) =>
+          element.getAttribute("data-view-mode") || "expanded",
+        renderHTML: (attributes) => ({
+          "data-view-mode": attributes.viewMode,
+        }),
+      },
+      uploading: {
+        default: false,
+        renderHTML: (attributes) => {
+          if (!attributes.uploading) return {};
+          return { "data-uploading": "true" };
+        },
+      },
     };
   },
 

@@ -22,6 +22,7 @@ import { DreamTaskItem } from "./extensions/TaskItem";
 import { DreamCode } from "./nodes/DreamCode";
 import { DreamPaste } from "./extensions/DreamPaste";
 import { DreamTable } from "./nodes/DreamTable";
+import { DreamGallery } from "./nodes/DreamGallery";
 import { DreamHighlight } from "./marks/DreamHighlight";
 import { all, createLowlight } from "lowlight";
 import { DreamYouTube } from "./nodes/DreamYouTube";
@@ -102,6 +103,7 @@ export const getExtensionConfig = ({
         "listItem", // Server uses "listItem"
         "codeBlock", // DreamCode name is "codeBlock"
         "dreamTable", // DreamTable name is "dreamTable"
+        "dreamGallery",
         "dreamImage",
         "dreamFile",
         "dreamIdea",
@@ -124,6 +126,19 @@ export const getExtensionConfig = ({
 
     DreamTable.configure({
       HTMLAttributes: { class: contentStyles.table },
+    }),
+
+    DreamGallery.configure({
+      HTMLAttributes: { class: contentStyles.gallery },
+    }),
+
+    DreamImage.configure({
+      HTMLAttributes: { class: contentStyles.image },
+    }),
+
+
+    DreamGallery.configure({
+      HTMLAttributes: { class: contentStyles.gallery },
     }),
 
     DreamImage.configure({
