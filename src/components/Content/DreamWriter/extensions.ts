@@ -136,7 +136,6 @@ export const getExtensionConfig = ({
       HTMLAttributes: { class: contentStyles.image },
     }),
 
-
     DreamGallery.configure({
       HTMLAttributes: { class: contentStyles.gallery },
     }),

@@ -1,14 +1,5 @@
 // components/LeftSidebar/FeedbackModal.tsx
-import {
-  Modal,
-  Grid,
-  Textarea,
-  Checkbox,
-  Group,
-  Button,
-  ActionIcon,
-  Space,
-} from "@mantine/core";
+import { Modal, Grid, Textarea, Checkbox, Group, Button, ActionIcon, Space } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import useFetch from "../../../hooks/useFetch"; // Adjust path
@@ -33,8 +24,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
       consentToContact: true,
     },
     validate: {
-      content: (value) =>
-        value && value.trim() ? null : "Feedback content cannot be empty.",
+      content: (value) => (value && value.trim() ? null : "Feedback content cannot be empty."),
     },
   });
 
@@ -62,8 +52,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
       console.error("Feedback submission error:", error);
       showNotification({
         title: "Submission Error",
-        message:
-          "Something went wrong submitting your feedback. Please try again.",
+        message: "Something went wrong submitting your feedback. Please try again.",
         color: "red",
       });
     },
@@ -87,13 +76,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
   };
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title="Submit Feedback"
-      centered
-      radius="lg"
-    >
+    <Modal opened={opened} onClose={onClose} title="Submit Feedback" centered radius="lg">
       <Space my="md" />
       <form
         onSubmit={(e) => {
@@ -120,9 +103,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
               size="sm"
               color="blue"
               description={
-                user?.email
-                  ? `If needed, we'll use: ${user.email}`
-                  : "We might want to follow up."
+                user?.email ? `If needed, we'll use: ${user.email}` : "We might want to follow up."
               }
               {...feedbackForm.getInputProps("consentToContact", {
                 type: "checkbox",
@@ -141,12 +122,7 @@ export default function FeedbackModal({ opened, onClose }: FeedbackModalProps) {
                   <RedditLogoIcon weight="fill" />
                 </ActionIcon>
               </a>
-              <Button
-                variant="filled"
-                color="blue"
-                type="submit"
-                loading={loadingFeedback}
-              >
+              <Button variant="filled" color="blue" type="submit" loading={loadingFeedback}>
                 Submit
               </Button>
             </Group>

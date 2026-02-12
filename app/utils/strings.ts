@@ -19,7 +19,7 @@ export function getLevenshteinDistance(a: string, b: string): number {
       dp[i][j] = Math.min(
         dp[i - 1][j] + 1, // Deletion
         dp[i][j - 1] + 1, // Insertion
-        dp[i - 1][j - 1] + substitutionCost, // Substitution
+        dp[i - 1][j - 1] + substitutionCost // Substitution
       );
     }
   }

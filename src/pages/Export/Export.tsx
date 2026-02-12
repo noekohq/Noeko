@@ -15,11 +15,7 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
-import {
-  DownloadSimple,
-  DownloadSimpleIcon,
-  InfoIcon,
-} from "@phosphor-icons/react";
+import { DownloadSimple, DownloadSimpleIcon, InfoIcon } from "@phosphor-icons/react";
 import { handleExportDownload } from "../../utils/export";
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -88,8 +84,8 @@ export default function Export() {
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Text size="sm">
-                    The markdown export will export all of your ideas and tasks
-                    as Markdown, which will then be parsed in a Zip folder.
+                    The markdown export will export all of your ideas and tasks as Markdown, which
+                    will then be parsed in a Zip folder.
                   </Text>
                 </HoverCard.Dropdown>
               </HoverCard>
@@ -97,9 +93,9 @@ export default function Export() {
           </SimpleGrid>
           <Divider my="xs" />
           <Text size="sm">
-            Your data is always yours. Noeko is committed to keeping it
-            portable, so that you can use it how you wish. If you have any
-            trouble exporting your stuff, please don't hesitate to let us know.
+            Your data is always yours. Noeko is committed to keeping it portable, so that you can
+            use it how you wish. If you have any trouble exporting your stuff, please don't hesitate
+            to let us know.
           </Text>
           <Text size="sm">
             For more comprehensive timelines, check out the{" "}

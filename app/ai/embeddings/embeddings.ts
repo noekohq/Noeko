@@ -4,17 +4,14 @@ import GoogleProvider from "./providers/google";
 const { EMBEDDINGS_PROVIDER } = process.env;
 
 const SupportedProviders = ["google"];
-const isValidProvider = (provider: string) =>
-  SupportedProviders.includes(provider);
+const isValidProvider = (provider: string) => SupportedProviders.includes(provider);
 
 if (!EMBEDDINGS_PROVIDER) {
   throw new Error(`EMBEDDINGS_PROVIDER is not defined`);
 }
 
 if (!isValidProvider(EMBEDDINGS_PROVIDER)) {
-  throw new Error(
-    `EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`,
-  );
+  throw new Error(`EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`);
 }
 
 type IProviderKey = (typeof SupportedProviders)[number];
@@ -30,9 +27,7 @@ export const getEmbedder = (): EmbeddingsProvider => {
     throw new Error(`EMBEDDINGS_PROVIDER is not defined`);
   }
   if (!isValidProvider(EMBEDDINGS_PROVIDER)) {
-    throw new Error(
-      `EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`,
-    );
+    throw new Error(`EMBEDDINGS_PROVIDER ${EMBEDDINGS_PROVIDER} is not supported`);
   }
 
   const providerKey = EMBEDDINGS_PROVIDER as IProviderKey;

@@ -64,11 +64,7 @@ export default class GeminiProvider implements LMProvider {
   }
 
   private get canThink() {
-    const thinkingModels = [
-      "gemini-3-pro",
-      "gemini-3-flash",
-      "gemini-2.5-flash-lite",
-    ];
+    const thinkingModels = ["gemini-3-pro", "gemini-3-flash", "gemini-2.5-flash-lite"];
     if (thinkingModels.includes(this.model)) {
       return true;
     }
@@ -77,8 +73,7 @@ export default class GeminiProvider implements LMProvider {
 
   public static truncate(content: string) {
     return content.length > GeminiProvider.maxCharacters
-      ? content.slice(0, GeminiProvider.maxCharacters) +
-          "...[FURTHER CONTENT TRUNCATED]..."
+      ? content.slice(0, GeminiProvider.maxCharacters) + "...[FURTHER CONTENT TRUNCATED]..."
       : content;
   }
 
@@ -168,7 +163,7 @@ export default class GeminiProvider implements LMProvider {
 
   async *generateJSONStream(
     prompt: string,
-    schema: LMSchema,
+    schema: LMSchema
   ): AsyncGenerator<string, void, unknown> {
     try {
       const truncatedPrompt = GeminiProvider.truncate(prompt);

@@ -10,21 +10,11 @@ interface IPaperCard {
   onClick?: () => void;
 }
 
-export default function PaperCard({
-  title,
-  icon,
-  children,
-  bg,
-  onClick,
-}: IPaperCard) {
+export default function PaperCard({ title, icon, children, bg, onClick }: IPaperCard) {
   const Icon = icon;
 
   return (
-    <div
-      className={styles.paperCard}
-      style={{ backgroundColor: bg }}
-      onClick={onClick}
-    >
+    <div className={styles.paperCard} style={{ backgroundColor: bg }} onClick={onClick}>
       <div className={styles.title}>
         {Icon && <Icon weight="bold" />}
         {title}

@@ -1,12 +1,6 @@
 import Graph, { IGraphController } from "../../components/Graph/Graph";
 import { INode } from "../../declarations/graph";
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import styles from "./Constellation.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { useNavigate } from "react-router";
@@ -60,17 +54,13 @@ export default function GraphPage() {
     data: constellationData,
     load: reloadConstellation,
     loading: loadingConstellation,
-  } = useFetch<
-    { loader: IConstellationLoader; filters: IGraphFilters },
-    ILoadedConstellation
-  >({
+  } = useFetch<{ loader: IConstellationLoader; filters: IGraphFilters }, ILoadedConstellation>({
     url: "/graph",
     method: "POST",
     body: {
       loader,
       filters: {
-        rabbithole:
-          currentRabbithole?.id.toString() || scope.rabbithole?.toString(),
+        rabbithole: currentRabbithole?.id.toString() || scope.rabbithole?.toString(),
         tags: scope.tags
           ? {
               set: scope.tags.set.map((s: string) => s.toString()),
@@ -121,19 +111,15 @@ export default function GraphPage() {
   }, []);
 
   const graphData = useMemo(
-    () =>
-      constellationData ? fromConstellation(constellationData) : undefined,
-    [constellationData],
+    () => (constellationData ? fromConstellation(constellationData) : undefined),
+    [constellationData]
   );
 
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
 
   const handleNodeNavigate = useCallback(
-    (
-      event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-      node: INode,
-    ) => {
+    (event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, node: INode) => {
       setIsNavigating(true);
       const link = getNodeLink(node);
       if (!link) {
@@ -141,7 +127,7 @@ export default function GraphPage() {
       }
       navigate(link);
     },
-    [navigate],
+    [navigate]
   );
 
   const isLoading = loadingConstellation || !graphData;

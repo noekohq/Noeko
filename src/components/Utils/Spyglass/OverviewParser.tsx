@@ -35,11 +35,7 @@ interface IFindingBadgeProps {
   findings: IFinding[];
 }
 
-const FindingBadge: React.FC<IFindingBadgeProps> = ({
-  findingNumber,
-  resultsMap,
-  findings,
-}) => {
+const FindingBadge: React.FC<IFindingBadgeProps> = ({ findingNumber, resultsMap, findings }) => {
   const finding = findings[findingNumber];
   if (!finding) return null;
 
@@ -188,9 +184,7 @@ const ResourceBadge: React.FC<IResourceBadgeProps> = ({ id, resultsMap }) => {
         radius="lg"
       >
         <HoverCard.Target>
-          <button className={styles.citationIcon}>
-            {Icon ? <Icon /> : "N/A"}
-          </button>
+          <button className={styles.citationIcon}>{Icon ? <Icon /> : "N/A"}</button>
         </HoverCard.Target>
         <HoverCard.Dropdown
           mah={400}
@@ -292,14 +286,7 @@ const OverviewParser: React.FC<IOverviewParserProps> = ({
   }, [markdown]);
 
   const urlTransform = (url: string) => {
-    const supportedProtocols = [
-      "http:",
-      "https:",
-      "ftp:",
-      "mailto:",
-      "finding:",
-      "resource:",
-    ];
+    const supportedProtocols = ["http:", "https:", "ftp:", "mailto:", "finding:", "resource:"];
     if (supportedProtocols.some((protocol) => url.startsWith(protocol))) {
       return url;
     }

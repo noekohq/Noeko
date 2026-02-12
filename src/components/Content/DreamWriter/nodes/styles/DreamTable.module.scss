@@ -1,19 +1,19 @@
 .container {
-    padding: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-lg);
-    /* background-color: var(--mantine-color-dark-8); */
-    border: 1px solid var(--mantine-color-dark-7);
+  padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-lg);
+  /* background-color: var(--mantine-color-dark-8); */
+  border: 1px solid var(--mantine-color-dark-7);
 }
 
 .tableWrapper {
 }
 
 .table {
-    background-color: transparent;
+  background-color: transparent;
 
-    td {
-        background-color: transparent;
-    }
+  td {
+    background-color: transparent;
+  }
 }
 
 .options {

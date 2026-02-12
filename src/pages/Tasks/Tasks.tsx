@@ -1,18 +1,7 @@
 import { useEffect } from "react";
-import {
-  Stack,
-  Title,
-  Paper,
-  Text,
-  Loader,
-  Group,
-  ActionIcon,
-} from "@mantine/core";
+import { Stack, Title, Paper, Text, Loader, Group, ActionIcon } from "@mantine/core";
 
-import {
-  IPublicTask,
-  ITaskSortFields,
-} from "../../../app/database/models/task";
+import { IPublicTask, ITaskSortFields } from "../../../app/database/models/task";
 import useFetch from "../../hooks/useFetch";
 import styles from "./Tasks.module.scss";
 import PageWrapper from "../../components/Layout/PageWrapper";

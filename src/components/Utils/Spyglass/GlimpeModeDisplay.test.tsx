@@ -9,10 +9,7 @@ import { IResultsMap } from "../../../hooks/useSpyglassService";
 // Mock sub-components that might cause issues or are not the focus
 vi.mock("../../Display/Paper/Things/GridCard", () => ({
   default: ({ id, title, onClick }: any) => (
-    <div
-      data-testid="grid-card"
-      onClick={(e) => onClick(id || "test-id", e)}
-    >
+    <div data-testid="grid-card" onClick={(e) => onClick(id || "test-id", e)}>
       {title}
     </div>
   ),
@@ -23,9 +20,7 @@ vi.mock("../../Display/Paper/Things/PaperThing", () => ({
 }));
 
 vi.mock("../Loading/AntLoader", () => ({
-  default: ({ loadingText }: any) => (
-    <div data-testid="ant-loader">{loadingText}</div>
-  ),
+  default: ({ loadingText }: any) => <div data-testid="ant-loader">{loadingText}</div>,
 }));
 
 describe("GlimpseModeDisplay Component", () => {
@@ -66,7 +61,7 @@ describe("GlimpseModeDisplay Component", () => {
         <MemoryRouter>
           <GlimpseModeDisplay {...props} />
         </MemoryRouter>
-      </MantineProvider>,
+      </MantineProvider>
     );
   };
 

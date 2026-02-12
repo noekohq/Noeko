@@ -22,10 +22,7 @@ import {
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     dreamYouTube: {
-      setDreamYouTubeVideo: (options: {
-        src: string;
-        start?: number;
-      }) => ReturnType;
+      setDreamYouTubeVideo: (options: { src: string; start?: number }) => ReturnType;
     };
   }
 }
@@ -40,11 +37,7 @@ const DreamYouTubeComponent: React.FC<NodeViewProps> = ({ node, selected }) => {
 
   return (
     <NodeViewWrapper data-drag-handle>
-      <div
-        data-dream-youtube-video=""
-        data-selected={selected}
-        className={styles.youtubeWrapper}
-      >
+      <div data-dream-youtube-video="" data-selected={selected} className={styles.youtubeWrapper}>
         <iframe
           src={finalSrc.toString()}
           data-start={start}

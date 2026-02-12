@@ -86,9 +86,7 @@ router.get("/semantic-central-ideas", async (req, res) => {
       throw new Error("User is not logged in.");
     }
 
-    const centralIdeas = await AnalysisService.getUserSemanticCentralIdeas(
-      user.id,
-    );
+    const centralIdeas = await AnalysisService.getUserSemanticCentralIdeas(user.id);
 
     res.send({
       message: "Got Central Ideas Successfully...",

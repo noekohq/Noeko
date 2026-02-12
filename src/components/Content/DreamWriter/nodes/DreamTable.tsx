@@ -25,11 +25,7 @@ export const DreamTable = DreamTableSchema.extend({
   },
 });
 
-const DreamTableComponent: React.FC<NodeViewProps> = ({
-  node,
-  updateAttributes,
-  editor,
-}) => {
+const DreamTableComponent: React.FC<NodeViewProps> = ({ node, updateAttributes, editor }) => {
   const getParsedTableData = (): ITableDataType => {
     try {
       const dataString = node.attrs.tableData;
@@ -38,20 +34,10 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
       }
       const rawParsed = JSON.parse(dataString);
 
-      if (
-        rawParsed &&
-        Array.isArray(rawParsed.headers) &&
-        Array.isArray(rawParsed.rows)
-      ) {
+      if (rawParsed && Array.isArray(rawParsed.headers) && Array.isArray(rawParsed.rows)) {
         const Rcols = rawParsed.headers.length;
-        if (Rcols === 0 && rawParsed.rows.length === 0)
-          return initializeTableData(1, 1);
-        if (
-          Rcols > 0 &&
-          rawParsed.rows.every(
-            (r: any) => Array.isArray(r) && r.length === Rcols,
-          )
-        ) {
+        if (Rcols === 0 && rawParsed.rows.length === 0) return initializeTableData(1, 1);
+        if (Rcols > 0 && rawParsed.rows.every((r: any) => Array.isArray(r) && r.length === Rcols)) {
           return rawParsed as ITableDataType;
         }
       } else if (
@@ -61,29 +47,25 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
       ) {
         return initializeTableData(rawParsed.columns, rawParsed.rows);
       }
-      console.warn(
-        "Unrecognized table data format, initializing default table:",
-        dataString,
-      );
+      console.warn("Unrecognized table data format, initializing default table:", dataString);
       return initializeTableData(2, 2);
     } catch (error) {
       console.error(
         "Error parsing tableData, initializing default table:",
         error,
-        node.attrs.tableData,
+        node.attrs.tableData
       );
       return initializeTableData(2, 2);
     }
   };
 
-  const [tableState, setTableState] =
-    useState<ITableDataType>(getParsedTableData());
+  const [tableState, setTableState] = useState<ITableDataType>(getParsedTableData());
 
   const persistChanges = useCallback(
     (newData: ITableDataType) => {
       updateAttributes({ tableData: JSON.stringify(newData) });
     },
-    [updateAttributes],
+    [updateAttributes]
   );
 
   useEffect(() => {
@@ -101,15 +83,9 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
     persistChanges(newState);
   };
 
-  const handleCellChange = (
-    rowIndex: number,
-    colIndex: number,
-    value: string,
-  ) => {
+  const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
     const newRows = tableState.rows.map((row, rIdx) =>
-      rIdx === rowIndex
-        ? row.map((cell, cIdx) => (cIdx === colIndex ? value : cell))
-        : row,
+      rIdx === rowIndex ? row.map((cell, cIdx) => (cIdx === colIndex ? value : cell)) : row
     );
     const newState = { ...tableState, rows: newRows };
     setTableState(newState);
@@ -136,10 +112,7 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
   };
 
   const addColumn = () => {
-    const newHeaders = [
-      ...tableState.headers,
-      `Header ${tableState.headers.length + 1}`,
-    ];
+    const newHeaders = [...tableState.headers, `Header ${tableState.headers.length + 1}`];
     const newRows = tableState.rows.map((row) => [...row, ""]);
     const newState = { headers: newHeaders, rows: newRows };
     setTableState(newState);
@@ -149,9 +122,7 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
   const removeColumn = (colIndex: number) => {
     if (tableState.headers.length <= 1 && editor.isEditable) return;
     const newHeaders = tableState.headers.filter((_, idx) => idx !== colIndex);
-    const newRows = tableState.rows.map((row) =>
-      row.filter((_, idx) => idx !== colIndex),
-    );
+    const newRows = tableState.rows.map((row) => row.filter((_, idx) => idx !== colIndex));
     const newState = { headers: newHeaders, rows: newRows };
     setTableState(newState);
     persistChanges(newState);
@@ -172,9 +143,7 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
             {tableState.rows.map((row, rowIndex) => (
               <Table.Tr key={`row-${rowIndex}`}>
                 {row.map((cell, colIndex) => (
-                  <Table.Td key={`cell-${rowIndex}-${colIndex}`}>
-                    {cell}
-                  </Table.Td>
+                  <Table.Td key={`cell-${rowIndex}-${colIndex}`}>{cell}</Table.Td>
                 ))}
               </Table.Tr>
             ))}
@@ -210,15 +179,12 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
                     )}
                     <TextInput
                       value={header}
-                      onChange={(event) =>
-                        handleHeaderChange(index, event.currentTarget.value)
-                      }
+                      onChange={(event) => handleHeaderChange(index, event.currentTarget.value)}
                       variant="unstyled"
                       styles={{
                         input: {
                           fontWeight: "bold",
-                          paddingRight:
-                            tableState.headers.length > 1 ? "28px" : "4px",
+                          paddingRight: tableState.headers.length > 1 ? "28px" : "4px",
                         },
                       }}
                       disabled={!editor.isEditable}
@@ -226,27 +192,18 @@ const DreamTableComponent: React.FC<NodeViewProps> = ({
                   </Group>
                 </th>
               ))}
-              {editor.isEditable && (
-                <th style={{ width: "50px", padding: 0 }} />
-              )}
+              {editor.isEditable && <th style={{ width: "50px", padding: 0 }} />}
             </tr>
           </thead>
           <tbody>
             {tableState.rows.map((row, rowIndex) => (
               <tr key={`row-edit-${rowIndex}`}>
                 {row.map((cell, colIndex) => (
-                  <td
-                    key={`cell-edit-${rowIndex}-${colIndex}`}
-                    style={{ minWidth: "100px" }}
-                  >
+                  <td key={`cell-edit-${rowIndex}-${colIndex}`} style={{ minWidth: "100px" }}>
                     <TextInput
                       value={cell}
                       onChange={(event) =>
-                        handleCellChange(
-                          rowIndex,
-                          colIndex,
-                          event.currentTarget.value,
-                        )
+                        handleCellChange(rowIndex, colIndex, event.currentTarget.value)
                       }
                       variant="unstyled"
                       disabled={!editor.isEditable}

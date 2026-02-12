@@ -40,15 +40,9 @@ export function averageEmbeddings(vectors: number[][]): number[] {
  * @returns A new vector representing the weighted average.
  * @throws An error if the vectors do not have the same dimensions.
  */
-export function weightedAverage(
-  vectorA: number[],
-  vectorB: number[],
-  weightB: number,
-): number[] {
+export function weightedAverage(vectorA: number[], vectorB: number[], weightB: number): number[] {
   if (vectorA.length !== vectorB.length) {
-    throw new Error(
-      "Vectors must have the same dimensions for weighted averaging.",
-    );
+    throw new Error("Vectors must have the same dimensions for weighted averaging.");
   }
 
   const weightA = 1 - weightB;

@@ -33,7 +33,7 @@ router.post("/", async (req, res) => {
         note,
         sourceText,
         pdfMetadata,
-      },
+      }
     );
 
     if (!created) {

@@ -15,13 +15,7 @@ import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import {
-  ArrowsClockwise,
-  ChatCircleDots,
-  Check,
-  Copy,
-  UsersThree,
-} from "@phosphor-icons/react";
+import { ArrowsClockwise, ChatCircleDots, Check, Copy, UsersThree } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import Content from "../../components/UI/Layout/Content";
@@ -118,13 +112,7 @@ export default function Admin() {
                               copy();
                             }}
                             variant="default"
-                            leftSection={
-                              copied ? (
-                                <Check weight="bold" />
-                              ) : (
-                                <Copy weight="bold" />
-                              )
-                            }
+                            leftSection={copied ? <Check weight="bold" /> : <Copy weight="bold" />}
                           >
                             <Text>Copy Referral Link</Text>
                           </Button>

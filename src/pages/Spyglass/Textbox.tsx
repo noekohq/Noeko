@@ -1,9 +1,6 @@
 import { Group } from "@mantine/core";
 import styles from "./Textbox.module.scss";
-import {
-  ArrowsClockwiseIcon,
-  PaperPlaneRightIcon,
-} from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, PaperPlaneRightIcon } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import PaperChip from "../../components/Display/Paper/PaperChip";
 import PaperIcon from "../../components/Display/Paper/PaperIcon";

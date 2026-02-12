@@ -6,10 +6,7 @@ export type IThing = {
   link?: string;
   onDelete?: () => void;
   onClick?: (id: string, e: React.MouseEvent | React.KeyboardEvent) => void;
-  onDoubleClick?: (
-    id: string,
-    e: React.MouseEvent | React.KeyboardEvent,
-  ) => void;
+  onDoubleClick?: (id: string, e: React.MouseEvent | React.KeyboardEvent) => void;
   preventClickDefault?: boolean;
   preventDoubleClickDefault?: boolean;
   draggable?: boolean;

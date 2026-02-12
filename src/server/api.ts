@@ -1,8 +1,4 @@
-import axios, {
-  AxiosError,
-  InternalAxiosRequestConfig,
-  AxiosResponse,
-} from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
 
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
@@ -18,15 +14,12 @@ if (!serverHost) {
   throw new Error("Server host (VITE_SERVER_HOST) is not defined in .env");
 }
 
-export const serverLocation =
-  appEnv === "production" ? "" : import.meta.env.VITE_SERVER_LOCATION;
+export const serverLocation = appEnv === "production" ? "" : import.meta.env.VITE_SERVER_LOCATION;
 const refreshEndpoint = "/users/refresh"; // Your refresh token endpoint
 const logoutEndpoint = "/users/logout"; // Your backend logout endpoint
 
 if (serverLocation === undefined || serverLocation === null) {
-  throw new Error(
-    "Server location (VITE_SERVER_LOCATION) is not defined in .env",
-  );
+  throw new Error("Server location (VITE_SERVER_LOCATION) is not defined in .env");
 }
 
 const baseURL = `${serverLocation}/api`;
@@ -36,10 +29,8 @@ console.info("Setting API base url to: ", baseURL);
 
 // Decide where to store the access token: localStorage, sessionStorage, or in-memory
 // localStorage is used here for persistence, but consider memory for slightly better XSS protection.
-export const getAccessToken = (): string | null =>
-  localStorage.getItem("accessToken");
-const setAccessToken = (token: string): void =>
-  localStorage.setItem("accessToken", token);
+export const getAccessToken = (): string | null => localStorage.getItem("accessToken");
+const setAccessToken = (token: string): void => localStorage.setItem("accessToken", token);
 const removeAccessToken = (): void => {
   localStorage.removeItem("accessToken");
 };
@@ -63,11 +54,7 @@ api.interceptors.request.use(
     // if your backend expects *only* the cookie for refresh authentication.
     // Check if your backend refresh endpoint requires the Authorization header or not.
     // Assuming here it does NOT require Authorization header, only the cookie.
-    if (
-      accessToken &&
-      !config.headers.Authorization &&
-      config.url !== refreshEndpoint
-    ) {
+    if (accessToken && !config.headers.Authorization && config.url !== refreshEndpoint) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
@@ -75,7 +62,7 @@ api.interceptors.request.use(
   (error): Promise<AxiosError> => {
     console.error("Request config error:", error);
     return Promise.reject(error);
-  },
+  }
 );
 
 // --- Response Interceptor ---
@@ -146,8 +133,7 @@ api.interceptors.response.use(
           .then((newAccessToken) => {
             // Update header of the queued request with the new access token
             if (originalRequest.headers) {
-              originalRequest.headers["Authorization"] =
-                "Bearer " + newAccessToken;
+              originalRequest.headers["Authorization"] = "Bearer " + newAccessToken;
             }
             return api(originalRequest); // Retry with new token
           })
@@ -167,7 +153,7 @@ api.interceptors.response.use(
           data: { accessToken: string };
         }>( // Adjust<{...}> based on your API response
           refreshEndpoint,
-          {}, // Empty body, refresh token is in the cookie
+          {} // Empty body, refresh token is in the cookie
           // Redundant if withCredentials is global, but explicit for clarity
           // { withCredentials: true }
         );
@@ -190,7 +176,7 @@ api.interceptors.response.use(
       } catch (refreshError: any) {
         console.error(
           "Token refresh failed:",
-          refreshError?.response?.data || refreshError.message,
+          refreshError?.response?.data || refreshError.message
         );
 
         // Refresh failed, likely invalid/expired refresh token cookie. Log out.
@@ -212,14 +198,12 @@ api.interceptors.response.use(
       const message =
         (error.response?.data as { message: string })?.message ||
         "You are not authorized to perform this action.";
-      window.location.href = `/unauthorized?message=${encodeURIComponent(
-        message,
-      )}`;
+      window.location.href = `/unauthorized?message=${encodeURIComponent(message)}`;
     }
 
     // For errors other than 401 or handled retries, just return the promise rejection
     return Promise.reject(error);
-  },
+  }
 );
 
 /**
@@ -244,10 +228,7 @@ export const refreshToken = async (): Promise<string> => {
 
   try {
     console.info("Proactively refreshing token...");
-    const response = await api.post<{ data: { accessToken: string } }>(
-      refreshEndpoint,
-      {},
-    );
+    const response = await api.post<{ data: { accessToken: string } }>(refreshEndpoint, {});
     const { accessToken } = response.data.data;
 
     setAccessToken(accessToken); // Store the new token

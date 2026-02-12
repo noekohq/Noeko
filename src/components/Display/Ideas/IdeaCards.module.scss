@@ -1,5 +1,7 @@
 .ideaCardBase {
-  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  transition:
+    box-shadow 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
   // Default height is 100% via inline style, but can add base styles here
 }
 
@@ -41,11 +43,13 @@
   // Common action button styles
 }
 
-.actionsGroupWrapper { // Class for the Group wrapping IdeaActionsGroup in main cards
+.actionsGroupWrapper {
+  // Class for the Group wrapping IdeaActionsGroup in main cards
   border-top: 1px solid var(--mantine-color-divider);
 }
 
-.compactArtifactsGroup, .compactTagsGroup {
+.compactArtifactsGroup,
+.compactTagsGroup {
   // margin-top: var(--mantine-spacing-xxs);
 }
 

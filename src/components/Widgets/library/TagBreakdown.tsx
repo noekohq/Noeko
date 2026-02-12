@@ -34,13 +34,9 @@ export default function TagBreakdown() {
   const mostUsed = tagBreakdown?.mostUsed ?? [];
   const mostRelevant = tagBreakdown?.semanticallyCentral ?? [];
   const combinedRaw = [...mostUsed, ...mostRelevant];
-  const combined = combinedRaw.filter((tag) =>
-    combinedRaw.find((t) => t.id === tag.id),
-  );
+  const combined = combinedRaw.filter((tag) => combinedRaw.find((t) => t.id === tag.id));
 
-  const [viewMode, setViewMode] = useState<
-    "combined" | "mostUsed" | "mostRelevant"
-  >("mostUsed");
+  const [viewMode, setViewMode] = useState<"combined" | "mostUsed" | "mostRelevant">("mostUsed");
 
   const toView = () => {
     switch (viewMode) {
@@ -69,8 +65,7 @@ export default function TagBreakdown() {
         <Group justify="space-between">
           <Text size="sm" c="dimmed" fw="bold">
             <Group align="center" gap="xs">
-              You have{" "}
-              {(tagBreakdown?.total ?? 0 > 0) ? tagBreakdown?.total : "no"} tag
+              You have {(tagBreakdown?.total ?? 0 > 0) ? tagBreakdown?.total : "no"} tag
               {tagBreakdown?.total === 1 ? "" : "s"}.{" "}
               <Link to="/tags">
                 <ActionIcon variant="light" color="gray" size="xs">

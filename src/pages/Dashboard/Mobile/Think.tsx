@@ -7,11 +7,7 @@ import { Box, Group, Stack, Text, Loader, Center } from "@mantine/core";
 import { SearchBar } from "../../../components/Search/SearchBar";
 import { useSearch } from "../../../contexts/SearchContext";
 import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
-import {
-  ClockClockwiseIcon,
-  ClockCounterClockwiseIcon,
-  ClockIcon,
-} from "@phosphor-icons/react";
+import { ClockClockwiseIcon, ClockCounterClockwiseIcon, ClockIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import Selection from "../../../components/Display/Interactions/Selection";
 
@@ -50,9 +46,7 @@ export default function Think() {
     if (newIdeas) {
       setAllIdeas((prevIdeas) => {
         const existingIds = new Set(prevIdeas.map((idea) => idea.id));
-        const uniqueNewIdeas = newIdeas.filter(
-          (idea) => !existingIds.has(idea.id),
-        );
+        const uniqueNewIdeas = newIdeas.filter((idea) => !existingIds.has(idea.id));
         return [...prevIdeas, ...uniqueNewIdeas];
       });
       setHasMore(newIdeas.length === limit);
@@ -73,7 +67,7 @@ export default function Think() {
         root: scrollContainer,
         threshold: 0.01,
         rootMargin: "0px 0px 800px 0px",
-      },
+      }
     );
 
     const currentObserverTarget = observerTarget.current;
@@ -175,9 +169,7 @@ export default function Think() {
             {rest?.map((idea) => {
               return <IdeaButton key={idea.id.toString()} idea={idea} />;
             })}
-            {hasMore && !loading && (
-              <div ref={observerTarget} style={{ height: "1px" }} />
-            )}
+            {hasMore && !loading && <div ref={observerTarget} style={{ height: "1px" }} />}
             {loading && (
               <Group justify="center">
                 <Loader size="sm" />

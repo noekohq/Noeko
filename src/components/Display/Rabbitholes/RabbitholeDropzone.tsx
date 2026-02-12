@@ -10,10 +10,7 @@ interface IRabbitholeDropzoneProps {
   children: React.ReactNode;
 }
 
-export function RabbitholeDropzone({
-  rabbithole,
-  children,
-}: IRabbitholeDropzoneProps) {
+export function RabbitholeDropzone({ rabbithole, children }: IRabbitholeDropzoneProps) {
   const [draggingOver, setDraggingOver] = useState(false);
 
   const isIncluded = (thingId: string) => {
@@ -37,17 +34,14 @@ export function RabbitholeDropzone({
           });
           return;
         }
-        await includeThingInRabbithole(
-          rabbithole.id.toString(),
-          thingId.toString(),
-        );
+        await includeThingInRabbithole(rabbithole.id.toString(), thingId.toString());
       } catch (error) {
         console.error("Error creating connection: ", error);
       } finally {
         setDraggingOver(false);
       }
     },
-    [rabbithole],
+    [rabbithole]
   );
   return (
     <div

@@ -1,23 +1,10 @@
-import {
-  Box,
-  Center,
-  Flex,
-  Grid,
-  Group,
-  Loader,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Box, Center, Flex, Grid, Group, Loader, Stack, Text, Title } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import widgets from "../../components/Widgets/Index";
 import styles from "./Dashboard.module.scss";
-import type {
-  IAvailableWidgets,
-  IWidgetConfig,
-} from "../../components/Widgets/index.d";
+import type { IAvailableWidgets, IWidgetConfig } from "../../components/Widgets/index.d";
 import { lazy, useEffect, useRef, useState } from "react";
 import Content from "../../components/UI/Layout/Content";
 import WidgetWrapper from "../../components/Widgets/Wrapper";
@@ -38,10 +25,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useInteraction } from "../../contexts/InteractionContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import { useLayout } from "../../contexts/LayoutContext";
-import {
-  getCurrentTimeFormatted,
-  getCurrentTimeOfDay,
-} from "../../utils/datetime";
+import { getCurrentTimeFormatted, getCurrentTimeOfDay } from "../../utils/datetime";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
 import { IDashboard } from "../../../app/services/Dashboard";
 import { Link, useNavigate } from "react-router";
@@ -227,11 +211,7 @@ function Header() {
       </Stack>
       <Flex
         wrap={"nowrap"}
-        h={
-          isMobile
-            ? "calc(var(--status-bar-height) * 2)"
-            : "var(--status-bar-height)"
-        }
+        h={isMobile ? "calc(var(--status-bar-height) * 2)" : "var(--status-bar-height)"}
         direction={isMobile ? "column" : "row"}
         gap="xs"
       >
@@ -323,9 +303,7 @@ function JumpBackIn() {
     if (newIdeas) {
       setAllIdeas((prevIdeas) => {
         const existingIds = new Set(prevIdeas.map((idea) => idea.id));
-        const uniqueNewIdeas = newIdeas.filter(
-          (idea) => !existingIds.has(idea.id),
-        );
+        const uniqueNewIdeas = newIdeas.filter((idea) => !existingIds.has(idea.id));
         return [...prevIdeas, ...uniqueNewIdeas];
       });
       setHasMore(newIdeas.length === limit);
@@ -346,7 +324,7 @@ function JumpBackIn() {
         root: scrollContainer,
         threshold: 0.01,
         rootMargin: "0px 0px 800px 0px",
-      },
+      }
     );
 
     const currentObserverTarget = observerTarget.current;
@@ -423,7 +401,7 @@ function JumpBackIn() {
                       type: "idea",
                     },
                     {},
-                    true,
+                    true
                   )}
                 />
               </Stack>
@@ -433,11 +411,7 @@ function JumpBackIn() {
             return (
               <PaperThing
                 key={idea.id.toString()}
-                {...getThingPropsFromConnectable(
-                  { ...idea, type: "idea" },
-                  {},
-                  true,
-                )}
+                {...getThingPropsFromConnectable({ ...idea, type: "idea" }, {}, true)}
               />
             );
           })}
@@ -446,9 +420,7 @@ function JumpBackIn() {
               No ideas yet.
             </Text>
           )}
-          {hasMore && !loading && (
-            <div ref={observerTarget} style={{ height: "1px" }} />
-          )}
+          {hasMore && !loading && <div ref={observerTarget} style={{ height: "1px" }} />}
           {loading && (
             <Group justify="center">
               <Loader size="sm" />

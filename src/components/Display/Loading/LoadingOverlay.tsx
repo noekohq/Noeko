@@ -7,14 +7,9 @@ interface ILoadingOverlayProps {
   children?: React.ReactNode | React.ReactNode[];
 }
 
-export default function LoadingOverlay({
-  loading,
-  children,
-}: ILoadingOverlayProps) {
+export default function LoadingOverlay({ loading, children }: ILoadingOverlayProps) {
   return (
-    <div
-      className={`${styles.overlay} ${loading ? styles.loading : styles.gone}`}
-    >
+    <div className={`${styles.overlay} ${loading ? styles.loading : styles.gone}`}>
       <div className={styles.content}>
         {children && children}
         {!children && (

@@ -1,17 +1,17 @@
 @use "../../styles/mixins.scss" as *;
 
 .ui {
-    background-color: transparent;
+  background-color: transparent;
 }
 
 .searchWrapper {
-    width: 100%;
-    box-sizing: border-box;
-    transition: width 0.2s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
+  transition: width 0.2s ease-in-out;
 }
 
 .searchResults {
-    width: 100%;
-    overflow-x: scroll;
-    padding: 0;
+  width: 100%;
+  overflow-x: scroll;
+  padding: 0;
 }

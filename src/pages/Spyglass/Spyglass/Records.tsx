@@ -20,12 +20,7 @@ import PageWrapper from "../../../components/Layout/PageWrapper";
 import LeftSidebar from "../../../components/UI/Layout/Left";
 import RightSidebar from "../../../components/UI/Layout/Right";
 import styles from "./Records.module.scss";
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  CaretLeftIcon,
-  DotsThreeIcon,
-} from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowRightIcon, CaretLeftIcon, DotsThreeIcon } from "@phosphor-icons/react";
 import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
 import useFetch from "../../../hooks/useFetch";
 import { useLayout } from "../../../contexts/LayoutContext";
@@ -44,9 +39,7 @@ export default function SpyglassHistory() {
   const { isMobile } = useLayout();
   const [page, setPage] = useState(1);
   const pageSize = isMobile ? 10 : 10;
-  const [allHistory, setAllHistory] = useState<
-    ISpyglassLightHistoryResponse["history"]
-  >([]);
+  const [allHistory, setAllHistory] = useState<ISpyglassLightHistoryResponse["history"]>([]);
   const [hasMore, setHasMore] = useState(true);
 
   const {
@@ -66,15 +59,11 @@ export default function SpyglassHistory() {
 
       setAllHistory((prevHistory) => {
         const existingIds = new Set(prevHistory.map((item) => item.id));
-        const uniqueNewItems = newItems.filter(
-          (item) => !existingIds.has(item.id),
-        );
+        const uniqueNewItems = newItems.filter((item) => !existingIds.has(item.id));
         const updatedHistory = [...prevHistory, ...uniqueNewItems];
 
         const isEnd =
-          newItems.length < pageSize ||
-          updatedHistory.length >= total ||
-          newItems.length === 0;
+          newItems.length < pageSize || updatedHistory.length >= total || newItems.length === 0;
 
         setHasMore(!isEnd);
         return updatedHistory;
@@ -98,7 +87,7 @@ export default function SpyglassHistory() {
           setPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 0.01, root: null, rootMargin: "0px 0px 250px 0px" },
+      { threshold: 0.01, root: null, rootMargin: "0px 0px 250px 0px" }
     );
 
     const currentObserverTarget = observerTarget.current;
@@ -139,23 +128,19 @@ export default function SpyglassHistory() {
               Spyglass History
             </Title>
 
-            {errors &&
-              errors.length > 0 &&
-              page === 1 &&
-              allHistory.length === 0 && (
-                <Center mt="xl">
-                  <Stack align="center">
-                    <Text c="red" ta="center">
-                      Error loading history:{" "}
-                      {errors[0] || "An unknown error occurred."}
-                    </Text>
-                    <Text c="dimmed" size="sm">
-                      Please try refreshing the page. If the problem persists,
-                      check your connection or contact support.
-                    </Text>
-                  </Stack>
-                </Center>
-              )}
+            {errors && errors.length > 0 && page === 1 && allHistory.length === 0 && (
+              <Center mt="xl">
+                <Stack align="center">
+                  <Text c="red" ta="center">
+                    Error loading history: {errors[0] || "An unknown error occurred."}
+                  </Text>
+                  <Text c="dimmed" size="sm">
+                    Please try refreshing the page. If the problem persists, check your connection
+                    or contact support.
+                  </Text>
+                </Stack>
+              </Center>
+            )}
 
             {!loading &&
               !hasMore &&
@@ -182,15 +167,8 @@ export default function SpyglassHistory() {
                         }
                       }}
                     >
-                      <Group
-                        justify="space-between"
-                        wrap="nowrap"
-                        align="center"
-                      >
-                        <Stack
-                          gap={4}
-                          style={{ flexGrow: 1, overflow: "hidden" }}
-                        >
+                      <Group justify="space-between" wrap="nowrap" align="center">
+                        <Stack gap={4} style={{ flexGrow: 1, overflow: "hidden" }}>
                           <Group gap="xs">
                             <Text lineClamp={1} fw={600} size="sm">
                               "{item.baseQuery}"

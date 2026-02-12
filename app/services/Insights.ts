@@ -67,7 +67,7 @@ export default class Insights {
     userId: string | RecordId,
     filters?: {
       limit?: number;
-    },
+    }
   ): Promise<IConnectable[] | undefined> {
     try {
       const db = await getDatabase();

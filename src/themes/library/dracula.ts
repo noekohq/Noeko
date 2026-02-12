@@ -125,9 +125,7 @@ const dracula: IOverrideResolver = (t) => {
   // "Alabaster" / High Contrast Light Mode
   // Dracula doesn't have an official light mode, so this uses
   // distinct high-contrast pairings (Black text on clean white/gray).
-  const lightColors: Partial<
-    Record<DefaultMantineColor, MantineColorsTuple>
-  > & {
+  const lightColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> & {
     dark: MantineColorsTuple;
   } = {
     dark: [

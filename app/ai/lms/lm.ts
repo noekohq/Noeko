@@ -6,8 +6,7 @@ const { LM_PROVIDER } = process.env;
 
 const SupportedProviders = ["google", "xai"];
 
-const isValidProvider = (provider: string) =>
-  SupportedProviders.includes(provider);
+const isValidProvider = (provider: string) => SupportedProviders.includes(provider);
 
 if (!LM_PROVIDER) {
   throw new Error(`LM_PROVIDER is not defined`);

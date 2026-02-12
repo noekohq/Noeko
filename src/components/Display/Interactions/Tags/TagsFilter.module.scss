@@ -1,20 +1,20 @@
 @use "../../../../styles/mixins.scss" as *;
 
 .tagsFilter {
-    width: 100%;
-    padding: 0;
-    position: relative;
-    z-index: 10;
+  width: 100%;
+  padding: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .scrollGroup {
-    padding: 0; // Add side padding so tags don't touch screen edges
-    -webkit-overflow-scrolling: touch;
+  padding: 0; // Add side padding so tags don't touch screen edges
+  -webkit-overflow-scrolling: touch;
 
-    .pickerWrapper,
-    :global(.mantine-PaperTag) {
-        flex-shrink: 0;
-    }
+  .pickerWrapper,
+  :global(.mantine-PaperTag) {
+    flex-shrink: 0;
+  }
 }
 
 .pickerWrapper {

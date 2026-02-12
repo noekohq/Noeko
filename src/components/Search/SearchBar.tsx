@@ -34,18 +34,7 @@ type ISearchBarProps = {
 };
 
 export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
-  (
-    {
-      query,
-      setQuery,
-      loading,
-      onClear,
-      placeholder,
-      withinRabbithole,
-      onSearchSubmit,
-    },
-    ref,
-  ) => {
+  ({ query, setQuery, loading, onClear, placeholder, withinRabbithole, onSearchSubmit }, ref) => {
     const [focused, setFocused] = useState(false);
     const internalRef = useRef<HTMLTextAreaElement>(null);
     const textareaRef = ref || internalRef;
@@ -71,11 +60,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           },
           run: (e) => {
             e.preventDefault();
-            if (
-              textareaRef &&
-              "current" in textareaRef &&
-              textareaRef.current
-            ) {
+            if (textareaRef && "current" in textareaRef && textareaRef.current) {
               textareaRef.current.focus();
             }
           },
@@ -87,11 +72,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           },
           run: (e) => {
             e.preventDefault();
-            if (
-              textareaRef &&
-              "current" in textareaRef &&
-              textareaRef.current
-            ) {
+            if (textareaRef && "current" in textareaRef && textareaRef.current) {
               textareaRef.current.focus();
             }
           },
@@ -108,10 +89,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
           } ${withinRabbithole ? styles.rabbithole : ""}`}
         >
           <div className={styles.leftSection}>
-            <MagnifyingGlassIcon
-              size={16}
-              weight={focused ? "bold" : "regular"}
-            />
+            <MagnifyingGlassIcon size={16} weight={focused ? "bold" : "regular"} />
           </div>
 
           <Textarea
@@ -141,12 +119,7 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
             {loading ? (
               <Loader size="xs" type="dots" />
             ) : query.length > 0 ? (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="sm"
-                onClick={onClear}
-              >
+              <ActionIcon variant="subtle" color="gray" size="sm" onClick={onClear}>
                 <XIcon />
               </ActionIcon>
             ) : null}
@@ -154,5 +127,5 @@ export const SearchBar = forwardRef<HTMLTextAreaElement, ISearchBarProps>(
         </div>
       </Stack>
     );
-  },
+  }
 );

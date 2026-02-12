@@ -1,21 +1,8 @@
 import React from "react";
-import {
-  ActionIcon,
-  Box,
-  Group,
-  MantineColor,
-  Popover,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { ActionIcon, Box, Group, MantineColor, Popover, Stack, Text } from "@mantine/core";
 import styles from "./SourceButton.module.scss";
 import { useState } from "react";
-import {
-  IconProps,
-  ArrowRightIcon,
-  FileTextIcon,
-  EyeIcon,
-} from "@phosphor-icons/react";
+import { IconProps, ArrowRightIcon, FileTextIcon, EyeIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { ISource } from "../../../../app/database/models/source";
 import { useDisclosure } from "@mantine/hooks";
@@ -34,10 +21,7 @@ interface ISourceButtonProps {
   source: ISource;
   actions?: ISourceButtonAction[];
   fullWidth?: boolean;
-  onClick?: (
-    source: ISource,
-    e: React.MouseEvent | React.KeyboardEvent,
-  ) => void;
+  onClick?: (source: ISource, e: React.MouseEvent | React.KeyboardEvent) => void;
   link?: boolean;
 }
 
@@ -65,7 +49,7 @@ function SourceButton({
       JSON.stringify({
         sourceId: source.id.toString(),
         thingId: source.id.toString(),
-      }),
+      })
     );
   };
 
@@ -75,7 +59,7 @@ function SourceButton({
   };
 
   const handleClick = (
-    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>
   ) => {
     if (onClick) {
       onClick(source, e);

@@ -1,23 +1,23 @@
 .heatmap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: var(--mantine-spacing-md);
-    height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  height: 100%;
 }
 
 .heatmapContainer {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: scroll;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: scroll;
 }
 
 .root {
 }
 
 .rect {
-    --heatmap-empty-rect-bg: var(--mantine-color-dark-8);
+  --heatmap-empty-rect-bg: var(--mantine-color-dark-8);
 }

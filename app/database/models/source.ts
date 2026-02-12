@@ -79,7 +79,7 @@ export default class Source {
 
   public static async from(
     sourceable: ISourceable,
-    visibility: ISource["visibility"],
+    visibility: ISource["visibility"]
   ): Promise<ISource | undefined> {
     try {
       const db = await getDatabase();
@@ -122,9 +122,7 @@ export default class Source {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const source = await db.run<ISource>("fn::get_source_record", [
-        new StringRecordId(sourceId),
-      ]);
+      const source = await db.run<ISource>("fn::get_source_record", [new StringRecordId(sourceId)]);
       if (!source) {
         throw new Error("Couldn't get source");
       }
@@ -151,10 +149,7 @@ export default class Source {
     }
   }
 
-  public static async update(
-    sourceId: string | RecordId,
-    updates: Partial<ISourceCreator>,
-  ) {
+  public static async update(sourceId: string | RecordId, updates: Partial<ISourceCreator>) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -183,7 +178,7 @@ export default class Source {
         new StringRecordId(sourceId),
         {
           ...updater,
-        },
+        }
       );
       if (!update) {
         throw new Error("Couldn't update source");
@@ -212,10 +207,7 @@ export default class Source {
     }
   }
 
-  public static async establishOwnership(
-    userId: string | RecordId,
-    sourceId: string | RecordId,
-  ) {
+  public static async establishOwnership(userId: string | RecordId, sourceId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -227,7 +219,7 @@ export default class Source {
           userId: new StringRecordId(userId),
           sourceId: new StringRecordId(sourceId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         throw new Error("Couldn't get results");
@@ -243,10 +235,7 @@ export default class Source {
     }
   }
 
-  public static async sourceForUser(
-    userId: string | RecordId,
-    sourceId: string | RecordId,
-  ) {
+  public static async sourceForUser(userId: string | RecordId, sourceId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -258,7 +247,7 @@ export default class Source {
           userId: new StringRecordId(userId),
           sourceId: new StringRecordId(sourceId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         throw new Error("Couldn't get results");
@@ -299,9 +288,7 @@ export default class Source {
       const embedder = getEmbedder();
       const analysis = source.analysis;
       if (!analysis) {
-        throw new Error(
-          "Couldn't load embedding vector for source with no analysis",
-        );
+        throw new Error("Couldn't load embedding vector for source with no analysis");
       }
       const embeddable = `
         ${analysis.headline}
@@ -331,7 +318,7 @@ export default class Source {
   public static async fromSourceable(
     userId: string | RecordId,
     thingId: string | RecordId,
-    visibility: ISource["visibility"],
+    visibility: ISource["visibility"]
   ) {
     try {
       if (!this.isSourceable(thingId)) {
@@ -355,7 +342,7 @@ export default class Source {
               content: textContent,
               owner: userId,
             },
-            visibility,
+            visibility
           );
           return source;
         default:

@@ -19,11 +19,7 @@ import {
   Radio,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
-import {
-  IComputedUser,
-  ISafeUser,
-  IUser,
-} from "../../../app/database/models/user";
+import { IComputedUser, ISafeUser, IUser } from "../../../app/database/models/user";
 import {
   Check,
   Clipboard,
@@ -130,10 +126,7 @@ export default function Users() {
 
   const [toEmail, setToEmail] = useState<ISafeUser>();
   const [emailType, setEmailType] = useState<"onboarding">("onboarding");
-  const { load: sendUserEmail, loading: sendingUserEmail } = useFetch<
-    { type: string },
-    boolean
-  >({
+  const { load: sendUserEmail, loading: sendingUserEmail } = useFetch<{ type: string }, boolean>({
     url: `/users/email/${toEmail?.id}`,
     method: "POST",
     body: {
@@ -232,13 +225,11 @@ export default function Users() {
   const filteredUsers = users?.filter(
     (user) =>
       user.email.toLowerCase().includes(query.toLowerCase()) ||
-      (user.firstName + " " + user.lastName)
-        .toLowerCase()
-        .includes(query.toLowerCase()) ||
+      (user.firstName + " " + user.lastName).toLowerCase().includes(query.toLowerCase()) ||
       user.id.toString().includes(query.toLowerCase()) ||
       user.roles.join("").includes(query.toLowerCase()) ||
       (["disabled"].includes(query.toLowerCase()) && user.disabled) ||
-      (["enabled", "active"].includes(query.toLowerCase()) && !user.disabled),
+      (["enabled", "active"].includes(query.toLowerCase()) && !user.disabled)
   );
 
   const sortedUsers = filteredUsers?.sort((a, b) => {
@@ -290,16 +281,12 @@ export default function Users() {
 
     // Find most ideas and most recent user
     for (const user of users) {
-      if (
-        mostIdeasUser === undefined ||
-        user.numIdeas > mostIdeasUser.numIdeas
-      ) {
+      if (mostIdeasUser === undefined || user.numIdeas > mostIdeasUser.numIdeas) {
         mostIdeasUser = user;
       }
       if (
         mostRecentUser === undefined ||
-        new Date(user.createdAt).getTime() >
-          new Date(mostRecentUser.createdAt).getTime()
+        new Date(user.createdAt).getTime() > new Date(mostRecentUser.createdAt).getTime()
       ) {
         mostRecentUser = user;
       }
@@ -323,7 +310,7 @@ export default function Users() {
         acc[date] = curr.dailyCount;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     const lastSeven = Array(7).fill(0);
     for (let i = 0; i < lastSeven.length; i++) {
@@ -341,7 +328,7 @@ export default function Users() {
         acc[date] = curr.dailyCount;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     const ideaMap = user.ideaActivity.reduce(
       (acc, curr) => {
@@ -349,7 +336,7 @@ export default function Users() {
         acc[date] = curr.dailyCount;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     const ideaViewMap = user.ideaViewActivity.reduce(
       (acc, curr) => {
@@ -357,7 +344,7 @@ export default function Users() {
         acc[date] = curr.dailyCount;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     const spyglassmap = user.spyglassActivity.reduce(
       (acc, curr) => {
@@ -365,7 +352,7 @@ export default function Users() {
         acc[date] = curr.dailyCount;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, number>
     );
     const lastSeven = Array(7)
       .fill(undefined)
@@ -402,12 +389,8 @@ export default function Users() {
                 <Grid>
                   <Grid.Col span={{ sm: 12 }}>
                     <Text>
-                      {invitedUser.user.firstName} has been invited with the
-                      email{" "}
-                      <a href={`mailto:${invitedUser.user.email}`}>
-                        {invitedUser.user.email}
-                      </a>
-                      .{" "}
+                      {invitedUser.user.firstName} has been invited with the email{" "}
+                      <a href={`mailto:${invitedUser.user.email}`}>{invitedUser.user.email}</a>.{" "}
                       {invitedUser.emailSuccess
                         ? "Email was sent successfully."
                         : "Email was not sent successfully."}
@@ -420,11 +403,7 @@ export default function Users() {
                           <Button
                             onClick={copy}
                             leftSection={
-                              copied ? (
-                                <Check weight="bold" />
-                              ) : (
-                                <Clipboard weight="bold" />
-                              )
+                              copied ? <Check weight="bold" /> : <Clipboard weight="bold" />
                             }
                           >
                             {copied ? "Copied" : "Copy Email"}
@@ -438,11 +417,9 @@ export default function Users() {
             )}
             <Title>Manage Users</Title>
             <Text>
-              There are <strong>{summaryDetails.numberOfUsers}</strong> users.
-              The most recent user is{" "}
-              <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
-              with the most ideas is{" "}
-              <strong>{summaryDetails.mostIdeas?.email}</strong>.
+              There are <strong>{summaryDetails.numberOfUsers}</strong> users. The most recent user
+              is <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user with the most
+              ideas is <strong>{summaryDetails.mostIdeas?.email}</strong>.
             </Text>
             <TextInput
               placeholder="Filter users"
@@ -536,20 +513,10 @@ export default function Users() {
                       <Text component="span">
                         {selectedUser.firstName} {selectedUser.lastName}
                       </Text>
-                      <CopyButton
-                        value={`${selectedUser.firstName} ${selectedUser.lastName}`}
-                      >
+                      <CopyButton value={`${selectedUser.firstName} ${selectedUser.lastName}`}>
                         {({ copied, copy }) => (
-                          <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            onClick={copy}
-                          >
-                            {copied ? (
-                              <CheckIcon size={16} />
-                            ) : (
-                              <ClipboardIcon size={16} />
-                            )}
+                          <ActionIcon variant="subtle" color="gray" onClick={copy}>
+                            {copied ? <CheckIcon size={16} /> : <ClipboardIcon size={16} />}
                           </ActionIcon>
                         )}
                       </CopyButton>
@@ -561,16 +528,8 @@ export default function Users() {
                       <Text component="span">{selectedUser.email}</Text>
                       <CopyButton value={selectedUser.email}>
                         {({ copied, copy }) => (
-                          <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            onClick={copy}
-                          >
-                            {copied ? (
-                              <CheckIcon size={16} />
-                            ) : (
-                              <ClipboardIcon size={16} />
-                            )}
+                          <ActionIcon variant="subtle" color="gray" onClick={copy}>
+                            {copied ? <CheckIcon size={16} /> : <ClipboardIcon size={16} />}
                           </ActionIcon>
                         )}
                       </CopyButton>
@@ -582,16 +541,8 @@ export default function Users() {
                       <Text component="span">{selectedUser.id}</Text>
                       <CopyButton value={selectedUser.id.toString()}>
                         {({ copied, copy }) => (
-                          <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            onClick={copy}
-                          >
-                            {copied ? (
-                              <CheckIcon size={16} />
-                            ) : (
-                              <ClipboardIcon size={16} />
-                            )}
+                          <ActionIcon variant="subtle" color="gray" onClick={copy}>
+                            {copied ? <CheckIcon size={16} /> : <ClipboardIcon size={16} />}
                           </ActionIcon>
                         )}
                       </CopyButton>
@@ -600,57 +551,34 @@ export default function Users() {
                       <Text component="span" fw={500}>
                         Roles:
                       </Text>
-                      <Text component="span">
-                        {selectedUser.roles.join(", ")}
-                      </Text>
+                      <Text component="span">{selectedUser.roles.join(", ")}</Text>
                       <CopyButton value={selectedUser.roles.join(", ")}>
                         {({ copied, copy }) => (
-                          <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            onClick={copy}
-                          >
-                            {copied ? (
-                              <CheckIcon size={16} />
-                            ) : (
-                              <ClipboardIcon size={16} />
-                            )}
+                          <ActionIcon variant="subtle" color="gray" onClick={copy}>
+                            {copied ? <CheckIcon size={16} /> : <ClipboardIcon size={16} />}
                           </ActionIcon>
                         )}
                       </CopyButton>
                     </Group>
                     <Text>
-                      <strong>Status:</strong>{" "}
-                      {selectedUser.disabled ? "Disabled" : "Active"}
+                      <strong>Status:</strong> {selectedUser.disabled ? "Disabled" : "Active"}
                     </Text>
                     <Text>
-                      <strong>Created:</strong>{" "}
-                      {formatDate(new Date(selectedUser.createdAt))}
+                      <strong>Created:</strong> {formatDate(new Date(selectedUser.createdAt))}
                     </Text>
                     <Text>
-                      <strong>Updated:</strong>{" "}
-                      {formatDate(new Date(selectedUser.updatedAt))}
+                      <strong>Updated:</strong> {formatDate(new Date(selectedUser.updatedAt))}
                     </Text>
                     {selectedUser.referralCode && (
                       <Group gap="xs" align="center">
                         <Text component="span" fw={500}>
                           Referral Code:
                         </Text>
-                        <Text component="span">
-                          {selectedUser.referralCode}
-                        </Text>
+                        <Text component="span">{selectedUser.referralCode}</Text>
                         <CopyButton value={selectedUser.referralCode}>
                           {({ copied, copy }) => (
-                            <ActionIcon
-                              variant="subtle"
-                              color="gray"
-                              onClick={copy}
-                            >
-                              {copied ? (
-                                <CheckIcon size={16} />
-                              ) : (
-                                <ClipboardIcon size={16} />
-                              )}
+                            <ActionIcon variant="subtle" color="gray" onClick={copy}>
+                              {copied ? <CheckIcon size={16} /> : <ClipboardIcon size={16} />}
                             </ActionIcon>
                           )}
                         </CopyButton>
@@ -659,17 +587,13 @@ export default function Users() {
                     <Text>
                       <strong>Terms Accepted:</strong>{" "}
                       {selectedUser.acceptedTermsOfServiceAt
-                        ? formatDate(
-                            new Date(selectedUser.acceptedTermsOfServiceAt),
-                          )
+                        ? formatDate(new Date(selectedUser.acceptedTermsOfServiceAt))
                         : "No"}
                     </Text>
                     <Text>
                       <strong>Privacy Accepted:</strong>{" "}
                       {selectedUser.acceptedPrivacyPolicyAt
-                        ? formatDate(
-                            new Date(selectedUser.acceptedPrivacyPolicyAt),
-                          )
+                        ? formatDate(new Date(selectedUser.acceptedPrivacyPolicyAt))
                         : "No"}
                     </Text>
                   </Stack>
@@ -736,21 +660,14 @@ export default function Users() {
                 </Button>
               </Group>
               <Group justify="end">
-                <Button
-                  variant="default"
-                  onClick={() => setSelectedUser(undefined)}
-                >
+                <Button variant="default" onClick={() => setSelectedUser(undefined)}>
                   Close
                 </Button>
               </Group>
             </Stack>
           )}
         </Drawer>
-        <Modal
-          opened={!!toDisable}
-          title="Disable user"
-          onClose={() => setToDisable(undefined)}
-        >
+        <Modal opened={!!toDisable} title="Disable user" onClose={() => setToDisable(undefined)}>
           <Text>Are you sure you want to disable {toDisable?.email}?</Text>
           <br />
           <Group justify="end">
@@ -767,11 +684,7 @@ export default function Users() {
             </Button>
           </Group>
         </Modal>
-        <Modal
-          opened={!!toEnable}
-          title="Enable user"
-          onClose={() => setToEnable(undefined)}
-        >
+        <Modal opened={!!toEnable} title="Enable user" onClose={() => setToEnable(undefined)}>
           <Text>Are you sure you want to enable {toEnable?.email}?</Text>
           <br />
           <Group justify="end">
@@ -789,11 +702,7 @@ export default function Users() {
           </Group>
         </Modal>
 
-        <Modal
-          opened={!!toDelete}
-          title="Delete user"
-          onClose={() => setToDelete(undefined)}
-        >
+        <Modal opened={!!toDelete} title="Delete user" onClose={() => setToDelete(undefined)}>
           <Text>Are you sure you want to delete {toDelete?.email}?</Text>
           <br />
           <Group justify="end">

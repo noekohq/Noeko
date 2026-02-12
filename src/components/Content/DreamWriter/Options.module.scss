@@ -1,57 +1,57 @@
 @use "../../../styles/mixins.scss" as *;
 
 .option {
-    background-color: transparent;
-    border-radius: var(--mantine-radius-lg);
-    transition: background-color 0.15s ease-in-out;
-    border: none;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--mantine-color-dark-1);
-    cursor: pointer;
+  background-color: transparent;
+  border-radius: var(--mantine-radius-lg);
+  transition: background-color 0.15s ease-in-out;
+  border: none;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-dark-1);
+  cursor: pointer;
 
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &:hover {
+    background-color: var(--mantine-color-dark-7);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @include desktop {
+    padding: 6px;
     svg {
-        width: 22px;
-        height: 22px;
+      width: 16px;
+      height: 16px;
     }
-
-    &:hover {
-        background-color: var(--mantine-color-dark-7);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    @include desktop {
-        padding: 6px;
-        svg {
-            width: 16px;
-            height: 16px;
-        }
-    }
+  }
 }
 
 .optionActive {
-    background-color: var(--mantine-color-dark-3);
-    color: var(--mantine-color-dark-8);
+  background-color: var(--mantine-color-dark-3);
+  color: var(--mantine-color-dark-8);
 
-    &:hover {
-        background-color: var(--mantine-color-dark-2);
-    }
+  &:hover {
+    background-color: var(--mantine-color-dark-2);
+  }
 }
 
 .menuButton {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding-right: 8px;
-    padding-left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+  padding-left: 8px;
 }
 
 .menuButtonCaret {
-    color: var(--mantine-color-dark-4);
+  color: var(--mantine-color-dark-4);
 }

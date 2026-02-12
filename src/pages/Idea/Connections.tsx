@@ -13,12 +13,7 @@ import {
   Accordion,
   Transition,
 } from "@mantine/core";
-import {
-  IIdea,
-  IIdeaAsRelation,
-  IIdeaConnection,
-  ISafeIdea,
-} from "../../../shared/types/idea";
+import { IIdea, IIdeaAsRelation, IIdeaConnection, ISafeIdea } from "../../../shared/types/idea";
 import { Link, useNavigate } from "react-router";
 import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
 import { useEffect, useState } from "react";
@@ -94,14 +89,11 @@ export default function Connections({
       console.error("Not testing connection on unconnected idea");
       return false;
     }
-    return connections?.find(
-      (connection) => connection.id.toString() === ideaId,
-    );
+    return connections?.find((connection) => connection.id.toString() === ideaId);
   };
 
   const [draggingRelatedIdea, setDraggingRelatedIdea] = useState(false);
-  const [draggingOverConnectionDrop, setDraggingOverConnectionDrop] =
-    useState(false);
+  const [draggingOverConnectionDrop, setDraggingOverConnectionDrop] = useState(false);
 
   const handleRemoveConnection = (target: string) => {
     removeIdeaConnection(idea.id.toString(), target);
@@ -167,11 +159,7 @@ export default function Connections({
                 }}
                 radius={"lg"}
               >
-                <Group
-                  align="center"
-                  justify="center"
-                  style={{ height: "100%" }}
-                >
+                <Group align="center" justify="center" style={{ height: "100%" }}>
                   <Text c="white" mx="lg" size="sm">
                     Drop here to create a connection
                   </Text>
@@ -179,9 +167,7 @@ export default function Connections({
               </Overlay>
             )}
             <Grid.Col>
-              {draggingRelatedIdea && (
-                <Text size="sm">Drag idea here to create a connection</Text>
-              )}
+              {draggingRelatedIdea && <Text size="sm">Drag idea here to create a connection</Text>}
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Stack>
@@ -209,15 +195,13 @@ export default function Connections({
                       </HoverCard.Target>
                       <HoverCard.Dropdown>
                         <Text size="sm" mb="xs">
-                          Explicit connections between ideas are only made by
-                          you, and they are persistent even if the content
-                          changes, unlike similar ideas. You can drag and drop
-                          ideas to this area, or click the associated buttons to
-                          make connections.
+                          Explicit connections between ideas are only made by you, and they are
+                          persistent even if the content changes, unlike similar ideas. You can drag
+                          and drop ideas to this area, or click the associated buttons to make
+                          connections.
                         </Text>
                         <Text c="dimmed" size="xs" mb="xs">
-                          Click the <NotePencilIcon /> button to create a new
-                          connected note.
+                          Click the <NotePencilIcon /> button to create a new connected note.
                         </Text>
                         {connections && connections?.length <= 0 && (
                           <Text c="dimmed" size="xs">
@@ -275,17 +259,8 @@ export default function Connections({
                 <Transition mounted={computeOutOfDate} transition="fade-up">
                   {(styles) => {
                     return (
-                      <ActionIcon
-                        variant="light"
-                        color="gray"
-                        size="sm"
-                        style={styles}
-                      >
-                        {computing ? (
-                          <Loader size="xs" />
-                        ) : (
-                          <ArrowsClockwiseIcon size={14} />
-                        )}
+                      <ActionIcon variant="light" color="gray" size="sm" style={styles}>
+                        {computing ? <Loader size="xs" /> : <ArrowsClockwiseIcon size={14} />}
                       </ActionIcon>
                     );
                   }}
@@ -294,10 +269,7 @@ export default function Connections({
             </Group>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
-            <Transition
-              mounted={!!related && related?.length > 0}
-              transition="fade-up"
-            >
+            <Transition mounted={!!related && related?.length > 0} transition="fade-up">
               {(styles) => {
                 return (
                   <Accordion
@@ -313,9 +285,7 @@ export default function Connections({
                       const distance = relatedIdea.distance;
                       const level = similarityToLevel(distance);
                       const color = similarityToColor[level];
-                      const isConnected = ideaIsConnected(
-                        relatedIdea.id.toString(),
-                      );
+                      const isConnected = ideaIsConnected(relatedIdea.id.toString());
 
                       return (
                         <Accordion.Item
@@ -344,17 +314,14 @@ export default function Connections({
                                         console.info("Hitting on click!");
                                         createIdeaConnection(
                                           idea.id.toString(),
-                                          relatedIdea.id.toString(),
+                                          relatedIdea.id.toString()
                                         ).then(() => {
                                           handleReload();
                                         });
                                       }}
                                       title="Connect this idea"
                                     >
-                                      <UniteSquareIcon
-                                        size={14}
-                                        weight="bold"
-                                      />
+                                      <UniteSquareIcon size={14} weight="bold" />
                                     </ActionIcon>
                                   )}
                                   <ActionIcon
@@ -362,9 +329,7 @@ export default function Connections({
                                     size="sm"
                                     color="dark.3"
                                     onClick={() => {
-                                      navigate(
-                                        `/idea/${relatedIdea.id.toString()}`,
-                                      );
+                                      navigate(`/idea/${relatedIdea.id.toString()}`);
                                     }}
                                     title="View related idea"
                                   >
@@ -376,10 +341,7 @@ export default function Connections({
                                 </Badge>
                               </Group>
                               <Text size="sm">
-                                {
-                                  relatedIdea.derived?.generative_summary
-                                    ?.sentenceOverview
-                                }
+                                {relatedIdea.derived?.generative_summary?.sentenceOverview}
                               </Text>
                             </Stack>
                           </Accordion.Panel>
@@ -391,9 +353,7 @@ export default function Connections({
               }}
             </Transition>
             <Transition
-              mounted={
-                !related || (related && related.length <= 0 && !loadingRelated)
-              }
+              mounted={!related || (related && related.length <= 0 && !loadingRelated)}
               transition="fade-up"
             >
               {(styles) => {

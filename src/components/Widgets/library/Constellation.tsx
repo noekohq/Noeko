@@ -51,10 +51,7 @@ export default function Constellation() {
     data: constellationData,
     load: reloadConstellation,
     loading: loadingConstellation,
-  } = useFetch<
-    { loader: IConstellationLoader; filters: IGraphFilters },
-    ILoadedConstellation
-  >({
+  } = useFetch<{ loader: IConstellationLoader; filters: IGraphFilters }, ILoadedConstellation>({
     url: "/graph",
     method: "POST",
     body: {
@@ -68,7 +65,7 @@ export default function Constellation() {
         references: true,
       },
       filters: {
-        ...(!!currentRabbithole
+        ...(currentRabbithole
           ? {
               rabbithole: currentRabbithole?.id.toString(),
             }
@@ -102,7 +99,7 @@ export default function Constellation() {
     setHighlighted(
       searchResults?.map((r) => {
         return r.id.toString();
-      }) || [],
+      }) || []
     );
   }, [searchResults, searchQuery]);
 
@@ -112,9 +109,8 @@ export default function Constellation() {
   }, [currentRabbithole]);
 
   const graphData = useMemo(
-    () =>
-      constellationData ? fromConstellation(constellationData) : undefined,
-    [constellationData],
+    () => (constellationData ? fromConstellation(constellationData) : undefined),
+    [constellationData]
   );
 
   const isLoading = loadingConstellation || !graphData;
@@ -125,7 +121,7 @@ export default function Constellation() {
 
   const statusText = () => {
     const defaultText = `Since ${formatDate(start)}`;
-    if (!!currentRabbithole) {
+    if (currentRabbithole) {
       return `${currentRabbithole.name}`;
     }
     if (selected.size > 0) {
@@ -134,9 +130,7 @@ export default function Constellation() {
         if (!first) {
           return defaultText;
         }
-        const node = graphRef.current
-          ?.nodes()
-          .find((node) => node.id.toString() === first);
+        const node = graphRef.current?.nodes().find((node) => node.id.toString() === first);
         if (!node) {
           return defaultText;
         }
@@ -157,8 +151,7 @@ export default function Constellation() {
   const tourRef = useTourStep({
     id: "feature:widget_recent_constellation",
     title: "Recent Constellation",
-    content:
-      "This is a mini constellation to let you visualize your recent activity.",
+    content: "This is a mini constellation to let you visualize your recent activity.",
     view: "dashboard",
     order: 1,
   });

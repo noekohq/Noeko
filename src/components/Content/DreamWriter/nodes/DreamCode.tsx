@@ -1,9 +1,5 @@
 import { NodeViewProps } from "@tiptap/core";
-import {
-  NodeViewContent,
-  NodeViewWrapper,
-  ReactNodeViewRenderer,
-} from "@tiptap/react";
+import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import styles from "./styles/DreamCode.module.scss";
 import { useState } from "react";
 import { ActionIcon, CopyButton, Group, Select } from "@mantine/core"; // Import Select
@@ -69,13 +65,7 @@ const DreamCodeNodeView: React.FC<NodeViewProps> = ({
             <CopyButton value={node.textContent}>
               {({ copy, copied }) => {
                 return (
-                  <ActionIcon
-                    onClick={copy}
-                    size="md"
-                    variant="light"
-                    color="gray"
-                    radius="md"
-                  >
+                  <ActionIcon onClick={copy} size="md" variant="light" color="gray" radius="md">
                     {copied ? <CheckIcon /> : <CopyIcon />}
                   </ActionIcon>
                 );

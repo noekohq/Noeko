@@ -84,9 +84,7 @@ export default function DirectoryImporter() {
     input.webkitdirectory = true;
     input.multiple = true;
     input.onchange = (e) => {
-      const files = Array.from(
-        (e.currentTarget as HTMLInputElement)?.files ?? [],
-      );
+      const files = Array.from((e.currentTarget as HTMLInputElement)?.files ?? []);
       const topPath = files[0].webkitRelativePath.split("/")[0];
       const filteredFiles = files.filter((f) => {
         return allowedMimeTypes.includes(f.type);
@@ -107,9 +105,7 @@ export default function DirectoryImporter() {
 
   const handleRemoveFile = (relativePath: string) => {
     setFiles((currentFiles) =>
-      currentFiles.filter(
-        (file) => file.originalFile.webkitRelativePath !== relativePath,
-      ),
+      currentFiles.filter((file) => file.originalFile.webkitRelativePath !== relativePath)
     );
   };
 
@@ -254,14 +250,9 @@ export default function DirectoryImporter() {
             </Grid.Col>
             {!isAllowedToImport && (
               <>
-                <Alert
-                  color="red"
-                  icon={<ExclamationMark />}
-                  title="Too many files!"
-                  mt="lg"
-                >
-                  Unfortunately, importing {files.length} file(s) would push you
-                  over the current {max_notes} limit.
+                <Alert color="red" icon={<ExclamationMark />} title="Too many files!" mt="lg">
+                  Unfortunately, importing {files.length} file(s) would push you over the current{" "}
+                  {max_notes} limit.
                 </Alert>
               </>
             )}
@@ -294,15 +285,10 @@ export default function DirectoryImporter() {
                 </Grid.Col>
                 {files.length > 100 && !importing && (
                   <Grid.Col span={{ sm: 12 }}>
-                    <Alert
-                      title="Lot's of files!"
-                      icon={<WarningCircle />}
-                      color="gray"
-                    >
-                      Currently, displaying all {files.length} might be a bit
-                      laggy. We're working on this, but in the meantime, feel
-                      free to keep the notes hidden by default, and search
-                      through them to filter, or display them and scroll!
+                    <Alert title="Lot's of files!" icon={<WarningCircle />} color="gray">
+                      Currently, displaying all {files.length} might be a bit laggy. We're working
+                      on this, but in the meantime, feel free to keep the notes hidden by default,
+                      and search through them to filter, or display them and scroll!
                     </Alert>
                   </Grid.Col>
                 )}
@@ -339,10 +325,7 @@ export default function DirectoryImporter() {
                 </Grid.Col>
                 {(showAll || query) && (
                   <Grid.Col span={{ sm: 12 }}>
-                    <ParsedFilesPreview
-                      files={filteredFiles}
-                      handleRemoveFile={handleRemoveFile}
-                    />
+                    <ParsedFilesPreview files={filteredFiles} handleRemoveFile={handleRemoveFile} />
                   </Grid.Col>
                 )}
               </>
@@ -351,11 +334,7 @@ export default function DirectoryImporter() {
               <>
                 {progressError ? (
                   <Grid.Col span={{ sm: 12 }}>
-                    <Alert
-                      title="Something went wrong"
-                      icon={<SmileySad />}
-                      color="red"
-                    >
+                    <Alert title="Something went wrong" icon={<SmileySad />} color="red">
                       <Text>{progressError}</Text>
                     </Alert>
                   </Grid.Col>
@@ -376,8 +355,7 @@ export default function DirectoryImporter() {
                   <Grid.Col span={{ sm: 12 }}>
                     <Alert icon={<HandsClapping />} title="Success!">
                       <Text>
-                        We've successfully imported {files.length} ideas into
-                        your knowledge base!{" "}
+                        We've successfully imported {files.length} ideas into your knowledge base!{" "}
                         <Link
                           to="/"
                           style={{
@@ -406,10 +384,7 @@ type IParsedFilesPreviewProps = {
   handleRemoveFile: (path: string) => void;
 };
 
-const ParsedFilesPreview = memo(function ({
-  files,
-  handleRemoveFile,
-}: IParsedFilesPreviewProps) {
+const ParsedFilesPreview = memo(function ({ files, handleRemoveFile }: IParsedFilesPreviewProps) {
   return (
     <Flex gap="sm" wrap={"wrap"}>
       {files.map((file, index) => {
@@ -430,10 +405,7 @@ type IParsedFilePreviewProps = {
   onRemove: (relativePath: string) => void;
 };
 
-function ParsedFilePreview({
-  file: originalFile,
-  onRemove,
-}: IParsedFilePreviewProps) {
+function ParsedFilePreview({ file: originalFile, onRemove }: IParsedFilePreviewProps) {
   const [file, setFile] = useState(originalFile);
   const [previewOpen, setPreviewOpen] = useState(false);
   const handleRemove = () => {

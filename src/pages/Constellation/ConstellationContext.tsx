@@ -29,12 +29,7 @@ export default function ConstellationContext({
 }: ConstellationContextProps) {
   const { nodes, edges } = graph || { nodes: [], edges: [] };
   const {
-    selected: {
-      get: selected,
-      clear: clearSelected,
-      remove: removeSelected,
-      add: addToSelection,
-    },
+    selected: { get: selected, clear: clearSelected, remove: removeSelected, add: addToSelection },
     focused: { set: setFocused },
   } = useGraph();
 
@@ -54,8 +49,7 @@ export default function ConstellationContext({
     if (currentRabbithole) {
       const rhNode = nodes.find(
         (node) =>
-          node.type === "rabbithole" &&
-          node.id.toString() === currentRabbithole.id.toString(),
+          node.type === "rabbithole" && node.id.toString() === currentRabbithole.id.toString()
       );
       if (rhNode) {
         addToSelection(rhNode.id.toString());
@@ -70,8 +64,8 @@ export default function ConstellationContext({
           node.type === "tag" &&
           scope.tags!.set.some(
             (tagId: string | import("surrealdb").RecordId) =>
-              node.id.toString() === tagId.toString(),
-          ),
+              node.id.toString() === tagId.toString()
+          )
       );
       matchingTagNodes.forEach((tag) => addToSelection(tag.id.toString()));
     }
@@ -79,8 +73,7 @@ export default function ConstellationContext({
     if (currentRabbithole) {
       const rhNode = nodes.find(
         (node) =>
-          node.type === "rabbithole" &&
-          node.id.toString() === currentRabbithole.id.toString(),
+          node.type === "rabbithole" && node.id.toString() === currentRabbithole.id.toString()
       );
       if (rhNode) {
         addToSelection(rhNode.id.toString());
@@ -94,14 +87,10 @@ export default function ConstellationContext({
 
   const statusText = () => {
     const filterCount =
-      (scope.tags?.set.length || 0) +
-      (currentRabbithole ? 1 : 0) +
-      (scope.date ? 1 : 0);
+      (scope.tags?.set.length || 0) + (currentRabbithole ? 1 : 0) + (scope.date ? 1 : 0);
 
     const filterText =
-      filterCount > 0
-        ? ` • ${filterCount} filter${filterCount === 1 ? "" : "s"} active`
-        : "";
+      filterCount > 0 ? ` • ${filterCount} filter${filterCount === 1 ? "" : "s"} active` : "";
 
     return `${nodes.length} node${nodes.length === 1 ? "" : "s"}, ${edges.length} connection${edges.length === 1 ? "" : "s"}${filterText}`;
   };
@@ -121,11 +110,8 @@ export default function ConstellationContext({
             <Stack gap="xs">
               {friendNodes.map((node) => {
                 // Type assertion since we filtered for user nodes
-                const userNode =
-                  node as import("../../declarations/graph").IUserNode;
-                const fullName =
-                  `${userNode.firstName} ${userNode.lastName}`.trim() ||
-                  "Friend";
+                const userNode = node as import("../../declarations/graph").IUserNode;
+                const fullName = `${userNode.firstName} ${userNode.lastName}`.trim() || "Friend";
                 return (
                   <PaperThing
                     key={node.id}

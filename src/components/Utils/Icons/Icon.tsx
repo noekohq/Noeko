@@ -7,14 +7,8 @@ export interface IconProps extends React.SVGProps<SVGSVGElement> {
 
 export const Icon = React.forwardRef<SVGSVGElement, IconProps>(
   (
-    {
-      children,
-      size = 24,
-      color = "var(--mantine-color-text)",
-      viewBox = "0 0 256 256",
-      ...rest
-    },
-    ref,
+    { children, size = 24, color = "var(--mantine-color-text)", viewBox = "0 0 256 256", ...rest },
+    ref
   ) => {
     return (
       <svg
@@ -29,5 +23,5 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(
         {children}
       </svg>
     );
-  },
+  }
 );

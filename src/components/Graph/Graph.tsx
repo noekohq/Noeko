@@ -22,10 +22,7 @@ function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-function getTouchMidpoint(
-  touch1: React.Touch,
-  touch2: React.Touch,
-): { x: number; y: number } {
+function getTouchMidpoint(touch1: React.Touch, touch2: React.Touch): { x: number; y: number } {
   return {
     x: (touch1.clientX + touch2.clientX) / 2,
     y: (touch1.clientY + touch2.clientY) / 2,
@@ -38,11 +35,11 @@ type IGraphContainerProps = {
   height?: number;
   onNodeNavigate?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode,
+    node: INode
   ) => void;
   onNodeSelect?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode,
+    node: INode
   ) => void;
   isNavigating?: boolean;
 };
@@ -54,15 +51,8 @@ export type IGraphController = {
 
 const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
   (
-    {
-      graph,
-      width: propWidth,
-      height: propHeight,
-      onNodeNavigate,
-      onNodeSelect,
-      isNavigating,
-    },
-    ref,
+    { graph, width: propWidth, height: propHeight, onNodeNavigate, onNodeSelect, isNavigating },
+    ref
   ) => {
     const svgRef = useRef<SVGSVGElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -91,7 +81,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           acc[node.id.toString()] = node;
           return acc;
         },
-        {} as { [key: string]: INode },
+        {} as { [key: string]: INode }
       );
     }, [nodes]);
 
@@ -139,9 +129,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       onClose: () => void;
     } | null>(null);
 
-    const nodePositionsRef = useRef<Map<string, { x: number; y: number }>>(
-      new Map(),
-    );
+    const nodePositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
     const animationFrameRef = useRef<number>(null);
 
     const handleClosePanel = useCallback(() => {
@@ -185,10 +173,9 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         animationFrameRef.current = null;
       }
 
-      const worker = new Worker(
-        new URL("../../workers/graph.worker.ts", import.meta.url),
-        { type: "module" },
-      );
+      const worker = new Worker(new URL("../../workers/graph.worker.ts", import.meta.url), {
+        type: "module",
+      });
       workerRef.current = worker;
 
       const currentWidth = propWidth ?? dimensions.width;
@@ -227,14 +214,11 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           if (!animationFrameRef.current) {
             animationFrameRef.current = requestAnimationFrame(() => {
               setNodes((currentNodes) => {
-                const nodePositionMap = new Map<
-                  string,
-                  { x: number; y: number }
-                >(updatedNodes.map((n: INode) => [n.id, { x: n.x, y: n.y }]));
+                const nodePositionMap = new Map<string, { x: number; y: number }>(
+                  updatedNodes.map((n: INode) => [n.id, { x: n.x, y: n.y }])
+                );
                 return currentNodes.map((node) => {
-                  const updatedPosition = nodePositionMap.get(
-                    node.id.toString(),
-                  );
+                  const updatedPosition = nodePositionMap.get(node.id.toString());
                   if (updatedPosition) {
                     return {
                       ...node,
@@ -250,14 +234,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           }
         }
       };
-    }, [
-      graph.nodes,
-      graph.edges,
-      dimensions,
-      propWidth,
-      propHeight,
-      isNavigating,
-    ]);
+    }, [graph.nodes, graph.edges, dimensions, propWidth, propHeight, isNavigating]);
 
     useImperativeHandle(ref, () => ({
       reset: () => {
@@ -288,7 +265,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         const svgPoint = pt.matrixTransform(ctm.inverse());
         return { x: svgPoint.x, y: svgPoint.y };
       },
-      [],
+      []
     );
 
     const screenToSVGCoords = useCallback(
@@ -299,7 +276,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           y: (svgY - transform.y) / transform.k,
         };
       },
-      [getSVGPoint, transform],
+      [getSVGPoint, transform]
     );
 
     const potentialDragTargetRef = useRef<string | null>(null);
@@ -345,7 +322,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
           const { x: svgX, y: svgY } = screenToSVGCoords(
             dragStartPosRef.current!.screenX,
-            dragStartPosRef.current!.screenY,
+            dragStartPosRef.current!.screenY
           );
 
           // Update the ref with the correct node start offsets
@@ -366,15 +343,8 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       }
 
       // This part is for an *active* drag, it remains mostly the same
-      if (
-        isDraggingNode &&
-        dragStartPosRef.current?.pointerId === null &&
-        workerRef.current
-      ) {
-        const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(
-          event.clientX,
-          event.clientY,
-        );
+      if (isDraggingNode && dragStartPosRef.current?.pointerId === null && workerRef.current) {
+        const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(event.clientX, event.clientY);
         const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
         const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
 
@@ -399,7 +369,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
     const handleNodeSelect = (
       event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-      node: INode,
+      node: INode
     ) => {
       onNodeSelect?.(event, node);
     };
@@ -435,7 +405,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         dragStartPosRef.current = null;
         panStartPosRef.current = null;
       },
-      [isDraggingNode, isPanning, nodeMap, handleNodeSelect], // Add dependencies
+      [isDraggingNode, isPanning, nodeMap, handleNodeSelect] // Add dependencies
     );
 
     useEffect(() => {
@@ -480,10 +450,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
               longPressTimerRef.current = null;
             }, LONG_PRESS_DURATION);
 
-            const { x: svgX, y: svgY } = screenToSVGCoords(
-              touch.clientX,
-              touch.clientY,
-            );
+            const { x: svgX, y: svgY } = screenToSVGCoords(touch.clientX, touch.clientY);
             dragStartPosRef.current = {
               pointerId: touch.identifier,
               screenX: touch.clientX,
@@ -532,11 +499,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     const handleTouchMove = (event: React.TouchEvent<SVGSVGElement>) => {
       const touches = event.touches;
 
-      if (
-        longPressTimerRef.current &&
-        touches.length > 0 &&
-        touchStartPosRef.current
-      ) {
+      if (longPressTimerRef.current && touches.length > 0 && touchStartPosRef.current) {
         const touch = touches[0];
         const dx = Math.abs(touch.clientX - touchStartPosRef.current.x);
         const dy = Math.abs(touch.clientY - touchStartPosRef.current.y);
@@ -550,18 +513,14 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       if (touches.length === 1 && !isPinching) {
         const touch = touches[0];
 
-        if (
-          !isDraggingNode &&
-          dragStartPosRef.current?.pointerId === touch.identifier
-        ) {
+        if (!isDraggingNode && dragStartPosRef.current?.pointerId === touch.identifier) {
           const dx = Math.abs(touch.clientX - dragStartPosRef.current.screenX);
           const dy = Math.abs(touch.clientY - dragStartPosRef.current.screenY);
           if (dx > 5 || dy > 5) {
             setIsDraggingNode(longPressNodeRef.current?.id.toString() ?? null);
             setIsPanning(false);
             panStartPosRef.current = null;
-            if (longPressTimerRef.current)
-              clearTimeout(longPressTimerRef.current);
+            if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
             longPressTimerRef.current = null;
             longPressNodeRef.current = null;
             event.preventDefault();
@@ -577,8 +536,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
             setIsPanning(true);
             setIsDraggingNode(null);
             dragStartPosRef.current = null;
-            if (longPressTimerRef.current)
-              clearTimeout(longPressTimerRef.current);
+            if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
             longPressTimerRef.current = null;
             longPressNodeRef.current = null;
             event.preventDefault();
@@ -593,7 +551,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           event.preventDefault();
           const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(
             touch.clientX,
-            touch.clientY,
+            touch.clientY
           );
           const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
           const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
@@ -602,10 +560,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
             type: "update_node_position",
             payload: { id: isDraggingNode, fx: newFx, fy: newFy },
           });
-        } else if (
-          isPanning &&
-          panStartPosRef.current?.pointerId === touch.identifier
-        ) {
+        } else if (isPanning && panStartPosRef.current?.pointerId === touch.identifier) {
           event.preventDefault();
           const dx = touch.clientX - panStartPosRef.current.screenX;
           const dy = touch.clientY - panStartPosRef.current.screenY;
@@ -626,14 +581,11 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
         const minScale = 0.1;
         const maxScale = 8;
-        const newScale = Math.max(
-          minScale,
-          Math.min(maxScale, newScaleUnclamped),
-        );
+        const newScale = Math.max(minScale, Math.min(maxScale, newScaleUnclamped));
 
         const { x: initialMidpointSVGX, y: initialMidpointSVGY } = getSVGPoint(
           pinchStartRef.current.midpoint.x,
-          pinchStartRef.current.midpoint.y,
+          pinchStartRef.current.midpoint.y
         );
         const initialViewboxPointX =
           (initialMidpointSVGX - initialTransform.x) / initialTransform.k;
@@ -642,7 +594,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
         const { x: currentMidpointSVGX, y: currentMidpointSVGY } = getSVGPoint(
           currentMidpoint.x,
-          currentMidpoint.y,
+          currentMidpoint.y
         );
 
         const newTx = currentMidpointSVGX - initialViewboxPointX * newScale;
@@ -660,15 +612,12 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         let wasDragging = false;
         let dragJustEnded = false;
         let wasPanning = false;
-        let pinchJustEnded = isPinching && touches.length < 2;
+        const pinchJustEnded = isPinching && touches.length < 2;
         const currentDraggingNodeId = isDraggingNode;
 
         for (let i = 0; i < changedTouches.length; i++) {
           const touch = changedTouches[i];
-          if (
-            currentDraggingNodeId &&
-            dragStartPosRef.current?.pointerId === touch.identifier
-          ) {
+          if (currentDraggingNodeId && dragStartPosRef.current?.pointerId === touch.identifier) {
             if (workerRef.current) {
               workerRef.current.postMessage({
                 type: "end_node_drag",
@@ -680,10 +629,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
             setIsDraggingNode(null);
             dragStartPosRef.current = null;
           }
-          if (
-            isPanning &&
-            panStartPosRef.current?.pointerId === touch.identifier
-          ) {
+          if (isPanning && panStartPosRef.current?.pointerId === touch.identifier) {
             wasPanning = true;
             setIsPanning(false);
             panStartPosRef.current = null;
@@ -702,10 +648,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           touchStartPosRef.current
         ) {
           const touch = changedTouches[0];
-          const target = document.elementFromPoint(
-            touch.clientX,
-            touch.clientY,
-          ) as Element;
+          const target = document.elementFromPoint(touch.clientX, touch.clientY) as Element;
 
           if (target) {
             const isTapInsideNodePanel = nodePanelRef.current?.contains(target);
@@ -751,7 +694,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         nodeMap,
         onNodeSelect,
         onNodeNavigate,
-      ],
+      ]
     );
 
     const handleTouchCancel = (event: React.TouchEvent<SVGSVGElement>) => {
@@ -770,12 +713,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     };
 
     const startNodeDrag = useCallback(
-      (
-        nodeId: string,
-        pointerId: number | null,
-        screenX: number,
-        screenY: number,
-      ) => {
+      (nodeId: string, pointerId: number | null, screenX: number, screenY: number) => {
         setIsDraggingNode(nodeId);
         setIsPanning(false);
         const node = nodeMap[nodeId];
@@ -796,7 +734,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           payload: { id: nodeId, fx: node.x, fy: node.y },
         });
       },
-      [screenToSVGCoords, nodeMap],
+      [screenToSVGCoords, nodeMap]
     );
 
     const startPan = useCallback(
@@ -811,7 +749,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           vbY: transform.y,
         };
       },
-      [isDraggingNode, isPinching, transform],
+      [isDraggingNode, isPinching, transform]
     );
 
     const handleWheel = useCallback(
@@ -825,29 +763,23 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         const newScaleUnclamped = currentScale * Math.pow(scaleFactor, delta);
         const minScale = 0.1;
         const maxScale = 8;
-        const newScale = Math.max(
-          minScale,
-          Math.min(maxScale, newScaleUnclamped),
-        );
+        const newScale = Math.max(minScale, Math.min(maxScale, newScaleUnclamped));
 
         if (newScale === currentScale) return;
 
         const { x: viewboxMouseX, y: viewboxMouseY } = screenToSVGCoords(
           event.clientX,
-          event.clientY,
+          event.clientY
         );
 
-        const { x: screenMouseX, y: screenMouseY } = getSVGPoint(
-          event.clientX,
-          event.clientY,
-        );
+        const { x: screenMouseX, y: screenMouseY } = getSVGPoint(event.clientX, event.clientY);
 
         const newTx = screenMouseX - viewboxMouseX * newScale;
         const newTy = screenMouseY - viewboxMouseY * newScale;
 
         setTransform({ k: newScale, x: newTx, y: newTy });
       },
-      [transform, screenToSVGCoords, getSVGPoint],
+      [transform, screenToSVGCoords, getSVGPoint]
     );
 
     const currentWidth = propWidth ?? dimensions.width;
@@ -855,7 +787,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
     const handleNodeContextMenu = (
       event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-      node: INode,
+      node: INode
     ) => {
       event.preventDefault();
       event.stopPropagation();
@@ -887,9 +819,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     };
 
     const handleGraphContextMenu = (
-      event:
-        | React.MouseEvent<HTMLDivElement>
-        | React.TouchEvent<HTMLDivElement>,
+      event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
     ) => {
       event.preventDefault();
       event.stopPropagation();
@@ -936,8 +866,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
         for (const edge of connectedEdges) {
           if (edge.type === "connection") {
-            const neighborId =
-              edge.source === currentNodeId ? edge.target : edge.source;
+            const neighborId = edge.source === currentNodeId ? edge.target : edge.source;
             const neighborNode = nodeMap[neighborId];
 
             if (neighborNode && CONNECTABLE_TYPES.has(neighborNode.type)) {
@@ -946,7 +875,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           }
         }
       },
-      [adjacencyList, nodeMap],
+      [adjacencyList, nodeMap]
     );
 
     const { clusterSelect, clusterDeselect } = useGraphTraversal({
@@ -964,11 +893,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     const focusOnNode = (nodeId: string, targetZoom: number = 1.5) => {
       const node = nodeMap[nodeId];
 
-      if (
-        !node ||
-        typeof node.x === "undefined" ||
-        typeof node.y === "undefined"
-      ) {
+      if (!node || typeof node.x === "undefined" || typeof node.y === "undefined") {
         console.warn(`Node with ID ${nodeId} not found or has no position.`);
         return;
       }
@@ -1043,11 +968,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchCancel}
           style={{
-            cursor: isDraggingNode
-              ? "grabbing"
-              : isPanning
-                ? "grabbing"
-                : "grab",
+            cursor: isDraggingNode ? "grabbing" : isPanning ? "grabbing" : "grab",
           }}
         >
           <g
@@ -1086,7 +1007,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         </svg>
       </div>
     );
-  },
+  }
 );
 
 export default GraphContainer;

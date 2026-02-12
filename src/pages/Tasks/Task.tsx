@@ -74,10 +74,7 @@ export default function Task() {
     data: task,
     load: loadTask,
     loading: loadingTask,
-  } = useFetch<
-    undefined,
-    ITask & { accessLevel: "owner" | IShareAccess | null }
-  >({
+  } = useFetch<undefined, ITask & { accessLevel: "owner" | IShareAccess | null }>({
     url: `/tasks/${taskId}`,
     dependencies: [taskId],
   });
@@ -89,8 +86,7 @@ export default function Task() {
     loadTask();
   }, []);
 
-  const [collaborationState, setCollaborationState] =
-    useState<ICollaborationState | null>(null);
+  const [collaborationState, setCollaborationState] = useState<ICollaborationState | null>(null);
 
   const {
     connectable: {
@@ -120,8 +116,7 @@ export default function Task() {
     validate: {
       description: (value) => {
         if (!value) return "Description is required";
-        if (value.length < 5)
-          return "Description must be at least 5 characters";
+        if (value.length < 5) return "Description must be at least 5 characters";
         return null;
       },
     },
@@ -145,18 +140,12 @@ export default function Task() {
 
   const { isMobile } = useLayout();
 
-  const debouncedUpdate = useDebouncedCallback(
-    async (update: Partial<ITaskForm>) => {
-      if (taskId) {
-        updateTask(taskId, update);
-      }
-    },
-    200,
-  );
-  const handleFieldUpdate = (
-    field: keyof typeof taskForm.values,
-    value: any,
-  ) => {
+  const debouncedUpdate = useDebouncedCallback(async (update: Partial<ITaskForm>) => {
+    if (taskId) {
+      updateTask(taskId, update);
+    }
+  }, 200);
+  const handleFieldUpdate = (field: keyof typeof taskForm.values, value: any) => {
     taskForm.setFieldValue(field, value);
     const { error } = taskForm.validateField(field);
     if (error) {
@@ -238,10 +227,7 @@ export default function Task() {
                       }}
                       onBlur={(e) => {
                         if (canEdit) {
-                          handleFieldUpdate(
-                            "description",
-                            e.currentTarget.innerText,
-                          );
+                          handleFieldUpdate("description", e.currentTarget.innerText);
                         }
                       }}
                       dangerouslySetInnerHTML={{
@@ -305,8 +291,7 @@ export default function Task() {
                         prev.status === collaboration.status &&
                         prev.members.length === collaboration.members.length &&
                         prev.members.every(
-                          (member, i) =>
-                            member.name === collaboration.members[i].name,
+                          (member, i) => member.name === collaboration.members[i].name
                         )
                       ) {
                         return prev;
@@ -378,9 +363,7 @@ interface ITaskSentence {
 }
 
 function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
-  const [activeSelector, setActiveSelector] = useState<
-    "date" | "duration" | null
-  >(null);
+  const [activeSelector, setActiveSelector] = useState<"date" | "duration" | null>(null);
 
   // Helpers to format the "Variables" in the sentence
   const displayDuration = duration ? duration.toString() : "time estimate";
@@ -513,9 +496,7 @@ function Tools({ task, reloadTask }: ITools) {
       title: "Are you sure you want to delete this task?",
       centered: true,
       children: (
-        <Text size="sm">
-          This action cannot be undone. All associated data will be lost.
-        </Text>
+        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
       ),
       labels: { confirm: "Delete Task", cancel: "Cancel" },
       confirmProps: { color: "red" },
@@ -644,10 +625,7 @@ function Tools({ task, reloadTask }: ITools) {
               </div>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<MarkdownLogoIcon />}
-                onClick={downloadAsMarkdown}
-              >
+              <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
                 Export as Markdown
               </Menu.Item>
             </Menu.Dropdown>
@@ -680,9 +658,7 @@ function Tools({ task, reloadTask }: ITools) {
               <Tooltip label="Delete Task">
                 <Menu.Item
                   color="red"
-                  leftSection={
-                    loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
-                  }
+                  leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
                   onClick={handleDeleteTask}
                   disabled={loadingDelete}
                 >

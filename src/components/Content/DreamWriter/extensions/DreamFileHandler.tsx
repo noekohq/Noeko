@@ -49,7 +49,7 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
     const extension = this;
     const editor = this.editor;
 
-const uploadPlugin = new Plugin({
+    const uploadPlugin = new Plugin({
       key: new PluginKey("dreamFileUpload"),
       props: {
         handlePaste: (view, event) => {
@@ -132,9 +132,7 @@ const uploadPlugin = new Plugin({
 
           if (isPasteOrDrop) {
             // Calculate strictly NEW IDs
-            const diff = new Set(
-              [...newIds].filter((id) => !pluginState.ids.has(id)),
-            );
+            const diff = new Set([...newIds].filter((id) => !pluginState.ids.has(id)));
 
             // Return new state with the items to link
             return { ids: newIds, toLink: diff };
@@ -167,11 +165,7 @@ const uploadPlugin = new Plugin({
 
 // --- Upload Handler ---
 
-export const handleFileUpload = (
-  file: File,
-  options: DreamFileHandlerOptions,
-  editor: Editor,
-) => {
+export const handleFileUpload = (file: File, options: DreamFileHandlerOptions, editor: Editor) => {
   if (options.allowedTypes && !options.allowedTypes.includes(file.type)) {
     console.warn(`File type not allowed: ${file.type}`);
     // Optional: show a notification instead of alert
@@ -229,10 +223,7 @@ export const handleFileUpload = (
     }
 
     if (options.connectableId) {
-      await linkFileToConnectable(
-        response.id.toString(),
-        options.connectableId,
-      );
+      await linkFileToConnectable(response.id.toString(), options.connectableId);
     }
 
     // Update the node with real data
@@ -258,7 +249,7 @@ export const handleFileUpload = (
             uploading: false,
           })
           .run();
-        
+
         // Revoke object URL to free memory
         URL.revokeObjectURL(previewUrl);
       } else {

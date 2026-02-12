@@ -13,11 +13,7 @@ interface TagsFilterProps {
   allowCreation?: boolean;
 }
 
-export default function TagsFilter({
-  value,
-  onChange,
-  allowCreation = false,
-}: TagsFilterProps) {
+export default function TagsFilter({ value, onChange, allowCreation = false }: TagsFilterProps) {
   const handleSelect = (tag: ITag) => {
     if (value.some((t) => t.id.toString() === tag.id.toString())) return;
     onChange([...value, tag]);
@@ -29,11 +25,7 @@ export default function TagsFilter({
 
   // Dummy create handler if allowed, otherwise we might modify TagPicker
   // to accept a prop that hides the creation UI, but for now we just handle it.
-  const handleCreate = async (
-    name: string,
-    description: string,
-    color: string,
-  ) => {
+  const handleCreate = async (name: string, description: string, color: string) => {
     if (!allowCreation) return;
     // Logic to create tag and add to filter would go here
     // For a pure filter, we might just ignore this or implement if needed.

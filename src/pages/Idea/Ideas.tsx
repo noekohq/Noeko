@@ -4,17 +4,7 @@ import { IIdea } from "../../../shared/types/idea";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import {
-  Loader,
-  Center,
-  Grid,
-  Text,
-  Group,
-  Title,
-  Divider,
-  Stack,
-  Button,
-} from "@mantine/core"; // Added Loader and Center for UX
+import { Loader, Center, Grid, Text, Group, Title, Divider, Stack, Button } from "@mantine/core"; // Added Loader and Center for UX
 import styles from "./Ideas.module.scss";
 import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
@@ -47,9 +37,7 @@ export default function Ideas() {
     if (newIdeasFetched && newIdeasFetched.length > 0) {
       setAllIdeas((prevIdeas) => {
         const existingIds = new Set(prevIdeas.map((idea) => idea.id)); // Assuming IIdea has an 'id'
-        const uniqueNewIdeas = newIdeasFetched.filter(
-          (idea) => !existingIds.has(idea.id),
-        );
+        const uniqueNewIdeas = newIdeasFetched.filter((idea) => !existingIds.has(idea.id));
         return [...prevIdeas, ...uniqueNewIdeas];
       });
       setHasMore(newIdeasFetched.length === 10); // Assuming pageSize is 10. If less than 10 fetched, no more data.
@@ -67,7 +55,7 @@ export default function Ideas() {
           setPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 0.01, root: null, rootMargin: "0px 0px 250px 0px" }, // Trigger when 100% of the target is visible
+      { threshold: 0.01, root: null, rootMargin: "0px 0px 250px 0px" } // Trigger when 100% of the target is visible
     );
 
     const currentObserverTarget = observerTarget.current;
@@ -103,9 +91,7 @@ export default function Ideas() {
             <IdeaCard key={idea.id.toString()} idea={idea} />
           ))}
         </Stack>
-        {hasMore && !loading && (
-          <div ref={observerTarget} style={{ height: "1px" }} />
-        )}
+        {hasMore && !loading && <div ref={observerTarget} style={{ height: "1px" }} />}
         {loading && (
           <Group>
             <Loader size="sm" />

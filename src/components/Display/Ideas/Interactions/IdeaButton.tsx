@@ -13,12 +13,7 @@ import {
 import { IIdea } from "../IdeaCardTypes";
 import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
-import {
-  IconProps,
-  ArrowRightIcon,
-  EyeIcon,
-  ArrowsOutIcon,
-} from "@phosphor-icons/react";
+import { IconProps, ArrowRightIcon, EyeIcon, ArrowsOutIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../../shared/types/idea";
 import { useDisclosure } from "@mantine/hooks";
@@ -55,21 +50,11 @@ interface IIdeaButton {
   details?: string;
   actions?: IIdeaButtonAction[];
   fullWidth?: boolean;
-  onClick?: (
-    idea: IIdea | ISafeIdea,
-    e: React.MouseEvent | React.KeyboardEvent,
-  ) => void;
+  onClick?: (idea: IIdea | ISafeIdea, e: React.MouseEvent | React.KeyboardEvent) => void;
   link?: boolean;
 }
 
-function IdeaButton({
-  idea,
-  details,
-  actions,
-  fullWidth = false,
-  onClick,
-  link,
-}: IIdeaButton) {
+function IdeaButton({ idea, details, actions, fullWidth = false, onClick, link }: IIdeaButton) {
   const [hovering, setHovering] = useState(false);
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
@@ -87,7 +72,7 @@ function IdeaButton({
       JSON.stringify({
         ideaId: idea.id.toString(),
         thingId: idea.id.toString(),
-      }),
+      })
     );
   };
 
@@ -97,7 +82,7 @@ function IdeaButton({
   };
 
   const handleClick = (
-    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>
   ) => {
     if (onClick) {
       onClick(idea, e);
@@ -190,12 +175,7 @@ function IdeaButton({
             }}
           >
             <Group justify="space-between" wrap="nowrap" w="100%">
-              <Text
-                className={styles.title}
-                c="dark.1"
-                size="sm"
-                truncate="end"
-              >
+              <Text className={styles.title} c="dark.1" size="sm" truncate="end">
                 <Group gap="xs" wrap="nowrap">
                   {idea.title}
                 </Group>

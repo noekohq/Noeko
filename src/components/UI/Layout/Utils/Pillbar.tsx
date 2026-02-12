@@ -17,9 +17,7 @@ interface IPillbarContextProps {
   setActiveTab: (value: string) => void;
 }
 
-const PillbarContext = createContext<IPillbarContextProps | undefined>(
-  undefined,
-);
+const PillbarContext = createContext<IPillbarContextProps | undefined>(undefined);
 
 const usePillbar = () => {
   const context = useContext(PillbarContext);
@@ -75,12 +73,7 @@ interface IPillbarTabProps {
   updatePillStyle?: (element: HTMLButtonElement) => void;
 }
 
-const PillbarTab = ({
-  value,
-  leftSection,
-  children,
-  updatePillStyle,
-}: IPillbarTabProps) => {
+const PillbarTab = ({ value, leftSection, children, updatePillStyle }: IPillbarTabProps) => {
   const { activeTab, setActiveTab } = usePillbar();
   const isActive = activeTab === value;
   const ref = useRef<HTMLButtonElement>(null);
@@ -110,9 +103,7 @@ const PillbarTab = ({
       onClick={() => setActiveTab(value)}
       className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
     >
-      {leftSection && (
-        <span className={styles.tabLeftSection}>{leftSection}</span>
-      )}
+      {leftSection && <span className={styles.tabLeftSection}>{leftSection}</span>}
       {children}
     </button>
   );
@@ -163,12 +154,8 @@ export const Pillbar: React.FC<IPillbarProps> & IPillbarComposition = ({
   };
 
   return (
-    <PillbarContext.Provider
-      value={{ activeTab, setActiveTab: handleSetActiveTab }}
-    >
-      <div className={`${styles.pillbarContainer} ${className || ""}`}>
-        {children}
-      </div>
+    <PillbarContext.Provider value={{ activeTab, setActiveTab: handleSetActiveTab }}>
+      <div className={`${styles.pillbarContainer} ${className || ""}`}>{children}</div>
     </PillbarContext.Provider>
   );
 };

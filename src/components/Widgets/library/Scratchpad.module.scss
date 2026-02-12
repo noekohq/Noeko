@@ -1,12 +1,12 @@
 .scratchpad {
-    height: 100%;
+  height: 100%;
 
-    .toolbar {
-        height: 24px;
-    }
+  .toolbar {
+    height: 24px;
+  }
 
-    .editor {
-        height: calc(100% - 24px);
-        overflow-y: scroll;
-    }
+  .editor {
+    height: calc(100% - 24px);
+    overflow-y: scroll;
+  }
 }

@@ -9,10 +9,7 @@ import Excerpt from "../database/models/excerpt";
 import { IExcerpt, IVirtualExcerptReference } from "../../shared/types/excerpt";
 import { ITag, ITagDescriptionRelationship } from "../../shared/types/tags";
 import { IShare } from "../database/models/share";
-import {
-  IRabbithole,
-  IRabbitholeInclusion,
-} from "../../shared/types/rabbithole";
+import { IRabbithole, IRabbitholeInclusion } from "../../shared/types/rabbithole";
 import { Search } from "./Search";
 import { averageEmbeddings, weightedAverage } from "../utils/math";
 import { getEmbedder } from "../ai/embeddings/embeddings";
@@ -191,7 +188,7 @@ export default class GraphService {
 
   public static async connect(
     source: string | RecordId,
-    target: string | RecordId,
+    target: string | RecordId
   ): Promise<IConnection | undefined> {
     try {
       const db = await getDatabase();
@@ -204,7 +201,7 @@ export default class GraphService {
         {
           sourceId: new StringRecordId(source),
           targetId: new StringRecordId(target),
-        },
+        }
       );
 
       if (existingConnections && existingConnections.length > 0) {
@@ -225,7 +222,7 @@ export default class GraphService {
           sourceId: new StringRecordId(source),
           targetId: new StringRecordId(target),
           now: new Date(),
-        },
+        }
       );
       if (!newConnections || newConnections.length === 0) {
         console.error("No link created.");
@@ -234,20 +231,12 @@ export default class GraphService {
 
       return newConnections[0];
     } catch (error) {
-      console.error(
-        "Error connecting source to target: ",
-        source,
-        target,
-        error,
-      );
+      console.error("Error connecting source to target: ", source, target, error);
       return undefined;
     }
   }
 
-  static async disconnect(
-    source: string | RecordId,
-    target: string | RecordId,
-  ) {
+  static async disconnect(source: string | RecordId, target: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<IConnection[]>(
@@ -255,7 +244,7 @@ export default class GraphService {
         {
           source: new StringRecordId(source),
           target: new StringRecordId(target),
-        },
+        }
       );
       if (!result) {
         console.error("No connection deleted.");
@@ -269,9 +258,7 @@ export default class GraphService {
     }
   }
 
-  static async getConnections(
-    thingId: string | RecordId,
-  ): Promise<IConnectable[] | undefined> {
+  static async getConnections(thingId: string | RecordId): Promise<IConnectable[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -308,7 +295,7 @@ export default class GraphService {
 
   static async getUserConnectionsForThing(
     thingId: string | RecordId,
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<IConnectable[] | undefined> {
     try {
       const db = await getDatabase();
@@ -347,9 +334,7 @@ export default class GraphService {
     }
   }
 
-  static async getTags(
-    thingId: string | RecordId,
-  ): Promise<ITag[] | undefined> {
+  static async getTags(thingId: string | RecordId): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -365,7 +350,7 @@ export default class GraphService {
         `,
         {
           thingId: new StringRecordId(thingId),
-        },
+        }
       );
       if (!results || !results[0]) {
         throw new Error("Tags were not returned from the database");
@@ -384,7 +369,7 @@ export default class GraphService {
 
   static async getUserTagsForThing(
     thingId: string | RecordId,
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
@@ -408,7 +393,7 @@ export default class GraphService {
         {
           thingId: new StringRecordId(thingId),
           userId: new StringRecordId(userId),
-        },
+        }
       );
 
       if (!results || !results[0]) {
@@ -433,7 +418,7 @@ export default class GraphService {
 
   static async getSuggestedTags(
     userId: string | RecordId,
-    thingId: string | RecordId,
+    thingId: string | RecordId
   ): Promise<ITag[] | undefined> {
     if (!this.isConnectable(thingId)) {
       throw new Error("Can't get suggested tags for non-connectable");
@@ -477,14 +462,11 @@ export default class GraphService {
         LIMIT ${limit};
       `;
 
-    const [dbResults] = await db.query<(ITag & { distance: number })[][]>(
-      query,
-      {
-        userId: new StringRecordId(userId),
-        connectableId: new StringRecordId(thingId),
-        embedding: embeddingVector,
-      },
-    );
+    const [dbResults] = await db.query<(ITag & { distance: number })[][]>(query, {
+      userId: new StringRecordId(userId),
+      connectableId: new StringRecordId(thingId),
+      embedding: embeddingVector,
+    });
 
     if (!dbResults) {
       throw new Error("Didn't find any suggestions");
@@ -532,13 +514,12 @@ export default class GraphService {
       threshold?: number;
       candidates?: number;
       rabbitholeId?: string;
-    },
+    }
   ): Promise<IConnectable[] | undefined> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
 
-    const limit =
-      options.limit && isFinite(options.limit) ? Number(options.limit) : 10;
+    const limit = options.limit && isFinite(options.limit) ? Number(options.limit) : 10;
     const defaultCandidates = 300;
     const candidates = Number(options.candidates ?? defaultCandidates);
 
@@ -600,7 +581,7 @@ export default class GraphService {
     const excerptQuery = tableQuery("excerpt");
 
     const getOfType = async <T extends ISimilarConnectable>(
-      query: string,
+      query: string
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
@@ -613,27 +594,23 @@ export default class GraphService {
       return results;
     };
 
-    const ideas = (
-      await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)
-    ).map((i) => ({ ...i, type: "idea" as const }));
+    const ideas = (await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)).map(
+      (i) => ({ ...i, type: "idea" as const })
+    );
     const sources = (
-      await getOfType<ISource & { type: "source"; similarity: number }>(
-        sourceQuery,
-      )
+      await getOfType<ISource & { type: "source"; similarity: number }>(sourceQuery)
     ).map((s) => ({
       ...s,
       type: "source" as const,
     }));
-    const tasks = (
-      await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)
-    ).map((t) => ({
-      ...t,
-      type: "task" as const,
-    }));
+    const tasks = (await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)).map(
+      (t) => ({
+        ...t,
+        type: "task" as const,
+      })
+    );
     const excerpts = (
-      await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(
-        excerptQuery,
-      )
+      await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(excerptQuery)
     ).map((t) => ({
       ...t,
       type: "excerpt" as const,
@@ -663,13 +640,12 @@ export default class GraphService {
       threshold?: number;
       candidates?: number;
       rabbitholeId?: string;
-    },
+    }
   ): Promise<IConnectable[] | undefined> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
 
-    const limit =
-      options.limit && isFinite(options.limit) ? Number(options.limit) : 50;
+    const limit = options.limit && isFinite(options.limit) ? Number(options.limit) : 50;
     const defaultCandidates = 300;
     const candidates = Number(options.candidates ?? defaultCandidates);
 
@@ -678,12 +654,11 @@ export default class GraphService {
       throw new Error("Couldn't get connectable vector for connectable");
     }
 
-    const centroidEmbedding =
-      await this.getConnectableCentroidEmbedding(thingId);
+    const centroidEmbedding = await this.getConnectableCentroidEmbedding(thingId);
 
     const embedding = await this.getWeightedVector(
       connectableEmbedding || null,
-      centroidEmbedding || null,
+      centroidEmbedding || null
     );
 
     const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
@@ -740,7 +715,7 @@ export default class GraphService {
     const excerptQuery = tableQuery("excerpt");
 
     const getOfType = async <T extends ISimilarConnectable>(
-      query: string,
+      query: string
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
@@ -753,27 +728,23 @@ export default class GraphService {
       return results;
     };
 
-    const ideas = (
-      await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)
-    ).map((i) => ({ ...i, type: "idea" as const }));
+    const ideas = (await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)).map(
+      (i) => ({ ...i, type: "idea" as const })
+    );
     const sources = (
-      await getOfType<ISource & { type: "source"; similarity: number }>(
-        sourceQuery,
-      )
+      await getOfType<ISource & { type: "source"; similarity: number }>(sourceQuery)
     ).map((s) => ({
       ...s,
       type: "source" as const,
     }));
-    const tasks = (
-      await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)
-    ).map((t) => ({
-      ...t,
-      type: "task" as const,
-    }));
+    const tasks = (await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)).map(
+      (t) => ({
+        ...t,
+        type: "task" as const,
+      })
+    );
     const excerpts = (
-      await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(
-        excerptQuery,
-      )
+      await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(excerptQuery)
     ).map((t) => ({
       ...t,
       type: "excerpt" as const,
@@ -804,7 +775,7 @@ export default class GraphService {
       candidates?: number;
       rabbitholeId?: string;
       exclude?: string[];
-    },
+    }
   ): Promise<IConnectable[] | undefined> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -871,7 +842,7 @@ export default class GraphService {
     const excerptQuery = tableQuery("excerpt");
 
     const getOfType = async <T extends ISimilarConnectable>(
-      query: string,
+      query: string
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
@@ -883,27 +854,23 @@ export default class GraphService {
       return results;
     };
 
-    const ideas = (
-      await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)
-    ).map((i) => ({ ...i, type: "idea" as const }));
+    const ideas = (await getOfType<IIdea & { type: "idea"; similarity: number }>(ideaQuery)).map(
+      (i) => ({ ...i, type: "idea" as const })
+    );
     const sources = (
-      await getOfType<ISource & { type: "source"; similarity: number }>(
-        sourceQuery,
-      )
+      await getOfType<ISource & { type: "source"; similarity: number }>(sourceQuery)
     ).map((s) => ({
       ...s,
       type: "source" as const,
     }));
-    const tasks = (
-      await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)
-    ).map((t) => ({
-      ...t,
-      type: "task" as const,
-    }));
+    const tasks = (await getOfType<ITask & { type: "task"; similarity: number }>(taskQuery)).map(
+      (t) => ({
+        ...t,
+        type: "task" as const,
+      })
+    );
     const excerpts = (
-      await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(
-        excerptQuery,
-      )
+      await getOfType<IExcerpt & { type: "excerpt"; similarity: number }>(excerptQuery)
     ).map((t) => ({
       ...t,
       type: "excerpt" as const,
@@ -930,10 +897,7 @@ export default class GraphService {
     if (!db) throw new Error("Database not initialized");
     const isConnectable = this.isConnectable(thingId);
     if (!isConnectable) {
-      console.error(
-        "Can't get connectable embedding for non connectable item: ",
-        thingId,
-      );
+      console.error("Can't get connectable embedding for non connectable item: ", thingId);
       return undefined;
     }
     const table = this.getTable(thingId);
@@ -954,17 +918,12 @@ export default class GraphService {
     return getEmbedder().getEmptyEmbeddings();
   }
 
-  public static async getConnectableCentroidEmbedding(
-    thingId: string | RecordId,
-  ) {
+  public static async getConnectableCentroidEmbedding(thingId: string | RecordId) {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
     const isConnectable = this.isConnectable(thingId);
     if (!isConnectable) {
-      console.error(
-        "Can't get connectable embedding for non connectable item: ",
-        thingId,
-      );
+      console.error("Can't get connectable embedding for non connectable item: ", thingId);
       return undefined;
     }
     const result = await db.query<[number[][]]>(
@@ -978,7 +937,7 @@ export default class GraphService {
         )`,
       {
         connectableId: new StringRecordId(thingId),
-      },
+      }
     );
 
     if (!result) {
@@ -996,7 +955,7 @@ export default class GraphService {
 
   static async getWeightedVector(
     connectableEmbedding: number[] | null,
-    averageEmbedding: number[] | null,
+    averageEmbedding: number[] | null
   ): Promise<number[]> {
     const emb = getEmbedder();
     try {
@@ -1005,11 +964,7 @@ export default class GraphService {
       }
 
       if (connectableEmbedding?.length && averageEmbedding?.length) {
-        return weightedAverage(
-          connectableEmbedding,
-          averageEmbedding,
-          this.SUGGESTION_WEIGHT,
-        );
+        return weightedAverage(connectableEmbedding, averageEmbedding, this.SUGGESTION_WEIGHT);
       }
 
       if (!connectableEmbedding?.length && averageEmbedding?.length) {
@@ -1029,10 +984,7 @@ export default class GraphService {
 
   public static async getConnectableContent(thingId: string | RecordId) {}
 
-  public static async getUserConnectables(
-    userId: StringRecordId,
-    filters?: IGraphFilters,
-  ) {
+  public static async getUserConnectables(userId: StringRecordId, filters?: IGraphFilters) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
@@ -1073,31 +1025,24 @@ export default class GraphService {
       const taskQuery = tableQuery("task");
       const excerptQuery = tableQuery("excerpt");
 
-      const getOfType = async <T extends IConnectable>(
-        query: string,
-      ): Promise<IConnectable[]> => {
+      const getOfType = async <T extends IConnectable>(query: string): Promise<IConnectable[]> => {
         const [results] = await db.query<[T[]]>(query, params);
         return results;
       };
 
-      const ideas = (await getOfType<IIdea & { type: "idea" }>(ideaQuery)).map(
-        (i) => ({ ...i, type: "idea" as const }),
-      );
-      const sources = (
-        await getOfType<ISource & { type: "source" }>(sourceQuery)
-      ).map((s) => ({
+      const ideas = (await getOfType<IIdea & { type: "idea" }>(ideaQuery)).map((i) => ({
+        ...i,
+        type: "idea" as const,
+      }));
+      const sources = (await getOfType<ISource & { type: "source" }>(sourceQuery)).map((s) => ({
         ...s,
         type: "source" as const,
       }));
-      const tasks = (await getOfType<ITask & { type: "task" }>(taskQuery)).map(
-        (t) => ({
-          ...t,
-          type: "task" as const,
-        }),
-      );
-      const excerpts = (
-        await getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery)
-      ).map((t) => ({
+      const tasks = (await getOfType<ITask & { type: "task" }>(taskQuery)).map((t) => ({
+        ...t,
+        type: "task" as const,
+      }));
+      const excerpts = (await getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery)).map((t) => ({
         ...t,
         type: "excerpt" as const,
       }));
@@ -1113,7 +1058,7 @@ export default class GraphService {
 
   public static async getAllConnectables(
     userId: StringRecordId,
-    options: IGetAllConnectables_Options,
+    options: IGetAllConnectables_Options
   ) {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -1135,12 +1080,7 @@ export default class GraphService {
       builder.applyFilters(options.filters, userId.toString());
     }
 
-    const {
-      where,
-      params,
-      sort,
-      limit: limitClause,
-    } = builder.buildQueryParts();
+    const { where, params, sort, limit: limitClause } = builder.buildQueryParts();
 
     const tableQuery = (table: string) => {
       const tableWhere: string[] = [];
@@ -1180,12 +1120,9 @@ export default class GraphService {
     const getOfType = async <T>(
       type: IConnectableTypes,
       query: string,
-      queryParams: Record<string, any>,
+      queryParams: Record<string, any>
     ): Promise<ITaggedConnectable[]> => {
-      const [results] = await db.query<[ITaggedConnectable[]]>(
-        query,
-        queryParams,
-      );
+      const [results] = await db.query<[ITaggedConnectable[]]>(query, queryParams);
       return results.map((item) => ({ ...item, type })) as ITaggedConnectable[];
     };
 
@@ -1193,19 +1130,10 @@ export default class GraphService {
       getOfType<IIdea>("idea", ideaBuilder.query, ideaBuilder.params),
       getOfType<ISource>("source", sourceBuilder.query, sourceBuilder.params),
       getOfType<ITask>("task", taskBuilder.query, taskBuilder.params),
-      getOfType<IExcerpt>(
-        "excerpt",
-        excerptBuilder.query,
-        excerptBuilder.params,
-      ),
+      getOfType<IExcerpt>("excerpt", excerptBuilder.query, excerptBuilder.params),
     ]);
 
-    const combined: ITaggedConnectable[] = [
-      ...ideas,
-      ...sources,
-      ...tasks,
-      ...excerpts,
-    ];
+    const combined: ITaggedConnectable[] = [...ideas, ...sources, ...tasks, ...excerpts];
 
     const sorted = combined.sort((a, b) => {
       const dateA = new Date((a as any)[sortField] || 0);
@@ -1219,8 +1147,7 @@ export default class GraphService {
 
     const final = sorted.slice(0, limit);
 
-    const nextCursor =
-      final.length === limit ? final[final.length - 1]?.[sortField] : null;
+    const nextCursor = final.length === limit ? final[final.length - 1]?.[sortField] : null;
 
     return {
       items: final,
@@ -1228,10 +1155,7 @@ export default class GraphService {
     };
   }
 
-  public static async getUserConnections(
-    userId: StringRecordId,
-    filters?: IGraphFilters,
-  ) {
+  public static async getUserConnections(userId: StringRecordId, filters?: IGraphFilters) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
@@ -1292,10 +1216,7 @@ export default class GraphService {
     }
   }
 
-  public static async getUserDescriptions(
-    userId: StringRecordId,
-    filters?: IGraphFilters,
-  ) {
+  public static async getUserDescriptions(userId: StringRecordId, filters?: IGraphFilters) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
@@ -1356,10 +1277,7 @@ export default class GraphService {
     }
   }
 
-  public static async getUserInclusions(
-    userId: StringRecordId,
-    filters?: IGraphFilters,
-  ) {
+  public static async getUserInclusions(userId: StringRecordId, filters?: IGraphFilters) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
@@ -1413,10 +1331,7 @@ export default class GraphService {
     }
   }
 
-  public static async getUserReferences(
-    userId: StringRecordId,
-    filters?: IGraphFilters,
-  ) {
+  public static async getUserReferences(userId: StringRecordId, filters?: IGraphFilters) {
     try {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
@@ -1473,7 +1388,7 @@ export default class GraphService {
             out: references?.toString(),
             createdAt: createdAt,
           } as IVirtualExcerptReference;
-        },
+        }
       );
 
       return mappedToVirtual as IVirtualExcerptReference[];
@@ -1485,7 +1400,7 @@ export default class GraphService {
 
   public static async getUserRabbitholes(
     userId: StringRecordId,
-    filters?: IGraphFilters,
+    filters?: IGraphFilters
   ): Promise<IRabbithole[] | undefined> {
     try {
       const db = await getDatabase();
@@ -1500,7 +1415,7 @@ export default class GraphService {
           `,
           {
             rabbitholeId: new StringRecordId(filters.rabbithole),
-          },
+          }
         );
         return result;
       }
@@ -1546,7 +1461,7 @@ export default class GraphService {
   }
   public static async getUserTags(
     userId: StringRecordId,
-    filters?: IGraphFilters,
+    filters?: IGraphFilters
   ): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
@@ -1596,9 +1511,7 @@ export default class GraphService {
         const resultTagIds = new Set(results.map((t) => t.id.toString()));
 
         // Find filter tags that are missing from results
-        const missingTagIds = [...filterTagIds].filter(
-          (id) => !resultTagIds.has(id),
-        );
+        const missingTagIds = [...filterTagIds].filter((id) => !resultTagIds.has(id));
 
         if (missingTagIds.length > 0) {
           const missingTagsQuery = `
@@ -1625,9 +1538,7 @@ export default class GraphService {
     }
   }
 
-  public static async getUserFriends(
-    userId: StringRecordId,
-  ): Promise<IPublicUser[] | undefined> {
+  public static async getUserFriends(userId: StringRecordId): Promise<IPublicUser[] | undefined> {
     try {
       const friends = await User.getFriends(userId.toString());
       return (friends || []) as unknown as IPublicUser[];
@@ -1639,7 +1550,7 @@ export default class GraphService {
 
   public static async getUserShares(
     userId: StringRecordId,
-    filters?: IGraphFilters,
+    filters?: IGraphFilters
   ): Promise<IShare[] | undefined> {
     try {
       const db = await getDatabase();
@@ -1666,7 +1577,7 @@ export default class GraphService {
 
   public static async ensureConnected(
     sourceId: string | RecordId,
-    targetIds: (string | RecordId)[],
+    targetIds: (string | RecordId)[]
   ) {
     try {
       if (!this.isConnectable(sourceId)) {
@@ -1699,15 +1610,12 @@ export default class GraphService {
         {
           source: formattedSource,
           targets: formattedTargets,
-        },
+        }
       );
 
       return true;
     } catch (error) {
-      console.error(
-        `Error during ensureConnected for source "${sourceId}":`,
-        error,
-      );
+      console.error(`Error during ensureConnected for source "${sourceId}":`, error);
       return false;
     }
   }
@@ -1731,15 +1639,11 @@ export class ConstellationLoader {
   }) {
     const { userId, rabbitholeId } = config;
     this.userId = new StringRecordId(userId);
-    this.rabbitholeId = rabbitholeId
-      ? new StringRecordId(rabbitholeId)
-      : undefined;
+    this.rabbitholeId = rabbitholeId ? new StringRecordId(rabbitholeId) : undefined;
     this.filters = config.filters;
   }
 
-  public async load(
-    loader: IConstellationLoader,
-  ): Promise<ILoadedConstellation | undefined> {
+  public async load(loader: IConstellationLoader): Promise<ILoadedConstellation | undefined> {
     try {
       const promises: Promise<Partial<ILoadedConstellation>>[] = [];
       if (loader.things) {
@@ -1758,9 +1662,7 @@ export class ConstellationLoader {
         promises.push(this.tags().then((res) => ({ tags: res })));
       }
       if (loader.descriptions) {
-        promises.push(
-          this.descriptions().then((res) => ({ descriptions: res })),
-        );
+        promises.push(this.descriptions().then((res) => ({ descriptions: res })));
       }
       if (loader.references) {
         promises.push(this.references().then((res) => ({ references: res })));
@@ -1773,10 +1675,7 @@ export class ConstellationLoader {
       }
 
       const results = await Promise.all(promises);
-      const loaded: Partial<ILoadedConstellation> = Object.assign(
-        {},
-        ...results,
-      );
+      const loaded: Partial<ILoadedConstellation> = Object.assign({}, ...results);
 
       return loaded;
     } catch (error) {
@@ -1787,10 +1686,7 @@ export class ConstellationLoader {
 
   public async connectables(): Promise<IConnectable[] | undefined> {
     try {
-      const connectables = await GraphService.getUserConnectables(
-        this.userId,
-        this.filters,
-      );
+      const connectables = await GraphService.getUserConnectables(this.userId, this.filters);
       if (!connectables) {
         throw new Error("Couldn't get connectables");
       }
@@ -1803,10 +1699,7 @@ export class ConstellationLoader {
 
   public async connections(): Promise<IConnection[] | undefined> {
     try {
-      const connections = await GraphService.getUserConnections(
-        this.userId,
-        this.filters,
-      );
+      const connections = await GraphService.getUserConnections(this.userId, this.filters);
       if (!connections) {
         throw new Error("Couldn't get connections");
       }
@@ -1819,10 +1712,7 @@ export class ConstellationLoader {
 
   public async rabbitholes(): Promise<IRabbithole[] | undefined> {
     try {
-      const rabbitholes = GraphService.getUserRabbitholes(
-        this.userId,
-        this.filters,
-      );
+      const rabbitholes = GraphService.getUserRabbitholes(this.userId, this.filters);
       if (!rabbitholes) {
         throw new Error("Couldn't get rabbitholes");
       }
@@ -1835,20 +1725,13 @@ export class ConstellationLoader {
 
   public async inclusions(): Promise<IRabbitholeInclusion[] | undefined> {
     try {
-      const inclusions = await GraphService.getUserInclusions(
-        this.userId,
-        this.filters,
-      );
+      const inclusions = await GraphService.getUserInclusions(this.userId, this.filters);
       if (!inclusions) {
         throw new Error("Couldn't get rabbithole inclusions");
       }
       return inclusions;
     } catch (error) {
-      console.error(
-        "Error getting user rabbithole inclusions: ",
-        this.userId,
-        error,
-      );
+      console.error("Error getting user rabbithole inclusions: ", this.userId, error);
       return undefined;
     }
   }
@@ -1866,9 +1749,7 @@ export class ConstellationLoader {
     }
   }
 
-  public async descriptions(): Promise<
-    ITagDescriptionRelationship[] | undefined
-  > {
+  public async descriptions(): Promise<ITagDescriptionRelationship[] | undefined> {
     try {
       const descriptions = await GraphService.getUserDescriptions(this.userId);
       if (!descriptions) {
@@ -1909,10 +1790,7 @@ export class ConstellationLoader {
 
   public async shares(): Promise<IShare[] | undefined> {
     try {
-      const shares = await GraphService.getUserShares(
-        this.userId,
-        this.filters,
-      );
+      const shares = await GraphService.getUserShares(this.userId, this.filters);
       if (!shares) {
         throw new Error("Couldn't get shares");
       }
@@ -1955,7 +1833,7 @@ export class Connectable {
 
   public static getterResolver: {
     [K in keyof IConnectableTypeMap]: (
-      id: RecordId | string,
+      id: RecordId | string
     ) => Promise<IConnectableTypeMap[K] | undefined>;
   } = {
     idea: async (id: string | RecordId) => {
@@ -1973,16 +1851,13 @@ export class Connectable {
   };
 
   public static fieldsResolver: {
-    [K in keyof IConnectableTypeMap]: (
-      i: IConnectableTypeMap[K],
-    ) => IConnectableFields;
+    [K in keyof IConnectableTypeMap]: (i: IConnectableTypeMap[K]) => IConnectableFields;
   } = {
     idea: (idea: IIdea) => {
       return {
         id: idea.id,
         name: idea.title,
-        description:
-          idea.contentPlain?.slice(0, 256) || "No description available.",
+        description: idea.contentPlain?.slice(0, 256) || "No description available.",
         content: idea.content,
         type: "idea",
       };
@@ -1991,8 +1866,7 @@ export class Connectable {
       return {
         id: source.id,
         name: source.displayName,
-        description:
-          source.content?.slice(0, 256) || "No description available.",
+        description: source.content?.slice(0, 256) || "No description available.",
         content: source.content,
         type: "source",
       };
@@ -2001,8 +1875,7 @@ export class Connectable {
       return {
         id: task.id,
         name: task.description.slice(0, 124),
-        description:
-          task.scratchpad?.slice(0, 256) || "No description available.",
+        description: task.scratchpad?.slice(0, 256) || "No description available.",
         content: task.scratchpad,
         type: "task",
       };
@@ -2011,8 +1884,7 @@ export class Connectable {
       return {
         id: excerpt.id,
         name: excerpt.note,
-        description:
-          excerpt.sourceText?.slice(0, 256) || "No description available.",
+        description: excerpt.sourceText?.slice(0, 256) || "No description available.",
         content: excerpt.sourceText,
         type: "excerpt",
       };
@@ -2068,14 +1940,12 @@ export class Connectable {
   }
 
   public static async connectableFields(
-    connectable: IConnectable,
+    connectable: IConnectable
   ): Promise<IConnectableFields | undefined> {
     try {
       const type = this.idToType(connectable.id.toString());
       if (!type) {
-        throw new Error(
-          `Couldn't get type of connectable: ${connectable.id.toString()}`,
-        );
+        throw new Error(`Couldn't get type of connectable: ${connectable.id.toString()}`);
       }
       const fields = Connectable.fieldsResolver[type]?.(connectable as any);
       return fields;

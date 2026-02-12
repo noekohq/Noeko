@@ -1,88 +1,88 @@
 @keyframes menuIn {
-    0% {
-    }
-    100% {
-    }
+  0% {
+  }
+  100% {
+  }
 }
 
 .suggestionMenu {
-    animation: menuIn .2s ease-out;
-    background-color: var(--mantine-color-dark-9);
-    /* overflow: hidden; */
-    box-shadow: var(--mantine-shadow-sm);
-    overflow-y: auto;
-    max-height: 40vh;
-    border: .5px solid var(--mantine-color-gray-9);
-    border-radius: var(--mantine-radius-md);
+  animation: menuIn 0.2s ease-out;
+  background-color: var(--mantine-color-dark-9);
+  /* overflow: hidden; */
+  box-shadow: var(--mantine-shadow-sm);
+  overflow-y: auto;
+  max-height: 40vh;
+  border: 0.5px solid var(--mantine-color-gray-9);
+  border-radius: var(--mantine-radius-md);
 }
 
 @keyframes itemIn {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    50% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .item {
-    animation: itemIn 0.3s ease-out;
-    display: flex;
-    align-items: center;
-    gap: var(--mantine-spacing-xs);
-    padding: 4px var(--mantine-spacing-sm);
-    cursor: pointer;
+  animation: itemIn 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px var(--mantine-spacing-sm);
+  cursor: pointer;
 
-    &.noAnimate {
-        animation: none;
-    }
+  &.noAnimate {
+    animation: none;
+  }
 
-    // when item is actually selected
-    &.active {
-        background-color: var(--mantine-primary-color-8);
-        color: var(--mantine-color-white);
-    }
+  // when item is actually selected
+  &.active {
+    background-color: var(--mantine-primary-color-8);
+    color: var(--mantine-color-white);
+  }
 
-    &:first-child {
-        border-top-left-radius: var(--mantine-radius-sm);
-        border-top-right-radius: var(--mantine-radius-sm);
-    }
+  &:first-child {
+    border-top-left-radius: var(--mantine-radius-sm);
+    border-top-right-radius: var(--mantine-radius-sm);
+  }
 
-    &:last-child {
-        border-bottom-left-radius: var(--mantine-radius-sm);
-        border-bottom-right-radius: var(--mantine-radius-sm);
-    }
+  &:last-child {
+    border-bottom-left-radius: var(--mantine-radius-sm);
+    border-bottom-right-radius: var(--mantine-radius-sm);
+  }
 
-    &:hover {
-        background-color: var(--mantine-color-gray-8);
-        color: var(--mantine-color-white);
-    }
+  &:hover {
+    background-color: var(--mantine-color-gray-8);
+    color: var(--mantine-color-white);
+  }
 
-    &:active {
-        background-color: var(--mantine-primary-color-8);
-        color: var(--mantine-color-white);
-    }
+  &:active {
+    background-color: var(--mantine-primary-color-8);
+    color: var(--mantine-color-white);
+  }
 
-    & .label {
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-weight: 500;
-        font-size: 0.8rem;
-    }
+  & .label {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 0.8rem;
+  }
 
-    & .description {
-        font-size: 0.8rem;
-        color: var(--mantine-color-dimmed);
-    }
+  & .description {
+    font-size: 0.8rem;
+    color: var(--mantine-color-dimmed);
+  }
 
-    & .icon {
-        font-size: var(--mantine-font-size-xs);
-    }
+  & .icon {
+    font-size: var(--mantine-font-size-xs);
+  }
 }

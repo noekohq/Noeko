@@ -1,18 +1,7 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, useMemo, ReactNode } from "react";
 import { ActionIcon, Text, TextInput, Group } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
-import {
-  ArrowLeftIcon,
-  CalendarPlusIcon,
-  ClockIcon,
-  XCircleIcon,
-} from "@phosphor-icons/react";
+import { ArrowLeftIcon, CalendarPlusIcon, ClockIcon, XCircleIcon } from "@phosphor-icons/react";
 import styles from "./HorizonSelector.module.scss";
 import { Duration } from "surrealdb";
 import { fromYYYYMMDD, toYYYYMMDD } from "../../../../utils/datetime";
@@ -37,9 +26,7 @@ const HorizonContext = createContext<IHorizonContext | null>(null);
 export const useHorizonSelection = () => {
   const context = useContext(HorizonContext);
   if (!context) {
-    throw new Error(
-      "useHorizonSelection must be used within a HorizonSelector provider",
-    );
+    throw new Error("useHorizonSelection must be used within a HorizonSelector provider");
   }
   return context;
 };
@@ -53,12 +40,7 @@ interface HorizonSelectorProps {
   children?: ReactNode; // Optional if you want to inject custom children, though we provide defaults
 }
 
-const HorizonSelector = ({
-  type,
-  value,
-  onChange,
-  children,
-}: HorizonSelectorProps) => {
+const HorizonSelector = ({ type, value, onChange, children }: HorizonSelectorProps) => {
   const [mode, setMode] = useState<Mode>("presets");
 
   const contextValue = useMemo(
@@ -69,7 +51,7 @@ const HorizonSelector = ({
       mode,
       setMode,
     }),
-    [type, value, onChange, mode],
+    [type, value, onChange, mode]
   );
 
   // If no children provided, use the default implementation logic
@@ -154,10 +136,7 @@ const Presets = () => {
 
     const sat = new Date(today);
     sat.setDate(today.getDate() + ((6 - today.getDay() + 7) % 7));
-    if (
-      toYYYYMMDD(sat) !== toYYYYMMDD(today) &&
-      toYYYYMMDD(sat) !== toYYYYMMDD(tmrw)
-    ) {
+    if (toYYYYMMDD(sat) !== toYYYYMMDD(today) && toYYYYMMDD(sat) !== toYYYYMMDD(tmrw)) {
       addOpt(sat, "Weekend", "Saturday");
     }
 
@@ -175,12 +154,7 @@ const Presets = () => {
   return (
     <div className={styles.track}>
       {/* "None" Option */}
-      <Item
-        label="None"
-        sub="Clear"
-        active={value === null}
-        onClick={() => onChange(null)}
-      />
+      <Item label="None" sub="Clear" active={value === null} onClick={() => onChange(null)} />
 
       {/* Generated Options */}
       {options.map((opt) => (

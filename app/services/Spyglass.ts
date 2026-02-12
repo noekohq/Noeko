@@ -40,19 +40,9 @@ export interface IGlimpseConnection {
   resourceIds: string[];
 }
 
-export type IResultSetType =
-  | "foundational"
-  | "examples"
-  | "questions"
-  | "actions"
-  | "related";
+export type IResultSetType = "foundational" | "examples" | "questions" | "actions" | "related";
 
-export type IResultRelationship =
-  | "answers"
-  | "expands"
-  | "contrasts"
-  | "supports"
-  | "questions";
+export type IResultRelationship = "answers" | "expands" | "contrasts" | "supports" | "questions";
 
 export interface IResultSet {
   title: string;
@@ -101,8 +91,7 @@ export const Modes: Record<string, ISpyglassMode> = {
       ],
     },
     response: {
-      description:
-        "A single, direct paragraph that concisely answers the user's query.",
+      description: "A single, direct paragraph that concisely answers the user's query.",
       prompt: () =>
         new PromptBuilder().addBlock(
           "Instructions",
@@ -111,7 +100,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           If the necessary information is not available, state that.
 
           **DO NOT** write more than one paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -124,7 +113,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           Identify the essential facts from the source material required to answer the query.
           Extract only the minimum information needed.
           Ignore irrelevant details and information already present in the query.
-          `,
+          `
         ),
     },
   },
@@ -149,7 +138,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           - Use a bulleted list (\`-\` or \`*\`). If the items have a natural order, use a numbered list (\`1.\`).
           - If categories are present, use bold text (\`**Category**\`) for category titles.
           - Conclude with a single, brief summary paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -162,7 +151,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           Extract all items that should be in the list. For each item, pull out its name or a brief identifier.
           Separately, gather key points that can be used to summarize the overall theme of the list.
           Ensure no duplicate items are extracted.
-          `,
+          `
         ),
     },
   },
@@ -186,7 +175,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           1.  **Introduction**: Write a brief introductory paragraph.
           2.  **List Items**: For each item, create a Markdown heading (e.g., \`## Item Title\`). Under each heading, write a single, detailed descriptive paragraph.
           3.  **Conclusion**: Conclude with a brief summary paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -200,7 +189,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           For each topic, extract a title and a paragraph of detailed, relevant information.
           Filter out irrelevant or secondary details.
           Group the extracted information by topic.
-          `,
+          `
         ),
     },
   },
@@ -227,7 +216,7 @@ export const Modes: Record<string, ISpyglassMode> = {
               - For conceptual topics, use multiple sections with clear Markdown headings (\`##\`) that break down the core concepts.
               - For processes or steps, use a numbered list (\`1.\`, \`2.\`, etc.) with detailed list items for each step.
           3.  **Conclusion**: A summary paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -240,14 +229,13 @@ export const Modes: Record<string, ISpyglassMode> = {
           From the source material, extract all key facts, concepts, historical points, and explanations related to the user's query.
           Organize the findings into logical themes suitable for essay sections.
           Adhere strictly to the provided information.
-          `,
+          `
         ),
     },
   },
   comparitiveAnalysis: {
     intent: {
-      bestFor:
-        "Queries where the user wants to compare and contrast two or more items.",
+      bestFor: "Queries where the user wants to compare and contrast two or more items.",
       examples: [
         "Compare and contrast <thing1> and <thing2>",
         "What is the difference between <thing1> and <thing2>",
@@ -265,7 +253,7 @@ export const Modes: Record<string, ISpyglassMode> = {
               - The first row should be table headers for 'Feature' and each item being compared.
               - Subsequent rows should have the feature in the first column and the corresponding details for each item in the following columns.
           3.  Conclude with a summary paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -279,22 +267,20 @@ export const Modes: Record<string, ISpyglassMode> = {
           From the source material, extract a list of common features or points of comparison (e.g., cost, function, pros, cons).
           Then, for each item, find the specific details corresponding to each of those features.
           Structure the output by item, listing its features and the corresponding details.
-          `,
+          `
         ),
     },
   },
   proConAnalysis: {
     intent: {
-      bestFor:
-        "Queries asking for the advantages and disadvantages of a single subject.",
+      bestFor: "Queries asking for the advantages and disadvantages of a single subject.",
       examples: [
         "What are the pros and cons of using TypeScript?",
         "Should I move to a new city? Lay out the good and the bad.",
       ],
     },
     response: {
-      description:
-        "A two-column HTML table laying out the pros and cons of a subject.",
+      description: "A two-column HTML table laying out the pros and cons of a subject.",
       prompt: () =>
         new PromptBuilder().addBlock(
           "Instructions",
@@ -303,7 +289,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           2.  Generate a two-column Markdown \`<table>\`. The headers should be "Pros" and "Cons".
           3.  Populate each column with the relevant points. Use bulleted lists within cells if needed for readability.
           4.  Conclude with a summary paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -313,22 +299,20 @@ export const Modes: Record<string, ISpyglassMode> = {
           "Instructions",
           `
           From the source material, extract all statements that represent an advantage, benefit, or positive aspect (Pro) and all statements that represent a disadvantage, risk, or negative aspect (Con) related to the user's query. Group them accordingly.
-          `,
+          `
         ),
     },
   },
   timeline: {
     intent: {
-      bestFor:
-        "Queries about the history or chronological progression of a topic.",
+      bestFor: "Queries about the history or chronological progression of a topic.",
       examples: [
         "Give me the history of my 'Project X' notes.",
         "What is the timeline of the development of the internet?",
       ],
     },
     response: {
-      description:
-        "A chronological list of events with dates and descriptions.",
+      description: "A chronological list of events with dates and descriptions.",
       prompt: () =>
         new PromptBuilder().addBlock(
           "Instructions",
@@ -337,7 +321,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           2.  Generate a Markdown bulleted list (\`-\` or \`*\`) representing the timeline.
           3.  For each event, create a list item. Use bold text (\`**Date/Time**\`) for the date/time period followed by the event description.
           4.  End with a concluding summary paragraph.
-          `,
+          `
         ),
     },
     analysis: {
@@ -347,17 +331,14 @@ export const Modes: Record<string, ISpyglassMode> = {
           "Instructions",
           `
           Extract all events, dates, and key milestones from the source material. For each event, capture the date or time period and a concise description of what happened. Ensure the events are ordered chronologically.
-          `,
+          `
         ),
     },
   },
   quickFind: {
     intent: {
       bestFor: "When the user is trying to find a specific resource quickly",
-      examples: [
-        "Do I have any notes on <topic>",
-        "What is my idea about <thing>",
-      ],
+      examples: ["Do I have any notes on <topic>", "What is my idea about <thing>"],
     },
     analysis: {
       description:
@@ -369,7 +350,7 @@ export const Modes: Record<string, ISpyglassMode> = {
           Your job is to find and extract only the most directly relevant information.
           You should prioritize speed and efficiency, only including most useful information in your analysis.
           The goal is to comprehensively but succinctly analyze results in accordance with the user's intent.
-          `,
+          `
         ),
     },
     response: {
@@ -383,15 +364,14 @@ export const Modes: Record<string, ISpyglassMode> = {
             Output a brief response directly to the user's query based on the analysis provided.
             **DO** provide the user with a direct and relevant answer to their query.
             **DO NOT** include unnecessary details or information that is not directly relevant to the user's query.
-            `,
+            `
           )
           .addBlock("User Query", query ?? "No query provided."),
     },
   },
   specifiedFormat: {
     intent: {
-      bestFor:
-        "Queries where the user explicitly specifies how they want the response formatted.",
+      bestFor: "Queries where the user explicitly specifies how they want the response formatted.",
       examples: [
         "Give me a table of my best ideas",
         "A short paragraph explaining my app",
@@ -411,7 +391,7 @@ export const Modes: Record<string, ISpyglassMode> = {
 
             1.  Analyze the user's query below to identify the requested format (e.g., table, list, JSON, paragraph).
             2.  Use the information from the analysis to construct the response, strictly following the user's formatting instructions.
-            `,
+            `
           )
           .addBlock("User Query", query ?? "No query provided."),
     },
@@ -428,7 +408,7 @@ export const Modes: Record<string, ISpyglassMode> = {
             2.  **Extract Content**: From the source material, extract all key information, facts, and data points necessary to populate the format you identified in step 1.
 
             Provide the identified format and the extracted content as separate, clearly-labeled pieces of information.
-            `,
+            `
           )
           .addBlock("User Query", query ?? "No query provided."),
     },
@@ -502,18 +482,16 @@ export default class Spyglass {
     query: string,
     options?: {
       rabbitholeId?: string;
-    },
+    }
   ) {
     return await Search.comprehensiveSearch(userId, query, options);
   }
 
   static async getResultsFromQueries(
     userId: string,
-    searches: ISpyglassIntent["searches"],
+    searches: ISpyglassIntent["searches"]
   ): Promise<ISearchResult[]> {
-    const searchPromises = searches.map((query) =>
-      Search.searchConnectables(userId, query),
-    );
+    const searchPromises = searches.map((query) => Search.searchConnectables(userId, query));
 
     const allResultSets = await Promise.all(searchPromises);
 
@@ -545,20 +523,20 @@ export default class Spyglass {
   static intentPromptBuilder(query: string, history?: ISpyglassHistoryItem[]) {
     const builder = new PromptBuilder()
       .addText(
-        "You are an intelligent user query parser called Spyglass Q, responsible for understanding the user's intent, and deciding how to respond.",
+        "You are an intelligent user query parser called Spyglass Q, responsible for understanding the user's intent, and deciding how to respond."
       )
       .addBlock(
         "Purpose and Goal",
         `
         Your purpose is to analyze the user's query, and contribute to a larger search pipeline by building the foundational understanding of the user's intent.
-        `,
+        `
       )
       .addBlock(
         "Context",
         `
         It is currently ${getFormattedDateTimeToday()}.
         You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
-        `,
+        `
       );
 
     if (history && history.length > 0) {
@@ -578,7 +556,7 @@ export default class Spyglass {
           `;
           })
           .join("\n")}
-      `,
+      `
       );
     }
 
@@ -590,7 +568,7 @@ export default class Spyglass {
         1. Given the user's query, infer their intent. What is the goal, or intended purpose of this query?
         2. Given the user's intent, select a Spyglass Mode, which will optimize the entire system to best respond to the user's intent. This will include response format, as well as analysis configuration
         3. Based on the understood intent and selected Spyglass Mode, draft Search Queries that will fetch relevant notes from the system
-        `,
+        `
       )
       .addBlock(
         "Spyglass Mode",
@@ -617,7 +595,7 @@ export default class Spyglass {
           </spyglassMode>
           `;
         })}
-        `,
+        `
       )
       .addBlock(
         "Search Queries",
@@ -627,7 +605,7 @@ export default class Spyglass {
         - Your goal is to draft high-quality search queries to find the most relevant notes from the user's knowledge base.
         - The queries should be optimized to reflect the user's core intent.
         - Focus on quality over quantity. A few well-crafted queries are better than many broad ones.
-        `,
+        `
       )
       // .addBlock(
       //   "Search Queries",
@@ -652,7 +630,7 @@ export default class Spyglass {
         <userquery>
         ${query}
         </userquery>
-        `,
+        `
       );
 
     return builder;
@@ -663,7 +641,7 @@ export default class Spyglass {
       new PromptBuilder()
         // This persona-setting is great. Keep it.
         .addText(
-          "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
+          "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent."
         )
 
         // The Context block is also excellent. Keep it.
@@ -675,7 +653,7 @@ export default class Spyglass {
             It is currently ${getFormattedDateTimeToday()}.
             You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           </context>
-          `,
+          `
         )
 
         // Keep the Mission Statement if it adds unique value not covered elsewhere.
@@ -709,7 +687,7 @@ export default class Spyglass {
           - **Negative analysis is FORBIDDEN.** Never report that a result was irrelevant or that information was missing. Your final report must only contain positive, relevant findings.
           - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided results. DO NOT add your own knowledge or infer information not explicitly present.
           - **Process Sequentially:** You MUST process results in the order they are given and never return to a previous result.
-          `,
+          `
         )
         // --- MODIFICATION END ---
 
@@ -726,13 +704,11 @@ export default class Spyglass {
         "An array of structured findings extracted from the source results that are relevant to the user's intent.",
       items: {
         type: LMSchemaType.OBJECT,
-        description:
-          "A single, discrete finding that helps answer the user's intent.",
+        description: "A single, discrete finding that helps answer the user's intent.",
         properties: {
           sourceId: {
             type: LMSchemaType.STRING,
-            description:
-              "The unique ID of the source result from which the excerpt is taken.",
+            description: "The unique ID of the source result from which the excerpt is taken.",
             enum: sourceIds,
             format: "enum",
           },
@@ -763,19 +739,19 @@ export default class Spyglass {
   static overviewPromptBuilder(
     query: string,
     mode: ISpyglassMode,
-    history?: ISpyglassHistoryItem[],
+    history?: ISpyglassHistoryItem[]
   ) {
     const builder = new PromptBuilder()
       // --- Insight: Adopting the more polished persona we discussed.
       .addText(
-        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
+        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings."
       )
       .addBlock(
         "Context",
         `
           It is currently ${getFormattedDateTimeToday()}.
           You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
-          `,
+          `
       );
 
     if (history && history.length > 0) {
@@ -795,7 +771,7 @@ export default class Spyglass {
           `;
           })
           .join("\n")}
-      `,
+      `
       );
     }
 
@@ -813,7 +789,7 @@ export default class Spyglass {
 
           ## Example:
           "Noeko is a knowledge management application designed to provide natural language answers from a user's notes[1]. Its core philosophy is to help users organize their thoughts and curate knowledge effectively[2][3]."
-          `,
+          `
       )
       .addBlock(
         "Strict Rules",
@@ -824,13 +800,13 @@ export default class Spyglass {
           - **NEVER** use moralizing or hedging language (e.g., "It is important to...", "It is subjective...").
           - **NEVER** refer to yourself as an AI, a model, or an assistant. Your name is Spyglass, but do not refer to yourself in the answer.
           - **NEVER** start your answer with a heading.
-          `,
+          `
       )
       .addBlock(
         "Edge Cases",
         `
         If no findings are provided, then respond to the user accordingly, stating that you do not have enough information to accurately answer their query.
-        `,
+        `
       )
       .addBlock(
         "User Query",
@@ -839,12 +815,9 @@ export default class Spyglass {
         <userQuery>
           ${query}
         </userQuery>
-        `,
+        `
       )
-      .addBlock(
-        "Findings",
-        "The findings to use for your answer are as follows:\n",
-      );
+      .addBlock("Findings", "The findings to use for your answer are as follows:\n");
     return builder;
   }
 
@@ -867,8 +840,7 @@ export default class Spyglass {
           description: "The search queries related to the user's intent.",
           items: {
             type: LMSchemaType.OBJECT,
-            description:
-              "A search query to fetch results. Must include a query string.",
+            description: "A search query to fetch results. Must include a query string.",
             properties: {
               query: {
                 type: LMSchemaType.STRING,
@@ -888,8 +860,7 @@ export default class Spyglass {
               },
               date: {
                 type: LMSchemaType.OBJECT,
-                description:
-                  "Filter results by date ranges using ISO 8601 format.",
+                description: "Filter results by date ranges using ISO 8601 format.",
                 properties: {
                   createdAt: {
                     type: LMSchemaType.OBJECT,
@@ -943,7 +914,7 @@ export default class Spyglass {
 
   static async getIntentFromQuery(
     query: string,
-    history?: ISpyglassHistoryItem[],
+    history?: ISpyglassHistoryItem[]
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
@@ -951,10 +922,7 @@ export default class Spyglass {
       }
       const lm = getLM().withModel("fast-accurate");
       const prompt = this.intentPromptBuilder(query, history).get();
-      const intent = await lm.generateJSON<ISpyglassIntent>(
-        prompt,
-        this.intentSchema(),
-      );
+      const intent = await lm.generateJSON<ISpyglassIntent>(prompt, this.intentSchema());
       if (!intent) {
         throw new Error("Did not get intent from LM");
       }
@@ -1000,7 +968,7 @@ export default class Spyglass {
   static async getFindingsFromResults(
     query: string,
     results: ISearchResult[],
-    intent: ISpyglassIntent,
+    intent: ISpyglassIntent
   ): Promise<ISearchOverview["findings"] | undefined> {
     try {
       if (results.length === 0) {
@@ -1009,10 +977,7 @@ export default class Spyglass {
       const resultsStrings = results.map((result) => {
         return this.resultToString(result);
       });
-      const overviewPrompt = this.findingsPromptBuilder(
-        intent.intent,
-        Modes[intent.mode],
-      );
+      const overviewPrompt = this.findingsPromptBuilder(intent.intent, Modes[intent.mode]);
 
       resultsStrings.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -1027,7 +992,7 @@ export default class Spyglass {
       const lm = getLM().withModel("fast-accurate");
       const result = await lm.generateJSON<ISearchOverview["findings"]>(
         overviewPrompt.get(),
-        this.findingsSchema(results.map((r) => r.id.toString())),
+        this.findingsSchema(results.map((r) => r.id.toString()))
       );
       if (!result) {
         throw new Error("Findings not generated by LM");
@@ -1042,7 +1007,7 @@ export default class Spyglass {
   static async *generateFindingsFromResults(
     query: string,
     results: ISearchResult[],
-    intent: ISpyglassIntent,
+    intent: ISpyglassIntent
   ): AsyncGenerator<string, void, unknown> {
     try {
       if (results.length === 0) {
@@ -1056,10 +1021,7 @@ export default class Spyglass {
         .map((result) => {
           return this.resultToString(result);
         });
-      const findingsPrompt = this.findingsPromptBuilder(
-        query,
-        Modes[intent.mode],
-      );
+      const findingsPrompt = this.findingsPromptBuilder(query, Modes[intent.mode]);
 
       resultsStrings.forEach((s, i) => {
         const totalSize = findingsPrompt.get().length;
@@ -1073,7 +1035,7 @@ export default class Spyglass {
       const lm = getLM().withModel("simple").withThinking(-1);
       for await (const result of lm.generateJSONStream(
         findingsPrompt.get(),
-        this.findingsSchema(results.map((r) => r.id.toString())),
+        this.findingsSchema(results.map((r) => r.id.toString()))
       )) {
         if (!result) {
           throw new Error("Findings not generated by LM");
@@ -1089,7 +1051,7 @@ export default class Spyglass {
   static singleFindingPromptBuilder(query: string, intent?: ISpyglassIntent) {
     const p = new PromptBuilder()
       .addText(
-        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent."
       )
       .addBlock(
         "Context",
@@ -1099,7 +1061,7 @@ export default class Spyglass {
             It is currently ${getFormattedDateTimeToday()} (${Date.now()} | ${new Date().toISOString()}).
             You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           </context>
-          `,
+          `
       )
       .addBlock(
         "Source Material Types",
@@ -1111,7 +1073,7 @@ export default class Spyglass {
           - Task: open tasks for the user to complete
           - Source: these are user saved sources of external knowledge
           - Excerpt: these are saved excerpts on specific source text from sources
-        `,
+        `
       )
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
@@ -1123,7 +1085,7 @@ export default class Spyglass {
           - **The Zero-Finding Rule:** It is essential that you return an empty array \`[]\` if no excerpts in the Source Material directly and strongly answer the User Intent. **It is better to find nothing than to include irrelevant or weakly related information.** Do not force a finding.
           - **Positive Findings Only:** Your final report must only contain positive, relevant findings. Never report that a result was irrelevant or that information was missing.
           - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
-          `,
+          `
       )
       .addBlock(
         "User Query",
@@ -1132,12 +1094,9 @@ export default class Spyglass {
         <query>
           ${query}
         </query>
-        `,
+        `
       )
-      .addBlock(
-        "Source for Analysis",
-        "The Source Material to use is as follows:\n",
-      );
+      .addBlock("Source for Analysis", "The Source Material to use is as follows:\n");
 
     if (intent) {
       p.addBlock("User Intent", intent.intent);
@@ -1146,7 +1105,7 @@ export default class Spyglass {
     } else {
       p.addBlock(
         "User Intent",
-        "The user's intent is to have their query answered accurately and directly.",
+        "The user's intent is to have their query answered accurately and directly."
       );
     }
 
@@ -1156,7 +1115,7 @@ export default class Spyglass {
   static async *generateFindingsFromResources(
     query: string,
     results: IConnectableFields[],
-    intent?: ISpyglassIntent,
+    intent?: ISpyglassIntent
   ): AsyncGenerator<IFinding[], void, unknown> {
     try {
       if (!results || results.length === 0) {
@@ -1170,24 +1129,18 @@ export default class Spyglass {
           const sourceId = result.id.toString();
           const resultString = await this.connectableToString(result);
 
-          const singleResultPrompt = this.singleFindingPromptBuilder(
-            query,
-            intent,
-          );
+          const singleResultPrompt = this.singleFindingPromptBuilder(query, intent);
 
           singleResultPrompt.addBlock(`Source Material`, resultString, 2);
 
           try {
             const findings = await lm.generateJSON<IFinding[]>(
               singleResultPrompt.get(),
-              this.findingsSchema([sourceId]),
+              this.findingsSchema([sourceId])
             );
             return findings || [];
           } catch (err) {
-            console.error(
-              `Failed to process findings for result ${sourceId}:`,
-              err,
-            );
+            console.error(`Failed to process findings for result ${sourceId}:`, err);
             return [];
           }
         })();
@@ -1201,19 +1154,12 @@ export default class Spyglass {
         }
       }
     } catch (error) {
-      console.error(
-        "Error generating findings from resources in parallel:",
-        error,
-      );
+      console.error("Error generating findings from resources in parallel:", error);
       throw error;
     }
   }
 
-  static findingToString(
-    finding: IFinding,
-    citationMap: ICitationMap,
-    index: number,
-  ) {
+  static findingToString(finding: IFinding, citationMap: ICitationMap, index: number) {
     let t = "";
     const { excerpt, analysis, sourceId, findingType } = finding;
     const source = citationMap[sourceId];
@@ -1242,7 +1188,7 @@ export default class Spyglass {
     query: string,
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
-    results: ISearchResult[],
+    results: ISearchResult[]
   ): Promise<ISearchOverview["overview"] | undefined> {
     try {
       const findingsString: string[] = [];
@@ -1252,10 +1198,7 @@ export default class Spyglass {
         findingsString.push(this.findingToString(finding, citationMap, index));
         index++;
       }
-      const overviewPrompt = this.overviewPromptBuilder(
-        query,
-        Modes[intent.mode],
-      );
+      const overviewPrompt = this.overviewPromptBuilder(query, Modes[intent.mode]);
 
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
@@ -1267,14 +1210,10 @@ export default class Spyglass {
       });
 
       const lm = getLM().withModel("simple");
-      const result = await lm.generateJSON<ISearchOverview["overview"]>(
-        overviewPrompt.get(),
-        {
-          type: LMSchemaType.STRING,
-          description:
-            "A direct response to the user's query based on the findings.",
-        },
-      );
+      const result = await lm.generateJSON<ISearchOverview["overview"]>(overviewPrompt.get(), {
+        type: LMSchemaType.STRING,
+        description: "A direct response to the user's query based on the findings.",
+      });
       if (!result) {
         throw new Error("Findings not generated by LM");
       }
@@ -1290,7 +1229,7 @@ export default class Spyglass {
     findings: ISearchOverview["findings"],
     intent: ISpyglassIntent,
     results: ISearchResult[],
-    history?: ISpyglassHistoryItem[],
+    history?: ISpyglassHistoryItem[]
   ): AsyncGenerator<string, void, unknown> {
     try {
       const findingsString: string[] = [];
@@ -1300,11 +1239,7 @@ export default class Spyglass {
         findingsString.push(this.findingToString(finding, citationMap, index));
         index++;
       }
-      const overviewPrompt = this.overviewPromptBuilder(
-        query,
-        Modes[intent.mode],
-        history,
-      );
+      const overviewPrompt = this.overviewPromptBuilder(query, Modes[intent.mode], history);
       findingsString.forEach((s, i) => {
         // make sure we don't surpass lm prompt size
         const totalSize = overviewPrompt.get().length;
@@ -1345,8 +1280,7 @@ export default class Spyglass {
           },
           findingType: {
             type: LMSchemaType.STRING,
-            description:
-              "Categorize the nature of the finding in relation to the prompt.",
+            description: "Categorize the nature of the finding in relation to the prompt.",
             enum: [...FindingTypes],
             format: "enum",
           },
@@ -1356,13 +1290,10 @@ export default class Spyglass {
     };
   }
 
-  static sourceFindingsPromptBuilder(
-    sourceId: string | RecordId,
-    prompt: string,
-  ) {
+  static sourceFindingsPromptBuilder(sourceId: string | RecordId, prompt: string) {
     return new PromptBuilder()
       .addText(
-        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a given prompt.",
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a given prompt."
       )
 
       .addBlock(
@@ -1373,7 +1304,7 @@ export default class Spyglass {
               It is currently ${getFormattedDateTimeToday()}.
               You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language analysis of given Source Material.
             </context>
-            `,
+            `
       )
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
@@ -1384,18 +1315,15 @@ export default class Spyglass {
             **Universal Strict Rules:**
             - **Negative analysis is FORBIDDEN.** Never report that a result was irrelevant or that information was missing. Your final report must only contain positive, relevant findings.
             - **Adhere to the Source Material:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
-            `,
+            `
       )
       .addBlock("Prompt", prompt)
-      .addBlock(
-        "Source Material",
-        "The source material to use is as follows:\n",
-      );
+      .addBlock("Source Material", "The source material to use is as follows:\n");
   }
 
   static async getFindingsFromSource(
     sourceId: string | RecordId,
-    prompt: string,
+    prompt: string
   ): Promise<IFinding[] | undefined> {
     try {
       const source = await Source.get(sourceId);
@@ -1410,7 +1338,7 @@ export default class Spyglass {
       findingsPrompt.addText("</sourceMaterial>");
       const findings = await lm.generateJSON<Omit<IFinding, "sourceId">[]>(
         findingsPrompt.get(),
-        findingsSchema,
+        findingsSchema
       );
       if (!findings) {
         throw new Error("Couldn't get findings from Spyglass.");
@@ -1429,7 +1357,7 @@ export default class Spyglass {
   public static sourceAnalysisPromptBuilder(sourceId: string | RecordId) {
     return new PromptBuilder()
       .addText(
-        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given Source Material based on a given prompt.",
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given Source Material based on a given prompt."
       )
       .addBlock("Source Material", "The Source Material is as follows:\n\n");
   }
@@ -1437,8 +1365,7 @@ export default class Spyglass {
   public static sourceAnalysisSchema(sourceId: string | RecordId) {
     return {
       type: LMSchemaType.OBJECT,
-      description:
-        "An object containing an analysis of the given source material",
+      description: "An object containing an analysis of the given source material",
       properties: {
         headline: {
           description:
@@ -1477,7 +1404,7 @@ export default class Spyglass {
   }
 
   public static async analyzeSource(
-    sourceId: string | RecordId,
+    sourceId: string | RecordId
   ): Promise<ISourceAnalysis | undefined> {
     try {
       const source = await Source.get(sourceId);
@@ -1492,7 +1419,7 @@ export default class Spyglass {
       const lm = getLM().withModel("simple");
       const analysis = await lm.generateJSON<Omit<ISourceAnalysis, "findings">>(
         analysisPrompt.get(),
-        analysisSchema,
+        analysisSchema
       );
       if (!analysis) {
         throw new Error("Couldn't get analysis");
@@ -1510,7 +1437,7 @@ export default class Spyglass {
   static async getIntentConfigFromQuery(
     query: string,
     model: IModelTypes,
-    history?: ISpyglassHistoryItem[],
+    history?: ISpyglassHistoryItem[]
   ): Promise<ISpyglassIntent | undefined> {
     try {
       if (!query.length) {
@@ -1518,10 +1445,7 @@ export default class Spyglass {
       }
       const lm = getLM().withModel(model);
       const prompt = this.intentPromptBuilder(query, history).get();
-      const intent = await lm.generateJSON<ISpyglassIntent>(
-        prompt,
-        this.intentSchema(),
-      );
+      const intent = await lm.generateJSON<ISpyglassIntent>(prompt, this.intentSchema());
       if (!intent) {
         throw new Error("Did not get intent from LM");
       }
@@ -1535,7 +1459,7 @@ export default class Spyglass {
   static scopedFindingPromptBuilder(query: string) {
     return new PromptBuilder()
       .addText(
-        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent.",
+        "You are a data extraction and analysis engine called Spyglass Analyst. Your sole purpose is to extract relevant information from a given text based on a user intent."
       )
       .addBlock(
         "Context",
@@ -1545,7 +1469,7 @@ export default class Spyglass {
             It is currently ${getFormattedDateTimeToday()} (${Date.now()} | ${new Date().toISOString()}).
             You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
           </context>
-          `,
+          `
       )
       .addBlock(
         "Source Material Types",
@@ -1557,7 +1481,7 @@ export default class Spyglass {
           - Task: open tasks for the user to complete
           - Source: these are user saved sources of external knowledge
           - Excerpt: these are saved excerpts on specific source text from sources
-        `,
+        `
       )
       .addBlock("Mission Statement", spyglassMissionStatement)
       .addBlock(
@@ -1569,7 +1493,7 @@ export default class Spyglass {
           - **The Zero-Finding Rule:** It is essential that you return an empty array \`[]\` if no excerpts in the Source Material directly and strongly answer the User Intent. **It is better to find nothing than to include irrelevant or weakly related information.** Do not force a finding.
           - **Positive Findings Only:** Your final report must only contain positive, relevant findings. Never report that a result was irrelevant or that information was missing.
           - **Adhere to the Source:** Your analysis MUST be based ONLY on the provided Source Material. DO NOT add your own knowledge or infer information not explicitly present.
-          `,
+          `
       )
       .addBlock(
         "User Query",
@@ -1578,12 +1502,9 @@ export default class Spyglass {
         <query>
           ${query}
         </query>
-        `,
+        `
       )
-      .addBlock(
-        "Source for Analysis",
-        "The Source Material to use is as follows:\n",
-      );
+      .addBlock("Source for Analysis", "The Source Material to use is as follows:\n");
   }
 
   static async connectableToString(fields: IConnectableFields) {
@@ -1651,15 +1572,8 @@ export default class Spyglass {
               },
               sectionType: {
                 type: LMSchemaType.STRING,
-                description:
-                  "The role this section plays in the Map of Content.",
-                enum: [
-                  "foundational",
-                  "examples",
-                  "questions",
-                  "actions",
-                  "related",
-                ],
+                description: "The role this section plays in the Map of Content.",
+                enum: ["foundational", "examples", "questions", "actions", "related"],
                 format: "enum",
               },
               results: {
@@ -1686,13 +1600,7 @@ export default class Spyglass {
                     relationship: {
                       type: LMSchemaType.STRING,
                       description: "How this note relates to the user's query.",
-                      enum: [
-                        "answers",
-                        "expands",
-                        "contrasts",
-                        "supports",
-                        "questions",
-                      ],
+                      enum: ["answers", "expands", "contrasts", "supports", "questions"],
                       format: "enum",
                     },
                   },
@@ -1735,11 +1643,11 @@ export default class Spyglass {
   public static glimpseModePromptBuilder(
     query: string,
     resources: IConnectableFields[],
-    history?: ISpyglassHistoryItem[],
+    history?: ISpyglassHistoryItem[]
   ) {
     const builder = new PromptBuilder()
       .addText(
-        "You are Spyglass Glimpse, a knowledge cartographer. Your role is to create a 'Map of Content' (MOC) - a navigational guide through the user's own notes and knowledge. Think like a librarian curating a reading list, or a professor designing a syllabus from the user's personal writings.",
+        "You are Spyglass Glimpse, a knowledge cartographer. Your role is to create a 'Map of Content' (MOC) - a navigational guide through the user's own notes and knowledge. Think like a librarian curating a reading list, or a professor designing a syllabus from the user's personal writings."
       )
       .addBlock(
         "Context",
@@ -1748,7 +1656,7 @@ export default class Spyglass {
           You are part of Noeko, a personal knowledge management app. The user has built their own knowledge base of notes, ideas, and saved sources. Your job is to help them navigate and rediscover their own thinking.
 
           This is NOT a web search - these are the user's own words and ideas. Treat them with respect and help the user see the value in what they've already written.
-          `,
+          `
       );
 
     if (history && history.length > 0) {
@@ -1768,7 +1676,7 @@ export default class Spyglass {
           `;
           })
           .join("\n")}
-      `,
+      `
       );
     }
 
@@ -1785,7 +1693,7 @@ export default class Spyglass {
           3. **Groups by purpose, not just topic** - "Foundational concepts" vs "Practical examples" vs "Open questions" vs "Action items"
           4. **Shows relationships** - How do these notes connect to each other and to the query?
           5. **Reveals the user's own thinking** - Help them see patterns in their own knowledge they might have missed.
-          `,
+          `
       )
       .addBlock(
         "Your Task",
@@ -1811,7 +1719,7 @@ export default class Spyglass {
              - "questions" - Raises questions or challenges
 
           5. **Connections** (optional): If you notice interesting themes that connect multiple notes in unexpected ways, highlight them.
-          `,
+          `
       )
       .addBlock(
         "Quality Guidelines",
@@ -1821,7 +1729,7 @@ export default class Spyglass {
           - **Be helpful**: Your goal is to help the user navigate their own knowledge. Make it easy for them.
           - **Use their words**: When explaining relevance, reference specific things from their notes.
           - **Think in journeys**: What path would you recommend through these notes?
-          `,
+          `
       )
       .addBlock("User Query", `<userQuery>${query}</userQuery>`)
       .addBlock(
@@ -1831,11 +1739,10 @@ export default class Spyglass {
             .map((r) => {
               let content = "";
               if (r.name) content += `<title>${r.name}</title>\n`;
-              if (r.content)
-                content += `<content>${htmlToMarkdown(r.content)}</content>`;
+              if (r.content) content += `<content>${htmlToMarkdown(r.content)}</content>`;
               return `<note id="${r.id.toString()}" type="${r.type}">\n${content}</note>`;
             })
-            .join("\n\n"),
+            .join("\n\n")
       );
     return builder;
   }
@@ -1850,17 +1757,10 @@ export default class Spyglass {
     history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.glimpseModePromptBuilder(
-        query,
-        scope,
-        history,
-      );
+      const overviewPrompt = this.glimpseModePromptBuilder(query, scope, history);
       const schema = this.glimpseModeSchema(scope);
       const lm = getLM().withModel("simple");
-      for await (const chunk of lm.generateJSONStream(
-        overviewPrompt.get(),
-        schema,
-      )) {
+      for await (const chunk of lm.generateJSONStream(overviewPrompt.get(), schema)) {
         yield chunk;
       }
     } catch (error) {
@@ -1872,18 +1772,18 @@ export default class Spyglass {
   public static overviewFromFindingsPromptBuilder(
     query: string,
     findings: IFinding[],
-    history?: ISpyglassHistoryItem[],
+    history?: ISpyglassHistoryItem[]
   ) {
     const builder = new PromptBuilder()
       .addText(
-        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings.",
+        "You are Spyglass, a helpful and comprehensive AI search assistant. Your goal is to provide an accurate, unbiased, and expertly written answer to the user's query by synthesizing the provided findings."
       )
       .addBlock(
         "Context",
         `
           It is currently ${getFormattedDateTimeToday()}.
           You are part of a search engine called Spyglass in an app called Noeko. The goal of the system is to provide a natural language answer to any user's search, with the entire answer based on their own notes. This means that user queries are likely to be reflective and personal, as well as analytical.
-          `,
+          `
       );
 
     if (history && history.length > 0) {
@@ -1903,7 +1803,7 @@ export default class Spyglass {
           `;
           })
           .join("\n")}
-      `,
+      `
       );
     }
 
@@ -1916,7 +1816,7 @@ export default class Spyglass {
           - At the end of any sentence that uses information from the findings, you MUST add a citation.
           - The format is a 1-based finding number inside brackets, like \`[1]\`.
           - If multiple findings support a sentence, list each citation in its own separate brackets, like \`[1][2]\`.
-          `,
+          `
       )
       .addBlock(
         "Tone and Style",
@@ -1926,14 +1826,14 @@ export default class Spyglass {
           - Use active voice whenever possible.
           - Match the user's level of formality and technical language.
           - Talk in the second person, directly to the user
-          `,
+          `
       )
       .addBlock(
         "Strict Rules",
         `
           - **ALWAYS** cite relevant findings for statements made.
           - **NEVER** use information that is not explicitly present in the Findings.
-          `,
+          `
       )
       .addBlock("User Query", `<userQuery>${query}</userQuery>`)
       .addBlock(
@@ -1943,7 +1843,7 @@ export default class Spyglass {
             .map((f, i) => {
               return `<finding number="${i + 1}" sourceId="${f.sourceId}">\n<excerpt>${f.excerpt}</excerpt>\n<analysis>${f.analysis}</analysis>\n</finding>`;
             })
-            .join("\n\n"),
+            .join("\n\n")
       );
     return builder;
   }
@@ -1958,20 +1858,13 @@ export default class Spyglass {
     history?: ISpyglassHistoryItem[];
   }): AsyncGenerator<string, void, unknown> {
     try {
-      const overviewPrompt = this.overviewFromFindingsPromptBuilder(
-        query,
-        findings,
-        history,
-      );
+      const overviewPrompt = this.overviewFromFindingsPromptBuilder(query, findings, history);
       const lm = getLM().withModel("simple").withThinking();
       for await (const chunk of lm.generateStream(overviewPrompt.get())) {
         yield chunk;
       }
     } catch (error) {
-      console.error(
-        "Error generating overview stream from generated findings:",
-        error,
-      );
+      console.error("Error generating overview stream from generated findings:", error);
       throw error;
     }
   }
@@ -2050,7 +1943,7 @@ export default class Spyglass {
         const _intent = await this.getIntentConfigFromQuery(
           query,
           deepAnalysis ? "fast-accurate" : "simple",
-          history,
+          history
         );
         if (!_intent) {
           yield { type: "error", data: "No intent found for the query." };
@@ -2073,10 +1966,7 @@ export default class Spyglass {
             },
           } as IConnectableSearchQuery;
         });
-        const r = await Spyglass.getResultsFromQueries(
-          userId.toString(),
-          searches,
-        );
+        const r = await Spyglass.getResultsFromQueries(userId.toString(), searches);
         const connectablePromises = r.map(async (s) => {
           fullResults.push(s.value);
           const type = s.value.type;
@@ -2084,9 +1974,7 @@ export default class Spyglass {
           return fields;
         });
         const connectables = await Promise.all(connectablePromises);
-        resources.push(
-          ...(connectables.filter((c) => c) as IConnectableFields[]),
-        );
+        resources.push(...(connectables.filter((c) => c) as IConnectableFields[]));
       }
 
       yield { type: "resources_loaded", data: resources };
@@ -2095,22 +1983,17 @@ export default class Spyglass {
 
       if (deepAnalysis) {
         yield { type: "status", data: "Generating deep analysis findings..." };
-        const findingGenerator = Spyglass.generateFindingsFromResources(
-          query,
-          resources,
-          intent,
-        );
+        const findingGenerator = Spyglass.generateFindingsFromResources(query, resources, intent);
         for await (const findingChunk of findingGenerator) {
           yield { type: "findings_chunk", data: findingChunk };
           finalFindings.push(...findingChunk);
         }
         yield { type: "status", data: "Generating overview from findings..." };
-        const overviewGenerator =
-          Spyglass.generateOverviewFromGeneratedFindings({
-            query,
-            findings: finalFindings,
-            history,
-          });
+        const overviewGenerator = Spyglass.generateOverviewFromGeneratedFindings({
+          query,
+          findings: finalFindings,
+          history,
+        });
         for await (const chunk of overviewGenerator) {
           yield { type: "overview_chunk", data: chunk };
         }

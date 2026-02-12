@@ -14,15 +14,7 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamTask.module.scss";
-import {
-  ActionIcon,
-  Flex,
-  Group,
-  Popover,
-  Stack,
-  Text,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { ITask } from "../../../../../app/database/models/task";
@@ -33,10 +25,7 @@ import { useDisclosure } from "@mantine/hooks";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     dreamTask: {
-      setDreamTask: (options: {
-        taskId: string;
-        content: string;
-      }) => ReturnType;
+      setDreamTask: (options: { taskId: string; content: string }) => ReturnType;
     };
   }
 }
@@ -49,16 +38,10 @@ export const DreamTask = DreamTaskSchema.extend({
   },
 });
 
-export const DreamTaskComponent: React.FC<NodeViewProps> = ({
-  node,
-  deleteNode,
-  selected,
-}) => {
+export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
   const { taskId } = node.attrs;
   const isEmpty = node.content.size === 0;
-  const [accessState, setAccessState] = useState<
-    "granted" | "forbidden" | "error"
-  >("granted");
+  const [accessState, setAccessState] = useState<"granted" | "forbidden" | "error">("granted");
   const navigate = useNavigate();
 
   const { data: task, load: fetchTask } = useFetch<undefined, ITask>({
@@ -113,13 +96,7 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamTaskWrapper}
       data-selected={selected || undefined}
     >
-      <Popover
-        width={"400px"}
-        shadow="md"
-        position="top"
-        radius="lg"
-        opened={iconHovered}
-      >
+      <Popover width={"400px"} shadow="md" position="top" radius="lg" opened={iconHovered}>
         <Popover.Target>
           <Tooltip label={getTooltipLabel()}>
             <Flex
@@ -132,9 +109,7 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
             >
               {accessState === "granted" ? (
                 <CheckIcon
-                  className={`${styles.dreamTaskIcon} ${
-                    iconHovered ? styles.hovered : ""
-                  }`}
+                  className={`${styles.dreamTaskIcon} ${iconHovered ? styles.hovered : ""}`}
                   weight={iconHovered ? "fill" : "regular"}
                 />
               ) : (
@@ -153,12 +128,7 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
         >
           {accessState === "granted" && task && (
             <Stack gap="sm">
-              <Group
-                justify="space-between"
-                align="center"
-                w={"100%"}
-                wrap="nowrap"
-              >
+              <Group justify="space-between" align="center" w={"100%"} wrap="nowrap">
                 <Text fw={500} c="dark.3">
                   {task.description}
                 </Text>
@@ -203,11 +173,7 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
 
           {accessState === "forbidden" && (
             <Stack gap="sm" align="center">
-              <ShieldSlashIcon
-                size={32}
-                weight="regular"
-                color="var(--mantine-color-dimmed)"
-              />
+              <ShieldSlashIcon size={32} weight="regular" color="var(--mantine-color-dimmed)" />
               <Text c="dimmed" size="sm" ta="center">
                 You don't have access to preview this task
               </Text>
@@ -235,21 +201,13 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <span
-        onClick={handleLinkClick}
-        className={styles.dreamTaskInline}
-        role="link"
-      >
+      <span onClick={handleLinkClick} className={styles.dreamTaskInline} role="link">
         <NodeViewContent
           className={`${styles.dreamTaskContent} ${
             !task && accessState === "granted" ? styles.notFound : ""
           }`}
-          data-placeholder={
-            isEmpty ? task?.description || "Loading task..." : undefined
-          }
-          title={
-            task?.description ? `Go to "${task.description}"` : "Go to task"
-          }
+          data-placeholder={isEmpty ? task?.description || "Loading task..." : undefined}
+          title={task?.description ? `Go to "${task.description}"` : "Go to task"}
         />
       </span>
     </NodeViewWrapper>

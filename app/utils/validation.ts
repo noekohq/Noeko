@@ -14,12 +14,7 @@ export function validateSurrealRecordId(recordId: string) {
 
 export const RecordIdSchema = z.string();
 
-export const ConnectableTypesSchema = z.enum([
-  "idea",
-  "excerpt",
-  "task",
-  "source",
-]);
+export const ConnectableTypesSchema = z.enum(["idea", "excerpt", "task", "source"]);
 
 export const GraphTagFilterSchema = z.object({
   set: z.array(z.string()),

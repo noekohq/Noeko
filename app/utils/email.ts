@@ -5,11 +5,7 @@ const { EMAIL_FROM } = process.env;
 
 if (!EMAIL_FROM) throw Error("EMAIL_FROM is not defined");
 
-export const sendEmailAPI = async (
-  to: string,
-  subject: string,
-  body: string,
-) => {
+export const sendEmailAPI = async (to: string, subject: string, body: string) => {
   try {
     const response = await mailbaby.post("/mail/send", {
       to,
@@ -35,7 +31,7 @@ export const sendEmail = async (
   body: string,
   options?: {
     from?: string;
-  },
+  }
 ) => {
   try {
     const verified = await sendEmailService.verifyConnection();

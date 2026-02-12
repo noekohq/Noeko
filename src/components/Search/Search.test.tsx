@@ -3,9 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router";
 import { MantineProvider } from "@mantine/core";
 import Search from "./Search";
-import useSearchQuery, {
-  IUseSearchQueryReturn,
-} from "../../hooks/useSearchQuery";
+import useSearchQuery, { IUseSearchQueryReturn } from "../../hooks/useSearchQuery";
 
 vi.mock("../../hooks/useSearchQuery", () => ({
   default: vi.fn(),
@@ -36,12 +34,7 @@ vi.mock("../../hooks/useShortcuts", () => ({
 vi.mock("./SearchBar", () => ({
   SearchBar: ({ query, setQuery, onClear, onSearchSubmit }: any) => (
     <div>
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        role="textbox"
-      />
+      <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} role="textbox" />
       <button onClick={onClear}>Clear</button>
       <button onClick={onSearchSubmit}>Search</button>
     </div>
@@ -57,9 +50,7 @@ vi.mock("../Utils/Spyglass/GlimpseModeDisplay", () => ({
 }));
 
 vi.mock("../Display/Paper/PaperButton", () => ({
-  default: ({ children, onClick }: any) => (
-    <button onClick={onClick}>{children}</button>
-  ),
+  default: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
 }));
 
 vi.mock("../Display/Paper/PaperSearchResult/PaperSearchResult", () => ({
@@ -101,7 +92,7 @@ describe("Search Component", () => {
         <MemoryRouter>
           <Search />
         </MemoryRouter>
-      </MantineProvider>,
+      </MantineProvider>
     );
   };
 
@@ -319,8 +310,6 @@ describe("Search Component", () => {
 
     renderComponent();
 
-    expect(
-      screen.queryByText("Deep Focus in Spyglass"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Deep Focus in Spyglass")).not.toBeInTheDocument();
   });
 });

@@ -2,11 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { ISource } from "./source";
 import { getDatabase } from "../db";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
-import {
-  PdfHighlightAnnoObject,
-  Rect,
-  PdfAnnotationSubtype,
-} from "@embedpdf/models";
+import { PdfHighlightAnnoObject, Rect, PdfAnnotationSubtype } from "@embedpdf/models";
 import {
   IExcerpt,
   IExcerptable,
@@ -142,30 +138,19 @@ export default class Excerpt {
     }
   }
 
+  static async get(excerptId: string | RecordId, safety?: "full"): Promise<IExcerpt>;
+  static async get(excerptId: string | RecordId, safety?: "public"): Promise<IPublicExcerpt>;
   static async get(
     excerptId: string | RecordId,
-    safety?: "full",
-  ): Promise<IExcerpt>;
-  static async get(
-    excerptId: string | RecordId,
-    safety?: "public",
-  ): Promise<IPublicExcerpt>;
-  static async get(
-    excerptId: string | RecordId,
-    safety: "public" | "full" = "public",
+    safety: "public" | "full" = "public"
   ): Promise<IExcerpt | IPublicExcerpt | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const fn =
-        safety === "public"
-          ? "fn::get_excerpt_record"
-          : "fn::get_full_excerpt_record";
-      const excerpt = await db.run<IExcerpt>(fn, [
-        new StringRecordId(excerptId),
-      ]);
+      const fn = safety === "public" ? "fn::get_excerpt_record" : "fn::get_full_excerpt_record";
+      const excerpt = await db.run<IExcerpt>(fn, [new StringRecordId(excerptId)]);
       if (!excerpt) {
         throw new Error("Couldn't get excerpt");
       }
@@ -192,19 +177,16 @@ export default class Excerpt {
     }
   }
 
-  public static async allExcerptable(
-    userId: string | RecordId,
-    excerptableId: string | RecordId,
-  ) {
+  public static async allExcerptable(userId: string | RecordId, excerptableId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
         return undefined;
       }
-      const excerpts = await db.run<IExcerptable[]>(
-        `fn::get_excerpts_by_excerptable`,
-        [new StringRecordId(userId), new StringRecordId(excerptableId)],
-      );
+      const excerpts = await db.run<IExcerptable[]>(`fn::get_excerpts_by_excerptable`, [
+        new StringRecordId(userId),
+        new StringRecordId(excerptableId),
+      ]);
 
       if (!excerpts) {
         throw new Error("No excerpts returned");
@@ -217,10 +199,7 @@ export default class Excerpt {
     }
   }
 
-  public static async update(
-    excerptId: string | RecordId,
-    updates: Partial<IExcerptCreator>,
-  ) {
+  public static async update(excerptId: string | RecordId, updates: Partial<IExcerptCreator>) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -243,7 +222,7 @@ export default class Excerpt {
         new StringRecordId(excerptId),
         {
           ...updater,
-        },
+        }
       );
       if (!update) {
         throw new Error("Couldn't update excerpt");
@@ -272,10 +251,7 @@ export default class Excerpt {
     }
   }
 
-  public static async establishOwnership(
-    userId: string | RecordId,
-    excerptId: string | RecordId,
-  ) {
+  public static async establishOwnership(userId: string | RecordId, excerptId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -287,7 +263,7 @@ export default class Excerpt {
           userId: new StringRecordId(userId),
           excerptId: new StringRecordId(excerptId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         throw new Error("Couldn't get results");
@@ -303,10 +279,7 @@ export default class Excerpt {
     }
   }
 
-  public static async excerptForUser(
-    userId: string | RecordId,
-    excerptId: string | RecordId,
-  ) {
+  public static async excerptForUser(userId: string | RecordId, excerptId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -318,7 +291,7 @@ export default class Excerpt {
           userId: new StringRecordId(userId),
           excerptId: new StringRecordId(excerptId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         throw new Error("Couldn't get results");
@@ -329,10 +302,7 @@ export default class Excerpt {
       }
       return relationship;
     } catch (error) {
-      console.error(
-        "Error creating user->excerpts->excerpt relationship: ",
-        error,
-      );
+      console.error("Error creating user->excerpts->excerpt relationship: ", error);
       return undefined;
     }
   }
@@ -349,10 +319,7 @@ export default class Excerpt {
         ---
         ${excerpt.note}
         `;
-      console.info(
-        "Loading embedding vector for content: ",
-        excerpt.note.slice(0, 124),
-      );
+      console.info("Loading embedding vector for content: ", excerpt.note.slice(0, 124));
       const embedding = await embedder.embedContent(embeddable);
       if (!embedding) {
         throw new Error("No embedding generated");

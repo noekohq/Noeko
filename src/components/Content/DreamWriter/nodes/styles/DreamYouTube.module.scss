@@ -1,22 +1,22 @@
 .youtubeWrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: var(--mantine-color-dark-8);
+  padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+
+  &[data-selected="true"] {
+    outline: 2px solid var(--mantine-primary-color-7);
+    outline-offset: 1px;
+  }
+
+  div,
+  iframe {
     width: 100%;
-    aspect-ratio: 16 / 9;
-    background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-md);
+    height: 100%;
+  }
 
-    &[data-selected="true"] {
-        outline: 2px solid var(--mantine-primary-color-7);
-        outline-offset: 1px;
-    }
-
-    div,
-    iframe {
-        width: 100%;
-        height: 100%;
-    }
-
-    iframe {
-        border: none; /* Removes the default border from the iframe */
-    }
+  iframe {
+    border: none; /* Removes the default border from the iframe */
+  }
 }

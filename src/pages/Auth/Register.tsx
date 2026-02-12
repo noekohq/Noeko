@@ -186,9 +186,8 @@ export default function Register() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Sorry, we are not accepting direct registration during this
-                  phase. Please use an invitation link or join the{" "}
-                  <a href="https://waitlist.noeko.app">waitlist</a>.
+                  Sorry, we are not accepting direct registration during this phase. Please use an
+                  invitation link or join the <a href="https://waitlist.noeko.app">waitlist</a>.
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -222,9 +221,8 @@ export default function Register() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Sorry, it looks like this referral code is invalid. Please use
-                  a valid code or join the{" "}
-                  <a href="https://noeko.neoko.app">waitlist</a>.
+                  Sorry, it looks like this referral code is invalid. Please use a valid code or
+                  join the <a href="https://noeko.neoko.app">waitlist</a>.
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -272,8 +270,8 @@ export default function Register() {
                     </HoverCard.Target>
                     <HoverCard.Dropdown>
                       <Text size="sm" c="dimmed">
-                        Your first and last name are only for personalization,
-                        you can put whatever you'd like here :)
+                        Your first and last name are only for personalization, you can put whatever
+                        you'd like here :)
                       </Text>
                     </HoverCard.Dropdown>
                   </HoverCard>
@@ -321,12 +319,8 @@ export default function Register() {
                 label={
                   <Text size="xs" c="dimmed">
                     By creating an account, you agree to our{" "}
-                    <a href="https://www.noeko.app/privacy">Privacy Policy</a>{" "}
-                    and{" "}
-                    <a href="https://www.noeko.app/terms-of-service">
-                      Terms of Service
-                    </a>
-                    .
+                    <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
+                    <a href="https://www.noeko.app/terms-of-service">Terms of Service</a>.
                   </Text>
                 }
                 onChange={(e) => {

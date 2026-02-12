@@ -1,15 +1,6 @@
 import { useState } from "react";
 import { IIdea } from "../../../../shared/types/idea";
-import {
-  Card,
-  Container,
-  Flex,
-  Grid,
-  Group,
-  HoverCard,
-  MantineColor,
-  Text,
-} from "@mantine/core";
+import { Card, Container, Flex, Grid, Group, HoverCard, MantineColor, Text } from "@mantine/core";
 import styles from "./IdeaPreview.module.scss";
 
 type IdeaPreviewProps = {
@@ -39,8 +30,7 @@ export default function IdeaPreview({
 }: IdeaPreviewProps) {
   const [dragging, setDragging] = useState(false);
 
-  const summary =
-    idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
+  const summary = idea.derived?.generative_summary?.sentenceSummary || "No summary provided.";
 
   return (
     <HoverCard width={"target"} shadow="lg" withArrow position="right">

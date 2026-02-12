@@ -71,9 +71,7 @@ import FileManager from "../../components/Display/Interactions/Files/FileManager
 
 import { IOptimisticIdea, useLandscape } from "../../contexts/LandscapeContext";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
-import useConnectable, {
-  IUseConnectableReturn,
-} from "../../hooks/useConnectable";
+import useConnectable, { IUseConnectableReturn } from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
@@ -88,9 +86,7 @@ import { ICollaborationState } from "../../hooks/useCollaboration";
 import { userFormattedName } from "../../utils/user";
 
 // --- Types ---
-type IdeaUnion =
-  | (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null })
-  | IOptimisticIdea;
+type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -105,8 +101,7 @@ export default function Idea() {
   const isDeletingRef = useRef(false);
   const isMountedRef = useRef(false);
 
-  const [collaborationState, setCollaborationState] =
-    useState<ICollaborationState | null>(null);
+  const [collaborationState, setCollaborationState] = useState<ICollaborationState | null>(null);
 
   const {
     ideas: {
@@ -154,10 +149,7 @@ export default function Idea() {
     data: fetchedIdea,
     load: reloadIdea,
     loading: loadingIdea,
-  } = useFetch<
-    undefined,
-    ISafeIdea & { accessLevel: "owner" | IShareAccess | null }
-  >({
+  } = useFetch<undefined, ISafeIdea & { accessLevel: "owner" | IShareAccess | null }>({
     url: fetchUrl,
     dependencies: [ideaId],
     query: { withDerived: "true" },
@@ -170,8 +162,7 @@ export default function Idea() {
     }
   }, [isOptimistic]);
 
-  const ideaToRender: IdeaUnion | undefined =
-    optimisticFromStore || fetchedIdea;
+  const ideaToRender: IdeaUnion | undefined = optimisticFromStore || fetchedIdea;
 
   const isViewOnly =
     !isOptimistic &&
@@ -180,9 +171,7 @@ export default function Idea() {
     ideaToRender.accessLevel === "viewonly";
   const canEdit = !isOptimistic && !isViewOnly;
   const isOwner =
-    !!ideaToRender &&
-    "accessLevel" in ideaToRender &&
-    ideaToRender.accessLevel === "owner";
+    !!ideaToRender && "accessLevel" in ideaToRender && ideaToRender.accessLevel === "owner";
 
   const [title, setTitle] = useState<string>("");
 
@@ -223,9 +212,7 @@ export default function Idea() {
       title: "Delete this idea?",
       centered: true,
       children: (
-        <Text size="sm">
-          This action cannot be undone. All associated data will be lost.
-        </Text>
+        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
       ),
       labels: { confirm: "Delete Idea", cancel: "Cancel" },
       confirmProps: { color: "red" },
@@ -242,32 +229,27 @@ export default function Idea() {
     onFinally: reloadIdea,
   });
 
-  const { load: triggerDerivedCascade, loading: loadingDerivedCascade } =
-    useFetch({
-      url: `/ideas/${ideaId}/cascade`,
-      dependencies: [ideaId],
-      method: "POST",
-    });
+  const { load: triggerDerivedCascade, loading: loadingDerivedCascade } = useFetch({
+    url: `/ideas/${ideaId}/cascade`,
+    dependencies: [ideaId],
+    method: "POST",
+  });
 
   const handleComputation = async () => {
     await triggerEmbedIdea();
     await triggerDerivedCascade();
   };
 
-  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } =
-    useFetch({
-      url: `/ideas/${ideaId}/entitle`,
-      dependencies: [ideaId],
-      method: "POST",
-      onFinally: reloadIdea,
-    });
+  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } = useFetch({
+    url: `/ideas/${ideaId}/entitle`,
+    dependencies: [ideaId],
+    method: "POST",
+    onFinally: reloadIdea,
+  });
 
   const embeddingsOutOfDate = useCallback(() => {
     if (!fetchedIdea || !fetchedIdea.embeddingsUpdatedAt) return true;
-    return (
-      new Date(fetchedIdea.contentUpdatedAt) >
-      new Date(fetchedIdea.embeddingsUpdatedAt)
-    );
+    return new Date(fetchedIdea.contentUpdatedAt) > new Date(fetchedIdea.embeddingsUpdatedAt);
   }, [fetchedIdea]);
 
   const derivedOutOfDate = useCallback(() => {
@@ -279,9 +261,7 @@ export default function Idea() {
 
   const titleNeedsGeneration = useCallback(() => {
     if (!ideaToRender) return false;
-    const cleanTitle = ideaToRender.title
-      ?.replaceAll(/_/g, "")
-      .replaceAll(/\n/g, "");
+    const cleanTitle = ideaToRender.title?.replaceAll(/_/g, "").replaceAll(/\n/g, "");
     return !cleanTitle || cleanTitle === "Untitled Idea";
   }, [ideaToRender]);
 
@@ -347,29 +327,19 @@ export default function Idea() {
       return;
     }
     const { wordCount, characterCount, sentenceCount } = getTextProcessed(
-      htmlToPlainText(ideaToRender.content),
+      htmlToPlainText(ideaToRender.content)
     );
-    let text = `Saved. ${wordCount} word${
-      wordCount === 1 ? "" : "s"
-    }. ${characterCount} char${
+    let text = `Saved. ${wordCount} word${wordCount === 1 ? "" : "s"}. ${characterCount} char${
       characterCount === 1 ? "" : "s"
     }. ${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}.`;
     if (loadingEmbeddings) text += " Indexing...";
     setStatusMessage(text);
     return () => setStatusMessage("");
-  }, [
-    ideaToRender?.id,
-    ideaToRender?.content,
-    isOptimistic,
-    loadingEmbeddings,
-    setStatusMessage,
-  ]);
+  }, [ideaToRender?.id, ideaToRender?.content, isOptimistic, loadingEmbeddings, setStatusMessage]);
 
   const updateTitle = async (newTitle: string) => {
     if (isOptimistic) return;
-    await api
-      .put(`/ideas/${ideaId}`, { title: newTitle })
-      .then(() => reloadIdea());
+    await api.put(`/ideas/${ideaId}`, { title: newTitle }).then(() => reloadIdea());
   };
 
   const handleContentReady = useCallback(() => {
@@ -467,18 +437,11 @@ export default function Idea() {
             </Tabs.Panel>
 
             <Tabs.Panel value="insights">
-              <Insights
-                loadingIdea={loadingIdea}
-                idea={safeIdea}
-                reloadIdea={reloadIdea}
-              />
+              <Insights loadingIdea={loadingIdea} idea={safeIdea} reloadIdea={reloadIdea} />
             </Tabs.Panel>
             <Tabs.Panel value="files">
               {safeIdea && (
-                <FileManager
-                  connectableId={safeIdea.id.toString()}
-                  editor={editorRef.current}
-                />
+                <FileManager connectableId={safeIdea.id.toString()} editor={editorRef.current} />
               )}
             </Tabs.Panel>
           </Tabs>
@@ -488,9 +451,10 @@ export default function Idea() {
       <Content key={contentKey}>
         {!ideaToRender && (
           <Stack gap="md">
-            <Text size="sm" c="dimmed">
-              Something went wrong loading this idea.
-            </Text>
+            <Group>
+              <Title order={2}>Couldn't load idea.</Title>
+            </Group>
+            <Group></Group>
           </Stack>
         )}
         {ideaToRender && (
@@ -579,11 +543,7 @@ export default function Idea() {
                       }}
                     >
                       <Group gap="4px" align="center">
-                        <FeatherIcon
-                          color="var(--mantine-color-dark-3)"
-                          size={12}
-                          weight="bold"
-                        />
+                        <FeatherIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
                         <Text size="xs" fw="500">
                           {ideaToRender?.author
                             ? userFormattedName(ideaToRender?.author)
@@ -602,11 +562,7 @@ export default function Idea() {
                       }}
                     >
                       <Group gap="4px" align="center">
-                        <ClockIcon
-                          color="var(--mantine-color-dark-3)"
-                          size={12}
-                          weight="bold"
-                        />
+                        <ClockIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
                         <Text size="xs" fw="500">
                           {ideaToRender?.createdAt
                             ? `${formatDate(ideaToRender.createdAt)}`
@@ -652,10 +608,7 @@ export default function Idea() {
                 </Box>
 
                 {safeIdea && (
-                  <TagsManager
-                    connectable={{ ...safeIdea, type: "idea" }}
-                    maxSuggested={1}
-                  />
+                  <TagsManager connectable={{ ...safeIdea, type: "idea" }} maxSuggested={1} />
                 )}
               </Stack>
 
@@ -674,11 +627,9 @@ export default function Idea() {
                         if (!prev) return collaboration;
                         if (
                           prev.status === collaboration.status &&
-                          prev.members.length ===
-                            collaboration.members.length &&
+                          prev.members.length === collaboration.members.length &&
                           prev.members.every(
-                            (member, i) =>
-                              member.name === collaboration.members[i].name,
+                            (member, i) => member.name === collaboration.members[i].name
                           )
                         ) {
                           return prev;
@@ -686,13 +637,9 @@ export default function Idea() {
                         return collaboration;
                       });
                     }}
-                    collaborationId={
-                      canEdit ? ideaToRender.id.toString() : undefined
-                    }
+                    collaborationId={canEdit ? ideaToRender.id.toString() : undefined}
                     initialContent={canEdit ? undefined : ideaToRender.content}
-                    connectableId={
-                      isViewOnly ? undefined : ideaToRender.id.toString()
-                    }
+                    connectableId={isViewOnly ? undefined : ideaToRender.id.toString()}
                   />
                 )}
               </div>
@@ -727,8 +674,7 @@ export default function Idea() {
                     id: "connect",
                     label: "Connect",
                     onClick: () => connect(thing.id.toString()),
-                    disabled:
-                      !!isConnected(thing.id.toString()) || isOptimistic,
+                    disabled: !!isConnected(thing.id.toString()) || isOptimistic,
                   }),
                 ]}
               />
@@ -743,9 +689,7 @@ export default function Idea() {
                       </Text>
                     </Box>
                   ) : (
-                    <AccessManager
-                      connectable={{ ...safeIdea, type: "idea" }}
-                    />
+                    <AccessManager connectable={{ ...safeIdea, type: "idea" }} />
                   ))}
                 {!safeIdea && <Loading size="sm" />}
               </Tabs.Panel>
@@ -769,13 +713,7 @@ interface ITools {
   loadingDelete: boolean;
 }
 
-function Tools({
-  idea,
-  editor,
-  isOptimistic,
-  onDelete,
-  loadingDelete,
-}: ITools) {
+function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) {
   const { isMobile } = useLayout();
   const navigate = useNavigate();
   const { thingIsPinned, togglePin } = usePins();
@@ -902,16 +840,10 @@ function Tools({
             </Menu.Target>
 
             <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<BracketsAngleIcon />}
-                onClick={downloadAsHTML}
-              >
+              <Menu.Item leftSection={<BracketsAngleIcon />} onClick={downloadAsHTML}>
                 Export as HTML
               </Menu.Item>
-              <Menu.Item
-                leftSection={<MarkdownLogoIcon />}
-                onClick={downloadAsMarkdown}
-              >
+              <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
                 Export as Markdown
               </Menu.Item>
             </Menu.Dropdown>
@@ -945,9 +877,7 @@ function Tools({
               <Tooltip label="Delete Idea">
                 <Menu.Item
                   color="red"
-                  leftSection={
-                    loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
-                  }
+                  leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
                   // FIX: Use handler passed from parent
                   onClick={onDelete}
                   disabled={loadingDelete}
@@ -1028,10 +958,7 @@ function Tools({
             opened={managingFiles}
             onClose={() => setManagingFiles(false)}
           >
-            <FileManager
-              connectableId={idea.id.toString()}
-              editor={editor}
-            />
+            <FileManager connectableId={idea.id.toString()} editor={editor} />
           </PaperDrawer>
         </>
       )}

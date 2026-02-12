@@ -199,16 +199,12 @@ const AccountSettings = () => {
       >
         <Stack>
           <Text size="sm">
-            Are you <strong>absolutely sure</strong> you want to delete your
-            account?
+            Are you <strong>absolutely sure</strong> you want to delete your account?
           </Text>
           <Text size="sm">
-            This action cannot be undone, and all of your associated account
-            data will be deleted.
+            This action cannot be undone, and all of your associated account data will be deleted.
           </Text>
-          <Text size="sm">
-            In order to delete your account, type "{confirmationText}"
-          </Text>
+          <Text size="sm">In order to delete your account, type "{confirmationText}"</Text>
           <TextInput
             placeholder={confirmationText}
             value={confirmationInput}
@@ -286,29 +282,17 @@ const DataSettings = () => {
         </Text>
         <Group>
           <Link to="/tags">
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<TagIcon weight="bold" />}
-            >
+            <Button variant="light" color="gray" leftSection={<TagIcon weight="bold" />}>
               Tags
             </Button>
           </Link>
           <Link to="/import">
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<UploadIcon weight="bold" />}
-            >
+            <Button variant="light" color="gray" leftSection={<UploadIcon weight="bold" />}>
               Import Ideas
             </Button>
           </Link>
           <Link to="/export">
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<DownloadIcon weight="bold" />}
-            >
+            <Button variant="light" color="gray" leftSection={<DownloadIcon weight="bold" />}>
               Export Stuff
             </Button>
           </Link>
@@ -333,16 +317,13 @@ const DataSettings = () => {
       >
         <Stack>
           <Text size="sm">
-            Are you <strong>absolutely sure</strong> you want to delete your
-            stuff?
+            Are you <strong>absolutely sure</strong> you want to delete your stuff?
           </Text>
           <Text size="sm">
             This action cannot be undone, and all of your data will be deleted,{" "}
             <strong>except for your account.</strong>
           </Text>
-          <Text size="sm">
-            In order to delete your stuff, type "{confirmationText}"
-          </Text>
+          <Text size="sm">In order to delete your stuff, type "{confirmationText}"</Text>
           <TextInput
             placeholder={confirmationText}
             value={confirmationInput}
@@ -409,13 +390,7 @@ const SharingSettings = () => {
                 <Button
                   onClick={copy}
                   variant="default"
-                  leftSection={
-                    copied ? (
-                      <CheckIcon weight="bold" />
-                    ) : (
-                      <CopyIcon weight="bold" />
-                    )
-                  }
+                  leftSection={copied ? <CheckIcon weight="bold" /> : <CopyIcon weight="bold" />}
                 >
                   Copy Referral Link
                 </Button>
@@ -461,27 +436,13 @@ const CommunitySettings = () => (
         Join the conversation and get help.
       </Text>
       <Group>
-        <a
-          href="https://discord.gg/TY9sna9ZbT"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button
-            variant="default"
-            leftSection={<DiscordLogoIcon weight="fill" />}
-          >
+        <a href="https://discord.gg/TY9sna9ZbT" target="_blank" rel="noopener noreferrer">
+          <Button variant="default" leftSection={<DiscordLogoIcon weight="fill" />}>
             Join the Discord
           </Button>
         </a>
-        <a
-          href="https://reddit.com/r/noeko"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button
-            variant="default"
-            leftSection={<RedditLogoIcon weight="fill" />}
-          >
+        <a href="https://reddit.com/r/noeko" target="_blank" rel="noopener noreferrer">
+          <Button variant="default" leftSection={<RedditLogoIcon weight="fill" />}>
             Check out the Subreddit
           </Button>
         </a>

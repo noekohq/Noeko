@@ -55,14 +55,7 @@ export default function TimeButton() {
   const currentDayIndex = now.getDay();
 
   return (
-    <Popover
-      width={300}
-      trapFocus
-      position="bottom"
-      withArrow
-      shadow="md"
-      radius="lg"
-    >
+    <Popover width={300} trapFocus position="bottom" withArrow shadow="md" radius="lg">
       <Popover.Target>
         <div style={{ height: "100%" }}>
           <StatusButton>
@@ -87,12 +80,7 @@ export default function TimeButton() {
           <Divider />
 
           {/* --- Precise Live Clock --- */}
-          <Text
-            ta="center"
-            size="3rem"
-            fw={700}
-            style={{ fontFamily: "heading", lineHeight: 1 }}
-          >
+          <Text ta="center" size="3rem" fw={700} style={{ fontFamily: "heading", lineHeight: 1 }}>
             {getDetailedTime(now)}
           </Text>
 

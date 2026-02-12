@@ -1,12 +1,4 @@
-import {
-  ActionIcon,
-  Box,
-  Container,
-  Group,
-  Stack,
-  Title,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Box, Container, Group, Stack, Title, Tooltip } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import useFetch from "../../hooks/useFetch";
 import { IIdeaForm } from "../../../shared/types/idea";
@@ -67,11 +59,7 @@ export default function ViewIdea() {
             <Title>{idea?.title}</Title>
             <Group>
               <Tooltip label="Edit Idea">
-                <ActionIcon
-                  variant="subtle"
-                  onClick={() => navigate(`/idea/${ideaId}`)}
-                  c="dark.6"
-                >
+                <ActionIcon variant="subtle" onClick={() => navigate(`/idea/${ideaId}`)} c="dark.6">
                   <Pencil size={24} />
                 </ActionIcon>
               </Tooltip>

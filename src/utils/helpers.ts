@@ -1,10 +1,6 @@
 import React from "react";
 
-export const triggerDownload = (
-  downloadLink: string,
-  fileName: string,
-  newWindow = false,
-) => {
+export const triggerDownload = (downloadLink: string, fileName: string, newWindow = false) => {
   const link = document.createElement("a");
   link.href = downloadLink;
   if (newWindow) {

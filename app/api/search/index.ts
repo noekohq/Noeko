@@ -39,10 +39,7 @@ router.post("/", checkToken, async (req, res) => {
 
     const searchQuery = validationResult.data as IConnectableSearchQuery;
 
-    const results = await Search.searchConnectables(
-      user.id.toString(),
-      searchQuery,
-    );
+    const results = await Search.searchConnectables(user.id.toString(), searchQuery);
 
     res.send({
       message: "Succesfully searched",
@@ -122,11 +119,7 @@ router.post("/tags/fts", checkToken, async (req, res) => {
     }
     const limit = req.body.options?.limit as number | undefined;
 
-    const results: ITagSearchResult[] = await Search.ftsSearchTags(
-      user.id,
-      query,
-      { limit },
-    );
+    const results: ITagSearchResult[] = await Search.ftsSearchTags(user.id, query, { limit });
     res.json({
       message: "Tag FTS results fetched successfully",
       data: results,
@@ -155,17 +148,14 @@ router.post("/tags/semantic", checkToken, async (req, res) => {
     const embeddingProcessor = getEmbedder();
     const embedding = await embeddingProcessor.embedContent(query);
     if (!embedding) {
-      res
-        .status(500)
-        .json({ message: "Failed to generate embeddings for query", data: [] });
+      res.status(500).json({ message: "Failed to generate embeddings for query", data: [] });
       return;
     }
 
-    const results: ITagSearchResult[] = await Search.semanticSearchTags(
-      user.id,
-      embedding,
-      { limit, threshold },
-    );
+    const results: ITagSearchResult[] = await Search.semanticSearchTags(user.id, embedding, {
+      limit,
+      threshold,
+    });
     res.json({
       message: "Tag semantic results fetched successfully",
       data: results,
@@ -190,11 +180,9 @@ router.post("/tags/comprehensive", checkToken, async (req, res) => {
     }
     const limit = req.body.options?.limit as number | undefined;
 
-    const results: ITagSearchResult[] = await Search.comprehensiveSearchTags(
-      user.id,
-      query,
-      { limit },
-    );
+    const results: ITagSearchResult[] = await Search.comprehensiveSearchTags(user.id, query, {
+      limit,
+    });
     res.json({
       message: "Tag comprehensive results fetched successfully",
       data: results,
@@ -217,9 +205,7 @@ router.get("/tags/suggest", checkToken, async (req, res) => {
       res.status(400).json({ error: "Query must be a string" });
       return;
     }
-    const limit = req.query.limit
-      ? parseInt(req.query.limit as string, 10)
-      : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
 
     const suggestions: ITag[] = await Search.suggestTags(user.id, query, {
       limit,
@@ -246,17 +232,11 @@ router.get("/rabbitholes/suggest", checkToken, async (req, res) => {
       res.status(400).json({ error: "Query must be a string" });
       return;
     }
-    const limit = req.query.limit
-      ? parseInt(req.query.limit as string, 10)
-      : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
 
-    const suggestions: IRabbithole[] = await Search.suggestRabbitholes(
-      user.id,
-      query,
-      {
-        limit,
-      },
-    );
+    const suggestions: IRabbithole[] = await Search.suggestRabbitholes(user.id, query, {
+      limit,
+    });
     res.json({
       message: "Rabbithole suggestions fetched successfully",
       data: suggestions,

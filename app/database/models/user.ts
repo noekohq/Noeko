@@ -45,9 +45,7 @@ export const initialSettings: IUserSettings = {
 async function ensureAllUsersHaveNecessaryFields() {
   const db = await getDatabase();
   if (!db) {
-    console.info(
-      "Cannot run ensureAllUsersHaveNecessaryFields due to lack of db.",
-    );
+    console.info("Cannot run ensureAllUsersHaveNecessaryFields due to lack of db.");
     return;
   }
 
@@ -60,52 +58,34 @@ async function ensureAllUsersHaveNecessaryFields() {
   let numUpdatedReferralCodes = 0;
   for (const user of users) {
     if (user.scratchpadContent === null) {
-      await db.query(
-        `UPDATE user MERGE { scratchpadContent: '' } WHERE id = ${user.id}`,
-      );
+      await db.query(`UPDATE user MERGE { scratchpadContent: '' } WHERE id = ${user.id}`);
       numUpdatedScratchpads++;
     }
     if (user.referralCode === null) {
       const referralCode = Bun.randomUUIDv7();
-      await db.query(
-        `UPDATE user MERGE { referralCode: $referralCode } WHERE id = ${user.id}`,
-        {
-          referralCode,
-        },
-      );
+      await db.query(`UPDATE user MERGE { referralCode: $referralCode } WHERE id = ${user.id}`, {
+        referralCode,
+      });
       numUpdatedReferralCodes++;
     }
     if (!user.acceptedPrivacyPolicyAt) {
-      await db.query(
-        `UPDATE user MERGE { acceptedPrivacyPolicyAt: None } WHERE id = ${user.id}`,
-        {
-          acceptedPrivacyPolicyAt: null,
-        },
-      );
+      await db.query(`UPDATE user MERGE { acceptedPrivacyPolicyAt: None } WHERE id = ${user.id}`, {
+        acceptedPrivacyPolicyAt: null,
+      });
     }
     if (!user.acceptedTermsOfServiceAt) {
-      await db.query(
-        `UPDATE user MERGE { acceptedTermsOfServiceAt: None } WHERE id = ${user.id}`,
-        {
-          acceptedTermsOfServiceAt: null,
-        },
-      );
+      await db.query(`UPDATE user MERGE { acceptedTermsOfServiceAt: None } WHERE id = ${user.id}`, {
+        acceptedTermsOfServiceAt: null,
+      });
     }
     if (!user.settings) {
-      await db.query(
-        `UPDATE user MERGE { settings: $settings } WHERE id = ${user.id}`,
-        {
-          settings: initialSettings,
-        },
-      );
+      await db.query(`UPDATE user MERGE { settings: $settings } WHERE id = ${user.id}`, {
+        settings: initialSettings,
+      });
     }
   }
-  console.info(
-    `Updated ${numUpdatedScratchpads} users to include scratchpad content`,
-  );
-  console.info(
-    `Updated ${numUpdatedReferralCodes} users to include referral codes`,
-  );
+  console.info(`Updated ${numUpdatedScratchpads} users to include scratchpad content`);
+  console.info(`Updated ${numUpdatedReferralCodes} users to include referral codes`);
 }
 
 export class User {
@@ -137,7 +117,7 @@ export class User {
         DEFINE FIELD OVERWRITE settings ON TABLE user FLEXIBLE TYPE option<object>;
       `);
       await db?.query(
-        `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`,
+        `DEFINE INDEX IF NOT EXISTS userEmailIndex ON TABLE user COLUMNS email UNIQUE;`
       );
 
       const getUsersFunction = () => {
@@ -242,7 +222,7 @@ export class User {
   static filterPublicFields(user: IUser | ISafeUser): IPublicUser;
   static filterPublicFields(user: (IUser | ISafeUser)[]): IPublicUser[];
   static filterPublicFields(
-    user: (IUser | ISafeUser) | (IUser | ISafeUser)[],
+    user: (IUser | ISafeUser) | (IUser | ISafeUser)[]
   ): IPublicUser | IPublicUser[] {
     if (Array.isArray(user)) {
       return user.map((u) => this.filterPublicFields(u)) as IPublicUser[];
@@ -315,13 +295,13 @@ export class User {
 
       const updater: Partial<IUserForm> = form;
 
-      const result = await db?.merge<
-        IUser,
-        Partial<IUserForm> & { updatedAt: Date }
-      >(new StringRecordId(id), {
-        ...updater,
-        updatedAt: new Date(),
-      });
+      const result = await db?.merge<IUser, Partial<IUserForm> & { updatedAt: Date }>(
+        new StringRecordId(id),
+        {
+          ...updater,
+          updatedAt: new Date(),
+        }
+      );
       if (!result) {
         console.error("Failed to update user");
         return undefined;
@@ -429,7 +409,7 @@ export class User {
       FROM ONLY $userId
       FETCH incomingFriends, outgoingFriends;
       `,
-      { userId: new StringRecordId(id) },
+      { userId: new StringRecordId(id) }
     );
 
     if (!result || !result[0]) {
@@ -455,7 +435,7 @@ export class User {
       const db = await getDatabase();
       const result = await db?.query<[IUser[] | undefined]>(
         "SELECT * FROM user WHERE email = $email;",
-        { email },
+        { email }
       );
       if (!result) {
         console.error("Failed to get user");
@@ -477,17 +457,14 @@ export class User {
     }
   }
 
+  static async findByReferralCode(referralCode: string, unsafe?: true): Promise<IUser | undefined>;
   static async findByReferralCode(
     referralCode: string,
-    unsafe?: true,
-  ): Promise<IUser | undefined>;
-  static async findByReferralCode(
-    referralCode: string,
-    unsafe?: false,
+    unsafe?: false
   ): Promise<ISafeUser | undefined>;
   static async findByReferralCode(
     referralCode: string,
-    unsafe = false,
+    unsafe = false
   ): Promise<IUser | ISafeUser | undefined> {
     try {
       const db = await getDatabase();
@@ -497,7 +474,7 @@ export class User {
       }
       const result = await db.query<[IUser[] | undefined]>(
         "SELECT * FROM user WHERE referralCode = $rc",
-        { rc: referralCode },
+        { rc: referralCode }
       );
       if (!result || !result[0] || result[0].length === 0) {
         console.info(`No user found with referral code: ${referralCode}`);
@@ -509,28 +486,20 @@ export class User {
       }
       return this.filterSafeFields(user) as ISafeUser;
     } catch (error) {
-      console.error(
-        `Error finding user by referral code ${referralCode}:`,
-        error,
-      );
+      console.error(`Error finding user by referral code ${referralCode}:`, error);
       throw error;
     }
   }
 
   static async sendInvitationEmail(
     to: { firstName: string; lastName: string; email: string },
-    sender: ISafeUser,
+    sender: ISafeUser
   ) {
     try {
       const invitation = invitationTemplate(to, sender);
-      const worked = await sendEmail(
-        to.email,
-        "Invitation to join Noeko",
-        invitation,
-        {
-          from: "team",
-        },
-      );
+      const worked = await sendEmail(to.email, "Invitation to join Noeko", invitation, {
+        from: "team",
+      });
       return worked;
     } catch (error) {
       console.error("Error sending invitation email: ", error);
@@ -546,9 +515,7 @@ export class User {
         return false;
       }
       const user = result;
-      const has = user.roles.find(
-        (r) => r.toString() === role || r.id === role,
-      );
+      const has = user.roles.find((r) => r.toString() === role || r.id === role);
       return has !== undefined;
     } catch (error) {
       console.error("Error checking user role:", error);
@@ -556,10 +523,7 @@ export class User {
     }
   }
 
-  static async checkOwns(
-    userId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  static async checkOwns(userId: string | RecordId, thingId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -570,7 +534,7 @@ export class User {
         {
           userId: new StringRecordId(userId),
           thingId: new StringRecordId(thingId),
-        },
+        }
       );
       if (!results) {
         throw new Error("No results for ownership check");
@@ -583,10 +547,7 @@ export class User {
     }
   }
 
-  static async checkOwnsMany(
-    userId: string | RecordId,
-    thingIds: (string | RecordId)[],
-  ) {
+  static async checkOwnsMany(userId: string | RecordId, thingIds: (string | RecordId)[]) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -605,10 +566,7 @@ export class User {
     }
   }
 
-  static async checkHasAccess(
-    userId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  static async checkHasAccess(userId: string | RecordId, thingId: string | RecordId) {
     try {
       const auth = new Authorization(userId);
       const hasAccess = await auth.hasAccess(thingId);
@@ -645,7 +603,7 @@ export class User {
         fullUser.id,
         token,
         "refresh",
-        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       );
       return token;
     } catch (error) {
@@ -746,18 +704,14 @@ export class User {
       for (const user of users) {
         if (!user.referralCode || force) {
           const newReferralCode = Bun.randomUUIDv7();
-          console.info(
-            `User ${user.id} missing referral code. Assigning: ${newReferralCode}`,
-          );
+          console.info(`User ${user.id} missing referral code. Assigning: ${newReferralCode}`);
           await db.merge(user.id, {
             referralCode: newReferralCode,
             updatedAt: new Date(),
           });
         }
       }
-      console.info(
-        "Finished checking and assigning referral codes for all users.",
-      );
+      console.info("Finished checking and assigning referral codes for all users.");
     } catch (error) {
       console.error("Error in ensureReferralCodes:", error);
       return undefined;
@@ -768,17 +722,14 @@ export class User {
     try {
       const db = await getDatabase();
       if (!db) {
-        console.info(
-          "Cannot check referral code validity: Database not available.",
-        );
+        console.info("Cannot check referral code validity: Database not available.");
         return false;
       }
 
       // Find user by referral code
-      const queryResult = await db.query<[IUser[]]>(
-        "SELECT * FROM user WHERE referralCode = $rc",
-        { rc: referralCode },
-      );
+      const queryResult = await db.query<[IUser[]]>("SELECT * FROM user WHERE referralCode = $rc", {
+        rc: referralCode,
+      });
 
       if (!queryResult || !queryResult[0] || queryResult[0].length === 0) {
         console.info(`Referral code ${referralCode} not found.`);
@@ -789,7 +740,7 @@ export class User {
       // Check if user is disabled
       if (await User.isDisabled(user.id)) {
         console.info(
-          `User ${user.id} (email: ${user.email}) associated with referral code ${referralCode} is disabled.`,
+          `User ${user.id} (email: ${user.email}) associated with referral code ${referralCode} is disabled.`
         );
         return false;
       }
@@ -799,43 +750,38 @@ export class User {
         const isSuperuser = await User.checkUserHasRole(user.id, "superuser");
         if (!isSuperuser) {
           console.info(
-            `SUPERUSER_INVITE_ONLY is active. User ${user.id} (email: ${user.email}, referral: ${referralCode}) is not a superuser. Code invalid.`,
+            `SUPERUSER_INVITE_ONLY is active. User ${user.id} (email: ${user.email}, referral: ${referralCode}) is not a superuser. Code invalid.`
           );
           return false;
         }
         console.info(
-          `SUPERUSER_INVITE_ONLY is active. User ${user.id} (email: ${user.email}, referral: ${referralCode}) is a superuser. Code valid so far.`,
+          `SUPERUSER_INVITE_ONLY is active. User ${user.id} (email: ${user.email}, referral: ${referralCode}) is a superuser. Code valid so far.`
         );
       } else {
         console.info(
-          `SUPERUSER_INVITE_ONLY is not active or not 'true'. Skipping superuser check for ${user.id} (referral: ${referralCode}). Code valid so far.`,
+          `SUPERUSER_INVITE_ONLY is not active or not 'true'. Skipping superuser check for ${user.id} (referral: ${referralCode}). Code valid so far.`
         );
       }
 
       // All checks passed
       console.info(
-        `Referral code ${referralCode} is valid for user ${user.id} (email: ${user.email}).`,
+        `Referral code ${referralCode} is valid for user ${user.id} (email: ${user.email}).`
       );
       return true;
     } catch (error) {
-      console.error(
-        `Error in isReferralCodeValid for code ${referralCode}:`,
-        error,
-      );
+      console.error(`Error in isReferralCodeValid for code ${referralCode}:`, error);
       return false; // On any error, treat the code as invalid
     }
   }
 
   static async addReferralRelationship(
     referrerUserId: string,
-    referredUserId: string,
+    referredUserId: string
   ): Promise<void> {
     try {
       const db = await getDatabase();
       if (!db) {
-        console.info(
-          "Cannot add referral relationship: Database not available.",
-        );
+        console.info("Cannot add referral relationship: Database not available.");
         return;
       }
 
@@ -848,13 +794,11 @@ export class User {
         referrerId,
       });
 
-      console.info(
-        `Successfully created REFERRED relationship: ${referrerId} -> ${referredId}`,
-      );
+      console.info(`Successfully created REFERRED relationship: ${referrerId} -> ${referredId}`);
     } catch (error) {
       console.error(
         `Error creating REFERRED relationship between ${referrerUserId} and ${referredUserId}:`,
-        error,
+        error
       );
       return undefined;
     }
@@ -873,13 +817,11 @@ export class User {
     }
   }
 
-  static async generatePasswordResetToken(
-    user: ISafeUser,
-  ): Promise<string | null> {
+  static async generatePasswordResetToken(user: ISafeUser): Promise<string | null> {
     try {
       const resetToken = generateToken<{ userId: string; type: string }>(
         { userId: user.id, type: "password_reset" },
-        { expiresIn: "1h" },
+        { expiresIn: "1h" }
       );
 
       // Store the token in the database with 1 hour expiration
@@ -887,7 +829,7 @@ export class User {
         user.id,
         resetToken,
         "password_reset",
-        new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+        new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
       );
 
       return resetToken;
@@ -897,17 +839,10 @@ export class User {
     }
   }
 
-  static async sendPasswordResetEmail(
-    user: ISafeUser,
-    resetToken: string,
-  ): Promise<boolean> {
+  static async sendPasswordResetEmail(user: ISafeUser, resetToken: string): Promise<boolean> {
     try {
       const emailContent = passwordResetTemplate(user, resetToken);
-      const success = await sendEmail(
-        user.email,
-        "Reset Your Noeko Password",
-        emailContent,
-      );
+      const success = await sendEmail(user.email, "Reset Your Noeko Password", emailContent);
       return success;
     } catch (error) {
       console.error("Error sending password reset email:", error);
@@ -915,10 +850,7 @@ export class User {
     }
   }
 
-  static async resetPasswordWithToken(
-    token: string,
-    newPassword: string,
-  ): Promise<boolean> {
+  static async resetPasswordWithToken(token: string, newPassword: string): Promise<boolean> {
     try {
       // Find the token in the database
       const tokenRecord = await Token.findByToken(token);
@@ -1004,13 +936,10 @@ export class Role {
   static async create(form: IRoleForm) {
     try {
       const db = await getDatabase();
-      const result = await db?.create<IRole, IRoleForm>(
-        new RecordId("role", form.name),
-        {
-          name: form.name,
-          description: form.description,
-        },
-      );
+      const result = await db?.create<IRole, IRoleForm>(new RecordId("role", form.name), {
+        name: form.name,
+        description: form.description,
+      });
       if (!result) {
         console.error("Failed to create role");
         return undefined;
@@ -1026,13 +955,10 @@ export class Role {
   static async upsert(form: IRoleForm) {
     try {
       const db = await getDatabase();
-      const result = await db?.upsert<IRole, IRoleForm>(
-        new RecordId("role", form.name),
-        {
-          name: form.name,
-          description: form.description,
-        },
-      );
+      const result = await db?.upsert<IRole, IRoleForm>(new RecordId("role", form.name), {
+        name: form.name,
+        description: form.description,
+      });
       if (!result) {
         console.error("Failed to upsert role");
         return undefined;
@@ -1064,9 +990,7 @@ export class Role {
   static async getByName(name: string) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<[IRole]>(
-        `SELECT * FROM role WHERE name = ${name}`,
-      );
+      const result = await db?.query<[IRole]>(`SELECT * FROM role WHERE name = ${name}`);
       if (!result) {
         console.error("Failed to get role");
         return undefined;
@@ -1101,12 +1025,7 @@ export class Token {
     }
   }
 
-  static async create(
-    userId: string,
-    token: string,
-    type: string,
-    expiresAt: Date,
-  ) {
+  static async create(userId: string, token: string, type: string, expiresAt: Date) {
     try {
       const db = await getDatabase();
       const result = await db?.create<IToken, ITokenForm>("user_token", {
@@ -1134,7 +1053,7 @@ export class Token {
         "SELECT *, user.* FROM user_token WHERE value = $value;",
         {
           value: token,
-        },
+        }
       );
       if (!result) {
         console.error("Failed to find token");
@@ -1156,7 +1075,7 @@ export class Token {
         "SELECT * FROM user_token WHERE user = <record> $user;",
         {
           user: user.id,
-        },
+        }
       );
       if (!result) {
         console.error("Failed to find token");

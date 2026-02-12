@@ -1,11 +1,4 @@
-type IOSOptions =
-  | "unknown"
-  | "windows"
-  | "macos"
-  | "unix"
-  | "linux"
-  | "android"
-  | "ios";
+type IOSOptions = "unknown" | "windows" | "macos" | "unix" | "linux" | "android" | "ios";
 
 export function getOS(): IOSOptions {
   const userAgent = navigator.userAgent;

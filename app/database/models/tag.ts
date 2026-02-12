@@ -16,13 +16,7 @@ import GraphService, { IConnectable } from "../../services/Graph";
 import { averageEmbeddings, weightedAverage } from "../../utils/math";
 
 // Re-export types for backward compatibility
-export type {
-  ITag,
-  ITagDescribes,
-  ITagDescriptionRelationship,
-  ITagForm,
-  ITagUserOwnership,
-};
+export type { ITag, ITagDescribes, ITagDescriptionRelationship, ITagForm, ITagUserOwnership };
 
 export class Tag {
   _id: StringRecordId;
@@ -125,10 +119,7 @@ export class Tag {
     await db.query(searchSimilarToTagFunction());
   }
 
-  static async create(
-    data: ITagForm,
-    userId: string | RecordId,
-  ): Promise<ITag | undefined> {
+  static async create(data: ITagForm, userId: string | RecordId): Promise<ITag | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -140,10 +131,7 @@ export class Tag {
         throw new Error("Tried to create tag for a user that does not exist");
       }
 
-      const result = await db.create<
-        ITag,
-        ITagForm & { createdAt: Date; updatedAt: Date }
-      >("tag", {
+      const result = await db.create<ITag, ITagForm & { createdAt: Date; updatedAt: Date }>("tag", {
         ...data,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -176,9 +164,7 @@ export class Tag {
       if (!db) {
         throw new Error("Error getting database");
       }
-      const result = await db.run<ITag>("fn::get_tag", [
-        new StringRecordId(id),
-      ]);
+      const result = await db.run<ITag>("fn::get_tag", [new StringRecordId(id)]);
       if (!result) {
         console.warn("Could not find tag with id: " + id.toString());
         return undefined;
@@ -190,17 +176,13 @@ export class Tag {
     }
   }
 
-  static async getUserTags(
-    userId: string | RecordId,
-  ): Promise<ITag[] | undefined> {
+  static async getUserTags(userId: string | RecordId): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Error getting database");
       }
-      const result = await db.run<ITag[]>("fn::get_user_tags", [
-        new StringRecordId(userId),
-      ]);
+      const result = await db.run<ITag[]>("fn::get_user_tags", [new StringRecordId(userId)]);
       if (!result) {
         console.warn("Error getting user tags or user has no tags");
         return undefined;
@@ -218,7 +200,7 @@ export class Tag {
       const limit = options?.limit ? Number(options.limit) : undefined;
       const result = await db?.query<[ITag[]]>(
         `SELECT * FROM tag WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt${limit ? " LIMIT $limit;" : ""};`,
-        { userId: new StringRecordId(userId), limit },
+        { userId: new StringRecordId(userId), limit }
       );
       if (!result) {
         throw new Error("Something went wrong getting tag: ", result);
@@ -239,20 +221,20 @@ export class Tag {
         embeddingsUpdatedAt: Date;
         cachedCentroidEmbeddings: number[];
       }
-    >,
+    >
   ): Promise<ITag | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Error getting database");
       }
-      const result = await db.merge<
-        ITag,
-        Partial<ITagForm> & { updatedAt: Date }
-      >(new StringRecordId(id), {
-        ...data,
-        updatedAt: new Date(),
-      });
+      const result = await db.merge<ITag, Partial<ITagForm> & { updatedAt: Date }>(
+        new StringRecordId(id),
+        {
+          ...data,
+          updatedAt: new Date(),
+        }
+      );
       if (!result) {
         throw new Error("Result from tag update is falsey");
       }
@@ -268,7 +250,7 @@ export class Tag {
 
   static async checkUserOwnership(
     tagId: string | RecordId,
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<boolean> {
     try {
       const db = await getDatabase();
@@ -280,7 +262,7 @@ export class Tag {
         {
           userId: new StringRecordId(userId),
           tagId: new StringRecordId(tagId),
-        },
+        }
       );
 
       if (result && result[0] && result[0] > 0) {
@@ -294,7 +276,7 @@ export class Tag {
   }
   static async connectToIdea(
     tagId: string | RecordId,
-    ideaId: string | RecordId,
+    ideaId: string | RecordId
   ): Promise<ITagDescriptionRelationship | undefined> {
     try {
       const db = await getDatabase();
@@ -314,29 +296,24 @@ export class Tag {
           tagId: new StringRecordId(tagId),
           ideaId: new StringRecordId(ideaId),
           now: new Date(),
-        },
+        }
       );
 
       if (!result) {
-        console.error(
-          `No relationship created for tag "${tagId}" and idea "${ideaId}".`,
-        );
+        console.error(`No relationship created for tag "${tagId}" and idea "${ideaId}".`);
         return undefined;
       }
       const [relationship] = result;
       return relationship;
     } catch (err) {
-      console.error(
-        `Error during connectToIdea for tag "${tagId}" and idea "${ideaId}":`,
-        err,
-      );
+      console.error(`Error during connectToIdea for tag "${tagId}" and idea "${ideaId}":`, err);
       return undefined;
     }
   }
 
   static async applyToThing(
     tagId: string | RecordId,
-    thingId: string | RecordId,
+    thingId: string | RecordId
   ): Promise<ITagDescriptionRelationship | undefined> {
     try {
       const db = await getDatabase();
@@ -353,13 +330,11 @@ export class Tag {
           tagId: new StringRecordId(tagId),
           thingId: new StringRecordId(thingId),
           now: new Date(),
-        },
+        }
       );
 
       if (!result) {
-        console.error(
-          `No relationship created for tag "${tagId}" and thing "${thingId}".`,
-        );
+        console.error(`No relationship created for tag "${tagId}" and thing "${thingId}".`);
         return undefined;
       }
 
@@ -368,17 +343,14 @@ export class Tag {
       const [relationship] = result;
       return relationship;
     } catch (err) {
-      console.error(
-        `Error during applyToThing for tag "${tagId}" and thing "${thingId}":`,
-        err,
-      );
+      console.error(`Error during applyToThing for tag "${tagId}" and thing "${thingId}":`, err);
       return undefined;
     }
   }
 
   static async removeFromThing(
     tagId: string | RecordId,
-    thingId: string | RecordId,
+    thingId: string | RecordId
   ): Promise<ITagDescriptionRelationship | undefined> {
     try {
       const db = await getDatabase();
@@ -391,7 +363,7 @@ export class Tag {
         {
           tagId: new StringRecordId(tagId),
           thingId: new StringRecordId(thingId),
-        },
+        }
       );
 
       if (!result || result.length === 0) {
@@ -400,17 +372,14 @@ export class Tag {
 
       return result[0];
     } catch (err) {
-      console.error(
-        `Error during removeFromThing for tag "${tagId}" and thing "${thingId}":`,
-        err,
-      );
+      console.error(`Error during removeFromThing for tag "${tagId}" and thing "${thingId}":`, err);
       return undefined;
     }
   }
 
   static async disconnectFromIdea(
     tagId: string | RecordId,
-    ideaId: string | RecordId,
+    ideaId: string | RecordId
   ): Promise<boolean> {
     try {
       const db = await getDatabase();
@@ -421,13 +390,10 @@ export class Tag {
       // SurrealDB's DELETE relation query is a bit different.
       // We target the edge record directly if we know its ID, or delete based on 'in' and 'out'.
       // Simpler: Delete edges from 'tag' that point to 'idea' with the 'describes' verb.
-      const result = await db.query(
-        `DELETE describes WHERE in = $tagId AND out = $ideaId;`,
-        {
-          tagId: new StringRecordId(tagId),
-          ideaId: new StringRecordId(ideaId),
-        },
-      );
+      const result = await db.query(`DELETE describes WHERE in = $tagId AND out = $ideaId;`, {
+        tagId: new StringRecordId(tagId),
+        ideaId: new StringRecordId(ideaId),
+      });
 
       // The DELETE query in SurrealDB for relations might not return the deleted record details directly
       // in the same way a SELECT or CREATE does. It often returns an empty array upon success.
@@ -437,23 +403,19 @@ export class Tag {
     } catch (err) {
       console.error(
         `Error during disconnectFromIdea for tag "${tagId}" and idea "${ideaId}":`,
-        err,
+        err
       );
       return false;
     }
   }
 
-  static async getIdeasForTag(
-    tagId: string | RecordId,
-  ): Promise<Idea[] | undefined> {
+  static async getIdeasForTag(tagId: string | RecordId): Promise<Idea[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Error getting database");
       }
-      const results = await db.run<Idea[]>("fn::get_ideas_for_tag", [
-        new StringRecordId(tagId),
-      ]);
+      const results = await db.run<Idea[]>("fn::get_ideas_for_tag", [new StringRecordId(tagId)]);
       if (!results) {
         console.warn("Error getting ideas for tag or tag has no ideas");
         return []; // Return empty array if no ideas or error
@@ -465,17 +427,13 @@ export class Tag {
     }
   }
 
-  static async getTagsForIdea(
-    ideaId: string | RecordId,
-  ): Promise<ITag[] | undefined> {
+  static async getTagsForIdea(ideaId: string | RecordId): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Error getting database");
       }
-      const results = await db.run<ITag[]>("fn::get_tags_for_idea", [
-        new StringRecordId(ideaId),
-      ]);
+      const results = await db.run<ITag[]>("fn::get_tags_for_idea", [new StringRecordId(ideaId)]);
       if (!results) {
         console.warn("Error getting tags for idea or idea has no tags");
         return []; // Return empty array if no ideas or error
@@ -487,9 +445,7 @@ export class Tag {
     }
   }
 
-  static async getTagThings(
-    tagId: string | RecordId,
-  ): Promise<ITagDescribes[] | undefined> {
+  static async getTagThings(tagId: string | RecordId): Promise<ITagDescribes[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -504,7 +460,7 @@ export class Tag {
         `,
         {
           tagId: new StringRecordId(tagId),
-        },
+        }
       );
 
       if (!results) {
@@ -514,9 +470,7 @@ export class Tag {
 
       const [things] = results;
 
-      const connectables = things.map(
-        (t) => GraphService.getConnectable(t) || t,
-      );
+      const connectables = things.map((t) => GraphService.getConnectable(t) || t);
 
       return connectables;
     } catch (error) {
@@ -535,9 +489,7 @@ export class Tag {
       const tagIdObject = new StringRecordId(id);
       const result = await db.delete<ITag>(tagIdObject);
 
-      return (
-        result !== undefined && (!Array.isArray(result) || result.length > 0)
-      );
+      return result !== undefined && (!Array.isArray(result) || result.length > 0);
     } catch (error) {
       console.error("Error deleting tag: ", error);
       return false;
@@ -546,11 +498,7 @@ export class Tag {
 
   static async updateEmbeddings(tag: ITag, force = false) {
     try {
-      if (
-        !force &&
-        tag.embeddingsUpdatedAt >= tag.updatedAt &&
-        tag.embeddings?.length !== 0
-      ) {
+      if (!force && tag.embeddingsUpdatedAt >= tag.updatedAt && tag.embeddings?.length !== 0) {
         return undefined;
       }
       const embedding = getEmbedder();
@@ -578,7 +526,7 @@ export class Tag {
     options?: {
       limit?: number;
       threshold?: number;
-    },
+    }
   ): Promise<ITag[] | undefined> {
     try {
       const db = await getDatabase();
@@ -592,10 +540,7 @@ export class Tag {
       if (!idea.embeddings) {
         return;
       }
-      const results = await Search.searchTagsByEmbedding(
-        userId,
-        idea.embeddings,
-      );
+      const results = await Search.searchTagsByEmbedding(userId, idea.embeddings);
       if (!results) {
         throw new Error("No similar tags found.");
       }
@@ -615,7 +560,7 @@ export class Tag {
     options?: {
       limit?: number;
       threshold?: number;
-    },
+    }
   ): Promise<IIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -633,12 +578,12 @@ export class Tag {
 
       const results = await db.run<(IIdea & { derivedList: IIdeaDerived[] })[]>(
         "fn::search_ideas_similar_to_tag",
-        [new StringRecordId(tagId), new StringRecordId(userId)],
+        [new StringRecordId(tagId), new StringRecordId(userId)]
       );
 
       if (!results) {
         console.warn(
-          `No similar ideas found for tag ${tagId.toString()} for user ${userId.toString()}.`,
+          `No similar ideas found for tag ${tagId.toString()} for user ${userId.toString()}.`
         );
         return [];
       }
@@ -654,10 +599,7 @@ export class Tag {
 
       return final;
     } catch (error) {
-      console.error(
-        `Error getting similar ideas for tag ${tagId.toString()}: `,
-        error,
-      );
+      console.error(`Error getting similar ideas for tag ${tagId.toString()}: `, error);
       return undefined;
     }
   }
@@ -675,7 +617,7 @@ export class Tag {
         FROM ONLY $tagId
         LIMIT $k;
         `,
-        { tagId: new StringRecordId(id), k },
+        { tagId: new StringRecordId(id), k }
       );
 
       if (!results) {
@@ -697,9 +639,7 @@ export class Tag {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const results = await db.query<
-        [(ITagDescribes & { embeddings: number[] })[]]
-      >(
+      const results = await db.query<[(ITagDescribes & { embeddings: number[] })[]]>(
         `
         SELECT VALUE
           ->describes->(?) as describes
@@ -708,7 +648,7 @@ export class Tag {
         `,
         {
           tagId: new StringRecordId(tagId),
-        },
+        }
       );
 
       if (!results) {
@@ -729,7 +669,7 @@ export class Tag {
 
   static async getWeightedVector(
     tagEmbedding: number[] | null,
-    averageEmbedding: number[] | null,
+    averageEmbedding: number[] | null
   ): Promise<number[]> {
     const emb = getEmbedder();
     try {
@@ -738,11 +678,7 @@ export class Tag {
       }
 
       if (tagEmbedding?.length && averageEmbedding?.length) {
-        return weightedAverage(
-          tagEmbedding,
-          averageEmbedding,
-          this.SUGGESTION_WEIGHT,
-        );
+        return weightedAverage(tagEmbedding, averageEmbedding, this.SUGGESTION_WEIGHT);
       }
 
       if (!tagEmbedding?.length && averageEmbedding?.length) {
@@ -785,7 +721,7 @@ export class Tag {
       limit?: number;
       threshold?: number;
       candidates?: number;
-    },
+    }
   ): Promise<ITagDescribes[] | undefined> {
     try {
       const db = await getDatabase();
@@ -794,9 +730,7 @@ export class Tag {
       const limit = options.limit || 25;
       const threshold = Number(options.threshold) || 0.45;
 
-      const results = await db.query<
-        [(ITagDescribes & { embeddings: number[] })[]]
-      >(
+      const results = await db.query<[(ITagDescribes & { embeddings: number[] })[]]>(
         `
         SELECT VALUE
           ->describes->(?) as describes
@@ -805,7 +739,7 @@ export class Tag {
         `,
         {
           tagId: new StringRecordId(tagId),
-        },
+        }
       );
 
       if (!results) {
@@ -830,18 +764,14 @@ export class Tag {
 
       const finalVector = await this.getWeightedVector(
         tagEmbedding || null,
-        centroidEmbeddings || null,
+        centroidEmbeddings || null
       );
 
-      const similarThings = await GraphService.searchSimilarConnectables(
-        userId,
-        finalVector,
-        {
-          limit,
-          threshold,
-          exclude: described.map((i) => i.id.toString()),
-        },
-      );
+      const similarThings = await GraphService.searchSimilarConnectables(userId, finalVector, {
+        limit,
+        threshold,
+        exclude: described.map((i) => i.id.toString()),
+      });
 
       if (!similarThings) {
         throw new Error("Couldn't get similar things");

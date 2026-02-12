@@ -2,60 +2,60 @@
 }
 
 .tabsList {
-    display: flex;
-    gap: var(--mantine-spacing-xs);
-    margin-bottom: var(--mantine-spacing-xs);
-    flex-wrap: wrap;
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  margin-bottom: var(--mantine-spacing-xs);
+  flex-wrap: wrap;
 }
 
 .tab {
-    cursor: pointer;
-    background-color: transparent;
-    border: none;
-    font-size: var(--mantine-font-size-xs);
-    color: var(--mantine-color-dark-3);
-    transition: all 0.2s ease-in-out;
-    display: flex;
-    align-items: center;
-    gap: var(--mantine-spacing-xs);
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dark-3);
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
 
-    &:hover {
-        color: var(--mantine-color-dark-2);
-    }
+  &:hover {
+    color: var(--mantine-color-dark-2);
+  }
 }
 
 .tabActive {
-    color: var(--mantine-color-dark-1);
-    background-color: var(--mantine-color-dark-7);
-    padding: 4px var(--mantine-spacing-xs);
-    border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-dark-1);
+  background-color: var(--mantine-color-dark-7);
+  padding: 4px var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
 }
 
 .tabLeftSection {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 @keyframes panelIn {
-    0% {
-        opacity: 0.50;
-        transform: translateY(2px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  0% {
+    opacity: 0.5;
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .tabPanel {
-    animation: panelIn 0.2s ease-in-out;
+  animation: panelIn 0.2s ease-in-out;
 }
 
 .tabDisabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  cursor: not-allowed;
+  opacity: 0.5;
 
-    &:hover {
-        color: var(--mantine-color-dark-3);
-    }
+  &:hover {
+    color: var(--mantine-color-dark-3);
+  }
 }

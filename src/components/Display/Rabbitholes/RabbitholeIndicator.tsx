@@ -35,8 +35,7 @@ export function RabbitholeIndicator() {
   const tourRef = useTourStep({
     id: "feature:rabbithole_navigation",
     title: "Rabbitholes",
-    content:
-      "Use Rabbitholes to go down deep dives into a specific subject or topic!",
+    content: "Use Rabbitholes to go down deep dives into a specific subject or topic!",
     view: "all",
     order: 3,
   });
@@ -60,14 +59,10 @@ export function RabbitholeIndicator() {
           style={{
             height: "100%",
           }}
-          className={`${styles.rabbitholeIndicator} ${!!currentRabbithole ? styles.down : styles.notDown}`}
+          className={`${styles.rabbitholeIndicator} ${currentRabbithole ? styles.down : styles.notDown}`}
           ref={tourRef}
         >
-          {menuOpen ? (
-            <XIcon size={16} weight="bold" />
-          ) : (
-            <RabbitholeIcon size={16} />
-          )}
+          {menuOpen ? <XIcon size={16} weight="bold" /> : <RabbitholeIcon size={16} />}
         </div>
       </Menu.Target>
       <Menu.Dropdown style={{ overflowY: "scroll", maxHeight: "400px" }}>
@@ -116,10 +111,7 @@ function DropdownForRabbithole() {
   };
 
   const maxIncludedDisplayed = 5;
-  const truncatedIncludedThings = currentRabbithole?.includes?.slice(
-    0,
-    maxIncludedDisplayed,
-  );
+  const truncatedIncludedThings = currentRabbithole?.includes?.slice(0, maxIncludedDisplayed);
   const hasAdditionalThings =
     currentRabbithole &&
     currentRabbithole?.includes &&
@@ -201,10 +193,7 @@ function DropdownForRabbithole() {
 function DropdownEmpty() {
   const navigate = useNavigate();
 
-  const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<
-    undefined,
-    IRabbithole[]
-  >({
+  const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<undefined, IRabbithole[]>({
     url: `/rabbitholes?limit=10`,
   });
 
@@ -221,7 +210,7 @@ function DropdownEmpty() {
     loadRabbitholes();
   }, []);
 
-  if (!!currentRabbithole) {
+  if (currentRabbithole) {
     return null;
   }
 
@@ -232,9 +221,7 @@ function DropdownEmpty() {
         return (
           <Menu.Item
             key={r.id.toString()}
-            leftSection={
-              <RabbitholeIcon size={14} color={"var(--mantine-color-dimmed)"} />
-            }
+            leftSection={<RabbitholeIcon size={14} color={"var(--mantine-color-dimmed)"} />}
             rightSection={
               <ActionIcon
                 onClick={(e) => {

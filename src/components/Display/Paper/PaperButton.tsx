@@ -28,11 +28,7 @@ export default function PaperButton({
   ].filter((c) => !!c);
 
   return (
-    <button
-      tabIndex={tabIndex}
-      className={classNames.join(" ")}
-      onClick={onClick}
-    >
+    <button tabIndex={tabIndex} className={classNames.join(" ")} onClick={onClick}>
       {leftSection && <div className={styles.leftSection}>{leftSection}</div>}
       {children}
     </button>

@@ -11,9 +11,9 @@ import { ICSSApplicator, IOverrideResolver } from "../../declarations/themes";
 import { getCurrentScheme } from "../../utils/dom";
 
 const noeko: IOverrideResolver = (t) => {
-  const lightColors: Partial<
-    Record<DefaultMantineColor, MantineColorsTuple>
-  > & { dark: MantineColorsTuple } = {
+  const lightColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> & {
+    dark: MantineColorsTuple;
+  } = {
     dark: [
       "#282828", // 0
       "#3c3836", // 1
@@ -246,8 +246,7 @@ const noeko: IOverrideResolver = (t) => {
       "--mantine-color-default": lightColors.dark[8],
       "--color-code-background": lightColors.dark[9],
       "--color-code-foreground": lightColors.dark[1],
-      "--color-highlight":
-        lightColors.highlight?.[6] ?? "--mantine-color-highlight-6",
+      "--color-highlight": lightColors.highlight?.[6] ?? "--mantine-color-highlight-6",
       "--color-highlight-text": lightColors.dark[0],
       "--item-filled-color": lightColors.dark[8],
     },
@@ -299,8 +298,7 @@ const noeko: IOverrideResolver = (t) => {
       "--ai-bg": darkColors.dark[9],
       "--color-code-background": darkColors.dark[9],
       "--color-code-foreground": darkColors.dark[1],
-      "--color-highlight":
-        darkColors.highlight?.[9] ?? "--mantine-color-highlight-9",
+      "--color-highlight": darkColors.highlight?.[9] ?? "--mantine-color-highlight-9",
       "--color-highlight-text": darkColors.dark[0],
       "--item-filled-color": darkColors.dark[8],
     },

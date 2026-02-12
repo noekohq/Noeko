@@ -32,15 +32,14 @@ export default class GoogleProvider implements EmbeddingsProvider {
           }
         : {
             apiKey: API_KEY,
-          },
+          }
     );
-    this._model =
-      GOOGLE_EMBEDDING_MODEL_NAME ?? default_google_embeddings_model;
+    this._model = GOOGLE_EMBEDDING_MODEL_NAME ?? default_google_embeddings_model;
     const rpmEnv = process.env.EMBEDDINGS_RPM_LIMIT || "60"; // Default to 60 RPM
     this.rpm = parseInt(rpmEnv, 10);
     if (isNaN(this.rpm) || this.rpm <= 0) {
       console.warn(
-        `[VertexAIEmbeddingProvider] Invalid EMBEDDINGS_RPM_LIMIT value "${rpmEnv}", defaulting to 60 RPM.`,
+        `[VertexAIEmbeddingProvider] Invalid EMBEDDINGS_RPM_LIMIT value "${rpmEnv}", defaulting to 60 RPM.`
       );
       this.rpm = 60;
     }
@@ -69,7 +68,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
             const distB = getLevenshteinDistance(b, this.model);
             return distA - distB;
           })
-          .join(", "),
+          .join(", ")
       );
       return false;
     }
@@ -85,11 +84,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
       });
       const modelsFound = models.page;
       const modelStrings = modelsFound.map((model) => {
-        return (
-          model.name ||
-          `Display: ${model.displayName}` ||
-          "No information available"
-        );
+        return model.name || `Display: ${model.displayName}` || "No information available";
       });
       return modelStrings;
     } catch (error) {
@@ -113,9 +108,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
         },
       });
       const endTime = Date.now();
-      console.log(
-        `Embedding content took ${(endTime - startTime).toFixed(2)}ms`,
-      );
+      console.log(`Embedding content took ${(endTime - startTime).toFixed(2)}ms`);
       if (!response.embeddings?.length) {
         throw new Error("No embeddings returned from model");
       }
@@ -134,13 +127,13 @@ export default class GoogleProvider implements EmbeddingsProvider {
     try {
       if (!contents || contents.length === 0) {
         console.info(
-          `[${this.constructor.name}] embedContents: No texts provided, returning empty array.`,
+          `[${this.constructor.name}] embedContents: No texts provided, returning empty array.`
         );
         return [];
       }
 
       console.info(
-        `[${this.constructor.name}] embedContents: Embedding ${contents.length} texts sequentially with throttling (Target RPM: ${this.rpm}).`,
+        `[${this.constructor.name}] embedContents: Embedding ${contents.length} texts sequentially with throttling (Target RPM: ${this.rpm}).`
       );
       const allEmbeddings: number[][] = [];
 
@@ -153,23 +146,19 @@ export default class GoogleProvider implements EmbeddingsProvider {
         const now = Date.now();
         const timeSinceLastRequest = now - this.lastRequestTimestamp;
 
-        if (
-          this.lastRequestTimestamp !== 0 &&
-          timeSinceLastRequest < this.minIntervalMs
-        ) {
+        if (this.lastRequestTimestamp !== 0 && timeSinceLastRequest < this.minIntervalMs) {
           const delayNeeded = this.minIntervalMs - timeSinceLastRequest;
           console.info(
-            `[${this.constructor.name}] Throttling: waiting ${delayNeeded.toFixed(0)}ms before embedding text ${i + 1}/${contents.length}.`,
+            `[${this.constructor.name}] Throttling: waiting ${delayNeeded.toFixed(0)}ms before embedding text ${i + 1}/${contents.length}.`
           );
           await sleep(delayNeeded);
         }
 
         this.lastRequestTimestamp = Date.now();
 
-        const displayText =
-          content.length > 70 ? `${content.substring(0, 67)}...` : content;
+        const displayText = content.length > 70 ? `${content.substring(0, 67)}...` : content;
         console.info(
-          `[${this.constructor.name}] Embedding text ${i + 1}/${contents.length}: "${displayText}"`,
+          `[${this.constructor.name}] Embedding text ${i + 1}/${contents.length}: "${displayText}"`
         );
 
         try {
@@ -180,16 +169,15 @@ export default class GoogleProvider implements EmbeddingsProvider {
           }
           allEmbeddings.push(embedding);
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : String(error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
           console.error(
-            `[${this.constructor.name}] Error embedding text ${i + 1} ("${displayText}"): ${errorMessage}`,
+            `[${this.constructor.name}] Error embedding text ${i + 1} ("${displayText}"): ${errorMessage}`
           );
         }
       }
 
       console.info(
-        `[${this.constructor.name}] embedContents: Successfully processed ${allEmbeddings.length} texts sequentially.`,
+        `[${this.constructor.name}] embedContents: Successfully processed ${allEmbeddings.length} texts sequentially.`
       );
       return allEmbeddings;
     } catch (error) {
@@ -198,9 +186,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
     }
   }
 
-  async getEmptyEmbeddings(
-    dimension = default_embeddings_dimension,
-  ): Promise<number[]> {
+  async getEmptyEmbeddings(dimension = default_embeddings_dimension): Promise<number[]> {
     return Array(dimension).fill(0);
   }
 }

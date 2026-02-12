@@ -11,10 +11,7 @@ import {
   UserIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
-import type {
-  ISearchResultValue,
-  ISearchResult,
-} from "../../../shared/types/search";
+import type { ISearchResultValue, ISearchResult } from "../../../shared/types/search";
 import { IConnectable } from "../../../shared/types/constellation";
 import { INode } from "../../declarations/graph";
 import { PartialGlimpseResult } from "../../utils/partialJsonParser";
@@ -27,11 +24,7 @@ import { SearchBar } from "./SearchBar";
 import useSearchQuery from "../../hooks/useSearchQuery";
 import { SpyglassIcon } from "../Utils/Icons/Icons";
 import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
-import {
-  getNodeDescription,
-  getNodeLink,
-  getNodeTitle,
-} from "../../utils/graph";
+import { getNodeDescription, getNodeLink, getNodeTitle } from "../../utils/graph";
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
 import { useSearch } from "../../contexts/SearchContext";
 
@@ -153,10 +146,7 @@ const ResultsView = ({
             </Group>
           </Text>
 
-          <Transition
-            mounted={!!recent && recent.length > 0}
-            transition="fade-up"
-          >
+          <Transition mounted={!!recent && recent.length > 0} transition="fade-up">
             {(style) => {
               return (
                 <Stack style={style} gap="sm">
@@ -189,9 +179,7 @@ const ResultsView = ({
 
         if (!title || !preview) return null;
 
-        const actions = resultActions
-          ? resultActions.map((f) => f(r.value))
-          : undefined;
+        const actions = resultActions ? resultActions.map((f) => f(r.value)) : undefined;
 
         return (
           <PaperSearchResult
@@ -207,8 +195,7 @@ const ResultsView = ({
                 ? [
                     {
                       icon: UserCircleIcon,
-                      label:
-                        `${r.value.author.firstName} ${r.value.author.lastName}`.trim(),
+                      label: `${r.value.author.firstName} ${r.value.author.lastName}`.trim(),
                     },
                   ]
                 : undefined
@@ -340,12 +327,7 @@ export default function Search({
       />
 
       <Stack gap="xs">
-        <PaperButton
-          withBorder
-          fullWidth
-          size="md"
-          onClick={() => setGlimpseMode(!glimpseMode)}
-        >
+        <PaperButton withBorder fullWidth size="md" onClick={() => setGlimpseMode(!glimpseMode)}>
           <Group gap="xs" justify="center" w={"100%"}>
             {glimpseMode ? (
               <SparkleIcon size={12} weight="fill" />

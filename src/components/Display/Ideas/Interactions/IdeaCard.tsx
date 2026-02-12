@@ -51,14 +51,7 @@ export type IIdeaAction = {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, idea: ISafeIdea) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean; // If true, primarily for the overflow menu
@@ -104,7 +97,7 @@ export default function IdeaCard({
       JSON.stringify({
         ideaId: idea.id.toString(),
         thingId: idea.id.toString(),
-      }),
+      })
     );
   };
 
@@ -194,11 +187,7 @@ export default function IdeaCard({
                   <Group gap="xs">
                     {badges.map((badge) => {
                       return (
-                        <Badge
-                          leftSection={badge.icon}
-                          color={badge.color}
-                          size={"sm"}
-                        >
+                        <Badge leftSection={badge.icon} color={badge.color} size={"sm"}>
                           {badge.label}
                         </Badge>
                       );

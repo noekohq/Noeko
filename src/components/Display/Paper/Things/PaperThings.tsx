@@ -6,18 +6,10 @@ import { formatDateShort } from "../../../../utils/formatting";
 import IconToggle from "../../Interactions/Toggle/IconToggle";
 import ContextMenuWrapper from "./ContextMenuWrapper";
 import GridCard from "./GridCard";
-import {
-  Icon,
-  MagnifyingGlassIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-} from "@phosphor-icons/react";
+import { Icon, MagnifyingGlassIcon, ArrowUpIcon, ArrowDownIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router";
 import { useLayout } from "../../../../contexts/LayoutContext";
-import {
-  IComponentFilter,
-  useSearch,
-} from "../../../../contexts/SearchContext";
+import { IComponentFilter, useSearch } from "../../../../contexts/SearchContext";
 import PaperIcon from "../PaperIcon";
 import PaperInput from "../PaperInput";
 import PaperSelect from "../PaperSelect";
@@ -76,9 +68,7 @@ export default function PaperThings({
       processedThings = processedThings.filter((thing) => {
         const titleMatch = thing.title?.toLowerCase().includes(query);
         const detailMatch =
-          typeof thing.detail === "string"
-            ? thing.detail.toLowerCase().includes(query)
-            : false;
+          typeof thing.detail === "string" ? thing.detail.toLowerCase().includes(query) : false;
         return titleMatch || detailMatch;
       });
     }
@@ -97,11 +87,7 @@ export default function PaperThings({
         }
 
         if (field === "createdAt" || field === "updatedAt") {
-          return (
-            (new Date(valA as string).getTime() -
-              new Date(valB as string).getTime()) *
-            dir
-          );
+          return (new Date(valA as string).getTime() - new Date(valB as string).getTime()) * dir;
         }
 
         if (typeof valA === "string" && typeof valB === "string") {
@@ -251,9 +237,7 @@ function ThingList({ things }: IThingTableProps) {
         return (
           <ContextMenuWrapper thing={t}>
             <div
-              className={`${styles.thingListItem} ${
-                oneChild ? styles.oneChild : ""
-              }`}
+              className={`${styles.thingListItem} ${oneChild ? styles.oneChild : ""}`}
               key={t.id}
               style={{ animationDelay: `${Math.log(index + 1) * 75}ms` }}
               onClick={() => {
@@ -263,25 +247,14 @@ function ThingList({ things }: IThingTableProps) {
               }}
             >
               <Group wrap="nowrap" gap="sm" align="center">
-                <div className={styles.left}>
-                  {Icon && <Icon weight="fill" />}
-                </div>
-                <Stack
-                  gap={2}
-                  style={{ flex: 1, minWidth: 0 }}
-                  className={styles.innerContent}
-                >
+                <div className={styles.left}>{Icon && <Icon weight="fill" />}</div>
+                <Stack gap={2} style={{ flex: 1, minWidth: 0 }} className={styles.innerContent}>
                   <Group justify="space-between">
                     <Text fw="bold" size="sm" truncate="end">
                       {t.title}
                     </Text>
                     {t.createdAt && (
-                      <Text
-                        size="xs"
-                        c="dimmed"
-                        fw="bold"
-                        style={{ whiteSpace: "nowrap" }}
-                      >
+                      <Text size="xs" c="dimmed" fw="bold" style={{ whiteSpace: "nowrap" }}>
                         {formatDateShort(t.createdAt)}
                       </Text>
                     )}

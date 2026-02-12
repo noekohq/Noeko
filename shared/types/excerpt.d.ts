@@ -37,12 +37,7 @@ export type IPublicExcerpt = Omit<IExcerpt, "embeddings">;
 export type IExcerptCreator = Omit<IExcerpt, "id">;
 export type IExcerptForm = Omit<
   IExcerptCreator,
-  | "embeddings"
-  | "embeddingsUpdatedAt"
-  | "createdAt"
-  | "updatedAt"
-  | "viewedAt"
-  | "references"
+  "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt" | "viewedAt" | "references"
 >;
 
 export type IExcerptOwnership = {

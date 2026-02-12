@@ -5,6 +5,7 @@ This plan outlines the tasks required to prepare the Noeko application for a pub
 ## Phase 1: Self-Hosting and Public Visibility Preparation
 
 ### Tasks
+
 - [ ] Task: Create a comprehensive `SELF_HOSTING.md` guide.
 - [ ] Task: Refactor configuration to be fully environment variable-driven and update `.env.example`.
 - [ ] Task: Create a production-ready `docker-compose.yml` for a simple, single-command setup.
@@ -15,6 +16,7 @@ This plan outlines the tasks required to prepare the Noeko application for a pub
 ## Phase 2: Business Model Implementation and Feature Gating
 
 ### Tasks
+
 - [ ] Task: Implement a license key validation mechanism.
 - [ ] Task: Create a `/api/license/status` endpoint for license validation.
 - [ ] Task: Implement feature gating for real-time collaboration features.
@@ -25,6 +27,7 @@ This plan outlines the tasks required to prepare the Noeko application for a pub
 ## Phase 3: Lemonsqueezy Integration
 
 ### Tasks
+
 - [ ] Task: Create a UI page or modal to direct users to the Lemonsqueezy checkout.
 - [ ] Task: Create a `/api/webhooks/lemonsqueezy` webhook endpoint to receive license key information.
 - [ ] Task: Implement the webhook handler to securely store and associate license keys.

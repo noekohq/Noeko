@@ -1,9 +1,4 @@
-import {
-  ActionIcon,
-  MantineColor,
-  MantineRadius,
-  MantineSize,
-} from "@mantine/core";
+import { ActionIcon, MantineColor, MantineRadius, MantineSize } from "@mantine/core";
 import { HouseIcon } from "@phosphor-icons/react";
 import { Link, useLocation } from "react-router";
 import useRabbithole from "../../../hooks/useRabbithole";
@@ -34,12 +29,7 @@ export default function HomeButton({
 
   return (
     <Link to={"/"}>
-      <ActionIcon
-        variant={variant}
-        color={defaultColor}
-        size={size}
-        radius={radius}
-      >
+      <ActionIcon variant={variant} color={defaultColor} size={size} radius={radius}>
         <HouseIcon />
       </ActionIcon>
     </Link>

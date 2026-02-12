@@ -1,9 +1,4 @@
-import {
-  IIdea,
-  IIdeaConnection,
-  IIdeaWithComputedFields,
-  ISafeIdea,
-} from "./idea";
+import { IIdea, IIdeaConnection, IIdeaWithComputedFields, ISafeIdea } from "./idea";
 import { IPublicUser } from "./user";
 import { IUserFile } from "./userfile";
 import { ITag, ITagDescriptionRelationship } from "./tag";
@@ -88,11 +83,10 @@ export type IGetAllConnectables_PaginationOptions = Partial<{
   cursor: string;
 }>;
 
-export type IGetAllConnectables_Options =
-  IGetAllConnectables_PaginationOptions &
-    IGetAllConnectables_SortOptions & {
-      filters?: IGraphFilters;
-    };
+export type IGetAllConnectables_Options = IGetAllConnectables_PaginationOptions &
+  IGetAllConnectables_SortOptions & {
+    filters?: IGraphFilters;
+  };
 
 export type IDBGraph = {
   ideas: (IIdea & { derivedList: IIdeaDerived[] })[];

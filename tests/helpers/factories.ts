@@ -11,7 +11,7 @@ import { StringRecordId } from "surrealdb";
 export const createUser = async (overrides: any = {}) => {
   const db = await getDatabase();
   const email = overrides.email || `test-${Bun.randomUUIDv7()}@example.com`;
-  
+
   const userData = {
     firstName: "Test",
     lastName: "User",
@@ -31,11 +31,11 @@ export const createUser = async (overrides: any = {}) => {
   const id = overrides.id || "user"; // "user" will result in a generated ID
 
   const result = await db?.create(id, userData);
-  
+
   if (!result) {
     throw new Error("Failed to create test user");
   }
-  
+
   const user = Array.isArray(result) ? result[0] : result;
   return user;
 };

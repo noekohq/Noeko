@@ -1,16 +1,5 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import {
-  IThemeOption,
-  IThemeResolved,
-  IThemeSpec,
-} from "../declarations/themes";
+import { createContext, useCallback, useContext, useState, useEffect, ReactNode } from "react";
+import { IThemeOption, IThemeResolved, IThemeSpec } from "../declarations/themes";
 import { ResolveTheme } from "../themes";
 import { isDarkScheme } from "../utils/dom";
 import { IUserSettings } from "../../shared/types/user";
@@ -51,10 +40,7 @@ type ISettingsContext = {
     };
   };
   user: {
-    setSetting: (
-      setting: keyof IUserSettings,
-      value: any,
-    ) => Promise<boolean | undefined>;
+    setSetting: (setting: keyof IUserSettings, value: any) => Promise<boolean | undefined>;
   };
 };
 
@@ -109,16 +95,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const { user, reload } = useAuth();
 
   const [override, setOverride] = useState<IThemeSpec["override"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko"),
+    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko")
   );
   const [scheme, setScheme] = useState<IThemeSpec["scheme"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto"),
+    getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto")
   );
   const [bodyFont, setBodyFont] = useState<IThemeSpec["bodyFont"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.bodyFont, "sans-serif"),
+    getInitialState(LOCAL_STORAGE_KEYS.bodyFont, "sans-serif")
   );
-  const [headingFont, setHeadingFont] = useState<IThemeSpec["headingFont"]>(
-    () => getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif"),
+  const [headingFont, setHeadingFont] = useState<IThemeSpec["headingFont"]>(() =>
+    getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif")
   );
 
   useEffect(() => {
@@ -127,10 +113,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem(LOCAL_STORAGE_KEYS.override, override);
       }
     } catch (error) {
-      console.warn(
-        `Error saving '${LOCAL_STORAGE_KEYS.override}' to localStorage:`,
-        error,
-      );
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.override}' to localStorage:`, error);
     }
   }, [override]);
 
@@ -140,10 +123,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem(LOCAL_STORAGE_KEYS.scheme, scheme);
       }
     } catch (error) {
-      console.warn(
-        `Error saving '${LOCAL_STORAGE_KEYS.scheme}' to localStorage:`,
-        error,
-      );
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.scheme}' to localStorage:`, error);
     }
   }, [scheme]);
 
@@ -154,10 +134,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem(LOCAL_STORAGE_KEYS.bodyFont, bodyFont);
       }
     } catch (error) {
-      console.warn(
-        `Error saving '${LOCAL_STORAGE_KEYS.bodyFont}' to localStorage:`,
-        error,
-      );
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.bodyFont}' to localStorage:`, error);
     }
   }, [bodyFont]);
 
@@ -168,10 +145,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem(LOCAL_STORAGE_KEYS.headingFont, headingFont);
       }
     } catch (error) {
-      console.warn(
-        `Error saving '${LOCAL_STORAGE_KEYS.headingFont}' to localStorage:`,
-        error,
-      );
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.headingFont}' to localStorage:`, error);
     }
   }, [headingFont]);
 
@@ -184,13 +158,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         bodyFont,
         headingFont,
       }),
-    [override, scheme, bodyFont, headingFont],
+    [override, scheme, bodyFont, headingFont]
   );
 
-  const setUserSetting: ISettingsContext["user"]["setSetting"] = async (
-    setting,
-    value,
-  ) => {
+  const setUserSetting: ISettingsContext["user"]["setSetting"] = async (setting, value) => {
     try {
       const result = await api.put("/users/me", {
         settings: {
@@ -217,12 +188,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             scheme: {
               get: scheme,
               set: setScheme,
-              actual:
-                scheme === "auto"
-                  ? isDarkScheme()
-                    ? "dark"
-                    : "light"
-                  : scheme,
+              actual: scheme === "auto" ? (isDarkScheme() ? "dark" : "light") : scheme,
             },
             bodyFont: {
               get: bodyFont,

@@ -34,8 +34,7 @@ const getFileDefaultSummary = (file: IUserFile): string | undefined => {
 const getFileDefaultDetails = (file: IUserFile): React.ReactNode => {
   return (
     <Text size="sm" c="dimmed">
-      Created {formatDate(file.createdAt)}, last updated{" "}
-      {formatDate(file.updatedAt)}
+      Created {formatDate(file.createdAt)}, last updated {formatDate(file.updatedAt)}
     </Text>
   );
 };
@@ -46,14 +45,7 @@ export type IFileAction = {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, file: IUserFile) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean; // If true, primarily for the overflow menu
@@ -88,7 +80,7 @@ export default function FileCard({
       "application/json",
       JSON.stringify({
         fileId: file.id.toString(),
-      }),
+      })
     );
   };
 
@@ -133,13 +125,7 @@ export default function FileCard({
       onDragEnd={handleDragEnd}
       draggable={true}
     >
-      <HoverCard
-        radius="lg"
-        openDelay={500}
-        width={"400px"}
-        withArrow
-        position="bottom-start"
-      >
+      <HoverCard radius="lg" openDelay={500} width={"400px"} withArrow position="bottom-start">
         <HoverCard.Target>
           <div className={styles.content}>
             <Group gap="xs">

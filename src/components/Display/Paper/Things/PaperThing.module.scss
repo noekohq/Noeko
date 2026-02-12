@@ -1,224 +1,224 @@
 @use "../../../../styles/mixins.scss" as *;
 
 @keyframes thingIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .paperThing {
-    animation: tagIn 0.2s ease-in-out;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    gap: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-lg);
-    text-align: left;
-    user-select: none;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1px solid transparent;
-    outline: none;
+  animation: tagIn 0.2s ease-in-out;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  gap: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-lg);
+  text-align: left;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid transparent;
+  outline: none;
+  background-color: transparent;
+
+  cursor: pointer;
+
+  &.draggable {
+    touch-action: pan-y;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--mantine-color-blue-filled);
+    z-index: 10;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.hovering {
+  }
+
+  &.dragging {
+    opacity: 0.4;
     background-color: transparent;
+    border: 1px dashed var(--mantine-color-gray-5);
+    box-shadow: none;
+    transform: scale(0.98);
+    filter: grayscale(100%);
+    cursor: grabbing;
+  }
 
-    cursor: pointer;
+  &.default {
+    color: var(--mantine-color-text);
+    border-color: var(--mantine-color-dark-7);
 
-    &.draggable {
-        touch-action: pan-y;
+    &:hover {
+      box-shadow: var(--mantine-shadow-sm);
+      background-color: var(--mantine-color-dark-8);
+      border-color: var(--mantine-color-dark-5);
     }
 
-    &:focus-visible {
-        box-shadow: 0 0 0 2px var(--mantine-color-blue-filled);
-        z-index: 10;
+    [data-mantine-color-scheme="dark"] & {
+      background-color: transparent;
+      border-color: var(--mantine-color-dark-7);
+
+      &:hover {
+        background-color: var(--mantine-color-dark-8);
+        border-color: var(--mantine-color-dark-5);
+      }
+    }
+  }
+
+  &.suggested {
+    background-color: transparent;
+    border: 2px dashed var(--mantine-color-dark-7);
+    color: var(--mantine-color-dark-3);
+
+    .iconDragZone {
+      color: var(--mantine-color-dark-3);
     }
 
     &:hover {
-        transform: translateY(-2px);
+      opacity: 1;
+      border-color: var(--mantine-color-dark-5);
+
+      .actionButton {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .actionButton {
+      transition: all 0.2s ease;
+    }
+
+    .title {
+      color: var(--mantine-color-dark-3);
+    }
+  }
+
+  .iconDragZone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative; // Needed for the ::after hit-box
+    width: 18px;
+    color: var(--mantine-color-dark-3);
+    transition: all 0.2s ease;
+
+    cursor: grab;
+    touch-action: none;
+
+    // Hit-box expansion for mobile (approx 44px)
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 44px;
+      height: 44px;
+      transform: translate(-50%, -50%);
+      z-index: 1;
     }
 
     &:active {
-        transform: scale(0.98);
+      cursor: grabbing;
+    }
+
+    [data-mantine-color-scheme="dark"] & {
+      color: var(--mantine-color-gray-5);
     }
 
     &.hovering {
     }
+  }
 
-    &.dragging {
-        opacity: 0.4;
-        background-color: transparent;
-        border: 1px dashed var(--mantine-color-gray-5);
-        box-shadow: none;
-        transform: scale(0.98);
-        filter: grayscale(100%);
-        cursor: grabbing;
+  .contentWrapper {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .title {
+    font-weight: 600;
+    font-size: var(--mantine-font-size-sm);
+    color: var(--mantine-color-text);
+    line-height: 1.3;
+  }
+
+  .detail {
+    font-size: var(--mantine-font-size-xs);
+    color: var(--mantine-color-dimmed);
+    line-height: 1.2;
+  }
+
+  .artifacts {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    .artifact {
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 2px;
+      font-weight: 565;
+      background-color: var(--mantine-color-dark-8);
+      color: var(--mantine-color-dark-1);
+      border: 1px solid var(--mantine-color-dark-5);
+      border-radius: var(--mantine-radius-lg);
+      padding: 4px 8px;
     }
+  }
 
-    &.default {
-        color: var(--mantine-color-text);
-        border-color: var(--mantine-color-dark-7);
+  .actionWrapper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
 
-        &:hover {
-            box-shadow: var(--mantine-shadow-sm);
-            background-color: var(--mantine-color-dark-8);
-            border-color: var(--mantine-color-dark-5);
-        }
+    .actionButton {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      aspect-ratio: 1/1;
+      font-size: var(--mantine-font-size-sm);
+      padding: 8px;
+      background-color: var(--mantine-color-dark-7);
+      box-shadow: var(--mantine-shadow-sm);
+      border: none;
+      border-radius: var(--mantine-radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      color: var(--mantine-color-dark-2);
 
-        [data-mantine-color-scheme="dark"] & {
-            background-color: transparent;
-            border-color: var(--mantine-color-dark-7);
+      &:hover {
+        background-color: var(--mantine-color-dark-6);
+        transform: scale(1.01) translateY(-1px);
+      }
 
-            &:hover {
-                background-color: var(--mantine-color-dark-8);
-                border-color: var(--mantine-color-dark-5);
-            }
-        }
+      &:active {
+        background-color: var(--mantine-color-dark-5);
+        transform: scale(0.99) translateY(1px);
+      }
     }
-
-    &.suggested {
-        background-color: transparent;
-        border: 2px dashed var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-3);
-
-        .iconDragZone {
-            color: var(--mantine-color-dark-3);
-        }
-
-        &:hover {
-            opacity: 1;
-            border-color: var(--mantine-color-dark-5);
-
-            .actionButton {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .actionButton {
-            transition: all 0.2s ease;
-        }
-
-        .title {
-            color: var(--mantine-color-dark-3);
-        }
-    }
-
-    .iconDragZone {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        position: relative; // Needed for the ::after hit-box
-        width: 18px;
-        color: var(--mantine-color-dark-3);
-        transition: all 0.2s ease;
-
-        cursor: grab;
-        touch-action: none;
-
-        // Hit-box expansion for mobile (approx 44px)
-        &::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 44px;
-            height: 44px;
-            transform: translate(-50%, -50%);
-            z-index: 1;
-        }
-
-        &:active {
-            cursor: grabbing;
-        }
-
-        [data-mantine-color-scheme="dark"] & {
-            color: var(--mantine-color-gray-5);
-        }
-
-        &.hovering {
-        }
-    }
-
-    .contentWrapper {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .title {
-        font-weight: 600;
-        font-size: var(--mantine-font-size-sm);
-        color: var(--mantine-color-text);
-        line-height: 1.3;
-    }
-
-    .detail {
-        font-size: var(--mantine-font-size-xs);
-        color: var(--mantine-color-dimmed);
-        line-height: 1.2;
-    }
-
-    .artifacts {
-        margin-top: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        overflow-x: auto;
-        scrollbar-width: none;
-
-        .artifact {
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            gap: 2px;
-            font-weight: 565;
-            background-color: var(--mantine-color-dark-8);
-            color: var(--mantine-color-dark-1);
-            border: 1px solid var(--mantine-color-dark-5);
-            border-radius: var(--mantine-radius-lg);
-            padding: 4px 8px;
-        }
-    }
-
-    .actionWrapper {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-
-        .actionButton {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            aspect-ratio: 1/1;
-            font-size: var(--mantine-font-size-sm);
-            padding: 8px;
-            background-color: var(--mantine-color-dark-7);
-            box-shadow: var(--mantine-shadow-sm);
-            border: none;
-            border-radius: var(--mantine-radius-md);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            color: var(--mantine-color-dark-2);
-
-            &:hover {
-                background-color: var(--mantine-color-dark-6);
-                transform: scale(1.01) translateY(-1px);
-            }
-
-            &:active {
-                background-color: var(--mantine-color-dark-5);
-                transform: scale(0.99) translateY(1px);
-            }
-        }
-    }
+  }
 }

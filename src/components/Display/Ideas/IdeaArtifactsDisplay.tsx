@@ -41,13 +41,7 @@ export function IdeaArtifactsDisplay({
                 size: size === "xs" ? 12 : 14,
                 color: "var(--mantine-color-dimmed)",
               })}
-            <Text
-              size={size}
-              c="dimmed"
-              component="span"
-              truncate
-              className={className}
-            >
+            <Text size={size} c="dimmed" component="span" truncate className={className}>
               {artifact.content}
             </Text>
           </Group>

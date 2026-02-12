@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ISearchResultValue,
-  type ISearchResult,
-} from "../../../../shared/types/search";
+import { ISearchResultValue, type ISearchResult } from "../../../../shared/types/search";
 import { api, refreshToken, serverLocation } from "../../../server/api";
 import {
   ISpyglassGeneratorType,
@@ -11,21 +8,11 @@ import {
 } from "../../../../app/database/models/search";
 import useFetch from "../../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import {
-  ISpyglassIntent,
-  IGlimpseResult,
-} from "../../../../app/services/Spyglass";
+import { ISpyglassIntent, IGlimpseResult } from "../../../../app/services/Spyglass";
 import useRabbithole from "../../../hooks/useRabbithole";
-import {
-  getNodeContent,
-  getNodeDescription,
-  getNodeTitle,
-} from "../../../utils/graph";
+import { getNodeContent, getNodeDescription, getNodeTitle } from "../../../utils/graph";
 import { ISpyglassRecord } from "../../../../app/database/models/spyglass_record";
-import {
-  IConnectable,
-  IConnectableFields,
-} from "../../../../app/services/Graph";
+import { IConnectable, IConnectableFields } from "../../../../app/services/Graph";
 import { PartialGlimpseResult } from "../../../utils/partialJsonParser";
 
 const initialAnalysis: ISearchOverview = {
@@ -92,8 +79,7 @@ export default function useSpyglass({
   const [listening, setListening] = useState<boolean>(false);
   const [spyglassId, setSpyglassId] = useState<string | null>(null);
   const [spyglass, setSpyglass] = useState<ISpyglassSearch>();
-  const [analysis, setAnalysis] =
-    useState<ISpyglassSearch["analysis"]>(initialAnalysis);
+  const [analysis, setAnalysis] = useState<ISpyglassSearch["analysis"]>(initialAnalysis);
   const [loadingResults, setLoadingResults] = useState<boolean>(false);
   const [loadingFindings, setLoadingFindings] = useState<boolean>(false);
   const [loadingOverview, setLoadingOverview] = useState<boolean>(false);
@@ -151,7 +137,7 @@ export default function useSpyglass({
 
       const eventSource = new EventSource(
         `${serverLocation}/api/search/spyglass/sse?spyglassId=${spyglassId}`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       // Store the instance in our ref.
@@ -181,11 +167,7 @@ export default function useSpyglass({
         const type = parsedData.type;
         switch (type) {
           case "error":
-            console.error(
-              "Parsed error data: ",
-              parsedData.data,
-              typeof parsedData.data,
-            );
+            console.error("Parsed error data: ", parsedData.data, typeof parsedData.data);
             setError(parsedData.data as string);
             setStatusText("Something went wrong.");
             console.error(parsedData.data);
@@ -199,7 +181,7 @@ export default function useSpyglass({
             resultsTime.current = Date.now();
             setSpyglass(parsedData.data);
             setStatusText(
-              `Found ${parsedData.data.results?.length || 0} result${parsedData.data.results?.length === 1 ? "" : "s"} in ${(Date.now() - resultsTime.current) / 1000}s`,
+              `Found ${parsedData.data.results?.length || 0} result${parsedData.data.results?.length === 1 ? "" : "s"} in ${(Date.now() - resultsTime.current) / 1000}s`
             );
             setLoadingResults(false);
             break;
@@ -210,7 +192,7 @@ export default function useSpyglass({
             break;
           case "findings_chunk":
             const newFindings = JSON.parse(
-              parsedData.data as unknown as string,
+              parsedData.data as unknown as string
             ) as ISearchOverview["findings"];
 
             setAnalysis((prev) => ({
@@ -234,7 +216,7 @@ export default function useSpyglass({
               return a;
             });
             setStatusText(
-              `Analyzed ${parsedData.data.results?.length || 0} result${parsedData.data.results?.length === 1 ? "" : "s"} in ${(Date.now() - findingsTime.current) / 1000}s`,
+              `Analyzed ${parsedData.data.results?.length || 0} result${parsedData.data.results?.length === 1 ? "" : "s"} in ${(Date.now() - findingsTime.current) / 1000}s`
             );
             setLoadingFindings(false);
             break;
@@ -263,7 +245,7 @@ export default function useSpyglass({
             overviewTime.current = Date.now();
             setSpyglass(parsedData.data);
             setStatusText(
-              `Analyzed ${parsedData.data.results?.length || 0} finding${parsedData.data.results?.length === 1 ? "" : "s"} in ${((overviewTime.current - startTime.current) / 1000).toFixed(2)}s`,
+              `Analyzed ${parsedData.data.results?.length || 0} finding${parsedData.data.results?.length === 1 ? "" : "s"} in ${((overviewTime.current - startTime.current) / 1000).toFixed(2)}s`
             );
             setLoadingOverview(false);
             break;
@@ -459,10 +441,7 @@ interface IUseSpyglassRecordArgs {
   spyglassId?: string;
 }
 
-import {
-  extractIdsFromFindings,
-  extractIdsFromGlimpseResult,
-} from "../../../utils/spyglass";
+import { extractIdsFromFindings, extractIdsFromGlimpseResult } from "../../../utils/spyglass";
 
 interface IUseSpyglassRecordReturn {
   loading: boolean;
@@ -477,10 +456,7 @@ interface IUseSpyglassRecordReturn {
 export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
   const [spyglass, setSpyglass] = useState<ISpyglassRecord>();
   const [fullResults, setFullResults] = useState<IConnectable[]>([]);
-  const { loading, load: fetchSpyglassRecord } = useFetch<
-    undefined,
-    ISpyglassRecord
-  >({
+  const { loading, load: fetchSpyglassRecord } = useFetch<undefined, ISpyglassRecord>({
     url: `/search/spyglass/record/${spyglassId}`,
     dependencies: [spyglassId],
     onError: (error) => {
@@ -496,10 +472,7 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     },
   });
 
-  const { load: fetchScope } = useFetch<
-    any,
-    { data: { nodes: IConnectable[] } }
-  >({
+  const { load: fetchScope } = useFetch<any, { data: { nodes: IConnectable[] } }>({
     url: `/graph`,
     method: "POST",
     onSuccess: (data) => {
@@ -534,7 +507,7 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
 
   useEffect(() => {
     if (spyglass) {
-      let idsToFetch = new Set<string>();
+      const idsToFetch = new Set<string>();
 
       // 1. Use the saved scope (primary source)
       if (spyglass.scope && spyglass.scope.length > 0) {

@@ -28,11 +28,7 @@ export type ISource = {
 
 export type ISourceForm = Omit<
   ISourceCreator,
-  | "createdAt"
-  | "updatedAt"
-  | "viewedAt"
-  | "embeddings"
-  | "embeddingsGeneratedAt"
+  "createdAt" | "updatedAt" | "viewedAt" | "embeddings" | "embeddingsGeneratedAt"
 >;
 
 export type ISourceCreator = Omit<ISource, "id">;

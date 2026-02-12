@@ -27,9 +27,7 @@ export function IdeaActionsGroup({
     return null;
   }
 
-  const primaryActions = actions
-    .filter((a) => !a.isOverflow)
-    .slice(0, visibleCount);
+  const primaryActions = actions.filter((a) => !a.isOverflow).slice(0, visibleCount);
   const overflowActions = [
     ...actions.filter((a) => !a.isOverflow).slice(visibleCount),
     ...actions.filter((a) => a.isOverflow),
@@ -76,13 +74,7 @@ export function IdeaActionsGroup({
         </Tooltip>
       ))}
       {overflowActions.length > 0 && (
-        <Menu
-          shadow="md"
-          width={200}
-          position={menuPosition}
-          withArrow
-          trigger="hover"
-        >
+        <Menu shadow="md" width={200} position={menuPosition} withArrow trigger="hover">
           <Menu.Target>
             <ActionIcon
               variant="subtle"
@@ -91,10 +83,7 @@ export function IdeaActionsGroup({
               className={`${styles.actionButton} ${className || ""}`}
               aria-label="More actions"
             >
-              <DotsThreeVertical
-                weight="bold"
-                size={buttonSize === "xs" ? 18 : 20}
-              />
+              <DotsThreeVertical weight="bold" size={buttonSize === "xs" ? 18 : 20} />
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
@@ -102,9 +91,7 @@ export function IdeaActionsGroup({
               <Menu.Item
                 key={action.id}
                 leftSection={
-                  action.icon
-                    ? React.cloneElement(action.icon, { size: 16 })
-                    : undefined
+                  action.icon ? React.cloneElement(action.icon, { size: 16 }) : undefined
                 }
                 onClick={(e) => {
                   e.stopPropagation();

@@ -43,6 +43,6 @@ export default function PaperDrawer({
         <div className={styles.content}>{children}</div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

@@ -5,10 +5,7 @@ import { getLM } from "../../../ai/lms/lm";
 import { User } from "../user";
 import { IPublicUser, ISafeUser, IUser } from "../../../../shared/types/user";
 import { GenerativeSummary } from "./summaries";
-import {
-  IDerivedType,
-  IGenerativeSummary,
-} from "../../../../shared/types/idea";
+import { IDerivedType, IGenerativeSummary } from "../../../../shared/types/idea";
 import { htmlToMarkdown } from "../../../utils/formatting";
 import { max_embeddable_characters, max_user_notes } from "../../../settings";
 import { logger } from "../../../services/Logger";
@@ -29,15 +26,8 @@ import {
   IUserIdeaStats,
   IViewOnlyIdea,
 } from "../../../../shared/types/idea";
-import {
-  IIdeaShare,
-  IIdeaShareAccess,
-  IIdeaShareDetails,
-} from "../../../../shared/types/share";
-import {
-  IDBGraph,
-  IDBGraphWithComputedFields,
-} from "../../../../shared/types/constellation";
+import { IIdeaShare, IIdeaShareAccess, IIdeaShareDetails } from "../../../../shared/types/share";
+import { IDBGraph, IDBGraphWithComputedFields } from "../../../../shared/types/constellation";
 
 const embeddableContentLimit = max_embeddable_characters;
 
@@ -55,10 +45,7 @@ export class IdeaQueryBuilder {
     return this;
   }
 
-  public sortBy(
-    field: IIdeaSortFields,
-    direction: "desc" | "asc" = "desc",
-  ): this {
+  public sortBy(field: IIdeaSortFields, direction: "desc" | "asc" = "desc"): this {
     this.sortClause = `ORDER BY ${field} ${direction}`;
     return this;
   }
@@ -77,10 +64,7 @@ export class IdeaQueryBuilder {
     query: string;
     params: Record<string, any>;
   } {
-    const where =
-      this.whereClauses.length > 0
-        ? `WHERE ${this.whereClauses.join(" AND ")}`
-        : "";
+    const where = this.whereClauses.length > 0 ? `WHERE ${this.whereClauses.join(" AND ")}` : "";
 
     const query = `
       SELECT
@@ -102,13 +86,10 @@ export class IdeaQueryBuilder {
 export class Idea {
   constructor() {}
 
-  static attachComputedFields(
-    idea: IIdea | ISafeIdea,
-  ): IIdeaWithComputedFields {
+  static attachComputedFields(idea: IIdea | ISafeIdea): IIdeaWithComputedFields {
     return {
       ...idea,
-      embeddingsOutOfDate:
-        new Date(idea.contentUpdatedAt) < new Date(idea.embeddingsUpdatedAt),
+      embeddingsOutOfDate: new Date(idea.contentUpdatedAt) < new Date(idea.embeddingsUpdatedAt),
     };
   }
 
@@ -296,9 +277,7 @@ export class Idea {
     await db?.query(ideasTimestampsIndex());
   }
 
-  static attachComputedFieldsToCollection(
-    ideas: (IIdea | ISafeIdea)[],
-  ): IIdeaWithComputedFields[] {
+  static attachComputedFieldsToCollection(ideas: (IIdea | ISafeIdea)[]): IIdeaWithComputedFields[] {
     return ideas.map(Idea.attachComputedFields);
   }
 
@@ -329,7 +308,7 @@ export class Idea {
       omitEmbeddings?: boolean;
       omitDerived?: boolean;
       wasImported?: boolean;
-    },
+    }
   ) {
     try {
       const db = await getDatabase();
@@ -400,7 +379,7 @@ export class Idea {
       omitEmbeddings?: boolean;
       omitDerivations?: boolean;
       wereImported?: boolean;
-    },
+    }
   ) {
     try {
       const db = await getDatabase();
@@ -426,9 +405,7 @@ export class Idea {
         max_user_notes !== -1 &&
         !User.checkUserHasRole(user.id, "superuser")
       ) {
-        throw new Error(
-          "Adding notes would result in larger than allowed note total.",
-        );
+        throw new Error("Adding notes would result in larger than allowed note total.");
       }
       const result = await db?.insert<
         IIdea,
@@ -456,7 +433,7 @@ export class Idea {
             embeddingsUpdatedAt: new Date(),
             ...(options?.wereImported ? { importedAt: new Date() } : {}),
           };
-        }),
+        })
       );
       if (!result) {
         console.error("No idea created.");
@@ -465,7 +442,7 @@ export class Idea {
       const ideas = result;
       await Idea.connectManyToUser(
         ideas.map((i) => i.id.toString()),
-        userId,
+        userId
       );
       if (!options?.omitEmbeddings) {
         await Idea.loadManyEmbeddings(ideas.map((i) => i.id.toString()));
@@ -482,10 +459,7 @@ export class Idea {
     }
   }
 
-  static async connectToUser(
-    ideaId: string | RecordId,
-    userId: string | RecordId,
-  ) {
+  static async connectToUser(ideaId: string | RecordId, userId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
@@ -494,12 +468,10 @@ export class Idea {
           fromId: new StringRecordId(userId),
           toId: new StringRecordId(ideaId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
-        console.error(
-          `No ownership created for idea "${ideaId}" and user "${userId}".`,
-        );
+        console.error(`No ownership created for idea "${ideaId}" and user "${userId}".`);
         return undefined;
       }
       const [ownership] = result;
@@ -510,10 +482,7 @@ export class Idea {
     }
   }
 
-  static async connectManyToUser(
-    ideaIds: (string | RecordId)[],
-    userId: string | RecordId,
-  ) {
+  static async connectManyToUser(ideaIds: (string | RecordId)[], userId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaUserOwnership[]]>(
@@ -522,7 +491,7 @@ export class Idea {
           fromId: new StringRecordId(userId),
           toIds: ideaIds.map((ideaId) => new StringRecordId(ideaId)),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         console.error(`No ownership created for ideas and user "${userId}".`);
@@ -544,7 +513,7 @@ export class Idea {
         {
           userId: new StringRecordId(userId),
           ideaId: new StringRecordId(ideaId),
-        },
+        }
       );
 
       if (result && result[0] && result[0] > 0) {
@@ -552,17 +521,14 @@ export class Idea {
       }
       return false;
     } catch (err) {
-      console.error(
-        `Error during checkUserOwnership for idea "${ideaId}":`,
-        err,
-      );
+      console.error(`Error during checkUserOwnership for idea "${ideaId}":`, err);
       return false;
     }
   }
 
   static async getUserIdeas(
     userId: string,
-    options?: IIdeaQuery,
+    options?: IIdeaQuery
   ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -626,11 +592,7 @@ export class Idea {
     }
   }
 
-  static async getUserIdeasPaginated(
-    userId: string,
-    page?: number,
-    pageSize?: number,
-  ) {
+  static async getUserIdeasPaginated(userId: string, page?: number, pageSize?: number) {
     try {
       const db = await getDatabase();
       const results = await db?.run<IIdea[]>("fn::get_user_ideas_paginated", [
@@ -667,7 +629,7 @@ export class Idea {
         {
           userId: new StringRecordId(userId),
           limit,
-        },
+        }
       );
       if (!results) {
         console.error("Something went wrong, no results found.");
@@ -681,9 +643,7 @@ export class Idea {
     }
   }
 
-  static async getUserIdeaStats(
-    userId: string | RecordId,
-  ): Promise<IUserIdeaStats | undefined> {
+  static async getUserIdeaStats(userId: string | RecordId): Promise<IUserIdeaStats | undefined> {
     try {
       const db = await getDatabase();
       const results = await db?.run<IUserIdeaStats>("fn::get_user_idea_stats", [
@@ -700,22 +660,10 @@ export class Idea {
     }
   }
 
-  static async getIdeaOwners(
-    ideaId: string,
-    safety: "safe",
-  ): Promise<ISafeUser[] | undefined>;
-  static async getIdeaOwners(
-    ideaId: string,
-    safety: "public",
-  ): Promise<IPublicUser[] | undefined>;
-  static async getIdeaOwners(
-    ideaId: string,
-    safety: "none",
-  ): Promise<IUser[] | undefined>;
-  static async getIdeaOwners(
-    ideaId: string,
-    safety: "public" | "safe" | "none" = "safe",
-  ) {
+  static async getIdeaOwners(ideaId: string, safety: "safe"): Promise<ISafeUser[] | undefined>;
+  static async getIdeaOwners(ideaId: string, safety: "public"): Promise<IPublicUser[] | undefined>;
+  static async getIdeaOwners(ideaId: string, safety: "none"): Promise<IUser[] | undefined>;
+  static async getIdeaOwners(ideaId: string, safety: "public" | "safe" | "none" = "safe") {
     try {
       const db = await getDatabase();
       const results = await db?.query<[IUser[]]>(
@@ -734,7 +682,7 @@ export class Idea {
         `,
         {
           ideaId,
-        },
+        }
       );
       if (!results) {
         console.error("Something went wrong, no results found.");
@@ -769,9 +717,7 @@ export class Idea {
 
   static filterViewOnlyFields(idea: IIdea): IViewOnlyIdea;
   static filterViewOnlyFields(idea: IIdea[]): IViewOnlyIdea[];
-  static filterViewOnlyFields(
-    idea: IIdea | IIdea[],
-  ): IViewOnlyIdea | IViewOnlyIdea[] {
+  static filterViewOnlyFields(idea: IIdea | IIdea[]): IViewOnlyIdea | IViewOnlyIdea[] {
     if (Array.isArray(idea)) {
       return idea.map((i) => this.filterViewOnlyFields(i));
     }
@@ -790,7 +736,7 @@ export class Idea {
   static async share(
     ideaId: string,
     userId: string,
-    accessLevel: IIdeaShareAccess = "viewonly",
+    accessLevel: IIdeaShareAccess = "viewonly"
   ): Promise<boolean> {
     const query = `
       RELATE $ideaId->shared_with->$userId CONTENT {
@@ -832,10 +778,7 @@ export class Idea {
     }
   }
 
-  static async checkShareAccess(
-    ideaId: string,
-    userId: string,
-  ): Promise<IIdeaShareAccess | null> {
+  static async checkShareAccess(ideaId: string, userId: string): Promise<IIdeaShareAccess | null> {
     const query = `
       SELECT
           accessLevel
@@ -845,13 +788,10 @@ export class Idea {
 
     try {
       const db = await getDatabase();
-      const result = await db?.query<[{ accessLevel: IIdeaShareAccess }[]]>(
-        query,
-        {
-          ideaId: new StringRecordId(ideaId),
-          userId: new StringRecordId(userId),
-        },
-      );
+      const result = await db?.query<[{ accessLevel: IIdeaShareAccess }[]]>(query, {
+        ideaId: new StringRecordId(ideaId),
+        userId: new StringRecordId(userId),
+      });
 
       if (result && result[0] && result[0].length > 0) {
         return result[0][0].accessLevel;
@@ -864,9 +804,7 @@ export class Idea {
     }
   }
 
-  static async getShares(
-    ideaId: string,
-  ): Promise<IIdeaShareDetails[] | undefined> {
+  static async getShares(ideaId: string): Promise<IIdeaShareDetails[] | undefined> {
     const query = `
       SELECT
           accessLevel,
@@ -885,11 +823,12 @@ export class Idea {
 
     try {
       const db = await getDatabase();
-      const result = await db?.query<
-        [{ accessLevel: IIdeaShareAccess; user: IPublicUser }[]]
-      >(query, {
-        ideaId: new StringRecordId(ideaId),
-      });
+      const result = await db?.query<[{ accessLevel: IIdeaShareAccess; user: IPublicUser }[]]>(
+        query,
+        {
+          ideaId: new StringRecordId(ideaId),
+        }
+      );
 
       if (result && result[0]) {
         const shares = result[0];
@@ -906,9 +845,7 @@ export class Idea {
     }
   }
 
-  static async getSharedWithUser(
-    userId: string,
-  ): Promise<IViewOnlyIdea[] | undefined> {
+  static async getSharedWithUser(userId: string): Promise<IViewOnlyIdea[] | undefined> {
     try {
       const db = await getDatabase();
       const query = `
@@ -940,14 +877,11 @@ export class Idea {
     }
   }
 
-  static async get(
-    id: string | RecordId,
-    safety?: "public",
-  ): Promise<ISafeIdea>;
+  static async get(id: string | RecordId, safety?: "public"): Promise<ISafeIdea>;
   static async get(id: string | RecordId, safety?: "full"): Promise<IIdea>;
   static async get(
     id: string | RecordId,
-    safety: "public" | "full" = "public",
+    safety: "public" | "full" = "public"
   ): Promise<ISafeIdea | IIdea | undefined> {
     try {
       const db = await getDatabase();
@@ -966,7 +900,7 @@ export class Idea {
         WHERE id = $ideaId;`,
         {
           ideaId: recordId,
-        },
+        }
       );
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
@@ -982,14 +916,12 @@ export class Idea {
 
   static async getAccessible(
     id: string | RecordId,
-    userId: string,
+    userId: string
   ): Promise<IIdea | ISafeIdea | IViewOnlyIdea | undefined>;
+  static async getAccessible(id: string | RecordId): Promise<ISafeIdea | undefined>;
   static async getAccessible(
     id: string | RecordId,
-  ): Promise<ISafeIdea | undefined>;
-  static async getAccessible(
-    id: string | RecordId,
-    userId?: string,
+    userId?: string
   ): Promise<IIdea | ISafeIdea | IViewOnlyIdea | undefined> {
     try {
       const db = await getDatabase();
@@ -1043,7 +975,7 @@ export class Idea {
   static async all(safety: "public"): Promise<ISafeIdea[]>;
   static async all(safety: "full"): Promise<IIdea[]>;
   static async all(
-    safety: "public" | "full" = "public",
+    safety: "public" | "full" = "public"
   ): Promise<ISafeIdea[] | IIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -1067,24 +999,16 @@ export class Idea {
 
   static async graph(
     userId: string,
-    options?: { computeFields: boolean },
+    options?: { computeFields: boolean }
   ): Promise<IDBGraph | undefined> {
     try {
       const db = await getDatabase();
-      const graph = await db?.run<Omit<IDBGraph, "flags">>("fn::user_graph", [
-        userId,
-      ]);
+      const graph = await db?.run<Omit<IDBGraph, "flags">>("fn::user_graph", [userId]);
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
         return undefined;
       }
-      const {
-        ideas,
-        tags,
-        ideaConnections,
-        tagConnections,
-        files = [],
-      } = graph;
+      const { ideas, tags, ideaConnections, tagConnections, files = [] } = graph;
       const flags: IDBGraph["flags"] = {
         embeddings: {
           synced: ideas.every((idea) => idea.embeddings),
@@ -1097,8 +1021,7 @@ export class Idea {
         };
       });
       if (options?.computeFields) {
-        const computedIdeas =
-          Idea.attachComputedFieldsToCollection(ideasWithDerived);
+        const computedIdeas = Idea.attachComputedFieldsToCollection(ideasWithDerived);
         return {
           ideas: computedIdeas,
           tags,
@@ -1125,21 +1048,12 @@ export class Idea {
   static async graphHeavy(userId: string): Promise<IDBGraph | undefined> {
     try {
       const db = await getDatabase();
-      const graph = await db?.run<Omit<IDBGraph, "flags">>(
-        "fn::user_graph_heavy",
-        [userId],
-      );
+      const graph = await db?.run<Omit<IDBGraph, "flags">>("fn::user_graph_heavy", [userId]);
       if (!graph) {
         console.error("Something went wrong. Graph undefined.");
         return undefined;
       }
-      const {
-        ideas,
-        tags,
-        ideaConnections,
-        tagConnections,
-        files = [],
-      } = graph;
+      const { ideas, tags, ideaConnections, tagConnections, files = [] } = graph;
       const flags: IDBGraph["flags"] = {
         embeddings: {
           synced: ideas.every((idea) => idea.embeddings),
@@ -1151,8 +1065,7 @@ export class Idea {
           derived: Idea.mapDerived(i.derivedList),
         };
       });
-      const computedIdeas =
-        Idea.attachComputedFieldsToCollection(ideasWithDerived);
+      const computedIdeas = Idea.attachComputedFieldsToCollection(ideasWithDerived);
       return {
         ideas: computedIdeas,
         tags,
@@ -1167,11 +1080,7 @@ export class Idea {
     }
   }
 
-  static async update(
-    id: string | RecordId,
-    form: Partial<IIdea>,
-    withComputations?: boolean,
-  ) {
+  static async update(id: string | RecordId, form: Partial<IIdea>, withComputations?: boolean) {
     try {
       const db = await getDatabase();
       const originalIdea = await Idea.get(id);
@@ -1181,21 +1090,19 @@ export class Idea {
       const updater: Partial<IIdea> = form;
       if ("content" in form) {
         updater.contentUpdatedAt = new Date();
-        updater.contentPlain = form.content
-          ? this.getPlainContent(form.content)
-          : "";
+        updater.contentPlain = form.content ? this.getPlainContent(form.content) : "";
         updater.contentPlainUpdatedAt = new Date();
       }
       if ("title" in form && !("titleGeneratedAt" in form)) {
         updater.titleGeneratedAt = undefined;
       }
-      const result = await db?.merge<
-        IIdea,
-        Partial<IIdeaForm> & { updatedAt: Date }
-      >(new StringRecordId(id), {
-        ...updater,
-        updatedAt: new Date(),
-      });
+      const result = await db?.merge<IIdea, Partial<IIdeaForm> & { updatedAt: Date }>(
+        new StringRecordId(id),
+        {
+          ...updater,
+          updatedAt: new Date(),
+        }
+      );
       if (!result) {
         console.error("No idea updated.");
         return undefined;
@@ -1213,7 +1120,7 @@ export class Idea {
 
   static async updateMany(
     forms: (Partial<IIdea> & { id: string | RecordId })[],
-    withComputations?: boolean,
+    withComputations?: boolean
   ): Promise<(IIdea | undefined)[] | undefined> {
     try {
       const updates: (IIdea | undefined)[] = [];
@@ -1225,7 +1132,7 @@ export class Idea {
 
       if (updates.some((result) => result === undefined)) {
         console.warn(
-          "updateMany: One or more ideas failed to update. See previous logs for details for each specific idea.",
+          "updateMany: One or more ideas failed to update. See previous logs for details for each specific idea."
         );
       }
 
@@ -1300,7 +1207,7 @@ export class Idea {
         {
           source,
           target,
-        },
+        }
       );
       if (!results) {
         throw new Error("Could not get results!");
@@ -1323,11 +1230,7 @@ export class Idea {
         throw new Error("Could not check if connection existed");
       }
       if (connectionExists) {
-        console.error(
-          "Did not create duplicate connection between: ",
-          source,
-          target,
-        );
+        console.error("Did not create duplicate connection between: ", source, target);
         return undefined;
       }
       const db = await getDatabase();
@@ -1337,7 +1240,7 @@ export class Idea {
           fromId: new StringRecordId(source),
           toId: new StringRecordId(target),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         console.error("No link created.");
@@ -1358,7 +1261,7 @@ export class Idea {
         {
           source,
           target,
-        },
+        }
       );
       if (!result) {
         console.error("No connection deleted.");
@@ -1374,9 +1277,10 @@ export class Idea {
   static async getConnections(id: string) {
     try {
       const db = await getDatabase();
-      const results = await db?.run<
-        (IIdea & { id: RecordId; derivedList: IIdeaDerived[] })[]
-      >("fn::get_idea_connections", [id]);
+      const results = await db?.run<(IIdea & { id: RecordId; derivedList: IIdeaDerived[] })[]>(
+        "fn::get_idea_connections",
+        [id]
+      );
       if (!results) {
         console.error("No connections found.");
         return undefined;
@@ -1397,9 +1301,7 @@ export class Idea {
   static async getDerived(id: string) {
     try {
       const db = await getDatabase();
-      const derived = await db?.run<IIdeaDerived[]>("fn::get_idea_derived", [
-        id,
-      ]);
+      const derived = await db?.run<IIdeaDerived[]>("fn::get_idea_derived", [id]);
       if (!derived) {
         console.error("No derived ideas found.");
         return undefined;
@@ -1423,9 +1325,7 @@ export class Idea {
   static async getDerivedMap(id: string) {
     try {
       const db = await getDatabase();
-      const derived = await db?.run<IIdeaDerived[]>("fn::get_idea_derived", [
-        id,
-      ]);
+      const derived = await db?.run<IIdeaDerived[]>("fn::get_idea_derived", [id]);
       if (!derived) {
         console.error("No derived ideas found.");
         return undefined;
@@ -1449,7 +1349,7 @@ export class Idea {
         "SELECT * FROM idea WHERE id IN ($ids)",
         {
           ids,
-        },
+        }
       );
       if (!result) {
         console.error("No ideas found.");
@@ -1462,10 +1362,7 @@ export class Idea {
     }
   }
 
-  static async findSimilar(
-    userId: string | RecordId,
-    rootNodeId: string | RecordId,
-  ) {
+  static async findSimilar(userId: string | RecordId, rootNodeId: string | RecordId) {
     try {
       const db = await getDatabase();
       const idea = await Idea.get(rootNodeId, "full");
@@ -1476,9 +1373,7 @@ export class Idea {
         await Idea.loadEmbeddings(rootNodeId, true);
       }
       if (!idea.embeddings) {
-        throw new Error(
-          "Idea has no embedding vector and couldn't be computed.",
-        );
+        throw new Error("Idea has no embedding vector and couldn't be computed.");
       }
       // TODO: this should only return ideas, nothing else.
       const results = await Search.searchByEmbedding(userId, idea.embeddings, {
@@ -1520,10 +1415,10 @@ export class Idea {
   static async semanticSearch(userId: string | RecordId, embedding: number[]) {
     try {
       const db = await getDatabase();
-      const ideas = await db?.run<IIdeaAsRelation[]>(
-        "fn::search_similar_to_embeddings",
-        [embedding, userId],
-      );
+      const ideas = await db?.run<IIdeaAsRelation[]>("fn::search_similar_to_embeddings", [
+        embedding,
+        userId,
+      ]);
       if (!ideas) {
         console.error(`No ideas found.`);
         return;
@@ -1561,7 +1456,7 @@ export class Idea {
             * If the note is a question or an investigation, phrase the title as a concise summary of that question (e.g., "Methods for Improving Soil Compaction").
             * If the note is a plan or work-in-progress, the title should reflect that goal (e.g., "Design for a 5-Acre Syntropic Agroforestry System").
             * If the note is a statement of fact or a learned lesson, the title should be a declarative statement (e.g., "Type Inference from Zod Schemas").
-        `,
+        `
       );
 
       return title;
@@ -1606,9 +1501,7 @@ export class Idea {
   static async loadEmbeddings(id: string | RecordId, force = false) {
     try {
       const db = await getDatabase();
-      const result = await db?.select<IIdea & { id: RecordId }>(
-        new StringRecordId(id),
-      );
+      const result = await db?.select<IIdea & { id: RecordId }>(new StringRecordId(id));
       if (!result) {
         console.error(`Idea with id ${id} not found.`);
         return undefined;
@@ -1670,10 +1563,7 @@ export class Idea {
         embeddingsUpdatedAt: new Date(),
       });
     } catch (err) {
-      console.error(
-        `Error during updateEmbeddings for idea "${idea.id}":`,
-        err,
-      );
+      console.error(`Error during updateEmbeddings for idea "${idea.id}":`, err);
     }
   }
 
@@ -1685,10 +1575,7 @@ export class Idea {
           if (force) {
             return true;
           }
-          if (
-            idea.embeddings &&
-            idea.embeddingsUpdatedAt! > idea.contentUpdatedAt
-          ) {
+          if (idea.embeddings && idea.embeddingsUpdatedAt! > idea.contentUpdatedAt) {
             return false;
           }
           return true;
@@ -1709,7 +1596,7 @@ export class Idea {
         throw new Error("No embeddings generated");
       }
       const withEmbeddings = ideasAndContent.map(
-        (i, index) => [...i, embeddings[index]] as [string, string, number[]],
+        (i, index) => [...i, embeddings[index]] as [string, string, number[]]
       );
 
       const updaters = withEmbeddings.map(([id, content, embeddings]) => {
@@ -1770,7 +1657,7 @@ export class Idea {
             contentPlain: this.getPlainContent(update.content),
             contentPlainUpdatedAt: new Date(),
           };
-        }),
+        })
       );
     } catch (err) {
       console.error(`Error during synchronizeContentPlain`, err);
@@ -1805,9 +1692,7 @@ export class Idea {
     try {
       const idea = await Idea.get(ideaId);
       if (!idea) {
-        throw new Error(
-          `Idea not found when checking public status: ${ideaId}`,
-        );
+        throw new Error(`Idea not found when checking public status: ${ideaId}`);
       }
       const isPublic = idea.visibility === "public";
       return isPublic;
@@ -1827,9 +1712,7 @@ class IdeaDerivedCascade {
     (async () => {
       this._idea = await Idea.getFull(ideaId);
       if (!this._idea) {
-        throw new Error(
-          `Idea not found when constructing DerivedCascade: ${ideaId}`,
-        );
+        throw new Error(`Idea not found when constructing DerivedCascade: ${ideaId}`);
       }
     })();
   }
@@ -1840,8 +1723,9 @@ class IdeaDerivedCascade {
 
   async cascade() {
     try {
-      const updatedGenerativeSummary =
-        await GenerativeSummary.cascadeGenerativeSummary(this.ideaId);
+      const updatedGenerativeSummary = await GenerativeSummary.cascadeGenerativeSummary(
+        this.ideaId
+      );
       if (updatedGenerativeSummary) {
         console.info(`Updated generative summary for idea "${this.ideaId}"`);
       }

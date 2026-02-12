@@ -1,9 +1,5 @@
 import { getDatabase } from "../db";
-import {
-  IFinding,
-  IFindingType,
-  ISpyglassIntent,
-} from "../../services/Spyglass";
+import { IFinding, IFindingType, ISpyglassIntent } from "../../services/Spyglass";
 import { RecordId, StringRecordId } from "surrealdb";
 
 export type ISpyglassRecord = {
@@ -29,10 +25,7 @@ export type ISpyglassHistoryResponse = {
 };
 
 export type ISpyglassLightHistoryResponse = {
-  history: Pick<
-    ISpyglassRecord,
-    "id" | "baseQuery" | "createdAt" | "isDeepAnalysis"
-  >[];
+  history: Pick<ISpyglassRecord, "id" | "baseQuery" | "createdAt" | "isDeepAnalysis">[];
   total: number;
   limit: number;
   page: number;
@@ -43,7 +36,7 @@ export class SpyglassRecord {
 
   public static async create(
     userId: string | RecordId,
-    data: ISpyglassRecordCreator,
+    data: ISpyglassRecordCreator
   ): Promise<ISpyglassRecord | null> {
     try {
       const db = await getDatabase();
@@ -51,25 +44,19 @@ export class SpyglassRecord {
         throw new Error("Database connection not available");
       }
 
-      const result = await db.create<ISpyglassRecord, ISpyglassRecordCreator>(
-        "spyglass_record",
-        {
-          intent: data.intent,
-          baseQuery: data.baseQuery,
-          scope: data.scope,
-          searchPerformed: data.searchPerformed,
-          isDeepAnalysis: data.isDeepAnalysis,
-          findings: data.findings,
-          overview: data.overview,
-          createdAt: new Date(),
-        },
-      );
+      const result = await db.create<ISpyglassRecord, ISpyglassRecordCreator>("spyglass_record", {
+        intent: data.intent,
+        baseQuery: data.baseQuery,
+        scope: data.scope,
+        searchPerformed: data.searchPerformed,
+        isDeepAnalysis: data.isDeepAnalysis,
+        findings: data.findings,
+        overview: data.overview,
+        createdAt: new Date(),
+      });
 
       if (!result || !result[0]) {
-        console.error(
-          "Failed to create SpyglassRecord: result is empty",
-          result,
-        );
+        console.error("Failed to create SpyglassRecord: result is empty", result);
         return null;
       }
 
@@ -83,7 +70,7 @@ export class SpyglassRecord {
           userId: new StringRecordId(userId),
           recordId: new StringRecordId(record.id),
           now: new Date(),
-        },
+        }
       );
 
       return record;
@@ -118,10 +105,7 @@ export class SpyglassRecord {
     }
   }
 
-  public static async checkUserOwnership(
-    recordId: string,
-    userId: string,
-  ): Promise<boolean> {
+  public static async checkUserOwnership(recordId: string, userId: string): Promise<boolean> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -133,7 +117,7 @@ export class SpyglassRecord {
         {
           recordId,
           userId,
-        },
+        }
       );
 
       return result?.[0]?.length > 0;
@@ -194,7 +178,7 @@ export class SpyglassRecord {
   public static async getHistoryLightweight(
     userId: string,
     page: number,
-    pageSize: number,
+    pageSize: number
   ): Promise<ISpyglassLightHistoryResponse | null> {
     try {
       const offset = (page > 0 ? page - 1 : 0) * pageSize;
@@ -212,12 +196,7 @@ export class SpyglassRecord {
         LIMIT $limit START $offset
       `;
       const historyResult = await db.query<
-        [
-          Pick<
-            ISpyglassRecord,
-            "id" | "baseQuery" | "createdAt" | "isDeepAnalysis"
-          >[],
-        ]
+        [Pick<ISpyglassRecord, "id" | "baseQuery" | "createdAt" | "isDeepAnalysis">[]]
       >(historyQuery, {
         userId: new StringRecordId(userId),
         limit,

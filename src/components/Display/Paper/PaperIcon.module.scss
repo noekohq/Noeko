@@ -1,66 +1,66 @@
 @keyframes buttonIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .paperIcon {
-    cursor: pointer;
-    animation: buttonIn 0.2s ease-in-out;
-    background-color: transparent;
+  cursor: pointer;
+  animation: buttonIn 0.2s ease-in-out;
+  background-color: transparent;
+  padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-dark-1);
+  border: 1px solid transparent; // Use transparent for layout stability
+  line-height: 0; // Helps center the icon
+  transition: all 0.2s ease-in-out;
+
+  &.xs {
+    padding: var(--mantine-spacing-xs);
+    font-size: var(--mantine-font-size-xs);
+  }
+  &.sm {
     padding: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--mantine-color-dark-1);
-    border: 1px solid transparent; // Use transparent for layout stability
-    line-height: 0; // Helps center the icon
-    transition: all 0.2s ease-in-out;
+    font-size: var(--mantine-font-size-sm);
+  }
+  &.md {
+    padding: var(--mantine-spacing-md);
+    font-size: var(--mantine-font-size-md);
+  }
+  &.lg {
+    padding: var(--mantine-spacing-lg);
+    font-size: var(--mantine-font-size-lg);
+  }
+  &.xl {
+    padding: var(--mantine-spacing-xl);
+    font-size: var(--mantine-font-size-xl);
+  }
 
-    &.xs {
-        padding: var(--mantine-spacing-xs);
-        font-size: var(--mantine-font-size-xs);
-    }
-    &.sm {
-        padding: var(--mantine-spacing-sm);
-        font-size: var(--mantine-font-size-sm);
-    }
-    &.md {
-        padding: var(--mantine-spacing-md);
-        font-size: var(--mantine-font-size-md);
-    }
-    &.lg {
-        padding: var(--mantine-spacing-lg);
-        font-size: var(--mantine-font-size-lg);
-    }
-    &.xl {
-        padding: var(--mantine-spacing-xl);
-        font-size: var(--mantine-font-size-xl);
-    }
+  &.withBorder {
+    border-color: var(--mantine-color-dark-7);
+  }
 
-    &.withBorder {
-        border-color: var(--mantine-color-dark-7);
-    }
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--mantine-shadow-sm);
+    background-color: var(--mantine-color-dark-7);
+  }
 
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--mantine-shadow-sm);
-        background-color: var(--mantine-color-dark-7);
-    }
+  &:active {
+    transform: scale(0.95) translateY(2px);
+    background-color: var(--mantine-color-dark-7);
+  }
 
-    &:active {
-        transform: scale(0.95) translateY(2px);
-        background-color: var(--mantine-color-dark-7);
-    }
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }

@@ -112,13 +112,7 @@ export type IExcerptSearchResult = {
   search_type?: "fts" | "semantic";
 };
 
-export type ISearchableTable =
-  | "task"
-  | "idea"
-  | "source"
-  | "excerpt"
-  | "rabbithole"
-  | "tag";
+export type ISearchableTable = "task" | "idea" | "source" | "excerpt" | "rabbithole" | "tag";
 
 export type IConnectableSearchQueryTagFilter = {
   set: (string | RecordId)[];

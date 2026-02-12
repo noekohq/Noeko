@@ -45,11 +45,7 @@ export default function CreateButton() {
       <Menu.Target>
         <div style={{ height: "100%", position: "relative" }} ref={createRef}>
           <StatusButton variant="primary">
-            {menuOpen ? (
-              <XIcon weight="bold" size={16} />
-            ) : (
-              <PlusIcon weight="bold" size={16} />
-            )}
+            {menuOpen ? <XIcon weight="bold" size={16} /> : <PlusIcon weight="bold" size={16} />}
           </StatusButton>
         </div>
       </Menu.Target>

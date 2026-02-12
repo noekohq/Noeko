@@ -5,10 +5,7 @@ interface IPaperInsetProps {
   padding?: "xs" | "sm" | "md";
 }
 
-export default function PaperInset({
-  children,
-  padding = "sm",
-}: IPaperInsetProps) {
+export default function PaperInset({ children, padding = "sm" }: IPaperInsetProps) {
   const classNames = [styles.paperInset, styles[padding]].join(" ");
 
   return <div className={classNames}>{children}</div>;

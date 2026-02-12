@@ -1,4 +1,9 @@
-import { NodeViewContent, NodeViewProps, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
+import {
+  NodeViewContent,
+  NodeViewProps,
+  NodeViewWrapper,
+  ReactNodeViewRenderer,
+} from "@tiptap/react";
 import { DreamGallerySchema } from "../../../../../shared/editing/tiptap/nodes/DreamGallery";
 import styles from "./styles/DreamGallery.module.scss";
 
@@ -11,22 +16,22 @@ declare module "@tiptap/core" {
 }
 
 export const DreamGallery = DreamGallerySchema.extend({
-    addOptions() {
-        return {
-            HTMLAttributes: {
-                class: styles.dreamGallery,
-            },
-        };
-    },
-    addNodeView() {
-        return ReactNodeViewRenderer(DreamGalleryComponent);
-    }
+  addOptions() {
+    return {
+      HTMLAttributes: {
+        class: styles.dreamGallery,
+      },
+    };
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(DreamGalleryComponent);
+  },
 });
 
 export const DreamGalleryComponent: React.FC<NodeViewProps> = ({ node }) => {
-    return (
-        <NodeViewWrapper className={styles.dreamGallery}>
-            <NodeViewContent className={styles.content} />
-        </NodeViewWrapper>
-    );
+  return (
+    <NodeViewWrapper className={styles.dreamGallery}>
+      <NodeViewContent className={styles.content} />
+    </NodeViewWrapper>
+  );
 };

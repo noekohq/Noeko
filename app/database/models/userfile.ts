@@ -2,12 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { v4 as uuidv4 } from "uuid";
 import path from "node:path";
 import { User } from "./user";
-import {
-  deleteFromS3,
-  downloadLinkS3,
-  getStreamS3,
-  writeToS3,
-} from "../../utils/aws/s3";
+import { deleteFromS3, downloadLinkS3, getStreamS3, writeToS3 } from "../../utils/aws/s3";
 import { getDatabase } from "../db";
 import { Response } from "express";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -155,38 +150,31 @@ export class UserFile {
     }
   }
 
-  static async connectToUser(
-    userFileId: string | RecordId,
-    userId: string | RecordId,
-  ) {
+  static async connectToUser(userFileId: string | RecordId, userId: string | RecordId) {
     try {
       const db = await getDatabase();
-      const result = await db?.query<
-        [IUserFileUserOwnership & { id: RecordId }]
-      >(`RELATE $fromId -> owns -> $toId SET createdAt = $now;`, {
-        fromId: new StringRecordId(userId),
-        toId: new StringRecordId(userFileId),
-        now: new Date(),
-      });
+      const result = await db?.query<[IUserFileUserOwnership & { id: RecordId }]>(
+        `RELATE $fromId -> owns -> $toId SET createdAt = $now;`,
+        {
+          fromId: new StringRecordId(userId),
+          toId: new StringRecordId(userFileId),
+          now: new Date(),
+        }
+      );
       if (!result) {
-        throw Error(
-          `No ownership created for user file "${userFileId}" and user "${userId}".`,
-        );
+        throw Error(`No ownership created for user file "${userFileId}" and user "${userId}".`);
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(
-        `Error during connectToUser for user file "${userFileId}":`,
-        err,
-      );
+      console.error(`Error during connectToUser for user file "${userFileId}":`, err);
       return undefined;
     }
   }
 
   static async isEmbeddedInConnectable(
     userFileId: string | RecordId,
-    connectableId: string | RecordId,
+    connectableId: string | RecordId
   ): Promise<IConnectableEmbedRelationship | undefined> {
     try {
       const db = await getDatabase();
@@ -195,7 +183,7 @@ export class UserFile {
         {
           fromId: new StringRecordId(userFileId),
           toId: new StringRecordId(connectableId),
-        },
+        }
       );
 
       if (!result || !result[0]) {
@@ -205,23 +193,14 @@ export class UserFile {
 
       return present;
     } catch (err) {
-      console.error(
-        `Error during isEmbeddedInConnectable for user file "${userFileId}":`,
-        err,
-      );
+      console.error(`Error during isEmbeddedInConnectable for user file "${userFileId}":`, err);
       return undefined;
     }
   }
 
-  static async embedInConnectable(
-    userFileId: string | RecordId,
-    connectableId: string | RecordId,
-  ) {
+  static async embedInConnectable(userFileId: string | RecordId, connectableId: string | RecordId) {
     try {
-      const existingRelationship = await this.isEmbeddedInConnectable(
-        userFileId,
-        connectableId,
-      );
+      const existingRelationship = await this.isEmbeddedInConnectable(userFileId, connectableId);
       if (existingRelationship) {
         return existingRelationship;
       }
@@ -233,33 +212,27 @@ export class UserFile {
           fromId: new StringRecordId(userFileId),
           toId: new StringRecordId(connectableId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
         throw Error(
-          `No embedded relationship created for user file "${userFileId}" and connectable "${connectableId}".`,
+          `No embedded relationship created for user file "${userFileId}" and connectable "${connectableId}".`
         );
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(
-        `Error during embedInConnectable for user file "${userFileId}":`,
-        err,
-      );
+      console.error(`Error during embedInConnectable for user file "${userFileId}":`, err);
       return undefined;
     }
   }
 
   static async unembedFromConnectable(
     userFileId: string | RecordId,
-    connectableId: string | RecordId,
+    connectableId: string | RecordId
   ) {
     try {
-      const existingRelationship = await this.isEmbeddedInConnectable(
-        userFileId,
-        connectableId,
-      );
+      const existingRelationship = await this.isEmbeddedInConnectable(userFileId, connectableId);
       if (!existingRelationship) {
         return undefined;
       }
@@ -270,27 +243,24 @@ export class UserFile {
         {
           fromId: new StringRecordId(userFileId),
           toId: new StringRecordId(connectableId),
-        },
+        }
       );
       if (!result) {
         throw Error(
-          `Failed to remove embedded relationship for user file "${userFileId}" and connectable "${connectableId}".`,
+          `Failed to remove embedded relationship for user file "${userFileId}" and connectable "${connectableId}".`
         );
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(
-        `Error during unembedInConnectable for user file "${userFileId}":`,
-        err,
-      );
+      console.error(`Error during unembedInConnectable for user file "${userFileId}":`, err);
       return undefined;
     }
   }
 
   static async ensureEmbedded(
     connectableId: string | RecordId,
-    userFileIds: (string | RecordId)[],
+    userFileIds: (string | RecordId)[]
   ) {
     try {
       if (!userFileIds || userFileIds.length === 0) {
@@ -310,7 +280,7 @@ export class UserFile {
         {
           fileIds: formattedFileIds,
           target: formattedConnectableId,
-        },
+        }
       );
 
       if (!existingResult) {
@@ -318,13 +288,9 @@ export class UserFile {
       }
 
       const existingRelations = existingResult[0] || [];
-      const existingFileIds = new Set(
-        existingRelations.map((item) => item.in.toString()),
-      );
+      const existingFileIds = new Set(existingRelations.map((item) => item.in.toString()));
 
-      const missingFileIds = formattedFileIds.filter(
-        (id) => !existingFileIds.has(id.toString()),
-      );
+      const missingFileIds = formattedFileIds.filter((id) => !existingFileIds.has(id.toString()));
 
       if (missingFileIds.length > 0) {
         await db.query(
@@ -336,16 +302,13 @@ export class UserFile {
           {
             missingFileIds: missingFileIds,
             target: formattedConnectableId,
-          },
+          }
         );
       }
 
       return true;
     } catch (err) {
-      console.error(
-        `Error during ensureEmbedded for connectable "${connectableId}":`,
-        err,
-      );
+      console.error(`Error during ensureEmbedded for connectable "${connectableId}":`, err);
       return false;
     }
   }
@@ -357,7 +320,7 @@ export class UserFile {
         `SELECT * FROM user_file WHERE id IN (SELECT VALUE in FROM embedded_within WHERE out = $connectableId) ORDER BY createdAt DESC;`,
         {
           connectableId: new StringRecordId(connectableId),
-        },
+        }
       );
 
       if (!result || !result[0]) {
@@ -365,10 +328,7 @@ export class UserFile {
       }
       return result[0];
     } catch (err) {
-      console.error(
-        `Error during getFilesForConnectable for connectable "${connectableId}":`,
-        err,
-      );
+      console.error(`Error during getFilesForConnectable for connectable "${connectableId}":`, err);
       return [];
     }
   }
@@ -388,9 +348,7 @@ export class UserFile {
     }
   }
 
-  static async get(
-    userFileId: string | RecordId,
-  ): Promise<IUserFile | undefined> {
+  static async get(userFileId: string | RecordId): Promise<IUserFile | undefined> {
     try {
       const db = await getDatabase();
       const result = await db?.run<IUserFile>("fn::get_user_file_record", [
@@ -415,18 +373,12 @@ export class UserFile {
       const url = downloadLinkS3(file.s3key);
       return url;
     } catch (err) {
-      console.error(
-        `Error during getDownloadLink for id "${userFileId}":`,
-        err,
-      );
+      console.error(`Error during getDownloadLink for id "${userFileId}":`, err);
       return undefined;
     }
   }
 
-  static async streamToResponse(
-    userFileId: string | RecordId,
-    response: Response,
-  ) {
+  static async streamToResponse(userFileId: string | RecordId, response: Response) {
     try {
       const file = await UserFile.get(userFileId);
       if (!file) {
@@ -446,10 +398,7 @@ export class UserFile {
     }
   }
 
-  static async checkUserOwnership(
-    userFileId: string | RecordId,
-    userId: string | RecordId,
-  ) {
+  static async checkUserOwnership(userFileId: string | RecordId, userId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[number]>( // Expecting an array with one object: [{ count: number }]
@@ -457,7 +406,7 @@ export class UserFile {
         {
           userId: new StringRecordId(userId),
           userFileId: new StringRecordId(userFileId),
-        },
+        }
       );
 
       if (result && result[0] && result[0] > 0) {
@@ -465,10 +414,7 @@ export class UserFile {
       }
       return false;
     } catch (err) {
-      console.error(
-        `Error during checkUserOwnership for user file "${userFileId}":`,
-        err,
-      );
+      console.error(`Error during checkUserOwnership for user file "${userFileId}":`, err);
       return false;
     }
   }
@@ -499,9 +445,7 @@ export class UserFile {
     }
   }
 
-  static async getTextContent(
-    userFileId: string | RecordId,
-  ): Promise<string | undefined> {
+  static async getTextContent(userFileId: string | RecordId): Promise<string | undefined> {
     try {
       const file = await this.get(userFileId);
       if (!file) {
@@ -509,9 +453,7 @@ export class UserFile {
       }
       const allowedTypes = [...SourceableMimeTypes];
       if (!allowedTypes.includes(file.mimeType)) {
-        throw new Error(
-          "Couldn't get text content of file with unsupported mimetype",
-        );
+        throw new Error("Couldn't get text content of file with unsupported mimetype");
       }
 
       const stream = getStreamS3(file.s3key);
@@ -541,9 +483,7 @@ export class UserFile {
 
           return pageTexts.join("\n\n");
         default:
-          throw new Error(
-            "Reached fallthrough case trying to get text of file: " + file.id,
-          );
+          throw new Error("Reached fallthrough case trying to get text of file: " + file.id);
       }
     } catch (error) {
       throw error;

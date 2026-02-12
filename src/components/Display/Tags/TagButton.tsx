@@ -55,7 +55,7 @@ function TagButton({
       JSON.stringify({
         tagId: tag.id.toString(),
         thingId: tag.id.toString(),
-      }),
+      })
     );
   };
 

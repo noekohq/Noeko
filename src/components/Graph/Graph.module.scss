@@ -1,7 +1,7 @@
 .container {
-    --color-background: var(--mantine-color-body);
-    position: relative;
-    /* touch-action: none;
+  --color-background: var(--mantine-color-body);
+  position: relative;
+  /* touch-action: none;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -11,8 +11,8 @@
 }
 
 .empty {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

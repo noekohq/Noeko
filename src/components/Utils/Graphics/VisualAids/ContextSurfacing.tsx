@@ -93,7 +93,7 @@ export default function ContextSurfacing({
 }: ContextSurfacingProps) {
   const timings = useMemo(
     () => ({ ...DEFAULT_TIMINGS, ...propTimings }),
-    [JSON.stringify(propTimings)],
+    [JSON.stringify(propTimings)]
   );
 
   const [phase, setPhase] = useState<AnimationPhase>("typing");
@@ -130,7 +130,7 @@ export default function ContextSurfacing({
               if (loop) {
                 loopTimer = setTimeout(
                   () => setTextToType(getRandomExcerpt(textToType)),
-                  timings.pauseBeforeLoop,
+                  timings.pauseBeforeLoop
                 );
               }
             }, timings.dotsVisible);
@@ -151,11 +151,7 @@ export default function ContextSurfacing({
   return (
     <div className={styles.root}>
       <div className={styles.sidebar}>
-        <div
-          className={`${styles.iconWrapper} ${
-            phase === "glinting" ? styles.glintingIcon : ""
-          }`}
-        >
+        <div className={`${styles.iconWrapper} ${phase === "glinting" ? styles.glintingIcon : ""}`}>
           <IntersectSquareIcon weight="bold" />
         </div>
 
@@ -193,9 +189,7 @@ export default function ContextSurfacing({
         )}
 
         <div
-          className={`${styles.glint} ${
-            phase === "glinting" ? styles.glintVisible : ""
-          }`}
+          className={`${styles.glint} ${phase === "glinting" ? styles.glintVisible : ""}`}
           style={{
             transitionDuration: `${timings.glintDuration}ms`,
           }}

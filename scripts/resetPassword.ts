@@ -24,9 +24,7 @@ const { values } = parseArgs({
 });
 
 if (values.help || !values.email) {
-  console.info(
-    "Usage: bun resetPassword.ts --email <email>; bun resetPassword.ts -e <email>",
-  );
+  console.info("Usage: bun resetPassword.ts --email <email>; bun resetPassword.ts -e <email>");
   console.info("Example: bun resetPassword.ts user@example.com");
   process.exit(0);
 }
@@ -49,9 +47,7 @@ try {
   if (!updated) {
     throw new Error("Something went wrong updating the user password.");
   }
-  console.info(
-    `${chalk.blue(email)}'s new password is: ${chalk.green.bold(randomNewPassword)}`,
-  );
+  console.info(`${chalk.blue(email)}'s new password is: ${chalk.green.bold(randomNewPassword)}`);
 } catch (error) {
   console.error("There was an error resetting the password: ", error);
 }

@@ -12,23 +12,23 @@ type NodeProps = {
   scaleFactor: number;
   onNodeNavigate?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode,
+    node: INode
   ) => void;
   onNodeSelect?: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode,
+    node: INode
   ) => void;
   onContextMenu: (
     event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-    node: INode,
+    node: INode
   ) => void;
   onClusterSelect: (
     event: React.MouseEvent<SVGElement> | React.TouchEvent<SVGElement>,
-    node: INode,
+    node: INode
   ) => void;
   onClusterDeselect: (
     event: React.MouseEvent<SVGElement> | React.TouchEvent<SVGElement>,
-    node: INode,
+    node: INode
   ) => void;
   "data-node-id": string;
 };
@@ -56,11 +56,7 @@ const NodeComponent = ({
   // Contexts and Hooks
   const {
     focused: { get: focused },
-    selected: {
-      get: selected,
-      add: addToSelection,
-      remove: removeFromSelection,
-    },
+    selected: { get: selected, add: addToSelection, remove: removeFromSelection },
     highlighted: { get: highlighted },
     filter: { get: getFilter },
     loading: { get: isLoading },
@@ -117,7 +113,7 @@ const NodeComponent = ({
   };
 
   const handleContextMenu = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -125,7 +121,7 @@ const NodeComponent = ({
   };
 
   const handleNodeClick = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
   ) => {
     handleToggleSelectNode(node);
     if (event.shiftKey) {
@@ -134,7 +130,7 @@ const NodeComponent = ({
   };
 
   const handleNodeDoubleClick = (
-    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
+    event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>
   ) => {
     if (selected.has(node.id.toString())) {
       onClusterDeselect(event, node);

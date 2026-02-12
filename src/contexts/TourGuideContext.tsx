@@ -32,21 +32,13 @@ interface ITourGuideContext {
   deregisterStep: (stepId: string) => void;
 }
 
-const TourGuideContext = createContext<ITourGuideContext | undefined>(
-  undefined,
-);
+const TourGuideContext = createContext<ITourGuideContext | undefined>(undefined);
 
-export const TourGuideProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const TourGuideProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentStep, setCurrentStep] = useState<IRegisteredStep | null>(null);
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
 
-  const [registeredSteps, setRegisteredSteps] = useState(
-    new Map<string, IRegisteredStep>(),
-  );
+  const [registeredSteps, setRegisteredSteps] = useState(new Map<string, IRegisteredStep>());
 
   const [viewedFeatures, setViewedFeatures] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -68,7 +60,7 @@ export const TourGuideProvider = ({
     if (isLoading) return;
 
     const unseenSteps = Array.from(registeredSteps.values()).filter(
-      (step) => !viewedFeatures.has(step.id),
+      (step) => !viewedFeatures.has(step.id)
     );
 
     if (unseenSteps.length === 0) {
@@ -87,14 +79,9 @@ export const TourGuideProvider = ({
     }
   }, [registeredSteps, viewedFeatures, isLoading]);
 
-  const registerStep = useCallback(
-    (step: IOnboardingStep, element: HTMLElement) => {
-      setRegisteredSteps((prev) =>
-        new Map(prev).set(step.id, { ...step, element }),
-      );
-    },
-    [],
-  );
+  const registerStep = useCallback((step: IOnboardingStep, element: HTMLElement) => {
+    setRegisteredSteps((prev) => new Map(prev).set(step.id, { ...step, element }));
+  }, []);
 
   const deregisterStep = useCallback((stepId: string) => {
     setRegisteredSteps((prev) => {
@@ -151,21 +138,10 @@ export const TourGuideProvider = ({
       registerStep,
       deregisterStep,
     }),
-    [
-      currentStep,
-      targetElement,
-      isLoading,
-      viewedFeatures,
-      registerStep,
-      deregisterStep,
-    ],
+    [currentStep, targetElement, isLoading, viewedFeatures, registerStep, deregisterStep]
   );
 
-  return (
-    <TourGuideContext.Provider value={value}>
-      {children}
-    </TourGuideContext.Provider>
-  );
+  return <TourGuideContext.Provider value={value}>{children}</TourGuideContext.Provider>;
 };
 
 export const useTourGuide = () => {
@@ -178,8 +154,7 @@ export const useTourGuide = () => {
 
 export const useTourStep = (step: IOnboardingStep) => {
   const ref = useRef<any>(null);
-  const { registerStep, deregisterStep, isLoading, viewedFeatures } =
-    useTourGuide();
+  const { registerStep, deregisterStep, isLoading, viewedFeatures } = useTourGuide();
   const { id, view, order, title, content } = step;
 
   useEffect(() => {

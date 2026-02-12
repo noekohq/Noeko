@@ -1,18 +1,8 @@
 import React from "react";
-import {
-  Group,
-  ScrollArea,
-  Stack,
-  Text,
-  ActionIcon,
-  Title,
-} from "@mantine/core";
+import { Group, ScrollArea, Stack, Text, ActionIcon, Title } from "@mantine/core";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import styles from "./AcceleratorShelf.module.scss";
-import {
-  IAcceleratorItem,
-  IShelfData,
-} from "../../../../app/services/Recommendations";
+import { IAcceleratorItem, IShelfData } from "../../../../app/services/Recommendations";
 import { Link, useNavigate } from "react-router";
 import {
   getAcceleratorItemFields,
@@ -33,8 +23,7 @@ export interface IAcceleratorShelfProps {
 
 export function AcceleratorShelf({ shelf, layout }: IAcceleratorShelfProps) {
   const navigate = useNavigate();
-  const details: IAcceleratorShelfUIDetails | undefined =
-    resolveShelfToDetails[shelf.id];
+  const details: IAcceleratorShelfUIDetails | undefined = resolveShelfToDetails[shelf.id];
 
   const { items } = shelf;
   const action = {
@@ -68,12 +57,7 @@ export function AcceleratorShelf({ shelf, layout }: IAcceleratorShelfProps) {
           </Text>
         </Group>
         {action && (
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            onClick={action.onClick}
-            size="sm"
-          >
+          <ActionIcon variant="subtle" color="gray" onClick={action.onClick} size="sm">
             <ArrowRightIcon weight="bold" />
           </ActionIcon>
         )}
@@ -94,8 +78,7 @@ function Hero({ items, numSideItems, details }: IHeroProps) {
   const main = items?.[0];
   const sideItems = items.slice(1, 1 + numSideItems);
 
-  const { name, reason, preview, detail, link } =
-    getAcceleratorItemFields(main);
+  const { name, reason, preview, detail, link } = getAcceleratorItemFields(main);
 
   const BannerIcon = heroDetails?.banner.icon;
   const bannerLabel = heroDetails?.banner.label;
@@ -116,9 +99,7 @@ function Hero({ items, numSideItems, details }: IHeroProps) {
               {BannerIcon ? <BannerIcon weight="bold" size={14} /> : null}
               {heroDetails?.banner.label}
             </div>
-            <div className={styles.cta}>
-              {CTAIcon ? <CTAIcon weight="bold" size={14} /> : null}
-            </div>
+            <div className={styles.cta}>{CTAIcon ? <CTAIcon weight="bold" size={14} /> : null}</div>
           </Group>
           <div className={styles.content}>
             <Title order={2} fw="bold">

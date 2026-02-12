@@ -1,9 +1,6 @@
 import { Button, Grid, Group, Loader, Stack, Text } from "@mantine/core";
 import { IIdea, ISafeIdea } from "../../../shared/types/idea";
-import {
-  IGenerativeSummary,
-  IGenerativeSummaryForm,
-} from "../../../shared/types/idea";
+import { IGenerativeSummary, IGenerativeSummaryForm } from "../../../shared/types/idea";
 import useFetch from "../../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
@@ -16,11 +13,7 @@ type IInsightsProps = {
   reloadIdea: () => void;
 };
 
-export default function Insights({
-  idea,
-  loadingIdea,
-  reloadIdea,
-}: IInsightsProps) {
+export default function Insights({ idea, loadingIdea, reloadIdea }: IInsightsProps) {
   const { load: generateSummary, loading: loadingOverview } = useFetch<
     { type: "generative_summary" },
     IGenerativeSummary
@@ -87,13 +80,7 @@ export default function Insights({
                     generateSummary();
                   }}
                   disabled={loadingOverview}
-                  leftSection={
-                    loadingOverview ? (
-                      <Loader size="xs" color="gray" />
-                    ) : (
-                      <EyeIcon />
-                    )
-                  }
+                  leftSection={loadingOverview ? <Loader size="xs" color="gray" /> : <EyeIcon />}
                   size="xs"
                   color="gray"
                   radius="md"
@@ -127,11 +114,7 @@ export default function Insights({
                   onClick={() => {
                     openConfirmModal({
                       title: "Are you sure?",
-                      children: (
-                        <Text>
-                          Are you sure you want to delete the overview?
-                        </Text>
-                      ),
+                      children: <Text>Are you sure you want to delete the overview?</Text>,
                       onConfirm: () => {
                         removeSummary();
                       },
@@ -146,9 +129,7 @@ export default function Insights({
                   }}
                   color="gray"
                   disabled={loadingDelete || loadingOverview}
-                  leftSection={
-                    loadingDelete ? <Loader size="sm" color="white" /> : ""
-                  }
+                  leftSection={loadingDelete ? <Loader size="sm" color="white" /> : ""}
                   size="xs"
                   title="Delete overview"
                 >
@@ -161,9 +142,7 @@ export default function Insights({
                   }}
                   color="gray"
                   disabled={loadingOverview || loadingDelete}
-                  leftSection={
-                    loadingOverview ? <Loader size="sm" color="white" /> : ""
-                  }
+                  leftSection={loadingOverview ? <Loader size="sm" color="white" /> : ""}
                   size="xs"
                   title="Refresh overview"
                 >

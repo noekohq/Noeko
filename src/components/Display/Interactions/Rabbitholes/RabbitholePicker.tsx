@@ -42,9 +42,7 @@ export function RabbitholePickerContent({
     runOnDependencies: [searchQuery],
   });
 
-  const filteredSuggestions = (suggestions || []).filter(
-    (t) => !omitIds.includes(t.id.toString()),
-  );
+  const filteredSuggestions = (suggestions || []).filter((t) => !omitIds.includes(t.id.toString()));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,8 +61,7 @@ export function RabbitholePickerContent({
   };
 
   const isSearching = searchQuery.trim().length > 0;
-  const hasInitialSuggestions =
-    initialSuggestions && initialSuggestions.length > 0;
+  const hasInitialSuggestions = initialSuggestions && initialSuggestions.length > 0;
   const hasFilteredSuggestions = filteredSuggestions.length > 0;
 
   const showInitialSuggestions = !isSearching && hasInitialSuggestions;
@@ -102,9 +99,7 @@ export function RabbitholePickerContent({
       allowCreation={allowCreation}
     >
       <PaperSelection.Menu>
-        {showInitialSuggestions &&
-          initialSuggestions &&
-          renderSuggestions(initialSuggestions)}
+        {showInitialSuggestions && initialSuggestions && renderSuggestions(initialSuggestions)}
 
         {showTypeToSearch && (
           <Text c="dimmed" size="xs" ta="left" py="sm">
@@ -123,10 +118,7 @@ export function RabbitholePickerContent({
 
       {allowCreation && onCreateNew && (
         <PaperSelection.Form title="New Rabbithole">
-          <RabbitholeCreateForm
-            onSubmit={handleCreateSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <RabbitholeCreateForm onSubmit={handleCreateSubmit} isSubmitting={isSubmitting} />
         </PaperSelection.Form>
       )}
     </PaperSelection>
@@ -153,22 +145,14 @@ export function RabbitholePicker({
       <>
         <PaperButton
           leftSection={
-            opened ? (
-              <XIcon weight="bold" size={14} />
-            ) : (
-              <PlusIcon weight="bold" size={14} />
-            )
+            opened ? <XIcon weight="bold" size={14} /> : <PlusIcon weight="bold" size={14} />
           }
           onClick={toggle}
           size="md"
         >
           {opened ? "Cancel" : "Add Rabbithole"}
         </PaperButton>
-        <PaperDrawer
-          title="Add to Rabbithole"
-          opened={opened}
-          onClose={handleClose}
-        >
+        <PaperDrawer title="Add to Rabbithole" opened={opened} onClose={handleClose}>
           <RabbitholePickerContent
             onSelectExisting={onSelectExisting}
             onCreateNew={onCreateNew}
@@ -196,11 +180,7 @@ export function RabbitholePicker({
         <div>
           <PaperButton
             leftSection={
-              opened ? (
-                <XIcon weight="bold" size={14} />
-              ) : (
-                <PlusIcon weight="bold" size={14} />
-              )
+              opened ? <XIcon weight="bold" size={14} /> : <PlusIcon weight="bold" size={14} />
             }
             onClick={toggle}
             size="md"

@@ -47,10 +47,7 @@ export const getFileDownload = async (file: IUserFile | string) => {
   }
 };
 
-export const linkFileToConnectable = async (
-  fileId: string,
-  connectableId: string,
-) => {
+export const linkFileToConnectable = async (fileId: string, connectableId: string) => {
   try {
     await api.post("/files/embed", {
       fileId: fileId,
@@ -62,10 +59,7 @@ export const linkFileToConnectable = async (
   }
 };
 
-export const unlinkFileFromConnectable = async (
-  fileId: string,
-  connectableId: string,
-) => {
+export const unlinkFileFromConnectable = async (fileId: string, connectableId: string) => {
   try {
     await api.post("/files/unembed", {
       fileId: fileId,

@@ -1,7 +1,4 @@
-import {
-  IExcerptable,
-  IExcerptReference,
-} from "../../../../shared/types/excerpt";
+import { IExcerptable, IExcerptReference } from "../../../../shared/types/excerpt";
 import { ISource } from "../../../../app/database/models/source";
 import SourceButton from "../Sources/SourceButton";
 

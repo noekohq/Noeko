@@ -1,294 +1,294 @@
 @use "../../../styles/mixins.scss" as *;
 
 @keyframes comeIn {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes glint-wash {
-    0% {
-        transform: translateX(-100px) skewX(-25deg);
-    }
-    100% {
-        transform: translateX(500px) skewX(-25deg);
-    }
+  0% {
+    transform: translateX(-100px) skewX(-25deg);
+  }
+  100% {
+    transform: translateX(500px) skewX(-25deg);
+  }
 }
 
 @keyframes fadeInConcept {
-    from {
-        opacity: 0;
-        transform: scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes pulse-ring {
-    0% {
-        transform: scale(0.95);
-        opacity: 1;
-    }
-    70% {
-        transform: scale(1.15);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(0.95);
-        opacity: 0;
-    }
+  0% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
 }
 
 .concepts {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
-    height: 100vh;
-    width: 100%;
-    padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
-    box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  height: 100vh;
+  width: 100%;
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
+  box-sizing: border-box;
 
-    h2 {
-        font-size: 2rem;
-        margin: 0;
-    }
+  h2 {
+    font-size: 2rem;
+    margin: 0;
+  }
 }
 
 .gallery {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
 
-    animation: comeIn 0.7s 0.5s ease-in-out forwards;
+  animation: comeIn 0.7s 0.5s ease-in-out forwards;
 
-    @include tablet {
-        max-width: 60vw;
-    }
+  @include tablet {
+    max-width: 60vw;
+  }
 
-    @include tablet {
-        max-width: 40vw;
-    }
+  @include tablet {
+    max-width: 40vw;
+  }
 }
 
 .concept {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: var(--mantine-spacing-md);
+  height: 100%;
+  width: 100%;
+  animation: fadeInConcept 0.5s ease-in-out;
+
+  .content {
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
-    padding: var(--mantine-spacing-md);
-    height: 100%;
-    width: 100%;
-    animation: fadeInConcept 0.5s ease-in-out;
+    text-align: left;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: var(--mantine-spacing-md);
 
-    .content {
-        display: flex;
-        flex-direction: column;
-        text-align: left;
-        justify-content: center;
-        gap: 0;
-        margin-bottom: var(--mantine-spacing-md);
+    .title {
+      display: flex;
+      align-items: center;
+      gap: var(--mantine-spacing-sm);
 
-        .title {
-            display: flex;
-            align-items: center;
-            gap: var(--mantine-spacing-sm);
+      h2 {
+        font-size: 2rem;
+        margin: 0;
+      }
 
-            h2 {
-                font-size: 2rem;
-                margin: 0;
-            }
-
-            svg {
-                font-size: 2rem;
-                color: var(--mantine-color-dark-2);
-            }
-        }
-
-        .description {
-            margin-bottom: var(--mantine-spacing-sm);
-            display: flex;
-            flex-direction: column;
-            gap: var(--mantine-spacing-xs);
-            font-size: var(--mantine-font-size-lg);
-
-            p {
-                margin: 0;
-            }
-        }
+      svg {
+        font-size: 2rem;
+        color: var(--mantine-color-dark-2);
+      }
     }
 
-    .graphic {
-        height: 35vh;
-        box-sizing: border-box;
-        background-color: var(--mantine-color-dark-9);
-        padding: var(--mantine-spacing-sm);
-        border: 1px solid var(--mantine-color-dark-7);
-        border-radius: var(--mantine-radius-lg);
-        box-shadow: var(--mantine-shadow-md);
+    .description {
+      margin-bottom: var(--mantine-spacing-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--mantine-spacing-xs);
+      font-size: var(--mantine-font-size-lg);
 
-        .container {
-            height: 100%;
-            width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+      p {
+        margin: 0;
+      }
     }
+  }
+
+  .graphic {
+    height: 35vh;
+    box-sizing: border-box;
+    background-color: var(--mantine-color-dark-9);
+    padding: var(--mantine-spacing-sm);
+    border: 1px solid var(--mantine-color-dark-7);
+    border-radius: var(--mantine-radius-lg);
+    box-shadow: var(--mantine-shadow-md);
+
+    .container {
+      height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
 }
 
 .navigation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--mantine-spacing-xl);
-    width: 100%;
-    opacity: 0;
-    animation: comeIn 0.7s 1.5s ease-in-out forwards;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--mantine-spacing-xl);
+  width: 100%;
+  opacity: 0;
+  animation: comeIn 0.7s 1.5s ease-in-out forwards;
 }
 
 .arrowButton {
-    position: relative;
-    border: 1px solid var(--mantine-color-dark-7);
-    color: var(--mantine-color-dark-1);
-    background-color: var((--mantine-color-dark-8));
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    padding: var(--mantine-spacing-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--mantine-radius-lg);
-    box-shadow: var(--mantine-shadow-sm);
+  position: relative;
+  border: 1px solid var(--mantine-color-dark-7);
+  color: var(--mantine-color-dark-1);
+  background-color: var((--mantine-color-dark-8));
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  padding: var(--mantine-spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-lg);
+  box-shadow: var(--mantine-shadow-sm);
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: var(--mantine-shadow-md);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 
     &:hover {
-        transform: scale(1.1);
-        box-shadow: var(--mantine-shadow-md);
+      transform: none;
+      box-shadow: var(--mantine-shadow-sm);
     }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-
-        &:hover {
-            transform: none;
-            box-shadow: var(--mantine-shadow-sm);
-        }
-    }
+  }
 }
 
 .pulse {
-    &::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: var(--mantine-radius-lg);
-        border: 2px solid var(--mantine-color-dark-2);
-        animation: pulse-ring 1.5s ease-out infinite;
-        box-sizing: border-box;
-    }
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--mantine-radius-lg);
+    border: 2px solid var(--mantine-color-dark-2);
+    animation: pulse-ring 1.5s ease-out infinite;
+    box-sizing: border-box;
+  }
 }
 
 .dotsContainer {
-    display: flex;
-    gap: var(--mantine-spacing-sm);
+  display: flex;
+  gap: var(--mantine-spacing-sm);
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--mantine-color-dark-7);
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--mantine-color-dark-7);
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
 
-    &:hover {
-        background-color: var(--mantine-color-dark-3);
-    }
+  &:hover {
+    background-color: var(--mantine-color-dark-3);
+  }
 }
 
 .activeDot {
-    background-color: var(--mantine-color-dark-1);
-    transform: scale(1.2);
+  background-color: var(--mantine-color-dark-1);
+  transform: scale(1.2);
 }
 
 .action {
-    animation: comeIn 0.7s ease-in-out forwards;
+  animation: comeIn 0.7s ease-in-out forwards;
 }
 
 .button {
-    animation: float 3s ease-in-out infinite;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--mantine-spacing-sm) var(--mantine-spacing-xl);
-    border-radius: 100px;
-    background-color: var(--mantine-color-dark-8);
-    font-size: var(--mantine-font-size-lg);
-    border: 1px solid var(--mantine-color-dark-7);
-    box-shadow: var(--mantine-shadow-xl);
-    transition: all 0.3s ease-in-out;
-    cursor: pointer;
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
+  animation: float 3s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-xl);
+  border-radius: 100px;
+  background-color: var(--mantine-color-dark-8);
+  font-size: var(--mantine-font-size-lg);
+  border: 1px solid var(--mantine-color-dark-7);
+  box-shadow: var(--mantine-shadow-xl);
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    background-color: var(--mantine-color-blue-7);
+    border: 1px solid var(--mantine-color-blue-7);
+    color: var(--mantine-color-white);
+    animation-play-state: paused;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    animation-play-state: paused;
 
     &:hover {
-        background-color: var(--mantine-color-blue-7);
-        border: 1px solid var(--mantine-color-blue-7);
-        color: var(--mantine-color-white);
-        animation-play-state: paused;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        animation-play-state: paused;
-
-        &:hover {
-            background-color: var(--mantine-color-dark-8);
-            border-color: var(--mantine-color-dark-7);
-            color: inherit;
-        }
-
-        &:hover::before {
-            animation: none;
-        }
-    }
-
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 75px;
-        height: 100%;
-        background: linear-gradient(
-            120deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.3) 50%,
-            rgba(255, 255, 255, 0) 100%
-        );
-        transform: translateX(-100px) skewX(-25deg);
-        animation: none;
+      background-color: var(--mantine-color-dark-8);
+      border-color: var(--mantine-color-dark-7);
+      color: inherit;
     }
 
     &:hover::before {
-        animation: glint-wash 0.8s ease-in-out 1;
+      animation: none;
     }
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 75px;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: translateX(-100px) skewX(-25deg);
+    animation: none;
+  }
+
+  &:hover::before {
+    animation: glint-wash 0.8s ease-in-out 1;
+  }
 }

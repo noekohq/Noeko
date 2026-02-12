@@ -1,17 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useMemo,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import { Loader, ActionIcon, Text } from "@mantine/core";
-import {
-  MagnifyingGlassIcon,
-  PlusIcon,
-  ArrowLeftIcon,
-} from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PlusIcon, ArrowLeftIcon } from "@phosphor-icons/react";
 import styles from "./PaperSelection.module.scss";
 import PaperButton from "./PaperButton";
 
@@ -37,16 +26,12 @@ interface IPaperSelectionContext {
   allowCreation: boolean; // Added to context
 }
 
-const PaperSelectionContext = createContext<IPaperSelectionContext | null>(
-  null,
-);
+const PaperSelectionContext = createContext<IPaperSelectionContext | null>(null);
 
 export const usePaperSelection = () => {
   const context = useContext(PaperSelectionContext);
   if (!context) {
-    throw new Error(
-      "usePaperSelection must be used within a PaperSelection provider",
-    );
+    throw new Error("usePaperSelection must be used within a PaperSelection provider");
   }
   return context;
 };
@@ -105,14 +90,14 @@ const PaperSelection = ({
       onClose,
       allowCreation,
     }),
-    [mode, searchQuery, formPrompt, onClose, allowCreation],
+    [mode, searchQuery, formPrompt, onClose, allowCreation]
   );
 
   const menu = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === Menu,
+    (child) => React.isValidElement(child) && child.type === Menu
   );
   const form = React.Children.toArray(children).find(
-    (child) => React.isValidElement(child) && child.type === Form,
+    (child) => React.isValidElement(child) && child.type === Form
   );
 
   return (
@@ -129,11 +114,7 @@ const PaperSelection = ({
               className={styles.input}
             />
             <div className={styles.icon}>
-              {isLoading ? (
-                <Loader size={16} color="gray" />
-              ) : (
-                <MagnifyingGlassIcon size={16} />
-              )}
+              {isLoading ? <Loader size={16} color="gray" /> : <MagnifyingGlassIcon size={16} />}
             </div>
           </div>
         )}
@@ -150,8 +131,7 @@ const PaperSelection = ({
 
 const Menu = ({ children }: MenuProps) => {
   // Destructure allowCreation from context
-  const { searchQuery, formPrompt, setMode, allowCreation } =
-    usePaperSelection();
+  const { searchQuery, formPrompt, setMode, allowCreation } = usePaperSelection();
 
   const hasQuery = searchQuery.trim().length > 0;
 

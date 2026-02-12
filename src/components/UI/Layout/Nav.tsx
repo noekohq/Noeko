@@ -7,11 +7,7 @@ import {
   PushPinIcon, // New Icon: "Pin it"
   TagIcon,
 } from "@phosphor-icons/react";
-import {
-  ConstellationIcon,
-  RabbitholeIcon,
-  SpyglassIcon,
-} from "../../Utils/Icons/Icons";
+import { ConstellationIcon, RabbitholeIcon, SpyglassIcon } from "../../Utils/Icons/Icons";
 import { useLocation, useNavigate } from "react-router";
 import React, { useEffect, useState } from "react";
 import CaptureButton from "../../Display/Interactions/CaptureButton";
@@ -63,10 +59,7 @@ export default function Nav({ children }: INavProps) {
   let drawerContent: React.ReactNode = null;
 
   React.Children.forEach(children, (child) => {
-    if (
-      React.isValidElement(child) &&
-      (child.type as any).displayName === "Nav.Drawer"
-    ) {
+    if (React.isValidElement(child) && (child.type as any).displayName === "Nav.Drawer") {
       drawerContent = (child.props as any)?.children;
     }
   });
@@ -122,9 +115,7 @@ export default function Nav({ children }: INavProps) {
       {isDrawerOpen && <div className={styles.backdrop} />}
       {hasDrawerContent && isMobile && (
         <>
-          <div
-            className={`${styles.drawer} ${isDrawerOpen ? styles.open : ""}`}
-          >
+          <div className={`${styles.drawer} ${isDrawerOpen ? styles.open : ""}`}>
             {drawerContent}
           </div>
           <div
@@ -137,16 +128,10 @@ export default function Nav({ children }: INavProps) {
           </div>
         </>
       )}
-      <div
-        className={`${styles.options} ${
-          hasDrawerContent && isMobile ? styles.hasDrawer : ""
-        }`}
-      >
+      <div className={`${styles.options} ${hasDrawerContent && isMobile ? styles.hasDrawer : ""}`}>
         {!isMobile && (
           <button
-            className={`${styles.action} ${
-              activeMap.constellation() ? styles.active : ""
-            }`}
+            className={`${styles.action} ${activeMap.constellation() ? styles.active : ""}`}
             onClick={() => navigate("/constellation")}
           >
             <ConstellationIcon
@@ -171,9 +156,7 @@ export default function Nav({ children }: INavProps) {
           </button>
         )}*/}
         <button
-          className={`${styles.action} ${
-            activeMap.spyglass() ? styles.active : ""
-          }`}
+          className={`${styles.action} ${activeMap.spyglass() ? styles.active : ""}`}
           onClick={() => navigate("/spyglass")}
         >
           <SpyglassIcon
@@ -184,9 +167,7 @@ export default function Nav({ children }: INavProps) {
         </button>
         {!isMobile && (
           <button
-            className={`${styles.action} ${
-              activeMap.tags() ? styles.active : ""
-            }`}
+            className={`${styles.action} ${activeMap.tags() ? styles.active : ""}`}
             onClick={() => {
               navigate("/tags");
             }}
@@ -195,9 +176,7 @@ export default function Nav({ children }: INavProps) {
           </button>
         )}
         <button
-          className={`${styles.action} ${
-            activeMap.rabbitholes() ? styles.active : ""
-          }`}
+          className={`${styles.action} ${activeMap.rabbitholes() ? styles.active : ""}`}
           onClick={() => {
             if (currentRabbithole?.id.toString()) {
               navigate(`/rabbitholes/${currentRabbithole.id.toString()}`);
@@ -206,23 +185,14 @@ export default function Nav({ children }: INavProps) {
             navigate("/rabbitholes");
           }}
         >
-          <RabbitholeIcon
-            color="var(--mantine-color-dark-2)"
-            weight="bold"
-            size={iconSize}
-          />
+          <RabbitholeIcon color="var(--mantine-color-dark-2)" weight="bold" size={iconSize} />
         </button>
         {isMobile && <CaptureButton />}
         <button
-          className={`${styles.action} ${
-            activeMap.home() ? styles.active : ""
-          }`}
+          className={`${styles.action} ${activeMap.home() ? styles.active : ""}`}
           onClick={() => navigate("/")}
         >
-          <HouseIcon
-            weight={activeMap.home() ? "fill" : "bold"}
-            size={iconSize}
-          />
+          <HouseIcon weight={activeMap.home() ? "fill" : "bold"} size={iconSize} />
         </button>
         {isMobile && <MyButton />}
         {!isMobile && <CaptureButton />}
@@ -237,11 +207,7 @@ export default function Nav({ children }: INavProps) {
             }}
             title={isCollapsed ? "Pin Open" : "Dock to Bottom"}
           >
-            {isCollapsed ? (
-              <PushPinIcon weight="bold" />
-            ) : (
-              <ArrowLineDownIcon weight="bold" />
-            )}
+            {isCollapsed ? <PushPinIcon weight="bold" /> : <ArrowLineDownIcon weight="bold" />}
           </button>
         )}
       </div>

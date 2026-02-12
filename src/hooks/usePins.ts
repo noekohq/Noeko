@@ -28,7 +28,7 @@ export default function usePins(): IUsePinsReturn {
         map[pin.id.toString()] = pin;
         return map;
       },
-      {} as Record<string, IPinnable>,
+      {} as Record<string, IPinnable>
     );
   }, [pins]);
 
@@ -53,7 +53,7 @@ export default function usePins(): IUsePinsReturn {
         loadStuff();
       }
     },
-    [pins],
+    [pins]
   );
 
   const unpinThing = useCallback(
@@ -69,14 +69,14 @@ export default function usePins(): IUsePinsReturn {
         loadStuff();
       }
     },
-    [pins],
+    [pins]
   );
 
   const thingIsPinned = useCallback(
     (thing: string | RecordId) => {
       return pinMap[thing.toString()] !== undefined;
     },
-    [pins],
+    [pins]
   );
 
   const togglePin = useCallback(
@@ -93,7 +93,7 @@ export default function usePins(): IUsePinsReturn {
         loadStuff();
       }
     },
-    [pins],
+    [pins]
   );
 
   return {

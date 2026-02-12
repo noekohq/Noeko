@@ -1,123 +1,123 @@
 .shelf {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
 }
 
 .header {
-    padding: 0;
+  padding: 0;
 }
 
 .title {
-    font-size: var(--mantine-font-size-sm);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--mantine-color-dimmed);
-    margin: 0;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--mantine-color-dimmed);
+  margin: 0;
 }
 
 .hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+
+  .banner {
     display: flex;
     flex-direction: column;
-    gap: var(--mantine-spacing-xs);
+    gap: var(--mantine-spacing-sm);
+    padding: var(--mantine-spacing-md);
+    border-radius: var(--mantine-radius-lg);
+    border: 1px solid var(--mantine-color-dark-7);
+    color: var(--mantine-color-dark-1);
+    box-shadow: var(--mantine-shadow-sm);
+    transition:
+      transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+      box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-    .banner {
+    > * {
+      flex: 1;
+    }
+
+    &:hover {
+      transform: scale(1.01);
+      box-shadow: var(--mantine-shadow-md);
+    }
+
+    &:active {
+      transform: scale(0.99);
+      box-shadow: var(--mantine-shadow-xs);
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--mantine-spacing-xs);
+      padding: var(--layout-spacing) var(--mantine-spacing-xs);
+
+      font-size: var(--mantine-font-size-xs);
+      text-transform: uppercase;
+      color: var(--mantine-color-dark-3);
+      font-weight: bold;
+
+      background-color: var(--mantine-color-dark-8);
+      border-radius: var(--mantine-radius-xl);
+
+      svg {
+        font-size: var(--mantine-font-size-xs);
+      }
+    }
+
+    .cta {
+      padding: var(--layout-spacing);
+      font-size: var(--mantine-font-size-xs);
+      background-color: var(--mantine-color-dark-8);
+      aspect-ratio: 1/1;
+      color: var(--mantine-color-dark-1);
+      border-radius: var(--mantine-radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .link {
+        color: inherit;
+        text-decoration: none;
         display: flex;
-        flex-direction: column;
-        gap: var(--mantine-spacing-sm);
-        padding: var(--mantine-spacing-md);
-        border-radius: var(--mantine-radius-lg);
-        border: 1px solid var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-1);
-        box-shadow: var(--mantine-shadow-sm);
-        transition:
-            transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
-            box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-        > * {
-            flex: 1;
-        }
-
-        &:hover {
-            transform: scale(1.01);
-            box-shadow: var(--mantine-shadow-md);
-        }
-
-        &:active {
-            transform: scale(0.99);
-            box-shadow: var(--mantine-shadow-xs);
-        }
-
-        .label {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: var(--mantine-spacing-xs);
-            padding: var(--layout-spacing) var(--mantine-spacing-xs);
-
-            font-size: var(--mantine-font-size-xs);
-            text-transform: uppercase;
-            color: var(--mantine-color-dark-3);
-            font-weight: bold;
-
-            background-color: var(--mantine-color-dark-8);
-            border-radius: var(--mantine-radius-xl);
-
-            svg {
-                font-size: var(--mantine-font-size-xs);
-            }
-        }
-
-        .cta {
-            padding: var(--layout-spacing);
-            font-size: var(--mantine-font-size-xs);
-            background-color: var(--mantine-color-dark-8);
-            aspect-ratio: 1/1;
-            color: var(--mantine-color-dark-1);
-            border-radius: var(--mantine-radius-xl);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            .link {
-                color: inherit;
-                text-decoration: none;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-        .content {
-        }
+        align-items: center;
+        justify-content: center;
+      }
     }
-
-    .sideArea {
-        width: 100%;
-        display: grid;
-        gap: var(--mantine-spacing-sm);
-        grid-template-columns: 1fr 1fr;
-
-        .sideItem {
-        }
+    .content {
     }
+  }
+
+  .sideArea {
+    width: 100%;
+    display: grid;
+    gap: var(--mantine-spacing-sm);
+    grid-template-columns: 1fr 1fr;
+
+    .sideItem {
+    }
+  }
 }
 
 .carouselScroll {
-    padding: 0;
-    /* padding-block: var(--layout-spacing); */
+  padding: 0;
+  /* padding-block: var(--layout-spacing); */
 
-    .carouselTrack {
-        display: flex;
-        gap: var(--mantine-spacing-sm);
-        padding-block: var(--layout-spacing);
-        padding-left: 0;
-        padding-right: var(--mantine-spacing-md);
+  .carouselTrack {
+    display: flex;
+    gap: var(--mantine-spacing-sm);
+    padding-block: var(--layout-spacing);
+    padding-left: 0;
+    padding-right: var(--mantine-spacing-md);
 
-        .item {
-            width: 50vw;
-            flex-shrink: 0;
-        }
+    .item {
+      width: 50vw;
+      flex-shrink: 0;
     }
+  }
 }

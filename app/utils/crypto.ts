@@ -18,7 +18,7 @@ export const getRandomPassword = (length = 12): string => {
 
 export const verifyPassword = async (
   password: string,
-  hashedPassword: string,
+  hashedPassword: string
 ): Promise<boolean> => {
   const verified = await Bun.password.verify(password, hashedPassword);
   return verified;
@@ -26,7 +26,7 @@ export const verifyPassword = async (
 
 export function generateToken<T extends object | string>(
   payload: T,
-  options?: SignOptions,
+  options?: SignOptions
 ): string {
   if (!TOKEN_SECRET) {
     throw new Error("TOKEN_SECRET environment variable is not set");
@@ -36,7 +36,7 @@ export function generateToken<T extends object | string>(
 }
 
 export async function verifyToken<T extends object | string>(
-  token: string,
+  token: string
 ): Promise<T | undefined> {
   if (!TOKEN_SECRET) {
     throw new Error("TOKEN_SECRET environment variable is not set");

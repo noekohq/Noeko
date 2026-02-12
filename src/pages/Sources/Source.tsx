@@ -36,11 +36,7 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import {
-  ISource,
-  ISourceForm,
-  ISourceReference,
-} from "../../../app/database/models/source";
+import { ISource, ISourceForm, ISourceReference } from "../../../app/database/models/source";
 import Search from "../../components/Search/Search";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
@@ -128,14 +124,11 @@ export default function Source() {
   const leftModeClass = leftModeToClass[leftMode];
   const rightModeClass = rightModeToClass[rightMode];
 
-  const debouncedUpdate = useDebouncedCallback(
-    async (update: Partial<ISourceForm>) => {
-      if (sourceId) {
-        updateSource(sourceId, update);
-      }
-    },
-    200,
-  );
+  const debouncedUpdate = useDebouncedCallback(async (update: Partial<ISourceForm>) => {
+    if (sourceId) {
+      updateSource(sourceId, update);
+    }
+  }, 200);
 
   const handleFieldUpdate = async (field: string, value: any) => {
     try {
@@ -191,8 +184,7 @@ export default function Source() {
                       p={"sm"}
                       styles={{
                         root: {
-                          backgroundColor:
-                            "var(--mantine-color-dark-8) !important",
+                          backgroundColor: "var(--mantine-color-dark-8) !important",
                           border: "1px solid var(--mantine-color-dark-7)",
                         },
                       }}
@@ -204,10 +196,7 @@ export default function Source() {
                     </Card>
                   )}
                   {!!source && (
-                    <TagsManager
-                      connectable={{ ...source, type: "source" }}
-                      maxSuggested={2}
-                    />
+                    <TagsManager connectable={{ ...source, type: "source" }} maxSuggested={2} />
                   )}
                   {!!source && (
                     <ConnectionManager
@@ -258,9 +247,7 @@ export default function Source() {
               />
             </Group>
             {file && (
-              <div
-                className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
-              >
+              <div className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}>
                 <Suspense
                   fallback={
                     <Text size="xs" c="dimmed">
@@ -335,11 +322,7 @@ interface IAnalysisBlockProps {
   source?: ISource;
   reloadSource: () => void;
 }
-function AnalysisBlock({
-  analysis,
-  source,
-  reloadSource,
-}: IAnalysisBlockProps) {
+function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) {
   const [abstractOpen, setAbstractOpen] = useState(false);
   const [findingsOpen, setFindingsOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
@@ -349,9 +332,7 @@ function AnalysisBlock({
   const getTruncatedAbstract = () => {
     if (!abstract) return "";
     const maxLength = 200;
-    return abstract.length > maxLength
-      ? `${abstract.slice(0, maxLength)}...`
-      : abstract;
+    return abstract.length > maxLength ? `${abstract.slice(0, maxLength)}...` : abstract;
   };
 
   const { load: requestAnalysis, loading: loadingAnalysis } = useFetch({
@@ -382,9 +363,7 @@ function AnalysisBlock({
               handleRequestAnalysis();
             }}
             disabled={loadingAnalysis}
-            leftSection={
-              loadingAnalysis ? <Loader size="sm" color="white" /> : ""
-            }
+            leftSection={loadingAnalysis ? <Loader size="sm" color="white" /> : ""}
             size="sm"
             fullWidth
             color="gray"

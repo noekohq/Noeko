@@ -1,23 +1,23 @@
 .container {
-    position: relative;
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
-    border-radius: var(--mantine-radius-lg);
-    border: 1px solid var(--mantine-color-dark-7);
-    white-space: pre-wrap;
-    background-color: var(--color-code-background);
-    color: var(--color-code-foreground);
+  position: relative;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-lg);
+  border: 1px solid var(--mantine-color-dark-7);
+  white-space: pre-wrap;
+  background-color: var(--color-code-background);
+  color: var(--color-code-foreground);
 }
 
 .code {
-    margin: 0;
-    border: none;
-    padding: 0;
+  margin: 0;
+  border: none;
+  padding: 0;
 }
 
 .ui {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: var(--mantine-spacing-sm);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--mantine-spacing-sm);
 }

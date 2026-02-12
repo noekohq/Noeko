@@ -1,14 +1,14 @@
 .expandableCardStack {
-    padding: var(--layout-spacing);
-    border-radius: var(--mantine-radius-md);
-    background-color: var(--mantine-color-dark-7);
-    box-shadow: var(--mantine-shadow-lg);
+  padding: var(--layout-spacing);
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-dark-7);
+  box-shadow: var(--mantine-shadow-lg);
 
-    .content {
-        padding: var(--layout-spacing);
-        height: 100%;
-        background-color: var(--mantine-color-dark-8);
-        border-radius: var(--mantine-radius-md);
-        box-shadow: var(--mantine-shadow-md);
-    }
+  .content {
+    padding: var(--layout-spacing);
+    height: 100%;
+    background-color: var(--mantine-color-dark-8);
+    border-radius: var(--mantine-radius-md);
+    box-shadow: var(--mantine-shadow-md);
+  }
 }

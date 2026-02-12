@@ -9,11 +9,7 @@ interface IUseSidebarHoverProps {
   openable: boolean;
 }
 
-const useSidebarHover = ({
-  mode,
-  setMode,
-  openable,
-}: IUseSidebarHoverProps) => {
+const useSidebarHover = ({ mode, setMode, openable }: IUseSidebarHoverProps) => {
   const applyingLayoutChange = useRef(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringOverGlobal = useRef(false);

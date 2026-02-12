@@ -42,9 +42,7 @@ export function Option({
         <div className={styles.title}>{title}</div>
         <div className={styles.icon}>{icon}</div>
       </div>
-      {description && active && (
-        <div className={styles.description}>{description}</div>
-      )}
+      {description && active && <div className={styles.description}>{description}</div>}
     </div>
   );
 }

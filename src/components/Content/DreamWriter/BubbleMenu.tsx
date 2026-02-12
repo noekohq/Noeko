@@ -40,11 +40,7 @@ interface IBubbleMenuProps {
   boundaryRef?: RefObject<HTMLElement | null> | null;
 }
 
-export default function BubbleMenu({
-  editor,
-  onVisibilityChange,
-  boundaryRef,
-}: IBubbleMenuProps) {
+export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: IBubbleMenuProps) {
   const isImage = editor?.isActive("dreamImage");
   const isDreamFile = editor?.isActive("dreamFile");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
@@ -58,11 +54,7 @@ export default function BubbleMenu({
 
   const [visible, setVisible] = useState(false);
 
-  const shouldShowHandler = ({
-    editor: currentEditor,
-    state,
-    view,
-  }: any): boolean => {
+  const shouldShowHandler = ({ editor: currentEditor, state, view }: any): boolean => {
     if (hidden) {
       onVisibilityChange?.(false);
       return false;
@@ -83,13 +75,9 @@ export default function BubbleMenu({
     // Condition 2: A specific node with a menu is selected.
     const isNodeSelected =
       selection instanceof NodeSelection &&
-      [
-        "dreamImage",
-        "dreamFile",
-        "inlineMath",
-        "blockMath",
-        "dreamYouTube",
-      ].includes(selection.node.type.name);
+      ["dreamImage", "dreamFile", "inlineMath", "blockMath", "dreamYouTube"].includes(
+        selection.node.type.name
+      );
 
     const shouldBeVisible = isTextSelected || isNodeSelected;
 
@@ -254,20 +242,10 @@ const InlineMathMenu = ({ editor }: { editor: IEditor }) => {
         radius="md"
       />
       <Group gap="xs">
-        <ActionIcon
-          onClick={() => setLatex(newLatex)}
-          size="sm"
-          color="gray"
-          variant="light"
-        >
+        <ActionIcon onClick={() => setLatex(newLatex)} size="sm" color="gray" variant="light">
           <CheckIcon />
         </ActionIcon>
-        <ActionIcon
-          onClick={() => deleteMathNode()}
-          size="sm"
-          color="gray"
-          variant="light"
-        >
+        <ActionIcon onClick={() => deleteMathNode()} size="sm" color="gray" variant="light">
           <TrashSimpleIcon />
         </ActionIcon>
       </Group>
@@ -331,20 +309,10 @@ const BlockMathMenu = ({ editor }: { editor: IEditor }) => {
         radius="md"
       />
       <Group gap="xs">
-        <ActionIcon
-          onClick={() => setLatex(newLatex)}
-          size="sm"
-          color="gray"
-          variant="light"
-        >
+        <ActionIcon onClick={() => setLatex(newLatex)} size="sm" color="gray" variant="light">
           <CheckIcon />
         </ActionIcon>
-        <ActionIcon
-          onClick={() => deleteMathNode()}
-          size="sm"
-          color="gray"
-          variant="light"
-        >
+        <ActionIcon onClick={() => deleteMathNode()} size="sm" color="gray" variant="light">
           <TrashSimpleIcon />
         </ActionIcon>
         <ActionIcon

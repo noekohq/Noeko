@@ -5,12 +5,8 @@ vi.mock("../../../app/ai/embeddings/embeddings", () => ({
   getEmbedder: vi.fn(() => ({
     model: "mock-model",
     embedContent: vi.fn(async () => new Array(768).fill(0)),
-    embedContents: vi.fn(async (contents: string[]) =>
-      contents.map(() => new Array(768).fill(0)),
-    ),
-    getEmptyEmbeddings: vi.fn(async (dimension = 768) =>
-      new Array(dimension).fill(0),
-    ),
+    embedContents: vi.fn(async (contents: string[]) => contents.map(() => new Array(768).fill(0))),
+    getEmptyEmbeddings: vi.fn(async (dimension = 768) => new Array(dimension).fill(0)),
     listAvailableModels: vi.fn(async () => ["mock-model"]),
   })),
 }));

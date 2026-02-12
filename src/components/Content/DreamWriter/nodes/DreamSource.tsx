@@ -15,15 +15,7 @@ import {
 } from "@tiptap/react";
 import { useEffect, useState } from "react";
 import styles from "./styles/DreamSource.module.scss";
-import {
-  ActionIcon,
-  Flex,
-  Group,
-  Popover,
-  Stack,
-  Text,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { ISource } from "../../../../../app/database/models/source";
@@ -33,10 +25,7 @@ import { useDisclosure } from "@mantine/hooks";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     dreamSource: {
-      setDreamSource: (options: {
-        sourceId: string;
-        content: string;
-      }) => ReturnType;
+      setDreamSource: (options: { sourceId: string; content: string }) => ReturnType;
     };
   }
 }
@@ -49,16 +38,10 @@ export const DreamSource = DreamSourceSchema.extend({
   },
 });
 
-export const DreamSourceComponent: React.FC<NodeViewProps> = ({
-  node,
-  deleteNode,
-  selected,
-}) => {
+export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
   const { sourceId } = node.attrs;
   const isEmpty = node.content.size === 0;
-  const [accessState, setAccessState] = useState<
-    "granted" | "forbidden" | "error"
-  >("granted");
+  const [accessState, setAccessState] = useState<"granted" | "forbidden" | "error">("granted");
   const navigate = useNavigate();
 
   const { data: source, load: fetchSource } = useFetch<undefined, ISource>({
@@ -93,9 +76,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
   const getTooltipLabel = () => {
     switch (accessState) {
       case "granted":
-        return source?.displayName
-          ? `Preview ${source.displayName}`
-          : "Loading...";
+        return source?.displayName ? `Preview ${source.displayName}` : "Loading...";
       case "forbidden":
         return "You don't have access to preview this source";
       case "error":
@@ -115,13 +96,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamSourceWrapper}
       data-selected={selected || undefined}
     >
-      <Popover
-        width={"400px"}
-        shadow="md"
-        position="top"
-        radius="lg"
-        opened={iconHovered}
-      >
+      <Popover width={"400px"} shadow="md" position="top" radius="lg" opened={iconHovered}>
         <Popover.Target>
           <Tooltip label={getTooltipLabel()}>
             <Flex
@@ -134,9 +109,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
             >
               {accessState === "granted" ? (
                 <FileTextIcon
-                  className={`${styles.dreamSourceIcon} ${
-                    iconHovered ? styles.hovered : ""
-                  }`}
+                  className={`${styles.dreamSourceIcon} ${iconHovered ? styles.hovered : ""}`}
                   weight={iconHovered ? "fill" : "regular"}
                 />
               ) : (
@@ -155,12 +128,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
         >
           {accessState === "granted" && source && (
             <Stack gap="sm">
-              <Group
-                justify="space-between"
-                align="center"
-                w={"100%"}
-                wrap="nowrap"
-              >
+              <Group justify="space-between" align="center" w={"100%"} wrap="nowrap">
                 <Text fw={500} c="dark.3">
                   {source.displayName}
                 </Text>
@@ -187,9 +155,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
                   </Link>
                 </Group>
               </Group>
-              {source.analysis?.abstract && (
-                <Text size="sm">{source.analysis.abstract}</Text>
-              )}
+              {source.analysis?.abstract && <Text size="sm">{source.analysis.abstract}</Text>}
             </Stack>
           )}
 
@@ -201,11 +167,7 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
 
           {accessState === "forbidden" && (
             <Stack gap="sm" align="center">
-              <ShieldSlashIcon
-                size={32}
-                weight="regular"
-                color="var(--mantine-color-dimmed)"
-              />
+              <ShieldSlashIcon size={32} weight="regular" color="var(--mantine-color-dimmed)" />
               <Text c="dimmed" size="sm" ta="center">
                 You don't have access to preview this source
               </Text>
@@ -233,23 +195,13 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <span
-        onClick={handleLinkClick}
-        className={styles.dreamSourceInline}
-        role="link"
-      >
+      <span onClick={handleLinkClick} className={styles.dreamSourceInline} role="link">
         <NodeViewContent
           className={`${styles.dreamSourceContent} ${
             !source && accessState === "granted" ? styles.notFound : ""
           }`}
-          data-placeholder={
-            isEmpty ? source?.displayName || "Loading title..." : undefined
-          }
-          title={
-            source?.displayName
-              ? `Go to "${source.displayName}"`
-              : "Go to source"
-          }
+          data-placeholder={isEmpty ? source?.displayName || "Loading title..." : undefined}
+          title={source?.displayName ? `Go to "${source.displayName}"` : "Go to source"}
         />
       </span>
     </NodeViewWrapper>
@@ -274,11 +226,7 @@ export const DreamSourceMenu = ({ editor }: IDreamSourceMenuProps) => {
           <ArrowSquareOutIcon />
         </ActionIcon>
       </Link>
-      <ActionIcon
-        title="Delete Source"
-        color="red"
-        onClick={deleteSelectedNode}
-      >
+      <ActionIcon title="Delete Source" color="red" onClick={deleteSelectedNode}>
         <TrashIcon />
       </ActionIcon>
     </>

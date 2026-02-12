@@ -41,30 +41,27 @@ const updates: IUpdate[] = [
       <>
         <Stack>
           <Text>
-            Your brain isn't just full of ideas, but also actions to take and
-            goals to pursue. Tasks in Noeko rise to meet these, and we're just
-            getting started! We also are making consistent updates to the editor
-            and the dashboard, working constantly to make the entire Noeko
-            experience significantly more user friendly and cohesive. Please
-            don't hesitate to leave feedback as we build features!
+            Your brain isn't just full of ideas, but also actions to take and goals to pursue. Tasks
+            in Noeko rise to meet these, and we're just getting started! We also are making
+            consistent updates to the editor and the dashboard, working constantly to make the
+            entire Noeko experience significantly more user friendly and cohesive. Please don't
+            hesitate to leave feedback as we build features!
           </Text>
           <List>
             <List.Item>Added tasks to Noeko</List.Item>
             <List.Item>
-              A new "today's tasks" widget on your dashboard, letting you see
-              all of the tasks scheduled for today.
+              A new "today's tasks" widget on your dashboard, letting you see all of the tasks
+              scheduled for today.
             </List.Item>
             <List.Item>
-              Making connections within the editor now supports both semantic
-              and text-based search
+              Making connections within the editor now supports both semantic and text-based search
             </List.Item>
             <List.Item>
-              Use familiar <code>[[]]</code> syntax to make connections instead
-              of <code>$</code>
+              Use familiar <code>[[]]</code> syntax to make connections instead of <code>$</code>
             </List.Item>
             <List.Item>
-              A significantly better selection menu, highlight some text and
-              work with it from the menu.
+              A significantly better selection menu, highlight some text and work with it from the
+              menu.
             </List.Item>
           </List>
         </Stack>
@@ -78,9 +75,8 @@ const updates: IUpdate[] = [
       <>
         <Stack>
           <Text>
-            Introducing Widgets! Widgets are the building blocks of your
-            dashboard, providing you a birds eye view and a way to easily
-            interact with your entire knowledge base!
+            Introducing Widgets! Widgets are the building blocks of your dashboard, providing you a
+            birds eye view and a way to easily interact with your entire knowledge base!
           </Text>
         </Stack>
       </>
@@ -93,24 +89,22 @@ const updates: IUpdate[] = [
       <>
         <Stack>
           <Text>
-            Introducing Rabbitholes! When you get that urge to go deep into a
-            subject and really chew on it, you can create and then enter a
-            Rabbithole. Once in a Rabbithole, every new note or tag that you add
-            will be automatically added to your Rabbithole, and searches will be
-            limited. This functionality is still in active development, so
-            please report any bugs if you find them!
+            Introducing Rabbitholes! When you get that urge to go deep into a subject and really
+            chew on it, you can create and then enter a Rabbithole. Once in a Rabbithole, every new
+            note or tag that you add will be automatically added to your Rabbithole, and searches
+            will be limited. This functionality is still in active development, so please report any
+            bugs if you find them!
           </Text>
 
           <List>
             <List.Item>Rabbitholes! Try them out!</List.Item>
             <List.Item>
-              Graph should feel faster now, and should be more user friendly
-              (but we still have a lot of planned improvements here.)
+              Graph should feel faster now, and should be more user friendly (but we still have a
+              lot of planned improvements here.)
             </List.Item>
             <List.Item>
-              Search is now faster, rather than waiting seconds to find what
-              you're looking for, you should be looking at sub-second search
-              times.
+              Search is now faster, rather than waiting seconds to find what you're looking for, you
+              should be looking at sub-second search times.
             </List.Item>
           </List>
         </Stack>
@@ -124,16 +118,13 @@ const updates: IUpdate[] = [
       <>
         <Stack>
           <Text>
-            We got tired of copy-pasting, or having to export notes to share
-            them with others, so we decided to add access controls to ideas. YOu
-            can now manage access to specific ideas, and allow other users to
-            view them form the right sidebar in an idea.
+            We got tired of copy-pasting, or having to export notes to share them with others, so we
+            decided to add access controls to ideas. YOu can now manage access to specific ideas,
+            and allow other users to view them form the right sidebar in an idea.
           </Text>
 
           <List>
-            <List.Item>
-              Access controls for ideas, share with other users
-            </List.Item>
+            <List.Item>Access controls for ideas, share with other users</List.Item>
             <List.Item>Minor UI updates</List.Item>
             <List.Item>Improvements to Spyglass</List.Item>
           </List>
@@ -148,16 +139,13 @@ const updates: IUpdate[] = [
       <>
         <Stack>
           <Text>
-            We are continuing to work on Spyglass, working to constantly improve
-            it. Now we are also moving towards a project-creation flow which
-            will allow for more streamlined thought.
+            We are continuing to work on Spyglass, working to constantly improve it. Now we are also
+            moving towards a project-creation flow which will allow for more streamlined thought.
           </Text>
 
           <List>
             <List.Item>Spyglass Follow-up questions</List.Item>
-            <List.Item>
-              Spyglass highlighting and more robust citations.
-            </List.Item>
+            <List.Item>Spyglass highlighting and more robust citations.</List.Item>
           </List>
         </Stack>
       </>
@@ -171,19 +159,14 @@ const updates: IUpdate[] = [
         <Stack>
           <List>
             <List.Item>
-              Sidebars will no longer have jerky movements, and are cleaner in
-              nature
+              Sidebars will no longer have jerky movements, and are cleaner in nature
+            </List.Item>
+            <List.Item>Mobile and Tablet platforms now work responsively</List.Item>
+            <List.Item>
+              Generally, the UI has improved substantially, though more updates are always underway
             </List.Item>
             <List.Item>
-              Mobile and Tablet platforms now work responsively
-            </List.Item>
-            <List.Item>
-              Generally, the UI has improved substantially, though more updates
-              are always underway
-            </List.Item>
-            <List.Item>
-              Continued work on Spyglass has brought improvements to accuracy,
-              speed, and flow
+              Continued work on Spyglass has brought improvements to accuracy, speed, and flow
             </List.Item>
           </List>
         </Stack>
@@ -196,12 +179,10 @@ const updates: IUpdate[] = [
     details: (
       <Stack>
         <Text>
-          Spyglass will now stream text, and all you to see more details about
-          your search.
+          Spyglass will now stream text, and all you to see more details about your search.
         </Text>
         <Text>
-          We would love any feedback you might have on{" "}
-          <Link to="/spyglass">Spyglass</Link> :)
+          We would love any feedback you might have on <Link to="/spyglass">Spyglass</Link> :)
         </Text>
       </Stack>
     ),
@@ -211,27 +192,19 @@ const updates: IUpdate[] = [
     title: "Major refresh to Spyglass",
     details: (
       <Stack>
-        <Text>
-          We took some time to increase the usability and utility of Spyglass
-          search.
-        </Text>
+        <Text>We took some time to increase the usability and utility of Spyglass search.</Text>
         <List>
           <List.Item>
             Drastically improved UI for <Link to={"/spyglass"}>Spyglass</Link>.
           </List.Item>
+          <List.Item>Better grounding of search results in source material.</List.Item>
           <List.Item>
-            Better grounding of search results in source material.
+            More intuitive indication of current step in multi-stage Spyglass process.
           </List.Item>
+          <List.Item>Removing redundant information and making it easy to get utility.</List.Item>
           <List.Item>
-            More intuitive indication of current step in multi-stage Spyglass
-            process.
-          </List.Item>
-          <List.Item>
-            Removing redundant information and making it easy to get utility.
-          </List.Item>
-          <List.Item>
-            View your <Link to="/spyglass/search">Spyglass Search History</Link>{" "}
-            now from <Link to="/settings">Settings</Link>.
+            View your <Link to="/spyglass/search">Spyglass Search History</Link> now from{" "}
+            <Link to="/settings">Settings</Link>.
           </List.Item>
         </List>
       </Stack>
@@ -243,8 +216,8 @@ const updates: IUpdate[] = [
     details: (
       <Stack>
         <Text>
-          We took some time to make navigation around the application
-          significantly better, as well as generally improving search.
+          We took some time to make navigation around the application significantly better, as well
+          as generally improving search.
         </Text>
         <List>
           <List.Item>Added YouTube videos to the editor.</List.Item>
@@ -281,8 +254,8 @@ const updates: IUpdate[] = [
         <List.Item>Made Spyglass results more informative.</List.Item>
         <List.Item>Improved Spyglass UI overall.</List.Item>
         <List.Item>
-          Most instances of Right Sidebar search results are not draggable, and
-          can be used to create connections to tags or ideas.
+          Most instances of Right Sidebar search results are not draggable, and can be used to
+          create connections to tags or ideas.
         </List.Item>
         <List.Item>
           Started on Spotlight Search Feature <Kbd>Ctrl + k</Kbd>
@@ -300,8 +273,7 @@ const updates: IUpdate[] = [
         <List.Item>Code blocks look nicer.</List.Item>
         <List.Item>Export or Copy ideas as Markdown or HTML.</List.Item>
         <List.Item>
-          You can now drag and drop search results to your connections to manual
-          connect ideas.
+          You can now drag and drop search results to your connections to manual connect ideas.
         </List.Item>
         <List.Item>Tag suggestions should be better now.</List.Item>
       </List>
@@ -316,8 +288,7 @@ const updates: IUpdate[] = [
         <List.Item>Create a tag from idea view.</List.Item>
         <List.Item>Get suggested tags and apply those.</List.Item>
         <List.Item>
-          Idea's will start to display more consistently and get better
-          interactions.
+          Idea's will start to display more consistently and get better interactions.
         </List.Item>
       </List>
     ),
@@ -328,13 +299,13 @@ const updates: IUpdate[] = [
     details: (
       <List>
         <List.Item>
-          The graph has been refined to include both "normal" and "heavy" mode,
-          which allows you to tune the level of computation of your graph
+          The graph has been refined to include both "normal" and "heavy" mode, which allows you to
+          tune the level of computation of your graph
         </List.Item>
         <List.Item>Tags will now appear in the graph</List.Item>
         <List.Item>
-          New idea will now be (ctrl/cmd + shift + a) rather than (ctrl/cmd +
-          shift + i) due to conflict with developer tools
+          New idea will now be (ctrl/cmd + shift + a) rather than (ctrl/cmd + shift + i) due to
+          conflict with developer tools
         </List.Item>
       </List>
     ),
@@ -350,8 +321,7 @@ const updates: IUpdate[] = [
         <List.Item>Add the updates page :)</List.Item>
         <List.Item>Minor styling and updates</List.Item>
         <List.Item>
-          Better "At a Glance" formatting in{" "}
-          <Link to="/spyglass">Spyglass</Link>
+          Better "At a Glance" formatting in <Link to="/spyglass">Spyglass</Link>
         </List.Item>
       </List>
     ),
@@ -362,8 +332,8 @@ const updates: IUpdate[] = [
     details: (
       <List>
         <List.Item>
-          Fixed problem where the "Find an idea" and "Spyglass" options were
-          both going to the same spot.
+          Fixed problem where the "Find an idea" and "Spyglass" options were both going to the same
+          spot.
         </List.Item>
         <List.Item>Improved mobile UI experience</List.Item>
         <List.Item>
@@ -379,11 +349,7 @@ const getReactNodeTextContent = (node: React.ReactNode): string => {
   if (typeof node === "string") return node;
   if (typeof node === "number") return String(node);
   if (Array.isArray(node)) return node.map(getReactNodeTextContent).join("");
-  if (
-    React.isValidElement(node) &&
-    node.props &&
-    "children" in (node.props as any)
-  ) {
+  if (React.isValidElement(node) && node.props && "children" in (node.props as any)) {
     const children = (node.props as any).children;
     if (children) return getReactNodeTextContent(children);
   }
@@ -409,9 +375,8 @@ export default function Updates() {
         <Stack>
           <Title>Noeko Updates</Title>
           <Text c="dimmed" size="sm">
-            We are constantly working to make Noeko a better app for you.
-            However, we couldn't do it without your valuable input! Don't
-            hesitate to submit an idea or a bug report :)
+            We are constantly working to make Noeko a better app for you. However, we couldn't do it
+            without your valuable input! Don't hesitate to submit an idea or a bug report :)
           </Text>
           <Card withBorder radius={"lg"}>
             <Title fw="bold" order={3}>
@@ -420,11 +385,10 @@ export default function Updates() {
             <Divider my="md" />
             <Text fw="bold">In progress</Text>
             <Text>
-              Currently we are working on integrating tasks with the rest of
-              Noeko, as well as general user-experience updates. In the
-              background, we're also laying the ground work for a big
-              integration of your own sources into Noeko, so that you can deeply
-              integrate outside sources of information into the application.
+              Currently we are working on integrating tasks with the rest of Noeko, as well as
+              general user-experience updates. In the background, we're also laying the ground work
+              for a big integration of your own sources into Noeko, so that you can deeply integrate
+              outside sources of information into the application.
             </Text>
             <Divider my="md" />
             <Text fw="bold">Up next</Text>
@@ -432,9 +396,7 @@ export default function Updates() {
               *(Potentially not exactly in this order)
             </Text>
             <List>
-              <List.Item>
-                Add your owns sources (PDFs, Websites, YouTube videos, etc)
-              </List.Item>
+              <List.Item>Add your owns sources (PDFs, Websites, YouTube videos, etc)</List.Item>
               <List.Item>Improvements to latency and speed.</List.Item>
               <List.Item>Better knowledge capture (voice mode, etc)</List.Item>
             </List>
@@ -466,12 +428,8 @@ export default function Updates() {
               const lowerQuery = query.toLowerCase();
               if (!lowerQuery) return true; // Show all if query is empty
 
-              const titleMatch = update.title
-                .toLowerCase()
-                .includes(lowerQuery);
-              const dateMatchFormatted = formatDate(update.date)
-                .toLowerCase()
-                .includes(lowerQuery);
+              const titleMatch = update.title.toLowerCase().includes(lowerQuery);
+              const dateMatchFormatted = formatDate(update.date).toLowerCase().includes(lowerQuery);
 
               // Attempt to parse the query as a date and match it directly
               const parsedQueryDate = new Date(lowerQuery);
@@ -485,9 +443,7 @@ export default function Updates() {
 
               const dateMatch = dateMatchFormatted || dateMatchObject;
               const contentText = getReactNodeTextContent(update.details);
-              const contentMatch = contentText
-                .toLowerCase()
-                .includes(lowerQuery);
+              const contentMatch = contentText.toLowerCase().includes(lowerQuery);
 
               return titleMatch || dateMatch || contentMatch;
             })

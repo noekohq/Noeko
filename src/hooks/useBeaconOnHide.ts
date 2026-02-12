@@ -65,10 +65,7 @@ function useBeaconOnHide<T>({
       }
 
       // If using visibilitychange, only proceed if state is 'hidden'
-      if (
-        eventRef.current === "visibilitychange" &&
-        document.visibilityState !== "hidden"
-      ) {
+      if (eventRef.current === "visibilitychange" && document.visibilityState !== "hidden") {
         return;
       }
 
@@ -92,7 +89,7 @@ function useBeaconOnHide<T>({
             console.info(`Beacon successfully queued for ${fullUrl}`);
           } else {
             console.error(
-              `Failed to queue beacon for ${fullUrl}. Data might be too large or URL invalid.`,
+              `Failed to queue beacon for ${fullUrl}. Data might be too large or URL invalid.`
             );
             // Note: You cannot reliably do complex fallbacks here during unload.
           }

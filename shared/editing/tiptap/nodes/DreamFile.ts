@@ -43,8 +43,7 @@ export const DreamFileSchema = Node.create<IDreamFileOptions>({
       },
       viewMode: {
         default: "expanded",
-        parseHTML: (element) =>
-          element.getAttribute("data-view-mode") || "expanded",
+        parseHTML: (element) => element.getAttribute("data-view-mode") || "expanded",
         renderHTML: (attributes) => ({
           "data-view-mode": attributes.viewMode,
         }),

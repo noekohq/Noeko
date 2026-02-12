@@ -15,6 +15,8 @@ import {
   Plus,
   UploadSimple,
   DownloadSimple,
+  PlusIcon,
+  UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
 import { useState } from "react";
@@ -36,10 +38,7 @@ interface IFileManagerProps {
   editor: Editor | null;
 }
 
-export default function FileManager({
-  connectableId,
-  editor,
-}: IFileManagerProps) {
+export default function FileManager({ connectableId, editor }: IFileManagerProps) {
   const {
     data: files,
     load: refreshFiles,
@@ -141,7 +140,7 @@ export default function FileManager({
           <Menu shadow="md" width={200} position="bottom-end">
             <Menu.Target>
               <ActionIcon variant="light" radius="md">
-                <Plus weight="bold" />
+                <PlusIcon weight="bold" />
               </ActionIcon>
             </Menu.Target>
 
@@ -149,10 +148,7 @@ export default function FileManager({
               <Menu.Label>Add a file</Menu.Label>
               <FileButton onChange={handleUpload}>
                 {(props) => (
-                  <Menu.Item
-                    {...props}
-                    leftSection={<UploadSimple size={14} />}
-                  >
+                  <Menu.Item {...props} leftSection={<UploadSimpleIcon size={14} />}>
                     Upload a file
                   </Menu.Item>
                 )}
@@ -201,10 +197,7 @@ export default function FileManager({
         title="Link existing file"
         centered
       >
-        <FilePicker
-          onSelect={handleLinkExisting}
-          omitIds={files?.map((f) => f.id.toString())}
-        />
+        <FilePicker onSelect={handleLinkExisting} omitIds={files?.map((f) => f.id.toString())} />
       </Modal>
     </div>
   );
@@ -224,9 +217,7 @@ function FilePicker({
 
   if (loading) return <Loader size="sm" />;
 
-  const filteredFiles = allFiles?.filter(
-    (f) => !omitIds.includes(f.id.toString()),
-  );
+  const filteredFiles = allFiles?.filter((f) => !omitIds.includes(f.id.toString()));
 
   return (
     <Stack gap="xs" style={{ maxHeight: 400, overflowY: "auto" }}>

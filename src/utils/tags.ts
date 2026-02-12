@@ -1,15 +1,9 @@
 import { RecordId } from "surrealdb";
 import { api } from "../server/api";
-import {
-  ITag,
-  ITagDescriptionRelationship,
-} from "../../app/database/models/tag";
+import { ITag, ITagDescriptionRelationship } from "../../app/database/models/tag";
 import { showNotification } from "@mantine/notifications";
 
-export const applyTagToThing = async (
-  tagId: string | RecordId,
-  thingId: string | RecordId,
-) => {
+export const applyTagToThing = async (tagId: string | RecordId, thingId: string | RecordId) => {
   try {
     const response = await api.post("/tags/apply", {
       tagId,
@@ -23,10 +17,7 @@ export const applyTagToThing = async (
   }
 };
 
-export const removeTagFromThing = async (
-  tagId: string | RecordId,
-  thingId: string | RecordId,
-) => {
+export const removeTagFromThing = async (tagId: string | RecordId, thingId: string | RecordId) => {
   try {
     const response = await api.delete("/tags/apply", {
       data: {
@@ -53,9 +44,7 @@ export const createTag = async (name: string, description: string) => {
     console.error(`Error creatign tag ${name}:`, error);
     showNotification({
       title: "Error Creating Tag",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while creating the tag.",
+      message: error.response?.data?.message || "Something went wrong while creating the tag.",
       color: "red",
     });
     return undefined;
@@ -65,7 +54,7 @@ export const createTag = async (name: string, description: string) => {
 export const createTagAndAddToThing = async (
   name: string,
   description: string,
-  thingId: string,
+  thingId: string
 ) => {
   try {
     const created = await createTag(name, description);
@@ -81,9 +70,7 @@ export const createTagAndAddToThing = async (
     console.error(`Error creatign tag ${name}:`, error);
     showNotification({
       title: "Error Creating Tag",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while creating the tag.",
+      message: error.response?.data?.message || "Something went wrong while creating the tag.",
       color: "red",
     });
     return undefined;

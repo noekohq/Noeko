@@ -18,10 +18,7 @@ import useFetch from "../../hooks/useFetch";
 import { IRabbithole } from "../../../app/database/models/rabbithole";
 import { useEffect, useMemo, useState } from "react";
 import { useInteraction } from "../../contexts/InteractionContext";
-import {
-  getRabbitholeThingDescription,
-  getRabbitholeThingName,
-} from "../../utils/rabbitholes";
+import { getRabbitholeThingDescription, getRabbitholeThingName } from "../../utils/rabbitholes";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import GridCard from "../../components/Display/Paper/Things/GridCard";
@@ -29,10 +26,7 @@ import { getThingPropsFromRabbithole } from "../../components/Display/Paper/Thin
 import { formatDateTime } from "../../utils/formatting";
 
 export default function Rabbitholes() {
-  const { load: loadRabbitholes, data: rabbitholes } = useFetch<
-    undefined,
-    IRabbithole[]
-  >({
+  const { load: loadRabbitholes, data: rabbitholes } = useFetch<undefined, IRabbithole[]>({
     url: "/rabbitholes",
   });
 
@@ -59,7 +53,7 @@ export default function Rabbitholes() {
           const description = getRabbitholeThingDescription(thing);
           const hasDescription = !!description?.toLowerCase().includes(query);
           return hasName || hasDescription;
-        }),
+        })
     );
   }, [rabbitholes, filterQuery]);
 

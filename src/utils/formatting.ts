@@ -49,11 +49,7 @@ function formatTimeWithinDay(date: Date): string {
 function formatDateRelative(date: Date): string {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const inputDateOnly = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  );
+  const inputDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
   const diffTime = today.getTime() - inputDateOnly.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -124,9 +120,7 @@ export const capitalize = (text: string) => {
     .join(" "); // Join the words back into a string
 };
 
-export function formatMillisecondsToSecondsString(
-  milliseconds: number,
-): string {
+export function formatMillisecondsToSecondsString(milliseconds: number): string {
   if (typeof milliseconds !== "number" || isNaN(milliseconds)) {
     return "Invalid input";
   }

@@ -11,9 +11,7 @@ type IConstellationActionsProps = {
   graphData: IGraph;
 };
 
-export default function ConstellationActions({
-  graphData,
-}: IConstellationActionsProps) {
+export default function ConstellationActions({ graphData }: IConstellationActionsProps) {
   const {
     selected: { add: addSelected, remove: removeSelected },
     focused: { set: setFocused },
@@ -56,7 +54,7 @@ export default function ConstellationActions({
         });
       }
     },
-    [addSelected],
+    [addSelected]
   );
 
   const handleDeselectAllResults = useCallback(
@@ -67,7 +65,7 @@ export default function ConstellationActions({
         });
       }
     },
-    [removeSelected],
+    [removeSelected]
   );
 
   return (

@@ -1,25 +1,25 @@
 .compoundButton {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
 
-    button {
-        background-color: var(--mantine-color-dark-8);
-        height: 100%;
-        padding: var(--mantine-spacing-xs);
-        border: none;
-        border-radius: var(--mantine-radius-md);
-        transition: transform 0.2s ease-in-out;
+  button {
+    background-color: var(--mantine-color-dark-8);
+    height: 100%;
+    padding: var(--mantine-spacing-xs);
+    border: none;
+    border-radius: var(--mantine-radius-md);
+    transition: transform 0.2s ease-in-out;
 
-        &:hover {
-            transform: translateY(-2px) scale(1.01);
-        }
+    &:hover {
+      transform: translateY(-2px) scale(1.01);
     }
+  }
 }
 
 .main {
-    width: 100%;
+  width: 100%;
 }
 
 .auxilary {

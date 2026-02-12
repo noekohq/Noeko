@@ -37,7 +37,7 @@ const SuggestionMenu = ({
     () => ({
       getBoundingClientRect: getReferenceClientRect,
     }),
-    [getReferenceClientRect],
+    [getReferenceClientRect]
   );
   const listRef = useRef<HTMLDivElement>(null); // Ref for the scrollable list container
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]); // Refs for each item
@@ -61,9 +61,7 @@ const SuggestionMenu = ({
     ],
   });
 
-  const transform = getTransformFromDomRect(
-    virtualElement.getBoundingClientRect(),
-  );
+  const transform = getTransformFromDomRect(virtualElement.getBoundingClientRect());
 
   const correctedFloatingStyles = () => {
     if (!floatingStyles.transform) {
@@ -158,13 +156,11 @@ const Suggestion = React.forwardRef<HTMLDivElement, ISuggestionProps>(
         {item.icon && <div className={styles.icon}>{item.icon}</div>}
         <div className={styles.details}>
           <div className={styles.label}>{item.label}</div>
-          {item.description && (
-            <div className={styles.description}>{item.description}</div>
-          )}
+          {item.description && <div className={styles.description}>{item.description}</div>}
         </div>
       </div>
     );
-  },
+  }
 );
 
 function getTransformFromDomRect(rect: DOMRect) {

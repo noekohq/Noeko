@@ -23,16 +23,12 @@ export default class Authorization {
   }
 
   async hasAccess(thingId: string | RecordId, requiredAccess?: IShareAccess) {
-    return await Authorization.checkHasAccess(
-      this.userId,
-      thingId,
-      requiredAccess,
-    );
+    return await Authorization.checkHasAccess(this.userId, thingId, requiredAccess);
   }
 
   static async getAccessLevel(
     userId: string | RecordId,
-    thingId: string | RecordId,
+    thingId: string | RecordId
   ): Promise<"owner" | IShareAccess | null> {
     try {
       const isOwner = await this.checkOwns(userId, thingId);
@@ -40,50 +36,31 @@ export default class Authorization {
         return "owner";
       }
 
-      const sharedAccessLevel = await this.getSharedAccessLevel(
-        thingId,
-        userId,
-      );
+      const sharedAccessLevel = await this.getSharedAccessLevel(thingId, userId);
       if (sharedAccessLevel) {
         return sharedAccessLevel;
       }
 
       if (thingId.toString().startsWith("user_file")) {
-        const hasEmbeddedAccess = await this.hasEmbeddedAccess(
-          thingId,
-          userId,
-          "viewonly",
-        );
+        const hasEmbeddedAccess = await this.hasEmbeddedAccess(thingId, userId, "viewonly");
         if (hasEmbeddedAccess) {
           return "viewonly";
         }
       }
 
-      const hasConnectedAccess = await this.hasConnectedAccess(
-        thingId,
-        userId,
-        "viewonly",
-      );
+      const hasConnectedAccess = await this.hasConnectedAccess(thingId, userId, "viewonly");
       if (hasConnectedAccess) {
         return "viewonly";
       }
 
       return null;
     } catch (error) {
-      console.error(
-        "Error getting user access level: ",
-        userId,
-        thingId,
-        error,
-      );
+      console.error("Error getting user access level: ", userId, thingId, error);
       return null;
     }
   }
 
-  static async checkOwns(
-    userId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  static async checkOwns(userId: string | RecordId, thingId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -94,7 +71,7 @@ export default class Authorization {
         {
           userId: new StringRecordId(userId),
           thingId: new StringRecordId(thingId),
-        },
+        }
       );
       if (!results) {
         throw new Error("No results for ownership check");
@@ -110,7 +87,7 @@ export default class Authorization {
   static async checkHasAccess(
     userId: string | RecordId,
     thingId: string | RecordId,
-    requiredAccess?: "owner" | IShareAccess,
+    requiredAccess?: "owner" | IShareAccess
   ) {
     try {
       const isOwner = await Authorization.checkOwns(userId, thingId);
@@ -121,29 +98,17 @@ export default class Authorization {
         return false;
       }
 
-      const hasSharedAccess = await this.hasSharedAccess(
-        thingId,
-        userId,
-        requiredAccess,
-      );
+      const hasSharedAccess = await this.hasSharedAccess(thingId, userId, requiredAccess);
       if (hasSharedAccess) {
         return true;
       }
 
       if (thingId.toString().startsWith("user_file")) {
-        const hasEmbeddedAccess = await this.hasEmbeddedAccess(
-          thingId,
-          userId,
-          requiredAccess,
-        );
+        const hasEmbeddedAccess = await this.hasEmbeddedAccess(thingId, userId, requiredAccess);
         return hasEmbeddedAccess;
       }
 
-      const hasConnectedAccess = await this.hasConnectedAccess(
-        thingId,
-        userId,
-        requiredAccess,
-      );
+      const hasConnectedAccess = await this.hasConnectedAccess(thingId, userId, requiredAccess);
       if (hasConnectedAccess) {
         return true;
       }
@@ -157,7 +122,7 @@ export default class Authorization {
 
   static async getSharedAccessLevel(
     thingId: string | RecordId,
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<IShareAccess | null> {
     try {
       const db = await getDatabase();
@@ -184,13 +149,10 @@ export default class Authorization {
   static async hasSharedAccess(
     thingId: string | RecordId,
     userId: string | RecordId,
-    requiredAccess?: IShareAccess,
+    requiredAccess?: IShareAccess
   ) {
     try {
-      const sharedAccessLevel = await this.getSharedAccessLevel(
-        thingId,
-        userId,
-      );
+      const sharedAccessLevel = await this.getSharedAccessLevel(thingId, userId);
       if (!sharedAccessLevel) {
         return false;
       }
@@ -200,9 +162,7 @@ export default class Authorization {
       }
 
       if (requiredAccess === "viewonly") {
-        return (
-          sharedAccessLevel === "viewonly" || sharedAccessLevel === "editor"
-        );
+        return sharedAccessLevel === "viewonly" || sharedAccessLevel === "editor";
       }
 
       if (requiredAccess === "editor") {
@@ -219,7 +179,7 @@ export default class Authorization {
   static async hasConnectedAccess(
     thingId: string | RecordId,
     userId: string | RecordId,
-    requiredAccess?: IShareAccess,
+    requiredAccess?: IShareAccess
   ) {
     try {
       if (requiredAccess === "editor") {
@@ -252,12 +212,7 @@ export default class Authorization {
 
       return !!results?.[0]?.accessible;
     } catch (error) {
-      console.error(
-        "Error checking connected access: ",
-        userId,
-        thingId,
-        error,
-      );
+      console.error("Error checking connected access: ", userId, thingId, error);
       return false;
     }
   }
@@ -265,7 +220,7 @@ export default class Authorization {
   static async hasEmbeddedAccess(
     thingId: string | RecordId,
     userId: string | RecordId,
-    requiredAccess?: IShareAccess,
+    requiredAccess?: IShareAccess
   ) {
     try {
       const db = await getDatabase();
@@ -305,15 +260,8 @@ export default class Authorization {
     }
   }
 
-  async hasAccessBulk(
-    thingIds: (string | RecordId)[],
-    requiredAccess?: IShareAccess,
-  ) {
-    return await Authorization.checkHasAccessBulk(
-      this.userId,
-      thingIds,
-      requiredAccess,
-    );
+  async hasAccessBulk(thingIds: (string | RecordId)[], requiredAccess?: IShareAccess) {
+    return await Authorization.checkHasAccessBulk(this.userId, thingIds, requiredAccess);
   }
 
   /**
@@ -323,7 +271,7 @@ export default class Authorization {
   static async checkHasAccessBulk(
     userId: string | RecordId,
     thingIds: (string | RecordId)[],
-    requiredAccess?: "owner" | IShareAccess,
+    requiredAccess?: "owner" | IShareAccess
   ): Promise<Set<string>> {
     try {
       if (!thingIds || thingIds.length === 0) return new Set();

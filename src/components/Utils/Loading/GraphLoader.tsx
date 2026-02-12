@@ -70,7 +70,7 @@ const GraphLoader: FC = () => {
   const [nodes, setNodes] = useState<Node[]>(
     Array.from({ length: SIMULATION_CONFIG.growth.initialNodes }, (_, i) => ({
       id: i,
-    })),
+    }))
   );
   const [links, setLinks] = useState<Link[]>([]);
 
@@ -117,16 +117,10 @@ const GraphLoader: FC = () => {
           .forceLink<Node, Link>()
           .id((d) => d.id)
           .distance(SIMULATION_CONFIG.physics.linkDistance)
-          .strength(SIMULATION_CONFIG.physics.linkStrength),
+          .strength(SIMULATION_CONFIG.physics.linkStrength)
       )
-      .force(
-        "charge",
-        d3.forceManyBody().strength(SIMULATION_CONFIG.physics.chargeStrength),
-      )
-      .force(
-        "collide",
-        d3.forceCollide().radius(SIMULATION_CONFIG.physics.collideRadius),
-      )
+      .force("charge", d3.forceManyBody().strength(SIMULATION_CONFIG.physics.chargeStrength))
+      .force("collide", d3.forceCollide().radius(SIMULATION_CONFIG.physics.collideRadius))
       .force("center", d3.forceCenter(width / 2, height / 2).strength(1));
 
     const ticked = () => {
@@ -159,13 +153,8 @@ const GraphLoader: FC = () => {
             nextNodeId.current++;
             return [...currentNodes, newNode];
           }
-          const numLinks = Math.min(
-            currentNodes.length,
-            Math.floor(Math.random() * 3) + 1,
-          );
-          const shuffledNodes = [...currentNodes].sort(
-            () => 0.5 - Math.random(),
-          );
+          const numLinks = Math.min(currentNodes.length, Math.floor(Math.random() * 3) + 1);
+          const shuffledNodes = [...currentNodes].sort(() => 0.5 - Math.random());
           const targetNodes = shuffledNodes.slice(0, numLinks);
           const primaryTarget = targetNodes[0];
           const newNode: Node = {
@@ -189,10 +178,7 @@ const GraphLoader: FC = () => {
         // --- Mode 2: Add only new links between existing nodes ---
         setLinks((currentLinks) => {
           const allNodes = nodes; // `nodes` is stable, so we can use it from the closure
-          if (
-            allNodes.length < 2 ||
-            currentLinks.length >= allNodes.length * 1.5
-          ) {
+          if (allNodes.length < 2 || currentLinks.length >= allNodes.length * 1.5) {
             clearInterval(growthInterval);
             return currentLinks;
           }
@@ -209,8 +195,7 @@ const GraphLoader: FC = () => {
                 (link) =>
                   ((link.source as Node).id === source.id &&
                     (link.target as Node).id === target.id) ||
-                  ((link.source as Node).id === target.id &&
-                    (link.target as Node).id === source.id),
+                  ((link.source as Node).id === target.id && (link.target as Node).id === source.id)
               );
             }
             attempts++;
@@ -245,25 +230,16 @@ const GraphLoader: FC = () => {
     simulation.nodes(nodes);
 
     function drag(simulation: d3.Simulation<Node, Link>) {
-      function dragstarted(
-        event: d3.D3DragEvent<SVGCircleElement, Node, Node>,
-        d: Node,
-      ) {
+      function dragstarted(event: d3.D3DragEvent<SVGCircleElement, Node, Node>, d: Node) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;
         d.fy = d.y;
       }
-      function dragged(
-        event: d3.D3DragEvent<SVGCircleElement, Node, Node>,
-        d: Node,
-      ) {
+      function dragged(event: d3.D3DragEvent<SVGCircleElement, Node, Node>, d: Node) {
         d.fx = event.x;
         d.fy = event.y;
       }
-      function dragended(
-        event: d3.D3DragEvent<SVGCircleElement, Node, Node>,
-        d: Node,
-      ) {
+      function dragended(event: d3.D3DragEvent<SVGCircleElement, Node, Node>, d: Node) {
         if (!event.active) simulation.alphaTarget(0);
         d.fx = null;
         d.fy = null;
@@ -298,7 +274,7 @@ const GraphLoader: FC = () => {
             .transition()
             .duration(SIMULATION_CONFIG.style.transitionDuration)
             .attr("r", 0)
-            .remove(),
+            .remove()
       );
 
     (simulation.force("link") as d3.ForceLink<Node, Link>).links(links);
@@ -321,7 +297,7 @@ const GraphLoader: FC = () => {
             .transition()
             .duration(SIMULATION_CONFIG.style.transitionDuration)
             .attr("stroke-width", 0)
-            .remove(),
+            .remove()
       );
 
     simulation.alpha(0.3).restart();

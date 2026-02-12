@@ -15,10 +15,7 @@ export const getFromReq = async <T>(req: Request, key: string) => {
   return (req as Request & { [key: string]: T })[key] as T | undefined;
 };
 
-export const addRefreshTokenToRes = async (
-  res: Response,
-  refreshToken: string,
-) => {
+export const addRefreshTokenToRes = async (res: Response, refreshToken: string) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: isProduction,
@@ -27,10 +24,7 @@ export const addRefreshTokenToRes = async (
   });
 };
 
-export const addAccessTokenToRes = async (
-  res: Response,
-  accessToken: string,
-) => {
+export const addAccessTokenToRes = async (res: Response, accessToken: string) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: isProduction,
@@ -45,9 +39,7 @@ export const getRefreshTokenFromReq = async (req: Request) => {
 };
 
 export const getAccessTokenFromReq = async (req: Request) => {
-  const tokenInAuthorization = (req.headers.authorization as string)?.split(
-    " ",
-  )[1];
+  const tokenInAuthorization = (req.headers.authorization as string)?.split(" ")[1];
   if (tokenInAuthorization) {
     return tokenInAuthorization;
   }

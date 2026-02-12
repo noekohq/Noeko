@@ -1,9 +1,5 @@
 import { Router } from "express";
-import {
-  checkIsSuperuser,
-  checkToken,
-  disallowDisabled,
-} from "../middleware/auth";
+import { checkIsSuperuser, checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { IUser } from "../../shared/types/user";
 import { Feedback } from "../database/models/feedback";
@@ -28,11 +24,7 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    const {
-      content,
-      consentToContact,
-      status = "unaddressed",
-    }: IFeedbackForm = req.body;
+    const { content, consentToContact, status = "unaddressed" }: IFeedbackForm = req.body;
 
     if (typeof content !== "string" || content.trim() === "") {
       res.status(400).send({ message: "Content is required." });
@@ -66,8 +58,7 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating feedback:", error); // Log the actual error on the server
-    const errorMessage =
-      error instanceof Error ? error.message : "An unexpected error occurred";
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     res.status(500).send({
       message: "Internal Server Error",
       error: errorMessage, // Send a generic or specific error message
@@ -92,8 +83,7 @@ router.get("/", async (req, res) => {
     console.error("Error getting all feedback items:", error);
     res.status(500).send({
       message: "Internal Server Error",
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
     });
   }
 });
@@ -113,8 +103,7 @@ router.get("/open", async (req, res) => {
     console.error("Error getting all feedback items:", error);
     res.status(500).send({
       message: "Internal Server Error",
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
     });
   }
 });
@@ -137,8 +126,7 @@ router.get("/open", async (req, res) => {
     console.error("Error getting open feedback items:", error);
     res.status(500).send({
       message: "Internal Server Error",
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
     });
   }
 });
@@ -153,9 +141,7 @@ router.get("/:id", async (req, res) => {
     }
     const feedbackItem = await Feedback.get(id);
     if (!feedbackItem) {
-      res
-        .status(404)
-        .send({ message: `Feedback item with ID ${id} not found.` });
+      res.status(404).send({ message: `Feedback item with ID ${id} not found.` });
       return;
     }
     res.send({
@@ -166,8 +152,7 @@ router.get("/:id", async (req, res) => {
     console.error(`Error getting feedback item:`, error);
     res.status(500).send({
       message: "Internal Server Error",
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
     });
   }
 });
@@ -187,10 +172,7 @@ router.put("/:id", async (req, res) => {
       res.status(400).send({ message: "No update data provided." });
       return;
     }
-    if (
-      form.status &&
-      !["unaddressed", "in-progress", "addressed"].includes(form.status)
-    ) {
+    if (form.status && !["unaddressed", "in-progress", "addressed"].includes(form.status)) {
       res.status(400).send({ message: "Invalid status provided for update." });
       return;
     }
@@ -201,10 +183,7 @@ router.put("/:id", async (req, res) => {
       res.status(400).send({ message: "Content cannot be empty." });
       return;
     }
-    if (
-      form.consentToContact !== undefined &&
-      typeof form.consentToContact !== "boolean"
-    ) {
+    if (form.consentToContact !== undefined && typeof form.consentToContact !== "boolean") {
       res.status(400).send({ message: "consentToContact must be a boolean." });
       return;
     }
@@ -221,14 +200,10 @@ router.put("/:id", async (req, res) => {
       data: updatedFeedback,
     });
   } catch (error) {
-    console.error(
-      `Error updating feedback item with ID ${req.params.id}:`,
-      error,
-    );
+    console.error(`Error updating feedback item with ID ${req.params.id}:`, error);
     res.status(500).send({
       message: "Internal Server Error",
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
     });
   }
 });
@@ -238,9 +213,7 @@ router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
-      res
-        .status(400)
-        .send({ message: "Feedback ID is required for deletion." });
+      res.status(400).send({ message: "Feedback ID is required for deletion." });
       return;
     }
     const deletedFeedback = await Feedback.delete(id);
@@ -255,14 +228,10 @@ router.delete("/:id", async (req, res) => {
       data: deletedFeedback, // The delete method in your model returns the deleted item
     });
   } catch (error) {
-    console.error(
-      `Error deleting feedback item with ID ${req.params.id}:`,
-      error,
-    );
+    console.error(`Error deleting feedback item with ID ${req.params.id}:`, error);
     res.status(500).send({
       message: "Internal Server Error",
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
     });
   }
 });

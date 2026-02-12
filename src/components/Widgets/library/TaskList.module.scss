@@ -1,20 +1,20 @@
 .taskList {
-    height: 100%;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--mantine-spacing-sm);
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
 }
 
 .scrollArea {
-    overflow-y: auto;
-    flex-grow: 1;
-    padding-right: 5px;
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 5px;
 }
 
 .ui {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }

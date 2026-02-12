@@ -36,13 +36,7 @@ export default function PaperSelect({
   return (
     <div className={styles.paperSelectWrapper}>
       {label && <label className={styles.label}>{label}</label>}
-      <Popover
-        opened={opened}
-        onChange={setOpened}
-        shadow="md"
-        withArrow
-        arrowSize={10}
-      >
+      <Popover opened={opened} onChange={setOpened} shadow="md" withArrow arrowSize={10}>
         <Popover.Target>
           <button
             type="button"
@@ -84,15 +78,11 @@ export default function PaperSelect({
                   }}
                   aria-pressed={isSelected}
                 >
-                  {option.icon && (
-                    <div className={styles.itemIcon}>{option.icon}</div>
-                  )}
+                  {option.icon && <div className={styles.itemIcon}>{option.icon}</div>}
                   <div className={styles.itemBody}>
                     <div className={styles.itemLabel}>{option.label}</div>
                     {option.description && (
-                      <div className={styles.itemDescription}>
-                        {option.description}
-                      </div>
+                      <div className={styles.itemDescription}>{option.description}</div>
                     )}
                   </div>
                 </button>

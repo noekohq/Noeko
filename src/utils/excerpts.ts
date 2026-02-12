@@ -2,10 +2,7 @@ import { RecordId } from "surrealdb";
 import { IExcerpt, IExcerptForm } from "../../shared/types/excerpt";
 import { api } from "../server/api";
 
-export const createExcerpt = async (
-  excerptable: string | RecordId,
-  form: IExcerptForm,
-) => {
+export const createExcerpt = async (excerptable: string | RecordId, form: IExcerptForm) => {
   try {
     const response = await api.post(`/excerpts`, {
       note: form.note,
@@ -21,10 +18,7 @@ export const createExcerpt = async (
   }
 };
 
-export const editExcerpt = async (
-  excerptId: string | RecordId,
-  form: Partial<IExcerptForm>,
-) => {
+export const editExcerpt = async (excerptId: string | RecordId, form: Partial<IExcerptForm>) => {
   try {
     const updates: Partial<IExcerptForm> = {};
     if (form.note) {
@@ -66,9 +60,7 @@ export const getExcerpt = async (id: string | RecordId) => {
   }
 };
 
-export const getExcerptReferenceId = (
-  excerpt: IExcerpt,
-): string | undefined => {
+export const getExcerptReferenceId = (excerpt: IExcerpt): string | undefined => {
   if (!excerpt.references) {
     return undefined;
   }

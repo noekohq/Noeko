@@ -64,16 +64,10 @@ export default function Connections() {
         d3
           .forceLink(config.links)
           .id((d: any) => d.id)
-          .distance(config.simulation.linkDistance),
+          .distance(config.simulation.linkDistance)
       )
-      .force(
-        "charge",
-        d3.forceManyBody().strength(config.simulation.chargeStrength),
-      )
-      .force(
-        "center",
-        d3.forceCenter(0, 0).strength(config.simulation.centerStrength),
-      );
+      .force("charge", d3.forceManyBody().strength(config.simulation.chargeStrength))
+      .force("center", d3.forceCenter(0, 0).strength(config.simulation.centerStrength));
 
     const link = svg
       .append("g")

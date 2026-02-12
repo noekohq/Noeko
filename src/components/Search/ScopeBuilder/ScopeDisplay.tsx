@@ -21,10 +21,7 @@ const ScopePill = ({
   className?: string;
 }) => {
   return (
-    <button
-      className={`${styles.scopePill} ${className || ""}`}
-      onClick={onRemove}
-    >
+    <button className={`${styles.scopePill} ${className || ""}`} onClick={onRemove}>
       <span className={styles.icon}>{icon}</span>
       <span className={styles.label}>{label}</span>
     </button>
@@ -58,10 +55,7 @@ export default function ScopeDisplay() {
   const dateLabel = useMemo(() => {
     if (!value.date) return "Date";
 
-    const field = Object.keys(value.date)[0] as
-      | "createdAt"
-      | "updatedAt"
-      | "viewedAt";
+    const field = Object.keys(value.date)[0] as "createdAt" | "updatedAt" | "viewedAt";
     if (!field) return "Date";
 
     const dateRange = value.date[field];
@@ -86,11 +80,7 @@ export default function ScopeDisplay() {
   }, [value.date]);
 
   const hasItems = useMemo(() => {
-    return (
-      !!currentRabbithole ||
-      !!value.date ||
-      (value.tags?.set && value.tags.set.length > 0)
-    );
+    return !!currentRabbithole || !!value.date || (value.tags?.set && value.tags.set.length > 0);
   }, [currentRabbithole, value.date, value.tags?.set]);
 
   if (!hasItems) return null;

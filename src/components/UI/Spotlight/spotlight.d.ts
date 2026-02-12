@@ -37,10 +37,7 @@ export interface ISubviewDefinition {
   items?: (Omit<ISpotlightAction, "action"> & {
     action: (closeSpotlight: () => void) => void;
   })[];
-  component?: (props: {
-    searchText: string;
-    closeSpotlight: () => void;
-  }) => ReactNode;
+  component?: (props: { searchText: string; closeSpotlight: () => void }) => ReactNode;
   dynamicItems?: (props: {
     searchText: string;
     closeSpotlight: () => void;

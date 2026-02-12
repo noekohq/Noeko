@@ -2,15 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import DreamWriter from "../../Content/DreamWriter/DreamWriter";
 import styles from "./Scratchpad.module.scss";
-import {
-  ActionIcon,
-  CopyButton,
-  Group,
-  HoverCard,
-  Menu,
-  Text,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, CopyButton, Group, HoverCard, Menu, Text, Tooltip } from "@mantine/core";
 import {
   ArrowsClockwiseIcon,
   CheckIcon,
@@ -135,9 +127,7 @@ export default function Scratchpad() {
                 {({ copied, copy }) => {
                   return (
                     <Menu.Item
-                      leftSection={
-                        copied ? <CheckIcon /> : <MarkdownLogoIcon />
-                      }
+                      leftSection={copied ? <CheckIcon /> : <MarkdownLogoIcon />}
                       onClick={copy}
                     >
                       Copy as Markdown
@@ -148,10 +138,7 @@ export default function Scratchpad() {
               <CopyButton value={editorRef.current?.getHTML() ?? ""}>
                 {({ copied, copy }) => {
                   return (
-                    <Menu.Item
-                      leftSection={copied ? <CheckIcon /> : <CodeIcon />}
-                      onClick={copy}
-                    >
+                    <Menu.Item leftSection={copied ? <CheckIcon /> : <CodeIcon />} onClick={copy}>
                       Copy as HTML
                     </Menu.Item>
                   );
@@ -162,9 +149,7 @@ export default function Scratchpad() {
                   {({ copied, copy }) => {
                     return (
                       <Menu.Item
-                        leftSection={
-                          copied ? <CheckIcon /> : <CursorTextIcon />
-                        }
+                        leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
                         onClick={copy}
                       >
                         Copy as Text
@@ -183,10 +168,9 @@ export default function Scratchpad() {
             </HoverCard.Target>
             <HoverCard.Dropdown>
               <Text size="sm">
-                Scratchpad is a place to store content meant to be fleeting. Use
-                it as a distraction pad, a place to jot down stuff you come
-                across, or however you'd like! The suggestion is to clear it
-                often, but use it however makes sense to you.
+                Scratchpad is a place to store content meant to be fleeting. Use it as a distraction
+                pad, a place to jot down stuff you come across, or however you'd like! The
+                suggestion is to clear it often, but use it however makes sense to you.
               </Text>
             </HoverCard.Dropdown>
           </HoverCard>

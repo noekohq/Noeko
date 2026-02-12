@@ -5,18 +5,17 @@
 }
 
 .textRoot {
+  .input {
+    font-size: var(--mantine-font-size-sm);
+    padding: var(--layout-spacing) var(--mantine-spacing-md);
+    border: 1px solid var(--mantine-color-dark-7);
+    border-radius: var(--mantine-radius-lg);
+    background-color: var(--mantine-color-dark-8) !important;
+    transition: all 0.3s ease;
 
-    .input {
-        font-size: var(--mantine-font-size-sm);
-        padding: var(--layout-spacing) var(--mantine-spacing-md);
-        border: 1px solid var(--mantine-color-dark-7);
-        border-radius: var(--mantine-radius-lg);
-        background-color: var(--mantine-color-dark-8) !important;
-        transition: all 0.3s ease;
-
-        &:focus {
-            padding: var(--layout-spacing);
-            border-radius: var(--mantine-radius-md);
-        }
+    &:focus {
+      padding: var(--layout-spacing);
+      border-radius: var(--mantine-radius-md);
     }
+  }
 }

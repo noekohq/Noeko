@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+# Run lint-staged first (format and lint)
+echo "📝 Running lint-staged..."
+bunx lint-staged || exit 1
+
+# Run test suite
+echo "🧪 Running test suite..."
+bun test || exit 1
+
+# Build client
+echo "🏗️  Building client..."
+bun run client:build || exit 1
+
+# Build server
+echo "🏗️  Building server..."
+bun run server:build || exit 1
+
+echo "✅ All pre-commit checks passed!"
+
+

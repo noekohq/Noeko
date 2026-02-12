@@ -6,7 +6,7 @@ export const scrollToElement = (
   options?: {
     offset?: number;
     behavior?: ScrollBehavior;
-  },
+  }
 ) => {
   const element = document.getElementById(elementId);
   if (!element) return;

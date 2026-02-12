@@ -1,52 +1,52 @@
 .overlay {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: var(--z-index-loading-overlay);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-index-loading-overlay);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes loadingIn {
-    0% {
-        opacity: 0;
-        transform: scale(1.1);
-    }
-    15% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
+  0% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .loading {
-    opacity: 1;
-    animation: loadingIn 0.2s ease-in-out forwards;
+  opacity: 1;
+  animation: loadingIn 0.2s ease-in-out forwards;
 }
 
 .gone {
-    display: none;
+  display: none;
 }
 
 @keyframes contentIn {
-    0% {
-        opacity: 0;
-        transform: scale(1.1) translateY(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+  0% {
+    opacity: 0;
+    transform: scale(1.1) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .content {
-    opacity: 0;
-    animation: contentIn .5s ease-out forwards;
-    animation-delay: .5s;
+  opacity: 0;
+  animation: contentIn 0.5s ease-out forwards;
+  animation-delay: 0.5s;
 }

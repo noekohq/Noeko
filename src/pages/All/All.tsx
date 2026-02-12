@@ -1,20 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  IGetAllConnectables_Options,
-  ITaggedConnectable,
-} from "../../../app/services/Graph";
+import { IGetAllConnectables_Options, ITaggedConnectable } from "../../../app/services/Graph";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
-import {
-  Loader,
-  Center,
-  Text,
-  Group,
-  Title,
-  Stack,
-  SimpleGrid,
-} from "@mantine/core";
+import { Loader, Center, Text, Group, Title, Stack, SimpleGrid } from "@mantine/core";
 import Content from "../../components/UI/Layout/Content";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
@@ -40,11 +29,7 @@ export default function All() {
   const [appliedTags, setAppliedTags] = useState<ITag[]>([]);
 
   const fetchPage = useCallback(
-    async (options: {
-      cursor?: string | null;
-      tags?: ITag[];
-      isNewSearch?: boolean;
-    }) => {
+    async (options: { cursor?: string | null; tags?: ITag[]; isNewSearch?: boolean }) => {
       const { cursor, tags, isNewSearch } = options;
       if (loading) return;
       setLoading(true);
@@ -66,9 +51,10 @@ export default function All() {
       };
 
       try {
-        const response = await api.post<
-          DefaultResponse<AllConnectablesResponse>
-        >(`/graph/all`, body);
+        const response = await api.post<DefaultResponse<AllConnectablesResponse>>(
+          `/graph/all`,
+          body
+        );
         const data = response.data.data;
 
         if (data) {
@@ -77,9 +63,7 @@ export default function All() {
           } else {
             setItems((prevItems) => {
               const existingIds = new Set(prevItems.map((item) => item.id));
-              const uniqueNewItems = data.items.filter(
-                (item) => !existingIds.has(item.id),
-              );
+              const uniqueNewItems = data.items.filter((item) => !existingIds.has(item.id));
               return [...prevItems, ...uniqueNewItems];
             });
           }
@@ -95,7 +79,7 @@ export default function All() {
         setLoading(false);
       }
     },
-    [loading],
+    [loading]
   );
 
   const observerTarget = useRef(null);
@@ -115,7 +99,7 @@ export default function All() {
           fetchPage({ cursor, tags: appliedTags });
         }
       },
-      { threshold: 0.01, root: null, rootMargin: "0px 0px 400px 0px" },
+      { threshold: 0.01, root: null, rootMargin: "0px 0px 400px 0px" }
     );
 
     const currentObserverTarget = observerTarget.current;
@@ -161,7 +145,7 @@ export default function All() {
                 {
                   detail: `Updated ${formatDateTime(item.updatedAt)}`,
                 },
-                true,
+                true
               );
 
               // SORTING LOGIC:
@@ -190,10 +174,8 @@ export default function All() {
                         width: "100%",
                         height: "28px",
                         alignItems: "center",
-                        maskImage:
-                          "linear-gradient(to right, black 85%, transparent 100%)",
-                        WebkitMaskImage:
-                          "linear-gradient(to right, black 85%, transparent 100%)",
+                        maskImage: "linear-gradient(to right, black 85%, transparent 100%)",
+                        WebkitMaskImage: "linear-gradient(to right, black 85%, transparent 100%)",
                       }}
                     >
                       {sortedTags.map((t) => {
@@ -215,9 +197,7 @@ export default function All() {
             })}
           </SimpleGrid>
         </Stack>
-        {hasMore && !loading && (
-          <div ref={observerTarget} style={{ height: "1px" }} />
-        )}
+        {hasMore && !loading && <div ref={observerTarget} style={{ height: "1px" }} />}
         {loading && (
           <Center mt="xl">
             <Group>

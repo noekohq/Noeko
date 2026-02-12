@@ -1,8 +1,5 @@
 import { showNotification } from "@mantine/notifications";
-import {
-  IConnectableSearchQuery,
-  ISearchResult,
-} from "../../shared/types/search";
+import { IConnectableSearchQuery, ISearchResult } from "../../shared/types/search";
 import { useSearch } from "../contexts/SearchContext";
 import { api } from "../server/api";
 import useFetch from "./useFetch";
@@ -78,10 +75,7 @@ export default function useSearchQuery({
   const startTimeRef = useRef<number | null>(null);
   const resultsTimeRef = useRef<number | null>(null);
 
-  const { load: dispatchSearch } = useFetch<
-    IConnectableSearchQuery,
-    ISearchResult[]
-  >({
+  const { load: dispatchSearch } = useFetch<IConnectableSearchQuery, ISearchResult[]>({
     url: "/search",
     method: "POST",
     body: {
@@ -118,9 +112,7 @@ export default function useSearchQuery({
 
   const handleSearchSubmit = () => {
     if (!searchQuery) {
-      console.error(
-        "Tried to submit search query with empty query. This is likely unintentional.",
-      );
+      console.error("Tried to submit search query with empty query. This is likely unintentional.");
       return;
     }
     if (glimpseMode) {

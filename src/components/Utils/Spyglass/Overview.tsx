@@ -2,19 +2,9 @@ import { useNavigate } from "react-router";
 import { memo, useCallback, useMemo } from "react";
 import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
 import OverviewParser from "./OverviewParser";
-import {
-  ActionIcon,
-  CopyButton,
-  Group,
-  Text,
-  Title,
-} from "@mantine/core";
+import { ActionIcon, CopyButton, Group, Text, Title } from "@mantine/core";
 import styles from "./Overview.module.scss";
-import {
-  CheckIcon,
-  CopyIcon,
-  DownloadSimpleIcon,
-} from "@phosphor-icons/react";
+import { CheckIcon, CopyIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
 import { IFinding } from "../../../../app/services/Spyglass";
 import { getOverviewAsMarkdown } from "../../../utils/spyglass";
 import { downloadTextAsFile } from "../../../utils/files";
@@ -47,14 +37,14 @@ export function DisplayOverviewComponent({
   const navigateWithTextFragment = useCallback(
     (ideaId: string, excerpt?: string) => {
       if (!excerpt) {
-        let url = `/idea/${ideaId}`;
+        const url = `/idea/${ideaId}`;
         navigate(url);
       } else {
-        let url = `/idea/${ideaId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`;
+        const url = `/idea/${ideaId}?highlightText=${generateTextFragmentHashFromText(excerpt)}`;
         navigate(url);
       }
     },
-    [navigate],
+    [navigate]
   );
 
   const handleDownloadAsMarkdown = () => {
@@ -97,7 +87,7 @@ export function DisplayOverviewComponent({
   return (
     <div className={styles.editorialWrapper}>
       {/* Editorial Header: Query as H1 */}
-      <Title order={1} className={`${styles.queryTitle} ${loading ? styles.loading : ''}`}>
+      <Title order={1} className={`${styles.queryTitle} ${loading ? styles.loading : ""}`}>
         {query}
       </Title>
 
@@ -108,9 +98,7 @@ export function DisplayOverviewComponent({
             Reading {sourceCount} source{sourceCount !== 1 ? "s" : ""}
           </span>
         )}
-        {sourceCount > 0 && findings.length > 0 && (
-          <span className={styles.bylineDot}> • </span>
-        )}
+        {sourceCount > 0 && findings.length > 0 && <span className={styles.bylineDot}> • </span>}
         {findings.length > 0 && (
           <span>
             {findings.length} finding{findings.length !== 1 ? "s" : ""}
@@ -143,9 +131,7 @@ export function DisplayOverviewComponent({
           >
             <DownloadSimpleIcon size={14} />
           </ActionIcon>
-          <CopyButton
-            value={getOverviewAsMarkdown(overview, findings, resultsMap)}
-          >
+          <CopyButton value={getOverviewAsMarkdown(overview, findings, resultsMap)}>
             {({ copied, copy }) => {
               return (
                 <ActionIcon

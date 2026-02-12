@@ -1,181 +1,180 @@
 @keyframes textIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes textOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes pulsing {
-    0% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-    100% {
-        opacity: 1;
-    }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
-
 .node {
-    --node-radius: 18;
-    --node-radius-selected: 24;
-    --color-nodes: var(--mantine-color-dark-9);
-    --color-stroke: var(--mantine-color-dark-4);
+  --node-radius: 18;
+  --node-radius-selected: 24;
+  --color-nodes: var(--mantine-color-dark-9);
+  --color-stroke: var(--mantine-color-dark-4);
 
+  .highlightRing {
+    stroke: var(--mantine-color-dark-2);
+    stroke-width: 2px;
+    r: 30;
+    fill: transparent;
+  }
+
+  cursor: pointer;
+
+  &.focused {
     .highlightRing {
-        stroke: var(--mantine-color-dark-2);
-        stroke-width: 2px;
-        r: 30;
-        fill: transparent;
+      stroke: var(--mantine-color-yellow-5);
     }
+  }
 
-    cursor: pointer;
+  .mainCircle {
+    r: var(--node-radius);
+    fill: var(--color-nodes);
+    stroke: var(--color-stroke);
+    stroke-width: 2px;
+    transition: all 0.2s ease-in-out;
+  }
 
-    &.focused {
-        .highlightRing {
-            stroke: var(--mantine-color-yellow-5);
-        }
-    }
-
+  &:hover {
     .mainCircle {
-        r: var(--node-radius);
-        fill: var(--color-nodes);
-        stroke: var(--color-stroke);
-        stroke-width: 2px;
-        transition: all 0.2s ease-in-out;
+      r: var(--node-radius-selected);
     }
+  }
 
-    &:hover {
-        .mainCircle {
-            r: var(--node-radius-selected);
-        }
-    }
-
-    &.unselected {
-        .mainCircle {
-            opacity: 0.25;
-            transition:
-                r 0.2s ease-in-out,
-                opacity 0.2s ease-in-out,
-                fill 0.2s ease-in-out;
-        }
-
-        .nodeText {
-            opacity: 0.5;
-        }
-    }
-
-    &.hidden {
-        opacity: 0.25;
-    }
-
-    &.highlighted {
-        .mainCircle {
-        }
-        .mainCircle {
-        }
-    }
-
-    &.unhighlighted {
-        .mainCircle {
-            opacity: 0.5;
-        }
-    }
-
-    &.selected {
-        .mainCircle {
-            opacity: 1;
-        }
-
-        .nodeText {
-            opacity: 1;
-        }
-    }
-
-    &.loading {
-        .mainCircle {
-            animation: pulsing 1s infinite;
-        }
-    }
-
+  &.unselected {
     .mainCircle {
-        transition:
-            r 0.2s ease-in-out,
-            opacity 0.2s ease-in-out;
+      opacity: 0.25;
+      transition:
+        r 0.2s ease-in-out,
+        opacity 0.2s ease-in-out,
+        fill 0.2s ease-in-out;
     }
 
     .nodeText {
-        white-space: wrap;
-        animation: textIn 0.2s ease-in-out forwards;
-        font-size: var(--mantine-font-size-sm);
+      opacity: 0.5;
+    }
+  }
+
+  &.hidden {
+    opacity: 0.25;
+  }
+
+  &.highlighted {
+    .mainCircle {
+    }
+    .mainCircle {
+    }
+  }
+
+  &.unhighlighted {
+    .mainCircle {
+      opacity: 0.5;
+    }
+  }
+
+  &.selected {
+    .mainCircle {
+      opacity: 1;
     }
 
-    .zoomedIn {
+    .nodeText {
+      opacity: 1;
     }
+  }
 
-    .zoomedOut {
+  &.loading {
+    .mainCircle {
+      animation: pulsing 1s infinite;
     }
+  }
+
+  .mainCircle {
+    transition:
+      r 0.2s ease-in-out,
+      opacity 0.2s ease-in-out;
+  }
+
+  .nodeText {
+    white-space: wrap;
+    animation: textIn 0.2s ease-in-out forwards;
+    font-size: var(--mantine-font-size-sm);
+  }
+
+  .zoomedIn {
+  }
+
+  .zoomedOut {
+  }
 }
 
 .idea {
-    --color-nodes: var(--mantine-color-dark-3);
+  --color-nodes: var(--mantine-color-dark-3);
 }
 
 .task {
-    --color-nodes: var(--mantine-color-green-5);
-    --color-stroke: var(--mantine-color-green-7);
+  --color-nodes: var(--mantine-color-green-5);
+  --color-stroke: var(--mantine-color-green-7);
 }
 
 .source {
-    --color-stroke: var(--mantine-color-blue-7);
-    --color-nodes: var(--mantine-color-dark-8);
+  --color-stroke: var(--mantine-color-blue-7);
+  --color-nodes: var(--mantine-color-dark-8);
 }
 
 .excerpt {
-    --color-stroke: var(--mantine-color-blue-5);
-    --color-nodes: var(--mantine-color-dark-7);
+  --color-stroke: var(--mantine-color-blue-5);
+  --color-nodes: var(--mantine-color-dark-7);
 }
 
 .tag {
-    --color-stroke: var(--mantine-color-red-5);
-    --node-radius: 20;
-    --node-radius-selected: 28;
+  --color-stroke: var(--mantine-color-red-5);
+  --node-radius: 20;
+  --node-radius-selected: 28;
 
-    .mainCircle {
-        stroke-width: 4px;
-    }
+  .mainCircle {
+    stroke-width: 4px;
+  }
 
-    .nodeText {
-        font-size: calc(var(--mantine-font-size-sm) * 1.25);
-    }
+  .nodeText {
+    font-size: calc(var(--mantine-font-size-sm) * 1.25);
+  }
 
-    &.selected {
-    }
+  &.selected {
+  }
 }
 
 .rabbithole {
-    --color-stroke: var(--mantine-color-yellow-5);
-    --node-radius: 20;
-    --node-radius-selected: 28;
+  --color-stroke: var(--mantine-color-yellow-5);
+  --node-radius: 20;
+  --node-radius-selected: 28;
 
-    .mainCircle {
-        stroke-width: 4px;
-    }
+  .mainCircle {
+    stroke-width: 4px;
+  }
 
-    .nodeText {
-        font-size: calc(var(--mantine-font-size-sm) * 1.25);
-    }
+  .nodeText {
+    font-size: calc(var(--mantine-font-size-sm) * 1.25);
+  }
 }

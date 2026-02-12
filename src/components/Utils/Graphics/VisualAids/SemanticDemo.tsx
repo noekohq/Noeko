@@ -125,9 +125,7 @@ export const SemanticDemo = () => {
 
             // 4. Wait 3s, then restart the whole sequence with the next demo
             timerRef.current = setTimeout(() => {
-              setDemoIndex(
-                (prevIndex) => (prevIndex + 1) % demoConfigurations.length,
-              );
+              setDemoIndex((prevIndex) => (prevIndex + 1) % demoConfigurations.length);
             }, animationConfig.postResultsDelay);
           }, animationConfig.postTypingDelay); // Wait 500ms after typing
         }
@@ -163,9 +161,7 @@ export const SemanticDemo = () => {
       </div>
 
       {/* Results Area */}
-      <div
-        className={`${classes.resultsArea} ${showResults ? classes.show : ""}`}
-      >
+      <div className={`${classes.resultsArea} ${showResults ? classes.show : ""}`}>
         <h3 className={classes.resultsTitle}>
           <Group align="baseline" gap="sm">
             Results

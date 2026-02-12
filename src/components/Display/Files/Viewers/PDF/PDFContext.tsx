@@ -62,8 +62,7 @@ const initialContext: IPDFViewerContext = {
   },
 };
 
-export const PDFViewerContext =
-  createContext<IPDFViewerContext>(initialContext);
+export const PDFViewerContext = createContext<IPDFViewerContext>(initialContext);
 
 export const PDFViewerProvider = ({
   children,
@@ -102,14 +101,10 @@ export const PDFViewerProvider = ({
       },
       state,
     }),
-    [currentSelection, currentSelectionText, currentAnnotation],
+    [currentSelection, currentSelectionText, currentAnnotation]
   );
 
-  return (
-    <PDFViewerContext.Provider value={value}>
-      {children}
-    </PDFViewerContext.Provider>
-  );
+  return <PDFViewerContext.Provider value={value}>{children}</PDFViewerContext.Provider>;
 };
 
 export const usePDFViewer = () => useContext(PDFViewerContext);

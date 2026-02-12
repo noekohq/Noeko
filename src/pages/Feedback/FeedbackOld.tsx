@@ -73,7 +73,7 @@ export default function Feedback() {
         (feedback.user?.firstName + " " + feedback.user?.lastName)
           .toLowerCase()
           .includes(query.toLowerCase()) ||
-        feedback.id.toString().includes(query.toLowerCase()),
+        feedback.id.toString().includes(query.toLowerCase())
     )
     .filter((f) => {
       if (filterAddressed && f.status === "addressed") {
@@ -111,11 +111,7 @@ export default function Feedback() {
       <TopBar />
       <LeftSidebar />
       <Content>
-        <Modal
-          opened={!!toDelete}
-          title="Delete Feedback"
-          onClose={() => setToDelete(undefined)}
-        >
+        <Modal opened={!!toDelete} title="Delete Feedback" onClose={() => setToDelete(undefined)}>
           <Text>
             Are you sure you want to delete this feedback from{" "}
             {toDelete?.user?.email || "this user"}?
@@ -187,9 +183,7 @@ export default function Feedback() {
                               <CaretDown /> {clipContent(feedback.content)}
                             </Text>
                           </HoverCard.Target>
-                          <HoverCard.Dropdown>
-                            {feedback.content}
-                          </HoverCard.Dropdown>
+                          <HoverCard.Dropdown>{feedback.content}</HoverCard.Dropdown>
                         </HoverCard>
                       </Table.Td>
                       <Table.Td>
@@ -216,9 +210,7 @@ export default function Feedback() {
                           }}
                         />
                       </Table.Td>
-                      <Table.Td>
-                        {feedback.consentToContact ? "Yes" : "No"}
-                      </Table.Td>
+                      <Table.Td>{feedback.consentToContact ? "Yes" : "No"}</Table.Td>
                       <Table.Td>
                         <Group gap="xs">
                           <ActionIcon

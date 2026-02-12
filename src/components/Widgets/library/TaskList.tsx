@@ -244,14 +244,10 @@ function DailyTasks() {
     actions: { newTask },
   } = useInteraction();
 
-  const incompleteTasks: ITask[] =
-    tasks?.filter((task) => !task.completedAt) ?? [];
-  const completeTasks: ITask[] =
-    tasks?.filter((task) => task.completedAt) ?? [];
+  const incompleteTasks: ITask[] = tasks?.filter((task) => !task.completedAt) ?? [];
+  const completeTasks: ITask[] = tasks?.filter((task) => task.completedAt) ?? [];
 
-  const progress = tasks?.length
-    ? (completeTasks.length / tasks.length) * 100
-    : 0;
+  const progress = tasks?.length ? (completeTasks.length / tasks.length) * 100 : 0;
 
   const { isMobile } = useLayout();
 

@@ -9,18 +9,21 @@ The Enhanced DreamTable is a comprehensive table implementation for the Tiptap e
 ### Core Table Operations
 
 #### Row Operations
+
 - **Add Row Before/After**: Insert new rows above or below the current selection
 - **Delete Row**: Remove the selected row
 - **Move Row Up/Down**: Reorder rows within the table
 - **Duplicate Row**: Create a copy of the selected row
 
 #### Column Operations
+
 - **Add Column Before/After**: Insert new columns to the left or right of current selection
 - **Delete Column**: Remove the selected column
 - **Move Column Left/Right**: Reorder columns within the table
 - **Duplicate Column**: Create a copy of the selected column
 
 #### Cell Operations
+
 - **Merge Cells**: Combine multiple selected cells into one
 - **Split Cell**: Divide a merged cell back into individual cells
 - **Cell Alignment**: Set text alignment (left, center, right) for individual cells
@@ -30,6 +33,7 @@ The Enhanced DreamTable is a comprehensive table implementation for the Tiptap e
 ### Advanced Features
 
 #### Table Styling
+
 - **Border Customization**: Adjust border color and width
 - **Background Colors**: Set table and header background colors
 - **Striped Rows**: Toggle alternating row colors for better readability
@@ -37,6 +41,7 @@ The Enhanced DreamTable is a comprehensive table implementation for the Tiptap e
 - **Header Styling**: Special styling for header rows and columns
 
 #### Selection Management
+
 - **Cell Selection**: Click to select individual cells
 - **Row Selection**: Select entire rows for bulk operations
 - **Column Selection**: Select entire columns for bulk operations
@@ -44,11 +49,13 @@ The Enhanced DreamTable is a comprehensive table implementation for the Tiptap e
 - **Table Selection**: Select the entire table
 
 #### Resizing
+
 - **Dynamic Resizing**: Drag handles to resize table width and height
 - **Responsive Design**: Tables adapt to different screen sizes
 - **Minimum Size Constraints**: Prevents tables from becoming too small
 
 #### Import/Export
+
 - **CSV Export**: Export table data to CSV format
 - **JSON Export**: Export with full structure and styling information
 - **CSV Import**: Import data from CSV files or text
@@ -59,7 +66,7 @@ The Enhanced DreamTable is a comprehensive table implementation for the Tiptap e
 ### Basic Table Creation
 
 ```typescript
-import { DreamTable } from './nodes/DreamTable';
+import { DreamTable } from "./nodes/DreamTable";
 
 // In your Tiptap editor configuration
 const editor = useEditor({
@@ -87,24 +94,24 @@ const tableOperations = useTableOperations({
 // Example operations
 tableOperations.addRowAfter();
 tableOperations.mergeCells();
-tableOperations.setCellAlignment('center');
+tableOperations.setCellAlignment("center");
 tableOperations.applyTableStyle({
-  borderColor: '#ff0000',
+  borderColor: "#ff0000",
   stripedRows: true,
 });
 ```
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Tab` | Move to next cell |
-| `Shift + Tab` | Move to previous cell |
-| `Arrow Keys` | Navigate between cells |
-| `Ctrl/Cmd + X` | Cut selected content |
-| `Ctrl/Cmd + C` | Copy selected content |
-| `Ctrl/Cmd + V` | Paste content |
-| `Delete/Backspace` | Clear cell content |
+| Shortcut           | Action                 |
+| ------------------ | ---------------------- |
+| `Tab`              | Move to next cell      |
+| `Shift + Tab`      | Move to previous cell  |
+| `Arrow Keys`       | Navigate between cells |
+| `Ctrl/Cmd + X`     | Cut selected content   |
+| `Ctrl/Cmd + C`     | Copy selected content  |
+| `Ctrl/Cmd + V`     | Paste content          |
+| `Delete/Backspace` | Clear cell content     |
 
 ### Context Menu
 
@@ -139,22 +146,29 @@ Right-click on any table cell to access the comprehensive context menu with all 
 .tableContent {
   table {
     // Core table styles
-    
-    th, td {
+
+    th,
+    td {
       // Cell styles
       &.selectedCell {
         // Selected cell styles
       }
-      
-      &.align-left { text-align: left; }
-      &.align-center { text-align: center; }
-      &.align-right { text-align: right; }
+
+      &.align-left {
+        text-align: left;
+      }
+      &.align-center {
+        text-align: center;
+      }
+      &.align-right {
+        text-align: right;
+      }
     }
-    
+
     &.compact {
       // Compact mode styles
     }
-    
+
     &.striped {
       // Striped rows styles
     }
@@ -166,7 +180,7 @@ Right-click on any table cell to access the comprehensive context menu with all 
   &.horizontal {
     // Horizontal resize handle
   }
-  
+
   &.vertical {
     // Vertical resize handle
   }
@@ -180,10 +194,10 @@ Apply custom styles through the styling interface or programmatically:
 ```typescript
 // Apply custom table style
 tableOperations.applyTableStyle({
-  borderColor: '#2196f3',
+  borderColor: "#2196f3",
   borderWidth: 2,
-  backgroundColor: '#f5f5f5',
-  headerBg: '#e3f2fd',
+  backgroundColor: "#f5f5f5",
+  headerBg: "#e3f2fd",
   stripedRows: true,
   compact: false,
 });
@@ -215,7 +229,7 @@ interface TableOperations {
   moveRowUp: () => void;
   moveRowDown: () => void;
   duplicateRow: () => void;
-  
+
   // Column operations
   addColumnBefore: () => void;
   addColumnAfter: () => void;
@@ -223,14 +237,14 @@ interface TableOperations {
   moveColumnLeft: () => void;
   moveColumnRight: () => void;
   duplicateColumn: () => void;
-  
+
   // Cell operations
   mergeCells: () => void;
   splitCell: () => void;
-  setCellAlignment: (alignment: 'left' | 'center' | 'right') => void;
+  setCellAlignment: (alignment: "left" | "center" | "right") => void;
   setCellBackground: (color: string) => void;
   clearCellFormatting: () => void;
-  
+
   // ... many more operations
 }
 ```
@@ -238,17 +252,20 @@ interface TableOperations {
 ## Accessibility
 
 ### Keyboard Navigation
+
 - Full keyboard support for table navigation
 - Tab navigation between cells
 - Arrow key navigation
 - Screen reader compatibility
 
 ### Focus Management
+
 - Clear focus indicators
 - Proper focus trapping within table
 - Accessible shortcuts
 
 ### ARIA Support
+
 - Proper ARIA labels for table elements
 - Role definitions for complex table structures
 - Screen reader announcements for operations
@@ -256,17 +273,20 @@ interface TableOperations {
 ## Responsive Design
 
 ### Mobile Support
+
 - Touch-friendly controls
 - Horizontal scrolling for large tables
 - Simplified toolbar for smaller screens
 - Gesture support for selection
 
 ### Tablet Support
+
 - Optimized for touch interactions
 - Larger touch targets
 - Adaptive UI based on screen size
 
 ### Desktop
+
 - Full feature set available
 - Hover interactions
 - Precise mouse controls
@@ -275,16 +295,19 @@ interface TableOperations {
 ## Performance Optimizations
 
 ### Virtualization
+
 - Large table support through virtual scrolling
 - Efficient rendering of visible cells only
 - Memory optimization for extensive datasets
 
 ### Debounced Operations
+
 - Smooth resize operations
 - Optimized style updates
 - Reduced re-render frequency
 
 ### Memoization
+
 - Component memoization for static elements
 - Callback optimization
 - State update batching
@@ -292,12 +315,14 @@ interface TableOperations {
 ## Browser Support
 
 ### Supported Browsers
+
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
 
 ### Polyfills
+
 - CSS Grid support for older browsers
 - Intersection Observer polyfill
 - ResizeObserver polyfill
@@ -328,6 +353,7 @@ const tableOperations = useTableOperations({
 ## Future Enhancements
 
 ### Planned Features
+
 - Formula support for calculated cells
 - Advanced filtering and sorting
 - Cell data validation
@@ -337,6 +363,7 @@ const tableOperations = useTableOperations({
 - Conditional formatting
 
 ### API Extensions
+
 - Plugin system for custom operations
 - Extensible context menu
 - Custom cell renderers
@@ -349,14 +376,11 @@ const tableOperations = useTableOperations({
 ```typescript
 // Create a styled table
 const createStyledTable = () => {
-  editor.chain()
-    .focus()
-    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-    .run();
-    
+  editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+
   // Apply styling
   tableOperations.applyTableStyle({
-    borderColor: '#2196f3',
+    borderColor: "#2196f3",
     stripedRows: true,
     compact: false,
   });

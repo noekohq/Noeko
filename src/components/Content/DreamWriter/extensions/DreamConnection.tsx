@@ -14,11 +14,7 @@ import { PluginKey } from "@tiptap/pm/state";
 import { debounce } from "lodash";
 import { IConnectable } from "../../../../../app/services/Graph";
 import { ISearchResultValue } from "../../../../../shared/types/search";
-import {
-  createIdea,
-  handleCreateNewConnectedIdea,
-  newIdea,
-} from "../../../../utils/ideas";
+import { createIdea, handleCreateNewConnectedIdea, newIdea } from "../../../../utils/ideas";
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon } from "@phosphor-icons/react";
 
@@ -28,9 +24,7 @@ export interface IDreamConnectionOptions {
 
 export type IDreamConnectionItem = IConnectable;
 
-async function fetchDreamConnectionItems(
-  query: string,
-): Promise<IDreamConnectionItem[]> {
+async function fetchDreamConnectionItems(query: string): Promise<IDreamConnectionItem[]> {
   if (!query) {
     return [];
   }
@@ -46,9 +40,7 @@ async function fetchDreamConnectionItems(
   }
 }
 
-async function fetchDreamConnectionItemsSemantic(
-  query: string,
-): Promise<IDreamConnectionItem[]> {
+async function fetchDreamConnectionItemsSemantic(query: string): Promise<IDreamConnectionItem[]> {
   if (!query) {
     return [];
   }
@@ -68,18 +60,18 @@ const debouncedFetch = debounce(
   (query: string, resolve: (items: IDreamConnectionItem[]) => void) => {
     fetchDreamConnectionItems(query).then(resolve);
   },
-  200,
+  200
 );
 
 const debouncedFetchSmart = debounce(
   (query: string, resolve: (items: IDreamConnectionItem[]) => void) => {
     fetchDreamConnectionItemsSemantic(query).then(resolve);
   },
-  500,
+  500
 );
 
 const suggestionOptionsDefinition = (
-  styles: Record<string, string>,
+  styles: Record<string, string>
 ): Omit<SuggestionOptions<IDreamConnectionItem>, "editor"> => {
   return {
     findSuggestionMatch: (config): SuggestionMatch => {
@@ -119,7 +111,7 @@ const suggestionOptionsDefinition = (
 
       let query: string = "";
       let items: IDreamConnectionItem[] = [];
-      let allItems = () => [
+      const allItems = () => [
         {
           id: "new-idea",
           label: `Create “${query}”`,
@@ -154,7 +146,7 @@ const suggestionOptionsDefinition = (
                 currentProps.command(item);
               }
             }}
-          />,
+          />
         );
       };
 
@@ -339,11 +331,7 @@ const suggestionOptionsDefinition = (
         },
       };
 
-      if (
-        props.type === "idea" ||
-        props.type === "source" ||
-        props.type === "task"
-      ) {
+      if (props.type === "idea" || props.type === "source" || props.type === "task") {
         const cmd = commandMap[props.type];
         cmd();
       }

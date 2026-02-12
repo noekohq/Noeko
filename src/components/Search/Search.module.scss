@@ -1,20 +1,20 @@
 .searchWrapper {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--mantine-spacing-xs);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
 }
 
 .search {
 }
 
 .results {
-    width: 100%;
+  width: 100%;
 }
 
 .highlight {
-    background-color: var(--mantine-color-highlight-7);
-    font-weight: bold;
+  background-color: var(--mantine-color-highlight-7);
+  font-weight: bold;
 }
 
 .glimpseContainer {

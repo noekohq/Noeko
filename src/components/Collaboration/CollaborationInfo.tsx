@@ -1,15 +1,5 @@
-import {
-  ICollaborationStatus,
-  ICollaborator,
-} from "../../hooks/useCollaboration";
-import {
-  Group,
-  Loader,
-  Text,
-  Avatar,
-  Tooltip,
-  MantineSize,
-} from "@mantine/core";
+import { ICollaborationStatus, ICollaborator } from "../../hooks/useCollaboration";
+import { Group, Loader, Text, Avatar, Tooltip, MantineSize } from "@mantine/core";
 import { CloudCheckIcon, CloudSlashIcon } from "@phosphor-icons/react";
 
 interface ICollaborationInfoProps {
@@ -18,11 +8,7 @@ interface ICollaborationInfoProps {
   size?: MantineSize;
 }
 
-export function CollaborationInfo({
-  status,
-  members,
-  size = "xs",
-}: ICollaborationInfoProps) {
+export function CollaborationInfo({ status, members, size = "xs" }: ICollaborationInfoProps) {
   let statusContent = null;
   switch (status) {
     case "connecting":
@@ -38,11 +24,7 @@ export function CollaborationInfo({
     case "synced":
       statusContent = (
         <Group gap="4px" wrap="nowrap" align="center">
-          <CloudCheckIcon
-            size={14}
-            color="var(--mantine-color-gray-6)"
-            weight="bold"
-          />
+          <CloudCheckIcon size={14} color="var(--mantine-color-gray-6)" weight="bold" />
           <Text size={size} c="gray.6">
             All changes saved
           </Text>
@@ -52,11 +34,7 @@ export function CollaborationInfo({
     case "disconnected":
       statusContent = (
         <Group gap="4px" wrap="nowrap" align="center">
-          <CloudSlashIcon
-            size={14}
-            color="var(--mantine-color-red-7)"
-            weight="bold"
-          />
+          <CloudSlashIcon size={14} color="var(--mantine-color-red-7)" weight="bold" />
           <Text size={size} c="red.7" fw="bold">
             You're offline
           </Text>
@@ -85,12 +63,7 @@ export function CollaborationInfo({
               label={collaborator.name}
               key={collaborator.name}
             >
-              <Avatar
-                color={collaborator.color}
-                size="sm"
-                radius="xl"
-                variant="filled"
-              >
+              <Avatar color={collaborator.color} size="sm" radius="xl" variant="filled">
                 {collaborator.name
                   .split(" ")
                   .map((n: string) => n[0])

@@ -9,11 +9,7 @@ import {
   getRefreshTokenFromReq,
 } from "../utils/requests";
 
-export const checkToken = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const checkToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = await getAccessTokenFromReq(req);
 
@@ -40,11 +36,7 @@ export const checkToken = async (
   }
 };
 
-export const checkIsSuperuser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const checkIsSuperuser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -67,11 +59,7 @@ export const checkIsSuperuser = async (
   }
 };
 
-export const disallowDisabled = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const disallowDisabled = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user) {
@@ -95,11 +83,7 @@ export const disallowDisabled = async (
   }
 };
 
-export const checkTokenAllowPass = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const checkTokenAllowPass = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = await getAccessTokenFromReq(req);
 

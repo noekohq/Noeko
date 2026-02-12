@@ -53,12 +53,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     description: "Large section heading.",
     icon: <SparkleIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 1 })
-        .run();
+      editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run();
     },
   },
   {
@@ -67,12 +62,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     description: "Medium section heading.",
     icon: <SparkleIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 2 })
-        .run();
+      editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run();
     },
   },
   {
@@ -81,12 +71,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     description: "Small section heading.",
     icon: <SparkleIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 3 })
-        .run();
+      editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run();
     },
   },
   {
@@ -131,12 +116,7 @@ const DREAM_SLASH_ITEMS: IDreamSlashItem[] = [
     description: "Create a table.",
     icon: <TableIcon />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setDreamTable({ columns: 3, rows: 3 })
-        .run();
+      editor.chain().focus().deleteRange(range).setDreamTable({ columns: 3, rows: 3 }).run();
     },
   },
   {
@@ -218,7 +198,7 @@ async function fetchDreamSlashItems(query: string): Promise<IDreamSlashItem[]> {
 const suggestionOptionsDefinition = (
   // Assuming styles from DreamConnection.module.scss or a new DreamSlash.module.scss
   // If styles are different, a new CSS module would be needed.
-  customStyles: Record<string, string>,
+  customStyles: Record<string, string>
 ): Omit<SuggestionOptions<IDreamSlashItem>, "editor"> => {
   return {
     char: "/",
@@ -260,7 +240,7 @@ const suggestionOptionsDefinition = (
               if (!item) return;
               currentProps?.command(item);
             }}
-          />,
+          />
         );
       };
 
@@ -284,12 +264,7 @@ const suggestionOptionsDefinition = (
         },
 
         onKeyDown: ({ event }: SuggestionKeyDownProps) => {
-          if (
-            !element ||
-            !root ||
-            !currentProps ||
-            currentProps.items.length === 0
-          ) {
+          if (!element || !root || !currentProps || currentProps.items.length === 0) {
             return false;
           }
 

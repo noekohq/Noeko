@@ -39,10 +39,7 @@ interface ICreateTaskFormProps {
   initialDescription?: ITask["description"];
 }
 
-export default function CreateTaskForm({
-  onSubmit,
-  initialDescription,
-}: ICreateTaskFormProps) {
+export default function CreateTaskForm({ onSubmit, initialDescription }: ICreateTaskFormProps) {
   const initialTaskDate = () => {
     const d = new Date();
     d.setHours(d.getHours());
@@ -59,8 +56,7 @@ export default function CreateTaskForm({
     validate: {
       description: (value) => {
         if (!value) return "Description is required";
-        if (value.length < 5)
-          return "Description must be at least 5 characters";
+        if (value.length < 5) return "Description must be at least 5 characters";
         return null;
       },
       estimatedTime: (value) => {
@@ -89,9 +85,7 @@ export default function CreateTaskForm({
   };
 
   const [settingEstimatedTime, setSettingEstimatedTime] = useState(false);
-  const [timeOptionMode, setTimeOptionMode] = useState<"options" | "manual">(
-    "options",
-  );
+  const [timeOptionMode, setTimeOptionMode] = useState<"options" | "manual">("options");
 
   const [settingDueDate, setSettingDueDate] = useState(false);
   const [dueDatePopoverOpened, setDueDatePopoverOpened] = useState(false);
@@ -189,10 +183,7 @@ export default function CreateTaskForm({
                         ]}
                         value={taskForm.values.estimatedTime.toString()}
                         onChange={(value) => {
-                          taskForm.setFieldValue(
-                            "estimatedTime",
-                            new Duration(value),
-                          );
+                          taskForm.setFieldValue("estimatedTime", new Duration(value));
                         }}
                         classNames={{ root: styles.suggestions }}
                         color="dark.3"
@@ -214,7 +205,7 @@ export default function CreateTaskForm({
                             console.error("Error: ", error);
                             taskForm.setFieldError(
                               "estimatedTime",
-                              `Invalid format. Try "2h30m", "90m", or "1.5d".`,
+                              `Invalid format. Try "2h30m", "90m", or "1.5d".`
                             );
                           }
                         }}
@@ -278,9 +269,7 @@ export default function CreateTaskForm({
                       size="sm"
                       radius="lg"
                       fullWidth
-                      onClick={() =>
-                        setDueDatePopoverOpened(!dueDatePopoverOpened)
-                      }
+                      onClick={() => setDueDatePopoverOpened(!dueDatePopoverOpened)}
                     >
                       {formattedDueDate()}
                     </Button>

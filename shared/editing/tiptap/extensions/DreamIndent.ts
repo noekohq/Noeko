@@ -8,20 +8,14 @@ export interface IIndentOptions {
   defaultIndentLevel: number;
 }
 
-const updateIndentLevel = (
-  tr: Transaction,
-  delta: number,
-  types: string[],
-): Transaction => {
+const updateIndentLevel = (tr: Transaction, delta: number, types: string[]): Transaction => {
   const { doc, selection } = tr;
 
   if (!doc || !selection) {
     return tr;
   }
 
-  if (
-    !(selection instanceof TextSelection || selection instanceof AllSelection)
-  ) {
+  if (!(selection instanceof TextSelection || selection instanceof AllSelection)) {
     return tr;
   }
 
@@ -70,8 +64,7 @@ export const DreamIndentSchema = Extension.create({
               return {};
             },
             parseHTML: (element) =>
-              parseInt(element.style.marginLeft, 10) ||
-              this.options.defaultIndentLevel,
+              parseInt(element.style.marginLeft, 10) || this.options.defaultIndentLevel,
           },
         },
       },

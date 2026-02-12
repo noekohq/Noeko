@@ -66,8 +66,7 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
       }
       const startX = event.clientX;
       const startWidth = imgRef.current.offsetWidth;
-      const parentWidth =
-        imgRef.current.parentElement?.offsetWidth || document.body.offsetWidth;
+      const parentWidth = imgRef.current.parentElement?.offsetWidth || document.body.offsetWidth;
 
       const handleMouseMove = (e: MouseEvent) => {
         const currentX = e.clientX;
@@ -92,8 +91,8 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
         }
 
         if (resizeLabelRef.current) {
-            resizeLabelRef.current.innerText = finalWidth;
-            resizeLabelRef.current.style.display = "block";
+          resizeLabelRef.current.innerText = finalWidth;
+          resizeLabelRef.current.style.display = "block";
         }
       };
 
@@ -104,14 +103,14 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
           updateFunc({ width: imgRef.current.style.width });
         }
         if (resizeLabelRef.current) {
-            resizeLabelRef.current.style.display = "none";
+          resizeLabelRef.current.style.display = "none";
         }
       };
 
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     },
-    [updateAttributes],
+    [updateAttributes]
   );
 
   return (
@@ -156,18 +155,17 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
         </Box>
       )}
 
-      {selected &&
-        !uploading && (
-          <div
-            className={`${styles.resizeHandle}`}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleResize(e);
-            }}
-            title="Resize"
-            style={{ pointerEvents: "auto" }}
-          />
-        )}
+      {selected && !uploading && (
+        <div
+          className={`${styles.resizeHandle}`}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            handleResize(e);
+          }}
+          title="Resize"
+          style={{ pointerEvents: "auto" }}
+        />
+      )}
     </NodeViewWrapper>
   );
 };
@@ -181,11 +179,11 @@ export const DreamImageMenu = ({ editor }: IDreamImageMenuProps) => {
   useEditorState({
     editor,
     selector: (ctx) => {
-        return {
-            viewMode: ctx.editor.getAttributes("dreamImage").viewMode,
-            src: ctx.editor.getAttributes("dreamImage").src
-        }
-    }
+      return {
+        viewMode: ctx.editor.getAttributes("dreamImage").viewMode,
+        src: ctx.editor.getAttributes("dreamImage").src,
+      };
+    },
   });
 
   const deleteSelectedNode = () => {
@@ -206,7 +204,7 @@ export const DreamImageMenu = ({ editor }: IDreamImageMenuProps) => {
 
   const setViewMode = (mode: "inline" | "minimal" | "expanded") => {
     const attrs: any = { viewMode: mode };
-    
+
     // Reset or set default widths based on mode
     if (mode === "expanded") {
       attrs.width = "100%";
@@ -214,7 +212,7 @@ export const DreamImageMenu = ({ editor }: IDreamImageMenuProps) => {
       // Default to 50% for inline mode to allow side-by-side
       attrs.width = "50%";
     }
-    
+
     editor.chain().focus().updateAttributes("dreamImage", attrs).run();
   };
 
@@ -237,43 +235,40 @@ export const DreamImageMenu = ({ editor }: IDreamImageMenuProps) => {
           {/* Wrap in div to avoid PaperIcon ref issues if any */}
           <div>
             <PaperIcon
-                aria-label="Select inline view mode"
-                onClick={() => setViewMode("inline")}
-                className={currentMode === "inline" ? styles.filledIcon : ""}
+              aria-label="Select inline view mode"
+              onClick={() => setViewMode("inline")}
+              className={currentMode === "inline" ? styles.filledIcon : ""}
             >
-                <Cards weight="bold" />
+              <Cards weight="bold" />
             </PaperIcon>
           </div>
         </Tooltip>
         <Tooltip label="Minimal View (Centered)">
           <div>
             <PaperIcon
-                onClick={() => setViewMode("minimal")}
-                aria-label="Minimal View (Just Image)"
-                className={currentMode === "minimal" ? styles.filledIcon : ""}
+              onClick={() => setViewMode("minimal")}
+              aria-label="Minimal View (Just Image)"
+              className={currentMode === "minimal" ? styles.filledIcon : ""}
             >
-                <Rows weight="bold" />
+              <Rows weight="bold" />
             </PaperIcon>
           </div>
         </Tooltip>
         <Tooltip label="Expanded View (Full)">
           <div>
             <PaperIcon
-                onClick={() => setViewMode("expanded")}
-                aria-label="Expanded View (Full)"
-                className={currentMode === "expanded" ? styles.filledIcon : ""}
+              onClick={() => setViewMode("expanded")}
+              aria-label="Expanded View (Full)"
+              className={currentMode === "expanded" ? styles.filledIcon : ""}
             >
-                <CornersOut weight="bold" />
+              <CornersOut weight="bold" />
             </PaperIcon>
           </div>
         </Tooltip>
       </div>
       <div className={bubbleStyles.buttonGroup}>
         <Tooltip label="Restore size to default">
-          <PaperIcon
-            aria-label="Restore size to default"
-            onClick={restoreSizeToDefault}
-          >
+          <PaperIcon aria-label="Restore size to default" onClick={restoreSizeToDefault}>
             <ResizeIcon />
           </PaperIcon>
         </Tooltip>
@@ -292,22 +287,16 @@ export const DreamImageMenu = ({ editor }: IDreamImageMenuProps) => {
           </PaperIcon>
         </Tooltip>
         <Tooltip label="Open in new tab">
-          <PaperIcon
-            aria-label="Open in new tab"
-            onClick={() => window.open(currentSrc, "_blank")}
-          >
+          <PaperIcon aria-label="Open in new tab" onClick={() => window.open(currentSrc, "_blank")}>
             <ArrowSquareOut />
           </PaperIcon>
         </Tooltip>
       </div>
       <div className={bubbleStyles.buttonGroup}>
         <Tooltip label="Wrap in Gallery">
-            <PaperIcon
-                aria-label="Wrap in Gallery"
-                onClick={wrapInGallery}
-            >
-                <ImagesIcon />
-            </PaperIcon>
+          <PaperIcon aria-label="Wrap in Gallery" onClick={wrapInGallery}>
+            <ImagesIcon />
+          </PaperIcon>
         </Tooltip>
       </div>
       <div className={bubbleStyles.buttonGroup}>

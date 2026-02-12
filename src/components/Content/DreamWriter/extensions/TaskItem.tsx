@@ -12,35 +12,21 @@ import React from "react";
 
 export const taskItemInputRegex = /^\s*(\[ \])\s$/;
 
-const TaskItemComponent: React.FC<NodeViewProps> = ({
-  node,
-  updateAttributes,
-  editor,
-}) => {
+const TaskItemComponent: React.FC<NodeViewProps> = ({ node, updateAttributes, editor }) => {
   const isChecked = node.attrs.checked;
 
   return (
-    <NodeViewWrapper
-      as="li"
-      className={contentStyles.taskItem}
-      data-checked={isChecked}
-    >
+    <NodeViewWrapper as="li" className={contentStyles.taskItem} data-checked={isChecked}>
       <div contentEditable="false" className={contentStyles.nonEditable}>
         {/*<div className={contentStyles.controls}>*/}
-        <div
-          className={contentStyles.dragHandle}
-          draggable="true"
-          data-drag-handle
-        >
+        <div className={contentStyles.dragHandle} draggable="true" data-drag-handle>
           <DotsSixVerticalIcon size={16} weight="bold" />
         </div>
         <label>
           <input
             type="checkbox"
             checked={isChecked}
-            onChange={(event) =>
-              updateAttributes({ checked: event.target.checked })
-            }
+            onChange={(event) => updateAttributes({ checked: event.target.checked })}
           />
           {isChecked && <CheckIcon size={12} weight="bold" color="white" />}
         </label>

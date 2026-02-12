@@ -62,7 +62,9 @@ export const DreamFileComponent: React.FC<NodeViewProps> = (props) => {
   const { node, deleteNode, editor, selected, updateAttributes } = props;
   const { fileId, fileName, fileType, viewMode = "expanded", uploading } = node.attrs;
 
-  const icon = uploading ? <Loader size={16} color="gray" /> : fileType?.toLowerCase().includes("pdf") ? (
+  const icon = uploading ? (
+    <Loader size={16} color="gray" />
+  ) : fileType?.toLowerCase().includes("pdf") ? (
     <FilePdf weight="bold" />
   ) : (
     <File weight="bold" />
@@ -73,18 +75,11 @@ export const DreamFileComponent: React.FC<NodeViewProps> = (props) => {
     runOnMount: !!fileId && !uploading,
   });
 
-  const { load: downloadFile, loading: downloadingFile } = useFetch<
-    undefined,
-    string
-  >({
+  const { load: downloadFile, loading: downloadingFile } = useFetch<undefined, string>({
     url: `/files/${fileId}/download`,
     onSuccess: (downloadLink) => {
       console.info("Triggering download");
-      triggerDownload(
-        downloadLink,
-        file?.originalFileName ?? fileName ?? "noeko-file",
-        true,
-      );
+      triggerDownload(downloadLink, file?.originalFileName ?? fileName ?? "noeko-file", true);
     },
   });
 
@@ -211,12 +206,7 @@ export const DreamFileComponent: React.FC<NodeViewProps> = (props) => {
       data-view-mode="expanded"
     >
       <Card radius="md" withBorder shadow="xs" p="md">
-        <Flex
-          direction="column"
-          justify="flex-start"
-          gap="md"
-          style={{ width: "100%" }}
-        >
+        <Flex direction="column" justify="flex-start" gap="md" style={{ width: "100%" }}>
           <Link
             to={`/file/${fileId}`}
             rel="noopener noreferrer nofollow"

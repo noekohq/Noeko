@@ -36,13 +36,7 @@ export type ISpyglassSearch = {
 
 export type ISpyglassSearchForm = Omit<
   ISpyglassSearch,
-  | "id"
-  | "results"
-  | "rabbithole"
-  | "analysis"
-  | "intent"
-  | "createdAt"
-  | "updatedAt"
+  "id" | "results" | "rabbithole" | "analysis" | "intent" | "createdAt" | "updatedAt"
 >;
 
 export type ISpyglassSearchCreator = Omit<ISpyglassSearch, "id">;
@@ -175,22 +169,19 @@ export class SpyglassSearch {
     options?: {
       rabbitholeId?: string;
       scope?: string[];
-    },
+    }
   ) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const result = await db.create<ISpyglassSearch, ISpyglassSearchCreator>(
-        "spyglass",
-        {
-          baseQuery: form.baseQuery,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          analysis: null,
-        },
-      );
+      const result = await db.create<ISpyglassSearch, ISpyglassSearchCreator>("spyglass", {
+        baseQuery: form.baseQuery,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        analysis: null,
+      });
       if (!result[0]) {
         throw new Error("Failed to create spyglass search");
       }
@@ -223,16 +214,9 @@ export class SpyglassSearch {
       if (!search) {
         throw new Error("Search not found");
       }
-      if (
-        search.resultConnections &&
-        search.results &&
-        search.results.length > 0
-      ) {
-        search.fullResults = !!search.results.length
-          ? await SpyglassSearch.mapMultipleConnections(
-              search.resultConnections,
-              search.results,
-            )
+      if (search.resultConnections && search.results && search.results.length > 0) {
+        search.fullResults = search.results.length
+          ? await SpyglassSearch.mapMultipleConnections(search.resultConnections, search.results)
           : [];
       }
       return search;
@@ -241,10 +225,7 @@ export class SpyglassSearch {
     }
   }
 
-  public static async attachParent(
-    to: string | RecordId,
-    from: string | RecordId,
-  ) {
+  public static async attachParent(to: string | RecordId, from: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -255,7 +236,7 @@ export class SpyglassSearch {
         {
           child: new StringRecordId(to),
           parent: new StringRecordId(from),
-        },
+        }
       );
       if (!result) {
         console.error("No link created.");
@@ -271,17 +252,18 @@ export class SpyglassSearch {
   public static async getHistory(
     userId: string | RecordId,
     page: number = 0,
-    pageSize: number = 10,
+    pageSize: number = 10
   ) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const history = await db.run<ISpyglassSearch[]>(
-        "fn::get_spyglass_history",
-        [new StringRecordId(userId), page, pageSize],
-      );
+      const history = await db.run<ISpyglassSearch[]>("fn::get_spyglass_history", [
+        new StringRecordId(userId),
+        page,
+        pageSize,
+      ]);
       return history;
     } catch (error) {
       logger.error("Error getting spyglass history", { userId, error });
@@ -291,17 +273,18 @@ export class SpyglassSearch {
   public static async getHistoryLightweight(
     userId: string | RecordId,
     page: number = 0,
-    pageSize: number = 10,
+    pageSize: number = 10
   ) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const history = await db.run<ISpyglassSearch[]>(
-        "fn::get_spyglass_history_lightweight",
-        [new StringRecordId(userId), page, pageSize],
-      );
+      const history = await db.run<ISpyglassSearch[]>("fn::get_spyglass_history_lightweight", [
+        new StringRecordId(userId),
+        page,
+        pageSize,
+      ]);
       return history;
     } catch (error) {
       logger.error("Error getting spyglass history", { userId, error });
@@ -316,7 +299,7 @@ export class SpyglassSearch {
         {
           userId: new StringRecordId(userId),
           spyglassId: new StringRecordId(spyglassId),
-        },
+        }
       );
 
       if (result && result[0] && result[0] > 0) {
@@ -324,18 +307,12 @@ export class SpyglassSearch {
       }
       return false;
     } catch (err) {
-      console.error(
-        `Error during checkUserOwnership for spyglass "${spyglassId}":`,
-        err,
-      );
+      console.error(`Error during checkUserOwnership for spyglass "${spyglassId}":`, err);
       return false;
     }
   }
 
-  public static async loadIntent(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
+  public static async loadIntent(userId: string | RecordId, searchId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -355,7 +332,7 @@ export class SpyglassSearch {
                 response: search.parent.analysis?.overview || "",
               },
             ]
-          : undefined,
+          : undefined
       );
       if (!intent) {
         throw new Error("Failed to load intent");
@@ -367,10 +344,7 @@ export class SpyglassSearch {
     }
   }
 
-  public static async loadResults(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
+  public static async loadResults(userId: string | RecordId, searchId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -392,21 +366,12 @@ export class SpyglassSearch {
             },
           } as IConnectableSearchQuery;
         });
-        const r = await Spyglass.getResultsFromQueries(
-          userId.toString(),
-          searches,
-        );
+        const r = await Spyglass.getResultsFromQueries(userId.toString(), searches);
         results.push(...r);
       } else {
-        const r = await Spyglass.getResults(
-          userId.toString(),
-          search.baseQuery,
-        );
+        const r = await Spyglass.getResults(userId.toString(), search.baseQuery);
         if (!r) {
-          console.error(
-            "Couldn't find results in loadResults for: ",
-            search.baseQuery,
-          );
+          console.error("Couldn't find results in loadResults for: ", search.baseQuery);
         }
       }
       if (!results) {
@@ -415,18 +380,15 @@ export class SpyglassSearch {
       const relationQueries = results.map(async (result) => {
         const fromId = new StringRecordId(search.id);
         const toId = new StringRecordId(result.id);
-        return db.query<[ISearchConnection]>(
-          `RELATE $fromId->found->$toId CONTENT $content;`,
-          {
-            fromId: fromId,
-            toId: toId,
-            content: {
-              score: result.score,
-              highlightText: result.highlightText,
-              debug: result.debug,
-            },
+        return db.query<[ISearchConnection]>(`RELATE $fromId->found->$toId CONTENT $content;`, {
+          fromId: fromId,
+          toId: toId,
+          content: {
+            score: result.score,
+            highlightText: result.highlightText,
+            debug: result.debug,
           },
-        );
+        });
       });
       const relations = await Promise.all(relationQueries);
       return relations;
@@ -438,7 +400,7 @@ export class SpyglassSearch {
 
   public static async mapSearchConnectionToSearchResult(
     connection: ISearchConnection,
-    source: ISearchResultValue,
+    source: ISearchResultValue
   ): Promise<ISearchResult> {
     const getType = (): ISearchResultValue["type"] => {
       if (source.id.toString().startsWith("idea")) {
@@ -464,20 +426,17 @@ export class SpyglassSearch {
 
   public static async mapMultipleConnections(
     connections: ISearchConnection[],
-    sources: ISearchResultValue[],
+    sources: ISearchResultValue[]
   ): Promise<ISearchResult[]> {
     return Promise.all(
       connections.map((connection, i) => {
         const source = sources[i];
         return this.mapSearchConnectionToSearchResult(connection, source);
-      }),
+      })
     );
   }
 
-  public static async loadFindings(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
+  public static async loadFindings(userId: string | RecordId, searchId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -496,7 +455,7 @@ export class SpyglassSearch {
       const findings = await Spyglass.getFindingsFromResults(
         search.baseQuery,
         search.fullResults,
-        search.intent,
+        search.intent
       );
       if (!findings) {
         throw new Error("No findings found");
@@ -514,10 +473,7 @@ export class SpyglassSearch {
     }
   }
 
-  public static async loadOverview(
-    userId: string | RecordId,
-    searchId: string | RecordId,
-  ) {
+  public static async loadOverview(userId: string | RecordId, searchId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -540,7 +496,7 @@ export class SpyglassSearch {
         search.baseQuery,
         search.analysis.findings,
         search.intent,
-        search.fullResults || [],
+        search.fullResults || []
       );
       if (!overview) {
         throw new Error("No overview found");

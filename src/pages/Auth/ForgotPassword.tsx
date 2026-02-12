@@ -95,14 +95,12 @@ export default function ForgotPassword() {
             <Grid.Col span={12}>
               {!emailSent ? (
                 <Text size="sm" c="dimmed">
-                  Enter your email address and we'll send you a link to reset
-                  your password.
+                  Enter your email address and we'll send you a link to reset your password.
                 </Text>
               ) : (
                 <Text size="sm" c="dimmed">
-                  If an account with that email exists, we've sent you a
-                  password reset link. Check your email and follow the
-                  instructions to reset your password.
+                  If an account with that email exists, we've sent you a password reset link. Check
+                  your email and follow the instructions to reset your password.
                 </Text>
               )}
             </Grid.Col>
@@ -123,10 +121,7 @@ export default function ForgotPassword() {
                     <Button component={Link} to="/login" variant="default">
                       Back to Login
                     </Button>
-                    <Button
-                      onClick={handleSendReset}
-                      disabled={loadingSendReset}
-                    >
+                    <Button onClick={handleSendReset} disabled={loadingSendReset}>
                       Send Reset Link
                     </Button>
                   </Group>

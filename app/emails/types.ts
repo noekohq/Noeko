@@ -6,7 +6,7 @@ if (!DEPLOYED_URL) throw Error("DEPLOYED_URL not defined.");
 
 export const invitationTemplate = (
   invitee: { email: string; firstName: string; lastName: string },
-  inviter: ISafeUser,
+  inviter: ISafeUser
 ) => {
   return `
   Hello ${invitee.firstName}!

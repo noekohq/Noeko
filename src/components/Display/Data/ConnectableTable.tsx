@@ -1,12 +1,4 @@
-import {
-  ActionIcon,
-  Group,
-  Highlight,
-  Modal,
-  Table,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { ActionIcon, Group, Highlight, Modal, Table, Text, TextInput } from "@mantine/core";
 import { IConnectable } from "../../../../app/services/Graph";
 import styles from "./ConnectableTable.module.scss";
 import {
@@ -25,9 +17,7 @@ interface IConnectableTableProps {
   connectables: IConnectable[];
 }
 
-export default function ConnectableTable({
-  connectables,
-}: IConnectableTableProps) {
+export default function ConnectableTable({ connectables }: IConnectableTableProps) {
   const [filterQuery, setFilterQuery] = useState("");
   const [previewing, setPreviewing] = useState<IConnectable>();
 
@@ -120,8 +110,7 @@ export default function ConnectableTable({
                         filterQuery.length > 0
                           ? {
                               root: {
-                                border:
-                                  "1px solid var(--mantine-color-highlight-7)",
+                                border: "1px solid var(--mantine-color-highlight-7)",
                               },
                             }
                           : {}
@@ -130,12 +119,7 @@ export default function ConnectableTable({
                       <ArrowsOutIcon />
                     </ActionIcon>
                     <Link to={getNodeLink(connectable) || ""}>
-                      <ActionIcon
-                        variant="light"
-                        color="gray"
-                        size="md"
-                        radius="md"
-                      >
+                      <ActionIcon variant="light" color="gray" size="md" radius="md">
                         <ArrowRightIcon />
                       </ActionIcon>
                     </Link>
@@ -151,11 +135,7 @@ export default function ConnectableTable({
         onClose={() => {
           setPreviewing(undefined);
         }}
-        title={
-          <Text size="sm">
-            Previewing {previewing ? getNodeTitle(previewing) : ""}
-          </Text>
-        }
+        title={<Text size="sm">Previewing {previewing ? getNodeTitle(previewing) : ""}</Text>}
         onClick={(e) => {
           e.stopPropagation();
         }}

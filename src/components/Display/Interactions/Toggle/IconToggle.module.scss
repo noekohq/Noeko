@@ -1,39 +1,39 @@
 .iconToggle {
-    display: flex;
-    gap: 0;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--mantine-radius-lg);
-    border: 1px solid var(--mantine-color-dark-7);
-    overflow: hidden;
-    transition: transform 0.2s ease-in-out;
+  display: flex;
+  gap: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-lg);
+  border: 1px solid var(--mantine-color-dark-7);
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
 }
 
 .option {
-    background-color: var(--mantine-color-dark-9);
-    color: var(--mantine-color-text);
-    border: none;
-    padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
+  background-color: var(--mantine-color-dark-9);
+  color: var(--mantine-color-text);
+  border: none;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
 
-    &.active {
-        background-color: var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-1);
-    }
+  &.active {
+    background-color: var(--mantine-color-dark-7);
+    color: var(--mantine-color-dark-1);
+  }
 
-    &:hover {
-        background-color: var(--mantine-color-dark-8);
-    }
+  &:hover {
+    background-color: var(--mantine-color-dark-8);
+  }
 
-    &:focus {
-        transform: scale(1.01);
-    }
+  &:focus {
+    transform: scale(1.01);
+  }
 
-    &:active {
-        transform: scale(0.98);
-    }
+  &:active {
+    transform: scale(0.98);
+  }
 }

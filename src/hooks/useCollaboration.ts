@@ -2,11 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { refreshToken, serverHost } from "../server/api";
 
-export type ICollaborationStatus =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "synced";
+export type ICollaborationStatus = "disconnected" | "connecting" | "connected" | "synced";
 
 export interface ICollaborator {
   name: string;
@@ -18,11 +14,7 @@ export interface ICollaborationState {
   members: ICollaborator[];
 }
 
-export const useCollaboration = ({
-  roomId,
-  enabled = true,
-  onStatusChange,
-}: any) => {
+export const useCollaboration = ({ roomId, enabled = true, onStatusChange }: any) => {
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
   const [status, setStatus] = useState<ICollaborationStatus>("disconnected");
   const [members, setMembers] = useState<ICollaborator[]>([]);
@@ -95,22 +87,16 @@ export const useCollaboration = ({
           updateHandler();
         }
 
-        newProvider.on(
-          "status",
-          ({ status: providerStatus }: { status: ICollaborationStatus }) => {
-            if (activeRoomRef.current === roomId) {
-              setStatus((currentStatus) => {
-                if (
-                  currentStatus === "synced" &&
-                  providerStatus === "connected"
-                ) {
-                  return "synced";
-                }
-                return providerStatus;
-              });
-            }
-          },
-        );
+        newProvider.on("status", ({ status: providerStatus }: { status: ICollaborationStatus }) => {
+          if (activeRoomRef.current === roomId) {
+            setStatus((currentStatus) => {
+              if (currentStatus === "synced" && providerStatus === "connected") {
+                return "synced";
+              }
+              return providerStatus;
+            });
+          }
+        });
 
         if (activeRoomRef.current === roomId) {
           setProvider(newProvider);

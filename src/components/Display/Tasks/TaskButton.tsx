@@ -68,7 +68,7 @@ export default function TaskButton({
       JSON.stringify({
         taskId: task.id.toString(),
         thingId: task.id.toString(),
-      }),
+      })
     );
   };
 
@@ -212,11 +212,7 @@ export default function TaskButton({
                     <Text size="xs" lineClamp={1} c="dark.5">
                       {task.estimatedTime.toString()}{" "}
                       {task.dueDate && (
-                        <Text
-                          inline
-                          component="span"
-                          c={isOverdue() ? "red.5" : "inherit"}
-                        >
+                        <Text inline component="span" c={isOverdue() ? "red.5" : "inherit"}>
                           {formatDate(new Date(task.dueDate))}
                         </Text>
                       )}
@@ -268,8 +264,7 @@ export default function TaskButton({
             {task.description}
           </Text>
           <Text c="dimmed" fs="italic" size="sm">
-            Due {formattedDueDate()}, estimated to take{" "}
-            {formattedEstimatedDuration()}
+            Due {formattedDueDate()}, estimated to take {formattedEstimatedDuration()}
           </Text>
           {!!task.scratchpad && (
             <Text

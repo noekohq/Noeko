@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  MantineColor,
-  MantineRadius,
-  MantineShadow,
-  MantineSpacing,
-} from "@mantine/core";
+import { MantineColor, MantineRadius, MantineShadow, MantineSpacing } from "@mantine/core";
 import type { IconProps, IconWeight } from "phosphor-react"; // Import Phosphor types
 import type { IIdea } from "../../../../shared/types/idea"; // ENSURE THIS PATH IS CORRECT
 
@@ -23,14 +18,7 @@ export type IdeaAction = {
   icon?: React.ReactElement<IconProps>; // Expect a Phosphor icon instance e.g. <User size={16} />
   onClick: (event: React.MouseEvent, idea: IIdea) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean; // If true, primarily for the overflow menu
@@ -58,29 +46,17 @@ export interface IdeaCardSharedProps {
   actions?: IdeaAction[];
   link?: boolean;
 
-  onCardClick?: (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    idea: IIdea,
-  ) => void;
+  onCardClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>, idea: IIdea) => void;
 
   draggable?: boolean;
-  onDragStartCard?: (
-    event: React.DragEvent<HTMLDivElement>,
-    idea: IIdea,
-  ) => void;
+  onDragStartCard?: (event: React.DragEvent<HTMLDivElement>, idea: IIdea) => void;
   onDragEndCard?: (event: React.DragEvent<HTMLDivElement>, idea: IIdea) => void;
   // If you want an internal, default drag handle to appear:
   showDefaultDragHandle?: boolean;
 
   isExternallyHighlighted?: boolean;
-  onMouseEnterCard?: (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    ideaId: string,
-  ) => void;
-  onMouseLeaveCard?: (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    ideaId: string,
-  ) => void;
+  onMouseEnterCard?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>, ideaId: string) => void;
+  onMouseLeaveCard?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>, ideaId: string) => void;
 
   className?: string;
   cardPadding?: MantineSpacing;

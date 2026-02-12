@@ -1,10 +1,5 @@
 import { createTheme, MantineThemeOverride } from "@mantine/core";
-import {
-  IThemeSpec,
-  IThemeOption,
-  IThemeResolved,
-  ICSSApplicator,
-} from "../declarations/themes";
+import { IThemeSpec, IThemeOption, IThemeResolved, ICSSApplicator } from "../declarations/themes";
 import { overrides } from "./themes";
 import { applyStyleBlocks, setCssVariable } from "../utils/dom";
 

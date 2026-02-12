@@ -89,9 +89,7 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
 
   const nodeIds = new Set(nodes.map((n) => n.id.toString()));
   const validEdges = edges.filter(
-    (edge) =>
-      nodeIds.has(edge.source.toString()) &&
-      nodeIds.has(edge.target.toString()),
+    (edge) => nodeIds.has(edge.source.toString()) && nodeIds.has(edge.target.toString())
   );
 
   simulation = d3
@@ -102,19 +100,16 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
         .forceLink<SimNode, SimEdge>(validEdges)
         .id((d) => d.id.toString())
         .distance((e) => e.distance || SIMULATION_CONFIG.link.distance)
-        .strength((e) => e.strength || SIMULATION_CONFIG.link.strength),
+        .strength((e) => e.strength || SIMULATION_CONFIG.link.strength)
     )
-    .force(
-      "charge",
-      d3.forceManyBody().strength(SIMULATION_CONFIG.charge.strength),
-    )
+    .force("charge", d3.forceManyBody().strength(SIMULATION_CONFIG.charge.strength))
     .force("center", d3.forceCenter(0, 0))
     .force(
       "collide",
       d3
         .forceCollide()
         .radius(SIMULATION_CONFIG.collide.radius)
-        .strength(SIMULATION_CONFIG.collide.strength),
+        .strength(SIMULATION_CONFIG.collide.strength)
     )
     .stop();
 

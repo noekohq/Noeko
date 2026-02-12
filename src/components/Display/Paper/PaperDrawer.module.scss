@@ -1,77 +1,77 @@
 @keyframes overlayIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .overlay {
-    z-index: var(--z-index-drawer);
-    animation: overlayIn 0.2s ease-out forwards;
-    position: fixed;
-    inset: 0;
+  z-index: var(--z-index-drawer);
+  animation: overlayIn 0.2s ease-out forwards;
+  position: fixed;
+  inset: 0;
 
-    backdrop-filter: blur(4px) brightness(0.8);
-    /* Hardware acceleration hint */
-    will-change: opacity;
+  backdrop-filter: blur(4px) brightness(0.8);
+  /* Hardware acceleration hint */
+  will-change: opacity;
 }
 
 @keyframes bodyIn {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .body {
-    min-height: 60vh;
-    max-height: 80vh;
-    overflow-y: auto;
+  min-height: 60vh;
+  max-height: 80vh;
+  overflow-y: auto;
 
-    animation: bodyIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  animation: bodyIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--mantine-spacing-sm);
-    background-color: var(--mantine-color-dark-8);
-    padding: var(--mantine-spacing-sm);
-    border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
-    box-shadow: var(--mantine-shadow-md);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  background-color: var(--mantine-color-dark-8);
+  padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+  box-shadow: var(--mantine-shadow-md);
 
-    /* Hardware acceleration hint to prevent jank during the slide */
-    will-change: transform;
+  /* Hardware acceleration hint to prevent jank during the slide */
+  will-change: transform;
 }
 
 .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* padding: 0 var(--mantine-spacing-xs); */
+
+  .closeButton {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    /* padding: 0 var(--mantine-spacing-xs); */
+    justify-content: center;
+    padding: var(--mantine-spacing-xs);
+    font-size: var(--mantine-font-size-md);
+    border-radius: var(--mantine-radius-xl);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--mantine-color-dark-3);
 
-    .closeButton {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: var(--mantine-spacing-xs);
-        font-size: var(--mantine-font-size-md);
-        border-radius: var(--mantine-radius-xl);
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--mantine-color-dark-3);
-
-        &:hover {
-            background-color: var(--mantine-color-dark-7);
-        }
+    &:hover {
+      background-color: var(--mantine-color-dark-7);
     }
+  }
 }
 
 .content {

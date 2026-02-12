@@ -12,9 +12,7 @@ export type IDashboard = {
 export default class Dashboard {
   constructor() {}
 
-  public static async get(
-    userId: string | RecordId,
-  ): Promise<IDashboard | undefined> {
+  public static async get(userId: string | RecordId): Promise<IDashboard | undefined> {
     try {
       const recentIdeas = await Idea.getUserRecentIdeas(userId, 10);
       const ideaStats = await Idea.getUserIdeaStats(userId);

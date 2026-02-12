@@ -10,13 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { CopyButton, Group, Modal, Stack, Text } from "@mantine/core";
-import {
-  CopyIcon,
-  EyeIcon,
-  ArrowRightIcon,
-  BrowsersIcon,
-  CheckIcon,
-} from "@phosphor-icons/react";
+import { CopyIcon, EyeIcon, ArrowRightIcon, BrowsersIcon, CheckIcon } from "@phosphor-icons/react";
 import styles from "./PaperThing.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
 import { useLandscape } from "../../../../contexts/LandscapeContext";
@@ -88,7 +82,7 @@ export default function PaperThing({
       "application/json",
       JSON.stringify({
         thingId: id.toString(),
-      }),
+      })
     );
   };
 
@@ -131,9 +125,7 @@ export default function PaperThing({
             role="button"
           >
             <div
-              className={`${styles.iconDragZone} ${
-                hovering ? styles.hovering : ""
-              }`}
+              className={`${styles.iconDragZone} ${hovering ? styles.hovering : ""}`}
               draggable={!!id && draggable}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
@@ -168,11 +160,7 @@ export default function PaperThing({
                 <Text className={styles.title} truncate="end" title={title}>
                   {title?.trim() || "Untitled"}
                 </Text>
-                <Text
-                  className={styles.detail}
-                  truncate="end"
-                  title={detail?.toString() || ""}
-                >
+                <Text className={styles.detail} truncate="end" title={detail?.toString() || ""}>
                   {detail}
                 </Text>
                 {artifacts?.length &&

@@ -135,17 +135,10 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
 
   const connectionCount = glimpseResult.connections?.length ?? 0;
 
-  if (
-    loading &&
-    !glimpseResult.summary &&
-    (glimpseResult.contentMap?.length ?? 0) === 0
-  ) {
+  if (loading && !glimpseResult.summary && (glimpseResult.contentMap?.length ?? 0) === 0) {
     return (
       <div className={styles.loadingState}>
-        <Title
-          order={view === "full" ? 1 : 3}
-          className={`${styles.queryTitle} ${styles.loading}`}
-        >
+        <Title order={view === "full" ? 1 : 3} className={`${styles.queryTitle} ${styles.loading}`}>
           {query}
         </Title>
         {status && (
@@ -210,11 +203,7 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
             to={`/spyglass?q=${encodeURIComponent(query)}&deep=true`}
             style={{ textDecoration: "none" }}
           >
-            <PaperButton
-              withBorder
-              leftSection={<SpyglassIcon size={12} />}
-              size="sm"
-            >
+            <PaperButton withBorder leftSection={<SpyglassIcon size={12} />} size="sm">
               Deep Focus
             </PaperButton>
           </Link>
@@ -234,19 +223,13 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
               id={entryPointResource.id.toString()}
               title={glimpseResult.entryPoint.title}
               detail={glimpseResult.entryPoint.reason}
-              icon={TypeIcon(
-                getTypeFromId(
-                  entryPointResource.id.toString(),
-                ) as INode["type"],
-              )}
+              icon={TypeIcon(getTypeFromId(entryPointResource.id.toString()) as INode["type"])}
               onClick={(id, e) => {
                 if (onResultClick) {
                   e.stopPropagation();
                   onResultClick(entryPointResource as unknown as INode);
                 } else {
-                  navigate(
-                    `/${entryPointResource.type}/${entryPointResource.id.toString()}`,
-                  );
+                  navigate(`/${entryPointResource.type}/${entryPointResource.id.toString()}`);
                 }
               }}
               preventClickDefault={!!onResultClick}
@@ -257,19 +240,13 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
               id={entryPointResource.id.toString()}
               title={glimpseResult.entryPoint.title}
               detail={glimpseResult.entryPoint.reason}
-              icon={TypeIcon(
-                getTypeFromId(
-                  entryPointResource.id.toString(),
-                ) as INode["type"],
-              )}
+              icon={TypeIcon(getTypeFromId(entryPointResource.id.toString()) as INode["type"])}
               onClick={(id, e) => {
                 if (onResultClick) {
                   e.stopPropagation();
                   onResultClick(entryPointResource as unknown as INode);
                 } else {
-                  navigate(
-                    `/${entryPointResource.type}/${entryPointResource.id.toString()}`,
-                  );
+                  navigate(`/${entryPointResource.type}/${entryPointResource.id.toString()}`);
                 }
               }}
               preventClickDefault={!!onResultClick}
@@ -322,11 +299,7 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
         const sectionTypeColor = getSectionTypeColor(set.sectionType);
 
         return (
-          <div
-            key={setIndex}
-            id={`glimpse-section-${setIndex}`}
-            className={styles.contentSection}
-          >
+          <div key={setIndex} id={`glimpse-section-${setIndex}`} className={styles.contentSection}>
             <Group gap="xs" mb="xs">
               <Text size="sm" fw={500}>
                 {set.title}
@@ -356,22 +329,14 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
                 {set.description}
               </Text>
             )}
-            <div
-              className={
-                view === "compact" ? styles.sectionList : styles.sectionGrid
-              }
-            >
+            <div className={view === "compact" ? styles.sectionList : styles.sectionGrid}>
               {sectionThings.map((thing, index) => (
                 <div
                   key={thing.id}
                   className={styles.gridItem}
                   style={{ animationDelay: `${Math.log(index + 1) * 75}ms` }}
                 >
-                  {view === "compact" ? (
-                    <PaperThing {...thing} />
-                  ) : (
-                    <GridCard {...thing} />
-                  )}
+                  {view === "compact" ? <PaperThing {...thing} /> : <GridCard {...thing} />}
                 </div>
               ))}
             </div>
@@ -379,50 +344,46 @@ const GlimpseModeDisplay: React.FC<IGlimpseModeDisplayProps> = ({
         );
       })}
 
-      {view === "full" &&
-        glimpseResult.connections &&
-        glimpseResult.connections.length > 0 && (
-          <div id="glimpse-connections" className={styles.connectionsSection}>
-            <Text size="sm" fw={500} c="dimmed" mb="sm">
-              Connections
-            </Text>
-            <div className={styles.connectionsList}>
-              {glimpseResult.connections.map((connection, index) => (
-                <div key={index} className={styles.connectionItem}>
-                  <Text size="xs">{connection.theme}</Text>
-                  <Group gap={4} mt={4}>
-                    {connection.resourceIds.map((id) => {
-                      const resource = resultsMap[id];
-                      if (!resource) return null;
-                      return (
-                        <Badge
-                          key={id}
-                          size="xs"
-                          variant="light"
-                          color="gray"
-                          style={{ cursor: "pointer" }}
-                          styles={{ label: { textTransform: "none" } }}
-                          onClick={(e) => {
-                            if (onResultClick) {
-                              e.stopPropagation();
-                              onResultClick(resource as unknown as INode);
-                            } else {
-                              navigate(
-                                `/${resource.type}/${resource.id.toString()}`,
-                              );
-                            }
-                          }}
-                        >
-                          {resource.name}
-                        </Badge>
-                      );
-                    })}
-                  </Group>
-                </div>
-              ))}
-            </div>
+      {view === "full" && glimpseResult.connections && glimpseResult.connections.length > 0 && (
+        <div id="glimpse-connections" className={styles.connectionsSection}>
+          <Text size="sm" fw={500} c="dimmed" mb="sm">
+            Connections
+          </Text>
+          <div className={styles.connectionsList}>
+            {glimpseResult.connections.map((connection, index) => (
+              <div key={index} className={styles.connectionItem}>
+                <Text size="xs">{connection.theme}</Text>
+                <Group gap={4} mt={4}>
+                  {connection.resourceIds.map((id) => {
+                    const resource = resultsMap[id];
+                    if (!resource) return null;
+                    return (
+                      <Badge
+                        key={id}
+                        size="xs"
+                        variant="light"
+                        color="gray"
+                        style={{ cursor: "pointer" }}
+                        styles={{ label: { textTransform: "none" } }}
+                        onClick={(e) => {
+                          if (onResultClick) {
+                            e.stopPropagation();
+                            onResultClick(resource as unknown as INode);
+                          } else {
+                            navigate(`/${resource.type}/${resource.id.toString()}`);
+                          }
+                        }}
+                      >
+                        {resource.name}
+                      </Badge>
+                    );
+                  })}
+                </Group>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

@@ -210,13 +210,7 @@ export default function Serendipity() {
               }}
             </Transition>
           </div>
-          <Group
-            justify="space-between"
-            gap="xs"
-            mt="lg"
-            w="100%"
-            wrap="nowrap"
-          >
+          <Group justify="space-between" gap="xs" mt="lg" w="100%" wrap="nowrap">
             <ActionIcon
               variant="light"
               radius="lg"
@@ -242,9 +236,7 @@ export default function Serendipity() {
             </Text>
             <ActionIcon
               onClick={handleNext}
-              disabled={
-                currentFinding === (analysis?.findings?.length ?? 0) - 1
-              }
+              disabled={currentFinding === (analysis?.findings?.length ?? 0) - 1}
               variant="light"
               radius="lg"
               size="md"
@@ -252,13 +244,7 @@ export default function Serendipity() {
             >
               <CaretRightIcon weight="bold" size={14} />
             </ActionIcon>
-            <ActionIcon
-              variant="light"
-              radius="lg"
-              size="md"
-              color="gray"
-              onClick={handleNextPage}
-            >
+            <ActionIcon variant="light" radius="lg" size="md" color="gray" onClick={handleNextPage}>
               <ArrowRightIcon weight="bold" />
             </ActionIcon>
           </Group>

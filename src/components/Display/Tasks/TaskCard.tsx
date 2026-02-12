@@ -28,14 +28,7 @@ export type ITaskAction = {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, task: ITask) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
 };
@@ -71,7 +64,7 @@ export default function TaskCard({
       "application/json",
       JSON.stringify({
         taskId: task.id.toString(),
-      }),
+      })
     );
   };
 
@@ -236,8 +229,7 @@ export default function TaskCard({
       >
         <Stack gap="xs">
           <Text c="dimmed" fw="bold" size="sm">
-            Due {formattedDueDate()}, estimated to take{" "}
-            {formattedEstimatedDuration()}
+            Due {formattedDueDate()}, estimated to take {formattedEstimatedDuration()}
           </Text>
           {!!task.scratchpad && (
             <Text

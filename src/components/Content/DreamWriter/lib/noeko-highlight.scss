@@ -10,17 +10,17 @@
 .hljs-comment,
 .hljs-meta,
 .hljs-emphasis {
-    font-style: italic;
+  font-style: italic;
 }
 
 .hljs-strong {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .hljs-addition,
 .hljs-deletion {
-    display: inline-block;
-    width: 100%;
+  display: inline-block;
+  width: 100%;
 }
 
 /* --- 2. Light Theme Colors --- */
@@ -28,32 +28,33 @@
 /* Default Text & Punctuation */
 .hljs-punctuation,
 .hljs-operator {
-    color: var(--mantine-color-gray-7);
+  color: var(--mantine-color-gray-7);
 }
 
 /* Comments, Metadata */
 .hljs-comment,
 .hljs-meta {
-    color: var(--mantine-color-dark-6);
+  color: var(--mantine-color-dark-6);
 }
 
 /* Keywords (import, from, const, class) */
 .hljs-keyword {
-    color: var(--mantine-color-red-6);
+  color: var(--mantine-color-red-6);
 }
 
 /* Strings, RegEx */
 .hljs-string,
 .hljs-regexp {
-    color: var(--mantine-color-green-7);
+  color: var(--mantine-color-green-7);
 }
 
 /* Numbers, Variables, Template Variables */
 .hljs-number,
 .hljs-variable,
 .hljs-template-variable,
-.hljs-variable.language_ { /* e.g., bash's $VAR */
-    color: var(--mantine-color-orange-7);
+.hljs-variable.language_ {
+  /* e.g., bash's $VAR */
+  color: var(--mantine-color-orange-7);
 }
 
 /* Functions, Class Names, Section Titles */
@@ -61,96 +62,97 @@
 .hljs-function .hljs-title,
 .hljs-class .hljs-title,
 .hljs-section {
-    color: var(--mantine-color-yellow-8);
+  color: var(--mantine-color-yellow-8);
 }
 
 /* Types, Built-ins, Literals (true, false, null) */
 .hljs-type,
 .hljs-built_in,
 .hljs-literal {
-    color: var(--mantine-color-cyan-7);
+  color: var(--mantine-color-cyan-7);
 }
 
 /* Tags, Attributes, Symbols */
 .hljs-tag,
 .hljs-attr,
 .hljs-symbol,
-.hljs-name { /* e.g., CSS selectors */
-    color: var(--mantine-color-blue-6);
+.hljs-name {
+  /* e.g., CSS selectors */
+  color: var(--mantine-color-blue-6);
 }
 
 /* Diff Add/Remove */
 .hljs-addition {
-    background-color: var(--mantine-color-green-0);
+  background-color: var(--mantine-color-green-0);
 }
 
 .hljs-deletion {
-    background-color: var(--mantine-color-red-0);
+  background-color: var(--mantine-color-red-0);
 }
 
 /* --- 3. Dark Theme Overrides --- */
 
 [data-mantine-color-scheme="dark"] {
-    /* Default Text & Punctuation */
-    .hljs-punctuation,
-    .hljs-operator {
-        color: var(--mantine-color-gray-6);
-    }
+  /* Default Text & Punctuation */
+  .hljs-punctuation,
+  .hljs-operator {
+    color: var(--mantine-color-gray-6);
+  }
 
-    /* Comments, Metadata */
-    .hljs-comment,
-    .hljs-meta {
-        color: var(--mantine-color-dark-5);
-    }
+  /* Comments, Metadata */
+  .hljs-comment,
+  .hljs-meta {
+    color: var(--mantine-color-dark-5);
+  }
 
-    /* Keywords */
-    .hljs-keyword {
-        color: var(--mantine-color-red-5);
-    }
+  /* Keywords */
+  .hljs-keyword {
+    color: var(--mantine-color-red-5);
+  }
 
-    /* Strings, RegEx */
-    .hljs-string,
-    .hljs-regexp {
-        color: var(--mantine-color-green-6);
-    }
+  /* Strings, RegEx */
+  .hljs-string,
+  .hljs-regexp {
+    color: var(--mantine-color-green-6);
+  }
 
-    /* Numbers, Variables */
-    .hljs-number,
-    .hljs-variable,
-    .hljs-template-variable,
-    .hljs-variable.language_ {
-        color: var(--mantine-color-cyan-8);
-    }
+  /* Numbers, Variables */
+  .hljs-number,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-variable.language_ {
+    color: var(--mantine-color-cyan-8);
+  }
 
-    /* Functions, Class Names, Section Titles */
-    .hljs-function,
-    .hljs-function .hljs-title,
-    .hljs-class .hljs-title,
-    .hljs-section {
-        color: var(--mantine-color-yellow-5);
-    }
+  /* Functions, Class Names, Section Titles */
+  .hljs-function,
+  .hljs-function .hljs-title,
+  .hljs-class .hljs-title,
+  .hljs-section {
+    color: var(--mantine-color-yellow-5);
+  }
 
-    /* Types, Built-ins, Literals */
-    .hljs-type,
-    .hljs-built_in,
-    .hljs-literal {
-        color: var(--mantine-color-cyan-6);
-    }
+  /* Types, Built-ins, Literals */
+  .hljs-type,
+  .hljs-built_in,
+  .hljs-literal {
+    color: var(--mantine-color-cyan-6);
+  }
 
-    /* Tags, Attributes, Symbols */
-    .hljs-tag,
-    .hljs-attr,
-    .hljs-symbol,
-    .hljs-name {
-        color: var(--mantine-color-dark-1);
-    }
+  /* Tags, Attributes, Symbols */
+  .hljs-tag,
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-name {
+    color: var(--mantine-color-dark-1);
+  }
 
-    /* Diff Add/Remove */
-    .hljs-addition {
-        background-color: hsla(var(--mantine-color-green-9-hsl), 0.2);
-    }
+  /* Diff Add/Remove */
+  .hljs-addition {
+    background-color: hsla(var(--mantine-color-green-9-hsl), 0.2);
+  }
 
-    .hljs-deletion {
-        background-color: hsla(var(--mantine-color-red-9-hsl), 0.2);
-    }
+  .hljs-deletion {
+    background-color: hsla(var(--mantine-color-red-9-hsl), 0.2);
+  }
 }

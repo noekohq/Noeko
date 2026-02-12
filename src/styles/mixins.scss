@@ -1,35 +1,35 @@
 @mixin breakpoint($breakpoint) {
-    @media (min-width: $breakpoint) {
-        @content;
-    }
+  @media (min-width: $breakpoint) {
+    @content;
+  }
 }
 
 @mixin mobile {
-    @media (max-width: 768px) {
-        @content;
-    }
+  @media (max-width: 768px) {
+    @content;
+  }
 }
 
 @mixin tablet {
-    @include breakpoint(768px) {
-        @content;
-    }
+  @include breakpoint(768px) {
+    @content;
+  }
 }
 
 @mixin desktop {
-    @include breakpoint(1024px) {
-        @content;
-    }
+  @include breakpoint(1024px) {
+    @content;
+  }
 }
 
 @mixin widescreen {
-    @include breakpoint(1280px) {
-        @content;
-    }
+  @include breakpoint(1280px) {
+    @content;
+  }
 }
 
 @mixin ultrawide {
-    @include breakpoint(1440px) {
-        @content;
-    }
+  @include breakpoint(1440px) {
+    @content;
+  }
 }

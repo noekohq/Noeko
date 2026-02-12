@@ -1,82 +1,82 @@
 /* --- Keyframes for Animation --- */
 @keyframes float {
-    0% {
-        transform: translateY(0px) scale(1);
-    }
-    50% {
-        transform: translateY(-8px) scale(1.02);
-    }
-    100% {
-        transform: translateY(0px) scale(1);
-    }
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
 }
 
 /* --- Main Container --- */
 .cloudContainer {
-    position: relative;
-    /* 1. This component will adapt to its container */
-    width: 100%;
-    height: 100%;
-    min-height: 300px; // Prevents collapse in very short containers
-    outline: 1px solid red;
+  position: relative;
+  /* 1. This component will adapt to its container */
+  width: 100%;
+  height: 100%;
+  min-height: 300px; // Prevents collapse in very short containers
+  outline: 1px solid red;
 
-    background-color: transparent;
-    font-family: var(--mantine-font-family);
-    overflow: hidden;
-    cursor: default;
+  background-color: transparent;
+  font-family: var(--mantine-font-family);
+  overflow: hidden;
+  cursor: default;
 }
 
 /* --- Central Word --- */
 .cloudCenter {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    /* 2. Responsive font size */
-    font-size: clamp(1.75rem, 5vw, 3rem);
-    font-weight: 700;
-    color: var(--mantine-color-text);
-    z-index: var(--z-index-cloud-text);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* 2. Responsive font size */
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 700;
+  color: var(--mantine-color-text);
+  z-index: var(--z-index-cloud-text);
 }
 
 /* --- Base Word Styling --- */
 .cloudWord {
-    position: absolute;
-    animation: float 6s ease-in-out infinite;
-    transition: transform 0.3s ease;
-    white-space: nowrap;
+  position: absolute;
+  animation: float 6s ease-in-out infinite;
+  transition: transform 0.3s ease;
+  white-space: nowrap;
 
-    &:hover {
-        transform: scale(1.1) !important;
-        z-index: var(--z-index-cloud-hover);
-    }
+  &:hover {
+    transform: scale(1.1) !important;
+    z-index: var(--z-index-cloud-hover);
+  }
 }
 
 /* --- Word Cloud Tiers (Size & Opacity) --- */
 
 .wordLarge {
-    /* 2. Responsive font size */
-    font-size: clamp(1rem, 3vw, 1.25rem);
-    font-weight: 600;
-    color: var(--mantine-color-dark-3);
-    z-index: var(--z-index-cloud-near);
+  /* 2. Responsive font size */
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 600;
+  color: var(--mantine-color-dark-3);
+  z-index: var(--z-index-cloud-near);
 }
 
 .wordMedium {
-    /* 2. Responsive font size */
-    font-size: clamp(0.875rem, 2.5vw, 1rem);
-    font-weight: 500;
-    color: var(--mantine-color-dimmed);
-    z-index: var(--z-index-cloud-mid);
+  /* 2. Responsive font size */
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  font-weight: 500;
+  color: var(--mantine-color-dimmed);
+  z-index: var(--z-index-cloud-mid);
 }
 
 .wordSmall {
-    /* 2. Responsive font size */
-    font-size: clamp(0.75rem, 2vw, 0.875rem);
-    font-weight: 400;
-    color: var(--mantine-color-dimmed);
-    opacity: 0.8;
-    z-index: var(--z-index-cloud-far);
+  /* 2. Responsive font size */
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  font-weight: 400;
+  color: var(--mantine-color-dimmed);
+  opacity: 0.8;
+  z-index: var(--z-index-cloud-far);
 }
 
 /* --- Word Positions & Animation Staggering ---
@@ -84,69 +84,69 @@
   so they will scale perfectly as the container stretches.
 */
 .wordPos1 {
-    top: 35%;
-    left: 30%;
-    animation-delay: 0s;
+  top: 35%;
+  left: 30%;
+  animation-delay: 0s;
 }
 .wordPos2 {
-    top: 45%;
-    left: 75%;
-    animation-delay: -1.5s;
+  top: 45%;
+  left: 75%;
+  animation-delay: -1.5s;
 }
 .wordPos3 {
-    top: 60%;
-    left: 38%;
-    animation-delay: -3s;
+  top: 60%;
+  left: 38%;
+  animation-delay: -3s;
 }
 
 .wordPos4 {
-    top: 20%;
-    left: 45%;
-    animation-delay: -0.5s;
-    animation-duration: 7s;
+  top: 20%;
+  left: 45%;
+  animation-delay: -0.5s;
+  animation-duration: 7s;
 }
 .wordPos5 {
-    top: 30%;
-    left: 70%;
-    animation-delay: -2.5s;
-    animation-duration: 8s;
+  top: 30%;
+  left: 70%;
+  animation-delay: -2.5s;
+  animation-duration: 8s;
 }
 .wordPos6 {
-    top: 75%;
-    left: 25%;
-    animation-delay: -4s;
-    animation-duration: 7s;
+  top: 75%;
+  left: 25%;
+  animation-delay: -4s;
+  animation-duration: 7s;
 }
 .wordPos7 {
-    top: 70%;
-    left: 60%;
-    animation-delay: -5s;
+  top: 70%;
+  left: 60%;
+  animation-delay: -5s;
 }
 
 .wordPos8 {
-    top: 15%;
-    left: 18%;
-    animation-delay: -1s;
-    animation-duration: 8s;
+  top: 15%;
+  left: 18%;
+  animation-delay: -1s;
+  animation-duration: 8s;
 }
 .wordPos9 {
-    top: 10%;
-    left: 75%;
-    animation-delay: -3.5s;
+  top: 10%;
+  left: 75%;
+  animation-delay: -3.5s;
 }
 .wordPos10 {
-    top: 85%;
-    left: 45%;
-    animation-delay: -2s;
-    animation-duration: 8s;
+  top: 85%;
+  left: 45%;
+  animation-delay: -2s;
+  animation-duration: 8s;
 }
 .wordPos11 {
-    top: 50%;
-    left: 10%;
-    animation-delay: -4.5s;
+  top: 50%;
+  left: 10%;
+  animation-delay: -4.5s;
 }
 .wordPos12 {
-    top: 80%;
-    left: 80%;
-    animation-delay: -0.8s;
+  top: 80%;
+  left: 80%;
+  animation-delay: -0.8s;
 }

@@ -21,13 +21,13 @@ export const getGlobalToken = () => _token;
 /**
  * Returns a wrapper around supertest that automatically adds the global auth token.
  * Use this for tests that require an authenticated user.
- * 
+ *
  * Example: await authRequest().post("/api/ideas").send(data);
  */
 export const authRequest = () => {
   if (!_token) {
     throw new Error(
-      "Global test token not set. Ensure setup.server.ts is correctly preloaded and initialized.",
+      "Global test token not set. Ensure setup.server.ts is correctly preloaded and initialized."
     );
   }
 

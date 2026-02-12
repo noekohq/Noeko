@@ -1,7 +1,4 @@
-import {
-  IFinding,
-  IGlimpseResult,
-} from "../../app/services/Spyglass";
+import { IFinding, IGlimpseResult } from "../../app/services/Spyglass";
 import { INode } from "../declarations/graph";
 import { IResultsMap } from "../hooks/useSpyglassService";
 import { getNodeTitle, getTypeFromId } from "./graph";
@@ -13,7 +10,7 @@ import { IConnectable } from "../../shared/types/constellation";
 type GroupedFindings = Map<string, (IFinding & { index: number })[]>;
 
 export const extractIdsFromGlimpseResult = (
-  glimpseResult: PartialGlimpseResult | IGlimpseResult,
+  glimpseResult: PartialGlimpseResult | IGlimpseResult
 ): string[] => {
   const ids = new Set<string>();
 
@@ -55,7 +52,7 @@ export const extractIdsFromFindings = (findings: IFinding[]): string[] => {
 /**
  * Transforms IConnectable array to ISearchResult array with binary scoring
  * based on which results were selected by the model.
- * 
+ *
  * @param connectables - All search results from the search phase
  * @param selectedIds - IDs of results that were selected/referenced by the model
  * @returns Search results with binary scores (1 if selected, 0 if not)
@@ -65,8 +62,8 @@ export const scoreConnectablesBySelection = (
   selectedIds: string[]
 ): ISearchResult[] => {
   const selectedIdSet = new Set(selectedIds);
-  
-  return connectables.map(connectable => ({
+
+  return connectables.map((connectable) => ({
     id: connectable.id,
     value: connectable,
     score: selectedIdSet.has(connectable.id.toString()) ? 1 : 0,
@@ -76,18 +73,15 @@ export const scoreConnectablesBySelection = (
 export const getOverviewAsMarkdown = (
   overview: string,
   findings: IFinding[],
-  resultsMap: IResultsMap,
+  resultsMap: IResultsMap
 ): string => {
   // 1. Group findings by their source ID
-  const findingsBySource = findings.reduce<GroupedFindings>(
-    (acc, current, findingNumber) => {
-      const sourceFindings = acc.get(current.sourceId) ?? [];
-      sourceFindings.push({ ...current, index: findingNumber });
-      acc.set(current.sourceId, sourceFindings);
-      return acc;
-    },
-    new Map(),
-  );
+  const findingsBySource = findings.reduce<GroupedFindings>((acc, current, findingNumber) => {
+    const sourceFindings = acc.get(current.sourceId) ?? [];
+    sourceFindings.push({ ...current, index: findingNumber });
+    acc.set(current.sourceId, sourceFindings);
+    return acc;
+  }, new Map());
 
   // 2. Format each group of findings into a Markdown string
   const formattedFindingSections = Array.from(findingsBySource.entries())
@@ -112,7 +106,7 @@ export const getOverviewAsMarkdown = (
           (finding) => `> ${finding.excerpt}
 
 [${finding.index + 1}] | ${finding.findingType}
-${finding.analysis}`,
+${finding.analysis}`
         )
         .join("\n\n---\n\n"); // Explicitly join with a separator
 

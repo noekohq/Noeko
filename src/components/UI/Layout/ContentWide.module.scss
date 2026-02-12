@@ -1,110 +1,110 @@
 @use "../../../styles/mixins.scss" as *;
 
 :root {
-    --content-space: calc(var(--layout-spacing));
+  --content-space: calc(var(--layout-spacing));
 }
 
 @keyframes contentIn {
-    0% {
-        opacity: 0.25;
-        transform: translateY(5px) scale(0.98);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  0% {
+    opacity: 0.25;
+    transform: translateY(5px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .contentWide {
-    animation: contentIn 0.4s ease-out forwards;
-    display: block;
-    min-height: 100%;
-    width: 100%;
-    padding-top: var(--mobile-bar-height);
-    box-sizing: border-box;
-    padding-inline: var(--content-space);
-    transition:
-        margin-left 0.2s ease-in-out,
-        margin-right 0.2s ease-in-out;
-    margin-bottom: 10vh;
+  animation: contentIn 0.4s ease-out forwards;
+  display: block;
+  min-height: 100%;
+  width: 100%;
+  padding-top: var(--mobile-bar-height);
+  box-sizing: border-box;
+  padding-inline: var(--content-space);
+  transition:
+    margin-left 0.2s ease-in-out,
+    margin-right 0.2s ease-in-out;
+  margin-bottom: 10vh;
 
-    @include tablet {
-        padding-top: var(--mantine-spacing-sm);
-        margin-top: 0;
-    }
+  @include tablet {
+    padding-top: var(--mantine-spacing-sm);
+    margin-top: 0;
+  }
 
-    @include desktop {
-    }
+  @include desktop {
+  }
 }
 
 @keyframes openRight {
-    0% {
-        opacity: .25;
-        transform: translateX(25vw);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  0% {
+    opacity: 0.25;
+    transform: translateX(25vw);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .rightOpen {
-    @include desktop {
-        animation: openRight 0.2s ease-out forwards;
-        padding-right: var(--sidebar-width);
-    }
+  @include desktop {
+    animation: openRight 0.2s ease-out forwards;
+    padding-right: var(--sidebar-width);
+  }
 }
 
 @keyframes collapseRight {
-    0% {
-        opacity: .25;
-        transform: translateX(-25vw);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  0% {
+    opacity: 0.25;
+    transform: translateX(-25vw);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .rightCollapsed {
-    @include desktop {
-        animation: collapseRight 0.2s ease-out forwards;
-        padding-right: var(--sidebar-width-collapsed);
-    }
+  @include desktop {
+    animation: collapseRight 0.2s ease-out forwards;
+    padding-right: var(--sidebar-width-collapsed);
+  }
 }
 
 @keyframes openLeft {
-    0% {
-        opacity: .25;
-        transform: translateX(-25vw);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  0% {
+    opacity: 0.25;
+    transform: translateX(-25vw);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .leftOpen {
-    @include desktop {
-        animation: openLeft 0.2s ease-out forwards;
-        padding-left: var(--sidebar-width);
-    }
+  @include desktop {
+    animation: openLeft 0.2s ease-out forwards;
+    padding-left: var(--sidebar-width);
+  }
 }
 
 @keyframes collapseLeft {
-    0% {
-        opacity: .25;
-        transform: translateX(25vw);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  0% {
+    opacity: 0.25;
+    transform: translateX(25vw);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .leftCollapsed {
-    @include desktop {
-        animation: collapseLeft 0.2s ease-out forwards;
-        padding-left: var(--sidebar-width-collapsed);
-    }
+  @include desktop {
+    animation: collapseLeft 0.2s ease-out forwards;
+    padding-left: var(--sidebar-width-collapsed);
+  }
 }

@@ -68,8 +68,7 @@ export function CompactIdeaCard({
 }: CompactIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
-  const effectiveDetailsForHover =
-    detailsForHoverCard ?? getIdeaDefaultSummary(idea);
+  const effectiveDetailsForHover = detailsForHoverCard ?? getIdeaDefaultSummary(idea);
 
   const navigate = useNavigate();
 
@@ -78,7 +77,7 @@ export function CompactIdeaCard({
       "application/json",
       JSON.stringify({
         ideaId: idea.id.toString(),
-      }),
+      })
     );
     if (draggable) {
       setIsInternallyDragging(true);
@@ -96,9 +95,7 @@ export function CompactIdeaCard({
   const cardContent = (
     <Card
       data-idea-id={idea.id.toString()}
-      shadow={
-        isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow
-      }
+      shadow={isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow}
       padding={cardPadding}
       radius={cardRadius}
       withBorder={withBorder}
@@ -117,16 +114,8 @@ export function CompactIdeaCard({
             }
           : undefined
       }
-      onMouseEnter={
-        onMouseEnterCard
-          ? (e) => onMouseEnterCard(e, idea.id.toString())
-          : undefined
-      }
-      onMouseLeave={
-        onMouseLeaveCard
-          ? (e) => onMouseLeaveCard(e, idea.id.toString())
-          : undefined
-      }
+      onMouseEnter={onMouseEnterCard ? (e) => onMouseEnterCard(e, idea.id.toString()) : undefined}
+      onMouseLeave={onMouseLeaveCard ? (e) => onMouseLeaveCard(e, idea.id.toString()) : undefined}
       className={`${styles.ideaCardBase} ${styles.compactIdeaCard} ${className || ""} ${isInternallyDragging ? styles.dragging : ""} ${onCardClick || link ? styles.clickable : ""}`}
       style={{
         ...style,
@@ -135,23 +124,10 @@ export function CompactIdeaCard({
         flexDirection: "column",
       }}
     >
-      <Flex
-        justify="space-between"
-        align="flex-start"
-        gap="xs"
-        style={{ width: "100%" }}
-      >
-        <Stack
-          gap="xxs"
-          style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}
-        >
+      <Flex justify="space-between" align="flex-start" gap="xs" style={{ width: "100%" }}>
+        <Stack gap="xxs" style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}>
           <Group wrap="wrap" gap="xs">
-            <Text
-              fw={500}
-              size="sm"
-              lineClamp={maxTitleLines}
-              title={idea.title}
-            >
+            <Text fw={500} size="sm" lineClamp={maxTitleLines} title={idea.title}>
               {idea.title || "Untitled Idea"}
             </Text>
             {!showTitleOnly && artifacts && artifacts.length > 0 && (
@@ -232,11 +208,7 @@ export function CompactIdeaCard({
           },
         }}
         shadow={hoverCardProps?.shadow || "md"}
-        withArrow={
-          hoverCardProps?.withArrow === undefined
-            ? true
-            : hoverCardProps.withArrow
-        }
+        withArrow={hoverCardProps?.withArrow === undefined ? true : hoverCardProps.withArrow}
         position={hoverCardProps?.position || "right-start"}
         openDelay={hoverCardProps?.openDelay || 350}
         closeDelay={hoverCardProps?.closeDelay || 200}
@@ -296,17 +268,15 @@ export function StandardIdeaCard({
 }: StandardIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
-  const effectiveDescription =
-    descriptionOverride ?? getIdeaDefaultSummary(idea);
-  const effectiveDetailsForHover =
-    detailsForHoverCard ?? getIdeaDefaultSummary(idea);
+  const effectiveDescription = descriptionOverride ?? getIdeaDefaultSummary(idea);
+  const effectiveDetailsForHover = detailsForHoverCard ?? getIdeaDefaultSummary(idea);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({
         ideaId: idea.id.toString(),
-      }),
+      })
     );
     if (draggable) {
       setIsInternallyDragging(true);
@@ -326,9 +296,7 @@ export function StandardIdeaCard({
   const cardContent = (
     <Card
       data-idea-id={idea.id.toString()}
-      shadow={
-        isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow
-      }
+      shadow={isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow}
       padding={cardPadding}
       radius={cardRadius}
       withBorder={!isInternallyDragging}
@@ -347,16 +315,8 @@ export function StandardIdeaCard({
             }
           : undefined
       }
-      onMouseEnter={
-        onMouseEnterCard
-          ? (e) => onMouseEnterCard(e, idea.id.toString())
-          : undefined
-      }
-      onMouseLeave={
-        onMouseLeaveCard
-          ? (e) => onMouseLeaveCard(e, idea.id.toString())
-          : undefined
-      }
+      onMouseEnter={onMouseEnterCard ? (e) => onMouseEnterCard(e, idea.id.toString()) : undefined}
+      onMouseLeave={onMouseLeaveCard ? (e) => onMouseLeaveCard(e, idea.id.toString()) : undefined}
       className={`${styles.ideaCardBase} ${styles.standardIdeaCard} ${className || ""} ${isInternallyDragging ? styles.dragging : ""} ${onCardClick ? styles.clickable : ""}`}
       style={{
         ...style,
@@ -367,17 +327,8 @@ export function StandardIdeaCard({
     >
       <Stack gap="xs" style={{ flexGrow: 1 }}>
         <Flex justify="space-between" align="flex-start" gap="xs">
-          <Stack
-            gap="xs"
-            style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}
-          >
-            <Text
-              size="md"
-              c="dimmed"
-              fw={500}
-              lineClamp={2}
-              title={idea.title}
-            >
+          <Stack gap="xs" style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}>
+            <Text size="md" c="dimmed" fw={500} lineClamp={2} title={idea.title}>
               {idea.title || "Untitled Idea"}
             </Text>
             {artifacts && artifacts.length > 0 && (
@@ -394,11 +345,7 @@ export function StandardIdeaCard({
         )}
 
         {tags && tags.length > 0 && (
-          <IdeaTagsDisplay
-            tags={tags}
-            size="sm"
-            groupClassName={styles.standardTagsGroup}
-          />
+          <IdeaTagsDisplay tags={tags} size="sm" groupClassName={styles.standardTagsGroup} />
         )}
 
         <Box style={{ flexGrow: 1 }} />
@@ -421,11 +368,7 @@ export function StandardIdeaCard({
       <HoverCard
         width={hoverCardProps?.width || 350}
         shadow={hoverCardProps?.shadow || "md"}
-        withArrow={
-          hoverCardProps?.withArrow === undefined
-            ? true
-            : hoverCardProps.withArrow
-        }
+        withArrow={hoverCardProps?.withArrow === undefined ? true : hoverCardProps.withArrow}
         position={hoverCardProps?.position || "right-start"}
         openDelay={hoverCardProps?.openDelay || 350}
         closeDelay={hoverCardProps?.closeDelay || 200}
@@ -480,15 +423,14 @@ export function DetailedIdeaCard({
 }: DetailedIdeaCardProps) {
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
 
-  const effectiveDescription =
-    descriptionOverride ?? getIdeaDefaultSummary(idea);
+  const effectiveDescription = descriptionOverride ?? getIdeaDefaultSummary(idea);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({
         ideaId: idea.id.toString(),
-      }),
+      })
     );
     if (draggable) {
       setIsInternallyDragging(true);
@@ -508,9 +450,7 @@ export function DetailedIdeaCard({
   return (
     <Card
       data-idea-id={idea.id.toString()}
-      shadow={
-        isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow
-      }
+      shadow={isExternallyHighlighted || isInternallyDragging ? "lg" : cardShadow}
       padding={cardPadding}
       radius={cardRadius}
       withBorder={!isInternallyDragging}
@@ -529,16 +469,8 @@ export function DetailedIdeaCard({
             }
           : undefined
       }
-      onMouseEnter={
-        onMouseEnterCard
-          ? (e) => onMouseEnterCard(e, idea.id.toString())
-          : undefined
-      }
-      onMouseLeave={
-        onMouseLeaveCard
-          ? (e) => onMouseLeaveCard(e, idea.id.toString())
-          : undefined
-      }
+      onMouseEnter={onMouseEnterCard ? (e) => onMouseEnterCard(e, idea.id.toString()) : undefined}
+      onMouseLeave={onMouseLeaveCard ? (e) => onMouseLeaveCard(e, idea.id.toString()) : undefined}
       className={`${styles.ideaCardBase} ${styles.detailedIdeaCard} ${className || ""} ${isInternallyDragging ? styles.dragging : ""} ${onCardClick ? styles.clickable : ""}`}
       style={{
         ...style,
@@ -549,10 +481,7 @@ export function DetailedIdeaCard({
     >
       <Stack gap="xs" style={{ flexGrow: 1 }}>
         <Flex justify="space-between" align="flex-start" gap="xs">
-          <Group
-            gap="xs"
-            style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}
-          >
+          <Group gap="xs" style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}>
             <Text fw={500} size="xl" title={idea.title}>
               {" "}
               {idea.title || "Untitled Idea"}
@@ -589,11 +518,7 @@ export function DetailedIdeaCard({
 
         {tags && tags.length > 0 && (
           <Box mt="xs">
-            <IdeaTagsDisplay
-              tags={tags}
-              size="sm"
-              groupClassName={styles.detailedTagsGroup}
-            />
+            <IdeaTagsDisplay tags={tags} size="sm" groupClassName={styles.detailedTagsGroup} />
           </Box>
         )}
 

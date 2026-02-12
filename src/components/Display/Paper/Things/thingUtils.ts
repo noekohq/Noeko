@@ -1,9 +1,6 @@
 import { IRabbithole } from "../../../../../app/database/models/rabbithole";
 import { IFriendUser } from "../../../../../shared/types/user";
-import {
-  IConnectable,
-  IPotentiallySharedConnectable,
-} from "../../../../../app/services/Graph";
+import { IConnectable, IPotentiallySharedConnectable } from "../../../../../app/services/Graph";
 import { IAcceleratorItem } from "../../../../../app/services/Recommendations";
 import { formatDateTime } from "../../../../utils/formatting";
 import {
@@ -25,16 +22,13 @@ import { IPaperThingProps } from "./PaperThing";
 import { IThing } from "./things";
 
 export function getThingPropsFromConnectable(
-
   connectable: IConnectable | IPotentiallySharedConnectable,
   overrides?: Partial<IPaperThingProps>,
-  eager?: boolean,
+  eager?: boolean
 ): IThing | IPaperThingProps {
   const id = overrides?.id ?? connectable.id.toString();
   const title = (overrides?.title ?? getNodeTitle(connectable)) || "No Title";
-  const detail =
-    (overrides?.detail ?? getNodeDescription(connectable)) ||
-    "No details available.";
+  const detail = (overrides?.detail ?? getNodeDescription(connectable)) || "No details available.";
   const icon = overrides?.icon ?? IconMap[connectable.type];
   const state = overrides?.state ?? "default";
   const link =
@@ -45,8 +39,7 @@ export function getThingPropsFromConnectable(
         : undefined;
   const action = overrides?.action;
   const preview: IPaperThingProps["preview"] | undefined =
-    overrides?.preview ??
-    (getNodeContent(connectable) || "No content available.");
+    overrides?.preview ?? (getNodeContent(connectable) || "No content available.");
 
   // Check if item has author field (indicates shared item)
   let artifacts: IPaperThingProps["artifacts"] = overrides?.artifacts;
@@ -81,16 +74,16 @@ export function getThingPropsFromConnectable(
 export function getThingsFromConnectables(
   connectables: (IConnectable | IPotentiallySharedConnectable)[],
   overrides?: Partial<IPaperThingProps>,
-  eager?: boolean,
+  eager?: boolean
 ) {
   return connectables.map((connectable) =>
-    getThingPropsFromConnectable(connectable, overrides, eager),
+    getThingPropsFromConnectable(connectable, overrides, eager)
   );
 }
 
 export function getThingPropsFromRabbithole(
   rabbithole: IRabbithole,
-  overrides?: Partial<IPaperThingProps>,
+  overrides?: Partial<IPaperThingProps>
 ): IPaperThingProps {
   const { id, name, updatedAt, createdAt } = rabbithole;
 
@@ -112,11 +105,10 @@ export function getThingPropsFromRabbithole(
 
 export function getThingPropsFromAcceleratorItem(
   item: IAcceleratorItem,
-  overrides?: Partial<IPaperThingProps>,
+  overrides?: Partial<IPaperThingProps>
 ): IPaperThingProps {
   const resolved = getAcceleratorItemFields(item);
-  const { id, name, link, detail, icon, preview, createdAt, updatedAt } =
-    resolved;
+  const { id, name, link, detail, icon, preview, createdAt, updatedAt } = resolved;
   const state = overrides?.state ?? "default";
   const action = overrides?.action;
 
@@ -136,7 +128,7 @@ export function getThingPropsFromAcceleratorItem(
 
 export function getThingPropsFromFriendUser(
   user: IFriendUser,
-  overrides?: Partial<IPaperThingProps>,
+  overrides?: Partial<IPaperThingProps>
 ): IPaperThingProps {
   const { id, firstName, lastName, email } = user;
   const fullName = `${firstName} ${lastName}`.trim() || email;
@@ -155,7 +147,7 @@ export function getThingPropsFromFriendUser(
 
 export function getThingPropsFromUserFile(
   file: IUserFile,
-  overrides?: Partial<IPaperThingProps>,
+  overrides?: Partial<IPaperThingProps>
 ): IPaperThingProps {
   const isImage = file.mimeType.startsWith("image/");
   const isPdf = file.mimeType === "application/pdf";

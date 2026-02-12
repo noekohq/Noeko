@@ -27,20 +27,17 @@ const EdgeComponent = ({ edge, sourceNode, targetNode }: EdgeProps) => {
   } = useGraph();
 
   const isSelected =
-    selected.has(sourceNode.id.toString()) ||
-    selected.has(targetNode.id.toString());
+    selected.has(sourceNode.id.toString()) || selected.has(targetNode.id.toString());
   const notSelected = !isSelected && selected.size > 0;
 
   const strokeWidth = 1.5;
 
-  const visibilityToStyle: Record<
-    IEdge["visibility"],
-    { opacity: number; strokeWidth?: number }
-  > = {
-    high: { opacity: 0.5 },
-    medium: { opacity: 0.35 },
-    low: { opacity: 0.25, strokeWidth: 1 },
-  };
+  const visibilityToStyle: Record<IEdge["visibility"], { opacity: number; strokeWidth?: number }> =
+    {
+      high: { opacity: 0.5 },
+      medium: { opacity: 0.35 },
+      low: { opacity: 0.25, strokeWidth: 1 },
+    };
 
   const defaultStyles = !notSelected;
 

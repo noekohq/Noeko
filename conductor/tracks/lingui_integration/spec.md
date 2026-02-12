@@ -1,4 +1,3 @@
-
 # Specification: Lingui Integration and Settings Page UI Update
 
 ## Objective
@@ -32,18 +31,18 @@ A `lingui.config.ts` file will be created in the project root to configure local
 
 ```typescript
 // lingui.config.ts
-import type { LinguiConfig } from '@lingui/conf';
+import type { LinguiConfig } from "@lingui/conf";
 
 const config: LinguiConfig = {
-  locales: ['en', 'es', 'fr'], // Supported locales
-  sourceLocale: 'en', // Default language
+  locales: ["en", "es", "fr"], // Supported locales
+  sourceLocale: "en", // Default language
   catalogs: [
     {
-      path: 'src/locales/{locale}/messages',
-      include: ['src'],
+      path: "src/locales/{locale}/messages",
+      include: ["src"],
     },
   ],
-  format: 'po',
+  format: "po",
 };
 
 export default config;
@@ -55,16 +54,16 @@ The `vite.config.ts` file will be updated to include the Lingui Vite plugin.
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { lingui } from '@lingui/vite-plugin';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { lingui } from "@lingui/vite-plugin";
 
 export default defineConfig({
   plugins: [
     react({
-        babel: {
-            plugins: ["macros"]
-        }
+      babel: {
+        plugins: ["macros"],
+      },
     }),
     lingui(),
   ],
@@ -77,13 +76,13 @@ A new file, `src/i18n.ts`, will be created to manage the i18n instance and dynam
 
 ```typescript
 // src/i18n.ts
-import { i18n } from '@lingui/core';
-import { messages as enMessages } from './locales/en/messages';
+import { i18n } from "@lingui/core";
+import { messages as enMessages } from "./locales/en/messages";
 
 export const locales = {
-  en: 'English',
-  es: 'Español',
-  fr: 'Français',
+  en: "English",
+  es: "Español",
+  fr: "Français",
 };
 
 export async function dynamicActivate(locale: string) {
@@ -92,30 +91,30 @@ export async function dynamicActivate(locale: string) {
   i18n.activate(locale);
 }
 
-i18n.load('en', enMessages);
-i18n.activate('en');
+i18n.load("en", enMessages);
+i18n.activate("en");
 ```
 
 The main application entry point, `src/main.tsx`, will be wrapped with the `I18nProvider`.
 
 ```tsx
 // src/main.tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import { I18nProvider } from '@lingui/react';
-import { i18n } from '@lingui/core';
-import { dynamicActivate } from './i18n';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+import { I18nProvider } from "@lingui/react";
+import { i18n } from "@lingui/core";
+import { dynamicActivate } from "./i18n";
 
-dynamicActivate('en');
+dynamicActivate("en");
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <I18nProvider i18n={i18n}>
       <App />
     </I18nProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );
 ```
 

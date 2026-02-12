@@ -2,16 +2,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
 import useFetch from "../../hooks/useFetch";
 import { IUserFile } from "../../../app/database/models/userfile";
-import {
-  ActionIcon,
-  Button,
-  Flex,
-  Group,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { ActionIcon, Button, Flex, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import PageWrapper from "../../components/Layout/PageWrapper";
@@ -59,10 +50,7 @@ export default function UserFile() {
     }
   }, [file]);
 
-  const { load: deleteFile, loading: deletingFile } = useFetch<
-    undefined,
-    undefined
-  >({
+  const { load: deleteFile, loading: deletingFile } = useFetch<undefined, undefined>({
     url: `/files/${fileId}`,
     method: "DELETE",
     onSuccess: () => {
@@ -86,9 +74,7 @@ export default function UserFile() {
   const handleDelete = () => {
     modals.openConfirmModal({
       title: "Delete file",
-      children: (
-        <Text size="sm">Are you sure you want to delete this file?</Text>
-      ),
+      children: <Text size="sm">Are you sure you want to delete this file?</Text>,
       labels: { confirm: "Delete", cancel: "Cancel" },
       onConfirm: () => deleteFile(),
       confirmProps: {
@@ -179,9 +165,7 @@ export default function UserFile() {
             <Title order={3}>{file?.originalFileName}</Title>
           </Group>
           {file && (
-            <div
-              className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}
-            >
+            <div className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}>
               <Suspense
                 fallback={
                   <Text size="xs" c="dimmed">
@@ -221,13 +205,7 @@ export default function UserFile() {
               >
                 Download
               </Button>
-              <Button
-                onClick={handleDelete}
-                variant="light"
-                color="gray"
-                size="xs"
-                fullWidth
-              >
+              <Button onClick={handleDelete} variant="light" color="gray" size="xs" fullWidth>
                 Delete
               </Button>
             </Group>
@@ -249,9 +227,7 @@ export default function UserFile() {
             {!!file?.source && (
               <Group>
                 <Button
-                  onClick={() =>
-                    navigate(`/source/${file.source?.id.toString()}`)
-                  }
+                  onClick={() => navigate(`/source/${file.source?.id.toString()}`)}
                   variant="light"
                   color="gray"
                   size="xs"

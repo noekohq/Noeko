@@ -3,13 +3,7 @@ import { useTourGuide } from "../../../contexts/TourGuideContext";
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import styles from "./GlobalTourManager.module.scss";
-import {
-  useFloating,
-  autoUpdate,
-  offset,
-  flip,
-  shift,
-} from "@floating-ui/react";
+import { useFloating, autoUpdate, offset, flip, shift } from "@floating-ui/react";
 import { createPortal } from "react-dom";
 
 export default function GlobalTourManager() {
@@ -101,6 +95,6 @@ export default function GlobalTourManager() {
       <div className={styles.tourHighlight} style={highlightStyle} />
       {tourTip}
     </>,
-    document.body,
+    document.body
   );
 }

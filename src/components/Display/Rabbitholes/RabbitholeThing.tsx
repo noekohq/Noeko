@@ -2,10 +2,7 @@ import { DoorOpenIcon, IconProps } from "@phosphor-icons/react";
 import { ITag } from "../../../../shared/types/tags";
 import { IIdea } from "../Ideas/IdeaCardTypes";
 import IdeaCard from "../Ideas/Interactions/IdeaCard";
-import {
-  IRabbithole,
-  IRabbitholeIncludes,
-} from "../../../../app/database/models/rabbithole";
+import { IRabbithole, IRabbitholeIncludes } from "../../../../app/database/models/rabbithole";
 import TagCard from "../Tags/TagCard";
 import TaskCard from "../Tasks/TaskCard";
 import { ITask } from "../../../../app/database/models/task";
@@ -19,14 +16,7 @@ interface IRabbitholeThingAction {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, rabbithole: IRabbithole) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean; // If true, primarily for the overflow menu

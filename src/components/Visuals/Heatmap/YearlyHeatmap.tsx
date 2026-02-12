@@ -87,10 +87,7 @@ const YearlyHeatmap: React.FC<IYearlyHeatmapProps> = ({
     const g = svg.append("g").attr("transform", "translate(30, 20)");
 
     const maxVal = d3.max(data, (d) => d.value) || 1;
-    const colorScale = d3
-      .scaleLinear<string>()
-      .domain([0, maxVal])
-      .range(colorRange);
+    const colorScale = d3.scaleLinear<string>().domain([0, maxVal]).range(colorRange);
 
     const tooltip = d3
       .select("body")
@@ -141,11 +138,7 @@ const YearlyHeatmap: React.FC<IYearlyHeatmapProps> = ({
       .join("text")
       .attr("class", styles.monthLabel)
       .text((d) => d.month)
-      .attr(
-        "x",
-        (d) =>
-          d3.timeWeek.count(d3.timeYear(d.firstDay), d.firstDay) * cellSize,
-      )
+      .attr("x", (d) => d3.timeWeek.count(d3.timeYear(d.firstDay), d.firstDay) * cellSize)
       .attr("y", -5)
       .style("font-size", monthLabelFontSize as any)
       .style("fill", monthLabelColor as any);

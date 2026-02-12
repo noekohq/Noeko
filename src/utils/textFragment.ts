@@ -23,9 +23,7 @@ export function generateTextFragment(textToHighlight: string) {
   return encodedText; // Just URL encodes
 }
 
-function extractTextRangeFromPlainText(
-  plainText: string | null | undefined,
-): ITextRange {
+function extractTextRangeFromPlainText(plainText: string | null | undefined): ITextRange {
   if (!plainText || typeof plainText !== "string") {
     return { textStart: null, textEnd: null };
   }
@@ -44,9 +42,7 @@ function extractTextRangeFromPlainText(
   // textEnd is the last line only if there are multiple distinct lines
   // AND the last line is different from the first line.
   const textEnd =
-    lines.length > 1 && lines[lines.length - 1] !== textStart
-      ? lines[lines.length - 1]
-      : null;
+    lines.length > 1 && lines[lines.length - 1] !== textStart ? lines[lines.length - 1] : null;
 
   return { textStart, textEnd };
 }
@@ -56,8 +52,7 @@ export function generateTextFragmentHashFromText(excerpt: string): string {
     return "";
   }
   const plainTextExcerpt = stripText(excerpt);
-  const { textStart, textEnd } =
-    extractTextRangeFromPlainText(plainTextExcerpt);
+  const { textStart, textEnd } = extractTextRangeFromPlainText(plainTextExcerpt);
 
   if (!textStart) {
     return "";

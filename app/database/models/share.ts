@@ -53,9 +53,7 @@ export class Share {
     const allowedTypes = ["idea", "task"];
     if (!allowedTypes.includes(this._connectable.type)) {
       throw new Error(
-        `Only ${allowedTypes.join(
-          ", ",
-        )} can currently be shared, other types not yet supported.`,
+        `Only ${allowedTypes.join(", ")} can currently be shared, other types not yet supported.`
       );
     }
   }
@@ -73,7 +71,7 @@ export class Share {
         {
           connectableId: this.connectableId,
           userId: new StringRecordId(userId),
-        },
+        }
       );
 
       if (existing && existing[0] && existing[0].length > 0) {
@@ -137,7 +135,7 @@ export class Share {
           connectableId: this.connectableId,
           userId: new StringRecordId(userId),
           accessLevel,
-        },
+        }
       );
       if (!update || !update[0] || update[0].length === 0) {
         throw new Error("Share not found");
@@ -150,9 +148,7 @@ export class Share {
     }
   }
 
-  static async getShares(
-    connectableId: string | RecordId,
-  ): Promise<IShareDetails[] | undefined> {
+  static async getShares(connectableId: string | RecordId): Promise<IShareDetails[] | undefined> {
     try {
       const query = `
         SELECT
@@ -182,9 +178,7 @@ export class Share {
     }
   }
 
-  static async getUserSharedThings(
-    userId: string | RecordId,
-  ): Promise<ISharedThing[] | undefined> {
+  static async getUserSharedThings(userId: string | RecordId): Promise<ISharedThing[] | undefined> {
     try {
       const db = await getDatabase();
       const query = `

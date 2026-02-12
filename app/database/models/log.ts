@@ -59,10 +59,7 @@ export class Log {
         updatedAt: now,
       };
 
-      const result = await db.create<ILog, Omit<ILog, "id">>(
-        this.TABLE_NAME,
-        logData,
-      );
+      const result = await db.create<ILog, Omit<ILog, "id">>(this.TABLE_NAME, logData);
       if (result && result.length > 0) {
         return result[0];
       }
