@@ -22,7 +22,7 @@ export default function HeatmapWidget() {
       ...acc,
       [curr.date]: curr.count,
     }),
-    {},
+    {}
   );
 
   useEffect(() => {

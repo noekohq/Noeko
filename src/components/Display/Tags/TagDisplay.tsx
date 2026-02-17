@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Card,
-  Group,
-  HoverCard,
-  Paper,
-  Text,
-  useMantineTheme,
-} from "@mantine/core";
+import { Badge, Card, Group, HoverCard, Paper, Text, useMantineTheme } from "@mantine/core";
 import { ITag } from "../../../../shared/types/tags";
 import { useSettings } from "../../../contexts/SettingsContext";
 import { Link } from "react-router";
@@ -48,9 +40,7 @@ export function InlineTag({
           c={!color ? (scheme === "dark" ? "dark.2" : "dark.3") : undefined}
           styles={{
             root: {
-              border: !color
-                ? "1px solid var(--mantine-color-dark-6)"
-                : undefined,
+              border: !color ? "1px solid var(--mantine-color-dark-6)" : undefined,
             },
           }}
           leftSection={leftSection}
@@ -105,9 +95,7 @@ export function BlockTag({
           variant={variant || "light"}
           color="dark.2"
           c="dark.2"
-          leftSection={
-            leftSection ? leftSection : <TagIcon weight="bold" size={18} />
-          }
+          leftSection={leftSection ? leftSection : <TagIcon weight="bold" size={18} />}
           rightSection={rightSection}
           onClick={onClick}
           component={link && !onClick ? Link : undefined}

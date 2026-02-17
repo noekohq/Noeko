@@ -93,8 +93,7 @@ export default function ViewTag() {
     runOnMount: true,
   });
 
-  const somethingLoading =
-    loadingTag || loadingThings || loadingSuggestedThings;
+  const somethingLoading = loadingTag || loadingThings || loadingSuggestedThings;
 
   const handleRefresh = async () => {
     await reloadTag();
@@ -111,10 +110,7 @@ export default function ViewTag() {
       await applyTagToThing(tag.id.toString(), thingId.toString());
       handleRefresh();
     } catch (error) {
-      console.error(
-        `Failed to add tag ${tag.name} to thing ${thingId}:`,
-        error,
-      );
+      console.error(`Failed to add tag ${tag.name} to thing ${thingId}:`, error);
       showNotification({
         title: "Error",
         message: "Something went wrong adding the tag",
@@ -133,10 +129,7 @@ export default function ViewTag() {
 
       handleRefresh();
     } catch (error) {
-      console.error(
-        `Failed to remove tag ${tag.name} from thing ${thing}:`,
-        error,
-      );
+      console.error(`Failed to remove tag ${tag.name} from thing ${thing}:`, error);
       showNotification({
         title: "Error",
         message: "Something went wrong removing the tag",
@@ -331,11 +324,7 @@ export default function ViewTag() {
     return (
       <div ref={containerRef} className={styles.constellationContainer}>
         {dimensions.width > 0 && (
-          <GraphContainer
-            graph={graph}
-            width={dimensions.width}
-            height={dimensions.height}
-          />
+          <GraphContainer graph={graph} width={dimensions.width} height={dimensions.height} />
         )}
       </div>
     );
@@ -348,11 +337,7 @@ export default function ViewTag() {
   ];
 
   const customPaperThingViews = {
-    constellation: graphData ? (
-      <TagConstellationView graph={graphData} />
-    ) : (
-      <Loader />
-    ),
+    constellation: graphData ? <TagConstellationView graph={graphData} /> : <Loader />,
   };
 
   return (
@@ -365,8 +350,8 @@ export default function ViewTag() {
         centered
       >
         <Text size="sm">
-          Are you sure you want to delete this tag? This action cannot be undone
-          and will remove the tag from all associated items.
+          Are you sure you want to delete this tag? This action cannot be undone and will remove the
+          tag from all associated items.
         </Text>
         {deleteTagErrors.length > 0 && (
           <Text c="red" size="xs" mt="sm">
@@ -377,11 +362,7 @@ export default function ViewTag() {
           <Button variant="default" onClick={closeDeleteModal}>
             Cancel
           </Button>
-          <Button
-            color="red"
-            onClick={handleDeleteConfirm}
-            loading={deleteTagLoading}
-          >
+          <Button color="red" onClick={handleDeleteConfirm} loading={deleteTagLoading}>
             Delete Tag
           </Button>
         </Group>
@@ -414,11 +395,9 @@ export default function ViewTag() {
                       tooltip: `Apply tag "${tag.name}"`,
                     },
                   },
-                  true,
+                  true
                 );
-                return (
-                  <PaperThing key={thing.id.toString()} {...props} draggable />
-                );
+                return <PaperThing key={thing.id.toString()} {...props} draggable />;
               })}
             </Stack>
           )}
@@ -457,11 +436,7 @@ export default function ViewTag() {
             <Stack gap="xl">
               <Group>
                 <Link to="/tags">
-                  <Button
-                    variant="subtle"
-                    leftSection={<ArrowLeftIcon />}
-                    color="gray"
-                  >
+                  <Button variant="subtle" leftSection={<ArrowLeftIcon />} color="gray">
                     All Tags
                   </Button>
                 </Link>
@@ -503,21 +478,15 @@ export default function ViewTag() {
                           <Text size="sm">Description</Text>
                           <HoverCard width="300px" radius="lg">
                             <HoverCard.Target>
-                              <ActionIcon
-                                size="xs"
-                                radius="lg"
-                                variant="subtle"
-                                color="gray"
-                              >
+                              <ActionIcon size="xs" radius="lg" variant="subtle" color="gray">
                                 <InfoIcon size={14} />
                               </ActionIcon>
                             </HoverCard.Target>
                             <HoverCard.Dropdown>
                               <Stack gap="xs">
                                 <Text size="sm" mb="sm">
-                                  The better the description, the better the
-                                  system will be at suggesting tag applications.
-                                  More detail will mean more specific
+                                  The better the description, the better the system will be at
+                                  suggesting tag applications. More detail will mean more specific
                                   suggestions.
                                 </Text>
                                 <Text fw="bold" size="sm">
@@ -525,8 +494,7 @@ export default function ViewTag() {
                                 </Text>
                                 <Blockquote p="xs" color="gray">
                                   <Text size="sm">
-                                    Fleetingness. The quality of being fleeting
-                                    or transient.
+                                    Fleetingness. The quality of being fleeting or transient.
                                   </Text>
                                 </Blockquote>
                                 <Text fw="bold" size="sm">
@@ -534,11 +502,9 @@ export default function ViewTag() {
                                 </Text>
                                 <Blockquote p="xs" color="gray">
                                   <Text size="sm">
-                                    The concept of fleetiness. It represents a
-                                    momentary, ephemeral experience, like a
-                                    spark of inspiration that fades, a dream
-                                    upon waking, or the brief scent of rain on
-                                    hot pavement.
+                                    The concept of fleetiness. It represents a momentary, ephemeral
+                                    experience, like a spark of inspiration that fades, a dream upon
+                                    waking, or the brief scent of rain on hot pavement.
                                   </Text>
                                 </Blockquote>
                               </Stack>
@@ -571,13 +537,11 @@ export default function ViewTag() {
                         )}
                         <Group gap="md">
                           <Text size="xs" c="dimmed">
-                            Created:{" "}
-                            {new Date(tag.createdAt).toLocaleDateString()}
+                            Created: {new Date(tag.createdAt).toLocaleDateString()}
                           </Text>
                           {tag.updatedAt && tag.updatedAt !== tag.createdAt && (
                             <Text size="xs" c="dimmed">
-                              Last Updated:{" "}
-                              {new Date(tag.updatedAt).toLocaleDateString()}
+                              Last Updated: {new Date(tag.updatedAt).toLocaleDateString()}
                             </Text>
                           )}
                         </Group>
@@ -615,12 +579,7 @@ export default function ViewTag() {
                   />
                 )}
                 {thingErrors && thingErrors.length > 0 && (
-                  <Alert
-                    icon={<WarningCircleIcon size={24} />}
-                    title="Error!"
-                    color="red"
-                    mt="md"
-                  >
+                  <Alert icon={<WarningCircleIcon size={24} />} title="Error!" color="red" mt="md">
                     Failed to load items for this tag: {thingErrors.join(", ")}
                   </Alert>
                 )}

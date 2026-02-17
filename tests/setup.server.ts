@@ -7,20 +7,22 @@ import { beforeAll, vi } from "vitest";
 import { StringRecordId } from "surrealdb";
 
 process.env.GEMINI_API_KEY = "mock-api-key";
-process.env.GCP_PROJECT_ID = ""; 
+process.env.GCP_PROJECT_ID = "";
 process.env.TOKEN_SECRET = "test-secret";
 
 // Global mocks
 vi.mock("../app/utils/crypto", () => ({
   hashPassword: vi.fn(async (password: string) => `hashed_${password}`),
   getRandomPassword: vi.fn((length = 12) => "random_password"),
-  verifyPassword: vi.fn(async (password: string, hashedPassword: string) => password === hashedPassword),
+  verifyPassword: vi.fn(
+    async (password: string, hashedPassword: string) => password === hashedPassword
+  ),
   generateToken: vi.fn((payload: any) => `token_${JSON.stringify(payload)}`),
-  verifyToken: vi.fn(async (token: string) => ({ 
+  verifyToken: vi.fn(async (token: string) => ({
     id: "user:test",
     email: "test@example.com",
     firstName: "Test",
-    lastName: "User"
+    lastName: "User",
   })),
 }));
 
@@ -35,14 +37,16 @@ mock.module("../app/utils/mailbaby", () => ({
     defaults: { headers: { common: {} } },
   },
   MailBabyService: class {
-    async verifyConnection() { return true; }
+    async verifyConnection() {
+      return true;
+    }
     get transporter() {
       return {
         verify: () => Promise.resolve(true),
-        sendMail: () => Promise.resolve({ data: {} })
+        sendMail: () => Promise.resolve({ data: {} }),
       };
     }
-  }
+  },
 }));
 
 mock.module("../app/utils/aws/s3", () => ({
@@ -96,14 +100,13 @@ const tablesToTruncate = [
  */
 const initializeTestSession = async () => {
   // Check if session is already initialized by looking for our mock user
-  const [userExists] = await db.query<[boolean]>(
-    `count(SELECT id FROM user WHERE id = $id) > 0`,
-    { id: new StringRecordId(MOCK_USER_ID) }
-  );
+  const [userExists] = await db.query<[boolean]>(`count(SELECT id FROM user WHERE id = $id) > 0`, {
+    id: new StringRecordId(MOCK_USER_ID),
+  });
 
   if (!userExists) {
     console.info("Initializing global test session (Wipe & Seed)...");
-    
+
     // 1. Wipe
     for (const table of tablesToTruncate) {
       await db.query(`DELETE ${table}`);
@@ -117,7 +120,7 @@ const initializeTestSession = async () => {
 
     // 3. Seed Onboarding Data
     await seedUserOnboarding(MOCK_USER_ID);
-    
+
     console.info("Global test session initialized ✅");
   }
 

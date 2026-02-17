@@ -33,12 +33,9 @@ app.use(
   }),
   (_, res, next) => {
     res.header("Access-Control-Allow-Origin", CLIENT_ORIGIN);
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept",
-    );
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
-  },
+  }
 );
 
 app.use("/api", apiRouter);
@@ -66,30 +63,19 @@ if (isProduction) {
   });
 } else {
   app.get("/", (req, res) => {
-    res.send(
-      "Express server is running in development mode. Frontend served by Vite.",
-    );
+    res.send("Express server is running in development mode. Frontend served by Vite.");
   });
 }
 
 if (!(NODE_ENV === "test")) {
   const server = app.listen(Number(PORT), () => {
-    console.info(
-      `Express server running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`,
-    );
-    console.info(
-      `Mode: ${chalk.yellow(isProduction ? "Production" : "Development")}`,
-    );
+    console.info(`Express server running on ${chalk.blue(`http://localhost:${chalk.bold(PORT)}`)}`);
+    console.info(`Mode: ${chalk.yellow(isProduction ? "Production" : "Development")}`);
   });
 
   server.on("upgrade", (request, socket, head) => {
-    collaborationServer.webSocketServer.handleUpgrade(
-      request,
-      socket,
-      head,
-      (ws) => {
-        collaborationServer.hocuspocus.handleConnection(ws, request);
-      },
-    );
+    collaborationServer.webSocketServer.handleUpgrade(request, socket, head, (ws) => {
+      collaborationServer.hocuspocus.handleConnection(ws, request);
+    });
   });
 }

@@ -1,124 +1,127 @@
 @use "./styles/mixins.scss" as *;
 
 .errorContainer {
-    background-color: #282828;
-    width: 100vw;
-    height: 100vh;
+  background-color: #282828;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+
+  .content {
+    width: 100%;
+    max-width: 500px; // Slightly tighter focus
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  h1 {
+    color: #fbf1c7;
+    margin: 0;
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-size: 2rem;
+    display: flex;
     align-items: center;
-    padding: 24px;
-    box-sizing: border-box;
+    gap: 12px;
 
-    .content {
-        width: 100%;
-        max-width: 500px; // Slightly tighter focus
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
+    svg {
+      color: #e44640;
+    }
+  }
+
+  p {
+    color: #fbf1c7;
+    font-family: "Besley", Georgia, serif;
+    margin: 0;
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row; // Force row on desktop
+    gap: 12px;
+    margin-top: 8px;
+
+    // On very small mobile, stack them
+    @media (max-width: 400px) {
+      flex-direction: column;
+    }
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: "Bricolage Grotesque", sans-serif; // Match headers for UI elements
+    flex: 1; // Make buttons equal width
+  }
+
+  .primaryButton {
+    background-color: #fbf1c7;
+    color: #282828;
+    border: 2px solid #fbf1c7;
+
+    &:hover {
+      background-color: #ebdbb2;
+      border-color: #ebdbb2;
+    }
+  }
+
+  .secondaryButton {
+    background-color: transparent;
+    border: 2px solid #504945; // Subtle border
+    color: #fbf1c7;
+
+    &:hover {
+      border-color: #fbf1c7; // Highlights on hover
+      background-color: rgba(251, 241, 199, 0.05);
+    }
+  }
+
+  .footer {
+    margin-top: 16px;
+    color: #928374;
+    font-size: 0.9rem;
+    line-height: 1.6;
+
+    a {
+      color: #89b6fa;
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
-    h1 {
-        color: #fbf1c7;
-        margin: 0;
-        font-family: "Bricolage Grotesque", system-ui, sans-serif;
-        font-size: 2rem;
-        display: flex;
-        align-items: center;
-        gap: 12px;
+    .details {
+      margin-top: 16px;
+      font-family: monospace;
+      text-align: left;
 
-        svg {
-            color: #e44640;
-        }
-    }
-
-    p {
-        color: #fbf1c7;
-        font-family: "Besley", Georgia, serif;
-        margin: 0;
-        line-height: 1.6;
-        font-size: 1.1rem;
-    }
-
-    .actions {
-        display: flex;
-        flex-direction: row; // Force row on desktop
-        gap: 12px;
-        margin-top: 8px;
-
-        // On very small mobile, stack them
-        @media (max-width: 400px) {
-            flex-direction: column;
-        }
-    }
-
-    .primaryButton, .secondaryButton {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
+      summary {
         cursor: pointer;
-        transition: all 0.2s ease;
-        font-family: "Bricolage Grotesque", sans-serif; // Match headers for UI elements
-        flex: 1; // Make buttons equal width
+        margin-bottom: 8px;
+        color: #d65d0e; // Gruvbox orange for "tech warning" vibes
+      }
+
+      pre {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 12px;
+        border-radius: 4px;
+        overflow-x: auto;
+        color: #ebdbb2;
+      }
     }
-
-    .primaryButton {
-        background-color: #fbf1c7;
-        color: #282828;
-        border: 2px solid #fbf1c7;
-
-        &:hover {
-            background-color: #ebdbb2;
-            border-color: #ebdbb2;
-        }
-    }
-
-    .secondaryButton {
-        background-color: transparent;
-        border: 2px solid #504945; // Subtle border
-        color: #fbf1c7;
-
-        &:hover {
-            border-color: #fbf1c7; // Highlights on hover
-            background-color: rgba(251, 241, 199, 0.05);
-        }
-    }
-
-    .footer {
-        margin-top: 16px;
-        color: #928374;
-        font-size: 0.9rem;
-        line-height: 1.6;
-
-        a {
-            color: #89b6fa;
-            text-decoration: none;
-            &:hover { text-decoration: underline; }
-        }
-
-        .details {
-            margin-top: 16px;
-            font-family: monospace;
-            text-align: left;
-
-            summary {
-                cursor: pointer;
-                margin-bottom: 8px;
-                color: #d65d0e; // Gruvbox orange for "tech warning" vibes
-            }
-
-            pre {
-                background: rgba(0,0,0,0.3);
-                padding: 12px;
-                border-radius: 4px;
-                overflow-x: auto;
-                color: #ebdbb2;
-            }
-        }
-    }
+  }
 }

@@ -23,14 +23,8 @@ export default function Import() {
     title: "Import",
     content: (
       <>
-        <p>
-          You can import your stuff directly into Noeko through the automated
-          workflow.
-        </p>
-        <p>
-          We will add more import options over time, if you have suggestions,
-          let us know :)
-        </p>
+        <p>You can import your stuff directly into Noeko through the automated workflow.</p>
+        <p>We will add more import options over time, if you have suggestions, let us know :)</p>
       </>
     ),
   });

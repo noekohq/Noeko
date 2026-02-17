@@ -1,8 +1,8 @@
-import React from 'react';
-import styles from './PaperIndicator.module.scss';
-import { Text } from '@mantine/core';
+import React from "react";
+import styles from "./PaperIndicator.module.scss";
+import { Text } from "@mantine/core";
 
-type Position = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+type Position = "top-right" | "top-left" | "bottom-right" | "bottom-left";
 
 interface PaperIndicatorProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ interface PaperIndicatorProps {
 const PaperIndicator: React.FC<PaperIndicatorProps> = ({
   children,
   label,
-  position = 'top-right',
+  position = "top-right",
   className,
   wrapperClassName,
   disabled = false,
@@ -28,18 +28,20 @@ const PaperIndicator: React.FC<PaperIndicatorProps> = ({
   const positionClass = styles[position];
 
   const renderLabel = () => {
-    if (typeof label === 'string' || typeof label === 'number') {
-      return <Text size="xs" lh={1} inherit>
+    if (typeof label === "string" || typeof label === "number") {
+      return (
+        <Text size="xs" lh={1} inherit>
           {label}
-        </Text>;
+        </Text>
+      );
     }
     return label;
   };
 
   return (
-    <div className={`${styles.wrapper} ${wrapperClassName || ''}`}>
+    <div className={`${styles.wrapper} ${wrapperClassName || ""}`}>
       {children}
-      <div className={`${styles.indicator} ${positionClass} ${className || ''}`}>
+      <div className={`${styles.indicator} ${positionClass} ${className || ""}`}>
         {renderLabel()}
       </div>
     </div>

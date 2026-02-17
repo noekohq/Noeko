@@ -1,16 +1,10 @@
 import { BunFile, S3File, S3Client } from "bun";
 
-const {
-  S3_ACCESS_KEY_ID,
-  S3_SECRET_ACCESS_KEY,
-  S3_REGION,
-  S3_BUCKET,
-  S3_ENDPOINT,
-} = process.env;
+const { S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET, S3_ENDPOINT } = process.env;
 
 if (!S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY || !S3_REGION || !S3_BUCKET) {
   throw new Error(
-    "Missing S3 credentials. Required: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET",
+    "Missing S3 credentials. Required: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_REGION, S3_BUCKET"
   );
 }
 
@@ -32,7 +26,7 @@ export const writeToS3 = async (
     | BunFile
     | S3File
     | Blob
-    | File,
+    | File
 ): Promise<{ written: number; completed: boolean }> => {
   try {
     const s3File = client.file(path);

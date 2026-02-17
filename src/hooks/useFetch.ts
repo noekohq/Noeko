@@ -79,8 +79,7 @@ function useFetch<B, D>({
         skipGlobal403Redirect: skip403Redirect,
       })
         .then((res) => {
-          onSuccess &&
-            onSuccess(res.data.data as D, res.data.message as string);
+          onSuccess && onSuccess(res.data.data as D, res.data.message as string);
           setData(res.data.data);
           setSuccess(true);
           return res.data;
@@ -103,22 +102,16 @@ function useFetch<B, D>({
           onFinally && onFinally();
         });
     },
-    [urlToUse, method, body, headers, bustCache, ...dependencies],
+    [urlToUse, method, body, headers, bustCache, ...dependencies]
   );
 
   const refreshHeaders = () => {
-    api.defaults.headers["Authorization"] = `Bearer ${localStorage.getItem(
-      "accessToken",
-    )}`;
-    api.defaults.headers["x-refresh-token"] =
-      localStorage.getItem("refreshToken");
+    api.defaults.headers["Authorization"] = `Bearer ${localStorage.getItem("accessToken")}`;
+    api.defaults.headers["x-refresh-token"] = localStorage.getItem("refreshToken");
   };
 
   useEffect(() => {
-    if (
-      runOnMount ||
-      (runOnDependencies.length > 0 && runOnDependencies.every((dep) => !!dep))
-    ) {
+    if (runOnMount || (runOnDependencies.length > 0 && runOnDependencies.every((dep) => !!dep))) {
       refreshHeaders();
       if (urlToUse) {
         load({
@@ -129,15 +122,7 @@ function useFetch<B, D>({
         console.error("Missing urlToUse");
       }
     }
-  }, [
-    urlToUse,
-    method,
-    body,
-    headers,
-    bustCache,
-    runOnMount,
-    ...runOnDependencies,
-  ]);
+  }, [urlToUse, method, body, headers, bustCache, runOnMount, ...runOnDependencies]);
 
   const loadWithUrl = useCallback(
     (url: string) => {
@@ -166,7 +151,7 @@ function useFetch<B, D>({
           } as DefaultResponse<null>;
         });
     },
-    [load],
+    [load]
   );
 
   const resetData = () => {

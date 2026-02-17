@@ -2,15 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { IConnectable } from "../../../../../app/services/Graph";
 import styles from "./ConnectionManager.module.scss";
 import useConnectable from "../../../../hooks/useConnectable";
-import {
-  Box,
-  Group,
-  Overlay,
-  Space,
-  Stack,
-  Text,
-  Transition,
-} from "@mantine/core";
+import { Box, Group, Overlay, Space, Stack, Text, Transition } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon, SubtractIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../../../contexts/InteractionContext";
@@ -158,7 +150,7 @@ export default function ConnectionManager({
                             onClick: (id) => disconnect(id),
                           },
                         },
-                        true,
+                        true
                       )}
                     />
                   ))}
@@ -170,22 +162,14 @@ export default function ConnectionManager({
           <Transition mounted={hasSuggestions} transition="fade" duration={200}>
             {(transitionStyles) => (
               <div style={transitionStyles}>
-                <Stack
-                  gap="xs"
-                  className={styles.suggestionsWrapper}
-                  key={suggestionsFingerprint}
-                >
+                <Stack gap="xs" className={styles.suggestionsWrapper} key={suggestionsFingerprint}>
                   {suggestionsToShow.map((thing) => {
                     const distance = (thing as any).distance || 0;
                     const level = similarityToLevel(distance);
-                    const baseDetail =
-                      getThingPropsFromConnectable(thing).detail;
+                    const baseDetail = getThingPropsFromConnectable(thing).detail;
 
                     return (
-                      <div
-                        key={thing.id.toString()}
-                        className={styles.suggestedItemWrapper}
-                      >
+                      <div key={thing.id.toString()} className={styles.suggestedItemWrapper}>
                         <PaperThing
                           draggable
                           {...getThingPropsFromConnectable(
@@ -199,7 +183,7 @@ export default function ConnectionManager({
                                 onClick: (id) => connect(id),
                               },
                             },
-                            true,
+                            true
                           )}
                         />
                       </div>

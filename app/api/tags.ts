@@ -17,9 +17,7 @@ router.post("/", async (req, res): Promise<void> => {
   try {
     const user = await getFromReq<ISafeUser>(req, "user");
     if (!user || !user.id) {
-      res
-        .status(401)
-        .json({ message: "Unauthorized. User not found or ID is missing." });
+      res.status(401).json({ message: "Unauthorized. User not found or ID is missing." });
       return;
     }
 
@@ -33,9 +31,7 @@ router.post("/", async (req, res): Promise<void> => {
       return;
     }
     if (color !== undefined && typeof color !== "string") {
-      res
-        .status(400)
-        .json({ message: "Tag color must be a string (hex code)." });
+      res.status(400).json({ message: "Tag color must be a string (hex code)." });
       return;
     }
 
@@ -51,9 +47,7 @@ router.post("/", async (req, res): Promise<void> => {
       return;
     }
 
-    res
-      .status(201)
-      .json({ message: "Tag created successfully.", data: newTag });
+    res.status(201).json({ message: "Tag created successfully.", data: newTag });
   } catch (error) {
     console.error("Error creating tag:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -121,8 +115,7 @@ router.put("/:tagId", async (req, res): Promise<void> => {
     const { name, description, color } = req.body;
 
     if (
-      (name !== undefined &&
-        (typeof name !== "string" || name.trim() === "")) ||
+      (name !== undefined && (typeof name !== "string" || name.trim() === "")) ||
       (description !== undefined && typeof description !== "string") ||
       (color !== undefined && typeof color !== "string")
     ) {
@@ -155,9 +148,7 @@ router.put("/:tagId", async (req, res): Promise<void> => {
       return;
     }
 
-    res
-      .status(200)
-      .json({ message: "Tag updated successfully.", data: updatedTag });
+    res.status(200).json({ message: "Tag updated successfully.", data: updatedTag });
   } catch (error) {
     console.error("Error updating tag:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -189,8 +180,7 @@ router.post("/apply", async (req, res): Promise<void> => {
     const relationship = await Tag.applyToThing(tagId, thingId);
     if (!relationship) {
       res.status(500).json({
-        message:
-          "Failed to connect tag to thing. Ensure both tag and thing exist.",
+        message: "Failed to connect tag to thing. Ensure both tag and thing exist.",
       });
       return;
     }
@@ -230,8 +220,7 @@ router.delete("/apply", async (req, res): Promise<void> => {
     const relationship = await Tag.removeFromThing(tagId, thingId);
     if (!relationship) {
       res.status(500).json({
-        message:
-          "Failed to disconnect tag from thing. The relationship might not exist.",
+        message: "Failed to disconnect tag from thing. The relationship might not exist.",
       });
       return;
     }
@@ -338,9 +327,7 @@ router.get("/:tagId/things", async (req, res): Promise<void> => {
       return;
     }
 
-    res
-      .status(200)
-      .json({ message: "Things for tag retrieved.", data: things });
+    res.status(200).json({ message: "Things for tag retrieved.", data: things });
   } catch (error) {
     console.error("Error getting things for tag:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -372,8 +359,7 @@ router.post("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
     const relationship = await Tag.connectToIdea(tagId, ideaId);
     if (!relationship) {
       res.status(500).json({
-        message:
-          "Failed to connect tag to idea. Ensure both tag and idea exist.",
+        message: "Failed to connect tag to idea. Ensure both tag and idea exist.",
       });
       return;
     }
@@ -413,15 +399,12 @@ router.delete("/:tagId/ideas/:ideaId", async (req, res): Promise<void> => {
     const success = await Tag.disconnectFromIdea(tagId, ideaId);
     if (!success) {
       res.status(500).json({
-        message:
-          "Failed to disconnect tag from idea. The relationship might not exist.",
+        message: "Failed to disconnect tag from idea. The relationship might not exist.",
       });
       return;
     }
 
-    res
-      .status(200)
-      .json({ message: "Tag disconnected from idea successfully." });
+    res.status(200).json({ message: "Tag disconnected from idea successfully." });
   } catch (error) {
     console.error("Error disconnecting tag from idea:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -453,14 +436,9 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
     let parsedThreshold: number | undefined = undefined;
     if (threshold) {
       parsedThreshold = parseFloat(threshold as string);
-      if (
-        isNaN(parsedThreshold) ||
-        parsedThreshold < 0 ||
-        parsedThreshold > 1
-      ) {
+      if (isNaN(parsedThreshold) || parsedThreshold < 0 || parsedThreshold > 1) {
         res.status(400).json({
-          message:
-            "Invalid threshold parameter. Must be a float between 0 and 1.",
+          message: "Invalid threshold parameter. Must be a float between 0 and 1.",
         });
         return;
       }
@@ -492,17 +470,11 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
       threshold: parsedThreshold, // getSimilarIdeasToTag will apply a default if undefined
     };
 
-    const similarIdeas = await Tag.getSimilarIdeasToTag(
-      tagId,
-      user.id,
-      options,
-    );
+    const similarIdeas = await Tag.getSimilarIdeasToTag(tagId, user.id, options);
 
     if (similarIdeas === undefined) {
       // This indicates an internal error within Tag.getSimilarIdeasToTag, not just "no results"
-      res
-        .status(500)
-        .json({ message: "Error fetching similar ideas for the tag." });
+      res.status(500).json({ message: "Error fetching similar ideas for the tag." });
       return;
     }
 
@@ -511,10 +483,7 @@ router.get("/:tagId/similar-ideas", async (req, res): Promise<void> => {
       data: similarIdeas, // This will be an empty array if no ideas meet the criteria
     });
   } catch (error) {
-    console.error(
-      `Error getting similar ideas for tag ${req.params.tagId}:`,
-      error,
-    );
+    console.error(`Error getting similar ideas for tag ${req.params.tagId}:`, error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -544,14 +513,9 @@ router.get("/:tagId/suggestions", async (req, res): Promise<void> => {
     let parsedThreshold: number | undefined = undefined;
     if (threshold) {
       parsedThreshold = parseFloat(threshold as string);
-      if (
-        isNaN(parsedThreshold) ||
-        parsedThreshold < 0 ||
-        parsedThreshold > 1
-      ) {
+      if (isNaN(parsedThreshold) || parsedThreshold < 0 || parsedThreshold > 1) {
         res.status(400).json({
-          message:
-            "Invalid threshold parameter. Must be a float between 0 and 1.",
+          message: "Invalid threshold parameter. Must be a float between 0 and 1.",
         });
         return;
       }
@@ -585,9 +549,7 @@ router.get("/:tagId/suggestions", async (req, res): Promise<void> => {
     const similarThings = await Tag.getSimilarThings(user.id, tagId, options);
 
     if (similarThings === undefined) {
-      res
-        .status(500)
-        .json({ message: "Error fetching similar ideas for the tag." });
+      res.status(500).json({ message: "Error fetching similar ideas for the tag." });
       return;
     }
 
@@ -596,10 +558,7 @@ router.get("/:tagId/suggestions", async (req, res): Promise<void> => {
       data: similarThings,
     });
   } catch (error) {
-    console.error(
-      `Error getting similar ideas for tag ${req.params.tagId}:`,
-      error,
-    );
+    console.error(`Error getting similar ideas for tag ${req.params.tagId}:`, error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -619,10 +578,7 @@ router.get("/similar_to/idea/:ideaId", async (req, res) => {
       });
       return;
     }
-    const similar: ITag[] | undefined = await Tag.getSimilarToIdea(
-      user.id,
-      ideaId,
-    );
+    const similar: ITag[] | undefined = await Tag.getSimilarToIdea(user.id, ideaId);
     if (!similar) {
       throw new Error("Couldn't get similar.");
     }

@@ -15,17 +15,10 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
-    const {
-      thingId,
-      userId: potentiallyMissingId,
-      email,
-      accessLevel,
-    } = req.body;
+    const { thingId, userId: potentiallyMissingId, email, accessLevel } = req.body;
     let userId = potentiallyMissingId;
     if (!userId && !email) {
-      res
-        .status(400)
-        .json({ message: "Missing required fields: userId or email" });
+      res.status(400).json({ message: "Missing required fields: userId or email" });
       return;
     }
     if (!userId && !!email) {
@@ -153,17 +146,13 @@ router.get("/:thingId", checkToken, disallowDisabled, async (req, res) => {
     const auth = new Authorization(user.id);
     const isOwner = await auth.owns(thingId);
     if (!isOwner) {
-      res
-        .status(403)
-        .json({ message: "Unauthorized: Only the owner can view shares." });
+      res.status(403).json({ message: "Unauthorized: Only the owner can view shares." });
       return;
     }
 
     const shares = await Share.getShares(thingId);
     if (shares === undefined) {
-      res
-        .status(500)
-        .json({ error: "An error occurred while retrieving shares." });
+      res.status(500).json({ error: "An error occurred while retrieving shares." });
       return;
     }
 

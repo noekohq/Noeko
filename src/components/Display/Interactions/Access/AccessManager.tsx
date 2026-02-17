@@ -1,18 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  IShareAccess,
-  IShareDetails,
-} from "../../../../../app/database/models/share";
+import { IShareAccess, IShareDetails } from "../../../../../app/database/models/share";
 import { IConnectable } from "../../../../../app/services/Graph";
 import useFetch from "../../../../hooks/useFetch";
 import { useForm } from "@mantine/form";
 import { validateEmail } from "../../../../utils/data";
 import { useAuth } from "../../../../contexts/AuthContext";
-import {
-  revokeAccess,
-  shareAccessWithEmail,
-  updateAccess,
-} from "../../../../utils/shares";
+import { revokeAccess, shareAccessWithEmail, updateAccess } from "../../../../utils/shares";
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
@@ -64,10 +57,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     dependencies: [connectable.id.toString()],
   });
 
-  const { load: loadFriends, data: friends } = useFetch<
-    undefined,
-    IFriendUser[]
-  >({
+  const { load: loadFriends, data: friends } = useFetch<undefined, IFriendUser[]>({
     url: "/sharing/friends",
   });
 
@@ -92,8 +82,8 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
           },
         },
       }),
-      [],
-    ),
+      []
+    )
   );
 
   const [shareModal, setShareModal] = useState(false);
@@ -110,7 +100,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
         label: userFormattedName(f),
         value: f.email,
       })) || [],
-    [friends],
+    [friends]
   );
 
   const combobox = useCombobox({
@@ -123,10 +113,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
       if (searchTerm === "") {
         return true;
       }
-      return (
-        label.toLowerCase().includes(searchTerm) ||
-        value.toLowerCase().includes(searchTerm)
-      );
+      return label.toLowerCase().includes(searchTerm) || value.toLowerCase().includes(searchTerm);
     })
     .map((item) => (
       <Combobox.Option value={item.value} key={item.value}>
@@ -152,10 +139,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
 
   const [loadingShare, setLoadingShare] = useState(false);
 
-  const handleUpdateAccess = async (
-    userId: string,
-    accessLevel: IShareAccess,
-  ) => {
+  const handleUpdateAccess = async (userId: string, accessLevel: IShareAccess) => {
     try {
       await updateAccess(connectable.id.toString(), userId, accessLevel);
       showNotification({
@@ -186,7 +170,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
       const success = await shareAccessWithEmail(
         connectable.id.toString(),
         form.values.email,
-        form.values.accessLevel,
+        form.values.accessLevel
       );
       if (success) {
         showNotification({
@@ -207,9 +191,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
       }
     } catch (error) {
       console.error("Error creating share: ", error);
-      setShareErrors([
-        "Something went wrong creating this share. This account may not exist.",
-      ]);
+      setShareErrors(["Something went wrong creating this share. This account may not exist."]);
     } finally {
       await loadShared();
       setLoadingShare(false);
@@ -273,9 +255,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
                     </ActionIcon>
                   </PaperContextMenu.Target>
                   <PaperContextMenu.Dropdown>
-                    <PaperContextMenu.Label>
-                      Access Level
-                    </PaperContextMenu.Label>
+                    <PaperContextMenu.Label>Access Level</PaperContextMenu.Label>
                     <Box>
                       <SegmentedControl
                         fullWidth
@@ -285,32 +265,21 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
                         ]}
                         value={share.accessLevel}
                         onChange={(value) =>
-                          handleUpdateAccess(
-                            share.user.id.toString(),
-                            value as IShareAccess,
-                          )
+                          handleUpdateAccess(share.user.id.toString(), value as IShareAccess)
                         }
                       />
                     </Box>
                     <PaperContextMenu.Item
                       color="red"
                       icon={<XCircleIcon size={14} />}
-                      onClick={() =>
-                        handleStopSharing(share.user.id.toString())
-                      }
+                      onClick={() => handleStopSharing(share.user.id.toString())}
                     >
                       Remove Access
                     </PaperContextMenu.Item>
                     <CopyButton value={getShareLink()}>
                       {({ copy, copied }) => (
                         <PaperContextMenu.Item
-                          icon={
-                            copied ? (
-                              <CheckIcon size={14} />
-                            ) : (
-                              <CopyIcon size={14} />
-                            )
-                          }
+                          icon={copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
                           onClick={copy}
                         >
                           {copied ? "Copied" : "Copy Share Link"}
@@ -366,11 +335,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
 
             <Combobox.Dropdown>
               <Combobox.Options>
-                {options.length > 0 ? (
-                  options
-                ) : (
-                  <Combobox.Empty>Nothing found</Combobox.Empty>
-                )}
+                {options.length > 0 ? options : <Combobox.Empty>Nothing found</Combobox.Empty>}
               </Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>
@@ -405,13 +370,7 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
               Cancel
             </Button>
             <Button
-              leftSection={
-                loadingShare ? (
-                  <Loader color="gray" size="sm" />
-                ) : (
-                  <ShareNetworkIcon />
-                )
-              }
+              leftSection={loadingShare ? <Loader color="gray" size="sm" /> : <ShareNetworkIcon />}
               onClick={() => {
                 handleCreateShare();
               }}

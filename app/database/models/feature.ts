@@ -1,10 +1,6 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
-import {
-  IFeature,
-  IFeatureForm,
-  IUserViewRelation,
-} from "../../../shared/types/feature";
+import { IFeature, IFeatureForm, IUserViewRelation } from "../../../shared/types/feature";
 
 export default class Feature {
   private _id: StringRecordId;
@@ -29,7 +25,7 @@ export default class Feature {
           now: new Date(),
           userId: new StringRecordId(userId),
           featureId: this.id,
-        },
+        }
       );
       if (!result || !result[0]) {
         throw new Error("Couldn't get result");
@@ -53,7 +49,7 @@ export default class Feature {
         {
           userId: new StringRecordId(userId),
           featureId: this.id,
-        },
+        }
       );
       if (!results) {
         throw new Error("No results for ownership check");
@@ -66,9 +62,7 @@ export default class Feature {
     }
   }
 
-  static async allViewedBy(
-    userId: string | RecordId,
-  ): Promise<string[] | undefined> {
+  static async allViewedBy(userId: string | RecordId): Promise<string[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -78,7 +72,7 @@ export default class Feature {
         `SELECT VALUE out FROM onboarded_to WHERE in = $userId`,
         {
           userId: new StringRecordId(userId),
-        },
+        }
       );
       if (!results) {
         throw new Error("No results for ownership check");
@@ -98,12 +92,9 @@ export default class Feature {
         throw new Error("Error creating feature");
       }
 
-      const result = await db.create<IFeature, IFeatureForm>(
-        new RecordId("feature", form.name),
-        {
-          name: form.name,
-        },
-      );
+      const result = await db.create<IFeature, IFeatureForm>(new RecordId("feature", form.name), {
+        name: form.name,
+      });
 
       if (!result) {
         throw new Error("Couldn't create the feature");
@@ -180,12 +171,9 @@ export default class Feature {
   static async upsert(form: IFeatureForm) {
     try {
       const db = await getDatabase();
-      const result = await db?.upsert<IFeature, IFeatureForm>(
-        new RecordId("feature", form.name),
-        {
-          name: form.name,
-        },
-      );
+      const result = await db?.upsert<IFeature, IFeatureForm>(new RecordId("feature", form.name), {
+        name: form.name,
+      });
       if (!result) {
         console.error("Failed to upsert feature");
         return undefined;

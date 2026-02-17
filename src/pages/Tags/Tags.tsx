@@ -63,11 +63,7 @@ export default function Tags() {
       name: (value) => (!value ? "Tag name is required" : null),
       color: (value) => {
         // Added color validation
-        if (
-          value &&
-          value.trim() !== "" &&
-          !/^#([0-9A-Fa-f]{3}){1,2}$/.test(value)
-        ) {
+        if (value && value.trim() !== "" && !/^#([0-9A-Fa-f]{3}){1,2}$/.test(value)) {
           return "Must be a valid hex color (e.g., #RRGGBB or #RGB)";
         }
         return null;
@@ -119,7 +115,7 @@ export default function Tags() {
     return tags.filter(
       (tag) =>
         tag.name.toLowerCase().includes(query) ||
-        (tag.description && tag.description.toLowerCase().includes(query)),
+        (tag.description && tag.description.toLowerCase().includes(query))
     );
   }, [tags, filterQuery]);
 
@@ -168,13 +164,7 @@ export default function Tags() {
                 }}
               >
                 {filteredTags.map((t) => {
-                  return (
-                    <TagItem
-                      key={t.id.toString()}
-                      tag={t}
-                      onTagUpdated={loadTags}
-                    />
-                  );
+                  return <TagItem key={t.id.toString()} tag={t} onTagUpdated={loadTags} />;
                 })}
               </SimpleGrid>
             </Grid.Col>
@@ -213,29 +203,22 @@ export default function Tags() {
                   <Text size="sm">Description</Text>
                   <HoverCard width="300px" radius="lg">
                     <HoverCard.Target>
-                      <ActionIcon
-                        size="xs"
-                        radius="lg"
-                        variant="subtle"
-                        color="gray"
-                      >
+                      <ActionIcon size="xs" radius="lg" variant="subtle" color="gray">
                         <InfoIcon size={14} />
                       </ActionIcon>
                     </HoverCard.Target>
                     <HoverCard.Dropdown>
                       <Stack gap="xs">
                         <Text size="sm" mb="sm">
-                          The better the description, the better the system will
-                          be at suggesting tag applications. More detail will
-                          mean more specific suggestions.
+                          The better the description, the better the system will be at suggesting
+                          tag applications. More detail will mean more specific suggestions.
                         </Text>
                         <Text fw="bold" size="sm">
                           Good Description
                         </Text>
                         <Blockquote p="xs" color="gray">
                           <Text size="sm">
-                            Fleetingness. The quality of being fleeting or
-                            transient.
+                            Fleetingness. The quality of being fleeting or transient.
                           </Text>
                         </Blockquote>
                         <Text fw="bold" size="sm">
@@ -243,10 +226,9 @@ export default function Tags() {
                         </Text>
                         <Blockquote p="xs" color="gray">
                           <Text size="sm">
-                            The concept of fleetiness. It represents a
-                            momentary, ephemeral experience, like a spark of
-                            inspiration that fades, a dream upon waking, or the
-                            brief scent of rain on hot pavement.
+                            The concept of fleetiness. It represents a momentary, ephemeral
+                            experience, like a spark of inspiration that fades, a dream upon waking,
+                            or the brief scent of rain on hot pavement.
                           </Text>
                         </Blockquote>
                       </Stack>
@@ -394,12 +376,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
             >
               <FloppyDiskIcon weight="bold" />
             </ActionIcon>
-            <ActionIcon
-              variant="outline"
-              color="gray"
-              onClick={handleCancel}
-              title="Cancel Edit"
-            >
+            <ActionIcon variant="outline" color="gray" onClick={handleCancel} title="Cancel Edit">
               <XIcon weight="bold" />
             </ActionIcon>
           </Group>
@@ -447,8 +424,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
         centered
       >
         <Text size="sm">
-          Are you sure you want to delete this tag? This action cannot be
-          undone.
+          Are you sure you want to delete this tag? This action cannot be undone.
         </Text>
         {deleteTagErrors.length > 0 && (
           <Text c="red" size="xs" mt="sm">
@@ -459,11 +435,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
           <Button variant="default" onClick={closeDeleteModal}>
             Cancel
           </Button>
-          <Button
-            color="red"
-            onClick={handleDeleteConfirm}
-            loading={deleteTagLoading}
-          >
+          <Button color="red" onClick={handleDeleteConfirm} loading={deleteTagLoading}>
             Delete Tag
           </Button>
         </Group>

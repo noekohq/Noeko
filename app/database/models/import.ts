@@ -112,10 +112,7 @@ export class Import {
     }
   }
 
-  static async connectToUser(
-    userId: string | RecordId,
-    importId: string | RecordId,
-  ) {
+  static async connectToUser(userId: string | RecordId, importId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IImportUserOwnership]>(
@@ -124,29 +121,21 @@ export class Import {
           fromId: new StringRecordId(userId),
           toId: new StringRecordId(importId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
-        console.error(
-          `No ownership created for import "${importId}" and user "${userId}".`,
-        );
+        console.error(`No ownership created for import "${importId}" and user "${userId}".`);
         return undefined;
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(
-        `Error during connectToUser for import "${importId}":`,
-        err,
-      );
+      console.error(`Error during connectToUser for import "${importId}":`, err);
       return undefined;
     }
   }
 
-  static async connectToIdea(
-    ideaId: string | RecordId,
-    importId: string | RecordId,
-  ) {
+  static async connectToIdea(ideaId: string | RecordId, importId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IImportUserOwnership]>(
@@ -155,29 +144,21 @@ export class Import {
           fromId: new StringRecordId(importId),
           toId: new StringRecordId(ideaId),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
-        console.error(
-          `No relation created for import "${importId}" and idea "${ideaId}".`,
-        );
+        console.error(`No relation created for import "${importId}" and idea "${ideaId}".`);
         return undefined;
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(
-        `Error during connectToIdea for import "${importId}":`,
-        err,
-      );
+      console.error(`Error during connectToIdea for import "${importId}":`, err);
       return undefined;
     }
   }
 
-  static async connectToIdeas(
-    ideaIds: (string | RecordId)[],
-    importId: string | RecordId,
-  ) {
+  static async connectToIdeas(ideaIds: (string | RecordId)[], importId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IImportUserOwnership[]]>(
@@ -186,21 +167,16 @@ export class Import {
           fromId: new StringRecordId(importId),
           toIds: ideaIds.map((i) => new StringRecordId(i)),
           now: new Date(),
-        },
+        }
       );
       if (!result) {
-        console.error(
-          `No relation created for import "${importId}" and many ideas".`,
-        );
+        console.error(`No relation created for import "${importId}" and many ideas".`);
         return undefined;
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(
-        `Error during connectToIdea for import "${importId}":`,
-        err,
-      );
+      console.error(`Error during connectToIdea for import "${importId}":`, err);
       return undefined;
     }
   }
@@ -211,9 +187,7 @@ export class Import {
       if (!db) {
         throw new Error("Error getting database");
       }
-      const results = await db.run<IImport[]>("fn::get_user_imports", [
-        userId.toString(),
-      ]);
+      const results = await db.run<IImport[]>("fn::get_user_imports", [userId.toString()]);
       if (!results) {
         throw new Error("Error getting user imports");
       }
@@ -227,7 +201,7 @@ export class Import {
   static async createIdeaForImport(
     idea: IIdeaForm,
     importId: string | RecordId,
-    userId: string | RecordId,
+    userId: string | RecordId
   ) {
     try {
       const db = await getDatabase();
@@ -256,7 +230,7 @@ export class Import {
         {
           userId: new StringRecordId(userId),
           importId: new StringRecordId(importId),
-        },
+        }
       );
 
       if (result && result[0] && result[0] > 0) {
@@ -264,10 +238,7 @@ export class Import {
       }
       return false;
     } catch (err) {
-      console.error(
-        `Error during checkUserOwnership for idea "${importId}":`,
-        err,
-      );
+      console.error(`Error during checkUserOwnership for idea "${importId}":`, err);
       return false;
     }
   }

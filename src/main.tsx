@@ -31,9 +31,7 @@ polyfill({
 
 const Client = () => {
   return (
-    <ErrorBoundary
-      fallbackRender={(fallbackProps) => <Error {...fallbackProps} />}
-    >
+    <ErrorBoundary fallbackRender={(fallbackProps) => <Error {...fallbackProps} />}>
       <BrowserRouter>
         <AuthProvider>
           <SettingsProvider>
@@ -61,7 +59,7 @@ const Client = () => {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   // <React.StrictMode>
-  <Client />,
+  <Client />
   // </React.StrictMode>,
 );
 

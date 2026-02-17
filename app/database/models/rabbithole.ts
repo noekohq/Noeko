@@ -122,26 +122,20 @@ export default class Rabbithole {
   static async create(userId: string | RecordId, form: IRabbitholeForm) {
     try {
       const db = await getDatabase();
-      const result = await db?.create<IRabbithole, IRabbitholeCreator>(
-        "rabbithole",
-        {
-          ...form,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      );
+      const result = await db?.create<IRabbithole, IRabbitholeCreator>("rabbithole", {
+        ...form,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
       if (!result) {
         throw new Error("Something went wrong creating rabbithole: ", result);
       }
       const [rabbithole] = result;
-      await db?.query(
-        "RELATE $userId->owns->$rabbitholeId CONTENT { createdAt: $now, }",
-        {
-          userId: new StringRecordId(userId),
-          rabbitholeId: new StringRecordId(rabbithole.id),
-          now: new Date(),
-        },
-      );
+      await db?.query("RELATE $userId->owns->$rabbitholeId CONTENT { createdAt: $now, }", {
+        userId: new StringRecordId(userId),
+        rabbitholeId: new StringRecordId(rabbithole.id),
+        now: new Date(),
+      });
       return rabbithole;
     } catch (error) {
       console.error(error);
@@ -151,7 +145,7 @@ export default class Rabbithole {
 
   static async update(
     id: string | RecordId,
-    form: Partial<IRabbitholeCreator & { cachedCentroidEmbeddings: number[] }>,
+    form: Partial<IRabbitholeCreator & { cachedCentroidEmbeddings: number[] }>
   ) {
     try {
       const db = await getDatabase();
@@ -176,9 +170,7 @@ export default class Rabbithole {
   static async get(id: string | RecordId) {
     try {
       const db = await getDatabase();
-      const result = await db?.run<IRabbithole>(`fn::get_rabbithole`, [
-        new StringRecordId(id),
-      ]);
+      const result = await db?.run<IRabbithole>(`fn::get_rabbithole`, [new StringRecordId(id)]);
       if (!result) {
         throw new Error("Something went wrong getting rabbithole: ", result);
       }
@@ -196,7 +188,7 @@ export default class Rabbithole {
       const limit = options?.limit ? Number(options.limit) : undefined;
       const result = await db?.query<[IRabbithole[]]>(
         `SELECT * FROM rabbithole WHERE <-owns<-(user WHERE id = $userId) ORDER BY updatedAt${limit ? " LIMIT $limit;" : ""};`,
-        { userId: new StringRecordId(userId), limit },
+        { userId: new StringRecordId(userId), limit }
       );
       if (!result) {
         throw new Error("Something went wrong getting rabbithole: ", result);
@@ -215,9 +207,7 @@ export default class Rabbithole {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const result = await db?.delete<IRabbithole>(
-        new StringRecordId(rabbitholeId),
-      );
+      const result = await db?.delete<IRabbithole>(new StringRecordId(rabbitholeId));
       if (!result) {
         throw new Error("Something went wrong deleting rabbithole: ", result);
       }
@@ -234,9 +224,7 @@ export default class Rabbithole {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const results = await db.query<
-        [(IRabbitholeIncludes & { embeddings: number[] })[]]
-      >(
+      const results = await db.query<[(IRabbitholeIncludes & { embeddings: number[] })[]]>(
         `
         SELECT VALUE
           ->includes->(?) as includes
@@ -245,7 +233,7 @@ export default class Rabbithole {
         `,
         {
           rabbitholeId: new StringRecordId(rabbitholeId),
-        },
+        }
       );
 
       if (!results) {
@@ -269,8 +257,7 @@ export default class Rabbithole {
       const db = await getDatabase();
       if (!db) throw new Error("Database not initialized");
 
-      const averageEmbeddings =
-        await this.getRabbitholeAverageEmbeddings(rabbitholeId);
+      const averageEmbeddings = await this.getRabbitholeAverageEmbeddings(rabbitholeId);
 
       await Rabbithole.update(rabbitholeId, {
         cachedCentroidEmbeddings: averageEmbeddings,
@@ -291,10 +278,7 @@ export default class Rabbithole {
     return false;
   }
 
-  static async addThing(
-    rabbitholeId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  static async addThing(rabbitholeId: string | RecordId, thingId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -310,31 +294,22 @@ export default class Rabbithole {
           rabbitholeId: new StringRecordId(rabbitholeId),
           thingId: new StringRecordId(thingId),
           now: new Date(),
-        },
+        }
       );
       this.update(rabbitholeId, { updatedAt: new Date() });
       this.cacheCentroidVector(rabbitholeId);
       if (!result) {
-        throw new Error(
-          "Something went wrong adding thing to rabbithole: ",
-          result,
-        );
+        throw new Error("Something went wrong adding thing to rabbithole: ", result);
       }
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {
-      logger.error("Error adding thing to rabbithole: ", [
-        rabbitholeId,
-        thingId,
-      ]);
+      logger.error("Error adding thing to rabbithole: ", [rabbitholeId, thingId]);
       return undefined;
     }
   }
 
-  static async addThings(
-    rabbitholeId: string | RecordId,
-    thingIds: string[] | RecordId[],
-  ) {
+  static async addThings(rabbitholeId: string | RecordId, thingIds: string[] | RecordId[]) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -346,23 +321,17 @@ export default class Rabbithole {
           rabbitholeId: new StringRecordId(rabbitholeId),
           thingIds: thingIds.map((id) => new StringRecordId(id)),
           now: new Date(),
-        },
+        }
       );
       this.update(rabbitholeId, { updatedAt: new Date() });
       this.cacheCentroidVector(rabbitholeId);
       if (!result) {
-        throw new Error(
-          "Something went wrong adding things to rabbithole: ",
-          result,
-        );
+        throw new Error("Something went wrong adding things to rabbithole: ", result);
       }
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {
-      logger.error("Error adding things to rabbithole: ", [
-        rabbitholeId,
-        thingIds,
-      ]);
+      logger.error("Error adding things to rabbithole: ", [rabbitholeId, thingIds]);
       return undefined;
     }
   }
@@ -382,13 +351,10 @@ export default class Rabbithole {
           `,
         {
           rabbitholeId: new StringRecordId(rabbitholeId),
-        },
+        }
       );
       if (!result) {
-        throw new Error(
-          "Something went wrong getting things from rabbithole: ",
-          result,
-        );
+        throw new Error("Something went wrong getting things from rabbithole: ", result);
       }
       const [rabbithole] = result;
       return rabbithole;
@@ -398,10 +364,7 @@ export default class Rabbithole {
     }
   }
 
-  static async removeThing(
-    rabbitholeId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  static async removeThing(rabbitholeId: string | RecordId, thingId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -412,23 +375,17 @@ export default class Rabbithole {
         {
           source: new StringRecordId(rabbitholeId),
           target: new StringRecordId(thingId),
-        },
+        }
       );
       this.update(rabbitholeId, { updatedAt: new Date() });
       this.cacheCentroidVector(rabbitholeId);
       if (!result) {
-        throw new Error(
-          "Something went wrong deleting thing from rabbithole: ",
-          result,
-        );
+        throw new Error("Something went wrong deleting thing from rabbithole: ", result);
       }
       const [rabbithole] = result;
       return rabbithole;
     } catch (error) {
-      logger.error("Error deleting thing from rabbithole: ", [
-        rabbitholeId,
-        thingId,
-      ]);
+      logger.error("Error deleting thing from rabbithole: ", [rabbitholeId, thingId]);
       return undefined;
     }
   }
@@ -439,7 +396,7 @@ export default class Rabbithole {
     options?: {
       limit?: number;
       threshold?: number;
-    },
+    }
   ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -448,18 +405,16 @@ export default class Rabbithole {
       }
       const rabbithole = await Rabbithole.get(rabbitholeId);
       if (!rabbithole) {
-        throw new Error(
-          `Rabbithole with id ${rabbitholeId.toString()} not found.`,
-        );
+        throw new Error(`Rabbithole with id ${rabbitholeId.toString()} not found.`);
       }
-      const results = await db.run<ISafeIdea[]>(
-        "fn::search_ideas_similar_to_rabbithole",
-        [new StringRecordId(rabbitholeId), new StringRecordId(userId)],
-      );
+      const results = await db.run<ISafeIdea[]>("fn::search_ideas_similar_to_rabbithole", [
+        new StringRecordId(rabbitholeId),
+        new StringRecordId(userId),
+      ]);
 
       if (!results) {
         console.warn(
-          `No similar ideas found for rabbithole ${rabbitholeId.toString()} for user ${userId.toString()}.`,
+          `No similar ideas found for rabbithole ${rabbitholeId.toString()} for user ${userId.toString()}.`
         );
         return [];
       }
@@ -467,7 +422,7 @@ export default class Rabbithole {
     } catch (error) {
       console.error(
         `Error getting similar ideas for rabbithole ${rabbitholeId.toString()}: `,
-        error,
+        error
       );
       return undefined;
     }
@@ -480,7 +435,7 @@ export default class Rabbithole {
       limit?: number;
       threshold?: number;
       candidates?: number;
-    },
+    }
   ): Promise<IRabbitholeIncludes[] | undefined> {
     try {
       const db = await getDatabase();
@@ -495,8 +450,7 @@ export default class Rabbithole {
         throw new Error("No rabbithole found");
       }
 
-      let centroidEmbeddings: number[] | undefined =
-        rabbithole.cachedCentroidEmbeddings;
+      let centroidEmbeddings: number[] | undefined = rabbithole.cachedCentroidEmbeddings;
       if (!centroidEmbeddings) {
         const centroid = await Rabbithole.cacheCentroidVector(rabbitholeId);
         centroidEmbeddings = centroid ?? undefined;
@@ -512,7 +466,7 @@ export default class Rabbithole {
         {
           limit,
           threshold,
-        },
+        }
       );
 
       if (!similarThings) {

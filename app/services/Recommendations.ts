@@ -54,12 +54,7 @@ export type IAcceleratorItem = IAcceleratorItemBase &
     | { type: "excerpt"; payload: IExcerpt }
   );
 
-export type IRecommendationShelf =
-  | "urgent"
-  | "pins"
-  | "rabbitholes"
-  | "recent"
-  | string;
+export type IRecommendationShelf = "urgent" | "pins" | "rabbitholes" | "recent" | string;
 
 export type IRecommendation = IAcceleratorItem & {
   shelf: IRecommendationShelf;
@@ -93,16 +88,11 @@ export default class Recommendations {
 
   private static async db() {
     const db = await getDatabase();
-    if (!db)
-      throw new Error(
-        "Database connection unavailable in Recommendations Service",
-      );
+    if (!db) throw new Error("Database connection unavailable in Recommendations Service");
     return db;
   }
 
-  public static async getAcceleratorFeed(
-    userId: string | RecordId,
-  ): Promise<IShelfData[]> {
+  public static async getAcceleratorFeed(userId: string | RecordId): Promise<IShelfData[]> {
     const userRecordId = new StringRecordId(userId);
 
     const [temporalAnchor, tagClusters] = await Promise.all([
@@ -153,9 +143,7 @@ export default class Recommendations {
       return { ...shelf, totalShelfScore: maxItemScore * shelf.inherentWeight };
     });
 
-    scoredShelves.sort(
-      (a, b) => (b.totalShelfScore || 0) - (a.totalShelfScore || 0),
-    );
+    scoredShelves.sort((a, b) => (b.totalShelfScore || 0) - (a.totalShelfScore || 0));
 
     const seenIds = new Set<string>();
     const finalFeed: IShelfData[] = [];
@@ -180,7 +168,7 @@ export default class Recommendations {
   private static async strategyTagExploration(
     userId: StringRecordId,
     anchorVector: number[],
-    tagIds: string[],
+    tagIds: string[]
   ): Promise<IShelfData[]> {
     if (!anchorVector?.length || !tagIds?.length) return [];
 
@@ -190,7 +178,7 @@ export default class Recommendations {
       tagIds.map(async (tagId) => {
         try {
           const [tagInfo] = await this.db().then((db) =>
-            db.query<[{ name: string }[]]>(`SELECT name FROM ONLY ${tagId}`),
+            db.query<[{ name: string }[]]>(`SELECT name FROM ONLY ${tagId}`)
           );
           const tagName = tagInfo?.[0]?.name || "Topic";
 
@@ -222,24 +210,17 @@ export default class Recommendations {
           ];
 
           const resultsNested = await Promise.all(
-            builders.map((b) => b.searchVector(anchorVector)),
+            builders.map((b) => b.searchVector(anchorVector))
           );
 
-          const combinedResults = resultsNested
-            .flat()
-            .filter((r): r is ISearchResult => !!r);
+          const combinedResults = resultsNested.flat().filter((r): r is ISearchResult => !!r);
 
           if (combinedResults.length > 0) {
             combinedResults.sort((a, b) => b.score - a.score);
 
             const items = combinedResults
               .slice(0, 5)
-              .map((res) =>
-                this.mapSearchResultToAcceleratorItem(
-                  res,
-                  `Relevant in ${tagName}`,
-                ),
-              );
+              .map((res) => this.mapSearchResultToAcceleratorItem(res, `Relevant in ${tagName}`));
 
             shelves.push({
               id: `tag-${tagId}`,
@@ -250,7 +231,7 @@ export default class Recommendations {
         } catch (e) {
           console.error(`Error processing tag shelf ${tagId}`, e);
         }
-      }),
+      })
     );
 
     return shelves;
@@ -263,7 +244,7 @@ export default class Recommendations {
    */
   private static async strategyRecentActivity(
     userId: StringRecordId,
-    anchorVector: number[],
+    anchorVector: number[]
   ): Promise<IAcceleratorItem[]> {
     const db = await this.db();
 
@@ -276,29 +257,23 @@ export default class Recommendations {
       LIMIT 15;
     `;
 
-    const [results] = await db.query<
-      [(IConnectable & { embeddings: number[] })[]]
-    >(query, { userId });
+    const [results] = await db.query<[(IConnectable & { embeddings: number[] })[]]>(query, {
+      userId,
+    });
     const rawItems = results || [];
 
     const items = rawItems
       .map((i): IAcceleratorItem | null => {
         const type = Connectable.idToType(i.id.toString());
-        const fields = type
-          ? Connectable.fieldsResolver[type](i as any)
-          : undefined;
+        const fields = type ? Connectable.fieldsResolver[type](i as any) : undefined;
         if (!fields || !type) return null;
 
         // 1. Calculate Freshness (0.0 - 1.0 based on time)
-        const hoursSinceUpdate =
-          (Date.now() - new Date(i.updatedAt).getTime()) / (1000 * 60 * 60);
+        const hoursSinceUpdate = (Date.now() - new Date(i.updatedAt).getTime()) / (1000 * 60 * 60);
         const freshnessScore = Math.max(0.1, 1.0 - hoursSinceUpdate / 72); // 3 day window
 
         // 2. Calculate Context Relevance (0.0 - 1.0 based on vector)
-        const contextScore = this.calculateRelevance(
-          i.embeddings,
-          anchorVector,
-        );
+        const contextScore = this.calculateRelevance(i.embeddings, anchorVector);
 
         // 3. Blend Scores
         // We weigh relevance heavily here. A slightly older item that is highly relevant
@@ -325,7 +300,7 @@ export default class Recommendations {
    */
   private static async strategyUrgentTasks(
     userId: StringRecordId,
-    anchorVector: number[],
+    anchorVector: number[]
   ): Promise<IAcceleratorItem[]> {
     const db = await this.db();
 
@@ -390,8 +365,7 @@ export default class Recommendations {
 
       // 4. Blend Scores
       const finalScore =
-        urgencyScore * (1 - this.RELEVANCE_WEIGHT_TASK) +
-        contextScore * this.RELEVANCE_WEIGHT_TASK;
+        urgencyScore * (1 - this.RELEVANCE_WEIGHT_TASK) + contextScore * this.RELEVANCE_WEIGHT_TASK;
 
       return {
         id: t.id.toString(),
@@ -411,7 +385,7 @@ export default class Recommendations {
    */
   private static async strategyActiveRabbitholes(
     userId: StringRecordId,
-    anchorVector: number[],
+    anchorVector: number[]
   ): Promise<IAcceleratorItem[]> {
     const db = await this.db();
 
@@ -436,10 +410,7 @@ export default class Recommendations {
 
       // Relevance Score
       // Rabbitholes are high-context items. If I'm working on "AI", the "AI" rabbithole should pop.
-      const relevanceScore = this.calculateRelevance(
-        h.cachedCentroidEmbeddings,
-        anchorVector,
-      );
+      const relevanceScore = this.calculateRelevance(h.cachedCentroidEmbeddings, anchorVector);
 
       // Blend: 50/50. Even if I haven't touched it in 5 days, if it matches my EXACT current thought, show it.
       const finalScore = recencyScore * 0.5 + relevanceScore * 0.5;
@@ -465,7 +436,7 @@ export default class Recommendations {
    */
   private static async strategyPinnedItems(
     userId: StringRecordId,
-    anchorVector: number[],
+    anchorVector: number[]
   ): Promise<IAcceleratorItem[]> {
     const db = await this.db();
     const query = `
@@ -473,9 +444,9 @@ export default class Recommendations {
       WHERE <-pins<-(user WHERE id = $userId)
     `;
 
-    const [results] = await db.query<
-      [(IConnectable & { embeddings: number[] })[]]
-    >(query, { userId });
+    const [results] = await db.query<[(IConnectable & { embeddings: number[] })[]]>(query, {
+      userId,
+    });
     const rawItems = results || [];
 
     return rawItems.map((i): IAcceleratorItem => {
@@ -492,7 +463,7 @@ export default class Recommendations {
       // If context is 1.0, score is 1.0. If context is 0, score is 0.6 (still high, but lower)
       const finalScore = baseScore * (0.6 + contextScore * 0.4);
 
-      let title = fields.name;
+      const title = fields.name;
 
       return this.buildAcceleratorItem(i, type, title, finalScore, {
         label: "Pinned",
@@ -504,9 +475,7 @@ export default class Recommendations {
 
   // --- PHASE 1: ANCHORS ---
 
-  public static async getTemporalAnchor(
-    userId: StringRecordId,
-  ): Promise<number[]> {
+  public static async getTemporalAnchor(userId: StringRecordId): Promise<number[]> {
     const db = await this.db();
 
     // Look back 15 items to get a broader "session" context
@@ -533,9 +502,7 @@ export default class Recommendations {
     return this.calculateDecayedCentroid(items);
   }
 
-  public static async getActiveTagClusters(
-    userId: StringRecordId,
-  ): Promise<string[]> {
+  public static async getActiveTagClusters(userId: StringRecordId): Promise<string[]> {
     const db = await this.db();
     const query = `
       SELECT count() as freq, id FROM tag
@@ -563,13 +530,9 @@ export default class Recommendations {
    */
   private static calculateRelevance(
     itemVector: number[] | undefined,
-    anchorVector: number[],
+    anchorVector: number[]
   ): number {
-    if (
-      !itemVector ||
-      !anchorVector ||
-      itemVector.length !== anchorVector.length
-    ) {
+    if (!itemVector || !anchorVector || itemVector.length !== anchorVector.length) {
       return 0;
     }
 
@@ -593,8 +556,7 @@ export default class Recommendations {
   private static calculateDecayedCentroid(items: IAnchorItem[]): number[] {
     if (items.length === 0) return [];
 
-    const vectorSize =
-      items[0].embeddings?.length || default_embeddings_dimension;
+    const vectorSize = items[0].embeddings?.length || default_embeddings_dimension;
     const centroid = new Array(vectorSize).fill(0);
     let totalWeight = 0;
 
@@ -619,7 +581,7 @@ export default class Recommendations {
 
   private static mapSearchResultToAcceleratorItem(
     res: ISearchResult,
-    reason: string,
+    reason: string
   ): IAcceleratorItem {
     const i = res.value;
     const typeString = i.type as IConnectableTypes;
@@ -642,7 +604,7 @@ export default class Recommendations {
     type: IConnectableTypes,
     title: string,
     score: number,
-    context: IAcceleratorItem["context"],
+    context: IAcceleratorItem["context"]
   ): IAcceleratorItem {
     const baseProps = {
       id: payload.id.toString(),

@@ -1,17 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, getAccessToken, serverLocation } from "../server/api";
-import {
-  IFinding,
-  ISpyglassHistoryItem,
-  ISpyglassIntent,
-} from "../../app/services/Spyglass";
+import { IFinding, ISpyglassHistoryItem, ISpyglassIntent } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
 import { IConnectableSearchQueryTagFilter, ISearchResult } from "../../shared/types/search";
 import { RecordId } from "surrealdb";
-import {
-  parsePartialGlimpseResult,
-  PartialGlimpseResult,
-} from "../utils/partialJsonParser";
+import { parsePartialGlimpseResult, PartialGlimpseResult } from "../utils/partialJsonParser";
 import {
   scoreConnectablesBySelection,
   extractIdsFromFindings,
@@ -27,14 +20,14 @@ export type OnFullResultsLoadedParams = {
 export type OnSelectedResultsUpdateParams = {
   fullResults: IConnectable[];
   selectedResults: ISearchResult[];
-  mode: 'deep' | 'glimpse';
+  mode: "deep" | "glimpse";
   partial: boolean;
 };
 
 export type OnSelectedResultsCompleteParams = {
   fullResults: IConnectable[];
   selectedResults: ISearchResult[];
-  mode: 'deep' | 'glimpse';
+  mode: "deep" | "glimpse";
 };
 
 export type OnSearchEndParams = {
@@ -46,44 +39,44 @@ export type OnSearchEndParams = {
 
 export interface ISpyglassServiceArgs {
   // Lifecycle Callbacks
-  
+
   /**
    * Fires when a search operation begins.
    * Use this to show loading states, clear previous results, etc.
    */
   onSearchStart?: () => void;
-  
+
   /**
    * Fires when search operation ends (success or failure).
    */
   onSearchEnd?: (params: OnSearchEndParams) => void;
-  
+
   /**
    * Fires when the search is manually reset via reset().
    */
   onSearchReset?: () => void;
-  
+
   /**
    * Fires whenever the search status message changes.
    */
   onStatusChange?: (status: string | null) => void;
-  
+
   // Results Callbacks
-  
+
   /**
    * Fires when raw search results are loaded (Phase 1: Search).
    * These are ALL results found by the search, before model filtering.
    * Fires once, early in the process.
    */
   onFullResultsLoaded?: (params: OnFullResultsLoadedParams) => void;
-  
+
   /**
    * Fires progressively as the model selects results (Phase 2: Selection).
    * Throttled to ~100ms intervals for performance.
    * Fires multiple times including final update (partial: false).
    */
   onSelectedResultsUpdate?: (params: OnSelectedResultsUpdateParams) => void;
-  
+
   /**
    * Fires once when model has finished selecting results (Phase 2: Complete).
    * This is the final, authoritative set of selected results.
@@ -150,8 +143,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
   const [fullResults, setFullResults] = useState<IConnectable[]>([]);
   const [findings, setFindings] = useState<IFinding[]>([]);
   const [overview, setOverview] = useState("");
-  const [glimpseResult, setGlimpseResult] =
-    useState<PartialGlimpseResult | null>(null);
+  const [glimpseResult, setGlimpseResult] = useState<PartialGlimpseResult | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [history, setHistory] = useState<ISpyglassHistoryItem[]>([]);
   const searchArgsRef = useRef<ISearchArgs | null>(null);
@@ -191,7 +183,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
     resultsRef.current = [];
     fullResultsRef.current = []; // Reset full results ref
     lastUpdateTimeRef.current = 0; // Reset throttle timer
-    
+
     // Fire reset callback
     callbacksRef.current?.onSearchReset?.();
   }, []);
@@ -205,70 +197,64 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
     callbacksRef.current?.onStatusChange?.(newStatus);
   }, []);
 
-  const fireSelectedResultsUpdate = useCallback((partial: boolean, forceImmediate: boolean = false) => {
-    // Throttle streaming updates (but not final update)
-    if (partial && !forceImmediate) {
-      const now = Date.now();
-      if (now - lastUpdateTimeRef.current < THROTTLE_MS) {
-        return; // Skip this update due to throttling
+  const fireSelectedResultsUpdate = useCallback(
+    (partial: boolean, forceImmediate: boolean = false) => {
+      // Throttle streaming updates (but not final update)
+      if (partial && !forceImmediate) {
+        const now = Date.now();
+        if (now - lastUpdateTimeRef.current < THROTTLE_MS) {
+          return; // Skip this update due to throttling
+        }
+        lastUpdateTimeRef.current = now;
       }
-      lastUpdateTimeRef.current = now;
-    }
-    
-    if (!callbacksRef.current?.onSelectedResultsUpdate && 
-        !callbacksRef.current?.onSelectedResultsComplete) {
-      return; // No callbacks registered, skip computation
-    }
-    
-    const mode: 'deep' | 'glimpse' = searchArgsRef.current?.deepAnalysis ? 'deep' : 'glimpse';
-    let selectedIds: string[] = [];
-    
-    if (mode === 'deep') {
-      // Use accumulated findings
-      selectedIds = extractIdsFromFindings(fullFindings.current);
-    } else {
-      // Parse current glimpse result
-      const currentGlimpse = parsePartialGlimpseResult(fullGlimpseResult.current);
-      if (currentGlimpse) {
-        selectedIds = extractIdsFromGlimpseResult(currentGlimpse);
+
+      if (
+        !callbacksRef.current?.onSelectedResultsUpdate &&
+        !callbacksRef.current?.onSelectedResultsComplete
+      ) {
+        return; // No callbacks registered, skip computation
       }
-    }
-    
-    const selectedResults = scoreConnectablesBySelection(
-      fullResultsRef.current,
-      selectedIds
-    );
-    
-    const params = {
-      fullResults: fullResultsRef.current,
-      selectedResults,
-      mode,
-    };
-    
-    // Always fire update callback
-    callbacksRef.current?.onSelectedResultsUpdate?.({
-      ...params,
-      partial,
-    });
-    
-    // Also fire complete callback if this is the final update
-    if (!partial) {
-      callbacksRef.current?.onSelectedResultsComplete?.(params);
-    }
-  }, []);
+
+      const mode: "deep" | "glimpse" = searchArgsRef.current?.deepAnalysis ? "deep" : "glimpse";
+      let selectedIds: string[] = [];
+
+      if (mode === "deep") {
+        // Use accumulated findings
+        selectedIds = extractIdsFromFindings(fullFindings.current);
+      } else {
+        // Parse current glimpse result
+        const currentGlimpse = parsePartialGlimpseResult(fullGlimpseResult.current);
+        if (currentGlimpse) {
+          selectedIds = extractIdsFromGlimpseResult(currentGlimpse);
+        }
+      }
+
+      const selectedResults = scoreConnectablesBySelection(fullResultsRef.current, selectedIds);
+
+      const params = {
+        fullResults: fullResultsRef.current,
+        selectedResults,
+        mode,
+      };
+
+      // Always fire update callback
+      callbacksRef.current?.onSelectedResultsUpdate?.({
+        ...params,
+        partial,
+      });
+
+      // Also fire complete callback if this is the final update
+      if (!partial) {
+        callbacksRef.current?.onSelectedResultsComplete?.(params);
+      }
+    },
+    []
+  );
 
   const search = useCallback(
     async (
-      {
-        query,
-        scope,
-        deepAnalysis,
-        rabbithole,
-        tags,
-        date,
-        history: providedHistory,
-      }: ISearchArgs,
-      autosave?: boolean,
+      { query, scope, deepAnalysis, rabbithole, tags, date, history: providedHistory }: ISearchArgs,
+      autosave?: boolean
     ) => {
       setInitialized(true);
       // We don't call resetState() here because we want to preserve history for multi-turn.
@@ -311,24 +297,21 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
           headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const response = await fetch(
-          `${serverLocation}/api/search/spyglass/stream`,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify({
-              query,
-              scope,
-              deepAnalysis,
-              rabbithole,
-              tags,
-              date,
-              history: activeHistory,
-            }),
-            signal: abortControllerRef.current.signal,
-            credentials: "include",
-          },
-        );
+        const response = await fetch(`${serverLocation}/api/search/spyglass/stream`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            query,
+            scope,
+            deepAnalysis,
+            rabbithole,
+            tags,
+            date,
+            history: activeHistory,
+          }),
+          signal: abortControllerRef.current.signal,
+          credentials: "include",
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -402,9 +385,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
                       break;
                     case "glimpse_chunk":
                       fullGlimpseResult.current += data;
-                      const partialResult = parsePartialGlimpseResult(
-                        fullGlimpseResult.current,
-                      );
+                      const partialResult = parsePartialGlimpseResult(fullGlimpseResult.current);
                       if (partialResult) {
                         setGlimpseResult(partialResult);
 
@@ -424,9 +405,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
                       const newHistoryItem: ISpyglassHistoryItem = {
                         query: query,
                         intent: intentRef.current?.intent || "General inquiry",
-                        response: deepAnalysis
-                          ? fullOverview.current
-                          : fullGlimpseResult.current,
+                        response: deepAnalysis ? fullOverview.current : fullGlimpseResult.current,
                       };
                       setHistory((prev) => [...prev, newHistoryItem]);
 
@@ -464,13 +443,13 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
         const errorMsg = "An error occurred during the analysis.";
         setError(errorMsg);
         updateStatus(null);
-        callbacksRef.current?.onSearchEnd?.({ 
-          complete: false, 
-          error: errorMsg 
+        callbacksRef.current?.onSearchEnd?.({
+          complete: false,
+          error: errorMsg,
         });
       }
     },
-    [resetState],
+    [resetState]
   );
 
   const save = useCallback(
@@ -495,9 +474,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
           baseQuery: searchArgsRef.current.query,
           scope: resultsRef.current.map((r) => r.id.toString()),
           isDeepAnalysis: searchArgsRef.current.deepAnalysis,
-          searchPerformed:
-            !searchArgsRef.current.scope ||
-            searchArgsRef.current.scope.length === 0,
+          searchPerformed: !searchArgsRef.current.scope || searchArgsRef.current.scope.length === 0,
           intent: intentRef.current,
           results: resultsRef.current,
           findings: fullFindings.current,
@@ -510,7 +487,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
         console.error("Failed to save analysis:", error);
       }
     },
-    [complete],
+    [complete]
   );
 
   const buildCitationMap = (): ICitationMap => {

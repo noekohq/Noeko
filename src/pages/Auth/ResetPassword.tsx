@@ -130,13 +130,12 @@ export default function ResetPassword() {
             <Grid.Col span={12}>
               {!resetSuccess ? (
                 <Text size="sm" c="dimmed">
-                  Enter your new password below. Make sure it's at least 8
-                  characters long.
+                  Enter your new password below. Make sure it's at least 8 characters long.
                 </Text>
               ) : (
                 <Text size="sm" c="dimmed">
-                  Your password has been reset successfully! You will be
-                  redirected to the login page in a few seconds.
+                  Your password has been reset successfully! You will be redirected to the login
+                  page in a few seconds.
                 </Text>
               )}
             </Grid.Col>
@@ -165,10 +164,7 @@ export default function ResetPassword() {
                     <Button component={Link} to="/login" variant="default">
                       Back to Login
                     </Button>
-                    <Button
-                      onClick={handleResetPassword}
-                      disabled={loadingReset}
-                    >
+                    <Button onClick={handleResetPassword} disabled={loadingReset}>
                       Reset Password
                     </Button>
                   </Group>

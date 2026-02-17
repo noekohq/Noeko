@@ -48,10 +48,7 @@ export const toYYYYMMDD = (date: Date): string => {
   const month = date.getMonth() + 1; // getMonth() is zero-based
   const day = date.getDate();
 
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
-    2,
-    "0",
-  )}`;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 
 export const fromYYYYMMDD = (dateString: string): Date => {

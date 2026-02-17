@@ -51,9 +51,7 @@ const TabsTab = ({ value, leftSection, children, disabled }: ITabsTabProps) => {
         disabled ? styles.tabDisabled : ""
       }`}
     >
-      {leftSection && (
-        <span className={styles.tabLeftSection}>{leftSection}</span>
-      )}
+      {leftSection && <span className={styles.tabLeftSection}>{leftSection}</span>}
       {children}
     </button>
   );
@@ -103,9 +101,7 @@ export const Tabs: React.FC<ITabsProps> & ITabsComposition = ({
   };
 
   return (
-    <TabsContext.Provider
-      value={{ activeTab, setActiveTab: handleSetActiveTab }}
-    >
+    <TabsContext.Provider value={{ activeTab, setActiveTab: handleSetActiveTab }}>
       <div className={styles.tabsContainer}>{children}</div>
     </TabsContext.Provider>
   );

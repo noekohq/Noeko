@@ -16,9 +16,7 @@ interface IRabbitholeCardProps {
   actions?: IRabbitholeAction[];
 }
 
-const getRabbitholeDefaultSummary = (
-  rabbithole: IRabbithole,
-): string | undefined => {
+const getRabbitholeDefaultSummary = (rabbithole: IRabbithole): string | undefined => {
   return getNodeDescription({
     ...rabbithole,
     type: "rabbithole",

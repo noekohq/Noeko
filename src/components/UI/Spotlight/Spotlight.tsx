@@ -45,17 +45,8 @@ import { useNavigate } from "react-router";
 import { api } from "../../../server/api";
 import type { IIdea } from "../../../../shared/types/idea";
 import { Option } from "./Option";
-import type {
-  ISubviewDefinition,
-  IUnifiedSearchItem,
-  SpotlightMainItem,
-} from "./spotlight.d";
-import {
-  getNodeDescription,
-  getNodeLink,
-  getNodeTitle,
-  NodeIcon,
-} from "../../../utils/graph";
+import type { ISubviewDefinition, IUnifiedSearchItem, SpotlightMainItem } from "./spotlight.d";
+import { getNodeDescription, getNodeLink, getNodeTitle, NodeIcon } from "../../../utils/graph";
 import useRabbithole from "../../../hooks/useRabbithole";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { useLandscape } from "../../../contexts/LandscapeContext";
@@ -96,13 +87,9 @@ async function fetchSmart(query: string): Promise<ISearchResultValue[]> {
   }
 }
 
-async function fetchSuggestedRabbitholes(
-  query: string,
-): Promise<IRabbithole[]> {
+async function fetchSuggestedRabbitholes(query: string): Promise<IRabbithole[]> {
   try {
-    const response = await api.get(
-      `/search/rabbitholes/suggest?query=${query}`,
-    );
+    const response = await api.get(`/search/rabbitholes/suggest?query=${query}`);
     return response.data.data as IRabbithole[];
   } catch (error) {
     console.error(error);
@@ -120,27 +107,15 @@ export default function Spotlight() {
       },
       newIdea,
     },
-    views: {
-      dashboard,
-      graph: viewGraph,
-      spyglass,
-      ideas,
-      settings,
-      profile,
-      tags,
-      updates,
-    },
+    views: { dashboard, graph: viewGraph, spyglass, ideas, settings, profile, tags, updates },
   } = useInteraction();
 
   const spotlightRef = useRef<HTMLInputElement>(null);
   const [spotlightValue, setSpotlightValue] = useState("");
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [currentSubviewId, setCurrentSubviewId] = useState<string | null>(null);
-  const [displayedItems, setDisplayedItems] = useState<IUnifiedSearchItem[]>(
-    [],
-  );
-  const [debouncedSearchText, setDebouncedSearchText] =
-    useState(spotlightValue);
+  const [displayedItems, setDisplayedItems] = useState<IUnifiedSearchItem[]>([]);
+  const [debouncedSearchText, setDebouncedSearchText] = useState(spotlightValue);
   const currentSearchRef = useRef<number>(0);
 
   const { user } = useAuth();
@@ -259,7 +234,7 @@ export default function Spotlight() {
                       displayTitle: item.title,
                       displayDescription: item.description,
                       isTopLevel: false,
-                    })),
+                    }))
                   );
                   setActiveItemIndex(0);
                 }
@@ -294,7 +269,7 @@ export default function Spotlight() {
           const filtered = itemsInSubview.filter(
             (item) =>
               item.title.toLowerCase().includes(lowerCaseQuery) ||
-              item.keywords?.toLowerCase().includes(lowerCaseQuery),
+              item.keywords?.toLowerCase().includes(lowerCaseQuery)
           );
           setDisplayedItems(filtered);
         } else {
@@ -350,9 +325,7 @@ export default function Spotlight() {
       } else if (event.key === "ArrowDown") {
         event.preventDefault();
         if (!isCustomComponentView && displayedItems.length > 0) {
-          setActiveItemIndex((prev) =>
-            Math.min(displayedItems.length - 1, prev + 1),
-          );
+          setActiveItemIndex((prev) => Math.min(displayedItems.length - 1, prev + 1));
         }
       } else if (event.key === "Enter") {
         event.preventDefault();
@@ -384,26 +357,16 @@ export default function Spotlight() {
   ]);
 
   // --- Dynamic Placeholder & Title ---
-  const currentSubviewDef = currentSubviewId
-    ? subviewDefinitions.get(currentSubviewId)
-    : null;
-  const currentPlaceholder =
-    currentSubviewDef?.placeholder || "Search or type a command...";
+  const currentSubviewDef = currentSubviewId ? subviewDefinitions.get(currentSubviewId) : null;
+  const currentPlaceholder = currentSubviewDef?.placeholder || "Search or type a command...";
   const currentTitle = currentSubviewDef?.title;
 
   if (!spotlightOpened) return null;
 
   return createPortal(
-    <div
-      className={styles.spotlightOverlay}
-      onClick={closeSpotlightAndResetView}
-    >
+    <div className={styles.spotlightOverlay} onClick={closeSpotlightAndResetView}>
       <div className={styles.tipText}>
-        <Text>
-          {isMobile
-            ? "Tap anywhere to close."
-            : currentTitle || "Find anything..."}
-        </Text>
+        <Text>{isMobile ? "Tap anywhere to close." : currentTitle || "Find anything..."}</Text>
       </div>
       <div className={styles.spotlight} onClick={(e) => e.stopPropagation()}>
         {currentSubviewId && (
@@ -461,7 +424,7 @@ export default function Spotlight() {
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }
 
@@ -474,9 +437,7 @@ type IUseSpotlightReturn = {
   subviewDefinitions: Map<string, ISubviewDefinition>;
 };
 
-const useSpotlightConfig = ({
-  onClose,
-}: IUseSpotlightConfig): IUseSpotlightReturn => {
+const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightReturn => {
   const {
     ui: {
       theme: {
@@ -734,18 +695,7 @@ const useSpotlightConfig = ({
           ]
         : []),
     ],
-    [
-      onClose,
-      newIdea,
-      dashboard,
-      viewGraph,
-      spyglass,
-      ideas,
-      tags,
-      updates,
-      settings,
-      profile,
-    ],
+    [onClose, newIdea, dashboard, viewGraph, spyglass, ideas, tags, updates, settings, profile]
   );
 
   const subviewDefinitions = useMemo<Map<string, ISubviewDefinition>>(
@@ -1012,8 +962,7 @@ const useSpotlightConfig = ({
           {
             id: "smartSearch",
             title: "Smart Search",
-            placeholder:
-              "Search for an idea, task, or source using natural language...",
+            placeholder: "Search for an idea, task, or source using natural language...",
             debounceMs: 500,
             dynamicItems: async ({ searchText, closeSpotlight }) => {
               const suggestedItems = await fetchSmart(searchText);
@@ -1052,8 +1001,7 @@ const useSpotlightConfig = ({
             title: "Enter Rabbithole",
             placeholder: "Search for an rabbithole to enter...",
             dynamicItems: async ({ searchText, closeSpotlight }) => {
-              const suggestedItems =
-                await fetchSuggestedRabbitholes(searchText);
+              const suggestedItems = await fetchSuggestedRabbitholes(searchText);
 
               return suggestedItems.map((rabbithole) => ({
                 id: rabbithole.id.toString(),
@@ -1072,7 +1020,7 @@ const useSpotlightConfig = ({
           },
         ],
       ]),
-    [setScheme, setBodyFont, setOverride],
+    [setScheme, setBodyFont, setOverride]
   );
 
   return {

@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import styles from "./TagPicker.module.scss";
-import {
-  Popover,
-  Textarea,
-  Button,
-  Stack,
-  Text,
-  TextInput,
-  Group,
-} from "@mantine/core";
+import { Popover, Textarea, Button, Stack, Text, TextInput, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
 import { ITag } from "../../../../../shared/types/tags";
@@ -22,11 +14,7 @@ import PaperDrawer from "../../Paper/PaperDrawer";
 
 interface TagPickerProps {
   onSelectExisting: (tag: ITag) => void;
-  onCreateNew?: (
-    name: string,
-    description: string,
-    color: string,
-  ) => Promise<void>;
+  onCreateNew?: (name: string, description: string, color: string) => Promise<void>;
   omitIds?: string[];
   initialSuggestions?: ITag[];
   allowCreation?: boolean;
@@ -54,9 +42,7 @@ export function TagPickerContent({
     runOnDependencies: [searchQuery],
   });
 
-  const filteredSuggestions = (suggestions || []).filter(
-    (t) => !omitIds.includes(t.id.toString()),
-  );
+  const filteredSuggestions = (suggestions || []).filter((t) => !omitIds.includes(t.id.toString()));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -79,8 +65,7 @@ export function TagPickerContent({
   };
 
   const isSearching = searchQuery.trim().length > 0;
-  const hasInitialSuggestions =
-    initialSuggestions && initialSuggestions.length > 0;
+  const hasInitialSuggestions = initialSuggestions && initialSuggestions.length > 0;
   const hasFilteredSuggestions = filteredSuggestions.length > 0;
 
   const showInitialSuggestions = !isSearching && hasInitialSuggestions;
@@ -115,9 +100,7 @@ export function TagPickerContent({
       allowCreation={allowCreation}
     >
       <PaperSelection.Menu>
-        {showInitialSuggestions &&
-          initialSuggestions &&
-          renderSuggestions(initialSuggestions)}
+        {showInitialSuggestions && initialSuggestions && renderSuggestions(initialSuggestions)}
 
         {showTypeToSearch && (
           <Text c="dimmed" size="xs" ta="left" py="sm">
@@ -139,10 +122,7 @@ export function TagPickerContent({
       */}
       {allowCreation && onCreateNew && (
         <PaperSelection.Form title="New Tag">
-          <TagCreateForm
-            onSubmit={handleCreateSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <TagCreateForm onSubmit={handleCreateSubmit} isSubmitting={isSubmitting} />
         </PaperSelection.Form>
       )}
     </PaperSelection>
@@ -169,11 +149,7 @@ export function TagPicker({
       <>
         <PaperButton
           leftSection={
-            opened ? (
-              <XIcon weight="bold" size={14} />
-            ) : (
-              <PlusIcon weight="bold" size={14} />
-            )
+            opened ? <XIcon weight="bold" size={14} /> : <PlusIcon weight="bold" size={14} />
           }
           onClick={toggle}
           size="md"
@@ -208,11 +184,7 @@ export function TagPicker({
         <div>
           <PaperButton
             leftSection={
-              opened ? (
-                <XIcon weight="bold" size={14} />
-              ) : (
-                <PlusIcon weight="bold" size={14} />
-              )
+              opened ? <XIcon weight="bold" size={14} /> : <PlusIcon weight="bold" size={14} />
             }
             onClick={toggle}
             size="md"
@@ -240,11 +212,7 @@ function TagCreateForm({
   onSubmit,
   isSubmitting,
 }: {
-  onSubmit: (values: {
-    name: string;
-    description: string;
-    color: string;
-  }) => Promise<void>;
+  onSubmit: (values: { name: string; description: string; color: string }) => Promise<void>;
   isSubmitting: boolean;
 }) {
   const { searchQuery } = usePaperSelection();

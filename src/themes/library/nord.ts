@@ -1,10 +1,4 @@
-import {
-  createTheme,
-  DefaultMantineColor,
-  Input,
-  MantineColorsTuple,
-  Paper,
-} from "@mantine/core";
+import { createTheme, DefaultMantineColor, Input, MantineColorsTuple, Paper } from "@mantine/core";
 import { ICSSApplicator, IOverrideResolver } from "../../declarations/themes";
 import { getCurrentScheme } from "../../utils/dom";
 
@@ -96,9 +90,9 @@ const nord: IOverrideResolver = (t) => {
     ],
   };
 
-  const lightColors: Partial<
-    Record<DefaultMantineColor, MantineColorsTuple>
-  > & { dark: MantineColorsTuple } = {
+  const lightColors: Partial<Record<DefaultMantineColor, MantineColorsTuple>> & {
+    dark: MantineColorsTuple;
+  } = {
     ...baseColors,
     dark: [
       "#2E3440",
@@ -141,8 +135,7 @@ const nord: IOverrideResolver = (t) => {
       "--mantine-color-default": lightColors.dark[8], // nord5
       "--color-code-background": lightColors.dark[9],
       "--color-code-foreground": lightColors.dark[1],
-      "--color-highlight":
-        lightColors.yellow?.[6] ?? "--mantine-color-highlight-6", // nord13
+      "--color-highlight": lightColors.yellow?.[6] ?? "--mantine-color-highlight-6", // nord13
       "--color-highlight-text": lightColors.dark[1],
       "--item-filled-color": lightColors.dark[8],
     },

@@ -13,10 +13,7 @@ type ITagsManagerProps = {
   maxSuggested: number;
 };
 
-export default function TagsManager({
-  connectable,
-  maxSuggested,
-}: ITagsManagerProps) {
+export default function TagsManager({ connectable, maxSuggested }: ITagsManagerProps) {
   const { isMobile } = useLayout();
   const {
     tags: {
@@ -31,13 +28,9 @@ export default function TagsManager({
 
   useEffect(() => {
     refreshTags();
-  }, [connectable.embeddingsUpdatedAt]);
+  }, [connectable.id.toString(), connectable.embeddingsUpdatedAt.toString()]);
 
-  const handleCreateAndAdd = async (
-    name: string,
-    description: string,
-    color: string,
-  ) => {
+  const handleCreateAndAdd = async (name: string, description: string, color: string) => {
     await createTagAndAddToThing(name, description, connectable.id.toString());
     refreshTags();
   };
@@ -54,15 +47,11 @@ export default function TagsManager({
 
   const [showingAll, setShowAll] = useState(false);
 
-  const filteredSuggested = suggestedTags.filter(
-    (t) => !appliedSet.has(t.id.toString()),
-  );
+  const filteredSuggested = suggestedTags.filter((t) => !appliedSet.has(t.id.toString()));
   const suggestedToAllowed = showingAll
     ? filteredSuggested
     : filteredSuggested.slice(0, maxSuggested);
-  const slicedOutSuggestions = showingAll
-    ? []
-    : filteredSuggested.slice(maxSuggested);
+  const slicedOutSuggestions = showingAll ? [] : filteredSuggested.slice(maxSuggested);
 
   return (
     <div className={styles.tagsManager}>

@@ -22,10 +22,7 @@ import { getCurrentTimeOfDay } from "../../utils/datetime";
 import useFetch from "../../hooks/useFetch";
 import { IIdea, IUserIdeaStats } from "../../../shared/types/idea";
 import { useLayout } from "../../contexts/LayoutContext";
-import {
-  CompactIdeaCard,
-  StandardIdeaCard,
-} from "../../components/Display/Ideas/IdeaCards";
+import { CompactIdeaCard, StandardIdeaCard } from "../../components/Display/Ideas/IdeaCards";
 import { getOS } from "../../utils/platform";
 import Search from "../../components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
@@ -141,9 +138,7 @@ export default function Dashboard() {
           <Stack gap="xs">
             {dashboardData?.recentIdeas &&
               dashboardData.recentIdeas.map((idea) => {
-                return (
-                  <CompactIdeaCard idea={idea} key={idea.id.toString()} link />
-                );
+                return <CompactIdeaCard idea={idea} key={idea.id.toString()} link />;
               })}
           </Stack>
         </LeftSidebar.Open>
@@ -159,8 +154,7 @@ export default function Dashboard() {
             </Group>
             <Group>
               <Text size="sm" c="dimmed">
-                Poke around, have fun, enjoy your time and don't be afraid to
-                give us feedback!
+                Poke around, have fun, enjoy your time and don't be afraid to give us feedback!
               </Text>
             </Group>
           </Grid.Col>

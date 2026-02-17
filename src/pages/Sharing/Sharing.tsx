@@ -54,16 +54,11 @@ export default function Sharing() {
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const { load: loadShared, data: sharedThings } = useFetch<
-    undefined,
-    ISharedThing[]
-  >({
+  const { load: loadShared, data: sharedThings } = useFetch<undefined, ISharedThing[]>({
     url: "/sharing",
   });
 
-  const [collapsedSections, setCollapsedSections] = useState<
-    Record<string, boolean>
-  >({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadShared();
@@ -114,7 +109,7 @@ export default function Sharing() {
     });
 
     return Array.from(map.values()).sort(
-      (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime(),
+      (a, b) => b.lastActivity.getTime() - a.lastActivity.getTime()
     );
   }, [sharedThings, currentUser]);
 
@@ -124,10 +119,8 @@ export default function Sharing() {
       const userId = rel.user.id;
       const incomingKey = `${userId}_incoming`;
       const outgoingKey = `${userId}_outgoing`;
-      const isIncomingCollapsed =
-        rel.incoming.length === 0 || collapsedSections[incomingKey];
-      const isOutgoingCollapsed =
-        rel.outgoing.length === 0 || collapsedSections[outgoingKey];
+      const isIncomingCollapsed = rel.incoming.length === 0 || collapsedSections[incomingKey];
+      const isOutgoingCollapsed = rel.outgoing.length === 0 || collapsedSections[outgoingKey];
       return isIncomingCollapsed && isOutgoingCollapsed;
     });
   }, [relationships, collapsedSections]);
@@ -138,8 +131,7 @@ export default function Sharing() {
     } else {
       const newCollapsedState: Record<string, boolean> = {};
       relationships.forEach((rel) => {
-        const userId =
-          "id" in rel.user ? rel.user.id : (rel.user as IFriendUser).email;
+        const userId = "id" in rel.user ? rel.user.id : (rel.user as IFriendUser).email;
         if (rel.incoming.length > 0) {
           newCollapsedState[`${userId}_incoming`] = true;
         }
@@ -152,9 +144,7 @@ export default function Sharing() {
   };
 
   const getPrincipalName = (p: IFriendUser) => {
-    return "firstName" in p
-      ? `${p.firstName} ${p.lastName}`
-      : (p as IFriendUser).email;
+    return "firstName" in p ? `${p.firstName} ${p.lastName}` : (p as IFriendUser).email;
   };
 
   const { isMobile } = useLayout();
@@ -190,13 +180,7 @@ export default function Sharing() {
                 size="xs"
                 variant="default"
                 onClick={toggleAll}
-                leftSection={
-                  allCollapsed ? (
-                    <ArrowsOutSimpleIcon />
-                  ) : (
-                    <ArrowsInSimpleIcon />
-                  )
-                }
+                leftSection={allCollapsed ? <ArrowsOutSimpleIcon /> : <ArrowsInSimpleIcon />}
               >
                 {allCollapsed ? "Expand All" : "Collapse All"}
               </Button>
@@ -215,28 +199,20 @@ export default function Sharing() {
           )}
 
           {relationships.map((rel) => {
-            const userId =
-              "id" in rel.user ? rel.user.id : (rel.user as IFriendUser).email;
+            const userId = "id" in rel.user ? rel.user.id : (rel.user as IFriendUser).email;
             const incomingKey = `${userId}_incoming`;
             const outgoingKey = `${userId}_outgoing`;
             const isIncomingCollapsed = collapsedSections[incomingKey];
             const isOutgoingCollapsed = collapsedSections[outgoingKey];
             const userName =
-              "firstName" in rel.user
-                ? rel.user.firstName
-                : (rel.user as IFriendUser).email;
+              "firstName" in rel.user ? rel.user.firstName : (rel.user as IFriendUser).email;
 
             return (
               <Card key={userId} radius="lg" padding="md">
                 <Stack gap="md">
                   <Group justify="space-between" align="start">
                     <Group>
-                      <Avatar
-                        variant="filled"
-                        color="blue"
-                        size={42}
-                        radius="xl"
-                      >
+                      <Avatar variant="filled" color="blue" size={42} radius="xl">
                         {userInitials(rel.user)}
                       </Avatar>
                       <Stack gap="4px">
@@ -266,10 +242,7 @@ export default function Sharing() {
 
                   {rel.incoming.length > 0 && (
                     <Stack gap="xs">
-                      <UnstyledButton
-                        w="100%"
-                        onClick={() => toggleSection(incomingKey)}
-                      >
+                      <UnstyledButton w="100%" onClick={() => toggleSection(incomingKey)}>
                         <Group justify="space-between" c="gray">
                           <Group gap="xs">
                             <ArrowDownLeftIcon weight="bold" />
@@ -277,11 +250,7 @@ export default function Sharing() {
                               Shared by {userName}
                             </Text>
                           </Group>
-                          {isIncomingCollapsed ? (
-                            <CaretDownIcon />
-                          ) : (
-                            <CaretUpIcon />
-                          )}
+                          {isIncomingCollapsed ? <CaretDownIcon /> : <CaretUpIcon />}
                         </Group>
                       </UnstyledButton>
                       {!isIncomingCollapsed && (
@@ -290,11 +259,7 @@ export default function Sharing() {
                             { value: "list", icon: ListIcon },
                             { value: "grid", icon: SquaresFourIcon },
                           ]}
-                          things={getThingsFromConnectables(
-                            rel.incoming,
-                            {},
-                            true,
-                          )}
+                          things={getThingsFromConnectables(rel.incoming, {}, true)}
                           storageKey={`incoming_${userId.toString()}`}
                         />
                       )}
@@ -303,13 +268,8 @@ export default function Sharing() {
 
                   {rel.outgoing.length > 0 && (
                     <Stack gap="xs">
-                      {rel.incoming.length > 0 && !isIncomingCollapsed && (
-                        <Box h={8} />
-                      )}
-                      <UnstyledButton
-                        w="100%"
-                        onClick={() => toggleSection(outgoingKey)}
-                      >
+                      {rel.incoming.length > 0 && !isIncomingCollapsed && <Box h={8} />}
+                      <UnstyledButton w="100%" onClick={() => toggleSection(outgoingKey)}>
                         <Group justify="space-between" c="gray">
                           <Group gap="xs">
                             <ArrowUpRightIcon weight="bold" />
@@ -317,11 +277,7 @@ export default function Sharing() {
                               Shared by You
                             </Text>
                           </Group>
-                          {isOutgoingCollapsed ? (
-                            <CaretDownIcon />
-                          ) : (
-                            <CaretUpIcon />
-                          )}
+                          {isOutgoingCollapsed ? <CaretDownIcon /> : <CaretUpIcon />}
                         </Group>
                       </UnstyledButton>
                       {!isOutgoingCollapsed && (
@@ -330,11 +286,7 @@ export default function Sharing() {
                             { value: "list", icon: ListIcon },
                             { value: "grid", icon: SquaresFourIcon },
                           ]}
-                          things={getThingsFromConnectables(
-                            rel.outgoing,
-                            {},
-                            true,
-                          )}
+                          things={getThingsFromConnectables(rel.outgoing, {}, true)}
                           storageKey={`outgoing_${userId.toString()}`}
                         />
                       )}

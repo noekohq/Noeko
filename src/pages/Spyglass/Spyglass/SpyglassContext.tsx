@@ -12,10 +12,7 @@ interface ISpyglassContextProps {
   results: IConnectable[];
 }
 
-export default function SpyglassContext({
-  results,
-  citationMap,
-}: ISpyglassContextProps) {
+export default function SpyglassContext({ results, citationMap }: ISpyglassContextProps) {
   const citations = results?.filter((r) => {
     const hasCitation = !!citationMap[r.id.toString()];
     return hasCitation;

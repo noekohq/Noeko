@@ -10,10 +10,7 @@ interface IGlimpseNavigationProps {
   resultsMap: IResultsMap;
 }
 
-const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
-  glimpseResult,
-  resultsMap,
-}) => {
+const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({ glimpseResult, resultsMap }) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,7 +25,7 @@ const GlimpseNavigation: React.FC<IGlimpseNavigationProps> = ({
       {
         rootMargin: "-100px 0px -66%",
         threshold: 0,
-      },
+      }
     );
 
     const sections: string[] = [];

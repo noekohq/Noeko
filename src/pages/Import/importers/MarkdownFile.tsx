@@ -31,8 +31,7 @@ export default function MarkdownFileImporter() {
     validate: {
       userFile: (value) => {
         if (!value) return "File is required";
-        if (value.size > 1024 * 1024 * 10)
-          return "File size should not exceed 10MB";
+        if (value.size > 1024 * 1024 * 10) return "File size should not exceed 10MB";
         return null;
       },
     },
@@ -117,13 +116,7 @@ export default function MarkdownFileImporter() {
             accept="text/markdown"
             {...fileForm.getInputProps("userFile")}
             leftSection={
-              <>
-                {preview ? (
-                  <preview.icon weight="bold" />
-                ) : (
-                  <DownloadSimple weight="bold" />
-                )}
-              </>
+              <>{preview ? <preview.icon weight="bold" /> : <DownloadSimple weight="bold" />}</>
             }
           />
         </Grid.Col>
@@ -131,8 +124,8 @@ export default function MarkdownFileImporter() {
           <>
             <Grid.Col span={{ sm: 12 }}>
               <Text>
-                You want to import <Code>{file.name}</Code>, which is{" "}
-                {formatFileSize(file.size)} in size.{" "}
+                You want to import <Code>{file.name}</Code>, which is {formatFileSize(file.size)} in
+                size.{" "}
               </Text>
             </Grid.Col>
             {openPreview ? (
@@ -152,9 +145,7 @@ export default function MarkdownFileImporter() {
                     <Text fw="bold">Preview:</Text>
                     <Card radius="lg" withBorder>
                       <Stack gap="sm">
-                        <Title fw="bold">
-                          {formatFileNameToTitle(file.name)}
-                        </Title>
+                        <Title fw="bold">{formatFileNameToTitle(file.name)}</Title>
                         <Divider my="md" />
                         <Text
                           dangerouslySetInnerHTML={{
@@ -215,9 +206,7 @@ export default function MarkdownFileImporter() {
                   handleAddIdea();
                 }}
                 disabled={loadingIdea}
-                leftSection={
-                  loadingIdea ? <Loader size="sm" color="white" /> : undefined
-                }
+                leftSection={loadingIdea ? <Loader size="sm" color="white" /> : undefined}
               >
                 Yes, import.
               </Button>

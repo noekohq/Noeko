@@ -34,14 +34,7 @@ type TagAction = {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, tag: ITag) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean;
@@ -58,22 +51,13 @@ export default function TagCard({ tag, artifacts, actions }: ITagCardProps) {
     <Card withBorder radius="md" component={Link} to={`/tags/${tag.id}`}>
       <Stack gap="xs">
         <Group justify="space-between">
-          <Badge
-            size="lg"
-            color="dark.7"
-            leftSection={<TagIcon weight="bold" />}
-          >
+          <Badge size="lg" color="dark.7" leftSection={<TagIcon weight="bold" />}>
             <Text size="sm" fw="bold">
               {tag.name}
             </Text>
           </Badge>
           {actions && actions.length > 0 && (
-            <TagActionsGroup
-              tag={tag}
-              actions={actions}
-              buttonSize="xs"
-              visibleCount={0}
-            />
+            <TagActionsGroup tag={tag} actions={actions} buttonSize="xs" visibleCount={0} />
           )}
         </Group>
         <Group>
@@ -82,9 +66,7 @@ export default function TagCard({ tag, artifacts, actions }: ITagCardProps) {
           </Text>
         </Group>
         <Group>
-          {artifacts && artifacts.length > 0 && (
-            <ArtifactsDisplay artifacts={artifacts} />
-          )}
+          {artifacts && artifacts.length > 0 && <ArtifactsDisplay artifacts={artifacts} />}
         </Group>
       </Stack>
     </Card>
@@ -129,13 +111,7 @@ export function ArtifactsDisplay({
                 size: size === "xs" ? 12 : 14,
                 color: "var(--mantine-color-dimmed)",
               })}
-            <Text
-              size={size}
-              c="dimmed"
-              component="span"
-              truncate
-              className={className}
-            >
+            <Text size={size} c="dimmed" component="span" truncate className={className}>
               {artifact.content}
             </Text>
           </Group>
@@ -168,9 +144,7 @@ function TagActionsGroup({
     return null;
   }
 
-  const primaryActions = actions
-    .filter((a) => !a.isOverflow)
-    .slice(0, visibleCount);
+  const primaryActions = actions.filter((a) => !a.isOverflow).slice(0, visibleCount);
   const overflowActions = [
     ...actions.filter((a) => !a.isOverflow).slice(visibleCount),
     ...actions.filter((a) => a.isOverflow),
@@ -209,13 +183,7 @@ function TagActionsGroup({
         </Tooltip>
       ))}
       {overflowActions.length > 0 && (
-        <Menu
-          shadow="md"
-          width={200}
-          position={menuPosition}
-          withArrow
-          trigger="hover"
-        >
+        <Menu shadow="md" width={200} position={menuPosition} withArrow trigger="hover">
           <Menu.Target>
             <ActionIcon
               variant="subtle"
@@ -224,10 +192,7 @@ function TagActionsGroup({
               className={`${styles.actionButton} ${className || ""}`}
               aria-label="More actions"
             >
-              <DotsThreeVerticalIcon
-                weight="bold"
-                size={buttonSize === "xs" ? 18 : 20}
-              />
+              <DotsThreeVerticalIcon weight="bold" size={buttonSize === "xs" ? 18 : 20} />
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
@@ -235,9 +200,7 @@ function TagActionsGroup({
               <Menu.Item
                 key={action.id}
                 leftSection={
-                  action.icon
-                    ? React.cloneElement(action.icon, { size: 16 })
-                    : undefined
+                  action.icon ? React.cloneElement(action.icon, { size: 16 }) : undefined
                 }
                 onClick={(e) => {
                   e.stopPropagation();

@@ -1,9 +1,4 @@
-import {
-  IPublicUser,
-  ISafeUser,
-  IUser,
-  IUserForm,
-} from "../../app/database/models/user";
+import { IPublicUser, ISafeUser, IUser, IUserForm } from "../../app/database/models/user";
 import { api } from "../server/api";
 
 export const userInitials = (user: ISafeUser | IPublicUser | undefined) => {
@@ -17,9 +12,7 @@ export const userIsSuperuser = (user: ISafeUser | undefined) => {
   return !!user.roles.find((role) => role.toString() === "role:superuser");
 };
 
-export const userFormattedName = (
-  user: ISafeUser | IPublicUser | undefined,
-) => {
+export const userFormattedName = (user: ISafeUser | IPublicUser | undefined) => {
   if (!user) return "";
   return `${user.firstName} ${user.lastName}`;
 };

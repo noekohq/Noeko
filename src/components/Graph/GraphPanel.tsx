@@ -4,10 +4,7 @@ import { Button, Group, Stack, Text } from "@mantine/core";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useGraph } from "../../contexts/GraphContext";
 import { showNotification } from "@mantine/notifications";
-import {
-  includeThingsInRabbithole,
-  newRabbithole,
-} from "../../utils/rabbitholes";
+import { includeThingsInRabbithole, newRabbithole } from "../../utils/rabbitholes";
 import { useNavigate } from "react-router";
 import { createPortal } from "react-dom";
 
@@ -48,11 +45,7 @@ export const GraphPanel = forwardRef<HTMLDivElement, IGraphPanelProps>(
         await includeThingsInRabbithole(rabbithole.id.toString(), includable);
         navigate(`/rabbitholes/${rabbithole.id.toString()}`);
       } catch (error) {
-        console.error(
-          "Error creating rabbithole with selection: ",
-          error,
-          selected,
-        );
+        console.error("Error creating rabbithole with selection: ", error, selected);
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong creating the rabbithole",
@@ -91,7 +84,7 @@ export const GraphPanel = forwardRef<HTMLDivElement, IGraphPanelProps>(
           </Button>
         </Stack>
       </div>,
-      document.body,
+      document.body
     );
-  },
+  }
 );

@@ -11,7 +11,4 @@ export type IFeedback = {
   updatedAt: Date;
 };
 
-export type IFeedbackForm = Omit<
-  IFeedback,
-  "id" | "createdAt" | "updatedAt" | "user"
->;
+export type IFeedbackForm = Omit<IFeedback, "id" | "createdAt" | "updatedAt" | "user">;

@@ -71,7 +71,7 @@ export default function Feedback() {
         (feedback.user?.firstName + " " + feedback.user?.lastName)
           .toLowerCase()
           .includes(query.toLowerCase()) ||
-        feedback.id.toString().includes(query.toLowerCase()),
+        feedback.id.toString().includes(query.toLowerCase())
     )
     .filter((f) => {
       if (filterAddressed && f.status === "addressed") {
@@ -159,18 +159,14 @@ export default function Feedback() {
           <Stack>
             <Text size="sm">"{viewingFeedback?.content}"</Text>
             <Text size="sm" c="dimmed">
-              - {viewingFeedback?.user?.firstName}{" "}
-              {viewingFeedback?.user?.lastName}
+              - {viewingFeedback?.user?.firstName} {viewingFeedback?.user?.lastName}
             </Text>
             <Group>
               <Button
                 onClick={() => {
                   setViewingFeedback(undefined);
                   if (viewingFeedback) {
-                    changeFeedbackStatus(
-                      viewingFeedback.id.toString(),
-                      "addressed",
-                    );
+                    changeFeedbackStatus(viewingFeedback.id.toString(), "addressed");
                   }
                 }}
                 size="sm"
@@ -209,11 +205,7 @@ export default function Feedback() {
             </Group>
           </Stack>
         </Drawer>
-        <Modal
-          opened={!!toDelete}
-          title="Delete Feedback"
-          onClose={() => setToDelete(undefined)}
-        >
+        <Modal opened={!!toDelete} title="Delete Feedback" onClose={() => setToDelete(undefined)}>
           <Text>
             Are you sure you want to delete this feedback from{" "}
             {toDelete?.user?.email || "this user"}?

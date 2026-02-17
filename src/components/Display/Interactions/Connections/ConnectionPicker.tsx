@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Popover,
-  Text,
-  Stack,
-  TextInput,
-  Textarea,
-  Button,
-  Group,
-} from "@mantine/core";
+import { Popover, Text, Stack, TextInput, Textarea, Button, Group } from "@mantine/core";
 import { useDisclosure, useDebouncedValue } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { PlusIcon, XIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
@@ -55,13 +47,10 @@ export function ConnectionPicker({
     runOnDependencies: [debouncedQuery],
   });
 
-  const filteredSuggestions = (suggestions || []).filter(
-    (t) => !omitIds.includes(t.id.toString()),
-  );
+  const filteredSuggestions = (suggestions || []).filter((t) => !omitIds.includes(t.id.toString()));
 
   const isSearching = searchQuery.trim().length > 0;
-  const hasInitialSuggestions =
-    initialSuggestions && initialSuggestions.length > 0;
+  const hasInitialSuggestions = initialSuggestions && initialSuggestions.length > 0;
   const hasFilteredSuggestions = filteredSuggestions.length > 0;
 
   const showInitialSuggestions = !isSearching && hasInitialSuggestions;
@@ -71,10 +60,7 @@ export function ConnectionPicker({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateSubmit = async (values: {
-    title: string;
-    content: string;
-  }) => {
+  const handleCreateSubmit = async (values: { title: string; content: string }) => {
     setIsSubmitting(true);
 
     const ideaForm = {
@@ -97,7 +83,7 @@ export function ConnectionPicker({
       (err) => {
         console.error(err);
         setIsSubmitting(false);
-      },
+      }
     );
   };
 
@@ -136,9 +122,7 @@ export function ConnectionPicker({
       formPrompt={(q) => `Create new idea "${q}"`}
     >
       <PaperSelection.Menu>
-        {showInitialSuggestions &&
-          initialSuggestions &&
-          renderSuggestions(initialSuggestions)}
+        {showInitialSuggestions && initialSuggestions && renderSuggestions(initialSuggestions)}
 
         {showTypeToSearch && (
           <Text c="dimmed" size="xs" ta="left" py="sm">
@@ -156,10 +140,7 @@ export function ConnectionPicker({
       </PaperSelection.Menu>
 
       <PaperSelection.Form title="New Connected Note">
-        <ConnectionCreateForm
-          onSubmit={handleCreateSubmit}
-          isSubmitting={isSubmitting}
-        />
+        <ConnectionCreateForm onSubmit={handleCreateSubmit} isSubmitting={isSubmitting} />
       </PaperSelection.Form>
     </PaperSelection>
   );
@@ -168,20 +149,14 @@ export function ConnectionPicker({
     return (
       <>
         <PaperButton
-          leftSection={
-            opened ? <XIcon weight="bold" /> : <PlusIcon weight="bold" />
-          }
+          leftSection={opened ? <XIcon weight="bold" /> : <PlusIcon weight="bold" />}
           onClick={toggle}
           size="md"
           withBorder
         >
           {opened ? "Cancel" : "Add Connection"}
         </PaperButton>
-        <PaperDrawer
-          title="New Connection"
-          opened={opened}
-          onClose={handleClose}
-        >
+        <PaperDrawer title="New Connection" opened={opened} onClose={handleClose}>
           {paperSelectionContent}
         </PaperDrawer>
       </>
@@ -201,9 +176,7 @@ export function ConnectionPicker({
       <Popover.Target>
         <div>
           <PaperButton
-            leftSection={
-              opened ? <XIcon weight="bold" /> : <PlusIcon weight="bold" />
-            }
+            leftSection={opened ? <XIcon weight="bold" /> : <PlusIcon weight="bold" />}
             onClick={toggle}
             size="md"
             withBorder

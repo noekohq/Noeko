@@ -45,9 +45,7 @@ export default function MyButton() {
     { label: "Constellation", icon: GraphIcon, path: "/constellation" },
     { label: "Tags", icon: TagIcon, path: "/tags" },
     { label: "Files", icon: FileIcon, path: "/files" },
-    ...(isSuperuser
-      ? [{ label: "Admin Panel", icon: ShieldStarIcon, path: "/admin" }]
-      : []),
+    ...(isSuperuser ? [{ label: "Admin Panel", icon: ShieldStarIcon, path: "/admin" }] : []),
   ];
 
   const userMenuItems = [
@@ -106,21 +104,10 @@ export default function MyButton() {
           </div>
         </div>
       )}
-      <button
-        className={`${styles.myButton} ${opened ? styles.opened : ""}`}
-        onClick={toggle}
-      >
+      <button className={`${styles.myButton} ${opened ? styles.opened : ""}`} onClick={toggle}>
         <div className={styles.iconContainer}>
-          <UserIcon
-            weight="bold"
-            size={20}
-            className={`${styles.icon} ${styles.userIcon}`}
-          />
-          <XIcon
-            weight="regular"
-            size={20}
-            className={`${styles.icon} ${styles.xIcon}`}
-          />
+          <UserIcon weight="bold" size={20} className={`${styles.icon} ${styles.userIcon}`} />
+          <XIcon weight="regular" size={20} className={`${styles.icon} ${styles.xIcon}`} />
         </div>
       </button>
     </>

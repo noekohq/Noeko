@@ -3,12 +3,7 @@ import { checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { User } from "../database/models/user";
 import { ISafeUser } from "../../shared/types/user";
-import Task, {
-  ITask,
-  ITaskDurationBehavior,
-  ITaskForm,
-  ITaskQuery,
-} from "../database/models/task";
+import Task, { ITask, ITaskDurationBehavior, ITaskForm, ITaskQuery } from "../database/models/task";
 import { Duration } from "surrealdb";
 import { getLM } from "../ai/lms/lm";
 import { LMSchemaType } from "../ai/lms";
@@ -40,10 +35,7 @@ router.get("/", async (req, res) => {
     const duration = req.query.duration as string;
     const durationBehavior = req.query.durationBehavior as string;
 
-    if (
-      sortField &&
-      !["createdAt", "updatedAt", "viewedAt", "dueDate"].includes(sortField)
-    ) {
+    if (sortField && !["createdAt", "updatedAt", "viewedAt", "dueDate"].includes(sortField)) {
       res.status(400).send({
         message: "Sort field must be createdAt, updatedAt, or viewedAt",
       });
@@ -87,13 +79,7 @@ router.get("/", async (req, res) => {
     }
     if (
       durationBehavior &&
-      ![
-        "over",
-        "over-inclusive",
-        "under",
-        "under-inclusive",
-        "equals",
-      ].includes(durationBehavior)
+      !["over", "over-inclusive", "under", "under-inclusive", "equals"].includes(durationBehavior)
     ) {
       res.status(400).send({
         message:
@@ -253,7 +239,7 @@ router.post("/", async (req, res) => {
       });
       return;
     }
-    let { description, scratchpad, estimatedTime, dueDate, auto } = req.body;
+    const { description, scratchpad, estimatedTime, dueDate, auto } = req.body;
     const creator: ITaskForm = {
       description,
       scratchpad,
@@ -271,7 +257,7 @@ router.post("/", async (req, res) => {
     if (!creator.description && !!creator.scratchpad && auto) {
       const d = await lm.utils.entitle(
         "A brief, concise, action-oriented description of the following rough task explanation.",
-        creator.scratchpad,
+        creator.scratchpad
       );
       if (d) {
         creator.description = d;
@@ -286,51 +272,40 @@ router.post("/", async (req, res) => {
       const prompt = new PromptBuilder();
       prompt.addBlock(
         "Instructions",
-        `Estimate the amount of time that it would take to complete the following task based on the description and scratch content associated:`,
+        `Estimate the amount of time that it would take to complete the following task based on the description and scratch content associated:`
       );
       prompt.addBlock(
         "Description",
-        `The task description is: <taskDescription>${description}</taskDescription>`,
+        `The task description is: <taskDescription>${description}</taskDescription>`
       );
       prompt.addBlock(
         "Scratch",
-        `The task's scratch content is: <scratchContent>${scratchpad}</scratchContent>`,
+        `The task's scratch content is: <scratchContent>${scratchpad}</scratchContent>`
       );
       const et = await lm.generateJSON<string>(prompt.get(), {
         type: LMSchemaType.STRING,
         enum: ["15m", "30m", "1h", "2hrs", "4hrs", "8hr"],
-        description:
-          "The closest estimated amount of time it would take to complete the task",
+        description: "The closest estimated amount of time it would take to complete the task",
       });
       if (et) {
         creator.estimatedTime = new Duration(et);
       }
     }
-    if (
-      !creator.dueDate &&
-      (!!creator.description || !!creator.scratchpad) &&
-      auto
-    ) {
+    if (!creator.dueDate && (!!creator.description || !!creator.scratchpad) && auto) {
       const prompt = new PromptBuilder();
       prompt.addBlock(
         "Instructions",
-        `Extract the due date for the following task based on the description and scratch content associated.`,
+        `Extract the due date for the following task based on the description and scratch content associated.`
       );
-      prompt.addBlock(
-        "RULES",
-        "DO NOT return a due-date if none is specified or strongly implied",
-      );
-      prompt.addBlock(
-        "Context",
-        `The current date and time are: ${getFormattedDateTimeToday()}`,
-      );
+      prompt.addBlock("RULES", "DO NOT return a due-date if none is specified or strongly implied");
+      prompt.addBlock("Context", `The current date and time are: ${getFormattedDateTimeToday()}`);
       prompt.addBlock(
         "Description",
-        `The task description is: <taskDescription>${description}</taskDescription>`,
+        `The task description is: <taskDescription>${description}</taskDescription>`
       );
       prompt.addBlock(
         "Scratch",
-        `The task's scratch content is: <scratchContent>${scratchpad}</scratchContent>`,
+        `The task's scratch content is: <scratchContent>${scratchpad}</scratchContent>`
       );
       const dd = await lm.generateJSON<string>(prompt.get(), {
         type: LMSchemaType.STRING,
@@ -383,10 +358,9 @@ router.put("/:taskId", async (req, res) => {
       });
       return;
     }
-    let { description, scratchpad, estimatedTime, dueDate, completedAt } =
-      req.body;
+    const { description, scratchpad, estimatedTime, dueDate, completedAt } = req.body;
 
-    let updater: Partial<ITaskForm> = {};
+    const updater: Partial<ITaskForm> = {};
     if (description !== undefined) {
       updater.description = description;
     }
@@ -469,14 +443,9 @@ router.get("/:taskId/similar-ideas", async (req, res): Promise<void> => {
     let parsedThreshold: number | undefined = undefined;
     if (threshold) {
       parsedThreshold = parseFloat(threshold as string);
-      if (
-        isNaN(parsedThreshold) ||
-        parsedThreshold < 0 ||
-        parsedThreshold > 1
-      ) {
+      if (isNaN(parsedThreshold) || parsedThreshold < 0 || parsedThreshold > 1) {
         res.status(400).json({
-          message:
-            "Invalid threshold parameter. Must be a float between 0 and 1.",
+          message: "Invalid threshold parameter. Must be a float between 0 and 1.",
         });
         return;
       }
@@ -506,16 +475,10 @@ router.get("/:taskId/similar-ideas", async (req, res): Promise<void> => {
       threshold: parsedThreshold,
     };
 
-    const similarIdeas = await Task.getSimilarIdeasToTask(
-      taskId,
-      user.id,
-      options,
-    );
+    const similarIdeas = await Task.getSimilarIdeasToTask(taskId, user.id, options);
 
     if (similarIdeas === undefined) {
-      res
-        .status(500)
-        .json({ message: "Error fetching similar ideas for the task." });
+      res.status(500).json({ message: "Error fetching similar ideas for the task." });
       return;
     }
 
@@ -524,10 +487,7 @@ router.get("/:taskId/similar-ideas", async (req, res): Promise<void> => {
       data: similarIdeas,
     });
   } catch (error) {
-    console.error(
-      `Error getting similar ideas for task ${req.params.taskId}:`,
-      error,
-    );
+    console.error(`Error getting similar ideas for task ${req.params.taskId}:`, error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

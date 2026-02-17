@@ -53,11 +53,7 @@ export const parseIncompleteJsonArray = <T = any>(jsonString: string): T[] => {
           } catch (e) {
             // This might happen if the substring is malformed for other reasons,
             // though it's unlikely with this logic. We'll just ignore it.
-            console.error(
-              "Failed to parse an extracted object:",
-              objectString,
-              e,
-            );
+            console.error("Failed to parse an extracted object:", objectString, e);
           }
           objectStartIndex = -1;
         }

@@ -1,13 +1,4 @@
-import {
-  ActionIcon,
-  Badge,
-  Group,
-  HoverCard,
-  Loader,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { ActionIcon, Badge, Group, HoverCard, Loader, Stack, Text, Title } from "@mantine/core";
 import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
 import styles from "./Spyglass.module.scss";
 import { useInteraction } from "../../contexts/InteractionContext";
@@ -19,10 +10,7 @@ import { Link, useSearchParams } from "react-router";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import TopBar from "../../components/UI/Layout/TopBar";
 import LeftSidebar from "../../components/UI/Layout/Left";
-import {
-  ClockCounterClockwiseIcon,
-  MegaphoneIcon,
-} from "@phosphor-icons/react";
+import { ClockCounterClockwiseIcon, MegaphoneIcon } from "@phosphor-icons/react";
 import SpyglassContext from "./Spyglass/SpyglassContext";
 import Content from "../../components/UI/Layout/Content";
 import Textbox from "./Textbox";
@@ -96,7 +84,7 @@ export default function Spyglass() {
         tags: scope.tags,
         date: scope.date,
       },
-      true,
+      true
     );
   };
 
@@ -116,8 +104,7 @@ export default function Spyglass() {
     }
   }, [searchParams]);
 
-  const showLoadingState =
-    initialized && loading && !overview && !glimpseResult;
+  const showLoadingState = initialized && loading && !overview && !glimpseResult;
 
   // Show analysis state for Deep Focus when we have sources but are still analyzing
   const showDeepFocusAnalysis =
@@ -140,13 +127,8 @@ export default function Spyglass() {
         }}
       >
         <LeftSidebar.Open>
-          {!deepAnalysis &&
-          glimpseResult &&
-          glimpseResult.contentMap.length > 0 ? (
-            <GlimpseNavigation
-              glimpseResult={glimpseResult}
-              resultsMap={resultsMap ?? {}}
-            />
+          {!deepAnalysis && glimpseResult && glimpseResult.contentMap.length > 0 ? (
+            <GlimpseNavigation glimpseResult={glimpseResult} resultsMap={resultsMap ?? {}} />
           ) : deepAnalysis && overview ? (
             <DeepFocusNavigation
               overview={overview}
@@ -175,9 +157,7 @@ export default function Spyglass() {
         </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
-        <div
-          className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}
-        >
+        <div className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}>
           {!initialized && (
             <Group gap="xs" justify="center">
               <Title ta={"center"} className={`${styles.header}`} mb="lg">
@@ -192,13 +172,12 @@ export default function Spyglass() {
                 <HoverCard.Dropdown>
                   <Stack gap="xs">
                     <Text size="sm">
-                      Spyglass is currently under active development and some
-                      features might not always work as expected. We're looking
-                      for feedback as we learn and grow :)
+                      Spyglass is currently under active development and some features might not
+                      always work as expected. We're looking for feedback as we learn and grow :)
                     </Text>
                     <Text size="xs" c="dimmed">
-                      This feature will remain free during it's beta stage. Rate
-                      limits may apply in future versions.
+                      This feature will remain free during it's beta stage. Rate limits may apply in
+                      future versions.
                     </Text>
                     <ActionIcon
                       size="sm"
@@ -216,9 +195,7 @@ export default function Spyglass() {
             </Group>
           )}
 
-          <div
-            className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}
-          >
+          <div className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}>
             {showLoadingState && !showDeepFocusAnalysis && (
               <div className={styles.loadingState}>
                 <Title order={1} className={styles.loadingQuery}>
@@ -262,11 +239,7 @@ export default function Spyglass() {
                   {currentQuery}
                 </Title>
                 <div className={styles.analysisLoader}>
-                  <LangtonsAntLoader
-                    stepsPerSecond={15}
-                    cellSize={20}
-                    numAnts={6}
-                  />
+                  <LangtonsAntLoader stepsPerSecond={15} cellSize={20} numAnts={6} />
                 </div>
                 <div className={styles.loadingSources}>
                   {results.map((result) => (
@@ -309,8 +282,7 @@ export default function Spyglass() {
 
             {!deepAnalysis &&
               glimpseResult &&
-              (glimpseResult.summary ||
-                (glimpseResult.contentMap?.length ?? 0) > 0) && (
+              (glimpseResult.summary || (glimpseResult.contentMap?.length ?? 0) > 0) && (
                 <div className={styles.overviewDisplay}>
                   <GlimpseModeDisplay
                     glimpseResult={glimpseResult}
@@ -342,9 +314,7 @@ export default function Spyglass() {
                     setQuery(v);
                   }}
                   placeholder={
-                    initialized
-                      ? "Ask a follow-up question..."
-                      : "Ask your thoughts anything..."
+                    initialized ? "Ask a follow-up question..." : "Ask your thoughts anything..."
                   }
                   initialized={initialized}
                   deepAnalysis={deepAnalysis}

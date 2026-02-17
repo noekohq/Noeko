@@ -35,12 +35,7 @@ interface IRightSidebarProps {
   startClosed?: boolean;
 }
 
-const RightSidebar = ({
-  children,
-  topLevel,
-  startOpened,
-  startClosed,
-}: IRightSidebarProps) => {
+const RightSidebar = ({ children, topLevel, startOpened, startClosed }: IRightSidebarProps) => {
   const navigate = useNavigate();
   const {
     elements: {
@@ -146,15 +141,13 @@ const RightSidebar = ({
             <HoverCard.Dropdown>
               <Stack gap="xs">
                 <Text size="sm">
-                  Noeko is current in active development, and we're working on
-                  making improvements every day as we work towards a stable
-                  release.
+                  Noeko is current in active development, and we're working on making improvements
+                  every day as we work towards a stable release.
                 </Text>
                 <Text size="sm">
                   The best way to support the project right now is to provide{" "}
-                  <i>honest and useful feedback</i>. This allows us to make
-                  constant improvements and ensure that Noeko meets the needs of
-                  its users.
+                  <i>honest and useful feedback</i>. This allows us to make constant improvements
+                  and ensure that Noeko meets the needs of its users.
                 </Text>
                 <Text size="xs">
                   For a more detailed Roadmap, check out our{" "}
@@ -185,9 +178,9 @@ const RightSidebar = ({
               </HoverCard.Target>
               <HoverCard.Dropdown>
                 <Text size="sm" c="dimmed" mb="sm">
-                  The connection to the server has been disrupted... Noeko is
-                  attempting to automatically re-connect. If it seems like it's
-                  taking a while, refreshing the page may help.
+                  The connection to the server has been disrupted... Noeko is attempting to
+                  automatically re-connect. If it seems like it's taking a while, refreshing the
+                  page may help.
                 </Text>
                 <Text size="sm" c="dimmed">
                   For any questions, concerns, or feedback, please contact{" "}
@@ -240,12 +233,7 @@ const RightSidebar = ({
           </ActionIcon>
         )}
         <ProfileButton />
-        <ActionIcon
-          variant="subtle"
-          onClick={openSpotlight}
-          size="md"
-          color={defaultColor}
-        >
+        <ActionIcon variant="subtle" onClick={openSpotlight} size="md" color={defaultColor}>
           <ListMagnifyingGlassIcon size={16} />
         </ActionIcon>
       </Stack>

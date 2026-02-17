@@ -1,9 +1,5 @@
 import { RecordId } from "surrealdb";
-import {
-  ISource,
-  ISourceForm,
-  ISourceReference,
-} from "../../app/database/models/source";
+import { ISource, ISourceForm, ISourceReference } from "../../app/database/models/source";
 import { IUserFile } from "../../app/database/models/userfile";
 import { api } from "../server/api";
 
@@ -27,10 +23,7 @@ export const createSourceFrom = async (thingId: string | RecordId) => {
   }
 };
 
-export const updateSource = async (
-  taskId: string | RecordId,
-  form: Partial<ISourceForm>,
-) => {
+export const updateSource = async (taskId: string | RecordId, form: Partial<ISourceForm>) => {
   try {
     const result = await api.put(`/sources/${taskId.toString()}`, form);
     return result.data.data as boolean;

@@ -17,12 +17,7 @@ interface ISelectionProps {
   onSelect?: (value: string) => void;
 }
 
-export default function Selection({
-  label,
-  options,
-  initialValue,
-  onSelect,
-}: ISelectionProps) {
+export default function Selection({ label, options, initialValue, onSelect }: ISelectionProps) {
   const [value, setValue] = useState<string | null>(initialValue || null);
 
   const handleSelect = (value: string) => {
@@ -52,9 +47,7 @@ export default function Selection({
       <button className={styles.button} onClick={toggle}>
         {currentOption ? (
           <>
-            {currentOption.icon && (
-              <div className={styles.left}>{currentOption.icon}</div>
-            )}
+            {currentOption.icon && <div className={styles.left}>{currentOption.icon}</div>}
             {currentOption.label}
           </>
         ) : (

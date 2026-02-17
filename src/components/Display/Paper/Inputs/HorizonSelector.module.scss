@@ -1,148 +1,148 @@
 .wrapper {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
 .scrollArea {
-    width: 100%;
-    mask-image: linear-gradient(
-        to right,
-        transparent,
-        black 12px,
-        black calc(100% - 12px),
-        transparent
-    );
-    -webkit-mask-image: linear-gradient(
-        to right,
-        transparent,
-        black 12px,
-        black calc(100% - 12px),
-        transparent
-    );
+  width: 100%;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12px,
+    black calc(100% - 12px),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12px,
+    black calc(100% - 12px),
+    transparent
+  );
 }
 
 .track {
-    display: flex;
-    gap: var(--mantine-spacing-xs);
-    padding: 4px var(--mantine-spacing-md);
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px var(--mantine-spacing-md);
 
-    overflow-x: auto;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-        display: none;
-    }
-    scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scroll-snap-type: x mandatory;
 }
 
 .form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--mantine-spacing-xs);
-    padding: 0 var(--mantine-spacing-md);
-    animation: fadeIn 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  padding: 0 var(--mantine-spacing-md);
+  animation: fadeIn 0.2s ease-out;
 }
 
 .formHeader {
-    display: flex;
-    align-items: center;
-    gap: var(--mantine-spacing-xs);
-    padding-bottom: var(--mantine-spacing-xs);
-    border-bottom: 1px solid var(--mantine-color-dark-6);
-    margin-bottom: var(--mantine-spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding-bottom: var(--mantine-spacing-xs);
+  border-bottom: 1px solid var(--mantine-color-dark-6);
+  margin-bottom: var(--mantine-spacing-xs);
 }
 
 .backButton {
-    transition: transform 0.2s ease;
-    &:hover {
-        transform: translateX(-2px);
-    }
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: translateX(-2px);
+  }
 }
 
 @keyframes itemIn {
-    0% {
-        opacity: 0;
-        transform: translateX(10px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  0% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .item {
-    animation: itemIn 0.3s ease-out backwards;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
+  animation: itemIn 0.3s ease-out backwards;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 
-    flex: 0 0 auto; // Don't shrink
-    min-width: 100px;
-    height: 64px;
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    scroll-snap-align: start;
+  flex: 0 0 auto; // Don't shrink
+  min-width: 100px;
+  height: 64px;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  scroll-snap-align: start;
 
-    cursor: pointer;
-    background-color: var(--mantine-color-dark-9);
-    border: 1px solid var(--mantine-color-dark-7);
-    border-radius: var(--mantine-radius-md);
-    transition: all 0.2s ease;
-    user-select: none;
+  cursor: pointer;
+  background-color: var(--mantine-color-dark-9);
+  border: 1px solid var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-md);
+  transition: all 0.2s ease;
+  user-select: none;
 
-    @for $i from 1 through 10 {
-        &:nth-child(#{$i}) {
-            animation-delay: #{$i * 50}ms;
-        }
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 50}ms;
     }
+  }
 
-    &:hover {
-        background-color: var(--mantine-color-dark-8);
-        border-color: var(--mantine-color-dark-6);
-        color: var(--mantine-color-dark-1);
-    }
+  &:hover {
+    background-color: var(--mantine-color-dark-8);
+    border-color: var(--mantine-color-dark-6);
+    color: var(--mantine-color-dark-1);
+  }
 
-    &[data-active="true"] {
-        background-color: var(--mantine-color-dark-7);
-        border-color: var(--mantine-color-dark-7);
-        color: var(--mantine-color-dark-1);
-
-        .description {
-            color: rgba(255, 255, 255, 0.7);
-        }
-    }
-
-    // Specific style for the "Custom" card in the list
-    &.customTrigger {
-        align-items: center;
-        .label {
-            color: var(--mantine-color-dimmed);
-        }
-    }
-
-    .label {
-        font-weight: 600;
-        font-size: var(--mantine-font-size-sm);
-        white-space: nowrap;
-        line-height: 1.2;
-    }
+  &[data-active="true"] {
+    background-color: var(--mantine-color-dark-7);
+    border-color: var(--mantine-color-dark-7);
+    color: var(--mantine-color-dark-1);
 
     .description {
-        font-size: 11px;
-        color: var(--mantine-color-dimmed);
-        white-space: nowrap;
-        line-height: 1.2;
-        margin-top: 2px;
+      color: rgba(255, 255, 255, 0.7);
     }
+  }
+
+  // Specific style for the "Custom" card in the list
+  &.customTrigger {
+    align-items: center;
+    .label {
+      color: var(--mantine-color-dimmed);
+    }
+  }
+
+  .label {
+    font-weight: 600;
+    font-size: var(--mantine-font-size-sm);
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .description {
+    font-size: 11px;
+    color: var(--mantine-color-dimmed);
+    white-space: nowrap;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
 }

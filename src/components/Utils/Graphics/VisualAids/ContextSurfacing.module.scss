@@ -1,85 +1,85 @@
 .root {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--mantine-spacing-sm);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mantine-spacing-sm);
 }
 
 .sidebar {
-    padding: var(--mantine-spacing-sm);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
+  padding: var(--mantine-spacing-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
 }
 
 .iconWrapper {
-    padding: var(--mantine-spacing-sm);
-    transition: all 300ms ease-out;
-    background-color: var(--mantine-color-dark-9);
-    border: 1px solid var(--mantine-color-dark-7);
-    aspect-ratio: 1/1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--mantine-radius-lg);
+  padding: var(--mantine-spacing-sm);
+  transition: all 300ms ease-out;
+  background-color: var(--mantine-color-dark-9);
+  border: 1px solid var(--mantine-color-dark-7);
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-lg);
 }
 
 .glintingIcon {
-    background-color: var(--mantine-color-dark-7);
-    border-color: transparent;
-    animation: shimmer 1s ease-in-out infinite;
+  background-color: var(--mantine-color-dark-7);
+  border-color: transparent;
+  animation: shimmer 1s ease-in-out infinite;
 }
 
 .icon {
-    width: 2rem;
-    height: 2rem;
-    color: var(--mantine-color-dark-1);
+  width: 2rem;
+  height: 2rem;
+  color: var(--mantine-color-dark-1);
 }
 
 .itemsContainer {
-    display: flex;
-    flex-direction: column;
-    margin-top: var(--mantine-spacing-md);
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--mantine-spacing-md);
 
-    & > * + * {
-        margin-top: var(--mantine-spacing-xs);
-    }
+  & > * + * {
+    margin-top: var(--mantine-spacing-xs);
+  }
 
+  .item {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--mantine-spacing-md)));
+    transition:
+      opacity 300ms ease-out,
+      transform 300ms ease-out;
+  }
+
+  &.itemsVisible {
     .item {
-        opacity: 0;
-        transform: translateX(calc(-1 * var(--mantine-spacing-md)));
-        transition:
-            opacity 300ms ease-out,
-            transform 300ms ease-out;
+      opacity: 1;
+      transform: translateX(0);
     }
-
-    &.itemsVisible {
-        .item {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
+  }
 }
 
 .item {
-    border-radius: var(--mantine-radius-pill);
-    padding: var(--mantine-spacing-xs);
-    color: var(--mantine-color-white);
-    aspect-ratio: 1/1;
-    font-size: 14px;
-    border-radius: var(--mantine-radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-width: 1px;
-    border-style: solid;
-    background-color: var(--mantine-color-dark-9);
-    color: var(--mantine-color-dark-2);
-    border-color: var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-pill);
+  padding: var(--mantine-spacing-xs);
+  color: var(--mantine-color-white);
+  aspect-ratio: 1/1;
+  font-size: 14px;
+  border-radius: var(--mantine-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: 1px;
+  border-style: solid;
+  background-color: var(--mantine-color-dark-9);
+  color: var(--mantine-color-dark-2);
+  border-color: var(--mantine-color-dark-7);
 }
 
 .idea {
@@ -90,69 +90,69 @@
 }
 
 .textArea {
-    text-align: left;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-    font-family: var(--mantine-font-family);
-    font-size: var(--mantine-font-size-sm);
-    line-height: var(--mantine-line-height-lg);
-    overflow: hidden;
-    background-color: var(--mantine-color-dark-9);
-    color: var(--mantine-color-dark-1);
+  text-align: left;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-sm);
+  line-height: var(--mantine-line-height-lg);
+  overflow: hidden;
+  background-color: var(--mantine-color-dark-9);
+  color: var(--mantine-color-dark-1);
 }
 
 .cursor {
-    display: inline-block;
-    width: var(--mantine-spacing-xs);
-    height: var(--mantine-spacing-lg);
-    margin-left: var(--mantine-spacing-xxs);
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    background-color: var(--mantine-color-dark-7);
+  display: inline-block;
+  width: var(--mantine-spacing-xs);
+  height: var(--mantine-spacing-lg);
+  margin-left: var(--mantine-spacing-xxs);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: var(--mantine-color-dark-7);
 }
 
 .glint {
-    position: absolute;
-    top: 0;
-    left: -3rem;
-    height: 100%;
-    width: 3rem;
-    transform: skewX(-20deg);
-    background-image: linear-gradient(
-        to right,
-        transparent,
-        var(--mantine-color-gray-6) 20%,
-        transparent
-    );
-    opacity: 0;
-    transition-property: left, opacity;
-    transition-timing-function: ease-in-out;
+  position: absolute;
+  top: 0;
+  left: -3rem;
+  height: 100%;
+  width: 3rem;
+  transform: skewX(-20deg);
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--mantine-color-gray-6) 20%,
+    transparent
+  );
+  opacity: 0;
+  transition-property: left, opacity;
+  transition-timing-function: ease-in-out;
 }
 
 .glintVisible {
-    opacity: 0.15;
-    left: 100%;
+  opacity: 0.15;
+  left: 100%;
 }
 
 @keyframes pulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes shimmer {
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
-    }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }

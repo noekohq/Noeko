@@ -2,11 +2,7 @@ import { showNotification } from "@mantine/notifications";
 import { IShareAccess } from "../../app/database/models/share";
 import { api } from "../server/api";
 
-export const shareAccess = async (
-  thingId: string,
-  userId: string,
-  accessLevel?: IShareAccess,
-) => {
+export const shareAccess = async (thingId: string, userId: string, accessLevel?: IShareAccess) => {
   try {
     return await api
       .post(`/sharing`, {
@@ -20,7 +16,7 @@ export const shareAccess = async (
       .catch((error) => {
         console.error(
           `Something went wrong creating share between ${thingId} and ${userId}`,
-          error,
+          error
         );
         showNotification({
           title: "Something went wrong",
@@ -48,7 +44,7 @@ export const revokeAccess = async (thingId: string, userId: string) => {
       .catch((error) => {
         console.error(
           `Something went wrong removing share between ${thingId} and ${userId}`,
-          error,
+          error
         );
         showNotification({
           title: "Something went wrong",
@@ -64,7 +60,7 @@ export const revokeAccess = async (thingId: string, userId: string) => {
 export const shareAccessWithEmail = async (
   thingId: string,
   email: string,
-  accessLevel?: IShareAccess,
+  accessLevel?: IShareAccess
 ) => {
   try {
     await api.post(`/sharing`, {
@@ -79,11 +75,7 @@ export const shareAccessWithEmail = async (
   }
 };
 
-export const updateAccess = async (
-  thingId: string,
-  userId: string,
-  accessLevel: IShareAccess,
-) => {
+export const updateAccess = async (thingId: string, userId: string, accessLevel: IShareAccess) => {
   try {
     return await api
       .put(`/sharing`, {
@@ -97,7 +89,7 @@ export const updateAccess = async (
       .catch((error) => {
         console.error(
           `Something went wrong updating share between ${thingId} and ${userId}`,
-          error,
+          error
         );
         showNotification({
           title: "Something went wrong",

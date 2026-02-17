@@ -8,10 +8,7 @@ import styles from "./Record.module.scss";
 import { DisplayOverview } from "../../../components/Utils/Spyglass/Overview";
 import Content from "../../../components/UI/Layout/Content";
 import { useDocumentTitle } from "../../../hooks/useDocumentTitle";
-import {
-  ArrowLeftIcon,
-  ClockCounterClockwiseIcon,
-} from "@phosphor-icons/react";
+import { ArrowLeftIcon, ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import SpyglassActions from "./SpyglassActions";
 import Nav from "../../../components/UI/Layout/Nav";
 import { Link, useNavigate, useParams } from "react-router";
@@ -23,16 +20,10 @@ export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();
   const navigate = useNavigate();
 
-  const {
-    spyglass,
-    resultMap,
-    citationMap,
-    results,
-    fullResults,
-    glimpseResult,
-  } = useSpyglassRecord({
-    spyglassId,
-  });
+  const { spyglass, resultMap, citationMap, results, fullResults, glimpseResult } =
+    useSpyglassRecord({
+      spyglassId,
+    });
 
   const overview = spyglass?.overview ?? "";
   const findings = spyglass?.findings ?? [];
@@ -57,13 +48,8 @@ export default function SpyglassRecord() {
         }}
       >
         <LeftSidebar.Open>
-          {!isDeepAnalysis &&
-          glimpseResult &&
-          glimpseResult.contentMap.length > 0 ? (
-            <GlimpseNavigation
-              glimpseResult={glimpseResult}
-              resultsMap={resultMap ?? {}}
-            />
+          {!isDeepAnalysis && glimpseResult && glimpseResult.contentMap.length > 0 ? (
+            <GlimpseNavigation glimpseResult={glimpseResult} resultsMap={resultMap ?? {}} />
           ) : isDeepAnalysis && overview ? (
             <DeepFocusNavigation
               overview={overview}
@@ -131,12 +117,7 @@ export default function SpyglassRecord() {
       <Nav />
       <RightSidebar>
         <RightSidebar.Open>
-          {!!spyglass && (
-            <SpyglassActions
-              intent={spyglass?.intent}
-              results={fullResults ?? []}
-            />
-          )}
+          {!!spyglass && <SpyglassActions intent={spyglass?.intent} results={fullResults ?? []} />}
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>

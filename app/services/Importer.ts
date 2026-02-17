@@ -57,16 +57,14 @@ export class ImporterManager {
         if (i) {
           await i.importer.complete();
         } else {
-          throw new Error(
-            "Tried to complete an importer in manager that isn't registered.",
-          );
+          throw new Error("Tried to complete an importer in manager that isn't registered.");
         }
         this.remove(importer);
         return true;
       }
       if (!importer.instanceId) {
         throw new Error(
-          "Attempted to complete an importer in manager that has not been initialized.",
+          "Attempted to complete an importer in manager that has not been initialized."
         );
       }
       await importer.complete();
@@ -80,9 +78,7 @@ export class ImporterManager {
 
   public add(importer: Importer) {
     if (!importer.instanceId) {
-      throw new Error(
-        "Attempted to register an importer that has not been initialized.",
-      );
+      throw new Error("Attempted to register an importer that has not been initialized.");
     }
     this.importers[importer.instanceId] = {
       inactivity: 0,
@@ -96,9 +92,7 @@ export class ImporterManager {
       return;
     }
     if (!importer.instanceId) {
-      throw new Error(
-        "Attempted to unregister an importer that has not been initialized.",
-      );
+      throw new Error("Attempted to unregister an importer that has not been initialized.");
     }
     delete this.importers[importer.instanceId];
   }
@@ -175,9 +169,7 @@ export class Importer {
   public async processChunk(chunk: IChunk) {
     try {
       if (!this.importId) {
-        throw new Error(
-          "Tried to process a chunk on an importer that does not have an importId",
-        );
+        throw new Error("Tried to process a chunk on an importer that does not have an importId");
       }
       const { id, items } = chunk;
       console.info(`Processing ${id} with ${items.length} items...`);
@@ -210,10 +202,7 @@ export class Importer {
       }
       return true;
     } catch (error) {
-      console.error(
-        `Error loading embeddings for import ${this.importId}: `,
-        error,
-      );
+      console.error(`Error loading embeddings for import ${this.importId}: `, error);
       return false;
     }
   }

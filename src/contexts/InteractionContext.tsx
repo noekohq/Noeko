@@ -10,15 +10,7 @@ import { getOS } from "../utils/platform";
 import { useAuth } from "./AuthContext";
 import { userIsSuperuser } from "../utils/user";
 import { CheckIcon } from "@phosphor-icons/react";
-import {
-  Group,
-  Text,
-  Drawer,
-  Space,
-  Modal,
-  Stack,
-  Button,
-} from "@mantine/core";
+import { Group, Text, Drawer, Space, Modal, Stack, Button } from "@mantine/core";
 import { useLayout } from "./LayoutContext";
 import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
 import Spotlight from "../components/UI/Spotlight/Spotlight";
@@ -143,15 +135,10 @@ const initialContext: IInteractionContext = {
 
 const InteractionContext = createContext(initialContext);
 
-export function InteractionProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function InteractionProvider({ children }: { children: React.ReactNode }) {
   const [loadingSomething, setLoadingSomething] = useState(false);
   const navigate = useNavigate();
-  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } =
-    useAuth();
+  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } = useAuth();
   const isSuperuser = userIsSuperuser(user);
   const [spotlightOpened, setSpotlightOpened] = useState(false);
 
@@ -216,7 +203,7 @@ export function InteractionProvider({
           message: "Something went wrong adding the idea.",
           color: "red",
         });
-      },
+      }
     );
     setLoadingSomething(false);
   };
@@ -233,7 +220,7 @@ export function InteractionProvider({
           message: "Something went wrong adding the rabbithole.",
           color: "red",
         });
-      },
+      }
     );
     setLoadingSomething(false);
   };
@@ -272,10 +259,7 @@ export function InteractionProvider({
       newIdea: async () => {
         try {
           setLoadingSomething(true);
-          if (
-            (user && user.totalIdeas < max_notes && max_notes !== -1) ||
-            userIsSuperuser(user)
-          ) {
+          if ((user && user.totalIdeas < max_notes && max_notes !== -1) || userIsSuperuser(user)) {
             handleNewIdea();
           } else {
             showNotification({
@@ -291,10 +275,7 @@ export function InteractionProvider({
         }
       },
       newConnectedIdea: async (source: string) => {
-        if (
-          (user && user.totalIdeas < max_notes && max_notes !== -1) ||
-          userIsSuperuser(user)
-        ) {
+        if ((user && user.totalIdeas < max_notes && max_notes !== -1) || userIsSuperuser(user)) {
           handleNewConnectedIdea(source);
         } else {
           showNotification({
@@ -500,10 +481,7 @@ export function InteractionProvider({
         setOpened={setCreatingTask}
         initialDescription={initialTaskDescription}
       />
-      <FeedbackModal
-        opened={feedbackModalOpened}
-        onClose={() => setFeedbackModalOpened(false)}
-      />
+      <FeedbackModal opened={feedbackModalOpened} onClose={() => setFeedbackModalOpened(false)} />
       <LoadingOverlay loading={false} />
 
       {spotlightOpened && <Spotlight />}
@@ -514,16 +492,13 @@ export function InteractionProvider({
 export const useInteraction = () => {
   const context = useContext(InteractionContext);
   if (!context) {
-    throw new Error(
-      "useInteraction must be used within an InteractionProvider",
-    );
+    throw new Error("useInteraction must be used within an InteractionProvider");
   }
   return context;
 };
 
 function PolicyHandler() {
-  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } =
-    useAuth();
+  const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } = useAuth();
 
   const showLegalModal = (): "privacy" | "tos" | "both" | undefined => {
     if (!user?.acceptedPrivacyPolicyAt && !user?.acceptedTermsOfServiceAt) {
@@ -550,12 +525,9 @@ function PolicyHandler() {
       >
         <Stack gap="md" align="center" justify="center">
           <Text size="sm" c="dimmed">
-            Please accept our{" "}
-            <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
-            <a href="https://www.noeko.app/terms-of-service">
-              Terms of Service
-            </a>{" "}
-            to continue using Noeko :)
+            Please accept our <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
+            <a href="https://www.noeko.app/terms-of-service">Terms of Service</a> to continue using
+            Noeko :)
           </Text>
           <Group gap="sm">
             <Button
@@ -582,9 +554,8 @@ function PolicyHandler() {
       >
         <Stack gap="md" align="center" justify="center">
           <Text size="sm" c="dimmed">
-            Please accept our{" "}
-            <a href="https://www.noeko.app/privacy">Privacy Policy</a> to
-            continue using Noeko :)
+            Please accept our <a href="https://www.noeko.app/privacy">Privacy Policy</a> to continue
+            using Noeko :)
           </Text>
           <Group gap="sm">
             <Button
@@ -611,9 +582,8 @@ function PolicyHandler() {
       >
         <Stack gap="md" align="center" justify="center">
           <Text size="sm" c="dimmed">
-            Please accept our{" "}
-            <a href="https://www.noeko.app/terms">Terms of Service</a> to
-            continue using Noeko :)
+            Please accept our <a href="https://www.noeko.app/terms">Terms of Service</a> to continue
+            using Noeko :)
           </Text>
           <Group gap="sm">
             <Button
@@ -638,11 +608,7 @@ type ICreateTaskProps = {
   initialDescription: string;
 };
 
-function CreateTask({
-  opened,
-  setOpened,
-  initialDescription,
-}: ICreateTaskProps) {
+function CreateTask({ opened, setOpened, initialDescription }: ICreateTaskProps) {
   const { isMobile } = useLayout();
 
   return (

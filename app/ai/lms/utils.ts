@@ -36,7 +36,7 @@ export class LMUtils {
 
   async summarize(
     text: string,
-    length: "sentence" | "couple sentences" | "paragraph",
+    length: "sentence" | "couple sentences" | "paragraph"
   ): Promise<string | null> {
     try {
       const prompt = new PromptBuilder()
@@ -74,7 +74,7 @@ export class LMUtils {
           <titleInstructions>
           ${description}
           </titleInstructions>
-          `,
+          `
         )
         .addText(`<content>`)
         .addText(content)

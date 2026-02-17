@@ -1,10 +1,6 @@
 import { useSearchParams, useNavigate } from "react-router";
 import styles from "./Unauthorized.module.scss";
-import {
-  HandPalmIcon,
-  HouseIcon,
-  ArrowUUpLeftIcon,
-} from "@phosphor-icons/react";
+import { HandPalmIcon, HouseIcon, ArrowUUpLeftIcon } from "@phosphor-icons/react";
 
 export default function Unauthorized() {
   const [searchParams] = useSearchParams();

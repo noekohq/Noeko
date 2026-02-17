@@ -41,8 +41,7 @@ const getSourceDefaultSummary = (source: ISource): string | undefined => {
 const getSourceDefaultDetails = (source: ISource): React.ReactNode => {
   return (
     <Text size="sm" c="dimmed">
-      Created {formatDate(source.createdAt)}, last updated{" "}
-      {formatDate(source.updatedAt)}
+      Created {formatDate(source.createdAt)}, last updated {formatDate(source.updatedAt)}
     </Text>
   );
 };
@@ -53,14 +52,7 @@ export type ISourceAction = {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, source: ISource) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean; // If true, primarily for the overflow menu
@@ -95,7 +87,7 @@ export default function SourceCard({
       "application/json",
       JSON.stringify({
         sourceId: source.id.toString(),
-      }),
+      })
     );
   };
 

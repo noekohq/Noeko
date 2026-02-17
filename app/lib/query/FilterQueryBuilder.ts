@@ -1,8 +1,5 @@
 import { RecordId, StringRecordId } from "surrealdb";
-import {
-  IGraphFilters,
-  IGraphTagFilter,
-} from "../../../shared/types/constellation";
+import { IGraphFilters, IGraphTagFilter } from "../../../shared/types/constellation";
 
 export class FilterQueryBuilder {
   private whereClauses: string[] = [];
@@ -19,7 +16,7 @@ export class FilterQueryBuilder {
   public withAccess(userId: string | RecordId, includeShared = false): this {
     if (includeShared) {
       this.whereClauses.push(
-        `(count(<-owns.in[WHERE id = $userId]) > 0 OR count(->shared_with[WHERE out = $userId AND (accessLevel = 'viewonly' OR accessLevel = 'editor')]) > 0)`,
+        `(count(<-owns.in[WHERE id = $userId]) > 0 OR count(->shared_with[WHERE out = $userId AND (accessLevel = 'viewonly' OR accessLevel = 'editor')]) > 0)`
       );
     } else {
       this.whereClauses.push(`count(<-owns.in[WHERE id = $userId]) > 0`);
@@ -42,21 +39,14 @@ export class FilterQueryBuilder {
    */
   public withDateRange(
     field: "createdAt" | "updatedAt" | "viewedAt",
-    options: { after?: string; before?: string },
+    options: { after?: string; before?: string }
   ): this {
     const { after, before } = options;
     const afterDate = after ? new Date(after) : null;
     const beforeDate = before ? new Date(before) : null;
 
-    if (
-      afterDate &&
-      !isNaN(afterDate.getTime()) &&
-      beforeDate &&
-      !isNaN(beforeDate.getTime())
-    ) {
-      this.whereClauses.push(
-        `${field} >= $${field}After AND ${field} <= $${field}Before`,
-      );
+    if (afterDate && !isNaN(afterDate.getTime()) && beforeDate && !isNaN(beforeDate.getTime())) {
+      this.whereClauses.push(`${field} >= $${field}After AND ${field} <= $${field}Before`);
       this.params[`${field}After`] = afterDate;
       this.params[`${field}Before`] = beforeDate;
     } else if (afterDate && !isNaN(afterDate.getTime())) {
@@ -109,7 +99,7 @@ export class FilterQueryBuilder {
     switch (behavior) {
       case "and":
         this.whereClauses.push(
-          `array::len(<-describes<-(tag WHERE id in $tagSet)) = array::len($tagSet)`,
+          `array::len(<-describes<-(tag WHERE id in $tagSet)) = array::len($tagSet)`
         );
         break;
       case "or":
@@ -117,17 +107,12 @@ export class FilterQueryBuilder {
         break;
     }
 
-    this.params.tagSet = set.map(
-      (s: string | RecordId) => new StringRecordId(s),
-    );
+    this.params.tagSet = set.map((s: string | RecordId) => new StringRecordId(s));
 
     return this;
   }
 
-  public applyFilters(
-    filters: IGraphFilters,
-    userId?: string | RecordId,
-  ): this {
+  public applyFilters(filters: IGraphFilters, userId?: string | RecordId): this {
     if (userId) {
       this.withAccess(userId, !!filters.showShared);
     }

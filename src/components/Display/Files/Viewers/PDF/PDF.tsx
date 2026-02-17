@@ -27,33 +27,17 @@ import styles from "./PDF.module.scss";
 
 /* -- EmbedPDF Configuration -- */
 import { createPluginRegistration, PluginRegistry } from "@embedpdf/core";
-import {
-  PdfAnnotationSubtype,
-  Rect,
-  PdfDocumentObject,
-  deserializeLogger,
-} from "@embedpdf/models";
+import { PdfAnnotationSubtype, Rect, PdfDocumentObject, deserializeLogger } from "@embedpdf/models";
 import { EmbedPDF, PDFContext } from "@embedpdf/core/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
-import {
-  useZoom,
-  ZoomPluginPackage,
-  ZoomMode,
-} from "@embedpdf/plugin-zoom/react";
+import { useZoom, ZoomPluginPackage, ZoomMode } from "@embedpdf/plugin-zoom/react";
 import {
   useViewportCapability,
   Viewport,
   ViewportPluginPackage,
 } from "@embedpdf/plugin-viewport/react";
-import {
-  Scroller,
-  ScrollPluginPackage,
-  ScrollStrategy,
-} from "@embedpdf/plugin-scroll/react";
-import {
-  LoaderPlugin,
-  LoaderPluginPackage,
-} from "@embedpdf/plugin-loader/react";
+import { Scroller, ScrollPluginPackage, ScrollStrategy } from "@embedpdf/plugin-scroll/react";
+import { LoaderPlugin, LoaderPluginPackage } from "@embedpdf/plugin-loader/react";
 import {
   RenderLayer,
   RenderPluginPackage,
@@ -189,18 +173,9 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
                     <GlobalPointerProvider>
                       <Viewport className={styles.viewPort}>
                         <Scroller
-                          renderPage={({
-                            width,
-                            height,
-                            pageIndex,
-                            scale,
-                            rotation,
-                          }) => {
+                          renderPage={({ width, height, pageIndex, scale, rotation }) => {
                             return (
-                              <div
-                                className={styles.page}
-                                style={{ width, height }}
-                              >
+                              <div className={styles.page} style={{ width, height }}>
                                 <PagePointerProvider
                                   rotation={rotation}
                                   scale={scale}
@@ -212,14 +187,8 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
                                     height,
                                   }}
                                 >
-                                  <RenderLayer
-                                    pageIndex={pageIndex}
-                                    scaleFactor={scale}
-                                  />
-                                  <SelectionLayer
-                                    pageIndex={pageIndex}
-                                    scale={scale}
-                                  />
+                                  <RenderLayer pageIndex={pageIndex} scaleFactor={scale} />
+                                  <SelectionLayer pageIndex={pageIndex} scale={scale} />
                                   <SelectionMenu />
                                   <AnnotationLayer
                                     pageIndex={pageIndex}
@@ -288,9 +257,7 @@ function Toolbar() {
       pdfMetadata: { pageIndex, data },
     } = excerpt;
 
-    const pageAnnotations = await annotations
-      ?.getPageAnnotations({ pageIndex })
-      .toPromise();
+    const pageAnnotations = await annotations?.getPageAnnotations({ pageIndex }).toPromise();
     if (pageAnnotations?.find((pa) => pa.id === excerpt.id.toString())) {
       annotations?.deleteAnnotation(pageIndex, excerpt.id.toString());
     }
@@ -326,11 +293,7 @@ function Toolbar() {
         return;
       }
       if (!selectedText) {
-        console.error(
-          "No contents of selection: ",
-          formattedSelection,
-          selectedText,
-        );
+        console.error("No contents of selection: ", formattedSelection, selectedText);
         return;
       }
       setHighlighting(true);
@@ -350,12 +313,7 @@ function Toolbar() {
         pdfMetadata: { pageIndex, data: metadata },
       });
       if (!excerpt) {
-        console.error(
-          "Couldn't create excerpt: ",
-          excerpt,
-          formattedSelection,
-          selectedText,
-        );
+        console.error("Couldn't create excerpt: ", excerpt, formattedSelection, selectedText);
         showNotification({
           title: "Something went wrong",
           message: "Couldn't create the excerpt.",
@@ -472,7 +430,7 @@ function SelectionMenu({}: ISelectionMenuProps) {
         },
         (err) => {
           setSelectionText(null);
-        },
+        }
       );
     });
   }, []);
@@ -522,8 +480,7 @@ function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
       note: excerpt?.note ?? "",
     },
     validate: {
-      note: (value) =>
-        value.length < 2 ? "Note must be at least 2 characters long" : null,
+      note: (value) => (value.length < 2 ? "Note must be at least 2 characters long" : null),
     },
   });
 

@@ -24,12 +24,7 @@ export type ITaskForm = Omit<
   "embeddings" | "embeddingsUpdatedAt" | "createdAt" | "updatedAt" | "viewedAt"
 >;
 
-export type ITaskSortFields =
-  | "createdAt"
-  | "updatedAt"
-  | "completedAt"
-  | "viewedAt"
-  | "dueDate";
+export type ITaskSortFields = "createdAt" | "updatedAt" | "completedAt" | "viewedAt" | "dueDate";
 
 export type ITaskSortDirection = "desc" | "asc";
 

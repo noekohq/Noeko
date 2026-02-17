@@ -26,24 +26,17 @@ interface IGraphOrganizerProps {
 export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
   const {
     focused: { get: focused, set: setFocused },
-    selected: {
-      get: selection,
-      clear: clearSelection,
-      add: addToSelection,
-      empty: selectionEmpty,
-    },
+    selected: { get: selection, clear: clearSelection, add: addToSelection, empty: selectionEmpty },
   } = useGraph();
 
   const selectedNodes = nodes.filter((node) => {
     return selection.has(node.id.toString());
   });
 
-  const rabbitholes = selectedNodes.filter(
-    (node) => node.type === "rabbithole",
-  );
+  const rabbitholes = selectedNodes.filter((node) => node.type === "rabbithole");
   const tags = selectedNodes.filter((node) => node.type === "tag");
   const connectables = selectedNodes.filter(
-    (node) => getNodeOrganizationType(node) === "connectable",
+    (node) => getNodeOrganizationType(node) === "connectable"
   ) as (IIdeaNode | ISourceNode | ITaskNode | IExcerptNode)[];
 
   return (

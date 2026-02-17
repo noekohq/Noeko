@@ -43,6 +43,7 @@ export default function GridCard({
   preview,
   draggable = false,
   footerContent,
+  thumbnail,
 }: IGridCardProps) {
   const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
@@ -80,10 +81,7 @@ export default function GridCard({
       e.dataTransfer.setDragImage(rootRef.current, 0, 0);
     }
 
-    e.dataTransfer.setData(
-      "application/json",
-      JSON.stringify({ thingId: id.toString() }),
-    );
+    e.dataTransfer.setData("application/json", JSON.stringify({ thingId: id.toString() }));
   };
 
   const handleDragEnd = () => {
@@ -118,15 +116,26 @@ export default function GridCard({
             {/* ROW 1: Icon (Left) + CTA (Right) */}
             <div className={styles.topRow}>
               <div
-                className={`${styles.iconDragZone} ${
-                  hovering ? styles.hovering : ""
-                }`}
+                className={`${styles.iconDragZone} ${hovering ? styles.hovering : ""}`}
                 draggable={!!id && draggable}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 onClick={(e) => e.stopPropagation()}
               >
-                {IconComponent ? (
+                {thumbnail ? (
+                  <img
+                    src={thumbnail}
+                    alt={title}
+                    className={styles.thumbnail}
+                    style={{
+                      width: "100%",
+                      height: 120,
+                      objectFit: "cover",
+                      borderRadius: "var(--mantine-radius-sm)",
+                      marginBottom: "var(--mantine-spacing-xs)",
+                    }}
+                  />
+                ) : IconComponent ? (
                   <IconComponent
                     size={18}
                     weight={state === "suggested" ? "regular" : "bold"}
@@ -150,11 +159,7 @@ export default function GridCard({
 
             {/* ROW 3: Content Detail */}
             <div className={styles.contentWrapper}>
-              <Text
-                className={styles.detail}
-                lineClamp={3}
-                title={detail?.toString() || ""}
-              >
+              <Text className={styles.detail} lineClamp={3} title={detail?.toString() || ""}>
                 {detail}
               </Text>
             </div>
@@ -177,9 +182,7 @@ export default function GridCard({
             )}
 
             {/* Additional footer content */}
-            {footerContent && (
-              <div className={styles.footerContent}>{footerContent}</div>
-            )}
+            {footerContent && <div className={styles.footerContent}>{footerContent}</div>}
 
             {/* ROW 4: Footer Actions (Floating bottom right) */}
             {action && (
@@ -224,18 +227,12 @@ export default function GridCard({
           )}
           <CopyButton value={title}>
             {({ copy, copied }) => (
-              <PaperContextMenu.Item
-                icon={copied ? <CheckIcon /> : <CopyIcon />}
-                onClick={copy}
-              >
+              <PaperContextMenu.Item icon={copied ? <CheckIcon /> : <CopyIcon />} onClick={copy}>
                 Copy title
               </PaperContextMenu.Item>
             )}
           </CopyButton>
-          <PaperContextMenu.Item
-            icon={<EyeIcon />}
-            onClick={() => setPeering(true)}
-          >
+          <PaperContextMenu.Item icon={<EyeIcon />} onClick={() => setPeering(true)}>
             Preview
           </PaperContextMenu.Item>
         </PaperContextMenu.Dropdown>

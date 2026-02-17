@@ -224,10 +224,7 @@ router.get("/:rabbitholeId/similar-ideas", async (req, res) => {
       });
       return;
     }
-    const similarIdeas = await Rabbithole.findSimilarIdeas(
-      rabbitholeId,
-      user.id,
-    );
+    const similarIdeas = await Rabbithole.findSimilarIdeas(rabbitholeId, user.id);
     res.send({
       message: "Successfully retrieved similar ideas",
       data: similarIdeas,
@@ -259,11 +256,10 @@ router.get("/:rabbitholeId/suggestions", async (req, res) => {
       });
       return;
     }
-    const similarThings = await Rabbithole.getSimilarThings(
-      user.id,
-      rabbitholeId,
-      { limit, threshold },
-    );
+    const similarThings = await Rabbithole.getSimilarThings(user.id, rabbitholeId, {
+      limit,
+      threshold,
+    });
     res.send({
       message: "Successfully retrieved similar ideas",
       data: similarThings,

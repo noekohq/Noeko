@@ -13,10 +13,7 @@ export interface IPin {
 export default class Pin {
   constructor() {}
 
-  public static async pinThing(
-    userId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  public static async pinThing(userId: string | RecordId, thingId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -28,7 +25,7 @@ export default class Pin {
           userId: new StringRecordId(userId),
           thingId: new StringRecordId(thingId),
           now: new Date(),
-        },
+        }
       );
       if (!result || !result.length) {
         throw new Error("Failed to pin thing");
@@ -61,22 +58,16 @@ export default class Pin {
     }
   }
 
-  public static async unpinThing(
-    userId: string | RecordId,
-    thingId: string | RecordId,
-  ) {
+  public static async unpinThing(userId: string | RecordId, thingId: string | RecordId) {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Database not initialized");
       }
-      const result = await db.query<[IPin[]]>(
-        `DELETE pins WHERE in = $userId AND out = $thingId`,
-        {
-          thingId: new StringRecordId(thingId),
-          userId: new StringRecordId(userId),
-        },
-      );
+      const result = await db.query<[IPin[]]>(`DELETE pins WHERE in = $userId AND out = $thingId`, {
+        thingId: new StringRecordId(thingId),
+        userId: new StringRecordId(userId),
+      });
       if (!result || !result.length) {
         throw new Error("Failed to unpin thing");
       }
@@ -109,7 +100,7 @@ export default class Pin {
   }
 
   public static async getUserPinnedThings(
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<IConnectable[] | undefined> {
     try {
       const db = await getDatabase();
@@ -120,7 +111,7 @@ export default class Pin {
         `SELECT * OMIT embeddings FROM $userId->pins->(?)`,
         {
           userId: new StringRecordId(userId),
-        },
+        }
       );
       if (!result || !result.length) {
         throw new Error("Failed to get user pins");

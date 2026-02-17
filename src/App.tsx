@@ -1,10 +1,4 @@
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 import styles from "./App.module.scss";
 import { Center, Loader, Text, useMantineColorScheme } from "@mantine/core";
 import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
@@ -153,9 +147,7 @@ export default function App() {
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route
               path="/*"
-              element={
-                <Navigate to="/login" state={{ from: location }} replace />
-              }
+              element={<Navigate to="/login" state={{ from: location }} replace />}
             />
           </>
         )}
@@ -168,19 +160,13 @@ export default function App() {
                 <GlobalTourManager />
                 <Routes>
                   <Route path="login" element={<Navigate to="/" replace />} />
-                  <Route
-                    path="register"
-                    element={<Navigate to="/" replace />}
-                  />
+                  <Route path="register" element={<Navigate to="/" replace />} />
                   {!isMobile && <Route index element={<Dashboard />} />}
                   {isMobile && <Route index element={<MobileDashboard />} />}
                   <Route path="constellation">
                     <Route index element={<Constellation />} />
                   </Route>
-                  <Route
-                    path="profile"
-                    element={<Navigate to="/settings/profile" />}
-                  />
+                  <Route path="profile" element={<Navigate to="/settings/profile" />} />
                   <Route path="settings">
                     <Route index element={<Settings />} />
                     <Route path="profile" element={<Profile />} />
@@ -189,10 +175,7 @@ export default function App() {
                     <Route index element={<Navigate to="/ideas" replace />} />
                     <Route path=":ideaId">
                       <Route index element={<Idea />} />
-                      <Route
-                        path="view"
-                        element={<ViewIdea key={location.pathname} />}
-                      />
+                      <Route path="view" element={<ViewIdea key={location.pathname} />} />
                     </Route>
                   </Route>
                   <Route path="sharing">

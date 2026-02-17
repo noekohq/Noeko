@@ -1,225 +1,225 @@
 @use "../../../styles/mixins.scss" as *;
 
 :root {
-    --background-color: var(--mantine-color-dark-8);
-    --background-color-collapsed: transparent;
-    --padding-unit: var(--layout-spacing);
+  --background-color: var(--mantine-color-dark-8);
+  --background-color-collapsed: transparent;
+  --padding-unit: var(--layout-spacing);
 }
 
 @keyframes openIt {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px) scale(.99);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @include desktop {
-    @keyframes openIt {
-        0% {
-            /* width: var(--sidebar-width-collapsed); */
-            transform: translateY(5px);
-            background-color: var(--background-color-collapsed);
-        }
-        50% {
-            background-color: var(--background-color);
-        }
-        100% {
-            /* width: calc(var(--sidebar-width) - var(--padding-unit)); */
-            transform: translateY(0);
-        }
+  @keyframes openIt {
+    0% {
+      /* width: var(--sidebar-width-collapsed); */
+      transform: translateY(5px);
+      background-color: var(--background-color-collapsed);
     }
+    50% {
+      background-color: var(--background-color);
+    }
+    100% {
+      /* width: calc(var(--sidebar-width) - var(--padding-unit)); */
+      transform: translateY(0);
+    }
+  }
 }
 
 @keyframes collapseIt {
-    0% {
-        width: var(--sidebar-width);
-    }
-    99% {
-        width: var(--sidebar-width-collapsed);
-    }
-    100% {
-        display: none;
-    }
+  0% {
+    width: var(--sidebar-width);
+  }
+  99% {
+    width: var(--sidebar-width-collapsed);
+  }
+  100% {
+    display: none;
+  }
 }
 
 @include tablet {
-    @keyframes collapseIt {
-        0% {
-            width: var(--sidebar-width);
-        }
-        100% {
-            width: var(--sidebar-width-collapsed);
-        }
+  @keyframes collapseIt {
+    0% {
+      width: var(--sidebar-width);
     }
+    100% {
+      width: var(--sidebar-width-collapsed);
+    }
+  }
 }
 
 @include desktop {
-    @keyframes collapseIt {
-        0% {
-            width: var(--sidebar-width);
-        }
-        100% {
-            width: var(--sidebar-width-collapsed);
-        }
+  @keyframes collapseIt {
+    0% {
+      width: var(--sidebar-width);
     }
+    100% {
+      width: var(--sidebar-width-collapsed);
+    }
+  }
 }
 
 @keyframes compactIt {
-    0% {
-    }
-    100% {
-    }
+  0% {
+  }
+  100% {
+  }
 }
 
 .sidebar {
-    position: fixed;
-    z-index: var(--z-index-sidebars);
-    box-sizing: border-box;
-    transition:
-        box-shadow 0.2s ease-in-out,
-        border-radius 0.2s ease-in-out;
+  position: fixed;
+  z-index: var(--z-index-sidebars);
+  box-sizing: border-box;
+  transition:
+    box-shadow 0.2s ease-in-out,
+    border-radius 0.2s ease-in-out;
 
-    &.open {
-        animation: openIt 0.4s ease-in-out forwards;
-        top: var(--padding-unit);
-        bottom: var(--padding-unit);
-        max-height: calc(100vh);
-        padding: var(--layout-spacing);
-        background-color: var(--background-color);
-        width: calc(var(--sidebar-width) - 24px);
-        backdrop-filter: blur(10px) brightness(0.9);
-        border-right: 1px solid var(--mantine-color-dark-7);
-        display: flex;
-        flex-direction: column;
-        border-radius: var(--mantine-radius-lg);
-        box-shadow: var(--mantine-shadow-lg);
+  &.open {
+    animation: openIt 0.4s ease-in-out forwards;
+    top: var(--padding-unit);
+    bottom: var(--padding-unit);
+    max-height: calc(100vh);
+    padding: var(--layout-spacing);
+    background-color: var(--background-color);
+    width: calc(var(--sidebar-width) - 24px);
+    backdrop-filter: blur(10px) brightness(0.9);
+    border-right: 1px solid var(--mantine-color-dark-7);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--mantine-radius-lg);
+    box-shadow: var(--mantine-shadow-lg);
 
-        &.hovering {
-            /* animation: none; */
-        }
-
-        .global {
-            width: 100%;
-            margin-bottom: var(--mantine-spacing-sm);
-            background-color: var(--mantine-color-dark-8);
-            /* box-shadow: var(--mantine-shadow-sm); */
-            padding: 4px var(--mantine-spacing-sm);
-            border-radius: var(--mantine-radius-md);
-            border: 1px solid var(--mantine-color-dark-7);
-        }
-
-        .content {
-            height: 100%;
-            scrollbar-width: none;
-        }
-
-        .rabbitholeIndicator {
-            margin-top: var(--mantine-spacing-xs);
-        }
-
-        @include tablet {
-        }
-
-        @include desktop {
-            top: var(--padding-unit);
-            bottom: var(--padding-unit);
-            border: 1px solid var(--mantine-color-dark-7);
-            border-radius: var(--mantine-radius-lg);
-            animation-duration: 0.1s;
-
-            .global {
-            }
-        }
-
-        @include widescreen {
-        }
+    &.hovering {
+      /* animation: none; */
     }
 
-    &.collapsed {
-        height: calc(100vh - (var(--padding-unit) * 2));
-        animation: collapseIt 0.2s ease-out forwards;
-        display: none;
-        bottom: auto;
-
-        @include tablet {
-            top: var(--padding-unit);
-            bottom: var(--padding-unit);
-            padding: var(--mantine-spacing-sm) 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: var(--sidebar-width-collapsed);
-            background-color: var(--background-color-collapsed);
-        }
-
-        @include desktop {
-            top: var(--padding-unit);
-            bottom: var(--padding-unit);
-            border-radius: var(--mantine-radius-lg);
-        }
-
-        .global {
-            margin-bottom: var(--mantine-spacing-md);
-
-            @include tablet {
-            }
-        }
-
-        .content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            scrollbar-width: none;
-            padding-top: var(--mantine-spacing-md);
-            border-top: 1px solid var(--mantine-color-dark-7);
-        }
+    .global {
+      width: 100%;
+      margin-bottom: var(--mantine-spacing-sm);
+      background-color: var(--mantine-color-dark-8);
+      /* box-shadow: var(--mantine-shadow-sm); */
+      padding: 4px var(--mantine-spacing-sm);
+      border-radius: var(--mantine-radius-md);
+      border: 1px solid var(--mantine-color-dark-7);
     }
+
+    .content {
+      height: 100%;
+      scrollbar-width: none;
+    }
+
+    .rabbitholeIndicator {
+      margin-top: var(--mantine-spacing-xs);
+    }
+
+    @include tablet {
+    }
+
+    @include desktop {
+      top: var(--padding-unit);
+      bottom: var(--padding-unit);
+      border: 1px solid var(--mantine-color-dark-7);
+      border-radius: var(--mantine-radius-lg);
+      animation-duration: 0.1s;
+
+      .global {
+      }
+    }
+
+    @include widescreen {
+    }
+  }
+
+  &.collapsed {
+    height: calc(100vh - (var(--padding-unit) * 2));
+    animation: collapseIt 0.2s ease-out forwards;
+    display: none;
+    bottom: auto;
+
+    @include tablet {
+      top: var(--padding-unit);
+      bottom: var(--padding-unit);
+      padding: var(--mantine-spacing-sm) 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: var(--sidebar-width-collapsed);
+      background-color: var(--background-color-collapsed);
+    }
+
+    @include desktop {
+      top: var(--padding-unit);
+      bottom: var(--padding-unit);
+      border-radius: var(--mantine-radius-lg);
+    }
+
+    .global {
+      margin-bottom: var(--mantine-spacing-md);
+
+      @include tablet {
+      }
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      scrollbar-width: none;
+      padding-top: var(--mantine-spacing-md);
+      border-top: 1px solid var(--mantine-color-dark-7);
+    }
+  }
 }
 
 .left {
-    &.open {
-        left: var(--padding-unit);
+  &.open {
+    left: var(--padding-unit);
 
-        @include desktop {
-            left: var(--padding-unit);
-        }
+    @include desktop {
+      left: var(--padding-unit);
+    }
+  }
+
+  &.collapsed {
+    left: 0;
+
+    @include tablet {
     }
 
-    &.collapsed {
-        left: 0;
-
-        @include tablet {
-        }
-
-        @include desktop {
-            left: var(--padding-unit);
-        }
+    @include desktop {
+      left: var(--padding-unit);
     }
+  }
 }
 
 .right {
-    &.open {
-        right: var(--padding-unit);
+  &.open {
+    right: var(--padding-unit);
 
-        @include desktop {
-            right: var(--padding-unit);
-        }
+    @include desktop {
+      right: var(--padding-unit);
+    }
+  }
+
+  &.collapsed {
+    right: 0;
+
+    @include tablet {
     }
 
-    &.collapsed {
-        right: 0;
-
-        @include tablet {
-        }
-
-        @include desktop {
-            right: var(--padding-unit);
-        }
+    @include desktop {
+      right: var(--padding-unit);
     }
+  }
 }
 
 .global {
@@ -229,8 +229,8 @@
 }
 
 .content {
-    overflow-y: scroll;
-    /* overflow-x: hidden; */
-    scrollbar-width: thin;
-    scrollbar-color: var(--mantine-color-dark-6) transparent;
+  overflow-y: scroll;
+  /* overflow-x: hidden; */
+  scrollbar-width: thin;
+  scrollbar-color: var(--mantine-color-dark-6) transparent;
 }

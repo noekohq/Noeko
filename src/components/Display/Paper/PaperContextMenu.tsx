@@ -26,15 +26,7 @@ import {
   useClick,
   useHover,
 } from "@floating-ui/react";
-import {
-  Box,
-  Paper,
-  Stack,
-  Text,
-  CopyButton,
-  Tooltip,
-  Group,
-} from "@mantine/core";
+import { Box, Paper, Stack, Text, CopyButton, Tooltip, Group } from "@mantine/core";
 import styles from "./PaperContextMenu.module.scss";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useLayout } from "../../../contexts/LayoutContext";
@@ -50,25 +42,18 @@ interface PaperContextMenuContextValue {
   y: number | null;
   strategy: Strategy;
   context: FloatingContext;
-  getFloatingProps: (
-    props?: React.HTMLProps<HTMLElement>,
-  ) => Record<string, unknown>;
+  getFloatingProps: (props?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
   arrowRef: React.RefObject<SVGSVGElement | null>;
   triggerOn: "contextmenu" | "click" | "hover" | "hold";
-  getReferenceProps: (
-    props?: React.HTMLProps<HTMLElement>,
-  ) => Record<string, unknown>;
+  getReferenceProps: (props?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
 }
 
-const PaperContextMenuContext =
-  createContext<PaperContextMenuContextValue | null>(null);
+const PaperContextMenuContext = createContext<PaperContextMenuContextValue | null>(null);
 
 export const usePaperContextMenu = () => {
   const context = useContext(PaperContextMenuContext);
   if (!context) {
-    throw new Error(
-      "usePaperContextMenu must be used within a PaperContextMenu",
-    );
+    throw new Error("usePaperContextMenu must be used within a PaperContextMenu");
   }
   return context;
 };
@@ -88,9 +73,9 @@ const PaperContextMenuComponent = ({
   const arrowRef = useRef<SVGSVGElement>(null);
   const { isMobile } = useLayout();
 
-  const [triggerOn, setTriggerOn] = useState<
-    "contextmenu" | "click" | "hover" | "hold"
-  >(triggerOnProp || "contextmenu");
+  const [triggerOn, setTriggerOn] = useState<"contextmenu" | "click" | "hover" | "hold">(
+    triggerOnProp || "contextmenu"
+  );
 
   useEffect(() => {
     if (triggerOnProp) {
@@ -153,7 +138,7 @@ const PaperContextMenuComponent = ({
 // --- useLongPress Hook ---
 function useLongPress(
   onLongPress: (e: React.MouseEvent | React.TouchEvent) => void,
-  { delay = 400, moveThreshold = 10 } = {},
+  { delay = 400, moveThreshold = 10 } = {}
 ) {
   const timeout = useRef<NodeJS.Timeout>(null);
   const startPos = useRef<{ x: number; y: number } | null>(null);
@@ -173,7 +158,7 @@ function useLongPress(
         isLongPress.current = true;
       }, delay);
     },
-    [onLongPress, delay],
+    [onLongPress, delay]
   );
 
   const cancel = useCallback(() => {
@@ -192,7 +177,7 @@ function useLongPress(
         cancel();
       }
     },
-    [moveThreshold, cancel],
+    [moveThreshold, cancel]
   );
 
   const handleUp = useCallback(
@@ -203,7 +188,7 @@ function useLongPress(
         event.preventDefault();
       }
     },
-    [cancel],
+    [cancel]
   );
 
   return {
@@ -218,7 +203,7 @@ function useLongPress(
 
 // Helper to merge refs
 function mergeRefs<T = any>(
-  refs: Array<React.MutableRefObject<T> | React.LegacyRef<T>>,
+  refs: Array<React.MutableRefObject<T> | React.LegacyRef<T>>
 ): React.RefCallback<T> {
   return (value) => {
     refs.forEach((ref) => {
@@ -236,8 +221,7 @@ const Target = ({
 }: {
   children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
 }) => {
-  const { reference, setOpened, getReferenceProps, triggerOn } =
-    usePaperContextMenu();
+  const { reference, setOpened, getReferenceProps, triggerOn } = usePaperContextMenu();
 
   const onLongPress = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
@@ -257,7 +241,7 @@ const Target = ({
       });
       setOpened(true);
     },
-    [reference, setOpened],
+    [reference, setOpened]
   );
 
   const longPressEvents = useLongPress(onLongPress);
@@ -292,10 +276,7 @@ const Target = ({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const childrenRef = (children as any).ref;
-  const ref = useMemo(
-    () => mergeRefs([reference, childrenRef]),
-    [reference, childrenRef],
-  );
+  const ref = useMemo(() => mergeRefs([reference, childrenRef]), [reference, childrenRef]);
 
   return cloneElement(children, getReferenceProps({ ...children.props, ref }));
 };
@@ -303,16 +284,8 @@ const Target = ({
 // --- Dropdown ---
 
 const Dropdown = ({ children }: { children: React.ReactNode }) => {
-  const {
-    opened,
-    floating,
-    x,
-    y,
-    strategy,
-    context,
-    getFloatingProps,
-    arrowRef,
-  } = usePaperContextMenu();
+  const { opened, floating, x, y, strategy, context, getFloatingProps, arrowRef } =
+    usePaperContextMenu();
 
   return (
     <FloatingPortal>
@@ -343,8 +316,7 @@ const Dropdown = ({ children }: { children: React.ReactNode }) => {
 };
 
 // --- Item ---
-interface PaperContextMenuItemProps
-  extends React.ComponentPropsWithoutRef<"div"> {
+interface PaperContextMenuItemProps extends React.ComponentPropsWithoutRef<"div"> {
   icon?: React.ReactNode;
   children: React.ReactNode;
   disabled?: boolean;
@@ -369,7 +341,7 @@ const Item = forwardRef<HTMLDivElement, PaperContextMenuItemProps>(
         <Box className={styles.itemLabel}>{children}</Box>
       </div>
     );
-  },
+  }
 );
 
 // --- Label ---

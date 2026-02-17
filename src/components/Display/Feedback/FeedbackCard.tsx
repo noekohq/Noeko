@@ -9,10 +9,7 @@ interface IFeedbackCardProps {
   onClick?: (feedback: IFeedback) => void;
 }
 
-export default function FeedbackCard({
-  feedback,
-  onClick,
-}: IFeedbackCardProps) {
+export default function FeedbackCard({ feedback, onClick }: IFeedbackCardProps) {
   const clipContent = (content: string) => {
     if (content.length > 56) {
       return content.slice(0, 56) + "...";
@@ -32,8 +29,7 @@ export default function FeedbackCard({
           {clipContent(feedback.content)}
         </Text>
         <Text size="sm" c="dark.3">
-          {feedback.user?.firstName} {feedback.user?.lastName} -{" "}
-          {formatDate(feedback.createdAt)}
+          {feedback.user?.firstName} {feedback.user?.lastName} - {formatDate(feedback.createdAt)}
         </Text>
         <Group gap="xs">
           {!(feedback.status === "addressed") && (

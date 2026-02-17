@@ -17,8 +17,7 @@ router.post("/stream", checkToken, async (req, res) => {
       return;
     }
 
-    const { query, scope, deepAnalysis, rabbithole, tags, date, history } =
-      req.body;
+    const { query, scope, deepAnalysis, rabbithole, tags, date, history } = req.body;
     if (!query) {
       res.status(400).json({ error: "Query is required" });
       return;
@@ -139,11 +138,7 @@ router.get("/history/light", checkToken, async (req, res) => {
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
 
-    const history = await SpyglassRecord.getHistoryLightweight(
-      user.id.toString(),
-      page,
-      pageSize,
-    );
+    const history = await SpyglassRecord.getHistoryLightweight(user.id.toString(), page, pageSize);
     res.send({
       message: "Spyglass history retrieved successfully",
       data: history,

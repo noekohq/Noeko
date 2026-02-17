@@ -5,9 +5,7 @@ export const validateEmail = (value: string) => {
   return /^\S+@\S+$/.test(value);
 };
 
-export const validateIdeaContent = (
-  value: string,
-): { isValid: boolean; errors: string[] } => {
+export const validateIdeaContent = (value: string): { isValid: boolean; errors: string[] } => {
   const errorsFound: string[] = [];
   const words = htmlToPlainText(value).split(" ");
   if (words.length > 15000) {

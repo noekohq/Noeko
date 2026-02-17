@@ -58,7 +58,7 @@ const DeepFocusNavigation: React.FC<IDeepFocusNavigationProps> = ({
       {
         rootMargin: "-100px 0px -66%",
         threshold: 0,
-      },
+      }
     );
 
     // Observe sections
@@ -133,12 +133,7 @@ const DeepFocusNavigation: React.FC<IDeepFocusNavigationProps> = ({
                   <Text size="xs" lineClamp={1} style={{ flex: 1 }}>
                     {group.resource.name}
                   </Text>
-                  <Badge
-                    size="xs"
-                    variant="light"
-                    color="gray"
-                    className={styles.badge}
-                  >
+                  <Badge size="xs" variant="light" color="gray" className={styles.badge}>
                     {group.findings.length}
                   </Badge>
                 </Group>

@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ISearchResult,
-  ISearchResultValue,
-} from "../../../shared/types/search";
+import { ISearchResult, ISearchResultValue } from "../../../shared/types/search";
 import useFetch from "../../hooks/useFetch";
 import { Menu, TextInput, Loader, Text, ActionIcon } from "@mantine/core";
 import styles from "./InlineSearch.module.scss";
@@ -64,9 +61,7 @@ export function InlineSearch({
     },
   });
 
-  const results = rawResults?.filter(
-    (result) => !omit?.includes(result.value.id.toString()),
-  );
+  const results = rawResults?.filter((result) => !omit?.includes(result.value.id.toString()));
 
   useShortcuts({
     shortcuts: [
@@ -152,20 +147,9 @@ export function InlineSearch({
                 searchIdeas();
               }
             }}
-            leftSection={
-              loadingIdeas ? (
-                <Loader size="xs" />
-              ) : (
-                <MagnifyingGlass weight="bold" />
-              )
-            }
+            leftSection={loadingIdeas ? <Loader size="xs" /> : <MagnifyingGlass weight="bold" />}
             rightSection={
-              <ActionIcon
-                variant="light"
-                size="sm"
-                color="gray"
-                onClick={clearResults}
-              >
+              <ActionIcon variant="light" size="sm" color="gray" onClick={clearResults}>
                 <X weight="bold" />
               </ActionIcon>
             }

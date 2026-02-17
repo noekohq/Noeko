@@ -1,16 +1,8 @@
 import { Router } from "express";
-import {
-  checkIsSuperuser,
-  checkToken,
-  disallowDisabled,
-} from "../middleware/auth";
+import { checkIsSuperuser, checkToken, disallowDisabled } from "../middleware/auth";
 import { initialSettings, User } from "../database/models/user";
 import { ISafeUser, IUser, IUserForm } from "../../shared/types/user";
-import {
-  getRandomPassword,
-  hashPassword,
-  verifyPassword,
-} from "../utils/crypto";
+import { getRandomPassword, hashPassword, verifyPassword } from "../utils/crypto";
 import {
   addAccessTokenToRes,
   addRefreshTokenToRes,
@@ -27,8 +19,7 @@ const router = Router();
 router.post("/register", async (req, res) => {
   try {
     res.status(403).send({
-      message:
-        "Sorry, new registration is currently unavailable. Please use a referral link.",
+      message: "Sorry, new registration is currently unavailable. Please use a referral link.",
     });
     return;
     // const form = req.body;
@@ -90,9 +81,7 @@ router.post("/register-referred", async (req, res) => {
       !form.lastName ||
       !form.referralCode
     ) {
-      res
-        .status(400)
-        .json({ message: "Missing required fields, including referralCode" });
+      res.status(400).json({ message: "Missing required fields, including referralCode" });
       return;
     }
 
@@ -137,12 +126,10 @@ router.post("/register-referred", async (req, res) => {
     if (referrerUser) {
       await User.addReferralRelationship(referrerUser.id, newUser.id);
       console.info(
-        `Referral relationship added between ${referrerUser.email} and ${newUser.email}`,
+        `Referral relationship added between ${referrerUser.email} and ${newUser.email}`
       );
     } else {
-      console.warn(
-        `Referrer user not found for code ${form.referralCode} after validation.`,
-      );
+      console.warn(`Referrer user not found for code ${form.referralCode} after validation.`);
     }
 
     const filteredUser = User.filterPublicFields(newUser);
@@ -152,9 +139,7 @@ router.post("/register-referred", async (req, res) => {
     if (!refreshToken) {
       // This indicates an issue with token generation or saving the refresh token
       await User.delete(newUser.id); // Attempt to rollback user creation
-      res
-        .status(500)
-        .json({ message: "Internal Server Error during token generation" });
+      res.status(500).json({ message: "Internal Server Error during token generation" });
       return;
     }
 
@@ -281,8 +266,7 @@ router.post("/forgot-password", async (req, res) => {
 
     // Always return success to prevent email enumeration
     res.json({
-      message:
-        "If an account with that email exists, a password reset link has been sent.",
+      message: "If an account with that email exists, a password reset link has been sent.",
     });
   } catch (error) {
     console.error("Forgot password error:", error);
@@ -524,10 +508,7 @@ router.post("/accept/both", checkToken, async (req, res) => {
       message: "Both Terms of Service and Privacy Policy accepted successfully",
     });
   } catch (error) {
-    console.error(
-      "Error accepting both Terms of Service and Privacy Policy:",
-      error,
-    );
+    console.error("Error accepting both Terms of Service and Privacy Policy:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -612,224 +593,182 @@ router.delete("/me/stuff", checkToken, async (req, res) => {
   }
 });
 
-router.post(
-  "/invite",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const creator = await getFromReq<ISafeUser>(req, "user");
-      if (!creator) {
-        res.status(401).json({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const form = req.body;
-      if (!form.email || !form.firstName || !form.lastName) {
-        res.status(400).json({ message: "Missing required fields" });
-        return;
-      }
-      const sentEmail = await User.sendInvitationEmail(
-        {
+router.post("/invite", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const creator = await getFromReq<ISafeUser>(req, "user");
+    if (!creator) {
+      res.status(401).json({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const form = req.body;
+    if (!form.email || !form.firstName || !form.lastName) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+    const sentEmail = await User.sendInvitationEmail(
+      {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+      },
+      creator
+    );
+    res.json({
+      message: "User registered successfully",
+      data: {
+        user: {
           firstName: form.firstName,
           lastName: form.lastName,
           email: form.email,
         },
-        creator,
+        emailSuccess: sentEmail,
+      },
+    });
+  } catch (error) {
+    console.error("User registration error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const users = await User.getAll();
+    res.json({
+      message: "Users retrieved successfully",
+      data: users,
+    });
+  } catch (error) {
+    console.error("User retrieval error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/:id", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.get(req.params.id as string);
+    res.json({
+      message: "User retrieved successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User retrieval error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/enable/:id", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.enable(req.params.id as string);
+    res.json({
+      message: "User enabled successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User enable error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/disable/:id", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.disable(req.params.id as string);
+    res.json({
+      message: "User disabled successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User disable error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/:id", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const user = await User.delete(req.params.id as string);
+    res.json({
+      message: "User deleted successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error("User disable error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/email/:id", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const idString = id as string;
+    const { type } = req.body;
+    const sender = await getFromReq<ISafeUser>(req, "user");
+    if (!sender) {
+      res.status(401).json({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const user = await User.get(id as string);
+    if (!user) {
+      res.status(404).json({
+        message: "User not found.",
+      });
+      return;
+    }
+
+    if (!type) {
+      res.status(400).json({
+        message: "Type is required.",
+      });
+      return;
+    }
+    if (!["invitation", "test"].includes(type)) {
+      res.status(400).json({
+        message: `Type ${type} not supported.`,
+      });
+    }
+
+    if (type === "invitation") {
+      const newPassword = getRandomPassword();
+      const hashedPassword = await hashPassword(newPassword);
+      if (!hashedPassword) {
+        throw Error("Something went wrong hashing the users password.");
+      }
+      await User.update(user.id, { password: hashedPassword });
+      const response = await User.sendInvitationEmail(user, sender);
+      if (response) {
+        res.status(200).json({
+          message: "Invitation sent successfully.",
+          data: true,
+        });
+        return;
+      }
+    }
+
+    if (type === "test") {
+      const sent = await sendEmail(
+        user.email,
+        "Test Email",
+        "Testing Testing 1, 2, 3. Is this thing on?"
       );
-      res.json({
-        message: "User registered successfully",
-        data: {
-          user: {
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-          },
-          emailSuccess: sentEmail,
-        },
-      });
-    } catch (error) {
-      console.error("User registration error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.get(
-  "/",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const users = await User.getAll();
-      res.json({
-        message: "Users retrieved successfully",
-        data: users,
-      });
-    } catch (error) {
-      console.error("User retrieval error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.get(
-  "/:id",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const user = await User.get(req.params.id as string);
-      res.json({
-        message: "User retrieved successfully",
-        data: user,
-      });
-    } catch (error) {
-      console.error("User retrieval error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.post(
-  "/enable/:id",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const user = await User.enable(req.params.id as string);
-      res.json({
-        message: "User enabled successfully",
-        data: user,
-      });
-    } catch (error) {
-      console.error("User enable error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.post(
-  "/disable/:id",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const user = await User.disable(req.params.id as string);
-      res.json({
-        message: "User disabled successfully",
-        data: user,
-      });
-    } catch (error) {
-      console.error("User disable error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.delete(
-  "/:id",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const user = await User.delete(req.params.id as string);
-      res.json({
-        message: "User deleted successfully",
-        data: user,
-      });
-    } catch (error) {
-      console.error("User disable error:", error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  },
-);
-
-router.post(
-  "/email/:id",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const idString = id as string;
-      const { type } = req.body;
-      const sender = await getFromReq<ISafeUser>(req, "user");
-      if (!sender) {
-        res.status(401).json({
-          message: "Unauthorized.",
-        });
-        return;
+      if (!sent) {
+        throw new Error("Error sending email.");
       }
-      const user = await User.get(id as string);
-      if (!user) {
-        res.status(404).json({
-          message: "User not found.",
-        });
-        return;
-      }
-
-      if (!type) {
-        res.status(400).json({
-          message: "Type is required.",
-        });
-        return;
-      }
-      if (!["invitation", "test"].includes(type)) {
-        res.status(400).json({
-          message: `Type ${type} not supported.`,
-        });
-      }
-
-      if (type === "invitation") {
-        const newPassword = getRandomPassword();
-        const hashedPassword = await hashPassword(newPassword);
-        if (!hashedPassword) {
-          throw Error("Something went wrong hashing the users password.");
-        }
-        await User.update(user.id, { password: hashedPassword });
-        const response = await User.sendInvitationEmail(user, sender);
-        if (response) {
-          res.status(200).json({
-            message: "Invitation sent successfully.",
-            data: true,
-          });
-          return;
-        }
-      }
-
-      if (type === "test") {
-        const sent = await sendEmail(
-          user.email,
-          "Test Email",
-          "Testing Testing 1, 2, 3. Is this thing on?",
-        );
-        if (!sent) {
-          throw new Error("Error sending email.");
-        }
-        res.send({ message: "Email sent successfully." });
-        return;
-      }
-
-      res.status(500).json({
-        message: "Something went wrong.",
-        data: false,
-      });
-    } catch (error) {
-      logger.error("Error sending email", {
-        error,
-      });
-      res.status(500).json({ message: "Internal Server Error" });
+      res.send({ message: "Email sent successfully." });
+      return;
     }
-  },
-);
+
+    res.status(500).json({
+      message: "Something went wrong.",
+      data: false,
+    });
+  } catch (error) {
+    logger.error("Error sending email", {
+      error,
+    });
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 export default router;

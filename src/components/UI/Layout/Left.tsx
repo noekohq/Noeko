@@ -1,11 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { ISidebarMode, useLayout } from "../../../contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
-import {
-  ArrowLineRightIcon,
-  MegaphoneIcon,
-  SidebarSimpleIcon,
-} from "@phosphor-icons/react";
+import { ArrowLineRightIcon, MegaphoneIcon, SidebarSimpleIcon } from "@phosphor-icons/react";
 import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
 import useShortcuts from "../../../hooks/useShortcuts";
 import { Link, useLocation } from "react-router";
@@ -19,12 +15,7 @@ interface ILeftSidebarProps {
   startClosed?: boolean;
 }
 
-const LeftSidebar = ({
-  children,
-  topLevel,
-  startOpened,
-  startClosed,
-}: ILeftSidebarProps) => {
+const LeftSidebar = ({ children, topLevel, startOpened, startClosed }: ILeftSidebarProps) => {
   const {
     elements: {
       leftSidebar: {
@@ -129,9 +120,7 @@ const LeftSidebar = ({
     hovering: (
       <Group justify={"space-between"}>
         {!!topLevel?.hovering && <Group gap="xs">{topLevel.hovering}</Group>}
-        {!!topLevel?.open && !topLevel.hovering && (
-          <Group gap="xs">{topLevel.open}</Group>
-        )}
+        {!!topLevel?.open && !topLevel.hovering && <Group gap="xs">{topLevel.open}</Group>}
         <Group gap="xs">
           {/*<HomeButton />*/}
           <Tooltip label="Give feedback!">

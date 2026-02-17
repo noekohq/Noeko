@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.yarn/
+.pnp.*
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env*
+
+# Temp files
+temp_backups/
+*.tmp
+*.swp
+
+# Lock files
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Misc
+.DS_Store
+*.min.js
+*.min.css

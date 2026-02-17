@@ -40,7 +40,7 @@ export const downloadTextAsFile = (
     type: string;
     extension: string;
     name: string;
-  },
+  }
 ) => {
   const blob = new Blob([content], { type: options.type });
   const url = URL.createObjectURL(blob);

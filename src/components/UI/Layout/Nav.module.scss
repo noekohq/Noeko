@@ -16,7 +16,7 @@
   gap: 0;
   z-index: var(--z-index-ui-controls);
 
-  transition: transform 0.4s .2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.4s 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.hidden {
     transform: translateY(calc(100% + var(--layout-spacing)));
@@ -231,14 +231,21 @@
 }
 
 @keyframes backdropIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .backdrop {
   animation: backdropIn 0.2s ease-in-out forwards;
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   backdrop-filter: blur(4px) brightness(0.8);
   z-index: var(--z-index-negative-3);
 }
@@ -267,5 +274,5 @@
 }
 
 .collapseButton {
-  transition: all .2s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }

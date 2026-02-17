@@ -1,84 +1,80 @@
 .connectionManager {
-    position: relative;
+  position: relative;
 }
 
 .dragOverlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    border: 0;
-    backdrop-filter: blur(4px) brightness(0.8);
-    z-index: 100;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border: 0;
+  backdrop-filter: blur(4px) brightness(0.8);
+  z-index: 100;
 }
 
 .suggestionsWrapper {
-    position: relative;
+  position: relative;
 }
 
 .suggestedItemWrapper {
-    position: relative;
-    border-radius: var(--mantine-radius-md);
+  position: relative;
+  border-radius: var(--mantine-radius-md);
 
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
 
-    animation:
-        popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-        shimmerPass 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation:
+    popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    shimmerPass 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 
-    &::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 200%;
-        height: 100%;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
 
-        background: linear-gradient(
-            105deg,
-            transparent 10%,
-            color-mix(in srgb, var(--mantine-color-blue-5), transparent 100%)
-                40%,
-            color-mix(in srgb, var(--mantine-color-grape-5), transparent 70%)
-                45%,
-            color-mix(in srgb, var(--mantine-color-cyan-4), transparent 60%) 50%,
-            color-mix(in srgb, var(--mantine-color-grape-5), transparent 70%)
-                55%,
-            color-mix(in srgb, var(--mantine-color-blue-5), transparent 100%)
-                60%,
-            transparent 50%
-        );
+    background: linear-gradient(
+      105deg,
+      transparent 10%,
+      color-mix(in srgb, var(--mantine-color-blue-5), transparent 100%) 40%,
+      color-mix(in srgb, var(--mantine-color-grape-5), transparent 70%) 45%,
+      color-mix(in srgb, var(--mantine-color-cyan-4), transparent 60%) 50%,
+      color-mix(in srgb, var(--mantine-color-grape-5), transparent 70%) 55%,
+      color-mix(in srgb, var(--mantine-color-blue-5), transparent 100%) 60%,
+      transparent 50%
+    );
 
-        z-index: 10;
-        pointer-events: none;
-        transform: translateX(-150%);
-        animation: shimmerSlide 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    z-index: 10;
+    pointer-events: none;
+    transform: translateX(-150%);
+    animation: shimmerSlide 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @for $i from 1 through 5 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 80}ms;
+
+      &::after {
+        animation-delay: #{$i * 80}ms;
+      }
     }
-
-    @for $i from 1 through 5 {
-        &:nth-child(#{$i}) {
-            animation-delay: #{$i * 80}ms;
-
-            &::after {
-                animation-delay: #{$i * 80}ms;
-            }
-        }
-    }
+  }
 }
 
 @keyframes popIn {
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes shimmerSlide {
-    0% {
-        transform: translateX(-150%);
-    }
-    100% {
-        transform: translateX(50%);
-    }
+  0% {
+    transform: translateX(-150%);
+  }
+  100% {
+    transform: translateX(50%);
+  }
 }

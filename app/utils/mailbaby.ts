@@ -4,13 +4,8 @@ import nodemailer from "nodemailer";
 
 config();
 
-const {
-  MAILBABY_API_KEY,
-  MAILBABY_API_URL,
-  MAILBABY_USERNAME,
-  MAILBABY_PASSWORD,
-  NODE_ENV,
-} = process.env;
+const { MAILBABY_API_KEY, MAILBABY_API_URL, MAILBABY_USERNAME, MAILBABY_PASSWORD, NODE_ENV } =
+  process.env;
 
 if (!MAILBABY_API_KEY) throw Error("MAILBABY_API_KEY not defined.");
 if (!MAILBABY_API_URL) throw Error("MAILBABY_API_URL not defined.");

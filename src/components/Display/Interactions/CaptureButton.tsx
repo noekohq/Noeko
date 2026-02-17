@@ -11,14 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import styles from "./CaptureButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  Badge,
-  Group,
-  Loader,
-  MantineColor,
-  Portal,
-  Text,
-} from "@mantine/core"; // Added Portal
+import { Badge, Group, Loader, MantineColor, Portal, Text } from "@mantine/core"; // Added Portal
 import { useEffect, useRef, useState } from "react";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import { createIdea } from "../../../utils/ideas";
@@ -186,9 +179,7 @@ export default function CaptureButton() {
             }}
           >
             <div
-              className={`${styles.menu} ${
-                isCaptureFocused ? styles.focused : ""
-              }`}
+              className={`${styles.menu} ${isCaptureFocused ? styles.focused : ""}`}
               onClick={(e) => e.stopPropagation()}
             >
               {isCaptureFocused && (
@@ -199,22 +190,14 @@ export default function CaptureButton() {
               <div className={styles.options}>
                 {options.map((option) => {
                   return (
-                    <button
-                      className={styles.option}
-                      key={option.label}
-                      onClick={option.action}
-                    >
+                    <button className={styles.option} key={option.label} onClick={option.action}>
                       <div className={styles.icon}>
                         <option.icon weight="bold" />
                       </div>
                       <div className={styles.label}>
                         {option.label}
                         {option.tag && (
-                          <Badge
-                            size="xs"
-                            variant="light"
-                            color={option.tag.color}
-                          >
+                          <Badge size="xs" variant="light" color={option.tag.color}>
                             {option.tag.label}
                           </Badge>
                         )}
@@ -228,11 +211,7 @@ export default function CaptureButton() {
                   QUICK CAPTURE
                 </Text>
               )}
-              <div
-                className={`${styles.quickCapture} ${
-                  isCaptureFocused ? styles.active : ""
-                }`}
-              >
+              <div className={`${styles.quickCapture} ${isCaptureFocused ? styles.active : ""}`}>
                 <div className={styles.input}>
                   <NotePencilIcon weight="bold" />
                   <textarea
@@ -246,9 +225,7 @@ export default function CaptureButton() {
                     ref={captureRef}
                     value={captureValue}
                     onChange={(e) => setCaptureValue(e.target.value)}
-                    className={`${styles.textarea} ${
-                      isCaptureFocused ? styles.focused : ""
-                    }`}
+                    className={`${styles.textarea} ${isCaptureFocused ? styles.focused : ""}`}
                     placeholder="Capture a thought..."
                   />
                 </div>
@@ -264,11 +241,7 @@ export default function CaptureButton() {
                     </button>
                     <button
                       className={`${styles.path} ${styles.task}`}
-                      disabled={
-                        !captureValue.length ||
-                        loadingCapturedIdea ||
-                        loadingCapturedTask
-                      }
+                      disabled={!captureValue.length || loadingCapturedIdea || loadingCapturedTask}
                       onClick={() => {
                         createCapturedTask();
                       }}
@@ -282,11 +255,7 @@ export default function CaptureButton() {
                     </button>
                     <button
                       className={`${styles.path} ${styles.idea}`}
-                      disabled={
-                        !captureValue.length ||
-                        loadingCapturedIdea ||
-                        loadingCapturedTask
-                      }
+                      disabled={!captureValue.length || loadingCapturedIdea || loadingCapturedTask}
                       onClick={() => {
                         createCapturedIdea();
                       }}

@@ -15,9 +15,7 @@ export class Feedback {
       }
       const foundUser = await User.get(user);
       if (!foundUser) {
-        throw new Error(
-          "Tried to create feedback item for user that does not exist",
-        );
+        throw new Error("Tried to create feedback item for user that does not exist");
       }
       const result = await db.create<
         IFeedback,
@@ -51,13 +49,13 @@ export class Feedback {
 
       const updater: Partial<IFeedbackForm> = form;
 
-      const result = await db?.merge<
-        IFeedback,
-        Partial<IFeedbackForm> & { updatedAt: Date }
-      >(new StringRecordId(id), {
-        ...updater,
-        updatedAt: new Date(),
-      });
+      const result = await db?.merge<IFeedback, Partial<IFeedbackForm> & { updatedAt: Date }>(
+        new StringRecordId(id),
+        {
+          ...updater,
+          updatedAt: new Date(),
+        }
+      );
       if (!result) {
         console.error("Failed to update feedback");
         return undefined;
@@ -109,7 +107,7 @@ export class Feedback {
         throw new Error("Error getting database when getting feedback item");
       }
       const result = await db.query<[IFeedback[]]>(
-        "SELECT * FROM feedback ORDER BY updatedAt DESC FETCH user;",
+        "SELECT * FROM feedback ORDER BY updatedAt DESC FETCH user;"
       );
       if (!result) {
         throw new Error("Could not select feedback items");
@@ -129,7 +127,7 @@ export class Feedback {
         throw new Error("Error getting database when getting feedback item");
       }
       const result = await db.query<[IFeedback[]]>(
-        "SELECT * FROM feedback WHERE status != 'addressed' ORDER BY createdAt DESC FETCH user;",
+        "SELECT * FROM feedback WHERE status != 'addressed' ORDER BY createdAt DESC FETCH user;"
       );
       if (!result) {
         throw new Error("Could not select feedback items");

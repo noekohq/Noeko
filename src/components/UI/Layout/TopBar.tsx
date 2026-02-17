@@ -1,21 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./TopBar.module.scss";
-import {
-  MagnifyingGlassIcon,
-  PushPinIcon,
-  XIcon,
-  UserIcon,
-} from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PushPinIcon, XIcon, UserIcon } from "@phosphor-icons/react";
 import { Link, useLocation, useNavigate } from "react-router";
-import {
-  ActionIcon,
-  Center,
-  Group,
-  Loader,
-  Stack,
-  Text,
-  Transition,
-} from "@mantine/core";
+import { ActionIcon, Center, Group, Loader, Stack, Text, Transition } from "@mantine/core";
 import { useLayout } from "../../../contexts/LayoutContext";
 import useSearchQuery from "../../../hooks/useSearchQuery";
 import useRabbithole from "../../../hooks/useRabbithole";
@@ -55,27 +42,20 @@ export default function TopBar() {
   const [dateAfter, setDateAfter] = useState<string | undefined>();
 
   const { isDownRabbithole } = useRabbithole();
-  const {
-    searchQuery,
-    setQuery,
-    handleSearchSubmit,
-    results,
-    loading,
-    complete,
-    reset,
-  } = useSearchQuery({
-    params: {
-      filters: {
-        ...(dateAfter && {
-          date: {
-            updatedAt: {
-              after: dateAfter,
+  const { searchQuery, setQuery, handleSearchSubmit, results, loading, complete, reset } =
+    useSearchQuery({
+      params: {
+        filters: {
+          ...(dateAfter && {
+            date: {
+              updatedAt: {
+                after: dateAfter,
+              },
             },
-          },
-        }),
+          }),
+        },
       },
-    },
-  });
+    });
   const {
     isMobile,
     scroll: { isScrolled, scrollDirection },
@@ -134,12 +114,7 @@ export default function TopBar() {
           }
         }}
       >
-        {isFocused && (
-          <div
-            className={styles.backdrop}
-            onClick={() => setIsFocused(false)}
-          />
-        )}
+        {isFocused && <div className={styles.backdrop} onClick={() => setIsFocused(false)} />}
         <div
           className={`${styles.search} ${isFocused ? styles.focused : ""} ${
             isDownRabbithole ? styles.downRabbithole : ""
@@ -194,9 +169,7 @@ export default function TopBar() {
                   <Group>
                     <PaperChip
                       onClick={() =>
-                        setDateAfter((prev) =>
-                          prev === pastWeekISO ? undefined : pastWeekISO,
-                        )
+                        setDateAfter((prev) => (prev === pastWeekISO ? undefined : pastWeekISO))
                       }
                       active={dateAfter === pastWeekISO}
                       disabled={loading}
@@ -205,9 +178,7 @@ export default function TopBar() {
                     </PaperChip>
                     <PaperChip
                       onClick={() =>
-                        setDateAfter((prev) =>
-                          prev === pastMonthISO ? undefined : pastMonthISO,
-                        )
+                        setDateAfter((prev) => (prev === pastMonthISO ? undefined : pastMonthISO))
                       }
                       active={dateAfter === pastMonthISO}
                       disabled={loading}
@@ -231,8 +202,7 @@ export default function TopBar() {
                     <Stack gap="sm" style={styles}>
                       {results?.map((s) => {
                         const title = getNodeTitle(s.value);
-                        const preview =
-                          s.highlightText ?? getNodeDescription(s.value);
+                        const preview = s.highlightText ?? getNodeDescription(s.value);
                         const updatedAt = formatDateTime(s.value.updatedAt);
 
                         if (!title || !preview || !updatedAt) {

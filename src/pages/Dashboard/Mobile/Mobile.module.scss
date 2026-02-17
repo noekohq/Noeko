@@ -1,19 +1,19 @@
 .dashboard {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes overviewIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .overview {
-    animation: overviewIn 1s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  animation: overviewIn 1s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }

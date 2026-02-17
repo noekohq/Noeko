@@ -6,16 +6,7 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import StatusBar from "../../components/UI/Layout/Bottom";
-import {
-  ActionIcon,
-  Badge,
-  Group,
-  HoverCard,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
+import { ActionIcon, Badge, Group, HoverCard, Stack, Text, TextInput, Title } from "@mantine/core";
 import { MegaphoneIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "../../contexts/InteractionContext";
 import SourceCard from "../../components/Display/Sources/SourceCard";
@@ -85,13 +76,12 @@ export default function SourceList() {
               <HoverCard.Dropdown>
                 <Stack gap="xs">
                   <Text size="sm">
-                    Sources is currently under active development and some
-                    features might not work as expected. We're looking for
-                    feedback as we learn and grow :)
+                    Sources is currently under active development and some features might not work
+                    as expected. We're looking for feedback as we learn and grow :)
                   </Text>
                   <Text size="xs" c="dimmed">
-                    This feature will remain free during its experimental
-                    phases, rate limits may apply in future iterations.
+                    This feature will remain free during its experimental phases, rate limits may
+                    apply in future iterations.
                   </Text>
                   <ActionIcon
                     size="sm"
@@ -107,9 +97,7 @@ export default function SourceList() {
               </HoverCard.Dropdown>
             </HoverCard>
           </Group>
-          <ConnectableTable
-            connectables={sources?.map((s) => ({ ...s, type: "source" })) ?? []}
-          />
+          <ConnectableTable connectables={sources?.map((s) => ({ ...s, type: "source" })) ?? []} />
         </Stack>
       </Content>
       <Nav />

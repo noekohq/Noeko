@@ -11,15 +11,8 @@ export const Database: IDatabase = {
 
 const getDbConfig = () => {
   // Read directly from process.env EACH time this function is called
-  const {
-    DB_PROTOCOL,
-    DB_HOST,
-    DB_PORT,
-    DB_NAMESPACE,
-    DB_DATABASE,
-    DB_USER,
-    DB_PASSWORD,
-  } = process.env;
+  const { DB_PROTOCOL, DB_HOST, DB_PORT, DB_NAMESPACE, DB_DATABASE, DB_USER, DB_PASSWORD } =
+    process.env;
 
   const configValues = {
     DB_PROTOCOL,
@@ -34,9 +27,7 @@ const getDbConfig = () => {
   // Perform crucial checks
   for (const [key, value] of Object.entries(configValues)) {
     if (!value) {
-      throw new Error(
-        `${key} is not defined in process.env at connection time`,
-      );
+      throw new Error(`${key} is not defined in process.env at connection time`);
     }
   }
 
@@ -80,7 +71,7 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
   // attempt to close it before creating a new one.
   if (Database.db) {
     console.warn(
-      `Existing database instance found with status: ${Database.db.status}. Closing and attempting to reconnect.`,
+      `Existing database instance found with status: ${Database.db.status}. Closing and attempting to reconnect.`
     );
     try {
       await Database.db.close();
@@ -131,10 +122,7 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
         //   "Closed partially opened database instance after connection failure.",
         // );
       } catch (closeErr) {
-        console.error(
-          "Error closing newDbInstance after connection failure:",
-          closeErr,
-        );
+        console.error("Error closing newDbInstance after connection failure:", closeErr);
       }
     }
     // Ensure the global Database.db is not set to a failed instance
@@ -156,9 +144,7 @@ export const initSchema = async () => {
     });
     await db?.query(`DEFINE DATABASE IF NOT EXISTS \`${config.database}\`;`);
 
-    console.info(
-      `Initialized ${config.database} in namespace ${config.namespace}.`,
-    );
+    console.info(`Initialized ${config.database} in namespace ${config.namespace}.`);
   } catch (err) {
     console.error(err);
   }

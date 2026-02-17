@@ -1,0 +1,25 @@
+.dreamFile {
+  &[data-view-mode="expanded"] {
+    width: 100%;
+  }
+
+  &[data-view-mode="minimal"] {
+    width: 100%;
+    max-width: 600px;
+    margin-inline: auto;
+  }
+
+  &[data-view-mode="inline"] {
+    display: inline-block;
+    width: auto;
+    margin: 0 4px;
+    vertical-align: middle;
+  }
+}
+
+.dreamFileLink {
+  text-decoration: none;
+  &:hover {
+    text-decoration: none;
+  }
+}

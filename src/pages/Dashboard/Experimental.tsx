@@ -1,12 +1,4 @@
-import {
-  Button,
-  Group,
-  Loader,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Button, Group, Loader, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
@@ -17,11 +9,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLayout } from "../../contexts/LayoutContext";
 import StatusBar from "../../components/UI/Layout/Bottom";
 import WidgetWrapper from "../../components/Widgets/Wrapper";
-import {
-  ClockCounterClockwise,
-  ClockCounterClockwiseIcon,
-  PlusIcon,
-} from "@phosphor-icons/react";
+import { ClockCounterClockwise, ClockCounterClockwiseIcon, PlusIcon } from "@phosphor-icons/react";
 import StatusButton from "../../components/Display/Interactions/StatusButton";
 import useFetch from "../../hooks/useFetch";
 import { IDashboard } from "../../../app/services/Dashboard";

@@ -73,10 +73,7 @@ export default function PaperSearchResult({
       e.dataTransfer.setDragImage(rootRef.current, 0, 0);
     }
 
-    e.dataTransfer.setData(
-      "application/json",
-      JSON.stringify({ thingId: node.id.toString() }),
-    );
+    e.dataTransfer.setData("application/json", JSON.stringify({ thingId: node.id.toString() }));
   };
 
   const handleDragEnd = () => {
@@ -116,13 +113,7 @@ export default function PaperSearchResult({
 
             {/* Row 2: Snippet */}
             <div className={styles.snippet}>
-              <Text
-                size="xs"
-                c="dimmed"
-                truncate="end"
-                lineClamp={2}
-                style={{ lineHeight: 1.4 }}
-              >
+              <Text size="xs" c="dimmed" truncate="end" lineClamp={2} style={{ lineHeight: 1.4 }}>
                 <Match
                   opener="->"
                   closer="<-"
@@ -174,10 +165,7 @@ export default function PaperSearchResult({
               {action.label}
             </PaperContextMenu.Item>
           ))}
-        <PaperContextMenu.Item
-          icon={<ArrowRightIcon weight="bold" />}
-          onClick={handleOnSelect}
-        >
+        <PaperContextMenu.Item icon={<ArrowRightIcon weight="bold" />} onClick={handleOnSelect}>
           Open
         </PaperContextMenu.Item>
         <PaperContextMenu.Item
@@ -190,20 +178,14 @@ export default function PaperSearchResult({
         </PaperContextMenu.Item>
         <CopyButton value={title}>
           {({ copy, copied }) => (
-            <PaperContextMenu.Item
-              icon={copied ? <CheckIcon /> : <CopyIcon />}
-              onClick={copy}
-            >
+            <PaperContextMenu.Item icon={copied ? <CheckIcon /> : <CopyIcon />} onClick={copy}>
               Copy title
             </PaperContextMenu.Item>
           )}
         </CopyButton>
         <CopyButton value={node.id.toString()}>
           {({ copy, copied }) => (
-            <PaperContextMenu.Item
-              icon={copied ? <CheckIcon /> : <CopyIcon />}
-              onClick={copy}
-            >
+            <PaperContextMenu.Item icon={copied ? <CheckIcon /> : <CopyIcon />} onClick={copy}>
               Copy ID
             </PaperContextMenu.Item>
           )}

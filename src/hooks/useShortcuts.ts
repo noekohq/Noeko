@@ -31,20 +31,10 @@ export default function useShortcuts({ shortcuts }: IUseShortcutProps) {
         const metaMatch = meta === undefined || meta === event.metaKey;
         const shiftMatch = shift === undefined || shift === event.shiftKey;
 
-        const codeMatch = code
-          ? event.code.toLowerCase() === code.toLowerCase()
-          : false;
-        const keyMatch = key
-          ? event.key.toLowerCase() === key.toLowerCase()
-          : false;
+        const codeMatch = code ? event.code.toLowerCase() === code.toLowerCase() : false;
+        const keyMatch = key ? event.key.toLowerCase() === key.toLowerCase() : false;
 
-        if (
-          altMatch &&
-          ctrlMatch &&
-          metaMatch &&
-          shiftMatch &&
-          (codeMatch || keyMatch)
-        ) {
+        if (altMatch && ctrlMatch && metaMatch && shiftMatch && (codeMatch || keyMatch)) {
           shortcut.run(event);
           return;
         }

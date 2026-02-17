@@ -55,11 +55,7 @@ interface ReplaceProps {
 /**
  * A React component that replaces regex matches in a string with custom React content.
  */
-const Replace: React.FC<ReplaceProps> = ({
-  text,
-  regex: regexProp,
-  replacer,
-}) => {
+const Replace: React.FC<ReplaceProps> = ({ text, regex: regexProp, replacer }) => {
   if (!text) {
     return null;
   }

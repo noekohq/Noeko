@@ -1,10 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-  createContext,
-  useCallback,
-} from "react";
+import React, { useContext, useEffect, useState, createContext, useCallback } from "react";
 import { ISafeUser } from "../../shared/types/user";
 import useFetch from "../hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
@@ -59,9 +53,9 @@ const AuthContext = createContext<IAuthContext>({
 });
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<
-    (ISafeUser & { totalIdeas: number }) | undefined
-  >(initialAuthState.user);
+  const [user, setUser] = useState<(ISafeUser & { totalIdeas: number }) | undefined>(
+    initialAuthState.user
+  );
   const [loading, setLoading] = useState<boolean>(initialAuthState.loading);
 
   const setTokens = useCallback((accessToken: string) => {
@@ -170,7 +164,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(undefined);
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [performUserFetch]);
 
   const login = useCallback(
@@ -187,7 +180,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
       }
     },
-    [setTokens, performUserFetch],
+    [setTokens, performUserFetch]
   );
 
   const logout = useCallback(() => {
@@ -232,12 +225,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await acceptBoth();
         },
         loggedIn: !!user?.id,
-        referralLink: user?.referralCode
-          ? getReferralLinkFromCode(user.referralCode)
-          : undefined,
+        referralLink: user?.referralCode ? getReferralLinkFromCode(user.referralCode) : undefined,
         isSuperuser: userIsSuperuser(user),
       }) satisfies IAuthContext,
-    [user, loading, setTokens, clearTokens, login, logout, reload],
+    [user, loading, setTokens, clearTokens, login, logout, reload]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

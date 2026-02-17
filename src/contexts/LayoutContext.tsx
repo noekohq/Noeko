@@ -146,10 +146,7 @@ const initialLayoutContext: ILayoutContext = {
 
 const LayoutContext = createContext<ILayoutContext>(initialLayoutContext);
 
-const getInitialSidebarState = (
-  key: string,
-  defaultValue: boolean,
-): boolean => {
+const getInitialSidebarState = (key: string, defaultValue: boolean): boolean => {
   if (typeof window === "undefined") {
     return defaultValue;
   }
@@ -164,35 +161,26 @@ const getInitialSidebarState = (
 
 export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
   const [leftSidebarOpened, setLeftSidebarOpened] = useState<boolean>(
-    () => getInitialSidebarState("leftSidebarOpened", false), // Default to false if nothing in localStorage
+    () => getInitialSidebarState("leftSidebarOpened", false) // Default to false if nothing in localStorage
   );
   const [rightSidebarOpened, setRightSidebarOpened] = useState<boolean>(
-    () => getInitialSidebarState("rightSidebarOpened", false), // Default to false if nothing in localStorage
+    () => getInitialSidebarState("rightSidebarOpened", false) // Default to false if nothing in localStorage
   );
 
   const [leftSidebarMode, setLeftSidebarMode] =
-    useState<ILayoutContext["elements"]["leftSidebar"]["mode"]["get"]>(
-      "collapsed",
-    );
-  const [leftSidebarHasContent, setLeftSidebarHasContent] =
-    useState<boolean>(false);
-  const [leftSidebarHovering, setLeftSidebarHovering] =
-    useState<boolean>(false);
+    useState<ILayoutContext["elements"]["leftSidebar"]["mode"]["get"]>("collapsed");
+  const [leftSidebarHasContent, setLeftSidebarHasContent] = useState<boolean>(false);
+  const [leftSidebarHovering, setLeftSidebarHovering] = useState<boolean>(false);
 
   const [rightSidebarMode, setRightSidebarMode] =
-    useState<ILayoutContext["elements"]["rightSidebar"]["mode"]["get"]>(
-      "collapsed",
-    );
-  const [rightSidebarHasContent, setRightSidebarHasContent] =
-    useState<boolean>(false);
-  const [rightSidebarHovering, setRightSidebarHovering] =
-    useState<boolean>(false);
+    useState<ILayoutContext["elements"]["rightSidebar"]["mode"]["get"]>("collapsed");
+  const [rightSidebarHasContent, setRightSidebarHasContent] = useState<boolean>(false);
+  const [rightSidebarHovering, setRightSidebarHovering] = useState<boolean>(false);
 
   const [navDrawerHasContent, setNavDrawerHasContent] = useState(false);
   const [navDrawerIsOpen, setNavDrawerIsOpen] = useState(false);
 
-  const [mobileEditorToolbarVisible, setMobileEditorToolbarVisible] =
-    useState(false);
+  const [mobileEditorToolbarVisible, setMobileEditorToolbarVisible] = useState(false);
 
   const [statusBarMode, setStatusbarMode] =
     useState<ILayoutContext["elements"]["statusBar"]["mode"]["get"]>("showing");
@@ -201,14 +189,12 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
   const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
-  const [scrollableElement, setScrollableElement] =
-    useState<HTMLElement | null>(null);
+  const [scrollableElement, setScrollableElement] = useState<HTMLElement | null>(null);
   const lastScrollPosition = useRef(0);
 
   const handleScroll = useCallback(() => {
     if (!scrollableElement) return;
-    const direction =
-      scrollableElement.scrollTop > lastScrollPosition.current ? "down" : "up";
+    const direction = scrollableElement.scrollTop > lastScrollPosition.current ? "down" : "up";
     setIsScrolled(scrollableElement.scrollTop > 0);
     setScrollDirection(direction);
     lastScrollPosition.current = scrollableElement.scrollTop;
@@ -232,38 +218,26 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "leftSidebarOpened",
-        JSON.stringify(leftSidebarOpened),
-      );
+      localStorage.setItem("leftSidebarOpened", JSON.stringify(leftSidebarOpened));
     }
   }, [leftSidebarOpened]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "rightSidebarMode",
-        JSON.stringify(rightSidebarMode),
-      );
+      localStorage.setItem("rightSidebarMode", JSON.stringify(rightSidebarMode));
     }
   }, [rightSidebarMode]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "rightSidebarOpened",
-        JSON.stringify(rightSidebarOpened),
-      );
+      localStorage.setItem("rightSidebarOpened", JSON.stringify(rightSidebarOpened));
     }
   }, [rightSidebarOpened]);
 
   const isMobile = useMediaQuery("(max-width: 768px)") || false;
-  const isTablet =
-    useMediaQuery("(min-width: 769px) and (max-width: 1024px)") || false;
-  const isDesktop =
-    useMediaQuery("(min-width: 1025px) and (max-width: 1280px)") || false;
-  const isWideScreen =
-    useMediaQuery("(min-width: 1281px) and (max-width: 1440px)") || false;
+  const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1024px)") || false;
+  const isDesktop = useMediaQuery("(min-width: 1025px) and (max-width: 1280px)") || false;
+  const isWideScreen = useMediaQuery("(min-width: 1281px) and (max-width: 1440px)") || false;
   const isUltraWide = useMediaQuery("(min-width: 1441px)") || false;
 
   useEffect(() => {
@@ -404,11 +378,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     isUltraWide,
   };
 
-  return (
-    <LayoutContext.Provider value={contextValue}>
-      {children}
-    </LayoutContext.Provider>
-  );
+  return <LayoutContext.Provider value={contextValue}>{children}</LayoutContext.Provider>;
 };
 
 export const useLayout = () => useContext(LayoutContext);

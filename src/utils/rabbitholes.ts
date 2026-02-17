@@ -1,8 +1,5 @@
 import { showNotification } from "@mantine/notifications";
-import {
-  IRabbithole,
-  IRabbitholeIncludes,
-} from "../../app/database/models/rabbithole";
+import { IRabbithole, IRabbitholeIncludes } from "../../app/database/models/rabbithole";
 import { api } from "../server/api";
 import { ISafeIdea } from "../../shared/types/idea";
 import { ITag } from "../../app/database/models/tag";
@@ -23,7 +20,7 @@ export const newRabbithole = async () => {
 
 export const handleCreateNewRabbithole = async (
   cb: (rabbithole: IRabbithole) => void,
-  err: (err: Error) => void,
+  err: (err: Error) => void
 ) => {
   try {
     const rabbithole = await newRabbithole();
@@ -38,10 +35,7 @@ export const handleCreateNewRabbithole = async (
   }
 };
 
-export const includeThingInRabbithole = async (
-  rabbitholeId: string,
-  thingId: string,
-) => {
+export const includeThingInRabbithole = async (rabbitholeId: string, thingId: string) => {
   try {
     return await api
       .post(`/rabbitholes/${rabbitholeId}/include`, {
@@ -51,10 +45,7 @@ export const includeThingInRabbithole = async (
         return Promise.resolve();
       })
       .catch((error) => {
-        console.error(
-          `Something went wrong including ${thingId} in ${rabbitholeId}`,
-          error,
-        );
+        console.error(`Something went wrong including ${thingId} in ${rabbitholeId}`, error);
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong including the idea",
@@ -66,10 +57,7 @@ export const includeThingInRabbithole = async (
   }
 };
 
-export const includeThingsInRabbithole = async (
-  rabbitholeId: string,
-  thingIds: string[],
-) => {
+export const includeThingsInRabbithole = async (rabbitholeId: string, thingIds: string[]) => {
   try {
     return await api
       .post(`/rabbitholes/${rabbitholeId}/include/many`, {
@@ -82,7 +70,7 @@ export const includeThingsInRabbithole = async (
         console.error(
           `Something went wrong including ${thingIds.length} things in ${rabbitholeId}`,
           error,
-          thingIds,
+          thingIds
         );
         showNotification({
           title: "Something went wrong",
@@ -95,10 +83,7 @@ export const includeThingsInRabbithole = async (
   }
 };
 
-export const unIncludeThingInRabbithole = async (
-  rabbitholeId: string,
-  thingId: string,
-) => {
+export const unIncludeThingInRabbithole = async (rabbitholeId: string, thingId: string) => {
   try {
     return await api
       .post(`/rabbitholes/${rabbitholeId}/uninclude`, {
@@ -110,7 +95,7 @@ export const unIncludeThingInRabbithole = async (
       .catch((error) => {
         console.error(
           `Something went wrong unincluding between ${rabbitholeId} and ${thingId}`,
-          error,
+          error
         );
         showNotification({
           title: "Something went wrong",

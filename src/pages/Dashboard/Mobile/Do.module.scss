@@ -1,14 +1,12 @@
 .do {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    max-height: calc(
-        100vh - 180px
-    ); /* Adjust this value based on surrounding UI */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 180px); /* Adjust this value based on surrounding UI */
 }
 
 .scrollArea {
-    overflow-y: auto;
-    flex-grow: 1;
-    padding-right: 5px;
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 5px;
 }

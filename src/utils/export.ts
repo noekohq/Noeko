@@ -10,10 +10,7 @@ export const handleExportDownload = async (user: ISafeUser) => {
 
     const blob = response.data;
     const objectUrl = URL.createObjectURL(blob);
-    triggerDownload(
-      objectUrl,
-      `${user.firstName}-noeko-export-${new Date().toISOString()}.zip`,
-    );
+    triggerDownload(objectUrl, `${user.firstName}-noeko-export-${new Date().toISOString()}.zip`);
     URL.revokeObjectURL(objectUrl);
   } catch (error) {
     console.error("Error getting export: ", user, error);

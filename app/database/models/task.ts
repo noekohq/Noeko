@@ -33,7 +33,7 @@ export default class Task {
 
   static async getUserTasks(
     userId: string,
-    options?: ITaskQuery,
+    options?: ITaskQuery
   ): Promise<IPublicTask[] | undefined> {
     try {
       const db = await getDatabase();
@@ -184,10 +184,10 @@ export default class Task {
       if (!task) {
         throw new Error("Task is falsey");
       }
-      await db.query(
-        `RELATE $user->owns->$task CONTENT { createdAt: time::now() };`,
-        { user: new StringRecordId(userId), task: new StringRecordId(task.id) },
-      );
+      await db.query(`RELATE $user->owns->$task CONTENT { createdAt: time::now() };`, {
+        user: new StringRecordId(userId),
+        task: new StringRecordId(task.id),
+      });
       this.loadEmbedding(task.id);
       return task;
     } catch (error) {
@@ -197,23 +197,17 @@ export default class Task {
   }
 
   static async get(taskId: string | RecordId, safety?: "full"): Promise<ITask>;
+  static async get(taskId: string | RecordId, safety?: "public"): Promise<IPublicTask>;
   static async get(
     taskId: string | RecordId,
-    safety?: "public",
-  ): Promise<IPublicTask>;
-  static async get(
-    taskId: string | RecordId,
-    safety: "public" | "full" = "public",
+    safety: "public" | "full" = "public"
   ): Promise<ITask | IPublicTask | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const fn =
-        safety === "public"
-          ? "fn::get_task_record"
-          : "fn::get_full_task_record";
+      const fn = safety === "public" ? "fn::get_task_record" : "fn::get_full_task_record";
 
       const task = await db.run<ITask>(fn, [new StringRecordId(taskId)]);
       if (!task) {
@@ -232,9 +226,7 @@ export default class Task {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const tasks = await db.run<ITask[]>(`fn::get_user_tasks`, [
-        new StringRecordId(userId),
-      ]);
+      const tasks = await db.run<ITask[]>(`fn::get_user_tasks`, [new StringRecordId(userId)]);
       if (!tasks) {
         throw new Error("Tasks are falsey");
       }
@@ -253,7 +245,7 @@ export default class Task {
       }
       const [tasks] = await db.query<[ITask[]]>(
         `SELECT * OMIT embeddings FROM task WHERE <-owns<-(user WHERE id = $userId)`,
-        { userId: new StringRecordId(userId) },
+        { userId: new StringRecordId(userId) }
       );
 
       if (!tasks) {
@@ -272,9 +264,7 @@ export default class Task {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const task = await db.run<ITask>(`fn::get_task_record`, [
-        new StringRecordId(taskId),
-      ]);
+      const task = await db.run<ITask>(`fn::get_task_record`, [new StringRecordId(taskId)]);
       if (!task) {
         throw new Error("Task is falsey");
       }
@@ -294,9 +284,7 @@ export default class Task {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const task = await db.run<ITask>(`fn::get_task_record`, [
-        new StringRecordId(taskId),
-      ]);
+      const task = await db.run<ITask>(`fn::get_task_record`, [new StringRecordId(taskId)]);
       if (!task) {
         throw new Error("Task does not exist");
       }
@@ -316,9 +304,7 @@ export default class Task {
       if (!db) {
         throw new Error("Couldn't get database");
       }
-      const task = await db.run<ITask>(`fn::get_task_record`, [
-        new StringRecordId(taskId),
-      ]);
+      const task = await db.run<ITask>(`fn::get_task_record`, [new StringRecordId(taskId)]);
       if (!task) {
         throw new Error("Task is falsey");
       }
@@ -363,11 +349,7 @@ export default class Task {
     }
   }
 
-  static async getForDateRange(
-    userId: string | RecordId,
-    startDate: string,
-    endDate: string,
-  ) {
+  static async getForDateRange(userId: string | RecordId, startDate: string, endDate: string) {
     try {
       const db = await getDatabase();
       if (!db) {
@@ -398,7 +380,7 @@ export default class Task {
     options?: {
       limit?: number;
       threshold?: number;
-    },
+    }
   ): Promise<IIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -416,12 +398,12 @@ export default class Task {
 
       const results = await db.run<(IIdea & { derivedList: IIdeaDerived[] })[]>(
         "fn::search_ideas_similar_to_task",
-        [new StringRecordId(taskId), new StringRecordId(userId)],
+        [new StringRecordId(taskId), new StringRecordId(userId)]
       );
 
       if (!results) {
         console.warn(
-          `No similar ideas found for task ${taskId.toString()} for user ${userId.toString()}.`,
+          `No similar ideas found for task ${taskId.toString()} for user ${userId.toString()}.`
         );
         return [];
       }
@@ -437,10 +419,7 @@ export default class Task {
 
       return final;
     } catch (error) {
-      console.error(
-        `Error getting similar ideas for task ${taskId.toString()}: `,
-        error,
-      );
+      console.error(`Error getting similar ideas for task ${taskId.toString()}: `, error);
       return undefined;
     }
   }
@@ -460,10 +439,7 @@ export class TaskQueryBuilder {
     return this;
   }
 
-  public sortBy(
-    field: ITaskSortFields,
-    direction: "desc" | "asc" = "desc",
-  ): this {
+  public sortBy(field: ITaskSortFields, direction: "desc" | "asc" = "desc"): this {
     this.sortClause = `ORDER BY ${field} ${direction}`;
     return this;
   }
@@ -490,29 +466,19 @@ export class TaskQueryBuilder {
     const { behavior, value } = duration;
     switch (behavior) {
       case "equals":
-        this.whereClauses.push(
-          `<duration> estimatedTime = <duration> $duration`,
-        );
+        this.whereClauses.push(`<duration> estimatedTime = <duration> $duration`);
         break;
       case "under":
-        this.whereClauses.push(
-          `<duration> estimatedTime < <duration> $duration`,
-        );
+        this.whereClauses.push(`<duration> estimatedTime < <duration> $duration`);
         break;
       case "under-inclusive":
-        this.whereClauses.push(
-          `<duration> estimatedTime <= <duration> $duration`,
-        );
+        this.whereClauses.push(`<duration> estimatedTime <= <duration> $duration`);
         break;
       case "over":
-        this.whereClauses.push(
-          `<duration> estimatedTime > <duration> $duration`,
-        );
+        this.whereClauses.push(`<duration> estimatedTime > <duration> $duration`);
         break;
       case "over-inclusive":
-        this.whereClauses.push(
-          `<duration> estimatedTime >= <duration> $duration`,
-        );
+        this.whereClauses.push(`<duration> estimatedTime >= <duration> $duration`);
         break;
     }
     this.params.duration = value;
@@ -544,10 +510,7 @@ export class TaskQueryBuilder {
     query: string;
     params: Record<string, any>;
   } {
-    const where =
-      this.whereClauses.length > 0
-        ? `WHERE ${this.whereClauses.join(" AND ")}`
-        : "";
+    const where = this.whereClauses.length > 0 ? `WHERE ${this.whereClauses.join(" AND ")}` : "";
 
     const query = `
       SELECT

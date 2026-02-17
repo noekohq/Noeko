@@ -9,11 +9,7 @@ type Direction = 0 | 1 | 2 | 3;
 type RgbColor = [number, number, number];
 
 const colorsAreEqual = (colorA: RgbColor, colorB: RgbColor): boolean => {
-  return (
-    colorA[0] === colorB[0] &&
-    colorA[1] === colorB[1] &&
-    colorA[2] === colorB[2]
-  );
+  return colorA[0] === colorB[0] && colorA[1] === colorB[1] && colorA[2] === colorB[2];
 };
 
 const rgbToString = (rgb: RgbColor): string => `rgb(${rgb.join(",")})`;
@@ -106,11 +102,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
     stepsUntilModeSwitch.current = modeSwitchInterval;
   }, [modeSwitchInterval]);
 
-  const interpolateColor = (
-    startRgb: RgbColor,
-    endRgb: RgbColor,
-    progress: number,
-  ): string => {
+  const interpolateColor = (startRgb: RgbColor, endRgb: RgbColor, progress: number): string => {
     const p = Math.max(0, Math.min(1, progress));
     const r = Math.round(startRgb[0] + (endRgb[0] - startRgb[0]) * p);
     const g = Math.round(startRgb[1] + (endRgb[1] - startRgb[1]) * p);
@@ -130,32 +122,21 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
     );
   };
 
-  const getCurrentVisualColor = (
-    data: CellData,
-    timestamp: number,
-  ): RgbColor => {
-    if (
-      data.transitionStart === -1 ||
-      colorsAreEqual(data.fromColorRgb, data.targetColorRgb)
-    ) {
+  const getCurrentVisualColor = (data: CellData, timestamp: number): RgbColor => {
+    if (data.transitionStart === -1 || colorsAreEqual(data.fromColorRgb, data.targetColorRgb)) {
       return data.targetColorRgb;
     }
-    const currentFadeDuration = data.isAging
-      ? cellAgeFadeDuration
-      : fadeDuration;
+    const currentFadeDuration = data.isAging ? cellAgeFadeDuration : fadeDuration;
     const elapsed = timestamp - data.transitionStart;
     const progress = Math.min(1, elapsed / currentFadeDuration);
     const r = Math.round(
-      data.fromColorRgb[0] +
-        (data.targetColorRgb[0] - data.fromColorRgb[0]) * progress,
+      data.fromColorRgb[0] + (data.targetColorRgb[0] - data.fromColorRgb[0]) * progress
     );
     const g = Math.round(
-      data.fromColorRgb[1] +
-        (data.targetColorRgb[1] - data.fromColorRgb[1]) * progress,
+      data.fromColorRgb[1] + (data.targetColorRgb[1] - data.fromColorRgb[1]) * progress
     );
     const b = Math.round(
-      data.fromColorRgb[2] +
-        (data.targetColorRgb[2] - data.fromColorRgb[2]) * progress,
+      data.fromColorRgb[2] + (data.targetColorRgb[2] - data.fromColorRgb[2]) * progress
     );
     return [r, g, b];
   };
@@ -166,7 +147,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
     newTargetColor: RgbColor,
     currentVisualColor: RgbColor,
     timestamp: number,
-    isAgingTransition: boolean = false,
+    isAgingTransition: boolean = false
   ): void => {
     const key = `${x},${y}`;
     const existingData = grid.current.get(key);
@@ -230,19 +211,13 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
           drawY < canvas.height
         ) {
           let colorStr: string;
-          const currentFadeDuration = data.isAging
-            ? cellAgeFadeDuration
-            : fadeDuration;
+          const currentFadeDuration = data.isAging ? cellAgeFadeDuration : fadeDuration;
           if (data.transitionStart === -1) {
             colorStr = rgbToString(data.targetColorRgb);
           } else {
             const elapsed = timestamp - data.transitionStart;
             const progress = Math.min(1, elapsed / currentFadeDuration);
-            colorStr = interpolateColor(
-              data.fromColorRgb,
-              data.targetColorRgb,
-              progress,
-            );
+            colorStr = interpolateColor(data.fromColorRgb, data.targetColorRgb, progress);
             if (progress >= 1) {
               data.fromColorRgb = data.targetColorRgb;
               data.transitionStart = -1;
@@ -254,13 +229,10 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
         }
       });
     },
-    [cellSize, fadeDuration, cellAgeFadeDuration],
+    [cellSize, fadeDuration, cellAgeFadeDuration]
   );
 
-  const getBiasedDirections = (
-    ant: AntState,
-    attract: boolean,
-  ): Direction[] => {
+  const getBiasedDirections = (ant: AntState, attract: boolean): Direction[] => {
     const biasedDirs: Direction[] = [];
     const { x, y } = ant;
     if (attract) {
@@ -290,23 +262,15 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
         totalSteps.current++;
         const { x, y } = ant;
         const currentCellData = getCellData(x, y);
-        const isBackground = colorsAreEqual(
-          currentCellData.targetColorRgb,
-          SOFT_WHITE_BG,
-        );
-        const currentVisualColor = getCurrentVisualColor(
-          currentCellData,
-          timestamp,
-        );
+        const isBackground = colorsAreEqual(currentCellData.targetColorRgb, SOFT_WHITE_BG);
+        const currentVisualColor = getCurrentVisualColor(currentCellData, timestamp);
         let nextTargetColor: RgbColor;
         let intendedDir = ant.dir;
 
         if (Math.random() < randomTurnProbability) {
           const randomChoice = Math.random();
-          if (randomChoice < 0.4)
-            intendedDir = ((ant.dir + 3) % 4) as Direction;
-          else if (randomChoice < 0.8)
-            intendedDir = ((ant.dir + 1) % 4) as Direction;
+          if (randomChoice < 0.4) intendedDir = ((ant.dir + 3) % 4) as Direction;
+          else if (randomChoice < 0.8) intendedDir = ((ant.dir + 1) % 4) as Direction;
           else intendedDir = ((ant.dir + 2) % 4) as Direction;
           nextTargetColor = isBackground ? SOFT_BLACK_FG : SOFT_WHITE_BG;
         } else {
@@ -321,30 +285,17 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
 
         let finalDir = intendedDir;
         if (Math.random() < gravityStrength) {
-          const biasedDirections = getBiasedDirections(
-            ant,
-            gravityMode.current,
-          );
+          const biasedDirections = getBiasedDirections(ant, gravityMode.current);
           if (biasedDirections.length > 0) {
             const isAlreadyBiased = biasedDirections.includes(intendedDir);
             if (!isAlreadyBiased) {
-              finalDir =
-                biasedDirections[
-                  Math.floor(Math.random() * biasedDirections.length)
-                ];
+              finalDir = biasedDirections[Math.floor(Math.random() * biasedDirections.length)];
             }
           }
         }
         ant.dir = finalDir;
 
-        setCellState(
-          x,
-          y,
-          nextTargetColor,
-          currentVisualColor,
-          timestamp,
-          false,
-        );
+        setCellState(x, y, nextTargetColor, currentVisualColor, timestamp, false);
 
         let nextX = x;
         let nextY = y;
@@ -375,10 +326,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
         }
       });
 
-      if (
-        onStepUpdate &&
-        totalSteps.current - lastReportedSteps.current >= 50
-      ) {
+      if (onStepUpdate && totalSteps.current - lastReportedSteps.current >= 50) {
         onStepUpdate(totalSteps.current);
         lastReportedSteps.current = totalSteps.current;
       }
@@ -391,7 +339,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
       modeSwitchInterval,
       onStepUpdate,
       cellSize,
-    ],
+    ]
   );
 
   const ageCells = React.useCallback(
@@ -409,12 +357,12 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
             SOFT_WHITE_BG,
             data.targetColorRgb,
             timestamp,
-            true,
+            true
           );
         }
       });
     },
-    [cellAgeThreshold, cellAgeFadeDuration],
+    [cellAgeThreshold, cellAgeFadeDuration]
   );
 
   const runSimulation = React.useCallback(
@@ -426,14 +374,13 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
       if (deltaStepTime >= stepInterval.current) {
         updateAnts(timestamp);
         ageCells(timestamp);
-        lastStepTime.current =
-          timestamp - (deltaStepTime % stepInterval.current);
+        lastStepTime.current = timestamp - (deltaStepTime % stepInterval.current);
       }
 
       draw(timestamp);
       animationFrameId.current = requestAnimationFrame(runSimulation);
     },
-    [updateAnts, draw, ageCells],
+    [updateAnts, draw, ageCells]
   );
 
   React.useEffect(() => {
@@ -485,7 +432,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
     lastStepTime.current = 0;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         const { width, height } = entry.contentRect;
         if (width !== canvas.width || height !== canvas.height) {
           canvas.width = width;
@@ -502,8 +449,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
     calculateBounds(rect.width, rect.height);
     resizeObserver.observe(container);
 
-    if (animationFrameId.current)
-      cancelAnimationFrame(animationFrameId.current);
+    if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     requestAnimationFrame((initTimestamp) => {
       currentTimestamp.current = initTimestamp;
       lastStepTime.current = initTimestamp;
@@ -512,8 +458,7 @@ const LangtonsAntLoader: React.FC<LangtonsAntLoaderProps> = ({
 
     return () => {
       resizeObserver.disconnect();
-      if (animationFrameId.current)
-        cancelAnimationFrame(animationFrameId.current);
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
     };
   }, [
     runSimulation,

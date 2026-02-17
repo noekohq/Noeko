@@ -19,9 +19,7 @@ export default function FloatingMenu({ editor }: { editor: IEditor | null }) {
         </div>
       )}
       <button
-        className={`btn-subtle ${styles.menuButton} ${
-          menuOpen ? styles.active : ""
-        }`}
+        className={`btn-subtle ${styles.menuButton} ${menuOpen ? styles.active : ""}`}
         onClick={() => setMenuOpen(!menuOpen)}
       >
         <PlusIcon weight="regular" />

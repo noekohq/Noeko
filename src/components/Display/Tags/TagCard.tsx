@@ -1,11 +1,4 @@
-import {
-  ActionIcon,
-  Badge,
-  Group,
-  MantineColor,
-  Menu,
-  Text,
-} from "@mantine/core";
+import { ActionIcon, Badge, Group, MantineColor, Menu, Text } from "@mantine/core";
 import { ITag } from "../../../../shared/types/tags";
 import { useNavigate } from "react-router";
 import { IconProps } from "../../Utils/Icons/Icon";
@@ -18,14 +11,7 @@ export type ITagAction = {
   icon?: React.ReactElement<IconProps>;
   onClick: (event: React.MouseEvent, tag: ITag) => void;
   color?: MantineColor;
-  variant?:
-    | "filled"
-    | "light"
-    | "outline"
-    | "default"
-    | "subtle"
-    | "transparent"
-    | "white";
+  variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
   isOverflow?: boolean; // If true, primarily for the overflow menu
@@ -43,13 +29,7 @@ const getTagDefaultSummary = (tag: ITag): string | undefined => {
   return tag.description;
 };
 
-export default function TagCard({
-  tag,
-  description,
-  onClick,
-  titleIcon,
-  actions,
-}: ITagCardProps) {
+export default function TagCard({ tag, description, onClick, titleIcon, actions }: ITagCardProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -78,12 +58,7 @@ export default function TagCard({
     >
       <Group justify="space-between">
         <Group gap="xs">
-          <Badge
-            size="lg"
-            c="dark.8"
-            bg="dark.3"
-            leftSection={<TagIcon weight="bold" />}
-          >
+          <Badge size="lg" c="dark.8" bg="dark.3" leftSection={<TagIcon weight="bold" />}>
             {tag.name}
           </Badge>
         </Group>

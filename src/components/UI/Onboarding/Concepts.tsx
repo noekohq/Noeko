@@ -51,9 +51,7 @@ export default function Concepts({ next }: IOnboardingProps) {
                 <currentConcept.icon weight="duotone" />
                 <h2>{currentConcept.title}</h2>
               </div>
-              <div className={styles.description}>
-                {currentConcept.description}
-              </div>
+              <div className={styles.description}>{currentConcept.description}</div>
             </div>
             <div className={styles.graphic}>
               <div className={styles.container}>{currentConcept.graphic}</div>
@@ -73,9 +71,7 @@ export default function Concepts({ next }: IOnboardingProps) {
             {concepts.map((_, slideIndex) => (
               <div
                 key={slideIndex}
-                className={`${styles.dot} ${
-                  currentIndex === slideIndex ? styles.activeDot : ""
-                }`}
+                className={`${styles.dot} ${currentIndex === slideIndex ? styles.activeDot : ""}`}
                 onClick={() => goToSlide(slideIndex)}
               />
             ))}
@@ -83,9 +79,7 @@ export default function Concepts({ next }: IOnboardingProps) {
           <button
             onClick={goToNext}
             className={`${styles.arrowButton} ${
-              !allConceptsVisited && currentIndex < concepts.length - 1
-                ? styles.pulse
-                : ""
+              !allConceptsVisited && currentIndex < concepts.length - 1 ? styles.pulse : ""
             }`}
             disabled={currentIndex === concepts.length - 1}
           >
@@ -95,11 +89,7 @@ export default function Concepts({ next }: IOnboardingProps) {
       </div>
 
       <div className={styles.action}>
-        <button
-          className={styles.button}
-          onClick={next}
-          disabled={!allConceptsVisited}
-        >
+        <button className={styles.button} onClick={next} disabled={!allConceptsVisited}>
           Got it, next
         </button>
       </div>
@@ -119,9 +109,8 @@ const concepts: IConcept[] = [
     icon: UniteSquareIcon,
     description: (
       <>
-        <strong>Organize how your mind actually works.</strong> Every link works
-        both ways, automatically weaving your knowledge together into a
-        Constellation.
+        <strong>Organize how your mind actually works.</strong> Every link works both ways,
+        automatically weaving your knowledge together into a Constellation.
       </>
     ),
     graphic: <ConnectingDots />,
@@ -131,9 +120,8 @@ const concepts: IConcept[] = [
     icon: IntersectSquareIcon,
     description: (
       <>
-        <strong>Rediscover your thoughts.</strong> As you write, Noeko
-        automatically surfaces relevant notes from your past, revealing
-        connections you never knew you had.
+        <strong>Rediscover your thoughts.</strong> As you write, Noeko automatically surfaces
+        relevant notes from your past, revealing connections you never knew you had.
       </>
     ),
     graphic: <ContextSurfacing />,
@@ -143,9 +131,8 @@ const concepts: IConcept[] = [
     icon: BrainIcon,
     description: (
       <>
-        <strong>Less overhead, more power.</strong> Noeko understands the
-        meaning behind your notes, so you can find anything without perfect tags
-        or keywords.
+        <strong>Less overhead, more power.</strong> Noeko understands the meaning behind your notes,
+        so you can find anything without perfect tags or keywords.
       </>
     ),
     graphic: <SemanticDemo />,

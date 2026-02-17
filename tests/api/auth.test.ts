@@ -19,16 +19,14 @@ describe("Auth Router", () => {
 
   describe("POST /api/users/register-referred", () => {
     it("Rejects an improper registration code", async () => {
-      const response = await request(app)
-        .post("/api/users/register-referred")
-        .send({
-          firstName: "Test",
-          lastName: "Testner",
-          email: "test@gmail.com",
-          password: "jellyfish",
-          passwordConfirmation: "jellyfish",
-          referralCode: "gobbly-gook", // <- Not a real code
-        });
+      const response = await request(app).post("/api/users/register-referred").send({
+        firstName: "Test",
+        lastName: "Testner",
+        email: "test@gmail.com",
+        password: "jellyfish",
+        passwordConfirmation: "jellyfish",
+        referralCode: "gobbly-gook", // <- Not a real code
+      });
 
       expect(response.status).toBe(403);
       expect(response.body.message).toBe("Invalid or expired referral code.");

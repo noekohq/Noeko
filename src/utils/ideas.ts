@@ -1,16 +1,8 @@
 import { showNotification } from "@mantine/notifications";
-import {
-  IIdea,
-  IIdeaForm,
-  IIdeaDerived,
-  ISafeIdea,
-} from "../../shared/types/idea";
+import { IIdea, IIdeaForm, IIdeaDerived, ISafeIdea } from "../../shared/types/idea";
 import { IIdeaShareAccess } from "../../shared/types/share";
 import { IGenerativeSummary } from "../../shared/types/idea";
-import {
-  ITag,
-  ITagDescriptionRelationship,
-} from "../../app/database/models/tag";
+import { ITag, ITagDescriptionRelationship } from "../../app/database/models/tag";
 import { applyTagToThing } from "./tags";
 import { api } from "../server/api";
 import { IChunk } from "../../shared/types/importer";
@@ -36,9 +28,7 @@ export const newIdeaOptimistic = () => {
     isOptimistic: true,
   };
 
-  const promise = api
-    .post("/ideas/new")
-    .then((results) => results.data.data as IIdea);
+  const promise = api.post("/ideas/new").then((results) => results.data.data as IIdea);
 
   return { optimisticIdea, promise };
 };
@@ -69,10 +59,7 @@ export const createIdea = async (form: { title?: string; content: string }) => {
   }
 };
 
-export const handleCreateNewIdea = async (
-  cb: (idea: IIdea) => void,
-  err: (err: Error) => void,
-) => {
+export const handleCreateNewIdea = async (cb: (idea: IIdea) => void, err: (err: Error) => void) => {
   try {
     const idea = await newIdea();
     if (!idea) {
@@ -89,7 +76,7 @@ export const handleCreateNewIdea = async (
 export const handleCreateIdea = async (
   form: { title?: string; content: string },
   cb: (idea: IIdea) => void,
-  err: (err: Error) => void,
+  err: (err: Error) => void
 ) => {
   try {
     const idea = await createIdea(form);
@@ -117,7 +104,7 @@ export const createIdeaConnection = async (source: string, target: string) => {
       .catch((error) => {
         console.error(
           `Something went wrong creating connection between ${source} and ${target}`,
-          error,
+          error
         );
         showNotification({
           title: "Something went wrong",
@@ -145,7 +132,7 @@ export const removeIdeaConnection = async (source: string, target: string) => {
       .catch((error) => {
         console.error(
           `Something went wrong deleting connection between ${source} and ${target}`,
-          error,
+          error
         );
         showNotification({
           title: "Something went wrong",
@@ -161,7 +148,7 @@ export const removeIdeaConnection = async (source: string, target: string) => {
 export const handleCreateNewConnectedIdea = async (
   from: string,
   cb: (idea: IIdea) => void,
-  err: (err: Error) => void,
+  err: (err: Error) => void
 ) => {
   try {
     const idea = await newIdea();
@@ -201,17 +188,12 @@ export const uploadChunkToImport = async (importId: string, chunk: IChunk) => {
       });
     return result;
   } catch (error) {
-    console.error(
-      `Error uploading chunk to import with id ${chunk.id}: `,
-      error,
-    );
+    console.error(`Error uploading chunk to import with id ${chunk.id}: `, error);
     return false;
   }
 };
 
-export const finalizeImport = async (
-  importId: string,
-): Promise<string | undefined> => {
+export const finalizeImport = async (importId: string): Promise<string | undefined> => {
   try {
     const result = await api.post(`/imports/finalize/${importId}`).then((d) => {
       return d.data.data as string;
@@ -245,9 +227,7 @@ export const newTaggedIdea = async (tagId: string) => {
     console.error(`Error adding tag ${tagId} to new idea:`, error);
     showNotification({
       title: "Error Creating Idea",
-      message:
-        error.response?.data?.message ||
-        "Something went wrong while adding the tag.",
+      message: error.response?.data?.message || "Something went wrong while adding the tag.",
       color: "red",
     });
     return undefined;
@@ -256,7 +236,7 @@ export const newTaggedIdea = async (tagId: string) => {
 
 export const getChunkedIdeas = (
   ideas: IIdeaForm[],
-  chunkMax: number,
+  chunkMax: number
 ): {
   chunks: IChunk[];
   tooLarge: IChunk[];
@@ -308,10 +288,7 @@ export const getChunkedIdeas = (
   };
 };
 
-export const getIdeaSummaryItemIfExists = (
-  idea: IIdea,
-  item: keyof IGenerativeSummary,
-) => {
+export const getIdeaSummaryItemIfExists = (idea: IIdea, item: keyof IGenerativeSummary) => {
   const i = idea.derived?.generative_summary?.[item];
   if (!i) {
     return undefined;
@@ -324,7 +301,7 @@ export const createIdeaShare = async (
 
   userId: string,
 
-  accessLevel?: IIdeaShareAccess,
+  accessLevel?: IIdeaShareAccess
 ) => {
   try {
     return await api
@@ -338,10 +315,7 @@ export const createIdeaShare = async (
         return Promise.resolve();
       })
       .catch((error) => {
-        console.error(
-          `Something went wrong creating share between ${ideaId} and ${userId}`,
-          error,
-        );
+        console.error(`Something went wrong creating share between ${ideaId} and ${userId}`, error);
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong sharing the idea",
@@ -363,10 +337,7 @@ export const removeIdeaShare = async (ideaId: string, userId: string) => {
         return Promise.resolve();
       })
       .catch((error) => {
-        console.error(
-          `Something went wrong removing share between ${ideaId} and ${userId}`,
-          error,
-        );
+        console.error(`Something went wrong removing share between ${ideaId} and ${userId}`, error);
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong unsharing the idea",
@@ -378,10 +349,7 @@ export const removeIdeaShare = async (ideaId: string, userId: string) => {
   }
 };
 
-export const createIdeaShareFromEmail = async (
-  ideaId: string,
-  email: string,
-) => {
+export const createIdeaShareFromEmail = async (ideaId: string, email: string) => {
   try {
     return await api
       .post(`/ideas/${ideaId}/share/by_email`, {
@@ -391,10 +359,7 @@ export const createIdeaShareFromEmail = async (
         return Promise.resolve();
       })
       .catch((error) => {
-        console.error(
-          `Something went wrong creating share between ${ideaId} and ${email}`,
-          error,
-        );
+        console.error(`Something went wrong creating share between ${ideaId} and ${email}`, error);
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong sharing the idea",
@@ -407,16 +372,11 @@ export const createIdeaShareFromEmail = async (
   }
 };
 
-export const ideasAreConnected = (
-  first: IIdea | ISafeIdea,
-  second: IIdea | string,
-) => {
+export const ideasAreConnected = (first: IIdea | ISafeIdea, second: IIdea | string) => {
   if (!first.connections && !second) {
     return undefined;
   }
   const secondId = typeof second === "string" ? second : second.id.toString();
-  const firstHasSecond = !!first.connections?.find(
-    (c) => c.id.toString() === secondId,
-  );
+  const firstHasSecond = !!first.connections?.find((c) => c.id.toString() === secondId);
   return firstHasSecond;
 };

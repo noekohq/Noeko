@@ -39,9 +39,7 @@ class TaskExport implements IExportable {
 
   getFileName(): string {
     // Sanitize title for filename
-    const sanitized = this.task.description
-      .replace(/[^a-z0-9]/gi, "_")
-      .toLowerCase();
+    const sanitized = this.task.description.replace(/[^a-z0-9]/gi, "_").toLowerCase();
     return `tasks/${sanitized}.md`;
   }
 }

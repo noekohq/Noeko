@@ -21,9 +21,7 @@ export default function CountUp({ targetNumber }: ICountUpProps) {
       const progressFraction = Math.min(progress / duration, 1);
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
       const easedProgress = easeOutCubic(progressFraction);
-      const nextNumber = Math.floor(
-        initialNumber + (targetNumber - initialNumber) * easedProgress,
-      );
+      const nextNumber = Math.floor(initialNumber + (targetNumber - initialNumber) * easedProgress);
       setCurrentNumber(nextNumber);
 
       if (progress < duration) {
@@ -52,7 +50,5 @@ export default function CountUp({ targetNumber }: ICountUpProps) {
     previousNumberRef.current = 0;
   }, []);
 
-  return (
-    <span className={styles.counter}>{currentNumber.toLocaleString()}</span>
-  );
+  return <span className={styles.counter}>{currentNumber.toLocaleString()}</span>;
 }

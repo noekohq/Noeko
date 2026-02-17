@@ -87,9 +87,7 @@ export const useMultiTabWarning = (ideaId: string | null | undefined) => {
     const cleanup = () => {
       const allTabsOnClose = getOpenTabs();
       const tabsForThisIdeaOnClose = allTabsOnClose[ideaId] || [];
-      const updatedTabs = tabsForThisIdeaOnClose.filter(
-        (id) => id !== tabId.current,
-      );
+      const updatedTabs = tabsForThisIdeaOnClose.filter((id) => id !== tabId.current);
 
       if (updatedTabs.length > 0) {
         setOpenTabs({ ...allTabsOnClose, [ideaId]: updatedTabs });

@@ -38,10 +38,7 @@ interface IAddSourceFormProps {
   onCancel?: () => void;
 }
 
-export default function AddSourceForm({
-  onSubmit,
-  onCancel,
-}: IAddSourceFormProps) {
+export default function AddSourceForm({ onSubmit, onCancel }: IAddSourceFormProps) {
   const { includeThing, isDownRabbithole } = useRabbithole();
 
   const fileForm = useForm<{
@@ -53,8 +50,7 @@ export default function AddSourceForm({
     validate: {
       userFile: (value) => {
         if (!value) return "File is required";
-        if (value.size > 1024 * 1024 * 10)
-          return "File size should not exceed 10MB";
+        if (value.size > 1024 * 1024 * 10) return "File size should not exceed 10MB";
         return null;
       },
     },
@@ -65,10 +61,7 @@ export default function AddSourceForm({
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>();
-  const { load: uploadFile, loading: loadingUpload } = useFetch<
-    FormData,
-    IUserFile
-  >({
+  const { load: uploadFile, loading: loadingUpload } = useFetch<FormData, IUserFile>({
     url: "/files/",
     method: "POST",
     body: formData,
@@ -197,13 +190,12 @@ export default function AddSourceForm({
           <HoverCard.Dropdown>
             <Stack gap="xs">
               <Text size="sm">
-                Sources is currently under active development and some features
-                might not work as expected. We're looking for feedback as we
-                learn and grow :)
+                Sources is currently under active development and some features might not work as
+                expected. We're looking for feedback as we learn and grow :)
               </Text>
               <Text size="xs" c="dimmed">
-                This feature will remain free during its experimental phases,
-                rate limits may apply in future iterations.
+                This feature will remain free during its experimental phases, rate limits may apply
+                in future iterations.
               </Text>
               <ActionIcon
                 size="sm"
@@ -228,13 +220,7 @@ export default function AddSourceForm({
           accept="application/pdf"
           {...fileForm.getInputProps("userFile")}
           leftSection={
-            <>
-              {preview ? (
-                <preview.icon weight="bold" />
-              ) : (
-                <UploadSimpleIcon weight="bold" />
-              )}
-            </>
+            <>{preview ? <preview.icon weight="bold" /> : <UploadSimpleIcon weight="bold" />}</>
           }
         />
       </Grid.Col>
@@ -276,9 +262,7 @@ export default function AddSourceForm({
                 handleUploadFile();
               }}
               disabled={loadingUpload}
-              leftSection={
-                loadingUpload ? <Loader size="sm" color="white" /> : undefined
-              }
+              leftSection={loadingUpload ? <Loader size="sm" color="white" /> : undefined}
             >
               Yes, upload.
             </Button>

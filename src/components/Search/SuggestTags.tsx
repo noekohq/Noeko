@@ -92,17 +92,13 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
       return [];
     }
 
-    const filteredSuggestions = suggestions.filter(
-      (tag) => !omit.includes(tag.id.toString()),
-    );
+    const filteredSuggestions = suggestions.filter((tag) => !omit.includes(tag.id.toString()));
 
     return filteredSuggestions;
   }, [suggestions, omit]);
 
   const handleOptionSubmit = (value: string) => {
-    const selectedItem = comboboxData.find(
-      (item) => item.id.toString() === value,
-    );
+    const selectedItem = comboboxData.find((item) => item.id.toString() === value);
     if (selectedItem) {
       onSelect(selectedItem);
       setSearchQuery("");
@@ -120,12 +116,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
   const rightSection = loading ? (
     <Loader size="xs" />
   ) : searchQuery ? (
-    <ActionIcon
-      onClick={handleClearInput}
-      size="sm"
-      variant="transparent"
-      aria-label="Clear input"
-    >
+    <ActionIcon onClick={handleClearInput} size="sm" variant="transparent" aria-label="Clear input">
       <CloseButton size="sm" />
     </ActionIcon>
   ) : null;
@@ -166,11 +157,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
             className={styles.input}
           />
           <div className={styles.icon}>
-            {loading ? (
-              <Loader size={16} color="gray" />
-            ) : (
-              <TagIcon size={16} />
-            )}
+            {loading ? <Loader size={16} color="gray" /> : <TagIcon size={16} />}
           </div>
         </div>
       </Combobox.Target>
@@ -199,9 +186,7 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
               !errors?.length &&
               comboboxData.length === 0 &&
               searchQuery.trim().length > 0 && (
-                <Combobox.Empty>
-                  Nothing found for "{searchQuery}"
-                </Combobox.Empty>
+                <Combobox.Empty>Nothing found for "{searchQuery}"</Combobox.Empty>
               )}
 
             {!loading &&
@@ -214,14 +199,9 @@ const SuggestTags: React.FC<SuggestTagsProps> = ({
             {!loading &&
               !errors?.length &&
               comboboxData.map((item) => (
-                <Combobox.Option
-                  value={item.id.toString()}
-                  key={item.id.toString()}
-                >
+                <Combobox.Option value={item.id.toString()} key={item.id.toString()}>
                   <Stack gap={"xs"}>
-                    <Badge color={scheme === "dark" ? "dark.7" : "dark.3"}>
-                      {item.name}
-                    </Badge>
+                    <Badge color={scheme === "dark" ? "dark.7" : "dark.3"}>{item.name}</Badge>
                     {item.description && (
                       <Text size="xs" c="dimmed">
                         {item.description}

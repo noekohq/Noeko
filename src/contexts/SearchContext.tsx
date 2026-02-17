@@ -111,9 +111,7 @@ type ISearchProviderProps = {
 
 export const SearchProvider = ({ children }: ISearchProviderProps) => {
   const [query, setQuery] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<ISearchResult[] | null>(
-    null,
-  );
+  const [searchResults, setSearchResults] = useState<ISearchResult[] | null>(null);
   const [topResult, setTopResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [scope, setScope] = useState<IGraphFilters>({});
@@ -132,10 +130,7 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
         setComponentFilters(JSON.parse(savedFilters));
       }
     } catch (error) {
-      console.error(
-        "Failed to parse componentFilters from localStorage",
-        error,
-      );
+      console.error("Failed to parse componentFilters from localStorage", error);
     }
   }, []);
 
@@ -202,15 +197,12 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
           set: setScopeTags,
           add: (tag: ITag) => {
             setScopeTags((prev) => {
-              if (prev.some((t) => t.id.toString() === tag.id.toString()))
-                return prev;
+              if (prev.some((t) => t.id.toString() === tag.id.toString())) return prev;
               return [...prev, tag];
             });
             setScope((prevScope) => {
               const currentSet = prevScope.tags?.set || [];
-              if (
-                currentSet.some((id) => id.toString() === tag.id.toString())
-              ) {
+              if (currentSet.some((id) => id.toString() === tag.id.toString())) {
                 return prevScope;
               }
               return {
@@ -254,9 +246,7 @@ export const SearchProvider = ({ children }: ISearchProviderProps) => {
     },
   };
 
-  return (
-    <SearchContext.Provider value={value}>{children}</SearchContext.Provider>
-  );
+  return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
 };
 
 export const useSearch = () => {

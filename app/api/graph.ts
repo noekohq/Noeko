@@ -1,17 +1,10 @@
 import { Router } from "express";
 import { Idea } from "../database/models/ideas";
-import {
-  checkIsSuperuser,
-  checkToken,
-  disallowDisabled,
-} from "../middleware/auth";
+import { checkIsSuperuser, checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
 import { User } from "../database/models/user";
 import { ISafeUser, IUser } from "../../shared/types/user";
-import GraphService, {
-  ConstellationLoader,
-  IConstellationLoader,
-} from "../services/Graph";
+import GraphService, { ConstellationLoader, IConstellationLoader } from "../services/Graph";
 import { StringRecordId } from "surrealdb";
 import Authorization from "../services/Authorization";
 
@@ -180,27 +173,21 @@ router.get("/connection", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
-router.post(
-  "/synchronize",
-  checkToken,
-  disallowDisabled,
-  checkIsSuperuser,
-  async (req, res) => {
-    try {
-      const ideas = await Idea.all("full");
-      if (!ideas) {
-        res.status(404).json({ error: "Ideas not found" });
-        return;
-      }
-      await Idea.synchronizeContentPlain(ideas, true);
-      await Idea.synchronizeEmbeddings(ideas);
-      res.send({ message: "Successfully synchronized graph." });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+router.post("/synchronize", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const ideas = await Idea.all("full");
+    if (!ideas) {
+      res.status(404).json({ error: "Ideas not found" });
+      return;
     }
-  },
-);
+    await Idea.synchronizeContentPlain(ideas, true);
+    await Idea.synchronizeEmbeddings(ideas);
+    res.send({ message: "Successfully synchronized graph." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 router.post("/all", checkToken, disallowDisabled, async (req, res) => {
   try {
@@ -212,16 +199,13 @@ router.post("/all", checkToken, disallowDisabled, async (req, res) => {
 
     const { limit, cursor, sortField, sortDirection, filters } = req.body;
 
-    const connectables = await GraphService.getAllConnectables(
-      new StringRecordId(user.id),
-      {
-        limit,
-        cursor,
-        sortField,
-        sortDirection,
-        filters,
-      },
-    );
+    const connectables = await GraphService.getAllConnectables(new StringRecordId(user.id), {
+      limit,
+      cursor,
+      sortField,
+      sortDirection,
+      filters,
+    });
 
     if (!connectables) {
       throw new Error("Connectables couldn't be retrieved");
@@ -237,100 +221,83 @@ router.post("/all", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
-router.get(
-  "/:thingId/connections",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const thingId = req.params.thingId as string;
-      const hasAccess = await User.checkHasAccess(user.id, thingId);
-      if (!hasAccess) {
-        res.status(403).send({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const isConnectable = GraphService.isConnectable(thingId);
-      if (!isConnectable) {
-        res.status(400).send({
-          message: "Resource not available for this type of thing",
-        });
-        return;
-      }
-      const connections = await GraphService.getUserConnectionsForThing(
-        thingId,
-        user.id,
-      );
-      res.send({
-        message: "Successfully got connections",
-        data: connections,
-      });
-    } catch (error) {
-      res.status(500).send({
-        message: "Something went wrong",
-      });
+router.get("/:thingId/connections", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
     }
-  },
-);
-
-router.get(
-  "/:thingId/similar",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const thingId = req.params.thingId as string;
-      const hasAccess = await User.checkHasAccess(user.id, thingId);
-      if (!hasAccess) {
-        res.status(403).send({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const isConnectable = GraphService.isConnectable(thingId);
-      const rabbitholeId = req.query.rabbitholeId as string;
-
-      if (rabbitholeId && !(typeof rabbitholeId !== "string")) {
-        res.status(400).send({
-          message: "Bad Request",
-        });
-        return;
-      }
-      if (!isConnectable) {
-        res.status(400).send({
-          message: "Resource not available for this type of thing",
-        });
-        return;
-      }
-      const similar = await GraphService.getRecommendedConnectables(
-        user.id,
-        thingId,
-        {
-          rabbitholeId,
-        },
-      );
-      res.send({
-        message: "Successfully got similar",
-        data: similar,
+    const thingId = req.params.thingId as string;
+    const hasAccess = await User.checkHasAccess(user.id, thingId);
+    if (!hasAccess) {
+      res.status(403).send({
+        message: "Unauthorized.",
       });
-    } catch (error) {
-      res.status(500).send({
-        message: "Something went wrong",
-      });
+      return;
     }
-  },
-);
+    const isConnectable = GraphService.isConnectable(thingId);
+    if (!isConnectable) {
+      res.status(400).send({
+        message: "Resource not available for this type of thing",
+      });
+      return;
+    }
+    const connections = await GraphService.getUserConnectionsForThing(thingId, user.id);
+    res.send({
+      message: "Successfully got connections",
+      data: connections,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
+
+router.get("/:thingId/similar", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const thingId = req.params.thingId as string;
+    const hasAccess = await User.checkHasAccess(user.id, thingId);
+    if (!hasAccess) {
+      res.status(403).send({
+        message: "Unauthorized.",
+      });
+      return;
+    }
+    const isConnectable = GraphService.isConnectable(thingId);
+    const rabbitholeId = req.query.rabbitholeId as string;
+
+    if (rabbitholeId && !(typeof rabbitholeId !== "string")) {
+      res.status(400).send({
+        message: "Bad Request",
+      });
+      return;
+    }
+    if (!isConnectable) {
+      res.status(400).send({
+        message: "Resource not available for this type of thing",
+      });
+      return;
+    }
+    const similar = await GraphService.getRecommendedConnectables(user.id, thingId, {
+      rabbitholeId,
+    });
+    res.send({
+      message: "Successfully got similar",
+      data: similar,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
 
 router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
   try {
@@ -366,99 +333,83 @@ router.get("/:thingId/tags", checkToken, disallowDisabled, async (req, res) => {
   }
 });
 
-router.get(
-  "/:thingId/tags/suggested",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-      const thingId = req.params.thingId as string;
-      const hasAccess = await User.checkHasAccess(user.id, thingId);
-      if (!hasAccess) {
-        res.status(403).send({
-          message: "Unauthorized.",
-        });
-        return;
-      }
-      const isConnectable = GraphService.isConnectable(thingId);
-      if (!isConnectable) {
-        res.status(400).send({
-          message: "Resource not available for this type of thing",
-        });
-        return;
-      }
-      const tags = await GraphService.getSuggestedTags(
-        user.id.toString(),
-        thingId,
-      );
-      res.send({
-        message: "Successfully got suggested tags",
-        data: tags,
-      });
-    } catch (error) {
-      res.status(500).send({
-        message: "Something went wrong",
-      });
+router.get("/:thingId/tags/suggested", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
     }
-  },
-);
-
-router.post(
-  "/ensure-connected",
-  checkToken,
-  disallowDisabled,
-  async (req, res) => {
-    try {
-      const user = await getFromReq<IUser>(req, "user");
-      if (!user) {
-        res.status(403).json({ message: "Unauthorized" });
-        return;
-      }
-
-      const auth = new Authorization(user.id);
-
-      const { source, targets } = req.body;
-
-      if (!source || !targets || !Array.isArray(targets)) {
-        res.status(400).json({
-          message: "Bad Request: Missing source or invalid targets array",
-        });
-        return;
-      }
-
-      const hasAccessToSource = await auth.hasAccess(source);
-
-      if (!hasAccessToSource) {
-        res.status(403).json({
-          message: "Unauthorized: You do not have access to the source node.",
-        });
-        return;
-      }
-
-      const accessibleConnections = await auth.hasAccessBulk(targets);
-      if (accessibleConnections.size === 0) {
-        res.status(200).json({ message: "No valid connections to create." });
-        return;
-      }
-
-      await GraphService.ensureConnected(
-        source,
-        Array.from(accessibleConnections),
-      );
-
-      res.status(200).json({
-        message: "Connections ensured.",
+    const thingId = req.params.thingId as string;
+    const hasAccess = await User.checkHasAccess(user.id, thingId);
+    if (!hasAccess) {
+      res.status(403).send({
+        message: "Unauthorized.",
       });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal Server Error" });
+      return;
     }
-  },
-);
+    const isConnectable = GraphService.isConnectable(thingId);
+    if (!isConnectable) {
+      res.status(400).send({
+        message: "Resource not available for this type of thing",
+      });
+      return;
+    }
+    const tags = await GraphService.getSuggestedTags(user.id.toString(), thingId);
+    res.send({
+      message: "Successfully got suggested tags",
+      data: tags,
+    });
+  } catch (error) {
+    res.status(500).send({
+      message: "Something went wrong",
+    });
+  }
+});
+
+router.post("/ensure-connected", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const auth = new Authorization(user.id);
+
+    const { source, targets } = req.body;
+
+    if (!source || !targets || !Array.isArray(targets)) {
+      res.status(400).json({
+        message: "Bad Request: Missing source or invalid targets array",
+      });
+      return;
+    }
+
+    const hasAccessToSource = await auth.hasAccess(source);
+
+    if (!hasAccessToSource) {
+      res.status(403).json({
+        message: "Unauthorized: You do not have access to the source node.",
+      });
+      return;
+    }
+
+    const accessibleConnections = await auth.hasAccessBulk(targets);
+    if (accessibleConnections.size === 0) {
+      res.status(200).json({ message: "No valid connections to create." });
+      return;
+    }
+
+    await GraphService.ensureConnected(source, Array.from(accessibleConnections));
+
+    res.status(200).json({
+      message: "Connections ensured.",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 export default router;

@@ -31,7 +31,7 @@ const StatusButton = forwardRef<HTMLButtonElement, IStatusButtonProps>(
         <div className={styles.content}>{children}</div>
       </button>
     );
-  },
+  }
 );
 
 export default StatusButton;

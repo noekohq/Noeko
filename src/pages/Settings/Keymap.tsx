@@ -1,14 +1,4 @@
-import {
-  Box,
-  Button,
-  Card,
-  Group,
-  Kbd,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Box, Button, Card, Group, Kbd, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import PageWrapper from "../../components/Layout/PageWrapper";
 import Search from "../../components/Search/Search";
 import StatusBar from "../../components/UI/Layout/Bottom";
@@ -33,8 +23,8 @@ export default function Keymap() {
         <Stack gap="sm">
           <Title>Keymap</Title>
           <Text>
-            Noeko is built with power-users in mind, providing a rich hotkey
-            specification. In the future, these will be modifiable.
+            Noeko is built with power-users in mind, providing a rich hotkey specification. In the
+            future, these will be modifiable.
           </Text>
           <SimpleGrid
             cols={{
@@ -46,41 +36,20 @@ export default function Keymap() {
               <Stack gap="sm">
                 <Text fw="bold">UTILITIES</Text>
                 <Text>Use these to execute commands or perform actions.</Text>
-                <Shortcut
-                  keys={[primaryKey, "K"]}
-                  description="Open Spotlight"
-                />
-                <Shortcut
-                  keys={[primaryKey, "shift", "i"]}
-                  description="New idea"
-                />
-                <Shortcut
-                  keys={[primaryKey, "shift", "u"]}
-                  description="New source"
-                />
+                <Shortcut keys={[primaryKey, "K"]} description="Open Spotlight" />
+                <Shortcut keys={[primaryKey, "shift", "i"]} description="New idea" />
+                <Shortcut keys={[primaryKey, "shift", "u"]} description="New source" />
               </Stack>
             </Card>
             <Card radius="lg" withBorder>
               <Stack gap="sm">
                 <Text fw="bold">NAVIGATION</Text>
                 <Text>Use these to get around Noeko faster.</Text>
-                <Shortcut
-                  keys={[primaryKey, "shift", "h"]}
-                  description="Home"
-                />
-                <Shortcut
-                  keys={[primaryKey, "shift", "g"]}
-                  description="Constellation"
-                />
-                <Shortcut
-                  keys={[primaryKey, "shift", "b"]}
-                  description="Idea list"
-                />
+                <Shortcut keys={[primaryKey, "shift", "h"]} description="Home" />
+                <Shortcut keys={[primaryKey, "shift", "g"]} description="Constellation" />
+                <Shortcut keys={[primaryKey, "shift", "b"]} description="Idea list" />
                 <Shortcut keys={[primaryKey, "."]} description="Settings" />
-                <Shortcut
-                  keys={[primaryKey, "shift", "/"]}
-                  description="Spyglass"
-                />
+                <Shortcut keys={[primaryKey, "shift", "/"]} description="Spyglass" />
               </Stack>
             </Card>
           </SimpleGrid>

@@ -70,7 +70,7 @@ class GeminiEmbeddingProvider implements EmbeddingProvider {
   constructor(apiKey: string, modelName: string) {
     if (!apiKey) {
       throw new Error(
-        `Gemini API Key was not provided for model ${modelName} (check GEMINI_API_KEY env var).`,
+        `Gemini API Key was not provided for model ${modelName} (check GEMINI_API_KEY env var).`
       );
     }
     const client = new GoogleGenerativeAI(apiKey);
@@ -96,21 +96,16 @@ class GeminiEmbeddingProvider implements EmbeddingProvider {
     } as unknown as BatchEmbedContentsRequest);
     console.info(
       "Recieved response from batch embeddings, num embeddings: ",
-      response.embeddings.length,
+      response.embeddings.length
     );
-    if (
-      !response.embeddings ||
-      response.embeddings.length !== contents.length
-    ) {
+    if (!response.embeddings || response.embeddings.length !== contents.length) {
       throw new Error(
-        "Invalid response structure or length mismatch from Gemini batchEmbedContents",
+        "Invalid response structure or length mismatch from Gemini batchEmbedContents"
       );
     }
     return response.embeddings.map((emb) => {
       if (!emb?.values) {
-        throw new Error(
-          "Missing values in one of the embeddings from Gemini batchEmbedContents",
-        );
+        throw new Error("Missing values in one of the embeddings from Gemini batchEmbedContents");
       }
       return emb.values;
     });
@@ -127,20 +122,15 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
   private readonly minIntervalMs: number;
   private readonly rpm: number;
 
-  constructor(
-    projectId: string,
-    location: string,
-    modelId: string,
-    credentialsPath?: string,
-  ) {
+  constructor(projectId: string, location: string, modelId: string, credentialsPath?: string) {
     if (!projectId) {
       throw new Error(
-        `Google Cloud Project ID was not provided for Vertex AI model ${modelId} (check GCP_PROJECT_ID env var).`,
+        `Google Cloud Project ID was not provided for Vertex AI model ${modelId} (check GCP_PROJECT_ID env var).`
       );
     }
     if (!location) {
       throw new Error(
-        `Google Cloud Location was not provided for Vertex AI model ${modelId} (check GCP_LOCATION env var).`,
+        `Google Cloud Location was not provided for Vertex AI model ${modelId} (check GCP_LOCATION env var).`
       );
     }
 
@@ -161,27 +151,23 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
           throw new Error(`Credentials file not found at: ${absolutePath}`);
         }
         const credentialsFileContent = fs.readFileSync(absolutePath, "utf-8");
-        const credentials = JSON.parse(
-          credentialsFileContent,
-        ) as GoogleCredentials;
+        const credentials = JSON.parse(credentialsFileContent) as GoogleCredentials;
         if (!credentials.client_email || !credentials.private_key) {
-          throw new Error(
-            "Credentials file is missing client_email or private_key.",
-          );
+          throw new Error("Credentials file is missing client_email or private_key.");
         }
         clientOptions.credentials = credentials;
       } catch (error) {
         console.error(
           `Error loading or parsing credentials file from ${effectiveCredentialsPath}:`,
-          error,
+          error
         );
         throw new Error(
-          `Failed to load explicit credentials: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to load explicit credentials: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     } else {
       console.info(
-        "No explicit credentials path provided (GOOGLE_CREDENTIALS_LOCATION env var not set). Relying on Application Default Credentials (ADC) for Vertex AI.",
+        "No explicit credentials path provided (GOOGLE_CREDENTIALS_LOCATION env var not set). Relying on Application Default Credentials (ADC) for Vertex AI."
       );
     }
 
@@ -191,13 +177,13 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     this.rpm = parseInt(rpmEnv, 10);
     if (isNaN(this.rpm) || this.rpm <= 0) {
       console.warn(
-        `[VertexAIEmbeddingProvider] Invalid EMBEDDINGS_RPM_LIMIT value "${rpmEnv}", defaulting to 60 RPM.`,
+        `[VertexAIEmbeddingProvider] Invalid EMBEDDINGS_RPM_LIMIT value "${rpmEnv}", defaulting to 60 RPM.`
       );
       this.rpm = 60;
     }
     this.minIntervalMs = (60 * 1000) / this.rpm;
     console.info(
-      `[VertexAIEmbeddingProvider] Configured for model ${modelId} with RPM: ${this.rpm} (Min Interval: ${this.minIntervalMs.toFixed(2)}ms)`,
+      `[VertexAIEmbeddingProvider] Configured for model ${modelId} with RPM: ${this.rpm} (Min Interval: ${this.minIntervalMs.toFixed(2)}ms)`
     );
   }
 
@@ -210,19 +196,16 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     const request = { endpoint: this.endpoint, instances, parameters };
     try {
       const [response] = await this.client.predict(request);
-      if (
-        !response.predictions ||
-        response.predictions.length !== instances.length
-      ) {
+      if (!response.predictions || response.predictions.length !== instances.length) {
         throw new Error(
-          `Vertex AI returned ${response.predictions?.length ?? 0} predictions, expected ${instances.length}.`,
+          `Vertex AI returned ${response.predictions?.length ?? 0} predictions, expected ${instances.length}.`
         );
       }
       return response.predictions;
     } catch (error) {
       console.error("Error calling Vertex AI Prediction API:", error);
       throw new Error(
-        `Vertex AI API request failed: ${error instanceof Error ? error.message : String(error)}`,
+        `Vertex AI API request failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
@@ -231,19 +214,12 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     try {
       const instances = [helpers.toValue({ content })];
       const predictionsProto = await this.predictVertexAI(instances);
-      const prediction = helpers.fromValue(
-        predictionsProto[0],
-      ) as VertexEmbeddingPrediction;
+      const prediction = helpers.fromValue(predictionsProto[0]) as VertexEmbeddingPrediction;
       if (prediction?.embeddings?.values) {
         return prediction.embeddings.values;
       } else {
-        console.error(
-          "Unexpected prediction structure:",
-          JSON.stringify(prediction, null, 2),
-        );
-        throw new Error(
-          "Failed to extract embeddings from Vertex AI prediction.",
-        );
+        console.error("Unexpected prediction structure:", JSON.stringify(prediction, null, 2));
+        throw new Error("Failed to extract embeddings from Vertex AI prediction.");
       }
     } catch (error) {
       console.error("Error generating embeddings from Vertex AI: ", error);
@@ -255,18 +231,16 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     const instances = contents.map((content) => helpers.toValue({ content }));
     const predictionsProto = await this.predictVertexAI(instances);
     return predictionsProto.map((predictionProto: any, index: number) => {
-      const prediction = helpers.fromValue(
-        predictionProto,
-      ) as VertexEmbeddingPrediction;
+      const prediction = helpers.fromValue(predictionProto) as VertexEmbeddingPrediction;
       if (prediction?.embeddings?.values) {
         return prediction.embeddings.values;
       } else {
         console.error(
           `Unexpected prediction structure for content index ${index}:`,
-          JSON.stringify(prediction, null, 2),
+          JSON.stringify(prediction, null, 2)
         );
         throw new Error(
-          `Failed to extract embeddings from Vertex AI prediction for content index ${index}.`,
+          `Failed to extract embeddings from Vertex AI prediction for content index ${index}.`
         );
       }
     });
@@ -275,13 +249,13 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
   async embedContents(contents: string[]): Promise<(number[] | null)[]> {
     if (!contents || contents.length === 0) {
       console.info(
-        `[${this.constructor.name}] embedContents: No texts provided, returning empty array.`,
+        `[${this.constructor.name}] embedContents: No texts provided, returning empty array.`
       );
       return [];
     }
 
     console.info(
-      `[${this.constructor.name}] embedContents: Embedding ${contents.length} texts sequentially with throttling (Target RPM: ${this.rpm}).`,
+      `[${this.constructor.name}] embedContents: Embedding ${contents.length} texts sequentially with throttling (Target RPM: ${this.rpm}).`
     );
     const allEmbeddings: number[][] = [];
 
@@ -296,13 +270,10 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
 
       // For the very first request in this batch invocation, or if sufficient time has passed, no delay.
       // Otherwise, calculate and apply delay.
-      if (
-        this.lastRequestTimestamp !== 0 &&
-        timeSinceLastRequest < this.minIntervalMs
-      ) {
+      if (this.lastRequestTimestamp !== 0 && timeSinceLastRequest < this.minIntervalMs) {
         const delayNeeded = this.minIntervalMs - timeSinceLastRequest;
         console.info(
-          `[${this.constructor.name}] Throttling: waiting ${delayNeeded.toFixed(0)}ms before embedding text ${i + 1}/${contents.length}.`,
+          `[${this.constructor.name}] Throttling: waiting ${delayNeeded.toFixed(0)}ms before embedding text ${i + 1}/${contents.length}.`
         );
         await sleep(delayNeeded); // Make sure sleep is imported/available
       }
@@ -310,10 +281,9 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
       // Update timestamp *before* making the call to reserve the slot
       this.lastRequestTimestamp = Date.now();
 
-      const displayText =
-        content.length > 70 ? `${content.substring(0, 67)}...` : content;
+      const displayText = content.length > 70 ? `${content.substring(0, 67)}...` : content;
       console.info(
-        `[${this.constructor.name}] Embedding text ${i + 1}/${contents.length}: "${displayText}"`,
+        `[${this.constructor.name}] Embedding text ${i + 1}/${contents.length}: "${displayText}"`
       );
 
       try {
@@ -321,10 +291,9 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
         const embedding = await this.embedContent(content); // This uses the existing single embedding logic
         allEmbeddings.push(embedding);
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(
-          `[${this.constructor.name}] Error embedding text ${i + 1} ("${displayText}"): ${errorMessage}`,
+          `[${this.constructor.name}] Error embedding text ${i + 1} ("${displayText}"): ${errorMessage}`
         );
         // Option: Rethrow to fail the entire batch
         throw error;
@@ -335,7 +304,7 @@ class VertexAIEmbeddingProvider implements EmbeddingProvider {
     }
 
     console.info(
-      `[${this.constructor.name}] embedContents: Successfully processed ${allEmbeddings.length} texts sequentially.`,
+      `[${this.constructor.name}] embedContents: Successfully processed ${allEmbeddings.length} texts sequentially.`
     );
     return allEmbeddings;
   }
@@ -357,24 +326,20 @@ export class Embeddings {
     const googleCredentialsLocation = process.env.GOOGLE_CREDENTIALS_LOCATION;
 
     console.info(
-      `Initializing Embeddings service with EMBEDDING_MODEL_NAME: ${embeddingModelName}`,
+      `Initializing Embeddings service with EMBEDDING_MODEL_NAME: ${embeddingModelName}`
     );
 
     // --- Determine Provider Based on EMBEDDING_MODEL_NAME ---
     if (!embeddingModelName) {
-      throw new Error(
-        "EMBEDDING_MODEL_NAME environment variable is required but not set.",
-      );
+      throw new Error("EMBEDDING_MODEL_NAME environment variable is required but not set.");
     }
 
-    if (
-      ["text-embedding-005", "text-embedding-004"].includes(embeddingModelName)
-    ) {
+    if (["text-embedding-005", "text-embedding-004"].includes(embeddingModelName)) {
       // Specific Vertex model
       console.info(`Configuring for Vertex AI model: ${embeddingModelName}`);
       if (!gcpProjectId) {
         throw new Error(
-          `GCP_PROJECT_ID environment variable is required for Vertex AI model ${embeddingModelName}.`,
+          `GCP_PROJECT_ID environment variable is required for Vertex AI model ${embeddingModelName}.`
         );
       }
       // Location has a default, but log it
@@ -382,24 +347,21 @@ export class Embeddings {
         gcpProjectId,
         gcpLocation,
         embeddingModelName,
-        googleCredentialsLocation, // Pass explicit creds path if set
+        googleCredentialsLocation // Pass explicit creds path if set
       );
     } else if (embeddingModelName.startsWith("embedding-")) {
       // Heuristic for Gemini models
       if (!geminiApiKey) {
         throw new Error(
-          `GEMINI_API_KEY environment variable is required for Gemini model ${embeddingModelName}.`,
+          `GEMINI_API_KEY environment variable is required for Gemini model ${embeddingModelName}.`
         );
       }
-      this.provider = new GeminiEmbeddingProvider(
-        geminiApiKey,
-        embeddingModelName,
-      );
+      this.provider = new GeminiEmbeddingProvider(geminiApiKey, embeddingModelName);
     }
     // Add checks for other Vertex models here if needed (e.g., using includes('/'))
     else {
       throw new Error(
-        `Unsupported or unrecognized EMBEDDING_MODEL_NAME: ${embeddingModelName}. Cannot determine embedding provider.`,
+        `Unsupported or unrecognized EMBEDDING_MODEL_NAME: ${embeddingModelName}. Cannot determine embedding provider.`
       );
     }
     console.info("Embeddings service provider initialized successfully.");
@@ -410,10 +372,7 @@ export class Embeddings {
     if (!this.provider) throw new Error("Embeddings provider not initialized.");
     const embeddings = await this.provider.embedContent(text);
     if (embeddings && embeddings.length > 0) {
-      console.info(
-        "Embeddings generation successful...",
-        embeddings?.slice(0, 10),
-      );
+      console.info("Embeddings generation successful...", embeddings?.slice(0, 10));
     } else {
       console.error("Embeddings generation failed: ", embeddings);
     }

@@ -18,11 +18,7 @@ interface IContextMenuWrapper {
   onDelete?: () => void;
 }
 
-export default function ContextMenuWrapper({
-  children,
-  thing,
-  onDelete,
-}: IContextMenuWrapper) {
+export default function ContextMenuWrapper({ children, thing, onDelete }: IContextMenuWrapper) {
   const { title, link, preview } = thing;
 
   const navigate = useNavigate();

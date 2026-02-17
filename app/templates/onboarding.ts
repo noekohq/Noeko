@@ -707,8 +707,7 @@ export const tasks: ITaskForm[] = [
 export const tags: ITagForm[] = [
   {
     name: "Noeko/Getting Started",
-    description:
-      "Everything related to getting started with your Noeko knowledge-base.",
+    description: "Everything related to getting started with your Noeko knowledge-base.",
   },
   {
     name: "Noeko/Mission",

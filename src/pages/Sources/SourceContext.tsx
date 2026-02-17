@@ -3,21 +3,13 @@ import { IExcerpt, IExcerptForm } from "../../../shared/types/excerpt";
 import { RecordId } from "surrealdb";
 import { ISource } from "../../../app/database/models/source";
 import useFetch from "../../hooks/useFetch";
-import {
-  createExcerpt,
-  deleteExcerpt,
-  editExcerpt,
-  getExcerpt,
-} from "../../utils/excerpts";
+import { createExcerpt, deleteExcerpt, editExcerpt, getExcerpt } from "../../utils/excerpts";
 
 interface ISourceContext {
   excerpts: {
     all: IExcerpt[];
     create: (excerpt: IExcerptForm) => Promise<IExcerpt | undefined>;
-    edit: (
-      id: string | RecordId,
-      form: Partial<IExcerptForm>,
-    ) => Promise<IExcerpt | undefined>;
+    edit: (id: string | RecordId, form: Partial<IExcerptForm>) => Promise<IExcerpt | undefined>;
     delete: (id: string | RecordId) => void;
     reload: () => Promise<void>;
     get: (id: string | RecordId) => Promise<IExcerpt | undefined>;
@@ -35,8 +27,7 @@ const initialSourceContext: ISourceContext = {
   },
 };
 
-export const SourceContext =
-  createContext<ISourceContext>(initialSourceContext);
+export const SourceContext = createContext<ISourceContext>(initialSourceContext);
 
 export const SourceProvider = ({
   children,
@@ -47,10 +38,7 @@ export const SourceProvider = ({
 }) => {
   const [all, setAll] = useState<IExcerpt[]>();
   const currentlyLoading = useRef(false);
-  const { load: loadExcerpts, loading: loadingExcerpts } = useFetch<
-    undefined,
-    IExcerpt[]
-  >({
+  const { load: loadExcerpts, loading: loadingExcerpts } = useFetch<undefined, IExcerpt[]>({
     url: `/excerpts/${source?.id.toString()}/all`,
     dependencies: [source?.id],
     onBefore: () => {
@@ -65,11 +53,7 @@ export const SourceProvider = ({
   });
 
   useEffect(() => {
-    if (
-      source?.id.toString() &&
-      !loadingExcerpts &&
-      !currentlyLoading.current
-    ) {
+    if (source?.id.toString() && !loadingExcerpts && !currentlyLoading.current) {
       loadExcerpts();
     }
   }, [source?.id.toString()]);
@@ -107,9 +91,7 @@ export const SourceProvider = ({
     },
   };
 
-  return (
-    <SourceContext.Provider value={value}>{children}</SourceContext.Provider>
-  );
+  return <SourceContext.Provider value={value}>{children}</SourceContext.Provider>;
 };
 
 export const useSource = () => {

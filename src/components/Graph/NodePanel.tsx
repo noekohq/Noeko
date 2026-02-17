@@ -105,12 +105,7 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
           <Grid.Col span={{ sm: 12 }}>
             <Group gap="xs">
               <Link to={getNodeLink(node) || ""}>
-                <ActionIcon
-                  color="gray"
-                  variant="light"
-                  radius="lg"
-                  size={"md"}
-                >
+                <ActionIcon color="gray" variant="light" radius="lg" size={"md"}>
                   <ArrowRightIcon weight="bold" />
                 </ActionIcon>
               </Link>
@@ -190,9 +185,9 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
           </Group>
         </Modal>
       </div>,
-      document.body,
+      document.body
     );
-  },
+  }
 );
 
 NodePanel.displayName = "NodePanel";

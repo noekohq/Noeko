@@ -19,12 +19,8 @@ export type IUseConnectableReturn = {
     applied: ITag[];
     suggested: ITag[];
     appliedSet: Set<string>;
-    apply: (
-      tagId: string | RecordId,
-    ) => Promise<ITagDescriptionRelationship | undefined>;
-    remove: (
-      tagId: string | RecordId,
-    ) => Promise<ITagDescriptionRelationship | undefined>;
+    apply: (tagId: string | RecordId) => Promise<ITagDescriptionRelationship | undefined>;
+    remove: (tagId: string | RecordId) => Promise<ITagDescriptionRelationship | undefined>;
     refresh: () => Promise<void>;
   };
   loadingSimilar: boolean;
@@ -48,9 +44,7 @@ export default function useConnectable({
     data: connected = [],
     loading: loadingConnected,
   } = useFetch<undefined, IConnectable[]>({
-    url: !isOptimistic
-      ? `/graph/${connectable?.id.toString()}/connections`
-      : null,
+    url: !isOptimistic ? `/graph/${connectable?.id.toString()}/connections` : null,
     dependencies: [connectable?.id.toString()],
   });
 
@@ -67,9 +61,7 @@ export default function useConnectable({
       connectable?.embeddingsUpdatedAt, // <--- CRITICAL
     ],
     query: {
-      rabbitholeId: isDownRabbithole
-        ? currentRabbithole?.id.toString() || ""
-        : "",
+      rabbitholeId: isDownRabbithole ? currentRabbithole?.id.toString() || "" : "",
     },
   });
 
@@ -87,35 +79,20 @@ export default function useConnectable({
     data: suggestedTags = [],
     loading: loadingSuggestedTags,
   } = useFetch<undefined, ITag[]>({
-    url: !isOptimistic
-      ? `/graph/${connectable?.id.toString()}/tags/suggested`
-      : null,
-    dependencies: [
-      connectable?.id.toString(),
-      connectable?.embeddingsUpdatedAt,
-    ],
+    url: !isOptimistic ? `/graph/${connectable?.id.toString()}/tags/suggested` : null,
+    dependencies: [connectable?.id.toString(), connectable?.embeddingsUpdatedAt],
   });
 
   const load = useCallback(() => {
     if (isOptimistic || !connectable?.id) {
-      console.error(
-        "Cancelling load due to non-existent connectable: ",
-        connectable?.id,
-      );
+      console.error("Cancelling load due to non-existent connectable: ", connectable?.id);
       return;
     }
     loadConnected();
     loadSimilar();
     loadTags();
     loadSuggestedTags();
-  }, [
-    isOptimistic,
-    connectable?.id,
-    loadConnected,
-    loadSimilar,
-    loadTags,
-    loadSuggestedTags,
-  ]);
+  }, [isOptimistic, connectable?.id, loadConnected, loadSimilar, loadTags, loadSuggestedTags]);
 
   useEffect(() => {
     if (isOptimistic || !connectable?.id) return;
@@ -155,9 +132,7 @@ export default function useConnectable({
     if (isOptimistic) return false;
     try {
       if (!connectable) {
-        throw new Error(
-          "Can't disconnect from connectable that doesn't exist.",
-        );
+        throw new Error("Can't disconnect from connectable that doesn't exist.");
       }
       await disconnect(connectable.id.toString(), target);
       return true;
@@ -208,7 +183,7 @@ export default function useConnectable({
       refreshTags();
       return res;
     },
-    [connectable],
+    [connectable]
   );
 
   const removeTag = useCallback(
@@ -220,7 +195,7 @@ export default function useConnectable({
       refreshTags();
       return res;
     },
-    [connectable],
+    [connectable]
   );
 
   const getTagAppliedSet = useCallback(() => {

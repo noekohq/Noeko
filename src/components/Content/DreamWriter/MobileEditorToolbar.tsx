@@ -21,10 +21,7 @@ interface IMobileEditorToolbarProps {
   isVisible: boolean;
 }
 
-export default function MobileEditorToolbar({
-  editor,
-  isVisible,
-}: IMobileEditorToolbarProps) {
+export default function MobileEditorToolbar({ editor, isVisible }: IMobileEditorToolbarProps) {
   // Removed: useKeyboardOffset hook (caused the jitter)
 
   if (!editor) {
@@ -57,6 +54,6 @@ export default function MobileEditorToolbar({
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

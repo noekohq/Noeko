@@ -84,12 +84,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
   const spyglassTour = useTourStep({
     id: "feature:spyglass_navigation",
     title: "Spyglass",
-    content: (
-      <>
-        Use Spyglass to ask your knowledge base anything, and get grounded
-        results.
-      </>
-    ),
+    content: <>Use Spyglass to ask your knowledge base anything, and get grounded results.</>,
     view: "all",
     order: 2,
   });
@@ -103,9 +98,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
       className={`${styles.bottom} ${modeToClass[mode]} ${hasChildren ? styles.hasChildren : styles.noChildren} ${leftModeClass} ${rightModeClass} ${isZen ? styles.zen : ""} ${isScrolled ? styles.scrolled : ""} ${scrollDirection === "up" ? styles.scrollUp : styles.scrollDown}`}
     >
       {hasChildren && <div className={styles.content}>{children}</div>}
-      <div
-        className={`${styles.global} ${hasChildren ? styles.hasChildren : styles.noChildren}`}
-      >
+      <div className={`${styles.global} ${hasChildren ? styles.hasChildren : styles.noChildren}`}>
         {isMobile ? (
           <Menu position="top" withArrow radius="md" width={"200px"}>
             <Menu.Target>

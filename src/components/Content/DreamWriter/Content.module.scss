@@ -1,54 +1,90 @@
 .blockquote {
-    background-color: var(--mantine-color-dark-8);
-    width: 100%;
-    margin-inline-start: 0;
-    padding: 4px;
-    padding-inline-start: var(--mantine-spacing-md);
-    border-top-right-radius: var(--mantine-radius-md);
-    border-bottom-right-radius: var(--mantine-radius-md);
-    /* border: 1px solid var(--mantine-color-dark-7); */
-    // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
-    border-left: 2.5px solid var(--mantine-primary-color-5);
+  background-color: var(--mantine-color-dark-8);
+  width: 100%;
+  margin-inline-start: 0;
+  padding: 4px;
+  padding-inline-start: var(--mantine-spacing-md);
+  border-top-right-radius: var(--mantine-radius-md);
+  border-bottom-right-radius: var(--mantine-radius-md);
+  /* border: 1px solid var(--mantine-color-dark-7); */
+  // Replaced rgba(var(--color-primary-rgb), 1) with --mantine-color-primary
+  border-left: 2.5px solid var(--mantine-primary-color-5);
 }
 
 .link {
 }
 
-.image {
+.table {
+  width: 100%;
+  margin-bottom: var(--mantine-spacing-md);
+
+  table {
     width: 100%;
+    border-collapse: collapse;
+
+    td,
+    th {
+      border: 1px solid var(--mantine-color-dark-4);
+      padding: 8px;
+    }
+
+    th {
+      background-color: var(--mantine-color-dark-6);
+      font-weight: bold;
+    }
+  }
+}
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md);
+  margin-block: var(--mantine-spacing-md);
+  align-items: center;
+}
+
+.image {
+  width: 100%;
+  cursor: pointer;
+
+  // Default expanded style if no other classes apply
+
+  &:active {
+    outline: 3px solid var(--mantine-color-primary);
+  }
 }
 
 // Heading styles without color variables remain unchanged
 .heading {
-    margin: 0;
-    font-family: var(--mantine-font-family-headings), sans-serif;
-    font-weight: 550;
+  margin: 0;
+  font-family: var(--mantine-font-family-headings), sans-serif;
+  font-weight: 550;
 }
 
 h1 {
-    &.heading {
-        margin-top: 36px;
-    }
+  &.heading {
+    margin-top: 36px;
+  }
 }
 h2 {
-    &.heading {
-        margin-top: 32px;
-    }
+  &.heading {
+    margin-top: 32px;
+  }
 }
 h3 {
-    &.heading {
-        margin-top: 24px;
-    }
+  &.heading {
+    margin-top: 24px;
+  }
 }
 h4 {
-    &.heading {
-        margin-top: 20px;
-    }
+  &.heading {
+    margin-top: 20px;
+  }
 }
 h5 {
-    &.heading {
-        margin-top: 16px;
-    }
+  &.heading {
+    margin-top: 16px;
+  }
 }
 
 // List structure styles remain unchanged
@@ -57,132 +93,135 @@ h5 {
 }
 
 .orderedList {
-    counter-reset: list-counter;
+  counter-reset: list-counter;
 
-    .listItem {
-    }
+  .listItem {
+  }
 }
 
 .bulletList {
-    .listItem {
-    }
+  .listItem {
+  }
 }
 
 .listItem {
-    margin: 0;
-    margin-bottom: 8px;
-    position: relative;
+  margin: 0;
+  margin-bottom: 8px;
+  position: relative;
 }
 
 .image {
-    cursor: pointer;
+  cursor: pointer;
 
-    &:active {
-        outline: 3px solid var(--mantine-color-primary);
-    }
+  // Default expanded style if no other classes apply
+  width: 100%;
+
+  &:active {
+    outline: 3px solid var(--mantine-color-primary);
+  }
 }
 
 .codeBlock {
-    padding: 18px 18px;
-    border-radius: var(--mantine-radius-md);
-    border: 1px solid var(--mantine-color-gray-5);
-    white-space: pre-wrap;
-    background-color: var(--color-code-background);
-    color: var(--color-code-foreground);
+  padding: 18px 18px;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-gray-5);
+  white-space: pre-wrap;
+  background-color: var(--color-code-background);
+  color: var(--color-code-foreground);
 }
 
 .code {
-    color: var(--color-code-foreground);
-    background-color: var(--color-code-background);
-    border-radius: var(--mantine-radius-md);
-    padding: 4px 8px;
+  color: var(--color-code-foreground);
+  background-color: var(--color-code-background);
+  border-radius: var(--mantine-radius-md);
+  padding: 4px 8px;
 }
 
 .strike {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 .taskList {
-    list-style: none;
-    padding-left: 0;
+  list-style: none;
+  padding-left: 0;
 
-    --checkbox-size: 1.25rem;
+  --checkbox-size: 1.25rem;
 
-    .taskItem {
-        position: relative;
+  .taskItem {
+    position: relative;
 
-        &.ProseMirror-selectednode {
-            background-color: var(--mantine-color-dark-5);
-            border-radius: var(--mantine-radius-sm);
-        }
-
-        .taskContent {
-            padding-left: 3.2rem;
-        }
-
-        .nonEditable {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: calc(var(--checkbox-size) + var(--layout-spacing));
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .dragHandle {
-            display: flex;
-            align-items: center;
-            opacity: 0.5;
-            cursor: grab;
-            transition: opacity 150ms ease;
-        }
-
-        &:hover .dragHandle {
-            opacity: 1;
-        }
-
-        p {
-            margin: 0.5rem 0;
-            width: 100%;
-        }
-
-        label {
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: var(--checkbox-size);
-            aspect-ratio: 1/1;
-            background-color: var(--mantine-color-dark-8);
-            border: 1.5px solid var(--mantine-color-dark-7);
-            border-radius: var(--mantine-radius-sm);
-            transition: all 150ms ease;
-
-            // Hide default checkbox
-            input[type="checkbox"] {
-                display: none;
-            }
-        }
-
-        &[data-checked="true"] {
-            label {
-                background-color: var(--mantine-primary-color-7);
-                border-color: var(--mantine-primary-color-5);
-            }
-
-            > div {
-                p {
-                    text-decoration: line-through;
-                    opacity: 0.6;
-                }
-            }
-        }
+    &.ProseMirror-selectednode {
+      background-color: var(--mantine-color-dark-5);
+      border-radius: var(--mantine-radius-sm);
     }
+
+    .taskContent {
+      padding-left: 3.2rem;
+    }
+
+    .nonEditable {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: calc(var(--checkbox-size) + var(--layout-spacing));
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dragHandle {
+      display: flex;
+      align-items: center;
+      opacity: 0.5;
+      cursor: grab;
+      transition: opacity 150ms ease;
+    }
+
+    &:hover .dragHandle {
+      opacity: 1;
+    }
+
+    p {
+      margin: 0.5rem 0;
+      width: 100%;
+    }
+
+    label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: var(--checkbox-size);
+      aspect-ratio: 1/1;
+      background-color: var(--mantine-color-dark-8);
+      border: 1.5px solid var(--mantine-color-dark-7);
+      border-radius: var(--mantine-radius-sm);
+      transition: all 150ms ease;
+
+      // Hide default checkbox
+      input[type="checkbox"] {
+        display: none;
+      }
+    }
+
+    &[data-checked="true"] {
+      label {
+        background-color: var(--mantine-primary-color-7);
+        border-color: var(--mantine-primary-color-5);
+      }
+
+      > div {
+        p {
+          text-decoration: line-through;
+          opacity: 0.6;
+        }
+      }
+    }
+  }
 }
 
 hr {
-    border: none;
-    border-top: 1px solid var(--mantine-color-dark-5);
-    margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--mantine-color-dark-5);
+  margin: 24px 0;
 }

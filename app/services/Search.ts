@@ -1,21 +1,12 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import {
-  IIdea,
-  IIdeaAsRelation,
-  IIdeaDerived,
-  ISafeIdea,
-} from "../../shared/types/idea";
+import { IIdea, IIdeaAsRelation, IIdeaDerived, ISafeIdea } from "../../shared/types/idea";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { ITag } from "../../shared/types/tags";
 import { IRabbithole } from "../database/models/rabbithole";
 import { IPublicTask, ITask } from "../database/models/task";
 import { IExcerpt } from "../../shared/types/excerpt";
-import {
-  IConnectable,
-  IConnectableTypes,
-  IPotentiallySharedConnectable,
-} from "./Graph";
+import { IConnectable, IConnectableTypes, IPotentiallySharedConnectable } from "./Graph";
 import { ISource } from "../database/models/source";
 import { IPublicUser } from "../../shared/types/user";
 import {
@@ -536,7 +527,7 @@ export class Search {
 
   private static _fuseResults(
     ftsResults: ISearchResult[],
-    semanticResults: ISearchResult[],
+    semanticResults: ISearchResult[]
   ): ISearchResult[] {
     // Step 1: Normalize scores for each result set independently
     this._normalizeScores(ftsResults);
@@ -560,8 +551,7 @@ export class Search {
 
     // Process and merge semantic results
     for (const semantic of semanticResults) {
-      const id =
-        typeof semantic.id === "string" ? semantic.id : semantic.id.toString();
+      const id = typeof semantic.id === "string" ? semantic.id : semantic.id.toString();
       const existing = combined.get(id);
 
       if (existing) {
@@ -583,7 +573,7 @@ export class Search {
       // Note: Assuming ftsScore is a combined title + content score.
       // If they are separate, you'd apply COMPREHENSIVE_WEIGHTS here.
       // For this example, let's assume fts.score already reflects title/content weighting.
-      let finalScore =
+      const finalScore =
         data.ftsScore * this.COMPREHENSIVE_WEIGHTS.FTS_CONTENT +
         data.semanticScore * this.COMPREHENSIVE_WEIGHTS.SEMANTIC;
 
@@ -611,7 +601,7 @@ export class Search {
 
   public static async searchConnectables(
     userId: string | RecordId,
-    query: IConnectableSearchQuery,
+    query: IConnectableSearchQuery
   ) {
     try {
       const db = await getDatabase();
@@ -663,7 +653,7 @@ export class Search {
 
   public static async ftsSearchConnectables(
     userId: string | RecordId,
-    query: IConnectableSearchQuery,
+    query: IConnectableSearchQuery
   ): Promise<ISearchResult[] | undefined> {
     try {
       const db = await getDatabase();
@@ -731,19 +721,14 @@ export class Search {
 
       return merged;
     } catch (error) {
-      console.error(
-        "Error full-text searching connectables: ",
-        userId,
-        query,
-        error,
-      );
+      console.error("Error full-text searching connectables: ", userId, query, error);
       return undefined;
     }
   }
 
   public static async semanticSearchConnectables(
     userId: string | RecordId,
-    query: IConnectableSearchQuery,
+    query: IConnectableSearchQuery
   ): Promise<ISearchResult[] | undefined> {
     try {
       const db = await getDatabase();
@@ -820,12 +805,7 @@ export class Search {
       const merged = this.sortByScore(searches);
       return merged;
     } catch (error) {
-      console.error(
-        "Error full-text searching connectables: ",
-        userId,
-        query,
-        error,
-      );
+      console.error("Error full-text searching connectables: ", userId, query, error);
       return undefined;
     }
   }
@@ -833,7 +813,7 @@ export class Search {
   public static async ftsSearchIdeas(
     userId: string | RecordId,
     query: string,
-    options?: { rabbitholeId?: string },
+    options?: { rabbitholeId?: string }
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -859,13 +839,13 @@ export class Search {
           ftsTitleScore: idea.titleScore,
           source: "fts",
         },
-      }),
+      })
     );
   }
 
   public static async ftsSearchSources(
     userId: string | RecordId,
-    query: string,
+    query: string
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -890,13 +870,13 @@ export class Search {
           ftsTitleScore: source.titleScore,
           source: "fts",
         },
-      }),
+      })
     );
   }
 
   public static async ftsSearchExcerpts(
     userId: string | RecordId,
-    query: string,
+    query: string
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -921,20 +901,21 @@ export class Search {
           ftsTitleScore: excerpt.sourceTextScore,
           source: "fts",
         },
-      }),
+      })
     );
   }
 
   public static async ftsSearchTasks(
     userId: string | RecordId,
-    query: string,
+    query: string
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
 
-    const results = await db.run<
-      (ITask & { titleScore: number; preview: string })[]
-    >("fn::search_user_tasks_fts", [new StringRecordId(userId), query]);
+    const results = await db.run<(ITask & { titleScore: number; preview: string })[]>(
+      "fn::search_user_tasks_fts",
+      [new StringRecordId(userId), query]
+    );
 
     if (!results) return [];
 
@@ -948,7 +929,7 @@ export class Search {
           ftsTitleScore: task.titleScore,
           source: "fts",
         },
-      }),
+      })
     );
   }
 
@@ -964,7 +945,7 @@ export class Search {
       threshold?: number;
       candidates?: number;
       rabbitholeId?: string;
-    },
+    }
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -983,7 +964,7 @@ export class Search {
     ];
     if (options.rabbitholeId) {
       subqueryWhere.push(
-        `(id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId))`,
+        `(id IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR id IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId))`
       );
     } else {
       subqueryWhere.push(`embeddings <|${limit}, ${candidates}|> $embedding`);
@@ -1000,16 +981,13 @@ export class Search {
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
-    const [results] = await db.query<(IIdea & { distance: number })[][]>(
-      query,
-      {
-        userId: new StringRecordId(userId),
-        embedding: embedding,
-        ...(options.rabbitholeId && {
-          rabbitholeId: new StringRecordId(options.rabbitholeId),
-        }),
-      },
-    );
+    const [results] = await db.query<(IIdea & { distance: number })[][]>(query, {
+      userId: new StringRecordId(userId),
+      embedding: embedding,
+      ...(options.rabbitholeId && {
+        rabbitholeId: new StringRecordId(options.rabbitholeId),
+      }),
+    });
     if (!results) return [];
 
     return results.map(
@@ -1019,14 +997,14 @@ export class Search {
         value: { ...idea, type: "idea" },
         highlightText: idea.contentPlain?.substring(0, 150),
         debug: { semanticScore: idea.distance, source: "semantic" },
-      }),
+      })
     );
   }
 
   private static async semanticSearchSources(
     userId: string | RecordId,
     embedding: number[],
-    options: { limit?: number; threshold?: number; candidates?: number },
+    options: { limit?: number; threshold?: number; candidates?: number }
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -1046,10 +1024,10 @@ export class Search {
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
-    const [results] = await db.query<(ISource & { distance: number })[][]>(
-      query,
-      { userId: new StringRecordId(userId), embedding: embedding },
-    );
+    const [results] = await db.query<(ISource & { distance: number })[][]>(query, {
+      userId: new StringRecordId(userId),
+      embedding: embedding,
+    });
     if (!results) return [];
 
     return results.map(
@@ -1059,14 +1037,14 @@ export class Search {
         value: { ...source, type: "source" },
         highlightText: source.content?.substring(0, 150),
         debug: { semanticScore: source.distance, source: "semantic" },
-      }),
+      })
     );
   }
 
   private static async semanticSearchTasks(
     userId: string | RecordId,
     embedding: number[],
-    options: { limit?: number; threshold?: number; candidates?: number },
+    options: { limit?: number; threshold?: number; candidates?: number }
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -1091,13 +1069,10 @@ export class Search {
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
-    const [results] = await db.query<(ITask & { distance: number })[][]>(
-      query,
-      {
-        userId: new StringRecordId(userId),
-        embedding: embedding,
-      },
-    );
+    const [results] = await db.query<(ITask & { distance: number })[][]>(query, {
+      userId: new StringRecordId(userId),
+      embedding: embedding,
+    });
     if (!results) return [];
 
     return results.map(
@@ -1107,14 +1082,14 @@ export class Search {
         value: { ...task, type: "task" },
         highlightText: task.description.substring(0, 150),
         debug: { semanticScore: task.distance, source: "semantic" },
-      }),
+      })
     );
   }
 
   private static async semanticSearchExcerpts(
     userId: string | RecordId,
     embedding: number[],
-    options: { limit?: number; threshold?: number; candidates?: number },
+    options: { limit?: number; threshold?: number; candidates?: number }
   ): Promise<ISearchResult[]> {
     const db = await getDatabase();
     if (!db) throw new Error("Database not initialized");
@@ -1134,13 +1109,10 @@ export class Search {
       )
       WHERE distance >= ${threshold} ORDER BY distance DESC LIMIT ${limit};`;
 
-    const [results] = await db.query<(IExcerpt & { distance: number })[][]>(
-      query,
-      {
-        userId: new StringRecordId(userId),
-        embedding: embedding,
-      },
-    );
+    const [results] = await db.query<(IExcerpt & { distance: number })[][]>(query, {
+      userId: new StringRecordId(userId),
+      embedding: embedding,
+    });
     if (!results) return [];
 
     return results.map(
@@ -1150,7 +1122,7 @@ export class Search {
         value: { ...excerpt, type: "excerpt" },
         highlightText: excerpt.note.substring(0, 150),
         debug: { semanticScore: excerpt.distance, source: "semantic" },
-      }),
+      })
     );
   }
 
@@ -1167,7 +1139,7 @@ export class Search {
    */
   private static async enrichWithOwnerInfo(
     results: ISearchResult[],
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<ISearchResult[]> {
     try {
       const db = await getDatabase();
@@ -1184,9 +1156,7 @@ export class Search {
       const resultIds = shareableResults.map((r) => new StringRecordId(r.id));
 
       // Fetch owner info for items NOT owned by current user
-      const [ownerInfo] = await db.query<
-        [{ id: string; author: IPublicUser }[]]
-      >(
+      const [ownerInfo] = await db.query<[{ id: string; author: IPublicUser }[]]>(
         `SELECT
            id,
            (<-owns<-user)[0].{ id, firstName, lastName, createdAt } AS author
@@ -1195,15 +1165,13 @@ export class Search {
         {
           ids: resultIds,
           userId: new StringRecordId(userId),
-        },
+        }
       );
 
       if (!ownerInfo || ownerInfo.length === 0) return results;
 
       // Create map of id -> author for quick lookup
-      const ownerMap = new Map(
-        ownerInfo.map((o) => [o.id.toString(), o.author]),
-      );
+      const ownerMap = new Map(ownerInfo.map((o) => [o.id.toString(), o.author]));
 
       // Merge owner info into results
       return results.map((result) => {
@@ -1234,7 +1202,7 @@ export class Search {
     ftsResults: ISearchResult[],
     semanticResults: ISearchResult[],
     queryLower: string,
-    type: IConnectableTypes,
+    type: IConnectableTypes
   ): ISearchResult[] {
     const combinedResults: Map<string, ISearchResult> = new Map();
 
@@ -1243,10 +1211,8 @@ export class Search {
       const node = ftsRes.value;
 
       let score =
-        (ftsRes.debug?.ftsTitleScore ?? 0) *
-          this.COMPREHENSIVE_WEIGHTS.FTS_TITLE +
-        (ftsRes.debug?.ftsContentScore ?? 0) *
-          this.COMPREHENSIVE_WEIGHTS.FTS_CONTENT;
+        (ftsRes.debug?.ftsTitleScore ?? 0) * this.COMPREHENSIVE_WEIGHTS.FTS_TITLE +
+        (ftsRes.debug?.ftsContentScore ?? 0) * this.COMPREHENSIVE_WEIGHTS.FTS_CONTENT;
 
       const title =
         type === "idea"
@@ -1275,8 +1241,7 @@ export class Search {
 
       if (semanticScore >= this.SEMANTIC_THRESHOLD) {
         const existing = combinedResults.get(id);
-        const semanticContribution =
-          semanticScore * this.COMPREHENSIVE_WEIGHTS.SEMANTIC;
+        const semanticContribution = semanticScore * this.COMPREHENSIVE_WEIGHTS.SEMANTIC;
 
         if (existing) {
           existing.score += semanticContribution;
@@ -1301,66 +1266,50 @@ export class Search {
   static async comprehensiveSearch(
     userId: string | RecordId,
     query: string,
-    options: { limit?: number; rabbitholeId?: string } = {},
+    options: { limit?: number; rabbitholeId?: string } = {}
   ): Promise<ISearchResult[]> {
     const limit = options.limit ?? 50;
     const queryLower = String(query).toLowerCase().trim();
 
     try {
       const embeddingProcessor = getEmbedder();
-      const queryEmbedding = await embeddingProcessor
-        .embedContent(query)
-        .catch(() => null);
+      const queryEmbedding = await embeddingProcessor.embedContent(query).catch(() => null);
 
-      const [ideaResults, sourceResults, taskResults, excerptResults] =
-        await Promise.all([
-          // Ideas
-          (async () => {
-            const fts = await this.ftsSearchIdeas(userId, query, options);
-            const semantic = queryEmbedding
-              ? await this.semanticSearchIdeas(userId, queryEmbedding, options)
-              : [];
-            return this._mergeAndScore(fts, semantic, queryLower, "idea");
-          })(),
-          // Sources
-          (async () => {
-            const fts = await this.ftsSearchSources(userId, query);
-            const semantic = queryEmbedding
-              ? await this.semanticSearchSources(
-                  userId,
-                  queryEmbedding,
-                  options,
-                )
-              : [];
-            return this._mergeAndScore(fts, semantic, queryLower, "source");
-          })(),
-          // Tasks
-          (async () => {
-            const fts = await this.ftsSearchTasks(userId, query);
-            const semantic = queryEmbedding
-              ? await this.semanticSearchTasks(userId, queryEmbedding, options)
-              : [];
-            return this._mergeAndScore(fts, semantic, queryLower, "task");
-          })(),
-          (async () => {
-            const fts = await this.ftsSearchExcerpts(userId, query);
-            const semantic = queryEmbedding
-              ? await this.semanticSearchExcerpts(
-                  userId,
-                  queryEmbedding,
-                  options,
-                )
-              : [];
-            return this._mergeAndScore(fts, semantic, queryLower, "task");
-          })(),
-        ]);
+      const [ideaResults, sourceResults, taskResults, excerptResults] = await Promise.all([
+        // Ideas
+        (async () => {
+          const fts = await this.ftsSearchIdeas(userId, query, options);
+          const semantic = queryEmbedding
+            ? await this.semanticSearchIdeas(userId, queryEmbedding, options)
+            : [];
+          return this._mergeAndScore(fts, semantic, queryLower, "idea");
+        })(),
+        // Sources
+        (async () => {
+          const fts = await this.ftsSearchSources(userId, query);
+          const semantic = queryEmbedding
+            ? await this.semanticSearchSources(userId, queryEmbedding, options)
+            : [];
+          return this._mergeAndScore(fts, semantic, queryLower, "source");
+        })(),
+        // Tasks
+        (async () => {
+          const fts = await this.ftsSearchTasks(userId, query);
+          const semantic = queryEmbedding
+            ? await this.semanticSearchTasks(userId, queryEmbedding, options)
+            : [];
+          return this._mergeAndScore(fts, semantic, queryLower, "task");
+        })(),
+        (async () => {
+          const fts = await this.ftsSearchExcerpts(userId, query);
+          const semantic = queryEmbedding
+            ? await this.semanticSearchExcerpts(userId, queryEmbedding, options)
+            : [];
+          return this._mergeAndScore(fts, semantic, queryLower, "task");
+        })(),
+      ]);
 
-      const allResults = [
-        ...ideaResults,
-        ...sourceResults,
-        ...taskResults,
-        ...excerptResults,
-      ];
+      const allResults = [...ideaResults, ...sourceResults, ...taskResults, ...excerptResults];
       allResults.sort((a, b) => b.score - a.score);
 
       const topResults = allResults.slice(0, limit);
@@ -1370,10 +1319,7 @@ export class Search {
 
       return enriched;
     } catch (error) {
-      console.error(
-        `Error during comprehensive search for query "${query}":`,
-        error,
-      );
+      console.error(`Error during comprehensive search for query "${query}":`, error);
       return [];
     }
   }
@@ -1381,23 +1327,17 @@ export class Search {
   static async searchByEmbedding(
     userId: string | RecordId,
     embedding: number[],
-    options: { limit?: number; threshold?: number; candidates?: number } = {},
+    options: { limit?: number; threshold?: number; candidates?: number } = {}
   ): Promise<ISearchResult[]> {
     try {
-      const [ideaResults, sourceResults, taskResults, excerptResults] =
-        await Promise.all([
-          this.semanticSearchIdeas(userId, embedding, options),
-          this.semanticSearchSources(userId, embedding, options),
-          this.semanticSearchTasks(userId, embedding, options),
-          this.semanticSearchExcerpts(userId, embedding, options),
-        ]);
+      const [ideaResults, sourceResults, taskResults, excerptResults] = await Promise.all([
+        this.semanticSearchIdeas(userId, embedding, options),
+        this.semanticSearchSources(userId, embedding, options),
+        this.semanticSearchTasks(userId, embedding, options),
+        this.semanticSearchExcerpts(userId, embedding, options),
+      ]);
 
-      const allResults = [
-        ...ideaResults,
-        ...sourceResults,
-        ...taskResults,
-        ...excerptResults,
-      ];
+      const allResults = [...ideaResults, ...sourceResults, ...taskResults, ...excerptResults];
       allResults.sort((a, b) => b.score - a.score);
 
       const topResults = allResults.slice(0, options.limit ?? 50);
@@ -1415,7 +1355,7 @@ export class Search {
   static async suggest(
     userId: string,
     query: string,
-    options?: { limit?: number; rabbitholeId?: string },
+    options?: { limit?: number; rabbitholeId?: string }
   ): Promise<ISearchResultValue[]> {
     if (!query || query.trim().length < 2) {
       return [];
@@ -1423,20 +1363,14 @@ export class Search {
     try {
       const limit = options?.limit ?? 15;
 
-      const [ideaResults, sourceResults, taskResults, excerptResults] =
-        await Promise.all([
-          this.ftsSearchIdeas(userId, query, options),
-          this.ftsSearchSources(userId, query),
-          this.ftsSearchTasks(userId, query),
-          this.ftsSearchExcerpts(userId, query),
-        ]);
+      const [ideaResults, sourceResults, taskResults, excerptResults] = await Promise.all([
+        this.ftsSearchIdeas(userId, query, options),
+        this.ftsSearchSources(userId, query),
+        this.ftsSearchTasks(userId, query),
+        this.ftsSearchExcerpts(userId, query),
+      ]);
 
-      const allResults = [
-        ...ideaResults,
-        ...sourceResults,
-        ...taskResults,
-        ...excerptResults,
-      ];
+      const allResults = [...ideaResults, ...sourceResults, ...taskResults, ...excerptResults];
       allResults.sort((a, b) => b.score - a.score);
 
       return allResults.slice(0, limit).map((result) => {
@@ -1451,7 +1385,7 @@ export class Search {
   static async smartSuggest(
     userId: string,
     query: string,
-    options?: { limit?: number; rabbitholeId?: string },
+    options?: { limit?: number; rabbitholeId?: string }
   ): Promise<ISearchResultValue[]> {
     if (!query || query.trim().length < 2) {
       return [];
@@ -1486,14 +1420,12 @@ export class Search {
   static async ftsSearchTags(
     userId: string,
     query: string,
-    options?: { limit?: number },
+    options?: { limit?: number }
   ): Promise<ITagSearchResult[]> {
     try {
       const db = await getDatabase();
       if (!db) {
-        throw new Error(
-          "Database connection not available for FTS tag search.",
-        );
+        throw new Error("Database connection not available for FTS tag search.");
       }
       const limit = options?.limit ?? 10;
 
@@ -1528,31 +1460,21 @@ export class Search {
       limit?: number;
       threshold?: number;
       candidates?: number;
-    },
+    }
   ): Promise<ITagSearchResult[]> {
     try {
       const db = await getDatabase();
       if (!db) {
-        throw new Error(
-          "Database connection not available for semantic tag search.",
-        );
+        throw new Error("Database connection not available for semantic tag search.");
       }
 
-      const limit = Math.min(
-        Math.max(1, Number.parseInt(String(options.limit ?? 10), 10)),
-        50,
-      );
+      const limit = Math.min(Math.max(1, Number.parseInt(String(options.limit ?? 10), 10)), 50);
       const defaultCandidates = Math.max(limit * 15, 200);
       const candidates = Math.min(
-        Math.max(
-          limit,
-          Number.parseInt(String(options.candidates ?? defaultCandidates), 10),
-        ),
-        1000,
+        Math.max(limit, Number.parseInt(String(options.candidates ?? defaultCandidates), 10)),
+        1000
       );
-      const threshold = Number.parseFloat(
-        String(options.threshold ?? Search.SEMANTIC_THRESHOLD),
-      );
+      const threshold = Number.parseFloat(String(options.threshold ?? Search.SEMANTIC_THRESHOLD));
 
       if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
         throw new Error("Invalid similarity threshold provided.");
@@ -1576,13 +1498,10 @@ export class Search {
         LIMIT ${limit};
       `;
 
-      const [dbResults] = await db.query<(ITag & { distance: number })[][]>(
-        query,
-        {
-          userId: new StringRecordId(userId),
-          embedding: embedding,
-        },
-      );
+      const [dbResults] = await db.query<(ITag & { distance: number })[][]>(query, {
+        userId: new StringRecordId(userId),
+        embedding: embedding,
+      });
 
       if (!dbResults) return [];
 
@@ -1605,18 +1524,14 @@ export class Search {
       limit?: number;
       threshold?: number;
       candidates?: number;
-    } = {},
+    } = {}
   ): Promise<ITagSearchResult[] | undefined> {
     try {
-      const semanticResults = await Search.semanticSearchTags(
-        userId,
-        embedding,
-        {
-          limit: options.limit ?? 10,
-          threshold: options.threshold,
-          candidates: options.candidates,
-        },
-      );
+      const semanticResults = await Search.semanticSearchTags(userId, embedding, {
+        limit: options.limit ?? 10,
+        threshold: options.threshold,
+        candidates: options.candidates,
+      });
 
       return semanticResults;
     } catch (error) {
@@ -1628,7 +1543,7 @@ export class Search {
   static async comprehensiveSearchTags(
     userId: string,
     query: string,
-    options?: { limit?: number },
+    options?: { limit?: number }
   ): Promise<ITagSearchResult[]> {
     try {
       const limit = options?.limit ?? 10;
@@ -1682,7 +1597,7 @@ export class Search {
   static async suggestTags(
     userId: string,
     query: string,
-    options?: { limit?: number },
+    options?: { limit?: number }
   ): Promise<ITag[]> {
     try {
       const limit = options?.limit ?? 5; // Default limit for suggestions
@@ -1701,14 +1616,12 @@ export class Search {
   static async ftsSearchRabbitholes(
     userId: string,
     query: string,
-    options?: { limit?: number },
+    options?: { limit?: number }
   ): Promise<IRabbitholeSearchResult[]> {
     try {
       const db = await getDatabase();
       if (!db) {
-        throw new Error(
-          "Database connection not available for FTS rabbithole search.",
-        );
+        throw new Error("Database connection not available for FTS rabbithole search.");
       }
       const limit = options?.limit ?? 10;
 
@@ -1717,11 +1630,7 @@ export class Search {
           nameScore: number;
           preview: string;
         })[]
-      >("fn::search_user_rabbitholes_fts", [
-        new StringRecordId(userId),
-        query,
-        limit,
-      ]);
+      >("fn::search_user_rabbitholes_fts", [new StringRecordId(userId), query, limit]);
 
       if (!dbResults) {
         throw new Error("Couldn't get results");
@@ -1742,7 +1651,7 @@ export class Search {
   static async suggestRabbitholes(
     userId: string,
     query: string,
-    options?: { limit?: number },
+    options?: { limit?: number }
   ): Promise<IRabbithole[]> {
     try {
       const limit = options?.limit ?? 5; // Default limit for suggestions
@@ -1782,11 +1691,7 @@ export class ConnectableTableSearchBuilder {
   private queryBuilder: FilterQueryBuilder;
   private defaultLimit = 50;
 
-  constructor({
-    table,
-    userId,
-    searchQuery,
-  }: IConnectableTableSearchBuilderArgs) {
+  constructor({ table, userId, searchQuery }: IConnectableTableSearchBuilderArgs) {
     this.table = table;
     this.userId = new StringRecordId(userId.toString());
     this.searchQuery = searchQuery;
@@ -1979,8 +1884,7 @@ export class ConnectableTableSearchBuilder {
     const ftsSelectorScores = ftsSearchFields.map((f, i) => {
       return `search::score(${i}) AS ${f}`;
     });
-    const { where: filterWhere, params: filterParams } =
-      this.queryBuilder.build();
+    const { where: filterWhere, params: filterParams } = this.queryBuilder.build();
     const limit = this.searchQuery.limit ?? this.defaultLimit;
     const query = this.searchQuery.query;
 
@@ -2034,8 +1938,7 @@ export class ConnectableTableSearchBuilder {
   } {
     const { vectorFields, specialClauses } =
       ConnectableTableSearchBuilder.tableSelector[this.table];
-    const { where: filterWhere, params: filterParams } =
-      this.queryBuilder.build();
+    const { where: filterWhere, params: filterParams } = this.queryBuilder.build();
     const limit = this.searchQuery.limit ?? this.defaultLimit;
     const effort = this.vectorEffort();
 
@@ -2052,9 +1955,7 @@ export class ConnectableTableSearchBuilder {
             ${filterWhere.join(" AND ")} AND
             embeddings <|${limit}, ${effort}|> $embedding AND
             embeddings != NONE ${
-              specialClauses?.length
-                ? `AND ${specialClauses.join(" AND ")}`
-                : ""
+              specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
             }
         )
         WHERE similarity >= ${Search.SEMANTIC_THRESHOLD}
@@ -2070,9 +1971,7 @@ export class ConnectableTableSearchBuilder {
     };
   }
 
-  public async searchVector(
-    embedding: number[],
-  ): Promise<ISearchResult[] | undefined> {
+  public async searchVector(embedding: number[]): Promise<ISearchResult[] | undefined> {
     try {
       const db = await getDatabase();
       if (!db) {

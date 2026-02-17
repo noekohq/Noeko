@@ -14,7 +14,7 @@ import { debounce } from "lodash";
 export const useDreamHealer = (
   editor: Editor | undefined,
   connectableId: string | undefined,
-  isReady: boolean,
+  isReady: boolean
 ) => {
   useEffect(() => {
     if (!editor || !connectableId || !isReady) return;
@@ -35,8 +35,7 @@ export const useDreamHealer = (
           node.type.name === "dreamTask" ||
           node.type.name === "dreamSource"
         ) {
-          const id =
-            node.attrs.ideaId || node.attrs.taskId || node.attrs.sourceId;
+          const id = node.attrs.ideaId || node.attrs.taskId || node.attrs.sourceId;
 
           if (id) {
             connectionIds.add(id);
@@ -57,9 +56,7 @@ export const useDreamHealer = (
       }
 
       if (connectionIds.size > 0) {
-        console.log(
-          `Healing dream connections for ${connectionIds.size} nodes...`,
-        );
+        console.log(`Healing dream connections for ${connectionIds.size} nodes...`);
         api
           .post("/graph/ensure-connected", {
             source: connectableId,

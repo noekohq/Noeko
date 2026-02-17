@@ -47,6 +47,7 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
   FeatherIcon,
+  FileIcon,
 } from "@phosphor-icons/react";
 import Insights from "./Insights";
 import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
@@ -66,12 +67,11 @@ import TagsManager from "../../components/Display/Interactions/Tags/TagsManager"
 import Content from "../../components/UI/Layout/Content";
 import Search from "../../components/Search/Search";
 import Loading from "../../components/Display/Loading/Loading";
+import FileManager from "../../components/Display/Interactions/Files/FileManager";
 
 import { IOptimisticIdea, useLandscape } from "../../contexts/LandscapeContext";
 import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
-import useConnectable, {
-  IUseConnectableReturn,
-} from "../../hooks/useConnectable";
+import useConnectable, { IUseConnectableReturn } from "../../hooks/useConnectable";
 import Nav from "../../components/UI/Layout/Nav";
 import TopBar from "../../components/UI/Layout/TopBar";
 import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
@@ -86,9 +86,7 @@ import { ICollaborationState } from "../../hooks/useCollaboration";
 import { userFormattedName } from "../../utils/user";
 
 // --- Types ---
-type IdeaUnion =
-  | (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null })
-  | IOptimisticIdea;
+type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
@@ -103,8 +101,7 @@ export default function Idea() {
   const isDeletingRef = useRef(false);
   const isMountedRef = useRef(false);
 
-  const [collaborationState, setCollaborationState] =
-    useState<ICollaborationState | null>(null);
+  const [collaborationState, setCollaborationState] = useState<ICollaborationState | null>(null);
 
   const {
     ideas: {
@@ -152,19 +149,20 @@ export default function Idea() {
     data: fetchedIdea,
     load: reloadIdea,
     loading: loadingIdea,
-  } = useFetch<
-    undefined,
-    ISafeIdea & { accessLevel: "owner" | IShareAccess | null }
-  >({
+  } = useFetch<undefined, ISafeIdea & { accessLevel: "owner" | IShareAccess | null }>({
     url: fetchUrl,
     dependencies: [ideaId],
     query: { withDerived: "true" },
     method: "GET",
-    runOnMount: !!fetchUrl,
   });
 
-  const ideaToRender: IdeaUnion | undefined =
-    optimisticFromStore || fetchedIdea;
+  useEffect(() => {
+    if (!isOptimistic) {
+      reloadIdea();
+    }
+  }, [isOptimistic]);
+
+  const ideaToRender: IdeaUnion | undefined = optimisticFromStore || fetchedIdea;
 
   const isViewOnly =
     !isOptimistic &&
@@ -173,9 +171,7 @@ export default function Idea() {
     ideaToRender.accessLevel === "viewonly";
   const canEdit = !isOptimistic && !isViewOnly;
   const isOwner =
-    !!ideaToRender &&
-    "accessLevel" in ideaToRender &&
-    ideaToRender.accessLevel === "owner";
+    !!ideaToRender && "accessLevel" in ideaToRender && ideaToRender.accessLevel === "owner";
 
   const [title, setTitle] = useState<string>("");
 
@@ -216,9 +212,7 @@ export default function Idea() {
       title: "Delete this idea?",
       centered: true,
       children: (
-        <Text size="sm">
-          This action cannot be undone. All associated data will be lost.
-        </Text>
+        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
       ),
       labels: { confirm: "Delete Idea", cancel: "Cancel" },
       confirmProps: { color: "red" },
@@ -235,32 +229,27 @@ export default function Idea() {
     onFinally: reloadIdea,
   });
 
-  const { load: triggerDerivedCascade, loading: loadingDerivedCascade } =
-    useFetch({
-      url: `/ideas/${ideaId}/cascade`,
-      dependencies: [ideaId],
-      method: "POST",
-    });
+  const { load: triggerDerivedCascade, loading: loadingDerivedCascade } = useFetch({
+    url: `/ideas/${ideaId}/cascade`,
+    dependencies: [ideaId],
+    method: "POST",
+  });
 
   const handleComputation = async () => {
     await triggerEmbedIdea();
     await triggerDerivedCascade();
   };
 
-  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } =
-    useFetch({
-      url: `/ideas/${ideaId}/entitle`,
-      dependencies: [ideaId],
-      method: "POST",
-      onFinally: reloadIdea,
-    });
+  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } = useFetch({
+    url: `/ideas/${ideaId}/entitle`,
+    dependencies: [ideaId],
+    method: "POST",
+    onFinally: reloadIdea,
+  });
 
   const embeddingsOutOfDate = useCallback(() => {
     if (!fetchedIdea || !fetchedIdea.embeddingsUpdatedAt) return true;
-    return (
-      new Date(fetchedIdea.contentUpdatedAt) >
-      new Date(fetchedIdea.embeddingsUpdatedAt)
-    );
+    return new Date(fetchedIdea.contentUpdatedAt) > new Date(fetchedIdea.embeddingsUpdatedAt);
   }, [fetchedIdea]);
 
   const derivedOutOfDate = useCallback(() => {
@@ -272,9 +261,7 @@ export default function Idea() {
 
   const titleNeedsGeneration = useCallback(() => {
     if (!ideaToRender) return false;
-    const cleanTitle = ideaToRender.title
-      ?.replaceAll(/_/g, "")
-      .replaceAll(/\n/g, "");
+    const cleanTitle = ideaToRender.title?.replaceAll(/_/g, "").replaceAll(/\n/g, "");
     return !cleanTitle || cleanTitle === "Untitled Idea";
   }, [ideaToRender]);
 
@@ -340,29 +327,19 @@ export default function Idea() {
       return;
     }
     const { wordCount, characterCount, sentenceCount } = getTextProcessed(
-      htmlToPlainText(ideaToRender.content),
+      htmlToPlainText(ideaToRender.content)
     );
-    let text = `Saved. ${wordCount} word${
-      wordCount === 1 ? "" : "s"
-    }. ${characterCount} char${
+    let text = `Saved. ${wordCount} word${wordCount === 1 ? "" : "s"}. ${characterCount} char${
       characterCount === 1 ? "" : "s"
     }. ${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}.`;
     if (loadingEmbeddings) text += " Indexing...";
     setStatusMessage(text);
     return () => setStatusMessage("");
-  }, [
-    ideaToRender?.id,
-    ideaToRender?.content,
-    isOptimistic,
-    loadingEmbeddings,
-    setStatusMessage,
-  ]);
+  }, [ideaToRender?.id, ideaToRender?.content, isOptimistic, loadingEmbeddings, setStatusMessage]);
 
   const updateTitle = async (newTitle: string) => {
     if (isOptimistic) return;
-    await api
-      .put(`/ideas/${ideaId}`, { title: newTitle })
-      .then(() => reloadIdea());
+    await api.put(`/ideas/${ideaId}`, { title: newTitle }).then(() => reloadIdea());
   };
 
   const handleContentReady = useCallback(() => {
@@ -411,6 +388,12 @@ export default function Idea() {
                   Insights
                 </Group>
               </Tabs.Tab>
+              <Tabs.Tab value="files" disabled={isOptimistic}>
+                <Group gap="xs">
+                  <FileIcon weight="bold" />
+                  Files
+                </Group>
+              </Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="context">
@@ -454,220 +437,215 @@ export default function Idea() {
             </Tabs.Panel>
 
             <Tabs.Panel value="insights">
-              <Insights
-                loadingIdea={loadingIdea}
-                idea={safeIdea}
-                reloadIdea={reloadIdea}
-              />
+              <Insights loadingIdea={loadingIdea} idea={safeIdea} reloadIdea={reloadIdea} />
+            </Tabs.Panel>
+            <Tabs.Panel value="files">
+              {safeIdea && (
+                <FileManager connectableId={safeIdea.id.toString()} editor={editorRef.current} />
+              )}
             </Tabs.Panel>
           </Tabs>
         </LeftSidebar.Open>
       </LeftSidebar>
 
       <Content key={contentKey}>
-        <div className={styles.ideaContainer}>
+        {!ideaToRender && (
           <Stack gap="md">
-            <Stack>
-              {ideaToRender && editorRef.current && (
-                <Tools
-                  connectable={connectable}
-                  editor={editorRef.current}
-                  idea={ideaToRender}
-                  reloadIdea={reloadIdea}
-                  loadingIdea={loadingIdea}
-                  isOptimistic={isOptimistic}
-                  onDelete={handleDeleteIdea}
-                  loadingDelete={loadingDelete}
-                />
-              )}
-
-              <Group gap="xs">
-                <Title
-                  ref={titleRef}
-                  order={1}
-                  m="0"
-                  pr="md"
-                  contentEditable={canEdit}
-                  suppressContentEditableWarning
-                  onBlur={(e) => {
-                    if (isOptimistic) return;
-                    const newTitle = e.currentTarget.innerText;
-                    if (newTitle !== title) {
-                      setTitle(newTitle);
-                      updateTitle(newTitle);
-                    }
-                  }}
-                  className={styles.editableTitle}
-                  style={{
-                    opacity: canEdit ? 1 : 0.7,
-                    cursor: canEdit ? "text" : "default",
-                  }}
-                >
-                  {title || ""}
-                </Title>
-
-                {isViewOnly && (
-                  <Badge color="gray" variant="outline">
-                    View Only
-                  </Badge>
-                )}
-
-                {titleNeedsGeneration() && !isOptimistic && (
-                  <ActionIcon
-                    onClick={() => triggerTitleGeneration()}
-                    variant="light"
-                    size="md"
-                    radius="md"
-                    color="gray"
-                    disabled={loadingTitleGeneration}
-                    loading={loadingTitleGeneration}
-                  >
-                    <SparkleIcon size={14} weight="duotone" />
-                  </ActionIcon>
-                )}
-
-                {safeIdea?.titleGeneratedAt && (
-                  <Tooltip label="This title was generated automatically.">
-                    <div className={styles.generatedIndicator}>
-                      <SparkleIcon />
-                    </div>
-                  </Tooltip>
-                )}
-              </Group>
-
-              <Box
-                bg="dark.9"
-                c="dark.1"
-                style={{ borderRadius: "var(--mantine-radius-md)" }}
-                p="4px 8px"
-              >
-                <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
-                  <Tooltip
-                    label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
-                    transitionProps={{
-                      transition: "rotate-right",
-                      duration: 200,
-                    }}
-                  >
-                    <Group gap="4px" align="center">
-                      <FeatherIcon
-                        color="var(--mantine-color-dark-3)"
-                        size={12}
-                        weight="bold"
-                      />
-                      <Text size="xs" fw="500">
-                        {ideaToRender?.author
-                          ? userFormattedName(ideaToRender?.author)
-                          : "Unknown Author"}
-                      </Text>
-                    </Group>
-                  </Tooltip>
-                  <Text size="sm" fw="bold" c="dark.4">
-                    •
-                  </Text>
-                  <Tooltip
-                    label="Created at"
-                    transitionProps={{
-                      transition: "rotate-right",
-                      duration: 200,
-                    }}
-                  >
-                    <Group gap="4px" align="center">
-                      <ClockIcon
-                        color="var(--mantine-color-dark-3)"
-                        size={12}
-                        weight="bold"
-                      />
-                      <Text size="xs" fw="500">
-                        {ideaToRender?.createdAt
-                          ? `${formatDate(ideaToRender.createdAt)}`
-                          : "Now"}
-                      </Text>
-                    </Group>
-                  </Tooltip>
-                  <Text size="sm" fw="bold" c="dark.4">
-                    •
-                  </Text>
-                  <Tooltip
-                    label="Last updated"
-                    transitionProps={{
-                      transition: "rotate-right",
-                      duration: 200,
-                    }}
-                  >
-                    <Group gap="4px" align="center">
-                      <PencilSimpleIcon
-                        color="var(--mantine-color-dark-3)"
-                        size={12}
-                        weight="bold"
-                      />
-                      <Text size="xs" fw="500">
-                        {ideaToRender?.updatedAt
-                          ? `${formatDateTime(ideaToRender.updatedAt)}`
-                          : "Now"}
-                      </Text>
-                    </Group>
-                  </Tooltip>
-                  {collaborationState && canEdit && (
-                    <>
-                      <Text size="sm" fw="bold" c="dark.4">
-                        •
-                      </Text>
-                      <CollaborationInfo
-                        status={collaborationState.status}
-                        members={collaborationState.members}
-                      />
-                    </>
-                  )}
-                </Flex>
-              </Box>
-
-              {safeIdea && (
-                <TagsManager
-                  connectable={{ ...safeIdea, type: "idea" }}
-                  maxSuggested={1}
-                />
-              )}
-            </Stack>
-
-            <div className={styles.contentArea}>
-              {ideaToRender && (
-                <DreamWriter
-                  autofocus
-                  readOnly={isOptimistic || isViewOnly}
-                  stickyMenu={false}
-                  onChange={handleEditorChange}
-                  onContentReady={handleContentReady}
-                  dependencies={[ideaId, ideaToRender.id]}
-                  ref={editorRef}
-                  onStateChange={({ collaboration }) => {
-                    setCollaborationState((prev) => {
-                      if (!prev) return collaboration;
-                      if (
-                        prev.status === collaboration.status &&
-                        prev.members.length === collaboration.members.length &&
-                        prev.members.every(
-                          (member, i) =>
-                            member.name === collaboration.members[i].name,
-                        )
-                      ) {
-                        return prev;
-                      }
-                      return collaboration;
-                    });
-                  }}
-                  collaborationId={
-                    canEdit ? ideaToRender.id.toString() : undefined
-                  }
-                  initialContent={canEdit ? undefined : ideaToRender.content}
-                  connectableId={
-                    isViewOnly ? undefined : ideaToRender.id.toString()
-                  }
-                />
-              )}
-            </div>
+            <Group>
+              <Title order={2}>Couldn't load idea.</Title>
+            </Group>
+            <Group></Group>
           </Stack>
-        </div>
+        )}
+        {ideaToRender && (
+          <div className={styles.ideaContainer}>
+            <Stack gap="md">
+              <Stack>
+                {ideaToRender && editorRef.current && (
+                  <Tools
+                    connectable={connectable}
+                    editor={editorRef.current}
+                    idea={ideaToRender}
+                    reloadIdea={reloadIdea}
+                    loadingIdea={loadingIdea}
+                    isOptimistic={isOptimistic}
+                    onDelete={handleDeleteIdea}
+                    loadingDelete={loadingDelete}
+                  />
+                )}
+
+                <Group gap="xs">
+                  <Title
+                    ref={titleRef}
+                    order={1}
+                    m="0"
+                    pr="md"
+                    contentEditable={canEdit}
+                    suppressContentEditableWarning
+                    onBlur={(e) => {
+                      if (isOptimistic) return;
+                      const newTitle = e.currentTarget.innerText;
+                      if (newTitle !== title) {
+                        setTitle(newTitle);
+                        updateTitle(newTitle);
+                      }
+                    }}
+                    className={styles.editableTitle}
+                    style={{
+                      opacity: canEdit ? 1 : 0.7,
+                      cursor: canEdit ? "text" : "default",
+                    }}
+                  >
+                    {title || ""}
+                  </Title>
+
+                  {isViewOnly && (
+                    <Badge color="gray" variant="outline">
+                      View Only
+                    </Badge>
+                  )}
+
+                  {titleNeedsGeneration() && !isOptimistic && (
+                    <ActionIcon
+                      onClick={() => triggerTitleGeneration()}
+                      variant="light"
+                      size="md"
+                      radius="md"
+                      color="gray"
+                      disabled={loadingTitleGeneration}
+                      loading={loadingTitleGeneration}
+                    >
+                      <SparkleIcon size={14} weight="duotone" />
+                    </ActionIcon>
+                  )}
+
+                  {safeIdea?.titleGeneratedAt && (
+                    <Tooltip label="This title was generated automatically.">
+                      <div className={styles.generatedIndicator}>
+                        <SparkleIcon />
+                      </div>
+                    </Tooltip>
+                  )}
+                </Group>
+
+                <Box
+                  bg="dark.9"
+                  c="dark.1"
+                  style={{ borderRadius: "var(--mantine-radius-md)" }}
+                  p="4px 8px"
+                >
+                  <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
+                    <Tooltip
+                      label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
+                      transitionProps={{
+                        transition: "rotate-right",
+                        duration: 200,
+                      }}
+                    >
+                      <Group gap="4px" align="center">
+                        <FeatherIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
+                        <Text size="xs" fw="500">
+                          {ideaToRender?.author
+                            ? userFormattedName(ideaToRender?.author)
+                            : "Unknown Author"}
+                        </Text>
+                      </Group>
+                    </Tooltip>
+                    <Text size="sm" fw="bold" c="dark.4">
+                      •
+                    </Text>
+                    <Tooltip
+                      label="Created at"
+                      transitionProps={{
+                        transition: "rotate-right",
+                        duration: 200,
+                      }}
+                    >
+                      <Group gap="4px" align="center">
+                        <ClockIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
+                        <Text size="xs" fw="500">
+                          {ideaToRender?.createdAt
+                            ? `${formatDate(ideaToRender.createdAt)}`
+                            : "Now"}
+                        </Text>
+                      </Group>
+                    </Tooltip>
+                    <Text size="sm" fw="bold" c="dark.4">
+                      •
+                    </Text>
+                    <Tooltip
+                      label="Last updated"
+                      transitionProps={{
+                        transition: "rotate-right",
+                        duration: 200,
+                      }}
+                    >
+                      <Group gap="4px" align="center">
+                        <PencilSimpleIcon
+                          color="var(--mantine-color-dark-3)"
+                          size={12}
+                          weight="bold"
+                        />
+                        <Text size="xs" fw="500">
+                          {ideaToRender?.updatedAt
+                            ? `${formatDateTime(ideaToRender.updatedAt)}`
+                            : "Now"}
+                        </Text>
+                      </Group>
+                    </Tooltip>
+                    {collaborationState && canEdit && (
+                      <>
+                        <Text size="sm" fw="bold" c="dark.4">
+                          •
+                        </Text>
+                        <CollaborationInfo
+                          status={collaborationState.status}
+                          members={collaborationState.members}
+                        />
+                      </>
+                    )}
+                  </Flex>
+                </Box>
+
+                {safeIdea && (
+                  <TagsManager connectable={{ ...safeIdea, type: "idea" }} maxSuggested={1} />
+                )}
+              </Stack>
+
+              <div className={styles.contentArea}>
+                {ideaToRender && (
+                  <DreamWriter
+                    autofocus
+                    readOnly={isOptimistic || isViewOnly}
+                    stickyMenu={false}
+                    onChange={handleEditorChange}
+                    onContentReady={handleContentReady}
+                    dependencies={[ideaId, ideaToRender.id]}
+                    ref={editorRef}
+                    onStateChange={({ collaboration }) => {
+                      setCollaborationState((prev) => {
+                        if (!prev) return collaboration;
+                        if (
+                          prev.status === collaboration.status &&
+                          prev.members.length === collaboration.members.length &&
+                          prev.members.every(
+                            (member, i) => member.name === collaboration.members[i].name
+                          )
+                        ) {
+                          return prev;
+                        }
+                        return collaboration;
+                      });
+                    }}
+                    collaborationId={canEdit ? ideaToRender.id.toString() : undefined}
+                    initialContent={canEdit ? undefined : ideaToRender.content}
+                    connectableId={isViewOnly ? undefined : ideaToRender.id.toString()}
+                  />
+                )}
+              </div>
+            </Stack>
+          </div>
+        )}
       </Content>
       <Nav />
       <RightSidebar startOpened={isDesktop}>
@@ -696,8 +674,7 @@ export default function Idea() {
                     id: "connect",
                     label: "Connect",
                     onClick: () => connect(thing.id.toString()),
-                    disabled:
-                      !!isConnected(thing.id.toString()) || isOptimistic,
+                    disabled: !!isConnected(thing.id.toString()) || isOptimistic,
                   }),
                 ]}
               />
@@ -712,9 +689,7 @@ export default function Idea() {
                       </Text>
                     </Box>
                   ) : (
-                    <AccessManager
-                      connectable={{ ...safeIdea, type: "idea" }}
-                    />
+                    <AccessManager connectable={{ ...safeIdea, type: "idea" }} />
                   ))}
                 {!safeIdea && <Loading size="sm" />}
               </Tabs.Panel>
@@ -738,19 +713,14 @@ interface ITools {
   loadingDelete: boolean;
 }
 
-function Tools({
-  idea,
-  editor,
-  isOptimistic,
-  onDelete,
-  loadingDelete,
-}: ITools) {
+function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) {
   const { isMobile } = useLayout();
   const navigate = useNavigate();
   const { thingIsPinned, togglePin } = usePins();
   const [pinning, setPinning] = useState(false);
   const [managingConnections, setManagingConnections] = useState(false);
   const [managingAccess, setManagingAccess] = useState(false);
+  const [managingFiles, setManagingFiles] = useState(false);
 
   const isPinned = thingIsPinned(idea.id);
   const size = isMobile ? "lg" : "md";
@@ -870,16 +840,10 @@ function Tools({
             </Menu.Target>
 
             <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<BracketsAngleIcon />}
-                onClick={downloadAsHTML}
-              >
+              <Menu.Item leftSection={<BracketsAngleIcon />} onClick={downloadAsHTML}>
                 Export as HTML
               </Menu.Item>
-              <Menu.Item
-                leftSection={<MarkdownLogoIcon />}
-                onClick={downloadAsMarkdown}
-              >
+              <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
                 Export as Markdown
               </Menu.Item>
             </Menu.Dropdown>
@@ -913,9 +877,7 @@ function Tools({
               <Tooltip label="Delete Idea">
                 <Menu.Item
                   color="red"
-                  leftSection={
-                    loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />
-                  }
+                  leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
                   // FIX: Use handler passed from parent
                   onClick={onDelete}
                   disabled={loadingDelete}
@@ -923,6 +885,14 @@ function Tools({
                   Delete
                 </Menu.Item>
               </Tooltip>
+
+              <Menu.Item
+                leftSection={<FileIcon />}
+                onClick={() => setManagingFiles(true)}
+                disabled={isOptimistic}
+              >
+                Manage Files
+              </Menu.Item>
 
               <CopyButton value={getMarkdownContent()}>
                 {({ copied, copy }) => (
@@ -981,6 +951,14 @@ function Tools({
             onClose={() => setManagingAccess(false)}
           >
             <AccessManager connectable={{ ...idea, type: "idea" }} />
+          </PaperDrawer>
+
+          <PaperDrawer
+            title="Manage Files"
+            opened={managingFiles}
+            onClose={() => setManagingFiles(false)}
+          >
+            <FileManager connectableId={idea.id.toString()} editor={editor} />
           </PaperDrawer>
         </>
       )}

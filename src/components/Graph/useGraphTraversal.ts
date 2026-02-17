@@ -24,8 +24,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
       const connectedEdges = adjacencyList[currentNodeId] || [];
       for (const edge of connectedEdges) {
         if (edge.type === "connection" || edge.type === "reference") {
-          const neighborId =
-            edge.source === currentNodeId ? edge.target : edge.source;
+          const neighborId = edge.source === currentNodeId ? edge.target : edge.source;
           const neighborNode = nodeMap[neighborId];
           if (neighborNode && CONNECTABLE_TYPES.has(neighborNode.type)) {
             findConnectableCluster(neighborId, visited);
@@ -33,7 +32,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         }
       }
     },
-    [adjacencyList, nodeMap],
+    [adjacencyList, nodeMap]
   );
 
   const clusterSelect = useCallback(
@@ -47,10 +46,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         const directConnections = adjacencyList[startNode.id.toString()] || [];
 
         directConnections.forEach((edge) => {
-          if (
-            edge.source === startNode.id.toString() &&
-            edge.type === "inclusion"
-          ) {
+          if (edge.source === startNode.id.toString() && edge.type === "inclusion") {
             const neighborId = edge.target;
             addSelected(neighborId);
 
@@ -64,10 +60,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         tagsToExpand.forEach((tagNode) => {
           const tagConnections = adjacencyList[tagNode.id.toString()] || [];
           tagConnections.forEach((edge) => {
-            if (
-              edge.source === tagNode.id.toString() &&
-              edge.type === "description"
-            ) {
+            if (edge.source === tagNode.id.toString() && edge.type === "description") {
               addSelected(edge.target);
             }
           });
@@ -81,10 +74,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         const directConnections = adjacencyList[startNode.id.toString()] || [];
 
         directConnections.forEach((edge) => {
-          if (
-            edge.source === startNode.id.toString() &&
-            edge.type === "description"
-          ) {
+          if (edge.source === startNode.id.toString() && edge.type === "description") {
             addSelected(edge.target);
           }
         });
@@ -104,10 +94,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         const directConnections = adjacencyList[startNode.id.toString()] || [];
         directConnections.forEach((edge) => {
           if (edge.type === "share") {
-            const neighborId =
-              edge.source === startNode.id.toString()
-                ? edge.target
-                : edge.source;
+            const neighborId = edge.source === startNode.id.toString() ? edge.target : edge.source;
             addSelected(neighborId);
           }
         });
@@ -116,7 +103,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
 
       console.error("Cluster select: unhandled type:", startNode.type);
     },
-    [adjacencyList, nodeMap, addSelected, findConnectableCluster],
+    [adjacencyList, nodeMap, addSelected, findConnectableCluster]
   );
 
   const clusterDeselect = useCallback(
@@ -129,10 +116,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         const directConnections = adjacencyList[startNode.id.toString()] || [];
 
         directConnections.forEach((edge) => {
-          if (
-            edge.source === startNode.id.toString() &&
-            edge.type === "inclusion"
-          ) {
+          if (edge.source === startNode.id.toString() && edge.type === "inclusion") {
             const neighborId = edge.target;
             removeSelected(neighborId);
             const neighborNode = nodeMap[neighborId];
@@ -145,10 +129,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         tagsToExpand.forEach((tagNode) => {
           const tagConnections = adjacencyList[tagNode.id.toString()] || [];
           tagConnections.forEach((edge) => {
-            if (
-              edge.source === tagNode.id.toString() &&
-              edge.type === "description"
-            ) {
+            if (edge.source === tagNode.id.toString() && edge.type === "description") {
               removeSelected(edge.target);
             }
           });
@@ -160,10 +141,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         removeSelected(startNode.id.toString());
         const directConnections = adjacencyList[startNode.id.toString()] || [];
         directConnections.forEach((edge) => {
-          if (
-            edge.source === startNode.id.toString() &&
-            edge.type === "description"
-          ) {
+          if (edge.source === startNode.id.toString() && edge.type === "description") {
             removeSelected(edge.target);
           }
         });
@@ -183,10 +161,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
         const directConnections = adjacencyList[startNode.id.toString()] || [];
         directConnections.forEach((edge) => {
           if (edge.type === "share") {
-            const neighborId =
-              edge.source === startNode.id.toString()
-                ? edge.target
-                : edge.source;
+            const neighborId = edge.source === startNode.id.toString() ? edge.target : edge.source;
             removeSelected(neighborId);
           }
         });
@@ -195,7 +170,7 @@ export function useGraphTraversal({ nodeMap, adjacencyList }: TraversalParams) {
 
       console.error("Cluster deselect: unhandled type:", startNode.type);
     },
-    [adjacencyList, nodeMap, removeSelected, findConnectableCluster],
+    [adjacencyList, nodeMap, removeSelected, findConnectableCluster]
   );
 
   return { clusterSelect, clusterDeselect };

@@ -168,7 +168,7 @@ export class AnalysisService {
       }
 
       const queryResult = await db.query<[CountQueryResult[]]>(
-        "SELECT count() FROM idea GROUP ALL;",
+        "SELECT count() FROM idea GROUP ALL;"
       );
 
       if (
@@ -183,7 +183,7 @@ export class AnalysisService {
         logger.warn(
           "Unexpected result structure or empty table for total ideas query.",
           { queryResult },
-          source,
+          source
         );
         return undefined;
       }
@@ -191,7 +191,7 @@ export class AnalysisService {
       logger.error(
         "Error fetching total number of ideas.",
         { error: error.message, stack: error.stack },
-        source,
+        source
       );
       return undefined;
     }
@@ -207,7 +207,7 @@ export class AnalysisService {
       }
 
       const queryResult = await db.query<[CountQueryResult[]]>(
-        "SELECT count() FROM user GROUP ALL;",
+        "SELECT count() FROM user GROUP ALL;"
       );
 
       if (
@@ -222,7 +222,7 @@ export class AnalysisService {
         logger.warn(
           "Unexpected result structure or empty table for total users query.",
           { queryResult },
-          source,
+          source
         );
         return undefined;
       }
@@ -230,7 +230,7 @@ export class AnalysisService {
       logger.error(
         "Error fetching total number of users.",
         { error: error.message, stack: error.stack },
-        source,
+        source
       );
       return undefined;
     }
@@ -241,7 +241,7 @@ export class AnalysisService {
     options?: {
       yearStart: string;
       yearEnd: string;
-    },
+    }
   ): Promise<IHeatmapDataPoint[] | undefined> {
     const source = "AnalysisService.getUserHeatmap";
     try {
@@ -253,10 +253,8 @@ export class AnalysisService {
 
       const currentYear = new Date().getFullYear();
 
-      const startOfYearStr =
-        options?.yearStart ?? `${currentYear}-01-01T00:00:00Z`;
-      const endOfYearStr =
-        options?.yearEnd ?? `${currentYear + 1}-01-01T00:00:00Z`;
+      const startOfYearStr = options?.yearStart ?? `${currentYear}-01-01T00:00:00Z`;
+      const endOfYearStr = options?.yearEnd ?? `${currentYear + 1}-01-01T00:00:00Z`;
 
       const queryResult = await db.query<[IHeatmapDataPoint[]]>(
         `
@@ -277,14 +275,14 @@ export class AnalysisService {
         `,
         {
           userId: new StringRecordId(userId),
-        },
+        }
       );
 
       if (!queryResult || !queryResult.length) {
         logger.error(
           "Unexpected result structure or empty table for user heatmap query.",
           { queryResult },
-          source,
+          source
         );
         return undefined;
       }
@@ -295,7 +293,7 @@ export class AnalysisService {
       logger.error(
         "Error fetching user heatmap.",
         { error: error.message, stack: error.stack, userId },
-        source,
+        source
       );
       return undefined;
     }
@@ -307,7 +305,7 @@ export class AnalysisService {
       startDate: string;
       endDate: string;
       dataTypes: string[];
-    },
+    }
   ): Promise<IProgressDataPoint[] | undefined> {
     const source = "AnalysisService.getUserProgress";
     try {
@@ -338,13 +336,10 @@ export class AnalysisService {
           );
         `;
 
-        const queryResult = await db.query<[{ date: string; count: number }[]]>(
-          query,
-          {
-            userId: new StringRecordId(userId),
-            dataType: dataType,
-          },
-        );
+        const queryResult = await db.query<[{ date: string; count: number }[]]>(query, {
+          userId: new StringRecordId(userId),
+          dataType: dataType,
+        });
 
         if (queryResult && queryResult.length > 0) {
           const [data] = queryResult;
@@ -369,16 +364,14 @@ export class AnalysisService {
       }
 
       // Sort by date
-      result.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      );
+      result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       return result;
     } catch (error: any) {
       logger.error(
         "Error fetching user progress.",
         { error: error.message, stack: error.stack, userId },
-        source,
+        source
       );
       return undefined;
     }
@@ -386,7 +379,7 @@ export class AnalysisService {
 
   public static async getUserCentralIdeas(
     userId: string | RecordId,
-    limit: number = 10,
+    limit: number = 10
   ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -420,7 +413,7 @@ export class AnalysisService {
   }
 
   public static async getUserSemanticCentralIdeas(
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<ISafeIdea[] | undefined> {
     try {
       const db = await getDatabase();
@@ -434,16 +427,16 @@ export class AnalysisService {
           WHERE <-owns<-(user WHERE id = $userId));`,
         {
           userId: new StringRecordId(userId),
-        },
+        }
       );
       const [numIdeas] = result;
       if (!numIdeas) {
         return;
       }
-      const results = await db.run<ISafeIdea[]>(
-        "fn::find_user_semantically_central_ideas",
-        [new StringRecordId(userId), 10],
-      );
+      const results = await db.run<ISafeIdea[]>("fn::find_user_semantically_central_ideas", [
+        new StringRecordId(userId),
+        10,
+      ]);
       if (!results) {
         throw new Error("Could not get results");
       }
@@ -455,7 +448,7 @@ export class AnalysisService {
   }
 
   public static async getUserTagBreakdown(
-    userId: string | RecordId,
+    userId: string | RecordId
   ): Promise<ITagBreakdown | undefined> {
     try {
       const db = await getDatabase();
@@ -466,15 +459,14 @@ export class AnalysisService {
         `count(SELECT id FROM tag WHERE <-owns<-(user WHERE id = $userId));`,
         {
           userId: new StringRecordId(userId),
-        },
+        }
       );
       if (!numTags) {
         return;
       }
-      const results = await db.run<ITagBreakdown>(
-        "fn::get_user_tag_breakdown",
-        [new StringRecordId(userId)],
-      );
+      const results = await db.run<ITagBreakdown>("fn::get_user_tag_breakdown", [
+        new StringRecordId(userId),
+      ]);
       if (!results) {
         throw new Error("Could not get results");
       }

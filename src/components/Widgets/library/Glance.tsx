@@ -35,7 +35,7 @@ export default function Glance() {
     loading: loadingProgress,
   } = useFetch<undefined, IProgressDataPoint[]>({
     url: `/analysis/progress?startDate=${startDate}&endDate=${endDate}&dataTypes=${dataTypes.join(
-      ",",
+      ","
     )}`,
   });
 
@@ -81,17 +81,12 @@ interface IChartViewProps {
   endDate: string;
 }
 
-function ChartView({
-  progress,
-  dataTypes,
-  startDate,
-  endDate,
-}: IChartViewProps) {
+function ChartView({ progress, dataTypes, startDate, endDate }: IChartViewProps) {
   const colors = ["blue", "green", "orange"];
   const container = useRef<HTMLDivElement>(null);
 
   const chartDataMap = new Map<string, { date: string; [key: string]: any }>();
-  let currentDate = new Date(startDate);
+  const currentDate = new Date(startDate);
   const end = new Date(endDate);
 
   while (currentDate <= end) {

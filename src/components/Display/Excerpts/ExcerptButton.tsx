@@ -69,7 +69,7 @@ function ExcerptButton({
       JSON.stringify({
         excerptId: excerpt.id.toString(),
         thingId: excerpt.id.toString(),
-      }),
+      })
     );
   };
 

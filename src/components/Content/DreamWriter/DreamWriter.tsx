@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import "./DreamWriter.scss";
 import styles from "./DreamWriter.module.scss";
 import contentStyles from "./Content.module.scss";
@@ -27,15 +20,7 @@ import { getExtensionConfig } from "./extensions";
 import { useInteraction } from "../../../contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "../../../contexts/LayoutContext";
-import {
-  Group,
-  Loader,
-  Overlay,
-  Text,
-  Tooltip,
-  Avatar,
-  Center,
-} from "@mantine/core";
+import { Group, Loader, Overlay, Text, Tooltip, Avatar, Center } from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
 import { getOS } from "../../../utils/platform";
 import {
@@ -98,7 +83,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       connectableId,
       onStateChange,
     },
-    ref,
+    ref
   ) => {
     const { user } = useAuth();
     const content = initialContent || defaultContent.trim();
@@ -140,7 +125,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
               name: userName,
               color: assignMantineColor(userName),
             },
-          }),
+          })
         );
       }
 
@@ -161,15 +146,13 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         },
         onUpdate: ({ editor: e }) => {
           if (onChange) {
-            const output =
-              outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
+            const output = outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
             onChange(output);
           }
         },
         onBlur: ({ editor: e }) => {
           if (onBlur) {
-            const output =
-              outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
+            const output = outputType === "json" ? JSON.stringify(e.getJSON()) : e.getHTML();
             onBlur(output);
           }
         },
@@ -189,21 +172,21 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         injectCSS: false,
         autofocus,
       },
-      [...(dependencies ?? []), initialContent, readOnly, content, provider],
+      [...(dependencies ?? []), initialContent, readOnly, content, provider]
     );
 
     useEffect(() => {
       if (!editor || !connectableId) return;
 
       const fileHandler = editor.extensionManager.extensions.find(
-        (e) => e.name === "dreamFileHandler",
+        (e) => e.name === "dreamFileHandler"
       );
       if (fileHandler) {
         fileHandler.options.connectableId = connectableId;
       }
 
       const connectionHandler = editor.extensionManager.extensions.find(
-        (e) => e.name === "dreamConnection",
+        (e) => e.name === "dreamConnection"
       );
       if (connectionHandler) {
         connectionHandler.options.connectableId = connectableId;
@@ -298,9 +281,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
     return (
       <div
         ref={editorContainerRef}
-        className={`${styles.editor} ${
-          droppingOver ? styles.droppingOver : ""
-        } ${styles[status]}`}
+        className={`${styles.editor} ${droppingOver ? styles.droppingOver : ""} ${styles[status]}`}
       >
         {droppingOver && (
           <Overlay
@@ -329,9 +310,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
             boundaryRef={editorContainerRef}
           />
         )}
-        {isMobile && (
-          <MobileEditorToolbar editor={editor} isVisible={bubbleMenuVisible} />
-        )}
+        {isMobile && <MobileEditorToolbar editor={editor} isVisible={bubbleMenuVisible} />}
         <EditorContent
           onContextMenuCapture={(e) => {
             if (isMobile && bubbleMenuVisible) {
@@ -343,7 +322,7 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
         />
       </div>
     );
-  },
+  }
 );
 
 export default DreamWriter;

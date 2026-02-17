@@ -15,10 +15,7 @@ export type IRabbithole = {
 
 export type IRabbitholeCreator = Omit<IRabbithole, "id" | "includes">;
 
-export type IRabbitholeForm = Omit<
-  IRabbitholeCreator,
-  "createdAt" | "updatedAt"
->;
+export type IRabbitholeForm = Omit<IRabbitholeCreator, "createdAt" | "updatedAt">;
 
 export type IRabbitholeInclusion = {
   id: string | RecordId;

@@ -1,12 +1,4 @@
-import {
-  Button,
-  Divider,
-  Group,
-  Space,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Button, Divider, Group, Space, Stack, Text, Title } from "@mantine/core";
 import PageWrapper from "../../Layout/PageWrapper";
 import Content from "../Layout/Content";
 import { useAuth } from "../../../contexts/AuthContext";

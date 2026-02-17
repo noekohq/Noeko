@@ -4,7 +4,7 @@ import { api } from "../server/api";
 import { RecordId } from "surrealdb";
 
 export const createTask = async (
-  form: Partial<ITaskForm & { auto: boolean }>,
+  form: Partial<ITaskForm & { auto: boolean }>
 ): Promise<ITask | undefined> => {
   try {
     const result = await api.post("/tasks", form);
@@ -19,9 +19,7 @@ export const createTask = async (
   }
 };
 
-export const createTaskStrict = async (
-  form: ITaskForm,
-): Promise<ITask | undefined> => {
+export const createTaskStrict = async (form: ITaskForm): Promise<ITask | undefined> => {
   try {
     const result = await api.post("/tasks", form);
     const data = await result.data.data;
@@ -35,10 +33,7 @@ export const createTaskStrict = async (
   }
 };
 
-export const updateTask = async (
-  taskId: string | RecordId,
-  form: Partial<ITaskForm>,
-) => {
+export const updateTask = async (taskId: string | RecordId, form: Partial<ITaskForm>) => {
   try {
     const result = await api.put(`/tasks/${taskId.toString()}`, form);
     return result.data.data as boolean;

@@ -1,0 +1,8 @@
+{
+  "track_id": "spyglass_overhaul_20260110",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-10T00:00:00Z",
+  "updated_at": "2026-01-10T00:00:00Z",
+  "description": "Upgrade Spyglass with UI cleanup, new tiered search, scope controls, and improved conversational context."
+}

@@ -11,11 +11,7 @@
  * - Returns null on malformed JSON (falls back to showing nothing)
  */
 
-import {
-  IResultSet,
-  IGlimpseEntryPoint,
-  IGlimpseConnection,
-} from "../../app/services/Spyglass";
+import { IResultSet, IGlimpseEntryPoint, IGlimpseConnection } from "../../app/services/Spyglass";
 
 export interface PartialGlimpseResult {
   summary?: string; // Summary text extracted so far (word-boundary chunks)
@@ -48,9 +44,7 @@ interface StackFrame {
  * Parse a potentially incomplete JSON string and extract partial IGlimpseResult data.
  * Returns null if the JSON is malformed in a way we can't recover from.
  */
-export function parsePartialGlimpseResult(
-  json: string,
-): PartialGlimpseResult | null {
+export function parsePartialGlimpseResult(json: string): PartialGlimpseResult | null {
   try {
     const parser = new PartialJsonParser(json);
     return parser.parse();
@@ -631,10 +625,7 @@ class PartialJsonParser {
   private tryExtractConnectionItem(): void {
     if (this.currentConnectionItemStart === -1) return;
 
-    const substring = this.json.substring(
-      this.currentConnectionItemStart,
-      this.pos
-    );
+    const substring = this.json.substring(this.currentConnectionItemStart, this.pos);
 
     // Count braces to find complete objects
     let depth = 0;
@@ -679,14 +670,9 @@ class PartialJsonParser {
         const parsed = JSON.parse(objectStr) as IGlimpseConnection;
 
         // Validate it has the expected structure
-        if (
-          typeof parsed.theme === "string" &&
-          Array.isArray(parsed.resourceIds)
-        ) {
+        if (typeof parsed.theme === "string" && Array.isArray(parsed.resourceIds)) {
           // Check if we already have this connection
-          const exists = this.connections.some(
-            (item) => item.theme === parsed.theme
-          );
+          const exists = this.connections.some((item) => item.theme === parsed.theme);
 
           if (!exists) {
             this.connections.push(parsed);
@@ -694,8 +680,7 @@ class PartialJsonParser {
         }
 
         // Move the start to after this object for the next item
-        this.currentConnectionItemStart =
-          this.currentConnectionItemStart + objectEnd;
+        this.currentConnectionItemStart = this.currentConnectionItemStart + objectEnd;
 
         // Skip comma and whitespace
         while (

@@ -5,11 +5,7 @@ interface IPaperInputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftSection?: ReactNode;
 }
 
-export default function PaperInput({
-  leftSection,
-  className,
-  ...props
-}: IPaperInputProps) {
+export default function PaperInput({ leftSection, className, ...props }: IPaperInputProps) {
   return (
     <div className={`${styles.inputContainer} ${className}`}>
       {leftSection && <div className={styles.icon}>{leftSection}</div>}

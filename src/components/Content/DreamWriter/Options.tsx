@@ -179,11 +179,7 @@ export function BoldButton({ editor }: OptionProps) {
   const isBold = !!editor?.isActive("bold");
 
   return (
-    <button
-      {...getButtonProps({ isActive: isBold })}
-      onClick={makeBold}
-      title="Toggle Bold"
-    >
+    <button {...getButtonProps({ isActive: isBold })} onClick={makeBold} title="Toggle Bold">
       <TextBIcon weight="bold" />
     </button>
   );
@@ -195,11 +191,7 @@ export function ItalicButton({ editor }: OptionProps) {
   const isItalic = !!editor?.isActive("italic");
 
   return (
-    <button
-      {...getButtonProps({ isActive: isItalic })}
-      onClick={makeItalic}
-      title="Toggle Italic"
-    >
+    <button {...getButtonProps({ isActive: isItalic })} onClick={makeItalic} title="Toggle Italic">
       <TextItalicIcon weight="bold" />
     </button>
   );
@@ -250,17 +242,12 @@ export function UnderlineButton({ editor }: OptionProps) {
 }
 
 export function BlockquoteButton({ editor }: OptionProps) {
-  const toggleBlockquote = () =>
-    editor?.chain().focus().toggleBlockquote().run();
+  const toggleBlockquote = () => editor?.chain().focus().toggleBlockquote().run();
 
   const isActive = !!editor?.isActive("blockquote");
 
   return (
-    <button
-      {...getButtonProps({ isActive })}
-      onClick={toggleBlockquote}
-      title="Toggle Blockquote"
-    >
+    <button {...getButtonProps({ isActive })} onClick={toggleBlockquote} title="Toggle Blockquote">
       <QuotesIcon weight="bold" />
     </button>
   );
@@ -268,9 +255,7 @@ export function BlockquoteButton({ editor }: OptionProps) {
 
 export function LinkButton({ editor }: OptionProps) {
   const [popoverOpened, setPopoverOpened] = useState(false);
-  const [href, setHREF] = useState(
-    () => editor?.getAttributes("link").href || "",
-  );
+  const [href, setHREF] = useState(() => editor?.getAttributes("link").href || "");
 
   const isLink = !!editor?.isActive("link");
 
@@ -397,9 +382,7 @@ export function HeadingMenuButton({ editor }: OptionProps) {
           className={`${styles.option} ${styles.menuButton}`}
           title={`Change ${currentlyActive?.name || "style"}`}
         >
-          <span className={styles.menuButtonContent}>
-            {currentlyActive?.icon || <TextTIcon />}
-          </span>
+          <span className={styles.menuButtonContent}>{currentlyActive?.icon || <TextTIcon />}</span>
           <CaretDownIcon weight="bold" className={styles.menuButtonCaret} />
         </button>
       </Menu.Target>
@@ -542,23 +525,13 @@ export function MathMenuButton({ editor }: OptionProps) {
       if ("node" in selection) {
         replaceText = selection.node.attrs.latex;
       }
-      editor
-        .chain()
-        .focus()
-        .deleteInlineMath()
-        .insertContent(replaceText)
-        .run();
+      editor.chain().focus().deleteInlineMath().insertContent(replaceText).run();
     } else {
       try {
         const { from, to } = selection;
         const selectedText = editor.state.doc.textBetween(from, to);
 
-        editor
-          .chain()
-          .focus()
-          .deleteSelection()
-          .insertInlineMath({ latex: selectedText })
-          .run();
+        editor.chain().focus().deleteSelection().insertInlineMath({ latex: selectedText }).run();
       } catch (error) {
         showNotification({
           title: "Something went wrong",
@@ -581,12 +554,7 @@ export function MathMenuButton({ editor }: OptionProps) {
         const { from, to } = selection;
         const selectedText = editor.state.doc.textBetween(from, to);
 
-        editor
-          .chain()
-          .focus()
-          .deleteSelection()
-          .insertBlockMath({ latex: selectedText })
-          .run();
+        editor.chain().focus().deleteSelection().insertBlockMath({ latex: selectedText }).run();
       } catch (error) {
         showNotification({
           title: "Something went wrong",
@@ -750,10 +718,7 @@ export function NewIdea({ editor }: OptionProps) {
             <button onClick={close}>
               <XIcon />
             </button>
-            <button
-              onClick={handleCreateNewIdea}
-              disabled={!newIdeaForm.values.content || loading}
-            >
+            <button onClick={handleCreateNewIdea} disabled={!newIdeaForm.values.content || loading}>
               <CheckIcon />
             </button>
           </Group>

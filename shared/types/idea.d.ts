@@ -73,10 +73,7 @@ export type IUserIdeaStats = {
 
 export type ISafeIdea = Omit<IIdea, "embeddings">;
 
-export type IViewOnlyIdea = Pick<
-  ISafeIdea,
-  "id" | "title" | "content" | "createdAt" | "updatedAt"
->;
+export type IViewOnlyIdea = Pick<ISafeIdea, "id" | "title" | "content" | "createdAt" | "updatedAt">;
 
 export type IIdeaSortFields = "createdAt" | "updatedAt" | "viewedAt";
 export type IIdeaQuery = Partial<{
@@ -104,7 +101,4 @@ export type IGenerativeSummary = {
   tasks?: string[];
 };
 
-export type IGenerativeSummaryForm = Omit<
-  IGenerativeSummary,
-  "id" | "createdAt"
->;
+export type IGenerativeSummaryForm = Omit<IGenerativeSummary, "id" | "createdAt">;

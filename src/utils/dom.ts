@@ -1,13 +1,8 @@
 import { ICSSApplicator, IThemeSpec } from "../declarations/themes";
 
-export function matchParentWidth(
-  fixedElementId: string,
-  parentElementId: string,
-): void {
+export function matchParentWidth(fixedElementId: string, parentElementId: string): void {
   const fixedEl = document.getElementById(fixedElementId) as HTMLElement | null;
-  const parentEl = document.getElementById(
-    parentElementId,
-  ) as HTMLElement | null;
+  const parentEl = document.getElementById(parentElementId) as HTMLElement | null;
 
   if (fixedEl && parentEl) {
     const parentWidth = parentEl.offsetWidth; // Includes padding and border
@@ -22,9 +17,7 @@ export function matchParentWidth(
 }
 
 export const isDarkScheme = () => {
-  const prefersDarkMode = window.matchMedia(
-    "(prefers-color-scheme: dark)",
-  ).matches;
+  const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
   return prefersDarkMode;
 };
 
@@ -41,7 +34,7 @@ export function generateTextFragmentUrl(
     textEnd?: string;
     prefix?: string;
     suffix?: string;
-  },
+  }
 ): string {
   if (!textStart) {
     console.warn("textStart cannot be empty for a text fragment URL.");
@@ -52,7 +45,7 @@ export function generateTextFragmentUrl(
   const encodedTextStart = encodeURIComponent(textStart);
   let fragment = `#:~:text=`;
 
-  let parts: string[] = [];
+  const parts: string[] = [];
 
   // Add prefix if provided
   if (options?.prefix) {
@@ -79,7 +72,7 @@ export function generateTextFragmentUrl(
 
 export function getCssVariableValue(
   variableName: string,
-  element: HTMLElement = document.documentElement,
+  element: HTMLElement = document.documentElement
 ): string {
   if (typeof window !== "undefined" && typeof getComputedStyle === "function") {
     // Ensure we are in a browser environment
@@ -90,14 +83,14 @@ export function getCssVariableValue(
   // Return empty string or handle as an error if not in a browser environment
   // or if getComputedStyle is not available.
   console.warn(
-    "getCssVariableValue can only be used in a browser environment with getComputedStyle support.",
+    "getCssVariableValue can only be used in a browser environment with getComputedStyle support."
   );
   return "";
 }
 
 export const extractNumberFromCSSValue = (
   variableName: string,
-  element: HTMLElement = document.documentElement,
+  element: HTMLElement = document.documentElement
 ): number => {
   const value = getCssVariableValue(variableName, element);
   // 20px -> 20, 50vw -> 50

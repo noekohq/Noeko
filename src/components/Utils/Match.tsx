@@ -20,11 +20,7 @@ const Match: React.FC<MatchProps> = ({ opener, closer, match, children }) => {
     // If children is not a string (e.g., null, undefined, number, or other React elements),
     // we return it as is. You might want to log a warning or throw an error based on strictness.
     if (children === null || children === undefined) return null;
-    console.warn(
-      "Replace component expects a string child. Received:",
-      typeof children,
-      children,
-    );
+    console.warn("Replace component expects a string child. Received:", typeof children, children);
     return <>{children}</>;
   }
 
@@ -34,9 +30,7 @@ const Match: React.FC<MatchProps> = ({ opener, closer, match, children }) => {
   }
 
   if (!opener || !closer) {
-    console.warn(
-      "Replace component requires non-empty 'opener' and 'closer' props.",
-    );
+    console.warn("Replace component requires non-empty 'opener' and 'closer' props.");
     return <>{children}</>; // Return original children if delimiters are invalid
   }
 
@@ -53,7 +47,7 @@ const Match: React.FC<MatchProps> = ({ opener, closer, match, children }) => {
         resultElements.push(
           <React.Fragment key={`text-${reactKey++}`}>
             {children.substring(lastIndex)}
-          </React.Fragment>,
+          </React.Fragment>
         );
       }
       break; // Exit loop
@@ -64,7 +58,7 @@ const Match: React.FC<MatchProps> = ({ opener, closer, match, children }) => {
       resultElements.push(
         <React.Fragment key={`text-${reactKey++}`}>
           {children.substring(lastIndex, openIndex)}
-        </React.Fragment>,
+        </React.Fragment>
       );
     }
 
@@ -77,7 +71,7 @@ const Match: React.FC<MatchProps> = ({ opener, closer, match, children }) => {
       resultElements.push(
         <React.Fragment key={`text-${reactKey++}`}>
           {children.substring(openIndex, openIndex + opener.length)}
-        </React.Fragment>,
+        </React.Fragment>
       );
       lastIndex = openIndex + opener.length; // Move past the literal opener
       continue; // Continue to the next iteration of the while loop
@@ -90,15 +84,11 @@ const Match: React.FC<MatchProps> = ({ opener, closer, match, children }) => {
     // Add a key to the element returned by the match function.
     // It can be a React element or a primitive type (string, number).
     if (React.isValidElement(matchedElement)) {
-      resultElements.push(
-        React.cloneElement(matchedElement, { key: `match-${reactKey++}` }),
-      );
+      resultElements.push(React.cloneElement(matchedElement, { key: `match-${reactKey++}` }));
     } else {
       // If match() returns a string, number, null, etc., wrap it in a Fragment for keying.
       resultElements.push(
-        <React.Fragment key={`match-${reactKey++}`}>
-          {matchedElement}
-        </React.Fragment>,
+        <React.Fragment key={`match-${reactKey++}`}>{matchedElement}</React.Fragment>
       );
     }
 

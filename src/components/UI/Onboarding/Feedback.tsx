@@ -17,9 +17,7 @@ export default function Feedback({ next }: IOnboardingProps) {
       <Stack ta="left" className={styles.body}>
         <Text size="md">Our mission at Noeko is to:</Text>
         <List type="ordered" size="md">
-          <List.Item>
-            Make knowledge-management a frictionless process
-          </List.Item>
+          <List.Item>Make knowledge-management a frictionless process</List.Item>
           <List.Item>Help you get the most out of their thoughts</List.Item>
         </List>
         <div className={styles.card}>
@@ -35,10 +33,7 @@ export default function Feedback({ next }: IOnboardingProps) {
             >
               <MegaphoneIcon size={16} />
             </ActionIcon>
-            <Text>
-              Wherever you see this icon, you can give us feedback to help us
-              improve.
-            </Text>
+            <Text>Wherever you see this icon, you can give us feedback to help us improve.</Text>
           </Group>
         </div>
         <Text size="xs" c="dimmed" fs="italic">

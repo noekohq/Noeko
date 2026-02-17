@@ -45,8 +45,7 @@ export default function Profile() {
       },
       newPassword: (value) => {
         if (!value) return "New password is required";
-        if (value.length < 8)
-          return "New password must be at least 8 characters";
+        if (value.length < 8) return "New password must be at least 8 characters";
       },
       newPasswordConfirmation: (value, values) => {
         if (!value) return "New password confirmation is required";
@@ -61,10 +60,7 @@ export default function Profile() {
     },
   });
 
-  const { load: updateUser, loading: loadingProfile } = useFetch<
-    Partial<IUserForm>,
-    IUser
-  >({
+  const { load: updateUser, loading: loadingProfile } = useFetch<Partial<IUserForm>, IUser>({
     url: `/users/me`,
     method: "PUT",
     body: profileForm.getTransformedValues(),
@@ -120,11 +116,7 @@ export default function Profile() {
             <Title order={3}>Your email is...</Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
-            <TextInput
-              label="Email"
-              placeholder="Email"
-              {...profileForm.getInputProps("email")}
-            />
+            <TextInput label="Email" placeholder="Email" {...profileForm.getInputProps("email")} />
           </Grid.Col>
           <Grid.Col span={12} />
           <Grid.Col span={12}>

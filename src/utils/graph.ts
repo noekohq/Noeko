@@ -46,9 +46,7 @@ export const MIN_STRENGTH = 0.1; // Pull strength for similarity = MIN_SIMILARIT
 export const MAX_STRENGTH = 0.7; // Pull strength for similarity = 1
 export const STRENGTH_EXPONENT = 2; // > 1 emphasizes stronger links
 
-export const fromConstellation = (
-  constellation: ILoadedConstellation,
-): IGraph => {
+export const fromConstellation = (constellation: ILoadedConstellation): IGraph => {
   const graph: IGraph = {
     nodes: [],
     edges: [],
@@ -189,9 +187,7 @@ export const fromConstellation = (
   return graph;
 };
 
-export const getNodeOrganizationType = (
-  node: INode,
-): INodeOrganizationType | undefined => {
+export const getNodeOrganizationType = (node: INode): INodeOrganizationType | undefined => {
   switch (node.type) {
     case "tag":
       return "tag";
@@ -259,7 +255,7 @@ export const getNodeDescription = (
   options?: {
     sentences?: number;
     maxLength?: number;
-  },
+  }
 ) => {
   if (node.type === "idea") {
     const desc =
@@ -429,10 +425,7 @@ export const IconMap: Record<INode["type"], React.FC> = {
   user: UserIcon,
 };
 
-export const isIncluded = (
-  connections: (IIdea | ISafeIdea)[],
-  check: IIdea | string,
-) => {
+export const isIncluded = (connections: (IIdea | ISafeIdea)[], check: IIdea | string) => {
   if (!connections && !check) {
     return undefined;
   }
@@ -456,7 +449,7 @@ export const getNodesAsIdeas = (nodes: INode[]): ISafeIdea[] => {
 
 export const connect = async (
   sourceId: string | RecordId,
-  targetId: string | RecordId,
+  targetId: string | RecordId
 ): Promise<boolean> => {
   try {
     const result = await api.post(`/graph/connection`, {
@@ -474,10 +467,7 @@ export const connect = async (
   }
 };
 
-export const disconnect = async (
-  sourceId: string | RecordId,
-  targetId: string | RecordId,
-) => {
+export const disconnect = async (sourceId: string | RecordId, targetId: string | RecordId) => {
   try {
     const result = await api.delete(`/graph/connection`, {
       data: {

@@ -1,56 +1,56 @@
 .taskButton {
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-    background-color: transparent;
-    border: 1px solid var(--mantine-color-dark-7);
-    /* box-shadow: var(--mantine-shadow-sm); */
-    border-radius: var(--mantine-radius-md);
-    display: flex;
-    flex-direction: row;
-    gap: var(--mantine-spacing-sm);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  background-color: transparent;
+  border: 1px solid var(--mantine-color-dark-7);
+  /* box-shadow: var(--mantine-shadow-sm); */
+  border-radius: var(--mantine-radius-md);
+  display: flex;
+  flex-direction: row;
+  gap: var(--mantine-spacing-sm);
+  width: 100%;
+  height: 100%;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--mantine-shadow-sm);
+  }
+
+  &:active {
+    transform: scale(0.98) translateY(2px);
+  }
+
+  .content {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--mantine-spacing-sm);
+    justify-content: flex-start;
 
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--mantine-shadow-sm);
-    }
+    .info {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      width: 100%;
 
-    &:active {
-        transform: scale(0.98) translateY(2px);
-    }
-
-    .content {
+      .top {
         width: 100%;
-        height: 100%;
         display: flex;
-        flex-direction: row;
         align-items: center;
-        gap: var(--mantine-spacing-sm);
-        justify-content: flex-start;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+      }
 
-        .info {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            width: 100%;
-
-            .top {
-                width: 100%;
-                display: flex;
-                align-items: center;
-                flex-wrap: nowrap;
-                justify-content: space-between;
-            }
-
-            .bottom {
-            }
-        }
+      .bottom {
+      }
     }
+  }
 
-    &.overdue {
-        /* color: var(--mantine-color-red-7); */
-        /* box-shadow: 0.2px 0.2px 2px 0px var(--mantine-color-red-1); */
-    }
+  &.overdue {
+    /* color: var(--mantine-color-red-7); */
+    /* box-shadow: 0.2px 0.2px 2px 0px var(--mantine-color-red-1); */
+  }
 }

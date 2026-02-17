@@ -1,90 +1,90 @@
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .overviewWord {
-    opacity: 0;
-    display: inline-block; /* Required for transform animations */
-    animation: fadeIn 0.1s ease-in-out forwards;
+  opacity: 0;
+  display: inline-block; /* Required for transform animations */
+  animation: fadeIn 0.1s ease-in-out forwards;
 }
 
 .findingNumber {
-    .content {
-        --border-color: var(--mantine-color-dark-3);
-        transition:
-            padding-inline 0.5s ease-in-out,
-            background-color 0.5s ease-in-out,
-            border 0.2s ease-in-out,
-            color 0.2s ease-in-out,
-            font-weight 0.2s ease-in-out;
-        border: 1px solid transparent;
-        border-radius: 7px;
-        transition-delay: 0.1s;
+  .content {
+    --border-color: var(--mantine-color-dark-3);
+    transition:
+      padding-inline 0.5s ease-in-out,
+      background-color 0.5s ease-in-out,
+      border 0.2s ease-in-out,
+      color 0.2s ease-in-out,
+      font-weight 0.2s ease-in-out;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    transition-delay: 0.1s;
 
-        &.hovering {
-            font-weight: 550;
-            color: var(--mantine-color-dark-1);
-            background-color: var(--color-highlight);
-            border-left: 3px solid var(--border-color);
-            border-right: 3px solid var(--border-color);
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            padding-inline: 4px;
-        }
+    &.hovering {
+      font-weight: 550;
+      color: var(--mantine-color-dark-1);
+      background-color: var(--color-highlight);
+      border-left: 3px solid var(--border-color);
+      border-right: 3px solid var(--border-color);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding-inline: 4px;
     }
+  }
 
-    .number {
-        display: inline-block;
-    }
+  .number {
+    display: inline-block;
+  }
 }
 
 .citationIcon {
-    border: 1px solid var(--mantine-color-dark-7);
-    display: inline-flex;
-    background: var(--mantine-color-dark-9);
-    box-shadow: var(--mantine-shadow-sm);
-    margin-inline: 2px;
-    border-radius: var(--mantine-radius-md);
-    align-items: center;
-    justify-content: center;
-    transition:
-        border-color 0.2s ease-in-out,
-        width 0.2s ease-in-out;
-    font-size: calc(var(--mantine-font-size-xs) * 0.8);
-    text-transform: none;
-    cursor: pointer;
+  border: 1px solid var(--mantine-color-dark-7);
+  display: inline-flex;
+  background: var(--mantine-color-dark-9);
+  box-shadow: var(--mantine-shadow-sm);
+  margin-inline: 2px;
+  border-radius: var(--mantine-radius-md);
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color 0.2s ease-in-out,
+    width 0.2s ease-in-out;
+  font-size: calc(var(--mantine-font-size-xs) * 0.8);
+  text-transform: none;
+  cursor: pointer;
 
-    &.hovering {
-        border-color: var(--mantine-color-dark-4);
-    }
+  &.hovering {
+    border-color: var(--mantine-color-dark-4);
+  }
 
-    &:hover {
-        border-color: var(--mantine-color-dark-2);
-        background-color: var(--mantine-color-dark-8);
-    }
+  &:hover {
+    border-color: var(--mantine-color-dark-2);
+    background-color: var(--mantine-color-dark-8);
+  }
 }
 
 /* Streaming cursor animation */
 @keyframes pulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.3;
-    }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .streamingCursor {
-    display: inline-block;
-    animation: pulse 1s ease-in-out infinite;
-    color: var(--mantine-color-primary-filled);
-    margin-left: 2px;
+  display: inline-block;
+  animation: pulse 1s ease-in-out infinite;
+  color: var(--mantine-color-primary-filled);
+  margin-left: 2px;
 }

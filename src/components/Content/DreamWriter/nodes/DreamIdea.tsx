@@ -14,15 +14,7 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import styles from "./styles/DreamIdea.module.scss";
-import {
-  ActionIcon,
-  Flex,
-  Group,
-  Popover,
-  Stack,
-  Text,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
 import useFetch from "../../../../hooks/useFetch";
 import { IIdea } from "../../../../../shared/types/idea";
@@ -34,10 +26,7 @@ import { useDisclosure } from "@mantine/hooks";
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     dreamIdea: {
-      setDreamIdea: (options: {
-        ideaId: string;
-        content: string;
-      }) => ReturnType;
+      setDreamIdea: (options: { ideaId: string; content: string }) => ReturnType;
     };
   }
 }
@@ -50,16 +39,10 @@ export const DreamIdea = DreamIdeaSchema.extend({
   },
 });
 
-export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
-  node,
-  deleteNode,
-  selected,
-}) => {
+export const DreamIdeaComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
   const { ideaId } = node.attrs;
   const isEmpty = node.content.size === 0;
-  const [accessState, setAccessState] = useState<
-    "granted" | "forbidden" | "error"
-  >("granted");
+  const [accessState, setAccessState] = useState<"granted" | "forbidden" | "error">("granted");
   const navigate = useNavigate();
 
   const { data: idea, load: fetchIdea } = useFetch<undefined, IIdea>({
@@ -112,13 +95,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
       className={styles.dreamIdeaWrapper}
       data-selected={selected || undefined}
     >
-      <Popover
-        width={"400px"}
-        shadow="md"
-        position="top"
-        radius="lg"
-        opened={iconHovered}
-      >
+      <Popover width={"400px"} shadow="md" position="top" radius="lg" opened={iconHovered}>
         <Popover.Target>
           <Tooltip
             label={getTooltipLabel()}
@@ -137,9 +114,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
             >
               {accessState === "granted" ? (
                 <LightbulbIcon
-                  className={`${styles.dreamIdeaIcon} ${
-                    iconHovered ? styles.hovered : ""
-                  }`}
+                  className={`${styles.dreamIdeaIcon} ${iconHovered ? styles.hovered : ""}`}
                   weight={iconHovered ? "fill" : "regular"}
                 />
               ) : (
@@ -158,12 +133,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
         >
           {accessState === "granted" && idea && (
             <Stack gap="sm">
-              <Group
-                justify="space-between"
-                align="center"
-                w={"100%"}
-                wrap="nowrap"
-              >
+              <Group justify="space-between" align="center" w={"100%"} wrap="nowrap">
                 <Text fw={500} c="dark.3">
                   {idea.title}
                 </Text>
@@ -209,11 +179,7 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
 
           {accessState === "forbidden" && (
             <Stack gap="sm" align="center">
-              <ShieldSlashIcon
-                size={32}
-                weight="regular"
-                color="var(--mantine-color-dimmed)"
-              />
+              <ShieldSlashIcon size={32} weight="regular" color="var(--mantine-color-dimmed)" />
               <Text c="dimmed" size="sm" ta="center">
                 You don't have access to preview this idea
               </Text>
@@ -241,18 +207,12 @@ export const DreamIdeaComponent: React.FC<NodeViewProps> = ({
         </Popover.Dropdown>
       </Popover>
 
-      <span
-        onClick={handleLinkClick}
-        className={styles.dreamIdeaInline}
-        role="link"
-      >
+      <span onClick={handleLinkClick} className={styles.dreamIdeaInline} role="link">
         <NodeViewContent
           className={`${styles.dreamIdeaContent} ${
             !idea && accessState === "granted" ? styles.notFound : ""
           }`}
-          data-placeholder={
-            isEmpty ? idea?.title || "Loading title..." : undefined
-          }
+          data-placeholder={isEmpty ? idea?.title || "Loading title..." : undefined}
           title={idea?.title ? `Go to "${idea.title}"` : "Go to idea"}
         />
       </span>

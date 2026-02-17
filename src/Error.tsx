@@ -1,10 +1,6 @@
 import { FallbackProps } from "react-error-boundary";
 import styles from "./Error.module.scss";
-import {
-  WarningOctagonIcon,
-  ArrowClockwiseIcon,
-  HouseIcon,
-} from "@phosphor-icons/react";
+import { WarningOctagonIcon, ArrowClockwiseIcon, HouseIcon } from "@phosphor-icons/react";
 import { useEffect } from "react";
 import { api } from "./server/api";
 
@@ -21,12 +17,8 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
     });
   }, [err]);
 
-  const subject = encodeURIComponent(
-    `Error Report: ${err.message || "Unknown Error"}`,
-  );
-  const body = encodeURIComponent(
-    `Error: ${err.message}\nStack: ${err.stack}`,
-  );
+  const subject = encodeURIComponent(`Error Report: ${err.message || "Unknown Error"}`);
+  const body = encodeURIComponent(`Error: ${err.message}\nStack: ${err.stack}`);
   const mailtoLink = `mailto:support@noeko.app?subject=${subject}&body=${body}`;
 
   return (
@@ -40,8 +32,7 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
         </div>
 
         <p className={styles.description}>
-          You've found the error page. We've logged this, but for now let's get
-          you back on track.
+          You've found the error page. We've logged this, but for now let's get you back on track.
         </p>
 
         <div className={styles.actions}>

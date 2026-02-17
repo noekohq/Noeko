@@ -14,11 +14,7 @@ interface IIconToggleProps {
   onChange?: (value: string) => void;
 }
 
-export default function IconToggle({
-  options,
-  value,
-  onChange,
-}: IIconToggleProps) {
+export default function IconToggle({ options, value, onChange }: IIconToggleProps) {
   const handleClick = (option: string) => {
     onChange?.(option);
   };

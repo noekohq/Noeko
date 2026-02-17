@@ -9,10 +9,7 @@ import { useInteraction } from "../../../contexts/InteractionContext";
 import { PlusIcon } from "@phosphor-icons/react";
 
 export default function RabbitholeList() {
-  const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<
-    undefined,
-    IRabbithole[]
-  >({
+  const { data: recentRabbitholes, load: loadRabbitholes } = useFetch<undefined, IRabbithole[]>({
     url: `/rabbitholes?limit=10`,
   });
 
@@ -48,12 +45,7 @@ export default function RabbitholeList() {
           </Text>
         )}
         {recentRabbitholes?.map((rabbithole) => {
-          return (
-            <RabbitholeButton
-              key={rabbithole.id.toString()}
-              rabbithole={rabbithole}
-            />
-          );
+          return <RabbitholeButton key={rabbithole.id.toString()} rabbithole={rabbithole} />;
         })}
       </Stack>
     </div>

@@ -17,9 +17,7 @@ type IOverviewAccordionProps = {
   overview: Omit<IGenerativeSummary, "createdAt" | "id">;
 };
 
-export default function OverviewAccordion({
-  overview,
-}: IOverviewAccordionProps) {
+export default function OverviewAccordion({ overview }: IOverviewAccordionProps) {
   const {
     sentenceOverview,
     sentenceSummary,
@@ -47,9 +45,7 @@ export default function OverviewAccordion({
       </Accordion.Item>
       {paragraphSummary && (
         <Accordion.Item value="paragraph_summary">
-          <Accordion.Control icon={<TextAlignLeftIcon />}>
-            Summary
-          </Accordion.Control>
+          <Accordion.Control icon={<TextAlignLeftIcon />}>Summary</Accordion.Control>
           <Accordion.Panel>
             <Text size="sm" mb="md">
               {paragraphSummary}
@@ -79,9 +75,7 @@ export default function OverviewAccordion({
       )}
       {simplifiedSummary && (
         <Accordion.Item value="simplified_summary">
-          <Accordion.Control icon={<NotepadIcon />}>
-            Simplified
-          </Accordion.Control>
+          <Accordion.Control icon={<NotepadIcon />}>Simplified</Accordion.Control>
           <Accordion.Panel>
             <Text size="sm" mb="md">
               {simplifiedSummary}
@@ -107,9 +101,7 @@ export default function OverviewAccordion({
       )}
       {keyPoints && (
         <Accordion.Item value="key_points">
-          <Accordion.Control icon={<AsteriskIcon />}>
-            Key Points
-          </Accordion.Control>
+          <Accordion.Control icon={<AsteriskIcon />}>Key Points</Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {keyPoints.map((item, index) => (
@@ -125,9 +117,7 @@ export default function OverviewAccordion({
       )}
       {highlights && (
         <Accordion.Item value="highlights">
-          <Accordion.Control icon={<HighlighterIcon />}>
-            Highlights
-          </Accordion.Control>
+          <Accordion.Control icon={<HighlighterIcon />}>Highlights</Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {highlights.map((item, index) => (
@@ -143,9 +133,7 @@ export default function OverviewAccordion({
       )}
       {questions && (
         <Accordion.Item value="questions">
-          <Accordion.Control icon={<QuestionIcon />}>
-            Questions
-          </Accordion.Control>
+          <Accordion.Control icon={<QuestionIcon />}>Questions</Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {questions.map((item, index) => (

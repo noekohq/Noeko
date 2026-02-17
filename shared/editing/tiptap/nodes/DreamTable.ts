@@ -9,10 +9,7 @@ export interface ITableDataType {
   rows: string[][];
 }
 
-export const initializeTableData = (
-  columns: number,
-  rows: number,
-): ITableDataType => {
+export const initializeTableData = (columns: number, rows: number): ITableDataType => {
   return {
     headers: Array(columns > 0 ? columns : 1)
       .fill("")
@@ -70,12 +67,9 @@ export const DreamTableSchema = Node.create({
       setDreamTable:
         (options) =>
         ({ commands }) => {
-          const initialData = initializeTableData(
-            options.columns,
-            options.rows,
-          );
+          const initialData = initializeTableData(options.columns, options.rows);
           return commands.insertContent(
-            `<div data-type="${this.name}" data-table-data='${JSON.stringify(initialData)}'></div>`,
+            `<div data-type="${this.name}" data-table-data='${JSON.stringify(initialData)}'></div>`
           );
         },
     };

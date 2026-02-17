@@ -10,10 +10,7 @@ interface ISpyglassActionsProps {
   results: IConnectable[];
 }
 
-export default function SpyglassActions({
-  intent,
-  results,
-}: ISpyglassActionsProps) {
+export default function SpyglassActions({ intent, results }: ISpyglassActionsProps) {
   return (
     <>
       {intent && (

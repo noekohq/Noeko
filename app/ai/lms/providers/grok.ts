@@ -50,16 +50,13 @@ export class XAIProvider implements LMProvider {
     return this._modelMap;
   }
 
-  public static getSchema(
-    schema: LMSchema,
-  ): ResponseFormatJSONSchema.JSONSchema {
+  public static getSchema(schema: LMSchema): ResponseFormatJSONSchema.JSONSchema {
     return SchemaConverter.getJSONSchema(schema);
   }
 
   public static truncate(content: string) {
     return content.length > XAIProvider.maxCharacters
-      ? content.slice(0, XAIProvider.maxCharacters) +
-          "...[FURTHER CONTENT TRUNCATED]..."
+      ? content.slice(0, XAIProvider.maxCharacters) + "...[FURTHER CONTENT TRUNCATED]..."
       : content;
   }
 
@@ -101,10 +98,7 @@ export class XAIProvider implements LMProvider {
     }
   }
 
-  public async generateJSON<T>(
-    prompt: string,
-    schema: LMSchema,
-  ): Promise<T | null> {
+  public async generateJSON<T>(prompt: string, schema: LMSchema): Promise<T | null> {
     try {
       const truncatedPrompt = XAIProvider.truncate(prompt);
       const result = await this.client.chat.completions.create({
@@ -131,9 +125,7 @@ export class XAIProvider implements LMProvider {
     }
   }
 
-  public async *generateStream(
-    prompt: string,
-  ): AsyncGenerator<string, void, unknown> {
+  public async *generateStream(prompt: string): AsyncGenerator<string, void, unknown> {
     try {
       const truncatedPrompt = XAIProvider.truncate(prompt);
       const stream = await this.client.chat.completions.create({
@@ -161,7 +153,7 @@ export class XAIProvider implements LMProvider {
 
   public async *generateJSONStream(
     prompt: string,
-    schema: LMSchema,
+    schema: LMSchema
   ): AsyncGenerator<string, void, unknown> {
     try {
       const truncatedPrompt = XAIProvider.truncate(prompt);

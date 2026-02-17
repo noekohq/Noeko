@@ -8,10 +8,7 @@ export const getWordCount = (text: string): number => {
   return words ? words.length : 0;
 };
 
-export const getCharCount = (
-  text: string,
-  omitSpaces: boolean = false,
-): number => {
+export const getCharCount = (text: string, omitSpaces: boolean = false): number => {
   if (omitSpaces) {
     return text.replace(/\s/g, "").length;
   }
@@ -51,12 +48,7 @@ interface MatchSegmentsOptions {
  * @param options - The options for matching segments.
  * @returns An array of string segments that contain the specified match.
  */
-export function matchSegments({
-  text,
-  opener,
-  closer,
-  splitBy,
-}: MatchSegmentsOptions): string[] {
+export function matchSegments({ text, opener, closer, splitBy }: MatchSegmentsOptions): string[] {
   // 1. Validate inputs
   if (!text) {
     return [];
@@ -116,9 +108,7 @@ export const splitBySentences = (text: string): string[] => {
   // This regex tries to split by ., !, ? followed by a space or at the end of the string.
   // It keeps the delimiters with the sentences.
   const sentences = text.match(/[^.!?]+[.!?\s]*|[^.!?]+$/g);
-  return sentences
-    ? sentences.map((s) => s.trim()).filter((s) => s.length > 0)
-    : [];
+  return sentences ? sentences.map((s) => s.trim()).filter((s) => s.length > 0) : [];
 };
 
 export const splitByParagraphs = (text: string): string[] => {
@@ -143,7 +133,7 @@ export const isValidJSONWith = (
   options: {
     prefix?: string;
     suffix?: string;
-  },
+  }
 ) => {
   try {
     let testString = "";
@@ -215,11 +205,7 @@ export const parseIncompleteJsonArray = <T = any>(jsonString: string): T[] => {
           } catch (e) {
             // This might happen if the substring is malformed for other reasons,
             // though it's unlikely with this logic. We'll just ignore it.
-            console.error(
-              "Failed to parse an extracted object:",
-              objectString,
-              e,
-            );
+            console.error("Failed to parse an extracted object:", objectString, e);
           }
           objectStartIndex = -1;
         }

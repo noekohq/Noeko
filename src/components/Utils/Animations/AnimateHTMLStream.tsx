@@ -1,11 +1,6 @@
 import React from "react";
 // Make sure to import `Text`
-import parse, {
-  domToReact,
-  HTMLReactParserOptions,
-  Element,
-  Text,
-} from "html-react-parser";
+import parse, { domToReact, HTMLReactParserOptions, Element, Text } from "html-react-parser";
 import styles from "./AnimateHTMLStream.module.scss";
 
 interface AnimatedHtmlContentProps {
@@ -31,7 +26,7 @@ const AnimateHTMLStream: React.FC<AnimatedHtmlContentProps> = ({ html }) => {
                 </span>
               ) : (
                 <React.Fragment key={index}>{chunk}</React.Fragment>
-              ),
+              )
             )}
           </>
         );

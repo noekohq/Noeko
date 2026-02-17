@@ -68,11 +68,7 @@ export default class TourGuide {
       }
       return true;
     } catch (error) {
-      console.error(
-        "Couldn't load starting tasks for user: ",
-        this.userId,
-        error,
-      );
+      console.error("Couldn't load starting tasks for user: ", this.userId, error);
       return false;
     }
   }
@@ -88,11 +84,7 @@ export default class TourGuide {
       }
       return true;
     } catch (error) {
-      console.error(
-        "Couldn't load starting tags for user: ",
-        this.userId,
-        error,
-      );
+      console.error("Couldn't load starting tags for user: ", this.userId, error);
       return false;
     }
   }

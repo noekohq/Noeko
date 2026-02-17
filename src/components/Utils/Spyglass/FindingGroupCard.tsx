@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  Badge,
-  Blockquote,
-  Button,
-  Group,
-  HoverCard,
-  Modal,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Badge, Blockquote, Button, Group, HoverCard, Modal, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
@@ -136,9 +127,7 @@ const FindingGroupCard: React.FC<IFindingGroupCardProps> = ({ group }) => {
       tabIndex={isTouchDevice ? 0 : undefined}
     >
       <div className={styles.cardHeader}>
-        <div className={styles.iconWrapper}>
-          {Icon && <Icon size={16} />}
-        </div>
+        <div className={styles.iconWrapper}>{Icon && <Icon size={16} />}</div>
         <Text size="sm" fw={500} lineClamp={1} className={styles.title}>
           {resource.name}
         </Text>
@@ -178,19 +167,9 @@ const FindingGroupCard: React.FC<IFindingGroupCardProps> = ({ group }) => {
     <>
       {/* Desktop: HoverCard */}
       {!isTouchDevice ? (
-        <HoverCard
-          width={400}
-          position="top"
-          withArrow
-          shadow="lg"
-          openDelay={300}
-          radius="lg"
-        >
+        <HoverCard width={400} position="top" withArrow shadow="lg" openDelay={300} radius="lg">
           <HoverCard.Target>{cardContent}</HoverCard.Target>
-          <HoverCard.Dropdown
-            mah={400}
-            style={{ overflowY: "auto" }}
-          >
+          <HoverCard.Dropdown mah={400} style={{ overflowY: "auto" }}>
             <FindingsDetail group={group} onNavigate={() => navigate(link)} />
           </HoverCard.Dropdown>
         </HoverCard>
@@ -210,10 +189,7 @@ const FindingGroupCard: React.FC<IFindingGroupCardProps> = ({ group }) => {
         size="lg"
         radius="lg"
       >
-        <FindingsDetail
-          group={group}
-          onNavigate={() => setModalOpen(false)}
-        />
+        <FindingsDetail group={group} onNavigate={() => setModalOpen(false)} />
       </Modal>
     </>
   );

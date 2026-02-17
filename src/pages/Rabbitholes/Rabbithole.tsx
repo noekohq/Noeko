@@ -19,10 +19,7 @@ import Content from "../../components/UI/Layout/Content";
 import LeftSidebar from "../../components/UI/Layout/Left";
 import RightSidebar from "../../components/UI/Layout/Right";
 import useFetch from "../../hooks/useFetch";
-import {
-  IRabbithole,
-  IRabbitholeIncludes,
-} from "../../../app/database/models/rabbithole";
+import { IRabbithole, IRabbitholeIncludes } from "../../../app/database/models/rabbithole";
 import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -75,10 +72,7 @@ import TopBar from "../../components/UI/Layout/TopBar";
 export default function Rabbithole() {
   const [error, setError] = useState("");
   const { rabbitholeId } = useParams();
-  const { data: rabbithole, load: loadRabbithole } = useFetch<
-    undefined,
-    IRabbithole
-  >({
+  const { data: rabbithole, load: loadRabbithole } = useFetch<undefined, IRabbithole>({
     url: `/rabbitholes/${rabbitholeId}`,
     dependencies: [rabbitholeId],
     onError: (error) => {
@@ -116,11 +110,7 @@ export default function Rabbithole() {
 
   const {
     rabbitholes: {
-      entered: {
-        set: setEntered,
-        get: currentlyEntered,
-        reload: reloadRabbitholeContext,
-      },
+      entered: { set: setEntered, get: currentlyEntered, reload: reloadRabbitholeContext },
     },
   } = useLandscape();
 
@@ -130,8 +120,7 @@ export default function Rabbithole() {
     reloadRabbitholeContext();
   };
 
-  const isEntered =
-    currentlyEntered?.id.toString() === rabbithole?.id.toString();
+  const isEntered = currentlyEntered?.id.toString() === rabbithole?.id.toString();
 
   useDocumentTitle(`${rabbithole?.name || "Loading..."} - Noeko`);
 
@@ -172,10 +161,7 @@ export default function Rabbithole() {
         return;
       }
       currentlyAddingTag.current = true;
-      await includeThingInRabbithole(
-        rabbitholeId.toString(),
-        tag.id.toString(),
-      );
+      await includeThingInRabbithole(rabbitholeId.toString(), tag.id.toString());
     } catch (error) {
       console.error("Error adding tag: ", error);
       showNotification({
@@ -224,10 +210,7 @@ export default function Rabbithole() {
           });
           return;
         }
-        await includeThingInRabbithole(
-          rabbithole.id.toString(),
-          thingId.toString(),
-        );
+        await includeThingInRabbithole(rabbithole.id.toString(), thingId.toString());
         handleRefresh();
       } catch (error) {
         console.error("Error creating connection: ", error);
@@ -235,7 +218,7 @@ export default function Rabbithole() {
         setDraggingOver(false);
       }
     },
-    [rabbithole],
+    [rabbithole]
   );
 
   const [includingThing, setIsIncludingThing] = useState<string>();
@@ -244,10 +227,7 @@ export default function Rabbithole() {
       return;
     }
     setIsIncludingThing(thingId.toString());
-    includeThingInRabbithole(
-      rabbithole?.id.toString(),
-      thingId.toString(),
-    ).finally(() => {
+    includeThingInRabbithole(rabbithole?.id.toString(), thingId.toString()).finally(() => {
       handleRefresh();
       setIsIncludingThing(undefined);
     });
@@ -267,10 +247,7 @@ export default function Rabbithole() {
       return;
     }
     setUnincluding(thingId.toString());
-    unIncludeThingInRabbithole(
-      rabbithole?.id.toString(),
-      thingId.toString(),
-    ).finally(() => {
+    unIncludeThingInRabbithole(rabbithole?.id.toString(), thingId.toString()).finally(() => {
       handleRefresh();
       setUnincluding(undefined);
     });
@@ -377,15 +354,15 @@ export default function Rabbithole() {
     </Group>
   );
 
-  if (!!error.length) {
+  if (error.length) {
     return (
       <PageWrapper>
         <TopBar />
         <LeftSidebar />
         <Content>
           <Text>
-            An unexpected error occured loading this Rabbithole. Please try
-            again or <Link to="/">Return home.</Link>
+            An unexpected error occured loading this Rabbithole. Please try again or{" "}
+            <Link to="/">Return home.</Link>
           </Text>
         </Content>
         <RightSidebar />
@@ -413,10 +390,7 @@ export default function Rabbithole() {
                 No current suggestions.
               </Text>
             )}
-            <Transition
-              mounted={!includingThing && !loadingSuggestedThings}
-              transition="fade-up"
-            >
+            <Transition mounted={!includingThing && !loadingSuggestedThings} transition="fade-up">
               {(style) => {
                 return (
                   <Stack style={style}>
@@ -438,9 +412,7 @@ export default function Rabbithole() {
                                       radius="md"
                                       size="xs"
                                       color="dark.3"
-                                      leftSection={
-                                        <CirclesThreePlusIcon weight="bold" />
-                                      }
+                                      leftSection={<CirclesThreePlusIcon weight="bold" />}
                                       title="Include this thing"
                                       onClick={() => {
                                         handleInclude(tag.id.toString());
@@ -465,9 +437,7 @@ export default function Rabbithole() {
                                     radius="md"
                                     size="xs"
                                     color="dark.3"
-                                    leftSection={
-                                      <CirclesThreePlusIcon weight="bold" />
-                                    }
+                                    leftSection={<CirclesThreePlusIcon weight="bold" />}
                                     title="Include this thing"
                                     onClick={() => {
                                       handleInclude(thing.id.toString());
@@ -485,10 +455,7 @@ export default function Rabbithole() {
                 );
               }}
             </Transition>
-            <Transition
-              mounted={!!includingThing || loadingSuggestedThings}
-              transition="fade-up"
-            >
+            <Transition mounted={!!includingThing || loadingSuggestedThings} transition="fade-up">
               {(styles) => {
                 return (
                   <div style={styles}>
@@ -541,11 +508,7 @@ export default function Rabbithole() {
                 }}
                 radius={"lg"}
               >
-                <Group
-                  align="center"
-                  justify="center"
-                  style={{ height: "100%" }}
-                >
+                <Group align="center" justify="center" style={{ height: "100%" }}>
                   <Text c="white" mx="lg" size="sm">
                     Drop here to include an idea!
                   </Text>
@@ -571,27 +534,14 @@ export default function Rabbithole() {
                 <TextInput
                   placeholder="Filter things..."
                   value={filterQuery}
-                  onChange={(event) =>
-                    setFilterQuery(event.currentTarget.value)
-                  }
+                  onChange={(event) => setFilterQuery(event.currentTarget.value)}
                   mb="md" // Added margin bottom for spacing
                   radius="md"
                 />
               )}
-              <Transition
-                mounted={isEntered}
-                transition="fade-up"
-                duration={300}
-                enterDelay={300}
-              >
+              <Transition mounted={isEntered} transition="fade-up" duration={300} enterDelay={300}>
                 {(style) => {
-                  if (
-                    !(
-                      isEntered &&
-                      !!rabbithole &&
-                      !!rabbithole.includes?.length
-                    )
-                  ) {
+                  if (!(isEntered && !!rabbithole && !!rabbithole.includes?.length)) {
                     return (
                       <Text style={style} size="sm" ta="center">
                         There are no things in this rabbithole.
@@ -623,12 +573,7 @@ export default function Rabbithole() {
                   );
                 }}
               </Transition>
-              <Transition
-                mounted={!isEntered}
-                transition="fade-up"
-                duration={300}
-                enterDelay={300}
-              >
+              <Transition mounted={!isEntered} transition="fade-up" duration={300} enterDelay={300}>
                 {(style) => {
                   return (
                     <Card
@@ -645,14 +590,9 @@ export default function Rabbithole() {
                         </Text>
                       )}
                       {!rabbithole?.includes?.length && !isMobile && (
-                        <Alert
-                          color="gray"
-                          title="Tip"
-                          icon={<InfoIcon />}
-                          radius="lg"
-                        >
-                          You can drag and drop ideas from the search results
-                          into this area to include them!
+                        <Alert color="gray" title="Tip" icon={<InfoIcon />} radius="lg">
+                          You can drag and drop ideas from the search results into this area to
+                          include them!
                         </Alert>
                       )}
                       {!!rabbithole?.includes?.length && (
@@ -678,14 +618,10 @@ export default function Rabbithole() {
                             .slice(0, 9)}
                         </SimpleGrid>
                       )}
-                      {!!(
-                        rabbithole?.includes?.length &&
-                        rabbithole.includes.length > 9
-                      ) && (
+                      {!!(rabbithole?.includes?.length && rabbithole.includes.length > 9) && (
                         <Text size="sm" c="dimmed">
                           {rabbithole.includes.length - 9} more thing
-                          {rabbithole.includes.length - 9 === 1 ? "" : "s"}{" "}
-                          hidden...
+                          {rabbithole.includes.length - 9 === 1 ? "" : "s"} hidden...
                         </Text>
                       )}
                       <Transition

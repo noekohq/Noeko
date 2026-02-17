@@ -8,10 +8,7 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import {
-  IAcceleratorItem,
-  IShelfData,
-} from "../../../app/services/Recommendations";
+import { IAcceleratorItem, IShelfData } from "../../../app/services/Recommendations";
 import { getExcerptReferenceId } from "../excerpts";
 import { RabbitholeIcon } from "../../components/Utils/Icons/Icons";
 import { formatDateTime } from "../formatting";
@@ -46,13 +43,10 @@ export const acceleratorItemFieldResolvers: {
     id: (item) => item.payload.id.toString(),
     name: (item) => item.payload.name,
     detail: (item) =>
-      `Active ${
-        item.payload.daysAgo > 0 ? `${item.payload.daysAgo} days ago` : "today"
-      }`,
+      `Active ${item.payload.daysAgo > 0 ? `${item.payload.daysAgo} days ago` : "today"}`,
     link: (item) => `/rabbithole/${item.payload.id.toString()}`,
     icon: (_item) => RabbitholeIcon,
-    preview: (item) =>
-      `Last active ${formatDateTime(item.payload.updatedAt)}` || "",
+    preview: (item) => `Last active ${formatDateTime(item.payload.updatedAt)}` || "",
   },
   idea: {
     id: (item) => item.payload.id.toString(),
@@ -106,14 +100,11 @@ export const acceleratorItemFieldResolvers: {
         : `Due in ${item.payload.daysDiff} days`,
     link: (item) => `/task/${item.payload.id.toString()}`,
     icon: (_item) => CheckIcon,
-    preview: (item) =>
-      `Created ${formatDateTime(item.payload.createdAt)}` || "",
+    preview: (item) => `Created ${formatDateTime(item.payload.createdAt)}` || "",
   },
 };
 
-export const getAcceleratorItemFields = (
-  item: IAcceleratorItem,
-): IAcceleratorItemFields => {
+export const getAcceleratorItemFields = (item: IAcceleratorItem): IAcceleratorItemFields => {
   const resolver = acceleratorItemFieldResolvers[item.type];
 
   // A fallback for safety, though TS should prevent this.
@@ -170,10 +161,7 @@ export type IAcceleratorShelfUIDetails = {
   list: {};
 };
 
-export const resolveShelfToDetails: Record<
-  IShelfData["id"],
-  IAcceleratorShelfUIDetails
-> = {
+export const resolveShelfToDetails: Record<IShelfData["id"], IAcceleratorShelfUIDetails> = {
   urgent: {
     title: "Urgent Tasks",
     action: (nav) => {

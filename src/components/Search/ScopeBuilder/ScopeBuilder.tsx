@@ -41,9 +41,7 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({}) => {
     setPopoverOpened(false);
   };
 
-  const handleDateChange = (
-    val: { field: string; after?: string; before?: string } | null,
-  ) => {
+  const handleDateChange = (val: { field: string; after?: string; before?: string } | null) => {
     if (!val) {
       onChange({ ...value, date: undefined });
       return;
@@ -121,9 +119,7 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = ({}) => {
                   value.date
                     ? {
                         field: Object.keys(value.date)[0] as any,
-                        ...value.date[
-                          Object.keys(value.date)[0] as keyof typeof value.date
-                        ],
+                        ...value.date[Object.keys(value.date)[0] as keyof typeof value.date],
                       }
                     : null
                 }

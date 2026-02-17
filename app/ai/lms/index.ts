@@ -15,10 +15,7 @@ export interface LMProvider {
   generate(prompt: string): Promise<string | null>;
   generateStream(prompt: string): AsyncGenerator<string, void, unknown>;
   generateJSON<T>(prompt: string, schema: LMSchema): Promise<T | null>;
-  generateJSONStream(
-    prompt: string,
-    schema: LMSchema,
-  ): AsyncGenerator<string, void, unknown>;
+  generateJSONStream(prompt: string, schema: LMSchema): AsyncGenerator<string, void, unknown>;
   withModel(model: string | IModelTypes): LMProvider;
   withThinking(budget?: number): LMProvider;
 }

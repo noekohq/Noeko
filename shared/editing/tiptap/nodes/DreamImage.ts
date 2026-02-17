@@ -61,6 +61,20 @@ export const DreamImageSchema = Node.create<IDreamImageOptions>({
           return { "data-file-id": attributes.fileId };
         },
       },
+      viewMode: {
+        default: "expanded",
+        parseHTML: (element) => element.getAttribute("data-view-mode") || "expanded",
+        renderHTML: (attributes) => ({
+          "data-view-mode": attributes.viewMode,
+        }),
+      },
+      uploading: {
+        default: false,
+        renderHTML: (attributes) => {
+          if (!attributes.uploading) return {};
+          return { "data-uploading": "true" };
+        },
+      },
     };
   },
 

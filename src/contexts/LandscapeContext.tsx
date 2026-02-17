@@ -82,11 +82,7 @@ const initialContext: ILandscapeContext = {
 
 const LandscapeContext = createContext(initialContext);
 
-export const LandscapeProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const LandscapeProvider = ({ children }: { children: React.ReactNode }) => {
   const [rabbithole, setRabbithole] = useState<IRabbithole | null>(null);
   const [connectable, setConnectable] = useState<IConnectable | null>(null);
   const [selection, setSelection] = useState<ISelection | null>(null);
@@ -158,11 +154,7 @@ export const LandscapeProvider = ({
     },
   } satisfies ILandscapeContext;
 
-  return (
-    <LandscapeContext.Provider value={value}>
-      {children}
-    </LandscapeContext.Provider>
-  );
+  return <LandscapeContext.Provider value={value}>{children}</LandscapeContext.Provider>;
 };
 
 export const useLandscape = () => {

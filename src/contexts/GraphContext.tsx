@@ -140,20 +140,11 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
-  const clearHighlightedHandler = useCallback(
-    () => setHighlighted(new Set()),
-    [],
-  );
+  const clearHighlightedHandler = useCallback(() => setHighlighted(new Set()), []);
 
-  const setFilterConfigHandler = useCallback(
-    (config: FilterConfig) => setFilterConfig(config),
-    [],
-  );
+  const setFilterConfigHandler = useCallback((config: FilterConfig) => setFilterConfig(config), []);
 
-  const clearFilterConfigHandler = useCallback(
-    () => setFilterConfig({ filter: () => true }),
-    [],
-  );
+  const clearFilterConfigHandler = useCallback(() => setFilterConfig({ filter: () => true }), []);
 
   const setLoadingHandler = useCallback((l: boolean) => setLoading(l), []);
   const setQueryHandler = useCallback((q: string) => setQuery(q), []);
@@ -214,12 +205,10 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
       clearFilterConfigHandler,
       setLoadingHandler,
       setQueryHandler,
-    ],
+    ]
   );
 
-  return (
-    <GraphContext.Provider value={value}>{children}</GraphContext.Provider>
-  );
+  return <GraphContext.Provider value={value}>{children}</GraphContext.Provider>;
 };
 
 export const useGraph = () => useContext(GraphContext);

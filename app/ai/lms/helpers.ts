@@ -8,9 +8,7 @@ export class SchemaConverter {
    * @param schema The LMSchema object to convert.
    * @returns The equivalent JSONSchema object.
    */
-  public static getJSONSchema(
-    schema: LMSchema,
-  ): ResponseFormatJSONSchema.JSONSchema {
+  public static getJSONSchema(schema: LMSchema): ResponseFormatJSONSchema.JSONSchema {
     // The main differentiator between the two is that the `JSONSchema` object
     // is a wrapper around the actual schema definition, which is contained in
     // the `schema` property. The `LMSchema` is the schema definition itself.
@@ -45,16 +43,12 @@ export class SchemaConverter {
     if (lmSchema.pattern) newSchema.pattern = lmSchema.pattern;
     if (lmSchema.minimum) newSchema.minimum = lmSchema.minimum;
     if (lmSchema.maximum) newSchema.maximum = lmSchema.maximum;
-    if (lmSchema.minLength)
-      newSchema.minLength = parseInt(lmSchema.minLength, 10);
-    if (lmSchema.maxLength)
-      newSchema.maxLength = parseInt(lmSchema.maxLength, 10);
+    if (lmSchema.minLength) newSchema.minLength = parseInt(lmSchema.minLength, 10);
+    if (lmSchema.maxLength) newSchema.maxLength = parseInt(lmSchema.maxLength, 10);
     if (lmSchema.minItems) newSchema.minItems = parseInt(lmSchema.minItems, 10);
     if (lmSchema.maxItems) newSchema.maxItems = parseInt(lmSchema.maxItems, 10);
-    if (lmSchema.minProperties)
-      newSchema.minProperties = parseInt(lmSchema.minProperties, 10);
-    if (lmSchema.maxProperties)
-      newSchema.maxProperties = parseInt(lmSchema.maxProperties, 10);
+    if (lmSchema.minProperties) newSchema.minProperties = parseInt(lmSchema.minProperties, 10);
+    if (lmSchema.maxProperties) newSchema.maxProperties = parseInt(lmSchema.maxProperties, 10);
     if (lmSchema.required) newSchema.required = lmSchema.required;
 
     // Recursive transformations for nested schemas
@@ -68,7 +62,7 @@ export class SchemaConverter {
           acc[key] = this.transformSchema(value);
           return acc;
         },
-        {} as { [key: string]: unknown },
+        {} as { [key: string]: unknown }
       );
     }
 

@@ -21,11 +21,7 @@ import {
   SimpleGrid,
 } from "@mantine/core";
 import useFetch from "../../hooks/useFetch";
-import {
-  IComputedUser,
-  ISafeUser,
-  IUser,
-} from "../../../app/database/models/user";
+import { IComputedUser, ISafeUser, IUser } from "../../../app/database/models/user";
 import {
   TrashSimple,
   HandPalm,
@@ -129,10 +125,7 @@ export default function Users() {
 
   const [toEmail, setToEmail] = useState<ISafeUser>();
   const [emailType, setEmailType] = useState<"onboarding">("onboarding");
-  const { load: sendUserEmail, loading: sendingUserEmail } = useFetch<
-    { type: string },
-    boolean
-  >({
+  const { load: sendUserEmail, loading: sendingUserEmail } = useFetch<{ type: string }, boolean>({
     url: `/users/email/${toEmail?.id}`,
     method: "POST",
     body: {
@@ -239,20 +232,14 @@ export default function Users() {
 
   const getSortIcon = (field: keyof IComputedUser) => {
     if (sortField !== field) return null;
-    return sortDirection === "asc" ? (
-      <CaretUp size={14} />
-    ) : (
-      <CaretDown size={14} />
-    );
+    return sortDirection === "asc" ? <CaretUp size={14} /> : <CaretDown size={14} />;
   };
 
   const filteredUsers = users?.filter(
     (user) =>
       user.email.toLowerCase().includes(query.toLowerCase()) ||
-      (user.firstName + " " + user.lastName)
-        .toLowerCase()
-        .includes(query.toLowerCase()) ||
-      user.id.toString().includes(query.toLowerCase()),
+      (user.firstName + " " + user.lastName).toLowerCase().includes(query.toLowerCase()) ||
+      user.id.toString().includes(query.toLowerCase())
   );
 
   const sortedUsers = filteredUsers?.sort((a, b) => {
@@ -304,16 +291,12 @@ export default function Users() {
 
     // Find most ideas and most recent user
     for (const user of users) {
-      if (
-        mostIdeasUser === undefined ||
-        user.numIdeas > mostIdeasUser.numIdeas
-      ) {
+      if (mostIdeasUser === undefined || user.numIdeas > mostIdeasUser.numIdeas) {
         mostIdeasUser = user;
       }
       if (
         mostRecentUser === undefined ||
-        new Date(user.createdAt).getTime() >
-          new Date(mostRecentUser.createdAt).getTime()
+        new Date(user.createdAt).getTime() > new Date(mostRecentUser.createdAt).getTime()
       ) {
         mostRecentUser = user;
       }
@@ -332,11 +315,7 @@ export default function Users() {
     <PageWrapper>
       <LeftSidebar />
       <Content>
-        <Modal
-          opened={!!toDisable}
-          title="Disable user"
-          onClose={() => setToDisable(undefined)}
-        >
+        <Modal opened={!!toDisable} title="Disable user" onClose={() => setToDisable(undefined)}>
           <Text>Are you sure you want to disable {toDisable?.email}?</Text>
           <br />
           <Group justify="end">
@@ -353,11 +332,7 @@ export default function Users() {
             </Button>
           </Group>
         </Modal>
-        <Modal
-          opened={!!toEnable}
-          title="Enable user"
-          onClose={() => setToEnable(undefined)}
-        >
+        <Modal opened={!!toEnable} title="Enable user" onClose={() => setToEnable(undefined)}>
           <Text>Are you sure you want to enable {toEnable?.email}?</Text>
           <br />
           <Group justify="end">
@@ -375,11 +350,7 @@ export default function Users() {
           </Group>
         </Modal>
 
-        <Modal
-          opened={!!toDelete}
-          title="Delete user"
-          onClose={() => setToDelete(undefined)}
-        >
+        <Modal opened={!!toDelete} title="Delete user" onClose={() => setToDelete(undefined)}>
           <Text>Are you sure you want to delete {toDelete?.email}?</Text>
           <br />
           <Group justify="end">
@@ -404,14 +375,9 @@ export default function Users() {
           size="lg"
         >
           <Grid>
+            <Grid.Col span={{ sm: 12 }}>Sending email to {toEmail?.email}</Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
-              Sending email to {toEmail?.email}
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <RadioGroup
-                value={emailType}
-                onChange={(v) => setEmailType(v as typeof emailType)}
-              >
+              <RadioGroup value={emailType} onChange={(v) => setEmailType(v as typeof emailType)}>
                 <RadioCard value="onboarding" radius="sm" p="md">
                   <Group wrap="nowrap" align="flex-start">
                     <Radio.Indicator />
@@ -439,9 +405,7 @@ export default function Users() {
                   onClick={() => {
                     sendUserEmail();
                   }}
-                  leftSection={
-                    sendingUserEmail ? <Loader size="sm" color="white" /> : ""
-                  }
+                  leftSection={sendingUserEmail ? <Loader size="sm" color="white" /> : ""}
                   disabled={sendingUserEmail}
                 >
                   Send it.
@@ -499,9 +463,7 @@ export default function Users() {
                   onClick={() => {
                     inviteUser();
                   }}
-                  leftSection={
-                    loadingUserInvite ? <Loader color="white" size="sm" /> : ""
-                  }
+                  leftSection={loadingUserInvite ? <Loader color="white" size="sm" /> : ""}
                   disabled={loadingUserInvite}
                 >
                   Send invite!
@@ -528,18 +490,14 @@ export default function Users() {
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
                   Their name is
-                  <CopyButton
-                    value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}
-                  >
+                  <CopyButton value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}>
                     {({ copied, copy }) => (
                       <Button
                         size="xs"
                         variant="light"
                         onClick={copy}
                         mx="xs"
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
+                        leftSection={copied ? <Check size={14} /> : <Clipboard size={14} />}
                       >
                         {toViewDetails.firstName} {toViewDetails.lastName}
                       </Button>
@@ -556,9 +514,7 @@ export default function Users() {
                         size="xs"
                         variant="light"
                         onClick={copy}
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
+                        leftSection={copied ? <Check size={14} /> : <Clipboard size={14} />}
                         mx="xs"
                       >
                         {toViewDetails.id}
@@ -576,9 +532,7 @@ export default function Users() {
                         size="xs"
                         variant="light"
                         onClick={copy}
-                        leftSection={
-                          copied ? <Check size={14} /> : <Clipboard size={14} />
-                        }
+                        leftSection={copied ? <Check size={14} /> : <Clipboard size={14} />}
                         mx="xs"
                       >
                         {toViewDetails.email}
@@ -597,13 +551,7 @@ export default function Users() {
                           size="xs"
                           variant="light"
                           onClick={copy}
-                          leftSection={
-                            copied ? (
-                              <Check size={14} />
-                            ) : (
-                              <Clipboard size={14} />
-                            )
-                          }
+                          leftSection={copied ? <Check size={14} /> : <Clipboard size={14} />}
                           mx="xs"
                         >
                           {toViewDetails.roles.join(", ")}
@@ -615,10 +563,7 @@ export default function Users() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Group justify="end">
-                  <Button
-                    variant="default"
-                    onClick={() => setToViewDetails(undefined)}
-                  >
+                  <Button variant="default" onClick={() => setToViewDetails(undefined)}>
                     Close
                   </Button>
                 </Group>
@@ -640,12 +585,8 @@ export default function Users() {
                 <Grid>
                   <Grid.Col span={{ sm: 12 }}>
                     <Text>
-                      {invitedUser.user.firstName} has been invited with the
-                      email{" "}
-                      <a href={`mailto:${invitedUser.user.email}`}>
-                        {invitedUser.user.email}
-                      </a>
-                      .{" "}
+                      {invitedUser.user.firstName} has been invited with the email{" "}
+                      <a href={`mailto:${invitedUser.user.email}`}>{invitedUser.user.email}</a>.{" "}
                       {invitedUser.emailSuccess
                         ? "Email was sent successfully."
                         : "Email was not sent successfully."}
@@ -658,11 +599,7 @@ export default function Users() {
                           <Button
                             onClick={copy}
                             leftSection={
-                              copied ? (
-                                <Check weight="bold" />
-                              ) : (
-                                <Clipboard weight="bold" />
-                              )
+                              copied ? <Check weight="bold" /> : <Clipboard weight="bold" />
                             }
                           >
                             {copied ? "Copied" : "Copy Email"}
@@ -680,11 +617,9 @@ export default function Users() {
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Text>
-              There are <strong>{summaryDetails.numberOfUsers}</strong> users.
-              The most recent user is{" "}
-              <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user
-              with the most ideas is{" "}
-              <strong>{summaryDetails.mostIdeas?.email}</strong>.
+              There are <strong>{summaryDetails.numberOfUsers}</strong> users. The most recent user
+              is <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user with the most
+              ideas is <strong>{summaryDetails.mostIdeas?.email}</strong>.
             </Text>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
@@ -770,9 +705,7 @@ export default function Users() {
                       <Table.Td>
                         {user.numIdeas} idea{user.numIdeas === 1 ? "" : "s"}
                       </Table.Td>
-                      <Table.Td>
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </Table.Td>
+                      <Table.Td>{new Date(user.createdAt).toLocaleDateString()}</Table.Td>
                       <Table.Td>
                         <Text color={user.disabled ? "red" : "green"}>
                           {user.disabled ? "Disabled" : "Active"}
