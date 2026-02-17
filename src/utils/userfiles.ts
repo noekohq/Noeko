@@ -2,6 +2,71 @@ import { RecordId } from "surrealdb";
 import { api } from "../server/api";
 import { triggerDownload } from "./helpers";
 import { IUserFile } from "../../app/database/models/userfile";
+import { AxiosProgressEvent, isCancel } from "axios";
+
+interface UploadCallbacks {
+  onProgress?: (percent: number) => void;
+  onSuccess?: (data: any) => void;
+  onError?: (error: string) => void;
+}
+export const uploadFileSmart = async (file: File, callbacks: UploadCallbacks) => {
+  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  const STALL_TIMEOUT_MS = 30000; // 30 Seconds of silence = failure
+
+  if (file.size > MAX_SIZE) {
+    if (callbacks.onError) {
+      callbacks.onError?.("File is too large. Max size is 10MB.");
+    } else {
+      window.alert("File is too large. Max size is 10MB.");
+    }
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("userFile", file);
+
+  const controller = new AbortController();
+
+  let stallTimer: Timer | null = null;
+
+  const resetStallTimer = () => {
+    if (stallTimer) clearTimeout(stallTimer);
+    stallTimer = setTimeout(() => {
+      controller.abort();
+      callbacks.onError?.("Upload timed out due to inactivity.");
+    }, STALL_TIMEOUT_MS);
+  };
+
+  resetStallTimer();
+
+  try {
+    const response = await api.post("files", formData, {
+      signal: controller.signal, // Link controller to axios
+        resetStallTimer();
+
+        const percent = Math.round(
+          (progressEvent.loaded * 100) / (progressEvent.total || file.size)
+        );
+        callbacks.onProgress?.(percent);
+      },
+    });
+
+    if (stallTimer) clearTimeout(stallTimer);
+    callbacks.onSuccess?.(response.data.data);
+    return response.data.data;
+  } catch (err: any) {
+    if (stallTimer) clearTimeout(stallTimer);
+
+    // Distinguish between a Timeout/Abort and a Server Error
+    if (isCancel(err)) {
+      callbacks.onError?.("Upload timed out (network stalled).");
+    } else {
+      // Standard error (400, 500, etc)
+      const message = err.response?.data?.message || "Upload failed";
+      callbacks.onError?.(message);
+    }
+  }
+};
 
 export const getFileDownloadLink = async (fileId: string | RecordId) => {
   try {
