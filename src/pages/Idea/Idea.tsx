@@ -84,6 +84,7 @@ import { CollaborationInfo } from "../../components/Collaboration/CollaborationI
 
 import { ICollaborationState } from "../../hooks/useCollaboration";
 import { userFormattedName } from "../../utils/user";
+import { isEqual } from "lodash";
 
 // --- Types ---
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
@@ -163,6 +164,9 @@ export default function Idea() {
   }, [isOptimistic]);
 
   const ideaToRender: IdeaUnion | undefined = optimisticFromStore || fetchedIdea;
+  useEffect(() => {
+    console.log("Idea to render: ", ideaToRender);
+  }, [ideaToRender]);
 
   const isViewOnly =
     !isOptimistic &&
@@ -382,16 +386,16 @@ export default function Idea() {
                   Context
                 </Group>
               </Tabs.Tab>
+              <Tabs.Tab value="files" disabled={isOptimistic}>
+                <Group gap="xs">
+                  <FileIcon weight="bold" />
+                  Attachments
+                </Group>
+              </Tabs.Tab>
               <Tabs.Tab value="insights" disabled={isOptimistic}>
                 <Group gap="xs">
                   <EyeIcon weight="bold" />
                   Insights
-                </Group>
-              </Tabs.Tab>
-              <Tabs.Tab value="files" disabled={isOptimistic}>
-                <Group gap="xs">
-                  <FileIcon weight="bold" />
-                  Files
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
@@ -436,13 +440,13 @@ export default function Idea() {
               {isOptimistic && <Loading size="sm" />}
             </Tabs.Panel>
 
-            <Tabs.Panel value="insights">
-              <Insights loadingIdea={loadingIdea} idea={safeIdea} reloadIdea={reloadIdea} />
-            </Tabs.Panel>
             <Tabs.Panel value="files">
               {safeIdea && (
                 <FileManager connectableId={safeIdea.id.toString()} editor={editorRef.current} />
               )}
+            </Tabs.Panel>
+            <Tabs.Panel value="insights">
+              <Insights loadingIdea={loadingIdea} idea={safeIdea} reloadIdea={reloadIdea} />
             </Tabs.Panel>
           </Tabs>
         </LeftSidebar.Open>

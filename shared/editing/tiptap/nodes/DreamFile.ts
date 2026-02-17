@@ -55,6 +55,20 @@ export const DreamFileSchema = Node.create<IDreamFileOptions>({
           return { "data-uploading": "true" };
         },
       },
+      progress: {
+        default: 0,
+        renderHTML: (attributes) => {
+          if (!attributes.progress) return {};
+          return { "data-progress": attributes.progress.toString() };
+        },
+      },
+      error: {
+        default: null,
+        renderHTML: (attributes) => {
+          if (!attributes.error) return {};
+          return { "data-error": attributes.error };
+        },
+      },
     };
   },
 

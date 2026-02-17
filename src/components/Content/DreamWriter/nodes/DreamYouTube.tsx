@@ -18,6 +18,7 @@ import {
   DreamYouTubeSchema,
   getYoutubeEmbedUrl,
 } from "../../../../../shared/editing/tiptap/nodes/DreamYouTube";
+import { ISubMenuProps } from "../BubbleMenu";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -67,7 +68,7 @@ export const DreamYouTube = DreamYouTubeSchema.extend({
   },
 });
 
-export function DreamYouTubeMenu({ editor }: { editor: IEditor }) {
+export function DreamYouTubeMenu({ editor }: ISubMenuProps) {
   const deleteSelectedNode = () => {
     editor.chain().focus().deleteNode("dreamYouTube").run();
   };

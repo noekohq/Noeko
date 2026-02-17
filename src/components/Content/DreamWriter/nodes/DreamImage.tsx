@@ -1,39 +1,26 @@
-import { Node, NodeViewProps, Editor as IEditor } from "@tiptap/core";
-import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { useCallback, useRef } from "react";
-import styles from "./styles/DreamImage.module.scss";
-import { Group, Stack, Tooltip, Loader, Box } from "@mantine/core";
+import { Editor, Node, NodeViewProps, setNodeSelection } from "@tiptap/core";
+import { NodeViewWrapper, ReactNodeViewRenderer, useEditorState } from "@tiptap/react";
+import { useCallback, useRef, useEffect, useState, useMemo } from "react";
+import { Group, Tooltip, RingProgress, Text, Stack, CloseButton, Button, Box } from "@mantine/core";
 import {
-  Trash as TrashIcon,
-  Cards,
-  Rows,
-  CornersOut,
-  DownloadSimple,
-  ArrowSquareOut,
-  ResizeIcon,
-  ImagesIcon,
+  TrashIcon,
+  CardsIcon,
+  RowsIcon,
+  CornersOutIcon,
+  DownloadSimpleIcon,
+  ArrowSquareOutIcon,
+  WarningCircleIcon,
+  SlideshowIcon,
+  SelectionBackgroundIcon,
+  ImagesSquareIcon,
 } from "@phosphor-icons/react";
-import { DreamImageSchema } from "../../../../../shared/editing/tiptap/nodes/DreamImage";
-import PaperIcon from "../../../Display/Paper/PaperIcon";
-import bubbleStyles from "../BubbleMenu.module.scss";
-import { useEditorState } from "@tiptap/react";
 
-declare module "@tiptap/core" {
-  interface Commands<ReturnType> {
-    dreamImage: {
-      setDreamImage: (options: {
-        src: string;
-        alt?: string;
-        title?: string;
-        width?: string | number;
-        height?: string | number;
-        fileId?: string;
-        viewMode?: "inline" | "minimal" | "expanded";
-        uploading?: boolean;
-      }) => ReturnType;
-    };
-  }
-}
+import styles from "./styles/DreamImage.module.scss";
+import PaperIcon from "../../../Display/Paper/PaperIcon";
+import { DreamImageSchema, IViewMode } from "../../../../../shared/editing/tiptap/nodes/DreamImage";
+import { getButtonProps } from "../Options";
+import { Attrs, Node as PMNode } from "@tiptap/pm/model";
+import { ISubMenuProps } from "../BubbleMenu";
 
 export const DreamImage = DreamImageSchema.extend({
   addOptions() {
@@ -52,18 +39,49 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
   node,
   updateAttributes,
   selected,
+  deleteNode,
+  getPos,
+  editor,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const resizeLabelRef = useRef<HTMLDivElement>(null);
-  const { viewMode = "expanded", uploading } = node.attrs;
+  const zombieTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const {
+    viewMode = "expanded" as IViewMode,
+    uploading,
+    progress = 0,
+    error,
+    src,
+    width,
+    height,
+  } = node.attrs;
+
+  useEffect(() => {
+    if (uploading && !error) {
+      zombieTimerRef.current = setTimeout(() => {
+        updateAttributes({
+          uploading: false,
+          error: "Upload interrupted (Session lost)",
+        });
+      }, 5000);
+    }
+    return () => {
+      if (zombieTimerRef.current) clearTimeout(zombieTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (progress > 0 && zombieTimerRef.current) {
+      clearTimeout(zombieTimerRef.current);
+      zombieTimerRef.current = null;
+    }
+  }, [progress]);
 
   const handleResize = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
-      const updateFunc = updateAttributes;
+      if (!imgRef.current) return;
 
-      if (!imgRef.current) {
-        return;
-      }
       const startX = event.clientX;
       const startWidth = imgRef.current.offsetWidth;
       const parentWidth = imgRef.current.parentElement?.offsetWidth || document.body.offsetWidth;
@@ -73,7 +91,7 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
         const newWidth = startWidth + (currentX - startX);
 
         const percentage = (newWidth / parentWidth) * 100;
-        const snapPoints = [25, 30, 33.33, 50, 66.66, 75, 100];
+        const snapPoints = [25, 33.33, 50, 66.66, 75, 100];
         const threshold = 3;
 
         let finalWidth = `${newWidth}px`;
@@ -100,7 +118,7 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
         if (imgRef.current) {
-          updateFunc({ width: imgRef.current.style.width });
+          updateAttributes({ width: imgRef.current.style.width });
         }
         if (resizeLabelRef.current) {
           resizeLabelRef.current.style.display = "none";
@@ -119,195 +137,194 @@ export const DreamImageComponent: React.FC<NodeViewProps> = ({
       data-selected={selected}
       data-view-mode={viewMode}
     >
-      <img
-        src={node.attrs.src}
-        alt={node.attrs.alt}
-        title={node.attrs.title}
-        data-file-id={node.attrs.fileId}
-        style={{
-          width: node.attrs.width,
-          height: node.attrs.height,
-        }}
-        ref={imgRef}
-        className={styles.dreamImage}
-        draggable="true"
-        data-drag-handle
-      />
-
-      <div ref={resizeLabelRef} className={styles.resizeLabel} style={{ display: "none" }}></div>
-
-      {uploading && (
-        <Box
+      <div className={styles.imageContainer} style={{ position: "relative" }}>
+        <img
+          src={src}
+          alt={node.attrs.alt}
+          title={node.attrs.title}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(0,0,0,0.3)",
-            borderRadius: "var(--mantine-radius-sm)",
+            width: width,
+            height: height,
+            opacity: uploading || error ? 0.4 : 1,
+            filter: error ? "grayscale(100%)" : "none",
           }}
-        >
-          <Loader color="white" size="sm" />
-        </Box>
-      )}
-
-      {selected && !uploading && (
-        <div
-          className={`${styles.resizeHandle}`}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            handleResize(e);
-          }}
-          title="Resize"
-          style={{ pointerEvents: "auto" }}
+          ref={imgRef}
+          className={styles.dreamImage}
+          draggable="true"
+          data-drag-handle
         />
-      )}
+
+        {/* --- Uploading Overlay --- */}
+        {uploading && !error && (
+          <div className={styles.statusOverlay}>
+            <Stack align="center" gap="xs">
+              <div className={styles.progressContainer}>
+                <RingProgress
+                  size={80}
+                  thickness={6}
+                  roundCaps
+                  sections={[{ value: progress, color: "blue" }]}
+                  label={
+                    <Text c="blue" fw={700} ta="center" size="xs">
+                      {progress}%
+                    </Text>
+                  }
+                />
+              </div>
+              <Text size="sm" c="dark" fw={500}>
+                Uploading...
+              </Text>
+              <Button variant="light" color="dark" size="sm" onClick={() => deleteNode()}>
+                Cancel
+              </Button>
+            </Stack>
+          </div>
+        )}
+
+        {/* --- Error Overlay --- */}
+        {error && (
+          <div className={`${styles.statusOverlay} ${styles.errorOverlay}`}>
+            <Stack gap="xs" align="center">
+              <WarningCircleIcon size={32} weight="fill" color="var(--mantine-color-red-6)" />
+              <Text c="dark.1" size="md" fw={600} ta="center" px="md">
+                {error || "Something went wrong."}
+              </Text>
+              <Button variant="light" color="dark" size="sm" onClick={() => deleteNode()}>
+                Remove
+              </Button>
+            </Stack>
+          </div>
+        )}
+
+        {/* --- Resize Handles --- */}
+        <div ref={resizeLabelRef} className={styles.resizeLabel} style={{ display: "none" }} />
+
+        {selected && !uploading && !error && (
+          <div
+            className={styles.resizeHandle}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleResize(e);
+            }}
+            title="Resize"
+          />
+        )}
+      </div>
     </NodeViewWrapper>
   );
 };
 
-interface IDreamImageMenuProps {
-  editor: IEditor;
-}
-
-export const DreamImageMenu = ({ editor }: IDreamImageMenuProps) => {
-  // Use useEditorState to force re-render when selection updates
-  useEditorState({
+export const DreamImageMenu = ({ editor, classes: { group: buttonGroup } }: ISubMenuProps) => {
+  const { viewMode, src, isGalleryItem } = useEditorState({
     editor,
     selector: (ctx) => {
+      const node = ctx.editor.state.selection.$from.node();
+      const { selection } = ctx.editor.state;
+      const attrs = ctx.editor.getAttributes("dreamImage");
+
+      let insideGallery = false;
+      const { $from } = selection;
+      if ($from.parent.type.name === "dreamGallery") {
+        insideGallery = true;
+      }
+
       return {
-        viewMode: ctx.editor.getAttributes("dreamImage").viewMode,
-        src: ctx.editor.getAttributes("dreamImage").src,
+        viewMode: attrs.viewMode || "expanded",
+        src: attrs.src,
+        isGalleryItem: insideGallery,
       };
     },
   });
 
-  const deleteSelectedNode = () => {
-    editor.chain().focus().deleteNode("dreamImage").run();
+  const setViewMode = (mode: IViewMode) => {
+    const nextAttrs: Attrs & { viewMode: IViewMode; width?: string } = { viewMode: mode };
+    if (mode === "expanded") nextAttrs.width = "100%";
+    editor.chain().focus().updateAttributes("dreamImage", nextAttrs).run();
   };
 
-  const restoreSizeToDefault = () => {
+  const handleRemove = () => {
+    editor.chain().focus().deleteSelection().run();
+  };
+
+  const convertToGallery = () => {
+    const { selection } = editor.state;
+    if (!selection || !("node" in selection)) return;
+
+    const node = selection.node as PMNode;
+    const pos = selection.from;
+
+    // Create gallery image from the dreamImage
+    const galleryImage = {
+      src: node.attrs.src,
+      alt: node.attrs.alt,
+      fileId: node.attrs.fileId,
+    };
+
+    // Delete the dreamImage and insert a gallery with this image
     editor
       .chain()
       .focus()
-      .updateAttributes("dreamImage", {
-        width: "100%",
-        height: "auto",
-        viewMode: "expanded",
+      .deleteSelection()
+      .insertContentAt(pos, {
+        type: "dreamGallery",
+        attrs: {
+          images: [galleryImage],
+          layout: "grid",
+        },
       })
       .run();
   };
 
-  const setViewMode = (mode: "inline" | "minimal" | "expanded") => {
-    const attrs: any = { viewMode: mode };
-
-    // Reset or set default widths based on mode
-    if (mode === "expanded") {
-      attrs.width = "100%";
-    } else if (mode === "inline") {
-      // Default to 50% for inline mode to allow side-by-side
-      attrs.width = "50%";
-    }
-
-    editor.chain().focus().updateAttributes("dreamImage", attrs).run();
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = src;
+    link.download = "image";
+    link.target = "_blank";
+    link.click();
   };
-
-  const wrapInGallery = () => {
-    // If the selection is a NodeSelection of a dreamImage, wrap it in a gallery.
-    // If it's a multiple node selection (unlikely with just one image focused), we might want to wrap all.
-    // Tiptap's wrapIn command works on the current selection.
-    // However, wrapIn expects a block content. dreamGallery expects dreamImage+.
-    // Since dreamImage is a block, this should work.
-    editor.chain().focus().setDreamGallery().run();
-  };
-
-  const currentMode = editor.getAttributes("dreamImage").viewMode || "expanded";
-  const currentSrc = editor.getAttributes("dreamImage").src;
 
   return (
     <Group gap={0}>
-      <div className={bubbleStyles.buttonGroup}>
-        <Tooltip label="Inline View (Left)">
-          {/* Wrap in div to avoid PaperIcon ref issues if any */}
-          <div>
-            <PaperIcon
-              aria-label="Select inline view mode"
-              onClick={() => setViewMode("inline")}
-              className={currentMode === "inline" ? styles.filledIcon : ""}
-            >
-              <Cards weight="bold" />
-            </PaperIcon>
-          </div>
-        </Tooltip>
-        <Tooltip label="Minimal View (Centered)">
-          <div>
-            <PaperIcon
-              onClick={() => setViewMode("minimal")}
-              aria-label="Minimal View (Just Image)"
-              className={currentMode === "minimal" ? styles.filledIcon : ""}
-            >
-              <Rows weight="bold" />
-            </PaperIcon>
-          </div>
-        </Tooltip>
-        <Tooltip label="Expanded View (Full)">
-          <div>
-            <PaperIcon
-              onClick={() => setViewMode("expanded")}
-              aria-label="Expanded View (Full)"
-              className={currentMode === "expanded" ? styles.filledIcon : ""}
-            >
-              <CornersOut weight="bold" />
-            </PaperIcon>
-          </div>
-        </Tooltip>
-      </div>
-      <div className={bubbleStyles.buttonGroup}>
-        <Tooltip label="Restore size to default">
-          <PaperIcon aria-label="Restore size to default" onClick={restoreSizeToDefault}>
-            <ResizeIcon />
-          </PaperIcon>
-        </Tooltip>
-        <Tooltip label="Download image">
-          <PaperIcon
-            aria-label="Download image"
+      <div className={buttonGroup}>
+        <Tooltip label="Convert to Gallery">
+          <button
+            {...getButtonProps({ isActive: false })}
             onClick={() => {
-              const link = document.createElement("a");
-              link.href = currentSrc;
-              link.download = "image";
-              link.target = "_blank";
-              link.click();
+              convertToGallery();
             }}
           >
-            <DownloadSimple />
-          </PaperIcon>
+            <ImagesSquareIcon />
+          </button>
+        </Tooltip>
+      </div>
+
+      <div className={buttonGroup}>
+        <Tooltip label="Download">
+          <button
+            {...getButtonProps({ isActive: false })}
+            onClick={() => {
+              handleDownload();
+            }}
+          >
+            <DownloadSimpleIcon />
+          </button>
         </Tooltip>
         <Tooltip label="Open in new tab">
-          <PaperIcon aria-label="Open in new tab" onClick={() => window.open(currentSrc, "_blank")}>
-            <ArrowSquareOut />
-          </PaperIcon>
-        </Tooltip>
-      </div>
-      <div className={bubbleStyles.buttonGroup}>
-        <Tooltip label="Wrap in Gallery">
-          <PaperIcon aria-label="Wrap in Gallery" onClick={wrapInGallery}>
-            <ImagesIcon />
-          </PaperIcon>
-        </Tooltip>
-      </div>
-      <div className={bubbleStyles.buttonGroup}>
-        <Tooltip label="Remove this image">
-          <PaperIcon
-            aria-label="Remove this image"
-            onClick={deleteSelectedNode}
-            className={styles.redIcon}
+          <button
+            {...getButtonProps({ isActive: false })}
+            onClick={() => window.open(src, "_blank")}
           >
+            <ArrowSquareOutIcon />
+          </button>
+        </Tooltip>
+      </div>
+
+      <div className={buttonGroup}>
+        <Tooltip label="Remove">
+          <button {...getButtonProps({ isActive: false })} onClick={handleRemove}>
             <TrashIcon />
-          </PaperIcon>
+          </button>
         </Tooltip>
       </div>
     </Group>

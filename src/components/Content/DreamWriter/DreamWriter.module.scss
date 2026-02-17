@@ -2,13 +2,14 @@
   height: fit-content;
   position: relative;
   border: 1px solid transparent;
-  border-radius: var(--mantine-radius-md);
   transition: all 0.3s ease;
+  cursor: not-allowed;
+  border-radius: var(--mantine-radius-sm);
+  border-top-right-radius: var(--mantine-radius-md);
+  border-bottom-right-radius: var(--mantine-radius-md);
+  border-left: .5px solid var(--mantine-color-dark-5);
   background-color: var(--mantine-color-dark-8);
-  border-radius: var(--mantine-radius-lg);
-  border: 1px solid var(--mantine-color-dark-7);
-  padding: 0 var(--mantine-spacing-md);
-  color: var(--mantine-color-dark-2);
+  padding-left: 8px;
 
   &.synced {
     background-color: transparent;
@@ -16,6 +17,7 @@
     border: none;
     padding: 0;
     color: var(--mantine-color-dark-1);
+    cursor: text;
   }
 
   &.connected {

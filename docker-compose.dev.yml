@@ -1,22 +1,36 @@
-version: "3.9"
-
 services:
-  web:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: builder
-    volumes:
-      - .:/project # Changed from /app to /project to match your Dockerfile WORKDIR
-      - /project/node_modules # Changed from /app/node_modules
+  backend:
+    image: oven/bun:1.3
+    working_dir: /usr/src/app
     env_file:
       - ./.env
-    depends_on:
-      - surrealdb
-    ports:
-      - $PORT:$PORT
-    networks:
-      - app
     environment:
       - NODE_ENV=development
-    command: sh -c "bun install && bun run server:watch"
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      # 1. Mount the entire root directory
+      - .:/usr/src/app
+      # 2. Prevent host node_modules from overwriting container node_modules
+      - /usr/src/app/node_modules
+    networks:
+      - app
+    depends_on:
+      - surrealdb
+    command: sh -c "bun install --frozen-lockfile && bun run dev:server"
+
+  frontend:
+    image: oven/bun:1.3
+    working_dir: /usr/src/app
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "5173:5173"
+    volumes:
+      # 1. Mount the entire root directory
+      - .:/usr/src/app
+      # 2. Prevent host node_modules from overwriting container node_modules
+      - /usr/src/app/node_modules
+    networks:
+      - app
+    command: sh -c "bun install --frozen-lockfile && bun run dev:client"

@@ -33,6 +33,7 @@ import { CheckIcon, TrashSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { RefObject, useEffect, useState } from "react";
 import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
 import { flip, shift } from "@floating-ui/react";
+import { DreamGalleryMenu } from "./nodes/DreamGallery";
 
 interface IBubbleMenuProps {
   editor: IEditor | null;
@@ -40,8 +41,16 @@ interface IBubbleMenuProps {
   boundaryRef?: RefObject<HTMLElement | null> | null;
 }
 
+export interface ISubMenuProps {
+  editor: IEditor;
+  classes: {
+    group: string;
+  };
+}
+
 export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: IBubbleMenuProps) {
   const isImage = editor?.isActive("dreamImage");
+  const isImageGallery = editor?.isActive("dreamGallery");
   const isDreamFile = editor?.isActive("dreamFile");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
   const isInlineMath = editor?.isActive("inlineMath");
@@ -63,21 +72,23 @@ export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: 
     const { selection } = state;
     const { $from, from, to } = selection;
 
-    // Don't show for empty documents.
     if (state.doc.content.size === 0) {
       onVisibilityChange?.(false);
       return false;
     }
 
-    // Condition 1: A range of text is selected.
     const isTextSelected = from !== to;
 
-    // Condition 2: A specific node with a menu is selected.
     const isNodeSelected =
       selection instanceof NodeSelection &&
-      ["dreamImage", "dreamFile", "inlineMath", "blockMath", "dreamYouTube"].includes(
-        selection.node.type.name
-      );
+      [
+        "dreamImage",
+        "dreamGallery",
+        "dreamFile",
+        "inlineMath",
+        "blockMath",
+        "dreamYouTube",
+      ].includes(selection.node.type.name);
 
     const shouldBeVisible = isTextSelected || isNodeSelected;
 
@@ -116,37 +127,72 @@ export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: 
   if (isImage) {
     return (
       <BMenu {...menuProps}>
-        <DreamImageMenu editor={editor} />
+        <DreamImageMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
       </BMenu>
     );
   }
-
+  if (isImageGallery) {
+    return (
+      <BMenu {...menuProps}>
+        <DreamGalleryMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
+      </BMenu>
+    );
+  }
   if (isDreamFile) {
     return (
       <BMenu {...menuProps}>
-        <DreamFileMenu editor={editor} />
+        <DreamFileMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
       </BMenu>
     );
   }
-
   if (isInlineMath) {
     return (
       <BMenu {...menuProps}>
-        <InlineMathMenu editor={editor} />
+        <InlineMathMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
       </BMenu>
     );
   }
   if (isBlockMath) {
     return (
       <BMenu {...menuProps}>
-        <BlockMathMenu editor={editor} />
+        <BlockMathMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
       </BMenu>
     );
   }
   if (isDreamYouTube) {
     return (
       <BMenu {...menuProps}>
-        <DreamYouTubeMenu editor={editor} />
+        <DreamYouTubeMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
       </BMenu>
     );
   }
@@ -187,7 +233,7 @@ export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: 
   );
 }
 
-const InlineMathMenu = ({ editor }: { editor: IEditor }) => {
+const InlineMathMenu = ({ editor }: ISubMenuProps) => {
   const isMathNode = editor.isActive("inlineMath");
 
   const getLatex = () => {
@@ -253,7 +299,7 @@ const InlineMathMenu = ({ editor }: { editor: IEditor }) => {
   );
 };
 
-const BlockMathMenu = ({ editor }: { editor: IEditor }) => {
+const BlockMathMenu = ({ editor }: ISubMenuProps) => {
   const isMathNode = editor.isActive("blockMath");
 
   const getLatex = () => {

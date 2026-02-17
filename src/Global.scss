@@ -1,5 +1,5 @@
 @use "./styles/mixins.scss" as *;
-@import "styles/z-index";
+@use "./styles/z-index" as *;
 
 // Global variable definitions for layout and structure
 :root {
@@ -235,7 +235,7 @@ td {
 }
 
 .mantine-Menu-dropdown {
-  z-index: var(--z-index-context-menu);
+  z-index: var(--z-index-menu);
 
   animation: popoverIn 0.2s ease-in-out forwards;
 

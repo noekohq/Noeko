@@ -1,8 +1,29 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    dreamImage: {
+      /**
+       * Add a dream image
+       */
+      setDreamImage: (options: {
+        src: string;
+        alt?: string;
+        title?: string;
+        width?: string | number;
+        height?: string | number;
+        fileId?: string;
+        viewMode?: IViewMode;
+      }) => ReturnType;
+    };
+  }
+}
+
 export interface IDreamImageOptions {
   HTMLAttributes: Record<string, any>;
 }
+
+export type IViewMode = "minimal" | "expanded";
 
 export const DreamImageSchema = Node.create<IDreamImageOptions>({
   name: "dreamImage",
@@ -62,19 +83,15 @@ export const DreamImageSchema = Node.create<IDreamImageOptions>({
         },
       },
       viewMode: {
-        default: "expanded",
+        default: "expanded" as IViewMode,
         parseHTML: (element) => element.getAttribute("data-view-mode") || "expanded",
         renderHTML: (attributes) => ({
           "data-view-mode": attributes.viewMode,
         }),
       },
-      uploading: {
-        default: false,
-        renderHTML: (attributes) => {
-          if (!attributes.uploading) return {};
-          return { "data-uploading": "true" };
-        },
-      },
+      uploading: { default: false },
+      progress: { default: 0 },
+      error: { default: null },
     };
   },
 

@@ -2,11 +2,18 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { v4 as uuidv4 } from "uuid";
 import path from "node:path";
 import { User } from "./user";
-import { deleteFromS3, downloadLinkS3, getStreamS3, writeToS3 } from "../../utils/aws/s3";
+import {
+  deleteFromS3,
+  downloadLinkS3,
+  getStreamS3,
+  streamToS3,
+  writeToS3,
+} from "../../utils/aws/s3";
 import { getDatabase } from "../db";
 import { Response } from "express";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import Source, { ISource } from "./source";
+import { Readable } from "node:stream";
 
 export type IUserFile = {
   id: RecordId;
@@ -147,6 +154,49 @@ export class UserFile {
     } catch (error) {
       console.error(error);
       return false;
+    }
+  }
+
+  static async streamCreate(
+    userId: string | RecordId,
+    fileStream: Readable,
+    fileName: string,
+    mimeType: string
+  ) {
+    try {
+      const userExists = await User.get(userId);
+      if (!userExists) throw new Error("User not found");
+
+      const key = constructS3Key(userExists.id.toString(), fileName);
+
+      const uploaded = await streamToS3(key, fileStream, { type: mimeType });
+
+      if (!uploaded || !uploaded.completed) {
+        throw new Error("Failed to stream upload file to S3");
+      }
+
+      const db = await getDatabase();
+      if (!db) {
+        throw new Error("Database not available!");
+      }
+      const result = await db.create("user_file", {
+        s3key: key,
+        originalFileName: fileName,
+        sizeBytes: uploaded.written,
+        mimeType: mimeType,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const [userFile] = result;
+      await UserFile.connectToUser(userFile.id, userExists.id);
+      return userFile;
+    } catch (err) {
+      console.error("Stream Create Error:", err);
+      // Important: if S3 fails, we should still consume/destroy
+      // the stream so the request doesn't hang.
+      fileStream.resume();
+      return undefined;
     }
   }
 
