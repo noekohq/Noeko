@@ -108,6 +108,19 @@
     }
   }
 
+  &.error {
+    border-color: var(--mantine-color-red-9);
+
+    &:hover {
+      background-color: var(--mantine-color-red-light);
+      border-color: var(--mantine-color-red-8);
+    }
+
+    .title {
+      color: var(--mantine-color-red-6);
+    }
+  }
+
   .iconDragZone {
     display: flex;
     align-items: center;

@@ -100,6 +100,7 @@ export function getThingPropsFromRabbithole(
     preview: overrides?.preview,
     createdAt: rabbithole.createdAt.toString(),
     updatedAt: rabbithole.updatedAt.toString(),
+    ...overrides,
   };
 }
 
@@ -123,6 +124,7 @@ export function getThingPropsFromAcceleratorItem(
     preview,
     createdAt,
     updatedAt,
+    ...overrides,
   } satisfies IPaperThingProps;
 }
 

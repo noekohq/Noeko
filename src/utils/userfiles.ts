@@ -4,7 +4,7 @@ import { triggerDownload } from "./helpers";
 import { IUserFile } from "../../app/database/models/userfile";
 import { AxiosProgressEvent, isCancel } from "axios";
 
-interface UploadCallbacks {
+export interface UploadCallbacks {
   onProgress?: (percent: number) => void;
   onSuccess?: (data: any) => void;
   onError?: (error: string) => void;
@@ -41,7 +41,8 @@ export const uploadFileSmart = async (file: File, callbacks: UploadCallbacks) =>
 
   try {
     const response = await api.post("files", formData, {
-      signal: controller.signal, // Link controller to axios
+      signal: controller.signal,
+      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
         resetStallTimer();
 
         const percent = Math.round(

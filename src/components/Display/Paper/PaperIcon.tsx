@@ -2,9 +2,9 @@ import { MantineSize } from "@mantine/core";
 import styles from "./PaperIcon.module.scss";
 
 interface IPaperIconProps {
-  children: React.ReactNode; // The <Icon /> component
+  children: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  "aria-label": string; // Required for accessibility
+  "aria-label": string;
   tabIndex?: number;
   withBorder?: boolean;
   disabled?: boolean;

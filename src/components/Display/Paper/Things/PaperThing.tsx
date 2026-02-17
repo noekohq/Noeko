@@ -16,7 +16,7 @@ import { PaperContextMenu } from "../PaperContextMenu";
 import { useLandscape } from "../../../../contexts/LandscapeContext";
 import { IThing } from "./things";
 
-export type IPaperThingState = "default" | "suggested";
+export type IPaperThingState = "default" | "suggested" | "error";
 
 export interface IPaperThingProps extends IThing {
   state?: IPaperThingState;
@@ -39,6 +39,7 @@ export default function PaperThing({
   preview,
   draggable = false,
   thumbnail,
+  menuItems,
 }: IPaperThingProps) {
   const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
@@ -148,6 +149,7 @@ export default function PaperThing({
                   size={16}
                   weight={state === "suggested" ? "regular" : "bold"}
                   className={styles.mainIcon}
+                  color={state === "error" ? "var(--mantine-color-red-6)" : undefined}
                 />
               ) : (
                 // Fallback handle if no icon exists
@@ -160,7 +162,12 @@ export default function PaperThing({
                 <Text className={styles.title} truncate="end" title={title}>
                   {title?.trim() || "Untitled"}
                 </Text>
-                <Text className={styles.detail} truncate="end" title={detail?.toString() || ""}>
+                <Text
+                  className={styles.detail}
+                  truncate="end"
+                  title={detail?.toString() || ""}
+                  c={state === "error" ? "red" : undefined}
+                >
                   {detail}
                 </Text>
                 {artifacts?.length &&
@@ -198,6 +205,7 @@ export default function PaperThing({
             {title}
           </PaperContextMenu.Detail>
           <PaperContextMenu.Label>Actions</PaperContextMenu.Label>
+          {menuItems}
           {link && (
             <>
               <PaperContextMenu.Item

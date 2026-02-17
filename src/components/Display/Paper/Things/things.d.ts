@@ -12,6 +12,7 @@ export type IThing = {
   draggable?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  menuItems?: React.ReactNode;
 
   action?: {
     icon: React.FC<IconProps>;
