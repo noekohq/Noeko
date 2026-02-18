@@ -27,6 +27,7 @@ import {
   ISemanticExcerptResult,
 } from "../../shared/types/search";
 import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
+import { logger } from "./Logger";
 
 export class Search {
   public static readonly COMPREHENSIVE_WEIGHTS = {
@@ -442,6 +443,7 @@ export class Search {
       if (!db) throw new Error("Database not initialized for Search.up");
 
       // ** Ideas **
+      logger.debug("Running idea indexes");
       await db.query(ideaSearchAnalyzer());
       await db.query(ftsIdeaTitleSearchIndex());
       await db.query(ftsIdeaContentSearchIndex());
@@ -449,6 +451,7 @@ export class Search {
       await db.query(ftsSearchIdeasFunction());
 
       // ** Tasks **
+      logger.debug("Running task indexes");
       await db.query(taskSearchAnalyzer());
       await db.query(defineTaskVectorIndex());
       await db.query(ftsTaskDescriptionSearchIndex());
@@ -456,6 +459,7 @@ export class Search {
       await db.query(ftsSearchTasksFunction());
 
       // ** Excerpts **
+      logger.debug("Running excerpt indexes");
       await db.query(excerptSearchAnalyzer());
       await db.query(defineExcerptVectorIndex());
       await db.query(ftsExcerptNoteSearchIndex());
@@ -463,6 +467,7 @@ export class Search {
       await db.query(ftsSearchExcerptsFunction());
 
       // ** Sources **
+      logger.debug("Running source indexes");
       await db.query(sourceSearchAnalyzer());
       await db.query(defineSourceVectorIndex());
       await db.query(ftsSourceDisplayNameSearchIndex());
@@ -470,6 +475,7 @@ export class Search {
       await db.query(ftsSearchSourcesFunction());
 
       // ** Tags **
+      logger.debug("Running tag indexes");
       await db.query(tagSearchAnalyzer());
       await db.query(ftsTagNameSearchIndex());
       await db.query(ftsTagDescriptionSearchIndex());
@@ -477,6 +483,7 @@ export class Search {
       await db.query(ftsSearchTagsFunction());
 
       // ** Rabbitholes **
+      logger.debug("Running rabbithole indexes");
       await db.query(rabbitholeSearchAnalyzer());
       await db.query(ftsRabbitholeSearchIndex());
       await db.query(defineRabbitholeVectorIndex());
