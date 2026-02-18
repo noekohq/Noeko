@@ -161,10 +161,11 @@ export class Search {
       `;
     };
 
+    const removeftsIdeaContentSearchIndex = () => {
+      return `REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;`;
+    };
     const ftsIdeaContentSearchIndex = () => {
       return `
-      REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;
-
       DEFINE INDEX IF NOT EXISTS idx_idea_content_fts
         ON TABLE idea
         FIELDS contentPlain
@@ -449,6 +450,7 @@ export class Search {
       await db.query(ftsIdeaTitleSearchIndex());
       logger.debug("FINISHED FTS IDEA TITLE");
       logger.debug("STARTING FTS IDEA CONTENT");
+      await db.query(removeftsIdeaContentSearchIndex());
       await db.query(ftsIdeaContentSearchIndex());
       logger.debug("FINISHED FTS IDEA CONTENT");
       logger.debug("STARTING VECTOR INDEX");
