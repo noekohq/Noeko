@@ -445,77 +445,42 @@ export class Search {
       if (!db) throw new Error("Database not initialized for Search.up");
 
       // ** Ideas **
-      logger.debug("Running idea indexes");
       await db.query(ideaSearchAnalyzer());
-      logger.debug("STARTING FTS IDEA TITLE");
       await db.query(ftsIdeaTitleSearchIndex());
-      logger.debug("FINISHED FTS IDEA TITLE");
-      logger.debug("STARTING REMOVE FTS IDEA CONTENT");
       await db.query(removeftsIdeaContentSearchIndex());
-      logger.debug("STARTING FTS IDEA CONTENT");
       await db.query(ftsIdeaContentSearchIndex());
-      logger.debug("FINISHED FTS IDEA CONTENT");
-      logger.debug("STARTING VECTOR INDEX");
       await db.query(defineVectorIndex());
-      logger.debug("FINISHED VECTOR INDEX");
-      logger.debug("STARTING FTS SEARCH IDEAS FUNCTION");
       await db.query(ftsSearchIdeasFunction());
-      logger.debug("FINISHED FTS SEARCH IDEAS FUNCTION");
 
       // ** Tasks **
-      logger.debug("Running task indexes");
       await db.query(taskSearchAnalyzer());
-      logger.debug("FINISHED TASK SEARCH ANALYZER");
       await db.query(defineTaskVectorIndex());
-      logger.debug("FINISHED TASK VECTOR INDEX");
       await db.query(ftsTaskDescriptionSearchIndex());
-      logger.debug("FINISHED TASK DESCRIPTION SEARCH INDEX");
       await db.query(ftsTaskScratchpadSearchIndex());
-      logger.debug("FINISHED TASK SCRATCHPAD SEARCH INDEX");
       await db.query(ftsSearchTasksFunction());
-      logger.debug("FINISHED TASK SEARCH FUNCTION");
 
       // ** Excerpts **
-      logger.debug("Running excerpt indexes");
       await db.query(excerptSearchAnalyzer());
-      logger.debug("FINISHED EXCERPT SEARCH ANALYZER");
       await db.query(defineExcerptVectorIndex());
-      logger.debug("FINISHED EXCERPT VECTOR INDEX");
       await db.query(ftsExcerptNoteSearchIndex());
-      logger.debug("FINISHED EXCERPT NOTE SEARCH INDEX");
       await db.query(ftsExcerptSourceTextSearchIndex());
-      logger.debug("FINISHED EXCERPT SOURCE TEXT SEARCH INDEX");
       await db.query(ftsSearchExcerptsFunction());
-      logger.debug("FINISHED EXCERPT SEARCH FUNCTION");
 
       // ** Sources **
-      logger.debug("Running source indexes");
       await db.query(sourceSearchAnalyzer());
-      logger.debug("FINISHED SOURCE SEARCH ANALYZER");
       await db.query(defineSourceVectorIndex());
-      logger.debug("FINISHED SOURCE VECTOR INDEX");
       await db.query(ftsSourceDisplayNameSearchIndex());
-      logger.debug("FINISHED SOURCE DISPLAY NAME SEARCH INDEX");
       await db.query(ftsSourceContentSearchIndex());
-      logger.debug("FINISHED SOURCE CONTENT SEARCH INDEX");
       await db.query(ftsSearchSourcesFunction());
-      logger.debug("FINISHED SOURCE SEARCH FUNCTION");
 
       // ** Tags **
-      logger.debug("Running tag indexes");
       await db.query(tagSearchAnalyzer());
-      logger.debug("FINISHED TAG SEARCH ANALYZER");
       await db.query(ftsTagNameSearchIndex());
-      logger.debug("FINISHED TAG NAME SEARCH INDEX");
       await db.query(ftsTagDescriptionSearchIndex());
-      logger.debug("FINISHED TAG DESCRIPTION SEARCH INDEX");
       await db.query(defineTagVectorIndex());
-      logger.debug("FINISHED TAG VECTOR INDEX");
       await db.query(ftsSearchTagsFunction());
-      logger.debug("FINISHED TAG SEARCH FUNCTION");
 
       // ** Rabbitholes **
-      logger.debug("Running rabbithole indexes");
       await db.query(rabbitholeSearchAnalyzer());
       await db.query(ftsRabbitholeSearchIndex());
       await db.query(defineRabbitholeVectorIndex());
