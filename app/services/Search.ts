@@ -449,8 +449,9 @@ export class Search {
       logger.debug("STARTING FTS IDEA TITLE");
       await db.query(ftsIdeaTitleSearchIndex());
       logger.debug("FINISHED FTS IDEA TITLE");
-      logger.debug("STARTING FTS IDEA CONTENT");
+      logger.debug("STARTING REMOVE FTS IDEA CONTENT");
       await db.query(removeftsIdeaContentSearchIndex());
+      logger.debug("STARTING FTS IDEA CONTENT");
       await db.query(ftsIdeaContentSearchIndex());
       logger.debug("FINISHED FTS IDEA CONTENT");
       logger.debug("STARTING VECTOR INDEX");
