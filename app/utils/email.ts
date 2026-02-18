@@ -1,29 +1,10 @@
-import { ISafeUser } from "../../shared/types/user";
-import { mailbaby, MailBabyService } from "./mailbaby";
+import { ResendService } from "./resend";
 
 const { EMAIL_FROM } = process.env;
 
 if (!EMAIL_FROM) throw Error("EMAIL_FROM is not defined");
 
-export const sendEmailAPI = async (to: string, subject: string, body: string) => {
-  try {
-    const response = await mailbaby.post("/mail/send", {
-      to,
-      from: EMAIL_FROM,
-      subject,
-      body,
-    });
-
-    const { data } = response;
-
-    return true;
-  } catch (err) {
-    console.error("Error sending email: ", err);
-    return false;
-  }
-};
-
-export const sendEmailService = new MailBabyService();
+export const sendEmailService = new ResendService();
 
 export const sendEmail = async (
   to: string,
@@ -39,18 +20,19 @@ export const sendEmail = async (
       throw new Error("Mail service is not connected");
     }
 
-    const response = await sendEmailService.transporter.sendMail({
-      to,
-      from: options?.from || EMAIL_FROM,
-      subject,
-      html: body,
-    });
-
-    const { data } = response;
+    await sendEmailService.sendEmail(to, subject, body, options);
 
     return true;
   } catch (err) {
     console.error("Error sending email: ", err);
     return false;
   }
+};
+
+/**
+ * Legacy API wrapper for sending emails.
+ * Now integrated with Resend for consistency across the app.
+ */
+export const sendEmailAPI = async (to: string, subject: string, body: string) => {
+  return sendEmail(to, subject, body);
 };

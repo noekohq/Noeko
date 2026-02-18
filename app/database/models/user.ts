@@ -202,7 +202,7 @@ export class User {
   static async down() {
     try {
       const db = await getDatabase();
-      await db?.query(`DROP TABLE IF EXISTS user`);
+      // await db?.query(`DROP TABLE IF EXISTS user`);
     } catch (error) {
       console.error("Error dropping user table:", error);
       throw error;
@@ -496,8 +496,8 @@ export class User {
     sender: ISafeUser
   ) {
     try {
-      const invitation = invitationTemplate(to, sender);
-      const worked = await sendEmail(to.email, "Invitation to join Noeko", invitation, {
+      const { subject, html } = await invitationTemplate(to, sender);
+      const worked = await sendEmail(to.email, subject, html, {
         from: "team",
       });
       return worked;
@@ -841,8 +841,8 @@ export class User {
 
   static async sendPasswordResetEmail(user: ISafeUser, resetToken: string): Promise<boolean> {
     try {
-      const emailContent = passwordResetTemplate(user, resetToken);
-      const success = await sendEmail(user.email, "Reset Your Noeko Password", emailContent);
+      const { subject, html } = await passwordResetTemplate(user, resetToken);
+      const success = await sendEmail(user.email, subject, html);
       return success;
     } catch (error) {
       console.error("Error sending password reset email:", error);
