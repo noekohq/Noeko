@@ -170,7 +170,8 @@ export class Search {
         ON TABLE idea
         FIELDS contentPlain
         SEARCH ANALYZER idea_analyzer
-        BM25 HIGHLIGHTS;
+        BM25 HIGHLIGHTS
+        CONCURRENTLY;
       `;
     };
 
@@ -450,7 +451,7 @@ export class Search {
       await db.query(ftsIdeaTitleSearchIndex());
       logger.debug("FINISHED FTS IDEA TITLE");
       logger.debug("STARTING REMOVE FTS IDEA CONTENT");
-      // await db.query(removeftsIdeaContentSearchIndex());
+      await db.query(removeftsIdeaContentSearchIndex());
       logger.debug("STARTING FTS IDEA CONTENT");
       await db.query(ftsIdeaContentSearchIndex());
       logger.debug("FINISHED FTS IDEA CONTENT");
