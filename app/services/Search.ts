@@ -27,6 +27,7 @@ import {
   ISemanticExcerptResult,
 } from "../../shared/types/search";
 import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
+import { logger } from "./Logger";
 
 export class Search {
   public static readonly COMPREHENSIVE_WEIGHTS = {
@@ -160,15 +161,17 @@ export class Search {
       `;
     };
 
+    const removeftsIdeaContentSearchIndex = () => {
+      return `REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;`;
+    };
     const ftsIdeaContentSearchIndex = () => {
       return `
-      REMOVE INDEX IF EXISTS idx_idea_content_fts ON TABLE idea;
-
       DEFINE INDEX IF NOT EXISTS idx_idea_content_fts
         ON TABLE idea
         FIELDS contentPlain
         SEARCH ANALYZER idea_analyzer
-        BM25 HIGHLIGHTS;
+        BM25 HIGHLIGHTS
+        CONCURRENTLY;
       `;
     };
 
@@ -444,6 +447,7 @@ export class Search {
       // ** Ideas **
       await db.query(ideaSearchAnalyzer());
       await db.query(ftsIdeaTitleSearchIndex());
+      await db.query(removeftsIdeaContentSearchIndex());
       await db.query(ftsIdeaContentSearchIndex());
       await db.query(defineVectorIndex());
       await db.query(ftsSearchIdeasFunction());

@@ -632,6 +632,50 @@ router.post("/invite", checkToken, disallowDisabled, checkIsSuperuser, async (re
   }
 });
 
+router.get("/export/csv", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
+  try {
+    const users = await User.getAll();
+    if (!users) {
+      res.status(404).json({ message: "No users found" });
+      return;
+    }
+
+    const headers = [
+      "ID",
+      "First Name",
+      "Last Name",
+      "Email",
+      "Created At",
+      "Disabled",
+      "Referral Code",
+      "Num Ideas",
+    ];
+
+    const rows = users.map((user: any) => [
+      user.id,
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.createdAt,
+      user.disabled,
+      user.referralCode || "",
+      user.numIdeas || 0,
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", 'attachment; filename="users-export.csv"');
+    res.status(200).send(csvContent);
+  } catch (error) {
+    console.error("User CSV export error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 router.get("/", checkToken, disallowDisabled, checkIsSuperuser, async (req, res) => {
   try {
     const users = await User.getAll();
