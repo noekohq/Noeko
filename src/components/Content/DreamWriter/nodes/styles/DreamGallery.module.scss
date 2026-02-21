@@ -1,16 +1,196 @@
-.dreamGallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--mantine-spacing-xs);
-  width: 100%;
-  margin: var(--mantine-spacing-md) 0;
-
-  /* Ensure gallery has layout even when dragging items */
+/* --- Gallery Wrapper --- */
+.galleryWrapper {
+  position: relative;
+  margin: 1.5rem 0;
+  border-radius: var(--mantine-radius-md);
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  background-color: var(--mantine-color-dark-8);
   min-height: 100px;
-  border: 1px dashed transparent;
-  transition: border 0.2s ease;
+  overflow: hidden; /* Added to keep dropZone contained cleanly */
+
+  &.selected,
+  &:focus-within {
+    border-color: var(--mantine-primary-color-filled);
+    box-shadow: 0 0 0 2px rgba(var(--mantine-primary-color-rgb), 0.2);
+  }
 
   &:hover {
-    border-color: var(--mantine-color-dark-4);
+    border-color: var(--mantine-color-dark-5);
+  }
+
+  /* --- Layout Modes --- */
+  &[data-layout="grid"] .content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--mantine-spacing-xs);
+
+    .imageItem {
+      width: 100%;
+      aspect-ratio: 1;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+
+  &[data-layout="masonry"] .content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mantine-spacing-xs);
+    align-items: flex-start;
+
+    .imageItem {
+      flex: 1 1 300px;
+      width: auto;
+      max-width: 100%;
+
+      img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+      }
+    }
+  }
+
+  &[data-layout="filmstrip"] .content {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--mantine-spacing-xs);
+    overflow-x: auto;
+    padding-bottom: var(--mantine-spacing-xs);
+    scroll-snap-type: x mandatory;
+
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--mantine-color-gray-4);
+      border-radius: 3px;
+    }
+
+    .imageItem {
+      flex: 0 0 auto;
+      width: 250px;
+      scroll-snap-align: start;
+
+      img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+    }
   }
 }
+
+/* --- States & Content --- */
+.dropZone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  border: 2px dashed var(--mantine-primary-color-filled);
+  border-radius: var(--mantine-radius-md);
+  z-index: 20;
+}
+
+.statusOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--mantine-color-dark-1), transparent 60%);
+  backdrop-filter: blur(4px);
+  z-index: 30;
+  border-radius: var(--mantine-radius-md);
+
+  &.errorOverlay {
+    background-color: color-mix(in srgb, var(--mantine-color-red-7), transparent 50%) !important;
+  }
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  width: 100%;
+}
+
+.content {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* --- Image Items --- */
+.imageItem {
+  position: relative;
+  margin: 0;
+
+  img {
+    border-radius: var(--mantine-radius-sm);
+  }
+
+  .removeButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover .removeButton,
+  :global(.selected) & .removeButton {
+    opacity: 1;
+  }
+}
+
+.clickableImage {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.imageSelected {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px; /* Set to negative so it doesn't mess with alignment/spacing */
+  border-radius: var(--mantine-radius-sm);
+}
+
+/* --- Floating Image Menu --- */
+.imageMenu {
+  pointer-events: auto;
+}
+
+.imageMenuContent {
+  background: var(--mantine-color-dark-7);
+  padding: 8px 12px;
+  border-radius: var(--mantine-radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--mantine-color-dark-5);
+}
+
+.redIcon {
+  color: var(--mantine-color-red-6);
+
+  &:hover {
+    color: var(--mantine-color-red-7);
+  }
+}
+
+

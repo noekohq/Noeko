@@ -9,6 +9,8 @@ import { StringRecordId } from "surrealdb";
 process.env.GEMINI_API_KEY = "mock-api-key";
 process.env.GCP_PROJECT_ID = "";
 process.env.TOKEN_SECRET = "test-secret";
+process.env.RESEND_API_KEY = "re-mock-key";
+process.env.EMAIL_FROM = "test@example.com";
 
 // Global mocks
 vi.mock("../app/utils/crypto", () => ({
@@ -27,24 +29,26 @@ vi.mock("../app/utils/crypto", () => ({
 }));
 
 vi.mock("../app/emails/types", () => ({
-  invitationTemplate: vi.fn(() => ({ subject: "Test", html: "<p>Test</p>", text: "Test" })),
-  passwordResetTemplate: vi.fn(() => ({ subject: "Reset", html: "<p>Reset</p>", text: "Reset" })),
+  invitationTemplate: vi.fn(async () => ({ subject: "Test", html: "<p>Test</p>", text: "Test" })),
+  passwordResetTemplate: vi.fn(async () => ({
+    subject: "Reset",
+    html: "<p>Reset</p>",
+    text: "Reset",
+  })),
 }));
 
-mock.module("../app/utils/mailbaby", () => ({
-  mailbaby: {
-    post: () => Promise.resolve({ data: {} }),
-    defaults: { headers: { common: {} } },
+mock.module("../app/utils/resend", () => ({
+  resend: {
+    emails: {
+      send: () => Promise.resolve({ data: { id: "mock-id" }, error: null }),
+    },
   },
-  MailBabyService: class {
+  ResendService: class {
     async verifyConnection() {
       return true;
     }
-    get transporter() {
-      return {
-        verify: () => Promise.resolve(true),
-        sendMail: () => Promise.resolve({ data: {} }),
-      };
+    async sendEmail() {
+      return { id: "mock-id" };
     }
   },
 }));

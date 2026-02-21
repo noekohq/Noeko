@@ -72,7 +72,7 @@ interface OptionProps {
 interface IGetButtonPropsArgs {
   isActive: boolean;
 }
-const getButtonProps = ({ isActive }: IGetButtonPropsArgs) => ({
+export const getButtonProps = ({ isActive }: IGetButtonPropsArgs) => ({
   className: `${styles.option} ${isActive ? styles.optionActive : ""}`,
 });
 

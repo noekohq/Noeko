@@ -13,59 +13,64 @@
   &[data-selected="true"] {
     outline: 2px solid var(--mantine-color-blue-filled);
     outline-offset: 2px;
-    background-color: transparent; /* Remove dark background */
+    background-color: transparent;
   }
 
   /* Expanded: Default behavior */
-  &[data-view-mode="expanded"] {
+  /* &[data-view-mode="expanded"] {
     width: 100%;
+
     .dreamImage {
       width: 100%;
       height: auto;
     }
-  }
+  } */
 
   /* Minimal: Centered */
-  &[data-view-mode="minimal"] {
+  /* &[data-view-mode="minimal"] {
     width: 100%;
+
     .dreamImage {
+      height: 10vh;
+      outline: 1px solid red;
       margin: 0 auto;
       display: block;
-      /* Allow resizing but default to centered behavior */
     }
-  }
+  } */
+}
 
-  /* Inline: Floated left or small aligned */
-  &[data-view-mode="inline"] {
-    display: inline-block;
-    float: left;
-    margin-right: var(--mantine-spacing-md);
-    margin-bottom: var(--mantine-spacing-xs);
+.statusOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--mantine-color-dark-1), transparent 60%);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  border-radius: var(--mantine-radius-sm);
 
-    .dreamImage {
-      width: 100%;
-      height: auto;
-    }
+  &.errorOverlay {
+    background-color: color-mix(in srgb, var(--mantine-color-red-7), transparent 50%) !important;
   }
 }
 
-/* When inside a gallery, override behavior */
 :global(.ProseMirror) :global([data-type="dreamGallery"]) .dreamImageWrapper {
-  /* Reset float and display for gallery items */
   float: none;
   display: block;
-  width: auto !important; /* Let flex/grid handle it, or use style width */
+  width: auto !important;
   margin: 0;
   padding: 0;
 
-  /* Ensure images in gallery are responsive */
   .dreamImage {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover;
   }
 
-  /* Hide resize handle inside gallery */
   .resizeHandle {
     display: none !important;
   }

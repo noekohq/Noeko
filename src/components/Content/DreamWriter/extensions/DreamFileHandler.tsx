@@ -2,12 +2,8 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Node as ProsemirrorNode } from "@tiptap/pm/model";
 import { Editor } from "@tiptap/react";
-import { api } from "../../../../server/api";
-import { IUserFile } from "../../../../../app/database/models/userfile";
-import { streamImageEndpoint } from "../../../../vars/files";
 import { linkFileToConnectable } from "../../../../utils/userfiles";
-
-type UploadResponse = IUserFile & {};
+import { uploadDreamFile, DreamUploadOptions } from "../lib/utils/fileUpload";
 
 export interface DreamFileHandlerOptions {
   allowedTypes?: string[];
@@ -43,6 +39,11 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
       allowedTypes: undefined,
       connectableId: "",
     };
+  },
+
+  onCreate() {
+    // Store the extension instance for use in plugins
+    (this as any).extensionInstance = this;
   },
 
   addProseMirrorPlugins() {
@@ -164,118 +165,6 @@ export const DreamFileHandler = Extension.create<DreamFileHandlerOptions>({
 });
 
 // --- Upload Handler ---
-
-export const handleFileUpload = (file: File, options: DreamFileHandlerOptions, editor: Editor) => {
-  if (options.allowedTypes && !options.allowedTypes.includes(file.type)) {
-    console.warn(`File type not allowed: ${file.type}`);
-    // Optional: show a notification instead of alert
-    return;
-  }
-
-  const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  const isImage = file.type.startsWith("image/");
-  let previewUrl = "";
-
-  if (isImage) {
-    previewUrl = URL.createObjectURL(file);
-    editor
-      .chain()
-      .focus()
-      .insertContent({
-        type: "dreamImage",
-        attrs: {
-          src: previewUrl,
-          alt: file.name,
-          title: file.name,
-          fileId: tempId,
-          viewMode: "expanded",
-          uploading: true,
-        },
-      })
-      .run();
-  } else {
-    editor
-      .chain()
-      .focus()
-      .insertContent({
-        type: "dreamFile",
-        attrs: {
-          fileId: tempId,
-          fileName: file.name,
-          fileType: file.type,
-          viewMode: "expanded",
-          uploading: true,
-        },
-      })
-      .run();
-  }
-
-  uploadFile(file, options.connectableId).then(async (response) => {
-    if (!response) {
-      console.error("Failed to upload file");
-      // Remove the temp node
-      editor.state.doc.descendants((node, pos) => {
-        if (node.attrs.fileId === tempId) {
-          editor.commands.deleteRange({ from: pos, to: pos + node.nodeSize });
-        }
-      });
-      return;
-    }
-
-    if (options.connectableId) {
-      await linkFileToConnectable(response.id.toString(), options.connectableId);
-    }
-
-    // Update the node with real data
-    // We need to find the node again because its position might have changed
-    // Use `state.doc.descendants` to find the position
-    let posToUpdate = -1;
-    editor.state.doc.descendants((node, pos) => {
-      if (node.attrs.fileId === tempId) {
-        posToUpdate = pos;
-        return false; // Stop iteration
-      }
-      return true;
-    });
-
-    if (posToUpdate > -1) {
-      if (isImage) {
-        editor
-          .chain()
-          .setNodeSelection(posToUpdate)
-          .updateAttributes("dreamImage", {
-            src: streamImageEndpoint(response),
-            fileId: response.id.toString(),
-            uploading: false,
-          })
-          .run();
-
-        // Revoke object URL to free memory
-        URL.revokeObjectURL(previewUrl);
-      } else {
-        editor
-          .chain()
-          .setNodeSelection(posToUpdate)
-          .updateAttributes("dreamFile", {
-            fileId: response.id.toString(),
-            fileName: response.originalFileName, // Ensure name is from server
-            uploading: false,
-          })
-          .run();
-      }
-    }
-  });
-};
-
-// Kept mainly for the API call structure
-export const uploadFile = async (file: File, connectableId?: string) => {
-  try {
-    const formData = new FormData();
-    formData.append("userFile", file);
-    const response = await api.post("/files", formData);
-    return response.data.data as UploadResponse;
-  } catch (error) {
-    console.error(error);
-    return undefined;
-  }
+export const handleFileUpload = (file: File, options: DreamUploadOptions, editor: Editor) => {
+  uploadDreamFile(file, editor, options, { type: "cursor" });
 };

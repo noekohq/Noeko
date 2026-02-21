@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response, Router } from "express";
+import Busboy from "busboy";
 import { checkToken, disallowDisabled } from "../middleware/auth";
 import multer from "multer";
 import { UserFile } from "../database/models/userfile";
@@ -9,81 +10,135 @@ import Authorization from "../services/Authorization";
 
 const router = Router();
 
-const storage = multer.memoryStorage();
+// const storage = multer.memoryStorage();
 
-const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"];
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+  "text/plain",
+  "text/markdown",
+];
 
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    // The file type is allowed, so accept the file.
-    cb(null, true);
-  } else {
-    // The file type is not allowed, so reject it with an error.
-    cb(new Error("Invalid file type. Only images and PDFs are allowed."));
-  }
-};
+router.post("/", checkToken, disallowDisabled, (req, res) => {
+  const busboy = Busboy({ headers: req.headers });
+  let fileProcessed = false;
 
-const handleUpload = (req: Request, res: Response, next: NextFunction) => {
-  const uploadMiddleware = upload.single("userFile");
+  busboy.on("file", async (fieldname, fileStream, info) => {
+    const { filename, mimeType } = info;
+    fileProcessed = true;
 
-  uploadMiddleware(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: "File Upload Error", message: err.message });
-    } else if (err) {
-      // Handle our custom fileFilter error
-      return res.status(400).json({ error: "Bad Request", message: err.message });
+    if (!allowedMimeTypes.includes(mimeType)) {
+      fileStream.resume();
+      return res.status(400).json({ error: "Invalid file type." });
     }
-    next();
+
+    try {
+      const user = await getFromReq<ISafeUser>(req, "user");
+      if (!user) {
+        fileStream.resume();
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const result = await UserFile.streamCreate(user.id, fileStream, filename, mimeType);
+
+      if (!result) {
+        return res.status(500).json({ error: "Internal Server Error", message: "Upload failed." });
+      }
+
+      return res.status(201).json({
+        message: "File streamed successfully.",
+        data: result,
+      });
+    } catch (error) {
+      console.error("API Route Error:", error);
+      if (!res.headersSent) res.status(500).json({ error: "Internal Server Error" });
+    }
   });
-};
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 1024 * 1024 * 10, // 10MB
-  },
-  fileFilter: fileFilter,
+  busboy.on("finish", () => {
+    if (!fileProcessed && !res.headersSent) {
+      res.status(400).json({ error: "No file uploaded" });
+    }
+  });
+
+  req.pipe(busboy);
 });
 
-router.post("/", checkToken, disallowDisabled, handleUpload, async (req, res) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      res.status(400).json({
-        error: "Bad Request",
-        message: "No file uploaded.",
-      });
-      return;
-    }
-    const user = await getFromReq<ISafeUser>(req, "user");
-    if (!user) {
-      res.status(401).json({
-        error: "Unauthorized",
-        message: "User not found.",
-      });
-      return;
-    }
-    const standardFile = multerToStandardFile(file);
-    const result = await UserFile.create(user.id, standardFile);
-    if (!result) {
-      res.status(500).json({
-        error: "Internal Server Error",
-        message: "Failed to create file.",
-      });
-      return;
-    }
-    res.status(201).json({
-      message: "File created successfully.",
-      data: result,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message: "Something went wrong.",
-    });
-  }
-});
+// const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+//   if (allowedMimeTypes.includes(file.mimetype)) {
+//     // The file type is allowed, so accept the file.
+//     cb(null, true);
+//   } else {
+//     // The file type is not allowed, so reject it with an error.
+//     cb(new Error("Invalid file type. Only images and PDFs are allowed."));
+//   }
+// };
+
+// const handleUpload = (req: Request, res: Response, next: NextFunction) => {
+//   const uploadMiddleware = upload.single("userFile");
+
+//   uploadMiddleware(req, res, (err) => {
+//     if (err instanceof multer.MulterError) {
+//       return res.status(400).json({ error: "File Upload Error", message: err.message });
+//     } else if (err) {
+//       // Handle our custom fileFilter error
+//       return res.status(400).json({ error: "Bad Request", message: err.message });
+//     }
+//     next();
+//   });
+// };
+
+// const upload = multer({
+//   storage,
+//   limits: {
+//     fileSize: 1024 * 1024 * 10, // 10MB
+//   },
+//   fileFilter: fileFilter,
+// });
+
+/* DEPRECATED AND HERE FOR REFERENCE TO THE OLD METHOD */
+// router.post("/deprecated", checkToken, disallowDisabled, handleUpload, async (req, res) => {
+//   try {
+//     const file = req.file;
+//     if (!file) {
+//       res.status(400).json({
+//         error: "Bad Request",
+//         message: "No file uploaded.",
+//       });
+//       return;
+//     }
+//     const user = await getFromReq<ISafeUser>(req, "user");
+//     if (!user) {
+//       res.status(401).json({
+//         error: "Unauthorized",
+//         message: "User not found.",
+//       });
+//       return;
+//     }
+//     const standardFile = multerToStandardFile(file);
+//     const result = await UserFile.create(user.id, standardFile);
+//     if (!result) {
+//       res.status(500).json({
+//         error: "Internal Server Error",
+//         message: "Failed to create file.",
+//       });
+//       return;
+//     }
+//     res.status(201).json({
+//       message: "File created successfully.",
+//       data: result,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       error: "Internal Server Error",
+//       message: "Something went wrong.",
+//     });
+//   }
+// });
 
 router.get("/", checkToken, disallowDisabled, async (req, res) => {
   try {

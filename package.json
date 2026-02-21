@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "bun run db:up && concurrently --names \"SERVER,CLIENT\" \"bun --watch app/index.ts\" \"vite --host 0.0.0.0\"",
     "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "prod:docker": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build",
     "build": "tsc && vite build",
     "start": "NODE_ENV=production bun run app/index.ts",
     "test": "bun run test:server && bun run test:client",
