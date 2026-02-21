@@ -2,7 +2,7 @@
   "name": "noeko",
   "version": "0.1.1",
   "type": "module",
-  "packageManager": "bun@latest",
+  "packageManager": "bun@1.3.9",
   "scripts": {
     "dev": "bun run db:up && concurrently --names \"SERVER,CLIENT\" \"bun --watch app/index.ts\" \"vite --host 0.0.0.0\"",
     "dev:docker": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
