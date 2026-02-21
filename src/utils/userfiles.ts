@@ -4,7 +4,7 @@ import { triggerDownload } from "./helpers";
 import { IUserFile } from "../../app/database/models/userfile";
 import { AxiosProgressEvent, isCancel } from "axios";
 
-interface UploadCallbacks {
+export interface UploadCallbacks {
   onProgress?: (percent: number) => void;
   onSuccess?: (data: any) => void;
   onError?: (error: string) => void;
@@ -42,6 +42,7 @@ export const uploadFileSmart = async (file: File, callbacks: UploadCallbacks) =>
   try {
     const response = await api.post("files", formData, {
       signal: controller.signal, // Link controller to axios
+      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
         resetStallTimer();
 
         const percent = Math.round(
@@ -130,8 +131,8 @@ export const unlinkFileFromConnectable = async (fileId: string, connectableId: s
       fileId: fileId,
       connectableId: connectableId,
     });
-    console.info(`Linked file ${fileId} to ${connectableId}`);
+    console.info(`Unlinked file ${fileId} from ${connectableId}`);
   } catch (error) {
-    console.error("Failed to link file to connectable:", error);
+    console.error("Failed to unlink file from connectable:", error);
   }
 };
