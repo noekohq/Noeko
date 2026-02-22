@@ -174,7 +174,7 @@ export default function App() {
                   <Route path="idea">
                     <Route index element={<Navigate to="/ideas" replace />} />
                     <Route path=":ideaId">
-                      <Route index element={<Idea />} />
+                      <Route index element={<Idea key={location.pathname} />} />
                       <Route path="view" element={<ViewIdea key={location.pathname} />} />
                     </Route>
                   </Route>

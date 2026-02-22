@@ -454,12 +454,13 @@ export default function Idea() {
 
       <Content key={contentKey}>
         {!ideaToRender && (
-          <Stack gap="md">
-            <Group>
-              <Title order={2}>Couldn't load idea.</Title>
-            </Group>
-            <Group></Group>
-          </Stack>
+          <div className={styles.fallback}>
+            <Stack gap="md">
+              <Group>
+                <Title order={2}>Couldn't load idea :/</Title>
+              </Group>
+            </Stack>
+          </div>
         )}
         {ideaToRender && (
           <div className={styles.ideaContainer}>

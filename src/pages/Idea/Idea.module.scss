@@ -10,6 +10,14 @@
   position: relative;
 }
 
+.fallback {
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .editableTitle {
   transition: all 0.3s ease;
   border-bottom: 1.5px solid transparent;
