@@ -23,6 +23,7 @@ import {
   CopyButton,
   Badge,
   Avatar,
+  Center,
 } from "@mantine/core";
 import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
 import {
@@ -85,6 +86,7 @@ import { CollaborationInfo } from "../../components/Collaboration/CollaborationI
 import { ICollaborationState } from "../../hooks/useCollaboration";
 import { userFormattedName } from "../../utils/user";
 import { isEqual } from "lodash";
+import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
 
 // --- Types ---
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
@@ -453,13 +455,12 @@ export default function Idea() {
       </LeftSidebar>
 
       <Content key={contentKey}>
-        {!ideaToRender && (
+        {!ideaToRender && !loadingIdea && (
           <div className={styles.fallback}>
-            <Stack gap="md">
-              <Group>
-                <Title order={2}>Couldn't load idea :/</Title>
-              </Group>
-            </Stack>
+            <LangtonsAntLoader cellSize={20} stepsPerSecond={10} />
+            <Text size="md" c="dark.4" fw="normal">
+              We're having trouble loading this...
+            </Text>
           </div>
         )}
         {ideaToRender && (
