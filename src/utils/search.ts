@@ -1,6 +1,6 @@
-import { ISearchResult } from "../../shared/types/search";
-import { getNodeDescription } from "./graph";
-import { matchSegments, splitBySentences } from "./processing";
+import { ISearchResult } from '../../shared/types/search';
+import { getNodeDescription } from '@infrastructure/graph/utils';
+import { matchSegments, splitBySentences } from '@/utils/processing';
 
 export const getSearchResultPreview = (result: ISearchResult, length = 2) => {
   if (result.highlightText) {

@@ -1,6 +1,6 @@
 import { RecordId } from "surrealdb";
-import { api } from '@/server/api';
-import { ITag, ITagDescriptionRelationship } from "../../app/database/models/tag";
+import { api } from '@infrastructure/api/client';
+import { ITag, ITagDescriptionRelationship } from '../../app/database/models/tag';
 import { showNotification } from "@mantine/notifications";
 
 export const applyTagToThing = async (tagId: string | RecordId, thingId: string | RecordId) => {

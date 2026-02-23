@@ -1,4 +1,4 @@
-import { stripText } from "../../app/utils/formatting";
+import { stripText } from '../../app/utils/formatting';
 
 export interface ITextRange {
   textStart: string | null;

@@ -8,7 +8,7 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { IAcceleratorItem, IShelfData } from "../../../app/services/Recommendations";
+import { IAcceleratorItem, IShelfData } from '../../../app/services/Recommendations';
 import { getExcerptReferenceId } from "../excerpts";
 import { RabbitholeIcon } from '@core/design/icons/Icons';
 import { formatDateTime } from "../formatting";

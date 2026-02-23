@@ -1,5 +1,5 @@
-import { IPublicUser, ISafeUser, IUser, IUserForm } from "../../app/database/models/user";
-import { api } from '@/server/api';
+import { IPublicUser, ISafeUser, IUser, IUserForm } from '../../app/database/models/user';
+import { api } from '@infrastructure/api/client';
 
 export const userInitials = (user: ISafeUser | IPublicUser | undefined) => {
   if (!user) return "";
