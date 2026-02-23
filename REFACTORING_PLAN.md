@@ -75,10 +75,10 @@ Collapse horizontal layers (hooks, pages, components, utils) into vertical busin
 
 Ensure domains do not reach into the internal files of other domains.
 
-- [ ] For every domain in `src/domains/`, create an `index.ts` file at its root.
-- [ ] Export only the components, hooks, or types that other domains are allowed to use from these index files.
-- [ ] Ensure no domain imports internal files directly from another domain (e.g., `src/domains/discovery/index.ts` exports `SearchBar`, not internal pages).
-- [ ] Run the application type checker to verify the application compiles without path errors.
+- [x] For every domain in `src/domains/`, create an `index.ts` file at its root.
+- [x] Export only the components, hooks, or types that other domains are allowed to use from these index files.
+- [x] Ensure no domain imports internal files directly from another domain (e.g., `src/domains/discovery/index.ts` exports `SearchBar`, not internal pages).
+- [x] Run the application type checker to verify the application compiles without path errors. *(Note: Public API barrel files are now in place for all domains, strictly controlling cross-domain access. Verified with a final project-wide type check).*
 
 ## Phase 6: Cleanup
 
