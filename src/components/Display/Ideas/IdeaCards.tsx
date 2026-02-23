@@ -17,7 +17,7 @@ import { IdeaActionsGroup } from "./IdeaActionsGroup";
 import { IdeaTagsDisplay } from "./IdeaTagsDisplay";
 import { IdeaArtifactsDisplay } from "./IdeaArtifactsDisplay"; // Could be used for a single key artifact
 import styles from "./IdeaCards.module.scss";
-import { getNodeDescription } from "../../../utils/graph";
+import { getNodeDescription } from '@/utils/graph';
 import { Link, useNavigate } from "react-router";
 import { ISafeIdea } from "../../../../shared/types/idea";
 

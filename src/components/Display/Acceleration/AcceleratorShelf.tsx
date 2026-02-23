@@ -9,10 +9,10 @@ import {
   IAcceleratorShelfUIDetails,
   resolveShelfRoute,
   resolveShelfToDetails,
-} from "../../../utils/recommendations/accelerator";
-import PaperThing from "../Paper/Things/PaperThing";
-import { getThingPropsFromAcceleratorItem } from "../Paper/Things/thingUtils";
-import GridCard from "../Paper/Things/GridCard";
+} from '@/utils/recommendations/accelerator';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import { getThingPropsFromAcceleratorItem } from '@core/design/components/Paper/Things/thingUtils';
+import GridCard from '@core/design/components/Paper/Things/GridCard';
 
 export type IAcceleratorShelfLayout = "hero" | "carousel" | "list";
 

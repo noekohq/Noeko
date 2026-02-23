@@ -8,7 +8,7 @@ import {
   getNodeTitle,
   getTypeFromId,
   NodeIcon,
-} from "../../../utils/graph";
+} from '@/utils/graph';
 import { ArrowRightIcon, ArrowsOutIcon, XIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useMemo, useState } from "react";

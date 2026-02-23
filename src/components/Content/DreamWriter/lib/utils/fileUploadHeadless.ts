@@ -1,5 +1,5 @@
-import { uploadFileSmart, linkFileToConnectable } from "../../../../../utils/userfiles";
-import { streamImageEndpoint } from "../../../../../vars/files";
+import { uploadFileSmart, linkFileToConnectable } from '@/utils/userfiles';
+import { streamImageEndpoint } from '@/vars/files';
 
 export interface DreamUploadOptions {
   allowedTypes?: string[];

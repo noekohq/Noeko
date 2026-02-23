@@ -3,13 +3,13 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import { Table, TextInput, Button, Group, ActionIcon } from "@mantine/core";
 import React, { useState, useEffect, useCallback } from "react";
 import { PlusIcon, XIcon } from "@phosphor-icons/react";
-import styles from "./styles/DreamTable.module.scss";
+import styles from '@core/design/styles/DreamTable.module.scss';
 import {
   DreamTableSchema,
   IDreamTableOptions,
   ITableDataType,
   initializeTableData,
-} from "../../../../../shared/editing/tiptap/nodes/DreamTable";
+} from '../../../../../shared/editing/tiptap/nodes/DreamTable';
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

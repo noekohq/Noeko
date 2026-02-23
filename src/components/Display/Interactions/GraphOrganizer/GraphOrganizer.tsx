@@ -5,19 +5,19 @@ import {
   INode,
   ISourceNode,
   ITaskNode,
-} from "../../../../declarations/graph";
+} from '@/declarations/graph';
 import styles from "./GraphOrganizer.module.scss";
-import { getNodeOrganizationType } from "../../../../utils/graph";
+import { getNodeOrganizationType } from '@/utils/graph';
 import RabbitholeButton from "../../Rabbitholes/RabbitholeButton";
-import CollapseButton from "../CollapseButton";
+import CollapseButton from '@core/design/components/Interactions/CollapseButton';
 import { RabbitholeDropzone } from "../../Rabbitholes/RabbitholeDropzone";
 import TagButton from "../../Tags/TagButton";
 import ConnectableThing from "../Connections/ConnectableThing";
-import { useGraph } from "../../../../contexts/GraphContext";
+import { useGraph } from '@/contexts/GraphContext';
 import { SelectionIcon } from "@phosphor-icons/react";
-import { getThingPropsFromConnectable } from "../../Paper/Things/thingUtils";
-import PaperThing from "../../Paper/Things/PaperThing";
-import PaperTag from "../../Paper/Tags/PaperTag";
+import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
 
 interface IGraphOrganizerProps {
   nodes: INode[];

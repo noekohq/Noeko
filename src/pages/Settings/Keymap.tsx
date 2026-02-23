@@ -1,15 +1,15 @@
 import { Box, Button, Card, Group, Kbd, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import Search from "../../components/Search/Search";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import Search from '@/components/Search/Search';
+import StatusBar from '@core/design/components/Layout/Bottom';
+import Content from '@core/design/components/Layout/Content';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
 import React from "react";
-import { getOS } from "../../utils/platform";
-import Shortcut from "../../components/Utils/Help/Shortcut";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import { getOS } from '@/utils/platform';
+import Shortcut from '@/components/Utils/Help/Shortcut';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
 
 export default function Keymap() {
   const isMacos = getOS() === "macos";

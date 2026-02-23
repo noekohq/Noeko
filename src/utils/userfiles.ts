@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 import { triggerDownload } from "./helpers";
 import { IUserFile } from "../../app/database/models/userfile";
 import { AxiosProgressEvent, isCancel } from "axios";

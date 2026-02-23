@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useState, useEffect, ReactNode } from "react";
-import { IThemeOption, IThemeResolved, IThemeSpec } from "../declarations/themes";
-import { ResolveTheme } from "../themes";
-import { isDarkScheme } from "../utils/dom";
+import { IThemeOption, IThemeResolved, IThemeSpec } from '@/declarations/themes';
+import { ResolveTheme } from '@core/design/themes';
+import { isDarkScheme } from '@core/utils/dom';
 import { IUserSettings } from "../../shared/types/user";
 import { useAuth } from "./AuthContext";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 
 const LOCAL_STORAGE_KEYS = {
   override: "themeOverride",

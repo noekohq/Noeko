@@ -2,10 +2,10 @@ import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { IWidgetConfig } from "../index.d";
 import styles from "./RabbitholeList.module.scss";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { useEffect } from "react";
-import RabbitholeButton from "../../Display/Rabbitholes/RabbitholeButton";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import RabbitholeButton from '@/components/Display/Rabbitholes/RabbitholeButton';
+import { useInteraction } from '@/contexts/InteractionContext';
 import { PlusIcon } from "@phosphor-icons/react";
 
 export default function RabbitholeList() {

@@ -2,8 +2,8 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { IExcerpt, IExcerptForm } from "../../../shared/types/excerpt";
 import { RecordId } from "surrealdb";
 import { ISource } from "../../../app/database/models/source";
-import useFetch from "../../hooks/useFetch";
-import { createExcerpt, deleteExcerpt, editExcerpt, getExcerpt } from "../../utils/excerpts";
+import useFetch from '@/hooks/useFetch';
+import { createExcerpt, deleteExcerpt, editExcerpt, getExcerpt } from '@/utils/excerpts';
 
 interface ISourceContext {
   excerpts: {

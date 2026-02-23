@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { IUserFile } from "../../../../app/database/models/userfile";
-import { getNodeDescription } from "../../../utils/graph";
+import { getNodeDescription } from '@/utils/graph';
 import { Link, useNavigate } from "react-router";
 import styles from "./SourceCard.module.scss";
 import {
@@ -21,10 +21,10 @@ import {
   DownloadSimpleIcon,
   IconProps,
 } from "@phosphor-icons/react";
-import { handleFileDownload } from "../../../utils/userfiles";
-import { formatDate } from "../../../utils/formatting";
+import { handleFileDownload } from '@/utils/userfiles';
+import { formatDate } from '@/utils/formatting';
 import { ISource } from "../../../../app/database/models/source";
-import { getSourceName } from "../../../utils/sources";
+import { getSourceName } from '@/utils/sources';
 import { useDisclosure } from "@mantine/hooks";
 
 const getSourceDefaultSummary = (source: ISource): string | undefined => {

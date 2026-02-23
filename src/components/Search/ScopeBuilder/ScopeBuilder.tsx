@@ -4,12 +4,12 @@ import { Group, Popover } from "@mantine/core";
 import { ITag } from "../../../../shared/types/tags";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import { FunnelIcon, XIcon } from "@phosphor-icons/react";
-import { Tabs } from "../../UI/Layout/Utils/Tabs";
-import PaperDateRangeFilter from "../../Display/Paper/DateRangeFilter/PaperDateRangeFilter";
-import { TagPickerContent } from "../../Display/Interactions/Tags/TagPicker";
-import { RabbitholePickerContent } from "../../Display/Interactions/Rabbitholes/RabbitholePicker";
-import { useLandscape } from "../../../contexts/LandscapeContext";
-import { useSearch } from "../../../contexts/SearchContext";
+import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
+import PaperDateRangeFilter from '@core/design/components/Paper/DateRangeFilter/PaperDateRangeFilter';
+import { TagPickerContent } from '@/components/Display/Interactions/Tags/TagPicker';
+import { RabbitholePickerContent } from '@/components/Display/Interactions/Rabbitholes/RabbitholePicker';
+import { useLandscape } from '@/contexts/LandscapeContext';
+import { useSearch } from '@/contexts/SearchContext';
 
 export interface IScopeBuilderProps {}
 

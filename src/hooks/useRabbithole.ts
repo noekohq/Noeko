@@ -1,6 +1,6 @@
 import { RecordId } from "surrealdb";
-import { useLandscape } from "../contexts/LandscapeContext";
-import { includeThingInRabbithole, unIncludeThingInRabbithole } from "../utils/rabbitholes";
+import { useLandscape } from '@/contexts/LandscapeContext';
+import { includeThingInRabbithole, unIncludeThingInRabbithole } from '@/utils/rabbitholes';
 import { useCallback, useState } from "react";
 import { IRabbithole } from "../../app/database/models/rabbithole";
 

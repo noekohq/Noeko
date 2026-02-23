@@ -1,7 +1,7 @@
 import { RecordId } from "surrealdb";
-import { IExcerpt, IPDFMetadata } from "../../../../../../shared/types/excerpt";
+import { IExcerpt, IPDFMetadata } from '../../../../../../shared/types/excerpt';
 import { useCallback, useEffect, useState } from "react";
-import { getFileDownloadLink } from "../../../../../utils/userfiles";
+import { getFileDownloadLink } from '@/utils/userfiles';
 import {
   ActionIcon,
   Group,
@@ -61,11 +61,11 @@ import {
   InteractionManagerPluginPackage,
   PagePointerProvider,
 } from "@embedpdf/plugin-interaction-manager/react";
-import Loading from "../../../Loading/Loading";
+import Loading from '@core/design/components/Loading/Loading';
 import { PDFViewerProvider, usePDFViewer } from "./PDFContext";
 import { showNotification } from "@mantine/notifications";
-import { useSource } from "../../../../../pages/Sources/SourceContext";
-import useFetch from "../../../../../hooks/useFetch";
+import { useSource } from '@/pages/Sources/SourceContext';
+import useFetch from '@/hooks/useFetch';
 import { useForm } from "@mantine/form";
 import DreamWriter from "../../../../Content/DreamWriter/DreamWriter";
 

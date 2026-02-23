@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import styles from "./Do.module.scss";
 import {
   ITaskSortFields,
@@ -7,8 +7,8 @@ import {
   ITaskDurationBehavior,
 } from "../../../../app/database/models/task";
 import { Box, Group, Stack, Text, Loader, Center } from "@mantine/core";
-import { useSearch } from "../../../contexts/SearchContext";
-import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
+import { useSearch } from '@/contexts/SearchContext';
+import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
 import {
   ClockClockwiseIcon,
   ClockCounterClockwiseIcon,
@@ -17,10 +17,10 @@ import {
   SunIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import Selection from "../../../components/Display/Interactions/Selection";
-import TaskButton from "../../../components/Display/Tasks/TaskButton";
-import { SearchBar } from "../../../components/Search/SearchBar";
-import { toYYYYMMDD } from "../../../utils/datetime";
+import Selection from '@/components/Display/Interactions/Selection';
+import TaskButton from '@/components/Display/Tasks/TaskButton';
+import { SearchBar } from '@/components/Search/SearchBar';
+import { toYYYYMMDD } from '@core/utils/datetime';
 import { Duration } from "surrealdb";
 import { deepEquals } from "bun";
 

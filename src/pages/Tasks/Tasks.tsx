@@ -2,18 +2,18 @@ import { useEffect } from "react";
 import { Stack, Title, Paper, Text, Loader, Group, ActionIcon } from "@mantine/core";
 
 import { IPublicTask, ITaskSortFields } from "../../../app/database/models/task";
-import useFetch from "../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import styles from "./Tasks.module.scss";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import Content from "../../components/UI/Layout/Content";
-import { useInteraction } from "../../contexts/InteractionContext";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import Content from '@core/design/components/Layout/Content';
+import { useInteraction } from '@/contexts/InteractionContext';
 import { PlusIcon } from "@phosphor-icons/react";
-import TaskButton from "../../components/Display/Tasks/TaskButton";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
-import { useSearch } from "../../contexts/SearchContext";
+import TaskButton from '@/components/Display/Tasks/TaskButton';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
+import { useSearch } from '@/contexts/SearchContext';
 
 const tasksQuery = {
   sortField: "updatedAt" as ITaskSortFields,

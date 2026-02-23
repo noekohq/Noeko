@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 import { ITag, ITagDescriptionRelationship } from "../../app/database/models/tag";
 import { showNotification } from "@mantine/notifications";
 

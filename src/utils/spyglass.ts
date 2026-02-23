@@ -1,8 +1,8 @@
 import { IFinding, IGlimpseResult } from "../../app/services/Spyglass";
-import { INode } from "../declarations/graph";
-import { IResultsMap } from "../hooks/useSpyglassService";
+import { INode } from "@/declarations/graph";
+import { IResultsMap } from "@/hooks/useSpyglassService";
 import { getNodeTitle, getTypeFromId } from "./graph";
-import { PartialGlimpseResult } from "./partialJsonParser";
+import { PartialGlimpseResult } from "@core/utils/partialJsonParser";
 import { ISearchResult } from "../../shared/types/search";
 import { IConnectable } from "../../shared/types/constellation";
 

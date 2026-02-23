@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ISearchResultValue, type ISearchResult } from "../../../../shared/types/search";
-import { api, refreshToken, serverLocation } from "../../../server/api";
+import { api, refreshToken, serverLocation } from '@/server/api';
 import {
   ISpyglassGeneratorType,
   ISpyglassSearch,
   ISearchOverview,
 } from "../../../../app/database/models/search";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { showNotification } from "@mantine/notifications";
 import { ISpyglassIntent, IGlimpseResult } from "../../../../app/services/Spyglass";
-import useRabbithole from "../../../hooks/useRabbithole";
-import { getNodeContent, getNodeDescription, getNodeTitle } from "../../../utils/graph";
+import useRabbithole from '@/hooks/useRabbithole';
+import { getNodeContent, getNodeDescription, getNodeTitle } from '@/utils/graph';
 import { ISpyglassRecord } from "../../../../app/database/models/spyglass_record";
 import { IConnectable, IConnectableFields } from "../../../../app/services/Graph";
-import { PartialGlimpseResult } from "../../../utils/partialJsonParser";
+import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -441,7 +441,7 @@ interface IUseSpyglassRecordArgs {
   spyglassId?: string;
 }
 
-import { extractIdsFromFindings, extractIdsFromGlimpseResult } from "../../../utils/spyglass";
+import { extractIdsFromFindings, extractIdsFromGlimpseResult } from '@/utils/spyglass';
 
 interface IUseSpyglassRecordReturn {
   loading: boolean;

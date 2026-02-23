@@ -1,23 +1,23 @@
 import { Link, useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
-import useFetch from "../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { IUserFile } from "../../../app/database/models/userfile";
 import { ActionIcon, Button, Flex, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import ContentWide from "../../components/UI/Layout/ContentWide";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import { handleFileDownload } from "../../utils/userfiles";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import ContentWide from '@core/design/components/Layout/ContentWide';
+import StatusBar from '@core/design/components/Layout/Bottom';
+import { handleFileDownload } from '@/utils/userfiles';
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
-import { ViewerMap } from "../../components/Display/Files/Viewers";
-import { useLayout } from "../../contexts/LayoutContext";
+import { ViewerMap } from '@/components/Display/Files/Viewers';
+import { useLayout } from '@/contexts/LayoutContext';
 import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
-import { createSourceFrom } from "../../utils/sources";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import { createSourceFrom } from '@/utils/sources';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
 
 export default function UserFile() {
   const { fileId } = useParams();

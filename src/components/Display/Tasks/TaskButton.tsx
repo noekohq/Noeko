@@ -11,14 +11,14 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { updateTask } from "../../../utils/tasks";
+import { updateTask } from '@/utils/tasks';
 import { ArrowRightIcon, EyeIcon, IconProps } from "@phosphor-icons/react";
 import React, { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
-import { capitalize, formatDate } from "../../../utils/formatting";
-import { fromYYYYMMDD } from "../../../utils/datetime";
-import { useLayout } from "../../../contexts/LayoutContext";
-import { useLandscape } from "../../../contexts/LandscapeContext";
+import { capitalize, formatDate } from '@/utils/formatting';
+import { fromYYYYMMDD } from '@core/utils/datetime';
+import { useLayout } from '@/contexts/LayoutContext';
+import { useLandscape } from '@/contexts/LandscapeContext';
 import { getFormattedDate } from "@mantine/dates";
 
 type ITaskButtonAction = {

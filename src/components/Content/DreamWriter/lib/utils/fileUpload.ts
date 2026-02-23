@@ -3,8 +3,8 @@ import {
   uploadFileSmart,
   linkFileToConnectable,
   UploadCallbacks,
-} from "../../../../../utils/userfiles";
-import { streamImageEndpoint } from "../../../../../vars/files";
+} from '@/utils/userfiles';
+import { streamImageEndpoint } from '@/vars/files';
 
 export interface DreamUploadOptions {
   allowedTypes?: string[];

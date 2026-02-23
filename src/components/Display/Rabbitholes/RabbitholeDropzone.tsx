@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
 import styles from "./RabbitholeDropzone.module.scss";
 import { showNotification } from "@mantine/notifications";
-import { includeThingInRabbithole } from "../../../utils/rabbitholes";
+import { includeThingInRabbithole } from '@/utils/rabbitholes';
 import { Group, Overlay, Text } from "@mantine/core";
 
 interface IRabbitholeDropzoneProps {

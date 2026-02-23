@@ -5,9 +5,9 @@ import { ArrowRightIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { IFinding } from "../../../../app/services/Spyglass";
 import { IConnectableFields } from "../../../../app/services/Graph";
-import { getTypeFromId, TypeIcon } from "../../../utils/graph";
-import { INode } from "../../../declarations/graph";
-import { markdownToHtml } from "../../../utils/formatting";
+import { getTypeFromId, TypeIcon } from '@/utils/graph';
+import { INode } from '@/declarations/graph';
+import { markdownToHtml } from '@/utils/formatting';
 import styles from "./FindingGroupCard.module.scss";
 
 interface IGroupedFinding {

@@ -20,18 +20,18 @@ import {
 } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
 import { useState } from "react";
-import { IUserFile } from "../../../../../app/database/models/userfile";
-import useFetch from "../../../../hooks/useFetch";
+import { IUserFile } from '../../../../../app/database/models/userfile';
+import useFetch from '@/hooks/useFetch';
 import {
   handleFileDownload,
   linkFileToConnectable,
   unlinkFileFromConnectable,
-} from "../../../../utils/userfiles";
+} from '@/utils/userfiles';
 import styles from "./FileManager.module.scss";
-import { streamImageEndpoint } from "../../../../vars/files";
-import { api } from "../../../../server/api";
-import PaperThing from "../../Paper/Things/PaperThing";
-import { getThingPropsFromUserFile } from "../../Paper/Things/thingUtils";
+import { streamImageEndpoint } from '@/vars/files';
+import { api } from '@/server/api';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import { getThingPropsFromUserFile } from '@core/design/components/Paper/Things/thingUtils';
 
 interface IFileManagerProps {
   connectableId: string;

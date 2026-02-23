@@ -14,18 +14,18 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
 import { Link } from "react-router";
 import React, { useState } from "react";
-import { useInteraction } from "../../contexts/InteractionContext";
+import { useInteraction } from '@/contexts/InteractionContext';
 import { MegaphoneSimple, MegaphoneSimpleIcon } from "@phosphor-icons/react";
-import { capitalize, formatDate } from "../../utils/formatting";
-import Content from "../../components/UI/Layout/Content";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import { capitalize, formatDate } from '@/utils/formatting';
+import Content from '@core/design/components/Layout/Content';
+import StatusBar from '@core/design/components/Layout/Bottom';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
 
 type IUpdate = {
   title: string;

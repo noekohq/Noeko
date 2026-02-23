@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import DreamWriter from "../../Content/DreamWriter/DreamWriter";
 import styles from "./Scratchpad.module.scss";
 import { ActionIcon, CopyButton, Group, HoverCard, Menu, Text, Tooltip } from "@mantine/core";
@@ -13,7 +13,7 @@ import {
   MarkdownLogoIcon,
 } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/core";
-import { htmlToMarkdown, htmlToPlainText } from "../../../utils/formatting";
+import { htmlToMarkdown, htmlToPlainText } from '@/utils/formatting';
 
 export default function Scratchpad() {
   const [content, setContent] = useState("");

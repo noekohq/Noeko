@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { Group, Loader, Stack, Text, Button, Transition } from "@mantine/core";
-import { getOS } from "../../utils/platform";
+import { getOS } from '@/utils/platform';
 import styles from "./Search.module.scss";
 import { Link, useNavigate } from "react-router";
 import {
@@ -13,20 +13,20 @@ import {
 } from "@phosphor-icons/react";
 import type { ISearchResultValue, ISearchResult } from "../../../shared/types/search";
 import { IConnectable } from "../../../shared/types/constellation";
-import { INode } from "../../declarations/graph";
-import { PartialGlimpseResult } from "../../utils/partialJsonParser";
-import { IResultsMap } from "../../hooks/useSpyglassService";
+import { INode } from '@/declarations/graph';
+import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
+import { IResultsMap } from '@/hooks/useSpyglassService';
 import GlimpseModeDisplay from "../Utils/Spyglass/GlimpseModeDisplay";
-import useShortcuts from "../../hooks/useShortcuts";
-import PaperButton from "../Display/Paper/PaperButton";
+import useShortcuts from '@/hooks/useShortcuts';
+import PaperButton from '@core/design/components/Paper/PaperButton';
 import ScopeBuilder from "./ScopeBuilder/ScopeBuilder";
 import { SearchBar } from "./SearchBar";
-import useSearchQuery from "../../hooks/useSearchQuery";
-import { SpyglassIcon } from "../Utils/Icons/Icons";
-import PaperSearchResult from "../Display/Paper/PaperSearchResult/PaperSearchResult";
-import { getNodeDescription, getNodeLink, getNodeTitle } from "../../utils/graph";
+import useSearchQuery from '@/hooks/useSearchQuery';
+import { SpyglassIcon } from '@core/design/icons/Icons';
+import PaperSearchResult from '@core/design/components/Paper/PaperSearchResult/PaperSearchResult';
+import { getNodeDescription, getNodeLink, getNodeTitle } from '@/utils/graph';
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
-import { useSearch } from "../../contexts/SearchContext";
+import { useSearch } from '@/contexts/SearchContext';
 
 export type ISearchResultAction = {
   id: string;

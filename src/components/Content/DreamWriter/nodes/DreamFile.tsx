@@ -25,15 +25,15 @@ import {
   Button,
 } from "@mantine/core";
 import { Link } from "react-router";
-import styles from "./styles/DreamFile.module.scss";
+import styles from '@core/design/styles/DreamFile.module.scss';
 
-import useFetch from "../../../../hooks/useFetch";
-import { IUserFile } from "../../../../../app/database/models/userfile";
-import { triggerDownload } from "../../../../utils/helpers";
+import useFetch from '@/hooks/useFetch';
+import { IUserFile } from '../../../../../app/database/models/userfile';
+import { triggerDownload } from '@/utils/helpers';
 import {
   DreamFileSchema,
   IDreamFileOptions,
-} from "../../../../../shared/editing/tiptap/nodes/DreamFile";
+} from '../../../../../shared/editing/tiptap/nodes/DreamFile';
 import { ISubMenuProps } from "../BubbleMenu";
 import { getButtonProps } from "../Options";
 

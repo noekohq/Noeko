@@ -1,13 +1,13 @@
 import React from "react";
-import { IResultsMap } from "../../../hooks/useSpyglassService";
+import { IResultsMap } from '@/hooks/useSpyglassService';
 import { Badge, Group, Space, Stack, Text, Title } from "@mantine/core";
-import { TypeIcon, getTypeFromId } from "../../../utils/graph";
-import { INode } from "../../../declarations/graph";
-import GridCard from "../../Display/Paper/Things/GridCard";
-import PaperThing from "../../Display/Paper/Things/PaperThing";
-import { IThing } from "../../Display/Paper/Things/things";
+import { TypeIcon, getTypeFromId } from '@/utils/graph';
+import { INode } from '@/declarations/graph';
+import GridCard from '@core/design/components/Paper/Things/GridCard';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import { IThing } from '@core/design/components/Paper/Things/things';
 import styles from "./GlimpseModeDisplay.module.scss";
-import { PartialGlimpseResult } from "../../../utils/partialJsonParser";
+import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
 import {
   ArrowRightIcon,
   CompassIcon,
@@ -19,9 +19,9 @@ import {
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { IResultSetType } from "../../../../app/services/Spyglass";
-import PaperButton from "../../Display/Paper/PaperButton";
-import { SpyglassIcon } from "../Icons/Icons";
-import LangtonsAntLoader from "../Loading/AntLoader";
+import PaperButton from '@core/design/components/Paper/PaperButton';
+import { SpyglassIcon } from '@core/design/icons/Icons';
+import LangtonsAntLoader from '@core/design/components/Loading/AntLoader';
 
 interface IGlimpseModeDisplayProps {
   glimpseResult: PartialGlimpseResult;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ITagBreakdown } from "../../../../app/services/Analysis";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { IWidgetConfig } from "../index.d";
 import styles from "./TagBreakdown.module.scss";
 import {
@@ -16,7 +16,7 @@ import TagCard from "../../Display/Tags/TagCard";
 import TagButton from "../../Display/Tags/TagButton";
 import { Link } from "react-router";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import { useInteraction } from '@/contexts/InteractionContext';
 
 export default function TagBreakdown() {
   const {

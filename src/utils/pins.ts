@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 import { IPin } from "../../app/database/models/pin";
 
 export async function createPin(thingId: string | RecordId) {

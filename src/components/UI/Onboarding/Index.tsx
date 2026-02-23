@@ -1,11 +1,11 @@
-import { useAuth } from "../../../contexts/AuthContext";
+import { useAuth } from '@/contexts/AuthContext';
 import { useState } from "react";
-import { updateUser } from "../../../utils/user";
+import { updateUser } from '@/utils/user';
 import Introduction from "./Introduction";
 import ChooseYourPath from "./ChooseYourPath";
 import Hotkeys from "./Hotkeys";
 import Concepts from "./Concepts";
-import { useLayout } from "../../../contexts/LayoutContext";
+import { useLayout } from '@/contexts/LayoutContext';
 import Feedback from "./Feedback";
 
 export type IOnboardingProps = {

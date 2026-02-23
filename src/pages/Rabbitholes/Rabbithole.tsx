@@ -14,21 +14,21 @@ import {
   Title,
   Transition,
 } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import useFetch from "../../hooks/useFetch";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import Content from '@core/design/components/Layout/Content';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import useFetch from '@/hooks/useFetch';
 import { IRabbithole, IRabbitholeIncludes } from "../../../app/database/models/rabbithole";
 import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useDocumentTitle } from "../../hooks/useDocumentTitle";
-import { api } from "../../server/api";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { api } from '@/server/api';
 import styles from "./Rabbithole.module.scss";
-import SuggestTags from "../../components/Search/SuggestTags";
+import SuggestTags from '@/components/Search/SuggestTags';
 import { ITag } from "../../../app/database/models/tag";
-import { useLandscape } from "../../contexts/LandscapeContext";
+import { useLandscape } from '@/contexts/LandscapeContext';
 import {
   CaretLeftIcon,
   CirclesThreePlus,
@@ -43,31 +43,31 @@ import {
   TrashIcon,
 } from "@phosphor-icons/react";
 import { IIdea } from "../../../shared/types/idea";
-import Search from "../../components/Search/Search";
+import Search from '@/components/Search/Search';
 import {
   deleteRabbithole,
   getRabbitholeThingDescription,
   getRabbitholeThingName,
   includeThingInRabbithole,
   unIncludeThingInRabbithole,
-} from "../../utils/rabbitholes";
-import { BlockTag } from "../../components/Display/Tags/TagDisplay";
+} from '@/utils/rabbitholes';
+import { BlockTag } from '@/components/Display/Tags/TagDisplay';
 import { RecordId } from "surrealdb";
-import TagCard from "../../components/Display/Tags/TagCard";
-import { useLayout } from "../../contexts/LayoutContext";
-import { SearchBar } from "../../components/Search/SearchBar";
-import { useSearch } from "../../contexts/SearchContext";
-import { IdeaAction } from "../../components/Display/Ideas/IdeaCardTypes";
+import TagCard from '@/components/Display/Tags/TagCard';
+import { useLayout } from '@/contexts/LayoutContext';
+import { SearchBar } from '@/components/Search/SearchBar';
+import { useSearch } from '@/contexts/SearchContext';
+import { IdeaAction } from '@/components/Display/Ideas/IdeaCardTypes';
 import { modals } from "@mantine/modals";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
-import RabbitholeThing from "../../components/Display/Rabbitholes/RabbitholeThing";
-import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
-import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
-import CollapseButton from "../../components/Display/Interactions/CollapseButton";
-import TagButton from "../../components/Display/Tags/TagButton";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import StatusBar from '@core/design/components/Layout/Bottom';
+import IdeaCard from '@/components/Display/Ideas/Interactions/IdeaCard';
+import RabbitholeThing from '@/components/Display/Rabbitholes/RabbitholeThing';
+import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
+import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
+import CollapseButton from '@core/design/components/Interactions/CollapseButton';
+import TagButton from '@/components/Display/Tags/TagButton';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
 
 export default function Rabbithole() {
   const [error, setError] = useState("");

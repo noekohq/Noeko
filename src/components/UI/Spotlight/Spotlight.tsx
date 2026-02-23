@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import { useInteraction } from '@/contexts/InteractionContext';
 import { createPortal } from "react-dom";
 import styles from "./Spotlight.module.scss";
 import MiniSearch from "minisearch";
@@ -36,20 +36,20 @@ import {
   NetworkIcon,
   ShareIcon,
 } from "@phosphor-icons/react";
-import { userIsSuperuser } from "../../../utils/user";
-import { useAuth } from "../../../contexts/AuthContext";
+import { userIsSuperuser } from '@/utils/user';
+import { useAuth } from '@/contexts/AuthContext';
 import { Group, Text } from "@mantine/core";
-import { useLayout } from "../../../contexts/LayoutContext";
-import { useSettings } from "../../../contexts/SettingsContext";
+import { useLayout } from '@/contexts/LayoutContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { useNavigate } from "react-router";
-import { api } from "../../../server/api";
+import { api } from '@/server/api';
 import type { IIdea } from "../../../../shared/types/idea";
 import { Option } from "./Option";
 import type { ISubviewDefinition, IUnifiedSearchItem, SpotlightMainItem } from "./spotlight.d";
-import { getNodeDescription, getNodeLink, getNodeTitle, NodeIcon } from "../../../utils/graph";
-import useRabbithole from "../../../hooks/useRabbithole";
+import { getNodeDescription, getNodeLink, getNodeTitle, NodeIcon } from '@/utils/graph';
+import useRabbithole from '@/hooks/useRabbithole';
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
-import { useLandscape } from "../../../contexts/LandscapeContext";
+import { useLandscape } from '@/contexts/LandscapeContext';
 import { ISearchResultValue } from "../../../../shared/types/search";
 import { showNotification } from "@mantine/notifications";
 

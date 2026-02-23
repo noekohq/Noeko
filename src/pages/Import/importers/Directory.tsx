@@ -8,7 +8,7 @@ import {
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
-import { formatFileNameToTitle, readFileContent } from "../../../utils/files";
+import { formatFileNameToTitle, readFileContent } from '@/utils/files';
 import {
   Button,
   Card,
@@ -29,11 +29,11 @@ import {
   Progress,
   Space,
 } from "@mantine/core";
-import { markdownToHtml } from "../../../utils/formatting";
+import { markdownToHtml } from '@/utils/formatting';
 import { Link, useNavigate } from "react-router";
 import styles from "./Directory.module.scss";
 import { useDebouncedCallback } from "@mantine/hooks";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { IChunk } from "../../../../app/services/Importer";
 import { IIdeaForm } from "../../../../shared/types/idea";
 import {
@@ -41,9 +41,9 @@ import {
   getChunkedIdeas,
   initializeImport,
   uploadChunkToImport,
-} from "../../../utils/ideas";
-import { useAuth } from "../../../contexts/AuthContext";
-import { userIsSuperuser } from "../../../utils/user";
+} from '@/utils/ideas';
+import { useAuth } from '@/contexts/AuthContext';
+import { userIsSuperuser } from '@/utils/user';
 
 type IParsedFile = {
   title: string;

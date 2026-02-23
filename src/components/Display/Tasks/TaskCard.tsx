@@ -15,12 +15,12 @@ import {
   Tooltip,
 } from "@mantine/core";
 import DreamWriter from "../../Content/DreamWriter/DreamWriter";
-import useFetch from "../../../hooks/useFetch";
-import { updateTask } from "../../../utils/tasks";
+import useFetch from '@/hooks/useFetch';
+import { updateTask } from '@/utils/tasks';
 import { DotsThreeVerticalIcon, IconProps } from "@phosphor-icons/react";
 import { useDisclosure } from "@mantine/hooks";
-import { capitalize, formatDate } from "../../../utils/formatting";
-import { fromYYYYMMDD } from "../../../utils/datetime";
+import { capitalize, formatDate } from '@/utils/formatting';
+import { fromYYYYMMDD } from '@core/utils/datetime';
 
 export type ITaskAction = {
   id: string;

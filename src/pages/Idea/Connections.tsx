@@ -15,9 +15,9 @@ import {
 } from "@mantine/core";
 import { IIdea, IIdeaAsRelation, IIdeaConnection, ISafeIdea } from "../../../shared/types/idea";
 import { Link, useNavigate } from "react-router";
-import IdeaPreview from "../../components/Display/Ideas/IdeaPreview";
+import IdeaPreview from '@/components/Display/Ideas/IdeaPreview';
 import { useEffect, useState } from "react";
-import useFetch from "../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { showNotification } from "@mantine/notifications";
 import {
   ArrowRight,
@@ -33,13 +33,13 @@ import {
   TrashSimpleIcon,
   UniteSquareIcon,
 } from "@phosphor-icons/react";
-import { api } from "../../server/api";
-import { similarityToColor, similarityToLevel } from "../../vars/ideas";
+import { api } from '@/server/api';
+import { similarityToColor, similarityToLevel } from '@/vars/ideas';
 
-import { createIdeaConnection, removeIdeaConnection } from "../../utils/ideas";
-import IdeaButton from "../../components/Display/Ideas/Interactions/IdeaButton";
-import { useInteraction } from "../../contexts/InteractionContext";
-import IdeaCard from "../../components/Display/Ideas/Interactions/IdeaCard";
+import { createIdeaConnection, removeIdeaConnection } from '@/utils/ideas';
+import IdeaButton from '@/components/Display/Ideas/Interactions/IdeaButton';
+import { useInteraction } from '@/contexts/InteractionContext';
+import IdeaCard from '@/components/Display/Ideas/Interactions/IdeaCard';
 
 type IConnectionsProps = {
   loadingIdea: boolean;

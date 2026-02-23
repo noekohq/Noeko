@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 
 export const useConnection = (pollInterval: number = 10000) => {
   const [isOnline, setIsOnline] = useState<boolean>(false);

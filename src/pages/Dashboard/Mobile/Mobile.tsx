@@ -34,21 +34,21 @@ import { IFriendUser } from "../../../../app/database/models/user";
 import { IShelfData } from "../../../../app/services/Recommendations";
 import AcceleratorShelf, {
   IAcceleratorShelfProps,
-} from "../../../components/Display/Acceleration/AcceleratorShelf";
-import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
-import PaperThings from "../../../components/Display/Paper/Things/PaperThings";
-import { getThingsFromConnectables } from "../../../components/Display/Paper/Things/thingUtils";
-import PageWrapper from "../../../components/Layout/PageWrapper";
-import Content from "../../../components/UI/Layout/Content";
-import Nav from "../../../components/UI/Layout/Nav";
-import TopBar from "../../../components/UI/Layout/TopBar";
-import { Pillbar } from "../../../components/UI/Layout/Utils/Pillbar";
-import LangtonsAntLoader from "../../../components/Utils/Loading/AntLoader";
-import UnderConstruction from "../../../components/Utils/UnderConstruction";
-import { useAuth } from "../../../contexts/AuthContext";
-import useFetch from "../../../hooks/useFetch";
-import { formatDateTime } from "../../../utils/formatting";
-import { userInitials } from "../../../utils/user";
+} from '@/components/Display/Acceleration/AcceleratorShelf';
+import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
+import PaperThings from '@core/design/components/Paper/Things/PaperThings';
+import { getThingsFromConnectables } from '@core/design/components/Paper/Things/thingUtils';
+import PageWrapper from '@/components/Layout/PageWrapper';
+import Content from '@core/design/components/Layout/Content';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
+import { Pillbar } from '@core/design/components/Layout/Utils/Pillbar';
+import LangtonsAntLoader from '@core/design/components/Loading/AntLoader';
+import UnderConstruction from '@/components/Utils/UnderConstruction';
+import { useAuth } from '@/contexts/AuthContext';
+import useFetch from '@/hooks/useFetch';
+import { formatDateTime } from '@/utils/formatting';
+import { userInitials } from '@/utils/user';
 import styles from "./Mobile.module.scss";
 
 interface IRelationship {

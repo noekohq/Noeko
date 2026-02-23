@@ -1,15 +1,15 @@
 import { Box, Center, Flex, Grid, Group, Loader, Stack, Text, Title } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import widgets from "../../components/Widgets/Index";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import widgets from '@/components/Widgets/Index';
 import styles from "./Dashboard.module.scss";
-import type { IAvailableWidgets, IWidgetConfig } from "../../components/Widgets/index.d";
+import type { IAvailableWidgets, IWidgetConfig } from '@/components/Widgets/index.d';
 import { lazy, useEffect, useRef, useState } from "react";
-import Content from "../../components/UI/Layout/Content";
-import WidgetWrapper from "../../components/Widgets/Wrapper";
-import Search from "../../components/Search/Search";
-import useFetch from "../../hooks/useFetch";
+import Content from '@core/design/components/Layout/Content';
+import WidgetWrapper from '@/components/Widgets/Wrapper';
+import Search from '@/components/Search/Search';
+import useFetch from '@/hooks/useFetch';
 import { IIdeaSortFields, ISafeIdea } from "../../../shared/types/idea";
 import {
   ArticleIcon,
@@ -21,19 +21,19 @@ import {
   SunIcon,
   TagIcon,
 } from "@phosphor-icons/react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useInteraction } from "../../contexts/InteractionContext";
-import { useSettings } from "../../contexts/SettingsContext";
-import { useLayout } from "../../contexts/LayoutContext";
-import { getCurrentTimeFormatted, getCurrentTimeOfDay } from "../../utils/datetime";
-import StatusButton from "../../components/Display/Interactions/StatusButton";
+import { useAuth } from '@/contexts/AuthContext';
+import { useInteraction } from '@/contexts/InteractionContext';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useLayout } from '@/contexts/LayoutContext';
+import { getCurrentTimeFormatted, getCurrentTimeOfDay } from '@core/utils/datetime';
+import StatusButton from '@/components/Display/Interactions/StatusButton';
 import { IDashboard } from "../../../app/services/Dashboard";
 import { Link, useNavigate } from "react-router";
-import Selection from "../../components/Display/Interactions/Selection";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
-import PaperThing from "../../components/Display/Paper/Things/PaperThing";
-import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
+import Selection from '@/components/Display/Interactions/Selection';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
 
 type ILoadedWidget = {
   id: string;

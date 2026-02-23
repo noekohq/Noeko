@@ -1,6 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { IShareAccess } from "../../app/database/models/share";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 
 export const shareAccess = async (thingId: string, userId: string, accessLevel?: IShareAccess) => {
   try {

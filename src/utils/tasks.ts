@@ -1,6 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { ITask, ITaskForm } from "../../app/database/models/task";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 import { RecordId } from "surrealdb";
 
 export const createTask = async (

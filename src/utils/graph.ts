@@ -11,7 +11,7 @@ import {
   INode,
   INodeOrganizationType,
   ITagNode,
-} from "../declarations/graph";
+} from '@/declarations/graph';
 import {
   formatDate,
   formatDateTime,
@@ -19,7 +19,7 @@ import {
   sanitizeMarkdownForDescription,
 } from "./formatting";
 import { splitBySentences } from "./processing";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 import {
   CheckIcon,
   FileTextIcon,
@@ -28,7 +28,7 @@ import {
   TextAlignLeftIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { RabbitholeIcon } from "../components/Utils/Icons/Icons";
+import { RabbitholeIcon } from '@core/design/icons/Icons';
 import { ILoadedConstellation } from "../../app/services/Graph";
 import { IExcerptReference } from "../../shared/types/excerpt";
 

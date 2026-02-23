@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { IUserFile } from "../../../../app/database/models/userfile";
-import { getNodeDescription } from "../../../utils/graph";
+import { getNodeDescription } from '@/utils/graph';
 import { Link, useNavigate } from "react-router";
 import styles from "./FileCard.module.scss";
 import {
@@ -20,8 +20,8 @@ import {
   DownloadSimpleIcon,
   IconProps,
 } from "@phosphor-icons/react";
-import { handleFileDownload } from "../../../utils/userfiles";
-import { formatDate, formatDateTime } from "../../../utils/formatting";
+import { handleFileDownload } from '@/utils/userfiles';
+import { formatDate, formatDateTime } from '@/utils/formatting';
 
 const getFileDefaultSummary = (file: IUserFile): string | undefined => {
   const desc = `Uploaded ${formatDateTime(file.createdAt)}`;

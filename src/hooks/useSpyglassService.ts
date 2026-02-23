@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, getAccessToken, serverLocation } from "../server/api";
+import { api, getAccessToken, serverLocation } from "@/server/api";
 import { IFinding, ISpyglassHistoryItem, ISpyglassIntent } from "../../app/services/Spyglass";
 import { IConnectable, IConnectableFields } from "../../app/services/Graph";
 import { IConnectableSearchQueryTagFilter, ISearchResult } from "../../shared/types/search";
 import { RecordId } from "surrealdb";
-import { parsePartialGlimpseResult, PartialGlimpseResult } from "../utils/partialJsonParser";
+import { parsePartialGlimpseResult, PartialGlimpseResult } from "@core/utils/partialJsonParser";
 import {
   scoreConnectablesBySelection,
   extractIdsFromFindings,
   extractIdsFromGlimpseResult,
-} from "../utils/spyglass";
+} from "@/utils/spyglass";
 
 // ===== Parameter Types (exported for DX) =====
 

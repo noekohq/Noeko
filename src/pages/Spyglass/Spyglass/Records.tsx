@@ -16,18 +16,18 @@ import {
   Card,
   Badge,
 } from "@mantine/core";
-import PageWrapper from "../../../components/Layout/PageWrapper";
-import LeftSidebar from "../../../components/UI/Layout/Left";
-import RightSidebar from "../../../components/UI/Layout/Right";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
 import styles from "./Records.module.scss";
 import { ArrowLeftIcon, ArrowRightIcon, CaretLeftIcon, DotsThreeIcon } from "@phosphor-icons/react";
-import { formatDateTime, markdownToHtml } from "../../../utils/formatting";
-import useFetch from "../../../hooks/useFetch";
-import { useLayout } from "../../../contexts/LayoutContext";
-import Content from "../../../components/UI/Layout/Content";
-import StatusBar from "../../../components/UI/Layout/Bottom";
-import Nav from "../../../components/UI/Layout/Nav";
-import TopBar from "../../../components/UI/Layout/TopBar";
+import { formatDateTime, markdownToHtml } from '@/utils/formatting';
+import useFetch from '@/hooks/useFetch';
+import { useLayout } from '@/contexts/LayoutContext';
+import Content from '@core/design/components/Layout/Content';
+import StatusBar from '@core/design/components/Layout/Bottom';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
 import { Link, useNavigate } from "react-router";
 import {
   ISpyglassHistoryResponse,

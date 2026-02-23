@@ -15,12 +15,12 @@ import { ArrowRightIcon, ArrowsOutIcon } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm"; // Import the plugin
 import { Link, useNavigate, useNavigation } from "react-router";
-import { markdownToHtml } from "../../../utils/formatting";
-import { generateTextFragmentHashFromText } from "../../../utils/textFragment";
+import { markdownToHtml } from '@/utils/formatting';
+import { generateTextFragmentHashFromText } from '@/utils/textFragment';
 import { IFinding } from "../../../../app/services/Spyglass";
-import { IResultsMap } from "../../../hooks/useSpyglassService";
-import { getTypeFromId, TypeIcon } from "../../../utils/graph";
-import { INode } from "../../../declarations/graph";
+import { IResultsMap } from '@/hooks/useSpyglassService';
+import { getTypeFromId, TypeIcon } from '@/utils/graph';
+import { INode } from '@/declarations/graph';
 
 interface IOverviewParserProps {
   markdown: string;

@@ -1,6 +1,6 @@
 import { RecordId } from "surrealdb";
 import { IExcerpt, IExcerptForm } from "../../shared/types/excerpt";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 
 export const createExcerpt = async (excerptable: string | RecordId, form: IExcerptForm) => {
   try {

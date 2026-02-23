@@ -24,15 +24,15 @@ import {
   TextAlignLeftIcon,
   TimerIcon,
 } from "@phosphor-icons/react";
-import { capitalize, formatDate, formatDateTime } from "../../utils/formatting";
-import { useLayout } from "../../contexts/LayoutContext";
+import { capitalize, formatDate, formatDateTime } from '@/utils/formatting';
+import { useLayout } from '@/contexts/LayoutContext';
 import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
-import { createTask } from "../../utils/tasks";
+import { createTask } from '@/utils/tasks';
 import DreamWriter from "../Content/DreamWriter/DreamWriter";
 import { useNavigate } from "react-router";
-import { fromYYYYMMDD, toYYYYMMDD } from "../../utils/datetime";
-import useRabbithole from "../../hooks/useRabbithole";
+import { fromYYYYMMDD, toYYYYMMDD } from '@core/utils/datetime';
+import useRabbithole from '@/hooks/useRabbithole';
 
 interface ICreateTaskFormProps {
   onSubmit?: (task: ITask) => void;

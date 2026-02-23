@@ -1,9 +1,9 @@
 import { Divider, Stack, Text } from "@mantine/core";
-import ConnectableThing from "../../../components/Display/Interactions/Connections/ConnectableThing";
+import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
 import { IConnectable } from "../../../../app/services/Graph";
 import { ISpyglassIntent } from "../../../../app/services/Spyglass";
-import { getThingPropsFromConnectable } from "../../../components/Display/Paper/Things/thingUtils";
-import PaperThing from "../../../components/Display/Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 
 interface ISpyglassActionsProps {
   intent?: ISpyglassIntent;

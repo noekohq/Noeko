@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { applyTagToThing, removeTagFromThing } from "../utils/tags";
+import { applyTagToThing, removeTagFromThing } from '@/utils/tags';
 import { IConnectable } from "../../app/services/Graph";
 
 interface IUseTagArgs {

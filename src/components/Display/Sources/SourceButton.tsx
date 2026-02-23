@@ -6,8 +6,8 @@ import { IconProps, ArrowRightIcon, FileTextIcon, EyeIcon } from "@phosphor-icon
 import { useNavigate } from "react-router";
 import { ISource } from "../../../../app/database/models/source";
 import { useDisclosure } from "@mantine/hooks";
-import { useLayout } from "../../../contexts/LayoutContext";
-import { useLandscape } from "../../../contexts/LandscapeContext";
+import { useLayout } from '@/contexts/LayoutContext';
+import { useLandscape } from '@/contexts/LandscapeContext';
 
 type ISourceButtonAction = {
   id: string;

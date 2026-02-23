@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { IRabbithole } from "../../app/database/models/rabbithole";
-import useFetch from "../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { IConnectable } from "../../app/services/Graph";
 import { IIdea } from "../../shared/types/idea";
 

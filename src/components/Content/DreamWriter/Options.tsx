@@ -49,20 +49,20 @@ import {
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import DreamWriter from "./DreamWriter";
-import { useInteraction } from "../../../contexts/InteractionContext";
-import { useLandscape } from "../../../contexts/LandscapeContext";
-import { createIdea, createIdeaConnection } from "../../../utils/ideas";
+import { useInteraction } from '@/contexts/InteractionContext';
+import { useLandscape } from '@/contexts/LandscapeContext';
+import { createIdea, createIdeaConnection } from '@/utils/ideas';
 import { useDisclosure } from "@mantine/hooks";
 import { SearchBar } from "../../Search/SearchBar";
-import { useSearch } from "../../../contexts/SearchContext";
-import { connect, getNodeAsIdeaOrNull } from "../../../utils/graph";
+import { useSearch } from '@/contexts/SearchContext';
+import { connect, getNodeAsIdeaOrNull } from '@/utils/graph';
 import IdeaButton from "../../Display/Ideas/Interactions/IdeaButton";
 import { ISafeIdea } from "../../../../shared/types/idea";
 import { useNavigate } from "react-router";
-import { SpyglassIcon } from "../../Utils/Icons/Icons";
-import useRabbithole from "../../../hooks/useRabbithole";
+import { SpyglassIcon } from '@core/design/icons/Icons';
+import useRabbithole from '@/hooks/useRabbithole';
 import { NodeSelection } from "@tiptap/pm/state";
-import useConnectable from "../../../hooks/useConnectable";
+import useConnectable from '@/hooks/useConnectable';
 
 interface OptionProps {
   editor: IEditor | null;

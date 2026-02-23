@@ -3,17 +3,17 @@ import { Popover, Text, Stack, TextInput, Textarea, Button, Group } from "@manti
 import { useDisclosure, useDebouncedValue } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { PlusIcon, XIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
-import { IConnectable } from "../../../../../app/services/Graph";
-import useFetch from "../../../../hooks/useFetch";
-import { PaperSelection, usePaperSelection } from "../../Paper/PaperSelection";
-import PaperButton from "../../Paper/PaperButton";
-import PaperThing from "../../Paper/Things/PaperThing";
-import { getThingPropsFromConnectable } from "../../Paper/Things/thingUtils";
-import { useLayout } from "../../../../contexts/LayoutContext";
-import PaperDrawer from "../../Paper/PaperDrawer";
+import { IConnectable } from '../../../../../app/services/Graph';
+import useFetch from '@/hooks/useFetch';
+import { PaperSelection, usePaperSelection } from '@core/design/components/Paper/PaperSelection';
+import PaperButton from '@core/design/components/Paper/PaperButton';
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
+import { useLayout } from '@/contexts/LayoutContext';
+import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
 // Import your creation logic
-import { handleCreateIdea } from "../../../../utils/ideas";
-import { connect } from "../../../../utils/graph";
+import { handleCreateIdea } from '@/utils/ideas';
+import { connect } from '@/utils/graph';
 import { RecordId } from "surrealdb";
 
 interface ConnectionPickerProps {

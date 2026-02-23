@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { DefaultResponse } from "../declarations/server";
-import { api } from "../server/api";
+import { DefaultResponse } from '@/declarations/server';
+import { api } from '@/server/api';
 
 declare module "axios" {
   export interface AxiosRequestConfig {

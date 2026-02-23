@@ -15,28 +15,28 @@ import {
   SpinnerGapIcon,
   CloudXIcon,
 } from "@phosphor-icons/react";
-import useShortcuts from "../../../hooks/useShortcuts";
+import useShortcuts from "@/hooks/useShortcuts";
 import { getExtensionConfig } from "./extensions";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import { useInteraction } from "@/contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
-import { useLayout } from "../../../contexts/LayoutContext";
+import { useLayout } from "@/contexts/LayoutContext";
 import { Group, Loader, Overlay, Text, Tooltip, Avatar, Center } from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
-import { getOS } from "../../../utils/platform";
+import { getOS } from "@/utils/platform";
 import {
   ICollaborationStatus,
   useCollaboration,
   ICollaborator,
   ICollaborationState,
-} from "../../../hooks/useCollaboration";
+} from "@/hooks/useCollaboration";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
-import { useAuth } from "../../../contexts/AuthContext";
-import { assignMantineColor } from "../../../utils/colors";
-import { useLandscape } from "../../../contexts/LandscapeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { assignMantineColor } from "@core/utils/colors";
+import { useLandscape } from "@/contexts/LandscapeContext";
 import { useDreamHealer } from "./hooks/useDreamHealer";
 import MobileEditorToolbar from "./MobileEditorToolbar";
-import LangtonsAntLoader from "../../Utils/Loading/AntLoader";
+import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
 
 interface IEditorState {
   collaboration: ICollaborationState;

@@ -1,13 +1,13 @@
 import { showNotification } from "@mantine/notifications";
 import { IConnectableSearchQuery, ISearchResult } from "../../shared/types/search";
-import { useSearch } from "../contexts/SearchContext";
-import { api } from "../server/api";
+import { useSearch } from '@/contexts/SearchContext';
+import { api } from '@/server/api';
 import useFetch from "./useFetch";
 import useRabbithole from "./useRabbithole";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSpyglassService, IResultsMap } from "./useSpyglassService";
 import { IConnectable, IGraphFilters } from "../../shared/types/constellation";
-import { PartialGlimpseResult } from "../utils/partialJsonParser";
+import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
 
 interface IUseSearchQueryParams {
   params?: Partial<IConnectableSearchQuery>;

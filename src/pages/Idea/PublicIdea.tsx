@@ -1,15 +1,15 @@
 import { Box, Container, Group, Stack, Title } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import useFetch from "../../hooks/useFetch";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import useFetch from '@/hooks/useFetch';
 import { IIdeaForm } from "../../../shared/types/idea";
 import { useNavigate, useParams } from "react-router";
 import styles from "./ViewIdea.module.scss";
-import { useAuth } from "../../contexts/AuthContext";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
+import { useAuth } from '@/contexts/AuthContext';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
 import { showNotification } from "@mantine/notifications";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import Nav from "../../components/UI/Layout/Nav";
+import StatusBar from '@core/design/components/Layout/Bottom';
+import Nav from '@core/design/components/Layout/Nav';
 
 export default function PublicIdea() {
   const { ideaId } = useParams<{ ideaId: string }>();

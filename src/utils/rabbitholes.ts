@@ -1,6 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { IRabbithole, IRabbitholeIncludes } from "../../app/database/models/rabbithole";
-import { api } from "../server/api";
+import { api } from '@/server/api';
 import { ISafeIdea } from "../../shared/types/idea";
 import { ITag } from "../../app/database/models/tag";
 import { ITask } from "../../app/database/models/task";

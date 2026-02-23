@@ -1,29 +1,29 @@
 import { ActionIcon, Badge, Group, HoverCard, Loader, Stack, Text, Title } from "@mantine/core";
-import GlimpseModeDisplay from "../../components/Utils/Spyglass/GlimpseModeDisplay";
+import GlimpseModeDisplay from '@/components/Utils/Spyglass/GlimpseModeDisplay';
 import styles from "./Spyglass.module.scss";
-import { useInteraction } from "../../contexts/InteractionContext";
-import { useLayout } from "../../contexts/LayoutContext";
-import useRabbithole from "../../hooks/useRabbithole";
+import { useInteraction } from '@/contexts/InteractionContext';
+import { useLayout } from '@/contexts/LayoutContext';
+import useRabbithole from '@/hooks/useRabbithole';
 import { useEffect, useState } from "react";
-import { useSpyglassService } from "../../hooks/useSpyglassService";
+import { useSpyglassService } from '@/hooks/useSpyglassService';
 import { Link, useSearchParams } from "react-router";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import TopBar from "../../components/UI/Layout/TopBar";
-import LeftSidebar from "../../components/UI/Layout/Left";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import TopBar from '@core/design/components/Layout/TopBar';
+import LeftSidebar from '@core/design/components/Layout/Left';
 import { ClockCounterClockwiseIcon, MegaphoneIcon } from "@phosphor-icons/react";
 import SpyglassContext from "./Spyglass/SpyglassContext";
-import Content from "../../components/UI/Layout/Content";
+import Content from '@core/design/components/Layout/Content';
 import Textbox from "./Textbox";
-import CountUp from "../../components/Utils/Animations/Countup";
-import { DisplayOverview } from "../../components/Utils/Spyglass/Overview";
-import Nav from "../../components/UI/Layout/Nav";
-import LangtonsAntLoader from "../../components/Utils/Loading/AntLoader";
-import RightSidebar from "../../components/UI/Layout/Right";
+import CountUp from '@core/design/components/Animations/Countup';
+import { DisplayOverview } from '@/components/Utils/Spyglass/Overview';
+import Nav from '@core/design/components/Layout/Nav';
+import LangtonsAntLoader from '@core/design/components/Loading/AntLoader';
+import RightSidebar from '@core/design/components/Layout/Right';
 import SpyglassActions from "./Spyglass/SpyglassActions";
-import { useSearch } from "../../contexts/SearchContext";
-import GlimpseNavigation from "../../components/Utils/Spyglass/GlimpseNavigation";
-import DeepFocusNavigation from "../../components/Utils/Spyglass/DeepFocusNavigation";
-import ScopeDisplay from "../../components/Search/ScopeBuilder/ScopeDisplay";
+import { useSearch } from '@/contexts/SearchContext';
+import GlimpseNavigation from '@/components/Utils/Spyglass/GlimpseNavigation';
+import DeepFocusNavigation from '@/components/Utils/Spyglass/DeepFocusNavigation';
+import ScopeDisplay from '@/components/Search/ScopeBuilder/ScopeDisplay';
 
 export default function Spyglass() {
   const {

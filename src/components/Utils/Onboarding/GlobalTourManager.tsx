@@ -1,5 +1,5 @@
 import { Button, Group, Text } from "@mantine/core";
-import { useTourGuide } from "../../../contexts/TourGuideContext";
+import { useTourGuide } from '@/contexts/TourGuideContext';
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import styles from "./GlobalTourManager.module.scss";

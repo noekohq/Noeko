@@ -10,10 +10,10 @@ import {
 } from "@phosphor-icons/react";
 import { IAcceleratorItem, IShelfData } from "../../../app/services/Recommendations";
 import { getExcerptReferenceId } from "../excerpts";
-import { RabbitholeIcon } from "../../components/Utils/Icons/Icons";
+import { RabbitholeIcon } from '@core/design/icons/Icons';
 import { formatDateTime } from "../formatting";
 import { Blockquote, Text } from "@mantine/core";
-import { IAcceleratorShelfLayout } from "../../components/Display/Acceleration/AcceleratorShelf";
+import { IAcceleratorShelfLayout } from '@/components/Display/Acceleration/AcceleratorShelf';
 import { ca } from "zod/v4/locales";
 
 export interface IAcceleratorItemFields {

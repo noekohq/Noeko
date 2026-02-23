@@ -2,7 +2,7 @@ import { Badge, Group, Stack, Text } from "@mantine/core";
 import { ISafeUser, IUser } from "../../../../shared/types/user";
 import styles from "./UserCard.module.scss";
 import { formatDate } from "../../../../app/utils/formatting";
-import { formatDateTime } from "../../../utils/formatting";
+import { formatDateTime } from '@/utils/formatting';
 
 interface IUserCardProps {
   user: ISafeUser | IUser;

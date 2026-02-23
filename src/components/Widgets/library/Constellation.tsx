@@ -1,25 +1,25 @@
 import styles from "./Constellation.module.scss";
 import { IWidgetConfig } from "../index.d";
 import GraphContainer, { IGraphController } from "../../Graph/Graph";
-import { useSearch } from "../../../contexts/SearchContext";
+import { useSearch } from '@/contexts/SearchContext';
 import { useEffect, useMemo, useRef } from "react";
-import useFetch from "../../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import {
   IConnectable,
   IConstellationLoader,
   IGraphFilters,
   ILoadedConstellation,
 } from "../../../../app/services/Graph";
-import GraphLoader from "../../Utils/Loading/GraphLoader";
-import { useLandscape } from "../../../contexts/LandscapeContext";
-import { fromConstellation, getNodeTitle } from "../../../utils/graph";
+import GraphLoader from '@core/design/components/Loading/GraphLoader';
+import { useLandscape } from '@/contexts/LandscapeContext';
+import { fromConstellation, getNodeTitle } from '@/utils/graph';
 import { ActionIcon, Group, Text } from "@mantine/core";
 import { Link } from "react-router";
 import { ArrowsOutIcon, XIcon } from "@phosphor-icons/react";
-import { formatDate } from "../../../utils/formatting";
-import { useGraph } from "../../../contexts/GraphContext";
-import { useInteraction } from "../../../contexts/InteractionContext";
-import { useTourStep } from "../../../contexts/TourGuideContext";
+import { formatDate } from '@/utils/formatting';
+import { useGraph } from '@/contexts/GraphContext';
+import { useInteraction } from '@/contexts/InteractionContext';
+import { useTourStep } from '@/contexts/TourGuideContext';
 
 export default function Constellation() {
   const {

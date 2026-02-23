@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from "react-router";
 import { ITask, ITaskForm } from "../../../app/database/models/task";
 import { IShareAccess } from "../../../app/database/models/share";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import useFetch from "../../hooks/useFetch";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import useFetch from '@/hooks/useFetch';
 import { useCallback, useEffect, useState } from "react";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import Content from "../../components/UI/Layout/Content";
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import Content from '@core/design/components/Layout/Content';
 import {
   ActionIcon,
   Badge,
@@ -39,33 +39,33 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
 } from "@phosphor-icons/react";
-import DreamWriter from "../../components/Content/DreamWriter/DreamWriter";
+import DreamWriter from '@/components/Content/DreamWriter/DreamWriter';
 import { useForm } from "@mantine/form";
 import { Duration } from "surrealdb";
 import styles from "./Task.module.scss";
-import { useLayout } from "../../contexts/LayoutContext";
-import { updateTask } from "../../utils/tasks";
+import { useLayout } from '@/contexts/LayoutContext';
+import { updateTask } from '@/utils/tasks';
 import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
-import Search from "../../components/Search/Search";
+import Search from '@/components/Search/Search';
 import { modals } from "@mantine/modals";
-import ConnectionManager from "../../components/Display/Interactions/Connections/ConnectionManager";
-import { useLandscape } from "../../contexts/LandscapeContext";
-import useConnectable from "../../hooks/useConnectable";
-import TagsManager from "../../components/Display/Interactions/Tags/TagsManager";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
-import { Tabs } from "../../components/UI/Layout/Utils/Tabs";
-import usePins from "../../hooks/usePins";
-import { downloadTextAsFile } from "../../utils/files";
+import ConnectionManager from '@/components/Display/Interactions/Connections/ConnectionManager';
+import { useLandscape } from '@/contexts/LandscapeContext';
+import useConnectable from '@/hooks/useConnectable';
+import TagsManager from '@/components/Display/Interactions/Tags/TagsManager';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
+import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
+import usePins from '@/hooks/usePins';
+import { downloadTextAsFile } from '@/utils/files';
 import { htmlToMarkdown } from "../../../app/utils/formatting";
-import HorizonSelector from "../../components/Display/Paper/Inputs/HorizonSelector";
-import { fromYYYYMMDD } from "../../utils/datetime";
-import { capitalize, formatDate } from "../../utils/formatting";
-import PaperDrawer from "../../components/Display/Paper/PaperDrawer";
-import AccessManager from "../../components/Display/Interactions/Access/AccessManager";
-import { ICollaborationState } from "../../hooks/useCollaboration";
-import { CollaborationInfo } from "../../components/Collaboration/CollaborationInfo";
+import HorizonSelector from '@core/design/components/Paper/Inputs/HorizonSelector';
+import { fromYYYYMMDD } from '@core/utils/datetime';
+import { capitalize, formatDate } from '@/utils/formatting';
+import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
+import AccessManager from '@/components/Display/Interactions/Access/AccessManager';
+import { ICollaborationState } from '@/hooks/useCollaboration';
+import { CollaborationInfo } from '@/components/Collaboration/CollaborationInfo';
 
 export default function Task() {
   const { taskId } = useParams();

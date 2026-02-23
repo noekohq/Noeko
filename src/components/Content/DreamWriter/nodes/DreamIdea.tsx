@@ -13,13 +13,13 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
-import styles from "./styles/DreamIdea.module.scss";
+import styles from '@core/design/styles/DreamIdea.module.scss';
 import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
-import useFetch from "../../../../hooks/useFetch";
-import { IIdea } from "../../../../../shared/types/idea";
+import useFetch from '@/hooks/useFetch';
+import { IIdea } from '../../../../../shared/types/idea';
 import OverviewAccordion from "../../../Display/Ideas/OverviewAccordion";
-import { DreamIdeaSchema } from "../../../../../shared/editing/tiptap/nodes/DreamIdea";
+import { DreamIdeaSchema } from '../../../../../shared/editing/tiptap/nodes/DreamIdea';
 import { useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 

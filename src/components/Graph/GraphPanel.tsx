@@ -2,9 +2,9 @@ import { forwardRef, useMemo } from "react";
 import styles from "./GraphPanel.module.scss";
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { PlusIcon } from "@phosphor-icons/react";
-import { useGraph } from "../../contexts/GraphContext";
+import { useGraph } from '@/contexts/GraphContext';
 import { showNotification } from "@mantine/notifications";
-import { includeThingsInRabbithole, newRabbithole } from "../../utils/rabbitholes";
+import { includeThingsInRabbithole, newRabbithole } from '@/utils/rabbitholes';
 import { useNavigate } from "react-router";
 import { createPortal } from "react-dom";
 

@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { ISource } from "../../../app/database/models/source";
-import useFetch from "../../hooks/useFetch";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import StatusBar from "../../components/UI/Layout/Bottom";
+import useFetch from '@/hooks/useFetch';
+import PageWrapper from '@/components/Layout/PageWrapper';
+import Content from '@core/design/components/Layout/Content';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import StatusBar from '@core/design/components/Layout/Bottom';
 import { ActionIcon, Badge, Group, HoverCard, Stack, Text, TextInput, Title } from "@mantine/core";
 import { MegaphoneIcon, PlusIcon } from "@phosphor-icons/react";
-import { useInteraction } from "../../contexts/InteractionContext";
-import SourceCard from "../../components/Display/Sources/SourceCard";
-import ConnectableTable from "../../components/Display/Data/ConnectableTable";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import { useInteraction } from '@/contexts/InteractionContext';
+import SourceCard from '@/components/Display/Sources/SourceCard';
+import ConnectableTable from '@/components/Display/Data/ConnectableTable';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
 
 export default function SourceList() {
   const { data: sources, load: loadSources } = useFetch<undefined, ISource[]>({

@@ -1,24 +1,24 @@
 import { useEffect } from "react";
 import { Stack, Title, Text, Loader, Group, SimpleGrid } from "@mantine/core";
 import { IConnectable } from "../../../app/services/Graph";
-import useFetch from "../../hooks/useFetch";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import Content from "../../components/UI/Layout/Content";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
-import { useSearch } from "../../contexts/SearchContext";
-import ConnectableThing from "../../components/Display/Interactions/Connections/ConnectableThing";
+import useFetch from '@/hooks/useFetch';
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
+import Content from '@core/design/components/Layout/Content';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
+import { useSearch } from '@/contexts/SearchContext';
+import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
 import { useNavigate } from "react-router";
-import PaperThing from "../../components/Display/Paper/Things/PaperThing";
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 import {
   getThingPropsFromConnectable,
   getThingsFromConnectables,
-} from "../../components/Display/Paper/Things/thingUtils";
+} from '@core/design/components/Paper/Things/thingUtils';
 import { GridFourIcon, ListIcon, PushPinIcon } from "@phosphor-icons/react";
-import GridCard from "../../components/Display/Paper/Things/GridCard";
-import PaperThings from "../../components/Display/Paper/Things/PaperThings";
+import GridCard from '@core/design/components/Paper/Things/GridCard';
+import PaperThings from '@core/design/components/Paper/Things/PaperThings';
 
 export default function PinsPage() {
   const {

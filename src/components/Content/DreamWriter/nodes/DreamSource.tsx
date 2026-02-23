@@ -14,12 +14,12 @@ import {
   NodeViewContent,
 } from "@tiptap/react";
 import { useEffect, useState } from "react";
-import styles from "./styles/DreamSource.module.scss";
+import styles from '@core/design/styles/DreamSource.module.scss';
 import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
-import useFetch from "../../../../hooks/useFetch";
-import { ISource } from "../../../../../app/database/models/source";
-import { DreamSourceSchema } from "../../../../../shared/editing/tiptap/nodes/DreamSource";
+import useFetch from '@/hooks/useFetch';
+import { ISource } from '../../../../../app/database/models/source';
+import { DreamSourceSchema } from '../../../../../shared/editing/tiptap/nodes/DreamSource';
 import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {

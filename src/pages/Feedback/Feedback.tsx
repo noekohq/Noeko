@@ -10,21 +10,21 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import Content from '@core/design/components/Layout/Content';
+import LeftSidebar from '@core/design/components/Layout/Left';
 import styles from "./Feedback.module.scss";
-import useFetch from "../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { IFeedback } from "../../../shared/types/feedback";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
-import { api } from "../../server/api";
-import RightSidebar from "../../components/UI/Layout/Right";
-import Search from "../../components/Search/Search";
-import FeedbackCard from "../../components/Display/Feedback/FeedbackCard";
-import { formatDate } from "../../utils/formatting";
+import { api } from '@/server/api';
+import RightSidebar from '@core/design/components/Layout/Right';
+import Search from '@/components/Search/Search';
+import FeedbackCard from '@/components/Display/Feedback/FeedbackCard';
+import { formatDate } from '@/utils/formatting';
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
-import TopBar from "../../components/UI/Layout/TopBar";
+import TopBar from '@core/design/components/Layout/TopBar';
 
 export default function Feedback() {
   const {

@@ -1,6 +1,6 @@
 import { Badge, Card, Group, HoverCard, Paper, Text, useMantineTheme } from "@mantine/core";
 import { ITag } from "../../../../shared/types/tags";
-import { useSettings } from "../../../contexts/SettingsContext";
+import { useSettings } from '@/contexts/SettingsContext';
 import { Link } from "react-router";
 import { Tag, TagIcon } from "@phosphor-icons/react";
 

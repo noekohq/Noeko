@@ -1,13 +1,13 @@
 import { ActionIcon, Group, MantineColor, Menu, Text } from "@mantine/core";
 import { IRabbithole } from "../../../../app/database/models/rabbithole";
-import { formatDateTime } from "../../../utils/formatting";
+import { formatDateTime } from '@/utils/formatting';
 import { useNavigate } from "react-router";
-import { IconProps } from "../../Utils/Icons/Icon";
+import { IconProps } from '@core/design/icons/Icon';
 import styles from "./RabbitholeCard.module.scss";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
-import { RabbitholeIcon } from "../../Utils/Icons/Icons";
+import { RabbitholeIcon } from '@core/design/icons/Icons';
 import { IRabbitholeAction } from "./rabbitholes";
-import { getNodeDescription } from "../../../utils/graph";
+import { getNodeDescription } from '@/utils/graph';
 
 interface IRabbitholeCardProps {
   rabbithole: IRabbithole;

@@ -8,11 +8,11 @@ import {
 } from "@phosphor-icons/react";
 import StatusButton from "./StatusButton";
 import { Menu } from "@mantine/core";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import { useInteraction } from '@/contexts/InteractionContext';
 import { useState } from "react";
-import { RabbitholeIcon } from "../../Utils/Icons/Icons";
-import { useLayout } from "../../../contexts/LayoutContext";
-import { useTourStep } from "../../../contexts/TourGuideContext";
+import { RabbitholeIcon } from '@core/design/icons/Icons';
+import { useLayout } from '@/contexts/LayoutContext';
+import { useTourStep } from '@/contexts/TourGuideContext';
 
 export default function CreateButton() {
   const {

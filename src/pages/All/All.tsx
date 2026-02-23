@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { IGetAllConnectables_Options, ITaggedConnectable } from "../../../app/services/Graph";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
+import PageWrapper from '@/components/Layout/PageWrapper';
+import LeftSidebar from '@core/design/components/Layout/Left';
+import RightSidebar from '@core/design/components/Layout/Right';
 import { Loader, Center, Text, Group, Title, Stack, SimpleGrid } from "@mantine/core";
-import Content from "../../components/UI/Layout/Content";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
-import { getThingPropsFromConnectable } from "../../components/Display/Paper/Things/thingUtils";
-import GridCard from "../../components/Display/Paper/Things/GridCard";
-import { formatDateTime } from "../../utils/formatting";
-import { api } from "../../server/api";
-import { DefaultResponse } from "../../declarations/server";
-import TagsFilter from "../../components/Display/Interactions/Tags/TagsFilter";
+import Content from '@core/design/components/Layout/Content';
+import Nav from '@core/design/components/Layout/Nav';
+import TopBar from '@core/design/components/Layout/TopBar';
+import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
+import GridCard from '@core/design/components/Paper/Things/GridCard';
+import { formatDateTime } from '@/utils/formatting';
+import { api } from '@/server/api';
+import { DefaultResponse } from '@/declarations/server';
+import TagsFilter from '@/components/Display/Interactions/Tags/TagsFilter';
 import { ITag } from "../../../shared/types/tags";
-import PaperTag from "../../components/Display/Paper/Tags/PaperTag";
+import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
 
 interface AllConnectablesResponse {
   items: ITaggedConnectable[];

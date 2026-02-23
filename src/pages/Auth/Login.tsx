@@ -13,14 +13,14 @@ import {
   Tooltip,
   Space,
 } from "@mantine/core";
-import useFetch from "../../hooks/useFetch";
+import useFetch from '@/hooks/useFetch';
 import { useForm } from "@mantine/form";
 import { Link, useNavigate } from "react-router";
 import { ISafeUser } from "../../../shared/types/user";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from '@/contexts/AuthContext';
 import { showNotification } from "@mantine/notifications";
-import { validateEmail } from "../../utils/data";
-import StageIndicator from "../../components/Utils/Info/StageIndicator";
+import { validateEmail } from '@/utils/data';
+import StageIndicator from '@core/design/components/Utils/StageIndicator';
 
 export default function Login() {
   const navigate = useNavigate();

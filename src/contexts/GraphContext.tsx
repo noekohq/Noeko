@@ -1,5 +1,5 @@
 import React, { useContext, useState, useCallback, useMemo } from "react";
-import { INode } from "../declarations/graph";
+import { INode } from '@/declarations/graph';
 
 type FilterConfig = {
   filter: (nodeId: string, node?: INode) => boolean;

@@ -1,15 +1,15 @@
 import { Group, Stack, Text } from "@mantine/core";
-import { useGraph } from "../../contexts/GraphContext";
-import { IEdge, IGraph, INode } from "../../declarations/graph";
-import { useSearch } from "../../contexts/SearchContext";
+import { useGraph } from '@/contexts/GraphContext';
+import { IEdge, IGraph, INode } from '@/declarations/graph';
+import { useSearch } from '@/contexts/SearchContext';
 import styles from "./ConstellationContext.module.scss";
-import { GraphOrganizer } from "../../components/Display/Interactions/GraphOrganizer/GraphOrganizer";
-import ScopeBuilder from "../../components/Search/ScopeBuilder/ScopeBuilder";
+import { GraphOrganizer } from '@/components/Display/Interactions/GraphOrganizer/GraphOrganizer';
+import ScopeBuilder from '@/components/Search/ScopeBuilder/ScopeBuilder';
 import { useCallback, useMemo, useEffect } from "react";
-import PaperThing from "../../components/Display/Paper/Things/PaperThing";
+import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 import { UserIcon } from "@phosphor-icons/react";
-import PaperChip from "../../components/Display/Paper/PaperChip";
-import { useLandscape } from "../../contexts/LandscapeContext";
+import PaperChip from '@core/design/components/Paper/PaperChip';
+import { useLandscape } from '@/contexts/LandscapeContext';
 import { IConstellationLoader } from "../../../shared/types/constellation";
 
 type ConstellationContextProps = {
@@ -110,7 +110,7 @@ export default function ConstellationContext({
             <Stack gap="xs">
               {friendNodes.map((node) => {
                 // Type assertion since we filtered for user nodes
-                const userNode = node as import("../../declarations/graph").IUserNode;
+                const userNode = node as import('@/declarations/graph').IUserNode;
                 const fullName = `${userNode.firstName} ${userNode.lastName}`.trim() || "Friend";
                 return (
                   <PaperThing

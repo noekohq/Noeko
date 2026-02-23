@@ -1,6 +1,6 @@
 import { Box, Card, Group, Kbd, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { IOnboardingProps } from "./Index";
-import { getOS } from "../../../utils/platform";
+import { getOS } from '@/utils/platform';
 import Shortcut from "../../Utils/Help/Shortcut";
 import styles from "./Hotkeys.module.scss";
 import { GearIcon } from "@phosphor-icons/react";
