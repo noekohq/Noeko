@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { IShareAccess, IShareDetails } from '../../../../../app/database/models/share';
 import { IConnectable } from '../../../../../app/services/Graph';
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { useForm } from "@mantine/form";
-import { validateEmail } from '@/utils/data';
-import { useAuth } from '@/contexts/AuthContext';
-import { revokeAccess, shareAccessWithEmail, updateAccess } from '@/utils/shares';
+import { validateEmail } from '@core/utils/data';
+import { useAuth } from '@domains/identity/contexts/AuthContext';
+import { revokeAccess, shareAccessWithEmail, updateAccess } from '@domains/knowledge/utils/shares';
 import { showNotification } from "@mantine/notifications";
 import {
   ActionIcon,
@@ -30,7 +30,7 @@ import {
   ShareNetworkIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
-import { userFormattedName } from '@/utils/user';
+import { userFormattedName } from '@domains/identity/utils/user';
 import { PaperContextMenu } from '@core/design/components/Paper/PaperContextMenu';
 import { getNodeLink } from '@infrastructure/graph/utils';
 import { IFriendUser } from '../../../../../shared/types/user';

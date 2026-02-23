@@ -1,6 +1,6 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@domains/identity/contexts/AuthContext';
 import { useState } from "react";
-import { updateUser } from '@/utils/user';
+import { updateUser } from '@domains/identity/utils/user';
 import Introduction from "./Introduction";
 import ChooseYourPath from "./ChooseYourPath";
 import Hotkeys from "./Hotkeys";

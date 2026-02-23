@@ -18,14 +18,14 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import useShortcuts from '@/hooks/useShortcuts';
-import ProfileButton from '@/components/Display/Interactions/ProfileButton';
-import { useAuth } from '@/contexts/AuthContext';
-import { userIsSuperuser } from '@/utils/user';
+import useShortcuts from '@core/hooks/useShortcuts';
+import ProfileButton from '@core/design/components/Interactions/ProfileButton';
+import { useAuth } from '@domains/identity/contexts/AuthContext';
+import { userIsSuperuser } from '@domains/identity/utils/user';
 import { useInteraction } from '@/contexts/InteractionContext';
 import { useLocation, useNavigate } from "react-router";
-import useSidebarHover from '@/hooks/useSidebarHover';
-import { useConnection } from '@/hooks/useConnection';
+import useSidebarHover from '@core/hooks/useSidebarHover';
+import { useConnection } from '@domains/knowledge/hooks/useConnection';
 import StageIndicator from '@core/design/components/Utils/StageIndicator';
 
 interface IRightSidebarProps {

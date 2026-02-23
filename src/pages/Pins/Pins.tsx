@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { Stack, Title, Text, Loader, Group, SimpleGrid } from "@mantine/core";
 import { IConnectable } from '../../../app/services/Graph';
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
 import Content from '@core/design/components/Layout/Content';
 import Nav from '@core/design/components/Layout/Nav';
 import TopBar from '@core/design/components/Layout/TopBar';
-import { useSearch } from '@/contexts/SearchContext';
+import { useSearch } from '@domains/discovery/contexts/SearchContext';
 import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
 import { useNavigate } from "react-router";
 import PaperThing from '@core/design/components/Paper/Things/PaperThing';

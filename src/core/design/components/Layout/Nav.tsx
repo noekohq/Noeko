@@ -13,9 +13,9 @@ import React, { useEffect, useState } from "react";
 import CaptureButton from '@core/design/components/Interactions/CaptureButton';
 import { useLayout } from '@/contexts/LayoutContext';
 import { useInteraction } from '@/contexts/InteractionContext';
-import MyButton from '@/components/Display/Interactions/MyButton';
-import { useAuth } from '@/contexts/AuthContext';
-import useRabbithole from '@/hooks/useRabbithole';
+import MyButton from '@core/design/components/Interactions/MyButton';
+import { useAuth } from '@domains/identity/contexts/AuthContext';
+import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
 import { CaretUpIcon } from "@phosphor-icons/react/dist/ssr";
 
 type INavProps = {

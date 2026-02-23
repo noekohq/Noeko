@@ -4,7 +4,7 @@ import { useDisclosure, useDebouncedValue } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { PlusIcon, XIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
 import { IConnectable } from '../../../../../app/services/Graph';
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { PaperSelection, usePaperSelection } from '@core/design/components/Paper/PaperSelection';
 import PaperButton from '@core/design/components/Paper/PaperButton';
 import PaperThing from '@core/design/components/Paper/Things/PaperThing';
@@ -12,7 +12,7 @@ import { getThingPropsFromConnectable } from '@core/design/components/Paper/Thin
 import { useLayout } from '@/contexts/LayoutContext';
 import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
 // Import your creation logic
-import { handleCreateIdea } from '@/utils/ideas';
+import { handleCreateIdea } from '@domains/knowledge/utils/ideas';
 import { connect } from '@infrastructure/graph/utils';
 import { RecordId } from "surrealdb";
 

@@ -1,9 +1,9 @@
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { showNotification } from "@mantine/notifications";
 import { DownloadSimple, FileMd } from "@phosphor-icons/react";
-import { formatFileNameToTitle, readFileContent } from '@/utils/files';
+import { formatFileNameToTitle, readFileContent } from '@infrastructure/api/files';
 import {
   Button,
   Card,
@@ -17,7 +17,7 @@ import {
   Loader,
   Group,
 } from "@mantine/core";
-import { formatFileSize, markdownToHtml } from '@/utils/formatting';
+import { formatFileSize, markdownToHtml } from '@core/utils/formatting';
 import { IIdea, IIdeaForm } from '../../../../shared/types/idea';
 import { useNavigate } from "react-router";
 

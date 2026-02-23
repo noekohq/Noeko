@@ -4,12 +4,12 @@ import { MagnifyingGlassIcon, PushPinIcon, XIcon, UserIcon } from "@phosphor-ico
 import { Link, useLocation, useNavigate } from "react-router";
 import { ActionIcon, Center, Group, Loader, Stack, Text, Transition } from "@mantine/core";
 import { useLayout } from '@/contexts/LayoutContext';
-import useSearchQuery from '@/hooks/useSearchQuery';
-import useRabbithole from '@/hooks/useRabbithole';
+import useSearchQuery from '@domains/discovery/hooks/useSearchQuery';
+import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
 import PaperChip from '@core/design/components/Paper/PaperChip';
 
-import { getNodeDescription, getNodeTitle } from '@/utils/graph';
-import { formatDateTime } from '@/utils/formatting';
+import { getNodeDescription, getNodeTitle } from '@infrastructure/graph/utils';
+import { formatDateTime } from '@core/utils/formatting';
 import PaperSearchResult from '@core/design/components/Paper/PaperSearchResult/PaperSearchResult';
 import { useInteraction } from '@/contexts/InteractionContext';
 import PaperButton from '@core/design/components/Paper/PaperButton';

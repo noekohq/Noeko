@@ -12,7 +12,7 @@ import {
 import { INode } from '@/declarations/graph';
 import styles from "./PaperSearchResult.module.scss";
 import Match from '@core/design/components/Utils/Match';
-import { getNodeLinkFromId, IconMap } from '@/utils/graph';
+import { getNodeLinkFromId, IconMap } from '@infrastructure/graph/utils';
 import { useLandscape } from '@/contexts/LandscapeContext';
 import { PaperContextMenu } from "../PaperContextMenu";
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { IConnectable } from '../../../../../app/services/Graph';
 import styles from "./ConnectionManager.module.scss";
-import useConnectable from '@/hooks/useConnectable';
+import useConnectable from '@domains/knowledge/hooks/useConnectable';
 import { Box, Group, Overlay, Space, Stack, Text, Transition } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon, SubtractIcon } from "@phosphor-icons/react";
@@ -9,9 +9,9 @@ import { useInteraction } from '@/contexts/InteractionContext';
 import { useTourStep } from '@/contexts/TourGuideContext';
 import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
-import { similarityToLevel } from '@/vars/ideas';
+import { similarityToLevel } from '@domains/knowledge/utils/ideas_vars';
 import { ConnectionPicker } from "./ConnectionPicker";
-import { capitalize } from '@/utils/formatting';
+import { capitalize } from '@core/utils/formatting';
 
 interface IConnectionManagerProps {
   connectable: IConnectable;

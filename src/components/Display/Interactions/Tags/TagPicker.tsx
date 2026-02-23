@@ -4,7 +4,7 @@ import { Popover, Textarea, Button, Stack, Text, TextInput, Group } from "@manti
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
 import { ITag } from '../../../../../shared/types/tags';
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { useDisclosure } from "@mantine/hooks";
 import PaperButton from '@core/design/components/Paper/PaperButton';
 import { PaperSelection, usePaperSelection } from '@core/design/components/Paper/PaperSelection';

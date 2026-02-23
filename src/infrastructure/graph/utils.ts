@@ -17,8 +17,8 @@ import {
   formatDateTime,
   markdownToHtml,
   sanitizeMarkdownForDescription,
-} from '@/utils/formatting';
-import { splitBySentences } from '@/utils/processing';
+} from '@core/utils/formatting';
+import { splitBySentences } from '@core/utils/processing';
 import { api } from '@infrastructure/api/client';
 import {
   CheckIcon,

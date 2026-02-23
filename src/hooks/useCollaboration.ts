@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { HocuspocusProvider } from "@hocuspocus/provider";
-import { refreshToken, serverHost } from '@/server/api';
+import { refreshToken, serverHost } from '@infrastructure/api/client';
 
 export type ICollaborationStatus = "disconnected" | "connecting" | "connected" | "synced";
 

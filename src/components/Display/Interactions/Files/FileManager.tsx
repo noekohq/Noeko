@@ -21,12 +21,12 @@ import {
 import { Editor } from "@tiptap/react";
 import { useState } from "react";
 import { IUserFile } from '../../../../../app/database/models/userfile';
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import {
   handleFileDownload,
   linkFileToConnectable,
   unlinkFileFromConnectable,
-} from '@/utils/userfiles';
+} from '@infrastructure/api/userfiles';
 import styles from "./FileManager.module.scss";
 import { streamImageEndpoint } from '@/vars/files';
 import { api } from '@infrastructure/api/client';

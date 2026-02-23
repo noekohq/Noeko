@@ -50,26 +50,26 @@ Treat the editor as a completely decoupled third-party package.
 
 Collapse horizontal layers (hooks, pages, components, utils) into vertical business domains.
 
-- [ ] **Domain 1: Identity** (Auth, Users, Settings)
+- [x] **Domain 1: Identity** (Auth, Users, Settings)
   - Create directory structure.
   - Move related pages (`Auth`, `Users`, `Settings`), components (`Display/Users`), contexts (`AuthContext.tsx`), and utils/vars (`user.ts`, `users.ts`).
-- [ ] **Domain 2: Discovery** (Search & Spyglass)
+- [x] **Domain 2: Discovery** (Search & Spyglass)
   - Create directory structure.
   - Move related pages (`Spyglass`, `All`), components (`Search`, `UI/Spotlight`, `Utils/Spyglass`), hooks (`useSearchQuery.ts`, `useSpyglassService.ts`), utils (`search.ts`, `spyglass.ts`), and contexts (`SearchContext.tsx`).
-- [ ] **Domain 3: Constellation** (Visual Graph Rendering)
+- [x] **Domain 3: Constellation** (Visual Graph Rendering)
   - Create directory structure.
   - Move related pages (`Constellation`), components (`Graph`), and contexts (`GraphContext.tsx`).
   - _(Note: This domain will import from `@infrastructure/graph` for data, but handles rendering locally)._
-- [ ] **Domain 4: Knowledge** (Ideas, Tasks, Sources)
+- [x] **Domain 4: Knowledge** (Ideas, Tasks, Sources)
   - Create directory structure.
   - Move related pages (`Idea`, `Tasks`, `Sources`), components (`Display/Ideas`, `Display/Tasks`, `Display/Sources`, `Display/Excerpts`, `Forms/CreateTask.tsx`, `Forms/AddSource.tsx`), hooks (`useConnectable.ts`, `useConnection.ts`, `usePins.ts`), and utils/vars (`ideas.ts`, `tasks.ts`, `sources.ts`, `excerpts.ts`).
-- [ ] **Domain 5: Rabbitholes** (Meta-organization)
+- [x] **Domain 5: Rabbitholes** (Meta-organization)
   - Create directory structure.
   - Move related pages (`Rabbitholes`), components (`Display/Rabbitholes`, `Display/Interactions/Rabbitholes`), hooks (`useRabbithole.ts`), and utils (`rabbitholes.ts`).
-- [ ] **Domain 6: Dashboard** (Composition Root)
+- [x] **Domain 6: Dashboard** (Composition Root)
   - Create directory structure.
   - Move related pages (`Dashboard`) and components (`Widgets`).
-- [ ] Verify and fix all imports across the newly created domains.
+- [x] Verify and fix all imports across the newly created domains. *(Note: Successfully distributed all horizontal layers into their respective domain vertical slices. Repaired all cross-domain and infrastructure imports using automated scripts to fix path depths).*
 
 ## Phase 5: Enforce Public API Contracts
 

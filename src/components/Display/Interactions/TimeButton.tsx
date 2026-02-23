@@ -1,5 +1,5 @@
 import { Popover, Text, Stack, Divider, Group, Badge } from "@mantine/core";
-import StatusButton from "./StatusButton";
+import StatusButton from '@core/design/components/Interactions/StatusButton';
 import { useState, useEffect } from "react";
 
 /**

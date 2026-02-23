@@ -3,7 +3,7 @@ import PageWrapper from "../../Layout/PageWrapper";
 import Content from '@core/design/components/Layout/Content';
 import { IOnboardingProps } from "./Index";
 import { Link, useNavigate } from "react-router";
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { ISafeIdea } from '../../../../shared/types/idea';
 import { showNotification } from "@mantine/notifications";
 import styles from "./ChooseYourPath.module.scss";

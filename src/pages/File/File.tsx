@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { IUserFile } from '../../../app/database/models/userfile';
 import { ActionIcon, Button, Flex, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { modals } from "@mantine/modals";
@@ -10,12 +10,12 @@ import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
 import ContentWide from '@core/design/components/Layout/ContentWide';
 import StatusBar from '@core/design/components/Layout/Bottom';
-import { handleFileDownload } from '@/utils/userfiles';
+import { handleFileDownload } from '@infrastructure/api/userfiles';
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
-import { ViewerMap } from '@/components/Display/Files/Viewers';
+import { ViewerMap } from '@domains/knowledge/components/Files/Viewers';
 import { useLayout } from '@/contexts/LayoutContext';
 import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
-import { createSourceFrom } from '@/utils/sources';
+import { createSourceFrom } from '@domains/knowledge/utils/sources';
 import Nav from '@core/design/components/Layout/Nav';
 import TopBar from '@core/design/components/Layout/TopBar';
 

@@ -1,7 +1,7 @@
 import { Button, Divider, Group, Space, Stack, Text, Title } from "@mantine/core";
 import PageWrapper from "../../Layout/PageWrapper";
 import Content from '@core/design/components/Layout/Content';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@domains/identity/contexts/AuthContext';
 import { IOnboardingProps } from "./Index";
 import styles from "./Introduction.module.scss";
 import ASCII from "../../Utils/Graphics/ascii/ASCII";

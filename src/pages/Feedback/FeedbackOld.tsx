@@ -14,7 +14,7 @@ import {
   Select,
   Checkbox,
 } from "@mantine/core";
-import useFetch from '@/hooks/useFetch';
+import useFetch from '@core/hooks/useFetch';
 import { TrashSimple, CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";

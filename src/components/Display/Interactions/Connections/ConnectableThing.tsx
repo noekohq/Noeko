@@ -1,14 +1,14 @@
 import { IconProps } from "@phosphor-icons/react";
-import { IIdea } from "../../Ideas/IdeaCardTypes";
+import { IIdea } from '@domains/knowledge/components/Ideas/IdeaCardTypes';
 import { ITask } from '../../../../../app/database/models/task';
 import { MantineColor } from "@mantine/core";
 import { ISource } from '../../../../../app/database/models/source';
 import { IConnectable } from '../../../../../app/services/Graph';
-import IdeaButton from "../../Ideas/Interactions/IdeaButton";
-import TaskButton from "../../Tasks/TaskButton";
-import SourceButton from "../../Sources/SourceButton";
+import IdeaButton from '@domains/knowledge/components/Ideas/Interactions/IdeaButton';
+import TaskButton from '@domains/knowledge/components/Tasks/TaskButton';
+import SourceButton from '@domains/knowledge/components/Sources/SourceButton';
 import { IExcerpt } from '../../../../../shared/types/excerpt';
-import ExcerptButton from "../../Excerpts/ExcerptButton";
+import ExcerptButton from '@domains/knowledge/components/Excerpts/ExcerptButton';
 
 interface IConnectableThingAction {
   id: string;

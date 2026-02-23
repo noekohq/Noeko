@@ -2,18 +2,18 @@ import React from "react";
 import { IStatusBarMode, useLayout } from '@/contexts/LayoutContext';
 import styles from "./Bottom.module.scss";
 import { useInteraction } from '@/contexts/InteractionContext';
-import useRabbithole from '@/hooks/useRabbithole';
+import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
 import { ActionIcon, Group, MantineColor, Menu, Popover } from "@mantine/core";
-import { RabbitholeIndicator } from '@/components/Display/Rabbitholes/RabbitholeIndicator';
+import { RabbitholeIndicator } from '@domains/rabbitholes/components/Rabbitholes/RabbitholeIndicator';
 import { ConstellationIcon, SpyglassIcon } from '@core/design/icons/Icons';
-import StatusButton from '@/components/Display/Interactions/StatusButton';
+import StatusButton from '@core/design/components/Interactions/StatusButton';
 import {
   CalendarBlankIcon,
   DotsThreeVerticalIcon,
   FileTextIcon,
   PlusIcon,
 } from "@phosphor-icons/react";
-import CreateButton from '@/components/Display/Interactions/CreateButton';
+import CreateButton from '@core/design/components/Interactions/CreateButton';
 import { Link } from "react-router";
 import { useTourStep } from '@/contexts/TourGuideContext';
 

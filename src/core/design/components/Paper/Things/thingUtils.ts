@@ -2,18 +2,18 @@ import { IRabbithole } from '../../../../../../app/database/models/rabbithole';
 import { IFriendUser } from '../../../../../../shared/types/user';
 import { IConnectable, IPotentiallySharedConnectable } from '../../../../../../app/services/Graph';
 import { IAcceleratorItem } from '../../../../../../app/services/Recommendations';
-import { formatDateTime } from '@/utils/formatting';
+import { formatDateTime } from '@core/utils/formatting';
 import {
   getNodeContent,
   getNodeDescription,
   getNodeLinkFromId,
   getNodeTitle,
   IconMap,
-} from '@/utils/graph';
+} from '@infrastructure/graph/utils';
 import {
   acceleratorItemFieldResolvers,
   getAcceleratorItemFields,
-} from '@/utils/recommendations/accelerator';
+} from '@domains/knowledge/utils/recommendations/accelerator';
 import { IUserFile } from '../../../../../../app/database/models/userfile';
 import { streamImageEndpoint } from '@/vars/files';
 import { FileIcon, FilePdfIcon, FileImageIcon, UserIcon } from "@phosphor-icons/react";

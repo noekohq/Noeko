@@ -1,6 +1,6 @@
 import { ISafeUser } from '../../shared/types/user';
 import { api } from '@infrastructure/api/client';
-import { triggerDownload } from "./helpers";
+import { triggerDownload } from '@core/utils/helpers';
 
 export const handleExportDownload = async (user: ISafeUser) => {
   try {

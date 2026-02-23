@@ -1,9 +1,9 @@
 import { Group } from "@mantine/core";
 import { IConnectable } from '../../../../../app/services/Graph'; // Adjust
-import useConnectable from '@/hooks/useConnectable'; // Adjust
+import useConnectable from '@domains/knowledge/hooks/useConnectable'; // Adjust
 import { useEffect, useState } from "react";
 import { TagPicker } from "./TagPicker"; // Import the new component
-import { createTagAndAddToThing } from '@/utils/tags'; // Adjust
+import { createTagAndAddToThing } from '@domains/knowledge/utils/tags'; // Adjust
 import styles from "./TagsManager.module.scss";
 import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
 import { useLayout } from '@/contexts/LayoutContext';

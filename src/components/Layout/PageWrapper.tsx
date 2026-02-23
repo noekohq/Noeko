@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLayout } from '@/contexts/LayoutContext';
 import MobileBar from '@core/design/components/Layout/MobileBar';
 import styles from "./PageWrapper.module.scss";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@domains/identity/contexts/AuthContext';
 import { useLandscape } from '@/contexts/LandscapeContext';
 
 type PageWrapperProps = {

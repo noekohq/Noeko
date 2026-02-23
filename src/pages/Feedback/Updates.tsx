@@ -21,7 +21,7 @@ import { Link } from "react-router";
 import React, { useState } from "react";
 import { useInteraction } from '@/contexts/InteractionContext';
 import { MegaphoneSimple, MegaphoneSimpleIcon } from "@phosphor-icons/react";
-import { capitalize, formatDate } from '@/utils/formatting';
+import { capitalize, formatDate } from '@core/utils/formatting';
 import Content from '@core/design/components/Layout/Content';
 import StatusBar from '@core/design/components/Layout/Bottom';
 import Nav from '@core/design/components/Layout/Nav';
