@@ -13,7 +13,7 @@ import {
   Accordion,
   Transition,
 } from "@mantine/core";
-import { IIdea, IIdeaAsRelation, IIdeaConnection, ISafeIdea } from "../../../shared/types/idea";
+import { IIdea, IIdeaAsRelation, IIdeaConnection, ISafeIdea } from '../../../shared/types/idea';
 import { Link, useNavigate } from "react-router";
 import IdeaPreview from '@/components/Display/Ideas/IdeaPreview';
 import { useEffect, useState } from "react";
@@ -33,7 +33,7 @@ import {
   TrashSimpleIcon,
   UniteSquareIcon,
 } from "@phosphor-icons/react";
-import { api } from '@/server/api';
+import { api } from '@infrastructure/api/client';
 import { similarityToColor, similarityToLevel } from '@/vars/ideas';
 
 import { createIdeaConnection, removeIdeaConnection } from '@/utils/ideas';

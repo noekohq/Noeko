@@ -15,7 +15,7 @@ import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
 import { PlusIcon, RabbitIcon } from "@phosphor-icons/react";
 import useFetch from '@/hooks/useFetch';
-import { IRabbithole } from "../../../app/database/models/rabbithole";
+import { IRabbithole } from '../../../app/database/models/rabbithole';
 import { useEffect, useMemo, useState } from "react";
 import { useInteraction } from '@/contexts/InteractionContext';
 import { getRabbitholeThingDescription, getRabbitholeThingName } from '@/utils/rabbitholes';

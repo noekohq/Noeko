@@ -6,7 +6,7 @@ import useFetch from '@/hooks/useFetch';
 import { useNavigate } from "react-router";
 import ConstellationActions from "./ConstellationActions";
 import ConstellationContext from "./ConstellationContext";
-import { fromConstellation, getNodeLink } from '@/utils/graph';
+import { fromConstellation, getNodeLink } from '@infrastructure/graph/utils';
 import { Group, Loader, Text } from "@mantine/core";
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
@@ -15,7 +15,7 @@ import {
   IConstellationLoader,
   IGraphFilters,
   ILoadedConstellation,
-} from "../../../app/services/Graph";
+} from '../../../app/services/Graph';
 import GraphLoader from '@core/design/components/Loading/GraphLoader';
 import { useLandscape } from '@/contexts/LandscapeContext';
 import { useGraph } from '@/contexts/GraphContext';

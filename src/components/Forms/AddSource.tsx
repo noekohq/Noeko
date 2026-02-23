@@ -1,7 +1,7 @@
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { useEffect, useState } from "react";
-import { IUserFile } from "../../../app/database/models/userfile";
+import { IUserFile } from '../../../app/database/models/userfile';
 import useFetch from '@/hooks/useFetch';
 import {
   FileCodeIcon,
@@ -28,7 +28,7 @@ import {
 } from "@mantine/core";
 import { formatFileSize } from '@/utils/formatting';
 import useRabbithole from '@/hooks/useRabbithole';
-import { ISource } from "../../../app/database/models/source";
+import { ISource } from '../../../app/database/models/source';
 import { createSourceFrom } from '@/utils/sources';
 import { useNavigate } from "react-router";
 import { useInteraction } from '@/contexts/InteractionContext';

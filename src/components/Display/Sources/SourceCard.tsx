@@ -11,8 +11,8 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { IUserFile } from "../../../../app/database/models/userfile";
-import { getNodeDescription } from '@/utils/graph';
+import { IUserFile } from '../../../../app/database/models/userfile';
+import { getNodeDescription } from '@infrastructure/graph/utils';
 import { Link, useNavigate } from "react-router";
 import styles from "./SourceCard.module.scss";
 import {
@@ -23,7 +23,7 @@ import {
 } from "@phosphor-icons/react";
 import { handleFileDownload } from '@/utils/userfiles';
 import { formatDate } from '@/utils/formatting';
-import { ISource } from "../../../../app/database/models/source";
+import { ISource } from '../../../../app/database/models/source';
 import { getSourceName } from '@/utils/sources';
 import { useDisclosure } from "@mantine/hooks";
 

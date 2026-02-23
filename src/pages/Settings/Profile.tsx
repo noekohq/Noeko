@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from "@mantine/form";
 import { validateEmail } from '@/utils/data';
 import useFetch from '@/hooks/useFetch';
-import { IUser, IUserForm } from "../../../app/database/models/user";
+import { IUser, IUserForm } from '../../../app/database/models/user';
 import { showNotification } from "@mantine/notifications";
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';

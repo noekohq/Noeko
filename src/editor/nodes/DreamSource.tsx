@@ -1,7 +1,7 @@
 import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
-  CheckIcon,
+  FileTextIcon,
   ShieldSlashIcon,
   TrashIcon,
   TrashSimpleIcon,
@@ -13,42 +13,42 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
-import styles from '@core/design/styles/DreamTask.module.scss';
+import { useEffect, useState } from "react";
+import styles from '@core/design/styles/DreamSource.module.scss';
 import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
 import useFetch from '@/hooks/useFetch';
-import { ITask } from '../../../../../app/database/models/task';
-import { DreamTaskSchema } from '../../../../../shared/editing/tiptap/nodes/DreamTask';
-import { useEffect, useState } from "react";
+import { ISource } from '../../../app/database/models/source';
+import { DreamSourceSchema } from '../../../shared/editing/tiptap/nodes/DreamSource';
 import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    dreamTask: {
-      setDreamTask: (options: { taskId: string; content: string }) => ReturnType;
+    dreamSource: {
+      setDreamSource: (options: { sourceId: string; content: string }) => ReturnType;
     };
   }
 }
 
-export const DreamTask = DreamTaskSchema.extend({
+export const DreamSource = DreamSourceSchema.extend({
   addNodeView() {
-    return ReactNodeViewRenderer(DreamTaskComponent, {
+    return ReactNodeViewRenderer(DreamSourceComponent, {
       contentDOMElementTag: "span",
     });
   },
 });
 
-export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
-  const { taskId } = node.attrs;
+export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
+  const { sourceId } = node.attrs;
   const isEmpty = node.content.size === 0;
   const [accessState, setAccessState] = useState<"granted" | "forbidden" | "error">("granted");
   const navigate = useNavigate();
 
-  const { data: task, load: fetchTask } = useFetch<undefined, ITask>({
-    url: `/tasks/${taskId}`,
+  const { data: source, load: fetchSource } = useFetch<undefined, ISource>({
+    url: `/sources/${sourceId}`,
     skip403Redirect: true,
     onError: (error) => {
-      console.error("Error getting task to connect: ", error);
+      console.error("Error getting source to connect: ", error);
       if ((error as any)?.response?.status === 403) {
         setAccessState("forbidden");
       } else {
@@ -58,8 +58,8 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
   });
 
   useEffect(() => {
-    fetchTask();
-  }, [taskId]);
+    fetchSource();
+  }, [sourceId]);
 
   const [iconHovered, { toggle }] = useDisclosure(false);
 
@@ -67,33 +67,33 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
     event.preventDefault();
     // Standard behavior for opening in a new tab
     if (event.metaKey || event.ctrlKey) {
-      window.open(`/task/${taskId}`, "_blank");
+      window.open(`/source/${sourceId}`, "_blank");
       return;
     }
-    navigate(`/task/${taskId}`);
+    navigate(`/source/${sourceId}`);
   };
 
   const getTooltipLabel = () => {
     switch (accessState) {
       case "granted":
-        return task?.description ? `Preview ${task.description}` : "Loading...";
+        return source?.displayName ? `Preview ${source.displayName}` : "Loading...";
       case "forbidden":
-        return "You don't have access to preview this task";
+        return "You don't have access to preview this source";
       case "error":
-        return "Could not load task preview";
+        return "Could not load source preview";
       default:
         return "Loading...";
     }
   };
 
-  if (!taskId) {
-    return <span className={styles.dreamTaskError}>[ERROR]</span>;
+  if (!sourceId) {
+    return <span className={styles.dreamSourceError}>[ERROR]</span>;
   }
 
   return (
     <NodeViewWrapper
       as="span"
-      className={styles.dreamTaskWrapper}
+      className={styles.dreamSourceWrapper}
       data-selected={selected || undefined}
     >
       <Popover width={"400px"} shadow="md" position="top" radius="lg" opened={iconHovered}>
@@ -108,13 +108,13 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
               }}
             >
               {accessState === "granted" ? (
-                <CheckIcon
-                  className={`${styles.dreamTaskIcon} ${iconHovered ? styles.hovered : ""}`}
+                <FileTextIcon
+                  className={`${styles.dreamSourceIcon} ${iconHovered ? styles.hovered : ""}`}
                   weight={iconHovered ? "fill" : "regular"}
                 />
               ) : (
                 <ShieldSlashIcon
-                  className={`${styles.dreamTaskIcon} ${styles.shieldIcon}`}
+                  className={`${styles.dreamSourceIcon} ${styles.shieldIcon}`}
                   weight="fill"
                 />
               )}
@@ -126,11 +126,11 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
-          {accessState === "granted" && task && (
+          {accessState === "granted" && source && (
             <Stack gap="sm">
               <Group justify="space-between" align="center" w={"100%"} wrap="nowrap">
                 <Text fw={500} c="dark.3">
-                  {task.description}
+                  {source.displayName}
                 </Text>
                 <Group justify="flex-end">
                   <ActionIcon
@@ -142,9 +142,9 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
                   >
                     <TrashSimpleIcon weight="bold" size={12} />
                   </ActionIcon>
-                  <Link to={`/task/${taskId}`}>
+                  <Link to={`/source/${sourceId}`}>
                     <ActionIcon
-                      title="Open Task"
+                      title="Open Source"
                       variant="light"
                       color="gray"
                       size="sm"
@@ -155,17 +155,11 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
                   </Link>
                 </Group>
               </Group>
-              {task.scratchpad && (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: task.scratchpad,
-                  }}
-                />
-              )}
+              {source.analysis?.abstract && <Text size="sm">{source.analysis.abstract}</Text>}
             </Stack>
           )}
 
-          {accessState === "granted" && !task && (
+          {accessState === "granted" && !source && (
             <Text c="dimmed" size="xs">
               Loading preview...
             </Text>
@@ -175,9 +169,9 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
             <Stack gap="sm" align="center">
               <ShieldSlashIcon size={32} weight="regular" color="var(--mantine-color-dimmed)" />
               <Text c="dimmed" size="sm" ta="center">
-                You don't have access to preview this task
+                You don't have access to preview this source
               </Text>
-              <Link to={`/task/${taskId}`}>
+              <Link to={`/source/${sourceId}`}>
                 <ActionIcon
                   title="Request Access"
                   variant="light"
@@ -194,45 +188,45 @@ export const DreamTaskComponent: React.FC<NodeViewProps> = ({ node, deleteNode, 
           {accessState === "error" && (
             <Stack gap="sm" align="center">
               <Text c="dimmed" size="sm" ta="center">
-                Could not load task preview.
+                Could not load source preview.
               </Text>
             </Stack>
           )}
         </Popover.Dropdown>
       </Popover>
 
-      <span onClick={handleLinkClick} className={styles.dreamTaskInline} role="link">
+      <span onClick={handleLinkClick} className={styles.dreamSourceInline} role="link">
         <NodeViewContent
-          className={`${styles.dreamTaskContent} ${
-            !task && accessState === "granted" ? styles.notFound : ""
+          className={`${styles.dreamSourceContent} ${
+            !source && accessState === "granted" ? styles.notFound : ""
           }`}
-          data-placeholder={isEmpty ? task?.description || "Loading task..." : undefined}
-          title={task?.description ? `Go to "${task.description}"` : "Go to task"}
+          data-placeholder={isEmpty ? source?.displayName || "Loading title..." : undefined}
+          title={source?.displayName ? `Go to "${source.displayName}"` : "Go to source"}
         />
       </span>
     </NodeViewWrapper>
   );
 };
 
-interface IDreamTaskMenuProps {
+interface IDreamSourceMenuProps {
   editor: IEditor;
 }
 
-export const DreamTaskMenu = ({ editor }: IDreamTaskMenuProps) => {
+export const DreamSourceMenu = ({ editor }: IDreamSourceMenuProps) => {
   const deleteSelectedNode = () => {
-    editor.chain().focus().deleteNode("dreamTask").run();
+    editor.chain().focus().deleteNode("dreamSource").run();
   };
 
-  const taskId = editor.getAttributes("dreamTask").taskId;
+  const sourceId = editor.getAttributes("dreamSource").sourceId;
 
   return (
     <>
-      <Link to={`/task/${taskId}`}>
-        <ActionIcon title="Open Task">
+      <Link to={`/source/${sourceId}`}>
+        <ActionIcon title="Open Source">
           <ArrowSquareOutIcon />
         </ActionIcon>
       </Link>
-      <ActionIcon title="Delete Task" color="red" onClick={deleteSelectedNode}>
+      <ActionIcon title="Delete Source" color="red" onClick={deleteSelectedNode}>
         <TrashIcon />
       </ActionIcon>
     </>

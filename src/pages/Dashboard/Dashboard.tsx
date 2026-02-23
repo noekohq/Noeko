@@ -10,7 +10,7 @@ import Content from '@core/design/components/Layout/Content';
 import WidgetWrapper from '@/components/Widgets/Wrapper';
 import Search from '@/components/Search/Search';
 import useFetch from '@/hooks/useFetch';
-import { IIdeaSortFields, ISafeIdea } from "../../../shared/types/idea";
+import { IIdeaSortFields, ISafeIdea } from '../../../shared/types/idea';
 import {
   ArticleIcon,
   ClockClockwiseIcon,
@@ -27,7 +27,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useLayout } from '@/contexts/LayoutContext';
 import { getCurrentTimeFormatted, getCurrentTimeOfDay } from '@core/utils/datetime';
 import StatusButton from '@/components/Display/Interactions/StatusButton';
-import { IDashboard } from "../../../app/services/Dashboard";
+import { IDashboard } from '../../../app/services/Dashboard';
 import { Link, useNavigate } from "react-router";
 import Selection from '@/components/Display/Interactions/Selection';
 import Nav from '@core/design/components/Layout/Nav';

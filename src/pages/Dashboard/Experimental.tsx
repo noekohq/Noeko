@@ -12,7 +12,7 @@ import WidgetWrapper from '@/components/Widgets/Wrapper';
 import { ClockCounterClockwise, ClockCounterClockwiseIcon, PlusIcon } from "@phosphor-icons/react";
 import StatusButton from '@/components/Display/Interactions/StatusButton';
 import useFetch from '@/hooks/useFetch';
-import { IDashboard } from "../../../app/services/Dashboard";
+import { IDashboard } from '../../../app/services/Dashboard';
 import { useEditor } from "@tiptap/react";
 import { useEffect } from "react";
 import CompoundButton from '@/components/Display/Interactions/CompoundButton';

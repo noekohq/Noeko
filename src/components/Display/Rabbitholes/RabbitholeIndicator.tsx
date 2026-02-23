@@ -15,12 +15,12 @@ import useRabbithole from '@/hooks/useRabbithole';
 import { useCallback, useEffect, useState } from "react";
 import { RabbitholeIcon } from '@core/design/icons/Icons';
 import useFetch from '@/hooks/useFetch';
-import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import { IRabbithole } from '../../../../app/database/models/rabbithole';
 import StatusButton from "../Interactions/StatusButton";
 import { useInteraction } from '@/contexts/InteractionContext';
 import RabbitholeCard from "./RabbitholeCard";
 import RabbitholeThing from "./RabbitholeThing";
-import { getNodeTitle } from '@/utils/graph';
+import { getNodeTitle } from '@infrastructure/graph/utils';
 import { useTourStep } from '@/contexts/TourGuideContext';
 
 export function RabbitholeIndicator() {

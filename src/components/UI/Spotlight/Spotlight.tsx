@@ -42,15 +42,15 @@ import { Group, Text } from "@mantine/core";
 import { useLayout } from '@/contexts/LayoutContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useNavigate } from "react-router";
-import { api } from '@/server/api';
-import type { IIdea } from "../../../../shared/types/idea";
+import { api } from '@infrastructure/api/client';
+import type { IIdea } from '../../../../shared/types/idea';
 import { Option } from "./Option";
 import type { ISubviewDefinition, IUnifiedSearchItem, SpotlightMainItem } from "./spotlight.d";
-import { getNodeDescription, getNodeLink, getNodeTitle, NodeIcon } from '@/utils/graph';
+import { getNodeDescription, getNodeLink, getNodeTitle, NodeIcon } from '@infrastructure/graph/utils';
 import useRabbithole from '@/hooks/useRabbithole';
-import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import { IRabbithole } from '../../../../app/database/models/rabbithole';
 import { useLandscape } from '@/contexts/LandscapeContext';
-import { ISearchResultValue } from "../../../../shared/types/search";
+import { ISearchResultValue } from '../../../../shared/types/search';
 import { showNotification } from "@mantine/notifications";
 
 const minisearch = new MiniSearch<IUnifiedSearchItem>({

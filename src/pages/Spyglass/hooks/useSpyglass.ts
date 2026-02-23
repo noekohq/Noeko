@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ISearchResultValue, type ISearchResult } from "../../../../shared/types/search";
-import { api, refreshToken, serverLocation } from '@/server/api';
+import { ISearchResultValue, type ISearchResult } from '../../../../shared/types/search';
+import { api, refreshToken, serverLocation } from '@infrastructure/api/client';
 import {
   ISpyglassGeneratorType,
   ISpyglassSearch,
   ISearchOverview,
-} from "../../../../app/database/models/search";
+} from '../../../../app/database/models/search';
 import useFetch from '@/hooks/useFetch';
 import { showNotification } from "@mantine/notifications";
-import { ISpyglassIntent, IGlimpseResult } from "../../../../app/services/Spyglass";
+import { ISpyglassIntent, IGlimpseResult } from '../../../../app/services/Spyglass';
 import useRabbithole from '@/hooks/useRabbithole';
-import { getNodeContent, getNodeDescription, getNodeTitle } from '@/utils/graph';
-import { ISpyglassRecord } from "../../../../app/database/models/spyglass_record";
-import { IConnectable, IConnectableFields } from "../../../../app/services/Graph";
+import { getNodeContent, getNodeDescription, getNodeTitle } from '@infrastructure/graph/utils';
+import { ISpyglassRecord } from '../../../../app/database/models/spyglass_record';
+import { IConnectable, IConnectableFields } from '../../../../app/services/Graph';
 import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
 
 const initialAnalysis: ISearchOverview = {

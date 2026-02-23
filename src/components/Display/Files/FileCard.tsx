@@ -10,8 +10,8 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { IUserFile } from "../../../../app/database/models/userfile";
-import { getNodeDescription } from '@/utils/graph';
+import { IUserFile } from '../../../../app/database/models/userfile';
+import { getNodeDescription } from '@infrastructure/graph/utils';
 import { Link, useNavigate } from "react-router";
 import styles from "./FileCard.module.scss";
 import {

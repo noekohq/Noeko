@@ -11,8 +11,8 @@ import {
   UserIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
-import type { ISearchResultValue, ISearchResult } from "../../../shared/types/search";
-import { IConnectable } from "../../../shared/types/constellation";
+import type { ISearchResultValue, ISearchResult } from '../../../shared/types/search';
+import { IConnectable } from '../../../shared/types/constellation';
 import { INode } from '@/declarations/graph';
 import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
 import { IResultsMap } from '@/hooks/useSpyglassService';
@@ -24,7 +24,7 @@ import { SearchBar } from "./SearchBar";
 import useSearchQuery from '@/hooks/useSearchQuery';
 import { SpyglassIcon } from '@core/design/icons/Icons';
 import PaperSearchResult from '@core/design/components/Paper/PaperSearchResult/PaperSearchResult';
-import { getNodeDescription, getNodeLink, getNodeTitle } from '@/utils/graph';
+import { getNodeDescription, getNodeLink, getNodeTitle } from '@infrastructure/graph/utils';
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
 import { useSearch } from '@/contexts/SearchContext';
 

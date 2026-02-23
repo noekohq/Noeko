@@ -29,7 +29,7 @@ import {
 } from '@/utils/userfiles';
 import styles from "./FileManager.module.scss";
 import { streamImageEndpoint } from '@/vars/files';
-import { api } from '@/server/api';
+import { api } from '@infrastructure/api/client';
 import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 import { getThingPropsFromUserFile } from '@core/design/components/Paper/Things/thingUtils';
 

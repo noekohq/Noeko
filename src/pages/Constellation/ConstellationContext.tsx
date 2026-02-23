@@ -10,7 +10,7 @@ import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 import { UserIcon } from "@phosphor-icons/react";
 import PaperChip from '@core/design/components/Paper/PaperChip';
 import { useLandscape } from '@/contexts/LandscapeContext';
-import { IConstellationLoader } from "../../../shared/types/constellation";
+import { IConstellationLoader } from '../../../shared/types/constellation';
 
 type ConstellationContextProps = {
   graph: IGraph | null;

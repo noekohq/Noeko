@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { IHeatmapDataPoint } from "../../../../app/services/Analysis";
+import { IHeatmapDataPoint } from '../../../../app/services/Analysis';
 import useFetch from '@/hooks/useFetch';
 import { IWidgetConfig } from "../index.d";
 import { Heatmap } from "@mantine/charts";

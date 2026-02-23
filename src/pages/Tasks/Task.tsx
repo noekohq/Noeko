@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router";
-import { ITask, ITaskForm } from "../../../app/database/models/task";
-import { IShareAccess } from "../../../app/database/models/share";
+import { ITask, ITaskForm } from '../../../app/database/models/task';
+import { IShareAccess } from '../../../app/database/models/share';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import useFetch from '@/hooks/useFetch';
 import { useCallback, useEffect, useState } from "react";
@@ -39,7 +39,7 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
 } from "@phosphor-icons/react";
-import DreamWriter from '@/components/Content/DreamWriter/DreamWriter';
+import { DreamWriter } from '@editor';
 import { useForm } from "@mantine/form";
 import { Duration } from "surrealdb";
 import styles from "./Task.module.scss";
@@ -58,7 +58,7 @@ import TopBar from '@core/design/components/Layout/TopBar';
 import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
 import usePins from '@/hooks/usePins';
 import { downloadTextAsFile } from '@/utils/files';
-import { htmlToMarkdown } from "../../../app/utils/formatting";
+import { htmlToMarkdown } from '../../../app/utils/formatting';
 import HorizonSelector from '@core/design/components/Paper/Inputs/HorizonSelector';
 import { fromYYYYMMDD } from '@core/utils/datetime';
 import { capitalize, formatDate } from '@/utils/formatting';

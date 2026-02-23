@@ -1,7 +1,7 @@
 import styles from "./Serendipity.module.scss";
 import { IWidgetConfig } from "../index.d";
 import useFetch from '@/hooks/useFetch';
-import { ISpyglassSearch } from "../../../../app/database/models/search";
+import { ISpyglassSearch } from '../../../../app/database/models/search';
 import { useEffect, useRef, useState } from "react";
 import {
   ActionIcon,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ITagBreakdown } from "../../../../app/services/Analysis";
+import { ITagBreakdown } from '../../../../app/services/Analysis';
 import useFetch from '@/hooks/useFetch';
 import { IWidgetConfig } from "../index.d";
 import styles from "./TagBreakdown.module.scss";

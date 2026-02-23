@@ -4,47 +4,47 @@
 
 ## Execution Constraints
 
-- [ ] **Commit Frequently:** Make a commit after completing each Phase to ensure easy rollbacks if imports shatter.
-- [ ] **Fix Imports Immediately:** Rely on the IDE/LSP to auto-update imports during file moves. If a move breaks imports, fix them using the new path aliases before moving to the next step.
-- [ ] **Do Not Alter Logic:** Do not rewrite React component logic or hook internals unless absolutely necessary to fix a broken import. This is a structural migration.
+- [x] **Commit Frequently:** Make a commit after completing each Phase to ensure easy rollbacks if imports shatter.
+- [x] **Fix Imports Immediately:** Rely on the IDE/LSP to auto-update imports during file moves. If a move breaks imports, fix them using the new path aliases before moving to the next step.
+- [x] **Do Not Alter Logic:** Do not rewrite React component logic or hook internals unless absolutely necessary to fix a broken import. This is a structural migration.
 
 ## Phase 0: Setup Path Aliases
 
 To ensure clean imports as files are moved into deep directory structures.
 
-- [ ] Update `tsconfig.json` to include `@/*`, `@core/*`, `@infrastructure/*`, `@domains/*`, `@editor/*` in the `compilerOptions.paths` configuration.
-- [ ] Update `vite.config.ts` to include corresponding aliases in the `resolve.alias` configuration.
+- [x] Update `tsconfig.json` to include `@/*`, `@core/*`, `@infrastructure/*`, `@domains/*`, `@editor/*` in the `compilerOptions.paths` configuration.
+- [x] Update `vite.config.ts` to include corresponding aliases in the `resolve.alias` configuration.
 
 ## Phase 1: Establish `src/core/` (Design System & Framework Utilities)
 
 This separates pure UI and pure functions from business logic.
 
-- [ ] Create the directory structure for `src/core/design` (components, themes, styles, icons) and `src/core/utils`.
-- [ ] Move Styles & Themes from `src/styles/*` and `src/themes/*` into `src/core/design/styles/` and `src/core/design/themes/`.
-- [ ] Move Core UI (The Paper Library) components, generic layout components, and generic interactives (like `IconToggle.tsx`, `CollapseButton.tsx`, `CaptureButton.tsx`) to `src/core/design/components/`.
-- [ ] Move Visuals & Icons (Icons, Animations, Loading components) to `src/core/design/`.
-- [ ] Move Core Utils (pure functions only like `datetime.ts`, `math.ts`, `colors.ts`, `dom.ts`, `partialJsonParser.ts`, `scroll.ts`) to `src/core/utils/`.
-- [ ] Verify and fix all imports referencing `@core/...`.
+- [x] Create the directory structure for `src/core/design` (components, themes, styles, icons) and `src/core/utils`.
+- [x] Move Styles & Themes from `src/styles/*` and `src/themes/*` into `src/core/design/styles/` and `src/core/design/themes/`.
+- [x] Move Core UI (The Paper Library) components, generic layout components, and generic interactives (like `IconToggle.tsx`, `CollapseButton.tsx`, `CaptureButton.tsx`) to `src/core/design/components/`.
+- [x] Move Visuals & Icons (Icons, Animations, Loading components) to `src/core/design/`. *(Note: Found lingering generic UI pieces in `Utils/Info` and `Utils/Loading` like `Match.tsx` and `StageIndicator` that were moved over as well).*
+- [x] Move Core Utils (pure functions only like `datetime.ts`, `math.ts`, `colors.ts`, `dom.ts`, `partialJsonParser.ts`, `scroll.ts`) to `src/core/utils/`.
+- [x] Verify and fix all imports referencing `@core/...`. *(Note: Leveraged node scripts to do regex find-and-replaces across the codebase. Kept feature-level interaction components like `StatusButton` where they were until Phase 4, but aliased their imports to not break `Core`)*.
 
 ## Phase 2: Establish `src/infrastructure/` (API, Compute, DB)
 
 Preparing for WebSockets, Web Workers, and OPFS.
 
-- [ ] Create the directory structure for `src/infrastructure/` (api, compute, graph).
-- [ ] Move API & Backend connections (`src/server/api.ts`, `src/utils/db.ts`) to `src/infrastructure/api/`.
-- [ ] Move Compute (Workers) files to `src/infrastructure/compute/`.
-- [ ] Abstract Graph Data Layer by moving `src/utils/graph.ts` and `src/vars/graph.ts` to `src/infrastructure/graph/`.
-- [ ] Verify and fix all imports.
+- [x] Create the directory structure for `src/infrastructure/` (api, compute, graph).
+- [x] Move API & Backend connections (`src/server/api.ts`, `src/utils/db.ts`) to `src/infrastructure/api/`.
+- [x] Move Compute (Workers) files to `src/infrastructure/compute/`.
+- [x] Abstract Graph Data Layer by moving `src/utils/graph.ts` and `src/vars/graph.ts` to `src/infrastructure/graph/`.
+- [x] Verify and fix all imports. *(Note: Ran into an issue where a global regex replace mangled `../../shared` and `../../app` relative paths. Wrote a script to accurately calculate absolute depths to the project root and restored the proper relative path layers).*
 
 ## Phase 3: Isolate `src/editor/` (DreamWriter Subsystem)
 
 Treat the editor as a completely decoupled third-party package.
 
-- [ ] Create the directory structure for `src/editor/`.
-- [ ] Move the `DreamWriter` subsystem components into `src/editor/`.
-- [ ] Create a public API by adding `src/editor/index.ts`.
-- [ ] Inside `index.ts`, export only the `<DreamWriter />` component and any necessary external types. Do not export internal nodes or marks.
-- [ ] Update any file importing `DreamWriter` to use the new `import { DreamWriter } from '@editor';` syntax.
+- [x] Create the directory structure for `src/editor/`.
+- [x] Move the `DreamWriter` subsystem components into `src/editor/`.
+- [x] Create a public API by adding `src/editor/index.ts`.
+- [x] Inside `index.ts`, export only the `<DreamWriter />` component and any necessary external types. Do not export internal nodes or marks.
+- [x] Update any file importing `DreamWriter` to use the new `import { DreamWriter } from '@editor';` syntax. *(Note: Added a bare alias `"@editor": ["./src/editor"]` to `tsconfig.json` and `vite.config.ts` to allow importing directly from the package root. Also repaired backward-pointing relative imports inside the editor to use the generic `@/components/...` aliases rather than fragile `../../` paths).*
 
 ## Phase 4: Distribute `src/domains/` (Business Logic Slices)
 

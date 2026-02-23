@@ -1,6 +1,6 @@
 import { Button, Grid, Group, Loader, Stack, Text } from "@mantine/core";
-import { IIdea, ISafeIdea } from "../../../shared/types/idea";
-import { IGenerativeSummary, IGenerativeSummaryForm } from "../../../shared/types/idea";
+import { IIdea, ISafeIdea } from '../../../shared/types/idea';
+import { IGenerativeSummary, IGenerativeSummaryForm } from '../../../shared/types/idea';
 import useFetch from '@/hooks/useFetch';
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";

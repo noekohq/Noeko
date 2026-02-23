@@ -33,7 +33,7 @@ import {
   ISpyglassHistoryResponse,
   ISpyglassLightHistoryResponse,
   ISpyglassRecord,
-} from "../../../../app/database/models/spyglass_record";
+} from '../../../../app/database/models/spyglass_record';
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();

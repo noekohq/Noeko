@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { IUserFile } from "../../../app/database/models/userfile";
+import { IUserFile } from '../../../app/database/models/userfile';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import Content from '@core/design/components/Layout/Content';
 import LeftSidebar from '@core/design/components/Layout/Left';

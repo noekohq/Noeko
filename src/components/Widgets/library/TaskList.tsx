@@ -4,7 +4,7 @@ import {
   ITask,
   ITaskDurationBehavior,
   ITaskSortFields,
-} from "../../../../app/database/models/task";
+} from '../../../../app/database/models/task';
 import useFetch from '@/hooks/useFetch';
 import { toYYYYMMDD } from '@core/utils/datetime';
 import { IWidgetConfig } from "../index.d";

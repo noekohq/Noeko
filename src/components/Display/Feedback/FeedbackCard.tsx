@@ -1,8 +1,8 @@
 import { Badge, Group, Stack, Text } from "@mantine/core";
 import styles from "./FeedbackCard.module.scss";
-import { formatDate } from "../../../../app/utils/formatting";
+import { formatDate } from '../../../../app/utils/formatting';
 import { formatDateTime } from '@/utils/formatting';
-import { IFeedback } from "../../../../shared/types/feedback";
+import { IFeedback } from '../../../../shared/types/feedback';
 
 interface IFeedbackCardProps {
   feedback: IFeedback;

@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
-import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import { IRabbithole } from '../../../../app/database/models/rabbithole';
 import { IWidgetConfig } from "../index.d";
 import styles from "./RabbitholeList.module.scss";
 import useFetch from '@/hooks/useFetch';

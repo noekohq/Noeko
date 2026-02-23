@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { IFinding } from "../../../../app/services/Spyglass";
+import { IFinding } from '../../../../app/services/Spyglass';
 import { IResultsMap } from '@/hooks/useSpyglassService';
 import { scrollToElement } from '@core/utils/scroll';
-import { IConnectableFields } from "../../../../app/services/Graph";
+import { IConnectableFields } from '../../../../app/services/Graph';
 import styles from "./Navigation.module.scss";
 
 interface IDeepFocusNavigationProps {

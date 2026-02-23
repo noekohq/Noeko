@@ -32,7 +32,7 @@ import {
 } from "@phosphor-icons/react";
 import { userFormattedName } from '@/utils/user';
 import { PaperContextMenu } from '@core/design/components/Paper/PaperContextMenu';
-import { getNodeLink } from '@/utils/graph';
+import { getNodeLink } from '@infrastructure/graph/utils';
 import { IFriendUser } from '../../../../../shared/types/user';
 
 const { VITE_DEPLOYED_URL } = import.meta.env;

@@ -36,7 +36,7 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { ISource, ISourceForm, ISourceReference } from "../../../app/database/models/source";
+import { ISource, ISourceForm, ISourceReference } from '../../../app/database/models/source';
 import Search from '@/components/Search/Search';
 import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
 import ConnectionManager from '@/components/Display/Interactions/Connections/ConnectionManager';

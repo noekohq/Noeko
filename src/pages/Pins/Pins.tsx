@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Stack, Title, Text, Loader, Group, SimpleGrid } from "@mantine/core";
-import { IConnectable } from "../../../app/services/Graph";
+import { IConnectable } from '../../../app/services/Graph';
 import useFetch from '@/hooks/useFetch';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';

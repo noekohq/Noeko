@@ -29,9 +29,9 @@ import {
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { ISharedThing } from "../../../../app/database/models/share";
-import { IFriendUser } from "../../../../app/database/models/user";
-import { IShelfData } from "../../../../app/services/Recommendations";
+import { ISharedThing } from '../../../../app/database/models/share';
+import { IFriendUser } from '../../../../app/database/models/user';
+import { IShelfData } from '../../../../app/services/Recommendations';
 import AcceleratorShelf, {
   IAcceleratorShelfProps,
 } from '@/components/Display/Acceleration/AcceleratorShelf';

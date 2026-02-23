@@ -6,7 +6,7 @@ import { Editor as IEditor, Extension, Node, Mark } from "@tiptap/core";
 
 import StarterKit from "@tiptap/starter-kit";
 import Typography from "@tiptap/extension-typography";
-import { DreamMathSchema } from "../../../../shared/editing/tiptap/extensions/DreamMath";
+import { DreamMathSchema } from '../../shared/editing/tiptap/extensions/DreamMath';
 import { ListKeymap, TaskList } from "@tiptap/extension-list";
 import { DreamImage } from "./nodes/DreamImage";
 import { DreamFile } from "./nodes/DreamFile";

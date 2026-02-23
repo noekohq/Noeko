@@ -7,7 +7,7 @@ import {
   ITaskNode,
 } from '@/declarations/graph';
 import styles from "./GraphOrganizer.module.scss";
-import { getNodeOrganizationType } from '@/utils/graph';
+import { getNodeOrganizationType } from '@infrastructure/graph/utils';
 import RabbitholeButton from "../../Rabbitholes/RabbitholeButton";
 import CollapseButton from '@core/design/components/Interactions/CollapseButton';
 import { RabbitholeDropzone } from "../../Rabbitholes/RabbitholeDropzone";

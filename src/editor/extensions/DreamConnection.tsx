@@ -7,13 +7,13 @@ import Suggestion, {
   SuggestionProps,
 } from "@tiptap/suggestion";
 
-import { api } from '@/server/api';
+import { api } from '@infrastructure/api/client';
 import SuggestionMenu from "./Components/SuggestionMenu";
-import { getNodeTitle, getTypeFromId, NodeIcon } from '@/utils/graph';
+import { getNodeTitle, getTypeFromId, NodeIcon } from '@infrastructure/graph/utils';
 import { PluginKey } from "@tiptap/pm/state";
 import { debounce } from "lodash";
-import { IConnectable } from '../../../../../app/services/Graph';
-import { ISearchResultValue } from '../../../../../shared/types/search';
+import { IConnectable } from '../../../app/services/Graph';
+import { ISearchResultValue } from '../../../shared/types/search';
 import { createIdea, handleCreateNewConnectedIdea, newIdea } from '@/utils/ideas';
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon } from "@phosphor-icons/react";

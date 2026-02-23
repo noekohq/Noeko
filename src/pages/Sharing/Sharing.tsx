@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ISharedThing } from "../../../app/database/models/share";
+import { ISharedThing } from '../../../app/database/models/share';
 import { useNavigate } from "react-router";
 import PageWrapper from '@/components/Layout/PageWrapper';
 import Content from '@core/design/components/Layout/Content';
@@ -40,7 +40,7 @@ import PaperThings from '@core/design/components/Paper/Things/PaperThings';
 import { getThingsFromConnectables } from '@core/design/components/Paper/Things/thingUtils';
 import Search from '@/components/Search/Search';
 import { useAuth } from '@/contexts/AuthContext';
-import { IFriendUser } from "../../../app/database/models/user";
+import { IFriendUser } from '../../../app/database/models/user';
 import { useLayout } from '@/contexts/LayoutContext';
 
 interface IRelationship {

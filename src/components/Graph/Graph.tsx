@@ -173,7 +173,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         animationFrameRef.current = null;
       }
 
-      const worker = new Worker(new URL('@/workers/graph.worker.ts', import.meta.url), {
+      const worker = new Worker(new URL('@infrastructure/compute/graph.worker.ts', import.meta.url), {
         type: "module",
       });
       workerRef.current = worker;

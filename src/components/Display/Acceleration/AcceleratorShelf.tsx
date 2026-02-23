@@ -2,7 +2,7 @@ import React from "react";
 import { Group, ScrollArea, Stack, Text, ActionIcon, Title } from "@mantine/core";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import styles from "./AcceleratorShelf.module.scss";
-import { IAcceleratorItem, IShelfData } from "../../../../app/services/Recommendations";
+import { IAcceleratorItem, IShelfData } from '../../../../app/services/Recommendations';
 import { Link, useNavigate } from "react-router";
 import {
   getAcceleratorItemFields,

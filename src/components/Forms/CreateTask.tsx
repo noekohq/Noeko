@@ -1,5 +1,5 @@
 import { useForm } from "@mantine/form";
-import { ITask } from "../../../app/database/models/task";
+import { ITask } from '../../../app/database/models/task';
 import { Duration } from "surrealdb";
 import {
   ActionIcon,
@@ -29,7 +29,7 @@ import { useLayout } from '@/contexts/LayoutContext';
 import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { createTask } from '@/utils/tasks';
-import DreamWriter from "../Content/DreamWriter/DreamWriter";
+import { DreamWriter } from '@editor';
 import { useNavigate } from "react-router";
 import { fromYYYYMMDD, toYYYYMMDD } from '@core/utils/datetime';
 import useRabbithole from '@/hooks/useRabbithole';

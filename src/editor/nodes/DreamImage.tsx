@@ -17,7 +17,7 @@ import {
 
 import styles from '@core/design/styles/DreamImage.module.scss';
 import PaperIcon from '@core/design/components/Paper/PaperIcon';
-import { DreamImageSchema, IViewMode } from '../../../../../shared/editing/tiptap/nodes/DreamImage';
+import { DreamImageSchema, IViewMode } from '../../../shared/editing/tiptap/nodes/DreamImage';
 import { getButtonProps } from "../Options";
 import { Attrs, Node as PMNode } from "@tiptap/pm/model";
 import { ISubMenuProps } from "../BubbleMenu";

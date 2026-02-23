@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react"; // Added useEffect, useCallback, useRef
 import useFetch from '@/hooks/useFetch';
-import { IIdea } from "../../../shared/types/idea";
+import { IIdea } from '../../../shared/types/idea';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';

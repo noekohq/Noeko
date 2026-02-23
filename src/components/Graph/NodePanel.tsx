@@ -27,7 +27,7 @@ import {
   getNodeLink,
   getNodeTitle,
   NodeIcon,
-} from '@/utils/graph';
+} from '@infrastructure/graph/utils';
 import Content from '@core/design/components/Layout/Content';
 import { useGraph } from '@/contexts/GraphContext';
 import { createPortal } from "react-dom";

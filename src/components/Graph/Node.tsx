@@ -4,7 +4,7 @@ import styles from "./Node.module.scss";
 import { useGraph } from '@/contexts/GraphContext';
 import { Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { getNodeTitle, NodeIcon } from '@/utils/graph';
+import { getNodeTitle, NodeIcon } from '@infrastructure/graph/utils';
 
 type NodeProps = {
   node: INode;

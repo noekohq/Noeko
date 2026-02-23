@@ -19,15 +19,15 @@ import Content from '@core/design/components/Layout/Content';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
 import useFetch from '@/hooks/useFetch';
-import { IRabbithole, IRabbitholeIncludes } from "../../../app/database/models/rabbithole";
+import { IRabbithole, IRabbitholeIncludes } from '../../../app/database/models/rabbithole';
 import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { api } from '@/server/api';
+import { api } from '@infrastructure/api/client';
 import styles from "./Rabbithole.module.scss";
 import SuggestTags from '@/components/Search/SuggestTags';
-import { ITag } from "../../../app/database/models/tag";
+import { ITag } from '../../../app/database/models/tag';
 import { useLandscape } from '@/contexts/LandscapeContext';
 import {
   CaretLeftIcon,
@@ -42,7 +42,7 @@ import {
   TagIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { IIdea } from "../../../shared/types/idea";
+import { IIdea } from '../../../shared/types/idea';
 import Search from '@/components/Search/Search';
 import {
   deleteRabbithole,

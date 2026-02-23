@@ -19,9 +19,9 @@ import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
 import useFetch from '@/hooks/useFetch';
-import { ITag, ITagForm } from "../../../app/database/models/tag";
+import { ITag, ITagForm } from '../../../app/database/models/tag';
 import { Link, useNavigate, useParams } from "react-router";
-import { ITagDescribes } from "../../../app/database/models/tag";
+import { ITagDescribes } from '../../../app/database/models/tag';
 import {
   ArrowLeftIcon,
   FloppyDiskIcon,
@@ -57,7 +57,7 @@ import {
 import PaperThing from '@core/design/components/Paper/Things/PaperThing';
 import PaperThings from '@core/design/components/Paper/Things/PaperThings';
 import GraphContainer from '@/components/Graph/Graph';
-import { fromConstellation } from '@/utils/graph';
+import { fromConstellation } from '@infrastructure/graph/utils';
 
 export default function ViewTag() {
   const navigate = useNavigate();

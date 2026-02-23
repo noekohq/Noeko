@@ -1,5 +1,5 @@
 import { wrappingInputRule } from "@tiptap/core";
-import { DreamTaskItemSchema } from '../../../../../shared/editing/tiptap/nodes/DreamTaskItem';
+import { DreamTaskItemSchema } from '../../../shared/editing/tiptap/nodes/DreamTaskItem';
 import {
   NodeViewContent,
   NodeViewWrapper,

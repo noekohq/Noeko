@@ -9,10 +9,10 @@ import {
   IConstellationLoader,
   IGraphFilters,
   ILoadedConstellation,
-} from "../../../../app/services/Graph";
+} from '../../../../app/services/Graph';
 import GraphLoader from '@core/design/components/Loading/GraphLoader';
 import { useLandscape } from '@/contexts/LandscapeContext';
-import { fromConstellation, getNodeTitle } from '@/utils/graph';
+import { fromConstellation, getNodeTitle } from '@infrastructure/graph/utils';
 import { ActionIcon, Group, Text } from "@mantine/core";
 import { Link } from "react-router";
 import { ArrowsOutIcon, XIcon } from "@phosphor-icons/react";

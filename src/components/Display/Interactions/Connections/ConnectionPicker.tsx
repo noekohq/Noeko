@@ -13,7 +13,7 @@ import { useLayout } from '@/contexts/LayoutContext';
 import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
 // Import your creation logic
 import { handleCreateIdea } from '@/utils/ideas';
-import { connect } from '@/utils/graph';
+import { connect } from '@infrastructure/graph/utils';
 import { RecordId } from "surrealdb";
 
 interface ConnectionPickerProps {

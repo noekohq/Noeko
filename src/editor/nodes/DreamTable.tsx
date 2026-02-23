@@ -9,7 +9,7 @@ import {
   IDreamTableOptions,
   ITableDataType,
   initializeTableData,
-} from '../../../../../shared/editing/tiptap/nodes/DreamTable';
+} from '../../../shared/editing/tiptap/nodes/DreamTable';
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

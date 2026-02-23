@@ -4,8 +4,8 @@ import styles from "./Idea.module.scss";
 import useFetch from '@/hooks/useFetch';
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { ISafeIdea } from "../../../shared/types/idea";
-import { IShareAccess } from "../../../app/database/models/share";
+import { ISafeIdea } from '../../../shared/types/idea';
+import { IShareAccess } from '../../../app/database/models/share';
 import { Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
@@ -51,7 +51,7 @@ import {
   FileIcon,
 } from "@phosphor-icons/react";
 import Insights from "./Insights";
-import DreamWriter from '@/components/Content/DreamWriter/DreamWriter';
+import { DreamWriter } from '@editor';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
@@ -63,7 +63,7 @@ import {
   htmlToMarkdown,
   htmlToPlainText,
 } from '@/utils/formatting';
-import { api } from '@/server/api';
+import { api } from '@infrastructure/api/client';
 import TagsManager from '@/components/Display/Interactions/Tags/TagsManager';
 import Content from '@core/design/components/Layout/Content';
 import Search from '@/components/Search/Search';

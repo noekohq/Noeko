@@ -18,9 +18,13 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@core": ["./src/core"],
       "@core/*": ["./src/core/*"],
+      "@infrastructure": ["./src/infrastructure"],
       "@infrastructure/*": ["./src/infrastructure/*"],
+      "@domains": ["./src/domains"],
       "@domains/*": ["./src/domains/*"],
+      "@editor": ["./src/editor"],
       "@editor/*": ["./src/editor/*"]
     }
   },

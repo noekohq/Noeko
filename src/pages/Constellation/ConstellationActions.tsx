@@ -4,7 +4,7 @@ import { IGraph } from '@/declarations/graph';
 import { useGraph } from '@/contexts/GraphContext';
 import { Button, Group } from "@mantine/core";
 import Search from '@/components/Search/Search';
-import { ISearchResult } from "../../../shared/types/search";
+import { ISearchResult } from '../../../shared/types/search';
 import { useSearch } from '@/contexts/SearchContext';
 
 type IConstellationActionsProps = {

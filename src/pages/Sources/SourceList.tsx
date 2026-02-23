@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ISource } from "../../../app/database/models/source";
+import { ISource } from '../../../app/database/models/source';
 import useFetch from '@/hooks/useFetch';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import Content from '@core/design/components/Layout/Content';

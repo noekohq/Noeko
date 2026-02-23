@@ -11,7 +11,7 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { IGenerativeSummary } from "../../../../shared/types/idea";
+import { IGenerativeSummary } from '../../../../shared/types/idea';
 
 type IOverviewAccordionProps = {
   overview: Omit<IGenerativeSummary, "createdAt" | "id">;

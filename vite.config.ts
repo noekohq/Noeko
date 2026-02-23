@@ -7,11 +7,11 @@ import path from "path";
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
       "@core": path.resolve(__dirname, "./src/core"),
       "@infrastructure": path.resolve(__dirname, "./src/infrastructure"),
       "@domains": path.resolve(__dirname, "./src/domains"),
       "@editor": path.resolve(__dirname, "./src/editor"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   plugins: [

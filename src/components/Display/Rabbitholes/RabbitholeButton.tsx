@@ -9,7 +9,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IRabbithole } from "../../../../app/database/models/rabbithole";
+import { IRabbithole } from '../../../../app/database/models/rabbithole';
 import { formatDateTime } from '@/utils/formatting';
 import { useNavigate } from "react-router";
 import { IconProps } from '@core/design/icons/Icon';
@@ -20,7 +20,7 @@ import { IRabbitholeAction } from "./rabbitholes";
 import RabbitholeThing from "./RabbitholeThing";
 import { useDisclosure } from "@mantine/hooks";
 import React, { useState } from "react";
-import { getNodeDescription } from '@/utils/graph';
+import { getNodeDescription } from '@infrastructure/graph/utils';
 
 interface IRabbitholeButtonProps {
   rabbithole: IRabbithole;

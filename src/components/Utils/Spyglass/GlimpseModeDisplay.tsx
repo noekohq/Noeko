@@ -1,7 +1,7 @@
 import React from "react";
 import { IResultsMap } from '@/hooks/useSpyglassService';
 import { Badge, Group, Space, Stack, Text, Title } from "@mantine/core";
-import { TypeIcon, getTypeFromId } from '@/utils/graph';
+import { TypeIcon, getTypeFromId } from '@infrastructure/graph/utils';
 import { INode } from '@/declarations/graph';
 import GridCard from '@core/design/components/Paper/Things/GridCard';
 import PaperThing from '@core/design/components/Paper/Things/PaperThing';
@@ -18,7 +18,7 @@ import {
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
-import { IResultSetType } from "../../../../app/services/Spyglass";
+import { IResultSetType } from '../../../../app/services/Spyglass';
 import PaperButton from '@core/design/components/Paper/PaperButton';
 import { SpyglassIcon } from '@core/design/icons/Icons';
 import LangtonsAntLoader from '@core/design/components/Loading/AntLoader';

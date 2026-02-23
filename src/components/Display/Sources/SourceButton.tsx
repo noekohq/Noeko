@@ -4,7 +4,7 @@ import styles from "./SourceButton.module.scss";
 import { useState } from "react";
 import { IconProps, ArrowRightIcon, FileTextIcon, EyeIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { ISource } from "../../../../app/database/models/source";
+import { ISource } from '../../../../app/database/models/source';
 import { useDisclosure } from "@mantine/hooks";
 import { useLayout } from '@/contexts/LayoutContext';
 import { useLandscape } from '@/contexts/LandscapeContext';

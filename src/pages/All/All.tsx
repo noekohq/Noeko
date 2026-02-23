@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { IGetAllConnectables_Options, ITaggedConnectable } from "../../../app/services/Graph";
+import { IGetAllConnectables_Options, ITaggedConnectable } from '../../../app/services/Graph';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';
@@ -10,10 +10,10 @@ import TopBar from '@core/design/components/Layout/TopBar';
 import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
 import GridCard from '@core/design/components/Paper/Things/GridCard';
 import { formatDateTime } from '@/utils/formatting';
-import { api } from '@/server/api';
+import { api } from '@infrastructure/api/client';
 import { DefaultResponse } from '@/declarations/server';
 import TagsFilter from '@/components/Display/Interactions/Tags/TagsFilter';
-import { ITag } from "../../../shared/types/tags";
+import { ITag } from '../../../shared/types/tags';
 import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
 
 interface AllConnectablesResponse {

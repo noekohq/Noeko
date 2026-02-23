@@ -67,7 +67,7 @@ import { showNotification } from "@mantine/notifications";
 import { useSource } from '@/pages/Sources/SourceContext';
 import useFetch from '@/hooks/useFetch';
 import { useForm } from "@mantine/form";
-import DreamWriter from "../../../../Content/DreamWriter/DreamWriter";
+import { DreamWriter } from '@editor';
 
 const defaultZoomLevel = ZoomMode.FitPage;
 const defaultPlugins = [

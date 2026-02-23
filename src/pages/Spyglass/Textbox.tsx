@@ -4,7 +4,7 @@ import { ArrowsClockwiseIcon, PaperPlaneRightIcon } from "@phosphor-icons/react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import PaperChip from '@core/design/components/Paper/PaperChip';
 import PaperIcon from '@core/design/components/Paper/PaperIcon';
-import { IGraphFilters } from "../../../shared/types/constellation";
+import { IGraphFilters } from '../../../shared/types/constellation';
 import ScopeBuilder from '@/components/Search/ScopeBuilder/ScopeBuilder';
 
 interface ITextboxProps {

@@ -5,7 +5,7 @@ import {
   ITaskSortFields,
   IPublicTask,
   ITaskDurationBehavior,
-} from "../../../../app/database/models/task";
+} from '../../../../app/database/models/task';
 import { Box, Group, Stack, Text, Loader, Center } from "@mantine/core";
 import { useSearch } from '@/contexts/SearchContext';
 import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';

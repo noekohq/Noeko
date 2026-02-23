@@ -17,9 +17,9 @@ import remarkGfm from "remark-gfm"; // Import the plugin
 import { Link, useNavigate, useNavigation } from "react-router";
 import { markdownToHtml } from '@/utils/formatting';
 import { generateTextFragmentHashFromText } from '@/utils/textFragment';
-import { IFinding } from "../../../../app/services/Spyglass";
+import { IFinding } from '../../../../app/services/Spyglass';
 import { IResultsMap } from '@/hooks/useSpyglassService';
-import { getTypeFromId, TypeIcon } from '@/utils/graph';
+import { getTypeFromId, TypeIcon } from '@infrastructure/graph/utils';
 import { INode } from '@/declarations/graph';
 
 interface IOverviewParserProps {

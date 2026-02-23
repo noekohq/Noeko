@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { IPublicTask, ITask } from "../../../../app/database/models/task";
+import { IPublicTask, ITask } from '../../../../app/database/models/task';
 import styles from "./TaskButton.module.scss";
 import {
   ActionIcon,

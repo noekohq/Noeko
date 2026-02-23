@@ -21,7 +21,7 @@ import {
   SimpleGrid,
 } from "@mantine/core";
 import useFetch from '@/hooks/useFetch';
-import { IComputedUser, ISafeUser, IUser } from "../../../app/database/models/user";
+import { IComputedUser, ISafeUser, IUser } from '../../../app/database/models/user';
 import {
   TrashSimple,
   HandPalm,

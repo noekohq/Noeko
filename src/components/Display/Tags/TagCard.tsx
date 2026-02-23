@@ -1,5 +1,5 @@
 import { ActionIcon, Badge, Group, MantineColor, Menu, Text } from "@mantine/core";
-import { ITag } from "../../../../shared/types/tags";
+import { ITag } from '../../../../shared/types/tags';
 import { useNavigate } from "react-router";
 import { IconProps } from '@core/design/icons/Icon';
 import styles from "./TagCard.module.scss";

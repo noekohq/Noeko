@@ -1,7 +1,7 @@
 import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
-  FileTextIcon,
+  LightbulbIcon,
   ShieldSlashIcon,
   TrashIcon,
   TrashSimpleIcon,
@@ -13,53 +13,52 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
-import { useEffect, useState } from "react";
-import styles from '@core/design/styles/DreamSource.module.scss';
+import styles from '@core/design/styles/DreamIdea.module.scss';
 import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
 import useFetch from '@/hooks/useFetch';
-import { ISource } from '../../../../../app/database/models/source';
-import { DreamSourceSchema } from '../../../../../shared/editing/tiptap/nodes/DreamSource';
+import { IIdea } from '../../../shared/types/idea';
+import OverviewAccordion from '@/components/Display/Ideas/OverviewAccordion';
+import { DreamIdeaSchema } from '../../../shared/editing/tiptap/nodes/DreamIdea';
+import { useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    dreamSource: {
-      setDreamSource: (options: { sourceId: string; content: string }) => ReturnType;
+    dreamIdea: {
+      setDreamIdea: (options: { ideaId: string; content: string }) => ReturnType;
     };
   }
 }
 
-export const DreamSource = DreamSourceSchema.extend({
+export const DreamIdea = DreamIdeaSchema.extend({
   addNodeView() {
-    return ReactNodeViewRenderer(DreamSourceComponent, {
+    return ReactNodeViewRenderer(DreamIdeaComponent, {
       contentDOMElementTag: "span",
     });
   },
 });
 
-export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
-  const { sourceId } = node.attrs;
+export const DreamIdeaComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
+  const { ideaId } = node.attrs;
   const isEmpty = node.content.size === 0;
   const [accessState, setAccessState] = useState<"granted" | "forbidden" | "error">("granted");
   const navigate = useNavigate();
 
-  const { data: source, load: fetchSource } = useFetch<undefined, ISource>({
-    url: `/sources/${sourceId}`,
+  const { data: idea, load: fetchIdea } = useFetch<undefined, IIdea>({
+    url: `/ideas/${ideaId}?withDerived=true`,
     skip403Redirect: true,
     onError: (error) => {
-      console.error("Error getting source to connect: ", error);
+      console.error("Error getting idea to connect: ", error);
       if ((error as any)?.response?.status === 403) {
         setAccessState("forbidden");
-      } else {
-        setAccessState("error");
       }
     },
   });
 
   useEffect(() => {
-    fetchSource();
-  }, [sourceId]);
+    fetchIdea();
+  }, [ideaId]);
 
   const [iconHovered, { toggle }] = useDisclosure(false);
 
@@ -67,38 +66,44 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
     event.preventDefault();
     // Standard behavior for opening in a new tab
     if (event.metaKey || event.ctrlKey) {
-      window.open(`/source/${sourceId}`, "_blank");
+      window.open(`/idea/${ideaId}`, "_blank");
       return;
     }
-    navigate(`/source/${sourceId}`);
+    navigate(`/idea/${ideaId}`);
   };
 
   const getTooltipLabel = () => {
     switch (accessState) {
       case "granted":
-        return source?.displayName ? `Preview ${source.displayName}` : "Loading...";
+        return idea?.title ? `Click to preview ”${idea.title}”` : "Loading...";
       case "forbidden":
-        return "You don't have access to preview this source";
+        return "You don't have access to preview this idea";
       case "error":
-        return "Could not load source preview";
+        return "Could not load idea preview";
       default:
         return "Loading...";
     }
   };
 
-  if (!sourceId) {
-    return <span className={styles.dreamSourceError}>[ERROR]</span>;
+  if (!ideaId) {
+    return <span className={styles.dreamIdeaError}>[ERROR]</span>;
   }
 
   return (
     <NodeViewWrapper
       as="span"
-      className={styles.dreamSourceWrapper}
+      className={styles.dreamIdeaWrapper}
       data-selected={selected || undefined}
     >
       <Popover width={"400px"} shadow="md" position="top" radius="lg" opened={iconHovered}>
         <Popover.Target>
-          <Tooltip label={getTooltipLabel()}>
+          <Tooltip
+            label={getTooltipLabel()}
+            transitionProps={{
+              duration: 200,
+              transition: "rotate-right",
+            }}
+          >
             <Flex
               className={styles.iconWrapper}
               align={"center"}
@@ -108,13 +113,13 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
               }}
             >
               {accessState === "granted" ? (
-                <FileTextIcon
-                  className={`${styles.dreamSourceIcon} ${iconHovered ? styles.hovered : ""}`}
+                <LightbulbIcon
+                  className={`${styles.dreamIdeaIcon} ${iconHovered ? styles.hovered : ""}`}
                   weight={iconHovered ? "fill" : "regular"}
                 />
               ) : (
                 <ShieldSlashIcon
-                  className={`${styles.dreamSourceIcon} ${styles.shieldIcon}`}
+                  className={`${styles.dreamIdeaIcon} ${styles.shieldIcon}`}
                   weight="fill"
                 />
               )}
@@ -126,11 +131,11 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
           onClick={(e) => e.stopPropagation()}
           style={{ overflowY: "scroll", maxHeight: "400px" }}
         >
-          {accessState === "granted" && source && (
+          {accessState === "granted" && idea && (
             <Stack gap="sm">
               <Group justify="space-between" align="center" w={"100%"} wrap="nowrap">
                 <Text fw={500} c="dark.3">
-                  {source.displayName}
+                  {idea.title}
                 </Text>
                 <Group justify="flex-end">
                   <ActionIcon
@@ -142,9 +147,9 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
                   >
                     <TrashSimpleIcon weight="bold" size={12} />
                   </ActionIcon>
-                  <Link to={`/source/${sourceId}`}>
+                  <Link to={`/idea/${ideaId}`}>
                     <ActionIcon
-                      title="Open Source"
+                      title="Open Idea"
                       variant="light"
                       color="gray"
                       size="sm"
@@ -155,11 +160,18 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
                   </Link>
                 </Group>
               </Group>
-              {source.analysis?.abstract && <Text size="sm">{source.analysis.abstract}</Text>}
+              {idea.derived?.generative_summary && (
+                <OverviewAccordion overview={idea.derived.generative_summary} />
+              )}
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: idea.content,
+                }}
+              />
             </Stack>
           )}
 
-          {accessState === "granted" && !source && (
+          {accessState === "granted" && !idea && (
             <Text c="dimmed" size="xs">
               Loading preview...
             </Text>
@@ -169,9 +181,9 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
             <Stack gap="sm" align="center">
               <ShieldSlashIcon size={32} weight="regular" color="var(--mantine-color-dimmed)" />
               <Text c="dimmed" size="sm" ta="center">
-                You don't have access to preview this source
+                You don't have access to preview this idea
               </Text>
-              <Link to={`/source/${sourceId}`}>
+              <Link to={`/idea/${ideaId}`}>
                 <ActionIcon
                   title="Request Access"
                   variant="light"
@@ -188,45 +200,45 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
           {accessState === "error" && (
             <Stack gap="sm" align="center">
               <Text c="dimmed" size="sm" ta="center">
-                Could not load source preview.
+                Could not load idea preview.
               </Text>
             </Stack>
           )}
         </Popover.Dropdown>
       </Popover>
 
-      <span onClick={handleLinkClick} className={styles.dreamSourceInline} role="link">
+      <span onClick={handleLinkClick} className={styles.dreamIdeaInline} role="link">
         <NodeViewContent
-          className={`${styles.dreamSourceContent} ${
-            !source && accessState === "granted" ? styles.notFound : ""
+          className={`${styles.dreamIdeaContent} ${
+            !idea && accessState === "granted" ? styles.notFound : ""
           }`}
-          data-placeholder={isEmpty ? source?.displayName || "Loading title..." : undefined}
-          title={source?.displayName ? `Go to "${source.displayName}"` : "Go to source"}
+          data-placeholder={isEmpty ? idea?.title || "Loading title..." : undefined}
+          title={idea?.title ? `Go to "${idea.title}"` : "Go to idea"}
         />
       </span>
     </NodeViewWrapper>
   );
 };
 
-interface IDreamSourceMenuProps {
+interface IDreamIdeaMenuProps {
   editor: IEditor;
 }
 
-export const DreamSourceMenu = ({ editor }: IDreamSourceMenuProps) => {
+export const DreamIdeaMenu = ({ editor }: IDreamIdeaMenuProps) => {
   const deleteSelectedNode = () => {
-    editor.chain().focus().deleteNode("dreamSource").run();
+    editor.chain().focus().deleteNode("dreamIdea").run();
   };
 
-  const sourceId = editor.getAttributes("dreamSource").sourceId;
+  const ideaId = editor.getAttributes("dreamIdea").ideaId;
 
   return (
     <>
-      <Link to={`/source/${sourceId}`}>
-        <ActionIcon title="Open Source">
+      <Link to={`/idea/${ideaId}`}>
+        <ActionIcon title="Open Idea">
           <ArrowSquareOutIcon />
         </ActionIcon>
       </Link>
-      <ActionIcon title="Delete Source" color="red" onClick={deleteSelectedNode}>
+      <ActionIcon title="Delete Idea" color="red" onClick={deleteSelectedNode}>
         <TrashIcon />
       </ActionIcon>
     </>

@@ -3,7 +3,7 @@ import { Modal, Grid, Textarea, Checkbox, Group, Button, ActionIcon, Space } fro
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import useFetch from '@/hooks/useFetch'; // Adjust path
-import { IFeedback, IFeedbackForm } from "../../../../shared/types/feedback"; // Adjust path
+import { IFeedback, IFeedbackForm } from '../../../../shared/types/feedback'; // Adjust path
 import { useAuth } from '@/contexts/AuthContext'; // Adjust path
 import { useLocation } from "react-router";
 import { DiscordLogoIcon, RedditLogoIcon } from "@phosphor-icons/react";

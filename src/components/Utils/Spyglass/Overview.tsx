@@ -5,10 +5,10 @@ import OverviewParser from "./OverviewParser";
 import { ActionIcon, CopyButton, Group, Text, Title } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import { CheckIcon, CopyIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
-import { IFinding } from "../../../../app/services/Spyglass";
+import { IFinding } from '../../../../app/services/Spyglass';
 import { getOverviewAsMarkdown } from '@/utils/spyglass';
 import { downloadTextAsFile } from '@/utils/files';
-import { IConnectableFields } from "../../../../app/services/Graph";
+import { IConnectableFields } from '../../../../app/services/Graph';
 import { ICitationMap, IResultsMap } from '@/hooks/useSpyglassService';
 import FindingGroupCard from "./FindingGroupCard";
 

@@ -16,7 +16,7 @@ import {
   HoverCard,
   Blockquote, // Added Modal for delete confirmation
 } from "@mantine/core";
-import { ITag, ITagForm } from "../../../app/database/models/tag";
+import { ITag, ITagForm } from '../../../app/database/models/tag';
 import PageWrapper from '@/components/Layout/PageWrapper';
 import LeftSidebar from '@core/design/components/Layout/Left';
 import RightSidebar from '@core/design/components/Layout/Right';

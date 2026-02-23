@@ -1,7 +1,7 @@
 import {
   DreamGallerySchema,
   IGalleryImage,
-} from '../../../../../shared/editing/tiptap/nodes/DreamGallery';
+} from '../../../shared/editing/tiptap/nodes/DreamGallery';
 import {
   NodeViewWrapper,
   NodeViewProps,

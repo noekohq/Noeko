@@ -20,7 +20,7 @@ import RightSidebar from '@core/design/components/Layout/Right';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCurrentTimeOfDay } from '@core/utils/datetime';
 import useFetch from '@/hooks/useFetch';
-import { IIdea, IUserIdeaStats } from "../../../shared/types/idea";
+import { IIdea, IUserIdeaStats } from '../../../shared/types/idea';
 import { useLayout } from '@/contexts/LayoutContext';
 import { CompactIdeaCard, StandardIdeaCard } from '@/components/Display/Ideas/IdeaCards';
 import { getOS } from '@/utils/platform';

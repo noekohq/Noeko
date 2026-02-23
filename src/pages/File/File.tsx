@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
 import useFetch from '@/hooks/useFetch';
-import { IUserFile } from "../../../app/database/models/userfile";
+import { IUserFile } from '../../../app/database/models/userfile';
 import { ActionIcon, Button, Flex, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";

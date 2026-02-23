@@ -20,12 +20,12 @@ import {
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { IExcerpt, IExcerptReference } from "../../../../shared/types/excerpt";
+import { IExcerpt, IExcerptReference } from '../../../../shared/types/excerpt';
 import { useDisclosure } from "@mantine/hooks";
 import { useLayout } from '@/contexts/LayoutContext';
 import ExcerptableThing from "./ExcerptableThing";
-import { ISource } from "../../../../app/database/models/source";
-import { getNodeLinkFromId, NodeIcon } from '@/utils/graph';
+import { ISource } from '../../../../app/database/models/source';
+import { getNodeLinkFromId, NodeIcon } from '@infrastructure/graph/utils';
 import { useLandscape } from '@/contexts/LandscapeContext';
 import { getExcerptReferenceId } from '@/utils/excerpts';
 
