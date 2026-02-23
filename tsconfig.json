@@ -15,7 +15,14 @@
     "strict": true,
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@core/*": ["./src/core/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@domains/*": ["./src/domains/*"],
+      "@editor/*": ["./src/editor/*"]
+    }
   },
   "include": ["src", "app", "vitest.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
