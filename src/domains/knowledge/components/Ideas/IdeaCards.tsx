@@ -17,9 +17,9 @@ import { IdeaActionsGroup } from "./IdeaActionsGroup";
 import { IdeaTagsDisplay } from "./IdeaTagsDisplay";
 import { IdeaArtifactsDisplay } from "./IdeaArtifactsDisplay"; // Could be used for a single key artifact
 import styles from "./IdeaCards.module.scss";
-import { getNodeDescription } from '@infrastructure/graph/utils';
+import { getNodeDescription } from "@infrastructure/graph/utils";
 import { Link, useNavigate } from "react-router";
-import { ISafeIdea } from '../../../../../shared/types/idea';
+import { ISafeIdea } from "../../../../../shared/types/idea";
 
 export interface CompactIdeaCardProps extends IdeaCardSharedProps {
   detailsForHoverCard?: React.ReactNode;

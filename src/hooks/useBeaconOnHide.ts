@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { api } from '@infrastructure/api/client'; // Assuming you might need the base URL
+import { api } from "@infrastructure/api/client"; // Assuming you might need the base URL
 
 // Define the properties for the hook
 export interface UseBeaconOnHideProps<T> {

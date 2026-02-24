@@ -1,8 +1,11 @@
 import { RecordId } from "surrealdb";
-import { useLandscape } from '@/contexts/LandscapeContext';
-import { includeThingInRabbithole, unIncludeThingInRabbithole } from '@domains/rabbitholes/utils/rabbitholes';
+import { useLandscape } from "@/contexts/LandscapeContext";
+import {
+  includeThingInRabbithole,
+  unIncludeThingInRabbithole,
+} from "@domains/rabbitholes/utils/rabbitholes";
 import { useCallback, useState } from "react";
-import { IRabbithole } from '../../../../app/database/models/rabbithole';
+import { IRabbithole } from "../../../../app/database/models/rabbithole";
 
 interface IUseRabbitholeReturn {
   currentRabbithole: IRabbithole | null;

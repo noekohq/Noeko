@@ -13,11 +13,16 @@ import {
   Accordion,
   Transition,
 } from "@mantine/core";
-import { IIdea, IIdeaAsRelation, IIdeaConnection, ISafeIdea } from '../../../../../shared/types/idea';
+import {
+  IIdea,
+  IIdeaAsRelation,
+  IIdeaConnection,
+  ISafeIdea,
+} from "../../../../../shared/types/idea";
 import { Link, useNavigate } from "react-router";
-import IdeaPreview from '@domains/knowledge/components/Ideas/IdeaPreview';
+import IdeaPreview from "@domains/knowledge/components/Ideas/IdeaPreview";
 import { useEffect, useState } from "react";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import {
   ArrowRight,
@@ -33,13 +38,13 @@ import {
   TrashSimpleIcon,
   UniteSquareIcon,
 } from "@phosphor-icons/react";
-import { api } from '@infrastructure/api/client';
-import { similarityToColor, similarityToLevel } from '@domains/knowledge/utils/ideas_vars';
+import { api } from "@infrastructure/api/client";
+import { similarityToColor, similarityToLevel } from "@domains/knowledge/utils/ideas_vars";
 
-import { createIdeaConnection, removeIdeaConnection } from '@domains/knowledge/utils/ideas';
-import IdeaButton from '@domains/knowledge/components/Ideas/Interactions/IdeaButton';
-import { useInteraction } from '@/contexts/InteractionContext';
-import IdeaCard from '@domains/knowledge/components/Ideas/Interactions/IdeaCard';
+import { createIdeaConnection, removeIdeaConnection } from "@domains/knowledge/utils/ideas";
+import IdeaButton from "@domains/knowledge/components/Ideas/Interactions/IdeaButton";
+import { useInteraction } from "@/contexts/InteractionContext";
+import IdeaCard from "@domains/knowledge/components/Ideas/Interactions/IdeaCard";
 
 type IConnectionsProps = {
   loadingIdea: boolean;

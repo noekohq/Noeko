@@ -1,8 +1,8 @@
 import { ActionIcon, MantineColor, MantineRadius, MantineSize } from "@mantine/core";
 import { HouseIcon } from "@phosphor-icons/react";
 import { Link, useLocation } from "react-router";
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
-import { useLayout } from '@/contexts/LayoutContext';
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import { useLayout } from "@/contexts/LayoutContext";
 
 interface IHomeButtonProps {
   size?: MantineSize;

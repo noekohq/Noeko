@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { IIdeaNode, INode } from '@/declarations/graph.d';
+import { IIdeaNode, INode } from "@/declarations/graph.d";
 import styles from "./Node.module.scss";
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { getNodeTitle, NodeIcon } from '@infrastructure/graph/utils';
+import { getNodeTitle, NodeIcon } from "@infrastructure/graph/utils";
 
 type NodeProps = {
   node: INode;

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useLayout } from '@/contexts/LayoutContext';
+import { useLayout } from "@/contexts/LayoutContext";
 
 type ISidebarMode = "open" | "collapsed" | "compact" | "hovering";
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLayout } from '@/contexts/LayoutContext';
+import { useLayout } from "@/contexts/LayoutContext";
 import styles from "./ContentWide.module.scss";
 
 interface IContentWideProps {

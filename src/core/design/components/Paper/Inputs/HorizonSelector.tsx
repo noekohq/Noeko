@@ -4,7 +4,7 @@ import { DatePicker } from "@mantine/dates";
 import { ArrowLeftIcon, CalendarPlusIcon, ClockIcon, XCircleIcon } from "@phosphor-icons/react";
 import styles from "./HorizonSelector.module.scss";
 import { Duration } from "surrealdb";
-import { fromYYYYMMDD, toYYYYMMDD } from '@core/utils/datetime';
+import { fromYYYYMMDD, toYYYYMMDD } from "@core/utils/datetime";
 
 // --- Types ---
 

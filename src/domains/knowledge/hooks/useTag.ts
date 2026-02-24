@@ -1,6 +1,6 @@
 import { RecordId } from "surrealdb";
-import { applyTagToThing, removeTagFromThing } from '@domains/knowledge/utils/tags';
-import { IConnectable } from '../../../../app/services/Graph';
+import { applyTagToThing, removeTagFromThing } from "@domains/knowledge/utils/tags";
+import { IConnectable } from "../../../../app/services/Graph";
 
 interface IUseTagArgs {
   tagId: string | RecordId;

@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router";
 import { MantineProvider } from "@mantine/core";
 import GlimpseModeDisplay from "./GlimpseModeDisplay";
-import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
-import { IResultsMap } from '@domains/discovery/hooks/useSpyglassService';
+import { PartialGlimpseResult } from "@core/utils/partialJsonParser";
+import { IResultsMap } from "@domains/discovery/hooks/useSpyglassService";
 
 // Mock sub-components that might cause issues or are not the focus
-vi.mock('@core/design/components/Paper/Things/GridCard', () => ({
+vi.mock("@core/design/components/Paper/Things/GridCard", () => ({
   default: ({ id, title, onClick }: any) => (
     <div data-testid="grid-card" onClick={(e) => onClick(id || "test-id", e)}>
       {title}
@@ -15,11 +15,11 @@ vi.mock('@core/design/components/Paper/Things/GridCard', () => ({
   ),
 }));
 
-vi.mock('@core/design/components/Paper/Things/PaperThing', () => ({
+vi.mock("@core/design/components/Paper/Things/PaperThing", () => ({
   default: ({ title }: any) => <div data-testid="paper-thing">{title}</div>,
 }));
 
-vi.mock('@core/design/components/Loading/AntLoader', () => ({
+vi.mock("@core/design/components/Loading/AntLoader", () => ({
   default: ({ loadingText }: any) => <div data-testid="ant-loader">{loadingText}</div>,
 }));
 

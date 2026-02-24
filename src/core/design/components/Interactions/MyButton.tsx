@@ -15,9 +15,9 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { useInteraction } from '@/contexts/InteractionContext';
-import { userIsSuperuser } from '@domains/identity/utils/user';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { useInteraction } from "@/contexts/InteractionContext";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 import styles from "./MyButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
 

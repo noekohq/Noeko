@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 import styles from "./ScopeBuilder.module.scss"; // Keeping same styles for now
 import { Group } from "@mantine/core";
-import { RabbitholeIcon } from '@core/design/icons/Icons';
+import { RabbitholeIcon } from "@core/design/icons/Icons";
 import { CalendarIcon } from "@phosphor-icons/react";
-import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
-import { useLandscape } from '@/contexts/LandscapeContext';
+import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
+import { useLandscape } from "@/contexts/LandscapeContext";
 
 export interface IScopeDisplayProps {}
 

@@ -1,6 +1,6 @@
 import { ArrowRightIcon, TagIcon } from "@phosphor-icons/react";
 import styles from "./PaperTag.module.scss";
-import { ITag } from '../../../../../../shared/types/tags';
+import { ITag } from "../../../../../../shared/types/tags";
 import React from "react";
 import { MantineSize, Text } from "@mantine/core";
 import { PaperContextMenu } from "../PaperContextMenu";

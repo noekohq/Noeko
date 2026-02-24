@@ -1,8 +1,8 @@
 import React from "react";
 import styles from "./AntLoader.module.scss";
 import { Text } from "@mantine/core";
-import { isDarkScheme } from '@core/utils/dom';
-import { useSettings } from '@/contexts/SettingsContext';
+import { isDarkScheme } from "@core/utils/dom";
+import { useSettings } from "@/contexts/SettingsContext";
 // import { isDarkScheme } from '@core/utils/dom'; // Not used currently
 
 type Direction = 0 | 1 | 2 | 3;

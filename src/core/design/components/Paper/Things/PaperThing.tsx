@@ -13,7 +13,7 @@ import { CopyButton, Group, Modal, Stack, Text } from "@mantine/core";
 import { CopyIcon, EyeIcon, ArrowRightIcon, BrowsersIcon, CheckIcon } from "@phosphor-icons/react";
 import styles from "./PaperThing.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
-import { useLandscape } from '@/contexts/LandscapeContext';
+import { useLandscape } from "@/contexts/LandscapeContext";
 import { IThing } from "./things";
 
 export type IPaperThingState = "default" | "suggested";

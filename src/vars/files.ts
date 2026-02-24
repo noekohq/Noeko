@@ -1,5 +1,5 @@
-import { IUserFile } from '../../app/database/models/userfile';
-import { serverLocation } from '@infrastructure/api/client';
+import { IUserFile } from "../../app/database/models/userfile";
+import { serverLocation } from "@infrastructure/api/client";
 
 export const fileEndpoint = (file: IUserFile) => {
   return serverLocation + `/api/files/${file.id}/`;

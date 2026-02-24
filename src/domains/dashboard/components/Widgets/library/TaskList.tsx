@@ -4,22 +4,22 @@ import {
   ITask,
   ITaskDurationBehavior,
   ITaskSortFields,
-} from '../../../../../../app/database/models/task';
-import useFetch from '@core/hooks/useFetch';
-import { toYYYYMMDD } from '@core/utils/datetime';
+} from "../../../../../../app/database/models/task";
+import useFetch from "@core/hooks/useFetch";
+import { toYYYYMMDD } from "@core/utils/datetime";
 import { IWidgetConfig } from "../index.d";
-import TaskButton from '@domains/knowledge/components/Tasks/TaskButton';
+import TaskButton from "@domains/knowledge/components/Tasks/TaskButton";
 import { ActionIcon, Group, Loader, Stack, Text } from "@mantine/core";
 import styles from "./TaskList.module.scss";
 import { CaretLeftIcon, CaretRightIcon, PlusIcon } from "@phosphor-icons/react";
-import { useInteraction } from '@/contexts/InteractionContext';
+import { useInteraction } from "@/contexts/InteractionContext";
 import { Link, useNavigate } from "react-router";
-import ProgressBar from '@core/design/components/Utils/ProgressBar';
-import { capitalize, formatDate } from '@core/utils/formatting';
-import { useLayout } from '@/contexts/LayoutContext';
-import Selection from '@/components/Display/Interactions/Selection';
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
-import { useTourStep } from '@/contexts/TourGuideContext';
+import ProgressBar from "@core/design/components/Utils/ProgressBar";
+import { capitalize, formatDate } from "@core/utils/formatting";
+import { useLayout } from "@/contexts/LayoutContext";
+import Selection from "@/components/Display/Interactions/Selection";
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
+import { useTourStep } from "@/contexts/TourGuideContext";
 
 type ITaskViews = "daily" | "urgent" | "recent";
 

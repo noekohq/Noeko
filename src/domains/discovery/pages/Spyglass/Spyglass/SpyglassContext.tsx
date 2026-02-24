@@ -1,12 +1,12 @@
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
-import { ISpyglassSearch } from '../../../../../../app/database/models/search';
-import { ICitationMap } from '@domains/discovery/hooks/useSpyglassService';
+import { ISpyglassSearch } from "../../../../../../app/database/models/search";
+import { ICitationMap } from "@domains/discovery/hooks/useSpyglassService";
 import { useSpyglassRecord } from "../hooks/useSpyglass";
 import styles from "./SpyglassContext.module.scss";
 import CollapseButton from "@core/design/components/Interactions/CollapseButton";
 import ConnectableThing from "@/components/Display/Interactions/Connections/ConnectableThing";
-import { ISearchResult } from '../../../../../../shared/types/search';
-import { IConnectable } from '../../../../../../app/services/Graph';
+import { ISearchResult } from "../../../../../../shared/types/search";
+import { IConnectable } from "../../../../../../app/services/Graph";
 
 interface ISpyglassContextProps {
   citationMap: ICitationMap;

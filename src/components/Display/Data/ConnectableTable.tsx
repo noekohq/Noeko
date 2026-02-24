@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Highlight, Modal, Table, Text, TextInput } from "@mantine/core";
-import { IConnectable } from '../../../../app/services/Graph';
+import { IConnectable } from "../../../../app/services/Graph";
 import styles from "./ConnectableTable.module.scss";
 import {
   getNodeContent,
@@ -8,7 +8,7 @@ import {
   getNodeTitle,
   getTypeFromId,
   NodeIcon,
-} from '@infrastructure/graph/utils';
+} from "@infrastructure/graph/utils";
 import { ArrowRightIcon, ArrowsOutIcon, XIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import { useMemo, useState } from "react";

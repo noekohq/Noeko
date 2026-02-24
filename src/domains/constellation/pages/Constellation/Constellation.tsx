@@ -1,27 +1,27 @@
-import Graph, { IGraphController } from '@domains/constellation/components/Graph/Graph';
-import { INode } from '@/declarations/graph';
+import Graph, { IGraphController } from "@domains/constellation/components/Graph/Graph";
+import { INode } from "@/declarations/graph";
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import styles from "./Constellation.module.scss";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import { useNavigate } from "react-router";
 import ConstellationActions from "./ConstellationActions";
 import ConstellationContext from "./ConstellationContext";
-import { fromConstellation, getNodeLink } from '@infrastructure/graph/utils';
+import { fromConstellation, getNodeLink } from "@infrastructure/graph/utils";
 import { Group, Loader, Text } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import {
   IConstellationLoader,
   IGraphFilters,
   ILoadedConstellation,
-} from '../../../../../app/services/Graph';
-import GraphLoader from '@core/design/components/Loading/GraphLoader';
-import { useLandscape } from '@/contexts/LandscapeContext';
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+} from "../../../../../app/services/Graph";
+import GraphLoader from "@core/design/components/Loading/GraphLoader";
+import { useLandscape } from "@/contexts/LandscapeContext";
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);

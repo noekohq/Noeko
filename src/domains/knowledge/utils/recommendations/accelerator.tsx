@@ -8,12 +8,12 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { IAcceleratorItem, IShelfData } from '../../../../../app/services/Recommendations';
-import { getExcerptReferenceId } from '@domains/knowledge/utils/excerpts';
-import { RabbitholeIcon } from '@core/design/icons/Icons';
-import { formatDateTime } from '@core/utils/formatting';
+import { IAcceleratorItem, IShelfData } from "../../../../../app/services/Recommendations";
+import { getExcerptReferenceId } from "@domains/knowledge/utils/excerpts";
+import { RabbitholeIcon } from "@core/design/icons/Icons";
+import { formatDateTime } from "@core/utils/formatting";
 import { Blockquote, Text } from "@mantine/core";
-import { IAcceleratorShelfLayout } from '@domains/knowledge/components/Acceleration/AcceleratorShelf';
+import { IAcceleratorShelfLayout } from "@domains/knowledge/components/Acceleration/AcceleratorShelf";
 import { ca } from "zod/v4/locales";
 
 export interface IAcceleratorItemFields {

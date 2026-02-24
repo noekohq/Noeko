@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Badge, Group, Stack, Text } from "@mantine/core";
-import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
-import { IResultsMap } from '@domains/discovery/hooks/useSpyglassService';
-import { scrollToElement } from '@core/utils/scroll';
+import { PartialGlimpseResult } from "@core/utils/partialJsonParser";
+import { IResultsMap } from "@domains/discovery/hooks/useSpyglassService";
+import { scrollToElement } from "@core/utils/scroll";
 import styles from "./Navigation.module.scss";
 
 interface IGlimpseNavigationProps {

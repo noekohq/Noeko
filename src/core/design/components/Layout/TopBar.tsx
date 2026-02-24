@@ -3,18 +3,18 @@ import styles from "./TopBar.module.scss";
 import { MagnifyingGlassIcon, PushPinIcon, XIcon, UserIcon } from "@phosphor-icons/react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { ActionIcon, Center, Group, Loader, Stack, Text, Transition } from "@mantine/core";
-import { useLayout } from '@/contexts/LayoutContext';
-import useSearchQuery from '@domains/discovery/hooks/useSearchQuery';
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
-import PaperChip from '@core/design/components/Paper/PaperChip';
+import { useLayout } from "@/contexts/LayoutContext";
+import useSearchQuery from "@domains/discovery/hooks/useSearchQuery";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import PaperChip from "@core/design/components/Paper/PaperChip";
 
-import { getNodeDescription, getNodeTitle } from '@infrastructure/graph/utils';
-import { formatDateTime } from '@core/utils/formatting';
-import PaperSearchResult from '@core/design/components/Paper/PaperSearchResult/PaperSearchResult';
-import { useInteraction } from '@/contexts/InteractionContext';
-import PaperButton from '@core/design/components/Paper/PaperButton';
-import LangtonsAntLoader from '@core/design/components/Loading/AntLoader';
-import { getRelativeDateISO } from '@core/utils/datetime';
+import { getNodeDescription, getNodeTitle } from "@infrastructure/graph/utils";
+import { formatDateTime } from "@core/utils/formatting";
+import PaperSearchResult from "@core/design/components/Paper/PaperSearchResult/PaperSearchResult";
+import { useInteraction } from "@/contexts/InteractionContext";
+import PaperButton from "@core/design/components/Paper/PaperButton";
+import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
+import { getRelativeDateISO } from "@core/utils/datetime";
 
 export default function TopBar() {
   const quips = [

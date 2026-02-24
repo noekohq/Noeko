@@ -1,12 +1,12 @@
 import { showNotification } from "@mantine/notifications";
-import { IRabbithole, IRabbitholeIncludes } from '../../../../app/database/models/rabbithole';
-import { api } from '@infrastructure/api/client';
-import { ISafeIdea } from '../../../../shared/types/idea';
-import { ITag } from '../../../../app/database/models/tag';
-import { ITask } from '../../../../app/database/models/task';
-import { getNodeDescription } from '@infrastructure/graph/utils';
-import { IUserFile } from '../../../../app/database/models/userfile';
-import { ISource } from '../../../../app/database/models/source';
+import { IRabbithole, IRabbitholeIncludes } from "../../../../app/database/models/rabbithole";
+import { api } from "@infrastructure/api/client";
+import { ISafeIdea } from "../../../../shared/types/idea";
+import { ITag } from "../../../../app/database/models/tag";
+import { ITask } from "../../../../app/database/models/task";
+import { getNodeDescription } from "@infrastructure/graph/utils";
+import { IUserFile } from "../../../../app/database/models/userfile";
+import { ISource } from "../../../../app/database/models/source";
 
 export const newRabbithole = async () => {
   try {

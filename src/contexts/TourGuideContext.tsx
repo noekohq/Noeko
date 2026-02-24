@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { markFeatureViewed, getAllViewed } from '@/utils/tourguide';
+import { markFeatureViewed, getAllViewed } from "@/utils/tourguide";
 
 export interface IOnboardingStep {
   id: string;

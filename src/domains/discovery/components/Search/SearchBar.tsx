@@ -2,7 +2,7 @@ import { forwardRef, useState, useRef, useCallback, useEffect } from "react";
 import { Loader, ActionIcon, Textarea, Stack } from "@mantine/core";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import styles from "./SearchBar.module.scss";
-import useShortcuts from '@core/hooks/useShortcuts';
+import useShortcuts from "@core/hooks/useShortcuts";
 
 const quips = [
   "Find that thing!",

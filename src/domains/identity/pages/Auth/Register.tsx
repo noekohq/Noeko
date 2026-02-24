@@ -13,14 +13,14 @@ import {
   Checkbox,
   HoverCard,
 } from "@mantine/core";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import { useForm } from "@mantine/form";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { ISafeUser } from '../../../../../shared/types/user';
-import { useAuth } from '@domains/identity/contexts/AuthContext';
+import { ISafeUser } from "../../../../../shared/types/user";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
-import { validateEmail } from '@core/utils/data';
-import StageIndicator from '@core/design/components/Utils/StageIndicator';
+import { validateEmail } from "@core/utils/data";
+import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useEffect, useState } from "react";
 import { QuestionIcon } from "@phosphor-icons/react";
 

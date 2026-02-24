@@ -1,4 +1,4 @@
-import { ICSSApplicator, IThemeSpec } from '@/declarations/themes';
+import { ICSSApplicator, IThemeSpec } from "@/declarations/themes";
 
 export function matchParentWidth(fixedElementId: string, parentElementId: string): void {
   const fixedEl = document.getElementById(fixedElementId) as HTMLElement | null;

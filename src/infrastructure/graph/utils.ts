@@ -1,8 +1,8 @@
 import { RecordId } from "surrealdb";
-import { IIdea, ISafeIdea } from '../../../shared/types/idea';
-import { IDBGraph } from '../../../shared/types/constellation';
-import { ISearchResult, ISearchResultValue } from '../../../shared/types/search';
-import { htmlToMarkdown } from '../../../app/utils/formatting';
+import { IIdea, ISafeIdea } from "../../../shared/types/idea";
+import { IDBGraph } from "../../../shared/types/constellation";
+import { ISearchResult, ISearchResultValue } from "../../../shared/types/search";
+import { htmlToMarkdown } from "../../../app/utils/formatting";
 import {
   IDerivedNode,
   IEdge,
@@ -11,15 +11,15 @@ import {
   INode,
   INodeOrganizationType,
   ITagNode,
-} from '@/declarations/graph';
+} from "@/declarations/graph";
 import {
   formatDate,
   formatDateTime,
   markdownToHtml,
   sanitizeMarkdownForDescription,
-} from '@core/utils/formatting';
-import { splitBySentences } from '@core/utils/processing';
-import { api } from '@infrastructure/api/client';
+} from "@core/utils/formatting";
+import { splitBySentences } from "@core/utils/processing";
+import { api } from "@infrastructure/api/client";
 import {
   CheckIcon,
   FileTextIcon,
@@ -28,9 +28,9 @@ import {
   TextAlignLeftIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { RabbitholeIcon } from '@core/design/icons/Icons';
-import { ILoadedConstellation } from '../../../app/services/Graph';
-import { IExcerptReference } from '../../../shared/types/excerpt';
+import { RabbitholeIcon } from "@core/design/icons/Icons";
+import { ILoadedConstellation } from "../../../app/services/Graph";
+import { IExcerptReference } from "../../../shared/types/excerpt";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1

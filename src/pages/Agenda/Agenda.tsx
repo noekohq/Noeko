@@ -1,10 +1,10 @@
-import PageWrapper from '@/components/Layout/PageWrapper';
-import Content from '@core/design/components/Layout/Content';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import Nav from '@core/design/components/Layout/Nav';
-import RightSidebar from '@core/design/components/Layout/Right';
-import TopBar from '@core/design/components/Layout/TopBar';
-import UnderConstruction from '@/components/Utils/UnderConstruction';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import Content from "@core/design/components/Layout/Content";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import Nav from "@core/design/components/Layout/Nav";
+import RightSidebar from "@core/design/components/Layout/Right";
+import TopBar from "@core/design/components/Layout/TopBar";
+import UnderConstruction from "@/components/Utils/UnderConstruction";
 
 export default function Agenda() {
   return (

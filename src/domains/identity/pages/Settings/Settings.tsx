@@ -15,14 +15,14 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import { useSettings } from '@/contexts/SettingsContext';
-import { IThemeSpec } from '@/declarations/themes';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import { useSettings } from "@/contexts/SettingsContext";
+import { IThemeSpec } from "@/declarations/themes";
 import { Link, useNavigate } from "react-router";
-import Content from '@core/design/components/Layout/Content';
-import StatusBar from '@core/design/components/Layout/Bottom';
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
 import {
   CheckIcon,
   CopyIcon,
@@ -36,14 +36,14 @@ import {
   TrashIcon,
   UploadIcon,
 } from "@phosphor-icons/react";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
 import React, { useState } from "react";
-import ContentWide from '@core/design/components/Layout/ContentWide';
-import useFetch from '@core/hooks/useFetch';
-import { handleLogout } from '@/server/auth';
+import ContentWide from "@core/design/components/Layout/ContentWide";
+import useFetch from "@core/hooks/useFetch";
+import { handleLogout } from "@/server/auth";
 import { showNotification } from "@mantine/notifications";
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 const AppearanceSettings = () => {
   const {

@@ -3,14 +3,14 @@ import styles from "./RabbitholePicker.module.scss";
 import { Popover, Button, Stack, Text, TextInput, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, RowsIcon } from "@phosphor-icons/react";
-import { IRabbithole } from '../../../../../app/database/models/rabbithole';
-import useFetch from '@core/hooks/useFetch';
+import { IRabbithole } from "../../../../../app/database/models/rabbithole";
+import useFetch from "@core/hooks/useFetch";
 import { useDisclosure } from "@mantine/hooks";
-import PaperButton from '@core/design/components/Paper/PaperButton';
-import { PaperSelection, usePaperSelection } from '@core/design/components/Paper/PaperSelection';
-import { useLayout } from '@/contexts/LayoutContext';
-import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
-import PaperRabbithole from '@core/design/components/Paper/Rabbitholes/PaperRabbithole';
+import PaperButton from "@core/design/components/Paper/PaperButton";
+import { PaperSelection, usePaperSelection } from "@core/design/components/Paper/PaperSelection";
+import { useLayout } from "@/contexts/LayoutContext";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
+import PaperRabbithole from "@core/design/components/Paper/Rabbitholes/PaperRabbithole";
 
 interface RabbitholePickerProps {
   onSelectExisting: (rabbithole: IRabbithole) => void;

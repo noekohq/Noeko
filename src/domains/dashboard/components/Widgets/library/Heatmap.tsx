@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import { IHeatmapDataPoint } from '../../../../../../app/services/Analysis';
-import useFetch from '@core/hooks/useFetch';
+import { IHeatmapDataPoint } from "../../../../../../app/services/Analysis";
+import useFetch from "@core/hooks/useFetch";
 import { IWidgetConfig } from "../index.d";
 import { Heatmap } from "@mantine/charts";
 import { Button, Group, Text, Title } from "@mantine/core";
 import styles from "./Heatmap.module.scss";
-import { formatDate } from '@core/utils/formatting';
-import { useInteraction } from '@/contexts/InteractionContext';
+import { formatDate } from "@core/utils/formatting";
+import { useInteraction } from "@/contexts/InteractionContext";
 
 export default function HeatmapWidget() {
   const {

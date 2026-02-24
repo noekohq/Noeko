@@ -1,7 +1,7 @@
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { RabbitholeIcon } from '@core/design/icons/Icons';
+import { RabbitholeIcon } from "@core/design/icons/Icons";
 import styles from "./PaperRabbithole.module.scss";
-import { IRabbithole } from '../../../../../../app/database/models/rabbithole';
+import { IRabbithole } from "../../../../../../app/database/models/rabbithole";
 import React from "react";
 import { MantineSize } from "@mantine/core";
 import { PaperContextMenu } from "../PaperContextMenu";

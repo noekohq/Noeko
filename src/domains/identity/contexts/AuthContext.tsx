@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState, createContext, useCallback } from "react";
-import { ISafeUser } from '../../../../shared/types/user';
-import useFetch from '@core/hooks/useFetch';
+import { ISafeUser } from "../../../../shared/types/user";
+import useFetch from "@core/hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { getReferralLinkFromCode } from '@domains/identity/utils/users';
-import { handleLogout } from '@/server/auth';
-import { userIsSuperuser } from '@domains/identity/utils/user';
+import { getReferralLinkFromCode } from "@domains/identity/utils/users";
+import { handleLogout } from "@/server/auth";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 import { Modal, Text } from "@mantine/core";
 
 type AuthState = {

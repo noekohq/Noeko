@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from "react-router";
-import { ITask, ITaskForm } from '../../../../../app/database/models/task';
-import { IShareAccess } from '../../../../../app/database/models/share';
-import PageWrapper from '@/components/Layout/PageWrapper';
-import useFetch from '@core/hooks/useFetch';
+import { ITask, ITaskForm } from "../../../../../app/database/models/task";
+import { IShareAccess } from "../../../../../app/database/models/share";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import useFetch from "@core/hooks/useFetch";
 import { useCallback, useEffect, useState } from "react";
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import Content from '@core/design/components/Layout/Content';
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import Content from "@core/design/components/Layout/Content";
 import {
   ActionIcon,
   Badge,
@@ -39,33 +39,33 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
 } from "@phosphor-icons/react";
-import { DreamWriter } from '@editor';
+import { DreamWriter } from "@editor";
 import { useForm } from "@mantine/form";
 import { Duration } from "surrealdb";
 import styles from "./Task.module.scss";
-import { useLayout } from '@/contexts/LayoutContext';
-import { updateTask } from '@domains/knowledge/utils/tasks';
+import { useLayout } from "@/contexts/LayoutContext";
+import { updateTask } from "@domains/knowledge/utils/tasks";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
-import Search from '@domains/discovery/components/Search/Search';
+import Search from "@domains/discovery/components/Search/Search";
 import { modals } from "@mantine/modals";
-import ConnectionManager from '@/components/Display/Interactions/Connections/ConnectionManager';
-import { useLandscape } from '@/contexts/LandscapeContext';
-import useConnectable from '@domains/knowledge/hooks/useConnectable';
-import TagsManager from '@/components/Display/Interactions/Tags/TagsManager';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
-import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
-import usePins from '@domains/knowledge/hooks/usePins';
-import { downloadTextAsFile } from '@infrastructure/api/files';
-import { htmlToMarkdown } from '../../../../../app/utils/formatting';
-import HorizonSelector from '@core/design/components/Paper/Inputs/HorizonSelector';
-import { fromYYYYMMDD } from '@core/utils/datetime';
-import { capitalize, formatDate } from '@core/utils/formatting';
-import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
-import AccessManager from '@/components/Display/Interactions/Access/AccessManager';
-import { ICollaborationState } from '@/hooks/useCollaboration';
-import { CollaborationInfo } from '@/components/Collaboration/CollaborationInfo';
+import ConnectionManager from "@/components/Display/Interactions/Connections/ConnectionManager";
+import { useLandscape } from "@/contexts/LandscapeContext";
+import useConnectable from "@domains/knowledge/hooks/useConnectable";
+import TagsManager from "@/components/Display/Interactions/Tags/TagsManager";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
+import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
+import usePins from "@domains/knowledge/hooks/usePins";
+import { downloadTextAsFile } from "@infrastructure/api/files";
+import { htmlToMarkdown } from "../../../../../app/utils/formatting";
+import HorizonSelector from "@core/design/components/Paper/Inputs/HorizonSelector";
+import { fromYYYYMMDD } from "@core/utils/datetime";
+import { capitalize, formatDate } from "@core/utils/formatting";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
+import AccessManager from "@/components/Display/Interactions/Access/AccessManager";
+import { ICollaborationState } from "@/hooks/useCollaboration";
+import { CollaborationInfo } from "@/components/Collaboration/CollaborationInfo";
 
 export default function Task() {
   const { taskId } = useParams();

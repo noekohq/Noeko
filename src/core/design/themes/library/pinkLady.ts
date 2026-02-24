@@ -1,6 +1,6 @@
 import { createTheme, DefaultMantineColor, Input, MantineColorsTuple, Paper } from "@mantine/core";
-import { ICSSApplicator, IOverrideResolver } from '@/declarations/themes';
-import { getCurrentScheme } from '@core/utils/dom';
+import { ICSSApplicator, IOverrideResolver } from "@/declarations/themes";
+import { getCurrentScheme } from "@core/utils/dom";
 
 const pinkLady: IOverrideResolver = (t) => {
   // Define the core gradients for the Pink Lady theme

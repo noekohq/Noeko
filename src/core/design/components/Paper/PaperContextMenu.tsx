@@ -29,7 +29,7 @@ import {
 import { Box, Paper, Stack, Text, CopyButton, Tooltip, Group } from "@mantine/core";
 import styles from "./PaperContextMenu.module.scss";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
-import { useLayout } from '@/contexts/LayoutContext';
+import { useLayout } from "@/contexts/LayoutContext";
 
 // --- Context ---
 

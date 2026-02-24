@@ -11,11 +11,11 @@ import {
   Loader,
   Space,
 } from "@mantine/core";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import { useForm } from "@mantine/form";
 import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import StageIndicator from '@core/design/components/Utils/StageIndicator';
+import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useEffect, useState } from "react";
 
 export default function ResetPassword() {

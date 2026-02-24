@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ISearchResultValue, type ISearchResult } from '../../../../../../shared/types/search';
-import { api, refreshToken, serverLocation } from '@infrastructure/api/client';
+import { ISearchResultValue, type ISearchResult } from "../../../../../../shared/types/search";
+import { api, refreshToken, serverLocation } from "@infrastructure/api/client";
 import {
   ISpyglassGeneratorType,
   ISpyglassSearch,
   ISearchOverview,
-} from '../../../../../../app/database/models/search';
-import useFetch from '@core/hooks/useFetch';
+} from "../../../../../../app/database/models/search";
+import useFetch from "@core/hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
-import { ISpyglassIntent, IGlimpseResult } from '../../../../../../app/services/Spyglass';
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
-import { getNodeContent, getNodeDescription, getNodeTitle } from '@infrastructure/graph/utils';
-import { ISpyglassRecord } from '../../../../../../app/database/models/spyglass_record';
-import { IConnectable, IConnectableFields } from '../../../../../../app/services/Graph';
-import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
+import { ISpyglassIntent, IGlimpseResult } from "../../../../../../app/services/Spyglass";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import { getNodeContent, getNodeDescription, getNodeTitle } from "@infrastructure/graph/utils";
+import { ISpyglassRecord } from "../../../../../../app/database/models/spyglass_record";
+import { IConnectable, IConnectableFields } from "../../../../../../app/services/Graph";
+import { PartialGlimpseResult } from "@core/utils/partialJsonParser";
 
 const initialAnalysis: ISearchOverview = {
   findings: [],
@@ -441,7 +441,10 @@ interface IUseSpyglassRecordArgs {
   spyglassId?: string;
 }
 
-import { extractIdsFromFindings, extractIdsFromGlimpseResult } from '@domains/discovery/utils/spyglass';
+import {
+  extractIdsFromFindings,
+  extractIdsFromGlimpseResult,
+} from "@domains/discovery/utils/spyglass";
 
 interface IUseSpyglassRecordReturn {
   loading: boolean;

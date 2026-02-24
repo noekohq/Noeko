@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { ITask } from '../../../../../app/database/models/task';
+import { ITask } from "../../../../../app/database/models/task";
 import styles from "./TaskCard.module.scss";
 import {
   ActionIcon,
@@ -14,13 +14,13 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { DreamWriter } from '@editor';
-import useFetch from '@core/hooks/useFetch';
-import { updateTask } from '@domains/knowledge/utils/tasks';
+import { DreamWriter } from "@editor";
+import useFetch from "@core/hooks/useFetch";
+import { updateTask } from "@domains/knowledge/utils/tasks";
 import { DotsThreeVerticalIcon, IconProps } from "@phosphor-icons/react";
 import { useDisclosure } from "@mantine/hooks";
-import { capitalize, formatDate } from '@core/utils/formatting';
-import { fromYYYYMMDD } from '@core/utils/datetime';
+import { capitalize, formatDate } from "@core/utils/formatting";
+import { fromYYYYMMDD } from "@core/utils/datetime";
 
 export type ITaskAction = {
   id: string;

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { IPinnable } from '../../../../app/database/models/pin';
-import useFetch from '@core/hooks/useFetch';
+import { IPinnable } from "../../../../app/database/models/pin";
+import useFetch from "@core/hooks/useFetch";
 import { RecordId } from "surrealdb";
-import { createPin, deletePin } from '@domains/knowledge/utils/pins';
+import { createPin, deletePin } from "@domains/knowledge/utils/pins";
 
 type IUsePinsReturn = {
   pins: IPinnable[];

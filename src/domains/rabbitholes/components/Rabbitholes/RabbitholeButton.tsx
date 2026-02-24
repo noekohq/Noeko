@@ -9,18 +9,18 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IRabbithole } from '../../../../../app/database/models/rabbithole';
-import { formatDateTime } from '@core/utils/formatting';
+import { IRabbithole } from "../../../../../app/database/models/rabbithole";
+import { formatDateTime } from "@core/utils/formatting";
 import { useNavigate } from "react-router";
-import { IconProps } from '@core/design/icons/Icon';
+import { IconProps } from "@core/design/icons/Icon";
 import styles from "./RabbitholeButton.module.scss";
 import { ArrowRightIcon, DotsThreeVerticalIcon } from "@phosphor-icons/react";
-import { RabbitholeIcon } from '@core/design/icons/Icons';
+import { RabbitholeIcon } from "@core/design/icons/Icons";
 import { IRabbitholeAction } from "./rabbitholes";
 import RabbitholeThing from "./RabbitholeThing";
 import { useDisclosure } from "@mantine/hooks";
 import React, { useState } from "react";
-import { getNodeDescription } from '@infrastructure/graph/utils';
+import { getNodeDescription } from "@infrastructure/graph/utils";
 
 interface IRabbitholeButtonProps {
   rabbithole: IRabbithole;

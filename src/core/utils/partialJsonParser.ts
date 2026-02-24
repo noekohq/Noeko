@@ -11,7 +11,7 @@
  * - Returns null on malformed JSON (falls back to showing nothing)
  */
 
-import { IResultSet, IGlimpseEntryPoint, IGlimpseConnection } from '../../../app/services/Spyglass';
+import { IResultSet, IGlimpseEntryPoint, IGlimpseConnection } from "../../../app/services/Spyglass";
 
 export interface PartialGlimpseResult {
   summary?: string; // Summary text extracted so far (word-boundary chunks)

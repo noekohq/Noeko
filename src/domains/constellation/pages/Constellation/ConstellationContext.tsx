@@ -1,16 +1,16 @@
 import { Group, Stack, Text } from "@mantine/core";
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
-import { IEdge, IGraph, INode } from '@/declarations/graph';
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
+import { IEdge, IGraph, INode } from "@/declarations/graph";
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import styles from "./ConstellationContext.module.scss";
-import { GraphOrganizer } from '@/components/Display/Interactions/GraphOrganizer/GraphOrganizer';
-import ScopeBuilder from '@domains/discovery/components/Search/ScopeBuilder/ScopeBuilder';
+import { GraphOrganizer } from "@/components/Display/Interactions/GraphOrganizer/GraphOrganizer";
+import ScopeBuilder from "@domains/discovery/components/Search/ScopeBuilder/ScopeBuilder";
 import { useCallback, useMemo, useEffect } from "react";
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
 import { UserIcon } from "@phosphor-icons/react";
-import PaperChip from '@core/design/components/Paper/PaperChip';
-import { useLandscape } from '@/contexts/LandscapeContext';
-import { IConstellationLoader } from '../../../../../shared/types/constellation';
+import PaperChip from "@core/design/components/Paper/PaperChip";
+import { useLandscape } from "@/contexts/LandscapeContext";
+import { IConstellationLoader } from "../../../../../shared/types/constellation";
 
 type ConstellationContextProps = {
   graph: IGraph | null;
@@ -110,7 +110,7 @@ export default function ConstellationContext({
             <Stack gap="xs">
               {friendNodes.map((node) => {
                 // Type assertion since we filtered for user nodes
-                const userNode = node as import('@/declarations/graph').IUserNode;
+                const userNode = node as import("@/declarations/graph").IUserNode;
                 const fullName = `${userNode.firstName} ${userNode.lastName}`.trim() || "Friend";
                 return (
                   <PaperThing

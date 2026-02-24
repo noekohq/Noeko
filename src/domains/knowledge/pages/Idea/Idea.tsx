@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./Idea.module.scss";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useDocumentTitle } from '@core/hooks/useDocumentTitle';
-import { ISafeIdea } from '../../../../../shared/types/idea';
-import { IShareAccess } from '../../../../../app/database/models/share';
+import { useDocumentTitle } from "@core/hooks/useDocumentTitle";
+import { ISafeIdea } from "../../../../../shared/types/idea";
+import { IShareAccess } from "../../../../../app/database/models/share";
 import { Editor as IEditor } from "@tiptap/react";
 import {
   ActionIcon,
@@ -25,7 +25,7 @@ import {
   Avatar,
   Center,
 } from "@mantine/core";
-import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
+import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
 import {
   ArrowLeftIcon,
   BookOpenIcon,
@@ -51,42 +51,42 @@ import {
   FileIcon,
 } from "@phosphor-icons/react";
 import Insights from "./Insights";
-import { DreamWriter } from '@editor';
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import { useLayout } from '@/contexts/LayoutContext';
-import { getTextProcessed } from '@core/utils/processing';
+import { DreamWriter } from "@editor";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import { useLayout } from "@/contexts/LayoutContext";
+import { getTextProcessed } from "@core/utils/processing";
 import {
   formatDate,
   formatDateTime,
   htmlToMarkdown,
   htmlToPlainText,
-} from '@core/utils/formatting';
-import { api } from '@infrastructure/api/client';
-import TagsManager from '@/components/Display/Interactions/Tags/TagsManager';
-import Content from '@core/design/components/Layout/Content';
-import Search from '@domains/discovery/components/Search/Search';
-import Loading from '@core/design/components/Loading/Loading';
-import FileManager from '@/components/Display/Interactions/Files/FileManager';
+} from "@core/utils/formatting";
+import { api } from "@infrastructure/api/client";
+import TagsManager from "@/components/Display/Interactions/Tags/TagsManager";
+import Content from "@core/design/components/Layout/Content";
+import Search from "@domains/discovery/components/Search/Search";
+import Loading from "@core/design/components/Loading/Loading";
+import FileManager from "@/components/Display/Interactions/Files/FileManager";
 
-import { IOptimisticIdea, useLandscape } from '@/contexts/LandscapeContext';
-import ConnectionManager from '@/components/Display/Interactions/Connections/ConnectionManager';
-import useConnectable, { IUseConnectableReturn } from '@domains/knowledge/hooks/useConnectable';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
-import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
-import AccessManager from '@/components/Display/Interactions/Access/AccessManager';
-import usePins from '@domains/knowledge/hooks/usePins';
+import { IOptimisticIdea, useLandscape } from "@/contexts/LandscapeContext";
+import ConnectionManager from "@/components/Display/Interactions/Connections/ConnectionManager";
+import useConnectable, { IUseConnectableReturn } from "@domains/knowledge/hooks/useConnectable";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
+import AccessManager from "@/components/Display/Interactions/Access/AccessManager";
+import usePins from "@domains/knowledge/hooks/usePins";
 import { showNotification } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
-import { downloadTextAsFile } from '@infrastructure/api/files';
-import { CollaborationInfo } from '@/components/Collaboration/CollaborationInfo';
+import { downloadTextAsFile } from "@infrastructure/api/files";
+import { CollaborationInfo } from "@/components/Collaboration/CollaborationInfo";
 
-import { ICollaborationState } from '@/hooks/useCollaboration';
-import { userFormattedName } from '@domains/identity/utils/user';
+import { ICollaborationState } from "@/hooks/useCollaboration";
+import { userFormattedName } from "@domains/identity/utils/user";
 import { isEqual } from "lodash";
-import LangtonsAntLoader from '@core/design/components/Loading/AntLoader';
+import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
 
 // --- Types ---
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;

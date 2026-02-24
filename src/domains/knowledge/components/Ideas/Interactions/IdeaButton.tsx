@@ -15,10 +15,10 @@ import styles from "./IdeaButton.module.scss";
 import { useState } from "react";
 import { IconProps, ArrowRightIcon, EyeIcon, ArrowsOutIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { ISafeIdea } from '../../../../../../shared/types/idea';
+import { ISafeIdea } from "../../../../../../shared/types/idea";
 import { useDisclosure } from "@mantine/hooks";
-import { useLayout } from '@/contexts/LayoutContext';
-import { useLandscape } from '@/contexts/LandscapeContext';
+import { useLayout } from "@/contexts/LayoutContext";
+import { useLandscape } from "@/contexts/LandscapeContext";
 
 const getIdeaDefaultDetails = (idea: IIdea | ISafeIdea): React.ReactNode => {
   if (idea.content) {

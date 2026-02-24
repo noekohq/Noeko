@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import {
   Combobox,
   TextInput,
@@ -15,8 +15,8 @@ import {
   MantineSize,
 } from "@mantine/core";
 import { TagIcon, TagSimpleIcon } from "@phosphor-icons/react";
-import { ITag } from '../../../../../shared/types/tags';
-import { useSettings } from '@/contexts/SettingsContext';
+import { ITag } from "../../../../../shared/types/tags";
+import { useSettings } from "@/contexts/SettingsContext";
 import styles from "./SuggestTags.module.scss";
 
 interface SuggestTagsProps {

@@ -11,7 +11,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { INode } from '@/declarations/graph';
+import { INode } from "@/declarations/graph";
 import styles from "./NodePanel.module.scss";
 import {
   ArrowRightIcon,
@@ -27,9 +27,9 @@ import {
   getNodeLink,
   getNodeTitle,
   NodeIcon,
-} from '@infrastructure/graph/utils';
-import Content from '@core/design/components/Layout/Content';
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
+} from "@infrastructure/graph/utils";
+import Content from "@core/design/components/Layout/Content";
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { createPortal } from "react-dom";
 
 export type NodePanelProps = {

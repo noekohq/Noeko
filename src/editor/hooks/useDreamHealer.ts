@@ -1,6 +1,6 @@
 import { Editor } from "@tiptap/react";
 import { useEffect } from "react";
-import { api } from '@infrastructure/api/client';
+import { api } from "@infrastructure/api/client";
 import { debounce } from "lodash";
 
 /**

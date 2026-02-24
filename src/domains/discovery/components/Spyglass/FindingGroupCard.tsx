@@ -3,11 +3,11 @@ import { Badge, Blockquote, Button, Group, HoverCard, Modal, Stack, Text } from 
 import { useMediaQuery } from "@mantine/hooks";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { IFinding } from '../../../../../app/services/Spyglass';
-import { IConnectableFields } from '../../../../../app/services/Graph';
-import { getTypeFromId, TypeIcon } from '@infrastructure/graph/utils';
-import { INode } from '@/declarations/graph';
-import { markdownToHtml } from '@core/utils/formatting';
+import { IFinding } from "../../../../../app/services/Spyglass";
+import { IConnectableFields } from "../../../../../app/services/Graph";
+import { getTypeFromId, TypeIcon } from "@infrastructure/graph/utils";
+import { INode } from "@/declarations/graph";
+import { markdownToHtml } from "@core/utils/formatting";
 import styles from "./FindingGroupCard.module.scss";
 
 interface IGroupedFinding {

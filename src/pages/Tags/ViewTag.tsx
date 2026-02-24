@@ -15,13 +15,13 @@ import {
   Textarea,
   Blockquote,
 } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import useFetch from '@core/hooks/useFetch';
-import { ITag, ITagForm } from '../../../app/database/models/tag';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import useFetch from "@core/hooks/useFetch";
+import { ITag, ITagForm } from "../../../app/database/models/tag";
 import { Link, useNavigate, useParams } from "react-router";
-import { ITagDescribes } from '../../../app/database/models/tag';
+import { ITagDescribes } from "../../../app/database/models/tag";
 import {
   ArrowLeftIcon,
   FloppyDiskIcon,
@@ -37,27 +37,27 @@ import {
   WarningCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { BlockTag } from '@domains/knowledge/components/Tags/TagDisplay';
+import { BlockTag } from "@domains/knowledge/components/Tags/TagDisplay";
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useForm } from "@mantine/form";
-import Content from '@core/design/components/Layout/Content';
-import Search from '@domains/discovery/components/Search/Search';
-import { useLayout } from '@/contexts/LayoutContext';
+import Content from "@core/design/components/Layout/Content";
+import Search from "@domains/discovery/components/Search/Search";
+import { useLayout } from "@/contexts/LayoutContext";
 import { RecordId } from "surrealdb";
-import { applyTagToThing, removeTagFromThing } from '@domains/knowledge/utils/tags';
-import ConnectableTable from '@/components/Display/Data/ConnectableTable';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import { applyTagToThing, removeTagFromThing } from "@domains/knowledge/utils/tags";
+import ConnectableTable from "@/components/Display/Data/ConnectableTable";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 import {
   getThingPropsFromConnectable,
   getThingsFromConnectables,
-} from '@core/design/components/Paper/Things/thingUtils';
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
-import PaperThings from '@core/design/components/Paper/Things/PaperThings';
-import GraphContainer from '@domains/constellation/components/Graph/Graph';
-import { fromConstellation } from '@infrastructure/graph/utils';
+} from "@core/design/components/Paper/Things/thingUtils";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import PaperThings from "@core/design/components/Paper/Things/PaperThings";
+import GraphContainer from "@domains/constellation/components/Graph/Graph";
+import { fromConstellation } from "@infrastructure/graph/utils";
 
 export default function ViewTag() {
   const navigate = useNavigate();

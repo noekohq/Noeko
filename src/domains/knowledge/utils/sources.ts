@@ -1,7 +1,7 @@
 import { RecordId } from "surrealdb";
-import { ISource, ISourceForm, ISourceReference } from '../../../../app/database/models/source';
-import { IUserFile } from '../../../../app/database/models/userfile';
-import { api } from '@infrastructure/api/client';
+import { ISource, ISourceForm, ISourceReference } from "../../../../app/database/models/source";
+import { IUserFile } from "../../../../app/database/models/userfile";
+import { api } from "@infrastructure/api/client";
 
 export const getSourceName = (source: ISource) => {
   const s = source.references as ISourceReference;

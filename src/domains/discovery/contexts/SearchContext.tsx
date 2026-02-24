@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ISearchResult } from '../../../../shared/types/search';
-import { IGraphFilters } from '../../../../shared/types/constellation';
-import { ITag } from '../../../../shared/types/tags';
+import { ISearchResult } from "../../../../shared/types/search";
+import { IGraphFilters } from "../../../../shared/types/constellation";
+import { ITag } from "../../../../shared/types/tags";
 
 export type IComponentFilter = {
   query?: string;

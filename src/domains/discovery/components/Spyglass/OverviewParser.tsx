@@ -13,14 +13,13 @@ import {
 import styles from "./OverviewParser.module.scss";
 import { ArrowRightIcon, ArrowsOutIcon } from "@phosphor-icons/react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm"; // Import the plugin
-import { Link, useNavigate, useNavigation } from "react-router";
-import { markdownToHtml } from '@core/utils/formatting';
-import { generateTextFragmentHashFromText } from '@/utils/textFragment';
-import { IFinding } from '../../../../../app/services/Spyglass';
-import { IResultsMap } from '@domains/discovery/hooks/useSpyglassService';
-import { getTypeFromId, TypeIcon } from '@infrastructure/graph/utils';
-import { INode } from '@/declarations/graph';
+import remarkGfm from "remark-gfm";
+import { Link, useNavigate } from "react-router";
+import { markdownToHtml } from "@core/utils/formatting";
+import { IFinding } from "../../../../../app/services/Spyglass";
+import { IResultsMap } from "@domains/discovery/hooks/useSpyglassService";
+import { getTypeFromId, TypeIcon } from "@infrastructure/graph/utils";
+import { INode } from "@/declarations/graph";
 
 interface IOverviewParserProps {
   markdown: string;
@@ -37,16 +36,17 @@ interface IFindingBadgeProps {
 
 const FindingBadge: React.FC<IFindingBadgeProps> = ({ findingNumber, resultsMap, findings }) => {
   const finding = findings[findingNumber];
-  if (!finding) return null;
 
   const result = resultsMap[finding.sourceId];
-  if (!result) return null;
 
   const title = result.name;
   const titleLink = `/${result.type}/${result.id.toString()}`;
   const content = result.content;
   const [previewing, setPreviewing] = useState(false);
   const navigate = useNavigate();
+
+  if (!finding) return null;
+  if (!result) return null;
 
   return (
     <>

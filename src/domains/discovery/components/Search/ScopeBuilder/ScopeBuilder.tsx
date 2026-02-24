@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 import styles from "./ScopeBuilder.module.scss";
 import { Group, Popover } from "@mantine/core";
-import { ITag } from '../../../../../../shared/types/tags';
-import { IRabbithole } from '../../../../../../app/database/models/rabbithole';
+import { ITag } from "../../../../../../shared/types/tags";
+import { IRabbithole } from "../../../../../../app/database/models/rabbithole";
 import { FunnelIcon, XIcon } from "@phosphor-icons/react";
-import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
-import PaperDateRangeFilter from '@core/design/components/Paper/DateRangeFilter/PaperDateRangeFilter';
-import { TagPickerContent } from '@/components/Display/Interactions/Tags/TagPicker';
-import { RabbitholePickerContent } from '@domains/rabbitholes/components/Rabbitholes/RabbitholePicker';
-import { useLandscape } from '@/contexts/LandscapeContext';
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
+import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
+import PaperDateRangeFilter from "@core/design/components/Paper/DateRangeFilter/PaperDateRangeFilter";
+import { TagPickerContent } from "@/components/Display/Interactions/Tags/TagPicker";
+import { RabbitholePickerContent } from "@domains/rabbitholes/components/Rabbitholes/RabbitholePicker";
+import { useLandscape } from "@/contexts/LandscapeContext";
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
 
-export interface IScopeBuilderProps {}
+export type IScopeBuilderProps = Record<string, unknown>;
 
-const ScopeBuilder: React.FC<IScopeBuilderProps> = ({}) => {
+const ScopeBuilder: React.FC<IScopeBuilderProps> = () => {
   const [popoverOpened, setPopoverOpened] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("tag");
 

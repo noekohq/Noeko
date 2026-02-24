@@ -2,13 +2,13 @@ import styles from "./Glance.module.scss";
 import { IWidgetConfig } from "../index.d";
 import { Group, SegmentedControl, Stack, Text } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
-import useFetch from '@core/hooks/useFetch';
-import { IHeatmapDataPoint } from '../../../../../../app/services/Analysis';
-import { IHeatmapData } from '@core/design/components/Visuals/Heatmap/types';
-import YearlyHeatmap from '@core/design/components/Visuals/Heatmap/YearlyHeatmap';
+import useFetch from "@core/hooks/useFetch";
+import { IHeatmapDataPoint } from "../../../../../../app/services/Analysis";
+import { IHeatmapData } from "@core/design/components/Visuals/Heatmap/types";
+import YearlyHeatmap from "@core/design/components/Visuals/Heatmap/YearlyHeatmap";
 import { LineChart } from "@mantine/charts";
-import { formatDate } from '@core/utils/formatting';
-import { useTourStep } from '@/contexts/TourGuideContext';
+import { formatDate } from "@core/utils/formatting";
+import { useTourStep } from "@/contexts/TourGuideContext";
 
 type IVisualOptions = "chart" | "heatmap";
 

@@ -17,7 +17,7 @@ import {
 } from "@phosphor-icons/react";
 import styles from "./GridCard.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
-import { useLandscape } from '@/contexts/LandscapeContext';
+import { useLandscape } from "@/contexts/LandscapeContext";
 import { IThing } from "./things";
 
 export type ICardState = "default" | "suggested";

@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from "react"; // Added useEffect, useCallback, useRef
-import useFetch from '@core/hooks/useFetch';
-import { IIdea } from '../../../../../shared/types/idea';
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import useFetch from "@core/hooks/useFetch";
+import { IIdea } from "../../../../../shared/types/idea";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import { Loader, Center, Grid, Text, Group, Title, Divider, Stack, Button } from "@mantine/core"; // Added Loader and Center for UX
 import styles from "./Ideas.module.scss";
 import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
-import { useInteraction } from '@/contexts/InteractionContext';
-import { useLayout } from '@/contexts/LayoutContext';
-import Content from '@core/design/components/Layout/Content';
-import StatusBar from '@core/design/components/Layout/Bottom';
-import IdeaCard from '@domains/knowledge/components/Ideas/Interactions/IdeaCard';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import { useInteraction } from "@/contexts/InteractionContext";
+import { useLayout } from "@/contexts/LayoutContext";
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import IdeaCard from "@domains/knowledge/components/Ideas/Interactions/IdeaCard";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Ideas() {
   const { isMobile } = useLayout();

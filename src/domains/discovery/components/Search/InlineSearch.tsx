@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ISearchResult, ISearchResultValue } from '../../../../../shared/types/search';
-import useFetch from '@core/hooks/useFetch';
+import { ISearchResult, ISearchResultValue } from "../../../../../shared/types/search";
+import useFetch from "@core/hooks/useFetch";
 import { Menu, TextInput, Loader, Text, ActionIcon } from "@mantine/core";
 import styles from "./InlineSearch.module.scss";
 import { MagnifyingGlass, X } from "@phosphor-icons/react";
-import useShortcuts, { IShortcut } from '@core/hooks/useShortcuts';
-import { getNodeDescription, getNodeTitle } from '@infrastructure/graph/utils';
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
+import useShortcuts, { IShortcut } from "@core/hooks/useShortcuts";
+import { getNodeDescription, getNodeTitle } from "@infrastructure/graph/utils";
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
 
 type IInlineSearchProps = {
   placeholder?: string;

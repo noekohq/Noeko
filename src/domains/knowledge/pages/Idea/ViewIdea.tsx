@@ -1,18 +1,18 @@
 import { ActionIcon, Box, Container, Group, Stack, Title, Tooltip } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import useFetch from '@core/hooks/useFetch';
-import { IIdeaForm } from '../../../../../shared/types/idea';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import useFetch from "@core/hooks/useFetch";
+import { IIdeaForm } from "../../../../../shared/types/idea";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./ViewIdea.module.scss";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import { Pencil } from "@phosphor-icons/react";
 import { useEffect } from "react";
-import Content from '@core/design/components/Layout/Content';
-import StatusBar from '@core/design/components/Layout/Bottom';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function ViewIdea() {
   const { ideaId } = useParams<{ ideaId: string }>();

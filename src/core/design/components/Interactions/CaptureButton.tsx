@@ -13,12 +13,12 @@ import styles from "./CaptureButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
 import { Badge, Group, Loader, MantineColor, Portal, Text } from "@mantine/core"; // Added Portal
 import { useEffect, useRef, useState } from "react";
-import { useInteraction } from '@/contexts/InteractionContext';
-import { createIdea } from '@domains/knowledge/utils/ideas';
-import { markdownToHtml } from '@core/utils/formatting';
+import { useInteraction } from "@/contexts/InteractionContext";
+import { createIdea } from "@domains/knowledge/utils/ideas";
+import { markdownToHtml } from "@core/utils/formatting";
 import { showNotification } from "@mantine/notifications";
-import { createTask } from '@domains/knowledge/utils/tasks';
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
+import { createTask } from "@domains/knowledge/utils/tasks";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 
 export default function CaptureButton() {
   const [opened, { toggle }] = useDisclosure();

@@ -4,26 +4,26 @@ import {
   handleCreateNewConnectedIdea,
   handleCreateNewIdea,
   newIdeaOptimistic,
-} from '@domains/knowledge/utils/ideas';
+} from "@domains/knowledge/utils/ideas";
 import { showNotification } from "@mantine/notifications";
-import { getOS } from '@core/utils/platform';
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { userIsSuperuser } from '@domains/identity/utils/user';
+import { getOS } from "@core/utils/platform";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Group, Text, Drawer, Space, Modal, Stack, Button } from "@mantine/core";
 import { useLayout } from "./LayoutContext";
-import FeedbackModal from '@/components/Utils/Modals/FeedbackModal';
-import Spotlight from '@domains/discovery/components/Spotlight/Spotlight';
+import FeedbackModal from "@/components/Utils/Modals/FeedbackModal";
+import Spotlight from "@domains/discovery/components/Spotlight/Spotlight";
 import { useHotkeys } from "@mantine/hooks";
-import { handleCreateNewRabbithole } from '@domains/rabbitholes/utils/rabbitholes';
+import { handleCreateNewRabbithole } from "@domains/rabbitholes/utils/rabbitholes";
 import { useLandscape } from "./LandscapeContext";
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
-import LoadingOverlay from '@core/design/components/Loading/LoadingOverlay';
-import CreateTaskForm from '@domains/knowledge/components/Forms/CreateTask';
-import AddSourceForm from '@domains/knowledge/components/Forms/AddSource';
-import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
-import { createTask } from '@domains/knowledge/utils/tasks';
-import { ISafeIdea } from '../../shared/types/idea';
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import LoadingOverlay from "@core/design/components/Loading/LoadingOverlay";
+import CreateTaskForm from "@domains/knowledge/components/Forms/CreateTask";
+import AddSourceForm from "@domains/knowledge/components/Forms/AddSource";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
+import { createTask } from "@domains/knowledge/utils/tasks";
+import { ISafeIdea } from "../../shared/types/idea";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 

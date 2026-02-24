@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from "react";
-import { ISidebarMode, useLayout } from '@/contexts/LayoutContext';
+import { ISidebarMode, useLayout } from "@/contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import { ArrowLineRightIcon, MegaphoneIcon, SidebarSimpleIcon } from "@phosphor-icons/react";
 import { ActionIcon, Group, MantineColor, Stack, Tooltip } from "@mantine/core";
-import useShortcuts from '@core/hooks/useShortcuts';
+import useShortcuts from "@core/hooks/useShortcuts";
 import { Link, useLocation } from "react-router";
-import { useInteraction } from '@/contexts/InteractionContext';
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
+import { useInteraction } from "@/contexts/InteractionContext";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 
 interface ILeftSidebarProps {
   children?: React.ReactNode | React.ReactNode[];

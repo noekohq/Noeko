@@ -7,8 +7,8 @@ import {
   Paper,
   Popover,
 } from "@mantine/core";
-import { ICSSApplicator, IOverrideResolver } from '@/declarations/themes';
-import { getCurrentScheme } from '@core/utils/dom';
+import { ICSSApplicator, IOverrideResolver } from "@/declarations/themes";
+import { getCurrentScheme } from "@core/utils/dom";
 
 const dracula: IOverrideResolver = (t) => {
   // Dracula standard palette mapped to your system

@@ -2,10 +2,10 @@ import { Group } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import { ArrowsClockwiseIcon, PaperPlaneRightIcon } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import PaperChip from '@core/design/components/Paper/PaperChip';
-import PaperIcon from '@core/design/components/Paper/PaperIcon';
-import { IGraphFilters } from '../../../../../shared/types/constellation';
-import ScopeBuilder from '@domains/discovery/components/Search/ScopeBuilder/ScopeBuilder';
+import PaperChip from "@core/design/components/Paper/PaperChip";
+import PaperIcon from "@core/design/components/Paper/PaperIcon";
+import { IGraphFilters } from "../../../../../shared/types/constellation";
+import ScopeBuilder from "@domains/discovery/components/Search/ScopeBuilder/ScopeBuilder";
 
 interface ITextboxProps {
   onSubmit: (query: string) => void;

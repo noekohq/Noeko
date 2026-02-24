@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { ITask } from '../../../../app/database/models/task';
+import { ITask } from "../../../../app/database/models/task";
 import styles from "./CardButton.module.scss";
 
 interface ICardButton {

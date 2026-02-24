@@ -15,14 +15,14 @@ import {
   SpinnerGapIcon,
   CloudXIcon,
 } from "@phosphor-icons/react";
-import useShortcuts from '@core/hooks/useShortcuts';
+import useShortcuts from "@core/hooks/useShortcuts";
 import { getExtensionConfig } from "./extensions";
 import { useInteraction } from "@/contexts/InteractionContext";
 import BubbleMenu from "./BubbleMenu";
 import { useLayout } from "@/contexts/LayoutContext";
 import { Group, Loader, Overlay, Text, Tooltip, Avatar, Center } from "@mantine/core";
 import FloatingMenu from "./FloatingMenu";
-import { getOS } from '@core/utils/platform';
+import { getOS } from "@core/utils/platform";
 import {
   ICollaborationStatus,
   useCollaboration,
@@ -31,7 +31,7 @@ import {
 } from "@/hooks/useCollaboration";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { assignMantineColor } from "@core/utils/colors";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import { useDreamHealer } from "./hooks/useDreamHealer";

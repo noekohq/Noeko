@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { Group, Loader, Stack, Text, Button, Transition } from "@mantine/core";
-import { getOS } from '@core/utils/platform';
+import { getOS } from "@core/utils/platform";
 import styles from "./Search.module.scss";
 import { Link, useNavigate } from "react-router";
 import {
@@ -11,22 +11,22 @@ import {
   UserIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
-import type { ISearchResultValue, ISearchResult } from '../../../../../shared/types/search';
-import { IConnectable } from '../../../../../shared/types/constellation';
-import { INode } from '@/declarations/graph';
-import { PartialGlimpseResult } from '@core/utils/partialJsonParser';
-import { IResultsMap } from '@domains/discovery/hooks/useSpyglassService';
-import GlimpseModeDisplay from '@domains/discovery/components/Spyglass/GlimpseModeDisplay';
-import useShortcuts from '@core/hooks/useShortcuts';
-import PaperButton from '@core/design/components/Paper/PaperButton';
+import type { ISearchResultValue, ISearchResult } from "../../../../../shared/types/search";
+import { IConnectable } from "../../../../../shared/types/constellation";
+import { INode } from "@/declarations/graph";
+import { PartialGlimpseResult } from "@core/utils/partialJsonParser";
+import { IResultsMap } from "@domains/discovery/hooks/useSpyglassService";
+import GlimpseModeDisplay from "@domains/discovery/components/Spyglass/GlimpseModeDisplay";
+import useShortcuts from "@core/hooks/useShortcuts";
+import PaperButton from "@core/design/components/Paper/PaperButton";
 import ScopeBuilder from "./ScopeBuilder/ScopeBuilder";
 import { SearchBar } from "./SearchBar";
-import useSearchQuery from '@domains/discovery/hooks/useSearchQuery';
-import { SpyglassIcon } from '@core/design/icons/Icons';
-import PaperSearchResult from '@core/design/components/Paper/PaperSearchResult/PaperSearchResult';
-import { getNodeDescription, getNodeLink, getNodeTitle } from '@infrastructure/graph/utils';
+import useSearchQuery from "@domains/discovery/hooks/useSearchQuery";
+import { SpyglassIcon } from "@core/design/icons/Icons";
+import PaperSearchResult from "@core/design/components/Paper/PaperSearchResult/PaperSearchResult";
+import { getNodeDescription, getNodeLink, getNodeTitle } from "@infrastructure/graph/utils";
 import ScopeDisplay from "./ScopeBuilder/ScopeDisplay";
-import { useSearch } from '@domains/discovery/contexts/SearchContext';
+import { useSearch } from "@domains/discovery/contexts/SearchContext";
 
 export type ISearchResultAction = {
   id: string;

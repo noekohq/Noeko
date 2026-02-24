@@ -1,8 +1,8 @@
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { useEffect, useState } from "react";
-import { IUserFile } from '../../../../../app/database/models/userfile';
-import useFetch from '@core/hooks/useFetch';
+import { IUserFile } from "../../../../../app/database/models/userfile";
+import useFetch from "@core/hooks/useFetch";
 import {
   FileCodeIcon,
   FileCsvIcon,
@@ -26,12 +26,12 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { formatFileSize } from '@core/utils/formatting';
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
-import { ISource } from '../../../../../app/database/models/source';
-import { createSourceFrom } from '@domains/knowledge/utils/sources';
+import { formatFileSize } from "@core/utils/formatting";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import { ISource } from "../../../../../app/database/models/source";
+import { createSourceFrom } from "@domains/knowledge/utils/sources";
 import { useNavigate } from "react-router";
-import { useInteraction } from '@/contexts/InteractionContext';
+import { useInteraction } from "@/contexts/InteractionContext";
 
 interface IAddSourceFormProps {
   onSubmit?: (source: ISource) => void;

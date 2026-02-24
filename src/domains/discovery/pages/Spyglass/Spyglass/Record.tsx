@@ -2,19 +2,19 @@ import PageWrapper from "@/components/Layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
-import { useSpyglassRecord } from '@domains/discovery/pages/Spyglass/hooks/useSpyglass';
+import { useSpyglassRecord } from "@domains/discovery/pages/Spyglass/hooks/useSpyglass";
 
 import styles from "./Record.module.scss";
-import { DisplayOverview } from '@domains/discovery/components/Spyglass/Overview';
+import { DisplayOverview } from "@domains/discovery/components/Spyglass/Overview";
 import Content from "@core/design/components/Layout/Content";
-import { useDocumentTitle } from '@core/hooks/useDocumentTitle';
+import { useDocumentTitle } from "@core/hooks/useDocumentTitle";
 import { ArrowLeftIcon, ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import SpyglassActions from "./SpyglassActions";
 import Nav from "@core/design/components/Layout/Nav";
 import { Link, useNavigate, useParams } from "react-router";
-import GlimpseModeDisplay from '@domains/discovery/components/Spyglass/GlimpseModeDisplay';
-import GlimpseNavigation from '@domains/discovery/components/Spyglass/GlimpseNavigation';
-import DeepFocusNavigation from '@domains/discovery/components/Spyglass/DeepFocusNavigation';
+import GlimpseModeDisplay from "@domains/discovery/components/Spyglass/GlimpseModeDisplay";
+import GlimpseNavigation from "@domains/discovery/components/Spyglass/GlimpseNavigation";
+import DeepFocusNavigation from "@domains/discovery/components/Spyglass/DeepFocusNavigation";
 
 export default function SpyglassRecord() {
   const { spyglassId } = useParams<{ spyglassId: string }>();

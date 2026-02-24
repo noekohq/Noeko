@@ -1,7 +1,7 @@
 import React from "react";
 import { MantineColor, MantineRadius, MantineShadow, MantineSpacing } from "@mantine/core";
 import type { IconProps, IconWeight } from "phosphor-react"; // Import Phosphor types
-import type { IIdea } from '../../../../../shared/types/idea'; // ENSURE THIS PATH IS CORRECT
+import type { IIdea } from "../../../../../shared/types/idea"; // ENSURE THIS PATH IS CORRECT
 
 // Re-export IIdea if you want it to be part of this module's public API
 export type { IIdea };

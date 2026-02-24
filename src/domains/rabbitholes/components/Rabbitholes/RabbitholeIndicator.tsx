@@ -9,19 +9,19 @@ import {
 } from "@phosphor-icons/react";
 import styles from "./RabbitholeIndicator.module.scss";
 import { ActionIcon, Button, Card, Group, Menu, Text } from "@mantine/core";
-import { useLandscape } from '@/contexts/LandscapeContext';
+import { useLandscape } from "@/contexts/LandscapeContext";
 import { Link, useNavigate } from "react-router";
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 import { useCallback, useEffect, useState } from "react";
-import { RabbitholeIcon } from '@core/design/icons/Icons';
-import useFetch from '@core/hooks/useFetch';
-import { IRabbithole } from '../../../../../app/database/models/rabbithole';
-import StatusButton from '@core/design/components/Interactions/StatusButton';
-import { useInteraction } from '@/contexts/InteractionContext';
+import { RabbitholeIcon } from "@core/design/icons/Icons";
+import useFetch from "@core/hooks/useFetch";
+import { IRabbithole } from "../../../../../app/database/models/rabbithole";
+import StatusButton from "@core/design/components/Interactions/StatusButton";
+import { useInteraction } from "@/contexts/InteractionContext";
 import RabbitholeCard from "./RabbitholeCard";
 import RabbitholeThing from "./RabbitholeThing";
-import { getNodeTitle } from '@infrastructure/graph/utils';
-import { useTourStep } from '@/contexts/TourGuideContext';
+import { getNodeTitle } from "@infrastructure/graph/utils";
+import { useTourStep } from "@/contexts/TourGuideContext";
 
 export function RabbitholeIndicator() {
   const {

@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/core";
 import {
   DreamIndentSchema,
   IIndentOptions,
-} from '../../../shared/editing/tiptap/extensions/DreamIndent';
+} from "../../../shared/editing/tiptap/extensions/DreamIndent";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

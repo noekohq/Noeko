@@ -1,4 +1,4 @@
-import { IProcessedText } from '@/types/ideas';
+import { IProcessedText } from "@/types/ideas";
 
 export const getWordCount = (text: string): number => {
   if (!text || text.trim() === "") {

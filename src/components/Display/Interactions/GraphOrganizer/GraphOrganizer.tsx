@@ -1,23 +1,17 @@
 import { ActionIcon, Box, Button, Group, Stack, Text } from "@mantine/core";
-import {
-  IExcerptNode,
-  IIdeaNode,
-  INode,
-  ISourceNode,
-  ITaskNode,
-} from '@/declarations/graph';
+import { IExcerptNode, IIdeaNode, INode, ISourceNode, ITaskNode } from "@/declarations/graph";
 import styles from "./GraphOrganizer.module.scss";
-import { getNodeOrganizationType } from '@infrastructure/graph/utils';
-import RabbitholeButton from '@domains/rabbitholes/components/Rabbitholes/RabbitholeButton';
-import CollapseButton from '@core/design/components/Interactions/CollapseButton';
-import { RabbitholeDropzone } from '@domains/rabbitholes/components/Rabbitholes/RabbitholeDropzone';
-import TagButton from '@domains/knowledge/components/Tags/TagButton';
+import { getNodeOrganizationType } from "@infrastructure/graph/utils";
+import RabbitholeButton from "@domains/rabbitholes/components/Rabbitholes/RabbitholeButton";
+import CollapseButton from "@core/design/components/Interactions/CollapseButton";
+import { RabbitholeDropzone } from "@domains/rabbitholes/components/Rabbitholes/RabbitholeDropzone";
+import TagButton from "@domains/knowledge/components/Tags/TagButton";
 import ConnectableThing from "../Connections/ConnectableThing";
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { SelectionIcon } from "@phosphor-icons/react";
-import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
-import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
+import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
 
 interface IGraphOrganizerProps {
   nodes: INode[];

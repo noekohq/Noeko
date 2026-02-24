@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IIdea } from '../../../../../shared/types/idea';
+import { IIdea } from "../../../../../shared/types/idea";
 import { Card, Container, Flex, Grid, Group, HoverCard, MantineColor, Text } from "@mantine/core";
 import styles from "./IdeaPreview.module.scss";
 

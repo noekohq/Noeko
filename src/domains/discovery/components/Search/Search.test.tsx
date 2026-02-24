@@ -3,13 +3,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router";
 import { MantineProvider } from "@mantine/core";
 import Search from "./Search";
-import useSearchQuery, { IUseSearchQueryReturn } from '@domains/discovery/hooks/useSearchQuery';
+import useSearchQuery, { IUseSearchQueryReturn } from "@domains/discovery/hooks/useSearchQuery";
 
-vi.mock('@domains/discovery/hooks/useSearchQuery', () => ({
+vi.mock("@domains/discovery/hooks/useSearchQuery", () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@domains/discovery/contexts/SearchContext', () => ({
+vi.mock("@domains/discovery/contexts/SearchContext", () => ({
   useSearch: vi.fn(() => ({
     global: {
       results: { set: vi.fn() },
@@ -23,11 +23,11 @@ vi.mock('@domains/discovery/contexts/SearchContext', () => ({
   })),
 }));
 
-vi.mock('@core/utils/platform', () => ({
+vi.mock("@core/utils/platform", () => ({
   getOS: vi.fn(() => "windows"),
 }));
 
-vi.mock('@core/hooks/useShortcuts', () => ({
+vi.mock("@core/hooks/useShortcuts", () => ({
   default: vi.fn(),
 }));
 
@@ -49,11 +49,11 @@ vi.mock("../Utils/Spyglass/GlimpseModeDisplay", () => ({
   default: () => <div>Glimpse Mode Display</div>,
 }));
 
-vi.mock('@core/design/components/Paper/PaperButton', () => ({
+vi.mock("@core/design/components/Paper/PaperButton", () => ({
   default: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
 }));
 
-vi.mock('@core/design/components/Paper/PaperSearchResult/PaperSearchResult', () => ({
+vi.mock("@core/design/components/Paper/PaperSearchResult/PaperSearchResult", () => ({
   default: ({ title }: any) => <div>{title}</div>,
 }));
 

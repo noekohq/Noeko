@@ -10,8 +10,8 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IIdea, ISafeIdea } from '../../../../../../shared/types/idea';
-import { getNodeDescription } from '@infrastructure/graph/utils';
+import { IIdea, ISafeIdea } from "../../../../../../shared/types/idea";
+import { getNodeDescription } from "@infrastructure/graph/utils";
 import { Link, useNavigate } from "react-router";
 import styles from "./IdeaCard.module.scss";
 import {

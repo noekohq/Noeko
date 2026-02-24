@@ -25,7 +25,7 @@ import {
 } from "./Options";
 import { DreamImageMenu } from "./nodes/DreamImage";
 import { DreamFileMenu } from "./nodes/DreamFile";
-import { useLayout } from '@/contexts/LayoutContext';
+import { useLayout } from "@/contexts/LayoutContext";
 import { ActionIcon, Group, Stack, Textarea, TextInput } from "@mantine/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { showNotification } from "@mantine/notifications";

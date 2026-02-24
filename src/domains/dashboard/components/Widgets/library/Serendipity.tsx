@@ -1,7 +1,7 @@
 import styles from "./Serendipity.module.scss";
 import { IWidgetConfig } from "../index.d";
-import useFetch from '@core/hooks/useFetch';
-import { ISpyglassSearch } from '../../../../../../app/database/models/search';
+import useFetch from "@core/hooks/useFetch";
+import { ISpyglassSearch } from "../../../../../../app/database/models/search";
 import { useEffect, useRef, useState } from "react";
 import {
   ActionIcon,
@@ -14,17 +14,17 @@ import {
   Title,
   Transition,
 } from "@mantine/core";
-import { SpyglassIcon } from '@core/design/icons/Icons';
+import { SpyglassIcon } from "@core/design/icons/Icons";
 import { Link, useNavigate } from "react-router";
-import Loading from '@core/design/components/Loading/Loading';
+import Loading from "@core/design/components/Loading/Loading";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CaretLeftIcon,
   CaretRightIcon,
 } from "@phosphor-icons/react";
-import { markdownToHtml } from '@core/utils/formatting';
-import { useTourStep } from '@/contexts/TourGuideContext';
+import { markdownToHtml } from "@core/utils/formatting";
+import { useTourStep } from "@/contexts/TourGuideContext";
 
 const SWITCH_INTERVAL = 20000;
 const TRANSITION_DURATION = 200;

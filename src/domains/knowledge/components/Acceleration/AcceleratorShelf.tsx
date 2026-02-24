@@ -2,17 +2,17 @@ import React from "react";
 import { Group, ScrollArea, Stack, Text, ActionIcon, Title } from "@mantine/core";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import styles from "./AcceleratorShelf.module.scss";
-import { IAcceleratorItem, IShelfData } from '../../../../../app/services/Recommendations';
+import { IAcceleratorItem, IShelfData } from "../../../../../app/services/Recommendations";
 import { Link, useNavigate } from "react-router";
 import {
   getAcceleratorItemFields,
   IAcceleratorShelfUIDetails,
   resolveShelfRoute,
   resolveShelfToDetails,
-} from '@domains/knowledge/utils/recommendations/accelerator';
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
-import { getThingPropsFromAcceleratorItem } from '@core/design/components/Paper/Things/thingUtils';
-import GridCard from '@core/design/components/Paper/Things/GridCard';
+} from "@domains/knowledge/utils/recommendations/accelerator";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import { getThingPropsFromAcceleratorItem } from "@core/design/components/Paper/Things/thingUtils";
+import GridCard from "@core/design/components/Paper/Things/GridCard";
 
 export type IAcceleratorShelfLayout = "hero" | "carousel" | "list";
 

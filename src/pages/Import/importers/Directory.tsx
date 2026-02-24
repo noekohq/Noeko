@@ -8,7 +8,7 @@ import {
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
-import { formatFileNameToTitle, readFileContent } from '@infrastructure/api/files';
+import { formatFileNameToTitle, readFileContent } from "@infrastructure/api/files";
 import {
   Button,
   Card,
@@ -29,21 +29,21 @@ import {
   Progress,
   Space,
 } from "@mantine/core";
-import { markdownToHtml } from '@core/utils/formatting';
+import { markdownToHtml } from "@core/utils/formatting";
 import { Link, useNavigate } from "react-router";
 import styles from "./Directory.module.scss";
 import { useDebouncedCallback } from "@mantine/hooks";
-import useFetch from '@core/hooks/useFetch';
-import { IChunk } from '../../../../app/services/Importer';
-import { IIdeaForm } from '../../../../shared/types/idea';
+import useFetch from "@core/hooks/useFetch";
+import { IChunk } from "../../../../app/services/Importer";
+import { IIdeaForm } from "../../../../shared/types/idea";
 import {
   finalizeImport,
   getChunkedIdeas,
   initializeImport,
   uploadChunkToImport,
-} from '@domains/knowledge/utils/ideas';
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { userIsSuperuser } from '@domains/identity/utils/user';
+} from "@domains/knowledge/utils/ideas";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 
 type IParsedFile = {
   title: string;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ITagBreakdown } from '../../../../../../app/services/Analysis';
-import useFetch from '@core/hooks/useFetch';
+import { ITagBreakdown } from "../../../../../../app/services/Analysis";
+import useFetch from "@core/hooks/useFetch";
 import { IWidgetConfig } from "../index.d";
 import styles from "./TagBreakdown.module.scss";
 import {
@@ -12,11 +12,11 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import TagCard from '@domains/knowledge/components/Tags/TagCard';
-import TagButton from '@domains/knowledge/components/Tags/TagButton';
+import TagCard from "@domains/knowledge/components/Tags/TagCard";
+import TagButton from "@domains/knowledge/components/Tags/TagButton";
 import { Link } from "react-router";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { useInteraction } from '@/contexts/InteractionContext';
+import { useInteraction } from "@/contexts/InteractionContext";
 
 export default function TagBreakdown() {
   const {

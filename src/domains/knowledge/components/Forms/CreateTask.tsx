@@ -1,5 +1,5 @@
 import { useForm } from "@mantine/form";
-import { ITask } from '../../../../../app/database/models/task';
+import { ITask } from "../../../../../app/database/models/task";
 import { Duration } from "surrealdb";
 import {
   ActionIcon,
@@ -24,15 +24,15 @@ import {
   TextAlignLeftIcon,
   TimerIcon,
 } from "@phosphor-icons/react";
-import { capitalize, formatDate, formatDateTime } from '@core/utils/formatting';
-import { useLayout } from '@/contexts/LayoutContext';
+import { capitalize, formatDate, formatDateTime } from "@core/utils/formatting";
+import { useLayout } from "@/contexts/LayoutContext";
 import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
-import { createTask } from '@domains/knowledge/utils/tasks';
-import { DreamWriter } from '@editor';
+import { createTask } from "@domains/knowledge/utils/tasks";
+import { DreamWriter } from "@editor";
 import { useNavigate } from "react-router";
-import { fromYYYYMMDD, toYYYYMMDD } from '@core/utils/datetime';
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
+import { fromYYYYMMDD, toYYYYMMDD } from "@core/utils/datetime";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 
 interface ICreateTaskFormProps {
   onSubmit?: (task: ITask) => void;

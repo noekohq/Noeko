@@ -1,11 +1,11 @@
 import styles from "./Pins.module.scss";
 import { IWidgetConfig } from "../index.d";
-import usePins from '@domains/knowledge/hooks/usePins';
+import usePins from "@domains/knowledge/hooks/usePins";
 import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
-import ConnectableThing from '@/components/Display/Interactions/Connections/ConnectableThing';
+import ConnectableThing from "@/components/Display/Interactions/Connections/ConnectableThing";
 import { PushPinIcon } from "@phosphor-icons/react";
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
-import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
 
 export default function Pins() {
   const { pins, pinThing, unpinThing } = usePins();

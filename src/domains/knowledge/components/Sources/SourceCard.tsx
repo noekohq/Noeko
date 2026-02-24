@@ -11,8 +11,8 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { IUserFile } from '../../../../../app/database/models/userfile';
-import { getNodeDescription } from '@infrastructure/graph/utils';
+import { IUserFile } from "../../../../../app/database/models/userfile";
+import { getNodeDescription } from "@infrastructure/graph/utils";
 import { Link, useNavigate } from "react-router";
 import styles from "./SourceCard.module.scss";
 import {
@@ -21,10 +21,10 @@ import {
   DownloadSimpleIcon,
   IconProps,
 } from "@phosphor-icons/react";
-import { handleFileDownload } from '@infrastructure/api/userfiles';
-import { formatDate } from '@core/utils/formatting';
-import { ISource } from '../../../../../app/database/models/source';
-import { getSourceName } from '@domains/knowledge/utils/sources';
+import { handleFileDownload } from "@infrastructure/api/userfiles";
+import { formatDate } from "@core/utils/formatting";
+import { ISource } from "../../../../../app/database/models/source";
+import { getSourceName } from "@domains/knowledge/utils/sources";
 import { useDisclosure } from "@mantine/hooks";
 
 const getSourceDefaultSummary = (source: ISource): string | undefined => {

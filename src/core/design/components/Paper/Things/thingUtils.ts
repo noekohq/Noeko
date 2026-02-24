@@ -1,23 +1,23 @@
-import { IRabbithole } from '../../../../../../app/database/models/rabbithole';
-import { IFriendUser } from '../../../../../../shared/types/user';
-import { IConnectable, IPotentiallySharedConnectable } from '../../../../../../app/services/Graph';
-import { IAcceleratorItem } from '../../../../../../app/services/Recommendations';
-import { formatDateTime } from '@core/utils/formatting';
+import { IRabbithole } from "../../../../../../app/database/models/rabbithole";
+import { IFriendUser } from "../../../../../../shared/types/user";
+import { IConnectable, IPotentiallySharedConnectable } from "../../../../../../app/services/Graph";
+import { IAcceleratorItem } from "../../../../../../app/services/Recommendations";
+import { formatDateTime } from "@core/utils/formatting";
 import {
   getNodeContent,
   getNodeDescription,
   getNodeLinkFromId,
   getNodeTitle,
   IconMap,
-} from '@infrastructure/graph/utils';
+} from "@infrastructure/graph/utils";
 import {
   acceleratorItemFieldResolvers,
   getAcceleratorItemFields,
-} from '@domains/knowledge/utils/recommendations/accelerator';
-import { IUserFile } from '../../../../../../app/database/models/userfile';
-import { streamImageEndpoint } from '@/vars/files';
+} from "@domains/knowledge/utils/recommendations/accelerator";
+import { IUserFile } from "../../../../../../app/database/models/userfile";
+import { streamImageEndpoint } from "@/vars/files";
 import { FileIcon, FilePdfIcon, FileImageIcon, UserIcon } from "@phosphor-icons/react";
-import { RabbitholeIcon } from '@core/design/icons/Icons';
+import { RabbitholeIcon } from "@core/design/icons/Icons";
 import { IPaperThingProps } from "./PaperThing";
 import { IThing } from "./things";
 

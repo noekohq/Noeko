@@ -8,19 +8,19 @@ import {
   Title,
   Loader,
 } from "@mantine/core";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { useForm } from "@mantine/form";
-import { validateEmail } from '@core/utils/data';
-import useFetch from '@core/hooks/useFetch';
-import { IUser, IUserForm } from '../../../../../app/database/models/user';
+import { validateEmail } from "@core/utils/data";
+import useFetch from "@core/hooks/useFetch";
+import { IUser, IUserForm } from "../../../../../app/database/models/user";
 import { showNotification } from "@mantine/notifications";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import Content from '@core/design/components/Layout/Content';
-import StatusBar from '@core/design/components/Layout/Bottom';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Profile() {
   const { user, reload: reloadUser } = useAuth();

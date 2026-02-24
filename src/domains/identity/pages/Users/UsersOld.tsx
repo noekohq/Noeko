@@ -20,8 +20,8 @@ import {
   Code,
   SimpleGrid,
 } from "@mantine/core";
-import useFetch from '@core/hooks/useFetch';
-import { IComputedUser, ISafeUser, IUser } from '../../../../../app/database/models/user';
+import useFetch from "@core/hooks/useFetch";
+import { IComputedUser, ISafeUser, IUser } from "../../../../../app/database/models/user";
 import {
   TrashSimple,
   HandPalm,
@@ -36,14 +36,14 @@ import {
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
-import { validateEmail } from '@core/utils/data';
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import { validateEmail } from "@core/utils/data";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import styles from "./Users.module.scss";
-import Content from '@core/design/components/Layout/Content';
-import StatusBar from '@core/design/components/Layout/Bottom';
-import Nav from '@core/design/components/Layout/Nav';
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import Nav from "@core/design/components/Layout/Nav";
 
 export default function Users() {
   const {

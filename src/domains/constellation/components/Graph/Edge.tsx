@@ -1,7 +1,7 @@
 import React from "react";
-import { IDerivedNode, IEdge, INode } from '@/declarations/graph.d'; // Adjust path as needed
+import { IDerivedNode, IEdge, INode } from "@/declarations/graph.d"; // Adjust path as needed
 import styles from "./Edge.module.scss"; // Assuming styles remain similar
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
 
 type EdgeProps = {
   edge: IEdge;

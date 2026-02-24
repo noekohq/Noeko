@@ -3,14 +3,14 @@ import styles from "./TagPicker.module.scss";
 import { Popover, Textarea, Button, Stack, Text, TextInput, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { XIcon, PlusIcon, ArrowBendDownLeftIcon } from "@phosphor-icons/react";
-import { ITag } from '../../../../../shared/types/tags';
-import useFetch from '@core/hooks/useFetch';
+import { ITag } from "../../../../../shared/types/tags";
+import useFetch from "@core/hooks/useFetch";
 import { useDisclosure } from "@mantine/hooks";
-import PaperButton from '@core/design/components/Paper/PaperButton';
-import { PaperSelection, usePaperSelection } from '@core/design/components/Paper/PaperSelection';
-import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
-import { useLayout } from '@/contexts/LayoutContext';
-import PaperDrawer from '@core/design/components/Paper/PaperDrawer';
+import PaperButton from "@core/design/components/Paper/PaperButton";
+import { PaperSelection, usePaperSelection } from "@core/design/components/Paper/PaperSelection";
+import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
+import { useLayout } from "@/contexts/LayoutContext";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
 
 interface TagPickerProps {
   onSelectExisting: (tag: ITag) => void;

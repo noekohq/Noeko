@@ -1,7 +1,7 @@
 import { RecordId } from "surrealdb";
-import { IExcerpt, IPDFMetadata } from '../../../../../../../shared/types/excerpt';
+import { IExcerpt, IPDFMetadata } from "../../../../../../../shared/types/excerpt";
 import { useCallback, useEffect, useState } from "react";
-import { getFileDownloadLink } from '@infrastructure/api/userfiles';
+import { getFileDownloadLink } from "@infrastructure/api/userfiles";
 import {
   ActionIcon,
   Group,
@@ -61,13 +61,13 @@ import {
   InteractionManagerPluginPackage,
   PagePointerProvider,
 } from "@embedpdf/plugin-interaction-manager/react";
-import Loading from '@core/design/components/Loading/Loading';
+import Loading from "@core/design/components/Loading/Loading";
 import { PDFViewerProvider, usePDFViewer } from "./PDFContext";
 import { showNotification } from "@mantine/notifications";
-import { useSource } from '@domains/knowledge/pages/Sources/SourceContext';
-import useFetch from '@core/hooks/useFetch';
+import { useSource } from "@domains/knowledge/pages/Sources/SourceContext";
+import useFetch from "@core/hooks/useFetch";
 import { useForm } from "@mantine/form";
-import { DreamWriter } from '@editor';
+import { DreamWriter } from "@editor";
 
 const defaultZoomLevel = ZoomMode.FitPage;
 const defaultPlugins = [

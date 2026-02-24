@@ -1,14 +1,14 @@
 import { DoorOpenIcon, IconProps } from "@phosphor-icons/react";
-import { ITag } from '../../../../../shared/types/tags';
-import { IIdea } from '@domains/knowledge/components/Ideas/IdeaCardTypes';
-import IdeaCard from '@domains/knowledge/components/Ideas/Interactions/IdeaCard';
-import { IRabbithole, IRabbitholeIncludes } from '../../../../../app/database/models/rabbithole';
-import TagCard from '@domains/knowledge/components/Tags/TagCard';
-import TaskCard from '@domains/knowledge/components/Tasks/TaskCard';
-import { ITask } from '../../../../../app/database/models/task';
+import { ITag } from "../../../../../shared/types/tags";
+import { IIdea } from "@domains/knowledge/components/Ideas/IdeaCardTypes";
+import IdeaCard from "@domains/knowledge/components/Ideas/Interactions/IdeaCard";
+import { IRabbithole, IRabbitholeIncludes } from "../../../../../app/database/models/rabbithole";
+import TagCard from "@domains/knowledge/components/Tags/TagCard";
+import TaskCard from "@domains/knowledge/components/Tasks/TaskCard";
+import { ITask } from "../../../../../app/database/models/task";
 import { MantineColor } from "@mantine/core";
-import { ISource } from '../../../../../app/database/models/source';
-import SourceCard from '@domains/knowledge/components/Sources/SourceCard';
+import { ISource } from "../../../../../app/database/models/source";
+import SourceCard from "@domains/knowledge/components/Sources/SourceCard";
 
 interface IRabbitholeThingAction {
   id: string;

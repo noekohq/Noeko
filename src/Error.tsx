@@ -2,7 +2,7 @@ import { FallbackProps } from "react-error-boundary";
 import styles from "./Error.module.scss";
 import { WarningOctagonIcon, ArrowClockwiseIcon, HouseIcon } from "@phosphor-icons/react";
 import { useEffect } from "react";
-import { api } from '@infrastructure/api/client';
+import { api } from "@infrastructure/api/client";
 
 export default function Error({ error, resetErrorBoundary }: FallbackProps) {
   const err = error as any;

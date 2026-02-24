@@ -1,5 +1,5 @@
 import * as d3 from "d3-force";
-import { INode, IEdge } from '@/declarations/graph.d';
+import { INode, IEdge } from "@/declarations/graph.d";
 
 // --- Type Definitions for the Worker ---
 

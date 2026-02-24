@@ -1,11 +1,11 @@
 import { showNotification } from "@mantine/notifications";
-import { IIdea, IIdeaForm, IIdeaDerived, ISafeIdea } from '../../../../shared/types/idea';
-import { IIdeaShareAccess } from '../../../../shared/types/share';
-import { IGenerativeSummary } from '../../../../shared/types/idea';
-import { ITag, ITagDescriptionRelationship } from '../../../../app/database/models/tag';
+import { IIdea, IIdeaForm, IIdeaDerived, ISafeIdea } from "../../../../shared/types/idea";
+import { IIdeaShareAccess } from "../../../../shared/types/share";
+import { IGenerativeSummary } from "../../../../shared/types/idea";
+import { ITag, ITagDescriptionRelationship } from "../../../../app/database/models/tag";
 import { applyTagToThing } from "./tags";
-import { api } from '@infrastructure/api/client';
-import { IChunk } from '../../../../shared/types/importer';
+import { api } from "@infrastructure/api/client";
+import { IChunk } from "../../../../shared/types/importer";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};

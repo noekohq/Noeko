@@ -1,7 +1,7 @@
 import { useCallback } from "react";
-import { IEdge, INode } from '@/declarations/graph';
-import { useGraph } from '@domains/constellation/contexts/GraphContext';
-import { getNodeEdgeType } from '@infrastructure/graph/utils';
+import { IEdge, INode } from "@/declarations/graph";
+import { useGraph } from "@domains/constellation/contexts/GraphContext";
+import { getNodeEdgeType } from "@infrastructure/graph/utils";
 
 const CONNECTABLE_TYPES = new Set(["idea", "task", "source", "excerpt"]);
 

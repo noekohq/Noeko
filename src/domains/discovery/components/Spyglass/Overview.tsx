@@ -1,15 +1,15 @@
 import { useNavigate } from "react-router";
 import { memo, useCallback, useMemo } from "react";
-import { generateTextFragmentHashFromText } from '@/utils/textFragment';
+import { generateTextFragmentHashFromText } from "@/utils/textFragment";
 import OverviewParser from "./OverviewParser";
 import { ActionIcon, CopyButton, Group, Text, Title } from "@mantine/core";
 import styles from "./Overview.module.scss";
 import { CheckIcon, CopyIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
-import { IFinding } from '../../../../../app/services/Spyglass';
-import { getOverviewAsMarkdown } from '@domains/discovery/utils/spyglass';
-import { downloadTextAsFile } from '@infrastructure/api/files';
-import { IConnectableFields } from '../../../../../app/services/Graph';
-import { ICitationMap, IResultsMap } from '@domains/discovery/hooks/useSpyglassService';
+import { IFinding } from "../../../../../app/services/Spyglass";
+import { getOverviewAsMarkdown } from "@domains/discovery/utils/spyglass";
+import { downloadTextAsFile } from "@infrastructure/api/files";
+import { IConnectableFields } from "../../../../../app/services/Graph";
+import { ICitationMap, IResultsMap } from "@domains/discovery/hooks/useSpyglassService";
 import FindingGroupCard from "./FindingGroupCard";
 
 export type IDisplayOverview = {

@@ -1,4 +1,4 @@
-import GraphContainer from '@domains/constellation/components/Graph/Graph';
+import GraphContainer from "@domains/constellation/components/Graph/Graph";
 import { IWidgetConfig } from "../index.d";
 
 export default function MiniGraph() {

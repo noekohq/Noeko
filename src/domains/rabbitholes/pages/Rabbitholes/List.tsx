@@ -9,21 +9,24 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import Content from '@core/design/components/Layout/Content';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import Content from "@core/design/components/Layout/Content";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import { PlusIcon, RabbitIcon } from "@phosphor-icons/react";
-import useFetch from '@core/hooks/useFetch';
-import { IRabbithole } from '../../../../../app/database/models/rabbithole';
+import useFetch from "@core/hooks/useFetch";
+import { IRabbithole } from "../../../../../app/database/models/rabbithole";
 import { useEffect, useMemo, useState } from "react";
-import { useInteraction } from '@/contexts/InteractionContext';
-import { getRabbitholeThingDescription, getRabbitholeThingName } from '@domains/rabbitholes/utils/rabbitholes';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
-import GridCard from '@core/design/components/Paper/Things/GridCard';
-import { getThingPropsFromRabbithole } from '@core/design/components/Paper/Things/thingUtils';
-import { formatDateTime } from '@core/utils/formatting';
+import { useInteraction } from "@/contexts/InteractionContext";
+import {
+  getRabbitholeThingDescription,
+  getRabbitholeThingName,
+} from "@domains/rabbitholes/utils/rabbitholes";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
+import GridCard from "@core/design/components/Paper/Things/GridCard";
+import { getThingPropsFromRabbithole } from "@core/design/components/Paper/Things/thingUtils";
+import { formatDateTime } from "@core/utils/formatting";
 
 export default function Rabbitholes() {
   const { load: loadRabbitholes, data: rabbitholes } = useFetch<undefined, IRabbithole[]>({

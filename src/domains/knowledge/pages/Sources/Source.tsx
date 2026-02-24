@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router";
 import styles from "./Source.module.scss";
-import useFetch from '@core/hooks/useFetch';
+import useFetch from "@core/hooks/useFetch";
 import {
   ActionIcon,
   Blockquote,
@@ -18,14 +18,14 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import ContentWide from '@core/design/components/Layout/ContentWide';
-import StatusBar from '@core/design/components/Layout/Bottom';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import ContentWide from "@core/design/components/Layout/ContentWide";
+import StatusBar from "@core/design/components/Layout/Bottom";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { ViewerMap } from '@domains/knowledge/components/Files/Viewers';
-import { useLayout } from '@/contexts/LayoutContext';
+import { ViewerMap } from "@domains/knowledge/components/Files/Viewers";
+import { useLayout } from "@/contexts/LayoutContext";
 import {
   CaretLeftIcon,
   Eye,
@@ -36,20 +36,20 @@ import {
   SparkleIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
-import { ISource, ISourceForm, ISourceReference } from '../../../../../app/database/models/source';
-import Search from '@domains/discovery/components/Search/Search';
-import { Tabs } from '@core/design/components/Layout/Utils/Tabs';
-import ConnectionManager from '@/components/Display/Interactions/Connections/ConnectionManager';
-import { useLandscape } from '@/contexts/LandscapeContext';
+import { ISource, ISourceForm, ISourceReference } from "../../../../../app/database/models/source";
+import Search from "@domains/discovery/components/Search/Search";
+import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
+import ConnectionManager from "@/components/Display/Interactions/Connections/ConnectionManager";
+import { useLandscape } from "@/contexts/LandscapeContext";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { updateSource } from '@domains/knowledge/utils/sources';
+import { updateSource } from "@domains/knowledge/utils/sources";
 import { showNotification } from "@mantine/notifications";
 import { SourceProvider, useSource } from "./SourceContext";
-import useConnectable from '@domains/knowledge/hooks/useConnectable';
-import TagsManager from '@/components/Display/Interactions/Tags/TagsManager';
-import { useSpyglassService } from '@domains/discovery/hooks/useSpyglassService';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import useConnectable from "@domains/knowledge/hooks/useConnectable";
+import TagsManager from "@/components/Display/Interactions/Tags/TagsManager";
+import { useSpyglassService } from "@domains/discovery/hooks/useSpyglassService";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Source() {
   const { sourceId } = useParams();

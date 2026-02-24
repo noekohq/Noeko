@@ -1,6 +1,6 @@
-import { IExcerptable, IExcerptReference } from '../../../../../shared/types/excerpt';
-import { ISource } from '../../../../../app/database/models/source';
-import SourceButton from '@domains/knowledge/components/Sources/SourceButton';
+import { IExcerptable, IExcerptReference } from "../../../../../shared/types/excerpt";
+import { ISource } from "../../../../../app/database/models/source";
+import SourceButton from "@domains/knowledge/components/Sources/SourceButton";
 
 interface IExcerptableThing {
   thing: IExcerptReference;

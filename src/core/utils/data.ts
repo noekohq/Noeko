@@ -1,4 +1,4 @@
-import { htmlToPlainText } from '@core/utils/formatting';
+import { htmlToPlainText } from "@core/utils/formatting";
 
 export const validateEmail = (value: string) => {
   if (!value) return false;

@@ -16,24 +16,24 @@ import {
   Card,
   Badge,
 } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import styles from "./Records.module.scss";
 import { ArrowLeftIcon, ArrowRightIcon, CaretLeftIcon, DotsThreeIcon } from "@phosphor-icons/react";
-import { formatDateTime, markdownToHtml } from '@core/utils/formatting';
-import useFetch from '@core/hooks/useFetch';
-import { useLayout } from '@/contexts/LayoutContext';
-import Content from '@core/design/components/Layout/Content';
-import StatusBar from '@core/design/components/Layout/Bottom';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
+import { formatDateTime, markdownToHtml } from "@core/utils/formatting";
+import useFetch from "@core/hooks/useFetch";
+import { useLayout } from "@/contexts/LayoutContext";
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 import { Link, useNavigate } from "react-router";
 import {
   ISpyglassHistoryResponse,
   ISpyglassLightHistoryResponse,
   ISpyglassRecord,
-} from '../../../../../../app/database/models/spyglass_record';
+} from "../../../../../../app/database/models/spyglass_record";
 
 export default function SpyglassHistory() {
   const { isMobile } = useLayout();

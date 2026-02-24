@@ -1,11 +1,11 @@
 import { RecordId } from "surrealdb";
-import { IConnectable, ISimilarConnectable } from '../../../../app/services/Graph';
-import useFetch from '@core/hooks/useFetch';
-import { connect, disconnect } from '@infrastructure/graph/utils';
+import { IConnectable, ISimilarConnectable } from "../../../../app/services/Graph";
+import useFetch from "@core/hooks/useFetch";
+import { connect, disconnect } from "@infrastructure/graph/utils";
 import { useCallback, useEffect, useState } from "react";
-import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
-import { ITag, ITagDescriptionRelationship } from '../../../../shared/types/tags';
-import { applyTagToThing, removeTagFromThing } from '@domains/knowledge/utils/tags';
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import { ITag, ITagDescriptionRelationship } from "../../../../shared/types/tags";
+import { applyTagToThing, removeTagFromThing } from "@domains/knowledge/utils/tags";
 
 export type IUseConnectableArgs = {
   connectable: IConnectable | null;

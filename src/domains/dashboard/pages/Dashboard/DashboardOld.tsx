@@ -14,17 +14,17 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { getCurrentTimeOfDay } from '@core/utils/datetime';
-import useFetch from '@core/hooks/useFetch';
-import { IIdea, IUserIdeaStats } from '../../../../../shared/types/idea';
-import { useLayout } from '@/contexts/LayoutContext';
-import { CompactIdeaCard, StandardIdeaCard } from '@domains/knowledge/components/Ideas/IdeaCards';
-import { getOS } from '@core/utils/platform';
-import Search from '@domains/discovery/components/Search/Search';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { getCurrentTimeOfDay } from "@core/utils/datetime";
+import useFetch from "@core/hooks/useFetch";
+import { IIdea, IUserIdeaStats } from "../../../../../shared/types/idea";
+import { useLayout } from "@/contexts/LayoutContext";
+import { CompactIdeaCard, StandardIdeaCard } from "@domains/knowledge/components/Ideas/IdeaCards";
+import { getOS } from "@core/utils/platform";
+import Search from "@domains/discovery/components/Search/Search";
 import { useMediaQuery } from "@mantine/hooks";
 import {
   ArrowRight,
@@ -35,14 +35,14 @@ import {
   PlusIcon,
   Scroll,
 } from "@phosphor-icons/react";
-import { handleCreateNewIdea } from '@domains/knowledge/utils/ideas';
+import { handleCreateNewIdea } from "@domains/knowledge/utils/ideas";
 import { Link, useNavigate } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
-import { userIsSuperuser } from '@domains/identity/utils/user';
-import { useInteraction } from '@/contexts/InteractionContext';
-import Content from '@core/design/components/Layout/Content';
-import TopBar from '@core/design/components/Layout/TopBar';
+import { userIsSuperuser } from "@domains/identity/utils/user";
+import { useInteraction } from "@/contexts/InteractionContext";
+import Content from "@core/design/components/Layout/Content";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Dashboard() {
   const { user } = useAuth();

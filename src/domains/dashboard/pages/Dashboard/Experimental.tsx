@@ -1,21 +1,21 @@
 import { Button, Group, Loader, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import Content from '@core/design/components/Layout/Content';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import Scratchpad from '@/components/Display/Dashboard/Scratchpad';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import Content from "@core/design/components/Layout/Content";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import Scratchpad from "@/components/Display/Dashboard/Scratchpad";
 import styles from "./Experimental.module.scss";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { useLayout } from '@/contexts/LayoutContext';
-import StatusBar from '@core/design/components/Layout/Bottom';
-import WidgetWrapper from '@domains/dashboard/components/Widgets/Wrapper';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { useLayout } from "@/contexts/LayoutContext";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import WidgetWrapper from "@domains/dashboard/components/Widgets/Wrapper";
 import { ClockCounterClockwise, ClockCounterClockwiseIcon, PlusIcon } from "@phosphor-icons/react";
-import StatusButton from '@core/design/components/Interactions/StatusButton';
-import useFetch from '@core/hooks/useFetch';
-import { IDashboard } from '../../../../../app/services/Dashboard';
+import StatusButton from "@core/design/components/Interactions/StatusButton";
+import useFetch from "@core/hooks/useFetch";
+import { IDashboard } from "../../../../../app/services/Dashboard";
 import { useEditor } from "@tiptap/react";
 import { useEffect } from "react";
-import CompoundButton from '@/components/Display/Interactions/CompoundButton';
+import CompoundButton from "@/components/Display/Interactions/CompoundButton";
 import { useNavigate } from "react-router";
 
 export default function Dashboard() {

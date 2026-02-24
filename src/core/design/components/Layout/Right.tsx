@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { ISidebarMode, useLayout } from '@/contexts/LayoutContext';
+import { ISidebarMode, useLayout } from "@/contexts/LayoutContext";
 import styles from "./Sidebars.module.scss";
 import {
   ArrowLineLeftIcon,
@@ -18,15 +18,15 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import useShortcuts from '@core/hooks/useShortcuts';
-import ProfileButton from '@core/design/components/Interactions/ProfileButton';
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { userIsSuperuser } from '@domains/identity/utils/user';
-import { useInteraction } from '@/contexts/InteractionContext';
+import useShortcuts from "@core/hooks/useShortcuts";
+import ProfileButton from "@core/design/components/Interactions/ProfileButton";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { userIsSuperuser } from "@domains/identity/utils/user";
+import { useInteraction } from "@/contexts/InteractionContext";
 import { useLocation, useNavigate } from "react-router";
-import useSidebarHover from '@core/hooks/useSidebarHover';
-import { useConnection } from '@domains/knowledge/hooks/useConnection';
-import StageIndicator from '@core/design/components/Utils/StageIndicator';
+import useSidebarHover from "@core/hooks/useSidebarHover";
+import { useConnection } from "@domains/knowledge/hooks/useConnection";
+import StageIndicator from "@core/design/components/Utils/StageIndicator";
 
 interface IRightSidebarProps {
   children?: React.ReactNode | React.ReactNode[];

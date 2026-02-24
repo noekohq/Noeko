@@ -1,10 +1,10 @@
 import { Button, Grid, Group, Loader, Stack, Text } from "@mantine/core";
-import { IIdea, ISafeIdea } from '../../../../../shared/types/idea';
-import { IGenerativeSummary, IGenerativeSummaryForm } from '../../../../../shared/types/idea';
-import useFetch from '@core/hooks/useFetch';
+import { IIdea, ISafeIdea } from "../../../../../shared/types/idea";
+import { IGenerativeSummary, IGenerativeSummaryForm } from "../../../../../shared/types/idea";
+import useFetch from "@core/hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { openConfirmModal } from "@mantine/modals";
-import OverviewAccordion from '@domains/knowledge/components/Ideas/OverviewAccordion';
+import OverviewAccordion from "@domains/knowledge/components/Ideas/OverviewAccordion";
 import { BookIcon, EyeIcon } from "@phosphor-icons/react";
 
 type IInsightsProps = {
