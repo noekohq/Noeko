@@ -1,4 +1,4 @@
-@import '@core/design/styles/mixins.scss';
+@use '@core/design/styles/mixins.scss' as *;
 
 .dreamTaskWrapper {
   display: inline-flex;

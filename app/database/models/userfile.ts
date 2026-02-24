@@ -14,34 +14,15 @@ import { Response } from "express";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import Source, { ISource } from "./source";
 import { Readable } from "node:stream";
+import {
+  ISourceableMimeType,
+  IUserFile,
+  IUserFileForm,
+  IConnectableEmbedRelationship,
+  IUserFileUserOwnership,
+} from "../../../shared/types/userfile";
 
-export type IUserFile = {
-  id: RecordId;
-  s3key: string;
-  originalFileName: string;
-  mimeType: string;
-  sizeBytes: number;
-  source?: ISource;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export type ISourceableMimeType = "application/pdf";
-export const SourceableMimeTypes = ["application/pdf"];
-
-export type IUserFileForm = Omit<IUserFile, "id" | "createdAt" | "updatedAt">;
-
-export type IUserFileUserOwnership = {
-  id: RecordId;
-  in: string;
-  out: string;
-};
-
-export type IConnectableEmbedRelationship = {
-  id: RecordId;
-  in: string;
-  out: string;
-};
+export const SourceableMimeTypes: ISourceableMimeType[] = ["application/pdf"];
 
 const sanitizeFilename = (filename: string): string => {
   const sanitized = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
