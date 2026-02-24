@@ -1,4 +1,4 @@
-import { ICollaborationStatus, ICollaborator } from "../../hooks/useCollaboration";
+import { ICollaborationStatus, ICollaborator } from "@/hooks/useCollaboration";
 import { Group, Loader, Text, Avatar, Tooltip, MantineSize } from "@mantine/core";
 import { CloudCheckIcon, CloudSlashIcon } from "@phosphor-icons/react";
 

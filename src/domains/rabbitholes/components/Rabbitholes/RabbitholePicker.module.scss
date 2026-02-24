@@ -1,0 +1,33 @@
+@use '@core/design/styles/mixins.scss' as *;
+
+.rabbitholePicker {
+  display: flex;
+  flex-direction: column;
+}
+
+.textRoot {
+  width: 100%;
+
+  .input {
+    font-size: var(--mantine-font-size-sm);
+    padding: var(--layout-spacing) var(--mantine-spacing-md);
+    border: 1px solid var(--mantine-color-dark-7);
+
+    // VISUAL DISTINCTION: MD radius to match the "Boxy" rabbithole cards
+    border-radius: var(--mantine-radius-md);
+
+    background-color: var(--mantine-color-dark-8) !important;
+    transition: all 0.2s ease;
+    color: var(--mantine-color-text);
+
+    &::placeholder {
+      color: var(--mantine-color-dimmed);
+    }
+
+    &:focus {
+      // Slight highlight on focus
+      border-color: var(--mantine-color-dark-5);
+      background-color: var(--mantine-color-dark-7) !important;
+    }
+  }
+}

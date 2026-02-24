@@ -1,0 +1,60 @@
+@use '@core/design/styles/mixins.scss' as *;
+
+.toolbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0; // UPDATED: Ensure it is anchored to the bottom
+  width: 100%;
+  background-color: var(--mantine-color-dark-8);
+  box-shadow:
+    0 -4px 12px rgba(0, 0, 0, 0.15),
+    0 -1px 3px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--mantine-color-dark-6);
+  z-index: var(--z-index-ui-controls);
+  padding: 12px;
+
+  // This padding handles the iPhone "Home" bar when keyboard is CLOSED.
+  // When keyboard is OPEN, the viewport shrinks, pushing this element up.
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+
+  // UPDATED: Changed transform to start slightly lower for a cleaner pop-up
+  transform: translateY(110%);
+
+  // UPDATED: Faster transition to feel snappier on mobile
+  transition: transform 0.25s cubic-bezier(0.2, 0.65, 0.3, 1);
+
+  display: flex;
+  align-items: center;
+
+  &.visible {
+    transform: translateY(0);
+  }
+}
+
+.scroller {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-x: auto;
+  width: 100%;
+
+  // Hide Scrollbars
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  // Add a divider between groups
+  & + & {
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid var(--mantine-color-dark-6);
+  }
+}

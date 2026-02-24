@@ -4,25 +4,25 @@ import {
   handleCreateNewConnectedIdea,
   handleCreateNewIdea,
   newIdeaOptimistic,
-} from "../utils/ideas";
+} from "@domains/knowledge/utils/ideas";
 import { showNotification } from "@mantine/notifications";
-import { getOS } from "../utils/platform";
-import { useAuth } from "./AuthContext";
-import { userIsSuperuser } from "../utils/user";
+import { getOS } from "@core/utils/platform";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Group, Text, Drawer, Space, Modal, Stack, Button } from "@mantine/core";
 import { useLayout } from "./LayoutContext";
-import FeedbackModal from "../components/Utils/Modals/FeedbackModal";
-import Spotlight from "../components/UI/Spotlight/Spotlight";
+import FeedbackModal from "@/components/Utils/Modals/FeedbackModal";
+import Spotlight from "@domains/discovery/components/Spotlight/Spotlight";
 import { useHotkeys } from "@mantine/hooks";
-import { handleCreateNewRabbithole } from "../utils/rabbitholes";
+import { handleCreateNewRabbithole } from "@domains/rabbitholes/utils/rabbitholes";
 import { useLandscape } from "./LandscapeContext";
-import useRabbithole from "../hooks/useRabbithole";
-import LoadingOverlay from "../components/Display/Loading/LoadingOverlay";
-import CreateTaskForm from "../components/Forms/CreateTask";
-import AddSourceForm from "../components/Forms/AddSource";
-import PaperDrawer from "../components/Display/Paper/PaperDrawer";
-import { createTask } from "../utils/tasks";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import LoadingOverlay from "@core/design/components/Loading/LoadingOverlay";
+import CreateTaskForm from "@domains/knowledge/components/Forms/CreateTask";
+import AddSourceForm from "@domains/knowledge/components/Forms/AddSource";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
+import { createTask } from "@domains/knowledge/utils/tasks";
 import { ISafeIdea } from "../../shared/types/idea";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;

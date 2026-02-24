@@ -2,7 +2,7 @@ import { ActionIcon, Group, List, Stack, Text } from "@mantine/core";
 import styles from "./Feedback.module.scss";
 import { IOnboardingProps } from "./Index";
 import { MegaphoneIcon } from "@phosphor-icons/react";
-import { useInteraction } from "../../../contexts/InteractionContext";
+import { useInteraction } from "@/contexts/InteractionContext";
 
 export default function Feedback({ next }: IOnboardingProps) {
   const {

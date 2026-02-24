@@ -1,0 +1,35 @@
+@use '@core/design/styles/mixins.scss' as *;
+
+@keyframes contentIn {
+  0% {
+    opacity: 0.25;
+    transform: translateY(5px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.content {
+  --content-space: calc(var(--layout-spacing));
+  animation: contentIn 0.4s ease-out forwards;
+  display: block;
+  min-height: 100%;
+  width: var(--content-width);
+  padding-inline: var(--content-space);
+  box-sizing: border-box;
+
+  --top-padding: var(--total-top-offset);
+  --bottom-padding: var(--total-bottom-offset);
+
+  padding-top: var(--top-padding);
+  padding-bottom: var(--bottom-padding);
+
+  @include tablet {
+    margin-top: 0;
+  }
+
+  @include desktop {
+  }
+}

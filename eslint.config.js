@@ -1,3 +1,4 @@
+import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
@@ -5,8 +6,12 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import prettier from "eslint-plugin-prettier";
 
-export default tseslint.config(
-  // Ignore patterns
+// Extracted file matchers to prevent duplication between the mapped configs and rule overrides
+const testFiles = ["**/*.test.{ts,tsx}", "tests/**/*.{ts,tsx}", "src/**/*.test.{ts,tsx}"];
+const configFiles = ["*.config.{ts,js}", "vitest.d.ts"];
+
+export default defineConfig([
+  // 1. Ignore patterns
   {
     ignores: [
       "dist/**",
@@ -19,11 +24,11 @@ export default tseslint.config(
     ],
   },
 
-  // Base configs
+  // 2. Base configs
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
-  // Global settings
+  // 3. Global settings
   {
     languageOptions: {
       parserOptions: {
@@ -38,9 +43,9 @@ export default tseslint.config(
     },
   },
 
-  // Frontend rules (src/)
+  // 4. Frontend rules (src/)
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["**/src/**/*.{js,jsx,ts,tsx}"],
     plugins: {
       react,
       "react-hooks": reactHooks,
@@ -48,19 +53,12 @@ export default tseslint.config(
       prettier,
     },
     rules: {
-      // React 19 specific
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
       "react/jsx-uses-react": "off",
-
-      // React Hooks
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-
-      // React Refresh
       "react-refresh/only-export-components": "warn",
-
-      // TypeScript
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
@@ -71,25 +69,20 @@ export default tseslint.config(
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-non-null-assertion": "warn",
-
-      // General
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "prefer-const": "warn",
       "no-var": "warn",
-
-      // Prettier
       "prettier/prettier": "error",
     },
   },
 
-  // Backend rules (app/)
+  // 5. Backend rules (app/)
   {
-    files: ["app/**/*.{ts,js}"],
+    files: ["**/app/**/*.{ts,js}"],
     plugins: {
       prettier,
     },
     rules: {
-      // TypeScript
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
@@ -99,21 +92,20 @@ export default tseslint.config(
       ],
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "warn",
-
-      // General
-      "no-console": "off", // Backend can use console
+      "no-console": "off",
       "prefer-const": "warn",
       "no-var": "warn",
-
-      // Prettier
       "prettier/prettier": "error",
     },
   },
 
-  // Test files
+  // 6. Test files
   {
-    files: ["**/*.test.{ts,tsx}", "tests/**/*.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
     ...tseslint.configs.disableTypeChecked,
+    files: testFiles,
+  },
+  {
+    files: testFiles,
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
@@ -123,13 +115,16 @@ export default tseslint.config(
     },
   },
 
-  // Config files (disable type-checking rules)
+  // 7. Config files
   {
-    files: ["*.config.{ts,js}", "vitest.d.ts"],
     ...tseslint.configs.disableTypeChecked,
+    files: configFiles,
+  },
+  {
+    files: configFiles,
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
     },
-  }
-);
+  },
+]);

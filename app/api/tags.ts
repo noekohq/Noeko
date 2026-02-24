@@ -6,7 +6,7 @@ import { checkToken, disallowDisabled } from "../middleware/auth"; // Assuming a
 import { getFromReq } from "../utils/requests"; // Assuming request utility
 import { User } from "../database/models/user"; // Assuming user type
 import { ISafeUser } from "../../shared/types/user";
-import { includeThingInRabbithole } from "../../src/utils/rabbitholes";
+import { includeThingInRabbithole } from "@domains/rabbitholes/utils/rabbitholes";
 
 const router = Router();
 

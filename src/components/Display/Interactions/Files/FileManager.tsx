@@ -11,27 +11,28 @@ import {
   FileButton,
 } from "@mantine/core";
 import {
-  Link as LinkIcon,
-  Plus,
-  UploadSimple,
-  DownloadSimple,
+  LinkIcon,
+  DownloadSimpleIcon,
   PlusIcon,
   UploadSimpleIcon,
+  ArrowLineRightIcon,
+  ArrowLineUpIcon,
 } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
 import { useState } from "react";
-import { IUserFile } from "../../../../../app/database/models/userfile";
-import useFetch from "../../../../hooks/useFetch";
+import { IUserFile } from "../../../../../shared/types/userfile";
+import useFetch from "@core/hooks/useFetch";
 import {
   handleFileDownload,
   linkFileToConnectable,
   unlinkFileFromConnectable,
-} from "../../../../utils/userfiles";
+} from "@infrastructure/api/userfiles";
 import styles from "./FileManager.module.scss";
-import { streamImageEndpoint } from "../../../../vars/files";
-import { api } from "../../../../server/api";
-import PaperThing from "../../Paper/Things/PaperThing";
-import { getThingPropsFromUserFile } from "../../Paper/Things/thingUtils";
+import { streamImageEndpoint } from "@/vars/files";
+import { api } from "@infrastructure/api/client";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import { getThingPropsFromUserFile } from "@core/design/components/Paper/Things/thingUtils";
+import { useLayout } from "@/contexts/LayoutContext";
 
 interface IFileManagerProps {
   connectableId: string;
@@ -39,6 +40,8 @@ interface IFileManagerProps {
 }
 
 export default function FileManager({ connectableId, editor }: IFileManagerProps) {
+  const { isMobile } = useLayout();
+
   const {
     data: files,
     load: refreshFiles,
@@ -80,8 +83,7 @@ export default function FileManager({ connectableId, editor }: IFileManagerProps
 
       await linkFileToConnectable(uploadedFile.id.toString(), connectableId);
 
-      // Insert at the top of the editor
-      insertFileIntoEditor(uploadedFile);
+      handleInsertFileIntoEditor(uploadedFile);
       refreshFiles();
     } catch (error) {
       console.error("Upload failed", error);
@@ -90,18 +92,16 @@ export default function FileManager({ connectableId, editor }: IFileManagerProps
 
   const handleLinkExisting = async (file: IUserFile) => {
     await linkFileToConnectable(file.id.toString(), connectableId);
-    insertFileIntoEditor(file);
+    handleInsertFileIntoEditor(file);
     refreshFiles();
     setIsLinkingModalOpen(false);
   };
 
-  const insertFileIntoEditor = (file: IUserFile) => {
+  const handleInsertFileIntoEditor = (file: IUserFile) => {
     if (!editor) return;
 
-    if (file.mimeType.startsWith("image/")) {
-      editor
-        .chain()
-        .insertContentAt(0, {
+    const nodeToInsert = file.mimeType.startsWith("image/")
+      ? {
           type: "dreamImage",
           attrs: {
             src: streamImageEndpoint(file),
@@ -110,13 +110,8 @@ export default function FileManager({ connectableId, editor }: IFileManagerProps
             fileId: file.id.toString(),
             viewMode: "expanded",
           },
-        })
-        .focus()
-        .run();
-    } else {
-      editor
-        .chain()
-        .insertContentAt(0, {
+        }
+      : {
           type: "dreamFile",
           attrs: {
             fileId: file.id.toString(),
@@ -124,10 +119,13 @@ export default function FileManager({ connectableId, editor }: IFileManagerProps
             fileType: file.mimeType,
             viewMode: "expanded",
           },
-        })
-        .focus()
-        .run();
-    }
+        };
+
+    editor
+      .chain()
+      .focus() // Brings focus back to the editor if the button click blurred it
+      .insertContent(nodeToInsert) // Inserts at current selection or falls back to top
+      .run();
   };
 
   return (
@@ -178,11 +176,11 @@ export default function FileManager({ connectableId, editor }: IFileManagerProps
               {...getThingPropsFromUserFile(file, {
                 onDelete: () => handleRemove(file.id.toString()),
                 action: {
-                  icon: DownloadSimple,
-                  tooltip: "Download",
+                  icon: isMobile ? ArrowLineUpIcon : ArrowLineRightIcon,
+                  tooltip: "Insert",
                   onClick: (id, e) => {
                     e.stopPropagation();
-                    handleFileDownload(file);
+                    handleInsertFileIntoEditor(file);
                   },
                 },
               })}

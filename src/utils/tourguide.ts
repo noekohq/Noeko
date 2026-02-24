@@ -1,5 +1,5 @@
 import { RecordId } from "surrealdb";
-import { api } from "../server/api";
+import { api } from "@infrastructure/api/client";
 
 export const markFeatureViewed = async (feature: string | RecordId) => {
   try {

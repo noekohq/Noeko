@@ -1,7 +1,7 @@
 import { Group, ScrollArea, Box } from "@mantine/core";
 import { ITag } from "../../../../../shared/types/tags";
 import { TagPicker } from "./TagPicker"; // Reusing your existing picker
-import PaperTag from "../../Paper/Tags/PaperTag";
+import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
 import styles from "./TagsFilter.module.scss";
 
 interface TagsFilterProps {

@@ -1,6 +1,6 @@
 import { ActionIcon, Group, Paper, Text } from "@mantine/core";
 import { HammerIcon, MegaphoneIcon } from "@phosphor-icons/react";
-import { useInteraction } from "../../contexts/InteractionContext";
+import { useInteraction } from "@/contexts/InteractionContext";
 
 interface IUnderConstructionProps {
   text?: string;

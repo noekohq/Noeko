@@ -10,18 +10,18 @@ import {
   CopyButton,
   Text,
 } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import useFetch from "../../hooks/useFetch";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import useFetch from "@core/hooks/useFetch";
 import { showNotification } from "@mantine/notifications";
 import { ArrowsClockwise, ChatCircleDots, Check, Copy, UsersThree } from "@phosphor-icons/react";
 import { Link } from "react-router";
-import { useAuth } from "../../contexts/AuthContext";
-import Content from "../../components/UI/Layout/Content";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import Content from "@core/design/components/Layout/Content";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Admin() {
   const { referralLink } = useAuth();

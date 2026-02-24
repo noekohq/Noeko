@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { ISharedThing } from "../../../app/database/models/share";
 import { useNavigate } from "react-router";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import Nav from "../../components/UI/Layout/Nav";
-import RightSidebar from "../../components/UI/Layout/Right";
-import TopBar from "../../components/UI/Layout/TopBar";
-import useFetch from "../../hooks/useFetch";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import Content from "@core/design/components/Layout/Content";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import Nav from "@core/design/components/Layout/Nav";
+import RightSidebar from "@core/design/components/Layout/Right";
+import TopBar from "@core/design/components/Layout/TopBar";
+import useFetch from "@core/hooks/useFetch";
 import {
   Avatar,
   Card,
@@ -34,14 +34,14 @@ import {
   ArrowsOutSimpleIcon,
   ArrowsInSimpleIcon,
 } from "@phosphor-icons/react";
-import { userInitials } from "../../utils/user";
-import { formatDateTime } from "../../utils/formatting";
-import PaperThings from "../../components/Display/Paper/Things/PaperThings";
-import { getThingsFromConnectables } from "../../components/Display/Paper/Things/thingUtils";
-import Search from "../../components/Search/Search";
-import { useAuth } from "../../contexts/AuthContext";
+import { userInitials } from "@domains/identity/utils/user";
+import { formatDateTime } from "@core/utils/formatting";
+import PaperThings from "@core/design/components/Paper/Things/PaperThings";
+import { getThingsFromConnectables } from "@core/design/components/Paper/Things/thingUtils";
+import Search from "@domains/discovery/components/Search/Search";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { IFriendUser } from "../../../app/database/models/user";
-import { useLayout } from "../../contexts/LayoutContext";
+import { useLayout } from "@/contexts/LayoutContext";
 
 interface IRelationship {
   user: IFriendUser;

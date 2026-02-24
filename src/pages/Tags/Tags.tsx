@@ -17,10 +17,10 @@ import {
   Blockquote, // Added Modal for delete confirmation
 } from "@mantine/core";
 import { ITag, ITagForm } from "../../../app/database/models/tag";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import useFetch from "../../hooks/useFetch"; // Adjust the import path as needed
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import useFetch from "@core/hooks/useFetch"; // Adjust the import path as needed
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react"; // Added React, useState, and useMemo
 import {
@@ -31,12 +31,12 @@ import {
   PlusIcon,
   InfoIcon,
 } from "@phosphor-icons/react"; // Added new icons, including Trash
-import Content from "../../components/UI/Layout/Content";
-import useRabbithole from "../../hooks/useRabbithole";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import TagCard from "../../components/Display/Tags/TagCard";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import Content from "@core/design/components/Layout/Content";
+import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import TagCard from "@domains/knowledge/components/Tags/TagCard";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Tags() {
   const {

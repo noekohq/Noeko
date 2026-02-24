@@ -9,19 +9,19 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import PageWrapper from "../../components/Layout/PageWrapper";
-import StatusBar from "../../components/UI/Layout/Bottom";
-import Content from "../../components/UI/Layout/Content";
-import LeftSidebar from "../../components/UI/Layout/Left";
-import RightSidebar from "../../components/UI/Layout/Right";
-import useFetch from "../../hooks/useFetch";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import StatusBar from "@core/design/components/Layout/Bottom";
+import Content from "@core/design/components/Layout/Content";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import useFetch from "@core/hooks/useFetch";
 import { DownloadSimple, DownloadSimpleIcon, InfoIcon } from "@phosphor-icons/react";
-import { handleExportDownload } from "../../utils/export";
+import { handleExportDownload } from "@/utils/export";
 import { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
-import Nav from "../../components/UI/Layout/Nav";
-import TopBar from "../../components/UI/Layout/TopBar";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Export() {
   const [loadingMarkdownExport, setLoadingMarkdownExport] = useState(false);
