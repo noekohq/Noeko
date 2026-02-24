@@ -452,7 +452,7 @@ export default class GraphService {
           SELECT
             *,
             vector::similarity::cosine(embeddings, $embedding) AS distance
-          OMIT embeddings
+          OMIT cachedCentroidEmbeddings, embeddings
           FROM tag
           WHERE ${subqueryWhere.join(" AND ")}
         )

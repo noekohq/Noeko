@@ -166,9 +166,6 @@ export default function Idea() {
   }, [isOptimistic]);
 
   const ideaToRender: IdeaUnion | undefined = optimisticFromStore || fetchedIdea;
-  useEffect(() => {
-    console.log("Idea to render: ", ideaToRender);
-  }, [ideaToRender]);
 
   const isViewOnly =
     !isOptimistic &&
@@ -364,14 +361,10 @@ export default function Idea() {
 
   const safeIdea = isOptimistic ? undefined : (ideaToRender as ISafeIdea);
 
-  const [outOfDate, setOutOfDate] = useState(false);
   const compute = useDebouncedCallback(() => {
-    handleComputation().finally(() => {
-      setOutOfDate(false);
-    });
+    handleComputation();
   }, 2000);
   const handleEditorChange = () => {
-    setOutOfDate(true);
     compute();
   };
 
@@ -431,11 +424,7 @@ export default function Idea() {
               {safeIdea && !isOptimistic && (
                 <>
                   <Space my="lg" />
-                  <ConnectionManager
-                    connectable={{ ...safeIdea, type: "idea" }}
-                    maxSuggested={5}
-                    outofdate={outOfDate}
-                  />
+                  <ConnectionManager connectable={{ ...safeIdea, type: "idea" }} maxSuggested={5} />
                   <Space my="lg" />
                 </>
               )}

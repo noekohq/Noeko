@@ -2,12 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/crypto";
 import { User } from "../database/models/user";
 import { ISafeUser } from "../../shared/types/user";
-import {
-  addToReq,
-  getAccessTokenFromReq,
-  getFromReq,
-  getRefreshTokenFromReq,
-} from "../utils/requests";
+import { addToReq, getAccessTokenFromReq, getFromReq } from "../utils/requests";
 
 export const checkToken = async (req: Request, res: Response, next: NextFunction) => {
   try {

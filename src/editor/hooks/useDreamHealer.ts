@@ -44,7 +44,6 @@ export const useDreamHealer = (
       });
 
       if (fileIds.size > 0) {
-        console.log(`Healing dream embeddings for ${fileIds.size} files...`);
         api
           .post("/files/ensure-embedded", {
             connectableId: connectableId,
@@ -56,7 +55,6 @@ export const useDreamHealer = (
       }
 
       if (connectionIds.size > 0) {
-        console.log(`Healing dream connections for ${connectionIds.size} nodes...`);
         api
           .post("/graph/ensure-connected", {
             source: connectableId,

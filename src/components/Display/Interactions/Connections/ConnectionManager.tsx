@@ -1,11 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { IConnectable } from "../../../../../app/services/Graph";
 import styles from "./ConnectionManager.module.scss";
 import useConnectable from "@domains/knowledge/hooks/useConnectable";
-import { Box, Group, Overlay, Space, Stack, Text, Transition } from "@mantine/core";
+import { Box, Group, Overlay, Space, Stack, Text, Transition, Loader } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon, SubtractIcon } from "@phosphor-icons/react";
-import { useInteraction } from "@/contexts/InteractionContext";
 import { useTourStep } from "@/contexts/TourGuideContext";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
 import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
@@ -16,36 +15,15 @@ import { capitalize } from "@core/utils/formatting";
 interface IConnectionManagerProps {
   connectable: IConnectable;
   maxSuggested?: number;
-  shouldUpdate?: boolean;
-  outofdate?: boolean;
 }
 
 export default function ConnectionManager({
   connectable,
   maxSuggested = 3,
-  shouldUpdate,
-  outofdate,
 }: IConnectionManagerProps) {
-  const {
-    connected,
-    loadingConnected,
-    similar,
-    loadingSimilar,
-    connect,
-    disconnect,
-    load,
-    isConnected,
-  } = useConnectable({ connectable });
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  useEffect(() => {
-    if (shouldUpdate) {
-      load();
-    }
-  }, [shouldUpdate]);
+  const { connected, similar, loadingSimilar, connect, disconnect, isConnected } = useConnectable({
+    connectable,
+  });
 
   const connectedIdSet = useMemo(() => {
     return new Set(connected?.map((c) => c.id.toString()) || []);
@@ -159,6 +137,7 @@ export default function ConnectionManager({
             )}
           </Transition>
 
+          {/* Suggested Items */}
           <Transition mounted={hasSuggestions} transition="fade" duration={200}>
             {(transitionStyles) => (
               <div style={transitionStyles}>
@@ -204,12 +183,16 @@ export default function ConnectionManager({
           />
           <Space my="sm" />
 
-          <Transition mounted={!!outofdate} transition="slide-up">
+          {/* Loading Transition driven by TanStack instead of arbitrary outofdate prop */}
+          <Transition mounted={loadingSimilar} transition="slide-up">
             {(style) => {
               return (
-                <Text style={style} c="dark.3" size="xs" ta="center">
-                  Pause to refresh.
-                </Text>
+                <Group justify="center" gap="xs" style={style}>
+                  <Loader size="xs" color="gray" />
+                  <Text c="dark.3" size="xs" ta="center">
+                    Finding connections...
+                  </Text>
+                </Group>
               );
             }}
           </Transition>

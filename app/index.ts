@@ -6,7 +6,6 @@ import cors from "cors";
 import apiRouter from "./api";
 import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
-import { initServices } from "./services";
 import { max_idea_size } from "./settings";
 import collaborationServer from "./collaboration";
 

@@ -162,7 +162,6 @@ export default function useSearchQuery({
 
   useEffect(() => {
     if (complete && filteredResults) {
-      console.log("Got results: ", filteredResults);
       onResults?.(filteredResults);
     }
   }, [complete, filteredResults]);

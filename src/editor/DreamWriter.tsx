@@ -276,8 +276,6 @@ const DreamWriter = forwardRef<IEditor | undefined, EditorProps>(
       }
     }, [autofocus, editor, isEditable]);
 
-    console.log("Status: ", status);
-
     return (
       <div
         ref={editorContainerRef}

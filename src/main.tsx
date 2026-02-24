@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { MantineProvider } from "@mantine/core";
@@ -24,35 +24,48 @@ import Error from "./Error";
 import { TourGuideProvider } from "@/contexts/TourGuideContext";
 import { polyfill } from "mobile-drag-drop";
 import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 polyfill({
   dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
 });
 
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes by default
+      refetchOnWindowFocus: false, // Don't spam the server when tabbing back and forth
+      retry: 1,
+    },
+  },
+});
+
 const Client = () => {
   return (
     <ErrorBoundary fallbackRender={(fallbackProps) => <Error {...fallbackProps} />}>
-      <BrowserRouter>
-        <AuthProvider>
-          <SettingsProvider>
-            <SearchProvider>
-              <LayoutProvider>
-                <LandscapeProvider>
-                  <GraphProvider>
-                    <WrapTheme>
-                      <InteractionProvider>
-                        <TourGuideProvider>
-                          <App />
-                        </TourGuideProvider>
-                      </InteractionProvider>
-                    </WrapTheme>
-                  </GraphProvider>
-                </LandscapeProvider>
-              </LayoutProvider>
-            </SearchProvider>
-          </SettingsProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <SettingsProvider>
+              <SearchProvider>
+                <LayoutProvider>
+                  <LandscapeProvider>
+                    <GraphProvider>
+                      <WrapTheme>
+                        <InteractionProvider>
+                          <TourGuideProvider>
+                            <App />
+                          </TourGuideProvider>
+                        </InteractionProvider>
+                      </WrapTheme>
+                    </GraphProvider>
+                  </LandscapeProvider>
+                </LayoutProvider>
+              </SearchProvider>
+            </SettingsProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 };

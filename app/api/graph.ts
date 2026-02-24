@@ -7,6 +7,7 @@ import { ISafeUser, IUser } from "../../shared/types/user";
 import GraphService, { ConstellationLoader, IConstellationLoader } from "../services/Graph";
 import { StringRecordId } from "surrealdb";
 import Authorization from "../services/Authorization";
+import { logger } from "../services/Logger";
 
 const router = Router();
 
@@ -293,6 +294,9 @@ router.get("/:thingId/similar", checkToken, disallowDisabled, async (req, res) =
       data: similar,
     });
   } catch (error) {
+    logger.error("Error fetching similar things", {
+      error,
+    });
     res.status(500).send({
       message: "Something went wrong",
     });
@@ -361,6 +365,9 @@ router.get("/:thingId/tags/suggested", checkToken, disallowDisabled, async (req,
       data: tags,
     });
   } catch (error) {
+    logger.error("Error fetching suggested tags", {
+      error,
+    });
     res.status(500).send({
       message: "Something went wrong",
     });

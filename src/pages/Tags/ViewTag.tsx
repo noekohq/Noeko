@@ -390,10 +390,13 @@ export default function ViewTag() {
                       icon: TagIcon,
                       onClick: (id, e) => {
                         e.stopPropagation();
-                        applyTagToThing(tag.id.toString(), id);
+                        applyTagToThing(tag.id.toString(), id).then(() => {
+                          handleRefresh();
+                        });
                       },
                       tooltip: `Apply tag "${tag.name}"`,
                     },
+                    state: "suggested",
                   },
                   true
                 );

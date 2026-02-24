@@ -53,8 +53,6 @@ export default function PaperRabbithole({
     styles[size],
   ].filter(Boolean);
 
-  console.log("Rabbithole: ", rabbithole);
-
   const Icon = () => {
     return <RabbitholeIcon size={14} weight="bold" className={styles.icon} />;
   };
