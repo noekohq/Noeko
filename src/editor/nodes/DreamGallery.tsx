@@ -1,7 +1,7 @@
 import {
   DreamGallerySchema,
   IGalleryImage,
-} from '../../../shared/editing/tiptap/nodes/DreamGallery';
+} from "../../../shared/editing/tiptap/nodes/DreamGallery";
 import {
   NodeViewWrapper,
   NodeViewProps,
@@ -22,13 +22,12 @@ import {
   SelectionBackgroundIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import styles from '@core/design/styles/DreamGallery.module.scss';
+import styles from "./styles/DreamGallery.module.scss";
 import { ISubMenuProps } from "../BubbleMenu";
 import { getButtonProps } from "../Options";
-import { Attrs } from "@tiptap/pm/model";
-import { uploadDreamFilesHeadless } from "../lib/utils/fileUploadHeadless";
-import PaperIcon from '@core/design/components/Paper/PaperIcon';
-import { PaperLightbox, IPaperLightboxItem } from '@core/design/components/Paper/PaperLightbox';
+import { uploadDreamFilesHeadless } from "../lib/utils/fileUpload";
+import PaperIcon from "@core/design/components/Paper/PaperIcon";
+import { PaperLightbox, IPaperLightboxItem } from "@core/design/components/Paper/PaperLightbox";
 
 // Types
 type IGalleryLayout = "grid" | "masonry" | "filmstrip";

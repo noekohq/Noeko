@@ -1,3 +1,5 @@
+@use "@core/design/styles/mixins.scss" as *;
+
 @keyframes lightboxIn {
   from {
     opacity: 0;
@@ -9,11 +11,11 @@
   }
 }
 
-/* --- Core Overlay (Replaces Mantine Modal) --- */
+/* --- Core Overlay --- */
 .lightboxOverlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: var(--z-index-modal);
   background-color: var(--mantine-color-dark-9);
   display: flex;
   align-items: center;
@@ -21,11 +23,64 @@
   animation: lightboxIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* --- UI Elements --- */
-.lightboxCloseButton,
-.lightboxNavButton {
+/* --- Header / Top Controls --- */
+.lightboxOptions {
   position: absolute;
   z-index: 100;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  left: max(16px, env(safe-area-inset-left, 0px));
+
+  @include tablet {
+    top: max(24px, env(safe-area-inset-top, 0px));
+    right: max(24px, env(safe-area-inset-right, 0px));
+    left: max(24px, env(safe-area-inset-left, 0px));
+  }
+}
+
+.lightboxCounter {
+  position: absolute;
+  top: max(24px, env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--mantine-color-dimmed);
+  z-index: 100;
+  background: var(--mantine-color-dark-8);
+  padding: 6px 16px;
+  border-radius: var(--mantine-radius-lg);
+  border: 1px solid var(--mantine-color-dark-6);
+
+  @media (max-width: 768px) {
+    top: max(16px, env(safe-area-inset-top, 0px));
+  }
+}
+
+/* --- Navigation Controls --- */
+.lightboxNavContainer {
+  position: absolute;
+  top: 50%;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 90;
+
+  /* Critical: allows clicks on the image between the buttons */
+  pointer-events: none;
+
+  @include tablet {
+    left: max(24px, env(safe-area-inset-left, 0px));
+    right: max(24px, env(safe-area-inset-right, 0px));
+  }
+}
+
+.lightboxNavButton {
+  /* Re-enables clicking on the actual buttons */
+  pointer-events: auto;
   background: var(--mantine-color-dark-8);
   border: 1px solid var(--mantine-color-dark-6);
   color: var(--mantine-color-dark-2);
@@ -50,62 +105,6 @@
   }
 }
 
-.lightboxCloseButton {
-  top: max(24px, env(safe-area-inset-top));
-  right: max(24px, env(safe-area-inset-right));
-
-  @media (max-width: 768px) {
-    top: max(16px, env(safe-area-inset-top));
-    right: max(16px, env(safe-area-inset-right));
-  }
-}
-
-.lightboxNavButton {
-  top: 50%;
-  transform: translateY(-50%);
-
-  &:hover {
-    transform: translateY(calc(-50% - 2px));
-  }
-
-  &:active {
-    transform: translateY(-50%) scale(0.95);
-  }
-}
-
-.lightboxNavButtonLeft {
-  left: max(24px, env(safe-area-inset-left));
-  @media (max-width: 768px) {
-    left: max(16px, env(safe-area-inset-left));
-  }
-}
-
-.lightboxNavButtonRight {
-  right: max(24px, env(safe-area-inset-right));
-  @media (max-width: 768px) {
-    right: max(16px, env(safe-area-inset-right));
-  }
-}
-
-.lightboxCounter {
-  position: absolute;
-  top: max(24px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 600;
-  color: var(--mantine-color-dimmed);
-  z-index: 100;
-  background: var(--mantine-color-dark-8);
-  padding: 6px 16px;
-  border-radius: var(--mantine-radius-lg);
-  border: 1px solid var(--mantine-color-dark-6);
-
-  @media (max-width: 768px) {
-    top: max(16px, env(safe-area-inset-top));
-  }
-}
-
 /* --- Content Payload --- */
 .lightboxContentContainer {
   width: 100%;
@@ -117,7 +116,6 @@
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    /* Tighten padding on mobile so the image dominates the screen */
     padding: 80px 16px 100px 16px;
   }
 }
@@ -137,7 +135,7 @@
 /* --- Action Bar --- */
 .lightboxActionBar {
   position: absolute;
-  bottom: max(24px, env(safe-area-inset-bottom));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
@@ -151,7 +149,7 @@
   box-shadow: var(--mantine-shadow-md);
 
   @media (max-width: 768px) {
-    bottom: max(16px, env(safe-area-inset-bottom));
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
     gap: var(--mantine-spacing-xs);
     padding: 6px;
     max-width: calc(100vw - 32px);

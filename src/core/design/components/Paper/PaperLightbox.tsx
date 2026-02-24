@@ -1,4 +1,4 @@
-import { ActionIcon, Portal, RemoveScroll } from "@mantine/core";
+import { ActionIcon, Group, Portal, RemoveScroll } from "@mantine/core";
 import { CaretLeftIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, ReactNode } from "react";
 import styles from "./PaperLightbox.module.scss";
@@ -54,15 +54,12 @@ export function PaperLightbox({
     <Portal>
       <RemoveScroll>
         <div className={styles.lightboxOverlay}>
-          {/* Close Button */}
-          <ActionIcon
-            className={styles.lightboxCloseButton}
-            size="xl"
-            variant="transparent"
-            onClick={onClose}
-          >
-            <XIcon size={24} color="white" />
-          </ActionIcon>
+          {/* Header Options */}
+          <Group className={styles.lightboxOptions} justify="right">
+            <ActionIcon size="xl" variant="transparent" onClick={onClose}>
+              <XIcon size={24} color="white" />
+            </ActionIcon>
+          </Group>
 
           {/* Counter */}
           {items.length > 1 && (
@@ -71,18 +68,31 @@ export function PaperLightbox({
             </div>
           )}
 
-          {/* Left Navigation */}
+          {/* Unified Navigation Layer */}
           {items.length > 1 && (
-            <ActionIcon
-              className={`${styles.lightboxNavButton} ${styles.lightboxNavButtonLeft}`}
-              size="xl"
-              variant="transparent"
-              onClick={() =>
-                onIndexChange(currentIndex === 0 ? items.length - 1 : currentIndex - 1)
-              }
-            >
-              <CaretLeftIcon size={32} color="white" />
-            </ActionIcon>
+            <div className={styles.lightboxNavContainer}>
+              <ActionIcon
+                className={styles.lightboxNavButton}
+                size="xl"
+                variant="transparent"
+                onClick={() =>
+                  onIndexChange(currentIndex === 0 ? items.length - 1 : currentIndex - 1)
+                }
+              >
+                <CaretLeftIcon size={32} color="white" />
+              </ActionIcon>
+
+              <ActionIcon
+                className={styles.lightboxNavButton}
+                size="xl"
+                variant="transparent"
+                onClick={() =>
+                  onIndexChange(currentIndex === items.length - 1 ? 0 : currentIndex + 1)
+                }
+              >
+                <CaretRightIcon size={32} color="white" />
+              </ActionIcon>
+            </div>
           )}
 
           {/* Main Content Area */}
@@ -97,20 +107,6 @@ export function PaperLightbox({
               currentItem.render()
             ) : null}
           </div>
-
-          {/* Right Navigation */}
-          {items.length > 1 && (
-            <ActionIcon
-              className={`${styles.lightboxNavButton} ${styles.lightboxNavButtonRight}`}
-              size="xl"
-              variant="transparent"
-              onClick={() =>
-                onIndexChange(currentIndex === items.length - 1 ? 0 : currentIndex + 1)
-              }
-            >
-              <CaretRightIcon size={32} color="white" />
-            </ActionIcon>
-          )}
 
           {/* Contextual Actions */}
           {renderActions && (

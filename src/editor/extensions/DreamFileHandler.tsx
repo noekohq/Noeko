@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Node as ProsemirrorNode } from "@tiptap/pm/model";
 import { Editor } from "@tiptap/react";
-import { linkFileToConnectable } from '@/utils/userfiles';
+import { linkFileToConnectable } from '@infrastructure/api/userfiles';
 import { uploadDreamFile, DreamUploadOptions } from "../lib/utils/fileUpload";
 
 export interface DreamFileHandlerOptions {

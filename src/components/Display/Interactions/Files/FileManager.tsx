@@ -10,28 +10,21 @@ import {
   Text,
   FileButton,
 } from "@mantine/core";
-import {
-  Link as LinkIcon,
-  Plus,
-  UploadSimple,
-  DownloadSimple,
-  PlusIcon,
-  UploadSimpleIcon,
-} from "@phosphor-icons/react";
+import { LinkIcon, DownloadSimpleIcon, PlusIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { Editor } from "@tiptap/react";
 import { useState } from "react";
-import { IUserFile } from '../../../../../app/database/models/userfile';
-import useFetch from '@core/hooks/useFetch';
+import { IUserFile } from "../../../../../app/database/models/userfile";
+import useFetch from "@core/hooks/useFetch";
 import {
   handleFileDownload,
   linkFileToConnectable,
   unlinkFileFromConnectable,
-} from '@infrastructure/api/userfiles';
+} from "@infrastructure/api/userfiles";
 import styles from "./FileManager.module.scss";
-import { streamImageEndpoint } from '@/vars/files';
-import { api } from '@infrastructure/api/client';
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
-import { getThingPropsFromUserFile } from '@core/design/components/Paper/Things/thingUtils';
+import { streamImageEndpoint } from "@/vars/files";
+import { api } from "@infrastructure/api/client";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import { getThingPropsFromUserFile } from "@core/design/components/Paper/Things/thingUtils";
 
 interface IFileManagerProps {
   connectableId: string;
@@ -178,7 +171,7 @@ export default function FileManager({ connectableId, editor }: IFileManagerProps
               {...getThingPropsFromUserFile(file, {
                 onDelete: () => handleRemove(file.id.toString()),
                 action: {
-                  icon: DownloadSimple,
+                  icon: DownloadSimpleIcon,
                   tooltip: "Download",
                   onClick: (id, e) => {
                     e.stopPropagation();

@@ -14,7 +14,7 @@ import { PluginKey } from "@tiptap/pm/state";
 import { debounce } from "lodash";
 import { IConnectable } from '../../../app/services/Graph';
 import { ISearchResultValue } from '../../../shared/types/search';
-import { createIdea, handleCreateNewConnectedIdea, newIdea } from '@/utils/ideas';
+import { createIdea, handleCreateNewConnectedIdea, newIdea } from '@domains/knowledge/utils/ideas';
 import { showNotification } from "@mantine/notifications";
 import { PlusIcon } from "@phosphor-icons/react";
 

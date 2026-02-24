@@ -1,9 +1,9 @@
 import { Mark, mergeAttributes } from "@tiptap/core";
-import styles from '@core/design/styles/DreamHighlight.module.scss';
+import styles from "./styles/DreamHighlight.module.scss";
 import {
   DreamHighlightSchema,
   IDreamHighlightOptions,
-} from '../../../shared/editing/tiptap/marks/DreamHighlight';
+} from "../../../shared/editing/tiptap/marks/DreamHighlight";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

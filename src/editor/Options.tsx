@@ -51,18 +51,18 @@ import { useForm } from "@mantine/form";
 import DreamWriter from "./DreamWriter";
 import { useInteraction } from '@/contexts/InteractionContext';
 import { useLandscape } from '@/contexts/LandscapeContext';
-import { createIdea, createIdeaConnection } from '@/utils/ideas';
+import { createIdea, createIdeaConnection } from '@domains/knowledge/utils/ideas';
 import { useDisclosure } from "@mantine/hooks";
-import { SearchBar } from '@/components/Search/SearchBar';
-import { useSearch } from '@/contexts/SearchContext';
+import { SearchBar } from '@domains/discovery/components/Search/SearchBar';
+import { useSearch } from '@domains/discovery/contexts/SearchContext';
 import { connect, getNodeAsIdeaOrNull } from '@infrastructure/graph/utils';
-import IdeaButton from '@/components/Display/Ideas/Interactions/IdeaButton';
+import IdeaButton from '@domains/knowledge/components/Ideas/Interactions/IdeaButton';
 import { ISafeIdea } from '../../shared/types/idea';
 import { useNavigate } from "react-router";
 import { SpyglassIcon } from '@core/design/icons/Icons';
-import useRabbithole from '@/hooks/useRabbithole';
+import useRabbithole from '@domains/rabbitholes/hooks/useRabbithole';
 import { NodeSelection } from "@tiptap/pm/state";
-import useConnectable from '@/hooks/useConnectable';
+import useConnectable from '@domains/knowledge/hooks/useConnectable';
 
 interface OptionProps {
   editor: IEditor | null;

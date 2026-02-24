@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { IGetAllConnectables_Options, ITaggedConnectable } from '../../../../../app/services/Graph';
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
+import { IGetAllConnectables_Options, ITaggedConnectable } from "../../../../../app/services/Graph";
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
 import { Loader, Center, Text, Group, Title, Stack, SimpleGrid } from "@mantine/core";
-import Content from '@core/design/components/Layout/Content';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
-import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
-import GridCard from '@core/design/components/Paper/Things/GridCard';
-import { formatDateTime } from '@core/utils/formatting';
-import { api } from '@infrastructure/api/client';
-import { DefaultResponse } from '@/declarations/server';
-import TagsFilter from '@/components/Display/Interactions/Tags/TagsFilter';
-import { ITag } from '../../../../../shared/types/tags';
-import PaperTag from '@core/design/components/Paper/Tags/PaperTag';
+import Content from "@core/design/components/Layout/Content";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
+import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
+import GridCard from "@core/design/components/Paper/Things/GridCard";
+import { formatDateTime } from "@core/utils/formatting";
+import { api } from "@infrastructure/api/client";
+import { DefaultResponse } from "@/declarations/server";
+import TagsFilter from "@/components/Display/Interactions/Tags/TagsFilter";
+import { ITag } from "../../../../../shared/types/tags";
+import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
 
 interface AllConnectablesResponse {
   items: ITaggedConnectable[];
@@ -136,7 +136,6 @@ export default function All() {
               base: 2,
               sm: 2,
               md: 3,
-              lg: 4,
             }}
           >
             {items.map((item) => {

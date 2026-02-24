@@ -1,5 +1,5 @@
-@use "./styles/mixins.scss" as *;
-@use "./styles/z-index" as *;
+@use '@core/design/styles/mixins.scss' as *;
+@use '@core/design/styles/z-index' as *;
 
 // Global variable definitions for layout and structure
 :root {

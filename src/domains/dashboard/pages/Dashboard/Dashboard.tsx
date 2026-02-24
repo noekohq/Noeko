@@ -1,16 +1,19 @@
 import { Box, Center, Flex, Grid, Group, Loader, Stack, Text, Title } from "@mantine/core";
-import PageWrapper from '@/components/Layout/PageWrapper';
-import LeftSidebar from '@core/design/components/Layout/Left';
-import RightSidebar from '@core/design/components/Layout/Right';
-import widgets from '@domains/dashboard/components/Widgets/Index';
+import PageWrapper from "@/components/Layout/PageWrapper";
+import LeftSidebar from "@core/design/components/Layout/Left";
+import RightSidebar from "@core/design/components/Layout/Right";
+import widgets from "@domains/dashboard/components/Widgets/Index";
 import styles from "./Dashboard.module.scss";
-import type { IAvailableWidgets, IWidgetConfig } from '@domains/dashboard/components/Widgets/index.d';
+import type {
+  IAvailableWidgets,
+  IWidgetConfig,
+} from "@domains/dashboard/components/Widgets/index.d";
 import { lazy, useEffect, useRef, useState } from "react";
-import Content from '@core/design/components/Layout/Content';
-import WidgetWrapper from '@domains/dashboard/components/Widgets/Wrapper';
-import Search from '@domains/discovery/components/Search/Search';
-import useFetch from '@core/hooks/useFetch';
-import { IIdeaSortFields, ISafeIdea } from '../../../../../shared/types/idea';
+import Content from "@core/design/components/Layout/Content";
+import WidgetWrapper from "@domains/dashboard/components/Widgets/Wrapper";
+import Search from "@domains/discovery/components/Search/Search";
+import useFetch from "@core/hooks/useFetch";
+import { IIdeaSortFields, ISafeIdea } from "../../../../../shared/types/idea";
 import {
   ArticleIcon,
   ClockClockwiseIcon,
@@ -21,19 +24,19 @@ import {
   SunIcon,
   TagIcon,
 } from "@phosphor-icons/react";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { useInteraction } from '@/contexts/InteractionContext';
-import { useSettings } from '@/contexts/SettingsContext';
-import { useLayout } from '@/contexts/LayoutContext';
-import { getCurrentTimeFormatted, getCurrentTimeOfDay } from '@core/utils/datetime';
-import StatusButton from '@core/design/components/Interactions/StatusButton';
-import { IDashboard } from '../../../../../app/services/Dashboard';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { useInteraction } from "@/contexts/InteractionContext";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useLayout } from "@/contexts/LayoutContext";
+import { getCurrentTimeFormatted, getCurrentTimeOfDay } from "@core/utils/datetime";
+import StatusButton from "@core/design/components/Interactions/StatusButton";
+import { IDashboard } from "../../../../../app/services/Dashboard";
 import { Link, useNavigate } from "react-router";
-import Selection from '@/components/Display/Interactions/Selection';
-import Nav from '@core/design/components/Layout/Nav';
-import TopBar from '@core/design/components/Layout/TopBar';
-import PaperThing from '@core/design/components/Paper/Things/PaperThing';
-import { getThingPropsFromConnectable } from '@core/design/components/Paper/Things/thingUtils';
+import Selection from "@/components/Display/Interactions/Selection";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
 
 type ILoadedWidget = {
   id: string;
@@ -244,7 +247,7 @@ function Header() {
           </Link>
         </Group>
         <Link
-          to="/ideas"
+          to="/all"
           style={{
             height: "100%",
             textDecoration: "none",

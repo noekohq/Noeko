@@ -1,11 +1,11 @@
 import { NodeViewProps } from "@tiptap/core";
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import styles from '@core/design/styles/DreamCode.module.scss';
+import styles from "./styles/DreamCode.module.scss";
 import { useState } from "react";
 import { ActionIcon, CopyButton, Group, Select } from "@mantine/core"; // Import Select
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
-import { capitalize } from '@/utils/formatting';
-import { DreamCodeSchema } from '../../../shared/editing/tiptap/nodes/DreamCode';
+import { capitalize } from "@core/utils/formatting";
+import { DreamCodeSchema } from "../../../shared/editing/tiptap/nodes/DreamCode";
 
 export const DreamCode = DreamCodeSchema.extend({
   addNodeView() {

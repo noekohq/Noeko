@@ -1,6 +1,6 @@
 import { Avatar, Button, Menu, Text } from "@mantine/core";
-import { useAuth } from '@domains/identity/contexts/AuthContext';
-import { userInitials, userIsSuperuser } from '@domains/identity/utils/user';
+import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { userInitials, userIsSuperuser } from "@domains/identity/utils/user";
 import { useNavigate } from "react-router";
 import {
   ArrowLineLeftIcon,
@@ -13,14 +13,15 @@ import {
   MagnifyingGlassIcon,
   RabbitIcon,
   ScrollIcon,
+  ShapesIcon,
   ShieldStarIcon,
   TagIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { useLayout } from '@/contexts/LayoutContext';
-import { useInteraction } from '@/contexts/InteractionContext';
+import { useLayout } from "@/contexts/LayoutContext";
+import { useInteraction } from "@/contexts/InteractionContext";
 import styles from "./ProfileButton.module.scss";
-import { useTourStep } from '@/contexts/TourGuideContext';
+import { useTourStep } from "@/contexts/TourGuideContext";
 
 export default function ProfileButton() {
   const { user, logout } = useAuth();
@@ -34,6 +35,7 @@ export default function ProfileButton() {
 
   const menuNavItems = [
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
+    { label: "Everything", icon: ShapesIcon, path: "/all" },
     { label: "Sharing", icon: LightbulbIcon, path: "/sharing" },
     { label: "Tasks", icon: CheckIcon, path: "/tasks" },
     { label: "Sources", icon: FileIcon, path: "/sources" },

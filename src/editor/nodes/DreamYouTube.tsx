@@ -6,18 +6,15 @@ import {
   PasteRule,
   nodePasteRule,
 } from "@tiptap/core";
-import { Editor as IEditor } from "@tiptap/core";
 import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import styles from '@core/design/styles/DreamYouTube.module.scss';
+import styles from "./styles/DreamYouTube.module.scss";
 import { ActionIcon, Group } from "@mantine/core";
 import { TrashIcon } from "@phosphor-icons/react";
-import { YOUTUBE_URL_REGEX } from '../../../shared/vars/regex';
+import { YOUTUBE_URL_REGEX } from "../../../shared/vars/regex";
 import {
-  IDreamYouTubeAttributes,
-  IDreamYouTubeOptions,
   DreamYouTubeSchema,
   getYoutubeEmbedUrl,
-} from '../../../shared/editing/tiptap/nodes/DreamYouTube';
+} from "../../../shared/editing/tiptap/nodes/DreamYouTube";
 import { ISubMenuProps } from "../BubbleMenu";
 
 declare module "@tiptap/core" {

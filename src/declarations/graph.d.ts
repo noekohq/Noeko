@@ -1,13 +1,13 @@
 // graph.d.ts
-import { IIdea, IIdeaDerived, ISafeIdea } from "../../shared/types/idea";
-import { ITag } from "../../app/database/models/tag";
-import { IUserFile } from "../../app/database/models/userfile";
-import { IRabbithole } from "../../app/database/models/rabbithole";
-import { ISource } from "../../app/database/models/source";
-import { IPublicTask, ITask } from "../../app/database/models/task";
-import { IExcerpt } from "../../shared/types/excerpt";
-import { IPublicUser } from "../../app/database/models/user";
-import { IShareAccess } from "../../app/database/models/share";
+import { IIdea, IIdeaDerived, ISafeIdea } from '../../shared/types/idea';
+import { ITag } from '../../app/database/models/tag';
+import { IUserFile } from '../../app/database/models/userfile';
+import { IRabbithole } from '../../app/database/models/rabbithole';
+import { ISource } from '../../app/database/models/source';
+import { IPublicTask, ITask } from '../../app/database/models/task';
+import { IExcerpt } from '../../shared/types/excerpt';
+import { IPublicUser } from '../../app/database/models/user';
+import { IShareAccess } from '../../app/database/models/share';
 
 export type IIdeaNode = ISafeIdea & {
   type: "idea";

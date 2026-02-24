@@ -13,12 +13,12 @@ import {
   NodeViewWrapper,
   NodeViewContent,
 } from "@tiptap/react";
-import styles from '@core/design/styles/DreamTask.module.scss';
+import styles from "./styles/DreamTask.module.scss";
 import { ActionIcon, Flex, Group, Popover, Stack, Text, Tooltip } from "@mantine/core";
 import { Link, useNavigate } from "react-router";
-import useFetch from '@/hooks/useFetch';
-import { ITask } from '../../../app/database/models/task';
-import { DreamTaskSchema } from '../../../shared/editing/tiptap/nodes/DreamTask';
+import useFetch from "@core/hooks/useFetch";
+import { ITask } from "../../../app/database/models/task";
+import { DreamTaskSchema } from "../../../shared/editing/tiptap/nodes/DreamTask";
 import { useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 
