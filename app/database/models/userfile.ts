@@ -482,7 +482,7 @@ export class UserFile {
       if (!file) {
         throw new Error("Error getting text content of the file");
       }
-      const allowedTypes = [...SourceableMimeTypes];
+      const allowedTypes: string[] = [...SourceableMimeTypes];
       if (!allowedTypes.includes(file.mimeType)) {
         throw new Error("Couldn't get text content of file with unsupported mimetype");
       }
