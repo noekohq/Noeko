@@ -28,7 +28,7 @@ import { Link } from "react-router";
 import styles from "./styles/DreamFile.module.scss";
 
 import useFetch from "@core/hooks/useFetch";
-import { IUserFile } from "../../../app/database/models/userfile";
+import { IUserFile } from "../../../shared/types/userfile";
 import { triggerDownload } from "@core/utils/helpers";
 import { DreamFileSchema, IDreamFileOptions } from "../../../shared/editing/tiptap/nodes/DreamFile";
 import { ISubMenuProps } from "../BubbleMenu";

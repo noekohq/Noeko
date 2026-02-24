@@ -1,7 +1,7 @@
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { useEffect, useState } from "react";
-import { IUserFile } from "../../../../../app/database/models/userfile";
+import { IUserFile } from "../../../../../shared/types/userfile";
 import useFetch from "@core/hooks/useFetch";
 import {
   FileCodeIcon,

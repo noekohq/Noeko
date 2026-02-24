@@ -1,7 +1,7 @@
 import { RecordId } from "surrealdb";
 import { api } from "@infrastructure/api/client";
 import { triggerDownload } from "@core/utils/helpers";
-import { IUserFile } from "../../../app/database/models/userfile";
+import { IUserFile } from "../../../shared/types/userfile";
 import { AxiosProgressEvent, isCancel } from "axios";
 
 export interface UploadCallbacks {

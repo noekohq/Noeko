@@ -1,4 +1,4 @@
-import { IUserFile } from "../../app/database/models/userfile";
+import { IUserFile } from "../../shared/types/userfile";
 import { serverLocation } from "@infrastructure/api/client";
 
 export const fileEndpoint = (file: IUserFile) => {

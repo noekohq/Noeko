@@ -10,11 +10,8 @@ import {
   getNodeTitle,
   IconMap,
 } from "@infrastructure/graph/utils";
-import {
-  acceleratorItemFieldResolvers,
-  getAcceleratorItemFields,
-} from "@domains/knowledge/utils/recommendations/accelerator";
-import { IUserFile } from "../../../../../../app/database/models/userfile";
+import { getAcceleratorItemFields } from "@domains/knowledge/utils/recommendations/accelerator";
+import { IUserFile } from "../../../../../../shared/types/userfile";
 import { streamImageEndpoint } from "@/vars/files";
 import { FileIcon, FilePdfIcon, FileImageIcon, UserIcon } from "@phosphor-icons/react";
 import { RabbitholeIcon } from "@core/design/icons/Icons";

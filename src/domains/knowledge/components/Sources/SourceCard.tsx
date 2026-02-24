@@ -11,7 +11,7 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { IUserFile } from "../../../../../app/database/models/userfile";
+import { IUserFile } from "../../../../../shared/types/userfile";
 import { getNodeDescription } from "@infrastructure/graph/utils";
 import { Link, useNavigate } from "react-router";
 import styles from "./SourceCard.module.scss";

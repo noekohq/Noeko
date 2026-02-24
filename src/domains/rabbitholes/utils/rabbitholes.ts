@@ -5,7 +5,7 @@ import { ISafeIdea } from "../../../../shared/types/idea";
 import { ITag } from "../../../../app/database/models/tag";
 import { ITask } from "../../../../app/database/models/task";
 import { getNodeDescription } from "@infrastructure/graph/utils";
-import { IUserFile } from "../../../../app/database/models/userfile";
+import { IUserFile } from "../../../../shared/types/userfile";
 import { ISource } from "../../../../app/database/models/source";
 
 export const newRabbithole = async () => {

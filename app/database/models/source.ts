@@ -1,7 +1,8 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import Spyglass from "../../services/Spyglass";
 import { getDatabase } from "../db";
-import { IUserFile, UserFile } from "./userfile";
+import { UserFile } from "./userfile";
+import { IUserFile } from "../../../shared/types/userfile";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import {
   ISource,
