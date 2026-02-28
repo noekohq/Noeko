@@ -1,0 +1,101 @@
+@use "@core/design/styles/mixins.scss" as *;
+
+:root {
+}
+
+.pageWrapper {
+  --rabbithole-indicator-width: 1px;
+  display: flex;
+  box-sizing: border-box;
+  height: calc(100vh);
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  transition:
+    border 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+  box-sizing: border-box;
+  border: var(--rabbithole-indicator-width) solid transparent;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mantine-color-dark-7) transparent;
+  scrollbar-gutter: stable;
+
+  @include tablet {
+    justify-content: flex-start;
+  }
+
+  &.hasRabbithole {
+    border: var(--rabbithole-indicator-width) solid var(--mantine-color-yellow-5);
+    box-shadow: inset 0px 0px 15px 0px rgb(from var(--mantine-color-yellow-7) r g b / 50%);
+    border-radius: 5px;
+  }
+}
+
+.leftOpen {
+  @include tablet {
+    margin-left: calc(var(--sidebar-width) + (var(--layout-spacing) * 2));
+    overflow-x: hidden;
+  }
+
+  @include desktop {
+    padding-left: var(--content-space);
+    margin-left: 0;
+  }
+}
+
+.leftCollapsed {
+  @include tablet {
+    padding-left: calc(var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2));
+  }
+
+  @include desktop {
+    /* padding-left: calc(
+            var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2)
+        ); */
+    padding-left: var(--content-space);
+    margin-left: 0;
+  }
+}
+
+.rightOpen {
+  @include tablet {
+    margin-right: calc(var(--sidebar-width) + (var(--layout-spacing) * 2));
+    overflow-x: hidden;
+  }
+
+  @include desktop {
+    padding-right: var(--content-space);
+    margin-right: 0;
+  }
+}
+
+.rightCollapsed {
+  @include tablet {
+    padding-right: calc(var(--sidebar-width-collapsed) + (var(--layout-spacing) * 2));
+  }
+
+  @include desktop {
+    padding-right: var(--content-space);
+    margin-right: 0;
+  }
+}
+
+@keyframes rabbitholeIn {
+  from {
+    opacity: 0.5;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rabbitholeIndicator {
+  position: fixed;
+  max-width: 50vw;
+  bottom: calc(var(--layout-spacing) * 2);
+  animation: rabbitholeIn 0.2s ease-in-out forwards;
+}

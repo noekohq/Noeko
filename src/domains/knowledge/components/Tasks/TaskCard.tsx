@@ -14,7 +14,7 @@ import {
   Text,
   Tooltip,
 } from "@mantine/core";
-import { DreamWriter } from "@editor";
+import { DreamWriter } from "@domains/editor";
 import useFetch from "@core/hooks/useFetch";
 import { updateTask } from "@domains/knowledge/utils/tasks";
 import { DotsThreeVerticalIcon, IconProps } from "@phosphor-icons/react";

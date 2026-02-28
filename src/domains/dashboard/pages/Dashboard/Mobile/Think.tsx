@@ -6,10 +6,10 @@ import IdeaButton from "@domains/knowledge/components/Ideas/Interactions/IdeaBut
 import { Box, Group, Stack, Text, Loader, Center } from "@mantine/core";
 import { SearchBar } from "@domains/discovery/components/Search/SearchBar";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
-import ConnectableThing from "@/components/Display/Interactions/Connections/ConnectableThing";
+import ConnectableThing from "@core/design/components/Display/Interactions/Connections/ConnectableThing";
 import { ClockClockwiseIcon, ClockCounterClockwiseIcon, ClockIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import Selection from "@/components/Display/Interactions/Selection";
+import Selection from "@core/design/components/Display/Interactions/Selection";
 
 export default function Think() {
   const [sortField, setSortField] = useState<IIdeaSortFields>("viewedAt");

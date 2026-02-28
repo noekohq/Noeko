@@ -8,7 +8,7 @@ import ConstellationActions from "./ConstellationActions";
 import ConstellationContext from "./ConstellationContext";
 import { fromConstellation, getNodeLink } from "@infrastructure/graph/utils";
 import { Group, Loader, Text } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import {

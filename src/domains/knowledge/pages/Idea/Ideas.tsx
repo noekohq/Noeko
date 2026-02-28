@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"; // Added useEffect, useCallback, useRef
 import useFetch from "@core/hooks/useFetch";
 import { IIdea } from "../../../../../shared/types/idea";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { Loader, Center, Grid, Text, Group, Title, Divider, Stack, Button } from "@mantine/core"; // Added Loader and Center for UX

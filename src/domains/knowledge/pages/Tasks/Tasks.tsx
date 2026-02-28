@@ -4,7 +4,7 @@ import { Stack, Title, Paper, Text, Loader, Group, ActionIcon } from "@mantine/c
 import { IPublicTask, ITaskSortFields } from "../../../../../app/database/models/task";
 import useFetch from "@core/hooks/useFetch";
 import styles from "./Tasks.module.scss";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import Content from "@core/design/components/Layout/Content";

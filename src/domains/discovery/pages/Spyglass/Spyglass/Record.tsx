@@ -1,4 +1,4 @@
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";

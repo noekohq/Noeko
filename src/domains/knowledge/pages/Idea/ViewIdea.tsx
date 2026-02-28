@@ -1,5 +1,5 @@
 import { ActionIcon, Box, Container, Group, Stack, Title, Tooltip } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import useFetch from "@core/hooks/useFetch";
 import { IIdeaForm } from "../../../../../shared/types/idea";
 import { useNavigate, useParams, useSearchParams } from "react-router";

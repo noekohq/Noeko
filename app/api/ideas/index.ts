@@ -116,7 +116,7 @@ router.get("/page", checkToken, disallowDisabled, async (req, res) => {
       return;
     }
     const page = Number(req.query.page);
-    const pageSize = Number(req.query.pageSize) ?? 10;
+    const pageSize = Number(req.query.pageSize) || 10;
     if (page === undefined || page === null) {
       res.status(400).send({
         message: "Page must be provided",

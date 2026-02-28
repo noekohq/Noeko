@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import { ITask, ITaskForm } from "../../../../../app/database/models/task";
 import { IShareAccess } from "../../../../../app/database/models/share";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import useFetch from "@core/hooks/useFetch";
 import { useCallback, useEffect, useState } from "react";
 import LeftSidebar from "@core/design/components/Layout/Left";
@@ -25,11 +25,8 @@ import {
   Avatar,
 } from "@mantine/core";
 import {
-  ArrowLeftIcon,
-  CheckCircleIcon, // Added
-  CircleIcon, // Added
-  CloudCheckIcon,
-  CloudSlashIcon,
+  CheckCircleIcon,
+  CircleIcon,
   DotsThreeVerticalIcon,
   DownloadSimpleIcon,
   MarkdownLogoIcon,
@@ -39,7 +36,7 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
 } from "@phosphor-icons/react";
-import { DreamWriter } from "@editor";
+import { DreamWriter } from "@/domains/editor";
 import { useForm } from "@mantine/form";
 import { Duration } from "surrealdb";
 import styles from "./Task.module.scss";
@@ -49,10 +46,10 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import Search from "@domains/discovery/components/Search/Search";
 import { modals } from "@mantine/modals";
-import ConnectionManager from "@/components/Display/Interactions/Connections/ConnectionManager";
+import ConnectionManager from "@/core/design/components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import useConnectable from "@domains/knowledge/hooks/useConnectable";
-import TagsManager from "@/components/Display/Interactions/Tags/TagsManager";
+import TagsManager from "@/core/design/components/Display/Interactions/Tags/TagsManager";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
@@ -60,12 +57,13 @@ import usePins from "@domains/knowledge/hooks/usePins";
 import { downloadTextAsFile } from "@infrastructure/api/files";
 import { htmlToMarkdown } from "../../../../../app/utils/formatting";
 import HorizonSelector from "@core/design/components/Paper/Inputs/HorizonSelector";
+import PaperEyebrow from "@core/design/components/Paper/PaperEyebrow/PaperEyebrow";
 import { fromYYYYMMDD } from "@core/utils/datetime";
 import { capitalize, formatDate } from "@core/utils/formatting";
 import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
-import AccessManager from "@/components/Display/Interactions/Access/AccessManager";
-import { ICollaborationState } from "@/hooks/useCollaboration";
-import { CollaborationInfo } from "@/components/Collaboration/CollaborationInfo";
+import AccessManager from "@/core/design/components/Display/Interactions/Access/AccessManager";
+import { ICollaborationState } from "@/core/hooks/useCollaboration";
+import { CollaborationInfo } from "@/core/design/components/Collaboration/CollaborationInfo";
 
 export default function Task() {
   const { taskId } = useParams();
@@ -190,7 +188,7 @@ export default function Task() {
       <Content>
         <div className={styles.taskContainer}>
           <Stack gap="sm" pb="50vh">
-            <Stack>{task && <Tools task={task} reloadTask={loadTask} />}</Stack>
+            <Stack>{task && <Tools task={task} />}</Stack>
 
             <Stack gap="md">
               {/* UPDATED LAYOUT: Title-Adjacent Pattern
@@ -253,7 +251,6 @@ export default function Task() {
                     maxSuggested={2}
                   />
 
-                  {/* The new Mad Libs / Natural Language Sentence Component */}
                   <TaskSentence
                     date={taskForm.values.dueDate}
                     duration={taskForm.values.estimatedTime}
@@ -269,8 +266,6 @@ export default function Task() {
                       />
                     </Group>
                   )}
-
-                  {/* REMOVED: The large "Mark Complete" button block was here */}
                 </>
               )}
             </Stack>
@@ -353,8 +348,6 @@ export default function Task() {
   );
 }
 
-// --- The New Natural Language Component ---
-
 interface ITaskSentence {
   date: string | null;
   duration: string | null;
@@ -365,16 +358,11 @@ interface ITaskSentence {
 function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
   const [activeSelector, setActiveSelector] = useState<"date" | "duration" | null>(null);
 
-  // Helpers to format the "Variables" in the sentence
   const displayDuration = duration ? duration.toString() : "time estimate";
-  const displayDate = date
-    ? capitalize(formatDate(fromYYYYMMDD(date))) // "Tomorrow", "Next Friday"
-    : "target date";
+  const displayDate = date ? capitalize(formatDate(fromYYYYMMDD(date))) : "target date";
 
-  // Auto-collapse handler
   const handleSelection = (field: "dueDate" | "estimatedTime", val: any) => {
     onChange(field, val);
-    // Small delay to let user see the selection happen before hiding
     setTimeout(() => {
       setActiveSelector(null);
     }, 300);
@@ -387,7 +375,6 @@ function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
 
   return (
     <Stack gap="xs">
-      {/* The Sentence */}
       <Group gap={6} wrap="wrap">
         <Text size="sm" c="dark.2">
           Should take
@@ -456,14 +443,11 @@ function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
   );
 }
 
-// --- The Tools Component (Refactored for Top Bar) ---
-
 interface ITools {
   task: ITask;
-  reloadTask: () => void;
 }
 
-function Tools({ task, reloadTask }: ITools) {
+function Tools({ task }: ITools) {
   const { isMobile } = useLayout();
   const navigate = useNavigate();
 
@@ -540,136 +524,105 @@ function Tools({ task, reloadTask }: ITools) {
   const size = isMobile ? "lg" : "md";
   const radius = "md";
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
   const [managingConnections, setManagingConnections] = useState(false);
   const [managingAccess, setManagingAccess] = useState(false);
 
   return (
     <>
-      <Group justify="space-between" wrap="nowrap" mb="lg">
-        <Group wrap="nowrap">
-          <ActionIcon
-            onClick={handleBack}
-            color="gray"
-            variant="subtle"
-            size={size}
-            radius={radius}
-          >
-            <ArrowLeftIcon weight="bold" />
-          </ActionIcon>
-        </Group>
-        <Group wrap="nowrap">
-          <ActionIcon
-            onClick={() => {
-              if (pinning) return;
-              handleTogglePin();
-            }}
-            aria-label={isPinned ? "Unpin" : "Pin"}
-            size={size}
-            radius={radius}
-            variant="subtle"
-            color="gray"
-          >
-            <PushPinIcon weight={isPinned ? "fill" : "bold"} />
-          </ActionIcon>
-
-          {isMobile && (
-            <>
-              <ActionIcon
-                aria-label="Manage connections"
-                size={size}
-                radius={radius}
-                variant="subtle"
-                color="gray"
-                onClick={() => setManagingConnections(true)}
-              >
-                <UniteSquareIcon />
-              </ActionIcon>
-
-              <ActionIcon
-                aria-label="Manage access"
-                size={size}
-                radius={radius}
-                variant="subtle"
-                color="gray"
-                onClick={() => setManagingAccess(true)}
-              >
-                <UserCirclePlusIcon weight="fill" />
-              </ActionIcon>
-            </>
-          )}
-
-          <Menu
-            width={300}
-            shadow="md"
-            position="bottom-end"
-            radius={radius}
-            withArrow
-            arrowOffset={14}
-            zIndex={700}
-          >
-            <Menu.Target>
-              <div>
-                <ActionIcon
-                  size={size}
-                  aria-label="Download"
-                  radius={radius}
-                  variant="subtle"
-                  color="gray"
-                >
-                  <DownloadSimpleIcon weight="bold" />
-                </ActionIcon>
-              </div>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
-                Export as Markdown
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-
-          <Menu
-            width={300}
-            shadow="md"
-            position="bottom-end"
-            radius={radius}
-            withArrow
-            arrowOffset={14}
-            zIndex={700}
-          >
-            <Menu.Target>
-              <div>
-                <ActionIcon
-                  aria-label="More options"
-                  size={size}
-                  radius={radius}
-                  variant="subtle"
-                  color="gray"
-                >
-                  <DotsThreeVerticalIcon weight="bold" />
-                </ActionIcon>
-              </div>
-            </Menu.Target>
-
-            <Menu.Dropdown>
-              <Tooltip label="Delete Task">
-                <Menu.Item
-                  color="red"
-                  leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
-                  onClick={handleDeleteTask}
-                  disabled={loadingDelete}
-                >
-                  Delete
+      <PaperEyebrow
+        actions={[
+          {
+            icon: PushPinIcon,
+            name: isPinned ? "Unpin" : "Pin",
+            run: () => !pinning && handleTogglePin(),
+            disabled: pinning,
+            weight: isPinned ? "fill" : "bold",
+          },
+          {
+            icon: UniteSquareIcon,
+            name: "Manage Connections",
+            run: () => setManagingConnections(true),
+            disabled: false,
+            invisible: !isMobile,
+          },
+          {
+            icon: UserCirclePlusIcon,
+            name: "Manage Access",
+            run: () => setManagingAccess(true),
+            disabled: false,
+            invisible: !isMobile,
+          },
+        ]}
+        right={
+          <>
+            <Menu
+              width={200}
+              shadow="md"
+              position="bottom-end"
+              radius={radius}
+              withArrow
+              arrowOffset={14}
+              zIndex={700}
+            >
+              <Menu.Target>
+                <div>
+                  <ActionIcon
+                    size={size}
+                    aria-label="Download"
+                    radius={radius}
+                    variant="subtle"
+                    color="gray"
+                  >
+                    <DownloadSimpleIcon weight="bold" />
+                  </ActionIcon>
+                </div>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
+                  Export as Markdown
                 </Menu.Item>
-              </Tooltip>
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
-      </Group>
+              </Menu.Dropdown>
+            </Menu>
 
+            <Menu
+              width={200}
+              shadow="md"
+              position="bottom-end"
+              radius={radius}
+              withArrow
+              arrowOffset={14}
+              zIndex={700}
+            >
+              <Menu.Target>
+                <div>
+                  <ActionIcon
+                    aria-label="More options"
+                    size={size}
+                    radius={radius}
+                    variant="subtle"
+                    color="gray"
+                  >
+                    <DotsThreeVerticalIcon weight="bold" />
+                  </ActionIcon>
+                </div>
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                <Tooltip label="Delete Task">
+                  <Menu.Item
+                    color="red"
+                    leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
+                    onClick={handleDeleteTask}
+                    disabled={loadingDelete}
+                  >
+                    Delete
+                  </Menu.Item>
+                </Tooltip>
+              </Menu.Dropdown>
+            </Menu>
+          </>
+        }
+      />
       <PaperDrawer
         title="Manage Connections"
         opened={managingConnections}

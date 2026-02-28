@@ -4,54 +4,77 @@ import { Center, Loader, Text, useMantineColorScheme } from "@mantine/core";
 import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
 
 import { useAuth } from "@domains/identity/contexts/AuthContext";
+// React
+import { lazy, useEffect, useRef } from "react";
+
+// Mantine Notifications
+import { showNotification } from "@mantine/notifications";
+
+// Application Contexts
+import { useLayout } from "@/contexts/LayoutContext";
+import { useSettings } from "@/contexts/SettingsContext";
+
+// Application Components
+import GlobalTourManager from "@/core/design/components/Onboarding/GlobalTourManager";
+
+// Admin Domain
+import Admin from "@domains/admin/pages/Admin";
+import Feedback from "./domains/admin/pages/Feedback/Feedback";
+
+// Constellation Domain
+import Constellation from "@domains/constellation/pages/Constellation/Constellation";
+
+// Dashboard Domain
 import Dashboard from "@domains/dashboard/pages/Dashboard/Dashboard";
 import DashboardExperimental from "@domains/dashboard/pages/Dashboard/Experimental";
-import Constellation from "@domains/constellation/pages/Constellation/Constellation";
-import Idea from "@domains/knowledge/pages/Idea/Idea";
-import UserFile from "@/pages/File/File";
+import MobileDashboard from "@domains/dashboard/pages/Dashboard/Mobile/Mobile";
+
+// Discovery Domain
+import All from "@domains/discovery/pages/All/All";
+import Spyglass from "@domains/discovery/pages/Spyglass/Spyglass";
+import SpyglassRecord from "@domains/discovery/pages/Spyglass/Spyglass/Record";
+import SpyglassRecords from "@domains/discovery/pages/Spyglass/Spyglass/Records";
+
+// Identity Domain
+import ForgotPassword from "@domains/identity/pages/Auth/ForgotPassword";
 import Login from "@domains/identity/pages/Auth/Login";
 import Register from "@domains/identity/pages/Auth/Register";
+import ResetPassword from "@domains/identity/pages/Auth/ResetPassword";
+import Unauthorized from "@domains/identity/pages/Auth/Unauthorized";
+import Keymap from "@domains/identity/pages/Settings/Keymap";
 import Profile from "@domains/identity/pages/Settings/Profile";
 import Settings from "@domains/identity/pages/Settings/Settings";
-import { userIsSuperuser } from "@domains/identity/utils/user";
 import Users from "@domains/identity/pages/Users/Users";
-import Feedback from "@/pages/Feedback/Feedback";
-import Import from "@/pages/Import/Import";
-import Admin from "@/pages/Admin/Admin";
-import Spyglass from "@domains/discovery/pages/Spyglass/Spyglass";
-import Ideas from "@domains/knowledge/pages/Idea/Ideas";
-import Tags from "@/pages/Tags/Tags";
-import { lazy, useEffect, useRef } from "react";
-import { useSettings } from "@/contexts/SettingsContext";
-import ViewTag from "@/pages/Tags/ViewTag";
-import ViewIdea from "@domains/knowledge/pages/Idea/ViewIdea";
-import ResetPassword from "@domains/identity/pages/Auth/ResetPassword";
-import ForgotPassword from "@domains/identity/pages/Auth/ForgotPassword";
-import SpyglassRecords from "@domains/discovery/pages/Spyglass/Spyglass/Records";
-import Sharing from "@/pages/Sharing/Sharing";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 
-import Rabbithole from "@domains/rabbitholes/pages/Rabbitholes/Rabbithole";
-import Rabbitholes from "@domains/rabbitholes/pages/Rabbitholes/List";
-import { useConnection } from "@domains/knowledge/hooks/useConnection";
+// Knowledge Domain
+import Agenda from "./domains/knowledge/pages/Agenda/Agenda";
+import FileList from "./domains/knowledge/pages/File/FileList";
+import UserFile from "./domains/knowledge/pages/File/File";
+import Idea from "@domains/knowledge/pages/Idea/Idea";
+import Ideas from "@domains/knowledge/pages/Idea/Ideas";
+import ViewIdea from "@domains/knowledge/pages/Idea/ViewIdea";
+import PinsPage from "./domains/knowledge/pages/Pins/Pins";
+import Sharing from "./domains/knowledge/pages/Sharing/Sharing";
+import Source from "@domains/knowledge/pages/Sources/Source";
+import SourceList from "@domains/knowledge/pages/Sources/SourceList";
+import Tags from "./domains/knowledge/pages/Tags/Tags";
+import ViewTag from "./domains/knowledge/pages/Tags/ViewTag";
 import Task from "@domains/knowledge/pages/Tasks/Task";
 import Tasks from "@domains/knowledge/pages/Tasks/Tasks";
-import FileList from "@/pages/File/FileList";
-import SourceList from "@domains/knowledge/pages/Sources/SourceList";
-import Source from "@domains/knowledge/pages/Sources/Source";
-import { showNotification } from "@mantine/notifications";
-import { useLayout } from "@/contexts/LayoutContext";
-import MobileDashboard from "@domains/dashboard/pages/Dashboard/Mobile/Mobile";
-import Export from "@/pages/Export/Export";
-import Keymap from "@domains/identity/pages/Settings/Keymap";
-import GlobalTourManager from "@/components/Utils/Onboarding/GlobalTourManager";
-import Agenda from "@/pages/Agenda/Agenda";
-import All from "@domains/discovery/pages/All/All";
-import PinsPage from "@/pages/Pins/Pins";
-import SpyglassRecord from "@domains/discovery/pages/Spyglass/Spyglass/Record";
-import Unauthorized from "@domains/identity/pages/Auth/Unauthorized";
+import { useConnection } from "@domains/knowledge/hooks/useConnection";
 
-const Updates = lazy(() => import("@/pages/Feedback/Updates"));
-const Onboarding = lazy(() => import("@/components/UI/Onboarding/Index"));
+// Rabbitholes Domain
+import Rabbithole from "@domains/rabbitholes/pages/Rabbitholes/Rabbithole";
+import Rabbitholes from "@domains/rabbitholes/pages/Rabbitholes/List";
+
+// System Domain
+import Export from "./domains/system/pages/Export/Export";
+import Import from "./domains/system/pages/Import/Import";
+
+// Lazy Loaded Components
+const Updates = lazy(() => import("@domains/admin/pages/Feedback/Updates"));
+const Onboarding = lazy(() => import("@/core/design/components/Onboarding/Index"));
 
 export default function App() {
   const navigate = useNavigate();

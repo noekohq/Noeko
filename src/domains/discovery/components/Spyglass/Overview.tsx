@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { memo, useCallback, useMemo } from "react";
-import { generateTextFragmentHashFromText } from "@/utils/textFragment";
+import { generateTextFragmentHashFromText } from "@/core/utils/textFragment";
 import OverviewParser from "./OverviewParser";
 import { ActionIcon, CopyButton, Group, Text, Title } from "@mantine/core";
 import styles from "./Overview.module.scss";

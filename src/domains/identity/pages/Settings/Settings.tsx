@@ -15,7 +15,7 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -40,7 +40,6 @@ import { useAuth } from "@domains/identity/contexts/AuthContext";
 import React, { useState } from "react";
 import ContentWide from "@core/design/components/Layout/ContentWide";
 import useFetch from "@core/hooks/useFetch";
-import { handleLogout } from "@/server/auth";
 import { showNotification } from "@mantine/notifications";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";

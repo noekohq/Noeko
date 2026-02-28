@@ -12,7 +12,7 @@ import { userIsSuperuser } from "@domains/identity/utils/user";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Group, Text, Drawer, Space, Modal, Stack, Button } from "@mantine/core";
 import { useLayout } from "./LayoutContext";
-import FeedbackModal from "@/components/Utils/Modals/FeedbackModal";
+import FeedbackModal from "@/core/design/components/Modals/FeedbackModal";
 import Spotlight from "@domains/discovery/components/Spotlight/Spotlight";
 import { useHotkeys } from "@mantine/hooks";
 import { handleCreateNewRabbithole } from "@domains/rabbitholes/utils/rabbitholes";

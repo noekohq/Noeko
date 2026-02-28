@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { IGetAllConnectables_Options, ITaggedConnectable } from "../../../../../app/services/Graph";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { Loader, Center, Text, Group, Title, Stack, SimpleGrid } from "@mantine/core";
@@ -12,7 +12,7 @@ import GridCard from "@core/design/components/Paper/Things/GridCard";
 import { formatDateTime } from "@core/utils/formatting";
 import { api } from "@infrastructure/api/client";
 import { DefaultResponse } from "@/declarations/server";
-import TagsFilter from "@/components/Display/Interactions/Tags/TagsFilter";
+import TagsFilter from "@/core/design/components/Display/Interactions/Tags/TagsFilter";
 import { ITag } from "../../../../../shared/types/tags";
 import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
 

@@ -51,8 +51,8 @@ import {
   FileIcon,
 } from "@phosphor-icons/react";
 import Insights from "./Insights";
-import { DreamWriter } from "@editor";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import { DreamWriter } from "@/domains/editor";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { useLayout } from "@/contexts/LayoutContext";
@@ -64,29 +64,30 @@ import {
   htmlToPlainText,
 } from "@core/utils/formatting";
 import { api } from "@infrastructure/api/client";
-import TagsManager from "@/components/Display/Interactions/Tags/TagsManager";
+import TagsManager from "@/core/design/components/Display/Interactions/Tags/TagsManager";
 import Content from "@core/design/components/Layout/Content";
 import Search from "@domains/discovery/components/Search/Search";
 import Loading from "@core/design/components/Loading/Loading";
-import FileManager from "@/components/Display/Interactions/Files/FileManager";
+import FileManager from "@/core/design/components/Display/Interactions/Files/FileManager";
 
 import { IOptimisticIdea, useLandscape } from "@/contexts/LandscapeContext";
-import ConnectionManager from "@/components/Display/Interactions/Connections/ConnectionManager";
+import ConnectionManager from "@/core/design/components/Display/Interactions/Connections/ConnectionManager";
 import useConnectable, { IUseConnectableReturn } from "@domains/knowledge/hooks/useConnectable";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
-import AccessManager from "@/components/Display/Interactions/Access/AccessManager";
+import AccessManager from "@/core/design/components/Display/Interactions/Access/AccessManager";
 import usePins from "@domains/knowledge/hooks/usePins";
 import { showNotification } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
 import { downloadTextAsFile } from "@infrastructure/api/files";
-import { CollaborationInfo } from "@/components/Collaboration/CollaborationInfo";
+import { CollaborationInfo } from "@/core/design/components/Collaboration/CollaborationInfo";
 
-import { ICollaborationState } from "@/hooks/useCollaboration";
+import { ICollaborationState } from "@/core/hooks/useCollaboration";
 import { userFormattedName } from "@domains/identity/utils/user";
 import { isEqual } from "lodash";
 import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
+import PaperEyebrow from "@/core/design/components/Paper/PaperEyebrow/PaperEyebrow";
 
 // --- Types ---
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
@@ -757,180 +758,153 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
 
   return (
     <div>
-      <Group justify="space-between" wrap="nowrap">
-        <Group wrap="nowrap">
-          <ActionIcon
-            onClick={() => navigate(-1)}
-            color="gray"
-            variant="subtle"
-            size={size}
-            radius={radius}
-          >
-            <ArrowLeftIcon weight="bold" />
-          </ActionIcon>
-        </Group>
+      <PaperEyebrow
+        actions={[
+          {
+            icon: PushPinIcon,
+            name: isPinned ? "Unpin" : "Pin",
+            run: () => !pinning && handleTogglePin(),
+            disabled: isOptimistic,
+            weight: isPinned ? "fill" : "bold",
+          },
+          {
+            icon: UniteSquareIcon,
+            name: "Manage Connections",
+            run: () => setManagingConnections(true),
+            disabled: isOptimistic,
+            invisible: !isMobile,
+          },
+          {
+            icon: UserCirclePlusIcon,
+            name: "Manage Access",
+            run: () => setManagingAccess(true),
+            disabled: isOptimistic,
+            invisible: !isMobile,
+          },
+        ]}
+        right={
+          <>
+            <Menu
+              width={200}
+              shadow="md"
+              position="bottom-end"
+              radius={radius}
+              withArrow
+              arrowOffset={14}
+              zIndex={700}
+            >
+              <Menu.Target>
+                <div>
+                  <ActionIcon
+                    size={size}
+                    aria-label="Download"
+                    radius={radius}
+                    variant="subtle"
+                    color="gray"
+                  >
+                    <DownloadSimpleIcon weight="bold" />
+                  </ActionIcon>
+                </div>
+              </Menu.Target>
 
-        <Group wrap="nowrap">
-          <ActionIcon
-            onClick={() => !pinning && handleTogglePin()}
-            aria-label={isPinned ? "Unpin" : "Pin"}
-            size={size}
-            radius={radius}
-            variant="subtle"
-            color="gray"
-            disabled={isOptimistic}
-          >
-            <PushPinIcon weight={isPinned ? "fill" : "bold"} />
-          </ActionIcon>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<BracketsAngleIcon />} onClick={downloadAsHTML}>
+                  Export as HTML
+                </Menu.Item>
+                <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
+                  Export as Markdown
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
 
-          {isMobile && (
-            <>
-              <ActionIcon
-                aria-label="Manage connections"
-                size={size}
-                radius={radius}
-                variant="subtle"
-                color="gray"
-                onClick={() => setManagingConnections(true)}
-                disabled={isOptimistic}
-              >
-                <UniteSquareIcon />
-              </ActionIcon>
+            <Menu
+              width={200}
+              shadow="md"
+              position="bottom-end"
+              radius={radius}
+              withArrow
+              arrowOffset={14}
+              zIndex={700}
+            >
+              <Menu.Target>
+                <div>
+                  <ActionIcon
+                    aria-label="More options"
+                    size={size}
+                    radius={radius}
+                    variant="subtle"
+                    color="gray"
+                    disabled={isOptimistic}
+                  >
+                    <DotsThreeVerticalIcon weight="bold" />
+                  </ActionIcon>
+                </div>
+              </Menu.Target>
 
-              <ActionIcon
-                aria-label="Manage access"
-                size={size}
-                radius={radius}
-                variant="subtle"
-                color="gray"
-                onClick={() => setManagingAccess(true)}
-                disabled={isOptimistic}
-              >
-                <UserCirclePlusIcon weight="fill" />
-              </ActionIcon>
-            </>
-          )}
+              <Menu.Dropdown>
+                <Tooltip label="Delete Idea">
+                  <Menu.Item
+                    color="red"
+                    leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
+                    // FIX: Use handler passed from parent
+                    onClick={onDelete}
+                    disabled={loadingDelete}
+                  >
+                    Delete
+                  </Menu.Item>
+                </Tooltip>
 
-          <Menu
-            width={200}
-            shadow="md"
-            position="bottom-end"
-            radius={radius}
-            withArrow
-            arrowOffset={14}
-            zIndex={700}
-          >
-            <Menu.Target>
-              <div>
-                <ActionIcon
-                  size={size}
-                  aria-label="Download"
-                  radius={radius}
-                  variant="subtle"
-                  color="gray"
-                >
-                  <DownloadSimpleIcon weight="bold" />
-                </ActionIcon>
-              </div>
-            </Menu.Target>
-
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<BracketsAngleIcon />} onClick={downloadAsHTML}>
-                Export as HTML
-              </Menu.Item>
-              <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
-                Export as Markdown
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-
-          <Menu
-            width={200}
-            shadow="md"
-            position="bottom-end"
-            radius={radius}
-            withArrow
-            arrowOffset={14}
-            zIndex={700}
-          >
-            <Menu.Target>
-              <div>
-                <ActionIcon
-                  aria-label="More options"
-                  size={size}
-                  radius={radius}
-                  variant="subtle"
-                  color="gray"
+                <Menu.Item
+                  leftSection={<FileIcon />}
+                  onClick={() => setManagingFiles(true)}
                   disabled={isOptimistic}
                 >
-                  <DotsThreeVerticalIcon weight="bold" />
-                </ActionIcon>
-              </div>
-            </Menu.Target>
-
-            <Menu.Dropdown>
-              <Tooltip label="Delete Idea">
-                <Menu.Item
-                  color="red"
-                  leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
-                  // FIX: Use handler passed from parent
-                  onClick={onDelete}
-                  disabled={loadingDelete}
-                >
-                  Delete
+                  Manage Files
                 </Menu.Item>
-              </Tooltip>
 
-              <Menu.Item
-                leftSection={<FileIcon />}
-                onClick={() => setManagingFiles(true)}
-                disabled={isOptimistic}
-              >
-                Manage Files
-              </Menu.Item>
+                <CopyButton value={getMarkdownContent()}>
+                  {({ copied, copy }) => (
+                    <Menu.Item
+                      leftSection={copied ? <CheckIcon /> : <MarkdownLogoIcon />}
+                      onClick={copy}
+                    >
+                      Copy as Markdown
+                    </Menu.Item>
+                  )}
+                </CopyButton>
 
-              <CopyButton value={getMarkdownContent()}>
-                {({ copied, copy }) => (
-                  <Menu.Item
-                    leftSection={copied ? <CheckIcon /> : <MarkdownLogoIcon />}
-                    onClick={copy}
-                  >
-                    Copy as Markdown
-                  </Menu.Item>
+                {idea?.content && (
+                  <CopyButton value={htmlToPlainText(idea.content)}>
+                    {({ copied, copy }) => (
+                      <Menu.Item
+                        leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
+                        onClick={copy}
+                      >
+                        Copy as Text
+                      </Menu.Item>
+                    )}
+                  </CopyButton>
                 )}
-              </CopyButton>
 
-              {idea?.content && (
-                <CopyButton value={htmlToPlainText(idea.content)}>
-                  {({ copied, copy }) => (
-                    <Menu.Item
-                      leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
-                      onClick={copy}
-                    >
-                      Copy as Text
-                    </Menu.Item>
-                  )}
-                </CopyButton>
-              )}
+                {idea?.content && (
+                  <CopyButton value={idea.content}>
+                    {({ copied, copy }) => (
+                      <Menu.Item
+                        leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
+                        onClick={copy}
+                      >
+                        Copy as HTML
+                      </Menu.Item>
+                    )}
+                  </CopyButton>
+                )}
+              </Menu.Dropdown>
+            </Menu>
+          </>
+        }
+      />
 
-              {idea?.content && (
-                <CopyButton value={idea.content}>
-                  {({ copied, copy }) => (
-                    <Menu.Item
-                      leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
-                      onClick={copy}
-                    >
-                      Copy as HTML
-                    </Menu.Item>
-                  )}
-                </CopyButton>
-              )}
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
-      </Group>
-
-      {!isOptimistic && (
+      {!isOptimistic && isMobile && (
         <>
           <PaperDrawer
             title="Manage Connections"

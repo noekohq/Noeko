@@ -29,7 +29,7 @@ import { useLayout } from "@/contexts/LayoutContext";
 import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { createTask } from "@domains/knowledge/utils/tasks";
-import { DreamWriter } from "@editor";
+import { DreamWriter } from "@domains/editor";
 import { useNavigate } from "react-router";
 import { fromYYYYMMDD, toYYYYMMDD } from "@core/utils/datetime";
 import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";

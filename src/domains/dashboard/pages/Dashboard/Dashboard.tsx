@@ -1,5 +1,5 @@
 import { Box, Center, Flex, Grid, Group, Loader, Stack, Text, Title } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import widgets from "@domains/dashboard/components/Widgets/Index";
@@ -32,7 +32,7 @@ import { getCurrentTimeFormatted, getCurrentTimeOfDay } from "@core/utils/dateti
 import StatusButton from "@core/design/components/Interactions/StatusButton";
 import { IDashboard } from "../../../../../app/services/Dashboard";
 import { Link, useNavigate } from "react-router";
-import Selection from "@/components/Display/Interactions/Selection";
+import Selection from "@/core/design/components/Display/Interactions/Selection";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
@@ -185,7 +185,7 @@ export default function Dashboard() {
   );
 }
 
-interface IHeaderProps {}
+type IHeaderProps = Record<string, unknown>;
 
 function Header() {
   const { user } = useAuth();
@@ -290,10 +290,6 @@ function JumpBackIn() {
       start: start.toString(),
     },
     runOnDependencies: [start, sortField],
-    onSuccess: (d) => {
-      if (start === 0) {
-      }
-    },
   });
 
   useEffect(() => {

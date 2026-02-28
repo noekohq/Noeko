@@ -24,8 +24,6 @@
       "@infrastructure/*": ["./src/infrastructure/*"],
       "@domains": ["./src/domains"],
       "@domains/*": ["./src/domains/*"],
-      "@editor": ["./src/editor"],
-      "@editor/*": ["./src/editor/*"]
     }
   },
   "include": ["src", "app", "vitest.d.ts"],

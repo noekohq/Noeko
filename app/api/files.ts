@@ -1,9 +1,8 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { Router } from "express";
 import Busboy from "busboy";
 import { checkToken, disallowDisabled } from "../middleware/auth";
-import multer from "multer";
 import { UserFile } from "../database/models/userfile";
-import { getFromReq, multerToStandardFile } from "../utils/requests";
+import { getFromReq } from "../utils/requests";
 import { User } from "../database/models/user";
 import { ISafeUser } from "../../shared/types/user";
 import Authorization from "../services/Authorization";

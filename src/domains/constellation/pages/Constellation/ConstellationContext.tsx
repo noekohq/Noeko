@@ -3,7 +3,7 @@ import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { IEdge, IGraph, INode } from "@/declarations/graph";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import styles from "./ConstellationContext.module.scss";
-import { GraphOrganizer } from "@/components/Display/Interactions/GraphOrganizer/GraphOrganizer";
+import { GraphOrganizer } from "@/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer";
 import ScopeBuilder from "@domains/discovery/components/Search/ScopeBuilder/ScopeBuilder";
 import { useCallback, useMemo, useEffect } from "react";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
