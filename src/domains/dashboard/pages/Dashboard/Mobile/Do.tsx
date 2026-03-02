@@ -8,7 +8,7 @@ import {
 } from "../../../../../../app/database/models/task";
 import { Box, Group, Stack, Text, Loader, Center } from "@mantine/core";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
-import ConnectableThing from "@/components/Display/Interactions/Connections/ConnectableThing";
+import ConnectableThing from "@core/design/components/Display/Interactions/Connections/ConnectableThing";
 import {
   ClockClockwiseIcon,
   ClockCounterClockwiseIcon,
@@ -17,7 +17,7 @@ import {
   SunIcon,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import Selection from "@/components/Display/Interactions/Selection";
+import Selection from "@core/design/components/Display/Interactions/Selection";
 import TaskButton from "@domains/knowledge/components/Tasks/TaskButton";
 import { SearchBar } from "@domains/discovery/components/Search/SearchBar";
 import { toYYYYMMDD } from "@core/utils/datetime";

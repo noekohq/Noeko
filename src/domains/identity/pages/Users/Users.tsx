@@ -35,7 +35,7 @@ import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { validateEmail } from "@core/utils/data";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import styles from "./Users.module.scss";

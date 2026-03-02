@@ -108,7 +108,7 @@ export default class GoogleProvider implements EmbeddingsProvider {
         },
       });
       const endTime = Date.now();
-      console.log(`Embedding content took ${(endTime - startTime).toFixed(2)}ms`);
+      console.info(`Embedding content took ${(endTime - startTime).toFixed(2)}ms`);
       if (!response.embeddings?.length) {
         throw new Error("No embeddings returned from model");
       }

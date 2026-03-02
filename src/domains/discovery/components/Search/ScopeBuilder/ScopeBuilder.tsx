@@ -6,7 +6,7 @@ import { IRabbithole } from "../../../../../../app/database/models/rabbithole";
 import { FunnelIcon, XIcon } from "@phosphor-icons/react";
 import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
 import PaperDateRangeFilter from "@core/design/components/Paper/DateRangeFilter/PaperDateRangeFilter";
-import { TagPickerContent } from "@/components/Display/Interactions/Tags/TagPicker";
+import { TagPickerContent } from "@/core/design/components/Display/Interactions/Tags/TagPicker";
 import { RabbitholePickerContent } from "@domains/rabbitholes/components/Rabbitholes/RabbitholePicker";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";

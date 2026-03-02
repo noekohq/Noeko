@@ -14,7 +14,7 @@ import {
   Title,
   Transition,
 } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import Content from "@core/design/components/Layout/Content";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
@@ -63,7 +63,7 @@ import StatusBar from "@core/design/components/Layout/Bottom";
 import IdeaCard from "@domains/knowledge/components/Ideas/Interactions/IdeaCard";
 import RabbitholeThing from "@domains/rabbitholes/components/Rabbitholes/RabbitholeThing";
 import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
-import ConnectableThing from "@/components/Display/Interactions/Connections/ConnectableThing";
+import ConnectableThing from "@/core/design/components/Display/Interactions/Connections/ConnectableThing";
 import CollapseButton from "@core/design/components/Interactions/CollapseButton";
 import TagButton from "@domains/knowledge/components/Tags/TagButton";
 import Nav from "@core/design/components/Layout/Nav";

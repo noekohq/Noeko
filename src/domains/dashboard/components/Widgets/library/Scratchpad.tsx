@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import useFetch from "@core/hooks/useFetch";
-import { DreamWriter } from "@editor";
+import { DreamWriter } from "@domains/editor";
 import { IWidgetConfig } from "../index.d";
 import styles from "./Scratchpad.module.scss";
 import { ActionIcon, CopyButton, Group, HoverCard, Menu, Text, Tooltip } from "@mantine/core";

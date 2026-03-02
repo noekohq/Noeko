@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { ISource } from "../../../../../app/database/models/source";
 import useFetch from "@core/hooks/useFetch";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import Content from "@core/design/components/Layout/Content";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
-import StatusBar from "@core/design/components/Layout/Bottom";
-import { ActionIcon, Badge, Group, HoverCard, Stack, Text, TextInput, Title } from "@mantine/core";
+import { ActionIcon, Badge, Group, HoverCard, Stack, Text, Title } from "@mantine/core";
 import { MegaphoneIcon, PlusIcon } from "@phosphor-icons/react";
 import { useInteraction } from "@/contexts/InteractionContext";
-import SourceCard from "@domains/knowledge/components/Sources/SourceCard";
-import ConnectableTable from "@/components/Display/Data/ConnectableTable";
+import ConnectableTable from "@/core/design/components/Display/Data/ConnectableTable";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 

@@ -35,16 +35,16 @@ import { IShelfData } from "../../../../../../app/services/Recommendations";
 import AcceleratorShelf, {
   IAcceleratorShelfProps,
 } from "@domains/knowledge/components/Acceleration/AcceleratorShelf";
-import ConnectableThing from "@/components/Display/Interactions/Connections/ConnectableThing";
+import ConnectableThing from "@core/design/components/Display/Interactions/Connections/ConnectableThing";
 import PaperThings from "@core/design/components/Paper/Things/PaperThings";
 import { getThingsFromConnectables } from "@core/design/components/Paper/Things/thingUtils";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import Content from "@core/design/components/Layout/Content";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 import { Pillbar } from "@core/design/components/Layout/Utils/Pillbar";
 import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
-import UnderConstruction from "@/components/Utils/UnderConstruction";
+import UnderConstruction from "@core/design/components/Utils/UnderConstruction";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import useFetch from "@core/hooks/useFetch";
 import { formatDateTime } from "@core/utils/formatting";

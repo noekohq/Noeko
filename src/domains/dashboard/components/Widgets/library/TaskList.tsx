@@ -17,7 +17,7 @@ import { Link, useNavigate } from "react-router";
 import ProgressBar from "@core/design/components/Utils/ProgressBar";
 import { capitalize, formatDate } from "@core/utils/formatting";
 import { useLayout } from "@/contexts/LayoutContext";
-import Selection from "@/components/Display/Interactions/Selection";
+import Selection from "@core/design/components/Display/Interactions/Selection";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import { useTourStep } from "@/contexts/TourGuideContext";
 

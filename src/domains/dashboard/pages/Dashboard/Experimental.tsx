@@ -1,9 +1,9 @@
 import { Button, Group, Loader, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import Content from "@core/design/components/Layout/Content";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
-import Scratchpad from "@/components/Display/Dashboard/Scratchpad";
+import Scratchpad from "@core/design/components/Display/Dashboard/Scratchpad";
 import styles from "./Experimental.module.scss";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { useLayout } from "@/contexts/LayoutContext";
@@ -15,7 +15,7 @@ import useFetch from "@core/hooks/useFetch";
 import { IDashboard } from "../../../../../app/services/Dashboard";
 import { useEditor } from "@tiptap/react";
 import { useEffect } from "react";
-import CompoundButton from "@/components/Display/Interactions/CompoundButton";
+import CompoundButton from "@core/design/components/Display/Interactions/CompoundButton";
 import { useNavigate } from "react-router";
 
 export default function Dashboard() {

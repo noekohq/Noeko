@@ -166,7 +166,7 @@ export const sanitizeMarkdownForDescription = (markdown: string): string => {
   // should remove all line breaks and tabs and such and be specialized for descriptions
   // also remove special characters
   return markdown
-    .replace(/[\[\]]/g, "")
+    .replace(/[[\]]/g, "")
     .replace(/\s+/g, " ")
     .replace(/\n/g, " ")
     .replace(/\t/g, " ")
@@ -191,3 +191,22 @@ export const formatDateShort = (date: Date | string): string => {
     day: "numeric",
   }).format(d);
 };
+
+export function stripText(sourceText: string): string {
+  // Implement using stripMarkdownSimple (provided above) or a library
+  if (!sourceText) return "";
+  // For demonstration, using a very basic version of stripMarkdownSimple:
+  let text = sourceText;
+  text = text.replace(/->([^<]+?)<-/g, ""); // <--- Process your custom syntax
+  text = text.replace(/^#{1,6}\s+/gm, ""); // Headers
+  text = text.replace(/([*_~]{1,3})([^*_~\n]+?)\1/gm, "$2"); // Bold, italic, strike
+  text = text.replace(/[*_~]{1,3}/g, ""); // Cleanup remaining markers
+  text = text.replace(/`([^`]+?)`/g, "$1"); // Inline code
+  text = text.replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1"); // Images
+  text = text.replace(/\[([^\]]+?)\]\([^)]+\)/g, "$1"); // Links
+  text = text.replace(/^[*\-+]\s+/gm, ""); // Basic list markers
+  text = text.replace(/^\d+\.\s+/gm, ""); // Numbered list markers
+  text = text.replace(/^>\s?/gm, ""); // Blockquotes
+  text = text.replace(/\s+/g, " ").trim(); // Normalize spaces
+  return text;
+}

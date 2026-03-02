@@ -69,8 +69,6 @@ export function RabbitholePickerContent({
   const showFilteredSuggestions = isSearching && hasFilteredSuggestions;
   const showNoResults = isSearching && !hasFilteredSuggestions;
 
-  console.log("Suggestions: ", suggestions);
-
   const renderSuggestions = (rabbitholes: IRabbithole[]) => (
     <Group gap="xs" wrap="wrap" align="center" pt="xs">
       {rabbitholes.map((rh) => (

@@ -4,21 +4,16 @@ import useFetch from "@core/hooks/useFetch";
 import {
   ActionIcon,
   Blockquote,
-  Box,
   Button,
   Card,
   Drawer,
   Group,
   Loader,
-  Paper,
-  ScrollAreaAutosize,
   Stack,
-  Switch,
   Text,
-  Textarea,
   Title,
 } from "@mantine/core";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import ContentWide from "@core/design/components/Layout/ContentWide";
@@ -28,7 +23,6 @@ import { ViewerMap } from "@domains/knowledge/components/Files/Viewers";
 import { useLayout } from "@/contexts/LayoutContext";
 import {
   CaretLeftIcon,
-  Eye,
   EyeIcon,
   FileIcon,
   FileMagnifyingGlassIcon,
@@ -39,15 +33,14 @@ import {
 import { ISource, ISourceForm, ISourceReference } from "../../../../../app/database/models/source";
 import Search from "@domains/discovery/components/Search/Search";
 import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
-import ConnectionManager from "@/components/Display/Interactions/Connections/ConnectionManager";
+import ConnectionManager from "@/core/design/components/Display/Interactions/Connections/ConnectionManager";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { updateSource } from "@domains/knowledge/utils/sources";
 import { showNotification } from "@mantine/notifications";
 import { SourceProvider, useSource } from "./SourceContext";
 import useConnectable from "@domains/knowledge/hooks/useConnectable";
-import TagsManager from "@/components/Display/Interactions/Tags/TagsManager";
-import { useSpyglassService } from "@domains/discovery/hooks/useSpyglassService";
+import TagsManager from "@/core/design/components/Display/Interactions/Tags/TagsManager";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 

@@ -42,6 +42,7 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       data: created,
     });
   } catch (error) {
+    console.error("Error creating user share: ", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

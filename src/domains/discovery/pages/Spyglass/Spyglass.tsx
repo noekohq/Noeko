@@ -7,7 +7,7 @@ import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 import { useEffect, useState } from "react";
 import { useSpyglassService } from "@domains/discovery/hooks/useSpyglassService";
 import { Link, useSearchParams } from "react-router";
-import PageWrapper from "@/components/Layout/PageWrapper";
+import PageWrapper from "@core/design/layout/PageWrapper";
 import TopBar from "@core/design/components/Layout/TopBar";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import { ClockCounterClockwiseIcon, MegaphoneIcon } from "@phosphor-icons/react";
