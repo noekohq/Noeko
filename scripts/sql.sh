@@ -61,7 +61,7 @@ fi
 
 DB_CONNECTION="${DB_HOST_CONNECTION:-$DEFAULT_DB_HOST_CONNECTION}"
 
-docker-compose exec surrealdb /surreal sql \
+docker compose exec surrealdb /surreal sql \
   --conn "$DB_CONNECTION" \
   --user "$DB_USER" \
   --pass "$DB_PASSWORD" \
