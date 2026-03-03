@@ -11,6 +11,7 @@ import {
 } from "@domains/knowledge/utils/excerpts";
 
 interface ISourceContext {
+  sourceId: string;
   excerpts: {
     all: IExcerpt[];
     create: (excerpt: IExcerptForm) => Promise<IExcerpt | undefined>;
@@ -22,6 +23,7 @@ interface ISourceContext {
 }
 
 const initialSourceContext: ISourceContext = {
+  sourceId: "",
   excerpts: {
     all: [],
     create: async () => undefined,
@@ -64,6 +66,7 @@ export const SourceProvider = ({
   }, [source?.id.toString()]);
 
   const value: ISourceContext = {
+    sourceId: source?.id.toString() || "",
     excerpts: {
       all: all ?? [],
       create: async (form) => {

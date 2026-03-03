@@ -1,98 +1,85 @@
 import { RecordId } from "surrealdb";
-import { IExcerpt, IPDFMetadata } from "../../../../../../../shared/types/excerpt";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { getFileDownloadLink } from "@infrastructure/api/userfiles";
-import {
-  ActionIcon,
-  Group,
-  Loader,
-  LoadingOverlay,
-  Stack,
-  Text,
-  Textarea,
-  TextInput,
-  useMantineTheme,
-} from "@mantine/core";
-import {
-  ArrowsClockwiseIcon,
-  CheckIcon,
-  FrameCornersIcon,
-  HighlighterIcon,
-  MagnifyingGlassMinusIcon,
-  MagnifyingGlassPlusIcon,
-  TrashIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { Loader, Text } from "@mantine/core";
 import styles from "./PDF.module.scss";
 
-/* -- EmbedPDF Configuration -- */
-import { createPluginRegistration, PluginRegistry } from "@embedpdf/core";
-import { PdfAnnotationSubtype, Rect, PdfDocumentObject, deserializeLogger } from "@embedpdf/models";
-import { EmbedPDF, PDFContext } from "@embedpdf/core/react";
+/* -- EmbedPDF V2 Configuration -- */
+import { createPluginRegistration } from "@embedpdf/core";
+import { EmbedPDF } from "@embedpdf/core/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
-import { useZoom, ZoomPluginPackage, ZoomMode } from "@embedpdf/plugin-zoom/react";
 import {
-  useViewportCapability,
-  Viewport,
-  ViewportPluginPackage,
-} from "@embedpdf/plugin-viewport/react";
-import { Scroller, ScrollPluginPackage, ScrollStrategy } from "@embedpdf/plugin-scroll/react";
-import { LoaderPlugin, LoaderPluginPackage } from "@embedpdf/plugin-loader/react";
+  DocumentManagerPluginPackage,
+  DocumentContent,
+} from "@embedpdf/plugin-document-manager/react";
+import { ViewportPluginPackage, Viewport } from "@embedpdf/plugin-viewport/react";
 import {
-  RenderLayer,
-  RenderPluginPackage,
-  useRenderCapability,
-} from "@embedpdf/plugin-render/react";
+  ScrollPluginPackage,
+  Scroller,
+  ScrollStrategy,
+  PageLayout,
+} from "@embedpdf/plugin-scroll/react";
+import { RenderPluginPackage, RenderLayer } from "@embedpdf/plugin-render/react";
+import { ZoomPluginPackage, ZoomMode, useZoom } from "@embedpdf/plugin-zoom/react";
+import { AnnotationPluginPackage, AnnotationLayer } from "@embedpdf/plugin-annotation/react";
+import { SelectionPluginPackage, SelectionLayer } from "@embedpdf/plugin-selection/react";
 import {
-  FormattedSelection,
-  SelectionLayer,
-  SelectionPluginPackage,
-  useSelectionCapability,
-} from "@embedpdf/plugin-selection/react";
-import {
-  AnnotationLayer,
-  AnnotationPlugin,
-  AnnotationPluginPackage,
-  TrackedAnnotation,
-  useAnnotationCapability,
-} from "@embedpdf/plugin-annotation/react";
-import {
-  GlobalPointerProvider,
   InteractionManagerPluginPackage,
+  GlobalPointerProvider,
   PagePointerProvider,
 } from "@embedpdf/plugin-interaction-manager/react";
-import Loading from "@core/design/components/Loading/Loading";
-import { PDFViewerProvider, usePDFViewer } from "./PDFContext";
-import { showNotification } from "@mantine/notifications";
-import { useSource } from "@domains/knowledge/pages/Sources/SourceContext";
-import useFetch from "@core/hooks/useFetch";
-import { useForm } from "@mantine/form";
-import { DreamWriter } from "@domains/editor";
 
-const defaultZoomLevel = ZoomMode.FitPage;
-const defaultPlugins = [
-  createPluginRegistration(ViewportPluginPackage, {
-    viewportGap: 14,
-  }),
-  createPluginRegistration(ScrollPluginPackage, {
-    strategy: ScrollStrategy.Vertical,
-  }),
-  createPluginRegistration(RenderPluginPackage),
-  createPluginRegistration(ZoomPluginPackage, {
-    defaultZoomLevel,
-  }),
-  createPluginRegistration(AnnotationPluginPackage),
-  createPluginRegistration(InteractionManagerPluginPackage),
-  createPluginRegistration(SelectionPluginPackage),
-  // createPluginRegistration(UIPluginPackage, {
-  //   components: defaultComponents,
-  // }),
-];
+import { PDFViewerProvider } from "./PDFContext";
+import SelectionMenu from "./SelectionMenu";
+import ExcerptAnnotationSync from "./ExcerptAnnotations";
+import { Toolbar } from "./Toolbar";
 
 interface IPDFViewerProps {
   fileId: string | RecordId | undefined;
 }
 
+// ------------------------------------------------------------------
+// 📄 PAGE COMPONENT: Extracted to safely consume hooks and refs per-page
+// ------------------------------------------------------------------
+function PDFPage({ documentId, layout }: { documentId: string; layout: PageLayout }) {
+  const { state: zoomState } = useZoom(documentId);
+  const scale = zoomState.currentZoomLevel;
+  const rotation = 0;
+
+  // Create a strict ref to the physical DOM wrapper of this page
+  const pageRef = useRef<HTMLDivElement | null>(null);
+
+  return (
+    <div
+      ref={pageRef}
+      className={styles.page}
+      style={{
+        width: `${layout.rotatedWidth}px`,
+        height: `${layout.rotatedHeight}px`,
+        position: "relative",
+        backgroundColor: "white",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      }}
+    >
+      <PagePointerProvider
+        documentId={documentId}
+        pageIndex={layout.pageIndex}
+        rotation={rotation}
+        scale={scale}
+      >
+        <RenderLayer documentId={documentId} pageIndex={layout.pageIndex} />
+        <SelectionLayer documentId={documentId} pageIndex={layout.pageIndex} />
+        <SelectionMenu documentId={documentId} pageIndex={layout.pageIndex} />
+        <ExcerptAnnotationSync documentId={documentId} pageIndex={layout.pageIndex} />
+        <AnnotationLayer documentId={documentId} pageIndex={layout.pageIndex} />
+      </PagePointerProvider>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------
+// MAIN VIEWER COMPONENT
+// ------------------------------------------------------------------
 export default function PDFViewer({ fileId }: IPDFViewerProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loadingPDFFile, setLoadingPDFFile] = useState<boolean>(true);
@@ -110,7 +97,7 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
         const objectUrl = await getFileDownloadLink(fileId.toString());
         setFileUrl(objectUrl);
       } catch (error) {
-        console.error("Error getting file download link:", error);
+        console.error("Error getting file link:", error);
         setFileUrl(null);
       } finally {
         setLoadingPDFFile(false);
@@ -120,459 +107,109 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
     fetchFile();
   }, [fileId]);
 
-  const plugins =
-    fileId && fileUrl
-      ? [
-          ...defaultPlugins,
-          createPluginRegistration(LoaderPluginPackage, {
-            loadingOptions: {
-              type: "url",
-              pdfFile: {
-                id: fileId.toString(),
-                url: fileUrl,
-              },
-            },
-          }),
-        ]
-      : [...defaultPlugins];
+  const { engine, isLoading: loadingEngine, error: engineError } = usePdfiumEngine();
 
-  const { engine, isLoading: loadingEngine } = usePdfiumEngine();
+  useEffect(() => {
+    if (engineError) console.error("Failed to load WASM:", engineError);
+  }, [engine, engineError]);
 
-  const loadingSomething = loadingEngine || loadingPDFFile;
+  const plugins = useMemo(() => {
+    if (!fileId || !fileUrl) return [];
 
-  if (loadingSomething) {
-    return (
-      <div>
-        <Loading color="blue" size="lg" />
-      </div>
-    );
-  }
+    return [
+      createPluginRegistration(DocumentManagerPluginPackage, {
+        initialDocuments: [{ url: fileUrl }],
+      }),
+      createPluginRegistration(ViewportPluginPackage, { viewportGap: 14 }),
+      createPluginRegistration(ScrollPluginPackage, {
+        defaultStrategy: ScrollStrategy.Vertical,
+        defaultPageGap: 14,
+      }),
+      createPluginRegistration(RenderPluginPackage),
+      createPluginRegistration(ZoomPluginPackage, { defaultZoomLevel: ZoomMode.FitWidth }),
+      createPluginRegistration(AnnotationPluginPackage),
+      createPluginRegistration(SelectionPluginPackage),
+      createPluginRegistration(InteractionManagerPluginPackage),
+    ];
+  }, [fileId, fileUrl]);
 
-  if (!engine) {
-    return (
-      <div>
-        <Text c="dimmed">Something went wrong.</Text>
-      </div>
-    );
-  }
+  const isLoading = loadingEngine || loadingPDFFile;
+
+  if (isLoading) return <Loader color="blue" size="lg" />;
+  if (!engine) return <Text c="dimmed">Failed to initialize PDF engine.</Text>;
+  if (!fileId || !fileUrl || plugins.length === 0)
+    return <Text c="dimmed">Awaiting file URL...</Text>;
 
   return (
-    <PDFViewerProvider
-      state={{
-        loading: loadingSomething,
-      }}
-    >
-      <div className={styles.viewer}>
+    <PDFViewerProvider state={{ loading: isLoading }}>
+      <div
+        className={styles.viewer}
+        style={{ height: "100%", minHeight: "600px", display: "flex", flexDirection: "column" }}
+      >
         <EmbedPDF engine={engine} plugins={plugins}>
-          {({ pluginsReady, isInitializing }) => {
+          {({ activeDocumentId }) => {
+            if (!activeDocumentId) return null;
+
             return (
               <>
-                <Toolbar />
-                <div className={styles.viewportContainer}>
-                  <div>
-                    <GlobalPointerProvider>
-                      <Viewport className={styles.viewPort}>
-                        <Scroller
-                          renderPage={({ width, height, pageIndex, scale, rotation }) => {
-                            return (
-                              <div className={styles.page} style={{ width, height }}>
-                                <PagePointerProvider
-                                  rotation={rotation}
-                                  scale={scale}
-                                  pageWidth={width}
-                                  pageHeight={height}
-                                  pageIndex={pageIndex}
-                                  style={{
-                                    width,
-                                    height,
-                                  }}
-                                >
-                                  <RenderLayer pageIndex={pageIndex} scaleFactor={scale} />
-                                  <SelectionLayer pageIndex={pageIndex} scale={scale} />
-                                  <SelectionMenu />
-                                  <AnnotationLayer
-                                    pageIndex={pageIndex}
-                                    scale={scale}
-                                    pageWidth={width}
-                                    pageHeight={height}
-                                    rotation={rotation}
-                                    selectionMenu={({
-                                      selected,
-                                      rect,
-                                      annotation,
-                                      menuWrapperProps,
-                                    }) => {
-                                      return (
-                                        <div
-                                          {...menuWrapperProps}
-                                          style={{
-                                            ...menuWrapperProps.style,
-                                          }}
-                                        >
-                                          {selected && (
-                                            <AnnotationMenu
-                                              trackedAnnotation={annotation}
-                                              rect={rect}
-                                            />
-                                          )}
-                                        </div>
-                                      );
-                                    }}
+                <Toolbar documentId={activeDocumentId} />
+                <DocumentContent documentId={activeDocumentId}>
+                  {(docState) => {
+                    if (docState.isError) {
+                      return (
+                        <div style={{ padding: 20, color: "red" }}>
+                          Error parsing PDF data buffer.
+                        </div>
+                      );
+                    }
+
+                    if (docState.isLoaded) {
+                      return (
+                        <div
+                          className={styles.viewportContainer}
+                          style={{ flex: 1, position: "relative", overflow: "hidden" }}
+                        >
+                          <GlobalPointerProvider documentId={activeDocumentId}>
+                            <Viewport
+                              documentId={activeDocumentId}
+                              className={styles.viewPort}
+                              style={{ position: "absolute", inset: 0 }}
+                            >
+                              <Scroller
+                                documentId={activeDocumentId}
+                                renderPage={(layout: PageLayout) => (
+                                  <PDFPage
+                                    key={`page-${layout.pageIndex}`}
+                                    documentId={activeDocumentId}
+                                    layout={layout}
                                   />
-                                </PagePointerProvider>
-                              </div>
-                            );
-                          }}
-                        />
-                      </Viewport>
-                    </GlobalPointerProvider>
-                  </div>
-                </div>
+                                )}
+                              />
+                            </Viewport>
+                          </GlobalPointerProvider>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          flex: 1,
+                        }}
+                      >
+                        <Loader size="sm" color="gray" />
+                      </div>
+                    );
+                  }}
+                </DocumentContent>
               </>
             );
           }}
         </EmbedPDF>
       </div>
     </PDFViewerProvider>
-  );
-}
-
-interface IToolbarProps {}
-
-function Toolbar() {
-  const { provides, state } = useZoom();
-  const { provides: annotations } = useAnnotationCapability();
-  const {
-    selection: {
-      formatted: { has: hasSelection, get: formattedSelection },
-      text: { get: selectedText },
-    },
-  } = usePDFViewer();
-
-  const excerptToAnnotation = async (excerpt: IExcerpt) => {
-    if (!excerpt.pdfMetadata) {
-      return;
-    }
-    const {
-      pdfMetadata: { pageIndex, data },
-    } = excerpt;
-
-    const pageAnnotations = await annotations?.getPageAnnotations({ pageIndex }).toPromise();
-    if (pageAnnotations?.find((pa) => pa.id === excerpt.id.toString())) {
-      annotations?.deleteAnnotation(pageIndex, excerpt.id.toString());
-    }
-    annotations?.createAnnotation(excerpt.pdfMetadata?.pageIndex, {
-      ...data,
-      id: excerpt.id.toString(),
-      type: PdfAnnotationSubtype.HIGHLIGHT,
-      color: "var(--color-highlight)",
-      opacity: 0.25,
-    });
-  };
-
-  const {
-    excerpts: { create: createExcerpt, all: allExcerpts },
-  } = useSource();
-  const loadAnnotations = useCallback(async () => {
-    allExcerpts.forEach(async (excerpt) => {
-      excerptToAnnotation(excerpt);
-    });
-  }, []);
-
-  useEffect(() => {
-    loadAnnotations();
-  }, []);
-
-  const { colors } = useMantineTheme();
-
-  const [highlighting, setHighlighting] = useState(false);
-  const highlightSelection = async () => {
-    try {
-      if (!formattedSelection) {
-        console.error("Attempted to highlight non-formatted selection.");
-        return;
-      }
-      if (!selectedText) {
-        console.error("No contents of selection: ", formattedSelection, selectedText);
-        return;
-      }
-      setHighlighting(true);
-      const {
-        formatted: { pageIndex, segmentRects, rect },
-      } = formattedSelection;
-      const { contents } = selectedText;
-      const metadata: IPDFMetadata["data"] = {
-        pageIndex,
-        type: PdfAnnotationSubtype.HIGHLIGHT,
-        segmentRects,
-        rect,
-      };
-      const excerpt = await createExcerpt({
-        sourceText: contents.join(""),
-        note: "",
-        pdfMetadata: { pageIndex, data: metadata },
-      });
-      if (!excerpt) {
-        console.error("Couldn't create excerpt: ", excerpt, formattedSelection, selectedText);
-        showNotification({
-          title: "Something went wrong",
-          message: "Couldn't create the excerpt.",
-        });
-        return;
-      }
-      excerptToAnnotation(excerpt);
-    } catch (error) {
-      console.error("Error highlighting text: ", error);
-    } finally {
-      setHighlighting(false);
-    }
-  };
-
-  return (
-    <div className={styles.toolbar}>
-      <Group gap="xs">
-        <ActionIcon
-          size="sm"
-          onClick={() => {
-            provides?.zoomOut();
-          }}
-          color="gray"
-          variant="light"
-        >
-          <MagnifyingGlassMinusIcon />
-        </ActionIcon>
-        <Text size="sm" style={{ minWidth: "40px", textAlign: "center" }}>
-          {Math.round(state.currentZoomLevel * 100)}%
-        </Text>
-        <ActionIcon
-          size="sm"
-          onClick={() => {
-            provides?.zoomIn();
-          }}
-          color="gray"
-          variant="light"
-        >
-          <MagnifyingGlassPlusIcon />
-        </ActionIcon>
-        <ActionIcon
-          size="sm"
-          onClick={() => {
-            provides?.requestZoom(defaultZoomLevel);
-          }}
-          color="gray"
-          variant="light"
-        >
-          <FrameCornersIcon />
-        </ActionIcon>
-      </Group>
-      {hasSelection && (
-        <>
-          <div className={styles.divider} />
-          <Group>
-            <ActionIcon
-              size="sm"
-              onClick={() => {
-                highlightSelection();
-              }}
-              color="gray"
-              variant="light"
-              loading={highlighting}
-              loaderProps={{
-                color: "gray",
-              }}
-            >
-              <HighlighterIcon />
-            </ActionIcon>
-          </Group>
-        </>
-      )}
-    </div>
-  );
-}
-
-type ISelectionMenuProps = {};
-
-function SelectionMenu({}: ISelectionMenuProps) {
-  const { provides: selections } = useSelectionCapability();
-  const { provides: annotations } = useAnnotationCapability();
-  const { isLoading } = useRenderCapability();
-
-  const {
-    excerpts: { all },
-  } = useSource();
-
-  const { colors } = useMantineTheme();
-
-  const {
-    state: { loading },
-  } = usePDFViewer();
-
-  const {
-    selection: {
-      formatted: { set: setFormattedSelection },
-      text: { set: setSelectionText },
-    },
-  } = usePDFViewer();
-
-  useEffect(() => {
-    selections?.onEndSelection(() => {
-      const formatted = selections.getFormattedSelection()[0];
-      if (formatted) {
-        setFormattedSelection({ formatted });
-      } else {
-        setFormattedSelection(null);
-      }
-    });
-    selections?.onSelectionChange(() => {
-      selections.getSelectedText().wait(
-        (value) => {
-          setSelectionText({ contents: value });
-        },
-        (err) => {
-          setSelectionText(null);
-        }
-      );
-    });
-  }, []);
-
-  return <div />;
-}
-
-interface IAnnotationMenuProps {
-  trackedAnnotation: TrackedAnnotation;
-  rect: Rect;
-}
-
-function AnnotationMenu({ trackedAnnotation, rect }: IAnnotationMenuProps) {
-  const { provides } = useAnnotationCapability();
-  const {
-    excerpts: { edit: updateExcerpt, delete: deleteExcerpt },
-  } = useSource();
-
-  const { contents, pageIndex, id } = trackedAnnotation.object;
-
-  const {
-    load: loadExcerpt,
-    data: excerpt,
-    loading: loadingExcerpt,
-  } = useFetch<undefined, IExcerpt>({
-    url: `/excerpts/${id}`,
-    dependencies: [id],
-  });
-
-  useEffect(() => {
-    if (id) {
-      loadExcerpt();
-    }
-  }, [id]);
-
-  const handleDeselectAnnotation = () => {
-    provides?.deselectAnnotation();
-  };
-
-  const handleRemoveAnnotation = () => {
-    provides?.deleteAnnotation(pageIndex, id);
-    deleteExcerpt(id);
-  };
-
-  const form = useForm({
-    initialValues: {
-      note: excerpt?.note ?? "",
-    },
-    validate: {
-      note: (value) => (value.length < 2 ? "Note must be at least 2 characters long" : null),
-    },
-  });
-
-  useEffect(() => {
-    if (excerpt) {
-      form.setDirty({ note: false });
-      form.setValues({
-        note: excerpt.note,
-      });
-    }
-  }, [excerpt]);
-
-  const [updatingNote, setUpdatingNote] = useState(false);
-  const handleUpdateNote = () => {
-    setUpdatingNote(true);
-    updateExcerpt(id, { note: form.values.note })
-      .then(() => {
-        handleDeselectAnnotation();
-      })
-      .finally(() => {
-        setUpdatingNote(false);
-      });
-  };
-
-  return (
-    <div
-      style={{
-        top: rect.size.height,
-        pointerEvents: "auto",
-        position: "absolute",
-      }}
-      className={styles.annotationMenu}
-    >
-      <Stack gap="sm">
-        {loadingExcerpt && (
-          <Group>
-            <Loader size="xs" color="gray" />
-          </Group>
-        )}
-        <Group gap="xs" justify="space-between">
-          <Textarea
-            placeholder="Make a note..."
-            minRows={2}
-            autosize
-            {...form.getInputProps("note")}
-            variant="unstyled"
-            w="100%"
-            disabled={loadingExcerpt}
-          />
-        </Group>
-        <Group justify="space-between" gap="xs">
-          <Group gap="xs">
-            <ActionIcon
-              size="sm"
-              variant="subtle"
-              color="gray"
-              title="Exit menu"
-              onClick={() => {
-                handleDeselectAnnotation();
-              }}
-            >
-              <XIcon />
-            </ActionIcon>
-          </Group>
-          <Group gap="xs">
-            <ActionIcon
-              onClick={() => {
-                handleRemoveAnnotation();
-              }}
-              size="sm"
-              variant="light"
-              color="gray"
-              title="Remove annotation"
-            >
-              <TrashIcon />
-            </ActionIcon>
-            <ActionIcon
-              onClick={() => {
-                handleUpdateNote();
-              }}
-              size="sm"
-              variant="light"
-              color="gray"
-              title="Update annotation"
-              loading={updatingNote}
-              disabled={!form.isDirty("note")}
-            >
-              <CheckIcon weight="bold" />
-            </ActionIcon>
-          </Group>
-        </Group>
-      </Stack>
-    </div>
   );
 }

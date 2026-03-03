@@ -60,11 +60,15 @@ export default function CaptureButton() {
       },
     },
     {
-      label: "Task",
+      label: "Quest",
       icon: CheckIcon,
       action: () => {
         newTask();
         toggle();
+      },
+      tag: {
+        label: "EXPERIMENTAL",
+        color: "orange.7",
       },
     },
     {

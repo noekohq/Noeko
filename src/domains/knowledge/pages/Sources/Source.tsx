@@ -9,45 +9,58 @@ import {
   Drawer,
   Group,
   Loader,
+  Menu,
   Stack,
   Text,
-  Title,
+  Tooltip,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
+import { showNotification } from "@mantine/notifications";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDebouncedCallback } from "@mantine/hooks";
+
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import ContentWide from "@core/design/components/Layout/ContentWide";
-import StatusBar from "@core/design/components/Layout/Bottom";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import Nav from "@core/design/components/Layout/Nav";
+import TopBar from "@core/design/components/Layout/TopBar";
+import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
+import PaperEyebrow from "@/core/design/components/Paper/PaperEyebrow/PaperEyebrow";
+import { PaperTitle } from "@/core/design/components/Paper/PaperTitle/PaperTitle";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
+
 import { ViewerMap } from "@domains/knowledge/components/Files/Viewers";
 import { useLayout } from "@/contexts/LayoutContext";
+import { useLandscape } from "@/contexts/LandscapeContext";
+import { ISource, ISourceForm, ISourceReference } from "../../../../../app/database/models/source";
+import Search from "@domains/discovery/components/Search/Search";
+import ConnectionManager from "@/core/design/components/Display/Interactions/Connections/ConnectionManager";
+import TagsManager from "@/core/design/components/Display/Interactions/Tags/TagsManager";
+import { updateSource } from "@domains/knowledge/utils/sources";
+import { SourceProvider, useSource } from "./SourceContext";
+import useConnectable from "@domains/knowledge/hooks/useConnectable";
+import usePins from "@domains/knowledge/hooks/usePins";
+
 import {
-  CaretLeftIcon,
+  ArrowLeftIcon,
+  DotsThreeVerticalIcon,
   EyeIcon,
   FileIcon,
   FileMagnifyingGlassIcon,
   IntersectSquareIcon,
+  PushPinIcon,
   SparkleIcon,
   TextAlignLeftIcon,
+  TrashSimpleIcon,
+  UniteSquareIcon,
 } from "@phosphor-icons/react";
-import { ISource, ISourceForm, ISourceReference } from "../../../../../app/database/models/source";
-import Search from "@domains/discovery/components/Search/Search";
-import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
-import ConnectionManager from "@/core/design/components/Display/Interactions/Connections/ConnectionManager";
-import { useLandscape } from "@/contexts/LandscapeContext";
-import { useDebouncedCallback } from "@mantine/hooks";
-import { updateSource } from "@domains/knowledge/utils/sources";
-import { showNotification } from "@mantine/notifications";
-import { SourceProvider, useSource } from "./SourceContext";
-import useConnectable from "@domains/knowledge/hooks/useConnectable";
-import TagsManager from "@/core/design/components/Display/Interactions/Tags/TagsManager";
-import Nav from "@core/design/components/Layout/Nav";
-import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Source() {
   const { sourceId } = useParams();
-
   const navigate = useNavigate();
+
+  const isDeletingRef = useRef(false);
 
   const { data: source, load: loadSource } = useFetch<undefined, ISource>({
     url: `/sources/${sourceId}`,
@@ -65,15 +78,9 @@ export default function Source() {
 
   useEffect(() => {
     if (source) {
-      setViewing({
-        ...source,
-        type: "source",
-      });
+      setViewing({ ...source, type: "source" });
     }
-
-    return () => {
-      setViewing(null);
-    };
+    return () => setViewing(null);
   }, [source]);
 
   const file = source?.references as ISourceReference;
@@ -100,14 +107,14 @@ export default function Source() {
     },
   } = useLayout();
 
-  const leftModeToClass: Record<typeof leftMode, string> = {
+  const leftModeToClass: Record<string, string> = {
     open: styles.leftOpen,
     collapsed: styles.leftCollapsed,
     compact: styles.leftCompact,
     hovering: `${styles.leftOpen} ${styles.leftHovering}`,
   };
 
-  const rightModeToClass: Record<typeof rightMode, string> = {
+  const rightModeToClass: Record<string, string> = {
     open: styles.rightOpen,
     collapsed: styles.rightCollapsed,
     compact: styles.rightCompact,
@@ -125,17 +132,63 @@ export default function Source() {
 
   const handleFieldUpdate = async (field: string, value: any) => {
     try {
-      debouncedUpdate({
-        [field]: value,
-      });
+      debouncedUpdate({ [field]: value });
     } catch (error) {
       showNotification({
         title: "Something went wrong",
         message: "Something went wrong updating the field...",
+        color: "red",
       });
       console.error("Couldn't update field: ", error);
     }
   };
+
+  const { load: triggerDeleteSource, loading: loadingDelete } = useFetch({
+    url: `/sources/${sourceId}`,
+    dependencies: [sourceId],
+    method: "DELETE",
+    runOnMount: false,
+    onSuccess: () => {
+      navigate(-1);
+      showNotification({
+        title: "Success",
+        message: "Source deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      isDeletingRef.current = false;
+      showNotification({
+        title: "Error Deleting",
+        message: error?.message || "Unknown error",
+        color: "red",
+      });
+    },
+  });
+
+  const handleDeleteSource = useCallback(() => {
+    if (loadingDelete) return;
+
+    modals.openConfirmModal({
+      title: "Delete this source?",
+      centered: true,
+      children: (
+        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
+      ),
+      labels: { confirm: "Delete Source", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => {
+        isDeletingRef.current = true;
+        triggerDeleteSource();
+      },
+    });
+  }, [loadingDelete, triggerDeleteSource]);
+
+  const { load: requestAnalysis, loading: loadingAnalysis } = useFetch({
+    url: `/sources/${source?.id.toString()}/analyze`,
+    onFinally: () => {
+      loadSource();
+    },
+  });
 
   return (
     <SourceProvider source={source}>
@@ -158,23 +211,24 @@ export default function Source() {
                   </Group>
                 </Tabs.Tab>
                 <Tabs.Tab value="excerpts">
-                  <TextAlignLeftIcon />
-                  Excerpts
+                  <Group gap="xs">
+                    <TextAlignLeftIcon />
+                    Excerpts
+                  </Group>
                 </Tabs.Tab>
               </Tabs.List>
+
               <Tabs.Panel value="context">
-                <Stack gap="md">
+                <Stack gap="md" mt="md">
                   {!source?.analysis && (
-                    <>
-                      <Text size="xs" c="dimmed">
-                        This source hasn't been analyzed.
-                      </Text>
-                    </>
+                    <Text size="xs" c="dimmed">
+                      This source hasn't been analyzed.
+                    </Text>
                   )}
                   {source?.analysis && (
                     <Card
                       radius="lg"
-                      p={"sm"}
+                      p="sm"
                       styles={{
                         root: {
                           backgroundColor: "var(--mantine-color-dark-8) !important",
@@ -182,82 +236,82 @@ export default function Source() {
                         },
                       }}
                     >
-                      <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+                      <Text fw="bold" c="dimmed" size="sm" mb={4}>
                         The Gist
                       </Text>
                       <Text size="sm">{source.analysis.headline}</Text>
                     </Card>
                   )}
-                  {!!source && (
-                    <TagsManager connectable={{ ...source, type: "source" }} maxSuggested={2} />
-                  )}
-                  {!!source && (
-                    <ConnectionManager
-                      connectable={{
-                        ...source,
-                        type: "source",
-                      }}
-                    />
-                  )}
+                  {!!source && <ConnectionManager connectable={{ ...source, type: "source" }} />}
                 </Stack>
               </Tabs.Panel>
+
               <Tabs.Panel value="analysis">
                 <AnalysisBlock
                   analysis={source?.analysis}
                   source={source}
-                  reloadSource={() => {
-                    loadSource();
-                  }}
+                  loading={loadingAnalysis}
+                  onRequestAnalysis={requestAnalysis}
                 />
               </Tabs.Panel>
+
               <Tabs.Panel value="excerpts">
                 <ExcerptsPanel />
               </Tabs.Panel>
             </Tabs>
           </LeftSidebar.Open>
         </LeftSidebar>
+
         <ContentWide>
           <div className={styles.fileView}>
-            <Group gap="xs">
-              <ActionIcon
-                onClick={() => {
-                  navigate(-1);
-                }}
-                color="gray"
-                variant="subtle"
-                size="sm"
-              >
-                <CaretLeftIcon weight="bold" />
-              </ActionIcon>
-              <Title
-                contentEditable
-                onBlur={(e) => {
-                  handleFieldUpdate("displayName", e.currentTarget.innerText);
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: source?.displayName || "",
-                }}
-              />
-            </Group>
-            {file && (
-              <div className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}>
-                <Suspense
-                  fallback={
-                    <Text size="xs" c="dimmed">
-                      Loading viewer...
-                    </Text>
-                  }
-                >
-                  {Viewer ? (
-                    <Viewer fileId={file.id.toString()} />
-                  ) : (
-                    <Text>No viewer available for this type of file :/</Text>
+            <Stack gap="md">
+              <Stack>
+                {source && (
+                  <SourceTools
+                    source={source}
+                    onDelete={handleDeleteSource}
+                    loadingDelete={loadingDelete}
+                    onRequestAnalysis={requestAnalysis}
+                    loadingAnalysis={loadingAnalysis}
+                  />
+                )}
+
+                <Group gap="xs">
+                  {source && (
+                    <PaperTitle
+                      title={source.displayName || "Untitled Source"}
+                      onUpdate={(newTitle) => handleFieldUpdate("displayName", newTitle)}
+                      canEdit={true}
+                    />
                   )}
-                </Suspense>
-              </div>
-            )}
+                </Group>
+              </Stack>
+
+              {!!source && (
+                <TagsManager connectable={{ ...source, type: "source" }} maxSuggested={2} />
+              )}
+
+              {file && (
+                <div className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}>
+                  <Suspense
+                    fallback={
+                      <Text size="xs" c="dimmed">
+                        Loading viewer...
+                      </Text>
+                    }
+                  >
+                    {Viewer ? (
+                      <Viewer fileId={file.id.toString()} />
+                    ) : (
+                      <Text>No viewer available for this type of file :/</Text>
+                    )}
+                  </Suspense>
+                </div>
+              )}
+            </Stack>
           </div>
         </ContentWide>
+
         <Nav />
         <RightSidebar>
           <RightSidebar.Open>
@@ -265,7 +319,7 @@ export default function Source() {
               {!!file && (
                 <Card
                   radius="lg"
-                  p={"xs"}
+                  p="xs"
                   styles={{
                     root: {
                       backgroundColor: "var(--mantine-color-dark-8) !important",
@@ -310,15 +364,137 @@ export default function Source() {
   );
 }
 
+// --- SourceTools Component ---
+interface ISourceTools {
+  source: ISource;
+  onDelete: () => void;
+  loadingDelete: boolean;
+  onRequestAnalysis: () => void;
+  loadingAnalysis: boolean;
+}
+
+function SourceTools({
+  source,
+  onDelete,
+  loadingDelete,
+  onRequestAnalysis,
+  loadingAnalysis,
+}: ISourceTools) {
+  const { isMobile } = useLayout();
+  const navigate = useNavigate();
+  const { thingIsPinned, togglePin } = usePins();
+
+  const [pinning, setPinning] = useState(false);
+  const [managingConnections, setManagingConnections] = useState(false);
+
+  const isPinned = thingIsPinned(source.id);
+  const size = isMobile ? "lg" : "md";
+  const radius = "md";
+
+  const handleTogglePin = async () => {
+    try {
+      setPinning(true);
+      await togglePin(source.id.toString());
+    } finally {
+      setPinning(false);
+    }
+  };
+
+  return (
+    <div>
+      <PaperEyebrow
+        actions={[
+          {
+            icon: ArrowLeftIcon,
+            name: "Back",
+            run: () => navigate(-1),
+          },
+          {
+            icon: PushPinIcon,
+            name: isPinned ? "Unpin" : "Pin",
+            run: () => !pinning && handleTogglePin(),
+            weight: isPinned ? "fill" : "bold",
+          },
+          {
+            icon: SparkleIcon,
+            name: "Analyze",
+            run: onRequestAnalysis,
+            disabled: loadingAnalysis || !!source.analysis,
+          },
+          {
+            icon: UniteSquareIcon,
+            name: "Manage Connections",
+            run: () => setManagingConnections(true),
+            invisible: !isMobile,
+          },
+        ]}
+        right={
+          <>
+            <Menu
+              width={200}
+              shadow="md"
+              position="bottom-end"
+              radius={radius}
+              withArrow
+              arrowOffset={14}
+              zIndex={700}
+            >
+              <Menu.Target>
+                <div>
+                  <ActionIcon
+                    aria-label="More options"
+                    size={size}
+                    radius={radius}
+                    variant="subtle"
+                    color="gray"
+                  >
+                    <DotsThreeVerticalIcon weight="bold" />
+                  </ActionIcon>
+                </div>
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                <Tooltip label="Delete Source">
+                  <Menu.Item
+                    color="red"
+                    leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
+                    onClick={onDelete}
+                    disabled={loadingDelete}
+                  >
+                    Delete
+                  </Menu.Item>
+                </Tooltip>
+              </Menu.Dropdown>
+            </Menu>
+          </>
+        }
+      />
+
+      {isMobile && (
+        <>
+          <PaperDrawer
+            title="Manage Connections"
+            opened={managingConnections}
+            onClose={() => setManagingConnections(false)}
+          >
+            <ConnectionManager connectable={{ ...source, type: "source" }} />
+          </PaperDrawer>
+        </>
+      )}
+    </div>
+  );
+}
+
+// --- Subcomponents ---
 interface IAnalysisBlockProps {
   analysis?: ISource["analysis"];
   source?: ISource;
-  reloadSource: () => void;
+  loading: boolean;
+  onRequestAnalysis: () => void;
 }
-function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) {
+
+function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalysisBlockProps) {
   const [abstractOpen, setAbstractOpen] = useState(false);
-  const [findingsOpen, setFindingsOpen] = useState(false);
-  const [outlineOpen, setOutlineOpen] = useState(false);
 
   const abstract = analysis?.abstract ?? "";
 
@@ -328,57 +504,42 @@ function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) 
     return abstract.length > maxLength ? `${abstract.slice(0, maxLength)}...` : abstract;
   };
 
-  const { load: requestAnalysis, loading: loadingAnalysis } = useFetch({
-    url: `/sources/${source?.id.toString()}/analyze`,
-    onFinally: () => {
-      reloadSource();
-    },
-  });
-
-  const handleRequestAnalysis = () => {
-    requestAnalysis();
-  };
-
   if (!analysis) {
     return (
-      <>
-        <Stack>
-          <Text size="sm" c="dimmed">
-            This source hasn't been analyzed.
-          </Text>
-          <Text size="xs" c="dark.3">
-            Analysis uses third-party AI models in accordance with our{" "}
-            <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
-          </Text>
-          <Button
-            variant="light"
-            onClick={() => {
-              handleRequestAnalysis();
-            }}
-            disabled={loadingAnalysis}
-            leftSection={loadingAnalysis ? <Loader size="sm" color="white" /> : ""}
-            size="sm"
-            fullWidth
-            color="gray"
-            rightSection={<EyeIcon />}
-          >
-            {loadingAnalysis ? "Analyzing..." : "Analyze source"}
-          </Button>
-        </Stack>
-      </>
+      <Stack mt="md">
+        <Text size="sm" c="dimmed">
+          This source hasn't been analyzed.
+        </Text>
+        <Text size="xs" c="dark.3">
+          Analysis uses third-party AI models in accordance with our{" "}
+          <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+        </Text>
+        <Button
+          variant="light"
+          onClick={onRequestAnalysis}
+          disabled={loading}
+          leftSection={loading ? <Loader size="sm" color="white" /> : ""}
+          size="sm"
+          fullWidth
+          color="gray"
+          rightSection={<EyeIcon />}
+        >
+          {loading ? "Analyzing..." : "Analyze source"}
+        </Button>
+      </Stack>
     );
   }
 
   return (
     <>
-      <Stack>
+      <Stack mt="md">
         <Text size="xs" c="dark.3">
           Analysis uses third-party AI models in accordance with our{" "}
           <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
         </Text>
         <Card
           radius="lg"
-          p={"sm"}
+          p="sm"
           styles={{
             root: {
               backgroundColor: "var(--mantine-color-dark-8) !important",
@@ -386,14 +547,14 @@ function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) 
             },
           }}
         >
-          <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+          <Text fw="bold" c="dimmed" size="sm" mb={4}>
             The Gist
           </Text>
           <Text size="sm">{analysis.headline}</Text>
         </Card>
         <Card
           radius="lg"
-          p={"sm"}
+          p="sm"
           styles={{
             root: {
               backgroundColor: "var(--mantine-color-dark-8) !important",
@@ -402,7 +563,7 @@ function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) 
           }}
         >
           <Stack gap="md">
-            <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
+            <Text fw="bold" c="dimmed" size="sm" mb={4}>
               Abstract
             </Text>
             <Text size="sm">{getTruncatedAbstract()}</Text>
@@ -410,9 +571,7 @@ function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) 
               <Group>
                 <Button
                   variant="light"
-                  onClick={() => {
-                    setAbstractOpen(true);
-                  }}
+                  onClick={() => setAbstractOpen(true)}
                   color="gray"
                   size="xs"
                 >
@@ -426,9 +585,7 @@ function AnalysisBlock({ analysis, source, reloadSource }: IAnalysisBlockProps) 
 
       <Drawer
         opened={abstractOpen}
-        onClose={() => {
-          setAbstractOpen(false);
-        }}
+        onClose={() => setAbstractOpen(false)}
         position="left"
         offset="24px"
         radius="lg"
@@ -451,30 +608,28 @@ function ExcerptsPanel() {
   } = useSource();
 
   return (
-    <div>
-      <Stack gap="sm">
-        <Text size="sm" c="dark.4" fw="bold">
-          <Group gap="xs">
-            <TextAlignLeftIcon weight="bold" />
-            EXCERPTS
-          </Group>
+    <Stack gap="sm" mt="md">
+      <Text size="sm" c="dark.4" fw="bold">
+        <Group gap="xs">
+          <TextAlignLeftIcon weight="bold" />
+          EXCERPTS
+        </Group>
+      </Text>
+      {!all.length && (
+        <Text size="sm" c="dimmed">
+          No excerpts yet, try highlighting some text :)
         </Text>
-        {!all.length && (
-          <Text size="sm" c="dimmed">
-            No excerpts yet, try highlighting some text :)
-          </Text>
-        )}
-        {all.map((excerpt) => {
-          return (
-            <Stack gap="xs">
-              <Blockquote color="gray" p="xs">
-                <Text size="sm">{excerpt.sourceText}</Text>
-              </Blockquote>
-              {excerpt.note && <Text size="sm">{excerpt.note}</Text>}
-            </Stack>
-          );
-        })}
-      </Stack>
-    </div>
+      )}
+      {all.map((excerpt, index) => {
+        return (
+          <Stack gap="xs" key={excerpt.id.toString() || index}>
+            <Blockquote color="gray" p="xs">
+              <Text size="sm">{excerpt.sourceText}</Text>
+            </Blockquote>
+            {excerpt.note && <Text size="sm">{excerpt.note}</Text>}
+          </Stack>
+        );
+      })}
+    </Stack>
   );
 }

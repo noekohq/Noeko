@@ -88,6 +88,7 @@ import { userFormattedName } from "@domains/identity/utils/user";
 import { isEqual } from "lodash";
 import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
 import PaperEyebrow from "@/core/design/components/Paper/PaperEyebrow/PaperEyebrow";
+import { PaperTitle } from "@/core/design/components/Paper/PaperTitle/PaperTitle";
 
 // --- Types ---
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
@@ -244,11 +245,17 @@ export default function Idea() {
     await triggerDerivedCascade();
   };
 
-  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } = useFetch({
+  const { load: triggerTitleGeneration, loading: loadingTitleGeneration } = useFetch<
+    undefined,
+    ISafeIdea
+  >({
     url: `/ideas/${ideaId}/entitle`,
     dependencies: [ideaId],
     method: "POST",
     onFinally: reloadIdea,
+    onSuccess: () => {
+      reloadIdea();
+    },
   });
 
   const embeddingsOutOfDate = useCallback(() => {
@@ -471,29 +478,16 @@ export default function Idea() {
                 )}
 
                 <Group gap="xs">
-                  <Title
-                    ref={titleRef}
-                    order={1}
-                    m="0"
-                    pr="md"
-                    contentEditable={canEdit}
-                    suppressContentEditableWarning
-                    onBlur={(e) => {
-                      if (isOptimistic) return;
-                      const newTitle = e.currentTarget.innerText;
-                      if (newTitle !== title) {
-                        setTitle(newTitle);
-                        updateTitle(newTitle);
-                      }
-                    }}
-                    className={styles.editableTitle}
-                    style={{
-                      opacity: canEdit ? 1 : 0.7,
-                      cursor: canEdit ? "text" : "default",
-                    }}
-                  >
-                    {title || ""}
-                  </Title>
+                  <PaperTitle
+                    title={ideaToRender?.title || ""}
+                    onUpdate={updateTitle}
+                    canEdit={canEdit && !isOptimistic}
+                    isViewOnly={isViewOnly}
+                    needsGeneration={titleNeedsGeneration() && !isOptimistic}
+                    onGenerate={() => triggerTitleGeneration()}
+                    isGenerating={loadingTitleGeneration}
+                    wasGenerated={!!safeIdea?.titleGeneratedAt}
+                  />
 
                   {isViewOnly && (
                     <Badge color="gray" variant="outline">
