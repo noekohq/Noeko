@@ -38,7 +38,6 @@ export function getThingPropsFromConnectable(
   const preview: IPaperThingProps["preview"] | undefined =
     overrides?.preview ?? (getNodeContent(connectable) || "No content available.");
 
-  // Check if item has author field (indicates shared item)
   let artifacts: IPaperThingProps["artifacts"] = overrides?.artifacts;
   if (!artifacts && "author" in connectable && connectable.author) {
     const { firstName, lastName } = connectable.author;

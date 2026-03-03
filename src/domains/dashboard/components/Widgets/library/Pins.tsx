@@ -3,35 +3,53 @@ import { IWidgetConfig } from "../index.d";
 import usePins from "@domains/knowledge/hooks/usePins";
 import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import ConnectableThing from "@core/design/components/Display/Interactions/Connections/ConnectableThing";
-import { PushPinIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, PushPinIcon } from "@phosphor-icons/react";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
 import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
+import { Link } from "react-router";
 
 export default function Pins() {
   const { pins, pinThing, unpinThing } = usePins();
 
+  const firstN = pins.slice(0, 6);
+
   return (
     <div className={styles.pins}>
       <Stack>
-        <Text size="sm" fw="bold" c="dimmed">
-          <Group gap="4px">
-            <PushPinIcon weight="bold" />
-            YOUR PINS
-          </Group>
-        </Text>
+        <Group justify="space-between">
+          <Text size="sm" fw="bold" c="dimmed">
+            <Group gap="4px">
+              <PushPinIcon weight="bold" />
+              RECENT PINS
+            </Group>
+          </Text>
+          <Link
+            to="/pinned"
+            style={{
+              textDecoration: "none",
+            }}
+          >
+            <Text size="sm" c="dark.4">
+              <Group align="center" gap="4px">
+                All
+                <ArrowRightIcon />
+              </Group>
+            </Text>
+          </Link>
+        </Group>
         {pins.length <= 0 && (
           <Text size="sm" c="dimmed">
             No pins.
           </Text>
         )}
-        {pins.length > 0 && (
+        {firstN.length > 0 && (
           <SimpleGrid
             cols={{
               sm: 1,
               md: 2,
             }}
           >
-            {pins.map((pin) => {
+            {firstN.map((pin) => {
               const props = getThingPropsFromConnectable(pin, {}, true);
               return (
                 <div key={pin.id.toString()}>

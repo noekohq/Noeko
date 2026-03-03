@@ -163,7 +163,7 @@ export type IAcceleratorShelfUIDetails = {
 
 export const resolveShelfToDetails: Record<IShelfData["id"], IAcceleratorShelfUIDetails> = {
   urgent: {
-    title: "Urgent Tasks",
+    title: "Urgent Quests",
     action: (nav) => {
       nav("/agenda");
     },

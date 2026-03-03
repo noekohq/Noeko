@@ -455,7 +455,7 @@ export default function Users() {
                             color: "blue",
                           },
                           {
-                            name: "Tasks",
+                            name: "Quests",
                             color: "green",
                           },
                           {
@@ -613,7 +613,7 @@ export default function Users() {
                         data={userActivity(selectedUser)}
                         dataKey="date"
                         series={[
-                          { name: "Tasks", color: "green" },
+                          { name: "Quests", color: "green" },
                           { name: "Ideas", color: "blue" },
                           { name: "Idea Views", color: "orange" },
                           { name: "Spyglass Queries", color: "pink" },

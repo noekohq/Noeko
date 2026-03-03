@@ -84,7 +84,7 @@ export default function Export() {
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Text size="sm">
-                    The markdown export will export all of your ideas and tasks as Markdown, which
+                    The markdown export will export all of your ideas and quests as Markdown, which
                     will then be parsed in a Zip folder.
                   </Text>
                 </HoverCard.Dropdown>

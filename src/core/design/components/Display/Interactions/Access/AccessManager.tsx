@@ -187,7 +187,6 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
         </Group>
       </Box>
 
-      {/* Share / Add User Section */}
       {!showAddForm ? (
         <Button
           leftSection={<ShareNetworkIcon />}

@@ -527,20 +527,6 @@ router.get("/:tagId/suggestions", async (req, res): Promise<void> => {
       return;
     }
 
-    // Ensure tag exists and has embeddings before calling the search function
-    const tagExists = await Tag.get(tagId);
-    if (!tagExists) {
-      res.status(404).json({ message: "Tag not found." });
-      return;
-    }
-    if (!tagExists.embeddings || tagExists.embeddings.length === 0) {
-      res.status(200).json({
-        message: "Tag has no embeddings to compare, no similar ideas found.",
-        data: [],
-      });
-      return;
-    }
-
     const options = {
       limit: parsedLimit,
       threshold: parsedThreshold,

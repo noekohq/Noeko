@@ -149,7 +149,7 @@ export default function OverviewAccordion({ overview }: IOverviewAccordionProps)
       )}
       {tasks && (
         <Accordion.Item value="tasks">
-          <Accordion.Control icon={<NotepadIcon />}>Tasks</Accordion.Control>
+          <Accordion.Control icon={<NotepadIcon />}>Quests</Accordion.Control>
           <Accordion.Panel>
             <List type="unordered">
               {tasks.map((item, index) => (

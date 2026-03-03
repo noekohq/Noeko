@@ -13,27 +13,16 @@ import { useNavigate } from "react-router";
 import { getThingsFromConnectables } from "@core/design/components/Paper/Things/thingUtils";
 import { GridFourIcon, ListIcon, PushPinIcon } from "@phosphor-icons/react";
 import PaperThings from "@core/design/components/Paper/Things/PaperThings";
+import usePins from "../../hooks/usePins";
 
 export default function PinsPage() {
-  const {
-    data: pins,
-    loading,
-    load: loadPins,
-  } = useFetch<undefined, IConnectable[]>({
-    url: "/pins/things",
-  });
+  const { pins, loadingPins } = usePins();
 
   const {
     global: {
       query: { get: searchQuery },
     },
   } = useSearch();
-
-  useEffect(() => {
-    loadPins();
-  }, []);
-
-  const navigate = useNavigate();
 
   return (
     <PageWrapper>
@@ -50,19 +39,20 @@ export default function PinsPage() {
             </Title>
           </Group>
 
-          {loading && (
+          {loadingPins && (
             <Group justify="center">
               <Loader />
             </Group>
           )}
 
-          {!loading && pins?.length === 0 && (
+          {!loadingPins && pins?.length === 0 && (
             <Text size="sm" c="dimmed">
               No pinned items.
             </Text>
           )}
 
           <PaperThings
+            storageKey="pins"
             modes={[
               {
                 value: "list",

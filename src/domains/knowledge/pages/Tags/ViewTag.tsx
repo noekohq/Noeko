@@ -21,10 +21,8 @@ import {
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
-import useFetch from "@core/hooks/useFetch";
-import { ITag, ITagForm } from "../../../../../app/database/models/tag";
+import { ITag, ITagForm, ITagDescribes } from "../../../../../app/database/models/tag";
 import { useNavigate, useParams } from "react-router";
-import { ITagDescribes } from "../../../../../app/database/models/tag";
 import {
   ClockIcon,
   FloppyDiskIcon,
@@ -39,6 +37,7 @@ import {
   WarningCircleIcon,
   XIcon,
   DotsThreeVerticalIcon,
+  CircleNotchIcon,
 } from "@phosphor-icons/react";
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
@@ -48,7 +47,6 @@ import Content from "@core/design/components/Layout/Content";
 import Search from "@domains/discovery/components/Search/Search";
 import { useLayout } from "@/contexts/LayoutContext";
 import { RecordId } from "surrealdb";
-import { applyTagToThing, removeTagFromThing } from "@domains/knowledge/utils/tags";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 import {
@@ -60,94 +58,35 @@ import PaperThings from "@core/design/components/Paper/Things/PaperThings";
 import GraphContainer from "@domains/constellation/components/Graph/Graph";
 import { fromConstellation } from "@infrastructure/graph/utils";
 import PaperEyebrow from "@/core/design/components/Paper/PaperEyebrow/PaperEyebrow";
+import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
 import { formatDate, formatDateTime } from "@core/utils/formatting";
+import useTag from "../../hooks/useTag";
 
 export default function ViewTag() {
   const navigate = useNavigate();
   const { tagId } = useParams<{ tagId: string }>();
 
   const {
-    data: tag,
-    loading: loadingTag,
-    errors: tagErrors,
-    load: reloadTag,
-  } = useFetch<undefined, ITag>({
-    url: `/tags/${tagId}`,
-    runOnMount: true,
-  });
-
-  const {
-    data: things,
-    loading: loadingThings,
-    errors: thingErrors,
-    load: reloadThings,
-  } = useFetch<undefined, ITagDescribes[]>({
-    url: `/tags/${tagId}/things`,
-    runOnMount: true,
-  });
-
-  const {
-    data: suggestedThings,
-    loading: loadingSuggestedThings,
-    errors: suggestedThingsErrors,
-    load: reloadSuggestedThings,
-  } = useFetch<undefined, ITagDescribes[]>({
-    url: `/tags/${tagId}/suggestions`,
-    runOnMount: true,
-  });
-
-  const somethingLoading = loadingTag || loadingThings || loadingSuggestedThings;
-
-  const handleRefresh = async () => {
-    await reloadTag();
-    await reloadThings();
-    await reloadSuggestedThings();
-  };
-
-  const handleAddTag = async (thingId: string | RecordId) => {
-    if (!tag) {
-      console.error("Cannot add tag: Tag data not loaded.");
-      return;
-    }
-    try {
-      await applyTagToThing(tag.id.toString(), thingId.toString());
-      handleRefresh();
-    } catch (error) {
-      console.error(`Failed to add tag ${tag.name} to thing ${thingId}:`, error);
-      showNotification({
-        title: "Error",
-        message: "Something went wrong adding the tag",
-        color: "red",
-      });
-    }
-  };
-
-  const handleRemoveTag = async (thing: ITagDescribes) => {
-    if (!tag) {
-      console.error("Cannot remove tag: Tag data not loaded.");
-      return;
-    }
-    try {
-      await removeTagFromThing(tag.id.toString(), thing.id.toString());
-
-      handleRefresh();
-    } catch (error) {
-      console.error(`Failed to remove tag ${tag.name} from thing ${thing}:`, error);
-      showNotification({
-        title: "Error",
-        message: "Something went wrong removing the tag",
-        color: "red",
-      });
-    }
-  };
-
-  const thingIsConnected = (thingId: string) => {
-    return !!things?.find((i) => i.id.toString() === thingId);
-  };
+    tag,
+    things,
+    suggestions,
+    isLoading,
+    isUpdating,
+    isDeleting,
+    thingsError,
+    updateTag,
+    deleteTag,
+    applyTo,
+    removeFrom,
+  } = useTag({ tagId: tagId as string });
 
   const [draggingOver, setDraggingOver] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+
+  // New state for mobile drawer and optimistic suggestion loading
+  const [viewingSuggestions, setViewingSuggestions] = useState(false);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
   const editForm = useForm<Partial<ITagForm>>({
     initialValues: {
@@ -168,65 +107,52 @@ export default function ViewTag() {
     }
   }, [tag]);
 
-  const {
-    load: updateTag,
-    loading: updateTagLoading,
-    errors: updateTagErrors,
-  } = useFetch<Partial<ITagForm>, ITag>({
-    url: `/tags/${tagId}`,
-    method: "PUT",
-    body: editForm.getTransformedValues(),
-    dependencies: [editForm],
-    onSuccess: (data) => {
-      reloadTag();
-      setIsEditing(false);
-      showNotification({
-        title: "Success",
-        message: "Tag updated successfully",
-      });
-    },
-    onError: (error) => {
-      console.error("Failed to update tag:", error);
-      showNotification({
-        title: "Error",
-        message: "Failed to update tag",
-        color: "red",
-      });
-    },
-  });
+  const thingIsConnected = (thingId: string) => {
+    return !!things?.find((i) => i.id.toString() === thingId);
+  };
 
-  const {
-    load: deleteTag,
-    loading: deleteTagLoading,
-    errors: deleteTagErrors,
-  } = useFetch<undefined, undefined>({
-    url: `/tags/${tagId}`,
-    method: "DELETE",
-    onSuccess: () => {
-      showNotification({
-        title: "Success",
-        message: "Tag deleted successfully",
-      });
-      navigate("/tags");
-    },
-    onError: (error) => {
-      console.error("Failed to delete tag:", error);
+  const handleAddTag = async (thingId: string | RecordId) => {
+    if (!tag) {
+      console.error("Cannot add tag: Tag data not loaded.");
+      return;
+    }
+    try {
+      await applyTo(thingId);
+    } catch (error) {
+      console.error(`Failed to add tag ${tag.name} to thing ${thingId}:`, error);
       showNotification({
         title: "Error",
-        message: "Failed to delete tag",
+        message: "Something went wrong adding the tag",
         color: "red",
       });
-    },
-  });
+    }
+  };
+
+  const handleRemoveTag = async (thing: ITagDescribes) => {
+    if (!tag) {
+      console.error("Cannot remove tag: Tag data not loaded.");
+      return;
+    }
+    try {
+      await removeFrom(thing.id);
+    } catch (error) {
+      console.error(`Failed to remove tag ${tag.name} from thing ${thing.id}:`, error);
+      showNotification({
+        title: "Error",
+        message: "Something went wrong removing the tag",
+        color: "red",
+      });
+    }
+  };
 
   const handleConnectionDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     try {
-      if (!tag) {
-        return;
-      }
+      if (!tag) return;
+
       const jData = e.dataTransfer.getData("application/json");
       const data = JSON.parse(jData) as { thingId: string };
       const { thingId } = data;
+
       if (thingIsConnected(thingId)) {
         showNotification({
           title: "Can't connect again",
@@ -235,8 +161,8 @@ export default function ViewTag() {
         });
         return;
       }
-      await applyTagToThing(tag.id.toString(), thingId);
-      handleRefresh();
+
+      await applyTo(thingId);
     } catch (error) {
       console.error("Error creating connection: ", error);
     } finally {
@@ -253,7 +179,6 @@ export default function ViewTag() {
     const currentValues = editForm.getTransformedValues();
     const valuesToUpdate: Partial<ITagForm> = {};
 
-    // Only include changed values
     if (currentValues.name !== tag?.name) {
       valuesToUpdate.name = currentValues.name;
     }
@@ -262,7 +187,21 @@ export default function ViewTag() {
     }
 
     if (Object.keys(valuesToUpdate).length > 0) {
-      await updateTag();
+      try {
+        await updateTag(valuesToUpdate);
+        setIsEditing(false);
+        showNotification({
+          title: "Success",
+          message: "Tag updated successfully",
+        });
+      } catch (error) {
+        console.error("Failed to update tag:", error);
+        showNotification({
+          title: "Error",
+          message: "Failed to update tag",
+          color: "red",
+        });
+      }
     } else {
       setIsEditing(false);
     }
@@ -282,7 +221,21 @@ export default function ViewTag() {
   const closeDeleteModal = () => setDeleteModalOpened(false);
 
   const handleDeleteConfirm = async () => {
-    await deleteTag();
+    try {
+      await deleteTag();
+      showNotification({
+        title: "Success",
+        message: "Tag deleted successfully",
+      });
+      navigate("/tags");
+    } catch (error) {
+      console.error("Failed to delete tag:", error);
+      showNotification({
+        title: "Error",
+        message: "Failed to delete tag",
+        color: "red",
+      });
+    }
   };
 
   const {
@@ -333,6 +286,62 @@ export default function ViewTag() {
     );
   }
 
+  const renderSuggestions = () => (
+    <Stack gap="md">
+      {!isMobile && (
+        <Text size="sm" c="dark.4" fw="bold">
+          <Group gap="xs">
+            <LightbulbIcon weight="bold" />
+            SUGGESTED
+          </Group>
+        </Text>
+      )}
+      {!suggestions?.length && (
+        <Text size="sm" c="dimmed">
+          Suggestions will populate based on usage.
+        </Text>
+      )}
+      {suggestions?.map((thing) => {
+        const isApplying = applyingId === thing.id.toString();
+        const props = getThingPropsFromConnectable(
+          thing,
+          {
+            action: {
+              icon: isApplying ? CircleNotchIcon : TagIcon,
+              onClick: async (id, e) => {
+                e.stopPropagation();
+                if (isApplying) return; // Prevent double-clicks
+                try {
+                  setApplyingId(id);
+                  await applyTo(id);
+                } catch (error) {
+                  console.error("Failed to apply suggestion:", error);
+                } finally {
+                  setApplyingId(null);
+                }
+              },
+              tooltip: isApplying ? "Applying..." : `Apply tag "${tag?.name}"`,
+            },
+            state: "suggested",
+          },
+          true
+        );
+        return (
+          <Box
+            key={thing.id.toString()}
+            style={{
+              opacity: isApplying ? 0.5 : 1,
+              pointerEvents: isApplying ? "none" : "auto",
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            <PaperThing {...props} draggable={!isApplying} />
+          </Box>
+        );
+      })}
+    </Stack>
+  );
+
   const paperThingsModes = [
     { value: "list", icon: ListIcon },
     { value: "grid", icon: SquaresFourIcon },
@@ -342,6 +351,37 @@ export default function ViewTag() {
   const customPaperThingViews = {
     constellation: graphData ? <TagConstellationView graph={graphData} /> : <Loader />,
   };
+
+  const eyebrowActions = isEditing
+    ? [
+        {
+          icon: FloppyDiskIcon,
+          name: "Save",
+          run: handleSave,
+          disabled: isUpdating,
+        },
+        {
+          icon: XIcon,
+          name: "Cancel",
+          run: handleCancel,
+          disabled: isUpdating,
+        },
+      ]
+    : [
+        {
+          icon: PencilSimpleIcon,
+          name: "Edit",
+          run: () => setIsEditing(true),
+          disabled: false,
+        },
+        {
+          icon: LightbulbIcon,
+          name: "Suggestions",
+          run: () => setViewingSuggestions(true),
+          disabled: !suggestions?.length,
+          invisible: !isMobile,
+        },
+      ];
 
   return (
     <PageWrapper>
@@ -356,59 +396,20 @@ export default function ViewTag() {
           Are you sure you want to delete this tag? This action cannot be undone and will remove the
           tag from all associated items.
         </Text>
-        {deleteTagErrors.length > 0 && (
-          <Text c="red" size="xs" mt="sm">
-            Failed to delete tag: {deleteTagErrors.join(", ")}
-          </Text>
-        )}
         <Group mt="lg" justify="flex-end">
           <Button variant="default" onClick={closeDeleteModal}>
             Cancel
           </Button>
-          <Button color="red" onClick={handleDeleteConfirm} loading={deleteTagLoading}>
+          <Button color="red" onClick={handleDeleteConfirm} loading={isDeleting}>
             Delete Tag
           </Button>
         </Group>
       </Modal>
+
       <LeftSidebar>
-        <LeftSidebar.Open>
-          {!!tag && (
-            <Stack gap="md">
-              <Text size="sm" c="dark.4" fw="bold">
-                <Group gap="xs">
-                  <LightbulbIcon weight="bold" />
-                  SUGGESTED
-                </Group>
-              </Text>
-              {!suggestedThings?.length && (
-                <Text size="sm" c="dimmed">
-                  Suggestions will populate based on usage.
-                </Text>
-              )}
-              {suggestedThings?.map((thing) => {
-                const props = getThingPropsFromConnectable(
-                  thing,
-                  {
-                    action: {
-                      icon: TagIcon,
-                      onClick: (id, e) => {
-                        e.stopPropagation();
-                        applyTagToThing(tag.id.toString(), id).then(() => {
-                          handleRefresh();
-                        });
-                      },
-                      tooltip: `Apply tag "${tag.name}"`,
-                    },
-                    state: "suggested",
-                  },
-                  true
-                );
-                return <PaperThing key={thing.id.toString()} {...props} draggable />;
-              })}
-            </Stack>
-          )}
-        </LeftSidebar.Open>
+        <LeftSidebar.Open>{!!tag && !isMobile && renderSuggestions()}</LeftSidebar.Open>
       </LeftSidebar>
+
       <Content>
         <div
           className={styles.viewtag}
@@ -441,31 +442,7 @@ export default function ViewTag() {
           {!!tag && (
             <Stack gap="xl">
               <PaperEyebrow
-                actions={
-                  isEditing
-                    ? [
-                        {
-                          icon: FloppyDiskIcon,
-                          name: "Save",
-                          run: handleSave,
-                          disabled: updateTagLoading,
-                        },
-                        {
-                          icon: XIcon,
-                          name: "Cancel",
-                          run: handleCancel,
-                          disabled: updateTagLoading,
-                        },
-                      ]
-                    : [
-                        {
-                          icon: PencilSimpleIcon,
-                          name: "Edit",
-                          run: () => setIsEditing(true),
-                          disabled: false,
-                        },
-                      ]
-                }
+                actions={eyebrowActions}
                 right={
                   <Menu
                     width={200}
@@ -558,11 +535,6 @@ export default function ViewTag() {
                       autosize
                       {...editForm.getInputProps("description")}
                     />
-                    {updateTagErrors.length > 0 && (
-                      <Text c="red" size="sm">
-                        {updateTagErrors.join(", ")}
-                      </Text>
-                    )}
                   </Stack>
                 ) : (
                   <Stack gap="md">
@@ -641,9 +613,9 @@ export default function ViewTag() {
                     // customViews={customPaperThingViews}
                   />
                 )}
-                {thingErrors && thingErrors.length > 0 && (
+                {thingsError && (
                   <Alert icon={<WarningCircleIcon size={24} />} title="Error!" color="red" mt="md">
-                    Failed to load items for this tag: {thingErrors.join(", ")}
+                    Failed to load items for this tag: {thingsError.message}
                   </Alert>
                 )}
                 {(!things || things.length === 0) && (
@@ -675,6 +647,17 @@ export default function ViewTag() {
           <Search />
         </RightSidebar.Open>
       </RightSidebar>
+
+      {/* Render the mobile drawer for suggestions */}
+      {isMobile && tag && (
+        <PaperDrawer
+          title="Suggested Items"
+          opened={viewingSuggestions}
+          onClose={() => setViewingSuggestions(false)}
+        >
+          {renderSuggestions()}
+        </PaperDrawer>
+      )}
     </PageWrapper>
   );
 }

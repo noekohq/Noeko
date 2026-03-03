@@ -24,6 +24,8 @@ import AddSourceForm from "@domains/knowledge/components/Forms/AddSource";
 import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
 import { createTask } from "@domains/knowledge/utils/tasks";
 import { ISafeIdea } from "../../shared/types/idea";
+import { useQueryClient } from "@tanstack/react-query";
+import { rabbitholeKeys } from "@/domains/rabbitholes/hooks/useRabbitholes";
 
 const { VITE_MAX_USER_NOTES } = import.meta.env;
 
@@ -67,7 +69,7 @@ type IInteractionContext = {
     settings: () => void;
     profile: () => void;
     tags: () => void;
-    tasks: () => void;
+    quests: () => void;
     updates: () => void;
     admin: () => void;
     sharedIdeas: () => void;
@@ -119,7 +121,7 @@ const initialContext: IInteractionContext = {
     settings: () => {},
     profile: () => {},
     tags: () => {},
-    tasks: () => {},
+    quests: () => {},
     updates: () => {},
     admin: () => {},
     sharedIdeas: () => {},
@@ -136,6 +138,7 @@ const initialContext: IInteractionContext = {
 const InteractionContext = createContext(initialContext);
 
 export function InteractionProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = useQueryClient();
   const [loadingSomething, setLoadingSomething] = useState(false);
   const navigate = useNavigate();
   const { user, loggedIn, acceptPrivacyPolicy, acceptBoth, acceptToS } = useAuth();
@@ -213,8 +216,10 @@ export function InteractionProvider({ children }: { children: React.ReactNode })
     await handleCreateNewRabbithole(
       (r) => {
         navigate(`rabbitholes/${r.id.toString()}`);
+        queryClient.invalidateQueries({ queryKey: rabbitholeKeys.all });
       },
       (err) => {
+        console.error("Error creating new Rabbithole: ", err);
         showNotification({
           title: "Something went wrong",
           message: "Something went wrong adding the rabbithole.",
@@ -360,8 +365,8 @@ export function InteractionProvider({ children }: { children: React.ReactNode })
       tags: () => {
         navigate("/tags");
       },
-      tasks: () => {
-        navigate("/tasks");
+      quests: () => {
+        navigate("/quests");
       },
       sources: () => {
         navigate("/sources");

@@ -13,7 +13,7 @@ import {
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { Search } from "../../services/Search";
 import GraphService, { IConnectable } from "../../services/Graph";
-import { averageEmbeddings, weightedAverage } from "../../utils/math";
+import { averageEmbeddings, blendVectors, weightedAverage } from "../../utils/math";
 
 // Re-export types for backward compatibility
 export type { ITag, ITagDescribes, ITagDescriptionRelationship, ITagForm, ITagUserOwnership };
@@ -673,23 +673,8 @@ export class Tag {
   ): Promise<number[]> {
     const emb = getEmbedder();
     try {
-      if (!tagEmbedding?.length && !averageEmbedding?.length) {
-        throw new Error("Can't get weighted vector of tag with no embeddings");
-      }
-
-      if (tagEmbedding?.length && averageEmbedding?.length) {
-        return weightedAverage(tagEmbedding, averageEmbedding, this.SUGGESTION_WEIGHT);
-      }
-
-      if (!tagEmbedding?.length && averageEmbedding?.length) {
-        return averageEmbedding;
-      }
-
-      if (!averageEmbedding?.length && tagEmbedding?.length) {
-        return tagEmbedding;
-      }
-
-      return emb.getEmptyEmbeddings();
+      const blended = blendVectors(tagEmbedding, averageEmbedding, this.SUGGESTION_WEIGHT);
+      return blended;
     } catch (error) {
       console.error("Error getting weighted vector: ", error);
       return emb.getEmptyEmbeddings();
@@ -723,64 +708,65 @@ export class Tag {
       candidates?: number;
     }
   ): Promise<ITagDescribes[] | undefined> {
-    try {
-      const db = await getDatabase();
-      if (!db) throw new Error("Database not initialized");
+    const db = await getDatabase();
+    if (!db) throw new Error("Database not initialized");
 
-      const limit = options.limit || 25;
-      const threshold = Number(options.threshold) || 0.45;
+    const limit = options.limit || 25;
+    const threshold = Number(options.threshold) || 0.45;
 
-      const results = await db.query<[(ITagDescribes & { embeddings: number[] })[]]>(
-        `
+    const results = await db.query<[(ITagDescribes & { embeddings: number[] })[]]>(
+      `
         SELECT VALUE
           ->describes->(?) as describes
         FROM ONLY $tagId
         FETCH describes;
         `,
-        {
-          tagId: new StringRecordId(tagId),
-        }
-      );
-
-      if (!results) {
-        throw new Error("Couldn't get results");
+      {
+        tagId: new StringRecordId(tagId),
       }
+    );
 
-      const [described] = results;
-
-      const tag = await Tag.get(tagId);
-
-      if (!tag) {
-        throw new Error("No tag found");
-      }
-
-      let centroidEmbeddings: number[] | null = tag.cachedCentroidEmbeddings;
-      if (!centroidEmbeddings) {
-        const centroid = await Tag.cacheCentroidVector(tagId);
-        centroidEmbeddings = centroid ?? null;
-      }
-
-      const tagEmbedding = tag.embeddings;
-
-      const finalVector = await this.getWeightedVector(
-        tagEmbedding || null,
-        centroidEmbeddings || null
-      );
-
-      const similarThings = await GraphService.searchSimilarConnectables(userId, finalVector, {
-        limit,
-        threshold,
-        exclude: described.map((i) => i.id.toString()),
-      });
-
-      if (!similarThings) {
-        throw new Error("Couldn't get similar things");
-      }
-
-      return similarThings;
-    } catch (error) {
-      console.error("Error finding tag suggestions:", error);
-      return undefined;
+    if (!results) {
+      throw new Error("Couldn't get results");
     }
+
+    const [described] = results;
+
+    const tag = await Tag.get(tagId);
+
+    if (!tag) {
+      throw new Error("No tag found");
+    }
+
+    let tagEmbedding: number[] | null = tag.embeddings;
+    if (!tagEmbedding) {
+      const updated = await this.updateEmbeddings(tag, true);
+      tagEmbedding = updated?.embeddings ?? null;
+    }
+
+    let centroidEmbeddings: number[] | null = tag.cachedCentroidEmbeddings;
+    if (!centroidEmbeddings) {
+      const centroid = await Tag.cacheCentroidVector(tagId);
+      centroidEmbeddings = centroid ?? null;
+    }
+
+    const finalVector = await this.getWeightedVector(
+      tagEmbedding || null,
+      centroidEmbeddings || null
+    );
+
+    console.log("Searching similar connectables");
+    const similarThings = await GraphService.searchSimilarConnectables(userId, finalVector, {
+      limit,
+      threshold,
+      exclude: described.map((i) => i.id.toString()),
+    });
+    console.log("Got similar connectables: ", similarThings);
+
+    if (!similarThings) {
+      throw new Error("Couldn't get similar things");
+    }
+
+    return similarThings;
   }
 }

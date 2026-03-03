@@ -207,7 +207,7 @@ export default function App() {
                   <Route path="ideas">
                     <Route index element={<Ideas />} />
                   </Route>
-                  <Route path="tasks">
+                  <Route path="quests">
                     <Route index element={<Tasks />} />
                   </Route>
                   <Route path="agenda">
@@ -216,7 +216,6 @@ export default function App() {
                   <Route path="all">
                     <Route index element={<All />} />
                   </Route>
-                  <Route path="pins" element={<Navigate to="/pinned" />} />
                   <Route path="pinned">
                     <Route index element={<PinsPage />} />
                   </Route>

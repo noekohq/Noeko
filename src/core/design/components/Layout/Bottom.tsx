@@ -45,7 +45,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
     actions: {
       feedback: { openFeedbackModal },
     },
-    views: { spyglass, graph, tasks, sources },
+    views: { spyglass, graph, quests, sources },
     state: {
       zen: { get: isZen },
     },
@@ -120,10 +120,10 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
               <Menu.Item
                 leftSection={<CalendarBlankIcon weight="bold" size={16} />}
                 onClick={() => {
-                  tasks();
+                  quests();
                 }}
               >
-                Tasks
+                Quests
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
@@ -143,7 +143,7 @@ const StatusBar = ({ children, topLevel }: IBottomProps) => {
               <StatusButton
                 title="Agenda"
                 onClick={() => {
-                  tasks();
+                  quests();
                 }}
               >
                 <CalendarBlankIcon weight="bold" size={16} />

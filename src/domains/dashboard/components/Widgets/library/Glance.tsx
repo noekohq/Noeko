@@ -47,7 +47,7 @@ export default function Glance() {
     id: "feature:widget_glance",
     title: "Glance",
     content:
-      "This widget will show you recent progress at a glance, ideas you've made, tasks you've created, etc.",
+      "This widget will show you recent progress at a glance, ideas you've made, quests you've created, etc.",
     view: "dashboard",
     order: 4,
   });

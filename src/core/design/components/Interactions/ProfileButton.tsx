@@ -37,7 +37,7 @@ export default function ProfileButton() {
     { label: "Home", icon: HouseSimpleIcon, path: "/" },
     { label: "Everything", icon: ShapesIcon, path: "/all" },
     { label: "Sharing", icon: LightbulbIcon, path: "/sharing" },
-    { label: "Tasks", icon: CheckIcon, path: "/tasks" },
+    { label: "Quests", icon: CheckIcon, path: "/quests" },
     { label: "Sources", icon: FileIcon, path: "/sources" },
     { label: "Rabbitholes", icon: RabbitIcon, path: "/rabbitholes" },
     { label: "Spyglass", icon: MagnifyingGlassIcon, path: "/spyglass" },

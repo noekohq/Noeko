@@ -1,23 +1,39 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IPinnable } from "../../../../app/database/models/pin";
 import useFetch from "@core/hooks/useFetch";
 import { RecordId } from "surrealdb";
 import { createPin, deletePin } from "@domains/knowledge/utils/pins";
+import { useApiQuery } from "@/core/hooks/useApiQuery";
+import { useQueryClient } from "@tanstack/react-query";
 
 type IUsePinsReturn = {
   pins: IPinnable[];
+  loadingPins: boolean;
   pinThing: (thing: string | RecordId) => Promise<void>;
   unpinThing: (thing: string | RecordId) => Promise<void>;
   togglePin: (thing: string | RecordId) => Promise<void>;
   thingIsPinned: (thing: string | RecordId) => boolean;
   pinMap: Record<string, IPinnable>;
+  refresh: () => void;
+};
+
+export const pinKeys = {
+  all: () => ["pins"],
 };
 
 export default function usePins(): IUsePinsReturn {
-  const { data: pins, load: loadPins } = useFetch<undefined, IPinnable[]>({
+  const qc = useQueryClient();
+
+  const { data: pins, isLoading: loadingPins } = useApiQuery<IPinnable[]>({
     url: "/pins/things",
-    method: "GET",
+    queryKey: pinKeys.all(),
   });
+
+  const invalidate = useCallback(() => {
+    qc.invalidateQueries({
+      queryKey: pinKeys.all(),
+    });
+  }, [qc]);
 
   const pinMap = useMemo(() => {
     if (!pins?.length) {
@@ -32,14 +48,6 @@ export default function usePins(): IUsePinsReturn {
     );
   }, [pins]);
 
-  const loadStuff = () => {
-    loadPins();
-  };
-
-  useEffect(() => {
-    loadStuff();
-  }, []);
-
   const pinThing = useCallback(
     async (thing: string | RecordId) => {
       try {
@@ -50,10 +58,10 @@ export default function usePins(): IUsePinsReturn {
       } catch (error) {
         console.error("Couldn't create pin: ", error);
       } finally {
-        loadStuff();
+        invalidate();
       }
     },
-    [pins]
+    [pins, invalidate]
   );
 
   const unpinThing = useCallback(
@@ -66,17 +74,17 @@ export default function usePins(): IUsePinsReturn {
       } catch (error) {
         console.error("Couldn't delete pin: ", error);
       } finally {
-        loadStuff();
+        invalidate();
       }
     },
-    [pins]
+    [pinMap, invalidate]
   );
 
   const thingIsPinned = useCallback(
     (thing: string | RecordId) => {
       return pinMap[thing.toString()] !== undefined;
     },
-    [pins]
+    [pinMap]
   );
 
   const togglePin = useCallback(
@@ -90,18 +98,20 @@ export default function usePins(): IUsePinsReturn {
       } catch (error) {
         console.error("Couldn't toggle pin: ", error);
       } finally {
-        loadStuff();
+        invalidate();
       }
     },
-    [pins]
+    [pinMap, invalidate, pinThing, unpinThing]
   );
 
   return {
     pins: pins ? pins : [],
+    loadingPins,
     pinThing,
     unpinThing,
     togglePin,
     thingIsPinned,
     pinMap,
+    refresh: () => invalidate(),
   };
 }

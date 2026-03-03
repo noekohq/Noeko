@@ -485,7 +485,7 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
       profile,
       tags,
       updates,
-      tasks,
+      quests,
       sources,
       sharedIdeas,
       admin,
@@ -541,10 +541,10 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
         subviewId: "rabbitholesSubview",
       },
       {
-        id: "tasks",
-        title: "Tasks",
+        id: "quests",
+        title: "Quests",
         icon: <CheckIcon />,
-        subviewId: "tasksSubview",
+        subviewId: "questsSubview",
       },
       {
         id: "sources",
@@ -873,10 +873,10 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
           },
         ],
         [
-          "tasksSubview",
+          "questsSubview",
           {
-            id: "tasksSubview",
-            title: "Tasks",
+            id: "questsSubview",
+            title: "Quests",
             items: [
               {
                 id: "newTask",
@@ -888,11 +888,11 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
                 },
               },
               {
-                id: "allTasks",
-                title: "Task List",
+                id: "allQuests",
+                title: "Quest List",
                 icon: <CheckIcon />,
                 action: () => {
-                  tasks();
+                  quests();
                   onClose();
                 },
               },
@@ -931,7 +931,7 @@ const useSpotlightConfig = ({ onClose }: IUseSpotlightConfig): IUseSpotlightRetu
           {
             id: "fastFind",
             title: "Fast Find",
-            placeholder: "Search ideas, tasks, and sources by text...",
+            placeholder: "Search ideas, quests, and sources by text...",
             dynamicItems: async ({ searchText, closeSpotlight }) => {
               const suggestedItems = await fetchSuggested(searchText);
 

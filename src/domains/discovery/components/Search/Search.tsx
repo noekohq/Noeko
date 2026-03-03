@@ -163,6 +163,7 @@ const ResultsView = ({
                         title={title}
                         snippet={preview}
                         onSelect={onResultClick}
+                        draggable
                       />
                     );
                   })}

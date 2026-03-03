@@ -56,7 +56,7 @@ export default function TasksPage() {
             <Group justify="space-between">
               <Title order={1}>
                 <Group gap="lg">
-                  Your Tasks
+                  Your Quests
                   <ActionIcon
                     variant="light"
                     color="gray"
@@ -78,7 +78,7 @@ export default function TasksPage() {
 
             {!loading && allTasks?.length === 0 && (
               <Text size="sm" c="dimmed">
-                No open tasks.
+                No open quests.
               </Text>
             )}
 

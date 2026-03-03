@@ -8,7 +8,7 @@ type IEyebrowAction = {
   icon: React.FC<IconProps>;
   name: string;
   run: () => void;
-  disabled: boolean;
+  disabled?: boolean;
   color?: MantineColor;
   weight?: IconProps["weight"];
 };
@@ -48,9 +48,11 @@ export default function PaperEyebrow({
 
         <Group wrap="nowrap">
           {actions &&
-            actions.length > 1 &&
+            actions.length > 0 &&
             actions
-              .filter((a) => !a.invisible)
+              .filter((a) => {
+                return !a.invisible;
+              })
               .map((action) => {
                 const { name, icon, disabled, run, color, weight } = action;
 
@@ -58,6 +60,7 @@ export default function PaperEyebrow({
 
                 return (
                   <ActionIcon
+                    key={name}
                     onClick={run}
                     aria-label={name}
                     size={"md"}

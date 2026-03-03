@@ -73,3 +73,34 @@ export function addVectors(vectorA: number[], vectorB: number[]): number[] {
 
   return resultVector;
 }
+
+/**
+ * Returns a weighted average of two vectors, falling back to the other if one is missing.
+ * * @param vectorA The base vector.
+ * @param vectorB The vector to shift towards.
+ * @param weightB The weight applied to vectorB (0 to 1).
+ * @returns The resulting vector.
+ * @throws If both vectors are missing or empty.
+ */
+export function blendVectors(
+  vectorA: number[] | null | undefined,
+  vectorB: number[] | null | undefined,
+  weightB: number
+): number[] {
+  const hasA = Array.isArray(vectorA) && vectorA.length > 0;
+  const hasB = Array.isArray(vectorB) && vectorB.length > 0;
+
+  if (hasA && hasB) {
+    return weightedAverage(vectorA, vectorB, weightB);
+  }
+
+  if (hasA && !hasB) {
+    return vectorA;
+  }
+
+  if (!hasA && hasB) {
+    return vectorB;
+  }
+
+  throw new Error("Cannot blend vectors: both input vectors are empty or invalid.");
+}

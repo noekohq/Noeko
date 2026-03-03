@@ -116,7 +116,7 @@ export default function TaskList() {
     id: "feature:widget_task_list",
     title: "Your todo list",
     content:
-      "Manage your tasks here. Your tasks will surface as relevant context to remind you to do things when they're relevant.",
+      "Manage your quests here. Your quests will surface as relevant context to remind you to do things when they're relevant.",
     view: "dashboard",
     order: 2,
   });
@@ -294,7 +294,7 @@ function DailyTasks() {
         </Stack>
         {!tasks?.length && (
           <Text size="sm" c="dimmed" ta="center">
-            No tasks {formattedDate().toLocaleLowerCase()}.
+            No quests {formattedDate().toLocaleLowerCase()}.
           </Text>
         )}
         {!!tasks && tasks.length > 0 && (
