@@ -6,6 +6,7 @@ import { formatDateTime } from "@core/utils/formatting";
 import {
   getNodeContent,
   getNodeDescription,
+  getNodeLink,
   getNodeLinkFromId,
   getNodeTitle,
   IconMap,
@@ -32,7 +33,7 @@ export function getThingPropsFromConnectable(
     overrides && Object.hasOwn(overrides, "link")
       ? overrides.link
       : eager
-        ? getNodeLinkFromId(connectable.id)
+        ? getNodeLink(connectable)
         : undefined;
   const action = overrides?.action;
   const preview: IPaperThingProps["preview"] | undefined =

@@ -19,7 +19,6 @@ import {
 
 export const Sourceables = ["user_file"];
 
-// Re-export types for backward compatibility
 export type {
   ISource,
   ISourceable,
@@ -32,7 +31,6 @@ export type {
   ISourceOutlineItem,
 };
 
-// Define the concrete ISourceReference for this module
 export type ISourceReference = IUserFile;
 
 export default class Source {
@@ -107,9 +105,6 @@ export default class Source {
       }
       await this.establishOwnership(sourceable.owner, source.id);
       await this.sourceForUser(sourceable.owner, source.id);
-      // this.loadAnalysis(source.id).then(() => {
-      //   this.loadEmbeddings(source.id);
-      // });
       return source;
     } catch (error) {
       console.error("Error creating source from: ", sourceable, error);
@@ -396,13 +391,12 @@ export default class Source {
           displayName: "Untitled Source",
         });
       }
-      const title = await Source.generateTitle(source.contentPlain || source.content);
-      if (!title) {
+      const name = await Source.generateTitle(source.content);
+      if (!name) {
         throw new Error("Error getting the title");
       }
       return await Source.update(sourceId, {
-        title,
-        titleGeneratedAt: new Date(),
+        displayName: name,
       });
     } catch (error) {
       console.error("Error generating title for source");
