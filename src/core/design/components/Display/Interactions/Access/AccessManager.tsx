@@ -55,8 +55,6 @@ export default function AccessManager({ connectable }: IAccessManagerProps) {
     queryKey: ["friends"],
   });
 
-  console.log("Got friends: ", friends);
-
   const form = useForm({
     initialValues: {
       email: "",

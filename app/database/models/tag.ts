@@ -755,13 +755,11 @@ export class Tag {
       centroidEmbeddings || null
     );
 
-    console.log("Searching similar connectables");
     const similarThings = await GraphService.searchSimilarConnectables(userId, finalVector, {
       limit,
       threshold,
       exclude: described.map((i) => i.id.toString()),
     });
-    console.log("Got similar connectables: ", similarThings);
 
     if (!similarThings) {
       throw new Error("Couldn't get similar things");

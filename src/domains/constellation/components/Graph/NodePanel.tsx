@@ -58,6 +58,8 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
 
     const isSelected = selected.has(node.id.toString());
 
+    const link = getNodeLink(node);
+
     return createPortal(
       <div
         ref={ref}

@@ -1,10 +1,10 @@
 import { ComponentType } from "react";
-import { IExcerpt, IExcerptForm } from "../../../../../../shared/types/excerpt";
 import { RecordId } from "surrealdb";
 
 export type IDynamicComponentImport = () => Promise<{
   default: ComponentType<{
     fileId: string | RecordId;
+    withinSource?: boolean;
   }>;
 }>;
 

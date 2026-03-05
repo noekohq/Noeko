@@ -8,12 +8,55 @@
 }
 
 .viewer {
+  height: 100%;
   animation: viewerIn 0.5s ease-out forwards;
   position: relative;
-  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
   background-color: var(--mantine-color-dark-8);
   border-radius: var(--mantine-radius-md);
   box-shadow: inset var(--mantine-shadow-lg);
+}
+
+.viewportContainer {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.viewPort {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.page {
+  background-color: var(--mantine-color-dark-1);
+  margin: 0 auto;
+  position: relative;
+
+  /* 1. Prevent native DOM text selection from interfering with the WASM engine */
+  user-select: none;
+
+  img {
+    /* 2. Stop the browser from treating the page like a draggable file */
+    -webkit-user-drag: none;
+    /* 3. Let mouse clicks pass through the image down to the interaction layer */
+    pointer-events: none;
+  }
+}
+
+/* Ensure the wrapper around the viewer also stretches */
+.fileView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .toolbar {
@@ -40,20 +83,6 @@
     border-radius: 20px;
     margin-inline: var(--mantine-spacing-md);
   }
-}
-
-.viewportContainer {
-  height: 100%;
-  width: 100%;
-}
-
-.viewPort {
-  /* The library component handles its own styling. We usually don't need much here. */
-}
-
-.page {
-  margin: 0 auto 14px auto;
-  box-shadow: var(--mantine-shadow-lg);
 }
 
 .annotationMenu {

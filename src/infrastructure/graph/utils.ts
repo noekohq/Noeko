@@ -326,7 +326,7 @@ export const getNodeLink = (node: INode) => {
     return `/tags/${node.id.toString()}`;
   }
   if (node.type === "excerpt") {
-    return `/sources/${typeof node.references === "string" ? node.references : (node.references as IExcerptReference).id.toString()}`;
+    return `/source/${typeof node.references === "string" ? node.references : (node.references as IExcerptReference).id.toString()}?excerptId=${node.id.toString()}`;
   }
   if (node.type === "user") {
     return `/profile/${node.id.toString()}`;

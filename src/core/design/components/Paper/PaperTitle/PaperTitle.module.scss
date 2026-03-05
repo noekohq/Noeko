@@ -1,0 +1,13 @@
+.paperTitle {
+  transition: all 0.3s ease;
+  border-bottom: 1.5px solid transparent;
+
+  &:hover {
+    border-bottom: 1.5px solid var(--mantine-color-dark-7);
+  }
+
+  &:focus {
+    outline: none;
+    border-bottom: 1.5px solid var(--mantine-color-dark-4);
+  }
+}

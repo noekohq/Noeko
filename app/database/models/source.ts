@@ -354,4 +354,59 @@ export default class Source {
       return undefined;
     }
   }
+
+  static async generateTitle(content: string) {
+    try {
+      const lm = getLM();
+      const title = await lm.utils.entitle(
+        content,
+        `
+        You are an expert archivist tasked with creating a title for a personal knowledge note.
+        Your goal is to make the note easily findable and understandable at a glance from a list of hundreds of other notes.
+
+        ## Task
+        Generate a title based on the provided note content.
+
+        ## Guiding Principles
+        1.  **Specificity is Key:** The title must be specific. Instead of "Networking Ideas," use "Configuring VLANs for IoT Device Isolation on UniFi."
+        2.  **Concise & Scannable:** Use the fewest words possible without sacrificing specificity. The ideal title length is 3-8 words.
+        3.  **Keyword-Oriented:** Include the primary nouns, technologies, or concepts (e.g., "Permaculture," "TypeScript," "Zod," "VLAN") that someone would use to search for this note.
+        4.  **Reflect the Note's Purpose:**
+            * If the note is a question or an investigation, phrase the title as a concise summary of that question (e.g., "Methods for Improving Soil Compaction").
+            * If the note is a plan or work-in-progress, the title should reflect that goal (e.g., "Design for a 5-Acre Syntropic Agroforestry System").
+            * If the note is a statement of fact or a learned lesson, the title should be a declarative statement (e.g., "Type Inference from Zod Schemas").
+        `
+      );
+
+      return title;
+    } catch (err) {
+      console.error(`Error during generateSummary`, err);
+      return null;
+    }
+  }
+
+  static async giveGenerativeTitle(sourceId: string | RecordId) {
+    try {
+      const source = await Source.get(sourceId);
+      if (!source) {
+        throw new Error("Error getting source");
+      }
+      if (!source.content) {
+        return await Source.update(sourceId, {
+          displayName: "Untitled Source",
+        });
+      }
+      const title = await Source.generateTitle(source.contentPlain || source.content);
+      if (!title) {
+        throw new Error("Error getting the title");
+      }
+      return await Source.update(sourceId, {
+        title,
+        titleGeneratedAt: new Date(),
+      });
+    } catch (error) {
+      console.error("Error generating title for source");
+      return undefined;
+    }
+  }
 }
