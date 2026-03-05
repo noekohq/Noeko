@@ -16,6 +16,7 @@ import {
   ISourceOutlineItem,
   ISourceReference as ISourceReferenceBase,
 } from "../../../shared/types/source";
+import { getLM } from "../../ai/lms/lm";
 
 export const Sourceables = ["user_file"];
 
