@@ -1,4 +1,4 @@
-import { useZoom } from "@embedpdf/plugin-zoom/react";
+import { useZoom, ZoomMode } from "@embedpdf/plugin-zoom/react";
 import { ActionIcon, Group, Text } from "@mantine/core";
 import {
   MagnifyingGlassPlusIcon,
@@ -43,7 +43,7 @@ export function Toolbar({ documentId }: { documentId: string }) {
       />
 
       <ActionIcon
-        onClick={() => zoom.requestZoom(1.0)}
+        onClick={() => zoom.requestZoom(ZoomMode.FitWidth)}
         variant="light"
         color="gray"
         title="Reset Zoom"

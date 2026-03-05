@@ -4,7 +4,6 @@ import { getFileDownloadLink } from "@infrastructure/api/userfiles";
 import { Loader, Text } from "@mantine/core";
 import styles from "./PDF.module.scss";
 
-/* -- EmbedPDF V2 Configuration -- */
 import { createPluginRegistration } from "@embedpdf/core";
 import { EmbedPDF } from "@embedpdf/core/react";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
@@ -30,23 +29,30 @@ import {
 } from "@embedpdf/plugin-interaction-manager/react";
 
 import { PDFViewerProvider } from "./PDFContext";
+import { Toolbar } from "./Toolbar";
 import SelectionMenu from "./SelectionMenu";
 import ExcerptAnnotationSync from "./ExcerptAnnotations";
-import { Toolbar } from "./Toolbar";
+import ExcerptNavigator from "./ExcerptNavigation";
 
 interface IPDFViewerProps {
   fileId: string | RecordId | undefined;
+  /* Use this to render within a source, set to false to omit any source-related functionalities. */
+  withinSource?: boolean;
 }
 
-// ------------------------------------------------------------------
-// 📄 PAGE COMPONENT: Extracted to safely consume hooks and refs per-page
-// ------------------------------------------------------------------
-function PDFPage({ documentId, layout }: { documentId: string; layout: PageLayout }) {
+function PDFPage({
+  documentId,
+  layout,
+  withinSource,
+}: {
+  documentId: string;
+  layout: PageLayout;
+  withinSource: boolean;
+}) {
   const { state: zoomState } = useZoom(documentId);
   const scale = zoomState.currentZoomLevel;
   const rotation = 0;
 
-  // Create a strict ref to the physical DOM wrapper of this page
   const pageRef = useRef<HTMLDivElement | null>(null);
 
   return (
@@ -69,18 +75,19 @@ function PDFPage({ documentId, layout }: { documentId: string; layout: PageLayou
       >
         <RenderLayer documentId={documentId} pageIndex={layout.pageIndex} />
         <SelectionLayer documentId={documentId} pageIndex={layout.pageIndex} />
-        <SelectionMenu documentId={documentId} pageIndex={layout.pageIndex} />
-        <ExcerptAnnotationSync documentId={documentId} pageIndex={layout.pageIndex} />
+        {withinSource && (
+          <>
+            <SelectionMenu documentId={documentId} pageIndex={layout.pageIndex} />
+            <ExcerptAnnotationSync documentId={documentId} pageIndex={layout.pageIndex} />
+          </>
+        )}
         <AnnotationLayer documentId={documentId} pageIndex={layout.pageIndex} />
       </PagePointerProvider>
     </div>
   );
 }
 
-// ------------------------------------------------------------------
-// MAIN VIEWER COMPONENT
-// ------------------------------------------------------------------
-export default function PDFViewer({ fileId }: IPDFViewerProps) {
+export default function PDFViewer({ fileId, withinSource = false }: IPDFViewerProps) {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loadingPDFFile, setLoadingPDFFile] = useState<boolean>(true);
 
@@ -120,7 +127,7 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
       createPluginRegistration(DocumentManagerPluginPackage, {
         initialDocuments: [{ url: fileUrl }],
       }),
-      createPluginRegistration(ViewportPluginPackage, { viewportGap: 14 }),
+      createPluginRegistration(ViewportPluginPackage, { viewportGap: 0 }),
       createPluginRegistration(ScrollPluginPackage, {
         defaultStrategy: ScrollStrategy.Vertical,
         defaultPageGap: 14,
@@ -169,6 +176,11 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
                           className={styles.viewportContainer}
                           style={{ flex: 1, position: "relative", overflow: "hidden" }}
                         >
+                          {withinSource && (
+                            <>
+                              <ExcerptNavigator documentId={activeDocumentId} />
+                            </>
+                          )}
                           <GlobalPointerProvider documentId={activeDocumentId}>
                             <Viewport
                               documentId={activeDocumentId}
@@ -182,6 +194,7 @@ export default function PDFViewer({ fileId }: IPDFViewerProps) {
                                     key={`page-${layout.pageIndex}`}
                                     documentId={activeDocumentId}
                                     layout={layout}
+                                    withinSource={withinSource}
                                   />
                                 )}
                               />

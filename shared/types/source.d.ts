@@ -10,7 +10,7 @@ export interface ISourceable {
 export type ISourceVisibility = "private" | "unlisted" | "public";
 
 // ISourceReference needs to be generic to avoid circular dependency
-export type ISourceReference = any;
+export type ISourceReference = StringRecordId;
 
 export type ISource = {
   id: string | RecordId;
@@ -20,7 +20,7 @@ export type ISource = {
   embeddings: number[];
   embeddingsUpdatedAt: Date;
   analysis?: ISourceAnalysis;
-  references?: StringRecordId | any; // Allow any reference type to avoid circular dependency
+  references?: ISourceReference | unknown;
   createdAt: Date;
   updatedAt: Date;
   viewedAt: Date;

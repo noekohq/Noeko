@@ -19,7 +19,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
 We welcome contributions of all kinds, from bug fixes to new features!
 
-If you'd like to contribute to the development of Noeko, please read our **[➡️ Contributing Guide](CONTRIBUTING.md)** to learn how to set up the development environment and submit your changes.
+If you'd like to contribute to the development of Noeko, please read our **[➡️ Contributing Guide](documentation/CONTRIBUTING.md)** to learn how to set up the development environment and submit your changes.
 
 ## License
 

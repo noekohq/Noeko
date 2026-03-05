@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useFloating, offset, flip, shift, autoUpdate } from "@floating-ui/react";
 import { ActionIcon, Group, Paper, Stack, Text, Textarea, Transition, Portal } from "@mantine/core";
 import { CheckIcon, TrashIcon, XIcon } from "@phosphor-icons/react";
@@ -23,6 +23,8 @@ export default function AnnotationMenu({
   const [noteText, setNoteText] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const isOpen = !!activeExcerpt && !!anchorElement;
 
   const { refs, floatingStyles } = useFloating({
@@ -33,15 +35,11 @@ export default function AnnotationMenu({
     middleware: [offset(8), flip(), shift({ padding: 8 })],
   });
 
-  // 1. DELETE the rogue if-statement here
-
-  // 2. ADD this useEffect block:
   useEffect(() => {
     if (activeExcerpt) {
-      // We only overwrite the local note text state when the active excerpt actually changes
       setNoteText(activeExcerpt.note || "");
     }
-  }, [activeExcerpt?.id]); // Note the dependency is specifically the ID
+  }, [activeExcerpt?.id]);
 
   const handleUpdate = async () => {
     if (!activeExcerpt) return;
@@ -62,13 +60,17 @@ export default function AnnotationMenu({
     await deleteExcerpt(activeExcerpt.id);
   };
 
-  useEffect(() => {
-    console.log("Note text: ", noteText);
-  }, [noteText]);
+  const handleFocus = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    }
+  };
 
   return (
     <Portal>
-      <Transition mounted={isOpen} transition="pop" duration={150}>
+      <Transition mounted={isOpen} transition="pop" duration={150} onEntered={handleFocus}>
         {(transitionStyles) => (
           <div
             ref={refs.setFloating}
@@ -92,11 +94,11 @@ export default function AnnotationMenu({
 
                   <Textarea
                     placeholder="Add your thoughts here..."
+                    ref={textareaRef}
                     autosize
                     minRows={2}
                     value={noteText}
                     onChange={(e) => {
-                      console.log("Value: ", e.currentTarget.value);
                       setNoteText(e.currentTarget.value);
                     }}
                     variant="filled"

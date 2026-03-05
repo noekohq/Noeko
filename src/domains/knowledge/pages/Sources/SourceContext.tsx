@@ -12,6 +12,7 @@ import {
 
 interface ISourceContext {
   sourceId: string;
+  excerptId: string | undefined;
   excerpts: {
     all: IExcerpt[];
     create: (excerpt: IExcerptForm) => Promise<IExcerpt | undefined>;
@@ -24,6 +25,7 @@ interface ISourceContext {
 
 const initialSourceContext: ISourceContext = {
   sourceId: "",
+  excerptId: "",
   excerpts: {
     all: [],
     create: async () => undefined,
@@ -39,9 +41,11 @@ export const SourceContext = createContext<ISourceContext>(initialSourceContext)
 export const SourceProvider = ({
   children,
   source,
+  excerptId,
 }: {
   children: React.ReactNode;
   source: ISource | undefined;
+  excerptId: string | undefined;
 }) => {
   const [all, setAll] = useState<IExcerpt[]>();
   const currentlyLoading = useRef(false);
@@ -59,6 +63,8 @@ export const SourceProvider = ({
     },
   });
 
+  const [selectedExcerpt, setSelectedExcerpt] = useState<string>();
+
   useEffect(() => {
     if (source?.id.toString() && !loadingExcerpts && !currentlyLoading.current) {
       loadExcerpts();
@@ -67,6 +73,7 @@ export const SourceProvider = ({
 
   const value: ISourceContext = {
     sourceId: source?.id.toString() || "",
+    excerptId: excerptId,
     excerpts: {
       all: all ?? [],
       create: async (form) => {

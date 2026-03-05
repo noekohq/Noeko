@@ -4,6 +4,7 @@ import { RecordId } from "surrealdb";
 export type IDynamicComponentImport = () => Promise<{
   default: ComponentType<{
     fileId: string | RecordId;
+    withinSource?: boolean;
   }>;
 }>;
 

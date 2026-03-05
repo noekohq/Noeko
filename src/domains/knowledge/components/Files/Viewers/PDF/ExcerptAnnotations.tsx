@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useZoom } from "@embedpdf/plugin-zoom/react";
 import { useSource } from "@domains/knowledge/pages/Sources/SourceContext";
 import { Rect } from "@embedpdf/models";
@@ -17,6 +17,7 @@ export default function ExcerptAnnotationSync({
   const { state: zoomState } = useZoom(documentId);
   const {
     excerpts: { all: allExcerpts },
+    excerptId,
   } = useSource();
 
   const scale = zoomState.currentZoomLevel;
@@ -28,6 +29,34 @@ export default function ExcerptAnnotationSync({
     (excerpt) => excerpt.pdfMetadata?.pageIndex === pageIndex
   );
 
+  useEffect(() => {
+    if (!excerptId) {
+      setActiveMenuExcerpt(null);
+      setActiveMenuAnchor(null);
+      return;
+    }
+
+    const excerpt = allExcerpts.find((e) => e.id.toString() === excerptId);
+
+    // 1. Check if the excerpt belongs to THIS specific page instance
+    if (!excerpt || excerpt.pdfMetadata?.pageIndex !== pageIndex) {
+      return;
+    }
+
+    // 2. Yield to the browser paint so the DOM elements actually exist
+    const timer = setTimeout(() => {
+      // Find the specific DOM node we added the ID to below
+      const targetRect = document.getElementById(`excerpt-${excerptId}-rect-0`);
+
+      if (targetRect) {
+        setActiveMenuExcerpt(excerpt);
+        setActiveMenuAnchor(targetRect);
+      }
+    }, 150); // 150ms gives the virtual scroller enough time to mount the page
+
+    return () => clearTimeout(timer);
+  }, [excerptId, allExcerpts, pageIndex]);
+
   return (
     <>
       {pageExcerpts.map((excerpt) => {
@@ -35,7 +64,7 @@ export default function ExcerptAnnotationSync({
         if (!rects) return null;
 
         return (
-          <div key={`overlay-${excerpt.id.toString()}`}>
+          <div key={`overlay-${excerpt.id.toString()}`} id={`excerpt-${excerpt.id.toString()}`}>
             {rects.map((rect, index) => {
               const scaledTop = rect.origin.y * scale;
               const scaledHeight = rect.size.height * scale;
@@ -46,6 +75,8 @@ export default function ExcerptAnnotationSync({
               return (
                 <div
                   key={`rect-${index}`}
+                  // Add an ID to the very first rect so Floating UI has a precise anchor point
+                  id={index === 0 ? `excerpt-${excerpt.id.toString()}-rect-0` : undefined}
                   onClick={(e) => {
                     setActiveMenuExcerpt(excerpt);
                     setActiveMenuAnchor(e.currentTarget);

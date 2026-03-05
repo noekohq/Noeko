@@ -452,190 +452,156 @@ export default function Idea() {
       </LeftSidebar>
 
       <Content key={contentKey}>
-        {!ideaToRender && !loadingIdea && (
-          <div className={styles.fallback}>
-            <LangtonsAntLoader cellSize={20} stepsPerSecond={10} />
-            <Text size="md" c="dark.4" fw="normal">
-              We're having trouble loading this...
-            </Text>
-          </div>
-        )}
-        {ideaToRender && (
-          <div className={styles.ideaContainer}>
-            <Stack gap="md">
-              <Stack>
-                {ideaToRender && editorRef.current && (
-                  <Tools
-                    connectable={connectable}
-                    editor={editorRef.current}
-                    idea={ideaToRender}
-                    reloadIdea={reloadIdea}
-                    loadingIdea={loadingIdea}
-                    isOptimistic={isOptimistic}
-                    onDelete={handleDeleteIdea}
-                    loadingDelete={loadingDelete}
-                  />
+        <div className={styles.ideaContainer}>
+          <Stack gap="md">
+            <Stack>
+              {ideaToRender && editorRef.current && (
+                <Tools
+                  connectable={connectable}
+                  editor={editorRef.current}
+                  idea={ideaToRender}
+                  reloadIdea={reloadIdea}
+                  loadingIdea={loadingIdea}
+                  isOptimistic={isOptimistic}
+                  onDelete={handleDeleteIdea}
+                  loadingDelete={loadingDelete}
+                />
+              )}
+
+              <Group gap="xs">
+                <PaperTitle
+                  title={ideaToRender?.title || ""}
+                  onUpdate={updateTitle}
+                  canEdit={canEdit && !isOptimistic}
+                  isViewOnly={isViewOnly}
+                  needsGeneration={titleNeedsGeneration() && !isOptimistic}
+                  onGenerate={() => triggerTitleGeneration()}
+                  isGenerating={loadingTitleGeneration}
+                  wasGenerated={!!safeIdea?.titleGeneratedAt}
+                />
+
+                {isViewOnly && (
+                  <Badge color="gray" variant="outline">
+                    View Only
+                  </Badge>
                 )}
+              </Group>
 
-                <Group gap="xs">
-                  <PaperTitle
-                    title={ideaToRender?.title || ""}
-                    onUpdate={updateTitle}
-                    canEdit={canEdit && !isOptimistic}
-                    isViewOnly={isViewOnly}
-                    needsGeneration={titleNeedsGeneration() && !isOptimistic}
-                    onGenerate={() => triggerTitleGeneration()}
-                    isGenerating={loadingTitleGeneration}
-                    wasGenerated={!!safeIdea?.titleGeneratedAt}
-                  />
-
-                  {isViewOnly && (
-                    <Badge color="gray" variant="outline">
-                      View Only
-                    </Badge>
-                  )}
-
-                  {titleNeedsGeneration() && !isOptimistic && (
-                    <ActionIcon
-                      onClick={() => triggerTitleGeneration()}
-                      variant="light"
-                      size="md"
-                      radius="md"
-                      color="gray"
-                      disabled={loadingTitleGeneration}
-                      loading={loadingTitleGeneration}
-                    >
-                      <SparkleIcon size={14} weight="duotone" />
-                    </ActionIcon>
-                  )}
-
-                  {safeIdea?.titleGeneratedAt && (
-                    <Tooltip label="This title was generated automatically.">
-                      <div className={styles.generatedIndicator}>
-                        <SparkleIcon />
-                      </div>
-                    </Tooltip>
-                  )}
-                </Group>
-
-                <Box
-                  bg="dark.9"
-                  c="dark.1"
-                  style={{ borderRadius: "var(--mantine-radius-md)" }}
-                  p="4px 8px"
-                >
-                  <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
-                    <Tooltip
-                      label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
-                      transitionProps={{
-                        transition: "rotate-right",
-                        duration: 200,
-                      }}
-                    >
-                      <Group gap="4px" align="center">
-                        <FeatherIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
-                        <Text size="xs" fw="500">
-                          {ideaToRender?.author
-                            ? userFormattedName(ideaToRender?.author)
-                            : "Unknown Author"}
-                        </Text>
-                      </Group>
-                    </Tooltip>
-                    <Text size="sm" fw="bold" c="dark.4">
-                      •
-                    </Text>
-                    <Tooltip
-                      label="Created at"
-                      transitionProps={{
-                        transition: "rotate-right",
-                        duration: 200,
-                      }}
-                    >
-                      <Group gap="4px" align="center">
-                        <ClockIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
-                        <Text size="xs" fw="500">
-                          {ideaToRender?.createdAt
-                            ? `${formatDate(ideaToRender.createdAt)}`
-                            : "Now"}
-                        </Text>
-                      </Group>
-                    </Tooltip>
-                    <Text size="sm" fw="bold" c="dark.4">
-                      •
-                    </Text>
-                    <Tooltip
-                      label="Last updated"
-                      transitionProps={{
-                        transition: "rotate-right",
-                        duration: 200,
-                      }}
-                    >
-                      <Group gap="4px" align="center">
-                        <PencilSimpleIcon
-                          color="var(--mantine-color-dark-3)"
-                          size={12}
-                          weight="bold"
-                        />
-                        <Text size="xs" fw="500">
-                          {ideaToRender?.updatedAt
-                            ? `${formatDateTime(ideaToRender.updatedAt)}`
-                            : "Now"}
-                        </Text>
-                      </Group>
-                    </Tooltip>
-                    {collaborationState && canEdit && (
-                      <>
-                        <Text size="sm" fw="bold" c="dark.4">
-                          •
-                        </Text>
-                        <CollaborationInfo
-                          status={collaborationState.status}
-                          members={collaborationState.members}
-                        />
-                      </>
-                    )}
-                  </Flex>
-                </Box>
-
-                {safeIdea && (
-                  <TagsManager connectable={{ ...safeIdea, type: "idea" }} maxSuggested={1} />
-                )}
-              </Stack>
-
-              <div className={styles.contentArea}>
-                {ideaToRender && (
-                  <DreamWriter
-                    autofocus
-                    readOnly={isOptimistic || isViewOnly}
-                    stickyMenu={false}
-                    onChange={handleEditorChange}
-                    onContentReady={handleContentReady}
-                    dependencies={[ideaId, ideaToRender.id]}
-                    ref={editorRef}
-                    onStateChange={({ collaboration }) => {
-                      setCollaborationState((prev) => {
-                        if (!prev) return collaboration;
-                        if (
-                          prev.status === collaboration.status &&
-                          prev.members.length === collaboration.members.length &&
-                          prev.members.every(
-                            (member, i) => member.name === collaboration.members[i].name
-                          )
-                        ) {
-                          return prev;
-                        }
-                        return collaboration;
-                      });
+              <Box
+                bg="dark.9"
+                c="dark.1"
+                style={{ borderRadius: "var(--mantine-radius-md)" }}
+                p="4px 8px"
+              >
+                <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
+                  <Tooltip
+                    label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
+                    transitionProps={{
+                      transition: "rotate-right",
+                      duration: 200,
                     }}
-                    collaborationId={canEdit ? ideaToRender.id.toString() : undefined}
-                    initialContent={canEdit ? undefined : ideaToRender.content}
-                    connectableId={isViewOnly ? undefined : ideaToRender.id.toString()}
-                  />
-                )}
-              </div>
+                  >
+                    <Group gap="4px" align="center">
+                      <FeatherIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
+                      <Text size="xs" fw="500">
+                        {ideaToRender?.author
+                          ? userFormattedName(ideaToRender?.author)
+                          : "Unknown Author"}
+                      </Text>
+                    </Group>
+                  </Tooltip>
+                  <Text size="sm" fw="bold" c="dark.4">
+                    •
+                  </Text>
+                  <Tooltip
+                    label="Created at"
+                    transitionProps={{
+                      transition: "rotate-right",
+                      duration: 200,
+                    }}
+                  >
+                    <Group gap="4px" align="center">
+                      <ClockIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
+                      <Text size="xs" fw="500">
+                        {ideaToRender?.createdAt ? `${formatDate(ideaToRender.createdAt)}` : "Now"}
+                      </Text>
+                    </Group>
+                  </Tooltip>
+                  <Text size="sm" fw="bold" c="dark.4">
+                    •
+                  </Text>
+                  <Tooltip
+                    label="Last updated"
+                    transitionProps={{
+                      transition: "rotate-right",
+                      duration: 200,
+                    }}
+                  >
+                    <Group gap="4px" align="center">
+                      <PencilSimpleIcon
+                        color="var(--mantine-color-dark-3)"
+                        size={12}
+                        weight="bold"
+                      />
+                      <Text size="xs" fw="500">
+                        {ideaToRender?.updatedAt
+                          ? `${formatDateTime(ideaToRender.updatedAt)}`
+                          : "Now"}
+                      </Text>
+                    </Group>
+                  </Tooltip>
+                  {collaborationState && canEdit && (
+                    <>
+                      <Text size="sm" fw="bold" c="dark.4">
+                        •
+                      </Text>
+                      <CollaborationInfo
+                        status={collaborationState.status}
+                        members={collaborationState.members}
+                      />
+                    </>
+                  )}
+                </Flex>
+              </Box>
+
+              {safeIdea && (
+                <TagsManager connectable={{ ...safeIdea, type: "idea" }} maxSuggested={1} />
+              )}
             </Stack>
-          </div>
-        )}
+
+            <div className={styles.contentArea}>
+              {ideaToRender && (
+                <DreamWriter
+                  autofocus
+                  readOnly={isOptimistic || isViewOnly}
+                  stickyMenu={false}
+                  onChange={handleEditorChange}
+                  onContentReady={handleContentReady}
+                  dependencies={[ideaId, ideaToRender.id]}
+                  ref={editorRef}
+                  onStateChange={({ collaboration }) => {
+                    setCollaborationState((prev) => {
+                      if (!prev) return collaboration;
+                      if (
+                        prev.status === collaboration.status &&
+                        prev.members.length === collaboration.members.length &&
+                        prev.members.every(
+                          (member, i) => member.name === collaboration.members[i].name
+                        )
+                      ) {
+                        return prev;
+                      }
+                      return collaboration;
+                    });
+                  }}
+                  collaborationId={canEdit ? ideaToRender.id.toString() : undefined}
+                  initialContent={canEdit ? undefined : ideaToRender.content}
+                  connectableId={isViewOnly ? undefined : ideaToRender.id.toString()}
+                />
+              )}
+            </div>
+          </Stack>
+        </div>
       </Content>
       <Nav />
       <RightSidebar startOpened={isDesktop}>

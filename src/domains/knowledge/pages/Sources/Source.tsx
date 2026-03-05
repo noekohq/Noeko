@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./Source.module.scss";
 import useFetch from "@core/hooks/useFetch";
 import {
@@ -55,6 +55,7 @@ import {
   TrashSimpleIcon,
   UniteSquareIcon,
 } from "@phosphor-icons/react";
+import PaperExcerpt from "@/core/design/components/Paper/Excerpt/PaperExcerpt";
 
 export default function Source() {
   const { sourceId } = useParams();
@@ -69,6 +70,21 @@ export default function Source() {
   useEffect(() => {
     loadSource();
   }, []);
+
+  const [targetExcerptId, setTargetExcerptId] = useState<string>();
+  const [queryExcerptId, setQueryExcerptId] = useState<string>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const qId = searchParams.get("excerptId");
+    if (qId) {
+      setQueryExcerptId(qId);
+    }
+  }, [searchParams.get("excerptId"), setQueryExcerptId]);
+  useEffect(() => {
+    if (queryExcerptId) {
+      setTargetExcerptId(queryExcerptId);
+    }
+  }, [queryExcerptId]);
 
   const {
     connectable: {
@@ -191,7 +207,7 @@ export default function Source() {
   });
 
   return (
-    <SourceProvider source={source}>
+    <SourceProvider source={source} excerptId={targetExcerptId}>
       <PageWrapper>
         <TopBar />
         <LeftSidebar>
@@ -256,7 +272,11 @@ export default function Source() {
               </Tabs.Panel>
 
               <Tabs.Panel value="excerpts">
-                <ExcerptsPanel />
+                <ExcerptsPanel
+                  setTarget={(excerptId) => {
+                    setTargetExcerptId(excerptId);
+                  }}
+                />
               </Tabs.Panel>
             </Tabs>
           </LeftSidebar.Open>
@@ -301,7 +321,7 @@ export default function Source() {
                     }
                   >
                     {Viewer ? (
-                      <Viewer fileId={file.id.toString()} />
+                      <Viewer fileId={file.id.toString()} withinSource />
                     ) : (
                       <Text>No viewer available for this type of file :/</Text>
                     )}
@@ -405,21 +425,10 @@ function SourceTools({
       <PaperEyebrow
         actions={[
           {
-            icon: ArrowLeftIcon,
-            name: "Back",
-            run: () => navigate(-1),
-          },
-          {
             icon: PushPinIcon,
             name: isPinned ? "Unpin" : "Pin",
             run: () => !pinning && handleTogglePin(),
             weight: isPinned ? "fill" : "bold",
-          },
-          {
-            icon: SparkleIcon,
-            name: "Analyze",
-            run: onRequestAnalysis,
-            disabled: loadingAnalysis || !!source.analysis,
           },
           {
             icon: UniteSquareIcon,
@@ -602,19 +611,20 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
   );
 }
 
-function ExcerptsPanel() {
+interface IExcerptsPanelProps {
+  setTarget: (excerptId: string) => void;
+}
+
+function ExcerptsPanel({ setTarget }: IExcerptsPanelProps) {
   const {
     excerpts: { all },
   } = useSource();
+  const handleSetExcerpt = (excerptId: string) => {
+    setTarget(excerptId);
+  };
 
   return (
     <Stack gap="sm" mt="md">
-      <Text size="sm" c="dark.4" fw="bold">
-        <Group gap="xs">
-          <TextAlignLeftIcon weight="bold" />
-          EXCERPTS
-        </Group>
-      </Text>
       {!all.length && (
         <Text size="sm" c="dimmed">
           No excerpts yet, try highlighting some text :)
@@ -622,12 +632,13 @@ function ExcerptsPanel() {
       )}
       {all.map((excerpt, index) => {
         return (
-          <Stack gap="xs" key={excerpt.id.toString() || index}>
-            <Blockquote color="gray" p="xs">
-              <Text size="sm">{excerpt.sourceText}</Text>
-            </Blockquote>
-            {excerpt.note && <Text size="sm">{excerpt.note}</Text>}
-          </Stack>
+          <PaperExcerpt
+            key={excerpt.id.toString()}
+            excerpt={excerpt}
+            onClick={(excerpt) => {
+              setTarget(excerpt.id.toString());
+            }}
+          />
         );
       })}
     </Stack>

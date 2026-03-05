@@ -12,6 +12,7 @@
 .viewer {
   height: 90vh;
   overflow-y: scroll;
+  scrollbar-width: none;
 
   /* &.leftOpen {
         @include desktop {
