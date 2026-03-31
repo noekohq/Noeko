@@ -1,20 +1,8 @@
 import React, { useRef, useState } from "react";
-import {
-  ArrowUpRightIcon,
-  DotsSixVertical,
-  DotsSixVerticalIcon,
-  IconProps,
-} from "@phosphor-icons/react";
+import { ArrowUpRightIcon, DotsSixVerticalIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { CopyButton, Modal, Stack, Text, Box } from "@mantine/core";
-import {
-  CopyIcon,
-  EyeIcon,
-  ArrowRightIcon,
-  ArrowUpRight, // New import for the CTA
-  BrowsersIcon,
-  CheckIcon,
-} from "@phosphor-icons/react";
+import { CopyIcon, EyeIcon, ArrowRightIcon, BrowsersIcon, CheckIcon } from "@phosphor-icons/react";
 import styles from "./GridCard.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
 import { useLandscape } from "@/contexts/LandscapeContext";
@@ -25,6 +13,7 @@ export type ICardState = "default" | "suggested";
 export interface IGridCardProps extends IThing {
   state?: ICardState;
   footerContent?: React.ReactNode;
+  displayPreview?: boolean;
 }
 
 export default function GridCard({
@@ -44,6 +33,7 @@ export default function GridCard({
   draggable = false,
   footerContent,
   thumbnail,
+  displayPreview = true,
 }: IGridCardProps) {
   const navigate = useNavigate();
   const [hovering, setHovering] = useState(false);
@@ -113,7 +103,20 @@ export default function GridCard({
             tabIndex={0}
             role="button"
           >
-            {/* ROW 1: Icon (Left) + CTA (Right) */}
+            {preview && displayPreview && (
+              <div className={styles.contentWrapper}>
+                <div className={styles.contentPreviewWrapper}>
+                  {typeof preview === "string" ? (
+                    <div
+                      className={styles.documentPreview}
+                      dangerouslySetInnerHTML={{ __html: preview }}
+                    />
+                  ) : (
+                    <div className={styles.documentPreview}>{preview}</div>
+                  )}
+                </div>
+              </div>
+            )}
             <div className={styles.topRow}>
               <div
                 className={`${styles.iconDragZone} ${hovering ? styles.hovering : ""}`}
@@ -146,25 +149,23 @@ export default function GridCard({
                 )}
               </div>
 
-              {/* Visual indicator that this card is clickable/navigable */}
               <div className={styles.ctaIcon}>
                 <ArrowUpRightIcon size={16} weight="bold" />
               </div>
             </div>
 
-            {/* ROW 2: Title */}
             <Text lineClamp={1} fw="bold" size="md" title={title} w={"100%"}>
               {title?.trim() || "Untitled"}
             </Text>
 
-            {/* ROW 3: Content Detail */}
-            <div className={styles.contentWrapper}>
-              <Text className={styles.detail} lineClamp={3} title={detail?.toString() || ""}>
-                {detail}
-              </Text>
-            </div>
+            {(!preview || !displayPreview) && detail && (
+              <div>
+                <Text size="sm" c="dimmed">
+                  {detail}
+                </Text>
+              </div>
+            )}
 
-            {/* Artifacts */}
             {artifacts && artifacts.length > 0 && (
               <div className={styles.artifacts}>
                 {artifacts.map((a, idx) => {
@@ -181,10 +182,8 @@ export default function GridCard({
               </div>
             )}
 
-            {/* Additional footer content */}
             {footerContent && <div className={styles.footerContent}>{footerContent}</div>}
 
-            {/* ROW 4: Footer Actions (Floating bottom right) */}
             {action && (
               <div className={styles.footer}>
                 <Box style={{ flex: 1 }} />
@@ -203,7 +202,6 @@ export default function GridCard({
           </div>
         </PaperContextMenu.Target>
 
-        {/* Context Menu (Unchanged) */}
         <PaperContextMenu.Dropdown>
           <PaperContextMenu.Detail label="Title" valueToCopy={title}>
             {title}
@@ -238,7 +236,6 @@ export default function GridCard({
         </PaperContextMenu.Dropdown>
       </PaperContextMenu>
 
-      {/* Modal (Unchanged) */}
       {preview && (
         <Modal
           opened={peering}

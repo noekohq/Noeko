@@ -4,12 +4,7 @@ import { ITag } from "./tags";
 import { IRabbithole } from "./rabbithole";
 import { IPublicTask, ITask } from "./task";
 import { IExcerpt } from "./excerpt";
-import {
-  IConnectable,
-  IConnectableTypes,
-  IGraphFilters,
-  IPotentiallySharedConnectable,
-} from "./constellation";
+import { IConnectableTypes, IGraphFilters, IPotentiallySharedConnectable } from "./constellation";
 import { ISource } from "./source";
 
 export type ISearchResultValue = IPotentiallySharedConnectable;
@@ -24,7 +19,7 @@ export type ISearchResult = {
     ftsContentScore?: number;
     ftsTitleScore?: number;
     exactTitleBonus?: number;
-    source: "semantic" | "fts" | "hybrid";
+    source?: "semantic" | "fts" | "hybrid";
   };
 };
 

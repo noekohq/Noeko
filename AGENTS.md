@@ -1,32 +1,12 @@
 Hey agent!
 
+# Local Configuration
+
+Please refer to `./AGENTS.local.md` for additional context on the local environment and tooling.
+
 # General Information
 
 We use `bun`, not `pnpm`, `npm`, or `yarn` for dependency management and as a runtime.
-
-# GH Project
-
-I have a github project w/ owner `noekohq` and it's number `1`. I have `gh` up and running. I will ask you to query the GitHub project for the purposes of planning and gathering requirements.
-
-```sh
-gh project item-list <PROJECT_NUMBER> --owner <OWNER> --limit 100 --format json \
-  --jq '.items[] | select(.fieldValues[] | .field.name == "Status" and .name == "Todo")'
-```
-
-^^ You can use this format of command to filter specific items. **Note:** Always include `--limit 100` to ensure all items are fetched (default is only 30). For reference, these are some relevant fields:
-
-### Status Definitions
-
-- **📥 Inbox:** Idle ideas. Do not touch.
-- **🎯 Backlog:** Ready for development. **Source of new work.**
-- **⚡️ In Progress:** Currently active.
-- **✨ Testing & QA:** Development complete, awaiting review.
-- **✅ Done:** Complete.
-
-### Priority & Complexity
-
-- **Priority:** P0 - Critical, P1 - Strategic, P2 - Polish, P3 - Experiment
-- **Complexity:** XS - Quick Hit, S - Small, M - Medium, L - Epic.
 
 # Testing
 
@@ -70,7 +50,7 @@ We do not aim for 100% coverage. We aim for high confidence in critical paths.
 
 # Completing tasks
 
-After completing a task, run `bun run client:check` to ensure that types are working as expected. Run `bun test` to run our automated tests.
+After completing a task, run `bun run typecheck` to ensure that types are working as expected. Run `bun test` to run our automated tests.
 
 # Rules
 

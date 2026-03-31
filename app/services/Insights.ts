@@ -119,6 +119,8 @@ export default class Insights {
       return undefined;
     }
   }
+
+  public static async healthcheck() {}
 }
 
 export const initInsights = async () => {

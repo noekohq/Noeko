@@ -58,6 +58,7 @@ import { downloadTextAsFile } from "@infrastructure/api/files";
 import { htmlToMarkdown } from "../../../../../app/utils/formatting";
 import HorizonSelector from "@core/design/components/Paper/Inputs/HorizonSelector";
 import PaperEyebrow from "@core/design/components/Paper/PaperEyebrow/PaperEyebrow";
+import { PaperTitle } from "@/core/design/components/Paper/PaperTitle/PaperTitle";
 import { fromYYYYMMDD } from "@core/utils/datetime";
 import { capitalize, formatDate } from "@core/utils/formatting";
 import PaperDrawer from "@core/design/components/Paper/PaperDrawer";
@@ -215,28 +216,17 @@ export default function Task() {
 
                 <Stack gap={4} style={{ flex: 1 }}>
                   <Group>
-                    <Title
-                      contentEditable={canEdit}
-                      suppressContentEditableWarning
+                    <PaperTitle
+                      title={task?.description || ""}
+                      onUpdate={(newTitle) => handleFieldUpdate("description", newTitle)}
+                      canEdit={canEdit}
+                      isViewOnly={isViewOnly}
                       className={styles.editableTitle}
                       style={{
                         textDecoration: isComplete ? "line-through" : "none",
                         opacity: isComplete ? 0.6 : 1,
                       }}
-                      onBlur={(e) => {
-                        if (canEdit) {
-                          handleFieldUpdate("description", e.currentTarget.innerText);
-                        }
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: task?.description || "",
-                      }}
                     />
-                    {isViewOnly && (
-                      <Badge color="gray" variant="outline">
-                        View Only
-                      </Badge>
-                    )}
                   </Group>
                 </Stack>
               </Group>

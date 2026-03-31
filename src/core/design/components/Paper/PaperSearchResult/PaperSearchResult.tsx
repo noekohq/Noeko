@@ -8,6 +8,7 @@ import {
   CopyIcon,
   QuestionMarkIcon,
   IconProps,
+  DotsSixVerticalIcon,
 } from "@phosphor-icons/react";
 import { INode } from "@/declarations/graph";
 import styles from "./PaperSearchResult.module.scss";
@@ -46,6 +47,7 @@ export default function PaperSearchResult({
   const [isInternallyDragging, setIsInternallyDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [hovering, setHovering] = useState(false);
   const link = getNodeLinkFromId(node.id.toString());
 
   const handleOnSelect = () => {
@@ -96,10 +98,25 @@ export default function PaperSearchResult({
           ref={rootRef}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onMouseEnter={() => {
+            setHovering(true);
+          }}
+          onMouseLeave={() => {
+            setHovering(false);
+          }}
         >
-          {/* Left: Icon Anchor */}
-          <div className={styles.iconZone}>
-            <IconComponent size={18} weight="bold" />
+          <div
+            className={`${styles.iconDragZone} ${hovering ? styles.hovering : ""}`}
+            draggable={!!node.id.toString() && draggable}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!(draggable && hovering) ? (
+              <IconComponent size={16} weight={"bold"} className={styles.mainIcon} />
+            ) : (
+              <DotsSixVerticalIcon size={16} weight="bold" />
+            )}
           </div>
 
           {/* Right: Stacked Content */}

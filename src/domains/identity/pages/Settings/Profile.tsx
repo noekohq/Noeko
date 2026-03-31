@@ -14,6 +14,8 @@ import { validateEmail } from "@core/utils/data";
 import useFetch from "@core/hooks/useFetch";
 import { IUser, IUserForm } from "../../../../../app/database/models/user";
 import { showNotification } from "@mantine/notifications";
+import { Trans, t } from "@lingui/macro";
+import { useLingui } from "@lingui/react";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
@@ -23,6 +25,7 @@ import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Profile() {
+  const { i18n } = useLingui();
   const { user, reload: reloadUser } = useAuth();
 
   const profileForm = useForm({
@@ -36,26 +39,26 @@ export default function Profile() {
     },
     validate: {
       email: (value) => {
-        if (!value) return "Email is required";
-        if (!validateEmail(value)) return "Invalid email";
+        if (!value) return i18n._(t`Email is required`);
+        if (!validateEmail(value)) return i18n._(t`Invalid email`);
       },
       password: (value) => {
-        if (!value) return "Password is required";
-        if (value.length < 8) return "Password must be at least 8 characters";
+        if (!value) return i18n._(t`Password is required`);
+        if (value.length < 8) return i18n._(t`Password must be at least 8 characters`);
       },
       newPassword: (value) => {
-        if (!value) return "New password is required";
-        if (value.length < 8) return "New password must be at least 8 characters";
+        if (!value) return i18n._(t`New password is required`);
+        if (value.length < 8) return i18n._(t`New password must be at least 8 characters`);
       },
       newPasswordConfirmation: (value, values) => {
-        if (!value) return "New password confirmation is required";
-        if (value !== values.password) return "Passwords do not match";
+        if (!value) return i18n._(t`New password confirmation is required`);
+        if (value !== values.password) return i18n._(t`Passwords do not match`);
       },
       firstName: (value) => {
-        if (!value) return "First name is required";
+        if (!value) return i18n._(t`First name is required`);
       },
       lastName: (value) => {
-        if (!value) return "Last name is required";
+        if (!value) return i18n._(t`Last name is required`);
       },
     },
   });
@@ -67,15 +70,15 @@ export default function Profile() {
     dependencies: [profileForm.getTransformedValues()],
     onSuccess: (data, message) => {
       showNotification({
-        title: "Success",
-        message: message || "Profile updated successfully",
+        title: i18n._(t`Success`),
+        message: message || i18n._(t`Profile updated successfully`),
       });
       reloadUser();
     },
     onError: (error: any) => {
       showNotification({
-        title: "Error",
-        message: error?.response?.data?.message || "Something went wrong",
+        title: i18n._(t`Error`),
+        message: error?.response?.data?.message || i18n._(t`Something went wrong`),
         color: "red",
       });
     },
@@ -92,55 +95,67 @@ export default function Profile() {
       <Content>
         <Grid>
           <Grid.Col span={12}>
-            <Title order={1}>Profile</Title>
+            <Title order={1}>
+              <Trans>Profile</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col span={12}>
-            <Title order={3}>Your name is...</Title>
+            <Title order={3}>
+              <Trans>Your name is...</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
             <TextInput
-              label="First name"
-              placeholder="First name"
+              label={i18n._(t`First name`)}
+              placeholder={i18n._(t`First name`)}
               {...profileForm.getInputProps("firstName")}
             />
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
             <TextInput
-              label="Last name"
-              placeholder="Last name"
+              label={i18n._(t`Last name`)}
+              placeholder={i18n._(t`Last name`)}
               {...profileForm.getInputProps("lastName")}
             />
           </Grid.Col>
           <Grid.Col span={12} />
           <Grid.Col span={12}>
-            <Title order={3}>Your email is...</Title>
+            <Title order={3}>
+              <Trans>Your email is...</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
-            <TextInput label="Email" placeholder="Email" {...profileForm.getInputProps("email")} />
+            <TextInput
+              label={i18n._(t`Email`)}
+              placeholder={i18n._(t`Email`)}
+              {...profileForm.getInputProps("email")}
+            />
           </Grid.Col>
           <Grid.Col span={12} />
           <Grid.Col span={12}>
-            <Title order={3}>Update Password</Title>
+            <Title order={3}>
+              <Trans>Update Password</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
             <PasswordInput
-              label="New password"
-              placeholder="New password"
+              label={i18n._(t`New password`)}
+              placeholder={i18n._(t`New password`)}
               {...profileForm.getInputProps("newPassword")}
             />
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
             <PasswordInput
-              label="Confirm password"
-              placeholder="Confirm password"
+              label={i18n._(t`Confirm password`)}
+              placeholder={i18n._(t`Confirm password`)}
               {...profileForm.getInputProps("newPasswordConfirmation")}
             />
           </Grid.Col>
           <Grid.Col span={{ sm: 12, md: 6 }}>
             <PasswordInput
               name="password"
-              label="Current Password"
-              placeholder="Current Password"
+              label={i18n._(t`Current Password`)}
+              placeholder={i18n._(t`Current Password`)}
               {...profileForm.getInputProps("password")}
             />
           </Grid.Col>
@@ -150,7 +165,7 @@ export default function Profile() {
                 leftSection={loadingProfile ? <Loader size="sm" /> : null}
                 onClick={handleSave}
               >
-                Save
+                <Trans>Save</Trans>
               </Button>
             </Group>
           </Grid.Col>

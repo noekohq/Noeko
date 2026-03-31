@@ -10,24 +10,53 @@
 }
 
 .paperButton {
-  animation: buttonIn 0.2s ease-in-out;
-  background-color: var(--mantine-color-dark-8);
+  animation: buttonIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   border-radius: var(--mantine-radius-lg);
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
-  color: var(--mantine-color-dark-1);
   font-weight: 565;
-  border: 1px solid var(--mantine-color-dark-9);
   border: none;
   transition:
-    transform 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out;
+    transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+    box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
   cursor: pointer;
   white-space: nowrap;
 
-  &.withBorder {
-    border: 1px solid var(--mantine-color-dark-7);
+  &.default {
+    background-color: var(--mantine-color-dark-8);
+    color: var(--mantine-color-dark-1);
+
+    &.withBorder {
+      border: 1px solid var(--mantine-color-dark-7);
+    }
+  }
+
+  &.danger {
+    background-color: var(--mantine-color-red-9);
+    color: var(--mantine-color-red-1);
+    .leftSection {
+      color: var(--mantine-color-red-3);
+    }
+    &.withBorder {
+      border: 1px solid var(--mantine-color-red-8);
+    }
+    &:hover {
+      background-color: var(--mantine-color-red-8);
+    }
+  }
+
+  &.light {
+    background-color: transparent;
+    color: var(--mantine-color-dark-2);
+    &:hover {
+      background-color: var(--mantine-color-dark-8);
+      color: var(--mantine-color-dark-0);
+    }
   }
 
   &.fullWidth {
@@ -41,6 +70,18 @@
 
   &:active {
     transform: scale(0.98) translateY(2px);
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    &:active {
+      transform: none;
+    }
   }
 
   .leftSection {

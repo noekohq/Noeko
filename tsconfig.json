@@ -26,6 +26,6 @@
       "@domains/*": ["./src/domains/*"],
     }
   },
-  "include": ["src", "app", "vitest.d.ts"],
+  "include": ["src", "app", "vitest.d.ts", "src/locales/lingui.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

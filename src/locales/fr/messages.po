@@ -1,0 +1,722 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-03-21 14:25-0700\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:50
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:57
+msgid "Account & Identity"
+msgstr "Compte & Identité"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:26
+msgid "Account deleted"
+msgstr "Compte supprimé"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:71
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:38
+msgid "Activity & Network"
+msgstr "Activité & Réseau"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:189
+msgid "activity log"
+msgstr "journal d'activité"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:88
+msgid "appearance"
+msgstr "apparence"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:57
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:103
+msgid "Appearance & Experience"
+msgstr "Apparence & Expérience"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:110
+msgid "Are you <0>absolutely sure</0> you want to delete your account?"
+msgstr "Êtes-vous <0>absolument sûr</0> de vouloir supprimer votre compte ?"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:122
+msgid "Are you <0>absolutely sure</0> you want to delete your stuff?"
+msgstr "Êtes-vous <0>absolument sûr</0> de vouloir supprimer vos données ?"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:100
+msgid "auto"
+msgstr "auto"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:37
+msgid "Auto"
+msgstr "Auto"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:157
+msgid "backup"
+msgstr "sauvegarde"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:108
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:130
+msgid "Body Font"
+msgstr "Police de corps"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:80
+msgid "Bring your data in from other platforms"
+msgstr "Importez vos données depuis d'autres plateformes"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:145
+msgid "categories"
+msgstr "catégories"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:80
+msgid "Chat with developers and other users"
+msgstr "Discutez avec les développeurs et d'autres utilisateurs"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:87
+msgid "Check out the Subreddit"
+msgstr "Consultez le Subreddit"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:123
+msgid "Choose between dark, light, or system default."
+msgstr "Choisissez entre sombre, clair ou le défaut du système."
+
+#: src/domains/identity/pages/Settings/Settings.tsx:164
+msgid "clear data"
+msgstr "effacer les données"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:106
+msgid "Clear Workspace Data"
+msgstr "Effacer les données de l'espace de travail"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:184
+msgid "close account"
+msgstr "fermer le compte"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:196
+msgid "collaboration"
+msgstr "collaboration"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:87
+msgid "color"
+msgstr "couleur"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:96
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:122
+msgid "Color Scheme"
+msgstr "Schéma de couleurs"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:62
+msgid "Community & Sharing"
+msgstr "Communauté & Partage"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:149
+#: src/domains/identity/pages/Settings/Profile.tsx:150
+msgid "Confirm password"
+msgstr "Confirmer le mot de passe"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:43
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:49
+msgid "Confirmation required"
+msgstr "Confirmation requise"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:68
+msgid "Copy Referral Link"
+msgstr "Copier le lien de parrainage"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:157
+#: src/domains/identity/pages/Settings/Profile.tsx:158
+msgid "Current Password"
+msgstr "Mot de passe actuel"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:106
+msgid "Customize how Noeko looks and feels."
+msgstr "Personnalisez l'apparence et le ressenti de Noeko."
+
+#: src/domains/identity/pages/Settings/Settings.tsx:167
+msgid "danger"
+msgstr "danger"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:81
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:93
+msgid "Danger Zone"
+msgstr "Zone de danger"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:98
+msgid "dark"
+msgstr "sombre"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:35
+msgid "Dark"
+msgstr "Sombre"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:85
+msgid "dark mode"
+msgstr "mode sombre"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:151
+msgid "data in"
+msgstr "importation de données"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:157
+msgid "data out"
+msgstr "exportation de données"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:29
+msgid "Default"
+msgstr "Défaut"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:183
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:94
+msgid "Delete Account"
+msgstr "Supprimer le compte"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:104
+msgid "DELETE ACCOUNT"
+msgstr "SUPPRIMER LE COMPTE"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:136
+msgid "Delete Forever"
+msgstr "Supprimer définitivement"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:149
+msgid "Delete Stuff"
+msgstr "Supprimer les données"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:116
+msgid "DELETE STUFF"
+msgstr "SUPPRIMER LES DONNÉES"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:162
+msgid "Delete Workspace"
+msgstr "Supprimer l'espace de travail"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:84
+msgid "Deleting your account is permanent. All associated data will be lost and cannot be recovered."
+msgstr "La suppression de votre compte est permanente. Toutes les données associées seront perdues et ne pourront pas être récupérées."
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:96
+msgid "Deleting your workspace data will remove all ideas, connections, and files, but keep your account intact. This action is irreversible."
+msgstr "La suppression des données de votre espace de travail supprimera toutes les idées, connexions et fichiers, mais conservera votre compte intact. Cette action est irréversible."
+
+#: src/domains/identity/pages/Settings/Settings.tsx:184
+msgid "destroy"
+msgstr "détruire"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:157
+msgid "download"
+msgstr "télécharger"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:87
+msgid "Download your ideas and files"
+msgstr "Téléchargez vos idées et fichiers"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:90
+msgid "dracula"
+msgstr "dracula"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:172
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:67
+msgid "Edit Profile"
+msgstr "Modifier le profil"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:173
+msgid "email"
+msgstr "e-mail"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:129
+#: src/domains/identity/pages/Settings/Profile.tsx:130
+msgid "Email"
+msgstr "E-mail"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:42
+msgid "Email is required"
+msgstr "L'e-mail est requis"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:124
+msgid "english"
+msgstr "anglais"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:46
+msgid "English"
+msgstr "Anglais"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:80
+msgid "Error"
+msgstr "Erreur"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:47
+msgid "Español"
+msgstr "Español"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:179
+msgid "exit"
+msgstr "quitter"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:156
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:86
+msgid "Export Stuff"
+msgstr "Exporter les données"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:109
+#: src/domains/identity/pages/Settings/Profile.tsx:110
+msgid "First name"
+msgstr "Prénom"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:58
+msgid "First name is required"
+msgstr "Le prénom est requis"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:110
+msgid "font"
+msgstr "police"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:48
+msgid "Français"
+msgstr "Français"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:126
+msgid "french"
+msgstr "français"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:206
+msgid "friends"
+msgstr "amis"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:72
+msgid "History, sharing & community"
+msgstr "Historique, partage & communauté"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:137
+msgid "hotkeys"
+msgstr "raccourcis clavier"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:122
+msgid "i18n"
+msgstr "i18n"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:150
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:79
+msgid "Import Ideas"
+msgstr "Importer des idées"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:65
+msgid "Import, export & tags"
+msgstr "Import, export & tags"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:120
+msgid "In order to delete your account, type \"{confirmationText}\""
+msgstr "Pour supprimer votre compte, tapez \"{confirmationText}\""
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:133
+msgid "In order to delete your stuff, type \"{confirmationText}\""
+msgstr "Pour supprimer vos données, tapez \"{confirmationText}\""
+
+#: src/domains/identity/pages/Settings/Settings.tsx:138
+msgid "interactions"
+msgstr "interactions"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:147
+msgid "Interactions"
+msgstr "Interactions"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:43
+msgid "Invalid email"
+msgstr "E-mail invalide"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:206
+msgid "invite"
+msgstr "inviter"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:88
+msgid "Join discussions on Reddit"
+msgstr "Rejoignez les discussions sur Reddit"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:79
+msgid "Join the Discord"
+msgstr "Rejoignez le Discord"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:136
+msgid "keyboard"
+msgstr "clavier"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:133
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:150
+msgid "Keymap"
+msgstr "Configuration des touches"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:145
+msgid "labels"
+msgstr "étiquettes"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:120
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:138
+msgid "Language"
+msgstr "Langue"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:116
+#: src/domains/identity/pages/Settings/Profile.tsx:117
+msgid "Last name"
+msgstr "Nom"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:61
+msgid "Last name is required"
+msgstr "Le nom est requis"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:179
+msgid "leave"
+msgstr "partir"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:99
+msgid "light"
+msgstr "clair"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:36
+msgid "Light"
+msgstr "Clair"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:86
+msgid "light mode"
+msgstr "mode clair"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:127
+msgid "locale"
+msgstr "langue"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:74
+msgid "Log out"
+msgstr "Se déconnecter"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:178
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:56
+msgid "Manage ideas you've shared with others"
+msgstr "Gérez les idées que vous avez partagées avec d'autres"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:51
+msgid "Manage profile & credentials"
+msgstr "Gérer le profil & les identifiants"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:73
+msgid "Manage workspace tags and categories"
+msgstr "Gérer les tags et catégories de l'espace de travail"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:65
+msgid "Manage your ideas, tags, and bulk operations."
+msgstr "Gérez vos idées, tags et opérations groupées."
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:60
+msgid "Manage your profile and authentication settings."
+msgstr "Gérez votre profil et vos paramètres d'authentification."
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:69
+msgid "Management"
+msgstr "Gestion"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:151
+msgid "markdown"
+msgstr "markdown"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:151
+msgid "migrate"
+msgstr "migrer"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:173
+msgid "name"
+msgstr "nom"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:197
+msgid "network"
+msgstr "réseau"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:142
+#: src/domains/identity/pages/Settings/Profile.tsx:143
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:54
+msgid "New password confirmation is required"
+msgstr "La confirmation du nouveau mot de passe est requise"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:50
+msgid "New password is required"
+msgstr "Un nouveau mot de passe est requis"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:51
+msgid "New password must be at least 8 characters"
+msgstr "Le nouveau mot de passe doit comporter au moins 8 caractères"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:129
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:142
+msgid "No, Cancel"
+msgstr "Non, annuler"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:89
+msgid "nord"
+msgstr "nord"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:30
+msgid "Nord"
+msgstr "Nord"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:145
+msgid "organize"
+msgstr "organiser"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:173
+msgid "password"
+msgstr "mot de passe"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:46
+msgid "Password is required"
+msgstr "Le mot de passe est requis"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:47
+msgid "Password must be at least 8 characters"
+msgstr "Le mot de passe doit comporter au moins 8 caractères"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:55
+msgid "Passwords do not match"
+msgstr "Les mots de passe ne correspondent pas"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:189
+msgid "past searches"
+msgstr "recherches passées"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:31
+msgid "Pink Lady"
+msgstr "Pink Lady"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:44
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:50
+msgid "Please enter the correct confirmation text"
+msgstr "Veuillez saisir le texte de confirmation correct"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:99
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:64
+msgid "Profile"
+msgstr "Profil"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:74
+msgid "Profile updated successfully"
+msgstr "Profil mis à jour avec succès"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:206
+msgid "promo"
+msgstr "promo"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:198
+msgid "public"
+msgstr "public"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:199
+msgid "published"
+msgstr "publié"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:189
+msgid "recent"
+msgstr "récent"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:205
+msgid "Referral Link"
+msgstr "Lien de parrainage"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:184
+msgid "remove me"
+msgstr "me retirer"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:165
+msgid "remove stuff"
+msgstr "supprimer mes données"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:166
+msgid "reset workspace"
+msgstr "réinitialiser l'espace de travail"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:49
+msgid "Review your search and exploration history"
+msgstr "Consultez votre historique de recherche et d'exploration"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:113
+msgid "sans"
+msgstr "sans"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:41
+msgid "Sans-Serif"
+msgstr "Sans-Serif"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:168
+msgid "Save"
+msgstr "Enregistrer"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:102
+msgid "scheme"
+msgstr "schéma"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:304
+msgid "Search settings..."
+msgstr "Rechercher dans les paramètres..."
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:115
+msgid "Select a theme for the application."
+msgstr "Sélectionnez un thème pour l'application."
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:131
+msgid "Select the primary font for reading."
+msgstr "Sélectionnez la police principale pour la lecture."
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:139
+msgid "Select your preferred language."
+msgstr "Sélectionnez votre langue préférée."
+
+#: src/domains/identity/pages/Settings/Settings.tsx:112
+msgid "serif"
+msgstr "serif"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:42
+msgid "Serif"
+msgstr "Serif"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:279
+msgid "Settings"
+msgstr "Paramètres"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:206
+msgid "share noeko"
+msgstr "partager noeko"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:69
+msgid "Share Noeko with friends"
+msgstr "Partagez Noeko avec des amis"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:194
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:55
+msgid "Shared Ideas"
+msgstr "Idées partagées"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:135
+msgid "shortcuts"
+msgstr "raccourcis"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:179
+msgid "sign out"
+msgstr "se déconnecter"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:75
+msgid "Sign out of this device"
+msgstr "Se déconnecter de cet appareil"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:81
+msgid "Something went wrong"
+msgstr "Quelque chose s'est mal passé"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:125
+msgid "spanish"
+msgstr "espagnol"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:188
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:48
+msgid "Spyglass History"
+msgstr "Historique Spyglass"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:73
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:32
+msgid "Success"
+msgstr "Succès"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:101
+msgid "system"
+msgstr "système"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:144
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:72
+msgid "Tags"
+msgstr "Tags"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:111
+msgid "text"
+msgstr "texte"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:83
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:114
+msgid "Theme"
+msgstr "Thème"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:110
+msgid "Theme & Styling"
+msgstr "Thème & Style"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:58
+msgid "Theme, layout & keymap"
+msgstr "Thème, mise en page & raccourcis"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:115
+msgid "This action cannot be undone, and all of your associated account data will be deleted."
+msgstr "Cette action ne peut pas être annulée et toutes les données de votre compte associé seront supprimées."
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:127
+msgid "This action cannot be undone, and all of your data will be deleted, <0>except for your account.</0>"
+msgstr "Cette action ne peut pas être annulée et toutes vos données seront supprimées, <0>à l'exception de votre compte.</0>"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:123
+msgid "translation"
+msgstr "traduction"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:114
+msgid "typography"
+msgstr "typographie"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:137
+msgid "Update Password"
+msgstr "Mettre à jour le mot de passe"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:173
+msgid "update user"
+msgstr "mettre à jour l'utilisateur"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:68
+msgid "Update your name, email, and password"
+msgstr "Mettez à jour votre nom, e-mail et mot de passe"
+
+#: src/domains/identity/pages/Settings/Settings.tsx:151
+msgid "upload"
+msgstr "téléverser"
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:151
+msgid "View and customize keyboard shortcuts"
+msgstr "Voir et personnaliser les raccourcis clavier"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:41
+msgid "View your history and connect with the community."
+msgstr "Consultez votre historique et connectez-vous avec la communauté."
+
+#: src/domains/identity/pages/Settings/Settings.tsx:64
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:62
+msgid "Workspace Data"
+msgstr "Données de l'espace de travail"
+
+#: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:27
+msgid "Your account has been deleted"
+msgstr "Votre compte a été supprimé"
+
+#: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:45
+msgid "Your Activity"
+msgstr "Votre activité"
+
+#: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:33
+msgid "Your data has been deleted"
+msgstr "Vos données ont été supprimées"
+
+#: src/domains/identity/pages/Settings/Profile.tsx:124
+msgid "Your email is..."
+msgstr "Votre e-mail est..."
+
+#: src/domains/identity/pages/Settings/Profile.tsx:104
+msgid "Your name is..."
+msgstr "Votre nom est..."

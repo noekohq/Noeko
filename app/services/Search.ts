@@ -1,12 +1,12 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
-import { IIdea, IIdeaAsRelation, IIdeaDerived, ISafeIdea } from "../../shared/types/idea";
+import { IIdea } from "../../shared/types/idea";
 import { getEmbedder } from "../ai/embeddings/embeddings";
 import { ITag } from "../../shared/types/tags";
 import { IRabbithole } from "../database/models/rabbithole";
-import { IPublicTask, ITask } from "../database/models/task";
+import { ITask } from "../database/models/task";
 import { IExcerpt } from "../../shared/types/excerpt";
-import { IConnectable, IConnectableTypes, IPotentiallySharedConnectable } from "./Graph";
+import { IConnectableTypes, IPotentiallySharedConnectable } from "./Graph";
 import { ISource } from "../database/models/source";
 import { IPublicUser } from "../../shared/types/user";
 import {
@@ -37,6 +37,7 @@ export class Search {
   };
   public static readonly EXACT_TITLE_BONUS = 2.0;
   public static readonly SEMANTIC_THRESHOLD = 0.45;
+  public static readonly RRF_K = 60;
 
   constructor() {}
 
@@ -603,6 +604,77 @@ export class Search {
     return this.sortByScore(finalResults);
   }
 
+  private static _rrfMerge(
+    ftsResults: ISearchResult[],
+    semanticResults: ISearchResult[],
+    queryLower?: string // Optional: Passed in if you still want to apply the Exact Title Bonus
+  ): ISearchResult[] {
+    console.log("Results: ", ftsResults, semanticResults);
+    // 1. Sort inputs by their native scores to establish their ranks
+    const sortedFts = this.sortByScore([...ftsResults]);
+    const sortedSemantic = this.sortByScore([...semanticResults]);
+
+    const combined = new Map<string, ISearchResult>();
+
+    // 2. Helper to apply the RRF formula to a list
+    const processList = (list: ISearchResult[], sourceName: "fts" | "semantic") => {
+      list.forEach((item, index) => {
+        const id = typeof item.id === "string" ? item.id : item.id.toString();
+        const rank = index + 1; // 1-based rank
+        const rrfContribution = 1 / (this.RRF_K + rank);
+
+        const existing = combined.get(id);
+        if (existing) {
+          existing.score += rrfContribution;
+          existing.debug = {
+            ...existing.debug,
+            [`${sourceName}Rank`]: rank,
+          };
+        } else {
+          combined.set(id, {
+            ...item,
+            score: rrfContribution,
+            debug: {
+              ...item.debug,
+              source: "hybrid",
+              [`${sourceName}Rank`]: rank,
+            },
+          });
+        }
+      });
+    };
+
+    // Process both lists
+    processList(sortedFts, "fts");
+    processList(sortedSemantic, "semantic");
+
+    // 3. Optional: Re-apply exact title bonus if needed
+    const finalResults = Array.from(combined.values());
+    if (queryLower) {
+      for (const res of finalResults) {
+        const type = res.value.type;
+        const title =
+          type === "idea"
+            ? (res.value as IIdea).title
+            : type === "source"
+              ? (res.value as ISource).displayName
+              : type === "task"
+                ? (res.value as ITask).description
+                : null;
+
+        if (title?.toLowerCase().trim() === queryLower) {
+          // RRF scores are very small (e.g., 0.03). An exact title bonus needs to scale to match.
+          // Adding 1.0 guarantees it vaults to the absolute top.
+          res.score += 1.0;
+          res.debug = { ...res.debug, exactTitleBonus: 1.0 };
+        }
+      }
+    }
+
+    // 4. Sort by the final RRF score
+    return this.sortByScore(finalResults);
+  }
+
   public static async searchConnectables(
     userId: string | RecordId,
     query: IConnectableSearchQuery
@@ -623,23 +695,17 @@ export class Search {
 
       if (searchType?.fts) {
         const r = await this.ftsSearchConnectables(userId, query);
-        if (r) {
-          ftsResults.push(...r);
-        } else {
-          console.error("Couldn't get any fts results");
-        }
+        if (r) ftsResults.push(...r);
       }
 
       if (searchType?.vector) {
         const r = await this.semanticSearchConnectables(userId, query);
-        if (r) {
-          semanticResults.push(...r);
-        } else {
-          console.error("Couldn't get any semantic results");
-        }
+        if (r) semanticResults.push(...r);
       }
 
-      const merged = this._fuseResults(ftsResults, semanticResults);
+      // Replace the old _fuseResults call with _rrfMerge
+      const queryLower = query.query ? String(query.query).toLowerCase().trim() : undefined;
+      const merged = this._rrfMerge(ftsResults, semanticResults, queryLower);
 
       // Enrich with owner info for shared items
       const enriched = await this.enrichWithOwnerInfo(merged, userId);
@@ -1926,7 +1992,9 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with FTS: ", results);
       }
+      console.log("Running query: ", query, params);
       const [r] = results;
+      console.log("For results: ", r);
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.fts(r));
       return searchResults;
@@ -1986,7 +2054,9 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with vector search: ", results);
       }
+      console.log("Running query: ", query, params);
       const [r] = results;
+      console.log("For results: ", r);
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.vector(r));
       return searchResults;

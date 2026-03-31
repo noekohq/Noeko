@@ -3,9 +3,8 @@
 .paperSearchResult {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   width: 100%;
-  // We can reduce vertical padding slightly since we are stacking more vertically now
   padding: 10px var(--mantine-spacing-sm);
   gap: var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-lg);
@@ -36,15 +35,40 @@
   }
 }
 
-.iconZone {
+.iconDragZone {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding-top: 2px;
+  position: relative;
   width: 18px;
   color: var(--mantine-color-dark-3);
-  height: 100%;
+  transition: all 0.2s ease;
+
+  cursor: grab;
+  touch-action: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  [data-mantine-color-scheme="dark"] & {
+    color: var(--mantine-color-gray-5);
+  }
+
+  &.hovering {
+  }
 }
 
 .contentWrapper {
@@ -52,7 +76,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px; // Tight gap between Title and Snippet
+  gap: 2px;
 }
 
 .header {
@@ -60,7 +84,6 @@
   align-items: center;
   width: 100%;
 
-  // Title gets full reign here
   .title {
     font-weight: 600;
     font-size: var(--mantine-font-size-sm);
@@ -105,12 +128,12 @@
 
 .footer {
   display: flex;
-  justify-content: flex-end; // Pushes content to right
+  justify-content: flex-end;
   margin-top: 4px;
 
   .meta {
     font-size: 10px;
-    color: var(--mantine-color-dark-3); // darker than dimmed to recede
+    color: var(--mantine-color-dark-3);
     font-style: italic;
   }
 }

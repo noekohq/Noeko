@@ -8,6 +8,7 @@ export type IRoleForm = Omit<IRole, "id">;
 
 export type IUserSettings = {
   isNew: boolean;
+  language?: string;
 };
 
 export type IUser = {

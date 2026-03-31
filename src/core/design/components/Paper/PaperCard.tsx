@@ -4,21 +4,33 @@ import { Icon } from "@phosphor-icons/react";
 
 interface IPaperCard {
   icon?: Icon;
-  title: string;
+  title?: React.ReactNode;
   children: React.ReactNode | React.ReactNode[];
   bg?: MantineColor | string;
   onClick?: () => void;
+  variant?: "default" | "danger" | "transparent";
 }
 
-export default function PaperCard({ title, icon, children, bg, onClick }: IPaperCard) {
-  const Icon = icon;
+export default function PaperCard({
+  title,
+  icon,
+  children,
+  bg,
+  onClick,
+  variant = "default",
+}: IPaperCard) {
+  const IconComponent = icon;
+
+  const classNames = [styles.paperCard, styles[variant]].filter(Boolean).join(" ");
 
   return (
-    <div className={styles.paperCard} style={{ backgroundColor: bg }} onClick={onClick}>
-      <div className={styles.title}>
-        {Icon && <Icon weight="bold" />}
-        {title}
-      </div>
+    <div className={classNames} style={bg ? { backgroundColor: bg } : undefined} onClick={onClick}>
+      {title && (
+        <div className={styles.title}>
+          {IconComponent && <IconComponent weight="bold" />}
+          {title}
+        </div>
+      )}
 
       <div
         className={styles.content}

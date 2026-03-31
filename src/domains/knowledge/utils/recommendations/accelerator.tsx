@@ -15,6 +15,7 @@ import { formatDateTime } from "@core/utils/formatting";
 import { Blockquote, Text } from "@mantine/core";
 import { IAcceleratorShelfLayout } from "@domains/knowledge/components/Acceleration/AcceleratorShelf";
 import { ca } from "zod/v4/locales";
+import { getNodeLink } from "@/infrastructure/graph/utils";
 
 export interface IAcceleratorItemFields {
   id: string;
@@ -46,7 +47,7 @@ export const acceleratorItemFieldResolvers: {
       `Active ${item.payload.daysAgo > 0 ? `${item.payload.daysAgo} days ago` : "today"}`,
     link: (item) => `/rabbithole/${item.payload.id.toString()}`,
     icon: (_item) => RabbitholeIcon,
-    preview: (item) => `Last active ${formatDateTime(item.payload.updatedAt)}` || "",
+    preview: (item) => "",
   },
   idea: {
     id: (item) => item.payload.id.toString(),
@@ -68,7 +69,11 @@ export const acceleratorItemFieldResolvers: {
     id: (item) => item.payload.id.toString(),
     name: (item) => item.payload.sourceText,
     detail: (item) => item.payload.note || "",
-    link: (item) => `/source/${getExcerptReferenceId(item.payload)}`,
+    link: (item) =>
+      getNodeLink({
+        ...item.payload,
+        type: "excerpt",
+      }) || "",
     icon: (_item) => TextAlignLeftIcon,
     preview: (item) => (
       <>
@@ -89,7 +94,7 @@ export const acceleratorItemFieldResolvers: {
     detail: (item) => item.payload.analysis?.headline || "",
     link: (item) => `/source/${item.payload.id.toString()}`,
     icon: (_item) => FileIcon,
-    preview: (item) => `Added ${formatDateTime(item.payload.createdAt)}` || "",
+    preview: (item) => `Added ${formatDateTime(item.payload.createdAt)}`,
   },
   urgentTask: {
     id: (item) => item.payload.id.toString(),
@@ -100,7 +105,7 @@ export const acceleratorItemFieldResolvers: {
         : `Due in ${item.payload.daysDiff} days`,
     link: (item) => `/task/${item.payload.id.toString()}`,
     icon: (_item) => CheckIcon,
-    preview: (item) => `Created ${formatDateTime(item.payload.createdAt)}` || "",
+    preview: (item) => `Created ${formatDateTime(item.payload.createdAt)}`,
   },
 };
 

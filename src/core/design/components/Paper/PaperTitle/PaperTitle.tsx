@@ -12,6 +12,8 @@ interface PaperTitleProps {
   onGenerate?: () => void;
   isGenerating?: boolean;
   wasGenerated?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export function PaperTitle({
@@ -23,6 +25,8 @@ export function PaperTitle({
   onGenerate,
   isGenerating = false,
   wasGenerated = false,
+  className,
+  style,
 }: PaperTitleProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [localTitle, setLocalTitle] = useState(initialTitle);
@@ -49,14 +53,14 @@ export function PaperTitle({
         contentEditable={canEdit}
         suppressContentEditableWarning
         onBlur={handleBlur}
-        className={styles.paperTitle}
+        className={[styles.paperTitle, className].filter(Boolean).join(" ")}
         style={{
           opacity: canEdit ? 1 : 0.7,
+          ...style,
           cursor: canEdit ? "text" : "default",
         }}
-      >
-        {localTitle || ""}
-      </Title>
+        dangerouslySetInnerHTML={{ __html: localTitle || "" }}
+      />
 
       {isViewOnly && (
         <Badge color="gray" variant="outline">

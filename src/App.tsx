@@ -1,14 +1,10 @@
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import styles from "./App.module.scss";
-import { Center, Loader, Text, useMantineColorScheme } from "@mantine/core";
-import { CloudIcon, WarningIcon } from "@phosphor-icons/react";
+import { Center, Loader, useMantineColorScheme } from "@mantine/core";
 
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 // React
-import { lazy, useEffect, useRef } from "react";
-
-// Mantine Notifications
-import { showNotification } from "@mantine/notifications";
+import { lazy, useEffect, Suspense } from "react";
 
 // Application Contexts
 import { useLayout } from "@/contexts/LayoutContext";
@@ -17,76 +13,95 @@ import { useSettings } from "@/contexts/SettingsContext";
 // Application Components
 import GlobalTourManager from "@/core/design/components/Onboarding/GlobalTourManager";
 
-// Admin Domain
-import Admin from "@domains/admin/pages/Admin";
-import Feedback from "./domains/admin/pages/Feedback/Feedback";
-
-// Constellation Domain
-import Constellation from "@domains/constellation/pages/Constellation/Constellation";
+// --- Static Imports (Critical Entry Paths) ---
+// Identity Domain
+import Login from "@domains/identity/pages/Auth/Login";
+import Register from "@domains/identity/pages/Auth/Register";
+import Unauthorized from "@domains/identity/pages/Auth/Unauthorized";
+import { userIsSuperuser } from "@domains/identity/utils/user";
 
 // Dashboard Domain
 import Dashboard from "@domains/dashboard/pages/Dashboard/Dashboard";
-import DashboardExperimental from "@domains/dashboard/pages/Dashboard/Experimental";
 import MobileDashboard from "@domains/dashboard/pages/Dashboard/Mobile/Mobile";
 
+// --- Lazy Loaded Components (Grouped by Domain) ---
+
+// Admin Domain
+const Admin = lazy(() => import("@domains/admin/pages/Admin"));
+const Feedback = lazy(() => import("./domains/admin/pages/Feedback/Feedback"));
+const Updates = lazy(() => import("@domains/admin/pages/Feedback/Updates"));
+
+// Constellation Domain
+const Constellation = lazy(
+  () => import("@domains/constellation/pages/Constellation/Constellation")
+);
+
 // Discovery Domain
-import All from "@domains/discovery/pages/All/All";
-import Spyglass from "@domains/discovery/pages/Spyglass/Spyglass";
-import SpyglassRecord from "@domains/discovery/pages/Spyglass/Spyglass/Record";
-import SpyglassRecords from "@domains/discovery/pages/Spyglass/Spyglass/Records";
+const All = lazy(() => import("@domains/discovery/pages/All/All"));
+const Spyglass = lazy(() => import("@domains/discovery/pages/Spyglass/Spyglass"));
+const SpyglassRecord = lazy(() => import("@domains/discovery/pages/Spyglass/Spyglass/Record"));
+const SpyglassRecords = lazy(() => import("@domains/discovery/pages/Spyglass/Spyglass/Records"));
 
 // Identity Domain
-import ForgotPassword from "@domains/identity/pages/Auth/ForgotPassword";
-import Login from "@domains/identity/pages/Auth/Login";
-import Register from "@domains/identity/pages/Auth/Register";
-import ResetPassword from "@domains/identity/pages/Auth/ResetPassword";
-import Unauthorized from "@domains/identity/pages/Auth/Unauthorized";
-import Keymap from "@domains/identity/pages/Settings/Keymap";
-import Profile from "@domains/identity/pages/Settings/Profile";
-import Settings from "@domains/identity/pages/Settings/Settings";
-import Users from "@domains/identity/pages/Users/Users";
-import { userIsSuperuser } from "@domains/identity/utils/user";
+const ForgotPassword = lazy(() => import("@domains/identity/pages/Auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("@domains/identity/pages/Auth/ResetPassword"));
+const Keymap = lazy(() => import("@domains/identity/pages/Settings/Keymap"));
+const Profile = lazy(() => import("@domains/identity/pages/Settings/Profile"));
+const Settings = lazy(() => import("@domains/identity/pages/Settings/Settings"));
+const Users = lazy(() => import("@domains/identity/pages/Users/Users"));
 
 // Knowledge Domain
-import Agenda from "./domains/knowledge/pages/Agenda/Agenda";
-import FileList from "./domains/knowledge/pages/File/FileList";
-import UserFile from "./domains/knowledge/pages/File/File";
-import Idea from "@domains/knowledge/pages/Idea/Idea";
-import Ideas from "@domains/knowledge/pages/Idea/Ideas";
-import ViewIdea from "@domains/knowledge/pages/Idea/ViewIdea";
-import PinsPage from "./domains/knowledge/pages/Pins/Pins";
-import Sharing from "./domains/knowledge/pages/Sharing/Sharing";
-import Source from "@domains/knowledge/pages/Sources/Source";
-import SourceList from "@domains/knowledge/pages/Sources/SourceList";
-import Tags from "./domains/knowledge/pages/Tags/Tags";
-import ViewTag from "./domains/knowledge/pages/Tags/ViewTag";
-import Task from "@domains/knowledge/pages/Tasks/Task";
-import Tasks from "@domains/knowledge/pages/Tasks/Tasks";
-import { useConnection } from "@domains/knowledge/hooks/useConnection";
+const Agenda = lazy(() => import("./domains/knowledge/pages/Agenda/Agenda"));
+const FileList = lazy(() => import("./domains/knowledge/pages/File/FileList"));
+const UserFile = lazy(() => import("./domains/knowledge/pages/File/File"));
+const Idea = lazy(() => import("@domains/knowledge/pages/Idea/Idea"));
+const Ideas = lazy(() => import("@domains/knowledge/pages/Idea/Ideas"));
+const ViewIdea = lazy(() => import("@domains/knowledge/pages/Idea/ViewIdea"));
+const PinsPage = lazy(() => import("./domains/knowledge/pages/Pins/Pins"));
+const Sharing = lazy(() => import("./domains/knowledge/pages/Sharing/Sharing"));
+const Source = lazy(() => import("@domains/knowledge/pages/Sources/Source"));
+const SourceList = lazy(() => import("@domains/knowledge/pages/Sources/SourceList"));
+const Tags = lazy(() => import("./domains/knowledge/pages/Tags/Tags"));
+const ViewTag = lazy(() => import("./domains/knowledge/pages/Tags/ViewTag"));
+const Task = lazy(() => import("@domains/knowledge/pages/Tasks/Task"));
+const Tasks = lazy(() => import("@domains/knowledge/pages/Tasks/Tasks"));
 
 // Rabbitholes Domain
-import Rabbithole from "@domains/rabbitholes/pages/Rabbitholes/Rabbithole";
-import Rabbitholes from "@domains/rabbitholes/pages/Rabbitholes/List";
+const Rabbithole = lazy(() => import("@domains/rabbitholes/pages/Rabbitholes/Rabbithole"));
+const Rabbitholes = lazy(() => import("@domains/rabbitholes/pages/Rabbitholes/List"));
 
 // System Domain
-import Export from "./domains/system/pages/Export/Export";
-import Import from "./domains/system/pages/Import/Import";
+const Export = lazy(() => import("./domains/system/pages/Export/Export"));
+const Import = lazy(() => import("./domains/system/pages/Import/Import"));
 
-// Lazy Loaded Components
-const Updates = lazy(() => import("@domains/admin/pages/Feedback/Updates"));
+// Onboarding
 const Onboarding = lazy(() => import("@/core/design/components/Onboarding/Index"));
 
+const PageLoader = () => (
+  <Center style={{ height: "100%", width: "100%", flex: 1 }}>
+    <Loader size="lg" />
+  </Center>
+);
+
+const FullPageLoader = () => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+    }}
+  >
+    <Loader size="lg" />
+  </div>
+);
+
 export default function App() {
-  const navigate = useNavigate();
   const { loggedIn, loading: loadingAuth, user } = useAuth();
-  // const { isOnline, isLoading: loadingConnection } = useConnection();
   const { isMobile } = useLayout();
   const location = useLocation();
 
   const isSuperuser = userIsSuperuser(user);
-
-  // const previousOnlineState = useRef(isOnline);
-  const notificationTimeout = useRef<Timer>(null);
 
   const {
     ui: {
@@ -100,66 +115,22 @@ export default function App() {
 
   useEffect(() => {
     setColorScheme(scheme);
-  }, [scheme]);
+  }, [scheme, setColorScheme]);
 
   if (loadingAuth) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <Loader size="lg" />
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (user?.settings.isNew) {
-    return <Onboarding />;
+    return (
+      <Suspense fallback={<FullPageLoader />}>
+        <Onboarding />
+      </Suspense>
+    );
   }
 
   return (
-    <>
-      {/*{!isOnline && (
-        <Overlay backgroundOpacity={0.5} blur={4}>
-          <Flex justify="center" align="center" direction="column">
-            <Content>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "80vh",
-                  padding: "20px",
-                }}
-              >
-                <Alert
-                  icon={<CloudIcon />}
-                  title="Connecting..."
-                  color="dark.2"
-                  radius="lg"
-                  bg="dark.8"
-                >
-                  <Stack gap="xs">
-                    <Text size="sm">
-                      Attemping to establish a connection to the server. If this
-                      takes a while, consider refreshing the page.
-                    </Text>
-                    <Text size="sm">
-                      We apologize for any inconvenience. For any inquiries or
-                      support, please feel free to contact{" "}
-                      <a href="mailto:support@noeko.app">support@noeko.app</a>.
-                    </Text>
-                  </Stack>
-                </Alert>
-              </div>
-            </Content>
-          </Flex>
-        </Overlay>
-      )}*/}
+    <Suspense fallback={<FullPageLoader />}>
       <Routes>
         <Route path="/unauthorized" element={<Unauthorized />} />
         {!loggedIn && (
@@ -181,97 +152,99 @@ export default function App() {
             element={
               <div className={styles.app}>
                 <GlobalTourManager />
-                <Routes>
-                  <Route path="login" element={<Navigate to="/" replace />} />
-                  <Route path="register" element={<Navigate to="/" replace />} />
-                  {!isMobile && <Route index element={<Dashboard />} />}
-                  {isMobile && <Route index element={<MobileDashboard />} />}
-                  <Route path="constellation">
-                    <Route index element={<Constellation />} />
-                  </Route>
-                  <Route path="profile" element={<Navigate to="/settings/profile" />} />
-                  <Route path="settings">
-                    <Route index element={<Settings />} />
-                    <Route path="profile" element={<Profile />} />
-                  </Route>
-                  <Route path="idea">
-                    <Route index element={<Navigate to="/ideas" replace />} />
-                    <Route path=":ideaId">
-                      <Route index element={<Idea key={location.pathname} />} />
-                      <Route path="view" element={<ViewIdea key={location.pathname} />} />
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="login" element={<Navigate to="/" replace />} />
+                    <Route path="register" element={<Navigate to="/" replace />} />
+                    {!isMobile && <Route index element={<Dashboard />} />}
+                    {isMobile && <Route index element={<MobileDashboard />} />}
+                    <Route path="constellation">
+                      <Route index element={<Constellation />} />
                     </Route>
-                  </Route>
-                  <Route path="sharing">
-                    <Route index element={<Sharing />} />
-                  </Route>
-                  <Route path="ideas">
-                    <Route index element={<Ideas />} />
-                  </Route>
-                  <Route path="quests">
-                    <Route index element={<Tasks />} />
-                  </Route>
-                  <Route path="agenda">
-                    <Route index element={<Agenda />} />
-                  </Route>
-                  <Route path="all">
-                    <Route index element={<All />} />
-                  </Route>
-                  <Route path="pinned">
-                    <Route index element={<PinsPage />} />
-                  </Route>
-                  <Route path="task">
-                    <Route path=":taskId">
-                      <Route index element={<Task key={location.pathname} />} />
+                    <Route path="profile" element={<Navigate to="/settings/profile" />} />
+                    <Route path="settings">
+                      <Route index element={<Settings />} />
+                      <Route path="profile" element={<Profile />} />
                     </Route>
-                  </Route>
-                  <Route path="tags">
-                    <Route index element={<Tags />} />
-                    <Route path=":tagId" element={<ViewTag />} />
-                  </Route>
-                  <Route path="file">
-                    <Route path=":fileId" element={<UserFile />} />
-                  </Route>
-                  <Route path="files" element={<FileList />} />
-                  <Route path="source">
-                    <Route path=":sourceId" element={<Source />} />
-                  </Route>
-                  <Route path="sources" element={<SourceList />} />
-                  <Route path="import">
-                    <Route index element={<Import />} />
-                  </Route>
-                  <Route path="export">
-                    <Route index element={<Export />} />
-                  </Route>
-                  <Route path="keymap">
-                    <Route index element={<Keymap />} />
-                  </Route>
-                  <Route path="rabbitholes">
-                    <Route index element={<Rabbitholes />} />
-                    <Route path=":rabbitholeId" element={<Rabbithole />} />
-                  </Route>
-                  <Route path="spyglass">
-                    <Route index element={<Spyglass />} />
-                    <Route path="history" element={<SpyglassRecords />} />
-                    <Route path="records">
-                      <Route index element={<SpyglassRecords />} />
-                      <Route path=":spyglassId" element={<SpyglassRecord />} />
+                    <Route path="idea">
+                      <Route index element={<Navigate to="/ideas" replace />} />
+                      <Route path=":ideaId">
+                        <Route index element={<Idea key={location.pathname} />} />
+                        <Route path="view" element={<ViewIdea key={location.pathname} />} />
+                      </Route>
                     </Route>
-                  </Route>
-                  {isSuperuser && (
-                    <Route path="admin">
-                      <Route index element={<Admin />} />
-                      <Route path="users" element={<Users />} />
-                      <Route path="feedback" element={<Feedback />} />
+                    <Route path="sharing">
+                      <Route index element={<Sharing />} />
                     </Route>
-                  )}
-                  <Route path="updates" element={<Updates />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                    <Route path="ideas">
+                      <Route index element={<Ideas />} />
+                    </Route>
+                    <Route path="quests">
+                      <Route index element={<Tasks />} />
+                    </Route>
+                    <Route path="agenda">
+                      <Route index element={<Agenda />} />
+                    </Route>
+                    <Route path="all">
+                      <Route index element={<All />} />
+                    </Route>
+                    <Route path="pinned">
+                      <Route index element={<PinsPage />} />
+                    </Route>
+                    <Route path="task">
+                      <Route path=":taskId">
+                        <Route index element={<Task key={location.pathname} />} />
+                      </Route>
+                    </Route>
+                    <Route path="tags">
+                      <Route index element={<Tags />} />
+                      <Route path=":tagId" element={<ViewTag />} />
+                    </Route>
+                    <Route path="file">
+                      <Route path=":fileId" element={<UserFile />} />
+                    </Route>
+                    <Route path="files" element={<FileList />} />
+                    <Route path="source">
+                      <Route path=":sourceId" element={<Source />} />
+                    </Route>
+                    <Route path="sources" element={<SourceList />} />
+                    <Route path="import">
+                      <Route index element={<Import />} />
+                    </Route>
+                    <Route path="export">
+                      <Route index element={<Export />} />
+                    </Route>
+                    <Route path="keymap">
+                      <Route index element={<Keymap />} />
+                    </Route>
+                    <Route path="rabbitholes">
+                      <Route index element={<Rabbitholes />} />
+                      <Route path=":rabbitholeId" element={<Rabbithole />} />
+                    </Route>
+                    <Route path="spyglass">
+                      <Route index element={<Spyglass />} />
+                      <Route path="history" element={<SpyglassRecords />} />
+                      <Route path="records">
+                        <Route index element={<SpyglassRecords />} />
+                        <Route path=":spyglassId" element={<SpyglassRecord />} />
+                      </Route>
+                    </Route>
+                    {isSuperuser && (
+                      <Route path="admin">
+                        <Route index element={<Admin />} />
+                        <Route path="users" element={<Users />} />
+                        <Route path="feedback" element={<Feedback />} />
+                      </Route>
+                    )}
+                    <Route path="updates" element={<Updates />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
               </div>
             }
           />
         )}
       </Routes>
-    </>
+    </Suspense>
   );
 }

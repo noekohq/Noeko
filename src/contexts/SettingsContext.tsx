@@ -5,16 +5,22 @@ import { isDarkScheme } from "@core/utils/dom";
 import { IUserSettings } from "../../shared/types/user";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { api } from "@infrastructure/api/client";
+import { dynamicActivate } from "@/i18n";
 
 const LOCAL_STORAGE_KEYS = {
   override: "themeOverride",
   scheme: "themeScheme",
   bodyFont: "themeBodyFont",
   headingFont: "themeHeadingFont",
+  language: "language",
 };
 
 type ISettingsContext = {
   ui: {
+    language: {
+      get: string;
+      set: (l: string) => void;
+    };
     theme: {
       override: {
         get: IThemeSpec["override"];
@@ -60,6 +66,10 @@ function getInitialState<T>(key: string, defaultValue: T): T {
 
 const SettingsContext = createContext<ISettingsContext>({
   ui: {
+    language: {
+      get: "en",
+      set: () => {},
+    },
     theme: {
       override: {
         get: "noeko",
@@ -106,6 +116,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [headingFont, setHeadingFont] = useState<IThemeSpec["headingFont"]>(() =>
     getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif")
   );
+  const [language, setLanguage] = useState<string>(() =>
+    getInitialState(LOCAL_STORAGE_KEYS.language, "en")
+  );
+
+  useEffect(() => {
+    console.log("Language changed: ", language);
+  }, [language]);
 
   useEffect(() => {
     try {
@@ -149,9 +166,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [headingFont]);
 
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.language, language);
+      }
+    } catch (error) {
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.language}' to localStorage:`, error);
+    }
+  }, [language]);
+
+  useEffect(() => {
+    dynamicActivate(language);
+  }, [language]);
+
   const resolvedTheme = useCallback(
     (): IThemeResolved =>
-      // Explicit return type
       ResolveTheme({
         override,
         scheme,
@@ -180,6 +210,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     <SettingsContext.Provider
       value={{
         ui: {
+          language: {
+            get: language,
+            set: (l: string) => {
+              setLanguage(l);
+            },
+          },
           theme: {
             override: {
               get: override,

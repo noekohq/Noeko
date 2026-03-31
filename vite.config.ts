@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
+import { lingui } from "@lingui/vite-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,7 +15,12 @@ export default defineConfig({
     },
   },
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: ["macros"],
+      },
+    }),
+    lingui(),
     VitePWA({
       workbox: {
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024, // 5 MB

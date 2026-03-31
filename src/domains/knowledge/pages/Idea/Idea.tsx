@@ -479,12 +479,6 @@ export default function Idea() {
                   isGenerating={loadingTitleGeneration}
                   wasGenerated={!!safeIdea?.titleGeneratedAt}
                 />
-
-                {isViewOnly && (
-                  <Badge color="gray" variant="outline">
-                    View Only
-                  </Badge>
-                )}
               </Group>
 
               <Box

@@ -7,6 +7,9 @@ import { BrowserRouter } from "react-router";
 import { GraphProvider } from "@domains/constellation/contexts/GraphContext";
 import { AuthProvider } from "@domains/identity/contexts/AuthContext";
 import { ModalsProvider } from "@mantine/modals";
+import { I18nProvider } from "@lingui/react";
+import { i18n } from "@lingui/core";
+import "./i18n";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/charts/styles.css";
@@ -44,27 +47,29 @@ const Client = () => {
   return (
     <ErrorBoundary fallbackRender={(fallbackProps) => <Error {...fallbackProps} />}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <SettingsProvider>
-              <SearchProvider>
-                <LayoutProvider>
-                  <LandscapeProvider>
-                    <GraphProvider>
-                      <WrapTheme>
-                        <InteractionProvider>
-                          <TourGuideProvider>
-                            <App />
-                          </TourGuideProvider>
-                        </InteractionProvider>
-                      </WrapTheme>
-                    </GraphProvider>
-                  </LandscapeProvider>
-                </LayoutProvider>
-              </SearchProvider>
-            </SettingsProvider>
-          </AuthProvider>
-        </BrowserRouter>
+        <I18nProvider i18n={i18n}>
+          <BrowserRouter>
+            <AuthProvider>
+              <SettingsProvider>
+                <SearchProvider>
+                  <LayoutProvider>
+                    <LandscapeProvider>
+                      <GraphProvider>
+                        <WrapTheme>
+                          <InteractionProvider>
+                            <TourGuideProvider>
+                              <App />
+                            </TourGuideProvider>
+                          </InteractionProvider>
+                        </WrapTheme>
+                      </GraphProvider>
+                    </LandscapeProvider>
+                  </LayoutProvider>
+                </SearchProvider>
+              </SettingsProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </I18nProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

@@ -1,4 +1,4 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 .gridCard {
   display: flex;
@@ -16,18 +16,16 @@
   outline: none;
   background-color: transparent;
   position: relative;
-
   cursor: pointer;
+  overflow: hidden;
 
-  // --- Hover Effects ---
   &:hover {
     transform: translateY(-4px);
     box-shadow: var(--mantine-shadow-md);
 
-    // Enhance the CTA arrow on hover
     .ctaIcon {
       opacity: 1;
-      transform: translate(2px, -2px); // Visual "go to" movement
+      transform: translate(2px, -2px);
       color: var(--mantine-color-primary-filled);
     }
   }
@@ -47,7 +45,6 @@
     cursor: grabbing;
   }
 
-  // --- State Colors (Preserving your logic) ---
   &.default {
     color: var(--mantine-color-text);
     border-color: var(--mantine-color-dark-7);
@@ -79,9 +76,6 @@
     }
   }
 
-  // --- Internal Structure ---
-
-  // ROW 1: Icon + CTA
   .topRow {
     display: flex;
     flex-direction: row;
@@ -96,12 +90,9 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-
-    // Slightly bigger touch target for dragging
     width: 28px;
     height: 28px;
     border-radius: 6px;
-
     color: var(--mantine-color-primary-filled);
     cursor: grab;
     touch-action: none;
@@ -128,19 +119,17 @@
     align-items: center;
     justify-content: center;
     color: var(--mantine-color-dimmed);
-    opacity: 0.5; // Subtle by default
+    opacity: 0.5;
     transition: all 0.2s ease;
   }
 
-  // ROW 2: Title
-  .title {
-  }
-
-  // ROW 3: Detail
   .contentWrapper {
     flex: 1;
     width: 100%;
-    margin-bottom: var(--mantine-spacing-xs);
+    margin-bottom: var(--mantine-spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-xs);
   }
 
   .detail {
@@ -150,7 +139,147 @@
     word-break: break-word;
   }
 
-  // Artifacts
+  .contentPreviewWrapper {
+    position: relative;
+    margin-left: calc(var(--mantine-spacing-md) * -1);
+    margin-right: calc(var(--mantine-spacing-md) * -1);
+    margin-top: calc(var(--mantine-spacing-md) * -1);
+    width: calc(100% + calc(var(--mantine-spacing-md) * 2));
+    height: 224px;
+    padding: var(--mantine-spacing-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+    background-color: var(--mantine-color-dark-8);
+    border-bottom: 0.5px solid var(--mantine-color-dark-7);
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: linear-gradient(transparent, var(--mantine-color-dark-4));
+      pointer-events: none;
+
+      [data-mantine-color-scheme="dark"] & {
+        background: linear-gradient(transparent, var(--mantine-color-dark-8));
+      }
+    }
+  }
+
+  .documentPreview {
+    pointer-events: none;
+    font-size: 8px;
+    line-height: 1.5;
+    color: var(--mantine-color-text);
+    word-break: break-word;
+
+    * {
+      line-height: inherit !important;
+      color: inherit !important;
+      font-family: inherit !important;
+      background: transparent !important;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    ul,
+    ol,
+    blockquote {
+      margin: 0 0 6px 0 !important;
+      padding: 0 !important;
+    }
+
+    // Base text styling
+    p,
+    li,
+    blockquote {
+      font-size: 8px !important;
+      font-weight: normal !important;
+    }
+
+    code {
+      font-size: 8px !important;
+      font-weight: normal !important;
+    }
+
+    // Miniature heading hierarchy
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-weight: 700 !important;
+      margin-top: 8px !important; // Slight extra space above headings to separate sections
+    }
+
+    h1 {
+      font-size: 12px !important;
+    }
+    h2 {
+      font-size: 11px !important;
+    }
+    h3 {
+      font-size: 10px !important;
+    }
+    h4,
+    h5,
+    h6 {
+      font-size: 9px !important;
+    }
+
+    ul,
+    ol {
+      padding-left: 14px !important;
+    }
+
+    // Ensure bold/italic tags render correctly inside the preview
+    strong,
+    b {
+      font-weight: 700 !important;
+    }
+
+    em,
+    i {
+      font-style: italic !important;
+    }
+
+    // Handle horizontal rules cleanly in the miniature view
+    hr {
+      margin: 8px 0 !important;
+      border: none !important;
+      border-top: 1px solid var(--mantine-color-gray-3) !important;
+
+      [data-mantine-color-scheme="dark"] & {
+        border-top-color: var(--mantine-color-dark-5) !important;
+      }
+    }
+
+    img,
+    video,
+    iframe,
+    svg {
+      display: none !important;
+    }
+
+    a {
+      text-decoration: none !important;
+    }
+
+    blockquote {
+      padding-left: var(--mantine-spacing-xs);
+    }
+  }
+
   .artifacts {
     margin-top: 4px;
     display: flex;
@@ -158,6 +287,7 @@
     justify-content: flex-start;
     overflow-x: auto;
     scrollbar-width: none;
+    z-index: 1;
 
     .artifact {
       font-size: 10px;
@@ -174,17 +304,18 @@
     }
   }
 
-  // ROW 4: Footer
   .footer {
     width: 100%;
     display: flex;
     justify-content: flex-end;
     margin-top: auto;
     height: 28px;
+    z-index: 1;
   }
 
   .footerContent {
     width: 100%;
+    z-index: 1;
   }
 
   .actionButton {

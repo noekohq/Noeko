@@ -252,6 +252,8 @@ export default function Search({
     onLoading: onSearchLoading,
   });
 
+  console.log("Search results: ", filteredResults);
+
   const glimpseResultsArray = useMemo(() => {
     if (!resultsMap || Object.keys(resultsMap).length === 0) return null;
     return Object.values(resultsMap).map((node) => ({

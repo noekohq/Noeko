@@ -5,8 +5,37 @@ import { MantineProvider } from "@mantine/core";
 import GlimpseModeDisplay from "./GlimpseModeDisplay";
 import { PartialGlimpseResult } from "@core/utils/partialJsonParser";
 import { IResultsMap } from "@domains/discovery/hooks/useSpyglassService";
+import { INode } from "@/declarations/graph";
 
-// Mock sub-components that might cause issues or are not the focus
+vi.mock("@infrastructure/graph/utils", () => ({
+  getTypeFromId: (id: string): INode["type"] | undefined => {
+    if (id.startsWith("idea")) {
+      return "idea";
+    }
+    if (id.startsWith("source")) {
+      return "source";
+    }
+    if (id.startsWith("task")) {
+      return "task";
+    }
+    if (id.startsWith("excerpt")) {
+      return "excerpt";
+    }
+    if (id.startsWith("rabbithole")) {
+      return "rabbithole";
+    }
+    if (id.startsWith("tag")) {
+      return "tag";
+    }
+    if (id.startsWith("user")) {
+      return "user";
+    }
+  },
+  TypeIcon: (type: INode["type"]) => {
+    return <div />;
+  },
+}));
+
 vi.mock("@core/design/components/Paper/Things/GridCard", () => ({
   default: ({ id, title, onClick }: any) => (
     <div data-testid="grid-card" onClick={(e) => onClick(id || "test-id", e)}>

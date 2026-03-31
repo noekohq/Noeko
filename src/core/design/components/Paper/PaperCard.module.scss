@@ -1,23 +1,39 @@
-@keyframes buttonIn {
+@keyframes cardIn {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
 .paperCard {
-  animation: buttonIn 0.2s ease-in-out;
-  background-color: var(--mantine-color-dark-8);
+  animation: cardIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-xl);
-  border: 1px solid var(--mantine-color-dark-7);
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-sm);
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  &.default {
+    background-color: var(--mantine-color-dark-8);
+    // Removed border per requirements: "remove high-contrast borders"
+  }
+
+  &.danger {
+    background-color: var(--mantine-color-dark-8);
+    border: 1px solid var(--mantine-color-red-9);
+    .title {
+      color: var(--mantine-color-red-4);
+    }
+  }
+
+  &.transparent {
+    background-color: transparent;
+  }
 
   .title {
     padding-left: var(--mantine-spacing-xs);
@@ -31,7 +47,10 @@
 
   .content {
     background-color: var(--mantine-color-dark-9);
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
     border-radius: var(--mantine-radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mantine-spacing-xs);
   }
 }

@@ -1,486 +1,392 @@
-import {
-  Button,
-  Card,
-  Container,
-  CopyButton,
-  Divider,
-  Grid,
-  Group,
-  List,
-  Modal,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-  Tooltip,
-} from "@mantine/core";
+import { Container, Stack, Title, Autocomplete } from "@mantine/core";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
-import { useSettings } from "@/contexts/SettingsContext";
-import { IThemeSpec } from "@/declarations/themes";
-import { Link, useNavigate } from "react-router";
-import Content from "@core/design/components/Layout/Content";
-import StatusBar from "@core/design/components/Layout/Bottom";
-import {
-  CheckIcon,
-  CopyIcon,
-  DiscordLogoIcon,
-  DownloadIcon,
-  KeyReturnIcon,
-  LightbulbIcon,
-  RedditLogoIcon,
-  Tag,
-  TagIcon,
-  TrashIcon,
-  UploadIcon,
-} from "@phosphor-icons/react";
-import { useAuth } from "@domains/identity/contexts/AuthContext";
-import React, { useState } from "react";
-import ContentWide from "@core/design/components/Layout/ContentWide";
-import useFetch from "@core/hooks/useFetch";
-import { showNotification } from "@mantine/notifications";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { useNavigate } from "react-router";
+import {
+  UserCircleIcon,
+  PaletteIcon,
+  DatabaseIcon,
+  ActivityIcon,
+  MagnifyingGlassIcon,
+} from "@phosphor-icons/react";
+import PaperThing from "@core/design/components/Paper/Things/PaperThing";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import classes from "./Settings.module.scss";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
 
-const AppearanceSettings = () => {
-  const {
-    ui: {
-      theme: {
-        bodyFont: { get: bodyFont, set: setBodyFont },
-        scheme: { get: scheme, set: setScheme },
-        override: { get: override, set: setOverride },
-      },
-    },
-  } = useSettings();
+// Views
+import AccountIdentity from "./views/AccountIdentity";
+import AppearanceExperience from "./views/AppearanceExperience";
+import WorkspaceData from "./views/WorkspaceData";
+import ActivityNetworkCommunity from "./views/ActivityNetworkCommunity";
+import Content from "@/core/design/components/Layout/Content";
+import Search from "@/domains/discovery/components/Search/Search";
+import { useLayout } from "@/contexts/LayoutContext";
 
-  const themeData = [
-    {
-      label: "Default",
-      value: "noeko" as const,
-      disabled: override === "noeko",
-    },
-    {
-      label: "Nord",
-      value: "nord" as const,
-      disabled: override === "nord",
-    },
-    {
-      label: "Pink Lady",
-      value: "pinkLady" as const,
-      disabled: override === "pinkLady",
-    },
-    // {
-    //   label: "Dracula",
-    //   value: "dracula" as const,
-    //   disabled: override === "dracula",
-    // },
-  ];
-
-  const schemeData = [
-    { label: "Dark", value: "dark" as const },
-    { label: "Light", value: "light" as const },
-    { label: "Auto", value: "auto" as const },
-  ];
-
-  const fontData = [
-    { label: "Sans-Serif", value: "sans-serif" as const },
-    { label: "Serif", value: "serif" as const },
-  ];
-
-  return (
-    <Card withBorder radius="lg">
-      <Stack>
-        <Title order={3}>Appearance</Title>
-        <Text size="sm" c="dimmed">
-          Customize the look and feel of the application.
-        </Text>
-        <Select
-          label="Theme"
-          description="Select a theme for the application."
-          value={override}
-          data={themeData}
-          onChange={(v) => setOverride(v as IThemeSpec["override"])}
-        />
-        <Select
-          label="Color Scheme"
-          description="Choose between dark, light, or system default."
-          value={scheme}
-          data={schemeData}
-          onChange={(v) => setScheme(v as IThemeSpec["scheme"])}
-        />
-        <Select
-          label="Body Font"
-          description="Select the primary font for reading."
-          value={bodyFont}
-          data={fontData}
-          onChange={(v) => setBodyFont(v as IThemeSpec["bodyFont"])}
-        />
-      </Stack>
-    </Card>
-  );
-};
-
-const AccountSettings = () => {
-  const { load: deleteAccount, loading: loadingDeletion } = useFetch({
-    url: "/users/me",
-    method: "DELETE",
-    onSuccess: () => {
-      showNotification({
-        title: "Account deleted",
-        message: "Your account has been deleted",
-        color: "green",
-      });
-    },
-  });
-
-  const { user, logout } = useAuth();
-
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [confirmationInput, setConfirmationInput] = useState("");
-  const confirmationText = user
-    ? `DELETE ${user.firstName.toUpperCase()} ${user.lastName.toUpperCase()}`
-    : "";
-  const confirmed = confirmationInput === confirmationText;
-
-  const handleConfirm = async () => {
-    if (!confirmed) {
-      showNotification({
-        title: "Confirmation required",
-        message: "Please enter the correct confirmation text",
-        color: "red",
-      });
-      return;
-    }
-    await deleteAccount();
-    logout();
-  };
-
-  return (
-    <Card withBorder radius="lg">
-      <Stack>
-        <Title order={3}>Account</Title>
-        <Text size="sm" c="dimmed">
-          Manage your profile and account settings.
-        </Text>
-        <Group>
-          <Button
-            variant="light"
-            color="gray"
-            onClick={() => {
-              logout();
-            }}
-          >
-            Logout
-          </Button>
-          <Link to="profile">
-            <Button variant="light" color="gray">
-              Profile
-            </Button>
-          </Link>
-          <Button
-            variant="filled"
-            color="red"
-            onClick={() => setConfirmingDelete(true)}
-            loading={loadingDeletion}
-          >
-            Delete Account
-          </Button>
-        </Group>
-      </Stack>
-      <Modal
-        opened={confirmingDelete}
-        onClose={() => {
-          setConfirmingDelete(false);
-        }}
-        title={<Text size="sm">DELETE ACCOUNT</Text>}
-      >
-        <Stack>
-          <Text size="sm">
-            Are you <strong>absolutely sure</strong> you want to delete your account?
-          </Text>
-          <Text size="sm">
-            This action cannot be undone, and all of your associated account data will be deleted.
-          </Text>
-          <Text size="sm">In order to delete your account, type "{confirmationText}"</Text>
-          <TextInput
-            placeholder={confirmationText}
-            value={confirmationInput}
-            onChange={(e) => setConfirmationInput(e.target.value)}
-          />
-          <Group justify="flex-end">
-            <Button
-              onClick={() => {
-                setConfirmingDelete(false);
-              }}
-              variant="light"
-              color="gray"
-            >
-              No, Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                handleConfirm();
-              }}
-              variant="filled"
-              color="red"
-              disabled={confirmationInput !== confirmationText}
-            >
-              <Text size="sm">
-                Yes, <strong>Delete Forever</strong>
-              </Text>
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </Card>
-  );
-};
-
-const DataSettings = () => {
-  const { load: deleteStuff, loading: deletingStuff } = useFetch({
-    url: "/users/me/stuff",
-    method: "DELETE",
-    onSuccess: () => {
-      showNotification({
-        title: "Success",
-        message: "Your data has been deleted",
-        color: "green",
-      });
-    },
-  });
-
-  const { user, logout } = useAuth();
-
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [confirmationInput, setConfirmationInput] = useState("");
-  const confirmationText = user
-    ? `DELETE ${user.firstName.toUpperCase()} ${user.lastName.toUpperCase()}`
-    : "";
-  const confirmed = confirmationInput === confirmationText;
-
-  const handleConfirm = async () => {
-    if (!confirmed) {
-      showNotification({
-        title: "Confirmation required",
-        message: "Please enter the correct confirmation text",
-        color: "red",
-      });
-      return;
-    }
-    await deleteStuff();
-  };
-
-  return (
-    <Card withBorder radius="lg">
-      <Stack>
-        <Title order={3}>Data Management</Title>
-        <Text size="sm" c="dimmed">
-          Manage your data. Your data is always yours :)
-        </Text>
-        <Group>
-          <Link to="/tags">
-            <Button variant="light" color="gray" leftSection={<TagIcon weight="bold" />}>
-              Tags
-            </Button>
-          </Link>
-          <Link to="/import">
-            <Button variant="light" color="gray" leftSection={<UploadIcon weight="bold" />}>
-              Import Ideas
-            </Button>
-          </Link>
-          <Link to="/export">
-            <Button variant="light" color="gray" leftSection={<DownloadIcon weight="bold" />}>
-              Export Stuff
-            </Button>
-          </Link>
-          <Button
-            variant="light"
-            color="red"
-            onClick={() => {
-              setConfirmingDelete(true);
-            }}
-            leftSection={<TrashIcon weight="bold" />}
-          >
-            Delete Stuff
-          </Button>
-        </Group>
-      </Stack>
-      <Modal
-        opened={confirmingDelete}
-        onClose={() => {
-          setConfirmingDelete(false);
-        }}
-        title={<Text size="sm">DELETE STUFF</Text>}
-      >
-        <Stack>
-          <Text size="sm">
-            Are you <strong>absolutely sure</strong> you want to delete your stuff?
-          </Text>
-          <Text size="sm">
-            This action cannot be undone, and all of your data will be deleted,{" "}
-            <strong>except for your account.</strong>
-          </Text>
-          <Text size="sm">In order to delete your stuff, type "{confirmationText}"</Text>
-          <TextInput
-            placeholder={confirmationText}
-            value={confirmationInput}
-            onChange={(e) => setConfirmationInput(e.target.value)}
-          />
-          <Group justify="flex-end">
-            <Button
-              onClick={() => {
-                setConfirmingDelete(false);
-              }}
-              variant="light"
-              color="gray"
-            >
-              No, Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                handleConfirm();
-              }}
-              variant="filled"
-              color="red"
-              disabled={confirmationInput !== confirmationText}
-            >
-              <Text size="sm">
-                Yes, <strong>Delete Stuff</strong>
-              </Text>
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-    </Card>
-  );
-};
-
-const ActivitySettings = () => (
-  <Card withBorder radius="lg">
-    <Stack>
-      <Title order={3}>Your Activity</Title>
-      <Text size="sm" c="dimmed">
-        Review your activity across the application.
-      </Text>
-      <Group>
-        <Link to="/spyglass/history">
-          <Button variant="default">Spyglass History</Button>
-        </Link>
-      </Group>
-    </Stack>
-  </Card>
-);
-
-const SharingSettings = () => {
-  const { referralLink } = useAuth();
-  return (
-    <Card withBorder radius="lg">
-      <Stack>
-        <Title order={3}>Sharing</Title>
-        <Text size="sm" c="dimmed">
-          Share ideas with others and get rewarded.
-        </Text>
-        <Group>
-          {referralLink && (
-            <CopyButton value={referralLink}>
-              {({ copied, copy }) => (
-                <Button
-                  onClick={copy}
-                  variant="default"
-                  leftSection={copied ? <CheckIcon weight="bold" /> : <CopyIcon weight="bold" />}
-                >
-                  Copy Referral Link
-                </Button>
-              )}
-            </CopyButton>
-          )}
-          <Link to="/ideas/shared">
-            <Button variant="default" leftSection={<LightbulbIcon />}>
-              Shared Ideas
-            </Button>
-          </Link>
-        </Group>
-      </Stack>
-    </Card>
-  );
-};
-
-const InteractionSettings = () => {
-  return (
-    <Card withBorder radius="lg">
-      <Stack>
-        <Title order={3}>Interactions</Title>
-        <Text size="sm" c="dimmed">
-          Use Noeko to its full potential!
-        </Text>
-        <Group>
-          <Link to="/keymap">
-            <Button variant="default" leftSection={<KeyReturnIcon />}>
-              Keymap
-            </Button>
-          </Link>
-        </Group>
-      </Stack>
-    </Card>
-  );
-};
-
-const CommunitySettings = () => (
-  <Card withBorder radius="lg">
-    <Stack>
-      <Title order={3}>Community</Title>
-      <Text size="sm" c="dimmed">
-        Join the conversation and get help.
-      </Text>
-      <Group>
-        <a href="https://discord.gg/TY9sna9ZbT" target="_blank" rel="noopener noreferrer">
-          <Button variant="default" leftSection={<DiscordLogoIcon weight="fill" />}>
-            Join the Discord
-          </Button>
-        </a>
-        <a href="https://reddit.com/r/noeko" target="_blank" rel="noopener noreferrer">
-          <Button variant="default" leftSection={<RedditLogoIcon weight="fill" />}>
-            Check out the Subreddit
-          </Button>
-        </a>
-      </Group>
-    </Stack>
-  </Card>
-);
+export interface ISettingIndex {
+  title: string;
+  keywords: string[];
+  route: string;
+  elementId?: string;
+  isExternalRoute?: boolean;
+}
 
 export default function Settings() {
+  const { i18n } = useLingui();
+  const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState<string>("account");
+
+  const { isMobile } = useLayout();
+
+  const NAV_ITEMS = useMemo(
+    () => [
+      {
+        id: "account",
+        title: i18n._(t`Account & Identity`),
+        detail: i18n._(t`Manage profile & credentials`),
+        icon: UserCircleIcon,
+        link: "account",
+      },
+      {
+        id: "appearance",
+        title: i18n._(t`Appearance & Experience`),
+        detail: i18n._(t`Theme, layout & keymap`),
+        icon: PaletteIcon,
+        link: "appearance",
+      },
+      {
+        id: "data",
+        title: i18n._(t`Workspace Data`),
+        detail: i18n._(t`Import, export & tags`),
+        icon: DatabaseIcon,
+        link: "data",
+      },
+      {
+        id: "activity",
+        title: i18n._(t`Activity & Network`),
+        detail: i18n._(t`History, sharing & community`),
+        icon: ActivityIcon,
+        link: "activity",
+      },
+    ],
+    [i18n]
+  );
+
+  const SETTINGS_INDEX: ISettingIndex[] = useMemo(
+    () => [
+      {
+        title: i18n._(t`Theme`),
+        keywords: [
+          i18n._(t`dark mode`),
+          i18n._(t`light mode`),
+          i18n._(t`color`),
+          i18n._(t`appearance`),
+          i18n._(t`nord`),
+          i18n._(t`dracula`),
+        ],
+        route: "appearance",
+        elementId: "theme",
+      },
+      {
+        title: i18n._(t`Color Scheme`),
+        keywords: [
+          i18n._(t`dark`),
+          i18n._(t`light`),
+          i18n._(t`auto`),
+          i18n._(t`system`),
+          i18n._(t`scheme`),
+        ],
+        route: "appearance",
+        elementId: "scheme",
+      },
+      {
+        title: i18n._(t`Body Font`),
+        keywords: [
+          i18n._(t`font`),
+          i18n._(t`text`),
+          i18n._(t`serif`),
+          i18n._(t`sans`),
+          i18n._(t`typography`),
+        ],
+        route: "appearance",
+        elementId: "font",
+      },
+      {
+        title: i18n._(t`Language`),
+        keywords: [
+          i18n._(t`i18n`),
+          i18n._(t`translation`),
+          i18n._(t`english`),
+          i18n._(t`spanish`),
+          i18n._(t`french`),
+          i18n._(t`locale`),
+        ],
+        route: "appearance",
+        elementId: "language",
+      },
+      {
+        title: i18n._(t`Keymap`),
+        keywords: [
+          i18n._(t`shortcuts`),
+          i18n._(t`keyboard`),
+          i18n._(t`hotkeys`),
+          i18n._(t`interactions`),
+        ],
+        route: "/keymap",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Tags`),
+        keywords: [i18n._(t`categories`), i18n._(t`organize`), i18n._(t`labels`)],
+        route: "/tags",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Import Ideas`),
+        keywords: [i18n._(t`upload`), i18n._(t`migrate`), i18n._(t`data in`), i18n._(t`markdown`)],
+        route: "/import",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Export Stuff`),
+        keywords: [i18n._(t`download`), i18n._(t`backup`), i18n._(t`data out`)],
+        route: "/export",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Delete Workspace`),
+        keywords: [
+          i18n._(t`clear data`),
+          i18n._(t`remove stuff`),
+          i18n._(t`reset workspace`),
+          i18n._(t`danger`),
+        ],
+        route: "data",
+      },
+      {
+        title: i18n._(t`Edit Profile`),
+        keywords: [i18n._(t`name`), i18n._(t`email`), i18n._(t`password`), i18n._(t`update user`)],
+        route: "/settings/profile",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Logout`),
+        keywords: [i18n._(t`sign out`), i18n._(t`leave`), i18n._(t`exit`)],
+        route: "account",
+      },
+      {
+        title: i18n._(t`Delete Account`),
+        keywords: [i18n._(t`remove me`), i18n._(t`destroy`), i18n._(t`close account`)],
+        route: "account",
+      },
+      {
+        title: i18n._(t`Spyglass History`),
+        keywords: [i18n._(t`past searches`), i18n._(t`activity log`), i18n._(t`recent`)],
+        route: "/spyglass/history",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Shared Ideas`),
+        keywords: [
+          i18n._(t`collaboration`),
+          i18n._(t`network`),
+          i18n._(t`public`),
+          i18n._(t`published`),
+        ],
+        route: "/ideas/shared",
+        isExternalRoute: true,
+      },
+      {
+        title: i18n._(t`Referral Link`),
+        keywords: [i18n._(t`invite`), i18n._(t`friends`), i18n._(t`share noeko`), i18n._(t`promo`)],
+        route: "activity",
+      },
+    ],
+    [i18n]
+  );
+
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+        if (visibleEntries.length > 0) {
+          visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+          setActiveSection(visibleEntries[0].target.id);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "-20% 0px -60% 0px",
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+      }
+    );
+
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveSection(id);
+    }
+  };
+
+  const handleSearchSelect = (value: string) => {
+    const setting = SETTINGS_INDEX.find((s) => s.title === value);
+    if (setting) {
+      if (setting.isExternalRoute) {
+        navigate(setting.route);
+        return;
+      }
+
+      scrollToSection(setting.route);
+
+      if (setting.elementId) {
+        setTimeout(() => {
+          const el = document.getElementById(setting.elementId || "");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.classList.remove(classes.glint);
+            void el.offsetWidth; // trigger reflow
+            el.classList.add(classes.glint);
+          }
+        }, 300); // give it time to scroll to section first
+      }
+    }
+  };
+
   return (
     <PageWrapper>
       <TopBar />
-      <LeftSidebar />
-      <ContentWide>
-        <Container fluid p="md">
-          <Stack gap="lg">
-            <Title>Settings</Title>
-            <Grid>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Stack>
-                  <AppearanceSettings />
-                  <DataSettings />
-                  <CommunitySettings />
-                </Stack>
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Stack>
-                  <AccountSettings />
-                  <ActivitySettings />
-                  <SharingSettings />
-                  <InteractionSettings />
-                </Stack>
-              </Grid.Col>
-            </Grid>
+      <LeftSidebar startOpened={!isMobile}>
+        <LeftSidebar.Open>
+          <Stack gap="md">
+            <Title order={4} px="xs" mb="sm">
+              <Trans>Settings</Trans>
+            </Title>
+            <Stack gap="xs">
+              {NAV_ITEMS.map((item) => (
+                <PaperThing
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  detail={item.detail}
+                  icon={item.icon}
+                  state={activeSection === item.link ? "suggested" : "default"}
+                  preventClickDefault={true}
+                  onClick={() => scrollToSection(item.link)}
+                />
+              ))}
+            </Stack>
+          </Stack>
+        </LeftSidebar.Open>
+      </LeftSidebar>
+
+      <Content>
+        <Container fluid p="md" pb={100} style={{ maxWidth: 800 }}>
+          <Stack gap="xl">
+            {/* Global Search */}
+            <Autocomplete
+              placeholder={i18n._(t`Search settings...`)}
+              size="lg"
+              leftSection={<MagnifyingGlassIcon />}
+              radius="lg"
+              data={SETTINGS_INDEX.map((s) => s.title)}
+              onOptionSubmit={handleSearchSelect}
+              maxDropdownHeight={300}
+              styles={{
+                input: {
+                  backgroundColor: "var(--mantine-color-dark-8)",
+                  border: "1px solid var(--mantine-color-dark-7)",
+                },
+              }}
+              filter={({ options, search }) => {
+                const searchLower = search.toLowerCase().trim();
+                return options.filter((option) => {
+                  if (typeof option === "string") {
+                    const setting = SETTINGS_INDEX.find((s) => s.title === option);
+                    if (!setting) return false;
+                    return (
+                      setting.title.toLowerCase().includes(searchLower) ||
+                      setting.keywords.some((k) => k.toLowerCase().includes(searchLower))
+                    );
+                  }
+                  if ("value" in option && typeof option.value === "string") {
+                    const setting = SETTINGS_INDEX.find((s) => s.title === option.value);
+                    if (!setting) return false;
+                    return (
+                      setting.title.toLowerCase().includes(searchLower) ||
+                      setting.keywords.some((k) => k.toLowerCase().includes(searchLower))
+                    );
+                  }
+                  return false;
+                });
+              }}
+            />
+
+            {/* Views stacked vertically */}
+            <div
+              id="account"
+              ref={(el) => {
+                sectionRefs.current["account"] = el;
+              }}
+            >
+              <AccountIdentity />
+            </div>
+
+            <div
+              id="appearance"
+              ref={(el) => {
+                sectionRefs.current["appearance"] = el;
+              }}
+              style={{ paddingTop: "2rem" }}
+            >
+              <AppearanceExperience />
+            </div>
+
+            <div
+              id="data"
+              ref={(el) => {
+                sectionRefs.current["data"] = el;
+              }}
+              style={{ paddingTop: "2rem" }}
+            >
+              <WorkspaceData />
+            </div>
+
+            <div
+              id="activity"
+              ref={(el) => {
+                sectionRefs.current["activity"] = el;
+              }}
+              style={{ paddingTop: "2rem" }}
+            >
+              <ActivityNetworkCommunity />
+            </div>
           </Stack>
         </Container>
-      </ContentWide>
+      </Content>
+
       <Nav />
-      <RightSidebar />
+      <RightSidebar>
+        <RightSidebar.Open>
+          <Search />
+        </RightSidebar.Open>
+      </RightSidebar>
     </PageWrapper>
   );
 }

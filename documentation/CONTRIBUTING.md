@@ -1,6 +1,6 @@
 # Contributing to Noeko
 
-First off, thank you for considering contributing to Noeko! We welcome any help, from reporting bugs to submitting new features. This document provides guidelines to help you get started.
+First off, thank you for considering contributing to Noeko! We welcome any help, from reporting bugs, to working on our design system, to submitting new features. This document provides guidelines to help you get started.
 
 ## Getting Started
 
@@ -24,7 +24,7 @@ This method containerizes all services (database, backend, frontend), ensuring a
 
 **Setup Command:**
 ```sh
-bun run server:dev
+bun run dev:docker
 ```
 
 This single command will:
@@ -66,7 +66,7 @@ This command will:
 The `package.json` file is the central place for all project commands. Here are the most important ones:
 
 - `bun run dev`: Starts the full development environment on your host machine (with a Dockerized DB).
-- `bun run server:dev`: Starts the full development environment completely inside Docker containers.
+- `bun run dev:docker`: Starts the full development environment completely inside Docker containers.
 - `bun run build`: Creates a production-ready build of both the frontend and backend.
 - `bun run start`: Runs the pre-built application in production mode.
 - `bun run test`: Runs the entire test suite.
@@ -75,6 +75,9 @@ The `package.json` file is the central place for all project commands. Here are 
 
 ## Submitting Changes
 
+> [!note]
+> If you plan to use AI coding tools in your PR, that's totally cool! However, please review our [AI Policy](./AI_POLICY.md) to keep things up to standard.
+
 We use the standard GitHub flow for contributions.
 
 1.  **Fork** the repository to your own GitHub account.
@@ -82,8 +85,8 @@ We use the standard GitHub flow for contributions.
 3.  Create a **new branch** for your changes (`git checkout -b my-new-feature`).
 4.  Make your changes.
 5.  **Test** your changes by running `bun run test`.
-6.  **Lint** your code by running `bun run lint`. A pre-commit hook is also set up to do this automatically.
-7.  **Commit** your changes with a clear and descriptive commit message.
+6.  _(skip for now, linting is currently broken)_ **Lint** your code by running `bun run lint`.
+7.  **Commit** your changes with a clear and descriptive commit message following the [conventional commits standard](https://www.conventionalcommits.org/en/v1.0.0/).
 8.  **Push** your changes to your fork on GitHub (`git push origin my-new-feature`).
 9.  Open a **Pull Request** from your fork to the main Noeko repository.
 

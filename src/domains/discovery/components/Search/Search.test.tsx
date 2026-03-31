@@ -45,7 +45,7 @@ vi.mock("./ScopeBuilder/ScopeBuilder", () => ({
   default: () => <div>ScopeBuilder</div>,
 }));
 
-vi.mock("../Utils/Spyglass/GlimpseModeDisplay", () => ({
+vi.mock("@domains/discovery/components/Spyglass/GlimpseModeDisplay", () => ({
   default: () => <div>Glimpse Mode Display</div>,
 }));
 
