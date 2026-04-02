@@ -3,23 +3,25 @@ import { Loader, ActionIcon, Textarea, Stack } from "@mantine/core";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import styles from "./SearchBar.module.scss";
 import useShortcuts from "@core/hooks/useShortcuts";
+import { i18n } from "@lingui/core";
+import { t } from "@lingui/core/macro";
 
 const quips = [
-  "Find that thing!",
-  "Explore we shall!",
-  "Adventure is out there!",
-  "Into the great within!",
-  "Where to next?",
-  "Connect the dots...",
-  "Ask a great question.",
-  "Follow your curiosity!",
-  "Summon the knowledge!",
-  "Uncover a mystery",
-  "Spark a new idea.",
-  "What if...?",
-  "A new quest awaits.",
-  "Chart the unknown.",
-  "Onward!",
+  i18n._(t`Find that thing!`),
+  i18n._(t`Explore we shall!`),
+  i18n._(t`Adventure is out there!`),
+  i18n._(t`Into the great within!`),
+  i18n._(t`Where to next?`),
+  i18n._(t`Connect the dots...`),
+  i18n._(t`Ask a great question.`),
+  i18n._(t`Follow your curiosity!`),
+  i18n._(t`Summon the knowledge!`),
+  i18n._(t`Uncover a mystery`),
+  i18n._(t`Spark a new idea.`),
+  i18n._(t`What if...?`),
+  i18n._(t`A new quest awaits.`),
+  i18n._(t`Chart the unknown.`),
+  i18n._(t`Onward!`),
 ];
 
 type ISearchBarProps = {

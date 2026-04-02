@@ -6,6 +6,7 @@ import { Button, Group } from "@mantine/core";
 import Search from "@domains/discovery/components/Search/Search";
 import { ISearchResult } from "../../../../../shared/types/search";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
+import { Trans } from "@lingui/react/macro";
 
 type IConstellationActionsProps = {
   graphData: IGraph;
@@ -82,7 +83,7 @@ export default function ConstellationActions({ graphData }: IConstellationAction
                 color="gray"
                 variant="light"
               >
-                Select All
+                <Trans>Select All</Trans>
               </Button>
               <Button
                 onClick={() => handleDeselectAllResults(results)}
@@ -91,7 +92,7 @@ export default function ConstellationActions({ graphData }: IConstellationAction
                 color="gray"
                 variant="light"
               >
-                Deselect All
+                <Trans>Deselect All</Trans>
               </Button>
             </Group>
           );

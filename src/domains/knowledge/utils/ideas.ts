@@ -6,6 +6,8 @@ import { ITag, ITagDescriptionRelationship } from "../../../../app/database/mode
 import { applyTagToThing } from "./tags";
 import { api } from "@infrastructure/api/client";
 import { IChunk } from "../../../../shared/types/importer";
+import { t } from "@lingui/core/macro";
+import { i18n } from "@lingui/core";
 
 export const getDerivedMap = (idea: IIdea & { derived: IIdeaDerived }) => {
   const tableToNode: Record<string, IIdeaDerived> = {};
@@ -15,7 +17,7 @@ export const newIdeaOptimistic = () => {
   const tempId = crypto.randomUUID();
   const optimisticIdea: any = {
     id: tempId,
-    title: "Untitled Idea",
+    title: i18n._(t`Untitled Idea`),
     content: "",
     embeddings: null,
     visibility: "private",
@@ -36,7 +38,7 @@ export const newIdeaOptimistic = () => {
 export const newIdea = async () => {
   try {
     const results = await api.post("/ideas", {
-      title: "Untitled Idea",
+      title: i18n._(t`Untitled Idea`),
     });
     return results.data.data as IIdea;
   } catch (error) {

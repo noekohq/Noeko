@@ -12,6 +12,7 @@ import { SelectionIcon } from "@phosphor-icons/react";
 import { getThingPropsFromConnectable } from "@core/design/components/Paper/Things/thingUtils";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
 import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
+import { Trans } from "@lingui/react/macro";
 
 interface IGraphOrganizerProps {
   nodes: INode[];
@@ -41,7 +42,7 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
             <Text size="sm" c="dark.4" fw="bold">
               <Group gap="xs" align="center">
                 <SelectionIcon weight="bold" />
-                SELECTED
+                <Trans>SELECTED</Trans>
               </Group>
             </Text>
             <Button
@@ -53,7 +54,7 @@ export function GraphOrganizer({ nodes }: IGraphOrganizerProps) {
                 clearSelection();
               }}
             >
-              Clear
+              <Trans>Clear</Trans>
             </Button>
           </Group>
         )}

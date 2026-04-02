@@ -1,6 +1,6 @@
-# Self-Hosting Noeko
+# Getting Started
 
-This guide provides instructions for deploying and managing a production instance of Noeko on your own server using Docker.
+This guide provides instructions for deploying and managing a production instance of Noeko on your own server or local machine using Docker.
 
 ## Prerequisites
 

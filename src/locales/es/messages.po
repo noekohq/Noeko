@@ -13,6 +13,19 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#. placeholder {0}: nodes.length
+#. placeholder {1}: nodes.length === 1 ? "" : "s"
+#. placeholder {2}: edges.length
+#. placeholder {3}: edges.length === 1 ? "" : "s"
+#: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:98
+msgid "{0} node{1}, {2} connection{3}{filterText}"
+msgstr ""
+
+#: src/core/design/components/Layout/TopBar.tsx:35
+#: src/domains/discovery/components/Search/SearchBar.tsx:22
+msgid "A new quest awaits."
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Settings.tsx:50
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:57
 msgid "Account & Identity"
@@ -31,12 +44,17 @@ msgstr "Actividad y red"
 msgid "activity log"
 msgstr "registro de actividad"
 
+#: src/core/design/components/Layout/TopBar.tsx:25
+#: src/domains/discovery/components/Search/SearchBar.tsx:12
+msgid "Adventure is out there!"
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Settings.tsx:88
 msgid "appearance"
 msgstr "apariencia"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:57
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:103
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:100
 msgid "Appearance & Experience"
 msgstr "Apariencia y experiencia"
 
@@ -48,11 +66,16 @@ msgstr "¿Estás <0>totalmente seguro</0> de que quieres eliminar tu cuenta?"
 msgid "Are you <0>absolutely sure</0> you want to delete your stuff?"
 msgstr "¿Estás <0>totalmente seguro</0> de que quieres eliminar tus datos?"
 
+#: src/core/design/components/Layout/TopBar.tsx:29
+#: src/domains/discovery/components/Search/SearchBar.tsx:16
+msgid "Ask a great question."
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Settings.tsx:100
 msgid "auto"
 msgstr "automático"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:37
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:38
 msgid "Auto"
 msgstr "Automático"
 
@@ -61,7 +84,7 @@ msgid "backup"
 msgstr "copia de seguridad"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:108
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:130
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:127
 msgid "Body Font"
 msgstr "Fuente del cuerpo"
 
@@ -73,6 +96,11 @@ msgstr "Importa tus datos desde otras plataformas"
 msgid "categories"
 msgstr "categorías"
 
+#: src/core/design/components/Layout/TopBar.tsx:36
+#: src/domains/discovery/components/Search/SearchBar.tsx:23
+msgid "Chart the unknown."
+msgstr ""
+
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:80
 msgid "Chat with developers and other users"
 msgstr "Chatea con desarrolladores y otros usuarios"
@@ -81,9 +109,13 @@ msgstr "Chatea con desarrolladores y otros usuarios"
 msgid "Check out the Subreddit"
 msgstr "Visita el Subreddit"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:123
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:120
 msgid "Choose between dark, light, or system default."
 msgstr "Elige entre claro, oscuro o el valor predeterminado del sistema."
+
+#: src/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer.tsx:57
+msgid "Clear"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:164
 msgid "clear data"
@@ -106,7 +138,7 @@ msgid "color"
 msgstr "color"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:96
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:122
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:119
 msgid "Color Scheme"
 msgstr "Esquema de colores"
 
@@ -114,8 +146,8 @@ msgstr "Esquema de colores"
 msgid "Community & Sharing"
 msgstr "Comunidad y compartir"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:149
 #: src/domains/identity/pages/Settings/Profile.tsx:150
+#: src/domains/identity/pages/Settings/Profile.tsx:151
 msgid "Confirm password"
 msgstr "Confirmar contraseña"
 
@@ -124,16 +156,21 @@ msgstr "Confirmar contraseña"
 msgid "Confirmation required"
 msgstr "Confirmación requerida"
 
+#: src/core/design/components/Layout/TopBar.tsx:28
+#: src/domains/discovery/components/Search/SearchBar.tsx:15
+msgid "Connect the dots..."
+msgstr ""
+
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:68
 msgid "Copy Referral Link"
 msgstr "Copiar enlace de referido"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:157
 #: src/domains/identity/pages/Settings/Profile.tsx:158
+#: src/domains/identity/pages/Settings/Profile.tsx:159
 msgid "Current Password"
 msgstr "Contraseña actual"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:106
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:103
 msgid "Customize how Noeko looks and feels."
 msgstr "Personaliza la apariencia de Noeko."
 
@@ -150,7 +187,7 @@ msgstr "Zona de peligro"
 msgid "dark"
 msgstr "oscuro"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:35
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:36
 msgid "Dark"
 msgstr "Oscuro"
 
@@ -166,7 +203,7 @@ msgstr "importar datos"
 msgid "data out"
 msgstr "exportar datos"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:29
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:30
 msgid "Default"
 msgstr "Predeterminado"
 
@@ -203,6 +240,10 @@ msgstr "Eliminar tu cuenta es permanente. Todos los datos asociados se perderán
 msgid "Deleting your workspace data will remove all ideas, connections, and files, but keep your account intact. This action is irreversible."
 msgstr "Eliminar los datos de tu espacio de trabajo borrará todas las ideas, conexiones y archivos, pero mantendrá tu cuenta activa. Esta acción es irreversible."
 
+#: src/domains/constellation/pages/Constellation/ConstellationActions.tsx:95
+msgid "Deselect All"
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Settings.tsx:184
 msgid "destroy"
 msgstr "destruir"
@@ -228,12 +269,12 @@ msgstr "Editar perfil"
 msgid "email"
 msgstr "correo electrónico"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:129
 #: src/domains/identity/pages/Settings/Profile.tsx:130
+#: src/domains/identity/pages/Settings/Profile.tsx:131
 msgid "Email"
 msgstr "Correo electrónico"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:42
+#: src/domains/identity/pages/Settings/Profile.tsx:43
 msgid "Email is required"
 msgstr "El correo electrónico es obligatorio"
 
@@ -242,50 +283,73 @@ msgid "english"
 msgstr "inglés"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:46
-msgid "English"
-msgstr "English"
+#~ msgid "English"
+#~ msgstr "Inglés"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:80
+#: src/domains/identity/pages/Settings/Profile.tsx:81
 msgid "Error"
 msgstr "Error"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:47
-msgid "Español"
-msgstr "Español"
+#~ msgid "Español"
+#~ msgstr "Español"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:179
 msgid "exit"
 msgstr "salir"
+
+#: src/core/design/components/Layout/TopBar.tsx:24
+#: src/domains/discovery/components/Search/SearchBar.tsx:11
+msgid "Explore we shall!"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:156
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:86
 msgid "Export Stuff"
 msgstr "Exportar datos"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:109
+#: src/core/design/components/Layout/TopBar.tsx:23
+#: src/domains/discovery/components/Search/SearchBar.tsx:10
+msgid "Find that thing!"
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Profile.tsx:110
+#: src/domains/identity/pages/Settings/Profile.tsx:111
 msgid "First name"
 msgstr "Nombre"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:58
+#: src/domains/identity/pages/Settings/Profile.tsx:59
 msgid "First name is required"
 msgstr "El nombre es obligatorio"
+
+#: src/core/design/components/Layout/TopBar.tsx:30
+#: src/domains/discovery/components/Search/SearchBar.tsx:17
+msgid "Follow your curiosity!"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:110
 msgid "font"
 msgstr "fuente"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:48
-msgid "Français"
-msgstr "Français"
+#~ msgid "Français"
+#~ msgstr "Français"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:126
 msgid "french"
 msgstr "francés"
 
+#: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:118
+msgid "Friend"
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Settings.tsx:206
 msgid "friends"
 msgstr "amigos"
+
+#: src/domains/constellation/pages/Constellation/ConstellationContext.tsx:112
+msgid "FRIENDS"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:72
 msgid "History, sharing & community"
@@ -320,11 +384,16 @@ msgstr "Para eliminar tus datos, escribe \"{confirmationText}\""
 msgid "interactions"
 msgstr "interacciones"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:147
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:144
 msgid "Interactions"
 msgstr "Interacciones"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:43
+#: src/core/design/components/Layout/TopBar.tsx:26
+#: src/domains/discovery/components/Search/SearchBar.tsx:13
+msgid "Into the great within!"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Profile.tsx:44
 msgid "Invalid email"
 msgstr "Correo electrónico inválido"
 
@@ -345,7 +414,7 @@ msgid "keyboard"
 msgstr "teclado"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:133
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:150
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:147
 msgid "Keymap"
 msgstr "Mapa de teclado"
 
@@ -354,16 +423,16 @@ msgid "labels"
 msgstr "etiquetas"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:120
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:138
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:135
 msgid "Language"
 msgstr "Idioma"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:116
 #: src/domains/identity/pages/Settings/Profile.tsx:117
+#: src/domains/identity/pages/Settings/Profile.tsx:118
 msgid "Last name"
 msgstr "Apellido"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:61
+#: src/domains/identity/pages/Settings/Profile.tsx:62
 msgid "Last name is required"
 msgstr "El apellido es obligatorio"
 
@@ -375,7 +444,7 @@ msgstr "abandonar"
 msgid "light"
 msgstr "claro"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:36
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:37
 msgid "Light"
 msgstr "Claro"
 
@@ -435,20 +504,20 @@ msgstr "nombre"
 msgid "network"
 msgstr "red"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:142
 #: src/domains/identity/pages/Settings/Profile.tsx:143
+#: src/domains/identity/pages/Settings/Profile.tsx:144
 msgid "New password"
 msgstr "Nueva contraseña"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:54
+#: src/domains/identity/pages/Settings/Profile.tsx:55
 msgid "New password confirmation is required"
 msgstr "La confirmación de la nueva contraseña es obligatoria"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:50
+#: src/domains/identity/pages/Settings/Profile.tsx:51
 msgid "New password is required"
 msgstr "La nueva contraseña es obligatoria"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:51
+#: src/domains/identity/pages/Settings/Profile.tsx:52
 msgid "New password must be at least 8 characters"
 msgstr "La nueva contraseña debe tener al menos 8 caracteres"
 
@@ -461,9 +530,14 @@ msgstr "No, cancelar"
 msgid "nord"
 msgstr "nord"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:30
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:31
 msgid "Nord"
 msgstr "Nord"
+
+#: src/core/design/components/Layout/TopBar.tsx:37
+#: src/domains/discovery/components/Search/SearchBar.tsx:24
+msgid "Onward!"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:145
 msgid "organize"
@@ -473,15 +547,15 @@ msgstr "organizar"
 msgid "password"
 msgstr "contraseña"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:46
+#: src/domains/identity/pages/Settings/Profile.tsx:47
 msgid "Password is required"
 msgstr "La contraseña es obligatoria"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:47
+#: src/domains/identity/pages/Settings/Profile.tsx:48
 msgid "Password must be at least 8 characters"
 msgstr "La contraseña debe tener al menos 8 caracteres"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:55
+#: src/domains/identity/pages/Settings/Profile.tsx:56
 msgid "Passwords do not match"
 msgstr "Las contraseñas no coinciden"
 
@@ -489,7 +563,7 @@ msgstr "Las contraseñas no coinciden"
 msgid "past searches"
 msgstr "búsquedas anteriores"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:31
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:32
 msgid "Pink Lady"
 msgstr "Pink Lady"
 
@@ -498,12 +572,12 @@ msgstr "Pink Lady"
 msgid "Please enter the correct confirmation text"
 msgstr "Por favor, introduce el texto de confirmación correcto"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:99
+#: src/domains/identity/pages/Settings/Profile.tsx:100
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:64
 msgid "Profile"
 msgstr "Perfil"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:74
+#: src/domains/identity/pages/Settings/Profile.tsx:75
 msgid "Profile updated successfully"
 msgstr "Perfil actualizado correctamente"
 
@@ -547,11 +621,11 @@ msgstr "Revisa tu historial de búsqueda y exploración"
 msgid "sans"
 msgstr "sans"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:41
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:42
 msgid "Sans-Serif"
 msgstr "Sans-Serif"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:168
+#: src/domains/identity/pages/Settings/Profile.tsx:169
 msgid "Save"
 msgstr "Guardar"
 
@@ -563,23 +637,31 @@ msgstr "esquema"
 msgid "Search settings..."
 msgstr "Buscar ajustes..."
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:115
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:112
 msgid "Select a theme for the application."
 msgstr "Selecciona un tema para la aplicación."
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:131
+#: src/domains/constellation/pages/Constellation/ConstellationActions.tsx:86
+msgid "Select All"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:128
 msgid "Select the primary font for reading."
 msgstr "Selecciona la fuente principal para lectura."
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:139
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:136
 msgid "Select your preferred language."
 msgstr "Selecciona tu idioma de preferencia."
+
+#: src/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer.tsx:45
+msgid "SELECTED"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:112
 msgid "serif"
 msgstr "serif"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:42
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:43
 msgid "Serif"
 msgstr "Serif"
 
@@ -612,7 +694,7 @@ msgstr "cerrar sesión"
 msgid "Sign out of this device"
 msgstr "Cerrar sesión en este dispositivo"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:81
+#: src/domains/identity/pages/Settings/Profile.tsx:82
 msgid "Something went wrong"
 msgstr "Algo salió mal"
 
@@ -620,15 +702,25 @@ msgstr "Algo salió mal"
 msgid "spanish"
 msgstr "español"
 
+#: src/core/design/components/Layout/TopBar.tsx:33
+#: src/domains/discovery/components/Search/SearchBar.tsx:20
+msgid "Spark a new idea."
+msgstr ""
+
 #: src/domains/identity/pages/Settings/Settings.tsx:188
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:48
 msgid "Spyglass History"
 msgstr "Historial de Spyglass"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:73
+#: src/domains/identity/pages/Settings/Profile.tsx:74
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:32
 msgid "Success"
 msgstr "Éxito"
+
+#: src/core/design/components/Layout/TopBar.tsx:31
+#: src/domains/discovery/components/Search/SearchBar.tsx:18
+msgid "Summon the knowledge!"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:101
 msgid "system"
@@ -644,11 +736,11 @@ msgid "text"
 msgstr "texto"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:83
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:114
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:111
 msgid "Theme"
 msgstr "Tema"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:110
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:107
 msgid "Theme & Styling"
 msgstr "Tema y estilo"
 
@@ -672,7 +764,17 @@ msgstr "traducción"
 msgid "typography"
 msgstr "tipografía"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:137
+#: src/core/design/components/Layout/TopBar.tsx:32
+#: src/domains/discovery/components/Search/SearchBar.tsx:19
+msgid "Uncover a mystery"
+msgstr ""
+
+#: src/domains/knowledge/utils/ideas.ts:20
+#: src/domains/knowledge/utils/ideas.ts:41
+msgid "Untitled Idea"
+msgstr ""
+
+#: src/domains/identity/pages/Settings/Profile.tsx:138
 msgid "Update Password"
 msgstr "Actualizar contraseña"
 
@@ -688,13 +790,23 @@ msgstr "Actualiza tu nombre, correo y contraseña"
 msgid "upload"
 msgstr "subir"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:151
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:148
 msgid "View and customize keyboard shortcuts"
 msgstr "Ver y personalizar atajos de teclado"
 
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:41
 msgid "View your history and connect with the community."
 msgstr "Mira tu historial y conecta con la comunidad."
+
+#: src/core/design/components/Layout/TopBar.tsx:34
+#: src/domains/discovery/components/Search/SearchBar.tsx:21
+msgid "What if...?"
+msgstr ""
+
+#: src/core/design/components/Layout/TopBar.tsx:27
+#: src/domains/discovery/components/Search/SearchBar.tsx:14
+msgid "Where to next?"
+msgstr ""
 
 #: src/domains/identity/pages/Settings/Settings.tsx:64
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:62
@@ -713,10 +825,10 @@ msgstr "Tu actividad"
 msgid "Your data has been deleted"
 msgstr "Tus datos han sido eliminados"
 
-#: src/domains/identity/pages/Settings/Profile.tsx:124
+#: src/domains/identity/pages/Settings/Profile.tsx:125
 msgid "Your email is..."
 msgstr "Tu correo es..."
 
-#: src/domains/identity/pages/Settings/Profile.tsx:104
+#: src/domains/identity/pages/Settings/Profile.tsx:105
 msgid "Your name is..."
 msgstr "Tu nombre es..."

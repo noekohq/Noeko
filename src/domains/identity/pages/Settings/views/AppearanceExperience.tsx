@@ -10,6 +10,7 @@ import classes from "../Settings.module.scss";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
+import { localeMap } from "@/i18n";
 
 export default function AppearanceExperience() {
   const { i18n } = useLingui();
@@ -42,11 +43,7 @@ export default function AppearanceExperience() {
     { label: i18n._(t`Serif`), value: "serif" as const },
   ];
 
-  const languageData = [
-    { label: i18n._(t`English`), value: "en" },
-    { label: i18n._(t`Español`), value: "es" },
-    { label: i18n._(t`Français`), value: "fr" },
-  ];
+  const languageData = localeMap();
 
   const handleThemeChange = (v: IThemeSpec["override"] | null) => {
     if (v) {
