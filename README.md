@@ -65,7 +65,6 @@ Noeko is currently in Beta, and working consistently toward a stable release. To
 > During this Beta period, apart from the application being entirely available to self-host or use locally for free, the hosted service will also remain free with limits on storage and compute.
 
 ### Feature Matrix
-### Feature Matrix
 
 | Feature | Description | Status |
 | --- | --- | --- |
