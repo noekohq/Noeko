@@ -12,7 +12,12 @@
 </div>
 <br></br>
 
-![Watch the video](https://github.com/noekohq/Noeko/raw/refs/heads/trunk/demos/noeko-readme-demo.mp4)
+<div align="center">
+  <video width="100%" autoplay loop muted playsinline controls>
+    <source src="https://github.com/noekohq/Noeko/raw/refs/heads/trunk/demos/noeko-readme-demo.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
 
 <br></br>
 
