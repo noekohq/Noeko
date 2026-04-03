@@ -65,21 +65,23 @@ Noeko is currently in Beta, and working consistently toward a stable release. To
 > During this Beta period, apart from the application being entirely available to self-host or use locally for free, the hosted service will also remain free with limits on storage and compute.
 
 ### Feature Matrix
+### Feature Matrix
 
 | Feature | Description | Status |
-| Note-taking | Capture and manage your personal notes | Fully Supported |
-| Knowledge-graph | Connect notes to build your interactive Constellation | Fully supported |
-| Collaboration | Share your ideas and collaborate with others | Fully supported |
-| Search | Search your materials semantically or lexically | Fully supported |
-| Portability | Import from or export to markdown directly | Fully supported |
-| Spyglass | A personal answer engine that directly references your knowledge | Beta |
-| Internationalization | Customize the interface to your preferred language | Under Development |
-| Themes | Adapt the interface to your preferred aesthetic | Under Development |
-| Rabbitholes | Self-building workspaces that constrain context to a specific topic | Active Development |
-| Sources | Upload PDFs and other external materials for research and study | Active Development |
-| Web Extension | Capture and retrieve materials wherever you are on the web | Planned |
-| API | Interact programmatically with your Noeko server | Planned |
-| Voice Notes | Capture knowledge through audio recordings | Planned |
+| --- | --- | --- |
+| 📝 Note-taking | Capture and manage your personal notes | Fully Supported |
+| 🌌 Knowledge-graph | Connect notes to build your interactive Constellation | Fully supported |
+| 👥 Collaboration | Share your ideas and collaborate with others | Fully supported |
+| 🔍 Search | Search your materials semantically or lexically | Fully supported |
+| 📦 Portability | Import from or export to markdown directly | Fully supported |
+| 🔭 Spyglass | A personal answer engine that directly references your knowledge | Beta |
+| 🌍 Internationalization | Customize the interface to your preferred language | Under Development |
+| 🎨 Themes | Adapt the interface to your preferred aesthetic | Under Development |
+| 🐇 Rabbitholes | Self-building workspaces that constrain context to a specific topic | Active Development |
+| 📚 Sources | Upload PDFs and other external materials for research and study | Active Development |
+| 🧩 Web Extension | Capture and retrieve materials wherever you are on the web | Planned |
+| 🔌 API | Interact programmatically with your Noeko server | Planned |
+| 🎙️ Voice Notes | Capture knowledge through audio recordings | Planned |
 
 Features not discussed here are either too early to detail, or not planned.
 
