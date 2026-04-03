@@ -12,7 +12,7 @@
 </div>
 <br></br>
 
-![Watch the video](https://raw.githubusercontent.com/noekohq/noeko/trunk/demos/noeko-readme-demo.mp4)
+![Watch the video](https://github.com/noekohq/Noeko/raw/refs/heads/trunk/demos/noeko-readme-demo.mp4)
 
 <br></br>
 
