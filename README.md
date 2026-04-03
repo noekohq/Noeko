@@ -82,7 +82,7 @@ Noeko is currently in Beta, and working consistently toward a stable release. To
 | 🔌 API | Interact programmatically with your Noeko server | Planned |
 | 🎙️ Voice Notes | Capture knowledge through audio recordings | Planned |
 
-Features not discussed here are either too early to detail, or not planned.
+Features not discussed here are either too early to detail, or not planned. 
 
 ## Tech Stack
 
