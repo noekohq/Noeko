@@ -12,12 +12,8 @@
 </div>
 <br></br>
 
-<div align="center">
-  <video width="100%" muted autoplay loop controls>
-    <source src="./demos/noeko-readme-demo.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</div>
+![Watch the video](https://raw.githubusercontent.com/username/repository/branch/path/to/video.mp4)
+
 <br></br>
 
 <p align="center">
