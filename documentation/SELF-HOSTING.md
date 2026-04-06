@@ -38,7 +38,16 @@ cp .env.example .env
 With your configuration in place, you can build the production Docker image and launch the entire application stack with a single command:
 
 ```sh
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+bun run prod
+```
+or
+```sh
+bun run prod -d # -d for detached
+```
+
+Under the hood this script maps to:
+```sh
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 ```
 
 Here's what this command does:
@@ -51,21 +60,25 @@ Once the command finishes, your Noeko instance will be running and accessible at
 
 Here are the common commands you will use to manage your running application.
 
+- **Build & Start the Application**
+  ```sh
+  bun run prod
+  ```
 - **Stop the application:**
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+  bun run prod:stop
   ```
 - **Start the application:**
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  bun run prod:start
   ```
 - **Restart the application server:**
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml restart app
+  bun run prod:restart
   ```
 - **View application logs:**
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f app
+  bun run prod:logs
   ```
 
 ## Updating to a New Version
@@ -78,10 +91,13 @@ To update your Noeko instance to the latest version:
     ```
 2.  Re-run the launch command with the `--build` flag to create a new production image with the updated code:
     ```sh
-    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+    bun run prod -d
     ```
 
 ## Database Management
+
+> [!note]
+> The database connection and administration is currently a work-in-progress area as we build out a better migration system and vector index.
 
 The database data is persisted in a Docker volume, so it will not be lost when you stop or update the application.
 
@@ -89,10 +105,10 @@ For administrative tasks like backups and migrations, you can use the scripts de
 
 **Example: Running a database migration**
 ```sh
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec app bun run db:migrate
+bun run db:migrate
 ```
 
 **Example: Creating a local backup**
 ```sh
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec app bun run db:export
+bun run db:export
 ```

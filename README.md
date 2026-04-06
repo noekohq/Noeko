@@ -51,6 +51,21 @@ You can get started with Noeko in three different ways depending on what you're 
 - To _use Noeko through the hosted online service_, please apply to join the [waitlist](https://waitlist.noeko.app)
 - To _contribute_ to Noeko or otherwise work on development, check out the [Contributing Guide](./documentation/CONTRIBUTING.md)
 
+### Quickstart
+To rapidly get a local Noeko instance running on your machine, follow these steps.
+
+1. Clone the repo: `git clone https://github.com/noekohq/Noeko.git Noeko`
+2. Enter the new directory: `cd Noeko`
+3. Create the `.env` file from the `.env.example` file: `cp .env.example .env`
+4. Edit the variables for your environment
+5. Start the production build: `bun run prod` or `bun run prod:start`
+6. Go to the logged URL to see your instance running
+
+For more detailed instructions, please see the [Self-Hosting Guide](./documentation/SELF-HOSTING.md).
+
+> [!note]
+> Docker will use the `DB_` variables to configure your database automatically.
+
 ## Community & Support
 
 Get support via [support@noeko.app](mailto:support@noeko.app). Connect with the community through our online forums and Discord.
