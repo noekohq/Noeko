@@ -8,7 +8,7 @@
     <a href="https://www.noeko.app">Website</a> |
     <a href="https://blog.noeko.app/">Blog</a> |
     <a href="https://docs.noeko.app/">Documentation</a> |
-    <a href="https://www.noeko.app/roadmap">Roadmap</a>
+    <a href="https://www.noeko.app/roadmap">Roadmap</a> |
     <a href="https://noeko.app">Sign In Online</a>
 </div>
 <br></br>
