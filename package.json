@@ -1,5 +1,6 @@
 {
   "name": "noeko",
+  "license": "AGPL-3.0-or-later",
   "version": "0.7.0-beta.1",
   "type": "module",
   "packageManager": "bun@1.3.9",
