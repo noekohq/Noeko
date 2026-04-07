@@ -9,6 +9,7 @@
     <a href="https://blog.noeko.app/">Blog</a> |
     <a href="https://docs.noeko.app/">Documentation</a> |
     <a href="https://www.noeko.app/roadmap">Roadmap</a>
+    <a href="https://noeko.app">Sign In Online</a>
 </div>
 <br></br>
 
@@ -19,10 +20,6 @@ https://github.com/user-attachments/assets/13740558-18b7-407f-9c61-8f99206fd46f
 </div>
 
 <br></br>
-
-<p align="center">
-    <a href="https://noeko.app">Sign In Online</a>
-</p>
 
 ## Table of Contents
 - 💡 [Why Noeko?](#why-noeko)
