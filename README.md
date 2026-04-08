@@ -19,6 +19,11 @@ https://github.com/user-attachments/assets/13740558-18b7-407f-9c61-8f99206fd46f
 
 </div>
 
+<div align="center">
+    <i>Music by <a href="https://soundcloud.com/lukrembo">Lukrembo</a></i>
+</div>
+
+
 <br></br>
 
 ## Table of Contents
