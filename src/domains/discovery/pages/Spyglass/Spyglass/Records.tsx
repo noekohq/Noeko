@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import {
   ActionIcon,
   Blockquote,
@@ -36,6 +39,7 @@ import {
 } from "../../../../../../app/database/models/spyglass_record";
 
 export default function SpyglassHistory() {
+  const { i18n } = useLingui();
   const { isMobile } = useLayout();
   const [page, setPage] = useState(1);
   const pageSize = isMobile ? 10 : 10;
@@ -125,18 +129,22 @@ export default function SpyglassHistory() {
               </Group>
             </Group>
             <Title order={2} mb="sm">
-              Spyglass History
+              <Trans>Spyglass History</Trans>
             </Title>
 
             {errors && errors.length > 0 && page === 1 && allHistory.length === 0 && (
               <Center mt="xl">
                 <Stack align="center">
                   <Text c="red" ta="center">
-                    Error loading history: {errors[0] || "An unknown error occurred."}
+                    {i18n._(
+                      t`Error loading history: ${errors[0] || i18n._(t`An unknown error occurred.`)}`
+                    )}
                   </Text>
                   <Text c="dimmed" size="sm">
-                    Please try refreshing the page. If the problem persists, check your connection
-                    or contact support.
+                    <Trans>
+                      Please try refreshing the page. If the problem persists, check your connection
+                      or contact support.
+                    </Trans>
                   </Text>
                 </Stack>
               </Center>
@@ -147,7 +155,9 @@ export default function SpyglassHistory() {
               allHistory.length === 0 &&
               (!errors || errors.length === 0) && (
                 <Center mt="xl">
-                  <Text>No spyglass history found.</Text>
+                  <Text>
+                    <Trans>No spyglass history found.</Trans>
+                  </Text>
                 </Center>
               )}
 
@@ -175,11 +185,11 @@ export default function SpyglassHistory() {
                             </Text>
                             {item.isDeepAnalysis ? (
                               <Badge size="xs" variant="light" color="blue">
-                                Deep Focus
+                                <Trans>Deep Focus</Trans>
                               </Badge>
                             ) : (
                               <Badge size="xs" variant="light" color="gray">
-                                Glimpse
+                                <Trans>Glimpse</Trans>
                               </Badge>
                             )}
                           </Group>
@@ -206,14 +216,16 @@ export default function SpyglassHistory() {
             {loading && (
               <Center mt="lg" mb="lg">
                 <Loader />
-                <Text ml="sm">Loading more history...</Text>
+                <Text ml="sm">
+                  <Trans>Loading more history...</Trans>
+                </Text>
               </Center>
             )}
 
             {!hasMore && !loading && allHistory.length > 0 && (
               <Center mt="lg" mb="lg">
                 <Text c="dimmed" size="sm">
-                  That's all :)
+                  <Trans>That's all :)</Trans>
                 </Text>
               </Center>
             )}

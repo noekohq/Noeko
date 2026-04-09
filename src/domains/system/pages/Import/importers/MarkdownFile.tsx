@@ -20,8 +20,12 @@ import {
 import { formatFileSize, markdownToHtml } from "@core/utils/formatting";
 import { IIdea, IIdeaForm } from "@/domains/knowledge";
 import { useNavigate } from "react-router";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 export default function MarkdownFileImporter() {
+  const { i18n } = useLingui();
   const fileForm = useForm<{
     userFile: File | null;
   }>({
@@ -30,8 +34,8 @@ export default function MarkdownFileImporter() {
     },
     validate: {
       userFile: (value) => {
-        if (!value) return "File is required";
-        if (value.size > 1024 * 1024 * 10) return "File size should not exceed 10MB";
+        if (!value) return i18n._(t`File is required`);
+        if (value.size > 1024 * 1024 * 10) return i18n._(t`File size should not exceed 10MB`);
         return null;
       },
     },
@@ -65,16 +69,16 @@ export default function MarkdownFileImporter() {
     dependencies: [fileTitle, fileContent],
     onSuccess: async (idea) => {
       showNotification({
-        title: "Idea added!",
-        message: "Idea added successfully",
+        title: i18n._(t`Idea added!`),
+        message: i18n._(t`Idea added successfully`),
       });
       fileForm.reset();
       navigate(`/idea/${idea.id.toString()}`);
     },
     onError: async (error) => {
       showNotification({
-        title: "Idea Error",
-        message: "Failed to add file",
+        title: i18n._(t`Idea Error`),
+        message: i18n._(t`Failed to add file`),
         color: "red",
       });
     },
@@ -85,7 +89,7 @@ export default function MarkdownFileImporter() {
       const { errors, hasErrors } = fileForm.validate();
       if (hasErrors) {
         showNotification({
-          title: "Validation Error",
+          title: i18n._(t`Validation Error`),
           message: errors.userFile,
           color: "red",
         });
@@ -93,8 +97,8 @@ export default function MarkdownFileImporter() {
       await addIdea();
     } catch (error) {
       showNotification({
-        title: "Add Idea Error",
-        message: "Failed to add idea",
+        title: i18n._(t`Add Idea Error`),
+        message: i18n._(t`Failed to add idea`),
         color: "red",
       });
     }
@@ -108,11 +112,13 @@ export default function MarkdownFileImporter() {
     <div>
       <Grid>
         <Grid.Col span={{ sm: 12 }}>
-          <Text>The file is...</Text>
+          <Text>
+            <Trans>The file is...</Trans>
+          </Text>
         </Grid.Col>
         <Grid.Col span={{ sm: 12 }}>
           <FileInput
-            placeholder="Choose a file"
+            placeholder={i18n._(t`Choose a file`)}
             accept="text/markdown"
             {...fileForm.getInputProps("userFile")}
             leftSection={
@@ -124,8 +130,10 @@ export default function MarkdownFileImporter() {
           <>
             <Grid.Col span={{ sm: 12 }}>
               <Text>
-                You want to import <Code>{file.name}</Code>, which is {formatFileSize(file.size)} in
-                size.{" "}
+                <Trans>
+                  You want to import <Code>{file.name}</Code>, which is {formatFileSize(file.size)}{" "}
+                  in size.
+                </Trans>
               </Text>
             </Grid.Col>
             {openPreview ? (
@@ -137,12 +145,14 @@ export default function MarkdownFileImporter() {
                       setOpenPreview(false);
                     }}
                   >
-                    Hide Preview
+                    <Trans>Hide Preview</Trans>
                   </Button>
                 </Grid.Col>
                 <Grid.Col span={{ sm: 12 }}>
                   <Stack>
-                    <Text fw="bold">Preview:</Text>
+                    <Text fw="bold">
+                      <Trans>Preview:</Trans>
+                    </Text>
                     <Card radius="lg" withBorder>
                       <Stack gap="sm">
                         <Title fw="bold">{formatFileNameToTitle(file.name)}</Title>
@@ -165,7 +175,7 @@ export default function MarkdownFileImporter() {
                     setOpenPreview(true);
                   }}
                 >
-                  Show Preview
+                  <Trans>Show Preview</Trans>
                 </Button>
               </Grid.Col>
             )}
@@ -175,7 +185,9 @@ export default function MarkdownFileImporter() {
           <Grid.Col span={{ sm: 12 }}>
             <Group>
               <Loader size="sm" />
-              <Text>Importing...</Text>
+              <Text>
+                <Trans>Importing...</Trans>
+              </Text>
             </Group>
           </Grid.Col>
         )}
@@ -183,8 +195,8 @@ export default function MarkdownFileImporter() {
           <Grid.Col span={{ sm: 12 }}>
             <Text>
               {fileForm.isValid()
-                ? "Is that correct?"
-                : "Unfortunately, this file cannot be imported."}
+                ? i18n._(t`Is that correct?`)
+                : i18n._(t`Unfortunately, this file cannot be imported.`)}
             </Text>
           </Grid.Col>
         )}
@@ -199,7 +211,7 @@ export default function MarkdownFileImporter() {
                   fileForm.reset();
                 }}
               >
-                No, nevermind.
+                <Trans>No, nevermind.</Trans>
               </Button>
               <Button
                 onClick={() => {
@@ -208,7 +220,7 @@ export default function MarkdownFileImporter() {
                 disabled={loadingIdea}
                 leftSection={loadingIdea ? <Loader size="sm" color="white" /> : undefined}
               >
-                Yes, import.
+                <Trans>Yes, import.</Trans>
               </Button>
             </Group>
           </Grid.Col>

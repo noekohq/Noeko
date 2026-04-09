@@ -48,7 +48,6 @@ import MobileDashboard from "@domains/dashboard/pages/Dashboard/Mobile/Mobile";
 // Admin Domain
 const Admin = lazy(() => import("@domains/admin/pages/Admin"));
 const Feedback = lazy(() => import("./domains/admin/pages/Feedback/Feedback"));
-const Updates = lazy(() => import("@domains/admin/pages/Feedback/Updates"));
 
 // Constellation Domain
 const Constellation = lazy(
@@ -255,7 +254,6 @@ export default function App() {
                         <Route path="feedback" element={<Feedback />} />
                       </Route>
                     )}
-                    <Route path="updates" element={<Updates />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>

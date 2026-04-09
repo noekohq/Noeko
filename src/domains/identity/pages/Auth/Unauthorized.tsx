@@ -1,6 +1,7 @@
 import { useSearchParams, useNavigate } from "react-router";
 import styles from "./Unauthorized.module.scss";
 import { HandPalmIcon, HouseIcon, ArrowUUpLeftIcon } from "@phosphor-icons/react";
+import { Trans } from "@lingui/react/macro";
 
 export default function Unauthorized() {
   const [searchParams] = useSearchParams();
@@ -19,24 +20,24 @@ export default function Unauthorized() {
         <div className={styles.header}>
           <h1>
             <HandPalmIcon weight="bold" />
-            Access Denied
+            <Trans>Access Denied</Trans>
           </h1>
         </div>
 
         <p className={styles.description}>
-          {message || "You don't have permission to access this page."}
+          {message || <Trans>You don't have permission to access this page.</Trans>}
         </p>
 
         <div className={styles.actions}>
           {canGoBack && (
             <button onClick={goBack} className={styles.secondaryButton}>
               <ArrowUUpLeftIcon weight="bold" />
-              Go Back
+              <Trans>Go Back</Trans>
             </button>
           )}
           <a href="/" className={styles.primaryButton}>
             <HouseIcon weight="bold" />
-            Return Home
+            <Trans>Return Home</Trans>
           </a>
         </div>
       </div>

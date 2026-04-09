@@ -21,8 +21,12 @@ import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import { validateEmail } from "@core/utils/data";
 import StageIndicator from "@core/design/components/Utils/StageIndicator";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Login() {
+  const { i18n } = useLingui();
   const navigate = useNavigate();
   const { login: loadUser } = useAuth();
 
@@ -34,15 +38,15 @@ export default function Login() {
     validate: {
       email: (value) => {
         if (!value) {
-          return "Email is required";
+          return i18n._(t`Email is required`);
         }
         if (!validateEmail(value)) {
-          return "Invalid email";
+          return i18n._(t`Invalid email`);
         }
       },
       password: (value) => {
         if (!value) {
-          return "Password is required";
+          return i18n._(t`Password is required`);
         }
       },
     },
@@ -67,8 +71,8 @@ export default function Login() {
     onError: (err: any) => {
       console.error("Error: ", err);
       showNotification({
-        title: "Login Failed",
-        message: err?.response?.data?.message || "Something went wrong",
+        title: i18n._(t`Login Failed`),
+        message: err?.response?.data?.message || i18n._(t`Something went wrong`),
         color: "red",
       });
     },
@@ -80,8 +84,8 @@ export default function Login() {
     } catch (error) {
       console.error(error);
       showNotification({
-        title: "Login Failed",
-        message: "Invalid email or password",
+        title: i18n._(t`Login Failed`),
+        message: i18n._(t`Invalid email or password`),
         color: "red",
       });
     }
@@ -105,23 +109,25 @@ export default function Login() {
               )}
               <Grid.Col span={12}>
                 <Group>
-                  <Title>Login to Noeko</Title>
+                  <Title>
+                    <Trans>Login to Noeko</Trans>
+                  </Title>
                   <StageIndicator />
                 </Group>
               </Grid.Col>
               <Grid.Col span={12} />
               <Grid.Col span={{ sm: 12 }}>
                 <TextInput
-                  label="Email"
-                  placeholder="Email"
+                  label={t`Email`}
+                  placeholder={t`Email`}
                   {...loginForm.getInputProps("email")}
                   withAsterisk
                 />
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <PasswordInput
-                  label="Password"
-                  placeholder="Password"
+                  label={t`Password`}
+                  placeholder={t`Password`}
                   {...loginForm.getInputProps("password")}
                   withAsterisk
                 />
@@ -129,12 +135,14 @@ export default function Login() {
               <Grid.Col span={{ sm: 12 }} />
               <Grid.Col span={{ sm: 12 }}>
                 <Group justify="right">
-                  <Tooltip label="Coming soon...">
+                  <Tooltip label={t`Coming soon...`}>
                     <Button variant="default" disabled>
-                      Create an account
+                      <Trans>Create an account</Trans>
                     </Button>
                   </Tooltip>
-                  <Button type="submit">Login</Button>
+                  <Button type="submit">
+                    <Trans>Login</Trans>
+                  </Button>
                 </Group>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
@@ -146,7 +154,7 @@ export default function Login() {
                     }}
                   >
                     <Text size="xs" c="dimmed">
-                      Forgot password?
+                      <Trans>Forgot password?</Trans>
                     </Text>
                   </Link>
                 </Group>

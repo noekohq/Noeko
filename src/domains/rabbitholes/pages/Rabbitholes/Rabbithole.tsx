@@ -68,8 +68,12 @@ import CollapseButton from "@core/design/components/Interactions/CollapseButton"
 import TagButton from "@domains/knowledge/components/Tags/TagButton";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Rabbithole() {
+  const { i18n } = useLingui();
   const [error, setError] = useState("");
   const { rabbitholeId } = useParams();
   const { data: rabbithole, load: loadRabbithole } = useFetch<undefined, IRabbithole>({
@@ -77,10 +81,10 @@ export default function Rabbithole() {
     dependencies: [rabbitholeId],
     onError: (error) => {
       console.error("Something went wrong fetching rabbithole", error);
-      setError("Something went wrong fetching rabbithole.");
+      setError(i18n._(t`Something went wrong fetching rabbithole.`));
       showNotification({
-        title: "Something went wrong",
-        message: "Please try again later",
+        title: i18n._(t`Something went wrong`),
+        message: i18n._(t`Please try again later`),
         color: "red",
       });
     },
@@ -122,7 +126,7 @@ export default function Rabbithole() {
 
   const isEntered = currentlyEntered?.id.toString() === rabbithole?.id.toString();
 
-  useDocumentTitle(`${rabbithole?.name || "Loading..."} - Noeko`);
+  useDocumentTitle(`${rabbithole?.name || i18n._(t`Loading...`)} - Noeko`);
 
   const [loadingSaveChanges, setLoadingSaveChanges] = useState(false);
 
@@ -154,8 +158,8 @@ export default function Rabbithole() {
       }
       if (isIncluded(tag.id.toString()) || !rabbitholeId) {
         showNotification({
-          title: "Can't connect again",
-          message: "Can't connect this idea again.",
+          title: i18n._(t`Can't connect again`),
+          message: i18n._(t`Can't connect this idea again.`),
           color: "yellow",
         });
         return;
@@ -165,8 +169,8 @@ export default function Rabbithole() {
     } catch (error) {
       console.error("Error adding tag: ", error);
       showNotification({
-        title: "Error adding tag",
-        message: "Something went wrong adding the tag",
+        title: i18n._(t`Error adding tag`),
+        message: i18n._(t`Something went wrong adding the tag`),
         color: "red",
       });
     } finally {
@@ -178,8 +182,8 @@ export default function Rabbithole() {
   const handleEnterRabbithole = () => {
     if (!rabbithole) {
       showNotification({
-        title: "Something went wrong",
-        message: "Please try again later",
+        title: i18n._(t`Something went wrong`),
+        message: i18n._(t`Please try again later`),
         color: "red",
       });
       return;
@@ -204,8 +208,8 @@ export default function Rabbithole() {
         const { thingId } = data;
         if (isIncluded(thingId)) {
           showNotification({
-            title: "Can't connect again",
-            message: "Can't connect this idea again.",
+            title: i18n._(t`Can't connect again`),
+            message: i18n._(t`Can't connect this idea again.`),
             color: "yellow",
           });
           return;
@@ -241,8 +245,8 @@ export default function Rabbithole() {
   const handleUninclude = (thingId: string | RecordId) => {
     if (!rabbithole?.id.toString()) {
       showNotification({
-        title: "Something went wrong.",
-        message: "Something went wrong unincluding this item.",
+        title: i18n._(t`Something went wrong.`),
+        message: i18n._(t`Something went wrong unincluding this item.`),
       });
       return;
     }
@@ -261,9 +265,13 @@ export default function Rabbithole() {
 
   const handleDeleteRabbithole = () => {
     modals.openConfirmModal({
-      title: "Are you sure?",
-      children: <Text>Are you sure you want to delete this Rabbithole?</Text>,
-      labels: { confirm: "Yes, Delete", cancel: "No, nevermind" },
+      title: i18n._(t`Are you sure?`),
+      children: (
+        <Text>
+          <Trans>Are you sure you want to delete this Rabbithole?</Trans>
+        </Text>
+      ),
+      labels: { confirm: i18n._(t`Yes, Delete`), cancel: i18n._(t`No, nevermind`) },
       confirmProps: {
         color: "red",
       },
@@ -273,15 +281,15 @@ export default function Rabbithole() {
             await deleteRabbithole(rabbithole.id.toString());
             navigate("/");
             showNotification({
-              title: "Rabbithole Deleted",
-              message: "Rabbithole deleted successfully.",
+              title: i18n._(t`Rabbithole Deleted`),
+              message: i18n._(t`Rabbithole deleted successfully.`),
             });
           }
         } catch (error) {
           console.error(error);
           showNotification({
-            title: "Something went wrong",
-            message: "Something went wrong deleting this rabbithole.",
+            title: i18n._(t`Something went wrong`),
+            message: i18n._(t`Something went wrong deleting this rabbithole.`),
           });
         }
       },
@@ -297,7 +305,9 @@ export default function Rabbithole() {
   } = useSearch();
 
   const rabbitholeEnterInfo = () => {
-    return `When you enter a rabbithole, every new idea or tag that you create will automatically be included. An indicator will appear to tell you which rabbithole you're in, and you can include things as you go.`;
+    return i18n._(
+      t`When you enter a rabbithole, every new idea or tag that you create will automatically be included. An indicator will appear to tell you which rabbithole you're in, and you can include things as you go.`
+    );
   };
 
   const [filterQuery, setFilterQuery] = useState(""); // State for filter query
@@ -329,7 +339,7 @@ export default function Rabbithole() {
         }}
         color={isEntered ? "red" : "green"}
       >
-        {isEntered ? "Exit" : "Enter"} Rabbithole
+        {isEntered ? i18n._(t`Exit`) : i18n._(t`Enter`)} <Trans>Rabbithole</Trans>
       </Button>
       <HoverCard width="300px">
         <HoverCard.Target>
@@ -361,8 +371,10 @@ export default function Rabbithole() {
         <LeftSidebar />
         <Content>
           <Text>
-            An unexpected error occured loading this Rabbithole. Please try again or{" "}
-            <Link to="/">Return home.</Link>
+            <Trans>
+              An unexpected error occured loading this Rabbithole. Please try again or{" "}
+              <Link to="/">Return home.</Link>
+            </Trans>
           </Text>
         </Content>
         <RightSidebar />
@@ -382,12 +394,12 @@ export default function Rabbithole() {
             <Text size="sm" c="dark.4" fw="bold">
               <Group gap="xs">
                 <LightbulbIcon weight="bold" />
-                SUGGESTED
+                <Trans>SUGGESTED</Trans>
               </Group>
             </Text>
             {!suggestedThings?.length && (
               <Text size="xs" c="dimmed">
-                No current suggestions.
+                <Trans>No current suggestions.</Trans>
               </Text>
             )}
             <Transition mounted={!includingThing && !loadingSuggestedThings} transition="fade-up">
@@ -413,12 +425,12 @@ export default function Rabbithole() {
                                       size="xs"
                                       color="dark.3"
                                       leftSection={<CirclesThreePlusIcon weight="bold" />}
-                                      title="Include this thing"
+                                      title={i18n._(t`Include this thing`)}
                                       onClick={() => {
                                         handleInclude(tag.id.toString());
                                       }}
                                     >
-                                      Include
+                                      <Trans>Include</Trans>
                                     </Button>
                                   </Group>
                                 </>
@@ -438,12 +450,12 @@ export default function Rabbithole() {
                                     size="xs"
                                     color="dark.3"
                                     leftSection={<CirclesThreePlusIcon weight="bold" />}
-                                    title="Include this thing"
+                                    title={i18n._(t`Include this thing`)}
                                     onClick={() => {
                                       handleInclude(thing.id.toString());
                                     }}
                                   >
-                                    Include
+                                    <Trans>Include</Trans>
                                   </Button>
                                 </Group>
                               </>
@@ -461,7 +473,9 @@ export default function Rabbithole() {
                   <div style={styles}>
                     <Group gap="xs" align="center">
                       <Loader size="xs" />
-                      <Text>Looking for suggestions...</Text>
+                      <Text>
+                        <Trans>Looking for suggestions...</Trans>
+                      </Text>
                     </Group>
                   </div>
                 );
@@ -482,7 +496,7 @@ export default function Rabbithole() {
               <Group c="dark.3" gap="xs">
                 <CaretLeftIcon weight="bold" size={13} />
                 <Text c="dark.3" size="sm">
-                  Back to Rabbitholes
+                  <Trans>Back to Rabbitholes</Trans>
                 </Text>
               </Group>
             </Link>
@@ -510,7 +524,7 @@ export default function Rabbithole() {
               >
                 <Group align="center" justify="center" style={{ height: "100%" }}>
                   <Text c="white" mx="lg" size="sm">
-                    Drop here to include an idea!
+                    <Trans>Drop here to include an idea!</Trans>
                   </Text>
                 </Group>
               </Overlay>
@@ -532,7 +546,7 @@ export default function Rabbithole() {
               {isMobile && ActionCenter}
               {isEntered && (
                 <TextInput
-                  placeholder="Filter things..."
+                  placeholder={i18n._(t`Filter things...`)}
                   value={filterQuery}
                   onChange={(event) => setFilterQuery(event.currentTarget.value)}
                   mb="md" // Added margin bottom for spacing
@@ -544,7 +558,7 @@ export default function Rabbithole() {
                   if (!(isEntered && !!rabbithole && !!rabbithole.includes?.length)) {
                     return (
                       <Text style={style} size="sm" ta="center">
-                        There are no things in this rabbithole.
+                        <Trans>There are no things in this rabbithole.</Trans>
                       </Text>
                     );
                   }
@@ -586,13 +600,15 @@ export default function Rabbithole() {
                     >
                       {!rabbithole?.includes?.length && (
                         <Text size="sm" ta="center">
-                          Start by adding tags or ideas to your rabbithole!
+                          <Trans>Start by adding tags or ideas to your rabbithole!</Trans>
                         </Text>
                       )}
                       {!rabbithole?.includes?.length && !isMobile && (
-                        <Alert color="gray" title="Tip" icon={<InfoIcon />} radius="lg">
-                          You can drag and drop ideas from the search results into this area to
-                          include them!
+                        <Alert color="gray" title={i18n._(t`Tip`)} icon={<InfoIcon />} radius="lg">
+                          <Trans>
+                            You can drag and drop ideas from the search results into this area to
+                            include them!
+                          </Trans>
                         </Alert>
                       )}
                       {!!rabbithole?.includes?.length && (
@@ -620,8 +636,10 @@ export default function Rabbithole() {
                       )}
                       {!!(rabbithole?.includes?.length && rabbithole.includes.length > 9) && (
                         <Text size="sm" c="dimmed">
-                          {rabbithole.includes.length - 9} more thing
-                          {rabbithole.includes.length - 9 === 1 ? "" : "s"} hidden...
+                          <Trans>
+                            {rabbithole.includes.length - 9} more thing
+                            {rabbithole.includes.length - 9 === 1 ? "" : "s"} hidden...
+                          </Trans>
                         </Text>
                       )}
                       <Transition
@@ -650,13 +668,13 @@ export default function Rabbithole() {
               <Tabs.Tab value="ideas">
                 <Group gap="xs">
                   <LightbulbIcon />
-                  Ideas
+                  <Trans>Ideas</Trans>
                 </Group>
               </Tabs.Tab>
               <Tabs.Tab value="tags">
                 <Group gap="xs">
                   <TagIcon />
-                  Tags
+                  <Trans>Tags</Trans>
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
@@ -677,7 +695,7 @@ export default function Rabbithole() {
                             ) : (
                               <PlusIcon />
                             ),
-                            label: "Include",
+                            label: i18n._(t`Include`),
                             onClick: () => {
                               handleInclude(thing.id.toString());
                             },

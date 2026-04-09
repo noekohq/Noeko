@@ -23,6 +23,9 @@ import RightSidebar from "@core/design/components/Layout/Right";
 import useFetch from "@core/hooks/useFetch";
 import { useForm } from "@mantine/form";
 import React, { useState, useMemo } from "react";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import {
   TrashIcon,
   PencilIcon,
@@ -38,6 +41,7 @@ import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Tags() {
+  const { i18n } = useLingui();
   const {
     data: tags,
     loading,
@@ -59,11 +63,11 @@ export default function Tags() {
       color: "", // Added color field
     },
     validate: {
-      name: (value) => (!value ? "Tag name is required" : null),
+      name: (value) => (!value ? i18n._(t`Tag name is required`) : null),
       color: (value) => {
         // Added color validation
         if (value && value.trim() !== "" && !/^#([0-9A-Fa-f]{3}){1,2}$/.test(value)) {
-          return "Must be a valid hex color (e.g., #RRGGBB or #RGB)";
+          return i18n._(t`Must be a valid hex color (e.g., #RRGGBB or #RGB)`);
         }
         return null;
       },
@@ -129,7 +133,9 @@ export default function Tags() {
           <Grid>
             <Grid.Col span={{ sm: 12 }}>
               <Group>
-                <Title>Your tags</Title>
+                <Title>
+                  <Trans>Your tags</Trans>
+                </Title>
                 <ActionIcon
                   variant="light"
                   color="gray"
@@ -143,7 +149,7 @@ export default function Tags() {
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                placeholder="Filter tags by name or description"
+                placeholder={i18n._(t`Filter tags by name or description`)}
                 value={filterQuery}
                 onChange={(event) => setFilterQuery(event.currentTarget.value)}
                 mb="md" // Added margin bottom for spacing
@@ -152,7 +158,7 @@ export default function Tags() {
             <Grid.Col span={{ sm: 12 }}>
               {loading && (
                 <Text size="sm" c="dimmed">
-                  Loading tags...
+                  <Trans>Loading tags...</Trans>
                 </Text>
               )}
               <SimpleGrid
@@ -184,13 +190,13 @@ export default function Tags() {
         onClose={() => {
           setAddingTag(false);
         }}
-        title="Add a tag"
+        title={i18n._(t`Add a tag`)}
       >
         <Grid>
           <Grid.Col span={12}>
             <TextInput
-              label="Name"
-              placeholder="Name your tag..."
+              label={t`Name`}
+              placeholder={t`Name your tag...`}
               {...tagForm.getInputProps("name")}
               required
             />
@@ -199,7 +205,9 @@ export default function Tags() {
             <Textarea
               label={
                 <Group align="center" gap="2px">
-                  <Text size="sm">Description</Text>
+                  <Text size="sm">
+                    <Trans>Description</Trans>
+                  </Text>
                   <HoverCard width="300px" radius="lg">
                     <HoverCard.Target>
                       <ActionIcon size="xs" radius="lg" variant="subtle" color="gray">
@@ -209,25 +217,29 @@ export default function Tags() {
                     <HoverCard.Dropdown>
                       <Stack gap="xs">
                         <Text size="sm" mb="sm">
-                          The better the description, the better the system will be at suggesting
-                          tag applications. More detail will mean more specific suggestions.
+                          <Trans>
+                            The better the description, the better the system will be at suggesting
+                            tag applications. More detail will mean more specific suggestions.
+                          </Trans>
                         </Text>
                         <Text fw="bold" size="sm">
-                          Good Description
+                          <Trans>Good Description</Trans>
                         </Text>
                         <Blockquote p="xs" color="gray">
                           <Text size="sm">
-                            Fleetingness. The quality of being fleeting or transient.
+                            <Trans>Fleetingness. The quality of being fleeting or transient.</Trans>
                           </Text>
                         </Blockquote>
                         <Text fw="bold" size="sm">
-                          Better Description
+                          <Trans>Better Description</Trans>
                         </Text>
                         <Blockquote p="xs" color="gray">
                           <Text size="sm">
-                            The concept of fleetiness. It represents a momentary, ephemeral
-                            experience, like a spark of inspiration that fades, a dream upon waking,
-                            or the brief scent of rain on hot pavement.
+                            <Trans>
+                              The concept of fleetiness. It represents a momentary, ephemeral
+                              experience, like a spark of inspiration that fades, a dream upon
+                              waking, or the brief scent of rain on hot pavement.
+                            </Trans>
                           </Text>
                         </Blockquote>
                       </Stack>
@@ -235,7 +247,7 @@ export default function Tags() {
                   </HoverCard>
                 </Group>
               }
-              placeholder="Describe the meaning of your tag..."
+              placeholder={t`Describe the meaning of your tag...`}
               minRows={3}
               autosize
               {...tagForm.getInputProps("description")}
@@ -252,7 +264,7 @@ export default function Tags() {
                   }
                 }}
                 loading={createTagLoading}
-                title="Add a Tag"
+                title={i18n._(t`Add a Tag`)}
                 color="blue"
               >
                 <PlusIcon weight="bold" />
@@ -271,6 +283,7 @@ interface ITagItemProps {
 }
 
 const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
+  const { i18n } = useLingui();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
 
@@ -280,7 +293,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
       description: tag.description || "",
     },
     validate: {
-      name: (value) => (value?.trim() === "" ? "Tag name is required" : null),
+      name: (value) => (value?.trim() === "" ? i18n._(t`Tag name is required`) : null),
     },
   });
 
@@ -371,11 +384,16 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
               variant="filled"
               onClick={handleSave}
               loading={updateTagLoading}
-              title="Save Tag"
+              title={i18n._(t`Save Tag`)}
             >
               <FloppyDiskIcon weight="bold" />
             </ActionIcon>
-            <ActionIcon variant="outline" color="gray" onClick={handleCancel} title="Cancel Edit">
+            <ActionIcon
+              variant="outline"
+              color="gray"
+              onClick={handleCancel}
+              title={i18n._(t`Cancel Edit`)}
+            >
               <XIcon weight="bold" />
             </ActionIcon>
           </Group>
@@ -396,7 +414,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
         actions={[
           {
             id: "delete",
-            label: "Delete",
+            label: i18n._(t`Delete`),
             onClick: (e) => {
               e.stopPropagation();
               openDeleteModal();
@@ -406,7 +424,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
           },
           {
             id: "update",
-            label: "Update",
+            label: i18n._(t`Update`),
             onClick: (e) => {
               e.stopPropagation();
               setIsEditing(true);
@@ -419,23 +437,23 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
       <Modal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
-        title={`Delete Tag: "${tag.name}"`}
+        title={i18n._(t`Delete Tag: "${tag.name}"`)}
         centered
       >
         <Text size="sm">
-          Are you sure you want to delete this tag? This action cannot be undone.
+          <Trans>Are you sure you want to delete this tag? This action cannot be undone.</Trans>
         </Text>
         {deleteTagErrors.length > 0 && (
           <Text c="red" size="xs" mt="sm">
-            Failed to delete tag: {deleteTagErrors.join(", ")}
+            {i18n._(t`Failed to delete tag: ${deleteTagErrors.join(", ")}`)}
           </Text>
         )}
         <Group mt="lg" justify="flex-end">
           <Button variant="default" onClick={closeDeleteModal}>
-            Cancel
+            <Trans>Cancel</Trans>
           </Button>
           <Button color="red" onClick={handleDeleteConfirm} loading={deleteTagLoading}>
-            Delete Tag
+            <Trans>Delete Tag</Trans>
           </Button>
         </Group>
       </Modal>

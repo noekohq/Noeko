@@ -23,8 +23,12 @@ import { validateEmail } from "@core/utils/data";
 import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useEffect, useState } from "react";
 import { QuestionIcon } from "@phosphor-icons/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Register() {
+  const { i18n } = useLingui();
   const navigate = useNavigate();
   const { setTokens, login: loadUser } = useAuth();
 
@@ -43,42 +47,42 @@ export default function Register() {
     validate: {
       email: (value) => {
         if (!value) {
-          return "Email is required";
+          return i18n._(t`Email is required`);
         }
         if (!validateEmail(value)) {
-          return "Invalid email";
+          return i18n._(t`Invalid email`);
         }
       },
       password: (value) => {
         if (!value) {
-          return "Password is required";
+          return i18n._(t`Password is required`);
         }
         if (value.length < 6) {
-          return "Password must be at least 6 characters";
+          return i18n._(t`Password must be at least 6 characters`);
         }
       },
       passwordConfirmation: (value, values) => {
         if (!value) {
-          return "Password confirmation is required";
+          return i18n._(t`Password confirmation is required`);
         }
         if (value !== values.password) {
-          return "Passwords do not match";
+          return i18n._(t`Passwords do not match`);
         }
       },
       firstName: (value) => {
         if (!value) {
-          return "First name is required";
+          return i18n._(t`First name is required`);
         }
         if (value.length < 2) {
-          return "First name must be at least 2 characters";
+          return i18n._(t`First name must be at least 2 characters`);
         }
       },
       lastName: (value) => {
         if (!value) {
-          return "Last name is required";
+          return i18n._(t`Last name is required`);
         }
         if (value.length < 2) {
-          return "Last name must be at least 2 characters";
+          return i18n._(t`Last name must be at least 2 characters`);
         }
       },
     },
@@ -109,8 +113,8 @@ export default function Register() {
     onSuccess: (data) => {
       setTokens(data.accessToken);
       showNotification({
-        title: "Registration Successful",
-        message: "Welcome!",
+        title: i18n._(t`Registration Successful`),
+        message: i18n._(t`Welcome!`),
       });
       loadUser(data.accessToken).then(() => {
         navigate("/");
@@ -119,8 +123,8 @@ export default function Register() {
     onError: (error) => {
       console.error(error);
       showNotification({
-        title: "Registration Failed",
-        message: "An error occurred during registration",
+        title: i18n._(t`Registration Failed`),
+        message: i18n._(t`An error occurred during registration`),
       });
     },
   });
@@ -130,7 +134,7 @@ export default function Register() {
       const { errors, hasErrors } = registerForm.validate();
       if (hasErrors) {
         showNotification({
-          title: "Registration Failed",
+          title: i18n._(t`Registration Failed`),
           message: Object.values(errors)[0],
           color: "red",
         });
@@ -140,8 +144,8 @@ export default function Register() {
     } catch (error) {
       console.error(error);
       showNotification({
-        title: "Registration Failed",
-        message: "Invalid email or password",
+        title: i18n._(t`Registration Failed`),
+        message: i18n._(t`Invalid email or password`),
         color: "red",
       });
     }
@@ -180,19 +184,25 @@ export default function Register() {
             <Grid>
               <Grid.Col span={12}>
                 <Group>
-                  <Title>Noeko</Title>
+                  <Title>
+                    <Trans>Noeko</Trans>
+                  </Title>
                   <StageIndicator />
                 </Group>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Sorry, we are not accepting direct registration during this phase. Please use an
-                  invitation link or join the <a href="https://waitlist.noeko.app">waitlist</a>.
+                  <Trans>
+                    Sorry, we are not accepting direct registration during this phase. Please use an
+                    invitation link or join the <a href="https://waitlist.noeko.app">waitlist</a>.
+                  </Trans>
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Link to="/login">
-                  <Button variant="light">I have an account</Button>
+                  <Button variant="light">
+                    <Trans>I have an account</Trans>
+                  </Button>
                 </Link>
               </Grid.Col>
             </Grid>
@@ -215,19 +225,25 @@ export default function Register() {
             <Grid>
               <Grid.Col span={12}>
                 <Group>
-                  <Title>Noeko</Title>
+                  <Title>
+                    <Trans>Noeko</Trans>
+                  </Title>
                   <StageIndicator />
                 </Group>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Sorry, it looks like this referral code is invalid. Please use a valid code or
-                  join the <a href="https://noeko.neoko.app">waitlist</a>.
+                  <Trans>
+                    Sorry, it looks like this referral code is invalid. Please use a valid code or
+                    join the <a href="https://noeko.neoko.app">waitlist</a>.
+                  </Trans>
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Link to="/login">
-                  <Button variant="light">I have an account</Button>
+                  <Button variant="light">
+                    <Trans>I have an account</Trans>
+                  </Button>
                 </Link>
               </Grid.Col>
             </Grid>
@@ -254,15 +270,17 @@ export default function Register() {
             )}
             <Grid.Col span={12}>
               <Group>
-                <Title>Register to Noeko!</Title>
+                <Title>
+                  <Trans>Register to Noeko!</Trans>
+                </Title>
                 <StageIndicator />
               </Group>
             </Grid.Col>
             <Grid.Col span={12} />
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                label="First name"
-                placeholder="First name"
+                label={t`First name`}
+                placeholder={t`First name`}
                 rightSection={
                   <HoverCard width="300px" radius="lg">
                     <HoverCard.Target>
@@ -270,8 +288,10 @@ export default function Register() {
                     </HoverCard.Target>
                     <HoverCard.Dropdown>
                       <Text size="sm" c="dimmed">
-                        Your first and last name are only for personalization, you can put whatever
-                        you'd like here :)
+                        <Trans>
+                          Your first and last name are only for personalization, you can put
+                          whatever you'd like here :)
+                        </Trans>
                       </Text>
                     </HoverCard.Dropdown>
                   </HoverCard>
@@ -282,32 +302,32 @@ export default function Register() {
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                label="Last name"
-                placeholder="Last name"
+                label={t`Last name`}
+                placeholder={t`Last name`}
                 {...registerForm.getInputProps("lastName")}
                 withAsterisk
               />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                label="Email"
-                placeholder="Email"
+                label={t`Email`}
+                placeholder={t`Email`}
                 {...registerForm.getInputProps("email")}
                 withAsterisk
               />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <PasswordInput
-                label="Password"
-                placeholder="Password"
+                label={t`Password`}
+                placeholder={t`Password`}
                 {...registerForm.getInputProps("password")}
                 withAsterisk
               />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <PasswordInput
-                label="Confirm password"
-                placeholder="Confirm password"
+                label={t`Confirm password`}
+                placeholder={t`Confirm password`}
                 {...registerForm.getInputProps("passwordConfirmation")}
                 withAsterisk
               />
@@ -318,9 +338,11 @@ export default function Register() {
                 size="xs"
                 label={
                   <Text size="xs" c="dimmed">
-                    By creating an account, you agree to our{" "}
-                    <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
-                    <a href="https://www.noeko.app/terms-of-service">Terms of Service</a>.
+                    <Trans>
+                      By creating an account, you agree to our{" "}
+                      <a href="https://www.noeko.app/privacy">Privacy Policy</a> and{" "}
+                      <a href="https://www.noeko.app/terms-of-service">Terms of Service</a>.
+                    </Trans>
                   </Text>
                 }
                 onChange={(e) => {
@@ -332,7 +354,7 @@ export default function Register() {
               <Group justify="right">
                 <Link to="/login">
                   <Button variant="light" color="gray">
-                    Have an account?
+                    <Trans>Have an account?</Trans>
                   </Button>
                 </Link>
                 <Button
@@ -342,7 +364,7 @@ export default function Register() {
                   disabled={!checkedAgreement}
                   loading={loadingRegister}
                 >
-                  Register
+                  <Trans>Register</Trans>
                 </Button>
               </Group>
             </Grid.Col>

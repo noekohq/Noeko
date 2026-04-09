@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import useFetch from "@core/hooks/useFetch";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import styles from "./Think.module.scss";
 import { IIdeaSortFields, ISafeIdea } from "../../../../../../shared/types/idea";
 import IdeaButton from "@domains/knowledge/components/Ideas/Interactions/IdeaButton";
@@ -12,6 +15,7 @@ import { useNavigate } from "react-router";
 import Selection from "@core/design/components/Display/Interactions/Selection";
 
 export default function Think() {
+  const { i18n } = useLingui();
   const [sortField, setSortField] = useState<IIdeaSortFields>("viewedAt");
   const [start, setStart] = useState(0);
   const limit = 25;
@@ -111,21 +115,21 @@ export default function Think() {
       {!hasSearch && (
         <Group mb="md">
           <Selection
-            label="View by"
+            label={i18n._(t`View by`)}
             initialValue={sortField}
             options={[
               {
-                label: "Viewed",
+                label: i18n._(t`Viewed`),
                 value: "viewedAt" as IIdeaSortFields,
                 icon: <ClockCounterClockwiseIcon />,
               },
               {
-                label: "Created",
+                label: i18n._(t`Created`),
                 value: "createdAt" as IIdeaSortFields,
                 icon: <ClockIcon />,
               },
               {
-                label: "Updated",
+                label: i18n._(t`Updated`),
                 value: "updatedAt" as IIdeaSortFields,
                 icon: <ClockClockwiseIcon />,
               },
@@ -155,7 +159,7 @@ export default function Think() {
               >
                 <Stack>
                   <Text size="sm" c="dimmed">
-                    Jump Back In
+                    <Trans>Jump Back In</Trans>
                   </Text>
                   <IdeaButton
                     idea={firstIdea}
@@ -178,7 +182,7 @@ export default function Think() {
             {!hasMore && !loading && allIdeas.length > 0 && (
               <Center>
                 <Text size="sm" c="dimmed">
-                  That's all :)
+                  <Trans>That's all :)</Trans>
                 </Text>
               </Center>
             )}

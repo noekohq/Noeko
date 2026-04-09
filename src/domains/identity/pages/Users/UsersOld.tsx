@@ -37,6 +37,9 @@ import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { validateEmail } from "@core/utils/data";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
@@ -46,6 +49,7 @@ import StatusBar from "@core/design/components/Layout/Bottom";
 import Nav from "@core/design/components/Layout/Nav";
 
 export default function Users() {
+  const { i18n } = useLingui();
   const {
     data: users,
     loading: loadingUsers,
@@ -68,14 +72,14 @@ export default function Users() {
       setToDisable(undefined);
       reloadUsers();
       showNotification({
-        title: "User disabled",
-        message: `User ${user.email} has been disabled.`,
+        title: i18n._(t`User disabled`),
+        message: i18n._(t`User ${user.email} has been disabled.`),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to disable user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to disable user`),
         color: "red",
       });
     },
@@ -89,14 +93,14 @@ export default function Users() {
       setToEnable(undefined);
       reloadUsers();
       showNotification({
-        title: "User enabled",
-        message: `User ${user.email} has been enabled.`,
+        title: i18n._(t`User enabled`),
+        message: i18n._(t`User ${user.email} has been enabled.`),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to enable user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to enable user`),
         color: "red",
       });
     },
@@ -110,14 +114,14 @@ export default function Users() {
       setToDelete(undefined);
       reloadUsers();
       showNotification({
-        title: "User deleted",
-        message: `User ${user.email} has been deleted.`,
+        title: i18n._(t`User deleted`),
+        message: i18n._(t`User ${user.email} has been deleted.`),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to delete user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to delete user`),
         color: "red",
       });
     },
@@ -134,16 +138,16 @@ export default function Users() {
     dependencies: [emailType],
     onSuccess: (d) => {
       showNotification({
-        title: "Success",
-        message: "User emailed successfully",
+        title: i18n._(t`Success`),
+        message: i18n._(t`User emailed successfully`),
       });
       setToEmail(undefined);
     },
     onError: (e) => {
       console.error("Error sending email.");
       showNotification({
-        title: "Something went wrong.",
-        message: "Something went wrong sending the email.",
+        title: i18n._(t`Something went wrong.`),
+        message: i18n._(t`Something went wrong sending the email.`),
         color: "red",
       });
     },
@@ -158,26 +162,26 @@ export default function Users() {
     validate: {
       email: (value) => {
         if (!value) {
-          return "Email is required";
+          return i18n._(t`Email is required`);
         }
         if (!validateEmail(value)) {
-          return "Invalid email";
+          return i18n._(t`Invalid email`);
         }
       },
       firstName: (value) => {
         if (!value) {
-          return "First name is required";
+          return i18n._(t`First name is required`);
         }
         if (value.length < 2) {
-          return "First name must be at least 2 characters";
+          return i18n._(t`First name must be at least 2 characters`);
         }
       },
       lastName: (value) => {
         if (!value) {
-          return "Last name is required";
+          return i18n._(t`Last name is required`);
         }
         if (value.length < 2) {
-          return "Last name must be at least 2 characters";
+          return i18n._(t`Last name must be at least 2 characters`);
         }
       },
     },
@@ -200,8 +204,8 @@ export default function Users() {
     dependencies: [invitationForm.values],
     onSuccess: (d) => {
       showNotification({
-        title: "Success",
-        message: "Invitation sent successfully.",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Invitation sent successfully.`),
       });
       invitationForm.reset();
       setInvitingUser(false);
@@ -211,8 +215,8 @@ export default function Users() {
     onError: (error) => {
       console.error("Error inviting user: ", error);
       showNotification({
-        title: "Error",
-        message: "Something went wrong.",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Something went wrong.`),
       });
     },
   });
@@ -315,12 +319,18 @@ export default function Users() {
     <PageWrapper>
       <LeftSidebar />
       <Content>
-        <Modal opened={!!toDisable} title="Disable user" onClose={() => setToDisable(undefined)}>
-          <Text>Are you sure you want to disable {toDisable?.email}?</Text>
+        <Modal
+          opened={!!toDisable}
+          title={i18n._(t`Disable user`)}
+          onClose={() => setToDisable(undefined)}
+        >
+          <Text>
+            <Trans>Are you sure you want to disable {toDisable?.email}?</Trans>
+          </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToDisable(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -328,16 +338,22 @@ export default function Users() {
               }}
               color="red"
             >
-              Yes, disable.
+              <Trans>Yes, disable.</Trans>
             </Button>
           </Group>
         </Modal>
-        <Modal opened={!!toEnable} title="Enable user" onClose={() => setToEnable(undefined)}>
-          <Text>Are you sure you want to enable {toEnable?.email}?</Text>
+        <Modal
+          opened={!!toEnable}
+          title={i18n._(t`Enable user`)}
+          onClose={() => setToEnable(undefined)}
+        >
+          <Text>
+            <Trans>Are you sure you want to enable {toEnable?.email}?</Trans>
+          </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToEnable(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -345,17 +361,23 @@ export default function Users() {
               }}
               color="green"
             >
-              Yes, enable.
+              <Trans>Yes, enable.</Trans>
             </Button>
           </Group>
         </Modal>
 
-        <Modal opened={!!toDelete} title="Delete user" onClose={() => setToDelete(undefined)}>
-          <Text>Are you sure you want to delete {toDelete?.email}?</Text>
+        <Modal
+          opened={!!toDelete}
+          title={i18n._(t`Delete user`)}
+          onClose={() => setToDelete(undefined)}
+        >
+          <Text>
+            <Trans>Are you sure you want to delete {toDelete?.email}?</Trans>
+          </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToDelete(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -363,31 +385,37 @@ export default function Users() {
               }}
               color="red"
             >
-              Yes, delete.
+              <Trans>Yes, delete.</Trans>
             </Button>
           </Group>
         </Modal>
 
         <Modal
           opened={!!toEmail}
-          title="Email user"
+          title={i18n._(t`Email user`)}
           onClose={() => setToEmail(undefined)}
           size="lg"
         >
           <Grid>
-            <Grid.Col span={{ sm: 12 }}>Sending email to {toEmail?.email}</Grid.Col>
+            <Grid.Col span={{ sm: 12 }}>
+              <Trans>Sending email to {toEmail?.email}</Trans>
+            </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <RadioGroup value={emailType} onChange={(v) => setEmailType(v as typeof emailType)}>
                 <RadioCard value="onboarding" radius="sm" p="md">
                   <Group wrap="nowrap" align="flex-start">
                     <Radio.Indicator />
-                    <Text>Send the user an onboarding email.</Text>
+                    <Text>
+                      <Trans>Send the user an onboarding email.</Trans>
+                    </Text>
                   </Group>
                 </RadioCard>
                 <RadioCard value="test" radius="sm" p="md">
                   <Group wrap="nowrap" align="flex-start">
                     <Radio.Indicator />
-                    <Text>Send the user test email.</Text>
+                    <Text>
+                      <Trans>Send the user test email.</Trans>
+                    </Text>
                   </Group>
                 </RadioCard>
               </RadioGroup>
@@ -399,7 +427,7 @@ export default function Users() {
                   onClick={() => setToEmail(undefined)}
                   disabled={sendingUserEmail}
                 >
-                  Cancel.
+                  <Trans>Cancel.</Trans>
                 </Button>
                 <Button
                   onClick={() => {
@@ -408,7 +436,7 @@ export default function Users() {
                   leftSection={sendingUserEmail ? <Loader size="sm" color="white" /> : ""}
                   disabled={sendingUserEmail}
                 >
-                  Send it.
+                  <Trans>Send it.</Trans>
                 </Button>
               </Group>
             </Grid.Col>
@@ -418,30 +446,30 @@ export default function Users() {
         <Modal
           opened={invitingUser}
           onClose={() => setInvitingUser(false)}
-          title="Invite user"
+          title={i18n._(t`Invite user`)}
           size="lg"
         >
           <Grid>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                label="First name"
-                placeholder="First name"
+                label={t`First name`}
+                placeholder={t`First name`}
                 {...invitationForm.getInputProps("firstName")}
                 withAsterisk
               />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                label="Last name"
-                placeholder="Last name"
+                label={t`Last name`}
+                placeholder={t`Last name`}
                 {...invitationForm.getInputProps("lastName")}
                 withAsterisk
               />
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <TextInput
-                label="Email"
-                placeholder="Email"
+                label={t`Email`}
+                placeholder={t`Email`}
                 {...invitationForm.getInputProps("email")}
                 withAsterisk
               />
@@ -457,7 +485,7 @@ export default function Users() {
                   }}
                   disabled={loadingUserInvite}
                 >
-                  Cancel.
+                  <Trans>Cancel.</Trans>
                 </Button>
                 <Button
                   onClick={() => {
@@ -466,7 +494,7 @@ export default function Users() {
                   leftSection={loadingUserInvite ? <Loader color="white" size="sm" /> : ""}
                   disabled={loadingUserInvite}
                 >
-                  Send invite!
+                  <Trans>Send invite!</Trans>
                 </Button>
               </Group>
             </Grid.Col>
@@ -476,20 +504,19 @@ export default function Users() {
         <Modal
           opened={!!toViewDetails}
           onClose={() => setToViewDetails(undefined)}
-          title="User Details"
+          title={i18n._(t`User Details`)}
           size="lg"
         >
           {toViewDetails && (
             <Grid mt="lg">
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  {toViewDetails.numIdeas} idea
-                  {toViewDetails.numIdeas === 1 ? "" : "s"}
+                  <Plural value={toViewDetails.numIdeas} one="# idea" other="# ideas" />
                 </Text>
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Their name is
+                  <Trans>Their name is</Trans>
                   <CopyButton value={`${toViewDetails.firstName} ${toViewDetails.lastName}`}>
                     {({ copied, copy }) => (
                       <Button
@@ -507,7 +534,7 @@ export default function Users() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Their ID is
+                  <Trans>Their ID is</Trans>
                   <CopyButton value={toViewDetails.id.toString()}>
                     {({ copied, copy }) => (
                       <Button
@@ -525,7 +552,7 @@ export default function Users() {
               </Grid.Col>
               <Grid.Col span={{ sm: 12 }}>
                 <Text>
-                  Their email is
+                  <Trans>Their email is</Trans>
                   <CopyButton value={toViewDetails.email}>
                     {({ copied, copy }) => (
                       <Button
@@ -544,7 +571,7 @@ export default function Users() {
               <Grid.Col span={{ sm: 12 }}>
                 <Group gap="xs">
                   <Text>
-                    Their roles are
+                    <Trans>Their roles are</Trans>
                     <CopyButton value={toViewDetails.roles.join(", ")}>
                       {({ copied, copy }) => (
                         <Button
@@ -564,7 +591,7 @@ export default function Users() {
               <Grid.Col span={{ sm: 12 }}>
                 <Group justify="end">
                   <Button variant="default" onClick={() => setToViewDetails(undefined)}>
-                    Close
+                    <Trans>Close</Trans>
                   </Button>
                 </Group>
               </Grid.Col>
@@ -585,11 +612,13 @@ export default function Users() {
                 <Grid>
                   <Grid.Col span={{ sm: 12 }}>
                     <Text>
-                      {invitedUser.user.firstName} has been invited with the email{" "}
-                      <a href={`mailto:${invitedUser.user.email}`}>{invitedUser.user.email}</a>.{" "}
-                      {invitedUser.emailSuccess
-                        ? "Email was sent successfully."
-                        : "Email was not sent successfully."}
+                      <Trans>
+                        {invitedUser.user.firstName} has been invited with the email{" "}
+                        <a href={`mailto:${invitedUser.user.email}`}>{invitedUser.user.email}</a>.{" "}
+                        {invitedUser.emailSuccess
+                          ? "Email was sent successfully."
+                          : "Email was not sent successfully."}
+                      </Trans>
                     </Text>
                   </Grid.Col>
                   <Grid.Col span={{ sm: 12 }}>
@@ -602,7 +631,7 @@ export default function Users() {
                               copied ? <Check weight="bold" /> : <Clipboard weight="bold" />
                             }
                           >
-                            {copied ? "Copied" : "Copy Email"}
+                            {copied ? i18n._(t`Copied`) : i18n._(t`Copy Email`)}
                           </Button>
                         );
                       }}
@@ -613,19 +642,23 @@ export default function Users() {
             </Grid.Col>
           )}
           <Grid.Col span={{ sm: 12 }}>
-            <Title>Manage Users</Title>
+            <Title>
+              <Trans>Manage Users</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Text>
-              There are <strong>{summaryDetails.numberOfUsers}</strong> users. The most recent user
-              is <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user with the most
-              ideas is <strong>{summaryDetails.mostIdeas?.email}</strong>.
+              <Trans>
+                There are <strong>{summaryDetails.numberOfUsers}</strong> users. The most recent
+                user is <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user with the
+                most ideas is <strong>{summaryDetails.mostIdeas?.email}</strong>.
+              </Trans>
             </Text>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Group justify="end">
               <Button variant="light" onClick={() => setInvitingUser(true)}>
-                Invite a user
+                <Trans>Invite a user</Trans>
               </Button>
             </Group>
           </Grid.Col>
@@ -634,7 +667,7 @@ export default function Users() {
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <TextInput
-              placeholder="Filter users"
+              placeholder={i18n._(t`Filter users`)}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -649,7 +682,7 @@ export default function Users() {
                     onClick={() => handleSort("firstName")}
                   >
                     <Group gap="xs">
-                      Name
+                      <Trans>Name</Trans>
                       {getSortIcon("firstName")}
                     </Group>
                   </Table.Th>
@@ -658,17 +691,19 @@ export default function Users() {
                     onClick={() => handleSort("email")}
                   >
                     <Group gap="xs">
-                      Email
+                      <Trans>Email</Trans>
                       {getSortIcon("email")}
                     </Group>
                   </Table.Th>
-                  <Table.Th>Roles</Table.Th>
+                  <Table.Th>
+                    <Trans>Roles</Trans>
+                  </Table.Th>
                   <Table.Th
                     style={{ cursor: "pointer", userSelect: "none" }}
                     onClick={() => handleSort("numIdeas")}
                   >
                     <Group gap="xs">
-                      Ideas
+                      <Trans>Ideas</Trans>
                       {getSortIcon("numIdeas")}
                     </Group>
                   </Table.Th>
@@ -677,7 +712,7 @@ export default function Users() {
                     onClick={() => handleSort("createdAt")}
                   >
                     <Group gap="xs">
-                      Created
+                      <Trans>Created</Trans>
                       {getSortIcon("createdAt")}
                     </Group>
                   </Table.Th>
@@ -686,11 +721,13 @@ export default function Users() {
                     onClick={() => handleSort("disabled")}
                   >
                     <Group gap="xs">
-                      Status
+                      <Trans>Status</Trans>
                       {getSortIcon("disabled")}
                     </Group>
                   </Table.Th>
-                  <Table.Th>Actions</Table.Th>
+                  <Table.Th>
+                    <Trans>Actions</Trans>
+                  </Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -703,12 +740,12 @@ export default function Users() {
                       <Table.Td>{user.email}</Table.Td>
                       <Table.Td>{user.roles.join(", ")}</Table.Td>
                       <Table.Td>
-                        {user.numIdeas} idea{user.numIdeas === 1 ? "" : "s"}
+                        <Plural value={user.numIdeas} one="# idea" other="# ideas" />
                       </Table.Td>
                       <Table.Td>{new Date(user.createdAt).toLocaleDateString()}</Table.Td>
                       <Table.Td>
                         <Text color={user.disabled ? "red" : "green"}>
-                          {user.disabled ? "Disabled" : "Active"}
+                          {user.disabled ? i18n._(t`Disabled`) : i18n._(t`Active`)}
                         </Text>
                       </Table.Td>
                       <Table.Td>
@@ -752,7 +789,7 @@ export default function Users() {
                             variant="light"
                             color="teal"
                             size="sm"
-                            title="View Details"
+                            title={i18n._(t`View Details`)}
                             onClick={() => setToViewDetails(user)}
                           >
                             <Eye />

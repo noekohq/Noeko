@@ -42,6 +42,9 @@ import Search from "@domains/discovery/components/Search/Search";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { IFriendUser } from "../../../../../shared/types/user";
 import { useLayout } from "@/contexts/LayoutContext";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
 
 interface IRelationship {
   user: IFriendUser;
@@ -51,6 +54,7 @@ interface IRelationship {
 }
 
 export default function Sharing() {
+  const { i18n } = useLingui();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -157,8 +161,10 @@ export default function Sharing() {
       <LeftSidebar>
         <LeftSidebar.Open>
           <Text size="sm">
-            You are collaborating with {relationships.length}{" "}
-            {relationships.length === 1 ? "person" : "people"}.
+            <Trans>
+              You are collaborating with{" "}
+              <Plural value={relationships.length} one="# person" other="# people" />.
+            </Trans>
           </Text>
         </LeftSidebar.Open>
       </LeftSidebar>
@@ -182,7 +188,7 @@ export default function Sharing() {
                 onClick={toggleAll}
                 leftSection={allCollapsed ? <ArrowsOutSimpleIcon /> : <ArrowsInSimpleIcon />}
               >
-                {allCollapsed ? "Expand All" : "Collapse All"}
+                {allCollapsed ? <Trans>Expand All</Trans> : <Trans>Collapse All</Trans>}
               </Button>
             )}
           </Group>
@@ -190,12 +196,14 @@ export default function Sharing() {
           <Title order={2}>
             <Group gap="xs" align="center">
               <ShareNetworkIcon />
-              Sharing
+              <Trans>Sharing</Trans>
             </Group>
           </Title>
 
           {relationships.length === 0 && (
-            <Text c="dimmed">You haven't shared anything with anyone yet.</Text>
+            <Text c="dimmed">
+              <Trans>You haven't shared anything with anyone yet.</Trans>
+            </Text>
           )}
 
           {relationships.map((rel) => {
@@ -220,19 +228,19 @@ export default function Sharing() {
                           {getPrincipalName(rel.user)}
                         </Text>
                         <Text c="dimmed" size="xs">
-                          Last active {formatDateTime(rel.lastActivity)}
+                          <Trans>Last active {formatDateTime(rel.lastActivity)}</Trans>
                         </Text>
                       </Stack>
                     </Group>
                     <Group gap={4}>
                       {rel.incoming.length > 0 && (
                         <Badge variant="light" color="green">
-                          Received {rel.incoming.length}
+                          <Trans>Received {rel.incoming.length}</Trans>
                         </Badge>
                       )}
                       {rel.outgoing.length > 0 && (
                         <Badge variant="light" color="blue">
-                          Sent {rel.outgoing.length}
+                          <Trans>Sent {rel.outgoing.length}</Trans>
                         </Badge>
                       )}
                     </Group>
@@ -247,7 +255,7 @@ export default function Sharing() {
                           <Group gap="xs">
                             <ArrowDownLeftIcon weight="bold" />
                             <Text size="xs" fw={700} tt="uppercase">
-                              Shared by {userName}
+                              <Trans>Shared by {userName}</Trans>
                             </Text>
                           </Group>
                           {isIncomingCollapsed ? <CaretDownIcon /> : <CaretUpIcon />}
@@ -274,7 +282,7 @@ export default function Sharing() {
                           <Group gap="xs">
                             <ArrowUpRightIcon weight="bold" />
                             <Text size="xs" fw={700} tt="uppercase">
-                              Shared by You
+                              <Trans>Shared by You</Trans>
                             </Text>
                           </Group>
                           {isOutgoingCollapsed ? <CaretDownIcon /> : <CaretUpIcon />}

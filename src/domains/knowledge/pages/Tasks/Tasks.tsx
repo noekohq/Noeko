@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Stack, Title, Paper, Text, Loader, Group, ActionIcon } from "@mantine/core";
+import { Trans } from "@lingui/react/macro";
 
 import { IPublicTask, ITaskSortFields } from "../../../../../app/database/models/task";
 import useFetch from "@core/hooks/useFetch";
@@ -56,7 +57,7 @@ export default function TasksPage() {
             <Group justify="space-between">
               <Title order={1}>
                 <Group gap="lg">
-                  Your Quests
+                  <Trans>Your Quests</Trans>
                   <ActionIcon
                     variant="light"
                     color="gray"
@@ -78,7 +79,7 @@ export default function TasksPage() {
 
             {!loading && allTasks?.length === 0 && (
               <Text size="sm" c="dimmed">
-                No open quests.
+                <Trans>No open quests.</Trans>
               </Text>
             )}
 

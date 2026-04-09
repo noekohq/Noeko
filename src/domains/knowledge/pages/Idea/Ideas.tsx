@@ -5,6 +5,7 @@ import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { Loader, Center, Grid, Text, Group, Title, Divider, Stack, Button } from "@mantine/core"; // Added Loader and Center for UX
+import { Trans } from "@lingui/react/macro";
 import styles from "./Ideas.module.scss";
 import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
@@ -86,7 +87,9 @@ export default function Ideas() {
       <LeftSidebar />
       <Content>
         <Stack>
-          <Title mt="md">Your ideas</Title>
+          <Title mt="md">
+            <Trans>Your ideas</Trans>
+          </Title>
           {allIdeas.map((idea, i) => (
             <IdeaCard key={idea.id.toString()} idea={idea} />
           ))}
@@ -95,13 +98,15 @@ export default function Ideas() {
         {loading && (
           <Group>
             <Loader size="sm" />
-            <Text>Loading your ideas...</Text>
+            <Text>
+              <Trans>Loading your ideas...</Trans>
+            </Text>
           </Group>
         )}
         {!hasMore && !loading && allIdeas.length > 0 && (
           <Center>
             <Text size="sm" c="dimmed">
-              That's all :)
+              <Trans>That's all :)</Trans>
             </Text>
           </Center>
         )}

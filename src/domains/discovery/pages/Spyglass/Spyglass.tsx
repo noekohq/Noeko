@@ -24,8 +24,12 @@ import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import GlimpseNavigation from "@domains/discovery/components/Spyglass/GlimpseNavigation";
 import DeepFocusNavigation from "@domains/discovery/components/Spyglass/DeepFocusNavigation";
 import ScopeDisplay from "@domains/discovery/components/Search/ScopeBuilder/ScopeDisplay";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
 
 export default function Spyglass() {
+  const { i18n } = useLingui();
   const {
     actions: {
       feedback: { openFeedbackModal },
@@ -138,10 +142,10 @@ export default function Spyglass() {
           ) : (
             <Stack gap="xs">
               <Text fw="bold" c="dimmed" size="sm">
-                No results yet
+                <Trans>No results yet</Trans>
               </Text>
               <Text size="xs" c="dimmed">
-                Ask something to see the outline here
+                <Trans>Ask something to see the outline here</Trans>
               </Text>
             </Stack>
           )}
@@ -161,23 +165,27 @@ export default function Spyglass() {
           {!initialized && (
             <Group gap="xs" justify="center">
               <Title ta={"center"} className={`${styles.header}`} mb="lg">
-                Spyglass
+                <Trans>Spyglass</Trans>
               </Title>
               <HoverCard openDelay={400} width="300px">
                 <HoverCard.Target>
                   <Badge color="gray" size="sm" variant="light">
-                    BETA
+                    <Trans>BETA</Trans>
                   </Badge>
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Stack gap="xs">
                     <Text size="sm">
-                      Spyglass is currently under active development and some features might not
-                      always work as expected. We're looking for feedback as we learn and grow :)
+                      <Trans>
+                        Spyglass is currently under active development and some features might not
+                        always work as expected. We're looking for feedback as we learn and grow :)
+                      </Trans>
                     </Text>
                     <Text size="xs" c="dimmed">
-                      This feature will remain free during it's beta stage. Rate limits may apply in
-                      future versions.
+                      <Trans>
+                        This feature will remain free during it's beta stage. Rate limits may apply
+                        in future versions.
+                      </Trans>
                     </Text>
                     <ActionIcon
                       size="sm"
@@ -207,25 +215,57 @@ export default function Spyglass() {
                       <>
                         {!!intent && intent.searches?.length > 0 ? (
                           <span>
-                            Running{" "}
-                            <Badge variant="light" color="gray" size="sm">
-                              <CountUp targetNumber={intent.searches.length} />
-                            </Badge>{" "}
-                            search{intent.searches.length === 1 ? "" : "es"}
+                            <Plural
+                              value={intent.searches.length}
+                              one={
+                                <Trans>
+                                  Running{" "}
+                                  <Badge variant="light" color="gray" size="sm">
+                                    <CountUp targetNumber={intent.searches.length} />
+                                  </Badge>{" "}
+                                  search
+                                </Trans>
+                              }
+                              other={
+                                <Trans>
+                                  Running{" "}
+                                  <Badge variant="light" color="gray" size="sm">
+                                    <CountUp targetNumber={intent.searches.length} />
+                                  </Badge>{" "}
+                                  searches
+                                </Trans>
+                              }
+                            />
                           </span>
                         ) : isDownRabbithole ? (
-                          "Accessing your Rabbithole"
+                          <Trans>Accessing your Rabbithole</Trans>
                         ) : (
-                          "Searching your ideas"
+                          <Trans>Searching your ideas</Trans>
                         )}
                       </>
                     ) : (
                       <span>
-                        Reading{" "}
-                        <Badge variant="light" color="gray" size="sm">
-                          <CountUp targetNumber={results.length} />
-                        </Badge>{" "}
-                        source{results.length === 1 ? "" : "s"}
+                        <Plural
+                          value={results.length}
+                          one={
+                            <Trans>
+                              Reading{" "}
+                              <Badge variant="light" color="gray" size="sm">
+                                <CountUp targetNumber={results.length} />
+                              </Badge>{" "}
+                              source
+                            </Trans>
+                          }
+                          other={
+                            <Trans>
+                              Reading{" "}
+                              <Badge variant="light" color="gray" size="sm">
+                                <CountUp targetNumber={results.length} />
+                              </Badge>{" "}
+                              sources
+                            </Trans>
+                          }
+                        />
                       </span>
                     )}
                   </Text>
@@ -253,14 +293,17 @@ export default function Spyglass() {
                         label: { textTransform: "none" },
                       }}
                     >
-                      {result.name || "Unknown source"}
+                      {result.name || i18n._(t`Unknown source`)}
                     </Badge>
                   ))}
                 </div>
                 {findings.length > 0 && (
                   <Text size="xs" c="dimmed" mt="md">
-                    Found {findings.length} finding
-                    {findings.length === 1 ? "" : "s"}...
+                    <Plural
+                      value={findings.length}
+                      one="Found # finding..."
+                      other="Found # findings..."
+                    />
                   </Text>
                 )}
               </div>
@@ -314,7 +357,9 @@ export default function Spyglass() {
                     setQuery(v);
                   }}
                   placeholder={
-                    initialized ? "Ask a follow-up question..." : "Ask your thoughts anything..."
+                    initialized
+                      ? i18n._(t`Ask a follow-up question...`)
+                      : i18n._(t`Ask your thoughts anything...`)
                   }
                   initialized={initialized}
                   deepAnalysis={deepAnalysis}
@@ -328,7 +373,7 @@ export default function Spyglass() {
               {hasScope && !initialized && (
                 <div className={styles.scope}>
                   <Text fw="bold" c="dimmed" size="sm" mb="xs">
-                    FILTERS
+                    <Trans>FILTERS</Trans>
                   </Text>
                   <ScopeDisplay />
                 </div>

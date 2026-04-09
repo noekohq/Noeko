@@ -17,8 +17,12 @@ import { Link, useNavigate, useParams } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useEffect, useState } from "react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 
 export default function ResetPassword() {
+  const { i18n } = useLingui();
   const navigate = useNavigate();
   const { token } = useParams<{ token: string }>();
   const [resetSuccess, setResetSuccess] = useState(false);
@@ -31,18 +35,18 @@ export default function ResetPassword() {
     validate: {
       password: (value) => {
         if (!value) {
-          return "Password is required";
+          return i18n._(t`Password is required`);
         }
         if (value.length < 8) {
-          return "Password must be at least 8 characters long";
+          return i18n._(t`Password must be at least 8 characters long`);
         }
       },
       passwordConfirmation: (value, values) => {
         if (!value) {
-          return "Password confirmation is required";
+          return i18n._(t`Password confirmation is required`);
         }
         if (value !== values.password) {
-          return "Passwords do not match";
+          return i18n._(t`Passwords do not match`);
         }
       },
     },
@@ -63,7 +67,7 @@ export default function ResetPassword() {
     onSuccess: (data) => {
       setResetSuccess(true);
       showNotification({
-        title: "Password Reset Successful",
+        title: i18n._(t`Password Reset Successful`),
         message: data.message,
       });
       // Redirect to login after 3 seconds
@@ -83,8 +87,8 @@ export default function ResetPassword() {
 
     if (!token) {
       showNotification({
-        title: "Invalid Reset Link",
-        message: "The reset token is missing or invalid",
+        title: i18n._(t`Invalid Reset Link`),
+        message: i18n._(t`The reset token is missing or invalid`),
         color: "red",
       });
       return;
@@ -100,12 +104,12 @@ export default function ResetPassword() {
   useEffect(() => {
     if (!token) {
       showNotification({
-        title: "Invalid Reset Link",
-        message: "The reset token is missing or invalid",
+        title: i18n._(t`Invalid Reset Link`),
+        message: i18n._(t`The reset token is missing or invalid`),
         color: "red",
       });
     }
-  }, [token]);
+  }, [token, i18n]);
 
   return (
     <Container
@@ -124,18 +128,24 @@ export default function ResetPassword() {
             )}
             <Grid.Col span={12}>
               <Group>
-                <Title>Set New Password</Title>
+                <Title>
+                  <Trans>Set New Password</Trans>
+                </Title>
               </Group>
             </Grid.Col>
             <Grid.Col span={12}>
               {!resetSuccess ? (
                 <Text size="sm" c="dimmed">
-                  Enter your new password below. Make sure it's at least 8 characters long.
+                  <Trans>
+                    Enter your new password below. Make sure it's at least 8 characters long.
+                  </Trans>
                 </Text>
               ) : (
                 <Text size="sm" c="dimmed">
-                  Your password has been reset successfully! You will be redirected to the login
-                  page in a few seconds.
+                  <Trans>
+                    Your password has been reset successfully! You will be redirected to the login
+                    page in a few seconds.
+                  </Trans>
                 </Text>
               )}
             </Grid.Col>
@@ -144,16 +154,16 @@ export default function ResetPassword() {
               <>
                 <Grid.Col span={{ sm: 12 }}>
                   <PasswordInput
-                    label="New Password"
-                    placeholder="Enter your new password"
+                    label={t`New Password`}
+                    placeholder={t`Enter your new password`}
                     {...resetPasswordForm.getInputProps("password")}
                     withAsterisk
                   />
                 </Grid.Col>
                 <Grid.Col span={{ sm: 12 }}>
                   <PasswordInput
-                    label="Confirm New Password"
-                    placeholder="Confirm your new password"
+                    label={t`Confirm New Password`}
+                    placeholder={t`Confirm your new password`}
                     {...resetPasswordForm.getInputProps("passwordConfirmation")}
                     withAsterisk
                   />
@@ -162,10 +172,10 @@ export default function ResetPassword() {
                 <Grid.Col span={{ sm: 12 }}>
                   <Group justify="space-between">
                     <Button component={Link} to="/login" variant="default">
-                      Back to Login
+                      <Trans>Back to Login</Trans>
                     </Button>
                     <Button onClick={handleResetPassword} disabled={loadingReset}>
-                      Reset Password
+                      <Trans>Reset Password</Trans>
                     </Button>
                   </Group>
                 </Grid.Col>
@@ -175,7 +185,7 @@ export default function ResetPassword() {
               <Grid.Col span={{ sm: 12 }}>
                 <Group justify="center">
                   <Button component={Link} to="/login" variant="default">
-                    Go to Login
+                    <Trans>Go to Login</Trans>
                   </Button>
                 </Group>
               </Grid.Col>

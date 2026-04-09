@@ -12,19 +12,31 @@ import StatusBar from "@core/design/components/Layout/Bottom";
 import { useTourStep } from "@/contexts/TourGuideContext";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 type IImportType = "markdown-file" | "text-file" | "directory";
 
 export default function Import() {
+  const { i18n } = useLingui();
   const tourRef = useTourStep({
     id: "feature:import",
     view: "import",
     order: 0,
-    title: "Import",
+    title: i18n._(t`Import`),
     content: (
       <>
-        <p>You can import your stuff directly into Noeko through the automated workflow.</p>
-        <p>We will add more import options over time, if you have suggestions, let us know :)</p>
+        <p>
+          <Trans>
+            You can import your stuff directly into Noeko through the automated workflow.
+          </Trans>
+        </p>
+        <p>
+          <Trans>
+            We will add more import options over time, if you have suggestions, let us know :)
+          </Trans>
+        </p>
       </>
     ),
   });
@@ -44,11 +56,13 @@ export default function Import() {
       <Content>
         <Grid pos="relative" ref={tourRef}>
           <Grid.Col span={{ sm: 12 }}>
-            <Title>Import</Title>
+            <Title>
+              <Trans>Import</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col span={{ sm: 12 }}>
             <Text>
-              I would like to import{" "}
+              <Trans>I would like to import</Trans>{" "}
               <Select
                 display="inline-block"
                 ml="xs"
@@ -56,15 +70,15 @@ export default function Import() {
                 value={importType}
                 data={[
                   {
-                    label: "a markdown file",
+                    label: i18n._(t`a markdown file`),
                     value: "markdown-file" satisfies IImportType,
                   },
                   {
-                    label: "a text file",
+                    label: i18n._(t`a text file`),
                     value: "text-file" satisfies IImportType,
                   },
                   {
-                    label: "a folder",
+                    label: i18n._(t`a folder`),
                     value: "directory" satisfies IImportType,
                   },
                 ]}

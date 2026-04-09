@@ -35,6 +35,9 @@ import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { validateEmail } from "@core/utils/data";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
@@ -48,6 +51,7 @@ import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Users() {
+  const { i18n } = useLingui();
   const {
     data: users,
     loading: loadingUsers,
@@ -69,14 +73,14 @@ export default function Users() {
       setToDisable(undefined);
       reloadUsers();
       showNotification({
-        title: "User disabled",
-        message: `User ${user.email} has been disabled.`,
+        title: i18n._(t`User disabled`),
+        message: i18n._(t`User ${user.email} has been disabled.`),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to disable user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to disable user`),
         color: "red",
       });
     },
@@ -90,14 +94,14 @@ export default function Users() {
       setToEnable(undefined);
       reloadUsers();
       showNotification({
-        title: "User enabled",
-        message: `User ${user.email} has been enabled.`,
+        title: i18n._(t`User enabled`),
+        message: i18n._(t`User ${user.email} has been enabled.`),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to enable user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to enable user`),
         color: "red",
       });
     },
@@ -111,14 +115,14 @@ export default function Users() {
       setToDelete(undefined);
       reloadUsers();
       showNotification({
-        title: "User deleted",
-        message: `User ${user.email} has been deleted.`,
+        title: i18n._(t`User deleted`),
+        message: i18n._(t`User ${user.email} has been deleted.`),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to delete user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to delete user`),
         color: "red",
       });
     },
@@ -135,16 +139,16 @@ export default function Users() {
     dependencies: [emailType],
     onSuccess: (d) => {
       showNotification({
-        title: "Success",
-        message: "User emailed successfully",
+        title: i18n._(t`Success`),
+        message: i18n._(t`User emailed successfully`),
       });
       setToEmail(undefined);
     },
     onError: (e) => {
       console.error("Error sending email.");
       showNotification({
-        title: "Something went wrong.",
-        message: "Something went wrong sending the email.",
+        title: i18n._(t`Something went wrong.`),
+        message: i18n._(t`Something went wrong sending the email.`),
         color: "red",
       });
     },
@@ -159,26 +163,26 @@ export default function Users() {
     validate: {
       email: (value) => {
         if (!value) {
-          return "Email is required";
+          return i18n._(t`Email is required`);
         }
         if (!validateEmail(value)) {
-          return "Invalid email";
+          return i18n._(t`Invalid email`);
         }
       },
       firstName: (value) => {
         if (!value) {
-          return "First name is required";
+          return i18n._(t`First name is required`);
         }
         if (value.length < 2) {
-          return "First name must be at least 2 characters";
+          return i18n._(t`First name must be at least 2 characters`);
         }
       },
       lastName: (value) => {
         if (!value) {
-          return "Last name is required";
+          return i18n._(t`Last name is required`);
         }
         if (value.length < 2) {
-          return "Last name must be at least 2 characters";
+          return i18n._(t`Last name must be at least 2 characters`);
         }
       },
     },
@@ -201,8 +205,8 @@ export default function Users() {
     dependencies: [invitationForm.values],
     onSuccess: (d) => {
       showNotification({
-        title: "Success",
-        message: "Invitation sent successfully.",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Invitation sent successfully.`),
       });
       invitationForm.reset();
       setInvitingUser(false);
@@ -212,8 +216,8 @@ export default function Users() {
     onError: (error) => {
       console.error("Error inviting user: ", error);
       showNotification({
-        title: "Error",
-        message: "Something went wrong.",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Something went wrong.`),
       });
     },
   });
@@ -389,11 +393,13 @@ export default function Users() {
                 <Grid>
                   <Grid.Col span={{ sm: 12 }}>
                     <Text>
-                      {invitedUser.user.firstName} has been invited with the email{" "}
-                      <a href={`mailto:${invitedUser.user.email}`}>{invitedUser.user.email}</a>.{" "}
-                      {invitedUser.emailSuccess
-                        ? "Email was sent successfully."
-                        : "Email was not sent successfully."}
+                      <Trans>
+                        {invitedUser.user.firstName} has been invited with the email{" "}
+                        <a href={`mailto:${invitedUser.user.email}`}>{invitedUser.user.email}</a>.{" "}
+                        {invitedUser.emailSuccess
+                          ? "Email was sent successfully."
+                          : "Email was not sent successfully."}
+                      </Trans>
                     </Text>
                   </Grid.Col>
                   <Grid.Col span={{ sm: 12 }}>
@@ -406,7 +412,7 @@ export default function Users() {
                               copied ? <Check weight="bold" /> : <Clipboard weight="bold" />
                             }
                           >
-                            {copied ? "Copied" : "Copy Email"}
+                            {copied ? i18n._(t`Copied`) : i18n._(t`Copy Email`)}
                           </Button>
                         );
                       }}
@@ -415,14 +421,18 @@ export default function Users() {
                 </Grid>
               </Alert>
             )}
-            <Title>Manage Users</Title>
+            <Title>
+              <Trans>Manage Users</Trans>
+            </Title>
             <Text>
-              There are <strong>{summaryDetails.numberOfUsers}</strong> users. The most recent user
-              is <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user with the most
-              ideas is <strong>{summaryDetails.mostIdeas?.email}</strong>.
+              <Trans>
+                There are <strong>{summaryDetails.numberOfUsers}</strong> users. The most recent
+                user is <strong>{summaryDetails.mostRecentUser?.email}</strong>. The user with the
+                most ideas is <strong>{summaryDetails.mostIdeas?.email}</strong>.
+              </Trans>
             </Text>
             <TextInput
-              placeholder="Filter users"
+              placeholder={i18n._(t`Filter users`)}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               radius="md"
@@ -452,18 +462,22 @@ export default function Users() {
                         series={[
                           {
                             name: "Ideas",
+                            label: i18n._(t`Ideas`),
                             color: "blue",
                           },
                           {
                             name: "Quests",
+                            label: i18n._(t`Quests`),
                             color: "green",
                           },
                           {
                             name: "Idea Views",
+                            label: i18n._(t`Idea Views`),
                             color: "orange",
                           },
                           {
                             name: "Spyglass Queries",
+                            label: i18n._(t`Spyglass Queries`),
                             color: "pink",
                           },
                         ]}
@@ -496,8 +510,8 @@ export default function Users() {
           }}
           title={
             selectedUser
-              ? `User Details: ${selectedUser.firstName} ${selectedUser.lastName}`
-              : "User Details"
+              ? i18n._(t`User Details: ${selectedUser.firstName} ${selectedUser.lastName}`)
+              : i18n._(t`User Details`)
           }
         >
           {selectedUser && (
@@ -505,10 +519,12 @@ export default function Users() {
               <Grid>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Stack>
-                    <Title order={4}>Information</Title>
+                    <Title order={4}>
+                      <Trans>Information</Trans>
+                    </Title>
                     <Group gap="xs" align="center">
                       <Text component="span" fw={500}>
-                        Name:
+                        <Trans>Name:</Trans>
                       </Text>
                       <Text component="span">
                         {selectedUser.firstName} {selectedUser.lastName}
@@ -523,7 +539,7 @@ export default function Users() {
                     </Group>
                     <Group gap="xs" align="center">
                       <Text component="span" fw={500}>
-                        Email:
+                        <Trans>Email:</Trans>
                       </Text>
                       <Text component="span">{selectedUser.email}</Text>
                       <CopyButton value={selectedUser.email}>
@@ -536,7 +552,7 @@ export default function Users() {
                     </Group>
                     <Group gap="xs" align="center">
                       <Text component="span" fw={500}>
-                        ID:
+                        <Trans>ID:</Trans>
                       </Text>
                       <Text component="span">{selectedUser.id}</Text>
                       <CopyButton value={selectedUser.id.toString()}>
@@ -549,7 +565,7 @@ export default function Users() {
                     </Group>
                     <Group gap="xs" align="center">
                       <Text component="span" fw={500}>
-                        Roles:
+                        <Trans>Roles:</Trans>
                       </Text>
                       <Text component="span">{selectedUser.roles.join(", ")}</Text>
                       <CopyButton value={selectedUser.roles.join(", ")}>
@@ -561,18 +577,27 @@ export default function Users() {
                       </CopyButton>
                     </Group>
                     <Text>
-                      <strong>Status:</strong> {selectedUser.disabled ? "Disabled" : "Active"}
+                      <strong>
+                        <Trans>Status:</Trans>
+                      </strong>{" "}
+                      {selectedUser.disabled ? i18n._(t`Disabled`) : i18n._(t`Active`)}
                     </Text>
                     <Text>
-                      <strong>Created:</strong> {formatDate(new Date(selectedUser.createdAt))}
+                      <strong>
+                        <Trans>Created:</Trans>
+                      </strong>{" "}
+                      {formatDate(new Date(selectedUser.createdAt))}
                     </Text>
                     <Text>
-                      <strong>Updated:</strong> {formatDate(new Date(selectedUser.updatedAt))}
+                      <strong>
+                        <Trans>Updated:</Trans>
+                      </strong>{" "}
+                      {formatDate(new Date(selectedUser.updatedAt))}
                     </Text>
                     {selectedUser.referralCode && (
                       <Group gap="xs" align="center">
                         <Text component="span" fw={500}>
-                          Referral Code:
+                          <Trans>Referral Code:</Trans>
                         </Text>
                         <Text component="span">{selectedUser.referralCode}</Text>
                         <CopyButton value={selectedUser.referralCode}>
@@ -585,27 +610,38 @@ export default function Users() {
                       </Group>
                     )}
                     <Text>
-                      <strong>Terms Accepted:</strong>{" "}
+                      <strong>
+                        <Trans>Terms Accepted:</Trans>
+                      </strong>{" "}
                       {selectedUser.acceptedTermsOfServiceAt
                         ? formatDate(new Date(selectedUser.acceptedTermsOfServiceAt))
-                        : "No"}
+                        : i18n._(t`No`)}
                     </Text>
                     <Text>
-                      <strong>Privacy Accepted:</strong>{" "}
+                      <strong>
+                        <Trans>Privacy Accepted:</Trans>
+                      </strong>{" "}
                       {selectedUser.acceptedPrivacyPolicyAt
                         ? formatDate(new Date(selectedUser.acceptedPrivacyPolicyAt))
-                        : "No"}
+                        : i18n._(t`No`)}
                     </Text>
                   </Stack>
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Stack>
-                    <Title order={4}>Activity</Title>
+                    <Title order={4}>
+                      <Trans>Activity</Trans>
+                    </Title>
                     <Text>
-                      <strong>Ideas created:</strong> {selectedUser.numIdeas}
+                      <strong>
+                        <Trans>Ideas created:</Trans>
+                      </strong>{" "}
+                      {selectedUser.numIdeas}
                     </Text>
                     <Text>
-                      <strong>Activity (last 7 days)</strong>
+                      <strong>
+                        <Trans>Activity (last 7 days)</Trans>
+                      </strong>
                     </Text>
                     <Box h={200}>
                       <LineChart
@@ -613,10 +649,14 @@ export default function Users() {
                         data={userActivity(selectedUser)}
                         dataKey="date"
                         series={[
-                          { name: "Quests", color: "green" },
-                          { name: "Ideas", color: "blue" },
-                          { name: "Idea Views", color: "orange" },
-                          { name: "Spyglass Queries", color: "pink" },
+                          { name: "Quests", label: i18n._(t`Quests`), color: "green" },
+                          { name: "Ideas", label: i18n._(t`Ideas`), color: "blue" },
+                          { name: "Idea Views", label: i18n._(t`Idea Views`), color: "orange" },
+                          {
+                            name: "Spyglass Queries",
+                            label: i18n._(t`Spyglass Queries`),
+                            color: "pink",
+                          },
                         ]}
                         curveType="linear"
                       />
@@ -634,7 +674,7 @@ export default function Users() {
                     onClick={() => setToEnable(selectedUser)}
                     leftSection={<ThumbsUpIcon weight="bold" />}
                   >
-                    Activate
+                    <Trans>Activate</Trans>
                   </Button>
                 ) : (
                   <Button
@@ -645,7 +685,7 @@ export default function Users() {
                     onClick={() => setToDisable(selectedUser)}
                     leftSection={<HandPalmIcon weight="bold" />}
                   >
-                    Disable
+                    <Trans>Disable</Trans>
                   </Button>
                 )}
                 <Button
@@ -656,23 +696,29 @@ export default function Users() {
                   onClick={() => setToDelete(selectedUser)}
                   leftSection={<TrashSimpleIcon weight="bold" />}
                 >
-                  Delete
+                  <Trans>Delete</Trans>
                 </Button>
               </Group>
               <Group justify="end">
                 <Button variant="default" onClick={() => setSelectedUser(undefined)}>
-                  Close
+                  <Trans>Close</Trans>
                 </Button>
               </Group>
             </Stack>
           )}
         </Drawer>
-        <Modal opened={!!toDisable} title="Disable user" onClose={() => setToDisable(undefined)}>
-          <Text>Are you sure you want to disable {toDisable?.email}?</Text>
+        <Modal
+          opened={!!toDisable}
+          title={i18n._(t`Disable user`)}
+          onClose={() => setToDisable(undefined)}
+        >
+          <Text>
+            <Trans>Are you sure you want to disable {toDisable?.email}?</Trans>
+          </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToDisable(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -680,16 +726,22 @@ export default function Users() {
               }}
               color="red"
             >
-              Yes, disable.
+              <Trans>Yes, disable.</Trans>
             </Button>
           </Group>
         </Modal>
-        <Modal opened={!!toEnable} title="Enable user" onClose={() => setToEnable(undefined)}>
-          <Text>Are you sure you want to enable {toEnable?.email}?</Text>
+        <Modal
+          opened={!!toEnable}
+          title={i18n._(t`Enable user`)}
+          onClose={() => setToEnable(undefined)}
+        >
+          <Text>
+            <Trans>Are you sure you want to enable {toEnable?.email}?</Trans>
+          </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToEnable(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -697,17 +749,23 @@ export default function Users() {
               }}
               color="green"
             >
-              Yes, enable.
+              <Trans>Yes, enable.</Trans>
             </Button>
           </Group>
         </Modal>
 
-        <Modal opened={!!toDelete} title="Delete user" onClose={() => setToDelete(undefined)}>
-          <Text>Are you sure you want to delete {toDelete?.email}?</Text>
+        <Modal
+          opened={!!toDelete}
+          title={i18n._(t`Delete user`)}
+          onClose={() => setToDelete(undefined)}
+        >
+          <Text>
+            <Trans>Are you sure you want to delete {toDelete?.email}?</Trans>
+          </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToDelete(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -715,7 +773,7 @@ export default function Users() {
               }}
               color="red"
             >
-              Yes, delete.
+              <Trans>Yes, delete.</Trans>
             </Button>
           </Group>
         </Modal>

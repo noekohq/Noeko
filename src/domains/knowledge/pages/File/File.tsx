@@ -10,6 +10,9 @@ import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import ContentWide from "@core/design/components/Layout/ContentWide";
 import { handleFileDownload } from "@infrastructure/api/userfiles";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { ViewerMap } from "@domains/knowledge/components/Files/Viewers";
 import { useLayout } from "@/contexts/LayoutContext";
@@ -19,6 +22,7 @@ import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function UserFile() {
+  const { i18n } = useLingui();
   const { fileId } = useParams();
 
   const navigate = useNavigate();
@@ -34,16 +38,16 @@ export default function UserFile() {
         handleFileDownload(file);
       } else {
         showNotification({
-          title: "No file to download.",
-          message: "Can't download non-existent file.",
+          title: i18n._(t`No file to download.`),
+          message: i18n._(t`Can't download non-existent file.`),
           color: "red",
         });
       }
     } catch (error) {
       console.error("Error fetching file: ", error);
       showNotification({
-        title: "Something went wrong",
-        message: "Couldn't download file",
+        title: i18n._(t`Something went wrong`),
+        message: i18n._(t`Couldn't download file`),
         color: "red",
       });
     }
@@ -55,16 +59,16 @@ export default function UserFile() {
     onSuccess: () => {
       console.info("File deleted");
       showNotification({
-        title: "File deleted successfully",
-        message: "The file has been deleted successfully.",
+        title: i18n._(t`File deleted successfully`),
+        message: i18n._(t`The file has been deleted successfully.`),
       });
       navigate("/sources");
     },
     onError: (error) => {
       console.error("Error deleting file", error);
       showNotification({
-        title: "Error deleting file",
-        message: "An error occurred while deleting the file.",
+        title: i18n._(t`Error deleting file`),
+        message: i18n._(t`An error occurred while deleting the file.`),
         color: "red",
       });
     },
@@ -72,9 +76,13 @@ export default function UserFile() {
 
   const handleDelete = () => {
     modals.openConfirmModal({
-      title: "Delete file",
-      children: <Text size="sm">Are you sure you want to delete this file?</Text>,
-      labels: { confirm: "Delete", cancel: "Cancel" },
+      title: i18n._(t`Delete file`),
+      children: (
+        <Text size="sm">
+          <Trans>Are you sure you want to delete this file?</Trans>
+        </Text>
+      ),
+      labels: { confirm: i18n._(t`Delete`), cancel: i18n._(t`Cancel`) },
       onConfirm: () => deleteFile(),
       confirmProps: {
         color: "red",
@@ -168,14 +176,16 @@ export default function UserFile() {
               <Suspense
                 fallback={
                   <Text size="xs" c="dimmed">
-                    Loading viewer...
+                    <Trans>Loading viewer...</Trans>
                   </Text>
                 }
               >
                 {Viewer ? (
                   <Viewer fileId={file.id} />
                 ) : (
-                  <Text>No viewer available for this type of file :/</Text>
+                  <Text>
+                    <Trans>No viewer available for this type of file :/</Trans>
+                  </Text>
                 )}
               </Suspense>
             </div>
@@ -191,7 +201,7 @@ export default function UserFile() {
                 {file?.originalFileName}
               </Text>
               <Text c="dimmed" size="sm">
-                {file?.mimeType} {file?.sizeBytes} bytes
+                {file?.mimeType} {file?.sizeBytes} <Trans>bytes</Trans>
               </Text>
             </Paper>
             <Group wrap="nowrap" w="100%">
@@ -202,10 +212,10 @@ export default function UserFile() {
                 size="xs"
                 fullWidth
               >
-                Download
+                <Trans>Download</Trans>
               </Button>
               <Button onClick={handleDelete} variant="light" color="gray" size="xs" fullWidth>
-                Delete
+                <Trans>Delete</Trans>
               </Button>
             </Group>
             {!file?.source && canBeSource() && (
@@ -219,7 +229,7 @@ export default function UserFile() {
                   fullWidth
                   loading={loadingSource}
                 >
-                  Convert to Source
+                  <Trans>Convert to Source</Trans>
                 </Button>
               </Group>
             )}
@@ -233,7 +243,7 @@ export default function UserFile() {
                   leftSection={<FileTextIcon />}
                   fullWidth
                 >
-                  View as Source
+                  <Trans>View as Source</Trans>
                 </Button>
               </Group>
             )}

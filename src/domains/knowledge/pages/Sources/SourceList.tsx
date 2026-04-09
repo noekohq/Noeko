@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trans } from "@lingui/react/macro";
 import { ISource } from "../../../../../app/database/models/source";
 import useFetch from "@core/hooks/useFetch";
 import PageWrapper from "@core/design/layout/PageWrapper";
@@ -53,7 +54,7 @@ export default function SourceList() {
           <Group justify="space-between">
             <Title>
               <Group>
-                Your Sources
+                <Trans>Your Sources</Trans>
                 <ActionIcon
                   variant="light"
                   color="gray"
@@ -68,18 +69,22 @@ export default function SourceList() {
             <HoverCard openDelay={400} width="300px">
               <HoverCard.Target>
                 <Badge color="orange" size="sm" variant="light">
-                  PREVIEW
+                  <Trans>PREVIEW</Trans>
                 </Badge>
               </HoverCard.Target>
               <HoverCard.Dropdown>
                 <Stack gap="xs">
                   <Text size="sm">
-                    Sources is currently under active development and some features might not work
-                    as expected. We're looking for feedback as we learn and grow :)
+                    <Trans>
+                      Sources is currently under active development and some features might not work
+                      as expected. We're looking for feedback as we learn and grow :)
+                    </Trans>
                   </Text>
                   <Text size="xs" c="dimmed">
-                    This feature will remain free during its experimental phases, rate limits may
-                    apply in future iterations.
+                    <Trans>
+                      This feature will remain free during its experimental phases, rate limits may
+                      apply in future iterations.
+                    </Trans>
                   </Text>
                   <ActionIcon
                     size="sm"

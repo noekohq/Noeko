@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Stack, Title, Text, Loader, Group } from "@mantine/core";
+import { Trans } from "@lingui/react/macro";
 import { IConnectable } from "../../../../../shared/types/constellation";
 import useFetch from "@core/hooks/useFetch";
 import PageWrapper from "@core/design/layout/PageWrapper";
@@ -34,7 +35,7 @@ export default function PinsPage() {
             <Title order={1}>
               <Group gap="sm">
                 <PushPinIcon size={24} weight="duotone" />
-                Your pins
+                <Trans>Your pins</Trans>
               </Group>
             </Title>
           </Group>
@@ -47,7 +48,7 @@ export default function PinsPage() {
 
           {!loadingPins && pins?.length === 0 && (
             <Text size="sm" c="dimmed">
-              No pinned items.
+              <Trans>No pinned items.</Trans>
             </Text>
           )}
 

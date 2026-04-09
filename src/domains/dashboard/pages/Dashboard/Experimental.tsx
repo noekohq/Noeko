@@ -1,4 +1,5 @@
 import { Button, Group, Loader, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Trans } from "@lingui/react/macro";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import Content from "@core/design/components/Layout/Content";
 import LeftSidebar from "@core/design/components/Layout/Left";
@@ -46,7 +47,9 @@ export default function Dashboard() {
   return (
     <PageWrapper>
       <LeftSidebar startOpened={isTablet || isDesktop}>
-        <LeftSidebar.Open>Test</LeftSidebar.Open>
+        <LeftSidebar.Open>
+          <Trans>Test</Trans>
+        </LeftSidebar.Open>
       </LeftSidebar>
       <Content>
         <div className={styles.dashboard}>
@@ -65,7 +68,7 @@ export default function Dashboard() {
                     navigate(`/idea/${mostRecent()?.id.toString()}`);
                   }}
                 >
-                  <Text size="sm">{mostRecent()?.title || "Unknown"}</Text>
+                  <Text size="sm">{mostRecent()?.title || <Trans>Unknown</Trans>}</Text>
                 </CompoundButton>
                 <CompoundButton
                   auxilary={
@@ -79,7 +82,7 @@ export default function Dashboard() {
                     navigate(`/idea/${mostRecent()?.id.toString()}`);
                   }}
                 >
-                  <Text size="sm">{mostRecent()?.title || "Unknown"}</Text>
+                  <Text size="sm">{mostRecent()?.title || <Trans>Unknown</Trans>}</Text>
                 </CompoundButton>
                 <CompoundButton
                   auxilary={
@@ -93,7 +96,7 @@ export default function Dashboard() {
                     navigate(`/idea/${mostRecent()?.id.toString()}`);
                   }}
                 >
-                  <Text size="sm">{mostRecent()?.title || "Unknown"}</Text>
+                  <Text size="sm">{mostRecent()?.title || <Trans>Unknown</Trans>}</Text>
                 </CompoundButton>
                 <CompoundButton
                   auxilary={
@@ -107,7 +110,7 @@ export default function Dashboard() {
                     navigate(`/idea/${mostRecent()?.id.toString()}`);
                   }}
                 >
-                  <Text size="sm">{mostRecent()?.title || "Unknown"}</Text>
+                  <Text size="sm">{mostRecent()?.title || <Trans>Unknown</Trans>}</Text>
                 </CompoundButton>
               </SimpleGrid>
             </div>
@@ -118,7 +121,9 @@ export default function Dashboard() {
         </div>
       </Content>
       <RightSidebar startOpened={isDesktop}>
-        <RightSidebar.Open>Test</RightSidebar.Open>
+        <RightSidebar.Open>
+          <Trans>Test</Trans>
+        </RightSidebar.Open>
       </RightSidebar>
       <StatusBar />
     </PageWrapper>

@@ -3,8 +3,12 @@ import styles from "./Error.module.scss";
 import { WarningOctagonIcon, ArrowClockwiseIcon, HouseIcon } from "@phosphor-icons/react";
 import { useEffect } from "react";
 import { api } from "@infrastructure/api/client";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Error({ error, resetErrorBoundary }: FallbackProps) {
+  const { i18n } = useLingui();
   const err = error as any;
   useEffect(() => {
     api.post("/logs", {
@@ -17,8 +21,10 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
     });
   }, [err]);
 
-  const subject = encodeURIComponent(`Error Report: ${err.message || "Unknown Error"}`);
-  const body = encodeURIComponent(`Error: ${err.message}\nStack: ${err.stack}`);
+  const subject = encodeURIComponent(
+    i18n._(t`Error Report: ${err.message || i18n._(t`Unknown Error`)}`)
+  );
+  const body = encodeURIComponent(i18n._(t`Error: ${err.message}\nStack: ${err.stack}`));
   const mailtoLink = `mailto:support@noeko.app?subject=${subject}&body=${body}`;
 
   return (
@@ -27,34 +33,45 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
         <div className={styles.header}>
           <h1>
             <WarningOctagonIcon weight="bold" />
-            Hmm, something went wrong :/
+            <Trans>Hmm, something went wrong :/</Trans>
           </h1>
         </div>
 
         <p className={styles.description}>
-          You've found the error page. We've logged this, but for now let's get you back on track.
+          <Trans>
+            You've found the error page. We've logged this, but for now let's get you back on track.
+          </Trans>
         </p>
 
         <div className={styles.actions}>
           {/* 1. Try Again (Retries the component render) */}
           <button onClick={resetErrorBoundary} className={styles.primaryButton}>
             <ArrowClockwiseIcon weight="bold" />
-            Try Again
+            <Trans>Try Again</Trans>
           </button>
 
           {/* 2. Go Home (Hard Refresh - Clears bad state) */}
           <a href="/" className={styles.secondaryButton}>
             <HouseIcon weight="bold" />
-            Return Home
+            <Trans>Return Home</Trans>
           </a>
         </div>
 
         {/* 3. Low-priority support link to reduce visual noise */}
         <div className={styles.footer}>
-          Still stuck? <a href={mailtoLink}>Email Support</a> or ask on{" "}
-          <a href="https://discord.gg/TY9sna9ZbT">Discord</a>.
+          <Trans>Still stuck?</Trans>{" "}
+          <a href={mailtoLink}>
+            <Trans>Email Support</Trans>
+          </a>{" "}
+          <Trans>or ask on</Trans>{" "}
+          <a href="https://discord.gg/TY9sna9ZbT">
+            <Trans>Discord</Trans>
+          </a>
+          .
           <details className={styles.details}>
-            <summary>Show Error Details</summary>
+            <summary>
+              <Trans>Show Error Details</Trans>
+            </summary>
             <pre>{err.message}</pre>
           </details>
         </div>

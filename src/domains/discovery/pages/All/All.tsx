@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { IGetAllConnectables_Options, ITaggedConnectable } from "../../../../../app/services/Graph";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
@@ -22,6 +25,7 @@ interface AllConnectablesResponse {
 }
 
 export default function All() {
+  const { i18n } = useLingui();
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
   const [items, setItems] = useState<ITaggedConnectable[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -123,7 +127,9 @@ export default function All() {
       <LeftSidebar />
       <Content>
         <Stack>
-          <Title mt="md">Everything</Title>
+          <Title mt="md">
+            <Trans>Everything</Trans>
+          </Title>
           <TagsFilter
             value={appliedTags}
             onChange={(tags) => {
@@ -142,7 +148,7 @@ export default function All() {
               const props = getThingPropsFromConnectable(
                 item,
                 {
-                  detail: `Updated ${formatDateTime(item.updatedAt)}`,
+                  detail: i18n._(t`Updated ${formatDateTime(item.updatedAt)}`),
                 },
                 true
               );
@@ -201,14 +207,16 @@ export default function All() {
           <Center mt="xl">
             <Group>
               <Loader size="sm" />
-              <Text>Loading...</Text>
+              <Text>
+                <Trans>Loading...</Trans>
+              </Text>
             </Group>
           </Center>
         )}
         {!hasMore && !loading && items.length > 0 && (
           <Center mt="xl">
             <Text size="sm" c="dimmed">
-              That's all of it :)
+              <Trans>That's all of it :)</Trans>
             </Text>
           </Center>
         )}

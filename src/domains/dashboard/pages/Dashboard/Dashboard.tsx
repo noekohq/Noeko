@@ -25,6 +25,9 @@ import {
   TagIcon,
 } from "@phosphor-icons/react";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { useInteraction } from "@/contexts/InteractionContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useLayout } from "@/contexts/LayoutContext";
@@ -188,9 +191,16 @@ export default function Dashboard() {
 type IHeaderProps = Record<string, unknown>;
 
 function Header() {
+  const { i18n } = useLingui();
   const { user } = useAuth();
 
   const { isMobile } = useLayout();
+
+  const timeOfDay = {
+    morning: i18n._(t`morning`),
+    afternoon: i18n._(t`afternoon`),
+    evening: i18n._(t`evening`),
+  }[getCurrentTimeOfDay()];
   const {
     ui: {
       theme: {
@@ -204,12 +214,14 @@ function Header() {
       <Stack gap="0" align="flex-start" justify="center" w="100%">
         <Title order={2} ta="center">
           <Group gap="xs">
-            Welcome back {user?.firstName}!
+            <Trans>Welcome back {user?.firstName}!</Trans>
             <HandWavingIcon weight="bold" />
           </Group>
         </Title>
         <Title p={0} m={0} order={4} c="dimmed">
-          Good {getCurrentTimeOfDay()}, it's {getCurrentTimeFormatted()}.
+          <Trans>
+            Good {timeOfDay}, it's {getCurrentTimeFormatted()}.
+          </Trans>
         </Title>
       </Stack>
       <Flex
@@ -268,6 +280,7 @@ function Header() {
 }
 
 function JumpBackIn() {
+  const { i18n } = useLingui();
   const [sortField, setSortField] = useState<IIdeaSortFields>("viewedAt");
   const [start, setStart] = useState(0);
   const limit = 25;
@@ -351,24 +364,24 @@ function JumpBackIn() {
     <div className={styles.think}>
       <Group mb="md">
         <Text size="sm" c="dark.4" fw="bold">
-          JUMP BACK IN
+          <Trans>JUMP BACK IN</Trans>
         </Text>
         <Selection
-          label="View by"
+          label={i18n._(t`View by`)}
           initialValue={sortField}
           options={[
             {
-              label: "Viewed",
+              label: i18n._(t`Viewed`),
               value: "viewedAt" as IIdeaSortFields,
               icon: <ClockCounterClockwiseIcon />,
             },
             {
-              label: "Created",
+              label: i18n._(t`Created`),
               value: "createdAt" as IIdeaSortFields,
               icon: <ClockIcon />,
             },
             {
-              label: "Updated",
+              label: i18n._(t`Updated`),
               value: "updatedAt" as IIdeaSortFields,
               icon: <ClockClockwiseIcon />,
             },
@@ -391,7 +404,7 @@ function JumpBackIn() {
             >
               <Stack gap="xs">
                 <Text size="xs" c="dimmed" fw="bold">
-                  SUGGESTED
+                  <Trans>SUGGESTED</Trans>
                 </Text>
                 <PaperThing
                   {...getThingPropsFromConnectable(
@@ -416,7 +429,7 @@ function JumpBackIn() {
           })}
           {allIdeas.length === 0 && (
             <Text size="sm" c="dimmed">
-              No ideas yet.
+              <Trans>No ideas yet.</Trans>
             </Text>
           )}
           {hasMore && !loading && <div ref={observerTarget} style={{ height: "1px" }} />}
@@ -428,7 +441,7 @@ function JumpBackIn() {
           {!hasMore && !loading && allIdeas.length > 0 && (
             <Center>
               <Text size="sm" c="dimmed">
-                That's all :)
+                <Trans>That's all :)</Trans>
               </Text>
             </Center>
           )}

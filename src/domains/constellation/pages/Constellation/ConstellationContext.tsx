@@ -11,7 +11,7 @@ import { UserIcon } from "@phosphor-icons/react";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import { IConstellationLoader } from "../../../../../shared/types/constellation";
 import { RecordId } from "surrealdb";
-import { i18n } from "@lingui/core";
+import { useLingui } from "@lingui/react";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 
@@ -30,6 +30,7 @@ export default function ConstellationContext({
   loader,
   setLoader,
 }: ConstellationContextProps) {
+  const { i18n } = useLingui();
   const { nodes, edges } = graph || { nodes: [], edges: [] };
   const {
     selected: { get: selected, clear: clearSelected, remove: removeSelected, add: addToSelection },

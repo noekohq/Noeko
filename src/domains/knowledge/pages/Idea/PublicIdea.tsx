@@ -8,10 +8,13 @@ import { useAuth } from "@domains/identity/contexts/AuthContext";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { showNotification } from "@mantine/notifications";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
 import StatusBar from "@core/design/components/Layout/Bottom";
 import Nav from "@core/design/components/Layout/Nav";
 
 export default function PublicIdea() {
+  const { i18n } = useLingui();
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
 
@@ -28,8 +31,8 @@ export default function PublicIdea() {
     runOnMount: true,
     onError: () => {
       showNotification({
-        title: "Error",
-        message: "Failed to load idea",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to load idea`),
         color: "red",
       });
       navigate("/");

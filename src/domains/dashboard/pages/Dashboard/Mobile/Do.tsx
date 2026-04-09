@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import useFetch from "@core/hooks/useFetch";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import styles from "./Do.module.scss";
 import {
   ITaskSortFields,
@@ -27,6 +30,7 @@ import { deepEquals } from "bun";
 type ITaskViews = "daily" | "urgent" | "recent";
 
 export default function Do() {
+  const { i18n } = useLingui();
   const [viewBy, setViewBy] = useState<ITaskViews>("daily");
   const [timeAvailable, setTimeAvailable] = useState<string>();
 
@@ -123,12 +127,12 @@ export default function Do() {
           initialValue={viewBy}
           options={[
             {
-              label: "Today",
+              label: i18n._(t`Today`),
               value: "daily" as ITaskViews,
               icon: <SunIcon />,
             },
             {
-              label: "Urgency",
+              label: i18n._(t`Urgency`),
               value: "urgent" as ITaskViews,
               icon: <HourglassIcon />,
             },
@@ -139,27 +143,27 @@ export default function Do() {
         />
         {viewBy === "daily" && (
           <Selection
-            label="Time available"
+            label={i18n._(t`Time available`)}
             initialValue={timeAvailable}
             options={[
               {
-                label: "8h",
+                label: i18n._(t`8h`),
                 value: "8h",
               },
               {
-                label: "4h",
+                label: i18n._(t`4h`),
                 value: "4h",
               },
               {
-                label: "1h",
+                label: i18n._(t`1h`),
                 value: "1h",
               },
               {
-                label: "30m",
+                label: i18n._(t`30m`),
                 value: "30m",
               },
               {
-                label: "15m",
+                label: i18n._(t`15m`),
                 value: "15m",
               },
             ]}
@@ -188,7 +192,7 @@ export default function Do() {
               >
                 <Stack>
                   <Text size="sm" c="dimmed">
-                    Jump Back In
+                    <Trans>Jump Back In</Trans>
                   </Text>
                   <TaskButton
                     task={firstTask}
@@ -202,7 +206,11 @@ export default function Do() {
             {rest?.map((task) => {
               return <TaskButton key={task.id.toString()} task={task} />;
             })}
-            {allTasks?.length === 0 && <Text size="sm">No tasks.</Text>}
+            {allTasks?.length === 0 && (
+              <Text size="sm">
+                <Trans>No tasks.</Trans>
+              </Text>
+            )}
             {loading && (
               <Group justify="center">
                 <Loader size="sm" />

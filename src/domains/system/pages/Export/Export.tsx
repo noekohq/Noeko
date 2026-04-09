@@ -22,15 +22,19 @@ import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Export() {
+  const { i18n } = useLingui();
   const [loadingMarkdownExport, setLoadingMarkdownExport] = useState(false);
   const { user } = useAuth();
 
   const handleMarkdownExport = async () => {
     if (!user) {
       showNotification({
-        message: "Error exporting data.",
+        message: i18n._(t`Error exporting data.`),
         color: "red",
       });
       return;
@@ -41,8 +45,8 @@ export default function Export() {
     } catch (error) {
       console.error("Error getting markdown export: ", error);
       showNotification({
-        title: "Something went wrong",
-        message: "Couldn't get markdown export",
+        title: i18n._(t`Something went wrong`),
+        message: i18n._(t`Couldn't get markdown export`),
         color: "red",
       });
     } finally {
@@ -56,7 +60,9 @@ export default function Export() {
       <LeftSidebar />
       <Content>
         <Stack>
-          <Title>Export your data!</Title>
+          <Title>
+            <Trans>Export your data!</Trans>
+          </Title>
           <SimpleGrid
             cols={{
               sm: 2,
@@ -74,7 +80,7 @@ export default function Export() {
                   handleMarkdownExport();
                 }}
               >
-                Markdown Export
+                <Trans>Markdown Export</Trans>
               </Button>
               <HoverCard width={300}>
                 <HoverCard.Target>
@@ -84,8 +90,10 @@ export default function Export() {
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Text size="sm">
-                    The markdown export will export all of your ideas and quests as Markdown, which
-                    will then be parsed in a Zip folder.
+                    <Trans>
+                      The markdown export will export all of your ideas and quests as Markdown,
+                      which will then be parsed in a Zip folder.
+                    </Trans>
                   </Text>
                 </HoverCard.Dropdown>
               </HoverCard>
@@ -93,13 +101,17 @@ export default function Export() {
           </SimpleGrid>
           <Divider my="xs" />
           <Text size="sm">
-            Your data is always yours. Noeko is committed to keeping it portable, so that you can
-            use it how you wish. If you have any trouble exporting your stuff, please don't hesitate
-            to let us know.
+            <Trans>
+              Your data is always yours. Noeko is committed to keeping it portable, so that you can
+              use it how you wish. If you have any trouble exporting your stuff, please don't
+              hesitate to let us know.
+            </Trans>
           </Text>
           <Text size="sm">
-            For more comprehensive timelines, check out the{" "}
-            <a href="https://www.noeko.app">Noeko Roadmap.</a>
+            <Trans>
+              For more comprehensive timelines, check out the{" "}
+              <a href="https://www.noeko.app">Noeko Roadmap.</a>
+            </Trans>
           </Text>
         </Stack>
       </Content>

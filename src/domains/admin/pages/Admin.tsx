@@ -22,8 +22,12 @@ import Content from "@core/design/components/Layout/Content";
 import StatusBar from "@core/design/components/Layout/Bottom";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Admin() {
+  const { i18n } = useLingui();
   const { referralLink } = useAuth();
   const { load: synchronizeGraph, loading: loadingSynchronizeGraph } = useFetch<
     undefined,
@@ -33,14 +37,14 @@ export default function Admin() {
     method: "POST",
     onSuccess: () => {
       showNotification({
-        title: "Success",
-        message: "Successfully synchronized the graph",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Successfully synchronized the graph`),
       });
     },
     onError: () => {
       showNotification({
-        title: "Error",
-        message: "Something went wrong synchronizing the graph.",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Something went wrong synchronizing the graph.`),
       });
     },
   });
@@ -52,21 +56,25 @@ export default function Admin() {
       <Content>
         <Grid>
           <Grid.Col span={{ sm: 12 }}>
-            <Title>Admin Panel</Title>
+            <Title>
+              <Trans>Admin Panel</Trans>
+            </Title>
           </Grid.Col>
           <Grid.Col>
             <Card withBorder radius="lg">
               <Stack>
-                <Title order={3}>Management</Title>
+                <Title order={3}>
+                  <Trans>Management</Trans>
+                </Title>
                 <Group>
                   <Link to="/admin/users">
                     <Button leftSection={<UsersThree />} variant="default">
-                      Manage Users
+                      <Trans>Manage Users</Trans>
                     </Button>
                   </Link>
                   <Link to="/admin/feedback">
                     <Button leftSection={<ChatCircleDots />} variant="default">
-                      Review Feedback
+                      <Trans>Review Feedback</Trans>
                     </Button>
                   </Link>
                 </Group>
@@ -76,7 +84,9 @@ export default function Admin() {
           <Grid.Col span={{ sm: 12 }}>
             <Card withBorder radius="lg">
               <Stack>
-                <Title order={3}>Global Actions</Title>
+                <Title order={3}>
+                  <Trans>Global Actions</Trans>
+                </Title>
                 <Group>
                   <Button
                     onClick={() => {
@@ -92,7 +102,7 @@ export default function Admin() {
                       )
                     }
                   >
-                    Synchronize Graphs
+                    <Trans>Synchronize Graphs</Trans>
                   </Button>
                 </Group>
               </Stack>
@@ -101,7 +111,9 @@ export default function Admin() {
           <Grid.Col span={{ sm: 12 }}>
             <Card withBorder radius="lg">
               <Stack>
-                <Title order={3}>Other Stuff</Title>
+                <Title order={3}>
+                  <Trans>Other Stuff</Trans>
+                </Title>
                 <Group>
                   {referralLink && (
                     <CopyButton value={referralLink}>
@@ -114,7 +126,9 @@ export default function Admin() {
                             variant="default"
                             leftSection={copied ? <Check weight="bold" /> : <Copy weight="bold" />}
                           >
-                            <Text>Copy Referral Link</Text>
+                            <Text>
+                              <Trans>Copy Referral Link</Trans>
+                            </Text>
                           </Button>
                         );
                       }}

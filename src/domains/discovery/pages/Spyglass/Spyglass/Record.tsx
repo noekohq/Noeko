@@ -3,6 +3,7 @@ import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
 import { useSpyglassRecord } from "@domains/discovery/pages/Spyglass/hooks/useSpyglass";
+import { Trans } from "@lingui/react/macro";
 
 import styles from "./Record.module.scss";
 import { DisplayOverview } from "@domains/discovery/components/Spyglass/Overview";
@@ -59,10 +60,10 @@ export default function SpyglassRecord() {
           ) : (
             <Stack gap="xs">
               <Text fw="bold" c="dimmed" size="sm">
-                No results yet
+                <Trans>No results yet</Trans>
               </Text>
               <Text size="xs" c="dimmed">
-                Ask something to see the outline here
+                <Trans>Ask something to see the outline here</Trans>
               </Text>
             </Stack>
           )}
@@ -109,7 +110,9 @@ export default function SpyglassRecord() {
                 query={baseQuery ?? ""}
               />
             ) : (
-              <Text c="dimmed">No content available for this record.</Text>
+              <Text c="dimmed">
+                <Trans>No content available for this record.</Trans>
+              </Text>
             )}
           </div>
         </Stack>

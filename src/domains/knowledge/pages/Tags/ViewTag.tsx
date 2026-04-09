@@ -39,6 +39,9 @@ import {
   DotsThreeVerticalIcon,
   CircleNotchIcon,
 } from "@phosphor-icons/react";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { showNotification } from "@mantine/notifications";
 import styles from "./ViewTag.module.scss";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -63,6 +66,7 @@ import { formatDate, formatDateTime } from "@core/utils/formatting";
 import useTag from "../../hooks/useTag";
 
 export default function ViewTag() {
+  const { i18n } = useLingui();
   const navigate = useNavigate();
   const { tagId } = useParams<{ tagId: string }>();
 
@@ -94,7 +98,7 @@ export default function ViewTag() {
       description: "",
     },
     validate: {
-      name: (value) => (value?.trim() === "" ? "Tag name is required" : null),
+      name: (value) => (value?.trim() === "" ? i18n._(t`Tag name is required`) : null),
     },
   });
 
@@ -121,8 +125,8 @@ export default function ViewTag() {
     } catch (error) {
       console.error(`Failed to add tag ${tag.name} to thing ${thingId}:`, error);
       showNotification({
-        title: "Error",
-        message: "Something went wrong adding the tag",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Something went wrong adding the tag`),
         color: "red",
       });
     }
@@ -138,8 +142,8 @@ export default function ViewTag() {
     } catch (error) {
       console.error(`Failed to remove tag ${tag.name} from thing ${thing.id}:`, error);
       showNotification({
-        title: "Error",
-        message: "Something went wrong removing the tag",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Something went wrong removing the tag`),
         color: "red",
       });
     }
@@ -155,8 +159,8 @@ export default function ViewTag() {
 
       if (thingIsConnected(thingId)) {
         showNotification({
-          title: "Can't connect again",
-          message: "Can't connect this item again.",
+          title: i18n._(t`Can't connect again`),
+          message: i18n._(t`Can't connect this item again.`),
           color: "yellow",
         });
         return;
@@ -191,14 +195,14 @@ export default function ViewTag() {
         await updateTag(valuesToUpdate);
         setIsEditing(false);
         showNotification({
-          title: "Success",
-          message: "Tag updated successfully",
+          title: i18n._(t`Success`),
+          message: i18n._(t`Tag updated successfully`),
         });
       } catch (error) {
         console.error("Failed to update tag:", error);
         showNotification({
-          title: "Error",
-          message: "Failed to update tag",
+          title: i18n._(t`Error`),
+          message: i18n._(t`Failed to update tag`),
           color: "red",
         });
       }
@@ -224,15 +228,15 @@ export default function ViewTag() {
     try {
       await deleteTag();
       showNotification({
-        title: "Success",
-        message: "Tag deleted successfully",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Tag deleted successfully`),
       });
       navigate("/tags");
     } catch (error) {
       console.error("Failed to delete tag:", error);
       showNotification({
-        title: "Error",
-        message: "Failed to delete tag",
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to delete tag`),
         color: "red",
       });
     }
@@ -292,13 +296,13 @@ export default function ViewTag() {
         <Text size="sm" c="dark.4" fw="bold">
           <Group gap="xs">
             <LightbulbIcon weight="bold" />
-            SUGGESTED
+            <Trans>SUGGESTED</Trans>
           </Group>
         </Text>
       )}
       {!suggestions?.length && (
         <Text size="sm" c="dimmed">
-          Suggestions will populate based on usage.
+          <Trans>Suggestions will populate based on usage.</Trans>
         </Text>
       )}
       {suggestions?.map((thing) => {
@@ -320,7 +324,9 @@ export default function ViewTag() {
                   setApplyingId(null);
                 }
               },
-              tooltip: isApplying ? "Applying..." : `Apply tag "${tag?.name}"`,
+              tooltip: isApplying
+                ? i18n._(t`Applying...`)
+                : i18n._(t`Apply tag "${tag?.name || ""}"`),
             },
             state: "suggested",
           },
@@ -356,13 +362,13 @@ export default function ViewTag() {
     ? [
         {
           icon: FloppyDiskIcon,
-          name: "Save",
+          name: i18n._(t`Save`),
           run: handleSave,
           disabled: isUpdating,
         },
         {
           icon: XIcon,
-          name: "Cancel",
+          name: i18n._(t`Cancel`),
           run: handleCancel,
           disabled: isUpdating,
         },
@@ -370,13 +376,13 @@ export default function ViewTag() {
     : [
         {
           icon: PencilSimpleIcon,
-          name: "Edit",
+          name: i18n._(t`Edit`),
           run: () => setIsEditing(true),
           disabled: false,
         },
         {
           icon: LightbulbIcon,
-          name: "Suggestions",
+          name: i18n._(t`Suggestions`),
           run: () => setViewingSuggestions(true),
           disabled: !suggestions?.length,
           invisible: !isMobile,
@@ -389,19 +395,21 @@ export default function ViewTag() {
       <Modal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
-        title={`Delete Tag: "${tag?.name}"`}
+        title={i18n._(t`Delete Tag: "${tag?.name || ""}"`)}
         centered
       >
         <Text size="sm">
-          Are you sure you want to delete this tag? This action cannot be undone and will remove the
-          tag from all associated items.
+          <Trans>
+            Are you sure you want to delete this tag? This action cannot be undone and will remove
+            the tag from all associated items.
+          </Trans>
         </Text>
         <Group mt="lg" justify="flex-end">
           <Button variant="default" onClick={closeDeleteModal}>
-            Cancel
+            <Trans>Cancel</Trans>
           </Button>
           <Button color="red" onClick={handleDeleteConfirm} loading={isDeleting}>
-            Delete Tag
+            <Trans>Delete Tag</Trans>
           </Button>
         </Group>
       </Modal>
@@ -434,7 +442,7 @@ export default function ViewTag() {
             >
               <Group align="center" justify="center" style={{ height: "100%" }}>
                 <Text c="white" mx="lg" size="sm">
-                  Drop here to create a connection
+                  <Trans>Drop here to create a connection</Trans>
                 </Text>
               </Group>
             </Overlay>
@@ -468,13 +476,13 @@ export default function ViewTag() {
                     </Menu.Target>
 
                     <Menu.Dropdown>
-                      <Tooltip label="Delete Tag">
+                      <Tooltip label={i18n._(t`Delete Tag`)}>
                         <Menu.Item
                           color="red"
                           leftSection={<TrashIcon />}
                           onClick={openDeleteModal}
                         >
-                          Delete
+                          <Trans>Delete</Trans>
                         </Menu.Item>
                       </Tooltip>
                     </Menu.Dropdown>
@@ -485,15 +493,17 @@ export default function ViewTag() {
                 {isEditing ? (
                   <Stack gap="md">
                     <TextInput
-                      label="Name"
-                      placeholder="Name your tag..."
+                      label={t`Name`}
+                      placeholder={t`Name your tag...`}
                       {...editForm.getInputProps("name")}
                       required
                     />
                     <Textarea
                       label={
                         <Group align="center" gap="2px">
-                          <Text size="sm">Description</Text>
+                          <Text size="sm">
+                            <Trans>Description</Trans>
+                          </Text>
                           <HoverCard width="300px" radius="lg">
                             <HoverCard.Target>
                               <ActionIcon size="xs" radius="lg" variant="subtle" color="gray">
@@ -503,26 +513,33 @@ export default function ViewTag() {
                             <HoverCard.Dropdown>
                               <Stack gap="xs">
                                 <Text size="sm" mb="sm">
-                                  The better the description, the better the system will be at
-                                  suggesting tag applications. More detail will mean more specific
-                                  suggestions.
+                                  <Trans>
+                                    The better the description, the better the system will be at
+                                    suggesting tag applications. More detail will mean more specific
+                                    suggestions.
+                                  </Trans>
                                 </Text>
                                 <Text fw="bold" size="sm">
-                                  Good Description
+                                  <Trans>Good Description</Trans>
                                 </Text>
                                 <Blockquote p="xs" color="gray">
                                   <Text size="sm">
-                                    Fleetingness. The quality of being fleeting or transient.
+                                    <Trans>
+                                      Fleetingness. The quality of being fleeting or transient.
+                                    </Trans>
                                   </Text>
                                 </Blockquote>
                                 <Text fw="bold" size="sm">
-                                  Better Description
+                                  <Trans>Better Description</Trans>
                                 </Text>
                                 <Blockquote p="xs" color="gray">
                                   <Text size="sm">
-                                    The concept of fleetiness. It represents a momentary, ephemeral
-                                    experience, like a spark of inspiration that fades, a dream upon
-                                    waking, or the brief scent of rain on hot pavement.
+                                    <Trans>
+                                      The concept of fleetiness. It represents a momentary,
+                                      ephemeral experience, like a spark of inspiration that fades,
+                                      a dream upon waking, or the brief scent of rain on hot
+                                      pavement.
+                                    </Trans>
                                   </Text>
                                 </Blockquote>
                               </Stack>
@@ -530,7 +547,7 @@ export default function ViewTag() {
                           </HoverCard>
                         </Group>
                       }
-                      placeholder="Describe the meaning of your tag..."
+                      placeholder={t`Describe the meaning of your tag...`}
                       minRows={3}
                       autosize
                       {...editForm.getInputProps("description")}
@@ -556,7 +573,7 @@ export default function ViewTag() {
                     >
                       <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
                         <Tooltip
-                          label="Created at"
+                          label={i18n._(t`Created at`)}
                           transitionProps={{
                             transition: "rotate-right",
                             duration: 200,
@@ -569,7 +586,7 @@ export default function ViewTag() {
                               weight="bold"
                             />
                             <Text size="xs" fw="500">
-                              {tag.createdAt ? `${formatDate(tag.createdAt)}` : "Now"}
+                              {tag.createdAt ? `${formatDate(tag.createdAt)}` : i18n._(t`Now`)}
                             </Text>
                           </Group>
                         </Tooltip>
@@ -579,7 +596,7 @@ export default function ViewTag() {
                               •
                             </Text>
                             <Tooltip
-                              label="Last updated"
+                              label={i18n._(t`Last updated`)}
                               transitionProps={{
                                 transition: "rotate-right",
                                 duration: 200,
@@ -592,7 +609,9 @@ export default function ViewTag() {
                                   weight="bold"
                                 />
                                 <Text size="xs" fw="500">
-                                  {tag.updatedAt ? `${formatDateTime(tag.updatedAt)}` : "Now"}
+                                  {tag.updatedAt
+                                    ? `${formatDateTime(tag.updatedAt)}`
+                                    : i18n._(t`Now`)}
                                 </Text>
                               </Group>
                             </Tooltip>
@@ -614,15 +633,22 @@ export default function ViewTag() {
                   />
                 )}
                 {thingsError && (
-                  <Alert icon={<WarningCircleIcon size={24} />} title="Error!" color="red" mt="md">
-                    Failed to load items for this tag: {thingsError.message}
+                  <Alert
+                    icon={<WarningCircleIcon size={24} />}
+                    title={i18n._(t`Error!`)}
+                    color="red"
+                    mt="md"
+                  >
+                    <Trans>Failed to load items for this tag: {thingsError.message}</Trans>
                   </Alert>
                 )}
                 {(!things || things.length === 0) && (
                   <Text size="sm">
-                    {isMobile
-                      ? "Nothing here yet :/"
-                      : "Nothing yet, try dragging something here to tag it!"}
+                    {isMobile ? (
+                      <Trans>Nothing here yet :/</Trans>
+                    ) : (
+                      <Trans>Nothing yet, try dragging something here to tag it!</Trans>
+                    )}
                   </Text>
                 )}
               </Stack>
@@ -651,7 +677,7 @@ export default function ViewTag() {
       {/* Render the mobile drawer for suggestions */}
       {isMobile && tag && (
         <PaperDrawer
-          title="Suggested Items"
+          title={i18n._(t`Suggested Items`)}
           opened={viewingSuggestions}
           onClose={() => setViewingSuggestions(false)}
         >

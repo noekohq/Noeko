@@ -1,4 +1,5 @@
 import { Divider, Stack, Text } from "@mantine/core";
+import { Trans, Plural } from "@lingui/react/macro";
 import ConnectableThing from "@core/design/components/Display/Interactions/Connections/ConnectableThing";
 import { IConnectable } from "../../../../../../app/services/Graph";
 import { ISpyglassIntent } from "../../../../../../app/services/Spyglass";
@@ -16,8 +17,7 @@ export default function SpyglassActions({ intent, results }: ISpyglassActionsPro
       {intent && (
         <>
           <Text fw="bold" size="sm" c="dimmed">
-            {intent.searches?.length} SEARCH
-            {intent.searches?.length === 1 ? "" : "ES"}...
+            <Plural value={intent.searches?.length || 0} one="# SEARCH..." other="# SEARCHES..." />
           </Text>
           <Stack mt="xs" gap="xs">
             {intent.searches?.map((q) => {
@@ -33,7 +33,7 @@ export default function SpyglassActions({ intent, results }: ISpyglassActionsPro
       )}
       <Stack gap="xs">
         <Text fw="bold" size="sm" c="dimmed">
-          {results.length} RESULT{results.length === 1 ? "" : "S"}...
+          <Plural value={results.length} one="# RESULT..." other="# RESULTS..." />
         </Text>
         {results.map((c) => {
           const props = getThingPropsFromConnectable(c, {}, true);

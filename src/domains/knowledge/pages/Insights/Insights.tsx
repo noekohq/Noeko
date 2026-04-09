@@ -1,4 +1,5 @@
 import { Title } from "@mantine/core";
+import { Trans } from "@lingui/react/macro";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import Content from "@core/design/components/Layout/Content";
 import LeftSidebar from "@core/design/components/Layout/Left";
@@ -13,7 +14,9 @@ export default function Insights() {
       <TopBar />
       <LeftSidebar></LeftSidebar>
       <Content>
-        <Title>Insights</Title>
+        <Title>
+          <Trans>Insights</Trans>
+        </Title>
       </Content>
       <Nav />
       <RightSidebar></RightSidebar>

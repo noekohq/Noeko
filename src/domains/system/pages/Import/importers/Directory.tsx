@@ -44,6 +44,9 @@ import {
 } from "@domains/knowledge/utils/ideas";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { userIsSuperuser } from "@domains/identity/utils/user";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 type IParsedFile = {
   title: string;
@@ -57,6 +60,7 @@ const { VITE_MAX_USER_NOTES } = import.meta.env;
 const max_notes = Number(VITE_MAX_USER_NOTES) || 500;
 
 export default function DirectoryImporter() {
+  const { i18n } = useLingui();
   const { user } = useAuth();
 
   const [files, setFiles] = useState<IParsedFile[]>([]);
@@ -147,7 +151,7 @@ export default function DirectoryImporter() {
       }
       setImporting(true);
       setProgressPercent(5);
-      setProgressText("Preparing your ideas...");
+      setProgressText(i18n._(t`Preparing your ideas...`));
       const ideasParsed = files.map(async (file) => {
         const contents = await readFileContent(file.originalFile);
         const contentsHTML = markdownToHtml(contents);
@@ -174,13 +178,13 @@ export default function DirectoryImporter() {
         }
         setProgressPercent(percentage);
       };
-      setProgressText("Initiating the upload...");
+      setProgressText(i18n._(t`Initiating the upload...`));
       const importId = await initializeImport();
-      setProgressText("Import initialized...");
+      setProgressText(i18n._(t`Import initialized...`));
       if (!importId) {
         throw new Error("The import was not initialized.");
       }
-      setProgressText("Uploading your files...");
+      setProgressText(i18n._(t`Uploading your files...`));
       let i = 0;
       for (const chunk of allChunks) {
         const success = await uploadChunkToImport(importId, chunk);
@@ -190,18 +194,18 @@ export default function DirectoryImporter() {
         setPercentage(i);
         i++;
       }
-      setProgressText("Finalizing the import...");
+      setProgressText(i18n._(t`Finalizing the import...`));
       setProgressPercent(95);
       const finalized = await finalizeImport(importId);
       if (!finalized) {
         throw new Error("Import was not finalized...");
       }
-      setProgressText("Import successful!");
+      setProgressText(i18n._(t`Import successful!`));
       setImportComplete(true);
     } catch (error) {
       console.error("Error importing directory: ", error);
-      setProgressText("Something went wrong...");
-      setProgressError("Looks like something went wrong with the import...");
+      setProgressText(i18n._(t`Something went wrong...`));
+      setProgressError(i18n._(t`Looks like something went wrong with the import...`));
     }
   }, [files]);
 
@@ -211,7 +215,9 @@ export default function DirectoryImporter() {
         {!hasFiles && (
           <>
             <Grid.Col span={{ sm: 12 }}>
-              <Text>From the following location...</Text>
+              <Text>
+                <Trans>From the following location...</Trans>
+              </Text>
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Button
@@ -219,7 +225,7 @@ export default function DirectoryImporter() {
                   handleOpenDirectorySelector();
                 }}
               >
-                Choose Location
+                <Trans>Choose Location</Trans>
               </Button>
             </Grid.Col>
           </>
@@ -229,13 +235,15 @@ export default function DirectoryImporter() {
             <Grid.Col span={{ sm: 12 }}>
               <Group>
                 <Text>
-                  The folder is named{" "}
-                  <Text inline fw="bold" component="span">
-                    {topPath.toUpperCase()}
-                  </Text>{" "}
-                  and contains {files.length} files...
+                  <Trans>
+                    The folder is named{" "}
+                    <Text inline fw="bold" component="span">
+                      {topPath.toUpperCase()}
+                    </Text>{" "}
+                    and contains {files.length} files...
+                  </Trans>
                 </Text>
-                <Tooltip label="Clear this selection.">
+                <Tooltip label={i18n._(t`Clear this selection.`)}>
                   <ActionIcon
                     variant="default"
                     onClick={() => {
@@ -250,16 +258,25 @@ export default function DirectoryImporter() {
             </Grid.Col>
             {!isAllowedToImport && (
               <>
-                <Alert color="red" icon={<ExclamationMark />} title="Too many files!" mt="lg">
-                  Unfortunately, importing {files.length} file(s) would push you over the current{" "}
-                  {max_notes} limit.
+                <Alert
+                  color="red"
+                  icon={<ExclamationMark />}
+                  title={i18n._(t`Too many files!`)}
+                  mt="lg"
+                >
+                  <Trans>
+                    Unfortunately, importing {files.length} file(s) would push you over the current{" "}
+                    {max_notes} limit.
+                  </Trans>
                 </Alert>
               </>
             )}
             {!importing && isAllowedToImport && (
               <>
                 <Grid.Col span={{ sm: 12 }}>
-                  <Text>Should we start the import?</Text>
+                  <Text>
+                    <Trans>Should we start the import?</Trans>
+                  </Text>
                 </Grid.Col>
                 <Grid.Col>
                   <Group>
@@ -269,26 +286,30 @@ export default function DirectoryImporter() {
                       }}
                       variant="default"
                     >
-                      No, Nevermind.
+                      <Trans>No, Nevermind.</Trans>
                     </Button>
                     <Button
                       onClick={() => {
                         handleInitiateUpload();
                       }}
                     >
-                      Yes! Initiate Import.
+                      <Trans>Yes! Initiate Import.</Trans>
                     </Button>
                   </Group>
                 </Grid.Col>
                 <Grid.Col span={{ sm: 12 }}>
-                  <Title order={3}>Preview</Title>
+                  <Title order={3}>
+                    <Trans>Preview</Trans>
+                  </Title>
                 </Grid.Col>
                 {files.length > 100 && !importing && (
                   <Grid.Col span={{ sm: 12 }}>
-                    <Alert title="Lot's of files!" icon={<WarningCircle />} color="gray">
-                      Currently, displaying all {files.length} might be a bit laggy. We're working
-                      on this, but in the meantime, feel free to keep the notes hidden by default,
-                      and search through them to filter, or display them and scroll!
+                    <Alert title={i18n._(t`Lot's of files!`)} icon={<WarningCircle />} color="gray">
+                      <Trans>
+                        Currently, displaying all {files.length} might be a bit laggy. We're working
+                        on this, but in the meantime, feel free to keep the notes hidden by default,
+                        and search through them to filter, or display them and scroll!
+                      </Trans>
                     </Alert>
                   </Grid.Col>
                 )}
@@ -300,11 +321,11 @@ export default function DirectoryImporter() {
                       }}
                       variant="default"
                     >
-                      {showAll ? "Hide Notes" : "Show Notes"}
+                      {showAll ? i18n._(t`Hide Notes`) : i18n._(t`Show Notes`)}
                     </Button>
                     <TextInput
                       w="50%"
-                      placeholder="Search files..."
+                      placeholder={i18n._(t`Search files...`)}
                       value={filter}
                       onChange={(e) => {
                         setFilter(e.currentTarget.value);
@@ -334,7 +355,7 @@ export default function DirectoryImporter() {
               <>
                 {progressError ? (
                   <Grid.Col span={{ sm: 12 }}>
-                    <Alert title="Something went wrong" icon={<SmileySad />} color="red">
+                    <Alert title={i18n._(t`Something went wrong`)} icon={<SmileySad />} color="red">
                       <Text>{progressError}</Text>
                     </Alert>
                   </Grid.Col>
@@ -353,19 +374,21 @@ export default function DirectoryImporter() {
                 )}
                 {importComplete && (
                   <Grid.Col span={{ sm: 12 }}>
-                    <Alert icon={<HandsClapping />} title="Success!">
+                    <Alert icon={<HandsClapping />} title={i18n._(t`Success!`)}>
                       <Text>
-                        We've successfully imported {files.length} ideas into your knowledge base!{" "}
-                        <Link
-                          to="/"
-                          style={{
-                            textDecoration: "none",
-                          }}
-                        >
-                          <Text c="white" component="span" td="underline">
-                            Check them out!
-                          </Text>
-                        </Link>
+                        <Trans>
+                          We've successfully imported {files.length} ideas into your knowledge base!{" "}
+                          <Link
+                            to="/"
+                            style={{
+                              textDecoration: "none",
+                            }}
+                          >
+                            <Text c="white" component="span" td="underline">
+                              Check them out!
+                            </Text>
+                          </Link>
+                        </Trans>
                       </Text>
                     </Alert>
                   </Grid.Col>
@@ -406,6 +429,7 @@ type IParsedFilePreviewProps = {
 };
 
 function ParsedFilePreview({ file: originalFile, onRemove }: IParsedFilePreviewProps) {
+  const { i18n } = useLingui();
   const [file, setFile] = useState(originalFile);
   const [previewOpen, setPreviewOpen] = useState(false);
   const handleRemove = () => {
@@ -462,7 +486,7 @@ function ParsedFilePreview({ file: originalFile, onRemove }: IParsedFilePreviewP
       </Card>
 
       <Modal
-        title={`Previewing: ${file.title}`}
+        title={i18n._(t`Previewing: ${file.title}`)}
         opened={previewOpen}
         onClose={() => {
           setPreviewOpen(false);
@@ -477,7 +501,7 @@ function ParsedFilePreview({ file: originalFile, onRemove }: IParsedFilePreviewP
                 setPreviewOpen(false);
               }}
             >
-              Close
+              <Trans>Close</Trans>
             </Button>
           </Group>
           <Divider my="sm" />

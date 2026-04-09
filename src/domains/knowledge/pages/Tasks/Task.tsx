@@ -36,6 +36,9 @@ import {
   UniteSquareIcon,
   UserCirclePlusIcon,
 } from "@phosphor-icons/react";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { DreamWriter } from "@/domains/editor";
 import { useForm } from "@mantine/form";
 import { Duration } from "surrealdb";
@@ -67,6 +70,7 @@ import { ICollaborationState } from "@/core/hooks/useCollaboration";
 import { CollaborationInfo } from "@/core/design/components/Collaboration/CollaborationInfo";
 
 export default function Task() {
+  const { i18n } = useLingui();
   const { taskId } = useParams();
 
   const {
@@ -114,8 +118,8 @@ export default function Task() {
     },
     validate: {
       description: (value) => {
-        if (!value) return "Description is required";
-        if (value.length < 5) return "Description must be at least 5 characters";
+        if (!value) return i18n._(t`Description is required`);
+        if (value.length < 5) return i18n._(t`Description must be at least 5 characters`);
         return null;
       },
     },
@@ -148,7 +152,7 @@ export default function Task() {
     taskForm.setFieldValue(field, value);
     const { error } = taskForm.validateField(field);
     if (error) {
-      showNotification({ title: "Form Error", message: error });
+      showNotification({ title: i18n._(t`Form Error`), message: error });
       return;
     }
     debouncedUpdate({
@@ -260,7 +264,7 @@ export default function Task() {
               )}
             </Stack>
 
-            <Divider label="Notes" labelPosition="center" color="dark.6" />
+            <Divider label={i18n._(t`Notes`)} labelPosition="center" color="dark.6" />
 
             {!!task && (
               <>
@@ -295,9 +299,11 @@ export default function Task() {
         <RightSidebar.Open>
           <Tabs defaultValue="search">
             <Tabs.List>
-              <Tabs.Tab value="search">Search</Tabs.Tab>
+              <Tabs.Tab value="search">
+                <Trans>Search</Trans>
+              </Tabs.Tab>
               <Tabs.Tab value="sharing" leftSection={<ShareNetworkIcon />}>
-                Sharing
+                <Trans>Sharing</Trans>
               </Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="search">
@@ -307,7 +313,7 @@ export default function Task() {
                     (thing) => {
                       return {
                         id: "connect",
-                        label: "Connect",
+                        label: i18n._(t`Connect`),
                         onClick: () => {
                           if (!task) {
                             return;
@@ -346,10 +352,11 @@ interface ITaskSentence {
 }
 
 function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
+  const { i18n } = useLingui();
   const [activeSelector, setActiveSelector] = useState<"date" | "duration" | null>(null);
 
-  const displayDuration = duration ? duration.toString() : "time estimate";
-  const displayDate = date ? capitalize(formatDate(fromYYYYMMDD(date))) : "target date";
+  const displayDuration = duration ? duration.toString() : i18n._(t`time estimate`);
+  const displayDate = date ? capitalize(formatDate(fromYYYYMMDD(date))) : i18n._(t`target date`);
 
   const handleSelection = (field: "dueDate" | "estimatedTime", val: any) => {
     onChange(field, val);
@@ -367,7 +374,7 @@ function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
     <Stack gap="xs">
       <Group gap={6} wrap="wrap">
         <Text size="sm" c="dark.2">
-          Should take
+          <Trans>Should take</Trans>
         </Text>
 
         <UnstyledButton
@@ -387,7 +394,7 @@ function TaskSentence({ date, duration, onChange, readOnly }: ITaskSentence) {
         </UnstyledButton>
 
         <Text size="sm" c="dark.2">
-          Done by
+          <Trans>Done by</Trans>
         </Text>
 
         <UnstyledButton
@@ -438,6 +445,7 @@ interface ITools {
 }
 
 function Tools({ task }: ITools) {
+  const { i18n } = useLingui();
   const { isMobile } = useLayout();
   const navigate = useNavigate();
 
@@ -448,17 +456,19 @@ function Tools({ task }: ITools) {
     onSuccess: () => {
       navigate(-1);
       showNotification({
-        title: "Success",
-        message: "Task deleted successfully",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Task deleted successfully`),
       });
     },
     onError: (error: any) => {
       console.error("Error deleting task: ", error);
       showNotification({
-        title: "Error Deleting",
-        message: `There was an error deleting the task: ${
-          error?.response?.data?.message || error?.message || "Unknown error"
-        }`,
+        title: i18n._(t`Error Deleting`),
+        message: i18n._(
+          t`There was an error deleting the task: ${
+            error?.response?.data?.message || error?.message || i18n._(t`Unknown error`)
+          }`
+        ),
         color: "red",
       });
     },
@@ -467,16 +477,18 @@ function Tools({ task }: ITools) {
   const handleDeleteTask = useCallback(() => {
     if (loadingDelete) return;
     modals.openConfirmModal({
-      title: "Are you sure you want to delete this task?",
+      title: i18n._(t`Are you sure you want to delete this task?`),
       centered: true,
       children: (
-        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
+        <Text size="sm">
+          <Trans>This action cannot be undone. All associated data will be lost.</Trans>
+        </Text>
       ),
-      labels: { confirm: "Delete Task", cancel: "Cancel" },
+      labels: { confirm: i18n._(t`Delete Task`), cancel: i18n._(t`Cancel`) },
       confirmProps: { color: "red" },
       onConfirm: () => triggerDeleteTask(),
     });
-  }, [loadingDelete, triggerDeleteTask, task.id.toString()]);
+  }, [loadingDelete, triggerDeleteTask, task.id.toString(), i18n]);
 
   const getMarkdownContent = () => {
     if (!task?.scratchpad) {
@@ -523,21 +535,21 @@ function Tools({ task }: ITools) {
         actions={[
           {
             icon: PushPinIcon,
-            name: isPinned ? "Unpin" : "Pin",
+            name: isPinned ? i18n._(t`Unpin`) : i18n._(t`Pin`),
             run: () => !pinning && handleTogglePin(),
             disabled: pinning,
             weight: isPinned ? "fill" : "bold",
           },
           {
             icon: UniteSquareIcon,
-            name: "Manage Connections",
+            name: i18n._(t`Manage Connections`),
             run: () => setManagingConnections(true),
             disabled: false,
             invisible: !isMobile,
           },
           {
             icon: UserCirclePlusIcon,
-            name: "Manage Access",
+            name: i18n._(t`Manage Access`),
             run: () => setManagingAccess(true),
             disabled: false,
             invisible: !isMobile,
@@ -558,7 +570,7 @@ function Tools({ task }: ITools) {
                 <div>
                   <ActionIcon
                     size={size}
-                    aria-label="Download"
+                    aria-label={i18n._(t`Download`)}
                     radius={radius}
                     variant="subtle"
                     color="gray"
@@ -569,7 +581,7 @@ function Tools({ task }: ITools) {
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
-                  Export as Markdown
+                  <Trans>Export as Markdown</Trans>
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -586,7 +598,7 @@ function Tools({ task }: ITools) {
               <Menu.Target>
                 <div>
                   <ActionIcon
-                    aria-label="More options"
+                    aria-label={i18n._(t`More options`)}
                     size={size}
                     radius={radius}
                     variant="subtle"
@@ -598,14 +610,14 @@ function Tools({ task }: ITools) {
               </Menu.Target>
 
               <Menu.Dropdown>
-                <Tooltip label="Delete Task">
+                <Tooltip label={i18n._(t`Delete Task`)}>
                   <Menu.Item
                     color="red"
                     leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
                     onClick={handleDeleteTask}
                     disabled={loadingDelete}
                   >
-                    Delete
+                    <Trans>Delete</Trans>
                   </Menu.Item>
                 </Tooltip>
               </Menu.Dropdown>
@@ -614,7 +626,7 @@ function Tools({ task }: ITools) {
         }
       />
       <PaperDrawer
-        title="Manage Connections"
+        title={i18n._(t`Manage Connections`)}
         opened={managingConnections}
         onClose={() => setManagingConnections(false)}
       >
@@ -627,7 +639,7 @@ function Tools({ task }: ITools) {
       </PaperDrawer>
 
       <PaperDrawer
-        title="Manage Access"
+        title={i18n._(t`Manage Access`)}
         opened={managingAccess}
         onClose={() => setManagingAccess(false)}
       >

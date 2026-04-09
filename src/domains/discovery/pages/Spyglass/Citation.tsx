@@ -1,5 +1,6 @@
 // Citation.tsx (or wherever you want to place this component)
 import { Text, Popover, Button } from "@mantine/core";
+import { Trans } from "@lingui/react/macro";
 import { Link } from "react-router"; // Assuming you use react-router-dom
 import { ISearchResultValue } from "../../../../../shared/types/search";
 
@@ -33,7 +34,7 @@ export function Citation({ id, snippet, result }: CitationProps) {
       </Popover.Target>
       <Popover.Dropdown>
         <Text size="sm">
-          {snippet || "No snippet available."}
+          {snippet || <Trans>No snippet available.</Trans>}
           {/* You could add a link here if you have the URL */}
           {/* <Link to={`/source/${id}`}>Learn more</Link> */}
         </Text>

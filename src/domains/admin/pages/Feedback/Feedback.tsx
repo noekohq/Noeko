@@ -25,8 +25,12 @@ import FeedbackCard from "@/core/design/components/Display/Feedback/FeedbackCard
 import { formatDate } from "@core/utils/formatting";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { Trans } from "@lingui/react/macro";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
 
 export default function Feedback() {
+  const { i18n } = useLingui();
   const {
     data: feedback,
     loading: loadingFeedback,
@@ -46,14 +50,16 @@ export default function Feedback() {
       setToDelete(undefined);
       reloadFeedback();
       showNotification({
-        title: "Feedback deleted",
-        message: `Feedback from ${toDelete?.user?.email || "unknown user"} has been deleted.`,
+        title: i18n._(t`Feedback deleted`),
+        message: i18n._(
+          t`Feedback from ${toDelete?.user?.email || i18n._(t`unknown user`)} has been deleted.`
+        ),
       });
     },
     onError: (error) => {
       showNotification({
-        title: "Error",
-        message: `Failed to disable user`,
+        title: i18n._(t`Error`),
+        message: i18n._(t`Failed to disable user`),
         color: "red",
       });
     },
@@ -90,8 +96,8 @@ export default function Feedback() {
       })
       .catch(() => {
         showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong updating feedback status",
+          title: i18n._(t`Something went wrong`),
+          message: i18n._(t`Something went wrong updating feedback status`),
           color: "red",
         });
       });
@@ -107,16 +113,20 @@ export default function Feedback() {
           <LeftSidebar.Open>
             {!!feedback && (
               <Text size="sm">
-                {feedback?.length} feedback item{feedback.length > 1 ? "s" : ""}
+                <Trans>
+                  {feedback?.length} feedback item{feedback.length > 1 ? "s" : ""}
+                </Trans>
               </Text>
             )}
           </LeftSidebar.Open>
         </LeftSidebar>
         <Content>
           <Stack>
-            <Title>Manage Feedback</Title>
+            <Title>
+              <Trans>Manage Feedback</Trans>
+            </Title>
             <TextInput
-              placeholder="Filter feedback"
+              placeholder={i18n._(t`Filter feedback`)}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               w="100%"
@@ -148,7 +158,11 @@ export default function Feedback() {
           </RightSidebar.Open>
         </RightSidebar>
         <Drawer
-          title={`Viewing feedback from ${viewingFeedback ? formatDate(viewingFeedback.createdAt) : "Unknown time"}`}
+          title={i18n._(
+            t`Viewing feedback from ${
+              viewingFeedback ? formatDate(viewingFeedback.createdAt) : i18n._(t`Unknown time`)
+            }`
+          )}
           opened={!!viewingFeedback}
           onClose={() => {
             setViewingFeedback(undefined);
@@ -173,7 +187,7 @@ export default function Feedback() {
                 variant="light"
                 color="blue"
               >
-                Mark Resolved
+                <Trans>Mark Resolved</Trans>
               </Button>
               <Button
                 size="sm"
@@ -183,7 +197,7 @@ export default function Feedback() {
                   setViewingFeedback(undefined);
                 }}
               >
-                Delete
+                <Trans>Delete</Trans>
               </Button>
               <CopyButton value={viewingFeedback?.user?.email ?? ""}>
                 {({ copied, copy }) => {
@@ -197,7 +211,7 @@ export default function Feedback() {
                       variant="light"
                       color="dark.1"
                     >
-                      Copy Email
+                      <Trans>Copy Email</Trans>
                     </Button>
                   );
                 }}
@@ -205,15 +219,21 @@ export default function Feedback() {
             </Group>
           </Stack>
         </Drawer>
-        <Modal opened={!!toDelete} title="Delete Feedback" onClose={() => setToDelete(undefined)}>
+        <Modal
+          opened={!!toDelete}
+          title={i18n._(t`Delete Feedback`)}
+          onClose={() => setToDelete(undefined)}
+        >
           <Text>
-            Are you sure you want to delete this feedback from{" "}
-            {toDelete?.user?.email || "this user"}?
+            <Trans>
+              Are you sure you want to delete this feedback from{" "}
+              {toDelete?.user?.email || i18n._(t`this user`)}?
+            </Trans>
           </Text>
           <br />
           <Group justify="end">
             <Button onClick={() => setToDelete(undefined)} variant="default">
-              No, nevermind.
+              <Trans>No, nevermind.</Trans>
             </Button>
             <Button
               onClick={() => {
@@ -221,7 +241,7 @@ export default function Feedback() {
               }}
               color="red"
             >
-              Yes, delete.
+              <Trans>Yes, delete.</Trans>
             </Button>
           </Group>
         </Modal>

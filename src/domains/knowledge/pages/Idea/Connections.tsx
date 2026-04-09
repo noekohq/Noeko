@@ -13,6 +13,9 @@ import {
   Accordion,
   Transition,
 } from "@mantine/core";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import {
   IIdea,
   IIdeaAsRelation,
@@ -63,6 +66,7 @@ export default function Connections({
   triggerCompute,
   computing,
 }: IConnectionsProps) {
+  const { i18n } = useLingui();
   const {
     load: loadConnections,
     data: connections,
@@ -117,8 +121,8 @@ export default function Connections({
       const { ideaId } = data;
       if (ideaIsConnected(ideaId)) {
         showNotification({
-          title: "Can't connect again",
-          message: "Can't connect this idea again.",
+          title: i18n._(t`Can't connect again`),
+          message: i18n._(t`Can't connect this idea again.`),
           color: "yellow",
         });
         return;
@@ -166,13 +170,17 @@ export default function Connections({
               >
                 <Group align="center" justify="center" style={{ height: "100%" }}>
                   <Text c="white" mx="lg" size="sm">
-                    Drop here to create a connection
+                    <Trans>Drop here to create a connection</Trans>
                   </Text>
                 </Group>
               </Overlay>
             )}
             <Grid.Col>
-              {draggingRelatedIdea && <Text size="sm">Drag idea here to create a connection</Text>}
+              {draggingRelatedIdea && (
+                <Text size="sm">
+                  <Trans>Drag idea here to create a connection</Trans>
+                </Text>
+              )}
             </Grid.Col>
             <Grid.Col span={{ sm: 12 }}>
               <Stack>
@@ -180,7 +188,7 @@ export default function Connections({
                   <Text size="sm" c="dimmed" fw="bold">
                     <Group gap="xs">
                       <UniteSquareIcon weight="bold" />
-                      CONNECTED
+                      <Trans>CONNECTED</Trans>
                     </Group>
                   </Text>
                   <Group gap="xs">
@@ -200,18 +208,24 @@ export default function Connections({
                       </HoverCard.Target>
                       <HoverCard.Dropdown>
                         <Text size="sm" mb="xs">
-                          Explicit connections between ideas are only made by you, and they are
-                          persistent even if the content changes, unlike similar ideas. You can drag
-                          and drop ideas to this area, or click the associated buttons to make
-                          connections.
+                          <Trans>
+                            Explicit connections between ideas are only made by you, and they are
+                            persistent even if the content changes, unlike similar ideas. You can
+                            drag and drop ideas to this area, or click the associated buttons to
+                            make connections.
+                          </Trans>
                         </Text>
                         <Text c="dimmed" size="xs" mb="xs">
-                          Click the <NotePencilIcon /> button to create a new connected note.
+                          <Trans>
+                            Click the <NotePencilIcon /> button to create a new connected note.
+                          </Trans>
                         </Text>
                         {connections && connections?.length <= 0 && (
                           <Text c="dimmed" size="xs">
-                            No connections yet. Try connecting (
-                            <UniteSquareIcon size={12} />) a related idea!
+                            <Trans>
+                              No connections yet. Try connecting (
+                              <UniteSquareIcon size={12} />) a related idea!
+                            </Trans>
                           </Text>
                         )}
                       </HoverCard.Dropdown>
@@ -232,7 +246,7 @@ export default function Connections({
                         actions={[
                           {
                             id: "remove_connection",
-                            label: "Remove",
+                            label: i18n._(t`Remove`),
                             icon: <TrashSimpleIcon />,
                             onClick: (e) => {
                               e.stopPropagation();
@@ -257,7 +271,7 @@ export default function Connections({
               <Text size="sm" c="dimmed" fw="bold">
                 <Group gap="xs">
                   <IntersectSquareIcon weight="bold" />
-                  RELATED
+                  <Trans>RELATED</Trans>
                 </Group>
               </Text>
               <Group>
@@ -324,7 +338,7 @@ export default function Connections({
                                           handleReload();
                                         });
                                       }}
-                                      title="Connect this idea"
+                                      title={i18n._(t`Connect this idea`)}
                                     >
                                       <UniteSquareIcon size={14} weight="bold" />
                                     </ActionIcon>
@@ -336,7 +350,7 @@ export default function Connections({
                                     onClick={() => {
                                       navigate(`/idea/${relatedIdea.id.toString()}`);
                                     }}
-                                    title="View related idea"
+                                    title={i18n._(t`View related idea`)}
                                   >
                                     <ArrowRightIcon size={14} weight="bold" />
                                   </ActionIcon>
@@ -364,7 +378,7 @@ export default function Connections({
               {(styles) => {
                 return (
                   <Text style={styles} size="xs" c="dimmed" mb="md">
-                    No related ideas yet.
+                    <Trans>No related ideas yet.</Trans>
                   </Text>
                 );
               }}
@@ -375,7 +389,7 @@ export default function Connections({
                   <Group style={styles} mt="md">
                     <Loader size="xs" color="gray" />
                     <Text size="xs" c="dimmed">
-                      Finding similar ideas...
+                      <Trans>Finding similar ideas...</Trans>
                     </Text>
                   </Group>
                 );

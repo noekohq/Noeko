@@ -3,6 +3,9 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import styles from "./Idea.module.scss";
 import useFetch from "@core/hooks/useFetch";
 import { useDebouncedCallback } from "@mantine/hooks";
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
 import { useDocumentTitle } from "@core/hooks/useDocumentTitle";
 import { ISafeIdea } from "../../../../../shared/types/idea";
 import { IShareAccess } from "../../../../../app/database/models/share";
@@ -94,6 +97,7 @@ import { PaperTitle } from "@/core/design/components/Paper/PaperTitle/PaperTitle
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
 
 export default function Idea() {
+  const { i18n } = useLingui();
   const { ideaId } = useParams<{ ideaId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -196,15 +200,15 @@ export default function Idea() {
     onSuccess: () => {
       navigate(-1);
       showNotification({
-        title: "Success",
-        message: "Idea deleted successfully",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Idea deleted successfully`),
       });
     },
     onError: (error: any) => {
       isDeletingRef.current = false;
       showNotification({
-        title: "Error Deleting",
-        message: error?.message || "Unknown error",
+        title: i18n._(t`Error Deleting`),
+        message: error?.message || i18n._(t`Unknown error`),
         color: "red",
       });
     },
@@ -214,12 +218,14 @@ export default function Idea() {
     if (loadingDelete || isOptimistic) return;
 
     modals.openConfirmModal({
-      title: "Delete this idea?",
+      title: i18n._(t`Delete this idea?`),
       centered: true,
       children: (
-        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
+        <Text size="sm">
+          <Trans>This action cannot be undone. All associated data will be lost.</Trans>
+        </Text>
       ),
-      labels: { confirm: "Delete Idea", cancel: "Cancel" },
+      labels: { confirm: i18n._(t`Delete Idea`), cancel: i18n._(t`Cancel`) },
       confirmProps: { color: "red" },
       onConfirm: () => {
         isDeletingRef.current = true;
@@ -273,8 +279,8 @@ export default function Idea() {
   const titleNeedsGeneration = useCallback(() => {
     if (!ideaToRender) return false;
     const cleanTitle = ideaToRender.title?.replaceAll(/_/g, "").replaceAll(/\n/g, "");
-    return !cleanTitle || cleanTitle === "Untitled Idea";
-  }, [ideaToRender]);
+    return !cleanTitle || cleanTitle === i18n._(t`Untitled Idea`);
+  }, [ideaToRender, i18n]);
 
   const computeStateRef = useRef({
     isOptimistic,
@@ -319,7 +325,7 @@ export default function Idea() {
     };
   }, []);
 
-  useDocumentTitle(`${title || "Loading..."} - Noeko`);
+  useDocumentTitle(`${title || i18n._(t`Loading...`)} - Noeko`);
 
   useEffect(() => {
     if (ideaToRender) {
@@ -330,23 +336,34 @@ export default function Idea() {
 
   useEffect(() => {
     if (!ideaToRender) {
-      setStatusMessage("Still loading...");
+      setStatusMessage(i18n._(t`Still loading...`));
       return;
     }
     if (isOptimistic) {
-      setStatusMessage("Saving...");
+      setStatusMessage(i18n._(t`Saving...`));
       return;
     }
     const { wordCount, characterCount, sentenceCount } = getTextProcessed(
       htmlToPlainText(ideaToRender.content)
     );
-    let text = `Saved. ${wordCount} word${wordCount === 1 ? "" : "s"}. ${characterCount} char${
-      characterCount === 1 ? "" : "s"
-    }. ${sentenceCount} sentence${sentenceCount === 1 ? "" : "s"}.`;
-    if (loadingEmbeddings) text += " Indexing...";
+    const savedText = i18n._(t`Saved.`);
+    const wordsText = wordCount === 1 ? i18n._(t`1 word`) : i18n._(t`${wordCount} words`);
+    const charsText = characterCount === 1 ? i18n._(t`1 char`) : i18n._(t`${characterCount} chars`);
+    const sentencesText =
+      sentenceCount === 1 ? i18n._(t`1 sentence`) : i18n._(t`${sentenceCount} sentences`);
+
+    let text = `${savedText} ${wordsText}. ${charsText}. ${sentencesText}.`;
+    if (loadingEmbeddings) text += ` ${i18n._(t`Indexing...`)}`;
     setStatusMessage(text);
     return () => setStatusMessage("");
-  }, [ideaToRender?.id, ideaToRender?.content, isOptimistic, loadingEmbeddings, setStatusMessage]);
+  }, [
+    ideaToRender?.id,
+    ideaToRender?.content,
+    isOptimistic,
+    loadingEmbeddings,
+    setStatusMessage,
+    i18n,
+  ]);
 
   const updateTitle = async (newTitle: string) => {
     if (isOptimistic) return;
@@ -386,19 +403,19 @@ export default function Idea() {
               <Tabs.Tab value="context">
                 <Group gap="xs">
                   <IntersectSquareIcon weight="fill" size={14} />
-                  Context
+                  <Trans>Context</Trans>
                 </Group>
               </Tabs.Tab>
               <Tabs.Tab value="files" disabled={isOptimistic}>
                 <Group gap="xs">
                   <FileIcon weight="bold" />
-                  Attachments
+                  <Trans>Attachments</Trans>
                 </Group>
               </Tabs.Tab>
               <Tabs.Tab value="insights" disabled={isOptimistic}>
                 <Group gap="xs">
                   <EyeIcon weight="bold" />
-                  Insights
+                  <Trans>Insights</Trans>
                 </Group>
               </Tabs.Tab>
             </Tabs.List>
@@ -416,13 +433,13 @@ export default function Idea() {
                   }}
                 >
                   <Text fw={"bold"} c="dimmed" size="sm" mb={4}>
-                    The Gist
+                    <Trans>The Gist</Trans>
                   </Text>
                   <Text size="sm">
                     {safeIdea.derived.generative_summary.sentenceSummary ||
                       safeIdea.derived.generative_summary.sentenceOverview || (
                         <Text span c="dimmed" fs="italic">
-                          No overview available.
+                          <Trans>No overview available.</Trans>
                         </Text>
                       )}
                   </Text>
@@ -489,7 +506,9 @@ export default function Idea() {
               >
                 <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
                   <Tooltip
-                    label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
+                    label={i18n._(
+                      t`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : i18n._(t`Unknown Author`)}`
+                    )}
                     transitionProps={{
                       transition: "rotate-right",
                       duration: 200,
@@ -500,7 +519,7 @@ export default function Idea() {
                       <Text size="xs" fw="500">
                         {ideaToRender?.author
                           ? userFormattedName(ideaToRender?.author)
-                          : "Unknown Author"}
+                          : i18n._(t`Unknown Author`)}
                       </Text>
                     </Group>
                   </Tooltip>
@@ -508,7 +527,7 @@ export default function Idea() {
                     •
                   </Text>
                   <Tooltip
-                    label="Created at"
+                    label={i18n._(t`Created at`)}
                     transitionProps={{
                       transition: "rotate-right",
                       duration: 200,
@@ -517,7 +536,9 @@ export default function Idea() {
                     <Group gap="4px" align="center">
                       <ClockIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
                       <Text size="xs" fw="500">
-                        {ideaToRender?.createdAt ? `${formatDate(ideaToRender.createdAt)}` : "Now"}
+                        {ideaToRender?.createdAt
+                          ? `${formatDate(ideaToRender.createdAt)}`
+                          : i18n._(t`Now`)}
                       </Text>
                     </Group>
                   </Tooltip>
@@ -525,7 +546,7 @@ export default function Idea() {
                     •
                   </Text>
                   <Tooltip
-                    label="Last updated"
+                    label={i18n._(t`Last updated`)}
                     transitionProps={{
                       transition: "rotate-right",
                       duration: 200,
@@ -540,7 +561,7 @@ export default function Idea() {
                       <Text size="xs" fw="500">
                         {ideaToRender?.updatedAt
                           ? `${formatDateTime(ideaToRender.updatedAt)}`
-                          : "Now"}
+                          : i18n._(t`Now`)}
                       </Text>
                     </Group>
                   </Tooltip>
@@ -605,14 +626,14 @@ export default function Idea() {
               <Tabs.Tab value="search">
                 <Group gap="xs">
                   <MagnifyingGlassIcon weight="fill" size={14} />
-                  Search
+                  <Trans>Search</Trans>
                 </Group>
               </Tabs.Tab>
               {isOwner && (
                 <Tabs.Tab value="access" disabled={isOptimistic}>
                   <Group gap="xs">
                     <UserCirclePlusIcon weight="fill" size={14} />
-                    Access
+                    <Trans>Access</Trans>
                   </Group>
                 </Tabs.Tab>
               )}
@@ -622,7 +643,7 @@ export default function Idea() {
                 resultActions={[
                   (thing) => ({
                     id: "connect",
-                    label: "Connect",
+                    label: i18n._(t`Connect`),
                     onClick: () => connect(thing.id.toString()),
                     disabled: !!isConnected(thing.id.toString()) || isOptimistic,
                   }),
@@ -635,7 +656,7 @@ export default function Idea() {
                   (isMobile ? (
                     <Box p="md">
                       <Text size="sm" c="dimmed" ta="center">
-                        Access controls are in the top toolbar.
+                        <Trans>Access controls are in the top toolbar.</Trans>
                       </Text>
                     </Box>
                   ) : (
@@ -664,6 +685,7 @@ interface ITools {
 }
 
 function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) {
+  const { i18n } = useLingui();
   const { isMobile } = useLayout();
   const navigate = useNavigate();
   const { thingIsPinned, togglePin } = usePins();
@@ -716,21 +738,21 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
         actions={[
           {
             icon: PushPinIcon,
-            name: isPinned ? "Unpin" : "Pin",
+            name: isPinned ? i18n._(t`Unpin`) : i18n._(t`Pin`),
             run: () => !pinning && handleTogglePin(),
             disabled: isOptimistic,
             weight: isPinned ? "fill" : "bold",
           },
           {
             icon: UniteSquareIcon,
-            name: "Manage Connections",
+            name: i18n._(t`Manage Connections`),
             run: () => setManagingConnections(true),
             disabled: isOptimistic,
             invisible: !isMobile,
           },
           {
             icon: UserCirclePlusIcon,
-            name: "Manage Access",
+            name: i18n._(t`Manage Access`),
             run: () => setManagingAccess(true),
             disabled: isOptimistic,
             invisible: !isMobile,
@@ -751,7 +773,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
                 <div>
                   <ActionIcon
                     size={size}
-                    aria-label="Download"
+                    aria-label={i18n._(t`Download`)}
                     radius={radius}
                     variant="subtle"
                     color="gray"
@@ -763,10 +785,10 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
 
               <Menu.Dropdown>
                 <Menu.Item leftSection={<BracketsAngleIcon />} onClick={downloadAsHTML}>
-                  Export as HTML
+                  <Trans>Export as HTML</Trans>
                 </Menu.Item>
                 <Menu.Item leftSection={<MarkdownLogoIcon />} onClick={downloadAsMarkdown}>
-                  Export as Markdown
+                  <Trans>Export as Markdown</Trans>
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -783,7 +805,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
               <Menu.Target>
                 <div>
                   <ActionIcon
-                    aria-label="More options"
+                    aria-label={i18n._(t`More options`)}
                     size={size}
                     radius={radius}
                     variant="subtle"
@@ -796,7 +818,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
               </Menu.Target>
 
               <Menu.Dropdown>
-                <Tooltip label="Delete Idea">
+                <Tooltip label={i18n._(t`Delete Idea`)}>
                   <Menu.Item
                     color="red"
                     leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
@@ -804,7 +826,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
                     onClick={onDelete}
                     disabled={loadingDelete}
                   >
-                    Delete
+                    <Trans>Delete</Trans>
                   </Menu.Item>
                 </Tooltip>
 
@@ -813,7 +835,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
                   onClick={() => setManagingFiles(true)}
                   disabled={isOptimistic}
                 >
-                  Manage Files
+                  <Trans>Manage Files</Trans>
                 </Menu.Item>
 
                 <CopyButton value={getMarkdownContent()}>
@@ -822,7 +844,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
                       leftSection={copied ? <CheckIcon /> : <MarkdownLogoIcon />}
                       onClick={copy}
                     >
-                      Copy as Markdown
+                      <Trans>Copy as Markdown</Trans>
                     </Menu.Item>
                   )}
                 </CopyButton>
@@ -834,7 +856,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
                         leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
                         onClick={copy}
                       >
-                        Copy as Text
+                        <Trans>Copy as Text</Trans>
                       </Menu.Item>
                     )}
                   </CopyButton>
@@ -847,7 +869,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
                         leftSection={copied ? <CheckIcon /> : <CursorTextIcon />}
                         onClick={copy}
                       >
-                        Copy as HTML
+                        <Trans>Copy as HTML</Trans>
                       </Menu.Item>
                     )}
                   </CopyButton>
@@ -861,7 +883,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
       {!isOptimistic && isMobile && (
         <>
           <PaperDrawer
-            title="Manage Connections"
+            title={i18n._(t`Manage Connections`)}
             opened={managingConnections}
             onClose={() => setManagingConnections(false)}
           >
@@ -869,7 +891,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
           </PaperDrawer>
 
           <PaperDrawer
-            title="Manage Access"
+            title={i18n._(t`Manage Access`)}
             opened={managingAccess}
             onClose={() => setManagingAccess(false)}
           >
@@ -877,7 +899,7 @@ function Tools({ idea, editor, isOptimistic, onDelete, loadingDelete }: ITools) 
           </PaperDrawer>
 
           <PaperDrawer
-            title="Manage Files"
+            title={i18n._(t`Manage Files`)}
             opened={managingFiles}
             onClose={() => setManagingFiles(false)}
           >

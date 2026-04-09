@@ -1,3 +1,6 @@
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
 import {
   ActionIcon,
   Badge,
@@ -33,6 +36,7 @@ import { useApiQuery } from "@/core/hooks/useApiQuery";
 import useRabbitholes from "../../hooks/useRabbitholes";
 
 export default function Rabbitholes() {
+  const { i18n } = useLingui();
   const {
     all: { data: rabbitholes, loading: loadingRabbitholes },
   } = useRabbitholes();
@@ -73,22 +77,28 @@ export default function Rabbitholes() {
           <Group>
             <Group>
               <RabbitIcon size="36px" weight="bold" />
-              <Title>Rabbitholes</Title>
+              <Title>
+                <Trans>Rabbitholes</Trans>
+              </Title>
               <HoverCard openDelay={400} width="300px">
                 <HoverCard.Target>
                   <Badge color="orange" size="sm" variant="light">
-                    ALPHA
+                    <Trans>ALPHA</Trans>
                   </Badge>
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
                   <Stack gap="xs">
                     <Text size="sm">
-                      Rabbitholes are currently under active development and some features might not
-                      work as expected. We're looking for feedback as we continue to improve them :)
+                      <Trans>
+                        Rabbitholes are currently under active development and some features might
+                        not work as expected. We're looking for feedback as we learn and grow :)
+                      </Trans>
                     </Text>
                     <Text size="xs" c="dimmed">
-                      This feature will remain free during its experimental phases, limits may apply
-                      in future iterations.
+                      <Trans>
+                        This feature will remain free during its experimental phases, limits may
+                        apply in future iterations.
+                      </Trans>
                     </Text>
                     <ActionIcon
                       size="sm"
@@ -117,7 +127,7 @@ export default function Rabbitholes() {
             </Group>
           </Group>
           <TextInput
-            placeholder="Filter rabbitholes..."
+            placeholder={i18n._(t`Filter rabbitholes...`)}
             value={filterQuery}
             onChange={(event) => setFilterQuery(event.currentTarget.value)}
             mb="md"
@@ -126,7 +136,7 @@ export default function Rabbitholes() {
           {!rabbitholes?.length && (
             <>
               <Text c="gray" size="sm">
-                You do not have any rabbitholes.
+                <Trans>You do not have any rabbitholes.</Trans>
               </Text>
               <Group>
                 <Button
@@ -136,7 +146,7 @@ export default function Rabbitholes() {
                     newRabbithole();
                   }}
                 >
-                  Create One
+                  <Trans>Create One</Trans>
                 </Button>
               </Group>
             </>
@@ -153,7 +163,7 @@ export default function Rabbitholes() {
             >
               {filteredRabbitholes.map((rabbithole) => {
                 const props = getThingPropsFromRabbithole(rabbithole, {
-                  detail: `Last active ${formatDateTime(rabbithole.updatedAt)}`,
+                  detail: i18n._(t`Last active ${formatDateTime(rabbithole.updatedAt)}`),
                 });
                 return <GridCard key={rabbithole.id.toString()} {...props} />;
               })}

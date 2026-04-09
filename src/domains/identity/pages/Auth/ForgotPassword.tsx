@@ -18,8 +18,12 @@ import { showNotification } from "@mantine/notifications";
 import { validateEmail } from "@core/utils/data";
 import StageIndicator from "@core/design/components/Utils/StageIndicator";
 import { useState } from "react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react";
 
 export default function ForgotPassword() {
+  const { i18n } = useLingui();
   const [emailSent, setEmailSent] = useState(false);
 
   const forgotPasswordForm = useForm({
@@ -29,10 +33,10 @@ export default function ForgotPassword() {
     validate: {
       email: (value) => {
         if (!value) {
-          return "Email is required";
+          return i18n._(t`Email is required`);
         }
         if (!validateEmail(value)) {
-          return "Invalid email";
+          return i18n._(t`Invalid email`);
         }
       },
     },
@@ -51,7 +55,7 @@ export default function ForgotPassword() {
     onSuccess: (data) => {
       setEmailSent(true);
       showNotification({
-        title: "Reset Email Sent",
+        title: i18n._(t`Reset Email Sent`),
         message: data.message,
       });
     },
@@ -89,18 +93,24 @@ export default function ForgotPassword() {
             )}
             <Grid.Col span={12}>
               <Group>
-                <Title>Reset Password</Title>
+                <Title>
+                  <Trans>Reset Password</Trans>
+                </Title>
               </Group>
             </Grid.Col>
             <Grid.Col span={12}>
               {!emailSent ? (
                 <Text size="sm" c="dimmed">
-                  Enter your email address and we'll send you a link to reset your password.
+                  <Trans>
+                    Enter your email address and we'll send you a link to reset your password.
+                  </Trans>
                 </Text>
               ) : (
                 <Text size="sm" c="dimmed">
-                  If an account with that email exists, we've sent you a password reset link. Check
-                  your email and follow the instructions to reset your password.
+                  <Trans>
+                    If an account with that email exists, we've sent you a password reset link.
+                    Check your email and follow the instructions to reset your password.
+                  </Trans>
                 </Text>
               )}
             </Grid.Col>
@@ -109,8 +119,8 @@ export default function ForgotPassword() {
               <>
                 <Grid.Col span={{ sm: 12 }}>
                   <TextInput
-                    label="Email"
-                    placeholder="Enter your email address"
+                    label={t`Email`}
+                    placeholder={t`Enter your email address`}
                     {...forgotPasswordForm.getInputProps("email")}
                     withAsterisk
                   />
@@ -119,10 +129,10 @@ export default function ForgotPassword() {
                 <Grid.Col span={{ sm: 12 }}>
                   <Group justify="space-between">
                     <Button component={Link} to="/login" variant="default">
-                      Back to Login
+                      <Trans>Back to Login</Trans>
                     </Button>
                     <Button onClick={handleSendReset} disabled={loadingSendReset}>
-                      Send Reset Link
+                      <Trans>Send Reset Link</Trans>
                     </Button>
                   </Group>
                 </Grid.Col>
@@ -132,7 +142,7 @@ export default function ForgotPassword() {
               <Grid.Col span={{ sm: 12 }}>
                 <Group justify="center">
                   <Button component={Link} to="/login" variant="default">
-                    Back to Login
+                    <Trans>Back to Login</Trans>
                   </Button>
                 </Group>
               </Grid.Col>

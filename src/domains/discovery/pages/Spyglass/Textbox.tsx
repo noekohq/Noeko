@@ -2,6 +2,9 @@ import { Group } from "@mantine/core";
 import styles from "./Textbox.module.scss";
 import { ArrowsClockwiseIcon, PaperPlaneRightIcon } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import PaperChip from "@core/design/components/Paper/PaperChip";
 import PaperIcon from "@core/design/components/Paper/PaperIcon";
 import { IGraphFilters } from "../../../../../shared/types/constellation";
@@ -32,6 +35,7 @@ export default function Textbox({
   scope,
   onScopeChange,
 }: ITextboxProps) {
+  const { i18n } = useLingui();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [sendingAnimation, setSendingAnimation] = useState(false);
 
@@ -130,11 +134,11 @@ export default function Textbox({
                 setDeepAnalysis(!deepAnalysis);
               }}
             >
-              Deep Focus
+              <Trans>Deep Focus</Trans>
             </PaperChip>
             {initialized && (
               <PaperIcon
-                aria-label="Reset Spyglass"
+                aria-label={i18n._(t`Reset Spyglass`)}
                 onClick={() => {
                   onReset();
                 }}
@@ -143,7 +147,7 @@ export default function Textbox({
               </PaperIcon>
             )}
             <PaperIcon
-              aria-label="Submit query"
+              aria-label={i18n._(t`Submit query`)}
               onClick={(e) => {
                 e.stopPropagation();
                 send();

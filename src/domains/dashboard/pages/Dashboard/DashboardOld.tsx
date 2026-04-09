@@ -41,10 +41,14 @@ import { showNotification } from "@mantine/notifications";
 import { useState } from "react";
 import { userIsSuperuser } from "@domains/identity/utils/user";
 import { useInteraction } from "@/contexts/InteractionContext";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans, Plural } from "@lingui/react/macro";
 import Content from "@core/design/components/Layout/Content";
 import TopBar from "@core/design/components/Layout/TopBar";
 
 export default function Dashboard() {
+  const { i18n } = useLingui();
   const { user } = useAuth();
 
   const os = getOS();
@@ -73,18 +77,35 @@ export default function Dashboard() {
   const totalIdeas = dashboardData?.ideaStats.total;
   const totalUsers = dashboardData?.totalUsers;
 
+  const timeOfDay = {
+    morning: i18n._(t`morning`),
+    afternoon: i18n._(t`afternoon`),
+    evening: i18n._(t`evening`),
+  }[getCurrentTimeOfDay()];
+
   const getStatusText = () => {
     if (totalIdeas === undefined) {
-      return "Loading...";
+      return <Trans>Loading...</Trans>;
     }
-    let text = "Hello there!";
-    if (totalUsers) {
-      text += ` You are using Noeko with ${totalUsers - 1} other people.`;
-    }
-    if (totalIdeas && totalIdeas > 0) {
-      text += ` You have ${totalIdeas} idea${totalIdeas === 1 ? "" : "s"}!`;
-    }
-    return text;
+    return (
+      <>
+        <Trans>Hello there!</Trans>
+        {totalUsers && (
+          <>
+            {" "}
+            <Trans>You are using Noeko with {totalUsers - 1} other people.</Trans>
+          </>
+        )}
+        {totalIdeas && totalIdeas > 0 && (
+          <>
+            {" "}
+            <Trans>
+              You have <Plural value={totalIdeas} one="# idea" other="# ideas" />!
+            </Trans>
+          </>
+        )}
+      </>
+    );
   };
 
   const navigate = useNavigate();
@@ -114,7 +135,9 @@ export default function Dashboard() {
           </Text>
           <Space my="lg" />
           <Group align="baseline" gap="sm">
-            <Title order={3}>Recent Ideas</Title>
+            <Title order={3}>
+              <Trans>Recent Ideas</Trans>
+            </Title>
             <Link
               to="/ideas"
               style={{
@@ -122,7 +145,7 @@ export default function Dashboard() {
               }}
             >
               <Text c="dimmed" size="xs" fw="bold">
-                VIEW ALL
+                <Trans>VIEW ALL</Trans>
               </Text>
             </Link>
           </Group>
@@ -130,9 +153,11 @@ export default function Dashboard() {
           {!dashboardData?.recentIdeas?.length && (
             <>
               <Text size="sm" c="gray" mb="md">
-                You have no ideas yet!
+                <Trans>You have no ideas yet!</Trans>
               </Text>
-              <Button variant="light">Add an idea!</Button>
+              <Button variant="light">
+                <Trans>Add an idea!</Trans>
+              </Button>
             </>
           )}
           <Stack gap="xs">
@@ -149,12 +174,16 @@ export default function Dashboard() {
             <Group mb="sm">
               <HandWaving weight="bold" size="36px" />
               <Title>
-                Good {getCurrentTimeOfDay()}, {user?.firstName}
+                <Trans>
+                  Good {timeOfDay}, {user?.firstName}
+                </Trans>
               </Title>
             </Group>
             <Group>
               <Text size="sm" c="dimmed">
-                Poke around, have fun, enjoy your time and don't be afraid to give us feedback!
+                <Trans>
+                  Poke around, have fun, enjoy your time and don't be afraid to give us feedback!
+                </Trans>
               </Text>
             </Group>
           </Grid.Col>
@@ -171,7 +200,9 @@ export default function Dashboard() {
                   >
                     <Group>
                       <NotePencilIcon weight="bold" />
-                      <Text>Add Idea</Text>
+                      <Text>
+                        <Trans>Add Idea</Trans>
+                      </Text>
                       <Kbd>{primaryKey} + I</Kbd>
                     </Group>
                   </Button>
@@ -179,20 +210,26 @@ export default function Dashboard() {
                     <Button variant="default">
                       <Group>
                         <Scroll />
-                        <Text>See latest updates</Text>
+                        <Text>
+                          <Trans>See latest updates</Trans>
+                        </Text>
                       </Group>
                     </Button>
                   </Link>
                   <Button variant="default">
                     <Group>
-                      <Text>Dashboard view</Text>
+                      <Text>
+                        <Trans>Dashboard view</Trans>
+                      </Text>
                       <Kbd>{primaryKey} + H</Kbd>
                     </Group>
                   </Button>
                   <Link to="/ideas">
                     <Button variant="default">
                       <Group>
-                        <Text>All ideas</Text>
+                        <Text>
+                          <Trans>All ideas</Trans>
+                        </Text>
                         <Kbd>{primaryKey} + B</Kbd>
                       </Group>
                     </Button>
@@ -200,7 +237,9 @@ export default function Dashboard() {
                   <Link to="/graph">
                     <Button variant="default">
                       <Group>
-                        <Text>Constellation</Text>
+                        <Text>
+                          <Trans>Constellation</Trans>
+                        </Text>
                         <Kbd>{primaryKey} + G</Kbd>
                       </Group>
                     </Button>
@@ -208,7 +247,9 @@ export default function Dashboard() {
                   <Link to="/spyglass">
                     <Button variant="default">
                       <Group>
-                        <Text>Spyglass</Text>
+                        <Text>
+                          <Trans>Spyglass</Trans>
+                        </Text>
                         <Kbd>{primaryKey} + Shift + /</Kbd>
                       </Group>
                     </Button>
@@ -216,7 +257,9 @@ export default function Dashboard() {
                   <Link to="/settings">
                     <Button variant="default">
                       <Group>
-                        <Text>Settings</Text>
+                        <Text>
+                          <Trans>Settings</Trans>
+                        </Text>
                         <Kbd>{primaryKey} + .</Kbd>
                       </Group>
                     </Button>
@@ -225,7 +268,9 @@ export default function Dashboard() {
                     <Link to="/admin">
                       <Button variant="default">
                         <Group>
-                          <Text>Admin Panel</Text>
+                          <Text>
+                            <Trans>Admin Panel</Trans>
+                          </Text>
                           <Kbd>{primaryKey} + ;</Kbd>
                         </Group>
                       </Button>
@@ -234,21 +279,27 @@ export default function Dashboard() {
                   <Link to="/ideas/shared">
                     <Button variant="default">
                       <Group>
-                        <Text>Shared ideas</Text>
+                        <Text>
+                          <Trans>Shared ideas</Trans>
+                        </Text>
                       </Group>
                     </Button>
                   </Link>
                   <Link to="/rabbitholes">
                     <Button variant="default">
                       <Group>
-                        <Text>Rabbitholes</Text>
+                        <Text>
+                          <Trans>Rabbitholes</Trans>
+                        </Text>
                       </Group>
                     </Button>
                   </Link>
                   <Link to="/tags">
                     <Button variant="default">
                       <Group>
-                        <Text>Manage Tags</Text>
+                        <Text>
+                          <Trans>Manage Tags</Trans>
+                        </Text>
                       </Group>
                     </Button>
                   </Link>
@@ -266,7 +317,7 @@ export default function Dashboard() {
                     }}
                     fullWidth
                   >
-                    Idea
+                    <Trans>Idea</Trans>
                   </Button>
                 </Group>
                 <Space my="md" />
@@ -279,7 +330,9 @@ export default function Dashboard() {
                 <Grid grow>
                   <Grid.Col span={{ sm: 12 }}>
                     <Group align="baseline" gap="sm">
-                      <Title order={3}>Recent Ideas</Title>
+                      <Title order={3}>
+                        <Trans>Recent Ideas</Trans>
+                      </Title>
                       <Link
                         to="/ideas"
                         style={{
@@ -287,7 +340,7 @@ export default function Dashboard() {
                         }}
                       >
                         <Text c="dimmed" size="xs" fw="bold">
-                          VIEW ALL <ArrowRight />
+                          <Trans>VIEW ALL</Trans> <ArrowRight />
                         </Text>
                       </Link>
                     </Group>

@@ -49,6 +49,7 @@ import { useAuth } from "@domains/identity/contexts/AuthContext";
 import useFetch from "@core/hooks/useFetch";
 import { formatDateTime } from "@core/utils/formatting";
 import { userInitials } from "@domains/identity/utils/user";
+import { Trans } from "@lingui/react/macro";
 import styles from "./Mobile.module.scss";
 
 interface IRelationship {
@@ -68,8 +69,12 @@ export default function MobileDashboard() {
         <div className={styles.dashboard}>
           <Pillbar defaultValue={currentTab} onChange={setCurrentTab}>
             <Pillbar.List>
-              <Pillbar.Tab value="overview">Overview</Pillbar.Tab>
-              <Pillbar.Tab value="shared">Shared</Pillbar.Tab>
+              <Pillbar.Tab value="overview">
+                <Trans>Overview</Trans>
+              </Pillbar.Tab>
+              <Pillbar.Tab value="shared">
+                <Trans>Shared</Trans>
+              </Pillbar.Tab>
             </Pillbar.List>
 
             <Pillbar.Panel value="overview">
@@ -114,7 +119,9 @@ function AcceleratorOverview({ setTab }: { setTab: (t: string) => void }) {
           <ThemeIcon size="xl" radius="xl" variant="light" color="gray">
             <LightningIcon />
           </ThemeIcon>
-          <Text>No immediate actions found.</Text>
+          <Text>
+            <Trans>No immediate actions found.</Trans>
+          </Text>
         </Stack>
       </Center>
     );
@@ -242,7 +249,7 @@ function Shared() {
         <Title order={4}>
           <Group gap="xs" align="center">
             <ShareNetworkIcon />
-            Sharing
+            <Trans>Sharing</Trans>
           </Group>
         </Title>
         {relationships.length > 0 && (
@@ -252,14 +259,16 @@ function Shared() {
             onClick={toggleAll}
             leftSection={allCollapsed ? <ArrowsOutSimpleIcon /> : <ArrowsInSimpleIcon />}
           >
-            {allCollapsed ? "Expand All" : "Collapse All"}
+            {allCollapsed ? <Trans>Expand All</Trans> : <Trans>Collapse All</Trans>}
           </Button>
         )}
       </Group>
 
       {relationships.length === 0 && (
         <Center h={200}>
-          <Text c="dimmed">You haven't shared anything with anyone yet.</Text>
+          <Text c="dimmed">
+            <Trans>You haven't shared anything with anyone yet.</Trans>
+          </Text>
         </Center>
       )}
 
@@ -285,19 +294,19 @@ function Shared() {
                       {getPrincipalName(rel.user)}
                     </Text>
                     <Text c="dimmed" size="xs">
-                      Last active {formatDateTime(rel.lastActivity)}
+                      <Trans>Last active {formatDateTime(rel.lastActivity)}</Trans>
                     </Text>
                   </Stack>
                 </Group>
                 <Group gap={4}>
                   {rel.incoming.length > 0 && (
                     <Badge variant="light" color="green">
-                      Received {rel.incoming.length}
+                      <Trans>Received {rel.incoming.length}</Trans>
                     </Badge>
                   )}
                   {rel.outgoing.length > 0 && (
                     <Badge variant="light" color="blue">
-                      Sent {rel.outgoing.length}
+                      <Trans>Sent {rel.outgoing.length}</Trans>
                     </Badge>
                   )}
                 </Group>
@@ -312,7 +321,7 @@ function Shared() {
                       <Group gap="xs">
                         <ArrowDownLeftIcon weight="bold" />
                         <Text size="xs" fw={700} tt="uppercase">
-                          Shared by {userName}
+                          <Trans>Shared by {userName}</Trans>
                         </Text>
                       </Group>
                       {isIncomingCollapsed ? <CaretDownIcon /> : <CaretUpIcon />}
@@ -339,7 +348,7 @@ function Shared() {
                       <Group gap="xs">
                         <ArrowUpRightIcon weight="bold" />
                         <Text size="xs" fw={700} tt="uppercase">
-                          Shared by You
+                          <Trans>Shared by You</Trans>
                         </Text>
                       </Group>
                       {isOutgoingCollapsed ? <CaretDownIcon /> : <CaretUpIcon />}

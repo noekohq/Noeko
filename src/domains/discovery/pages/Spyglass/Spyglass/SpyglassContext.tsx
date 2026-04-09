@@ -1,4 +1,5 @@
 import { ActionIcon, Group, Stack, Text } from "@mantine/core";
+import { Trans, Plural } from "@lingui/react/macro";
 import { ISpyglassSearch } from "../../../../../../app/database/models/search";
 import { ICitationMap } from "@domains/discovery/hooks/useSpyglassService";
 import { useSpyglassRecord } from "../hooks/useSpyglass";
@@ -23,14 +24,17 @@ export default function SpyglassContext({ results, citationMap }: ISpyglassConte
     <Stack gap="xs">
       {citations && citations.length < 1 && (
         <Text fw="bold" c="dimmed" size="sm">
-          No findings here yet, try asking something!
+          <Trans>No findings here yet, try asking something!</Trans>
         </Text>
       )}
       {citations && citations.length > 0 && (
         <>
           <Text fw="bold" size="sm" c="dimmed">
-            FINDINGS IN {citations.length} RESOURCES
-            {citations.length > 1 ? "S" : ""}
+            <Plural
+              value={citations.length}
+              one="FINDINGS IN # RESOURCE"
+              other="FINDINGS IN # RESOURCES"
+            />
           </Text>
           {citations.map((c) => {
             if (!c) {

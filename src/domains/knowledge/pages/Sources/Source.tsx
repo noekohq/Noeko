@@ -16,6 +16,9 @@ import {
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
+import { useLingui } from "@lingui/react";
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "@mantine/hooks";
 
@@ -58,6 +61,7 @@ import {
 import PaperExcerpt from "@/core/design/components/Paper/Excerpt/PaperExcerpt";
 
 export default function Source() {
+  const { i18n } = useLingui();
   const { sourceId } = useParams();
   const navigate = useNavigate();
 
@@ -151,8 +155,8 @@ export default function Source() {
       debouncedUpdate({ [field]: value });
     } catch (error) {
       showNotification({
-        title: "Something went wrong",
-        message: "Something went wrong updating the field...",
+        title: i18n._(t`Something went wrong`),
+        message: i18n._(t`Something went wrong updating the field...`),
         color: "red",
       });
       console.error("Couldn't update field: ", error);
@@ -167,15 +171,15 @@ export default function Source() {
     onSuccess: () => {
       navigate(-1);
       showNotification({
-        title: "Success",
-        message: "Source deleted successfully",
+        title: i18n._(t`Success`),
+        message: i18n._(t`Source deleted successfully`),
       });
     },
     onError: (error: any) => {
       isDeletingRef.current = false;
       showNotification({
-        title: "Error Deleting",
-        message: error?.message || "Unknown error",
+        title: i18n._(t`Error Deleting`),
+        message: error?.message || i18n._(t`Unknown error`),
         color: "red",
       });
     },
@@ -185,12 +189,14 @@ export default function Source() {
     if (loadingDelete) return;
 
     modals.openConfirmModal({
-      title: "Delete this source?",
+      title: i18n._(t`Delete this source?`),
       centered: true,
       children: (
-        <Text size="sm">This action cannot be undone. All associated data will be lost.</Text>
+        <Text size="sm">
+          <Trans>This action cannot be undone. All associated data will be lost.</Trans>
+        </Text>
       ),
-      labels: { confirm: "Delete Source", cancel: "Cancel" },
+      labels: { confirm: i18n._(t`Delete Source`), cancel: i18n._(t`Cancel`) },
       confirmProps: { color: "red" },
       onConfirm: () => {
         isDeletingRef.current = true;
@@ -217,19 +223,19 @@ export default function Source() {
                 <Tabs.Tab value="context">
                   <Group gap="xs">
                     <IntersectSquareIcon weight="fill" size={14} />
-                    Context
+                    <Trans>Context</Trans>
                   </Group>
                 </Tabs.Tab>
                 <Tabs.Tab value="analysis">
                   <Group gap="xs">
                     <FileMagnifyingGlassIcon />
-                    Analysis
+                    <Trans>Analysis</Trans>
                   </Group>
                 </Tabs.Tab>
                 <Tabs.Tab value="excerpts">
                   <Group gap="xs">
                     <TextAlignLeftIcon />
-                    Excerpts
+                    <Trans>Excerpts</Trans>
                   </Group>
                 </Tabs.Tab>
               </Tabs.List>
@@ -238,7 +244,7 @@ export default function Source() {
                 <Stack gap="md" mt="md">
                   {!source?.analysis && (
                     <Text size="xs" c="dimmed">
-                      This source hasn't been analyzed.
+                      <Trans>This source hasn't been analyzed.</Trans>
                     </Text>
                   )}
                   {source?.analysis && (
@@ -253,7 +259,7 @@ export default function Source() {
                       }}
                     >
                       <Text fw="bold" c="dimmed" size="sm" mb={4}>
-                        The Gist
+                        <Trans>The Gist</Trans>
                       </Text>
                       <Text size="sm">{source.analysis.headline}</Text>
                     </Card>
@@ -299,7 +305,7 @@ export default function Source() {
                 <Group gap="xs">
                   {source && (
                     <PaperTitle
-                      title={source.displayName || "Untitled Source"}
+                      title={source.displayName || i18n._(t`Untitled Source`)}
                       onUpdate={(newTitle) => handleFieldUpdate("displayName", newTitle)}
                       canEdit={true}
                     />
@@ -316,14 +322,16 @@ export default function Source() {
                   <Suspense
                     fallback={
                       <Text size="xs" c="dimmed">
-                        Loading viewer...
+                        <Trans>Loading viewer...</Trans>
                       </Text>
                     }
                   >
                     {Viewer ? (
                       <Viewer fileId={file.id.toString()} withinSource />
                     ) : (
-                      <Text>No viewer available for this type of file :/</Text>
+                      <Text>
+                        <Trans>No viewer available for this type of file :/</Trans>
+                      </Text>
                     )}
                   </Suspense>
                 </div>
@@ -356,7 +364,7 @@ export default function Source() {
                         radius="md"
                         leftSection={<FileIcon />}
                       >
-                        Go to file
+                        <Trans>Go to file</Trans>
                       </Button>
                     </Link>
                   </Group>
@@ -367,7 +375,7 @@ export default function Source() {
                   (thing) => {
                     return {
                       id: "connect",
-                      label: "Connect",
+                      label: i18n._(t`Connect`),
                       onClick: () => {
                         connect(thing.id.toString());
                       },
@@ -400,6 +408,7 @@ function SourceTools({
   onRequestAnalysis,
   loadingAnalysis,
 }: ISourceTools) {
+  const { i18n } = useLingui();
   const { isMobile } = useLayout();
   const navigate = useNavigate();
   const { thingIsPinned, togglePin } = usePins();
@@ -426,13 +435,13 @@ function SourceTools({
         actions={[
           {
             icon: PushPinIcon,
-            name: isPinned ? "Unpin" : "Pin",
+            name: isPinned ? i18n._(t`Unpin`) : i18n._(t`Pin`),
             run: () => !pinning && handleTogglePin(),
             weight: isPinned ? "fill" : "bold",
           },
           {
             icon: UniteSquareIcon,
-            name: "Manage Connections",
+            name: i18n._(t`Manage Connections`),
             run: () => setManagingConnections(true),
             invisible: !isMobile,
           },
@@ -451,7 +460,7 @@ function SourceTools({
               <Menu.Target>
                 <div>
                   <ActionIcon
-                    aria-label="More options"
+                    aria-label={i18n._(t`More options`)}
                     size={size}
                     radius={radius}
                     variant="subtle"
@@ -463,14 +472,14 @@ function SourceTools({
               </Menu.Target>
 
               <Menu.Dropdown>
-                <Tooltip label="Delete Source">
+                <Tooltip label={i18n._(t`Delete Source`)}>
                   <Menu.Item
                     color="red"
                     leftSection={loadingDelete ? <Loader size="xs" /> : <TrashSimpleIcon />}
                     onClick={onDelete}
                     disabled={loadingDelete}
                   >
-                    Delete
+                    <Trans>Delete</Trans>
                   </Menu.Item>
                 </Tooltip>
               </Menu.Dropdown>
@@ -482,7 +491,7 @@ function SourceTools({
       {isMobile && (
         <>
           <PaperDrawer
-            title="Manage Connections"
+            title={i18n._(t`Manage Connections`)}
             opened={managingConnections}
             onClose={() => setManagingConnections(false)}
           >
@@ -503,6 +512,7 @@ interface IAnalysisBlockProps {
 }
 
 function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalysisBlockProps) {
+  const { i18n } = useLingui();
   const [abstractOpen, setAbstractOpen] = useState(false);
 
   const abstract = analysis?.abstract ?? "";
@@ -517,11 +527,13 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
     return (
       <Stack mt="md">
         <Text size="sm" c="dimmed">
-          This source hasn't been analyzed.
+          <Trans>This source hasn't been analyzed.</Trans>
         </Text>
         <Text size="xs" c="dark.3">
-          Analysis uses third-party AI models in accordance with our{" "}
-          <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+          <Trans>
+            Analysis uses third-party AI models in accordance with our{" "}
+            <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+          </Trans>
         </Text>
         <Button
           variant="light"
@@ -533,7 +545,7 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
           color="gray"
           rightSection={<EyeIcon />}
         >
-          {loading ? "Analyzing..." : "Analyze source"}
+          {loading ? i18n._(t`Analyzing...`) : i18n._(t`Analyze source`)}
         </Button>
       </Stack>
     );
@@ -543,8 +555,10 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
     <>
       <Stack mt="md">
         <Text size="xs" c="dark.3">
-          Analysis uses third-party AI models in accordance with our{" "}
-          <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+          <Trans>
+            Analysis uses third-party AI models in accordance with our{" "}
+            <a href="https://www.noeko.app/privacy">Privacy Policy</a>.
+          </Trans>
         </Text>
         <Card
           radius="lg"
@@ -557,7 +571,7 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
           }}
         >
           <Text fw="bold" c="dimmed" size="sm" mb={4}>
-            The Gist
+            <Trans>The Gist</Trans>
           </Text>
           <Text size="sm">{analysis.headline}</Text>
         </Card>
@@ -573,7 +587,7 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
         >
           <Stack gap="md">
             <Text fw="bold" c="dimmed" size="sm" mb={4}>
-              Abstract
+              <Trans>Abstract</Trans>
             </Text>
             <Text size="sm">{getTruncatedAbstract()}</Text>
             {abstract.length > getTruncatedAbstract().length && (
@@ -584,7 +598,7 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
                   color="gray"
                   size="xs"
                 >
-                  More...
+                  <Trans>More...</Trans>
                 </Button>
               </Group>
             )}
@@ -601,7 +615,9 @@ function AnalysisBlock({ analysis, source, loading, onRequestAnalysis }: IAnalys
         title={
           <Group gap="xs">
             <SparkleIcon />
-            <Text>Abstract</Text>
+            <Text>
+              <Trans>Abstract</Trans>
+            </Text>
           </Group>
         }
       >
@@ -627,7 +643,7 @@ function ExcerptsPanel({ setTarget }: IExcerptsPanelProps) {
     <Stack gap="sm" mt="md">
       {!all.length && (
         <Text size="sm" c="dimmed">
-          No excerpts yet, try highlighting some text :)
+          <Trans>No excerpts yet, try highlighting some text :)</Trans>
         </Text>
       )}
       {all.map((excerpt, index) => {
