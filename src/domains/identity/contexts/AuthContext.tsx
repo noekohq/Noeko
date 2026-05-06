@@ -5,7 +5,6 @@ import { showNotification } from "@mantine/notifications";
 import { getReferralLinkFromCode } from "@domains/identity/utils/users";
 import { handleLogout } from "@/infrastructure/api/auth";
 import { userIsSuperuser } from "@domains/identity/utils/user";
-import { Modal, Text } from "@mantine/core";
 
 type AuthState = {
   user: (ISafeUser & { totalIdeas: number }) | undefined;
