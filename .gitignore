@@ -137,5 +137,6 @@ credentials/*
 
 # Agentic Stuff
 .opencode/
+.codex/
 AGENTS.local.md
 #conductor

@@ -14,11 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-version: "3.9"
-
 services:
   surrealdb:
-    image: surrealdb/surrealdb:latest
+    # Keep the runtime on SurrealDB v2 until the app is migrated intentionally to v3.
+    image: surrealdb/surrealdb:v2
     env_file:
       - ./.env # Assuming .env is in the project root
     entrypoint:

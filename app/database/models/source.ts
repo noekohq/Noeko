@@ -4,6 +4,7 @@ import { getDatabase } from "../db";
 import { UserFile } from "./userfile";
 import { IUserFile } from "../../../shared/types/userfile";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../ai/embeddings/lifecycle";
 import {
   ISource,
   ISourceable,
@@ -165,6 +166,27 @@ export default class Source {
         updater.embeddings = updates.embeddings;
         updater.embeddingsUpdatedAt = new Date();
       }
+      if ("embeddingsUpdatedAt" in updates) {
+        updater.embeddingsUpdatedAt = updates.embeddingsUpdatedAt;
+      }
+      if ("embeddingsProvider" in updates) {
+        updater.embeddingsProvider = updates.embeddingsProvider;
+      }
+      if ("embeddingsModel" in updates) {
+        updater.embeddingsModel = updates.embeddingsModel;
+      }
+      if ("embeddingsDimension" in updates) {
+        updater.embeddingsDimension = updates.embeddingsDimension;
+      }
+      if ("embeddingsContentHash" in updates) {
+        updater.embeddingsContentHash = updates.embeddingsContentHash;
+      }
+      if ("embeddingsStatus" in updates) {
+        updater.embeddingsStatus = updates.embeddingsStatus;
+      }
+      if ("embeddingsError" in updates) {
+        updater.embeddingsError = updates.embeddingsError;
+      }
       if (updates.displayName) {
         updater.displayName = updates.displayName;
       }
@@ -292,13 +314,15 @@ export default class Source {
         ---
         ${analysis.abstract}
         `;
+      if (isEmbeddingCurrent(source, embedder, embeddable)) {
+        return source;
+      }
       const embedding = await embedder.embedContent(embeddable);
       if (!embedding) {
         throw new Error("No embedding generated");
       }
       const updated = await this.update(source.id, {
-        embeddings: embedding,
-        embeddingsUpdatedAt: new Date(),
+        ...buildReadyEmbeddingUpdate(embedder, embeddable, embedding),
       });
       return updated;
     } catch (error) {

@@ -11,9 +11,11 @@ import {
   ITagUserOwnership,
 } from "../../../shared/types/tags";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../ai/embeddings/lifecycle";
 import { Search } from "../../services/Search";
 import GraphService, { IConnectable } from "../../services/Graph";
 import { averageEmbeddings, blendVectors, weightedAverage } from "../../utils/math";
+import type { IEmbeddingMetadata } from "../../../shared/types/embeddings";
 
 // Re-export types for backward compatibility
 export type { ITag, ITagDescribes, ITagDescriptionRelationship, ITagForm, ITagUserOwnership };
@@ -220,7 +222,7 @@ export class Tag {
         embeddings: number[];
         embeddingsUpdatedAt: Date;
         cachedCentroidEmbeddings: number[];
-      }
+      } & IEmbeddingMetadata
     >
   ): Promise<ITag | undefined> {
     try {
@@ -498,12 +500,12 @@ export class Tag {
 
   static async updateEmbeddings(tag: ITag, force = false) {
     try {
-      if (!force && tag.embeddingsUpdatedAt >= tag.updatedAt && tag.embeddings?.length !== 0) {
-        return undefined;
-      }
       const embedding = getEmbedder();
       const embeddableContent = `${tag.name}:${tag.description}`;
       if (!embeddableContent) {
+        return undefined;
+      }
+      if (!force && isEmbeddingCurrent(tag, embedding, embeddableContent)) {
         return undefined;
       }
       const vector = await embedding.embedContent(embeddableContent);
@@ -511,8 +513,7 @@ export class Tag {
         throw new Error("Couldn't get embeddings");
       }
       return await Tag.update(tag.id, {
-        embeddings: vector,
-        embeddingsUpdatedAt: new Date(),
+        ...buildReadyEmbeddingUpdate(embedding, embeddableContent, vector),
       });
     } catch (err) {
       console.error(`Error during updateEmbeddings for tag "${tag.id}":`, err);

@@ -1,9 +1,10 @@
 import { RecordId } from "surrealdb";
 import type { IConnectable } from "./constellation";
+import type { IEmbeddingMetadata } from "./embeddings";
 
 export type ITagDescribes = IConnectable;
 
-export type ITag = {
+export type ITag = IEmbeddingMetadata & {
   id: string | RecordId;
   name: string;
   description: string;

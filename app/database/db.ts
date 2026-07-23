@@ -1,5 +1,6 @@
 import Surreal, { ConnectionStatus } from "surrealdb"; // Make sure to import ConnectionStatus
 import { seedDatabase } from "./init"; // Assuming this file exists and is correct
+import { runMigrations } from "./migrations/runner";
 
 type IDatabase = {
   db: Surreal | undefined;
@@ -134,24 +135,33 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
 };
 
 export const initSchema = async () => {
-  try {
-    const db = await getDatabase();
-    const config = getDbConfig();
-
-    await db?.query(`DEFINE NAMESPACE IF NOT EXISTS \`${config.namespace}\`;`);
-    await db?.use({
-      namespace: config.namespace,
-    });
-    await db?.query(`DEFINE DATABASE IF NOT EXISTS \`${config.database}\`;`);
-
-    console.info(`Initialized ${config.database} in namespace ${config.namespace}.`);
-  } catch (err) {
-    console.error(err);
+  const db = await getDatabase();
+  if (!db) {
+    throw new Error("Could not connect to the database while initializing schema.");
   }
+
+  const config = getDbConfig();
+
+  await db.query(`DEFINE NAMESPACE IF NOT EXISTS \`${config.namespace}\`;`);
+  await db.use({
+    namespace: config.namespace,
+  });
+  await db.query(`DEFINE DATABASE IF NOT EXISTS \`${config.database}\`;`);
+  await db.use({
+    namespace: config.namespace,
+    database: config.database,
+  });
+
+  console.info(`Initialized ${config.database} in namespace ${config.namespace}.`);
 };
 
 export const initDatabase = async () => {
   await initSchema();
+  const db = await getDatabase();
+  if (!db) {
+    throw new Error("Could not connect to the database while running migrations.");
+  }
+  await runMigrations(db);
   // seedDatabase ideally should also use getDatabase() or be passed the db instance
   await seedDatabase(); // Ensure seedDatabase() is adapted if it directly creates connections
 };

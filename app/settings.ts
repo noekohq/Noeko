@@ -5,10 +5,11 @@ const {
   MAX_SPYGLASS_FINDING_AMOUNT,
   MAX_EMBEDDABLE_CHARACTERS,
   MAX_EMBEDDING_API_CALL_RPM,
+  EMBEDDINGS_DIMENSION,
 } = process.env;
 export const max_idea_size = MAX_IDEA_SIZE || "1mb";
 
-export const default_embeddings_dimension = 768;
+export const default_embeddings_dimension = Number(EMBEDDINGS_DIMENSION) || 768;
 
 export const max_lm_prompt_size = Number(MAX_LM_PROMPT_SIZE) || 100000;
 export const max_embeddable_characters = Number(MAX_EMBEDDABLE_CHARACTERS) || 20000;

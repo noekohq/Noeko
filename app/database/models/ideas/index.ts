@@ -1,6 +1,10 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
 import { getEmbedder } from "../../../ai/embeddings/embeddings";
+import {
+  buildReadyEmbeddingUpdate,
+  isEmbeddingCurrent,
+} from "../../../ai/embeddings/lifecycle";
 import { getLM } from "../../../ai/lms/lm";
 import { User } from "../user";
 import { IPublicUser, ISafeUser, IUser } from "../../../../shared/types/user";
@@ -1534,15 +1538,11 @@ export class Idea {
 
   static async updateEmbeddings(idea: IIdea, force = false) {
     try {
-      if (
-        !force &&
-        idea.embeddingsUpdatedAt >= idea.contentUpdatedAt &&
-        idea.embeddings?.length !== 0
-      ) {
-        return false;
-      }
       const embedding = getEmbedder();
       const embeddableContent = Idea.getEmbeddableContent(idea);
+      if (!force && isEmbeddingCurrent(idea, embedding, embeddableContent)) {
+        return false;
+      }
       // if (
       //   !embeddableContent ||
       //   embeddableContent.length > embeddableContentLimit
@@ -1558,9 +1558,11 @@ export class Idea {
       // The idea is that now the embedContent will automatically truncate the characters based on model considerations
       // So we tune there instead
       const vector = await embedding.embedContent(embeddableContent);
+      if (!vector) {
+        throw new Error("No embedding generated");
+      }
       return await Idea.update(idea.id, {
-        embeddings: vector,
-        embeddingsUpdatedAt: new Date(),
+        ...buildReadyEmbeddingUpdate(embedding, embeddableContent, vector),
       });
     } catch (err) {
       console.error(`Error during updateEmbeddings for idea "${idea.id}":`, err);
@@ -1575,10 +1577,7 @@ export class Idea {
           if (force) {
             return true;
           }
-          if (idea.embeddings && idea.embeddingsUpdatedAt! > idea.contentUpdatedAt) {
-            return false;
-          }
-          return true;
+          return !isEmbeddingCurrent(idea, e, Idea.getEmbeddableContent(idea));
         })
         .map((idea) => {
           return [
@@ -1596,14 +1595,22 @@ export class Idea {
         throw new Error("No embeddings generated");
       }
       const withEmbeddings = ideasAndContent.map(
-        (i, index) => [...i, embeddings[index]] as [string, string, number[]]
+        (i, index) =>
+          [
+            ...i,
+            embeddings[index]
+              ? buildReadyEmbeddingUpdate(e, i[1], embeddings[index])
+              : null,
+          ] as [string, string, ReturnType<typeof buildReadyEmbeddingUpdate> | null]
       );
 
-      const updaters = withEmbeddings.map(([id, content, embeddings]) => {
+      const updaters = withEmbeddings.map(([id, content, embeddingUpdate]) => {
         return {
           id: id,
-          embeddings: embeddings.length > 0 ? embeddings : null,
-          embeddingsUpdatedAt: new Date(),
+          ...(embeddingUpdate ?? {
+            embeddings: null,
+            embeddingsUpdatedAt: new Date(),
+          }),
         } as { id: string } & Partial<Idea>;
       });
       const updates = await Idea.updateMany(updaters);

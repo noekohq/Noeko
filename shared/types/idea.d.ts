@@ -2,8 +2,9 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { IPublicUser, ISafeUser, IUser } from "./user";
 import { IUserFile } from "./userfile";
 import { ITag, ITagDescriptionRelationship } from "./tag";
+import type { IEmbeddingMetadata } from "./embeddings";
 
-export type IIdea = {
+export type IIdea = IEmbeddingMetadata & {
   id: string | RecordId;
   title: string;
   content: string;

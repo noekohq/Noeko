@@ -1,6 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { ISource } from "./source";
 import { PdfAnnotationSubtype, Rect } from "@embedpdf/models";
+import type { IEmbeddingMetadata } from "./embeddings";
 
 export type IExcerptReference = ISource;
 
@@ -19,7 +20,7 @@ export type IPDFMetadata = {
   };
 };
 
-export type IExcerpt = {
+export type IExcerpt = IEmbeddingMetadata & {
   id: string | RecordId;
   sourceText: string;
   note: string;

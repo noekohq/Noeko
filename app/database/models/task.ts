@@ -1,6 +1,7 @@
 import { Duration, RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../db";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../ai/embeddings/lifecycle";
 import { htmlToMarkdown } from "../../utils/formatting";
 import { Idea } from "./ideas";
 import { IIdea, IIdeaDerived } from "../../../shared/types/idea";
@@ -335,12 +336,15 @@ export default class Task {
       `;
 
       const e = getEmbedder();
+      if (isEmbeddingCurrent(task, e, embeddableContent)) {
+        return task;
+      }
       const embedding = await e.embedContent(embeddableContent);
       if (!embedding) {
         throw new Error("Could not get embedding vector");
       }
       const updated = await this.update(taskId, {
-        embeddings: embedding,
+        ...buildReadyEmbeddingUpdate(e, embeddableContent, embedding),
       });
       return updated;
     } catch (error) {
