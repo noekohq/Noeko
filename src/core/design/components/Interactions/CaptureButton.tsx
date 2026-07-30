@@ -11,7 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import styles from "./CaptureButton.module.scss";
 import { useDisclosure } from "@mantine/hooks";
-import { Badge, Group, Loader, MantineColor, Portal, Text } from "@mantine/core"; // Added Portal
+import { Badge, Loader, MantineColor, Portal, Text } from "@mantine/core"; // Added Portal
 import { useEffect, useRef, useState } from "react";
 import { useInteraction } from "@/contexts/InteractionContext";
 import { createIdea } from "@domains/knowledge/utils/ideas";
@@ -279,6 +279,7 @@ export default function CaptureButton() {
         )}
       </Portal>
       <button
+        aria-label={opened ? "Close create menu" : "Create"}
         className={`${styles.capture} ${opened ? styles.opened : ""}`}
         onClick={() => {
           toggle();

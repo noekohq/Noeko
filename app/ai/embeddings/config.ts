@@ -1,6 +1,6 @@
 import { default_embeddings_dimension } from "../../settings";
 
-export const SupportedEmbeddingProviders = ["google", "deterministic"] as const;
+export const SupportedEmbeddingProviders = ["google", "openai", "deterministic"] as const;
 
 export type EmbeddingsProviderKey = (typeof SupportedEmbeddingProviders)[number];
 

@@ -610,7 +610,6 @@ export class Search {
     semanticResults: ISearchResult[],
     queryLower?: string // Optional: Passed in if you still want to apply the Exact Title Bonus
   ): ISearchResult[] {
-    console.log("Results: ", ftsResults, semanticResults);
     // 1. Sort inputs by their native scores to establish their ranks
     const sortedFts = this.sortByScore([...ftsResults]);
     const sortedSemantic = this.sortByScore([...semanticResults]);
@@ -2023,9 +2022,7 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with FTS: ", results);
       }
-      console.log("Running query: ", query, params);
       const [r] = results;
-      console.log("For results: ", r);
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.fts(r));
       return searchResults;
@@ -2043,8 +2040,11 @@ export class ConnectableTableSearchBuilder {
       ConnectableTableSearchBuilder.tableSelector[this.table];
     const { where: filterWhere, params: filterParams } = this.queryBuilder.build();
     const limit = this.searchQuery.limit ?? this.defaultLimit;
-    const effort = this.vectorEffort();
+    const threshold = this.searchQuery.vectorSettings?.threshold ?? Search.SEMANTIC_THRESHOLD;
 
+    // SurrealDB v2 cannot reliably combine the HNSW operator with our graph-based
+    // access predicate. Keep this exact, access-filtered scan for correctness until
+    // the planned v3 upgrade lets us validate ANN pre-filtering against this suite.
     const baseQuery = `
         SELECT * FROM (
           SELECT
@@ -2056,13 +2056,15 @@ export class ConnectableTableSearchBuilder {
           FROM ${this.table}
           WHERE
             ${filterWhere.join(" AND ")} AND
-            embeddings <|${limit}, ${effort}|> $embedding AND
-            embeddings != NONE ${
+            embeddings != NONE AND
+            embeddings != NULL AND
+            vector::magnitude(embeddings) > 0 ${
               specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
             }
         )
-        WHERE similarity >= ${Search.SEMANTIC_THRESHOLD}
-        ORDER BY similarity DESC;
+        WHERE similarity >= $threshold
+        ORDER BY similarity DESC
+        LIMIT ${limit};
         `;
 
     return {
@@ -2070,6 +2072,7 @@ export class ConnectableTableSearchBuilder {
       params: {
         ...filterParams,
         embedding,
+        threshold,
       },
     };
   }
@@ -2090,9 +2093,7 @@ export class ConnectableTableSearchBuilder {
       if (!results || !results[0]) {
         console.error("Failed to get ideas with vector search: ", results);
       }
-      console.log("Running query: ", query, params);
       const [r] = results;
-      console.log("For results: ", r);
       const mapper = ConnectableTableSearchBuilder.mapTableSearch[this.table];
       const searchResults = r.map((r) => mapper.vector(r));
       return searchResults;

@@ -2,6 +2,7 @@ import type { EmbeddingsProvider } from ".";
 import { getEmbeddingsConfig, type EmbeddingsConfig } from "./config";
 import DeterministicProvider from "./providers/deterministic";
 import GoogleProvider from "./providers/google";
+import OpenAIProvider from "./providers/openai";
 
 const PROVIDER_INSTANCES: Partial<Record<string, EmbeddingsProvider>> = {};
 
@@ -12,6 +13,10 @@ const getProviderCacheKey = (config: EmbeddingsConfig) => {
 const createProvider = (config: EmbeddingsConfig): EmbeddingsProvider => {
   if (config.provider === "google") {
     return new GoogleProvider(config);
+  }
+
+  if (config.provider === "openai") {
+    return new OpenAIProvider(config);
   }
 
   if (config.provider === "deterministic") {

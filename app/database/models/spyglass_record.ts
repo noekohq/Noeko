@@ -1,5 +1,5 @@
 import { getDatabase } from "../db";
-import { IFinding, IFindingType, ISpyglassIntent } from "../../services/Spyglass";
+import { IFinding, ISpyglassIntent } from "../../services/Spyglass";
 import { RecordId, StringRecordId } from "surrealdb";
 
 export type ISpyglassRecord = {
@@ -25,7 +25,9 @@ export type ISpyglassHistoryResponse = {
 };
 
 export type ISpyglassLightHistoryResponse = {
-  history: Pick<ISpyglassRecord, "id" | "baseQuery" | "createdAt" | "isDeepAnalysis">[];
+  history: (Pick<ISpyglassRecord, "id" | "baseQuery" | "createdAt" | "isDeepAnalysis"> & {
+    status?: "queued" | "running" | "completed" | "failed" | "cancelled";
+  })[];
   total: number;
   limit: number;
   page: number;
@@ -36,7 +38,7 @@ export class SpyglassRecord {
 
   public static async create(
     userId: string | RecordId,
-    data: ISpyglassRecordCreator
+    data: ISpyglassRecordForm
   ): Promise<ISpyglassRecord | null> {
     try {
       const db = await getDatabase();

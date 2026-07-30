@@ -52,8 +52,56 @@ it("creates an idea", async () => {
 ## Running Tests
 
 - **All tests:** `bun run test`
-- **Backend only:** `bun run server:test` (runs sequentially via `--test-sequential` to allow state persistence between files).
-- **Frontend only:** `bun run client:test`
+- **Backend only:** `bun run test:server` (runs sequentially via `--test-sequential` to allow state persistence between files).
+- **Frontend only:** `bun run test:client`
+
+## End-to-End Tests
+
+Browser-level smoke tests use Playwright with the real React client, Express
+server, collaboration WebSocket, and an ephemeral SurrealDB instance. The E2E
+database is configured in `.env.e2e` and the reset script refuses to run unless
+the database name ends in `_test`.
+
+- **Headless:** `bun run test:e2e`
+- **Headed:** `bun run test:e2e:headed`
+- **Playwright UI:** `bun run test:e2e:ui`
+- **Stop the E2E database:** `bun run e2e:db:down`
+
+The initial smoke suite covers protected-route authentication and the complete
+idea lifecycle, including optimistic creation, title updates, Yjs/WebSocket
+content persistence, and browser reload. Each test resets user-owned database
+state and seeds a dedicated E2E user.
+
+The deterministic Spyglass E2E suite covers Deep Focus streaming, citations,
+Glimpse maps, saved records, history replay, and interrupted-stream recovery.
+It never calls an external AI service.
+
+## Live Spyglass Diagnostics
+
+`bun run test:spyglass:live` is a separate, opt-in integration suite for
+diagnosing the real OpenAI-backed pipeline. It:
+
+1. Starts the isolated E2E SurrealDB database (`noeko_e2e_test`).
+2. Reads `OPENAI_API_KEY` from the local `.env`.
+3. Forces both the LM and embeddings providers to OpenAI.
+4. Creates a temporary user and a controlled corpus of relevant notes plus
+   distractors.
+5. Verifies semantic-only retrieval with real embeddings.
+6. Observes and validates every Spyglass generator phase for Fast/Glimpse and
+   Deep Focus.
+7. Checks structured output, evidence grounding, citations, saved records, and
+   history replay.
+8. Removes the temporary records when the suite finishes.
+
+The live suite is intentionally excluded from `bun run test` and CI because it
+uses billable, nondeterministic external API calls. Failures and full phase
+traces are written to `test-results/spyglass-live/` for diagnosis. The launcher
+and test harness both refuse to run unless `DB_DATABASE` ends in `_test`.
+
+Optional local overrides:
+
+- `SPYGLASS_LIVE_EMBEDDINGS_MODEL`
+- `SPYGLASS_LIVE_EMBEDDINGS_DIMENSION`
 
 ## Rules of Engagement
 

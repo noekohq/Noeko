@@ -175,14 +175,12 @@ export function DisplayOverviewComponent({
 }
 
 const areEqual = (prevProps: IDisplayOverview, nextProps: IDisplayOverview) => {
-  /*
-   * This function returns true if the props are "equal," preventing a re-render.
-   * We compare all props EXCEPT for `query`.
-   */
   return (
     prevProps.overview === nextProps.overview &&
+    prevProps.findings === nextProps.findings &&
     prevProps.resultsMap === nextProps.resultsMap &&
     prevProps.citationMap === nextProps.citationMap &&
+    prevProps.query === nextProps.query &&
     prevProps.results === nextProps.results &&
     prevProps.loading === nextProps.loading
   );

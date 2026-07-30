@@ -459,6 +459,7 @@ interface IUseSpyglassRecordReturn {
 export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
   const [spyglass, setSpyglass] = useState<ISpyglassRecord>();
   const [fullResults, setFullResults] = useState<IConnectable[]>([]);
+  const scopeIdsRef = useRef<Set<string>>(new Set());
   const { loading, load: fetchSpyglassRecord } = useFetch<undefined, ISpyglassRecord>({
     url: `/search/spyglass/record/${spyglassId}`,
     dependencies: [spyglassId],
@@ -475,11 +476,13 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
     },
   });
 
-  const { load: fetchScope } = useFetch<any, { data: { nodes: IConnectable[] } }>({
+  const { load: fetchScope } = useFetch<any, { things: IConnectable[] }>({
     url: `/graph`,
     method: "POST",
     onSuccess: (data) => {
-      setFullResults(data.data.nodes);
+      setFullResults(
+        (data.things ?? []).filter((result) => scopeIdsRef.current.has(result.id.toString()))
+      );
     },
   });
 
@@ -530,10 +533,11 @@ export const useSpyglassRecord = ({ spyglassId }: IUseSpyglassRecordArgs) => {
       }
 
       if (idsToFetch.size > 0) {
+        scopeIdsRef.current = idsToFetch;
         fetchScope({
           updatedBody: {
             loader: {
-              ids: Array.from(idsToFetch),
+              things: true,
             },
           },
         });

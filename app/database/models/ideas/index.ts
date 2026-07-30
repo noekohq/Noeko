@@ -1,10 +1,7 @@
 import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../../db";
 import { getEmbedder } from "../../../ai/embeddings/embeddings";
-import {
-  buildReadyEmbeddingUpdate,
-  isEmbeddingCurrent,
-} from "../../../ai/embeddings/lifecycle";
+import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../../ai/embeddings/lifecycle";
 import { getLM } from "../../../ai/lms/lm";
 import { User } from "../user";
 import { IPublicUser, ISafeUser, IUser } from "../../../../shared/types/user";
@@ -332,6 +329,27 @@ export class Idea {
       ) {
         throw new Error("Tried to add more notes than available.");
       }
+      const contentPlain = this.getPlainContent(form.content);
+      let embeddingFields:
+        | ReturnType<typeof buildReadyEmbeddingUpdate>
+        | { embeddings: null; embeddingsUpdatedAt: Date } = {
+        embeddings: null,
+        embeddingsUpdatedAt: new Date(),
+      };
+
+      if (!options?.omitEmbeddings) {
+        try {
+          const embedder = getEmbedder();
+          const embeddableContent = `${form.title}\n---\n${contentPlain}`;
+          const vector = await embedder.embedContent(embeddableContent);
+          if (vector) {
+            embeddingFields = buildReadyEmbeddingUpdate(embedder, embeddableContent, vector);
+          }
+        } catch (error) {
+          console.error("Error generating initial idea embeddings:", error);
+        }
+      }
+
       const result = await db?.create<
         IIdea,
         IIdeaForm & {
@@ -345,15 +363,14 @@ export class Idea {
       >("idea", {
         title: form.title,
         content: form.content,
-        contentPlain: this.getPlainContent(form.content),
+        contentPlain,
         contentPlainUpdatedAt: new Date(),
-        embeddings: null,
+        ...embeddingFields,
         visibility: "private",
         contentUpdatedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
         viewedAt: new Date(),
-        embeddingsUpdatedAt: new Date(),
         ...(options?.wasImported ? { importedAt: new Date() } : {}),
       });
       if (!result) {
@@ -362,9 +379,6 @@ export class Idea {
       }
       const [idea] = result;
       await Idea.connectToUser(idea.id, userId);
-      if (!options?.omitEmbeddings) {
-        await Idea.loadEmbeddings(idea.id);
-      }
       if (!options?.omitDerived) {
         await Idea.runDerivedCascade(idea.id);
       }
@@ -1598,9 +1612,7 @@ export class Idea {
         (i, index) =>
           [
             ...i,
-            embeddings[index]
-              ? buildReadyEmbeddingUpdate(e, i[1], embeddings[index])
-              : null,
+            embeddings[index] ? buildReadyEmbeddingUpdate(e, i[1], embeddings[index]) : null,
           ] as [string, string, ReturnType<typeof buildReadyEmbeddingUpdate> | null]
       );
 

@@ -1,4 +1,4 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 /* Entry Animations */
 @keyframes slideToBottom {
@@ -82,10 +82,11 @@
 .spyglass {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   box-sizing: border-box;
   height: calc(100%);
+  padding-top: clamp(10rem, 25vh, 22rem);
 
   &.initialized {
     display: flex;
@@ -93,6 +94,7 @@
     justify-content: flex-start;
     overflow: hidden;
     max-width: 100%;
+    padding-top: 0;
 
     @include desktop {
       max-width: 70vw;
@@ -100,6 +102,10 @@
     @include widescreen {
       max-width: 55vw;
     }
+  }
+
+  @include mobile {
+    padding-top: clamp(5rem, 14vh, 8rem);
   }
 }
 
@@ -112,6 +118,63 @@
   transition:
     opacity 0.2s ease-out,
     transform 0.2s ease-out;
+}
+
+.activityShelf {
+  width: min(100%, 48rem);
+  margin-inline: auto;
+}
+
+.activityHeader {
+  min-height: 2rem;
+  padding-inline: var(--mantine-spacing-xs);
+}
+
+.activityRow {
+  min-height: 2.5rem;
+  padding: 0 var(--mantine-spacing-xs);
+  border-top: 1px solid color-mix(in srgb, var(--mantine-color-dimmed) 16%, transparent);
+}
+
+.activitySummary {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.activityQuery {
+  min-width: 0;
+  max-width: 45%;
+}
+
+.activityMeta,
+.activityTime {
+  white-space: nowrap;
+}
+
+.activityExpand {
+  align-self: flex-start;
+  margin-top: var(--mantine-spacing-xs);
+}
+
+.newQueryButton {
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+@include mobile {
+  .activityShelf {
+    width: 100%;
+  }
+
+  .activityQuery {
+    max-width: none;
+    flex: 1;
+  }
+
+  .activityMeta,
+  .activityTime {
+    display: none;
+  }
 }
 
 .userInput {

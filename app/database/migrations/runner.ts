@@ -52,6 +52,8 @@ const validateMigrationList = () => {
 };
 
 const recordMigration = async (db: Surreal, migration: Migration, durationMs: number) => {
+  const appVersion = getAppVersion();
+  const appVersionField = appVersion ? ", appVersion: $appVersion" : "";
   await db.query(
     `
       CREATE schema_migration CONTENT {
@@ -59,8 +61,8 @@ const recordMigration = async (db: Surreal, migration: Migration, durationMs: nu
         checksum: $checksum,
         description: $description,
         appliedAt: time::now(),
-        durationMs: $durationMs,
-        appVersion: $appVersion
+        durationMs: $durationMs
+        ${appVersionField}
       };
     `,
     {
@@ -68,7 +70,7 @@ const recordMigration = async (db: Surreal, migration: Migration, durationMs: nu
       checksum: checksumMigration(migration),
       description: migration.description,
       durationMs,
-      appVersion: getAppVersion(),
+      ...(appVersion ? { appVersion } : {}),
     }
   );
 };

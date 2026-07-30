@@ -1,6 +1,7 @@
-import { Stack, Text, Title, Select } from "@mantine/core";
+import { Box, Group, Stack, Text, Title, Select } from "@mantine/core";
 import { useSettings } from "@/contexts/SettingsContext";
 import { IThemeSpec } from "@/declarations/themes";
+import { themeOptions } from "@core/design/themes/themes";
 import { Link, useNavigate } from "react-router";
 import PaperCard from "@core/design/components/Paper/PaperCard";
 import PaperButton from "@core/design/components/Paper/PaperButton";
@@ -25,12 +26,6 @@ export default function AppearanceExperience() {
     },
   } = useSettings();
   const navigate = useNavigate();
-
-  const themeData = [
-    { label: i18n._(t`Default`), value: "noeko" as const, disabled: override === "noeko" },
-    { label: i18n._(t`Nord`), value: "nord" as const, disabled: override === "nord" },
-    { label: i18n._(t`Pink Lady`), value: "pinkLady" as const, disabled: override === "pinkLady" },
-  ];
 
   const schemeData = [
     { label: i18n._(t`Dark`), value: "dark" as const },
@@ -111,7 +106,39 @@ export default function AppearanceExperience() {
             label={i18n._(t`Theme`)}
             description={i18n._(t`Select a theme for the application.`)}
             value={override}
-            data={themeData}
+            data={themeOptions.map(({ label, value }) => ({ label, value }))}
+            maxDropdownHeight={288}
+            scrollAreaProps={{ type: "always", scrollbarSize: 6 }}
+            styles={{ option: { height: 48 } }}
+            renderOption={({ option }) => {
+              const theme = themeOptions.find(({ value }) => value === option.value);
+
+              return (
+                <Group gap="sm" wrap="nowrap">
+                  <Group gap={3} wrap="nowrap">
+                    {theme?.swatches.map((color) => (
+                      <Box
+                        key={color}
+                        w={10}
+                        h={22}
+                        style={{
+                          backgroundColor: color,
+                          borderRadius: "var(--mantine-radius-xs)",
+                        }}
+                      />
+                    ))}
+                  </Group>
+                  <Box>
+                    <Text size="sm" fw={600}>
+                      {option.label}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {theme?.description}
+                    </Text>
+                  </Box>
+                </Group>
+              );
+            }}
             onChange={(v) => handleThemeChange(v as IThemeSpec["override"])}
           />
           <Select
