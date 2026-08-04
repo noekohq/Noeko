@@ -16,6 +16,7 @@ import { getLM } from "../../ai/lms/lm";
 import { first } from "../../templates/onboarding";
 import Authorization from "../../services/Authorization";
 import { IShareAccess } from "../../database/models/share";
+import { IdeaService } from "../../services/IdeaService";
 
 const router = Router();
 
@@ -165,11 +166,9 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       const lm = getLM();
       form.title = await lm.utils.entitle(form.content, "short and concise, fewly worded");
     }
-    const i = await Idea.create(
-      {
-        ...form,
-      },
-      user.id
+    const i = await IdeaService.create(
+      { userId: user.id.toString(), type: "interface" },
+      { title: form.title, content: form.content }
     );
     if (!i) {
       res.status(404).json({ error: "Idea not created" });
@@ -248,7 +247,7 @@ router.put("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const { title, content, withComputations } = req.body;
+    const { title, content } = req.body;
     const updater: Partial<IIdeaForm> = {};
     if (title !== undefined) {
       updater.title = title;
@@ -256,7 +255,11 @@ router.put("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
     if (content !== undefined) {
       updater.content = content;
     }
-    const i = await Idea.update(ideaId, updater, withComputations === true);
+    const i = await IdeaService.update(
+      { userId: user.id.toString(), type: "interface" },
+      ideaId,
+      updater
+    );
     if (!i) {
       res.status(404).json({ error: "Idea not updated" });
       return;
@@ -327,12 +330,16 @@ router.delete("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       });
       return;
     }
-    const i = await Idea.delete(ideaId);
-    if (!i) {
+    const idea = await Idea.get(ideaId);
+    const deleted = await IdeaService.delete(
+      { userId: user.id.toString(), type: "interface" },
+      ideaId
+    );
+    if (!deleted) {
       res.status(404).json({ error: "Idea not deleted" });
       return;
     }
-    res.send({ message: "Successfully deleted idea.", data: i });
+    res.send({ message: "Successfully deleted idea.", data: idea });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal Server Error" });
