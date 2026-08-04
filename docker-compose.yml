@@ -16,8 +16,8 @@
 
 services:
   surrealdb:
-    # Keep the runtime on SurrealDB v2 until the app is migrated intentionally to v3.
-    image: surrealdb/surrealdb:v2
+    # Match production exactly until the app and data are migrated intentionally to v3.
+    image: surrealdb/surrealdb:v2.6.0
     env_file:
       - ./.env # Assuming .env is in the project root
     entrypoint:
