@@ -1,10 +1,8 @@
 name: End-to-end tests
 
 on:
-  pull_request:
-    branches: [trunk, development]
-  push:
-    branches: [trunk, development]
+  # Temporarily manual-only to avoid consuming Actions compute on pushes and PRs.
+  workflow_dispatch:
 
 jobs:
   chromium:
