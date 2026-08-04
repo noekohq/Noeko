@@ -74,7 +74,7 @@ function useFetch<B, D>({
       setLoading(true);
       return api<DefaultResponse<D>>(loadConfig?.updatedUrl || urlToUse, {
         method,
-        data: useBody(),
+        data: loadConfig?.updatedBody ?? useBody(),
         headers,
         skipGlobal403Redirect: skip403Redirect,
       })

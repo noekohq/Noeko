@@ -96,9 +96,6 @@ To update your Noeko instance to the latest version:
 
 ## Database Management
 
-> [!note]
-> The database connection and administration is currently a work-in-progress area as we build out a better migration system and vector index.
-
 The database data is persisted in a Docker volume, so it will not be lost when you stop or update the application.
 
 For administrative tasks like backups and migrations, you can use the scripts defined in `package.json`. These commands should be run within the running `app` container.
@@ -112,3 +109,9 @@ bun run db:migrate
 ```sh
 bun run db:export
 ```
+
+See the [database migration guide](./guides/DATABASE_MIGRATIONS.md) before
+updating an existing database or authoring a schema change. If an update changes
+the embedding provider or model, follow the
+[embedding changeover runbook](./guides/EMBEDDING_PROVIDERS.md); production
+changeovers should be performed in a maintenance window.

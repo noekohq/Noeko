@@ -1,6 +1,14 @@
-import { createContext, useCallback, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  ReactNode,
+} from "react";
 import { IThemeOption, IThemeResolved, IThemeSpec } from "@/declarations/themes";
-import { ResolveTheme } from "@core/design/themes";
+import { applyCSS, ResolveTheme } from "@core/design/themes";
 import { isDarkScheme } from "@core/utils/dom";
 import { IUserSettings } from "../../shared/types/user";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
@@ -180,8 +188,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     dynamicActivate(language);
   }, [language]);
 
-  const resolvedTheme = useCallback(
-    (): IThemeResolved =>
+  const resolvedTheme = useMemo(
+    () =>
       ResolveTheme({
         override,
         scheme,
@@ -190,6 +198,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       }),
     [override, scheme, bodyFont, headingFont]
   );
+
+  useLayoutEffect(() => {
+    applyCSS(resolvedTheme.applicator);
+  }, [resolvedTheme]);
 
   const setUserSetting: ISettingsContext["user"]["setSetting"] = async (setting, value) => {
     try {
@@ -235,7 +247,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
               set: setHeadingFont,
             },
             resolved: {
-              get: resolvedTheme(),
+              get: resolvedTheme,
             },
           },
         },

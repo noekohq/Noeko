@@ -26,6 +26,7 @@ import { initDatabase } from "./database/db";
 import cookieParser from "cookie-parser";
 import { max_idea_size } from "./settings";
 import collaborationServer from "./collaboration";
+import { initServices } from "./services";
 
 config();
 
@@ -36,7 +37,7 @@ const projectRoot = process.cwd();
 if (!PORT) throw new Error("PORT is not defined");
 
 await initDatabase();
-// await initServices();
+await initServices();
 
 export const app = Express();
 app.use(Express.json({ limit: max_idea_size }));

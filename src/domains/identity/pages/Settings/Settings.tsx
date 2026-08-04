@@ -27,6 +27,7 @@ import ActivityNetworkCommunity from "./views/ActivityNetworkCommunity";
 import Content from "@/core/design/components/Layout/Content";
 import Search from "@/domains/discovery/components/Search/Search";
 import { useLayout } from "@/contexts/LayoutContext";
+import { themeOptions } from "@core/design/themes/themes";
 
 export interface ISettingIndex {
   title: string;
@@ -86,8 +87,7 @@ export default function Settings() {
           i18n._(t`light mode`),
           i18n._(t`color`),
           i18n._(t`appearance`),
-          i18n._(t`nord`),
-          i18n._(t`dracula`),
+          ...themeOptions.flatMap(({ label, keywords }) => [label, keywords]),
         ],
         route: "appearance",
         elementId: "theme",

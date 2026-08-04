@@ -26,7 +26,7 @@ msgstr "{0} node{1}, {2} connection{3}{filterText}"
 msgid "A new quest awaits."
 msgstr "A new quest awaits."
 
-#: src/domains/identity/pages/Settings/Settings.tsx:50
+#: src/domains/identity/pages/Settings/Settings.tsx:51
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:57
 msgid "Account & Identity"
 msgstr "Account & Identity"
@@ -35,7 +35,7 @@ msgstr "Account & Identity"
 msgid "Account deleted"
 msgstr "Account deleted"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:71
+#: src/domains/identity/pages/Settings/Settings.tsx:72
 #: src/domains/identity/pages/Settings/views/ActivityNetworkCommunity.tsx:38
 msgid "Activity & Network"
 msgstr "Activity & Network"
@@ -49,12 +49,12 @@ msgstr "activity log"
 msgid "Adventure is out there!"
 msgstr "Adventure is out there!"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:88
+#: src/domains/identity/pages/Settings/Settings.tsx:89
 msgid "appearance"
 msgstr "appearance"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:57
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:100
+#: src/domains/identity/pages/Settings/Settings.tsx:58
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:95
 msgid "Appearance & Experience"
 msgstr "Appearance & Experience"
 
@@ -75,7 +75,7 @@ msgstr "Ask a great question."
 msgid "auto"
 msgstr "auto"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:38
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:33
 msgid "Auto"
 msgstr "Auto"
 
@@ -84,7 +84,7 @@ msgid "backup"
 msgstr "backup"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:108
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:127
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:154
 msgid "Body Font"
 msgstr "Body Font"
 
@@ -109,7 +109,7 @@ msgstr "Chat with developers and other users"
 msgid "Check out the Subreddit"
 msgstr "Check out the Subreddit"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:120
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:147
 msgid "Choose between dark, light, or system default."
 msgstr "Choose between dark, light, or system default."
 
@@ -133,12 +133,12 @@ msgstr "close account"
 msgid "collaboration"
 msgstr "collaboration"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:87
+#: src/domains/identity/pages/Settings/Settings.tsx:88
 msgid "color"
 msgstr "color"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:96
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:119
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:146
 msgid "Color Scheme"
 msgstr "Color Scheme"
 
@@ -170,7 +170,7 @@ msgstr "Copy Referral Link"
 msgid "Current Password"
 msgstr "Current Password"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:103
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:98
 msgid "Customize how Noeko looks and feels."
 msgstr "Customize how Noeko looks and feels."
 
@@ -187,11 +187,11 @@ msgstr "Danger Zone"
 msgid "dark"
 msgstr "dark"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:36
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:31
 msgid "Dark"
 msgstr "Dark"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:85
+#: src/domains/identity/pages/Settings/Settings.tsx:86
 msgid "dark mode"
 msgstr "dark mode"
 
@@ -204,8 +204,8 @@ msgid "data out"
 msgstr "data out"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:30
-msgid "Default"
-msgstr "Default"
+#~ msgid "Default"
+#~ msgstr "Default"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:183
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:94
@@ -257,8 +257,8 @@ msgid "Download your ideas and files"
 msgstr "Download your ideas and files"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:90
-msgid "dracula"
-msgstr "dracula"
+#~ msgid "dracula"
+#~ msgstr "dracula"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:172
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:67
@@ -351,7 +351,7 @@ msgstr "friends"
 msgid "FRIENDS"
 msgstr "FRIENDS"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:72
+#: src/domains/identity/pages/Settings/Settings.tsx:73
 msgid "History, sharing & community"
 msgstr "History, sharing & community"
 
@@ -368,7 +368,7 @@ msgstr "i18n"
 msgid "Import Ideas"
 msgstr "Import Ideas"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:65
+#: src/domains/identity/pages/Settings/Settings.tsx:66
 msgid "Import, export & tags"
 msgstr "Import, export & tags"
 
@@ -384,7 +384,7 @@ msgstr "In order to delete your stuff, type \"{confirmationText}\""
 msgid "interactions"
 msgstr "interactions"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:144
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:171
 msgid "Interactions"
 msgstr "Interactions"
 
@@ -414,7 +414,7 @@ msgid "keyboard"
 msgstr "keyboard"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:133
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:147
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:174
 msgid "Keymap"
 msgstr "Keymap"
 
@@ -423,7 +423,7 @@ msgid "labels"
 msgstr "labels"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:120
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:135
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:162
 msgid "Language"
 msgstr "Language"
 
@@ -444,11 +444,11 @@ msgstr "leave"
 msgid "light"
 msgstr "light"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:37
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:32
 msgid "Light"
 msgstr "Light"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:86
+#: src/domains/identity/pages/Settings/Settings.tsx:87
 msgid "light mode"
 msgstr "light mode"
 
@@ -468,7 +468,7 @@ msgstr "Logout"
 msgid "Manage ideas you've shared with others"
 msgstr "Manage ideas you've shared with others"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:51
+#: src/domains/identity/pages/Settings/Settings.tsx:52
 msgid "Manage profile & credentials"
 msgstr "Manage profile & credentials"
 
@@ -527,12 +527,12 @@ msgid "No, Cancel"
 msgstr "No, Cancel"
 
 #: src/domains/identity/pages/Settings/Settings.tsx:89
-msgid "nord"
-msgstr "nord"
+#~ msgid "nord"
+#~ msgstr "nord"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:31
-msgid "Nord"
-msgstr "Nord"
+#~ msgid "Nord"
+#~ msgstr "Nord"
 
 #: src/core/design/components/Layout/TopBar.tsx:37
 #: src/domains/discovery/components/Search/SearchBar.tsx:24
@@ -564,8 +564,8 @@ msgid "past searches"
 msgstr "past searches"
 
 #: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:32
-msgid "Pink Lady"
-msgstr "Pink Lady"
+#~ msgid "Pink Lady"
+#~ msgstr "Pink Lady"
 
 #: src/domains/identity/pages/Settings/views/AccountIdentity.tsx:44
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:50
@@ -621,7 +621,7 @@ msgstr "Review your search and exploration history"
 msgid "sans"
 msgstr "sans"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:42
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:37
 msgid "Sans-Serif"
 msgstr "Sans-Serif"
 
@@ -637,7 +637,7 @@ msgstr "scheme"
 msgid "Search settings..."
 msgstr "Search settings..."
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:112
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:107
 msgid "Select a theme for the application."
 msgstr "Select a theme for the application."
 
@@ -645,11 +645,11 @@ msgstr "Select a theme for the application."
 msgid "Select All"
 msgstr "Select All"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:128
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:155
 msgid "Select the primary font for reading."
 msgstr "Select the primary font for reading."
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:136
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:163
 msgid "Select your preferred language."
 msgstr "Select your preferred language."
 
@@ -661,7 +661,7 @@ msgstr "SELECTED"
 msgid "serif"
 msgstr "serif"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:43
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:38
 msgid "Serif"
 msgstr "Serif"
 
@@ -735,16 +735,16 @@ msgstr "Tags"
 msgid "text"
 msgstr "text"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:83
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:111
+#: src/domains/identity/pages/Settings/Settings.tsx:84
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:106
 msgid "Theme"
 msgstr "Theme"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:107
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:102
 msgid "Theme & Styling"
 msgstr "Theme & Styling"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:58
+#: src/domains/identity/pages/Settings/Settings.tsx:59
 msgid "Theme, layout & keymap"
 msgstr "Theme, layout & keymap"
 
@@ -790,7 +790,7 @@ msgstr "Update your name, email, and password"
 msgid "upload"
 msgstr "upload"
 
-#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:148
+#: src/domains/identity/pages/Settings/views/AppearanceExperience.tsx:175
 msgid "View and customize keyboard shortcuts"
 msgstr "View and customize keyboard shortcuts"
 
@@ -808,7 +808,7 @@ msgstr "What if...?"
 msgid "Where to next?"
 msgstr "Where to next?"
 
-#: src/domains/identity/pages/Settings/Settings.tsx:64
+#: src/domains/identity/pages/Settings/Settings.tsx:65
 #: src/domains/identity/pages/Settings/views/WorkspaceData.tsx:62
 msgid "Workspace Data"
 msgstr "Workspace Data"

@@ -7,3 +7,5 @@ This serves as a centralized location of migrations, refactors, or ongoing proje
 
 # Backend
 - Potential migration of the backend to Elysia [documentation](./ELYSIA-MIGRATION.md)
+- Database migration system and authoring guide [documentation](../guides/DATABASE_MIGRATIONS.md)
+- Embedding provider architecture and changeover runbook [documentation](../guides/EMBEDDING_PROVIDERS.md)

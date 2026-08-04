@@ -10,6 +10,7 @@ import {
   extractIdsFromFindings,
   extractIdsFromGlimpseResult,
 } from "@domains/discovery/utils/spyglass";
+import type { SpyglassRun } from "../../../../shared/types/spyglass-run";
 
 // ===== Parameter Types (exported for DX) =====
 
@@ -60,6 +61,10 @@ export interface ISpyglassServiceArgs {
    * Fires whenever the search status message changes.
    */
   onStatusChange?: (status: string | null) => void;
+
+  /** Fires once the server has durably accepted a Deep Focus run. */
+  onRunCreated?: (runId: string) => void;
+  onRunLoaded?: (run: SpyglassRun) => void;
 
   // Results Callbacks
 
@@ -127,7 +132,10 @@ interface ISpyglassServiceReturn {
   history: ISpyglassHistoryItem[];
   citationMap: ICitationMap;
   resultsMap: IResultsMap;
+  runId: string | null;
   search: (args: ISearchArgs, autosave?: boolean) => Promise<void>;
+  resume: (runId: string) => Promise<void>;
+  cancel: () => Promise<void>;
   save: (force?: boolean) => Promise<void>;
   reset: () => void;
   uninitialize: () => void;
@@ -145,15 +153,18 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
   const [overview, setOverview] = useState("");
   const [glimpseResult, setGlimpseResult] = useState<PartialGlimpseResult | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [runId, setRunId] = useState<string | null>(null);
   const [history, setHistory] = useState<ISpyglassHistoryItem[]>([]);
   const searchArgsRef = useRef<ISearchArgs | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const searchGenerationRef = useRef(0);
   const fullFindings = useRef<IFinding[]>([]);
   const fullOverview = useRef<string>("");
   const fullGlimpseResult = useRef<string>("");
   const intentRef = useRef<ISpyglassIntent | undefined>(undefined);
   const resultsRef = useRef<IConnectableFields[]>([]);
   const callbacksRef = useRef<ISpyglassServiceArgs | undefined>(args);
+  const saveRef = useRef<(force?: boolean) => Promise<void>>(async () => {});
   const fullResultsRef = useRef<IConnectable[]>([]);
   const lastUpdateTimeRef = useRef<number>(0);
   const THROTTLE_MS = 100; // Throttle streaming updates to 100ms
@@ -166,14 +177,19 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
+    abortControllerRef.current = null;
+    searchGenerationRef.current += 1;
     setLoading(false);
     setComplete(false);
     setError(null);
+    setIntent(undefined);
     setResults([]);
+    setFullResults([]);
     setFindings([]);
     setOverview("");
     setGlimpseResult(null);
     setStatus(null);
+    setRunId(null);
     setHistory([]);
     searchArgsRef.current = null;
     fullGlimpseResult.current = "";
@@ -190,7 +206,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
 
   const uninitialize = useCallback(() => {
     setInitialized(false);
-  }, [resetState]);
+  }, []);
 
   const updateStatus = useCallback((newStatus: string | null) => {
     setStatus(newStatus);
@@ -251,18 +267,27 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
     []
   );
 
-  const search = useCallback(
+  const runSearch = useCallback(
     async (
       { query, scope, deepAnalysis, rabbithole, tags, date, history: providedHistory }: ISearchArgs,
-      autosave?: boolean
+      autosave?: boolean,
+      existingRunId?: string
     ) => {
+      abortControllerRef.current?.abort();
+      const searchGeneration = searchGenerationRef.current + 1;
+      searchGenerationRef.current = searchGeneration;
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       setInitialized(true);
       // We don't call resetState() here because we want to preserve history for multi-turn.
       // But we reset the result-specific state.
       setLoading(true);
       setComplete(false);
       setError(null);
+      setIntent(undefined);
       setResults([]);
+      setFullResults([]);
       setFindings([]);
       setOverview("");
       setGlimpseResult(null);
@@ -282,11 +307,13 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
         date,
         history: activeHistory,
       };
-      abortControllerRef.current = new AbortController();
-
       fullGlimpseResult.current = "";
       fullFindings.current = [];
       fullOverview.current = "";
+      intentRef.current = undefined;
+      resultsRef.current = [];
+      fullResultsRef.current = [];
+      lastUpdateTimeRef.current = 0;
 
       try {
         const token = getAccessToken();
@@ -297,21 +324,61 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
           headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${serverLocation}/api/search/spyglass/stream`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            query,
-            scope,
-            deepAnalysis,
-            rabbithole,
-            tags,
-            date,
-            history: activeHistory,
-          }),
-          signal: abortControllerRef.current.signal,
-          credentials: "include",
-        });
+        let response: Response;
+        if (deepAnalysis) {
+          let durableRunId = existingRunId;
+          if (!durableRunId) {
+            const createResponse = await fetch(`${serverLocation}/api/search/spyglass/runs`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({
+                query,
+                scope,
+                deepAnalysis: true,
+                rabbithole,
+                tags,
+                date,
+                history: activeHistory,
+              }),
+              signal: abortController.signal,
+              credentials: "include",
+            });
+            if (!createResponse.ok) {
+              throw new Error(`HTTP error! status: ${createResponse.status}`);
+            }
+            const created = (await createResponse.json()) as { data: SpyglassRun };
+            durableRunId = created.data.id.toString();
+            setRunId(durableRunId);
+            callbacksRef.current?.onRunCreated?.(durableRunId);
+          } else {
+            setRunId(durableRunId);
+          }
+          response = await fetch(
+            `${serverLocation}/api/search/spyglass/runs/${encodeURIComponent(durableRunId)}/events?after=0`,
+            {
+              headers,
+              signal: abortController.signal,
+              credentials: "include",
+            }
+          );
+        } else {
+          setRunId(null);
+          response = await fetch(`${serverLocation}/api/search/spyglass/stream`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              query,
+              scope,
+              deepAnalysis,
+              rabbithole,
+              tags,
+              date,
+              history: activeHistory,
+            }),
+            signal: abortController.signal,
+            credentials: "include",
+          });
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -324,26 +391,50 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
 
         const decoder = new TextDecoder();
         let buffer = "";
+        let terminalEventReceived = false;
 
         const processStream = async () => {
           while (true) {
             const { done, value } = await reader.read();
-            if (done) {
-              break;
+            if (searchGeneration !== searchGenerationRef.current) {
+              await reader.cancel();
+              return;
             }
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n\n");
-            buffer = lines.pop() || ""; // Keep the last, possibly incomplete line
+            buffer += decoder.decode(value, { stream: !done });
+            const lines = buffer.split(/\r?\n\r?\n/);
+            const trailing = lines.pop() || "";
+            if (done) {
+              if (trailing.trim()) {
+                lines.push(trailing);
+              }
+              buffer = "";
+            } else {
+              buffer = trailing;
+            }
 
             for (const line of lines) {
-              if (line.startsWith("data: ")) {
-                const json = line.substring(6);
+              const dataLine = line.split(/\r?\n/).find((part) => part.startsWith("data: "));
+              if (dataLine) {
+                const json = dataLine.substring(6);
                 if (json) {
                   const parsed = JSON.parse(json);
                   const { type, data } = parsed;
 
                   switch (type) {
+                    case "reset":
+                      setIntent(undefined);
+                      setResults([]);
+                      setFullResults([]);
+                      setFindings([]);
+                      setOverview("");
+                      intentRef.current = undefined;
+                      resultsRef.current = [];
+                      fullResultsRef.current = [];
+                      fullFindings.current = [];
+                      fullOverview.current = "";
+                      updateStatus(data);
+                      break;
                     case "status":
                       updateStatus(data);
                       break;
@@ -383,7 +474,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
                       }
                       setOverview(fullOverview.current);
                       break;
-                    case "glimpse_chunk":
+                    case "glimpse_chunk": {
                       fullGlimpseResult.current += data;
                       const partialResult = parsePartialGlimpseResult(fullGlimpseResult.current);
                       if (partialResult) {
@@ -393,7 +484,9 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
                         fireSelectedResultsUpdate(true); // partial = true, will be throttled
                       }
                       break;
-                    case "completed":
+                    }
+                    case "completed": {
+                      terminalEventReceived = true;
                       setLoading(false);
                       setComplete(true);
                       updateStatus("Analysis complete.");
@@ -409,33 +502,58 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
                       };
                       setHistory((prev) => [...prev, newHistoryItem]);
 
-                      if (autosave) {
+                      if (autosave && !deepAnalysis) {
                         // Pass data directly to save to avoid stale state in closure
-                        await save(true);
+                        await saveRef.current(true);
                       }
 
                       // Fire search end callback
                       callbacksRef.current?.onSearchEnd?.({ complete: true });
                       break;
+                    }
                     case "error":
+                      terminalEventReceived = true;
                       setError(data);
                       setLoading(false);
                       updateStatus(null);
                       callbacksRef.current?.onSearchEnd?.({ complete: false, error: data });
                       break;
+                    case "cancelled":
+                      terminalEventReceived = true;
+                      setLoading(false);
+                      setComplete(false);
+                      updateStatus("Deep Focus run cancelled.");
+                      callbacksRef.current?.onSearchEnd?.({
+                        complete: false,
+                        error: "Cancelled",
+                      });
+                      break;
                   }
                 }
               }
             }
+
+            if (done) {
+              break;
+            }
+          }
+
+          if (!terminalEventReceived) {
+            throw new Error("Spyglass stream ended before a terminal event.");
           }
         };
 
         await processStream();
-      } catch (error: any) {
-        if (error.name === "AbortError") {
-          console.error("Search aborted");
-          updateStatus(null);
-          callbacksRef.current?.onSearchEnd?.({ complete: false, error: "Aborted" });
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          if (searchGeneration === searchGenerationRef.current) {
+            setLoading(false);
+            updateStatus(null);
+            callbacksRef.current?.onSearchEnd?.({ complete: false, error: "Aborted" });
+          }
+          return;
+        }
+        if (searchGeneration !== searchGenerationRef.current) {
           return;
         }
         console.error("Search failed:", error);
@@ -449,8 +567,42 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
         });
       }
     },
-    [resetState]
+    [fireSelectedResultsUpdate, history, updateStatus]
   );
+
+  const search = useCallback(
+    (searchArgs: ISearchArgs, autosave?: boolean) => runSearch(searchArgs, autosave),
+    [runSearch]
+  );
+
+  const resume = useCallback(
+    async (durableRunId: string) => {
+      const response = await api.get<{ data: SpyglassRun }>(
+        `/search/spyglass/runs/${encodeURIComponent(durableRunId)}`
+      );
+      const run = response.data.data;
+      callbacksRef.current?.onRunLoaded?.(run);
+      await runSearch(
+        {
+          query: run.query,
+          deepAnalysis: true,
+          scope: run.configuration.scope,
+          rabbithole: run.configuration.rabbithole,
+          tags: run.configuration.tags,
+          date: run.configuration.date,
+          history: run.configuration.history,
+        },
+        false,
+        durableRunId
+      );
+    },
+    [runSearch]
+  );
+
+  const cancel = useCallback(async () => {
+    if (!runId) return;
+    await api.post(`/search/spyglass/runs/${encodeURIComponent(runId)}/cancel`);
+  }, [runId]);
 
   const save = useCallback(
     async (force?: boolean) => {
@@ -460,17 +612,8 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
         return;
       }
 
-      console.log("Saving Spyglass analysis...", {
-        args: searchArgsRef.current,
-        intent: intentRef.current,
-        results: resultsRef.current.length,
-        findings: fullFindings.current.length,
-        overviewLength: fullOverview.current.length,
-        glimpseLength: fullGlimpseResult.current.length,
-      });
-
       try {
-        const response = await api.post(`/search/spyglass/save`, {
+        await api.post(`/search/spyglass/save`, {
           baseQuery: searchArgsRef.current.query,
           scope: resultsRef.current.map((r) => r.id.toString()),
           isDeepAnalysis: searchArgsRef.current.deepAnalysis,
@@ -482,13 +625,16 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
             ? fullOverview.current
             : fullGlimpseResult.current,
         });
-        console.log("Spyglass analysis saved:", response.data);
       } catch (error) {
         console.error("Failed to save analysis:", error);
       }
     },
     [complete]
   );
+
+  useEffect(() => {
+    saveRef.current = save;
+  }, [save]);
 
   const buildCitationMap = (): ICitationMap => {
     if (!findings) {
@@ -517,7 +663,7 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
   };
 
   const getResultsMap = () => {
-    return results?.reduce((acc, curr, i) => {
+    return results?.reduce((acc, curr) => {
       if (curr) {
         acc[curr.id.toString()] = curr;
       }
@@ -541,7 +687,10 @@ export function useSpyglassService(args?: ISpyglassServiceArgs): ISpyglassServic
     results,
     fullResults,
     findings,
+    runId,
     search,
+    resume,
+    cancel,
     save,
     citationMap,
     resultsMap,

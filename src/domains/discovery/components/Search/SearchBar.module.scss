@@ -26,7 +26,7 @@
     width: 100%;
     padding: var(--mantine-spacing-xs) 0; /* Only vertical padding */
     background-color: transparent !important;
-    border: none;
+    border: none !important;
     transition: all 0.15s ease-in-out;
     font-size: var(--mantine-font-size-sm);
     color: var(--mantine-color-dark-1);

@@ -10,6 +10,7 @@ import {
 } from "../../../shared/types/search";
 import { ISearchOverview } from "../../database/models/search";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
+import { toPersistedVector } from "../../ai/embeddings/vectors";
 import { ITag } from "../../../shared/types/tags";
 import spyglassRouter from "./spyglass";
 import { IRabbithole } from "../../../shared/types/rabbithole";
@@ -152,10 +153,14 @@ router.post("/tags/semantic", checkToken, async (req, res) => {
       return;
     }
 
-    const results: ITagSearchResult[] = await Search.semanticSearchTags(user.id, embedding, {
-      limit,
-      threshold,
-    });
+    const results: ITagSearchResult[] = await Search.semanticSearchTags(
+      user.id,
+      toPersistedVector(embedding, embeddingProcessor.dimension, "tag search query embedding"),
+      {
+        limit,
+        threshold,
+      }
+    );
     res.json({
       message: "Tag semantic results fetched successfully",
       data: results,

@@ -13,6 +13,7 @@ import { IRabbithole, IRabbitholeInclusion } from "../../shared/types/rabbithole
 import { Search } from "./Search";
 import { averageEmbeddings, weightedAverage } from "../utils/math";
 import { getEmbedder } from "../ai/embeddings/embeddings";
+import { toPersistedVector } from "../ai/embeddings/vectors";
 import { User } from "../database/models/user";
 import { IPublicUser } from "../../shared/types/user";
 import {
@@ -437,6 +438,11 @@ export default class GraphService {
     if (!embeddingVector) {
       throw new Error("No embedding vector");
     }
+    const queryEmbedding = toPersistedVector(
+      embeddingVector,
+      getEmbedder().dimension,
+      "tag suggestion embedding"
+    );
 
     const threshold = 0.4;
     const limit = 10;
@@ -465,7 +471,7 @@ export default class GraphService {
     const [dbResults] = await db.query<(ITag & { distance: number })[][]>(query, {
       userId: new StringRecordId(userId),
       connectableId: new StringRecordId(thingId),
-      embedding: embeddingVector,
+      embedding: queryEmbedding,
     });
 
     if (!dbResults) {
@@ -527,6 +533,11 @@ export default class GraphService {
     if (!embedding) {
       throw new Error("Couldn't get embedding vector for connectable");
     }
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "similar connectable embedding"
+    );
 
     const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
     if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
@@ -585,7 +596,7 @@ export default class GraphService {
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
         ...(options.rabbitholeId && {
           rabbitholeId: new StringRecordId(options.rabbitholeId),
         }),
@@ -660,6 +671,11 @@ export default class GraphService {
       connectableEmbedding || null,
       centroidEmbedding || null
     );
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "weighted similar connectable embedding"
+    );
 
     const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
     if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
@@ -719,7 +735,7 @@ export default class GraphService {
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
         ...(options.rabbitholeId && {
           rabbitholeId: new StringRecordId(options.rabbitholeId),
         }),
@@ -788,6 +804,11 @@ export default class GraphService {
     if (!embedding) {
       throw new Error("No embedding vector provided for connectable");
     }
+    const queryEmbedding = toPersistedVector(
+      embedding,
+      getEmbedder().dimension,
+      "provided similar connectable embedding"
+    );
 
     const threshold = Number.parseFloat(String(options.threshold ?? 0.45));
     if (!Number.isFinite(threshold) || threshold < -1.0 || threshold > 1.0) {
@@ -846,7 +867,7 @@ export default class GraphService {
     ): Promise<ISimilarConnectable[]> => {
       const [results] = await db.query<[T[]]>(query, {
         userId: new StringRecordId(userId),
-        embedding: embedding,
+        embedding: queryEmbedding,
         ...(options.rabbitholeId && {
           rabbitholeId: new StringRecordId(options.rabbitholeId),
         }),

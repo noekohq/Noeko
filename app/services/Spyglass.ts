@@ -1894,6 +1894,21 @@ export default class Spyglass {
       let intent: ISpyglassIntent | undefined = undefined;
       const resources: IConnectableFields[] = [];
       const fullResults: IConnectable[] = [];
+      const loadedIds = new Set<string>();
+      const addConnectable = async (connectable: IConnectable) => {
+        const id = connectable.id.toString();
+        if (loadedIds.has(id)) {
+          return;
+        }
+
+        const fields = await Connectable.connectableFields(connectable);
+        if (fields) {
+          loadedIds.add(id);
+          fullResults.push(connectable);
+          resources.push(fields);
+        }
+      };
+
       if (scope && scope.length > 0) {
         yield { type: "status", data: `Loading ${scope.length} sources...` };
         for (const id of scope) {
@@ -1901,11 +1916,7 @@ export default class Spyglass {
             const connectable = new Connectable(id);
             const c = await connectable.get();
             if (c) {
-              fullResults.push(c);
-            }
-            const fields = await connectable.fields();
-            if (fields) {
-              resources.push(fields);
+              await addConnectable(c);
             }
           }
           if (GraphService.isTag(id)) {
@@ -1915,12 +1926,8 @@ export default class Spyglass {
               console.error(`No connectables found for tag ${id}`);
               continue;
             }
-            fullResults.push(...connectables);
             for (const c of connectables) {
-              const fields = await Connectable.connectableFields(c);
-              if (fields) {
-                resources.push(fields);
-              }
+              await addConnectable(c);
             }
           }
           if (GraphService.isRabbithole(id)) {
@@ -1930,12 +1937,8 @@ export default class Spyglass {
               console.error(`No connectables found for rabbithole ${id}`);
               continue;
             }
-            fullResults.push(...connectables);
             for (const c of connectables) {
-              const fields = await Connectable.connectableFields(c);
-              if (fields) {
-                resources.push(fields);
-              }
+              await addConnectable(c);
             }
           }
         }
@@ -1950,6 +1953,7 @@ export default class Spyglass {
           return;
         }
         intent = _intent;
+        yield { type: "intent_loaded", data: intent };
         const searches = intent.searches.map((s) => {
           const existingFilters = s.filters || {};
           return {
@@ -1969,9 +1973,7 @@ export default class Spyglass {
         const r = await Spyglass.getResultsFromQueries(userId.toString(), searches);
         const connectablePromises = r.map(async (s) => {
           fullResults.push(s.value);
-          const type = s.value.type;
-          const fields = Connectable.fieldsResolver[type]?.(s.value as any);
-          return fields;
+          return Connectable.connectableFields(s.value);
         });
         const connectables = await Promise.all(connectablePromises);
         resources.push(...(connectables.filter((c) => c) as IConnectableFields[]));

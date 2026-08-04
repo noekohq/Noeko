@@ -19,15 +19,18 @@ After copying, be sure to review and fill in the necessary values in your new `.
 This method containerizes all services (database, backend, frontend), ensuring a consistent environment.
 
 **Prerequisites:**
+
 - [Docker](https://www.docker.com/get-started)
 - [Bun](https://bun.sh/) (for running the script)
 
 **Setup Command:**
+
 ```sh
 bun run dev:docker
 ```
 
 This single command will:
+
 1.  Start the SurrealDB database via Docker Compose.
 2.  Start a container for the backend server with hot-reloading.
 3.  Start a container for the frontend Vite server with hot-reloading.
@@ -39,15 +42,18 @@ You can access the frontend at `http://localhost:5173` and the backend API at th
 This method runs the backend and frontend servers directly on your machine, while still using Docker for the database.
 
 **Prerequisites:**
+
 - [Docker](https://www.docker.com/get-started) (for the database)
 - [Bun](https://bun.sh/)
 
 **Setup Command:**
+
 ```sh
 bun run dev
 ```
 
 This command will:
+
 1.  Start the SurrealDB database in Docker.
 2.  Start the backend server on your host machine with hot-reloading.
 3.  Start the frontend Vite server on your host machine with hot-reloading.
@@ -69,9 +75,13 @@ The `package.json` file is the central place for all project commands. Here are 
 - `bun run dev:docker`: Starts the full development environment completely inside Docker containers.
 - `bun run build`: Creates a production-ready build of both the frontend and backend.
 - `bun run start`: Runs the pre-built application in production mode.
-- `bun run test`: Runs the entire test suite.
+- `bun run test`: Runs the backend and frontend test suites.
+- `bun run test:e2e`: Runs the Playwright suite against isolated local services.
 - `bun run lint`: Checks the code for style and formatting issues.
 - `bun run db:sql`: Opens an interactive SQL shell inside the database container.
+
+See [Testing Noeko](./TESTING.md) for guidance on choosing a test layer,
+database isolation, browser test setup, and opt-in live AI diagnostics.
 
 ## Submitting Changes
 

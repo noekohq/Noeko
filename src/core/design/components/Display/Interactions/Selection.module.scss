@@ -27,6 +27,11 @@
     transform: scale(0.95) translateY(2px);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--theme-accent);
+    outline-offset: 2px;
+  }
+
   .left {
     height: 100%;
     display: inline-block;
@@ -82,5 +87,10 @@
 
   &:hover {
     background-color: var(--mantine-color-dark-7);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-accent);
+    outline-offset: -2px;
   }
 }

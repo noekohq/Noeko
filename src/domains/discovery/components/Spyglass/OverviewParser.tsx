@@ -35,18 +35,19 @@ interface IFindingBadgeProps {
 }
 
 const FindingBadge: React.FC<IFindingBadgeProps> = ({ findingNumber, resultsMap, findings }) => {
+  const [previewing, setPreviewing] = useState(false);
+  const navigate = useNavigate();
   const finding = findings[findingNumber];
 
+  if (!finding) return null;
+
   const result = resultsMap[finding.sourceId];
+
+  if (!result) return null;
 
   const title = result.name;
   const titleLink = `/${result.type}/${result.id.toString()}`;
   const content = result.content;
-  const [previewing, setPreviewing] = useState(false);
-  const navigate = useNavigate();
-
-  if (!finding) return null;
-  if (!result) return null;
 
   return (
     <>

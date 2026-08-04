@@ -1,4 +1,5 @@
 import { RecordId, StringRecordId } from "surrealdb";
+import type { IEmbeddingMetadata } from "./embeddings";
 
 export interface ISourceable {
   id: string | RecordId;
@@ -12,7 +13,7 @@ export type ISourceVisibility = "private" | "unlisted" | "public";
 // ISourceReference needs to be generic to avoid circular dependency
 export type ISourceReference = StringRecordId;
 
-export type ISource = {
+export type ISource = IEmbeddingMetadata & {
   id: string | RecordId;
   displayName: string;
   content: string;
