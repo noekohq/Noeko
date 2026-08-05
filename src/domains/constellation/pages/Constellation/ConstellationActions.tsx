@@ -14,7 +14,7 @@ type IConstellationActionsProps = {
 
 export default function ConstellationActions({ graphData }: IConstellationActionsProps) {
   const {
-    selected: { add: addSelected, remove: removeSelected },
+    selected: { addMany: addSelected, removeMany: removeSelected },
     focused: { set: setFocused },
     highlighted: { set: setHighlighted },
     loading: { set: setLoading },
@@ -50,9 +50,7 @@ export default function ConstellationActions({ graphData }: IConstellationAction
   const handleSelectAllResults = useCallback(
     (results: ISearchResult[]) => {
       if (results) {
-        results.forEach((r) => {
-          addSelected(r.id.toString());
-        });
+        addSelected(results.map((result) => result.id.toString()));
       }
     },
     [addSelected]
@@ -61,9 +59,7 @@ export default function ConstellationActions({ graphData }: IConstellationAction
   const handleDeselectAllResults = useCallback(
     (results: ISearchResult[]) => {
       if (results) {
-        results.forEach((r) => {
-          removeSelected(r.id.toString());
-        });
+        removeSelected(results.map((result) => result.id.toString()));
       }
     },
     [removeSelected]

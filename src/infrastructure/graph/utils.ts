@@ -8,6 +8,8 @@ import {
   IEdge,
   IFileNode,
   IGraph,
+  IGraphSummaryNode,
+  IIdeaNode,
   INode,
   INodeOrganizationType,
   ITagNode,
@@ -33,6 +35,9 @@ import { ILoadedConstellation } from "../../../app/services/Graph";
 import { IExcerptReference } from "../../../shared/types/excerpt";
 
 export const MIN_SIMILARITY_THRESHOLD = 0.5;
+
+export const isGraphSummaryNode = (node: INode): node is IGraphSummaryNode =>
+  (node as IGraphSummaryNode).summary === true;
 export const MIN_GRAPH_DIST = 150; // Target distance for similarity = 1
 export const GRAPH_DISTS = {
   small: 100,
@@ -184,6 +189,11 @@ export const fromConstellation = (constellation: ILoadedConstellation): IGraph =
     graph.edges.push(...referenceEdges);
   }
 
+  const nodeIds = new Set(graph.nodes.map((node) => node.id.toString()));
+  graph.edges = graph.edges.filter(
+    (edge) => nodeIds.has(edge.source.toString()) && nodeIds.has(edge.target.toString())
+  );
+
   return graph;
 };
 
@@ -227,6 +237,9 @@ export const getTypeFromId = (id: string): INode["type"] | undefined => {
 };
 
 export const getNodeTitle = (node: INode): string | undefined => {
+  if (isGraphSummaryNode(node)) {
+    return node.label;
+  }
   if (node.type === "idea") {
     return node.title;
   }
@@ -257,6 +270,9 @@ export const getNodeDescription = (
     maxLength?: number;
   }
 ) => {
+  if (isGraphSummaryNode(node)) {
+    return node.description;
+  }
   if (node.type === "idea") {
     const desc =
       node.derived?.generative_summary?.sentenceOverview ??
@@ -294,6 +310,9 @@ export const getNodeDescription = (
 };
 
 export const getNodeContent = (node: INode) => {
+  if (isGraphSummaryNode(node)) {
+    return undefined;
+  }
   if (node.type === "idea") {
     return node.content;
   }
@@ -310,6 +329,20 @@ export const getNodeContent = (node: INode) => {
 };
 
 export const getNodeLink = (node: INode) => {
+  if (isGraphSummaryNode(node)) {
+    if (node.type === "excerpt") {
+      return node.referenceId
+        ? `/source/${node.referenceId}?excerptId=${node.id.toString()}`
+        : undefined;
+    }
+    if (node.type === "idea") return `/idea/${node.id}`;
+    if (node.type === "source") return `/source/${node.id}`;
+    if (node.type === "task") return `/task/${node.id}`;
+    if (node.type === "rabbithole") return `/rabbitholes/${node.id}`;
+    if (node.type === "tag") return `/tags/${node.id}`;
+    if (node.type === "user") return `/profile/${node.id}`;
+    return undefined;
+  }
   if (node.type === "idea") {
     return `/idea/${node.id.toString()}`;
   }
@@ -435,16 +468,16 @@ export const isIncluded = (connections: (IIdea | ISafeIdea)[], check: IIdea | st
 };
 
 export const getNodeAsIdeaOrNull = (node: INode): ISafeIdea | null => {
-  if (node.type === "idea") {
+  if (node.type === "idea" && !isGraphSummaryNode(node)) {
     return node;
   }
   return null;
 };
 
 export const getNodesAsIdeas = (nodes: INode[]): ISafeIdea[] => {
-  return nodes.filter((n) => {
-    return n.type === "idea";
-  });
+  return nodes.filter(
+    (node): node is IIdeaNode => node.type === "idea" && !isGraphSummaryNode(node)
+  );
 };
 
 export const connect = async (

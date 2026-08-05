@@ -6,7 +6,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { IEdge, IGraph, INode } from "@/declarations/graph"; // Adjust path as needed
+import { IGraph, INode } from "@/declarations/graph"; // Adjust path as needed
 import Node from "./Node";
 import Edge from "./Edge";
 import styles from "./Graph.module.scss";
@@ -15,6 +15,7 @@ import { useGraph } from "@domains/constellation/contexts/GraphContext";
 import { useGraphTraversal } from "./useGraphTraversal";
 import { GraphPanel } from "./GraphPanel";
 import { Text } from "@mantine/core";
+import { normalizeGraph } from "@infrastructure/graph/model";
 
 function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   const dx = touch1.clientX - touch2.clientX;
@@ -29,7 +30,7 @@ function getTouchMidpoint(touch1: React.Touch, touch2: React.Touch): { x: number
   };
 }
 
-type IGraphContainerProps = {
+export type IGraphContainerProps = {
   graph: IGraph;
   width?: number;
   height?: number;
@@ -57,9 +58,10 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     const svgRef = useRef<SVGSVGElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const topology = React.useMemo(() => normalizeGraph(graph), [graph]);
 
     const [nodes, setNodes] = useState<INode[]>([]);
-    const [edges, setEdges] = useState<IEdge[]>(graph.edges);
+    const edges = topology.edges;
     const workerRef = useRef<Worker | null>(null);
 
     const [isDraggingNode, setIsDraggingNode] = useState<string | null>(null);
@@ -84,21 +86,10 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         {} as { [key: string]: INode }
       );
     }, [nodes]);
+    const nodeMapRef = useRef(nodeMap);
+    nodeMapRef.current = nodeMap;
 
-    const adjacencyList = React.useMemo(() => {
-      const list: Record<string, IEdge[]> = {};
-
-      nodes.forEach((node) => {
-        list[node.id.toString()] = [];
-      });
-
-      edges.forEach((edge) => {
-        list[edge.source]?.push(edge);
-        list[edge.target]?.push(edge);
-      });
-
-      return list;
-    }, [nodes, edges]);
+    const adjacencyList = topology.adjacencyByNodeId;
 
     const dragStartPosRef = useRef<{
       pointerId: number | null;
@@ -129,7 +120,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       onClose: () => void;
     } | null>(null);
 
-    const nodePositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+    const dimensionsRef = useRef({ width: 0, height: 0 });
     const animationFrameRef = useRef<number>(null);
 
     const handleClosePanel = useCallback(() => {
@@ -142,9 +133,19 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     useEffect(() => {
       const updateDimensions = () => {
         if (containerRef.current) {
-          setDimensions({
+          const nextDimensions = {
             width: containerRef.current.clientWidth,
             height: containerRef.current.clientHeight,
+          };
+          dimensionsRef.current = nextDimensions;
+          setDimensions((currentDimensions) => {
+            if (
+              currentDimensions.width === nextDimensions.width &&
+              currentDimensions.height === nextDimensions.height
+            ) {
+              return currentDimensions;
+            }
+            return nextDimensions;
           });
         }
       };
@@ -161,7 +162,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     }, []);
 
     const initializeSimulation = useCallback(() => {
-      if (isNavigating || !graph.nodes.length) {
+      if (isNavigating || !topology.nodes.length) {
         return;
       }
 
@@ -181,16 +182,18 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       );
       workerRef.current = worker;
 
-      const currentWidth = propWidth ?? dimensions.width;
-      const currentHeight = propHeight ?? dimensions.height;
+      const currentWidth = propWidth ?? dimensionsRef.current.width;
+      const currentHeight = propHeight ?? dimensionsRef.current.height;
 
       // Reset transform to initial state
       setTransform({ k: 0.4, x: currentWidth / 2, y: currentHeight / 2 });
+      setNodePanel(null);
+      setGraphPanel(null);
 
       const angleIncrement = Math.PI * (3 - Math.sqrt(5));
       const radiusIncrement = 200;
 
-      const initialNodes = graph.nodes.map((node, i) => {
+      const initialNodes = topology.nodes.map((node, i) => {
         const radius = radiusIncrement * Math.sqrt(i);
         const angle = i * angleIncrement;
         return {
@@ -204,16 +207,24 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
       worker.postMessage({
         type: "update_data",
-        payload: { nodes: initialNodes, edges: graph.edges },
+        payload: {
+          nodes: initialNodes.map((node) => ({
+            id: node.id.toString(),
+            x: node.x,
+            y: node.y,
+          })),
+          edges: topology.edges.map(({ source, target, distance, strength }) => ({
+            source,
+            target,
+            distance,
+            strength,
+          })),
+        },
       });
 
       worker.onmessage = (event) => {
         const { type, nodes: updatedNodes } = event.data;
         if (type === "tick") {
-          updatedNodes.forEach((n: { id: string; x: number; y: number }) => {
-            nodePositionsRef.current.set(n.id.toString(), { x: n.x, y: n.y });
-          });
-
           if (!animationFrameRef.current) {
             animationFrameRef.current = requestAnimationFrame(() => {
               setNodes((currentNodes) => {
@@ -237,7 +248,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           }
         }
       };
-    }, [graph.nodes, graph.edges, dimensions, propWidth, propHeight, isNavigating]);
+    }, [topology, propWidth, propHeight, isNavigating]);
 
     useImperativeHandle(ref, () => ({
       reset: () => {
@@ -254,7 +265,17 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
     useEffect(() => {
       initializeSimulation();
-    }, []);
+
+      return () => {
+        workerRef.current?.terminate();
+        workerRef.current = null;
+
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+      };
+    }, [initializeSimulation]);
 
     const getSVGPoint = useCallback(
       (clientX: number, clientY: number): { x: number; y: number } => {
@@ -308,74 +329,80 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       }
     };
 
-    const handleMouseMove = (event: MouseEvent) => {
-      // --- CHANGE: This is where we decide if it's a drag ---
-      if (potentialDragTargetRef.current && !isDraggingNode) {
-        const dx = Math.abs(event.clientX - dragStartPosRef.current!.screenX);
-        const dy = Math.abs(event.clientY - dragStartPosRef.current!.screenY);
+    const handleMouseMove = useCallback(
+      (event: MouseEvent) => {
+        // --- CHANGE: This is where we decide if it's a drag ---
+        if (potentialDragTargetRef.current && !isDraggingNode) {
+          const dx = Math.abs(event.clientX - dragStartPosRef.current!.screenX);
+          const dy = Math.abs(event.clientY - dragStartPosRef.current!.screenY);
 
-        // If mouse has moved more than a few pixels, start a proper drag
-        if (dx > 5 || dy > 5) {
-          const nodeId = potentialDragTargetRef.current;
-          setIsDraggingNode(nodeId); // Now it's officially a drag
+          // If mouse has moved more than a few pixels, start a proper drag
+          if (dx > 5 || dy > 5) {
+            const nodeId = potentialDragTargetRef.current;
+            setIsDraggingNode(nodeId); // Now it's officially a drag
 
-          // Now we can call the original startNodeDrag logic to set fx/fy and reheat
-          const node = nodeMap[nodeId!];
-          if (!node || !workerRef.current) return;
+            // Now we can call the original startNodeDrag logic to set fx/fy and reheat
+            const node = nodeMapRef.current[nodeId!];
+            if (!node || !workerRef.current) return;
 
-          const { x: svgX, y: svgY } = screenToSVGCoords(
-            dragStartPosRef.current!.screenX,
-            dragStartPosRef.current!.screenY
+            const { x: svgX, y: svgY } = screenToSVGCoords(
+              dragStartPosRef.current!.screenX,
+              dragStartPosRef.current!.screenY
+            );
+
+            // Update the ref with the correct node start offsets
+            dragStartPosRef.current = {
+              ...dragStartPosRef.current!,
+              nodeStartX: (node.x ?? 0) - svgX,
+              nodeStartY: (node.y ?? 0) - svgY,
+            };
+
+            workerRef.current.postMessage({
+              type: "update_node_position",
+              payload: { id: nodeId, fx: node.x, fy: node.y },
+            });
+
+            // Clear the potential target so this block doesn't run again
+            potentialDragTargetRef.current = null;
+          }
+        }
+
+        // This part is for an *active* drag, it remains mostly the same
+        if (isDraggingNode && dragStartPosRef.current?.pointerId === null && workerRef.current) {
+          const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(
+            event.clientX,
+            event.clientY
           );
-
-          // Update the ref with the correct node start offsets
-          dragStartPosRef.current = {
-            ...dragStartPosRef.current!,
-            nodeStartX: (node.x ?? 0) - svgX,
-            nodeStartY: (node.y ?? 0) - svgY,
-          };
+          const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
+          const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
 
           workerRef.current.postMessage({
             type: "update_node_position",
-            payload: { id: nodeId, fx: node.x, fy: node.y },
+            payload: { id: isDraggingNode, fx: newFx, fy: newFy },
           });
-
-          // Clear the potential target so this block doesn't run again
-          potentialDragTargetRef.current = null;
+        } else if (isPanning && panStartPosRef.current?.pointerId === null) {
+          // Panning logic remains the same
+          const dx = event.clientX - panStartPosRef.current.screenX;
+          const dy = event.clientY - panStartPosRef.current.screenY;
+          setTransform((prev) => ({
+            ...prev,
+            x: prev.x + dx,
+            y: prev.y + dy,
+          }));
+          // Update start position for next move event
+          panStartPosRef.current.screenX = event.clientX;
+          panStartPosRef.current.screenY = event.clientY;
         }
-      }
+      },
+      [isDraggingNode, isPanning, screenToSVGCoords]
+    );
 
-      // This part is for an *active* drag, it remains mostly the same
-      if (isDraggingNode && dragStartPosRef.current?.pointerId === null && workerRef.current) {
-        const { x: currentSvgX, y: currentSvgY } = screenToSVGCoords(event.clientX, event.clientY);
-        const newFx = currentSvgX + dragStartPosRef.current.nodeStartX;
-        const newFy = currentSvgY + dragStartPosRef.current.nodeStartY;
-
-        workerRef.current.postMessage({
-          type: "update_node_position",
-          payload: { id: isDraggingNode, fx: newFx, fy: newFy },
-        });
-      } else if (isPanning && panStartPosRef.current?.pointerId === null) {
-        // Panning logic remains the same
-        const dx = event.clientX - panStartPosRef.current.screenX;
-        const dy = event.clientY - panStartPosRef.current.screenY;
-        setTransform((prev) => ({
-          ...prev,
-          x: prev.x + dx,
-          y: prev.y + dy,
-        }));
-        // Update start position for next move event
-        panStartPosRef.current.screenX = event.clientX;
-        panStartPosRef.current.screenY = event.clientY;
-      }
-    };
-
-    const handleNodeSelect = (
-      event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>,
-      node: INode
-    ) => {
-      onNodeSelect?.(event, node);
-    };
+    const handleNodeSelect = useCallback(
+      (event: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGGElement>, node: INode) => {
+        onNodeSelect?.(event, node);
+      },
+      [onNodeSelect]
+    );
 
     const handleMouseUp = useCallback(
       (event: MouseEvent) => {
@@ -391,7 +418,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
           const nodeElement = target.closest("g[data-node-id]");
           if (nodeElement) {
             const nodeId = nodeElement.getAttribute("data-node-id");
-            const node = nodeMap[nodeId!];
+            const node = nodeMapRef.current[nodeId!];
             if (node) {
               handleNodeSelect(event as any, node);
             }
@@ -408,7 +435,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         dragStartPosRef.current = null;
         panStartPosRef.current = null;
       },
-      [isDraggingNode, isPanning, nodeMap, handleNodeSelect] // Add dependencies
+      [isDraggingNode, isPanning, handleNodeSelect]
     );
 
     useEffect(() => {
@@ -856,42 +883,14 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
       setGraphPanel(null);
     };
 
-    const CONNECTABLE_TYPES = new Set(["idea", "task", "source", "excerpt"]);
-
-    const findConnectableCluster = useCallback(
-      (currentNodeId: string, visited: Set<string>) => {
-        if (visited.has(currentNodeId)) {
-          return;
-        }
-        visited.add(currentNodeId);
-
-        const connectedEdges = adjacencyList[currentNodeId] || [];
-
-        for (const edge of connectedEdges) {
-          if (edge.type === "connection") {
-            const neighborId = edge.source === currentNodeId ? edge.target : edge.source;
-            const neighborNode = nodeMap[neighborId];
-
-            if (neighborNode && CONNECTABLE_TYPES.has(neighborNode.type)) {
-              findConnectableCluster(neighborId, visited);
-            }
-          }
-        }
-      },
-      [adjacencyList, nodeMap]
-    );
-
     const { clusterSelect, clusterDeselect } = useGraphTraversal({
-      nodeMap,
+      nodeMap: topology.nodesById,
       adjacencyList,
     });
 
     const {
       focused: { get: focused },
     } = useGraph();
-
-    const stringifiedNodes = useRef<string>(null);
-    const stringifiedEdges = useRef<string>(null);
 
     const focusOnNode = (nodeId: string, targetZoom: number = 1.5) => {
       const node = nodeMap[nodeId];
@@ -941,6 +940,7 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         )}
         {nodePanel && (
           <NodePanel
+            key={nodePanel.node.id.toString()}
             ref={nodePanelRef}
             {...nodePanel}
             onClusterSelect={(node) => {

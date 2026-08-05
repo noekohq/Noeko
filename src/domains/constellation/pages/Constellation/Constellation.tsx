@@ -1,4 +1,5 @@
-import Graph, { IGraphController } from "@domains/constellation/components/Graph/Graph";
+import { IGraphController } from "@domains/constellation/components/Graph/Graph";
+import AdaptiveGraph from "@domains/constellation/components/Graph/AdaptiveGraph";
 import { INode } from "@/declarations/graph";
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import styles from "./Constellation.module.scss";
@@ -6,16 +7,14 @@ import useFetch from "@core/hooks/useFetch";
 import { useNavigate } from "react-router";
 import ConstellationActions from "./ConstellationActions";
 import ConstellationContext from "./ConstellationContext";
-import { fromConstellation, getNodeLink } from "@infrastructure/graph/utils";
-import { Group, Loader, Text } from "@mantine/core";
+import { getNodeLink } from "@infrastructure/graph/utils";
+import { fromGraphSnapshot } from "@infrastructure/graph/model";
+import { Group, Loader } from "@mantine/core";
 import PageWrapper from "@core/design/layout/PageWrapper";
 import LeftSidebar from "@core/design/components/Layout/Left";
 import RightSidebar from "@core/design/components/Layout/Right";
-import {
-  IConstellationLoader,
-  IGraphFilters,
-  ILoadedConstellation,
-} from "../../../../../app/services/Graph";
+import { IConstellationLoader, IGraphFilters } from "../../../../../app/services/Graph";
+import { IGraphSnapshot } from "../../../../../shared/types/graph-snapshot";
 import GraphLoader from "@core/design/components/Loading/GraphLoader";
 import { useLandscape } from "@/contexts/LandscapeContext";
 import { useGraph } from "@domains/constellation/contexts/GraphContext";
@@ -50,20 +49,14 @@ export default function GraphPage() {
     },
   } = useSearch();
 
-  const {
-    data: constellationData,
-    load: reloadConstellation,
-    loading: loadingConstellation,
-  } = useFetch<{ loader: IConstellationLoader; filters: IGraphFilters }, ILoadedConstellation>({
-    url: "/graph",
-    method: "POST",
-    body: {
+  const requestBody = useMemo(
+    () => ({
       loader,
       filters: {
         rabbithole: currentRabbithole?.id.toString() || scope.rabbithole?.toString(),
         tags: scope.tags
           ? {
-              set: scope.tags.set.map((s: string) => s.toString()),
+              set: scope.tags.set.map((tagId: string) => tagId.toString()),
               behavior: scope.tags.behavior,
             }
           : undefined,
@@ -90,11 +83,20 @@ export default function GraphPage() {
             }
           : undefined,
       },
-    },
+    }),
+    [currentRabbithole?.id, loader, scope]
+  );
+
+  const {
+    data: constellationData,
+    load: reloadConstellation,
+    loading: loadingConstellation,
+  } = useFetch<{ loader: IConstellationLoader; filters: IGraphFilters }, IGraphSnapshot>({
+    url: "/graph/snapshot",
+    method: "POST",
+    body: requestBody,
     dependencies: [currentRabbithole?.id, scope, loader],
-    onFinally: () => {
-      graphRef.current?.reset();
-    },
+    cancelPrevious: true,
   });
 
   const {
@@ -104,14 +106,14 @@ export default function GraphPage() {
   useEffect(() => {
     reloadConstellation();
     setFocused(currentRabbithole?.id.toString() || "");
-  }, [currentRabbithole, scope]);
+  }, [currentRabbithole?.id, reloadConstellation, scope, setFocused]);
 
   useEffect(() => {
     setIsNavigating(false);
   }, []);
 
   const graphData = useMemo(
-    () => (constellationData ? fromConstellation(constellationData) : undefined),
+    () => (constellationData ? fromGraphSnapshot(constellationData) : undefined),
     [constellationData]
   );
 
@@ -130,7 +132,7 @@ export default function GraphPage() {
     [navigate]
   );
 
-  const isLoading = loadingConstellation || !graphData;
+  const isLoading = !graphData;
 
   return (
     <PageWrapper>
@@ -155,7 +157,7 @@ export default function GraphPage() {
             <GraphLoader />
           </Group>
         ) : (
-          <Graph
+          <AdaptiveGraph
             ref={graphRef}
             graph={graphData} // graphData is guaranteed to exist here
             onNodeNavigate={handleNodeNavigate}
@@ -166,7 +168,7 @@ export default function GraphPage() {
       <Nav />
       <RightSidebar>
         <RightSidebar.Open>
-          {isLoading && <Loader size="sm" color="gray" />}
+          {loadingConstellation && <Loader size="sm" color="gray" />}
           {!!graphData && <ConstellationActions graphData={graphData} />}
         </RightSidebar.Open>
       </RightSidebar>

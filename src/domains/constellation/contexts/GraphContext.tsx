@@ -14,7 +14,9 @@ type IGraphContext = {
     get: Set<string>;
     set: (ids: string[]) => void;
     add: (id: string) => void;
+    addMany: (ids: Iterable<string>) => void;
     remove: (id: string) => void;
+    removeMany: (ids: Iterable<string>) => void;
     clear: () => void;
     empty: () => boolean;
   };
@@ -50,7 +52,9 @@ const initialGraphContext: IGraphContext = {
     get: new Set<string>(),
     set: (ids: string[] | null) => {},
     add: (id: string) => {},
+    addMany: (ids: Iterable<string>) => {},
     remove: (id: string) => {},
+    removeMany: (ids: Iterable<string>) => {},
     clear: () => {},
     empty: () => false,
   },
@@ -110,10 +114,30 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
+  const addManySelectedHandler = useCallback((ids: Iterable<string>) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
   const removeSelectedHandler = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const removeManySelectedHandler = useCallback((ids: Iterable<string>) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        next.delete(id);
+      }
       return next;
     });
   }, []);
@@ -159,7 +183,9 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
         get: selected,
         set: setSelectedHandler,
         add: addSelectedHandler,
+        addMany: addManySelectedHandler,
         remove: removeSelectedHandler,
+        removeMany: removeManySelectedHandler,
         clear: clearSelectedHandler,
         empty: () => selected.size === 0,
       },
@@ -195,7 +221,9 @@ export const GraphProvider = ({ children }: { children: React.ReactNode }) => {
       setFocusedHandler,
       setSelectedHandler,
       addSelectedHandler,
+      addManySelectedHandler,
       removeSelectedHandler,
+      removeManySelectedHandler,
       clearSelectedHandler,
       setHighlightedHandler,
       addHighlightedHandler,

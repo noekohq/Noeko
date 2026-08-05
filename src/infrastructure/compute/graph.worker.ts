@@ -1,12 +1,15 @@
 import * as d3 from "d3-force";
-import { INode, IEdge } from "@/declarations/graph.d";
-
 // --- Type Definitions for the Worker ---
 
-type SimNode = INode & d3.SimulationNodeDatum;
-type SimEdge = IEdge & {
+type SimNode = d3.SimulationNodeDatum & {
+  id: string;
+};
+
+type SimEdge = d3.SimulationLinkDatum<SimNode> & {
   source: string;
   target: string;
+  distance?: number;
+  strength?: number;
 };
 
 // --- Simulation Configuration ---
@@ -35,6 +38,25 @@ const SIMULATION_CONFIG = {
 
 let simulation: d3.Simulation<SimNode, SimEdge> | null = null;
 const nodeMap = new Map<string, SimNode>();
+let useCompactTicks = false;
+
+function emitPositions(type: "layout_ready" | "tick") {
+  if (!simulation) return;
+  if (useCompactTicks) {
+    const nodes = simulation.nodes();
+    const positions = new Float32Array(nodes.length * 2);
+    for (let index = 0; index < nodes.length; index += 1) {
+      positions[index * 2] = nodes[index].x || 0;
+      positions[index * 2 + 1] = nodes[index].y || 0;
+    }
+    self.postMessage({ type, positions }, { transfer: [positions.buffer] });
+    return;
+  }
+  self.postMessage({
+    type,
+    nodes: simulation.nodes().map(({ id, x, y }) => ({ id, x, y })),
+  });
+}
 
 // --- Message Handler ---
 
@@ -46,7 +68,8 @@ self.onmessage = (event: MessageEvent) => {
       if (simulation) {
         simulation.stop();
       }
-      initializeSimulation(payload.nodes, payload.edges);
+      useCompactTicks = payload.compact === true;
+      initializeSimulation(payload.nodes, payload.edges, payload.warmupTicks || 0);
       break;
 
     case "update_node_position":
@@ -83,7 +106,7 @@ self.onmessage = (event: MessageEvent) => {
 
 // --- Simulation Initialization ---
 
-function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
+function initializeSimulation(nodes: SimNode[], edges: SimEdge[], warmupTicks: number) {
   nodeMap.clear();
   nodes.forEach((n) => nodeMap.set(n.id.toString(), n));
 
@@ -115,14 +138,19 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[]) {
 
   simulation
     .on("tick", () => {
-      self.postMessage({
-        type: "tick",
-        nodes: simulation!.nodes().map(({ id, x, y }) => ({ id, x, y })),
-      });
+      emitPositions("tick");
     })
     .on("end", () => {
       self.postMessage({ type: "end" });
     });
 
-  simulation.alpha(SIMULATION_CONFIG.alpha.initial).restart();
+  simulation.alpha(SIMULATION_CONFIG.alpha.initial);
+  if (warmupTicks > 0) {
+    simulation.tick(warmupTicks);
+    // The expensive, high-energy portion happened offscreen. Keep a little
+    // energy for organic final adjustments without exposing the initial shake.
+    simulation.alpha(Math.min(simulation.alpha(), 0.025));
+    emitPositions("layout_ready");
+  }
+  simulation.restart();
 }

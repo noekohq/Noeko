@@ -10,6 +10,10 @@ type EdgeProps = {
 };
 
 const EdgeComponent = ({ edge, sourceNode, targetNode }: EdgeProps) => {
+  const {
+    selected: { get: selected },
+  } = useGraph();
+
   if (
     !sourceNode ||
     !targetNode ||
@@ -21,10 +25,6 @@ const EdgeComponent = ({ edge, sourceNode, targetNode }: EdgeProps) => {
     // Don't render edge if nodes or their positions aren't defined yet
     return null;
   }
-
-  const {
-    selected: { get: selected },
-  } = useGraph();
 
   const isSelected =
     selected.has(sourceNode.id.toString()) || selected.has(targetNode.id.toString());

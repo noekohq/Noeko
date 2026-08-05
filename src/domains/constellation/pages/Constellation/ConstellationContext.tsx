@@ -14,6 +14,8 @@ import { RecordId } from "surrealdb";
 import { i18n } from "@lingui/core";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
+import { isGraphSummaryNode } from "@infrastructure/graph/utils";
+import { IUserNode } from "@/declarations/graph";
 
 type ConstellationContextProps = {
   graph: IGraph | null;
@@ -113,12 +115,14 @@ export default function ConstellationContext({
             </Text>
             <Stack gap="xs">
               {friendNodes.map((node) => {
-                const userNode = node as import("@/declarations/graph").IUserNode;
                 const fullName =
-                  `${userNode.firstName} ${userNode.lastName}`.trim() || i18n._(t`Friend`);
+                  (isGraphSummaryNode(node)
+                    ? node.label
+                    : `${(node as IUserNode).firstName} ${(node as IUserNode).lastName}`.trim()) ||
+                  i18n._(t`Friend`);
                 return (
                   <PaperThing
-                    key={node.id}
+                    key={node.id.toString()}
                     id={node.id.toString()}
                     title={fullName}
                     detail=""

@@ -13,7 +13,7 @@ import { isDarkScheme } from "@core/utils/dom";
 import { IUserSettings } from "../../shared/types/user";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { api } from "@infrastructure/api/client";
-import { dynamicActivate } from "@/i18n";
+import { dynamicActivate, locales } from "@/i18n";
 
 const LOCAL_STORAGE_KEYS = {
   override: "themeOverride",
@@ -58,13 +58,29 @@ type ISettingsContext = {
   };
 };
 
-function getInitialState<T>(key: string, defaultValue: T): T {
+const THEME_OPTIONS: readonly IThemeSpec["override"][] = [
+  "noeko",
+  "silicon",
+  "nord",
+  "pinkLady",
+  "vaporwave",
+  "river",
+  "dracula",
+  "paper",
+];
+const THEME_SCHEMES: readonly IThemeSpec["scheme"][] = ["auto", "light", "dark"];
+const THEME_FONTS: readonly IThemeSpec["bodyFont"][] = ["sans-serif", "serif"];
+
+function getInitialState<T extends string>(
+  key: string,
+  defaultValue: T,
+  validValues: readonly T[]
+): T {
   if (typeof window !== "undefined" && window.localStorage) {
     try {
       const storedValue = localStorage.getItem(key);
-      if (storedValue !== null) {
-        return storedValue as unknown as T;
-      }
+      if (storedValue !== null && validValues.includes(storedValue as T)) return storedValue as T;
+      if (storedValue !== null) localStorage.removeItem(key);
     } catch (error) {
       console.warn(`Error reading '${key}' from localStorage:`, error);
     }
@@ -113,19 +129,19 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const { user, reload } = useAuth();
 
   const [override, setOverride] = useState<IThemeSpec["override"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko")
+    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko", THEME_OPTIONS)
   );
   const [scheme, setScheme] = useState<IThemeSpec["scheme"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto")
+    getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto", THEME_SCHEMES)
   );
   const [bodyFont, setBodyFont] = useState<IThemeSpec["bodyFont"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.bodyFont, "sans-serif")
+    getInitialState(LOCAL_STORAGE_KEYS.bodyFont, "sans-serif", THEME_FONTS)
   );
   const [headingFont, setHeadingFont] = useState<IThemeSpec["headingFont"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif")
+    getInitialState(LOCAL_STORAGE_KEYS.headingFont, "sans-serif", THEME_FONTS)
   );
   const [language, setLanguage] = useState<string>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.language, "en")
+    getInitialState(LOCAL_STORAGE_KEYS.language, "en", Object.keys(locales))
   );
 
   useEffect(() => {

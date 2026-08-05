@@ -1051,20 +1051,18 @@ export default class GraphService {
         return results;
       };
 
-      const ideas = (await getOfType<IIdea & { type: "idea" }>(ideaQuery)).map((i) => ({
-        ...i,
-        type: "idea" as const,
-      }));
-      const sources = (await getOfType<ISource & { type: "source" }>(sourceQuery)).map((s) => ({
-        ...s,
-        type: "source" as const,
-      }));
-      const tasks = (await getOfType<ITask & { type: "task" }>(taskQuery)).map((t) => ({
-        ...t,
-        type: "task" as const,
-      }));
-      const excerpts = (await getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery)).map((t) => ({
-        ...t,
+      const [ideasResult, sourcesResult, tasksResult, excerptsResult] = await Promise.all([
+        getOfType<IIdea & { type: "idea" }>(ideaQuery),
+        getOfType<ISource & { type: "source" }>(sourceQuery),
+        getOfType<ITask & { type: "task" }>(taskQuery),
+        getOfType<IExcerpt & { type: "excerpt" }>(excerptQuery),
+      ]);
+
+      const ideas = ideasResult.map((idea) => ({ ...idea, type: "idea" as const }));
+      const sources = sourcesResult.map((source) => ({ ...source, type: "source" as const }));
+      const tasks = tasksResult.map((task) => ({ ...task, type: "task" as const }));
+      const excerpts = excerptsResult.map((excerpt) => ({
+        ...excerpt,
         type: "excerpt" as const,
       }));
 
@@ -1261,7 +1259,7 @@ export default class GraphService {
           (
             in IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
             out IN (SELECT VALUE ->includes.out FROM ONLY <record>$rabbitholeId) OR
-            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
+            in IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId) OR
             out IN (SELECT VALUE ->includes->tag->describes.out FROM ONLY <record>$rabbitholeId)
           )
           `);
@@ -1698,6 +1696,26 @@ export class ConstellationLoader {
       const results = await Promise.all(promises);
       const loaded: Partial<ILoadedConstellation> = Object.assign({}, ...results);
 
+      const loadedNodeIds = new Set(
+        [
+          ...(loaded.things || []),
+          ...(loaded.rabbitholes || []),
+          ...(loaded.tags || []),
+          ...(loaded.friends || []),
+        ].map((node) => node.id.toString())
+      );
+
+      if (loadedNodeIds.size > 0) {
+        const hasLoadedEndpoints = (relationship: { in: unknown; out: unknown }) =>
+          loadedNodeIds.has(String(relationship.in)) && loadedNodeIds.has(String(relationship.out));
+
+        loaded.connections = loaded.connections?.filter(hasLoadedEndpoints);
+        loaded.inclusions = loaded.inclusions?.filter(hasLoadedEndpoints);
+        loaded.descriptions = loaded.descriptions?.filter(hasLoadedEndpoints);
+        loaded.references = loaded.references?.filter(hasLoadedEndpoints);
+        loaded.shares = loaded.shares?.filter(hasLoadedEndpoints);
+      }
+
       return loaded;
     } catch (error) {
       console.error("Error loading user constellation: ", error);
@@ -1772,7 +1790,7 @@ export class ConstellationLoader {
 
   public async descriptions(): Promise<ITagDescriptionRelationship[] | undefined> {
     try {
-      const descriptions = await GraphService.getUserDescriptions(this.userId);
+      const descriptions = await GraphService.getUserDescriptions(this.userId, this.filters);
       if (!descriptions) {
         throw new Error("Couldn't get descriptions");
       }
@@ -1785,7 +1803,7 @@ export class ConstellationLoader {
 
   public async references(): Promise<IVirtualExcerptReference[] | undefined> {
     try {
-      const references = await GraphService.getUserReferences(this.userId);
+      const references = await GraphService.getUserReferences(this.userId, this.filters);
       if (!references) {
         throw new Error("Couldn't get references");
       }

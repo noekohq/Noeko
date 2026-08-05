@@ -8,6 +8,12 @@ import GraphService, { ConstellationLoader, IConstellationLoader } from "../serv
 import { StringRecordId } from "surrealdb";
 import Authorization from "../services/Authorization";
 import { logger } from "../services/Logger";
+import { buildGraphSnapshot } from "../services/GraphSnapshot";
+import Source from "../database/models/source";
+import Task from "../database/models/task";
+import Excerpt from "../database/models/excerpt";
+import { Tag } from "../database/models/tag";
+import Rabbithole from "../database/models/rabbithole";
 
 const router = Router();
 
@@ -63,6 +69,103 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
     });
   } catch (err) {
     console.error("Error getting user constellation: ", req, err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/snapshot", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+
+    const loader = req.body.loader as IConstellationLoader;
+    if (!loader) {
+      res.status(400).send({
+        message: "Constellation loader configuration is required.",
+      });
+      return;
+    }
+
+    const constellationLoader = new ConstellationLoader({
+      userId: user.id,
+      filters: req.body.filters,
+    });
+    const constellation = await constellationLoader.load(loader);
+    if (!constellation) {
+      throw new Error("Constellation couldn't be retrieved");
+    }
+
+    res.send({
+      message: "Successfully retrieved graph snapshot.",
+      data: buildGraphSnapshot(constellation),
+    });
+  } catch (err) {
+    console.error("Error getting user graph snapshot: ", req, err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/node/:nodeId", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(500).json({ message: "Internal Server Error" });
+      return;
+    }
+
+    const nodeId = req.params.nodeId;
+    if (Array.isArray(nodeId)) {
+      res.status(400).json({ message: "Invalid graph node ID." });
+      return;
+    }
+    const type = GraphService.getTable(nodeId);
+    if (!type || !["idea", "source", "task", "excerpt", "tag", "rabbithole"].includes(type)) {
+      res.status(400).json({ message: "Unsupported graph node type." });
+      return;
+    }
+
+    const accessLevel = await Authorization.getAccessLevel(user.id, nodeId);
+    if (!accessLevel) {
+      res.status(403).json({ message: "Unauthorized." });
+      return;
+    }
+
+    let node;
+    switch (type) {
+      case "idea":
+        node = await Idea.get(nodeId);
+        break;
+      case "source":
+        node = await Source.get(nodeId);
+        break;
+      case "task":
+        node = await Task.get(nodeId);
+        break;
+      case "excerpt":
+        node = await Excerpt.get(nodeId);
+        break;
+      case "tag":
+        node = await Tag.get(nodeId);
+        break;
+      case "rabbithole":
+        node = await Rabbithole.get(nodeId);
+        break;
+    }
+
+    if (!node) {
+      res.status(404).json({ message: "Graph node not found." });
+      return;
+    }
+
+    res.send({
+      message: "Successfully retrieved graph node.",
+      data: { ...node, type, accessLevel },
+    });
+  } catch (err) {
+    console.error("Error getting graph node details: ", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
