@@ -4,6 +4,11 @@ Status: Draft v0.1
 Audience: Noeko maintainers and prospective API consumers  
 Base path: `/api/v1`
 
+This document owns the target product design and records unresolved decisions. The contract for the
+currently implemented endpoints is [`app/api/v1/openapi.yaml`](../app/api/v1/openapi.yaml), with a
+consumer quick start in [`documentation/api/README.md`](./api/README.md). Features described here
+may remain proposed until they appear in that OpenAPI document.
+
 ## Purpose
 
 Expose the useful knowledge-management capabilities of Noeko to scripts, agents, integrations, and third-party applications without making the existing UI-oriented `/api/*` routes a permanent public contract.

@@ -20,7 +20,7 @@ export const defineAutomationSchema = `
   DEFINE FIELD IF NOT EXISTS actorId ON TABLE domain_event TYPE option<string>;
   DEFINE FIELD IF NOT EXISTS resourceType ON TABLE domain_event TYPE string;
   DEFINE FIELD IF NOT EXISTS resourceId ON TABLE domain_event TYPE string;
-  DEFINE FIELD IF NOT EXISTS data ON TABLE domain_event FLEXIBLE TYPE object;
+  DEFINE FIELD IF NOT EXISTS data ON TABLE domain_event TYPE object;
   DEFINE FIELD IF NOT EXISTS status ON TABLE domain_event TYPE string;
   DEFINE FIELD IF NOT EXISTS attempt ON TABLE domain_event TYPE int;
   DEFINE FIELD IF NOT EXISTS createdAt ON TABLE domain_event TYPE datetime;

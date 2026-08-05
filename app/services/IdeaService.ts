@@ -63,7 +63,7 @@ export class IdeaService {
 
   static async delete(actor: ActorContext, ideaId: string) {
     if (!(await User.checkOwns(actor.userId, ideaId))) return false;
-    const idea = await Idea.delete(ideaId);
+    const [idea] = (await Idea.delete(ideaId)) ?? [];
     if (!idea) throw new Error("Idea could not be deleted");
     await emit("idea.deleted", actor, ideaId, { title: idea.title });
     return true;

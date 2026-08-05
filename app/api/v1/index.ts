@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import type { ISafeUser } from "../../../shared/types/user";
 import { checkV1Auth, requireScope } from "../../middleware/api_auth";
 import { getFromReq } from "../../utils/requests";
@@ -8,6 +9,7 @@ import ideaRouter from "./ideas";
 import webhookRouter from "./webhooks";
 
 const router = Router();
+const openApiPath = fileURLToPath(new URL("./openapi.yaml", import.meta.url));
 
 router.use((req, res, next) => {
   const requestId = req.headers["x-request-id"]?.toString() ?? `req_${randomUUID()}`;
@@ -16,6 +18,9 @@ router.use((req, res, next) => {
 });
 
 router.use("/credentials", credentialRouter);
+router.get("/openapi.yaml", (_req, res) => {
+  res.type("application/yaml").sendFile(openApiPath);
+});
 router.use(checkV1Auth);
 
 router.get("/", async (_req, res) => {
