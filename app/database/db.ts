@@ -1,9 +1,9 @@
-import Surreal, { ConnectionStatus } from "surrealdb"; // Make sure to import ConnectionStatus
 import { seedDatabase } from "./init"; // Assuming this file exists and is correct
 import { runMigrations } from "./migrations/runner";
+import { createAppDatabase, type AppDatabase } from "./surreal";
 
 type IDatabase = {
-  db: Surreal | undefined;
+  db: AppDatabase | undefined;
 };
 
 export const Database: IDatabase = {
@@ -41,7 +41,9 @@ const getDbConfig = () => {
     database: DB_DATABASE!,
     user: DB_USER!,
     password: DB_PASSWORD!,
-    connectionString: `${DB_PROTOCOL}://${DB_HOST}:${DB_PORT}`,
+    connectionString: `${DB_PROTOCOL}://${DB_HOST}:${DB_PORT}${
+      DB_PROTOCOL === "http" || DB_PROTOCOL === "https" ? "/rpc" : ""
+    }`,
   };
 };
 
@@ -58,9 +60,9 @@ export const testDB = async () => {
   }
 };
 
-export const getDatabase = async (): Promise<Surreal | undefined> => {
+export const getDatabase = async (): Promise<AppDatabase | undefined> => {
   // Check if an instance exists and is properly connected
-  if (Database.db && Database.db.status === ConnectionStatus.Connected) {
+  if (Database.db?.isConnected) {
     const tested = await testDB();
     if (tested) {
       // console.info("Reusing existing and connected database instance.");
@@ -84,14 +86,14 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
   }
 
   // console.info("Attempting to establish a new database connection...");
-  const newDbInstance = new Surreal();
+  const newDbInstance = createAppDatabase();
   try {
     const config = getDbConfig(); // Reads env vars each time, as per original design
     const { user, password, namespace, database, connectionString } = config;
 
     // The connect method waits for the connection to be established.
     await newDbInstance.connect(connectionString, {
-      auth: {
+      authentication: {
         username: user,
         password: password,
       },
@@ -113,9 +115,7 @@ export const getDatabase = async (): Promise<Surreal | undefined> => {
     console.error("Failed to connect to the database:", err);
     // If newDbInstance was created and might be in a partially connected state, try to close it.
     if (
-      newDbInstance.status &&
-      newDbInstance.status !== ConnectionStatus.Error &&
-      newDbInstance.status !== ConnectionStatus.Disconnected
+      newDbInstance.status !== "disconnected"
     ) {
       try {
         await newDbInstance.close();

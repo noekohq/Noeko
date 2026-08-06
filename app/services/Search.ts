@@ -27,6 +27,7 @@ import {
   ISemanticSourceResult,
   ISemanticExcerptResult,
 } from "../../shared/types/search";
+import { GLOBAL_SEMANTIC_SEARCH_THRESHOLD } from "../../shared/constants/semantic";
 import { FilterQueryBuilder } from "../lib/query/FilterQueryBuilder";
 import { logger } from "./Logger";
 
@@ -37,7 +38,7 @@ export class Search {
     FTS_CONTENT: 1,
   };
   public static readonly EXACT_TITLE_BONUS = 2.0;
-  public static readonly SEMANTIC_THRESHOLD = 0.45;
+  public static readonly SEMANTIC_THRESHOLD = GLOBAL_SEMANTIC_SEARCH_THRESHOLD;
   public static readonly RRF_K = 60;
 
   constructor() {}
@@ -158,7 +159,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_idea_title_fts
         ON TABLE idea
         FIELDS title
-        SEARCH ANALYZER idea_analyzer
+        FULLTEXT ANALYZER idea_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -171,7 +172,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_idea_content_fts
         ON TABLE idea
         FIELDS contentPlain
-        SEARCH ANALYZER idea_analyzer
+        FULLTEXT ANALYZER idea_analyzer
         BM25 HIGHLIGHTS
         CONCURRENTLY;
       `;
@@ -182,7 +183,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_tag_name_fts
         ON TABLE tag
         FIELDS name
-        SEARCH ANALYZER tag_analyzer
+        FULLTEXT ANALYZER tag_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -192,7 +193,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_tag_description_fts
         ON TABLE tag
         FIELDS description
-        SEARCH ANALYZER tag_analyzer
+        FULLTEXT ANALYZER tag_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -202,7 +203,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_rabbithole_fts
         ON TABLE rabbithole
         FIELDS name
-        SEARCH ANALYZER rabbithole_analyzer
+        FULLTEXT ANALYZER rabbithole_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -212,7 +213,7 @@ export class Search {
           DEFINE INDEX IF NOT EXISTS idx_task_description_fts
             ON TABLE task
             FIELDS description
-            SEARCH ANALYZER task_analyzer
+            FULLTEXT ANALYZER task_analyzer
             BM25 HIGHLIGHTS;
           `;
     };
@@ -222,7 +223,7 @@ export class Search {
           DEFINE INDEX IF NOT EXISTS idx_task_scratchpad_fts
             ON TABLE task
             FIELDS scratchpad
-            SEARCH ANALYZER task_analyzer
+            FULLTEXT ANALYZER task_analyzer
             BM25 HIGHLIGHTS;
           `;
     };
@@ -232,7 +233,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_source_display_name_fts
         ON TABLE source
         FIELDS displayName
-        SEARCH ANALYZER source_analyzer
+        FULLTEXT ANALYZER source_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -242,7 +243,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_source_content_fts
         ON TABLE source
         FIELDS content
-        SEARCH ANALYZER source_analyzer
+        FULLTEXT ANALYZER source_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -252,7 +253,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_excerpt_note_fts
         ON TABLE excerpt
         FIELDS note
-        SEARCH ANALYZER excerpt_analyzer
+        FULLTEXT ANALYZER excerpt_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -262,7 +263,7 @@ export class Search {
       DEFINE INDEX IF NOT EXISTS idx_excerpt_source_text_fts
         ON TABLE excerpt
         FIELDS sourceText
-        SEARCH ANALYZER excerpt_analyzer
+        FULLTEXT ANALYZER excerpt_analyzer
         BM25 HIGHLIGHTS;
       `;
     };
@@ -1802,9 +1803,9 @@ export class ConnectableTableSearchBuilder {
 
   public vectorEffort() {
     const effort = this.searchQuery.vectorSettings?.effort ?? "mid";
-    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    const limit = Math.max(1, Math.floor(this.searchQuery.limit ?? this.defaultLimit));
     if (typeof effort === "number") {
-      return effort;
+      return Math.max(limit, Math.floor(effort));
     }
     switch (effort) {
       case "low":
@@ -2039,30 +2040,34 @@ export class ConnectableTableSearchBuilder {
     const { vectorFields, specialClauses } =
       ConnectableTableSearchBuilder.tableSelector[this.table];
     const { where: filterWhere, params: filterParams } = this.queryBuilder.build();
-    const limit = this.searchQuery.limit ?? this.defaultLimit;
+    const limit = Math.max(1, Math.floor(this.searchQuery.limit ?? this.defaultLimit));
+    const effort = this.vectorEffort();
     const threshold = this.searchQuery.vectorSettings?.threshold ?? Search.SEMANTIC_THRESHOLD;
 
-    // SurrealDB v2 cannot reliably combine the HNSW operator with our graph-based
-    // access predicate. Keep this exact, access-filtered scan for correctness until
-    // the planned v3 upgrade lets us validate ANN pre-filtering against this suite.
+    // Keep graph predicates outside the HNSW scan. SurrealDB v3 currently plans
+    // relationship predicates as KNN pre-filters but returns no candidates for them.
+    // `effort` controls the ANN candidate pool; access, scope, and threshold filters
+    // are applied before anything is returned to the caller.
     const baseQuery = `
-        SELECT * FROM (
+        SELECT * OMIT embeddingMagnitude FROM (
           SELECT
             *,
+            vector::magnitude(embeddings) AS embeddingMagnitude,
             ${vectorFields.map((f) => {
               return `vector::similarity::cosine(${f}, $embedding) AS similarity`;
             })}
           OMIT ${vectorFields.join(", ")}
           FROM ${this.table}
-          WHERE
-            ${filterWhere.join(" AND ")} AND
-            embeddings != NONE AND
-            embeddings != NULL AND
-            vector::magnitude(embeddings) > 0 ${
-              specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
-            }
+          WHERE embeddings <|${effort}, ${effort}|> $embedding
         )
-        WHERE similarity >= $threshold
+        WHERE
+          ${filterWhere.join(" AND ")} AND
+          embeddingMagnitude > 0 AND
+          similarity != NONE AND
+          similarity != NULL AND
+          similarity >= $threshold ${
+            specialClauses?.length ? `AND ${specialClauses.join(" AND ")}` : ""
+          }
         ORDER BY similarity DESC
         LIMIT ${limit};
         `;

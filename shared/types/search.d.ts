@@ -19,6 +19,9 @@ export type ISearchResult = {
     ftsContentScore?: number;
     ftsTitleScore?: number;
     exactTitleBonus?: number;
+    ftsRank?: number;
+    semanticRank?: number;
+    queryRanks?: number[];
     source?: "semantic" | "fts" | "hybrid";
   };
 };

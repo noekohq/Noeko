@@ -1,6 +1,6 @@
 services:
   surrealdb-e2e:
-    image: surrealdb/surrealdb:v2
+    image: surrealdb/surrealdb:v3.2.3
     entrypoint:
       - /surreal
       - start

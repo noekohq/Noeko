@@ -3,6 +3,7 @@ import { ISource } from "./source";
 import { getDatabase } from "../db";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../ai/embeddings/lifecycle";
+import RabbitholeRecommendations from "../../services/RabbitholeRecommendations";
 import { PdfHighlightAnnoObject, Rect, PdfAnnotationSubtype } from "@embedpdf/models";
 import {
   IExcerpt,
@@ -209,10 +210,10 @@ export default class Excerpt {
       const updater: Partial<IExcerptCreator> = {
         updatedAt: new Date(),
       };
-      if (updates.note) {
+      if ("note" in updates) {
         updater.note = updates.note;
       }
-      if (updates.sourceText) {
+      if ("sourceText" in updates) {
         updater.sourceText = updates.sourceText;
       }
       if (updates.embeddings) {
@@ -352,6 +353,9 @@ export default class Excerpt {
       const updated = await this.update(excerpt.id, {
         ...buildReadyEmbeddingUpdate(embedder, embeddable, embedding),
       });
+      if (updated) {
+        await RabbitholeRecommendations.scheduleEvaluation(excerptId);
+      }
       return updated;
     } catch (error) {
       console.error("Error loading excerpt embeddings: ", excerptId, error);

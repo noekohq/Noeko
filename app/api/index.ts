@@ -40,6 +40,8 @@ import tourRouter from "./tourguide";
 import pinRouter from "./pins";
 import sharedRouter from "./shared";
 import logRouter from "./logs";
+import organizationRouter from "./organizations";
+import voiceRouter from "./voice";
 
 const router = Router();
 
@@ -67,5 +69,7 @@ router.use("/tourguide", tourRouter);
 router.use("/pins", pinRouter);
 router.use("/sharing", sharedRouter);
 router.use("/logs", logRouter);
+router.use("/organizations", organizationRouter);
+router.use("/voice", voiceRouter);
 
 export default router;

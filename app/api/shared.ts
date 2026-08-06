@@ -30,8 +30,8 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
       userId = user.id;
     }
     const auth = new Authorization(user.id);
-    const owns = await auth.owns(thingId);
-    if (!owns) {
+    const canManage = await auth.hasAccess(thingId, "owner");
+    if (!canManage) {
       res.status(403).json({ message: "Forbidden" });
       return;
     }
@@ -56,8 +56,8 @@ router.put("/", checkToken, disallowDisabled, async (req, res) => {
     }
     const { thingId, userId, accessLevel } = req.body;
     const auth = new Authorization(user.id);
-    const owns = await auth.owns(thingId);
-    if (!owns) {
+    const canManage = await auth.hasAccess(thingId, "owner");
+    if (!canManage) {
       res.status(403).json({ message: "Forbidden" });
       return;
     }
@@ -81,8 +81,8 @@ router.delete("/", checkToken, disallowDisabled, async (req, res) => {
     }
     const { thingId, userId } = req.body;
     const auth = new Authorization(user.id);
-    const owns = await auth.owns(thingId);
-    if (!owns) {
+    const canManage = await auth.hasAccess(thingId, "owner");
+    if (!canManage) {
       res.status(403).json({ message: "Forbidden" });
       return;
     }
@@ -145,8 +145,8 @@ router.get("/:thingId", checkToken, disallowDisabled, async (req, res) => {
     }
 
     const auth = new Authorization(user.id);
-    const isOwner = await auth.owns(thingId);
-    if (!isOwner) {
+    const canManage = await auth.hasAccess(thingId, "owner");
+    if (!canManage) {
       res.status(403).json({ message: "Unauthorized: Only the owner can view shares." });
       return;
     }

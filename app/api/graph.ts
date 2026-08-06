@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import { Idea } from "../database/models/ideas";
 import { checkIsSuperuser, checkToken, disallowDisabled } from "../middleware/auth";
 import { getFromReq } from "../utils/requests";
@@ -14,8 +15,36 @@ import Task from "../database/models/task";
 import Excerpt from "../database/models/excerpt";
 import { Tag } from "../database/models/tag";
 import Rabbithole from "../database/models/rabbithole";
+import { ISemanticNeighborhoodRequest } from "../../shared/types/semantic-neighborhood";
+import { GraphFiltersSchema } from "../utils/validation";
 
 const router = Router();
+const RecordIdStringSchema = z
+  .string()
+  .min(1)
+  .refine((value) => {
+    try {
+      new StringRecordId(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Must be a valid record ID.");
+const SemanticNeighborhoodRequestSchema = z.object({
+  filters: GraphFiltersSchema.extend({
+    rabbithole: RecordIdStringSchema.optional(),
+    tags: z
+      .object({
+        set: z.array(RecordIdStringSchema).max(500),
+        behavior: z.enum(["and", "or"]),
+      })
+      .optional(),
+    scope: z.array(RecordIdStringSchema).max(500).optional(),
+  }).optional(),
+  limit: z.number().int().min(1).max(50).optional(),
+  threshold: z.number().min(-1).max(1).optional(),
+  includeConnected: z.boolean().optional(),
+});
 
 router.get("/", checkToken, disallowDisabled, async (req, res) => {
   try {
@@ -377,7 +406,7 @@ router.get("/:thingId/similar", checkToken, disallowDisabled, async (req, res) =
     const isConnectable = GraphService.isConnectable(thingId);
     const rabbitholeId = req.query.rabbitholeId as string;
 
-    if (rabbitholeId && !(typeof rabbitholeId !== "string")) {
+    if (rabbitholeId && typeof rabbitholeId !== "string") {
       res.status(400).send({
         message: "Bad Request",
       });
@@ -403,6 +432,58 @@ router.get("/:thingId/similar", checkToken, disallowDisabled, async (req, res) =
     res.status(500).send({
       message: "Something went wrong",
     });
+  }
+});
+
+router.post("/:thingId/semantic-neighbors", checkToken, disallowDisabled, async (req, res) => {
+  try {
+    const user = await getFromReq<IUser>(req, "user");
+    if (!user) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const thingId = req.params.thingId as string;
+    if (!GraphService.isConnectable(thingId)) {
+      res.status(400).json({
+        message: "Semantic neighborhoods are only available for connectable nodes.",
+      });
+      return;
+    }
+
+    const hasAccess = await User.checkHasAccess(user.id, thingId);
+    if (!hasAccess) {
+      res.status(403).json({ message: "Unauthorized." });
+      return;
+    }
+
+    const parsedBody = SemanticNeighborhoodRequestSchema.safeParse(req.body ?? {});
+    if (!parsedBody.success) {
+      res.status(400).json({
+        message: "Invalid semantic neighborhood request.",
+        error: z.treeifyError(parsedBody.error),
+      });
+      return;
+    }
+    const body: ISemanticNeighborhoodRequest = parsedBody.data;
+
+    const result = await GraphService.getSemanticNeighborhood(user.id, thingId, {
+      filters: body.filters,
+      limit: body.limit,
+      threshold: body.threshold,
+      includeConnected: body.includeConnected,
+    });
+
+    res.status(200).json({
+      message:
+        result.status === "embedding_unavailable"
+          ? "The source node does not have an embedding yet."
+          : "Successfully retrieved semantic neighbors.",
+      data: result,
+    });
+  } catch (error) {
+    logger.error("Error fetching semantic neighbors", { error });
+    res.status(500).json({ message: "Something went wrong" });
   }
 });
 

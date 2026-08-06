@@ -28,6 +28,19 @@
   filter: blur(0);
 }
 
+.reducedEffects {
+  .canvas,
+  .labels,
+  .arranging {
+    transition: none;
+    animation: none;
+  }
+
+  .layoutPending {
+    filter: none;
+  }
+}
+
 .canvas {
   cursor: grab;
 }

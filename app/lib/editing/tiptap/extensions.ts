@@ -10,6 +10,7 @@ import { DreamFileSchema } from "../../../../shared/editing/tiptap/nodes/DreamFi
 import { DreamIdeaSchema } from "../../../../shared/editing/tiptap/nodes/DreamIdea";
 import { DreamTaskSchema } from "../../../../shared/editing/tiptap/nodes/DreamTask";
 import { DreamSourceSchema } from "../../../../shared/editing/tiptap/nodes/DreamSource";
+import { DreamTransclusionSchema } from "../../../../shared/editing/tiptap/nodes/DreamTransclusion";
 import { DreamTaskItemSchema } from "../../../../shared/editing/tiptap/nodes/DreamTaskItem";
 import { DreamCodeSchema } from "../../../../shared/editing/tiptap/nodes/DreamCode";
 import { DreamTableSchema } from "../../../../shared/editing/tiptap/nodes/DreamTable";
@@ -59,6 +60,7 @@ export const extensions = [
       "dreamIdea",
       "dreamTask",
       "dreamSource",
+      "dreamTransclusion",
     ],
   }),
   DreamMathSchema.configure({}),
@@ -70,6 +72,7 @@ export const extensions = [
   DreamIdeaSchema,
   DreamTaskSchema,
   DreamSourceSchema,
+  DreamTransclusionSchema,
   DreamHighlightSchema,
   DreamYouTubeSchema,
 ];

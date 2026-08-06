@@ -43,10 +43,14 @@ export const downloadTextAsFile = (
   }
 ) => {
   const blob = new Blob([content], { type: options.type });
+  downloadBlobAsFile(blob, `${options.name}.${options.extension}`);
+};
+
+export const downloadBlobAsFile = (blob: Blob, fileName: string) => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${options.name}.${options.extension}`;
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

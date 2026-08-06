@@ -5,6 +5,7 @@ import { UserFile } from "./userfile";
 import { IUserFile } from "../../../shared/types/userfile";
 import { getEmbedder } from "../../ai/embeddings/embeddings";
 import { buildReadyEmbeddingUpdate, isEmbeddingCurrent } from "../../ai/embeddings/lifecycle";
+import RabbitholeRecommendations from "../../services/RabbitholeRecommendations";
 import {
   ISource,
   ISourceable,
@@ -324,6 +325,9 @@ export default class Source {
       const updated = await this.update(source.id, {
         ...buildReadyEmbeddingUpdate(embedder, embeddable, embedding),
       });
+      if (updated) {
+        await RabbitholeRecommendations.scheduleEvaluation(sourceId);
+      }
       return updated;
     } catch (error) {
       console.error("Error loading source embeddings: ", sourceId, error);

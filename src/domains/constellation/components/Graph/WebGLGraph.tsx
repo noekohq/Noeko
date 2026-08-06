@@ -17,9 +17,12 @@ import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
 import type { IGraphContainerProps, IGraphController } from "./Graph";
 import { WebGLGraphRenderer, type IGraphViewport, type INodePosition } from "./webgl/WebGLRenderer";
 import styles from "./WebGLGraph.module.scss";
+import { useSettings } from "@/contexts/SettingsContext";
+import { DEFAULT_CONSTELLATION_VISUAL_MODE, type IConstellationVisualMode } from "./visualModes";
 
 type IWebGLGraphProps = IGraphContainerProps & {
   onUnavailable?: () => void;
+  visualMode?: IConstellationVisualMode;
 };
 
 type IPointerInteraction = {
@@ -48,7 +51,22 @@ const getWarmupTicks = (nodeCount: number) => {
 };
 
 const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
-  ({ graph, onNodeNavigate, onNodeSelect, isNavigating, onUnavailable }, ref) => {
+  (
+    {
+      graph,
+      onNodeNavigate,
+      onNodeSelect,
+      isNavigating,
+      onUnavailable,
+      visualMode = DEFAULT_CONSTELLATION_VISUAL_MODE,
+      semanticOverlay,
+      traceOverlay,
+      onTraceSelection,
+      onMutationComplete,
+      onExploreSemantic,
+    },
+    ref
+  ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const labelsRef = useRef<HTMLCanvasElement>(null);
@@ -93,16 +111,31 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
     } = useGraph();
     const filterConfig = getFilter();
     const loading = getLoading();
+    const {
+      ui: {
+        graphics: {
+          mode: { get: graphicsMode },
+        },
+      },
+    } = useSettings();
     const selectedRef = useRef(selected);
     const highlightedRef = useRef(highlighted);
     const focusedRef = useRef(focused);
     const filterRef = useRef(filterConfig.filter);
     const loadingRef = useRef(loading);
+    const visualModeRef = useRef(visualMode);
+    const semanticOverlayRef = useRef(semanticOverlay);
+    const traceOverlayRef = useRef(traceOverlay);
+    const effectsEnabledRef = useRef(graphicsMode === "full" && visualMode !== "static");
     selectedRef.current = selected;
     highlightedRef.current = highlighted;
     focusedRef.current = focused;
     filterRef.current = filterConfig.filter;
     loadingRef.current = loading;
+    visualModeRef.current = visualMode;
+    semanticOverlayRef.current = semanticOverlay;
+    traceOverlayRef.current = traceOverlay;
+    effectsEnabledRef.current = graphicsMode === "full" && visualMode !== "static";
 
     const scheduleDrawRef = useRef<() => void>(() => {});
 
@@ -122,6 +155,10 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
         focused: focusedRef.current,
         hovered: hoveredRef.current,
         interactionSource: interactionSourceRef.current,
+        effectsEnabled: effectsEnabledRef.current,
+        visualMode: visualModeRef.current,
+        semanticOverlay: semanticOverlayRef.current,
+        traceOverlay: traceOverlayRef.current,
         loading: loadingRef.current,
         filter: filterRef.current,
         positionRevision: positionRevisionRef.current,
@@ -139,6 +176,22 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
       });
     }, [draw]);
     scheduleDrawRef.current = scheduleDraw;
+
+    useEffect(() => {
+      styleRevisionRef.current += 1;
+      workerRef.current?.postMessage({
+        type: "update_overlay_edges",
+        payload: {
+          edges: (semanticOverlay?.edges ?? []).map((edge) => ({
+            source: edge.source,
+            target: edge.target,
+            distance: 190 - edge.similarity * 70,
+            strength: 0.04 + edge.similarity * 0.1,
+          })),
+        },
+      });
+      scheduleDraw();
+    }, [semanticOverlay, traceOverlay, scheduleDraw]);
 
     const ensureSpatialIndex = useCallback(() => {
       if (spatialIndexRevisionRef.current === positionRevisionRef.current) return;
@@ -272,6 +325,17 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
           })),
         },
       });
+      worker.postMessage({
+        type: "update_overlay_edges",
+        payload: {
+          edges: (semanticOverlayRef.current?.edges ?? []).map((edge) => ({
+            source: edge.source,
+            target: edge.target,
+            distance: 190 - edge.similarity * 70,
+            strength: 0.04 + edge.similarity * 0.1,
+          })),
+        },
+      });
 
       worker.onmessage = (event) => {
         if (event.data.type !== "tick" && event.data.type !== "layout_ready") return;
@@ -312,7 +376,16 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
     useEffect(() => {
       styleRevisionRef.current += 1;
       scheduleDraw();
-    }, [filterConfig, focused, highlighted, loading, scheduleDraw, selected]);
+    }, [
+      filterConfig,
+      focused,
+      graphicsMode,
+      highlighted,
+      loading,
+      scheduleDraw,
+      selected,
+      visualMode,
+    ]);
 
     useEffect(() => {
       if (!focused) return;
@@ -564,7 +637,12 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
     };
 
     return (
-      <div ref={containerRef} className={styles.container}>
+      <div
+        ref={containerRef}
+        className={`${styles.container} ${
+          graphicsMode === "reduced" || visualMode === "static" ? styles.reducedEffects : ""
+        }`}
+      >
         {!topology.nodes.length && <div className={styles.empty}>Nothing here yet.</div>}
         {topology.nodes.length >= PREWARM_NODE_THRESHOLD && (
           <div
@@ -573,16 +651,18 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
             aria-hidden={layoutReady}
           >
             <div className={styles.arrangingContent}>
-              <div className={styles.antLoader} aria-hidden="true">
-                <LangtonsAntLoader
-                  cellSize={12}
-                  stepsPerSecond={12}
-                  numAnts={4}
-                  fadeDuration={320}
-                  cellAgeThreshold={1800}
-                  cellAgeFadeDuration={900}
-                />
-              </div>
+              {graphicsMode === "full" && visualMode !== "static" && (
+                <div className={styles.antLoader} aria-hidden="true">
+                  <LangtonsAntLoader
+                    cellSize={12}
+                    stepsPerSecond={12}
+                    numAnts={4}
+                    fadeDuration={320}
+                    cellAgeThreshold={1800}
+                    cellAgeFadeDuration={900}
+                  />
+                </div>
+              )}
               <span>Arranging constellation…</span>
             </div>
           </div>
@@ -594,9 +674,18 @@ const WebGLGraph = forwardRef<IGraphController, IWebGLGraphProps>(
             {...nodePanel}
             onClusterSelect={clusterSelect}
             onClusterDeselect={clusterDeselect}
+            onExploreSemantic={onExploreSemantic}
           />
         )}
-        {graphPanel && <GraphPanel ref={graphPanelRef} {...graphPanel} />}
+        {graphPanel && (
+          <GraphPanel
+            ref={graphPanelRef}
+            {...graphPanel}
+            graph={graph}
+            onTraceSelection={onTraceSelection}
+            onMutationComplete={onMutationComplete}
+          />
+        )}
         <canvas
           ref={canvasRef}
           className={`${styles.canvas} ${layoutReady ? styles.layoutReady : styles.layoutPending}`}

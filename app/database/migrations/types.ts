@@ -1,12 +1,12 @@
-import type Surreal from "surrealdb";
+import type { AppDatabase } from "../surreal";
 
 export type MigrationDirection = "up" | "down";
 
 export type Migration = {
   id: string;
   description: string;
-  up: (db: Surreal) => Promise<void>;
-  down: (db: Surreal) => Promise<void>;
+  up: (db: AppDatabase) => Promise<void>;
+  down: (db: AppDatabase) => Promise<void>;
 };
 
 export type MigrationRecord = {

@@ -1,20 +1,17 @@
 import {
   Button,
-  Card,
-  Container,
   Grid,
   Group,
-  Table,
   Text,
   TextInput,
   Title,
   ActionIcon,
   Modal,
   Stack,
-  SimpleGrid,
   Textarea,
   HoverCard,
   Blockquote,
+  Tooltip,
 } from "@mantine/core";
 import { ITag, ITagForm } from "../../../../../shared/types/tags";
 import PageWrapper from "@core/design/layout/PageWrapper";
@@ -30,25 +27,43 @@ import {
   XIcon,
   PlusIcon,
   InfoIcon,
+  MagnifyingGlassIcon,
+  TagIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
 } from "@phosphor-icons/react";
 import Content from "@core/design/components/Layout/Content";
 import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
 import TagCard from "@domains/knowledge/components/Tags/TagCard";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import PaperInput from "@core/design/components/Paper/PaperInput";
+import PaperIcon from "@core/design/components/Paper/PaperIcon";
+import PaperSelect from "@core/design/components/Paper/PaperSelect";
+import styles from "./Tags.module.scss";
+
+type TagSortField = "name" | "createdAt" | "updatedAt";
+type TagSortDirection = "asc" | "desc";
+
+const sortOptions = [
+  { value: "name", label: "Name" },
+  { value: "createdAt", label: "Created" },
+  { value: "updatedAt", label: "Updated" },
+];
 
 export default function Tags() {
   const {
     data: tags,
     loading,
-    errors,
     load: loadTags,
   } = useFetch<undefined, ITag[]>({
     url: "/tags",
     runOnMount: true,
   });
 
-  const [filterQuery, setFilterQuery] = useState(""); // State for filter query
+  const [filterQuery, setFilterQuery] = useState("");
+  const [sortField, setSortField] = useState<TagSortField>("name");
+  const [sortDirection, setSortDirection] = useState<TagSortDirection>("asc");
 
   // Assumes useForm is imported from '@mantine/form'
   // Assumes ITagForm is imported from the models
@@ -108,15 +123,26 @@ export default function Tags() {
 
   const filteredTags = useMemo(() => {
     if (!tags) return [];
-    if (!filterQuery.trim()) return tags;
-
     const query = filterQuery.toLowerCase();
-    return tags.filter(
-      (tag) =>
-        tag.name.toLowerCase().includes(query) ||
-        (tag.description && tag.description.toLowerCase().includes(query))
-    );
-  }, [tags, filterQuery]);
+    const matchingTags = filterQuery.trim()
+      ? tags.filter(
+          (tag) =>
+            tag.name.toLowerCase().includes(query) ||
+            (tag.description && tag.description.toLowerCase().includes(query))
+        )
+      : [...tags];
+
+    const multiplier = sortDirection === "asc" ? 1 : -1;
+    return matchingTags.sort((a, b) => {
+      if (sortField === "name") {
+        return a.name.localeCompare(b.name) * multiplier;
+      }
+
+      const firstDate = a[sortField] ? new Date(a[sortField]).getTime() : 0;
+      const secondDate = b[sortField] ? new Date(b[sortField]).getTime() : 0;
+      return (firstDate - secondDate) * multiplier;
+    });
+  }, [tags, filterQuery, sortDirection, sortField]);
 
   const [addingTag, setAddingTag] = useState(false);
 
@@ -126,55 +152,127 @@ export default function Tags() {
         <TopBar />
         <LeftSidebar />
         <Content>
-          <Grid>
-            <Grid.Col span={{ sm: 12 }}>
-              <Group>
-                <Title>Your tags</Title>
-                <ActionIcon
-                  variant="light"
-                  color="gray"
-                  onClick={() => {
-                    setAddingTag(true);
-                  }}
-                >
-                  <PlusIcon weight="bold" />
-                </ActionIcon>
-              </Group>
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              <TextInput
-                placeholder="Filter tags by name or description"
-                value={filterQuery}
-                onChange={(event) => setFilterQuery(event.currentTarget.value)}
-                mb="md" // Added margin bottom for spacing
-              />
-            </Grid.Col>
-            <Grid.Col span={{ sm: 12 }}>
-              {loading && (
+          <div className={styles.tags}>
+            <Stack gap="xl">
+              <Stack gap="md" className={styles.header}>
+                <Group justify="space-between" gap="xl" className={styles.titleRow}>
+                  <Stack gap="sm">
+                    <Title order={1} className={styles.title}>
+                      Your tags
+                    </Title>
+                    <Text className={styles.intro}>
+                      A shared vocabulary for your knowledge. Clear descriptions help Noeko surface
+                      the right tags and ideas in both directions.
+                    </Text>
+                  </Stack>
+                  <Button
+                    className={styles.createButton}
+                    leftSection={<PlusIcon weight="bold" />}
+                    onClick={() => setAddingTag(true)}
+                  >
+                    New tag
+                  </Button>
+                </Group>
+                <Group justify="space-between" wrap="wrap" className={styles.controls}>
+                  <PaperInput
+                    className={styles.search}
+                    leftSection={<MagnifyingGlassIcon />}
+                    aria-label="Filter tags"
+                    placeholder="Search names and descriptions..."
+                    value={filterQuery}
+                    onChange={(event) => setFilterQuery(event.currentTarget.value)}
+                  />
+                  <Text size="xs" fw={650} className={styles.count}>
+                    {filterQuery.trim()
+                      ? `${filteredTags.length} of ${tags?.length ?? 0} tags`
+                      : `${tags?.length ?? 0} ${(tags?.length ?? 0) === 1 ? "tag" : "tags"}`}
+                  </Text>
+                </Group>
+              </Stack>
+
+              {loading ? (
                 <Text size="sm" c="dimmed">
                   Loading tags...
                 </Text>
+              ) : filteredTags.length > 0 ? (
+                <Stack gap="xs">
+                  <Group justify="space-between" className={styles.listHeader}>
+                    <Text size="xs" fw={700} className={styles.eyebrow}>
+                      Name &amp; meaning
+                    </Text>
+                    <Group gap="xs" wrap="nowrap" className={styles.sortControls}>
+                      <Text size="xs" c="dimmed" className={styles.sortLabel}>
+                        Sort by
+                      </Text>
+                      <div className={styles.sortSelect}>
+                        <PaperSelect
+                          data={sortOptions}
+                          value={sortField}
+                          onChange={(value) => {
+                            const nextField = value as TagSortField;
+                            setSortField(nextField);
+                            setSortDirection(nextField === "name" ? "asc" : "desc");
+                          }}
+                        />
+                      </div>
+                      <Tooltip
+                        label={sortDirection === "asc" ? "Ascending" : "Descending"}
+                        withArrow
+                      >
+                        <div>
+                          <PaperIcon
+                            aria-label={`Sort ${sortDirection === "asc" ? "descending" : "ascending"}`}
+                            withBorder
+                            onClick={() =>
+                              setSortDirection((direction) =>
+                                direction === "asc" ? "desc" : "asc"
+                              )
+                            }
+                          >
+                            {sortDirection === "asc" ? (
+                              <ArrowUpIcon weight="bold" />
+                            ) : (
+                              <ArrowDownIcon weight="bold" />
+                            )}
+                          </PaperIcon>
+                        </div>
+                      </Tooltip>
+                    </Group>
+                  </Group>
+                  <div className={styles.tagList}>
+                    {filteredTags.map((tag) => (
+                      <TagItem key={tag.id.toString()} tag={tag} onTagUpdated={loadTags} />
+                    ))}
+                  </div>
+                </Stack>
+              ) : (
+                <div className={styles.emptyState}>
+                  <Stack gap="sm" maw={360}>
+                    <div className={styles.emptyIcon}>
+                      <TagIcon size={24} weight="fill" />
+                    </div>
+                    <Text fw={650}>{filterQuery.trim() ? "No matching tags" : "No tags yet"}</Text>
+                    <Text size="sm" c="dimmed">
+                      {filterQuery.trim()
+                        ? "Try a different name or phrase."
+                        : "Create a tag to begin shaping your workspace vocabulary."}
+                    </Text>
+                    {!filterQuery.trim() && (
+                      <Button variant="subtle" onClick={() => setAddingTag(true)}>
+                        Create your first tag
+                      </Button>
+                    )}
+                  </Stack>
+                </div>
               )}
-              <SimpleGrid
-                cols={{
-                  xs: 1,
-                  sm: 2,
-                  md: 3,
-                }}
-              >
-                {filteredTags.map((t) => {
-                  return <TagItem key={t.id.toString()} tag={t} onTagUpdated={loadTags} />;
-                })}
-              </SimpleGrid>
-            </Grid.Col>
-            {createTagErrors.length > 0 && (
-              <Grid.Col span={12}>
-                <Text c="red" size="sm" mt="sm">
+
+              {createTagErrors.length > 0 && (
+                <Text c="red" size="sm">
                   {createTagErrors.join(", ")}
                 </Text>
-              </Grid.Col>
-            )}
-          </Grid>
+              )}
+            </Stack>
+          </div>
         </Content>
         <Nav />
         <RightSidebar />
@@ -293,7 +391,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
     method: "PUT",
     body: editForm.getTransformedValues(),
     dependencies: [editForm],
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       onTagUpdated();
       setIsEditing(false);
     },
@@ -358,14 +456,16 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
 
   if (isEditing) {
     return (
-      <Grid>
-        <Grid.Col>
-          <TextInput size="xs" {...editForm.getInputProps("name")} required />
-        </Grid.Col>
-        <Grid.Col>
-          <TextInput size="xs" {...editForm.getInputProps("description")} />
-        </Grid.Col>
-        <Grid.Col>
+      <div className={styles.editRow}>
+        <Stack gap="sm">
+          <TextInput label="Name" size="sm" {...editForm.getInputProps("name")} required />
+          <Textarea
+            label="Description"
+            size="sm"
+            minRows={2}
+            autosize
+            {...editForm.getInputProps("description")}
+          />
           <Group gap="xs" wrap="nowrap">
             <ActionIcon
               variant="filled"
@@ -384,8 +484,8 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
               {updateTagErrors.join(", ")}
             </Text>
           )}
-        </Grid.Col>
-      </Grid>
+        </Stack>
+      </div>
     );
   }
 
@@ -393,6 +493,7 @@ const TagItem: React.FC<ITagItemProps> = ({ tag, onTagUpdated }) => {
     <>
       <TagCard
         tag={tag}
+        variant="index"
         actions={[
           {
             id: "delete",

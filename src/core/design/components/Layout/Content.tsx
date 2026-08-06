@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { useLayout } from "@/contexts/LayoutContext";
+import { useRef } from "react";
+import { useLayoutSidebarActions, useLayoutViewport } from "@/contexts/LayoutContext";
 import styles from "./Content.module.scss";
 
 interface IContentProps {
@@ -7,17 +7,8 @@ interface IContentProps {
 }
 
 const Content = ({ children }: IContentProps) => {
-  const {
-    elements: {
-      leftSidebar: {
-        mode: { get: leftMode, set: setLeftMode },
-      },
-      rightSidebar: {
-        mode: { get: rightMode, set: setRightMode },
-      },
-    },
-    isMobile,
-  } = useLayout();
+  const { isMobile } = useLayoutViewport();
+  const { setLeftSidebarMode, setRightSidebarMode } = useLayoutSidebarActions();
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -26,8 +17,8 @@ const Content = ({ children }: IContentProps) => {
       className={`${styles.content}`}
       onClick={() => {
         if (isMobile) {
-          setLeftMode("collapsed");
-          setRightMode("collapsed");
+          setLeftSidebarMode("collapsed");
+          setRightSidebarMode("collapsed");
         }
       }}
       ref={contentRef}

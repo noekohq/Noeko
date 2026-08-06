@@ -2,12 +2,15 @@ import React, { useMemo } from "react";
 import styles from "./ScopeBuilder.module.scss"; // Keeping same styles for now
 import { Group } from "@mantine/core";
 import { RabbitholeIcon } from "@core/design/icons/Icons";
-import { CalendarIcon } from "@phosphor-icons/react";
+import { CalendarIcon, SelectionAllIcon } from "@phosphor-icons/react";
 import PaperTag from "@core/design/components/Paper/Tags/PaperTag";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
 import { useLandscape } from "@/contexts/LandscapeContext";
 
-export interface IScopeDisplayProps {}
+export interface IScopeDisplayProps {
+  onRemoveSelection?: () => void;
+  selectionLabel?: string;
+}
 
 const ScopePill = ({
   icon,
@@ -28,7 +31,11 @@ const ScopePill = ({
   );
 };
 
-export default function ScopeDisplay() {
+export default function ScopeDisplay({
+  onRemoveSelection,
+  selectionLabel: selectionLabelOverride,
+}: IScopeDisplayProps) {
+  const search = useSearch();
   const {
     global: {
       scope: { get: value, set: onChange },
@@ -36,21 +43,52 @@ export default function ScopeDisplay() {
         tags: { get: scopeTags, remove: removeTag },
       },
     },
-  } = useSearch();
+  } = search;
+  const scopeRabbithole = search.global.scopeData.rabbithole?.get ?? null;
+  const setScopeRabbithole = search.global.scopeData.rabbithole?.set ?? (() => {});
 
   const {
     rabbitholes: {
       entered: { get: currentRabbithole, set: setRabbithole },
     },
   } = useLandscape();
+  const scopedRabbithole = useMemo(() => {
+    if (!value.rabbithole) return currentRabbithole;
+    if (currentRabbithole?.id.toString() === value.rabbithole.toString()) {
+      return currentRabbithole;
+    }
+    if (scopeRabbithole?.id.toString() === value.rabbithole.toString()) {
+      return scopeRabbithole;
+    }
+    return null;
+  }, [currentRabbithole, scopeRabbithole, value.rabbithole]);
 
   const handleRemoveRabbithole = () => {
+    if (value.rabbithole) {
+      onChange({ ...value, rabbithole: undefined });
+      setScopeRabbithole(null);
+      return;
+    }
     setRabbithole(null);
   };
 
   const handleRemoveDate = () => {
     onChange({ ...value, date: undefined });
   };
+
+  const handleRemoveSelection = () => {
+    if (onRemoveSelection) {
+      onRemoveSelection();
+      return;
+    }
+    onChange({ ...value, scope: undefined });
+  };
+
+  const selectionLabel = useMemo(() => {
+    const count = value.scope?.length ?? 0;
+    if (count === 0) return "Selection";
+    return `${selectionLabelOverride || "Selection"} · ${count} ${count === 1 ? "item" : "items"}`;
+  }, [selectionLabelOverride, value.scope?.length]);
 
   const dateLabel = useMemo(() => {
     if (!value.date) return "Date";
@@ -80,18 +118,24 @@ export default function ScopeDisplay() {
   }, [value.date]);
 
   const hasItems = useMemo(() => {
-    return !!currentRabbithole || !!value.date || (value.tags?.set && value.tags.set.length > 0);
-  }, [currentRabbithole, value.date, value.tags?.set]);
+    return (
+      !!value.rabbithole ||
+      !!currentRabbithole ||
+      !!value.date ||
+      (value.scope && value.scope.length > 0) ||
+      (value.tags?.set && value.tags.set.length > 0)
+    );
+  }, [currentRabbithole, value.date, value.rabbithole, value.scope, value.tags?.set]);
 
   if (!hasItems) return null;
 
   return (
     <Group className={styles.scopeBuilderContainer} gap="xs">
-      {currentRabbithole && (
+      {(scopedRabbithole || value.rabbithole) && (
         <ScopePill
           className={styles.rabbitholePill}
           icon={<RabbitholeIcon size={12} />}
-          label={currentRabbithole.name}
+          label={scopedRabbithole?.name ?? "Rabbithole"}
           onRemove={handleRemoveRabbithole}
         />
       )}
@@ -103,6 +147,14 @@ export default function ScopeDisplay() {
           icon={<CalendarIcon size={14} weight="bold" />}
           label={dateLabel}
           onRemove={handleRemoveDate}
+        />
+      )}
+
+      {value.scope && value.scope.length > 0 && (
+        <ScopePill
+          icon={<SelectionAllIcon size={14} weight="bold" />}
+          label={selectionLabel}
+          onRemove={handleRemoveSelection}
         />
       )}
 

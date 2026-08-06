@@ -15,6 +15,7 @@ import { DreamConnection } from "./extensions/DreamConnection";
 import { DreamIdea } from "./nodes/DreamIdea";
 import { DreamTask } from "./nodes/DreamTask";
 import { DreamSource } from "./nodes/DreamSource";
+import { DreamTransclusion } from "./nodes/DreamTransclusion";
 import { DreamSlash } from "./extensions/DreamSlash";
 import { DreamInputs } from "./extensions/DreamInputs";
 import { Indent } from "./extensions/Indent";
@@ -109,6 +110,7 @@ export const getExtensionConfig = ({
         "dreamIdea",
         "dreamSource",
         "dreamTask", // If using DreamTask
+        "dreamTransclusion",
       ],
     }),
 
@@ -160,6 +162,7 @@ export const getExtensionConfig = ({
       HTMLAttributes: { class: contentStyles.source },
       editable,
     }),
+    DreamTransclusion.configure({}),
 
     DreamYouTube.configure({
       HTMLAttributes: { class: styles.dreamYouTube },

@@ -1,4 +1,4 @@
-@use '@core/design/styles/mixins.scss' as *;
+@use "@core/design/styles/mixins.scss" as *;
 
 :root {
   --background-color: var(--mantine-color-dark-8);
@@ -114,6 +114,10 @@
 
     .content {
       height: 100%;
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
       scrollbar-width: none;
     }
 

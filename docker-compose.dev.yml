@@ -32,7 +32,8 @@ services:
     networks:
       - app
     depends_on:
-      - surrealdb
+      surrealdb:
+        condition: service_healthy
     command: sh -c "bun install --frozen-lockfile && bun run dev:server"
 
   frontend:

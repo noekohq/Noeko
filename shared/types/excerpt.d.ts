@@ -20,6 +20,14 @@ export type IPDFMetadata = {
   };
 };
 
+export type ITextMetadata = {
+  start: number;
+  end: number;
+  quote: string;
+  prefix: string;
+  suffix: string;
+};
+
 export type IExcerpt = IEmbeddingMetadata & {
   id: string | RecordId;
   sourceText: string;
@@ -28,6 +36,7 @@ export type IExcerpt = IEmbeddingMetadata & {
   embeddingsUpdatedAt: Date;
   references?: StringRecordId | IExcerptReference;
   pdfMetadata?: IPDFMetadata;
+  textMetadata?: ITextMetadata;
   createdAt: Date;
   updatedAt: Date;
   viewedAt: Date;

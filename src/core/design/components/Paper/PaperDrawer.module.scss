@@ -18,7 +18,7 @@
   will-change: opacity;
 }
 
-@keyframes bodyIn {
+@keyframes bodyInBottom {
   from {
     transform: translateY(100%);
   }
@@ -27,27 +27,49 @@
   }
 }
 
+@keyframes bodyInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .body {
-  min-height: 60vh;
-  max-height: 80vh;
-  overflow-y: auto;
-
-  animation: bodyIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
-
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-sm);
+  box-sizing: border-box;
+  overflow: hidden;
   background-color: var(--mantine-color-dark-8);
   padding: var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
   box-shadow: var(--mantine-shadow-md);
 
   /* Hardware acceleration hint to prevent jank during the slide */
   will-change: transform;
+}
+
+.bottom {
+  min-height: 60vh;
+  max-height: 80vh;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
+  animation: bodyInBottom 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(26rem, calc(100vw - var(--mantine-spacing-md)));
+  min-height: 100dvh;
+  max-height: 100dvh;
+  border-radius: var(--mantine-radius-lg) 0 0 var(--mantine-radius-lg);
+  animation: bodyInRight 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 .header {
@@ -75,4 +97,6 @@
 }
 
 .content {
+  min-height: 0;
+  overflow-y: auto;
 }

@@ -23,6 +23,7 @@ router.post("/", async (req, res) => {
     const note = req.body.note;
     const sourceText = req.body.sourceText;
     const pdfMetadata = req.body.pdfMetadata;
+    const textMetadata = req.body.textMetadata;
 
     const created = await Excerpt.from(
       {
@@ -33,6 +34,7 @@ router.post("/", async (req, res) => {
         note,
         sourceText,
         pdfMetadata,
+        textMetadata,
       }
     );
 

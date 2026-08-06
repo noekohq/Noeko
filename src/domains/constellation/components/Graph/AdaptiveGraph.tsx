@@ -1,11 +1,13 @@
 import { forwardRef, useCallback, useState } from "react";
 import Graph, { type IGraphContainerProps, type IGraphController } from "./Graph";
 import WebGLGraph from "./WebGLGraph";
+import type { IConstellationVisualMode } from "./visualModes";
 
 export type IGraphRendererPreference = "auto" | "svg" | "webgl";
 
 type IAdaptiveGraphProps = IGraphContainerProps & {
   renderer?: IGraphRendererPreference;
+  visualMode?: IConstellationVisualMode;
 };
 
 const supportsWebGL2 = () => {
@@ -21,7 +23,7 @@ const getSavedPreference = (): IGraphRendererPreference => {
 };
 
 const AdaptiveGraph = forwardRef<IGraphController, IAdaptiveGraphProps>(
-  ({ renderer, ...props }, ref) => {
+  ({ renderer, visualMode, ...props }, ref) => {
     const [webGLFailed, setWebGLFailed] = useState(false);
     const [webGLSupported] = useState(supportsWebGL2);
     const [savedPreference] = useState(getSavedPreference);
@@ -37,7 +39,9 @@ const AdaptiveGraph = forwardRef<IGraphController, IAdaptiveGraphProps>(
       (preference === "webgl" || !coarsePointer);
 
     if (!useWebGL) return <Graph ref={ref} {...props} />;
-    return <WebGLGraph ref={ref} {...props} onUnavailable={handleUnavailable} />;
+    return (
+      <WebGLGraph ref={ref} {...props} visualMode={visualMode} onUnavailable={handleUnavailable} />
+    );
   }
 );
 

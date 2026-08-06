@@ -30,7 +30,7 @@ const LeftSidebar = ({ children, topLevel, startOpened, startClosed }: ILeftSide
     if (isMobile) {
       setMode("collapsed");
     }
-  }, []);
+  }, [isMobile, setMode]);
 
   useEffect(() => {
     if (startOpened) {
@@ -108,6 +108,7 @@ const LeftSidebar = ({ children, topLevel, startOpened, startClosed }: ILeftSide
             onClick={() => {
               setMode("collapsed");
             }}
+            aria-label="Close left sidebar"
             variant="subtle"
             size={"md"}
             color={defaultColor}
@@ -138,6 +139,7 @@ const LeftSidebar = ({ children, topLevel, startOpened, startClosed }: ILeftSide
             onClick={() => {
               setMode("collapsed");
             }}
+            aria-label="Close left sidebar"
             variant="subtle"
             size={"md"}
             color={defaultColor}
@@ -149,12 +151,12 @@ const LeftSidebar = ({ children, topLevel, startOpened, startClosed }: ILeftSide
     ),
     collapsed: (
       <Stack>
-        {!!topLevel?.collapsed && topLevel.collapsed}
         {openable && (
           <ActionIcon
             onClick={() => {
               setMode("open");
             }}
+            aria-label="Open left sidebar"
             variant="subtle"
             size={"md"}
             color={defaultColor}
@@ -162,6 +164,7 @@ const LeftSidebar = ({ children, topLevel, startOpened, startClosed }: ILeftSide
             <SidebarSimpleIcon />
           </ActionIcon>
         )}
+        {!!topLevel?.collapsed && topLevel.collapsed}
         {/*<HomeButton />*/}
         <Tooltip label="Give Feedback!">
           <ActionIcon
@@ -224,7 +227,7 @@ type IContentProps = {
   children: React.ReactNode | React.ReactNode[];
 };
 
-LeftSidebar.Open = ({ children }: IContentProps) => {
+LeftSidebar.Open = function LeftSidebarOpen({ children }: IContentProps) {
   const {
     elements: {
       leftSidebar: {
@@ -238,7 +241,7 @@ LeftSidebar.Open = ({ children }: IContentProps) => {
   return children;
 };
 
-LeftSidebar.Collapsed = ({ children }: IContentProps) => {
+LeftSidebar.Collapsed = function LeftSidebarCollapsed({ children }: IContentProps) {
   const {
     elements: {
       leftSidebar: {
@@ -253,7 +256,7 @@ LeftSidebar.Collapsed = ({ children }: IContentProps) => {
   return children;
 };
 
-LeftSidebar.Compact = ({ children }: IContentProps) => {
+LeftSidebar.Compact = function LeftSidebarCompact({ children }: IContentProps) {
   const {
     elements: {
       leftSidebar: {

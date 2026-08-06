@@ -3,8 +3,10 @@ import {
   Alert,
   Badge,
   Button,
+  Center,
   Group,
   HoverCard,
+  Loader,
   Stack,
   Text,
   Title,
@@ -14,7 +16,7 @@ import GlimpseModeDisplay from "@domains/discovery/components/Spyglass/GlimpseMo
 import styles from "./Spyglass.module.scss";
 import { useInteraction } from "@/contexts/InteractionContext";
 import useRabbithole from "@domains/rabbitholes/hooks/useRabbithole";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSpyglassService } from "@domains/discovery/hooks/useSpyglassService";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import PageWrapper from "@core/design/layout/PageWrapper";
@@ -44,6 +46,7 @@ import ScopeDisplay from "@domains/discovery/components/Search/ScopeBuilder/Scop
 import { api } from "@infrastructure/api/client";
 import { formatDateTime } from "@core/utils/formatting";
 import type { ISpyglassLightHistoryResponse } from "../../../../../app/database/models/spyglass_record";
+import { useWorkflowSelection } from "@core/interactions";
 
 type SpyglassActivity = ISpyglassLightHistoryResponse["history"][number];
 
@@ -73,6 +76,9 @@ export default function Spyglass() {
   const {
     global: {
       scope: { get: scope, set: setScope, has: hasScope },
+      scopeData: {
+        rabbithole: { set: setScopeRabbithole },
+      },
     },
   } = useSearch();
 
@@ -84,6 +90,11 @@ export default function Spyglass() {
   const [activityExpanded, setActivityExpanded] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const workflowSelection = useWorkflowSelection();
+  const requestedRunId = searchParams.get("run");
+  const suppressRunResumeRef = useRef(false);
+  const hydratedRabbitholeParamRef = useRef<string | null>(null);
+  const hydratedSelectionParamRef = useRef<string | null>(null);
 
   const {
     search,
@@ -111,7 +122,7 @@ export default function Spyglass() {
     },
     onRunLoaded: (run) => {
       setCurrentQuery(run.query);
-      setDeepAnalysis(true);
+      setDeepAnalysis(run.profile !== "glimpse");
     },
   });
 
@@ -122,14 +133,21 @@ export default function Spyglass() {
       {
         query,
         deepAnalysis,
-        rabbithole: currentRabbithole
-          ? currentRabbithole.id.toString()
-          : scope.rabbithole || undefined,
+        rabbithole: scope.rabbithole || currentRabbithole?.id.toString() || undefined,
+        scope: scope.scope,
         tags: scope.tags,
         date: scope.date,
       },
       true
     );
+  };
+
+  const clearSelectionScope = () => {
+    setScope({ ...scope, scope: undefined });
+    hydratedSelectionParamRef.current = null;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("selection");
+    setSearchParams(nextParams, { replace: true });
   };
 
   useEffect(() => {
@@ -139,9 +157,13 @@ export default function Spyglass() {
   }, [complete]);
 
   useEffect(() => {
-    const durableRunId = searchParams.get("run");
-    if (durableRunId && durableRunId !== runId) {
-      void resume(durableRunId);
+    if (!requestedRunId) {
+      suppressRunResumeRef.current = false;
+    }
+    if (requestedRunId && requestedRunId !== runId) {
+      if (!suppressRunResumeRef.current) {
+        void resume(requestedRunId);
+      }
       return;
     }
     if (searchParams.get("q")) {
@@ -150,7 +172,41 @@ export default function Spyglass() {
       setQuery(q);
       setDeepAnalysis(deep);
     }
-  }, [resume, runId, searchParams]);
+    const scopedRabbithole = searchParams.get("rabbithole");
+    if (!scopedRabbithole) {
+      hydratedRabbitholeParamRef.current = null;
+    } else if (hydratedRabbitholeParamRef.current !== scopedRabbithole) {
+      hydratedRabbitholeParamRef.current = scopedRabbithole;
+      setScope({ ...scope, rabbithole: scopedRabbithole });
+      const scopedRabbitholeName = searchParams.get("rabbitholeName");
+      if (scopedRabbitholeName) {
+        setScopeRabbithole({ id: scopedRabbithole, name: scopedRabbitholeName });
+      }
+    }
+
+    const selectionToken = searchParams.get("selection");
+    if (!selectionToken) {
+      hydratedSelectionParamRef.current = null;
+    } else if (
+      hydratedSelectionParamRef.current !== selectionToken &&
+      workflowSelection.handoff?.updatedAt.toString() === selectionToken
+    ) {
+      hydratedSelectionParamRef.current = selectionToken;
+      setScope({
+        ...scope,
+        scope: workflowSelection.handoff.items.map((item) => item.id),
+      });
+    }
+  }, [
+    requestedRunId,
+    resume,
+    runId,
+    searchParams,
+    scope,
+    setScope,
+    setScopeRabbithole,
+    workflowSelection.handoff,
+  ]);
 
   useEffect(() => {
     if (initialized) return;
@@ -188,16 +244,18 @@ export default function Spyglass() {
     initialized && loading && deepAnalysis && results.length > 0 && !overview;
 
   const startNewQuery = () => {
+    suppressRunResumeRef.current = true;
+    setSearchParams({}, { replace: true });
     reset();
     uninitialize();
     setQuery("");
     setCurrentQuery("");
-    setSearchParams({});
   };
 
   const openActivity = (activity: SpyglassActivity) => {
     const id = activity.id.toString();
     if (id.startsWith("spyglass_run:")) {
+      suppressRunResumeRef.current = false;
       setSearchParams({ run: id });
     } else {
       navigate(`/spyglass/records/${id}`);
@@ -214,6 +272,17 @@ export default function Spyglass() {
   };
 
   const visibleActivity = recentActivity.slice(0, activityExpanded ? 10 : 5);
+  const awaitingRequestedRun = Boolean(requestedRunId && requestedRunId !== runId);
+  const displayInitialized = initialized || awaitingRequestedRun;
+  const selectionHandoff = workflowSelection.handoff;
+  const selectionScopeMatchesHandoff = Boolean(
+    selectionHandoff &&
+    scope.scope?.length === selectionHandoff.items.length &&
+    selectionHandoff.items.every((item) => scope.scope?.includes(item.id))
+  );
+  const selectionScopeLabel = selectionScopeMatchesHandoff
+    ? selectionHandoff?.origin.label
+    : undefined;
 
   return (
     <PageWrapper>
@@ -267,8 +336,8 @@ export default function Spyglass() {
         </LeftSidebar.Collapsed>
       </LeftSidebar>
       <Content>
-        <div className={`${styles.spyglass} ${initialized ? styles.initialized : ""}`}>
-          {!initialized && (
+        <div className={`${styles.spyglass} ${displayInitialized ? styles.initialized : ""}`}>
+          {!displayInitialized && (
             <Group gap="xs" justify="center">
               <Title ta={"center"} className={`${styles.header}`} mb="lg">
                 Spyglass
@@ -306,7 +375,7 @@ export default function Spyglass() {
             </Group>
           )}
 
-          {!loading && (
+          {!loading && !awaitingRequestedRun && (
             <div className={styles.userInput}>
               <div
                 className={`${styles.textboxContainer} ${initialized ? styles.initialized : ""}`}
@@ -326,19 +395,30 @@ export default function Spyglass() {
                   onScopeChange={setScope}
                 />
               </div>
-              {hasScope && !initialized && (
+              {(hasScope || Boolean(currentRabbithole)) && !initialized && (
                 <div className={styles.scope}>
                   <Text fw="bold" c="dimmed" size="sm" mb="xs">
                     FILTERS
                   </Text>
-                  <ScopeDisplay />
+                  <ScopeDisplay
+                    onRemoveSelection={clearSelectionScope}
+                    selectionLabel={selectionScopeLabel}
+                  />
                 </div>
               )}
             </div>
           )}
 
-          <div className={`${styles.scrollableContent} ${initialized ? styles.initialized : ""}`}>
-            {!initialized && recentActivity.length > 0 && (
+          <div
+            className={`${styles.scrollableContent} ${displayInitialized ? styles.initialized : ""}`}
+          >
+            {awaitingRequestedRun && (
+              <Center py="xl">
+                <Loader color="gray" size="sm" />
+              </Center>
+            )}
+
+            {!displayInitialized && recentActivity.length > 0 && (
               <Stack className={styles.activityShelf} gap={0} mt="lg">
                 <Group className={styles.activityHeader} justify="space-between">
                   <Text c="dimmed" fw={600} size="xs">
@@ -366,6 +446,8 @@ export default function Spyglass() {
 
                 {visibleActivity.map((activity) => {
                   const active = activity.status === "queued" || activity.status === "running";
+                  const completed = !activity.status || activity.status === "completed";
+                  const mode = activity.isDeepAnalysis ? "Deep Focus" : "Glimpse";
                   return (
                     <Group
                       className={styles.activityRow}
@@ -377,16 +459,29 @@ export default function Spyglass() {
                         <Text className={styles.activityQuery} fw={500} size="sm" lineClamp={1}>
                           {activity.baseQuery}
                         </Text>
-                        <Badge
-                          color={activityStatusColor(activity)}
-                          size="xs"
-                          variant={active ? "dot" : "light"}
-                        >
-                          {activityStatusLabel(activity)}
-                        </Badge>
-                        <Text className={styles.activityMeta} c="dimmed" size="xs">
-                          {activity.isDeepAnalysis ? "Deep Focus" : "Glimpse"}
-                        </Text>
+                        {completed && (
+                          <Text className={styles.activityMeta} size="xs">
+                            {mode}
+                          </Text>
+                        )}
+                        {completed ? (
+                          <Text className={styles.activityCompleteStatus} size="xs">
+                            Complete
+                          </Text>
+                        ) : (
+                          <Badge
+                            color={activityStatusColor(activity)}
+                            size="xs"
+                            variant={active ? "dot" : "light"}
+                          >
+                            {activityStatusLabel(activity)}
+                          </Badge>
+                        )}
+                        {!completed && (
+                          <Text className={styles.activityMeta} size="xs">
+                            {mode}
+                          </Text>
+                        )}
                         <Text className={styles.activityTime} c="dimmed" size="xs">
                           {formatDateTime(activity.createdAt)}
                         </Text>

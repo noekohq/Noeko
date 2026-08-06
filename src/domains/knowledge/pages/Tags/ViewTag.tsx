@@ -481,7 +481,7 @@ export default function ViewTag() {
                   </Menu>
                 }
               />
-              <Box>
+              <Box className={styles.tagHeader}>
                 {isEditing ? (
                   <Stack gap="md">
                     <TextInput
@@ -538,16 +538,19 @@ export default function ViewTag() {
                   </Stack>
                 ) : (
                   <Stack gap="md">
-                    <Group gap="sm" align="center">
+                    <Group gap="sm" align="center" wrap="nowrap">
                       <TagIcon size={32} weight="fill" style={{ opacity: 0.3 }} />
-                      <Title order={1}>{tag.name}</Title>
+                      <Title order={1} className={styles.tagTitle}>
+                        {tag.name}
+                      </Title>
                     </Group>
                     {tag.description && (
-                      <Text size="md" c="dimmed" lh={1.4} maw={600}>
+                      <Text size="md" c="dimmed" lh={1.55} className={styles.tagDescription}>
                         {tag.description}
                       </Text>
                     )}
                     <Box
+                      className={styles.metadata}
                       bg="dark.9"
                       c="dark.1"
                       style={{ borderRadius: "var(--mantine-radius-md)" }}
@@ -619,11 +622,19 @@ export default function ViewTag() {
                   </Alert>
                 )}
                 {(!things || things.length === 0) && (
-                  <Text size="sm">
-                    {isMobile
-                      ? "Nothing here yet :/"
-                      : "Nothing yet, try dragging something here to tag it!"}
-                  </Text>
+                  <div className={styles.emptyState}>
+                    <TagIcon size={24} weight="fill" />
+                    <Stack gap={4}>
+                      <Text size="sm" fw={650}>
+                        No tagged items yet
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {isMobile
+                          ? "Apply this tag from an item or use a suggestion to get started."
+                          : "Drag an item here or apply one of the suggestions in the left panel."}
+                      </Text>
+                    </Stack>
+                  </div>
                 )}
               </Stack>
             </Stack>

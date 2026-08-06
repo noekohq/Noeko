@@ -1,143 +1,233 @@
-import { Group, Stack, Text } from "@mantine/core";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import type { IGraph, INode } from "@/declarations/graph";
 import { useGraph } from "@domains/constellation/contexts/GraphContext";
-import { IEdge, IGraph, INode } from "@/declarations/graph";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
-import styles from "./ConstellationContext.module.scss";
-import { GraphOrganizer } from "@/core/design/components/Display/Interactions/GraphOrganizer/GraphOrganizer";
-import ScopeBuilder from "@domains/discovery/components/Search/ScopeBuilder/ScopeBuilder";
-import { useMemo, useEffect } from "react";
-import PaperThing from "@core/design/components/Paper/Things/PaperThing";
-import { UserIcon } from "@phosphor-icons/react";
 import { useLandscape } from "@/contexts/LandscapeContext";
-import { IConstellationLoader } from "../../../../../shared/types/constellation";
-import { RecordId } from "surrealdb";
-import { i18n } from "@lingui/core";
-import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
-import { isGraphSummaryNode } from "@infrastructure/graph/utils";
-import { IUserNode } from "@/declarations/graph";
+import {
+  ConstellationSidebar,
+  SharedModeControl,
+  type LandscapeFilter,
+  type LandscapeNotice,
+} from "@domains/constellation/components/Sidebar";
+import { WorkingSetActions } from "@domains/constellation/components/Sidebar/WorkingSetActions";
+import { useWorkflowSelection } from "@core/interactions";
+import {
+  getNodeDescription,
+  getNodeLink,
+  getNodeTitle,
+  NodeIcon,
+} from "@infrastructure/graph/utils";
 
 type ConstellationContextProps = {
-  graph: IGraph | null;
-  reloadGraph: () => Promise<void>;
-  addNode?: (node: INode) => void;
-  addEdge?: (edge: IEdge) => void;
-  loader: IConstellationLoader;
-  setLoader: (loader: IConstellationLoader) => void;
+  graph: IGraph;
+  semanticLensActive: boolean;
+  semanticUnavailableCount: number;
+  landscapeLoading: boolean;
+  onSemanticLensChange: (active: boolean) => void;
+  onExploreSemantic: (node: INode) => void;
+  onTraceSelection: () => void;
+  onClearSelection: () => void;
+  onMutationComplete: () => void;
 };
 
 export default function ConstellationContext({
   graph,
-  reloadGraph,
-  loader,
-  setLoader,
+  semanticLensActive,
+  semanticUnavailableCount,
+  landscapeLoading,
+  onSemanticLensChange,
+  onExploreSemantic,
+  onTraceSelection,
+  onClearSelection,
+  onMutationComplete,
 }: ConstellationContextProps) {
-  const { nodes, edges } = graph || { nodes: [], edges: [] };
+  const { nodes, edges } = graph;
+  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id.toString(), node])), [nodes]);
   const {
-    selected: { get: selected, clear: clearSelected, remove: removeSelected, add: addToSelection },
+    selected: {
+      get: selected,
+      set: setSelected,
+      add: addToSelection,
+      removeMany: removeManySelected,
+      clear: clearSelected,
+    },
     focused: { set: setFocused },
   } = useGraph();
+  const workflowSelection = useWorkflowSelection();
+  const lastAppliedHandoff = useRef<number | null>(null);
 
   const {
     global: {
       scope: { get: scope, set: setScope },
+      scopeData: {
+        tags: { get: scopeTags, remove: removeScopeTag },
+      },
     },
   } = useSearch();
-
   const {
     rabbitholes: {
-      entered: { get: currentRabbithole },
+      entered: { get: currentRabbithole, set: setCurrentRabbithole },
     },
   } = useLandscape();
 
   useEffect(() => {
     if (currentRabbithole) {
-      const rhNode = nodes.find(
-        (node) =>
-          node.type === "rabbithole" && node.id.toString() === currentRabbithole.id.toString()
-      );
-      if (rhNode) {
-        addToSelection(rhNode.id.toString());
-      }
+      const node = nodeById.get(currentRabbithole.id.toString());
+      if (node) addToSelection(node.id.toString());
     }
-  }, [currentRabbithole, nodes, addToSelection]);
+  }, [addToSelection, currentRabbithole, nodeById]);
 
   useEffect(() => {
-    if (scope.tags?.set?.length) {
-      const matchingTagNodes = nodes.filter(
-        (node) =>
-          node.type === "tag" &&
-          scope.tags!.set.some(
-            (tagId: string | RecordId) => node.id.toString() === tagId.toString()
-          )
-      );
-      matchingTagNodes.forEach((tag) => addToSelection(tag.id.toString()));
+    for (const tagId of scope.tags?.set || []) {
+      const node = nodeById.get(tagId.toString());
+      if (node?.type === "tag") addToSelection(node.id.toString());
     }
+  }, [addToSelection, nodeById, scope.tags?.set]);
 
-    if (currentRabbithole) {
-      const rhNode = nodes.find(
-        (node) =>
-          node.type === "rabbithole" && node.id.toString() === currentRabbithole.id.toString()
-      );
-      if (rhNode) {
-        addToSelection(rhNode.id.toString());
+  useEffect(() => {
+    const availableNodeIds = new Set(nodeById.keys());
+    const staleSelectionIds = [...selected].filter((id) => !availableNodeIds.has(id));
+    if (staleSelectionIds.length > 0) removeManySelected(staleSelectionIds);
+  }, [nodeById, removeManySelected, selected]);
+
+  useEffect(() => {
+    const handoff = workflowSelection.handoff;
+    if (!handoff || lastAppliedHandoff.current === handoff.updatedAt) return;
+    lastAppliedHandoff.current = handoff.updatedAt;
+    setSelected(handoff.items.map((item) => item.id).filter((id) => nodeById.has(id)));
+  }, [nodeById, setSelected, workflowSelection.handoff, workflowSelection.revision]);
+
+  const sharedModeActive = scope.showShared === true || scope.showFriends === true;
+  const handleSharedModeChange = useCallback(
+    (active: boolean) => {
+      setScope({
+        ...scope,
+        showShared: active || undefined,
+        showFriends: active || undefined,
+      });
+    },
+    [scope, setScope]
+  );
+
+  const filters = useMemo<LandscapeFilter[]>(() => {
+    const active: LandscapeFilter[] = [];
+    for (const tagId of scope.tags?.set || []) {
+      const tag = scopeTags.find((candidate) => candidate.id.toString() === tagId.toString());
+      active.push({ id: `tag:${tagId.toString()}`, label: tag?.name || "Tag" });
+    }
+    if (currentRabbithole || scope.rabbithole) {
+      active.push({
+        id: "rabbithole",
+        label: currentRabbithole?.name || "Rabbithole",
+      });
+    }
+    if (scope.date) active.push({ id: "date", label: "Date range" });
+    if (sharedModeActive) active.push({ id: "shared", label: "Shared" });
+    return active;
+  }, [
+    currentRabbithole,
+    scope.date,
+    scope.rabbithole,
+    scope.tags?.set,
+    scopeTags,
+    sharedModeActive,
+  ]);
+
+  const handleRemoveFilter = useCallback(
+    (filterId: string) => {
+      if (filterId.startsWith("tag:")) {
+        removeScopeTag(filterId.slice(4));
+      } else if (filterId === "rabbithole") {
+        setCurrentRabbithole(null);
+        setScope({ ...scope, rabbithole: undefined });
+      } else if (filterId === "date") {
+        setScope({ ...scope, date: undefined });
+      } else if (filterId === "shared") {
+        handleSharedModeChange(false);
       }
-    }
-  }, [scope]);
+    },
+    [handleSharedModeChange, removeScopeTag, scope, setCurrentRabbithole, setScope]
+  );
 
-  const friendNodes = useMemo(() => {
-    return nodes.filter((node) => node.type === "user");
-  }, [nodes]);
+  const handleReset = useCallback(() => {
+    setCurrentRabbithole(null);
+    setScope({});
+    onSemanticLensChange(false);
+  }, [onSemanticLensChange, setCurrentRabbithole, setScope]);
 
-  const statusText = () => {
-    const filterCount =
-      (scope.tags?.set.length || 0) + (currentRabbithole ? 1 : 0) + (scope.date ? 1 : 0);
+  const selectionItems = useMemo(
+    () =>
+      [...selected].flatMap((id) => {
+        const node = nodeById.get(id);
+        if (!node) return [];
+        return [
+          {
+            id,
+            title: getNodeTitle(node) || "Untitled node",
+            detail: getNodeDescription(node),
+            icon: NodeIcon(node),
+            link: getNodeLink(node),
+          },
+        ];
+      }),
+    [nodeById, selected]
+  );
 
-    const filterText =
-      filterCount > 0 ? ` • ${filterCount} filter${filterCount === 1 ? "" : "s"} active` : "";
+  const handleClearSelection = useCallback(() => {
+    clearSelected();
+    workflowSelection.clear();
+    onClearSelection();
+  }, [clearSelected, onClearSelection, workflowSelection]);
 
-    return i18n._(
-      t`${nodes.length} node${nodes.length === 1 ? "" : "s"}, ${edges.length} connection${edges.length === 1 ? "" : "s"}${filterText}`
-    );
-  };
+  const notices = useMemo<LandscapeNotice[]>(() => {
+    if (!semanticLensActive || semanticUnavailableCount === 0) return [];
+    return [
+      {
+        id: "semantic-outside-snapshot",
+        tone: "info",
+        message: `${semanticUnavailableCount} semantic result${semanticUnavailableCount === 1 ? " is" : "s are"} outside the current landscape.`,
+      },
+    ];
+  }, [semanticLensActive, semanticUnavailableCount]);
 
   return (
-    <div className={styles.constellationContext}>
-      <Stack gap="md">
-        <Text c="dimmed" size="sm">
-          {statusText()}
-        </Text>
-
-        {scope.showFriends && friendNodes.length > 0 && (
-          <Stack gap="xs">
-            <Text size="xs" fw="bold" c="dimmed">
-              <Trans>FRIENDS</Trans>
-            </Text>
-            <Stack gap="xs">
-              {friendNodes.map((node) => {
-                const fullName =
-                  (isGraphSummaryNode(node)
-                    ? node.label
-                    : `${(node as IUserNode).firstName} ${(node as IUserNode).lastName}`.trim()) ||
-                  i18n._(t`Friend`);
-                return (
-                  <PaperThing
-                    key={node.id.toString()}
-                    id={node.id.toString()}
-                    title={fullName}
-                    detail=""
-                    icon={UserIcon}
-                    state="default"
-                    onClick={() => setFocused(node.id.toString())}
-                  />
-                );
-              })}
-            </Stack>
-          </Stack>
-        )}
-
-        <GraphOrganizer nodes={nodes} />
-      </Stack>
-    </div>
+    <ConstellationSidebar
+      landscape={{
+        perspective: "mine",
+        filters,
+        onRemoveFilter: handleRemoveFilter,
+        nodeCount: nodes.length,
+        relationshipCount: edges.length,
+        state: landscapeLoading
+          ? { status: "loading", message: "Updating the landscape…" }
+          : undefined,
+        onReset: handleReset,
+        notices,
+        controls: <SharedModeControl active={sharedModeActive} onChange={handleSharedModeChange} />,
+      }}
+      selection={{
+        items: selectionItems,
+        provenance: workflowSelection.handoff
+          ? {
+              label:
+                workflowSelection.handoff.origin.label || workflowSelection.handoff.origin.surface,
+              detail: workflowSelection.handoff.origin.query,
+            }
+          : undefined,
+        onClear: handleClearSelection,
+        onFocusItem: setFocused,
+        actionContent: (
+          <WorkingSetActions
+            graph={graph}
+            onTrace={onTraceSelection}
+            onMutationComplete={onMutationComplete}
+          />
+        ),
+        onExploreRelated: (itemId) => {
+          const node = nodeById.get(itemId);
+          if (node) onExploreSemantic(node);
+        },
+      }}
+    />
   );
 }

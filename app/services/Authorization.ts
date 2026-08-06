@@ -2,6 +2,7 @@ import { RecordId, StringRecordId } from "surrealdb";
 import { getDatabase } from "../database/db";
 import { IShareAccess } from "../database/models/share";
 import { User } from "../database/models/user";
+import type { IResourceAccessRole } from "../../shared/types/organization";
 
 export default class Authorization {
   private _userId: string | RecordId | StringRecordId;
@@ -34,6 +35,11 @@ export default class Authorization {
       const isOwner = await this.checkOwns(userId, thingId);
       if (isOwner) {
         return "owner";
+      }
+
+      const graphAccessLevel = await this.getGraphAccessLevel(userId, thingId);
+      if (graphAccessLevel) {
+        return graphAccessLevel;
       }
 
       const sharedAccessLevel = await this.getSharedAccessLevel(thingId, userId);
@@ -94,6 +100,11 @@ export default class Authorization {
       if (isOwner) {
         return true;
       }
+
+      const graphAccessLevel = await this.getGraphAccessLevel(userId, thingId);
+      if (this.accessLevelSatisfies(graphAccessLevel, requiredAccess)) {
+        return true;
+      }
       if (requiredAccess === "owner") {
         return false;
       }
@@ -117,6 +128,75 @@ export default class Authorization {
     } catch (error) {
       console.error("Error checking user has access: ", userId, thingId, error);
       return undefined;
+    }
+  }
+
+  private static accessLevelSatisfies(
+    actual: "owner" | IShareAccess | null,
+    required?: "owner" | IShareAccess
+  ) {
+    if (!actual) return false;
+    if (!required) return true;
+    if (required === "owner") return actual === "owner";
+    if (required === "editor") return actual === "owner" || actual === "editor";
+    return actual === "owner" || actual === "editor" || actual === "viewonly";
+  }
+
+  static async getGraphAccessLevel(
+    userId: string | RecordId,
+    thingId: string | RecordId
+  ): Promise<"owner" | IShareAccess | null> {
+    try {
+      const db = await getDatabase();
+      if (!db) throw new Error("Database not available.");
+      const formattedUserId = new StringRecordId(userId);
+      const formattedThingId = new StringRecordId(thingId);
+
+      const [owners] = await db.query<[RecordId[]]>(
+        `SELECT VALUE in FROM owns WHERE out = $thingId LIMIT 1;`,
+        { thingId: formattedThingId }
+      );
+      const ownerId = owners?.[0];
+      const isOrganizationOwned = ownerId?.toString().startsWith("organization:");
+
+      let organizationMembership:
+        | { role: "owner" | "member"; status: "active" | "suspended" }
+        | undefined;
+      if (isOrganizationOwned) {
+        const [memberships] = await db.query<
+          [{ role: "owner" | "member"; status: "active" | "suspended" }[]]
+        >(
+          `SELECT role, status FROM member_of WHERE in = $userId AND out = $organizationId LIMIT 1;`,
+          { userId: formattedUserId, organizationId: ownerId }
+        );
+        organizationMembership = memberships?.[0];
+        if (!organizationMembership || organizationMembership.status !== "active") return null;
+        if (organizationMembership.role === "owner") return "owner";
+      }
+
+      const [grants] = await db.query<[{ role: IResourceAccessRole }[]]>(
+        `SELECT role FROM access_grant WHERE in = $userId AND out = $thingId LIMIT 1;`,
+        { userId: formattedUserId, thingId: formattedThingId }
+      );
+      const directGrant = grants?.[0]?.role;
+      if (directGrant === "admin") return "owner";
+      if (directGrant === "editor") return "editor";
+      if (directGrant === "viewer") return "viewonly";
+
+      if (!isOrganizationOwned) return null;
+
+      const [organizations] = await db.query<
+        [{ baseResourceRole: "none" | "viewer" | "editor" }[]]
+      >(`SELECT baseResourceRole FROM organization WHERE id = $organizationId LIMIT 1;`, {
+        organizationId: ownerId,
+      });
+      const baseRole = organizations?.[0]?.baseResourceRole;
+      if (baseRole === "editor") return "editor";
+      if (baseRole === "viewer") return "viewonly";
+      return null;
+    } catch (error) {
+      console.error("Error resolving graph access:", userId, thingId, error);
+      return null;
     }
   }
 

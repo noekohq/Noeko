@@ -104,6 +104,17 @@
     }
   }
 
+  &.semanticResult {
+    .mainCircle,
+    .nodeText {
+      opacity: 1;
+    }
+
+    .nodeText {
+      font-weight: 650;
+    }
+  }
+
   &.loading {
     .mainCircle {
       animation: pulsing 1s infinite;

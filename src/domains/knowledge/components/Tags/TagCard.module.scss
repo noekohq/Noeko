@@ -13,7 +13,104 @@
   &:hover {
     transform: translateY(-2px);
   }
+
   &:active {
     transform: scale(0.98) translateY(2px);
   }
+}
+
+.index {
+  box-sizing: border-box;
+  min-height: 82px;
+  padding: var(--mantine-spacing-sm);
+  gap: 0;
+  background: transparent;
+  border: 1px solid var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-md);
+  justify-content: center;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateX(3px);
+    background-color: var(--mantine-color-dark-8);
+    border-color: var(--mantine-color-dark-6);
+    box-shadow: var(--mantine-shadow-xs);
+
+    .iconWell {
+      background-color: var(--mantine-color-dark-7);
+      transform: rotate(-3deg);
+    }
+
+    .arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-6);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.995) translateX(2px);
+  }
+}
+
+.header,
+.identity,
+.copy {
+  min-width: 0;
+  width: 100%;
+}
+
+.identity {
+  flex: 1;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.iconWell {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-dark-8);
+  color: var(--mantine-color-dark-3);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  transition: all 0.2s ease-in-out;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.title {
+  color: var(--mantine-color-dark-1);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.description {
+  line-height: 1.35;
+}
+
+.actions {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.arrow {
+  color: var(--mantine-color-dark-4);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease-in-out;
 }

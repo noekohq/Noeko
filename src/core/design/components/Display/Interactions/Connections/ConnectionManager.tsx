@@ -143,8 +143,7 @@ export default function ConnectionManager({
               <div style={transitionStyles}>
                 <Stack gap="xs" className={styles.suggestionsWrapper} key={suggestionsFingerprint}>
                   {suggestionsToShow.map((thing) => {
-                    const distance = (thing as any).distance || 0;
-                    const level = similarityToLevel(distance);
+                    const level = similarityToLevel(thing.similarity);
                     const baseDetail = getThingPropsFromConnectable(thing).detail;
 
                     return (

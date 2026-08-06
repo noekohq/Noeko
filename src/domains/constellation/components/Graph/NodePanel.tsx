@@ -19,6 +19,7 @@ import {
   ArrowsOutSimpleIcon,
   GraphIcon,
   SelectionIcon,
+  SparkleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { Link } from "react-router";
@@ -40,10 +41,11 @@ export type NodePanelProps = {
   onClose: () => void;
   onClusterSelect: (node: INode) => void;
   onClusterDeselect: (node: INode) => void;
+  onExploreSemantic?: (node: INode) => void;
 };
 
 const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
-  ({ node, position, onClose, onClusterDeselect, onClusterSelect }, ref) => {
+  ({ node, position, onClose, onClusterDeselect, onClusterSelect, onExploreSemantic }, ref) => {
     const [expanded, setExpanded] = useState(false);
 
     const {
@@ -171,6 +173,23 @@ const NodePanel = forwardRef<HTMLDivElement, NodePanelProps>(
               >
                 <GraphIcon weight="bold" />
               </ActionIcon>
+              {onExploreSemantic && ["idea", "source", "task", "excerpt"].includes(node.type) && (
+                <ActionIcon
+                  color="violet"
+                  variant="light"
+                  radius="lg"
+                  size="md"
+                  title="Explore related nodes"
+                  aria-label="Explore related nodes"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onExploreSemantic(node);
+                    onClose();
+                  }}
+                >
+                  <SparkleIcon weight="bold" />
+                </ActionIcon>
+              )}
             </Group>
           </Grid.Col>
         </Grid>

@@ -39,6 +39,7 @@ const SIMULATION_CONFIG = {
 let simulation: d3.Simulation<SimNode, SimEdge> | null = null;
 const nodeMap = new Map<string, SimNode>();
 let useCompactTicks = false;
+let baseEdges: SimEdge[] = [];
 
 function emitPositions(type: "layout_ready" | "tick") {
   if (!simulation) return;
@@ -84,6 +85,17 @@ self.onmessage = (event: MessageEvent) => {
       }
       break;
 
+    case "update_overlay_edges":
+      if (simulation) {
+        const overlayEdges = (payload.edges as SimEdge[]).filter(
+          (edge) => nodeMap.has(edge.source.toString()) && nodeMap.has(edge.target.toString())
+        );
+        const linkForce = simulation.force<d3.ForceLink<SimNode, SimEdge>>("link");
+        linkForce?.links([...baseEdges, ...overlayEdges]);
+        simulation.alpha(Math.max(simulation.alpha(), 0.08)).restart();
+      }
+      break;
+
     case "end_node_drag":
       if (simulation) {
         const node = nodeMap.get(payload.id);
@@ -114,13 +126,19 @@ function initializeSimulation(nodes: SimNode[], edges: SimEdge[], warmupTicks: n
   const validEdges = edges.filter(
     (edge) => nodeIds.has(edge.source.toString()) && nodeIds.has(edge.target.toString())
   );
+  baseEdges = validEdges.map((edge) => ({
+    source: edge.source.toString(),
+    target: edge.target.toString(),
+    distance: edge.distance,
+    strength: edge.strength,
+  }));
 
   simulation = d3
     .forceSimulation(nodes)
     .force(
       "link",
       d3
-        .forceLink<SimNode, SimEdge>(validEdges)
+        .forceLink<SimNode, SimEdge>(baseEdges)
         .id((d) => d.id.toString())
         .distance((e) => e.distance || SIMULATION_CONFIG.link.distance)
         .strength((e) => e.strength || SIMULATION_CONFIG.link.strength)

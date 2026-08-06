@@ -130,6 +130,32 @@ export default function Settings() {
         elementId: "language",
       },
       {
+        title: i18n._(t`Graphics quality`),
+        keywords: [
+          i18n._(t`performance`),
+          i18n._(t`graphics`),
+          i18n._(t`effects`),
+          i18n._(t`animation`),
+          i18n._(t`reduced motion`),
+          i18n._(t`GPU`),
+        ],
+        route: "appearance",
+        elementId: "graphics-mode",
+      },
+      {
+        title: i18n._(t`Constellation visual mode`),
+        keywords: [
+          i18n._(t`constellation`),
+          i18n._(t`graph`),
+          i18n._(t`depth`),
+          i18n._(t`classic`),
+          i18n._(t`static`),
+          i18n._(t`animation`),
+        ],
+        route: "appearance",
+        elementId: "constellation-visual-mode",
+      },
+      {
         title: i18n._(t`Keymap`),
         keywords: [
           i18n._(t`shortcuts`),

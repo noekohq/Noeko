@@ -1,5 +1,16 @@
 .wrapper {
   position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.contentScroll {
+  min-height: 0;
+  max-height: min(22rem, 45dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .panel {

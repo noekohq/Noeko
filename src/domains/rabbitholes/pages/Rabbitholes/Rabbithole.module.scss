@@ -1,11 +1,117 @@
 .rabbithole {
-  padding-bottom: 10vh;
+  padding-top: var(--mantine-spacing-xl);
+  padding-bottom: 9rem;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
-.contentArea {
-  min-height: 50vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.draggingOver {
+  border-radius: var(--mantine-radius-lg);
+  box-shadow: inset 0 0 0 2px var(--mantine-primary-color-filled);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
   gap: var(--mantine-spacing-xs);
+  color: var(--mantine-color-dimmed);
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.editableTitle {
+  outline: none;
+  max-width: 100%;
+
+  &:focus {
+    border-radius: var(--mantine-radius-sm);
+    box-shadow: 0 2px 0 var(--mantine-primary-color-filled);
+  }
+}
+
+.description textarea {
+  font-size: var(--mantine-font-size-lg);
+  line-height: 1.45;
+}
+
+.descriptionEditor {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-xs);
+
+  .description {
+    flex: 1;
+  }
+}
+
+.tags,
+.mobileTags {
+  margin-top: var(--mantine-spacing-sm);
+}
+
+.mobileTags {
+  overflow-x: auto;
+  padding-block: 2px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.summary {
+  padding: var(--mantine-spacing-lg);
+  border: 1px solid var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-lg);
+  background: var(--mantine-color-dark-9);
+}
+
+.contextPanel {
+  width: 100%;
+  min-width: 0;
+}
+
+.gistCard {
+  background: color-mix(in srgb, var(--mantine-primary-color-filled) 7%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--mantine-primary-color-filled) 18%, var(--mantine-color-dark-7));
+}
+
+.contextLabel {
+  margin-bottom: var(--mantine-spacing-xs);
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.contextRows {
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-dark-7);
+  border-radius: var(--mantine-radius-lg);
+}
+
+.contextRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm);
+  background: color-mix(in srgb, var(--mantine-color-dark-8) 70%, transparent);
+
+  & + & {
+    border-top: 1px solid var(--mantine-color-dark-7);
+  }
+
+  > * {
+    min-width: 0;
+  }
+}
+
+.empty {
+  padding: 4rem var(--mantine-spacing-lg);
+  border: 1px dashed var(--mantine-color-dark-6);
+  border-radius: var(--mantine-radius-lg);
 }

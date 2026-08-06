@@ -3,7 +3,7 @@ import nord from "./library/nord";
 import pinkLady from "./library/pinkLady";
 import noeko from "./library/noeko";
 import dracula from "./library/dracula";
-import silicon from "./library/silicon";
+import basalt from "./library/basalt";
 import vaporwave from "./library/vaporwave";
 import river from "./library/river";
 import paper from "./library/paper";
@@ -25,11 +25,11 @@ export const themeOptions: ThemeOptionDefinition[] = [
     keywords: "gruvbox default warm earthy retro",
   },
   {
-    value: "silicon",
-    label: "Silicon",
-    description: "Crisp, polished, and product-forward",
-    swatches: ["#111826", "#1d2635", "#3298ff"],
-    keywords: "modern startup sleek blue professional",
+    value: "basalt",
+    label: "Basalt",
+    description: "Volcanic stone lit by a molten ember",
+    swatches: ["#080706", "#151210", "#ff6b35"],
+    keywords: "basalt volcanic black stone lava magma fire ember earth bold dark light",
   },
   {
     value: "nord",
@@ -77,7 +77,7 @@ export const themeOptions: ThemeOptionDefinition[] = [
 
 export const overrides: Record<IThemeOption, IOverrideResolver> = {
   noeko: noeko,
-  silicon: silicon,
+  basalt: basalt,
   nord: nord,
   pinkLady: pinkLady,
   vaporwave: vaporwave,

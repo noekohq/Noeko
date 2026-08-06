@@ -89,12 +89,18 @@ import { isEqual } from "lodash";
 import LangtonsAntLoader from "@core/design/components/Loading/AntLoader";
 import PaperEyebrow from "@/core/design/components/Paper/PaperEyebrow/PaperEyebrow";
 import { PaperTitle } from "@/core/design/components/Paper/PaperTitle/PaperTitle";
+import { useApiQuery } from "@/core/hooks/useApiQuery";
+import type { IOwnerSummary } from "../../../../../shared/types/organization";
 
 // --- Types ---
 type IdeaUnion = (ISafeIdea & { accessLevel?: "owner" | IShareAccess | null }) | IOptimisticIdea;
 
 export default function Idea() {
   const { ideaId } = useParams<{ ideaId: string }>();
+  const { data: owner } = useApiQuery<IOwnerSummary>({
+    url: ideaId?.includes(":") ? `/organizations/resources/${ideaId}/owner` : null,
+    queryKey: ["resource-owner", ideaId],
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const highlightText = searchParams.get("highlightText");
@@ -489,7 +495,7 @@ export default function Idea() {
               >
                 <Flex gap="xs" direction={"row"} align="center" wrap={"wrap"}>
                   <Tooltip
-                    label={`Owned by ${ideaToRender?.author ? userFormattedName(ideaToRender?.author) : "Unknown Author"}`}
+                    label={`Owned by ${owner?.name || (ideaToRender?.author ? userFormattedName(ideaToRender.author) : "Unknown owner")}`}
                     transitionProps={{
                       transition: "rotate-right",
                       duration: 200,
@@ -498,9 +504,10 @@ export default function Idea() {
                     <Group gap="4px" align="center">
                       <FeatherIcon color="var(--mantine-color-dark-3)" size={12} weight="bold" />
                       <Text size="xs" fw="500">
-                        {ideaToRender?.author
-                          ? userFormattedName(ideaToRender?.author)
-                          : "Unknown Author"}
+                        {owner?.name ||
+                          (ideaToRender?.author
+                            ? userFormattedName(ideaToRender.author)
+                            : "Unknown owner")}
                       </Text>
                     </Group>
                   </Tooltip>

@@ -3,7 +3,7 @@ import { ITag } from "../../../../../shared/types/tags";
 import { useNavigate } from "react-router";
 import { IconProps } from "@core/design/icons/Icon";
 import styles from "./TagCard.module.scss";
-import { DotsThreeVerticalIcon, TagIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, DotsThreeVerticalIcon, TagIcon } from "@phosphor-icons/react";
 
 export type ITagAction = {
   id: string;
@@ -14,7 +14,7 @@ export type ITagAction = {
   variant?: "filled" | "light" | "outline" | "default" | "subtle" | "transparent" | "white";
   disabled?: boolean;
   tooltip?: string;
-  isOverflow?: boolean; // If true, primarily for the overflow menu
+  isOverflow?: boolean;
 };
 
 interface ITagCardProps {
@@ -23,83 +23,99 @@ interface ITagCardProps {
   titleIcon?: React.ReactNode;
   onClick?: (tag: ITag) => void;
   actions?: ITagAction[];
+  variant?: "card" | "index";
 }
 
-const getTagDefaultSummary = (tag: ITag): string | undefined => {
-  return tag.description;
-};
-
-export default function TagCard({ tag, description, onClick, titleIcon, actions }: ITagCardProps) {
+export default function TagCard({
+  tag,
+  description,
+  onClick,
+  titleIcon,
+  actions,
+  variant = "card",
+}: ITagCardProps) {
   const navigate = useNavigate();
+  const desc = description || tag.description;
 
   const handleClick = () => {
-    if (onClick) {
-      onClick(tag);
-    } else {
-      navigate(`/tags/${tag.id.toString()}`);
-    }
+    if (onClick) onClick(tag);
+    else navigate(`/tags/${tag.id.toString()}`);
   };
-
-  const desc = description || getTagDefaultSummary(tag);
 
   return (
     <div
       role="button"
-      onClick={() => {
-        handleClick();
-      }}
+      onClick={handleClick}
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
           handleClick();
         }
       }}
-      className={styles.tagCard}
+      className={`${styles.tagCard} ${styles[variant]}`}
     >
-      <Group justify="space-between">
-        <Group gap="xs">
-          <Badge size="lg" c="dark.8" bg="dark.3" leftSection={<TagIcon weight="bold" />}>
-            {tag.name}
-          </Badge>
+      <Group justify="space-between" wrap="nowrap" className={styles.header}>
+        <Group gap="sm" wrap="nowrap" className={styles.identity}>
+          {variant === "index" && (
+            <div className={styles.iconWell} aria-hidden="true">
+              {titleIcon || <TagIcon weight="fill" />}
+            </div>
+          )}
+          <div className={styles.copy}>
+            {variant === "index" ? (
+              <Text fw={650} className={styles.title}>
+                {tag.name}
+              </Text>
+            ) : (
+              <Badge size="lg" c="dark.8" bg="dark.3" leftSection={<TagIcon weight="bold" />}>
+                {tag.name}
+              </Badge>
+            )}
+            {variant === "index" && (
+              <Text size="sm" c="dimmed" lineClamp={2} className={styles.description}>
+                {desc || "No description yet"}
+              </Text>
+            )}
+          </div>
         </Group>
-        <Group>
+        <Group gap={4} wrap="nowrap" className={styles.actions}>
           {!!actions?.length && (
             <Menu position="bottom-end">
               <Menu.Target>
                 <ActionIcon
+                  aria-label={`Actions for ${tag.name}`}
                   size="md"
                   variant="subtle"
                   color="gray"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
+                  onClick={(event) => event.stopPropagation()}
                 >
                   <DotsThreeVerticalIcon />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                {actions?.map((action) => {
-                  return (
-                    <Menu.Item
-                      key={action.id}
-                      leftSection={action.icon}
-                      onClick={(e) => {
-                        action.onClick(e, tag);
-                      }}
-                      color={action.color}
-                    >
-                      {action.label}
-                    </Menu.Item>
-                  );
-                })}
+                {actions.map((action) => (
+                  <Menu.Item
+                    key={action.id}
+                    leftSection={action.icon}
+                    onClick={(event) => action.onClick(event, tag)}
+                    color={action.color}
+                    disabled={action.disabled}
+                  >
+                    {action.label}
+                  </Menu.Item>
+                ))}
               </Menu.Dropdown>
             </Menu>
           )}
+          {variant === "index" && <ArrowRightIcon className={styles.arrow} />}
         </Group>
       </Group>
-      <Group>
-        <Text size="sm">{desc}</Text>
-      </Group>
+      {variant === "card" && (
+        <Group>
+          <Text size="sm">{desc}</Text>
+        </Group>
+      )}
     </div>
   );
 }

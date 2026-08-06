@@ -21,13 +21,22 @@ const LOCAL_STORAGE_KEYS = {
   bodyFont: "themeBodyFont",
   headingFont: "themeHeadingFont",
   language: "language",
+  graphicsMode: "noeko:graphics-mode",
 };
+
+type IGraphicsMode = "full" | "reduced";
 
 type ISettingsContext = {
   ui: {
     language: {
       get: string;
       set: (l: string) => void;
+    };
+    graphics: {
+      mode: {
+        get: IGraphicsMode;
+        set: (mode: IGraphicsMode) => void;
+      };
     };
     theme: {
       override: {
@@ -46,7 +55,7 @@ type ISettingsContext = {
       scheme: {
         get: IThemeSpec["scheme"];
         set: (s: IThemeSpec["scheme"]) => void;
-        actual: IThemeSpec["scheme"];
+        actual: Exclude<IThemeSpec["scheme"], "auto">;
       };
       resolved: {
         get: IThemeResolved;
@@ -60,7 +69,7 @@ type ISettingsContext = {
 
 const THEME_OPTIONS: readonly IThemeSpec["override"][] = [
   "noeko",
-  "silicon",
+  "basalt",
   "nord",
   "pinkLady",
   "vaporwave",
@@ -70,6 +79,7 @@ const THEME_OPTIONS: readonly IThemeSpec["override"][] = [
 ];
 const THEME_SCHEMES: readonly IThemeSpec["scheme"][] = ["auto", "light", "dark"];
 const THEME_FONTS: readonly IThemeSpec["bodyFont"][] = ["sans-serif", "serif"];
+const GRAPHICS_MODES: readonly IGraphicsMode[] = ["full", "reduced"];
 
 function getInitialState<T extends string>(
   key: string,
@@ -93,6 +103,12 @@ const SettingsContext = createContext<ISettingsContext>({
     language: {
       get: "en",
       set: () => {},
+    },
+    graphics: {
+      mode: {
+        get: "full",
+        set: () => {},
+      },
     },
     theme: {
       override: {
@@ -128,9 +144,14 @@ const SettingsContext = createContext<ISettingsContext>({
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const { user, reload } = useAuth();
 
-  const [override, setOverride] = useState<IThemeSpec["override"]>(() =>
-    getInitialState(LOCAL_STORAGE_KEYS.override, "noeko", THEME_OPTIONS)
-  );
+  const [override, setOverride] = useState<IThemeSpec["override"]>(() => {
+    const storedOverride = getInitialState(LOCAL_STORAGE_KEYS.override, "noeko", [
+      ...THEME_OPTIONS,
+      "silicon",
+      "onyx",
+    ]);
+    return storedOverride === "silicon" || storedOverride === "onyx" ? "basalt" : storedOverride;
+  });
   const [scheme, setScheme] = useState<IThemeSpec["scheme"]>(() =>
     getInitialState(LOCAL_STORAGE_KEYS.scheme, "auto", THEME_SCHEMES)
   );
@@ -143,10 +164,38 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<string>(() =>
     getInitialState(LOCAL_STORAGE_KEYS.language, "en", Object.keys(locales))
   );
+  const [graphicsMode, setGraphicsMode] = useState<IGraphicsMode>(() =>
+    getInitialState(LOCAL_STORAGE_KEYS.graphicsMode, "full", GRAPHICS_MODES)
+  );
 
   useEffect(() => {
     console.log("Language changed: ", language);
   }, [language]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.graphicsMode, graphicsMode);
+    } catch (error) {
+      console.warn(`Error saving '${LOCAL_STORAGE_KEYS.graphicsMode}' to localStorage:`, error);
+    }
+  }, [graphicsMode]);
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.graphicsMode = graphicsMode;
+  }, [graphicsMode]);
+
+  useEffect(() => {
+    const handleGraphicsModeStorage = (event: StorageEvent) => {
+      if (event.key !== LOCAL_STORAGE_KEYS.graphicsMode) return;
+      const nextMode = GRAPHICS_MODES.includes(event.newValue as IGraphicsMode)
+        ? (event.newValue as IGraphicsMode)
+        : "full";
+      setGraphicsMode(nextMode);
+    };
+
+    window.addEventListener("storage", handleGraphicsModeStorage);
+    return () => window.removeEventListener("storage", handleGraphicsModeStorage);
+  }, []);
 
   useEffect(() => {
     try {
@@ -242,6 +291,12 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
             get: language,
             set: (l: string) => {
               setLanguage(l);
+            },
+          },
+          graphics: {
+            mode: {
+              get: graphicsMode,
+              set: setGraphicsMode,
             },
           },
           theme: {

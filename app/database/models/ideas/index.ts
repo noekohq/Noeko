@@ -29,6 +29,7 @@ import {
 } from "../../../../shared/types/idea";
 import { IIdeaShare, IIdeaShareAccess, IIdeaShareDetails } from "../../../../shared/types/share";
 import { IDBGraph, IDBGraphWithComputedFields } from "../../../../shared/types/constellation";
+import RabbitholeRecommendations from "../../../services/RabbitholeRecommendations";
 
 const embeddableContentLimit = max_embeddable_characters;
 
@@ -100,6 +101,8 @@ export class Idea {
       throw new Error("Couldn't get database");
     }
 
+    await db.query(`DEFINE TABLE IF NOT EXISTS shared_with SCHEMALESS;`);
+
     // await db?.query(
     //   `DEFINE INDEX OVERWRITE idx_idea_timestamps ON TABLE idea COLUMNS createdAt, updatedAt, viewedAt;`,
     // );
@@ -143,7 +146,7 @@ export class Idea {
         LET $processedIdeas = SELECT
             *,
             ->is_source_for->(?).* as derivedList,
-            IF embeddings AND (count(embeddings) > 0 OR type::is::object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
+            IF embeddings AND (count(embeddings) > 0 OR type::is_object(embeddings) AND count(object::keys(embeddings)) > 0) THEN
             (
               SELECT
                   *,
@@ -309,6 +312,7 @@ export class Idea {
       omitEmbeddings?: boolean;
       omitDerived?: boolean;
       wasImported?: boolean;
+      ownerId?: string | RecordId;
     }
   ) {
     try {
@@ -378,9 +382,12 @@ export class Idea {
         return undefined;
       }
       const [idea] = result;
-      await Idea.connectToUser(idea.id, userId);
+      await Idea.connectToOwner(idea.id, options?.ownerId ?? userId);
       if (!options?.omitDerived) {
         await Idea.runDerivedCascade(idea.id);
+      }
+      if (idea.embeddings?.length) {
+        await RabbitholeRecommendations.scheduleEvaluation(idea.id);
       }
       return idea;
     } catch (err) {
@@ -478,24 +485,28 @@ export class Idea {
   }
 
   static async connectToUser(ideaId: string | RecordId, userId: string | RecordId) {
+    return Idea.connectToOwner(ideaId, userId);
+  }
+
+  static async connectToOwner(ideaId: string | RecordId, ownerId: string | RecordId) {
     try {
       const db = await getDatabase();
       const result = await db?.query<[IIdeaUserOwnership & { id: RecordId }]>(
         `RELATE $fromId -> owns -> $toId SET createdAt = $now;`,
         {
-          fromId: new StringRecordId(userId),
+          fromId: new StringRecordId(ownerId),
           toId: new StringRecordId(ideaId),
           now: new Date(),
         }
       );
       if (!result) {
-        console.error(`No ownership created for idea "${ideaId}" and user "${userId}".`);
+        console.error(`No ownership created for idea "${ideaId}" and owner "${ownerId}".`);
         return undefined;
       }
       const [ownership] = result;
       return ownership;
     } catch (err) {
-      console.error(`Error during connectToUser for idea "${ideaId}":`, err);
+      console.error(`Error during connectToOwner for idea "${ideaId}":`, err);
       return undefined;
     }
   }
@@ -1334,7 +1345,7 @@ export class Idea {
   static mapDerived(derived: IIdeaDerived[]) {
     const map: IIdeaDerivedMap = {};
     derived.forEach((d) => {
-      const type = d.id.tb as keyof IIdeaDerivedMap;
+      const type = d.id.table.name as keyof IIdeaDerivedMap;
       map[type] = d;
     });
     return map;
@@ -1350,7 +1361,7 @@ export class Idea {
       }
       const map: IIdeaDerivedMap = {};
       derived.forEach((d) => {
-        const type = d.id.tb as keyof IIdeaDerivedMap;
+        const type = d.id.table.name as keyof IIdeaDerivedMap;
         map[type] = d;
       });
       return map;
@@ -1575,9 +1586,13 @@ export class Idea {
       if (!vector) {
         throw new Error("No embedding generated");
       }
-      return await Idea.update(idea.id, {
+      const updated = await Idea.update(idea.id, {
         ...buildReadyEmbeddingUpdate(embedding, embeddableContent, vector),
       });
+      if (updated) {
+        await RabbitholeRecommendations.scheduleEvaluation(idea.id);
+      }
+      return updated;
     } catch (err) {
       console.error(`Error during updateEmbeddings for idea "${idea.id}":`, err);
     }

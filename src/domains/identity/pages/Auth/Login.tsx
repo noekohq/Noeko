@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import useFetch from "@core/hooks/useFetch";
 import { useForm } from "@mantine/form";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { ISafeUser } from "../../../../../shared/types/user";
 import { useAuth } from "@domains/identity/contexts/AuthContext";
 import { showNotification } from "@mantine/notifications";
@@ -24,7 +24,13 @@ import StageIndicator from "@core/design/components/Utils/StageIndicator";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login: loadUser } = useAuth();
+  const requestedRedirect = searchParams.get("redirect");
+  const redirect =
+    requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
+      ? requestedRedirect
+      : "/";
 
   const loginForm = useForm({
     initialValues: {
@@ -61,7 +67,7 @@ export default function Login() {
     dependencies: [loginForm.values],
     onSuccess: (data) => {
       loadUser(data.accessToken).then(() => {
-        navigate("/");
+        navigate(redirect);
       });
     },
     onError: (err: any) => {

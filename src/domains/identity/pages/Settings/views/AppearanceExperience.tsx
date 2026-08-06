@@ -2,22 +2,27 @@ import { Box, Group, Stack, Text, Title, Select } from "@mantine/core";
 import { useSettings } from "@/contexts/SettingsContext";
 import { IThemeSpec } from "@/declarations/themes";
 import { themeOptions } from "@core/design/themes/themes";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import PaperCard from "@core/design/components/Paper/PaperCard";
-import PaperButton from "@core/design/components/Paper/PaperButton";
 import PaperThing from "@core/design/components/Paper/Things/PaperThing";
-import { PaletteIcon, KeyReturnIcon } from "@phosphor-icons/react";
+import { GaugeIcon, PaletteIcon, KeyReturnIcon } from "@phosphor-icons/react";
 import classes from "../Settings.module.scss";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react";
 import { localeMap } from "@/i18n";
+import { useConstellationVisualMode } from "@domains/constellation/components/Graph/useConstellationVisualMode";
+import { isConstellationVisualMode } from "@domains/constellation/components/Graph/visualModes";
 
 export default function AppearanceExperience() {
   const { i18n } = useLingui();
+  const [constellationVisualMode, setConstellationVisualMode] = useConstellationVisualMode();
   const {
     ui: {
       language: { get: language, set: setLanguage },
+      graphics: {
+        mode: { get: graphicsMode, set: setGraphicsMode },
+      },
       theme: {
         bodyFont: { get: bodyFont, set: setBodyFont },
         scheme: { get: scheme, set: setScheme },
@@ -39,6 +44,15 @@ export default function AppearanceExperience() {
   ];
 
   const languageData = localeMap();
+  const graphicsData = [
+    { label: i18n._(t`Full effects`), value: "full" as const },
+    { label: i18n._(t`Reduced effects`), value: "reduced" as const },
+  ];
+  const constellationVisualModeData = [
+    { label: i18n._(t`Depth (default)`), value: "depth" as const },
+    { label: i18n._(t`Classic`), value: "classic" as const },
+    { label: i18n._(t`Static`), value: "static" as const },
+  ];
 
   const handleThemeChange = (v: IThemeSpec["override"] | null) => {
     if (v) {
@@ -166,6 +180,38 @@ export default function AppearanceExperience() {
             onChange={handleLanguageChange}
           />
         </Stack>
+      </PaperCard>
+
+      <PaperCard title={i18n._(t`Graphics`)} icon={GaugeIcon}>
+        <Stack gap="md">
+          <Select
+            id="graphics-mode"
+            label={i18n._(t`Graphics quality`)}
+            description={i18n._(
+              t`Choose reduced effects on devices that struggle with intensive visualizations.`
+            )}
+            value={graphicsMode}
+            data={graphicsData}
+            onChange={(value) => {
+              if (value === "full" || value === "reduced") setGraphicsMode(value);
+            }}
+          />
+          <Select
+            id="constellation-visual-mode"
+            label={i18n._(t`Constellation visual mode`)}
+            description={i18n._(
+              t`Choose how Constellation emphasizes graph distance and interaction.`
+            )}
+            value={constellationVisualMode}
+            data={constellationVisualModeData}
+            onChange={(value) => {
+              if (isConstellationVisualMode(value)) setConstellationVisualMode(value);
+            }}
+          />
+        </Stack>
+        <Text size="xs" c="dimmed" mt="xs">
+          <Trans>These preferences are stored only on this device.</Trans>
+        </Text>
       </PaperCard>
 
       <PaperCard title={i18n._(t`Interactions`)} icon={KeyReturnIcon}>

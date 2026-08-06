@@ -1,5 +1,8 @@
 import type { IEdge, INode } from "@/declarations/graph";
 import { getNodeTitle } from "@infrastructure/graph/utils";
+import { DEFAULT_CONSTELLATION_VISUAL_MODE, type IConstellationVisualMode } from "../visualModes";
+import type { SemanticOverlay } from "../../../semantic";
+import type { GraphTraceOverlay } from "../trace";
 
 export type IGraphViewport = {
   scale: number;
@@ -22,6 +25,10 @@ type IRenderState = {
   focused?: string;
   hovered?: string;
   interactionSource?: string;
+  effectsEnabled?: boolean;
+  visualMode?: IConstellationVisualMode;
+  semanticOverlay?: SemanticOverlay;
+  traceOverlay?: GraphTraceOverlay;
   loading?: boolean;
   filter?: (nodeId: string, node?: INode) => boolean;
   positionRevision?: number;
@@ -47,6 +54,7 @@ type IRendererTheme = {
   edge: RGB;
   selectedEdge: RGB;
   unselectedEdge: RGB;
+  semantic: RGB;
   label: string;
   selectedLabel: string;
   fontFamily: string;
@@ -89,8 +97,15 @@ const EDGE_GLIMMER_DURATION = 600;
 const EDGE_GLIMMER_SPEED = 1.8;
 const EDGE_PATH_DELAY = 55;
 const MAX_PATH_HOPS = 8;
+const DISTANT_EDGE_OPACITY = 0.08;
+const SELECTED_EDGE_OPACITY_FLOOR = 0.4;
+const DISTANT_EDGE_WIDTH = 0.9;
+const SUBDUED_EDGE_OPACITY = 0.2;
+const EMPTY_PATH_DISTANCES = new Map<string, number>();
 const EDGE_VERTEX_ALONG = [0, 0, 1, 1, 0, 1] as const;
 const EDGE_VERTEX_SIDE = [1, -1, 1, 1, -1, -1] as const;
+
+const semanticStrength = (similarity: number) => Math.max(0, Math.min(1, similarity));
 
 const NODE_VERTEX_SHADER = `#version 300 es
 in vec2 a_position;
@@ -190,6 +205,8 @@ in float v_distance;
 in float v_wave_radius;
 out vec4 outColor;
 void main() {
+  float isSemantic = 1.0 - step(-1.5, v_wave_radius);
+  if (isSemantic > 0.5 && mod(v_distance, 13.0) > 7.0) discard;
   float hasWave = step(0.0, v_wave_radius);
   float revealed = 1.0 - smoothstep(v_wave_radius - 18.0, v_wave_radius + 4.0, v_distance);
   revealed = mix(1.0, revealed, hasWave);
@@ -211,6 +228,57 @@ const parseColor = (value: string, fallback: RGB): RGB => {
   const rgb = color.match(/rgba?\(\s*([\d.]+)[, ]+\s*([\d.]+)[, ]+\s*([\d.]+)/i);
   if (rgb) return rgb.slice(1, 4).map((part) => Number(part) / 255) as RGB;
   return fallback;
+};
+
+const mixColor = (from: RGB, to: RGB, amount: number): RGB => [
+  from[0] + (to[0] - from[0]) * amount,
+  from[1] + (to[1] - from[1]) * amount,
+  from[2] + (to[2] - from[2]) * amount,
+];
+
+const relativeLuminance = (color: RGB) => {
+  const linear = color.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)
+  );
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+};
+
+const contrastRatio = (foreground: RGB, background: RGB) => {
+  const foregroundLuminance = relativeLuminance(foreground);
+  const backgroundLuminance = relativeLuminance(background);
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+};
+
+const ensureContrast = (
+  foreground: RGB,
+  background: RGB,
+  minimumRatio: number,
+  preferredFallback: RGB
+): RGB => {
+  if (contrastRatio(foreground, background) >= minimumRatio) return foreground;
+
+  const contrastTargets: RGB[] = [preferredFallback, [0, 0, 0], [1, 1, 1]];
+  const target = contrastTargets.reduce((best, candidate) =>
+    contrastRatio(candidate, background) > contrastRatio(best, background) ? candidate : best
+  );
+  if (contrastRatio(target, background) < minimumRatio) return target;
+
+  let low = 0;
+  let high = 1;
+  let resolved = target;
+  for (let iteration = 0; iteration < 12; iteration += 1) {
+    const amount = (low + high) / 2;
+    const candidate = mixColor(foreground, target, amount);
+    if (contrastRatio(candidate, background) >= minimumRatio) {
+      resolved = candidate;
+      high = amount;
+    } else {
+      low = amount;
+    }
+  }
+  return resolved;
 };
 
 const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
@@ -327,6 +395,8 @@ export class WebGLGraphRenderer {
   private edgeVertexCount = 0;
   private lastNodes: INode[] | undefined;
   private lastEdges: IEdge[] | undefined;
+  private lastSemanticOverlay: SemanticOverlay | undefined;
+  private lastTraceOverlay: GraphTraceOverlay | undefined;
   private lastPositionRevision: number | undefined;
   private lastStyleRevision: number | undefined;
   private lastEdgeLodKey: number | undefined;
@@ -403,6 +473,8 @@ export class WebGLGraphRenderer {
       parseColor(styles.getPropertyValue(name), fallback);
     const dark9 = color("--mantine-color-dark-9", [0.06, 0.07, 0.09]);
     const dark4 = color("--mantine-color-dark-4", [0.55, 0.58, 0.62]);
+    const body = color("--mantine-color-body", dark9);
+    const text = color("--mantine-color-text", [0.86, 0.87, 0.89]);
     const standard = (fill: RGB, stroke: RGB): INodeTheme => ({
       fill,
       stroke,
@@ -442,9 +514,20 @@ export class WebGLGraphRenderer {
       },
       highlightRing: color("--mantine-color-dark-2", [0.78, 0.8, 0.82]),
       focusRing: color("--mantine-color-yellow-5", [1, 0.83, 0.23]),
-      edge: color("--mantine-color-dark-5", [0.36, 0.38, 0.42]),
-      selectedEdge: dark4,
-      unselectedEdge: color("--mantine-color-dark-8", [0.12, 0.13, 0.16]),
+      edge: ensureContrast(color("--mantine-color-dark-5", [0.36, 0.38, 0.42]), body, 2, text),
+      selectedEdge: ensureContrast(dark4, body, 4.5, text),
+      unselectedEdge: ensureContrast(
+        color("--mantine-color-dark-8", [0.12, 0.13, 0.16]),
+        body,
+        3.2,
+        text
+      ),
+      semantic: ensureContrast(
+        color("--mantine-color-violet-5", [0.52, 0.34, 0.93]),
+        body,
+        4.5,
+        text
+      ),
       label: styles.getPropertyValue("--mantine-color-dimmed").trim() || "#868e96",
       selectedLabel: styles.getPropertyValue("--mantine-color-dark-1").trim() || "#c1c2c5",
       fontFamily:
@@ -475,6 +558,12 @@ export class WebGLGraphRenderer {
 
   draw(state: IRenderState) {
     if (!this.width || !this.height) return false;
+    if (state.effectsEnabled === false) {
+      this.nodeTransitions.clear();
+      this.edgeTransitions.clear();
+      this.hasActiveTransitions = false;
+      this.hasActiveEdgeTransitions = false;
+    }
     const gl = this.gl;
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -500,6 +589,8 @@ export class WebGLGraphRenderer {
       state.styleRevision === undefined ||
       state.nodes !== this.lastNodes ||
       state.edges !== this.lastEdges ||
+      state.semanticOverlay !== this.lastSemanticOverlay ||
+      state.traceOverlay !== this.lastTraceOverlay ||
       state.positionRevision !== this.lastPositionRevision ||
       state.styleRevision !== this.lastStyleRevision ||
       this.getEdgeLodKey(state) !== this.lastEdgeLodKey
@@ -513,6 +604,8 @@ export class WebGLGraphRenderer {
   private rememberGeometryState(state: IRenderState) {
     this.lastNodes = state.nodes;
     this.lastEdges = state.edges;
+    this.lastSemanticOverlay = state.semanticOverlay;
+    this.lastTraceOverlay = state.traceOverlay;
     this.lastPositionRevision = state.positionRevision;
     this.lastStyleRevision = state.styleRevision;
     this.lastEdgeLodKey = this.getEdgeLodKey(state);
@@ -593,8 +686,8 @@ export class WebGLGraphRenderer {
     const sourceDistance = distances.get(edge.source);
     const targetDistance = distances.get(edge.target);
     const distance = Math.min(sourceDistance ?? Infinity, targetDistance ?? Infinity);
-    if (!Number.isFinite(distance)) return 0.08;
-    return 0.08 + 0.92 * Math.exp(-0.78 * distance);
+    if (!Number.isFinite(distance)) return 0.12;
+    return 0.16 + 0.84 * Math.exp(-0.52 * distance);
   }
 
   private getEdgeEffect(
@@ -716,10 +809,16 @@ export class WebGLGraphRenderer {
 
   private drawEdges(state: IRenderState) {
     const time = state.time ?? performance.now();
+    const visualMode = state.visualMode ?? DEFAULT_CONSTELLATION_VISUAL_MODE;
     const upload = this.shouldUploadGeometry(state) || this.hasActiveEdgeTransitions;
     let transitionAnimating = false;
     if (upload) {
-      const requiredLength = state.edges.length * EDGE_FLOATS * 6;
+      const semanticEdges = state.semanticOverlay?.edges ?? [];
+      const semanticEvidence = new Map(
+        state.semanticOverlay?.explicitEdgeEvidence.map((evidence) => [evidence.edgeId, evidence])
+      );
+      const tracedEdgeIds = new Set(state.traceOverlay?.edgeIds ?? []);
+      const requiredLength = (state.edges.length + semanticEdges.length) * EDGE_FLOATS * 6;
       if (this.edgeVertices.length < requiredLength) {
         this.edgeVertices = new Float32Array(requiredLength);
       }
@@ -729,21 +828,28 @@ export class WebGLGraphRenderer {
       for (const id of state.highlighted) activeNodes.add(id);
       if (state.focused) activeNodes.add(state.focused);
       if (state.hovered) activeNodes.add(state.hovered);
+      for (const nodeId of state.traceOverlay?.nodeIds ?? []) activeNodes.add(nodeId);
       const hasActiveNodes = activeNodes.size > 0;
       const interactionSource = this.getInteractionSource(state);
-      const pathDistances = this.getPathDistances(state.edges, interactionSource);
+      const pathDistances =
+        visualMode === "depth"
+          ? this.getPathDistances(state.edges, interactionSource)
+          : EMPTY_PATH_DISTANCES;
       const revealRatio = this.getEdgeRevealRatio(state);
       for (const edge of state.edges) {
         const source = state.positions.get(edge.source);
         const target = state.positions.get(edge.target);
         if (!source || !target) continue;
-        const active = activeNodes.has(edge.source) || activeNodes.has(edge.target);
+        const traced = tracedEdgeIds.has(edge.id);
+        const active = traced || activeNodes.has(edge.source) || activeNodes.has(edge.target);
+        const selectionRelated = state.selected.has(edge.source) || state.selected.has(edge.target);
+        const hasSemanticEvidence = semanticEvidence.has(edge.id);
         const backgroundRatio = hasActiveNodes ? revealRatio * 0.3 : revealRatio;
         const revealThreshold = Math.min(
           1,
           backgroundRatio * this.getEdgeTypeMultiplier(edge.type)
         );
-        if (!active && getStableRatio(edge.id) > revealThreshold) continue;
+        if (!active && !hasSemanticEvidence && getStableRatio(edge.id) > revealThreshold) continue;
         liveEdgeIds.add(edge.id);
 
         const subdued = hasActiveNodes && !active;
@@ -753,40 +859,83 @@ export class WebGLGraphRenderer {
         const normalOpacity =
           (edge.visibility === "high" ? 0.48 : edge.visibility === "medium" ? 0.34 : 0.24) *
           (filtered ? 0.25 : 1);
-        const pathProminence = active ? this.getPathProminence(edge, pathDistances) : 1;
-        const targetOpacity =
-          (subdued ? 0.04 : active ? 0.95 * pathProminence : normalOpacity) *
-          (active || subdued ? (filtered ? 0.25 : 1) : 1);
-        const activeColorWeight = 0.2 + pathProminence * 0.8;
+        const pathProminence =
+          active && visualMode === "depth" ? this.getPathProminence(edge, pathDistances) : 1;
+        const depthWeight = Math.pow(pathProminence, 0.85);
+        const depthOpacity = Math.pow(pathProminence, 1.25);
+        const baseTargetOpacity =
+          (subdued
+            ? SUBDUED_EDGE_OPACITY
+            : active
+              ? (selectionRelated ? SELECTED_EDGE_OPACITY_FLOOR : DISTANT_EDGE_OPACITY) +
+                (0.95 - (selectionRelated ? SELECTED_EDGE_OPACITY_FLOOR : DISTANT_EDGE_OPACITY)) *
+                  depthOpacity
+              : normalOpacity) * (active || subdued ? (filtered ? 0.25 : 1) : 1);
+        const activeColorWeight = 0.72 + depthWeight * 0.28;
         const activeColor: RGB = [
-          this.theme.edge[0] +
-            (this.theme.selectedEdge[0] - this.theme.edge[0]) * activeColorWeight,
-          this.theme.edge[1] +
-            (this.theme.selectedEdge[1] - this.theme.edge[1]) * activeColorWeight,
-          this.theme.edge[2] +
-            (this.theme.selectedEdge[2] - this.theme.edge[2]) * activeColorWeight,
+          this.theme.unselectedEdge[0] +
+            (this.theme.selectedEdge[0] - this.theme.unselectedEdge[0]) * activeColorWeight,
+          this.theme.unselectedEdge[1] +
+            (this.theme.selectedEdge[1] - this.theme.unselectedEdge[1]) * activeColorWeight,
+          this.theme.unselectedEdge[2] +
+            (this.theme.selectedEdge[2] - this.theme.unselectedEdge[2]) * activeColorWeight,
         ];
-        const targetColor = subdued
+        const evidence = semanticEvidence.get(edge.id);
+        const evidenceStrength = evidence ? semanticStrength(evidence.similarity) : undefined;
+        const baseTargetColor = subdued
           ? this.theme.unselectedEdge
           : active
             ? activeColor
             : this.theme.edge;
-        const targetWidth = active
-          ? 1.2 + pathProminence * 1.8
-          : edge.visibility === "high"
-            ? 1.8
-            : 1.4;
-        const transition = this.updateEdgeTransition(
-          edge.id,
-          targetColor,
-          targetOpacity,
-          targetWidth,
-          this.theme.edge,
-          normalOpacity,
-          edge.visibility === "high" ? 1.8 : 1.4,
-          this.getEdgeEffect(state, edge, active, interactionSource, pathDistances),
-          time
-        );
+        const baseTargetWidth = subdued
+          ? DISTANT_EDGE_WIDTH
+          : active
+            ? DISTANT_EDGE_WIDTH + depthWeight * (3 - DISTANT_EDGE_WIDTH)
+            : edge.visibility === "high"
+              ? 1.8
+              : 1.4;
+        const targetColor = traced
+          ? this.theme.focusRing
+          : evidenceStrength === undefined
+            ? baseTargetColor
+            : this.theme.semantic;
+        const targetOpacity = traced
+          ? 0.94
+          : evidenceStrength === undefined
+            ? baseTargetOpacity
+            : Math.max(baseTargetOpacity, 0.32 + evidenceStrength * 0.58);
+        const targetWidth = traced
+          ? 3.5
+          : evidenceStrength === undefined
+            ? baseTargetWidth
+            : Math.max(baseTargetWidth, 2.25 + evidenceStrength * 1.75);
+        const transition =
+          state.effectsEnabled === false
+            ? {
+                color: targetColor,
+                opacity: targetOpacity,
+                width: targetWidth,
+                baseColor: targetColor,
+                baseOpacity: targetOpacity,
+                targetColor,
+                targetOpacity,
+                waveRadius: -1,
+                originAtSource: true,
+                animating: false,
+              }
+            : this.updateEdgeTransition(
+                edge.id,
+                targetColor,
+                targetOpacity,
+                targetWidth,
+                this.theme.edge,
+                normalOpacity,
+                edge.visibility === "high" ? 1.8 : 1.4,
+                visualMode === "depth"
+                  ? this.getEdgeEffect(state, edge, active, interactionSource, pathDistances)
+                  : undefined,
+                time
+              );
         transitionAnimating ||= transition.animating;
         const dx = target.x - source.x;
         const dy = target.y - source.y;
@@ -808,6 +957,40 @@ export class WebGLGraphRenderer {
           this.edgeVertices[cursor + 9] = transition.targetOpacity;
           this.edgeVertices[cursor + 10] = (transition.originAtSource ? along : 1 - along) * length;
           this.edgeVertices[cursor + 11] = transition.waveRadius;
+          cursor += EDGE_FLOATS;
+        }
+      }
+      for (const edge of semanticEdges) {
+        const source = state.positions.get(edge.source);
+        const target = state.positions.get(edge.target);
+        if (!source || !target) continue;
+        liveEdgeIds.add(edge.id);
+        const strength = semanticStrength(edge.similarity);
+        const filtered = state.filter
+          ? !state.filter(edge.source) || !state.filter(edge.target)
+          : false;
+        const opacity = (0.2 + strength * 0.55) * (filtered ? 0.25 : 1);
+        const width = 1.25 + strength * 2;
+        const dx = target.x - source.x;
+        const dy = target.y - source.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const normalX = (-dy / length) * (width / 2);
+        const normalY = (dx / length) * (width / 2);
+        for (let vertex = 0; vertex < 6; vertex += 1) {
+          const along = EDGE_VERTEX_ALONG[vertex];
+          const side = EDGE_VERTEX_SIDE[vertex];
+          this.edgeVertices[cursor] = (along ? target.x : source.x) + normalX * side;
+          this.edgeVertices[cursor + 1] = (along ? target.y : source.y) + normalY * side;
+          this.edgeVertices[cursor + 2] = this.theme.semantic[0];
+          this.edgeVertices[cursor + 3] = this.theme.semantic[1];
+          this.edgeVertices[cursor + 4] = this.theme.semantic[2];
+          this.edgeVertices[cursor + 5] = opacity;
+          this.edgeVertices[cursor + 6] = this.theme.semantic[0];
+          this.edgeVertices[cursor + 7] = this.theme.semantic[1];
+          this.edgeVertices[cursor + 8] = this.theme.semantic[2];
+          this.edgeVertices[cursor + 9] = opacity;
+          this.edgeVertices[cursor + 10] = along * length;
+          this.edgeVertices[cursor + 11] = -2;
           cursor += EDGE_FLOATS;
         }
       }
@@ -869,11 +1052,12 @@ export class WebGLGraphRenderer {
     return transitionAnimating;
   }
 
-  private getNodeOpacity(state: IRenderState, id: string) {
+  private getNodeOpacity(state: IRenderState, id: string, semanticHighlighted = false) {
     const selected = state.selected.has(id);
     if (selected) return 1;
+    if (state.semanticOverlay?.highlights.length) return semanticHighlighted ? 1 : 0.4;
     if (state.highlighted.size > 0 && !state.highlighted.has(id)) return 0.5;
-    if (state.selected.size > 0) return 0.25;
+    if (state.selected.size > 0) return 0.34;
     return 1;
   }
 
@@ -912,8 +1096,18 @@ export class WebGLGraphRenderer {
 
   private drawNodes(state: IRenderState) {
     const time = state.time ?? performance.now();
-    let keepAnimating = !!state.loading;
+    const effectsEnabled = state.effectsEnabled !== false;
+    const visualMode = state.visualMode ?? DEFAULT_CONSTELLATION_VISUAL_MODE;
+    const interactionSource = this.getInteractionSource(state);
+    const pathDistances =
+      visualMode === "depth" && interactionSource
+        ? this.getPathDistances(state.edges, interactionSource)
+        : EMPTY_PATH_DISTANCES;
+    let keepAnimating = effectsEnabled && !!state.loading;
     let transitionAnimating = false;
+    const semanticHighlights = new Map(
+      state.semanticOverlay?.highlights.map((highlight) => [highlight.nodeId, highlight])
+    );
     const upload = this.shouldUploadGeometry(state) || state.loading || this.hasActiveTransitions;
     if (upload) {
       const requiredLength = state.nodes.length * NODE_FLOATS;
@@ -930,17 +1124,49 @@ export class WebGLGraphRenderer {
         const theme = this.theme.nodes[node.type];
         const filtered = state.filter ? !state.filter(id, node) : false;
         const groupOpacity = filtered ? 0.25 : 1;
-        const targetRadius = state.hovered === id ? theme.hoverRadius : theme.radius;
-        const targetOpacity = this.getNodeOpacity(state, id);
-        const transition = this.updateTransition(id, targetRadius, targetOpacity, time);
+        const pathDistance = pathDistances.get(id);
+        const depthScale =
+          visualMode === "depth" && interactionSource
+            ? pathDistance === undefined
+              ? 0.84
+              : 0.84 + 0.16 * Math.exp(-0.42 * pathDistance)
+            : 1;
+        const semanticHighlight = semanticHighlights.get(id);
+        const strength = semanticHighlight
+          ? semanticHighlight.role === "source"
+            ? 1
+            : semanticStrength(semanticHighlight.similarity ?? 0)
+          : 0;
+        const semanticScale = semanticHighlight ? 1.14 + strength * 0.18 : 1;
+        const targetRadius =
+          (state.hovered === id ? theme.hoverRadius : theme.radius) * depthScale * semanticScale;
+        const targetOpacity = semanticHighlight
+          ? Math.max(this.getNodeOpacity(state, id, true), 0.88 + strength * 0.12)
+          : this.getNodeOpacity(state, id);
+        const transition = effectsEnabled
+          ? this.updateTransition(id, targetRadius, targetOpacity, time)
+          : { radius: targetRadius, opacity: targetOpacity, animating: false };
         keepAnimating ||= transition.animating;
         transitionAnimating ||= transition.animating;
-        const loadingPulse = state.loading
-          ? 0.75 + Math.cos(((time + getStringPhase(id)) / 1000) * Math.PI * 2) * 0.25
-          : 1;
+        const loadingPulse =
+          state.loading && effectsEnabled
+            ? 0.75 + Math.cos(((time + getStringPhase(id)) / 1000) * Math.PI * 2) * 0.25
+            : 1;
         const circleOpacity = transition.opacity * groupOpacity * loadingPulse;
-        const highlighted = state.highlighted.has(id);
-        const ring = state.focused === id ? this.theme.focusRing : this.theme.highlightRing;
+        const graphHighlighted = state.highlighted.has(id);
+        const highlighted = graphHighlighted || !!semanticHighlight;
+        const ring = semanticHighlight
+          ? this.theme.semantic
+          : state.focused === id
+            ? this.theme.focusRing
+            : this.theme.highlightRing;
+        const ringOpacity = semanticHighlight
+          ? groupOpacity * (0.86 + strength * 0.14)
+          : highlighted
+            ? groupOpacity
+            : 0;
+        const ringRadius = semanticHighlight ? transition.radius + 9 : highlighted ? 30 : 0;
+        const ringWidth = semanticHighlight ? 4 + strength * 1.5 : highlighted ? 2 : 0;
 
         this.nodeVertices[cursor] = position.x;
         this.nodeVertices[cursor + 1] = position.y;
@@ -955,11 +1181,11 @@ export class WebGLGraphRenderer {
         this.nodeVertices[cursor + 10] = ring[0];
         this.nodeVertices[cursor + 11] = ring[1];
         this.nodeVertices[cursor + 12] = ring[2];
-        this.nodeVertices[cursor + 13] = highlighted ? groupOpacity : 0;
+        this.nodeVertices[cursor + 13] = ringOpacity;
         this.nodeVertices[cursor + 14] = transition.radius;
         this.nodeVertices[cursor + 15] = theme.strokeWidth;
-        this.nodeVertices[cursor + 16] = highlighted ? 30 : 0;
-        this.nodeVertices[cursor + 17] = highlighted ? 2 : 0;
+        this.nodeVertices[cursor + 16] = ringRadius;
+        this.nodeVertices[cursor + 17] = ringWidth;
         cursor += NODE_FLOATS;
       }
       for (const id of this.nodeTransitions.keys()) {
@@ -1012,6 +1238,20 @@ export class WebGLGraphRenderer {
     if (state.viewport.scale <= 0.45) return;
 
     const occupied = new Set<string>();
+    const semanticNodeIds = new Set(
+      state.semanticOverlay?.highlights.map((highlight) => highlight.nodeId)
+    );
+    const connectedNodeIds = new Set<string>();
+    if (state.selected.size > 0) {
+      for (const edge of state.edges) {
+        if (state.selected.has(edge.source) && !state.selected.has(edge.target)) {
+          connectedNodeIds.add(edge.target);
+        }
+        if (state.selected.has(edge.target) && !state.selected.has(edge.source)) {
+          connectedNodeIds.add(edge.source);
+        }
+      }
+    }
     if (
       state.nodes !== this.lastLabelNodes ||
       state.styleRevision === undefined ||
@@ -1022,9 +1262,15 @@ export class WebGLGraphRenderer {
         const leftId = left.id.toString();
         const rightId = right.id.toString();
         const leftPriority =
-          Number(state.selected.has(leftId)) * 2 + Number(state.highlighted.has(leftId));
+          Number(state.selected.has(leftId)) * 3 +
+          Number(state.highlighted.has(leftId)) * 2 +
+          Number(semanticNodeIds.has(leftId)) * 2 +
+          Number(connectedNodeIds.has(leftId));
         const rightPriority =
-          Number(state.selected.has(rightId)) * 2 + Number(state.highlighted.has(rightId));
+          Number(state.selected.has(rightId)) * 3 +
+          Number(state.highlighted.has(rightId)) * 2 +
+          Number(semanticNodeIds.has(rightId)) * 2 +
+          Number(connectedNodeIds.has(rightId));
         return rightPriority - leftPriority;
       });
       this.lastLabelNodes = state.nodes;
@@ -1041,7 +1287,9 @@ export class WebGLGraphRenderer {
       const id = node.id.toString();
       const selected = state.selected.has(id);
       const highlighted = state.highlighted.has(id);
-      if (state.selected.size > 0 && !selected && !highlighted) continue;
+      const semantic = semanticNodeIds.has(id);
+      const connected = connectedNodeIds.has(id);
+      if (state.selected.size > 0 && !selected && !highlighted && !semantic && !connected) continue;
       const position = state.positions.get(id);
       if (!position) continue;
       const nodeTheme = this.theme.nodes[node.type];
@@ -1056,7 +1304,7 @@ export class WebGLGraphRenderer {
       if (!title) continue;
       const fontSize = this.theme.fontSize * nodeTheme.labelScale * state.viewport.scale;
       if (fontSize < 5) continue;
-      context.font = `500 ${fontSize}px ${this.theme.fontFamily}`;
+      context.font = `${semantic ? 650 : 500} ${fontSize}px ${this.theme.fontFamily}`;
       const maxLabelWidth = 180 * state.viewport.scale;
       const lines = wrapLabel(context, title, maxLabelWidth);
       if (lines.length === 0) continue;
@@ -1072,7 +1320,7 @@ export class WebGLGraphRenderer {
       const maxCellX = Math.floor((position.x + labelWidthInGraph / 2) / 48);
       const minCellY = Math.floor(labelY / 22);
       const maxCellY = Math.floor((labelY + lineHeightInGraph * lines.length + 4) / 22);
-      const isPriority = selected || highlighted;
+      const isPriority = selected || highlighted || semantic || connected;
       let overlaps = false;
       for (let cellX = minCellX; cellX <= maxCellX && !overlaps; cellX += 1) {
         for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
@@ -1090,7 +1338,13 @@ export class WebGLGraphRenderer {
       }
 
       const filtered = state.filter ? !state.filter(id, node) : false;
-      const selectionOpacity = state.selected.size > 0 && !selected ? 0.5 : 1;
+      const selectionOpacity = semantic
+        ? 1
+        : connected
+          ? 0.58
+          : state.selected.size > 0 && !selected
+            ? 0.5
+            : 1;
       context.globalAlpha = zoomOpacity * selectionOpacity * (filtered ? 0.25 : 1);
       context.fillStyle = selected ? this.theme.selectedLabel : this.theme.label;
       for (let line = 0; line < lines.length; line += 1) {

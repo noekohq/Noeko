@@ -16,6 +16,10 @@ import { useGraphTraversal } from "./useGraphTraversal";
 import { GraphPanel } from "./GraphPanel";
 import { Text } from "@mantine/core";
 import { normalizeGraph } from "@infrastructure/graph/model";
+import type { SemanticOverlay } from "../../semantic";
+import type { GraphTraceOverlay } from "./trace";
+
+const semanticStrength = (similarity: number) => Math.max(0, Math.min(1, similarity));
 
 function getTouchDistance(touch1: React.Touch, touch2: React.Touch): number {
   const dx = touch1.clientX - touch2.clientX;
@@ -43,6 +47,11 @@ export type IGraphContainerProps = {
     node: INode
   ) => void;
   isNavigating?: boolean;
+  semanticOverlay?: SemanticOverlay;
+  traceOverlay?: GraphTraceOverlay;
+  onTraceSelection?: () => void;
+  onMutationComplete?: () => void | Promise<unknown>;
+  onExploreSemantic?: (node: INode) => void;
 };
 
 export type IGraphController = {
@@ -52,7 +61,19 @@ export type IGraphController = {
 
 const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
   (
-    { graph, width: propWidth, height: propHeight, onNodeNavigate, onNodeSelect, isNavigating },
+    {
+      graph,
+      width: propWidth,
+      height: propHeight,
+      onNodeNavigate,
+      onNodeSelect,
+      isNavigating,
+      semanticOverlay,
+      traceOverlay,
+      onTraceSelection,
+      onMutationComplete,
+      onExploreSemantic,
+    },
     ref
   ) => {
     const svgRef = useRef<SVGSVGElement | null>(null);
@@ -88,6 +109,19 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
     }, [nodes]);
     const nodeMapRef = useRef(nodeMap);
     nodeMapRef.current = nodeMap;
+
+    const semanticHighlights = React.useMemo(
+      () => new Map(semanticOverlay?.highlights.map((highlight) => [highlight.nodeId, highlight])),
+      [semanticOverlay]
+    );
+    const explicitSemanticEvidence = React.useMemo(
+      () =>
+        new Map(
+          semanticOverlay?.explicitEdgeEvidence.map((evidence) => [evidence.edgeId, evidence])
+        ),
+      [semanticOverlay]
+    );
+    const tracedEdgeIds = React.useMemo(() => new Set(traceOverlay?.edgeIds ?? []), [traceOverlay]);
 
     const adjacencyList = topology.adjacencyByNodeId;
 
@@ -160,6 +194,20 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
         }
       };
     }, []);
+
+    useEffect(() => {
+      workerRef.current?.postMessage({
+        type: "update_overlay_edges",
+        payload: {
+          edges: (semanticOverlay?.edges ?? []).map((edge) => ({
+            source: edge.source,
+            target: edge.target,
+            distance: 190 - edge.similarity * 70,
+            strength: 0.04 + edge.similarity * 0.1,
+          })),
+        },
+      });
+    }, [semanticOverlay]);
 
     const initializeSimulation = useCallback(() => {
       if (isNavigating || !topology.nodes.length) {
@@ -890,7 +938,18 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
 
     const {
       focused: { get: focused },
+      selected: { get: selected },
     } = useGraph();
+
+    const connectedToSelection = React.useMemo(() => {
+      const connected = new Set<string>();
+      if (selected.size === 0) return connected;
+      for (const edge of edges) {
+        if (selected.has(edge.source) && !selected.has(edge.target)) connected.add(edge.target);
+        if (selected.has(edge.target) && !selected.has(edge.source)) connected.add(edge.source);
+      }
+      return connected;
+    }, [edges, selected]);
 
     const focusOnNode = (nodeId: string, targetZoom: number = 1.5) => {
       const node = nodeMap[nodeId];
@@ -949,12 +1008,16 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
             onClusterDeselect={(node) => {
               clusterDeselect(node);
             }}
+            onExploreSemantic={onExploreSemantic}
           />
         )}
         {graphPanel && (
           <GraphPanel
             ref={graphPanelRef}
             {...graphPanel}
+            graph={graph}
+            onTraceSelection={onTraceSelection}
+            onMutationComplete={onMutationComplete}
             onClose={() => {
               setGraphPanel(null);
             }}
@@ -978,19 +1041,84 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
             className="everything"
             transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}
           >
-            {edges.map((edge, i) => (
-              <Edge
-                key={`${edge.id}`}
-                edge={edge}
-                sourceNode={nodeMap[edge.source]}
-                targetNode={nodeMap[edge.target]}
-              />
-            ))}
+            {edges.map((edge) => {
+              const evidence = explicitSemanticEvidence.get(edge.id);
+              const source = nodeMap[edge.source];
+              const target = nodeMap[edge.target];
+              return (
+                <React.Fragment key={`${edge.id}`}>
+                  {evidence &&
+                    source?.x !== undefined &&
+                    source.y !== undefined &&
+                    target?.x !== undefined &&
+                    target.y !== undefined && (
+                      <line
+                        x1={source.x}
+                        y1={source.y}
+                        x2={target.x}
+                        y2={target.y}
+                        stroke="var(--mantine-color-violet-5)"
+                        strokeWidth={2.5 + semanticStrength(evidence.similarity) * 2}
+                        opacity={0.18 + semanticStrength(evidence.similarity) * 0.32}
+                        pointerEvents="none"
+                      />
+                    )}
+                  <Edge edge={edge} sourceNode={source} targetNode={target} />
+                  {tracedEdgeIds.has(edge.id) &&
+                    source?.x !== undefined &&
+                    source.y !== undefined &&
+                    target?.x !== undefined &&
+                    target.y !== undefined && (
+                      <line
+                        x1={source.x}
+                        y1={source.y}
+                        x2={target.x}
+                        y2={target.y}
+                        stroke="var(--mantine-color-yellow-5)"
+                        strokeWidth={3.5}
+                        strokeLinecap="round"
+                        opacity={0.9}
+                        pointerEvents="none"
+                      />
+                    )}
+                </React.Fragment>
+              );
+            })}
+            {semanticOverlay?.edges.map((edge) => {
+              const source = nodeMap[edge.source];
+              const target = nodeMap[edge.target];
+              if (
+                source?.x === undefined ||
+                source.y === undefined ||
+                target?.x === undefined ||
+                target.y === undefined
+              ) {
+                return null;
+              }
+              const strength = semanticStrength(edge.similarity);
+              return (
+                <line
+                  key={edge.id}
+                  x1={source.x}
+                  y1={source.y}
+                  x2={target.x}
+                  y2={target.y}
+                  stroke="var(--mantine-color-violet-5)"
+                  strokeWidth={1.25 + strength * 2}
+                  strokeDasharray="7 6"
+                  strokeLinecap="round"
+                  opacity={0.2 + strength * 0.55}
+                  pointerEvents="none"
+                />
+              );
+            })}
             {nodes.map((node, i) => {
               return (
                 <Node
                   key={node.id.toString()}
                   node={node}
+                  semanticHighlight={semanticHighlights.get(node.id.toString())}
+                  connectedToSelection={connectedToSelection.has(node.id.toString())}
                   scaleFactor={transform.k}
                   isDragging={isDraggingNode === node.id} // Correct check
                   onNodeSelect={handleNodeSelect}
@@ -1004,6 +1132,37 @@ const GraphContainer = forwardRef<IGraphController, IGraphContainerProps>(
                   }}
                   data-node-id={node.id.toString()}
                 />
+              );
+            })}
+            {[...semanticHighlights.values()].map((highlight) => {
+              const node = nodeMap[highlight.nodeId];
+              if (!node || node.x === undefined || node.y === undefined) return null;
+              const strength =
+                highlight.role === "source" ? 1 : semanticStrength(highlight.similarity ?? 0);
+              const radius = highlight.role === "source" ? 34 : 29 + strength * 4;
+              return (
+                <g key={`semantic-highlight:${highlight.nodeId}`} pointerEvents="none">
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={radius}
+                    fill="var(--mantine-color-violet-light)"
+                    fillOpacity={highlight.role === "source" ? 0.12 : 0.08 + strength * 0.08}
+                    stroke="var(--mantine-color-text)"
+                    strokeWidth={6}
+                    strokeOpacity={0.72}
+                  />
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={radius}
+                    fill="none"
+                    stroke="var(--mantine-color-violet-5)"
+                    strokeWidth={highlight.role === "source" ? 3.5 : 3 + strength * 1.5}
+                    strokeOpacity={0.98}
+                    strokeDasharray={highlight.role === "source" ? undefined : "5 3"}
+                  />
+                </g>
               );
             })}
           </g>

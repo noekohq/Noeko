@@ -1,0 +1,106 @@
+.audioViewer {
+  display: flex;
+  width: min(100%, 880px);
+  min-height: 520px;
+  margin-inline: auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--mantine-spacing-xl);
+  padding: clamp(var(--mantine-spacing-lg), 5vw, 64px);
+}
+
+.playerStage {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mantine-spacing-lg);
+  text-align: center;
+}
+
+.artwork {
+  position: relative;
+  display: grid;
+  width: clamp(112px, 18vw, 168px);
+  aspect-ratio: 1;
+  place-items: center;
+  color: var(--mantine-primary-color-6);
+  background:
+    radial-gradient(circle at 35% 30%, var(--mantine-primary-color-light), transparent 55%),
+    var(--mantine-color-default-hover);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 50%;
+  box-shadow: var(--mantine-shadow-lg);
+
+  svg {
+    width: 42%;
+    height: 42%;
+  }
+}
+
+.pulse {
+  position: absolute;
+  inset: 12%;
+  border: 1px solid var(--mantine-primary-color-light-color);
+  border-radius: inherit;
+}
+
+.fileIdentity {
+  max-width: 100%;
+}
+
+.eyebrow {
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.title {
+  max-width: 680px;
+  margin-top: 4px;
+  overflow: hidden;
+  font-family: var(--mantine-font-family-headings);
+  font-size: clamp(var(--mantine-font-size-lg), 3vw, 1.75rem);
+  font-weight: 650;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audio {
+  width: min(100%, 640px);
+  height: 48px;
+}
+
+.sourceHint {
+  align-self: center;
+  max-width: 520px;
+  text-align: center;
+}
+
+.transcript {
+  display: grid;
+  gap: var(--mantine-spacing-md);
+  padding-top: var(--mantine-spacing-xl);
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.transcriptContent {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: var(--mantine-spacing-sm);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 48em) {
+  .audioViewer {
+    min-height: 440px;
+    padding: var(--mantine-spacing-lg) var(--mantine-spacing-sm);
+  }
+
+  .title {
+    white-space: normal;
+  }
+}

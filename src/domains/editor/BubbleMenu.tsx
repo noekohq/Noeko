@@ -34,6 +34,7 @@ import { RefObject, useEffect, useState } from "react";
 import { DreamYouTubeMenu } from "./nodes/DreamYouTube";
 import { flip, shift } from "@floating-ui/react";
 import { DreamGalleryMenu } from "./nodes/DreamGallery";
+import { DreamTransclusionMenu } from "./nodes/DreamTransclusion";
 
 interface IBubbleMenuProps {
   editor: IEditor | null;
@@ -53,6 +54,7 @@ export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: 
   const isImageGallery = editor?.isActive("dreamGallery");
   const isDreamFile = editor?.isActive("dreamFile");
   const isDreamIdeaActive = editor?.isActive("dreamIdea");
+  const isDreamTransclusion = editor?.isActive("dreamTransclusion");
   const isInlineMath = editor?.isActive("inlineMath");
   const isBlockMath = editor?.isActive("blockMath");
   const isDreamYouTube = editor?.isActive("dreamYouTube");
@@ -88,6 +90,7 @@ export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: 
         "inlineMath",
         "blockMath",
         "dreamYouTube",
+        "dreamTransclusion",
       ].includes(selection.node.type.name);
 
     const shouldBeVisible = isTextSelected || isNodeSelected;
@@ -152,6 +155,18 @@ export default function BubbleMenu({ editor, onVisibilityChange, boundaryRef }: 
     return (
       <BMenu {...menuProps}>
         <DreamFileMenu
+          editor={editor}
+          classes={{
+            group: styles.buttonGroup,
+          }}
+        />
+      </BMenu>
+    );
+  }
+  if (isDreamTransclusion) {
+    return (
+      <BMenu {...menuProps}>
+        <DreamTransclusionMenu
           editor={editor}
           classes={{
             group: styles.buttonGroup,

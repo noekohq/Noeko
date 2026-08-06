@@ -121,8 +121,12 @@
 }
 
 .activityShelf {
-  width: min(100%, 48rem);
+  width: 100%;
   margin-inline: auto;
+
+  @include widescreen {
+    width: 80%;
+  }
 }
 
 .activityHeader {
@@ -147,7 +151,18 @@
   max-width: 45%;
 }
 
+.activityMeta {
+  color: color-mix(in srgb, var(--mantine-color-text) 45%, var(--mantine-color-dimmed));
+  font-weight: 500;
+}
+
+.activityCompleteStatus {
+  color: color-mix(in srgb, var(--mantine-color-dimmed) 70%, transparent);
+  font-weight: 500;
+}
+
 .activityMeta,
+.activityCompleteStatus,
 .activityTime {
   white-space: nowrap;
 }
@@ -172,6 +187,7 @@
   }
 
   .activityMeta,
+  .activityCompleteStatus,
   .activityTime {
     display: none;
   }
@@ -198,6 +214,7 @@
 
     &.initialized {
       position: absolute;
+      z-index: 1;
       left: 0;
       right: 0;
       bottom: 0;
@@ -238,14 +255,15 @@
 }
 
 .scrollableContent {
+  flex-grow: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  min-height: 0;
+  padding-bottom: 20vh;
+
   &.initialized {
     height: 100%;
-    flex-grow: 1;
-    overflow-y: auto;
-    scrollbar-width: none;
-    min-height: 0;
     padding-top: var(--mantine-spacing-md);
-    padding-bottom: 20vh;
     opacity: 0;
     animation: contentFadeIn 0.3s ease-out 0.1s forwards;
   }

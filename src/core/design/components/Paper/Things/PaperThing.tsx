@@ -1,15 +1,7 @@
 import React, { useRef, useState } from "react";
-import {
-  IconProps,
-  DotsSixVertical,
-  DotsSixVerticalIcon,
-  TrashSimpleIcon,
-  PersonIcon,
-  UserCircleIcon,
-  UserIcon,
-} from "@phosphor-icons/react";
+import { DotsSixVerticalIcon, TrashSimpleIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
-import { CopyButton, Group, Modal, Stack, Text } from "@mantine/core";
+import { CopyButton, Modal, Stack, Text } from "@mantine/core";
 import { CopyIcon, EyeIcon, ArrowRightIcon, BrowsersIcon, CheckIcon } from "@phosphor-icons/react";
 import styles from "./PaperThing.module.scss";
 import { PaperContextMenu } from "../PaperContextMenu";
@@ -30,11 +22,13 @@ export default function PaperThing({
   link,
   onDelete,
   state = "default",
+  className,
   onClick,
   onDoubleClick,
   preventClickDefault,
   preventDoubleClickDefault,
   action,
+  contextActions,
   artifacts,
   preview,
   draggable = false,
@@ -86,7 +80,7 @@ export default function PaperThing({
     );
   };
 
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragEnd = () => {
     setIsInternallyDragging(false);
     setDragging(null);
   };
@@ -97,6 +91,7 @@ export default function PaperThing({
     draggable && styles.draggable,
     hovering && styles.hovering,
     isInternallyDragging && styles.dragging,
+    className,
   ]
     .filter(Boolean)
     .join(" ");
@@ -240,6 +235,19 @@ export default function PaperThing({
           >
             Preview
           </PaperContextMenu.Item>
+          {contextActions?.map((contextAction) => {
+            const ContextActionIcon = contextAction.icon;
+            return (
+              <PaperContextMenu.Item
+                key={contextAction.id}
+                icon={ContextActionIcon ? <ContextActionIcon weight="bold" /> : undefined}
+                disabled={contextAction.disabled}
+                onClick={contextAction.onClick}
+              >
+                {contextAction.label}
+              </PaperContextMenu.Item>
+            );
+          })}
           {onDelete && (
             <PaperContextMenu.Item
               icon={<TrashSimpleIcon weight="bold" />}

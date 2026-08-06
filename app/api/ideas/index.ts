@@ -164,8 +164,13 @@ router.post("/", checkToken, disallowDisabled, async (req, res) => {
     }
     if (body.generateTitle) {
       const lm = getLM();
-      form.title = await lm.utils.entitle(form.content, "short and concise, fewly worded");
+      const titleSource =
+        typeof body.titleSource === "string" && body.titleSource.trim()
+          ? body.titleSource
+          : form.content;
+      form.title = await lm.utils.entitle(titleSource, "short and concise, fewly worded");
     }
+    delete form.titleSource;
     const i = await IdeaService.create(
       { userId: user.id.toString(), type: "interface" },
       { title: form.title, content: form.content }
@@ -323,7 +328,8 @@ router.delete("/:ideaId", checkToken, disallowDisabled, async (req, res) => {
       res.status(403).json({ message: "Unauthorized" });
       return;
     }
-    const hasAccess = await User.checkOwns(user.id, ideaId);
+    const auth = new Authorization(user.id);
+    const hasAccess = await auth.hasAccess(ideaId, "owner");
     if (!hasAccess) {
       res.status(403).json({
         message: "Unauthorized",

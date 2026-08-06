@@ -4,6 +4,7 @@ import type { IGraphFilters } from "./constellation";
 import type { StringRecordId } from "surrealdb";
 
 export type SpyglassRunStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+export type SpyglassRunProfile = "glimpse" | "deep_focus";
 
 export type SpyglassRunPhase =
   | "queued"
@@ -35,6 +36,7 @@ export type SpyglassRunEventType =
   | "full_results_loaded"
   | "findings_chunk"
   | "overview_chunk"
+  | "glimpse_chunk"
   | "completed"
   | "error"
   | "cancelled";
@@ -43,7 +45,7 @@ export type SpyglassRun = {
   id: StringRecordId;
   userId: StringRecordId;
   query: string;
-  profile: "deep_focus";
+  profile: SpyglassRunProfile;
   configuration: SpyglassRunConfiguration;
   status: SpyglassRunStatus;
   phase: SpyglassRunPhase;
@@ -78,5 +80,6 @@ export type SpyglassRunEvent = {
 export type CreateSpyglassRunInput = {
   userId: string;
   query: string;
+  profile?: SpyglassRunProfile;
   configuration: SpyglassRunConfiguration;
 };

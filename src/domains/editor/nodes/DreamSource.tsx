@@ -1,7 +1,9 @@
 import {
   ArrowRightIcon,
   ArrowSquareOutIcon,
+  CornersOutIcon,
   FileTextIcon,
+  RowsIcon,
   ShieldSlashIcon,
   TrashIcon,
   TrashSimpleIcon,
@@ -21,6 +23,7 @@ import useFetch from "@core/hooks/useFetch";
 import { ISource } from "@/domains/knowledge";
 import { DreamSourceSchema } from "../../../../shared/editing/tiptap/nodes/DreamSource";
 import { useDisclosure } from "@mantine/hooks";
+import { convertInlineNodeToTransclusion } from "./transclusion";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -38,7 +41,13 @@ export const DreamSource = DreamSourceSchema.extend({
   },
 });
 
-export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode, selected }) => {
+export const DreamSourceComponent: React.FC<NodeViewProps> = ({
+  node,
+  deleteNode,
+  selected,
+  editor,
+  getPos,
+}) => {
   const { sourceId } = node.attrs;
   const isEmpty = node.content.size === 0;
   const [accessState, setAccessState] = useState<"granted" | "forbidden" | "error">("granted");
@@ -62,6 +71,18 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
   }, [sourceId]);
 
   const [iconHovered, { toggle }] = useDisclosure(false);
+
+  const convertToTransclusion = (viewMode: "minimal" | "expanded") => {
+    convertInlineNodeToTransclusion({
+      editor,
+      getPos,
+      node,
+      connectableType: "source",
+      connectableId: sourceId,
+      label: node.textContent || source?.displayName || "Untitled source",
+      viewMode,
+    });
+  };
 
   const handleLinkClick = (event: React.MouseEvent<HTMLSpanElement>) => {
     event.preventDefault();
@@ -133,6 +154,30 @@ export const DreamSourceComponent: React.FC<NodeViewProps> = ({ node, deleteNode
                   {source.displayName}
                 </Text>
                 <Group justify="flex-end">
+                  {editor.isEditable && (
+                    <>
+                      <ActionIcon
+                        onClick={() => convertToTransclusion("minimal")}
+                        title="Minimal View"
+                        variant="light"
+                        color="gray"
+                        size="sm"
+                        radius="sm"
+                      >
+                        <RowsIcon weight="bold" size={12} />
+                      </ActionIcon>
+                      <ActionIcon
+                        onClick={() => convertToTransclusion("expanded")}
+                        title="Expanded View"
+                        variant="light"
+                        color="gray"
+                        size="sm"
+                        radius="sm"
+                      >
+                        <CornersOutIcon weight="bold" size={12} />
+                      </ActionIcon>
+                    </>
+                  )}
                   <ActionIcon
                     onClick={deleteNode}
                     variant="light"

@@ -36,94 +36,61 @@ export const handleCreateNewRabbithole = async (
 
 export const includeThingInRabbithole = async (rabbitholeId: string, thingId: string) => {
   try {
-    return await api
-      .post(`/rabbitholes/${rabbitholeId}/include`, {
-        thingId,
-      })
-      .then(() => {
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        console.error(`Something went wrong including ${thingId} in ${rabbitholeId}`, error);
-        showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong including the idea",
-          color: "red",
-        });
-      });
+    await api.post(`/rabbitholes/${rabbitholeId}/include`, { thingId });
   } catch (error) {
-    console.error("Error creating idea connection: ", error);
+    console.error(`Something went wrong including ${thingId} in ${rabbitholeId}`, error);
+    showNotification({
+      title: "Something went wrong",
+      message: "Something went wrong including the item",
+      color: "red",
+    });
+    throw error;
   }
 };
 
 export const includeThingsInRabbithole = async (rabbitholeId: string, thingIds: string[]) => {
   try {
-    return await api
-      .post(`/rabbitholes/${rabbitholeId}/include/many`, {
-        thingIds,
-      })
-      .then(() => {
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        console.error(
-          `Something went wrong including ${thingIds.length} things in ${rabbitholeId}`,
-          error,
-          thingIds
-        );
-        showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong including the thing",
-          color: "red",
-        });
-      });
+    await api.post(`/rabbitholes/${rabbitholeId}/include/many`, { thingIds });
   } catch (error) {
-    console.error("Error creating thing: ", error);
+    console.error(
+      `Something went wrong including ${thingIds.length} things in ${rabbitholeId}`,
+      error,
+      thingIds
+    );
+    showNotification({
+      title: "Something went wrong",
+      message: "Something went wrong including the items",
+      color: "red",
+    });
+    throw error;
   }
 };
 
 export const unIncludeThingInRabbithole = async (rabbitholeId: string, thingId: string) => {
   try {
-    return await api
-      .post(`/rabbitholes/${rabbitholeId}/uninclude`, {
-        thingId,
-      })
-      .then(() => {
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        console.error(
-          `Something went wrong unincluding between ${rabbitholeId} and ${thingId}`,
-          error
-        );
-        showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong deleting the connection",
-          color: "red",
-        });
-      });
+    await api.post(`/rabbitholes/${rabbitholeId}/uninclude`, { thingId });
   } catch (error) {
-    console.error("Error creating idea connection: ", error);
+    console.error(`Something went wrong removing ${thingId} from ${rabbitholeId}`, error);
+    showNotification({
+      title: "Something went wrong",
+      message: "Something went wrong removing the item",
+      color: "red",
+    });
+    throw error;
   }
 };
 
 export const deleteRabbithole = async (rabbitholeId: string) => {
   try {
-    return await api
-      .delete(`/rabbitholes/${rabbitholeId}`)
-      .then(() => {
-        return Promise.resolve();
-      })
-      .catch((error) => {
-        console.error(`Something went wrong deleting ${rabbitholeId}`, error);
-        showNotification({
-          title: "Something went wrong",
-          message: "Something went wrong deleting the rabbithole",
-          color: "red",
-        });
-      });
+    await api.delete(`/rabbitholes/${rabbitholeId}`);
   } catch (error) {
-    console.error("Error creating idea connection: ", error);
+    console.error(`Something went wrong deleting ${rabbitholeId}`, error);
+    showNotification({
+      title: "Something went wrong",
+      message: "Something went wrong deleting the rabbithole",
+      color: "red",
+    });
+    throw error;
   }
 };
 

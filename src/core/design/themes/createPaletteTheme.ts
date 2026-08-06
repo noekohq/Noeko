@@ -1,12 +1,4 @@
-import {
-  Card,
-  createTheme,
-  Input,
-  MantineColorsTuple,
-  Menu,
-  Paper,
-  Popover,
-} from "@mantine/core";
+import { Card, createTheme, Input, MantineColorsTuple, Menu, Paper, Popover } from "@mantine/core";
 import { ICSSApplicator, IOverrideResolver } from "@/declarations/themes";
 import { getCurrentScheme } from "@core/utils/dom";
 
@@ -38,6 +30,7 @@ function createApplicator(
   scheme: "light" | "dark"
 ): ICSSApplicator {
   const accentShade = scheme === "light" ? accent[6] : accent[4];
+  const accentText = scheme === "light" ? accent[7] : accent[3];
   const border = mode.neutral[6];
   const subtleBorder = mode.neutral[7];
   const surface = mode.neutral[8];
@@ -60,13 +53,15 @@ function createApplicator(
       "--color-highlight-text": mode.highlightText,
       "--item-filled-color": surface,
       "--theme-accent": accentShade,
+      "--theme-accent-text": accentText,
       "--theme-accent-soft": `color-mix(in srgb, ${accentShade} 16%, transparent)`,
     },
     blocks: {
       body: {
         "background-color": background,
         "background-image": mode.backgroundImage ?? "none",
-        "background-attachment": "fixed",
+        "background-repeat": "no-repeat",
+        "background-size": "cover",
       },
       html: {
         "scrollbar-width": "thin",

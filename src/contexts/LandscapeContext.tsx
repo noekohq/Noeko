@@ -3,6 +3,7 @@ import { IRabbithole } from "../../app/database/models/rabbithole";
 import useFetch from "@core/hooks/useFetch";
 import { IConnectable } from "../../app/services/Graph";
 import { IIdea } from "../../shared/types/idea";
+import { api } from "@infrastructure/api/client";
 
 export type IOptimisticIdea = IIdea & { isOptimistic: true };
 
@@ -83,11 +84,35 @@ const initialContext: ILandscapeContext = {
 const LandscapeContext = createContext(initialContext);
 
 export const LandscapeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [rabbithole, setRabbithole] = useState<IRabbithole | null>(null);
+  const [rabbithole, setRabbitholeState] = useState<IRabbithole | null>(() => {
+    try {
+      const stored = sessionStorage.getItem("noeko:active-rabbithole");
+      return stored ? (JSON.parse(stored) as IRabbithole) : null;
+    } catch {
+      return null;
+    }
+  });
   const [connectable, setConnectable] = useState<IConnectable | null>(null);
   const [selection, setSelection] = useState<ISelection | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [optimisticIdeas, setOptimisticIdeas] = useState<IOptimisticIdea[]>([]);
+
+  const setRabbithole = (next: IRabbithole | null) => {
+    setRabbitholeState(next);
+    if (next) {
+      sessionStorage.setItem("noeko:active-rabbithole", JSON.stringify(next));
+      api.defaults.headers.common["x-noeko-rabbithole"] = next.id.toString();
+    } else {
+      sessionStorage.removeItem("noeko:active-rabbithole");
+      delete api.defaults.headers.common["x-noeko-rabbithole"];
+    }
+  };
+
+  useEffect(() => {
+    if (rabbithole) {
+      api.defaults.headers.common["x-noeko-rabbithole"] = rabbithole.id.toString();
+    }
+  }, []);
 
   const addOptimisticIdea = (idea: IOptimisticIdea) => {
     setOptimisticIdeas((prev) => [...prev, idea]);
@@ -107,6 +132,7 @@ export const LandscapeProvider = ({ children }: { children: React.ReactNode }) =
     onSuccess: (d) => {
       setRabbithole(d);
     },
+    onError: () => setRabbithole(null),
   });
 
   const handleReloadRabbithole = () => {

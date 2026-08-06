@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Title, ActionIcon, Tooltip, Group, Badge } from "@mantine/core";
 import { SparkleIcon } from "@phosphor-icons/react";
 import styles from "./PaperTitle.module.scss";
@@ -10,6 +10,7 @@ interface PaperTitleProps {
   isViewOnly?: boolean;
   needsGeneration?: boolean;
   onGenerate?: () => void;
+  generationLabel?: string;
   isGenerating?: boolean;
   wasGenerated?: boolean;
   className?: string;
@@ -23,17 +24,18 @@ export function PaperTitle({
   isViewOnly = false,
   needsGeneration = false,
   onGenerate,
+  generationLabel = "Generate title",
   isGenerating = false,
   wasGenerated = false,
   className,
   style,
 }: PaperTitleProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const [localTitle, setLocalTitle] = useState(initialTitle);
 
-  // Keep local state in sync when the external prop changes (e.g., after a reload or generation)
-  useEffect(() => {
-    setLocalTitle(initialTitle);
+  useLayoutEffect(() => {
+    if (titleRef.current && titleRef.current.innerText !== initialTitle) {
+      titleRef.current.innerText = initialTitle;
+    }
   }, [initialTitle]);
 
   const handleBlur = (e: React.FocusEvent<HTMLHeadingElement>) => {
@@ -59,7 +61,6 @@ export function PaperTitle({
           ...style,
           cursor: canEdit ? "text" : "default",
         }}
-        dangerouslySetInnerHTML={{ __html: localTitle || "" }}
       />
 
       {isViewOnly && (
@@ -69,16 +70,19 @@ export function PaperTitle({
       )}
 
       {needsGeneration && !isGenerating && (
-        <ActionIcon
-          onClick={onGenerate}
-          variant="light"
-          size="md"
-          radius="md"
-          color="gray"
-          disabled={!canEdit}
-        >
-          <SparkleIcon size={14} weight="duotone" />
-        </ActionIcon>
+        <Tooltip label={generationLabel}>
+          <ActionIcon
+            aria-label={generationLabel}
+            onClick={onGenerate}
+            variant="light"
+            size="md"
+            radius="md"
+            color="gray"
+            disabled={!canEdit}
+          >
+            <SparkleIcon size={14} weight="duotone" />
+          </ActionIcon>
+        </Tooltip>
       )}
 
       {isGenerating && <ActionIcon loading variant="transparent" color="gray" size="md" />}

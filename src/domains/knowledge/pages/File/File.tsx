@@ -2,7 +2,18 @@ import { useNavigate, useParams } from "react-router";
 import styles from "./File.module.scss";
 import useFetch from "@core/hooks/useFetch";
 import { IUserFile } from "../../../../../shared/types/userfile";
-import { ActionIcon, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Group,
+  Paper,
+  Skeleton,
+  Stack,
+  Text,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import PageWrapper from "@core/design/layout/PageWrapper";
@@ -12,18 +23,25 @@ import ContentWide from "@core/design/components/Layout/ContentWide";
 import { handleFileDownload } from "@infrastructure/api/userfiles";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { ViewerMap } from "@domains/knowledge/components/Files/Viewers";
-import { useLayout } from "@/contexts/LayoutContext";
-import { CaretLeftIcon, FileTextIcon } from "@phosphor-icons/react";
+import {
+  CaretLeftIcon,
+  DownloadSimpleIcon,
+  FileIcon,
+  FileTextIcon,
+  TrashSimpleIcon,
+} from "@phosphor-icons/react";
 import { createSourceFrom } from "@domains/knowledge/utils/sources";
 import Nav from "@core/design/components/Layout/Nav";
 import TopBar from "@core/design/components/Layout/TopBar";
+import { formatFileSize } from "@core/utils/formatting";
+import { getFileKindLabel, isSourceableMimeType } from "../../../../../shared/files/mimeTypes";
 
 export default function UserFile() {
   const { fileId } = useParams();
 
   const navigate = useNavigate();
 
-  const { data: file } = useFetch<undefined, IUserFile>({
+  const { data: file, loading: loadingFile } = useFetch<undefined, IUserFile>({
     url: `/files/${fileId}`,
     runOnMount: true,
   });
@@ -96,7 +114,12 @@ export default function UserFile() {
       }
       navigate(`/source/${source.id.toString()}`);
     } catch (error) {
-      return Promise.reject(error);
+      console.error("Error creating source from file", error);
+      showNotification({
+        title: "Couldn't create source",
+        message: "The file could not be converted into a source.",
+        color: "red",
+      });
     } finally {
       setLoadingSource(false);
     }
@@ -109,76 +132,119 @@ export default function UserFile() {
     return null;
   }, [file]);
 
-  const {
-    elements: {
-      leftSidebar: {
-        mode: { get: leftMode },
-      },
-      rightSidebar: {
-        mode: { get: rightMode },
-      },
-    },
-  } = useLayout();
+  const canBeSource = !!file && isSourceableMimeType(file.mimeType);
+  const fileKind = file ? getFileKindLabel(file.mimeType) : "File";
 
-  const leftModeToClass: Record<typeof leftMode, string> = {
-    open: styles.leftOpen,
-    collapsed: styles.leftCollapsed,
-    compact: styles.leftCompact,
-    hovering: `${styles.leftOpen} ${styles.leftHovering}`,
-  };
+  const sourceStatus = file?.source
+    ? "Source ready"
+    : canBeSource
+      ? "Can become a source"
+      : "Preview only";
 
-  const rightModeToClass: Record<typeof rightMode, string> = {
-    open: styles.rightOpen,
-    collapsed: styles.rightCollapsed,
-    compact: styles.rightCompact,
-    hovering: `${styles.rightOpen} ${styles.rightHovering}`,
-  };
-
-  const leftModeClass = leftModeToClass[leftMode];
-  const rightModeClass = rightModeToClass[rightMode];
-
-  const canBeSource = () => {
-    if (file?.mimeType === "application/pdf") {
-      return true;
-    }
-    return false;
-  };
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(date));
 
   return (
     <PageWrapper>
       <TopBar />
-      <LeftSidebar></LeftSidebar>
+      <LeftSidebar>
+        <LeftSidebar.Open>
+          <Stack gap="lg">
+            <Stack gap={6}>
+              <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                File context
+              </Text>
+              {loadingFile ? (
+                <Skeleton height={76} radius="lg" />
+              ) : (
+                <Paper className={styles.detailsCard} p="md" radius="lg" withBorder>
+                  <Stack gap={8}>
+                    <Badge variant="light" color="gray" radius="xl" w="fit-content">
+                      {fileKind}
+                    </Badge>
+                    <Text size="sm" fw={600} className={styles.contextFileName}>
+                      {file?.originalFileName || "File not found"}
+                    </Text>
+                  </Stack>
+                </Paper>
+              )}
+            </Stack>
+
+            {file && (
+              <Stack gap="md">
+                <ContextField label="Format" value={file.mimeType} />
+                <ContextField label="Size" value={formatFileSize(file.sizeBytes)} />
+                <ContextField label="Source status" value={sourceStatus} />
+                <ContextField label="Added" value={formatDate(file.createdAt)} />
+                {file.updatedAt &&
+                  new Date(file.updatedAt).getTime() !== new Date(file.createdAt).getTime() && (
+                    <ContextField label="Updated" value={formatDate(file.updatedAt)} />
+                  )}
+              </Stack>
+            )}
+          </Stack>
+        </LeftSidebar.Open>
+      </LeftSidebar>
       <ContentWide>
         <div className={styles.fileView}>
-          <Group gap="xs">
-            <ActionIcon
-              onClick={() => {
-                navigate(-1);
-              }}
-              color="gray"
-              variant="subtle"
-              size="sm"
-            >
-              <CaretLeftIcon weight="bold" />
-            </ActionIcon>
-            <Title order={3}>{file?.originalFileName}</Title>
-          </Group>
+          <header className={styles.fileHeader}>
+            <Group gap="xs">
+              <Tooltip label="Go back">
+                <ActionIcon
+                  onClick={() => navigate(-1)}
+                  color="gray"
+                  variant="subtle"
+                  size="lg"
+                  radius="xl"
+                  aria-label="Go back"
+                >
+                  <CaretLeftIcon weight="bold" />
+                </ActionIcon>
+              </Tooltip>
+              <Text size="sm" c="dimmed">
+                Files
+              </Text>
+            </Group>
+
+            <div className={styles.titleBlock}>
+              {loadingFile ? (
+                <Skeleton height={38} width="65%" radius="md" />
+              ) : (
+                <Title order={2}>{file?.originalFileName || "File not found"}</Title>
+              )}
+            </div>
+          </header>
+
+          {loadingFile && <Skeleton className={styles.viewerSurface} radius="xl" />}
           {file && (
-            <div className={`${styles.viewer} ${leftModeClass} ${rightModeClass}`}>
+            <Paper className={styles.viewerSurface} radius="xl" withBorder>
               <Suspense
                 fallback={
-                  <Text size="xs" c="dimmed">
-                    Loading viewer...
-                  </Text>
+                  <div className={styles.viewerLoading}>
+                    <Text size="sm" c="dimmed">
+                      Loading viewer…
+                    </Text>
+                  </div>
                 }
               >
                 {Viewer ? (
-                  <Viewer fileId={file.id} />
+                  <Viewer fileId={file.id} file={file} />
                 ) : (
-                  <Text>No viewer available for this type of file :/</Text>
+                  <div className={styles.unsupportedViewer}>
+                    <FileIcon size={38} weight="duotone" />
+                    <Stack gap={4} align="center">
+                      <Text fw={600}>Preview unavailable</Text>
+                      <Text c="dimmed" size="sm" ta="center">
+                        Download this file to open it in a compatible app.
+                      </Text>
+                    </Stack>
+                  </div>
                 )}
               </Suspense>
-            </div>
+            </Paper>
           )}
         </div>
       </ContentWide>
@@ -186,60 +252,69 @@ export default function UserFile() {
       <RightSidebar>
         <RightSidebar.Open>
           <Stack gap="lg">
-            <Paper bg="dark.8">
-              <Text size="sm" fw="bold">
-                {file?.originalFileName}
-              </Text>
-              <Text c="dimmed" size="sm">
-                {file?.mimeType} {file?.sizeBytes} bytes
-              </Text>
-            </Paper>
-            <Group wrap="nowrap" w="100%">
+            <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+              Actions
+            </Text>
+            {file?.source ? (
               <Button
-                onClick={() => handleDownload()}
+                onClick={() => navigate(`/source/${file.source?.id.toString()}`)}
                 variant="light"
                 color="gray"
-                size="xs"
+                leftSection={<FileTextIcon />}
                 fullWidth
               >
-                Download
+                View source
               </Button>
-              <Button onClick={handleDelete} variant="light" color="gray" size="xs" fullWidth>
-                Delete
-              </Button>
-            </Group>
-            {!file?.source && canBeSource() && (
-              <Group>
+            ) : (
+              canBeSource && (
                 <Button
-                  onClick={() => handleCreateSource()}
-                  variant="light"
-                  color="gray"
-                  size="xs"
+                  onClick={handleCreateSource}
+                  variant="filled"
                   leftSection={<FileTextIcon />}
                   fullWidth
                   loading={loadingSource}
                 >
-                  Convert to Source
+                  Convert to source
                 </Button>
-              </Group>
+              )
             )}
-            {!!file?.source && (
-              <Group>
-                <Button
-                  onClick={() => navigate(`/source/${file.source?.id.toString()}`)}
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<FileTextIcon />}
-                  fullWidth
-                >
-                  View as Source
-                </Button>
-              </Group>
-            )}
+            <Button
+              onClick={handleDownload}
+              variant="light"
+              color="gray"
+              leftSection={<DownloadSimpleIcon />}
+              fullWidth
+              disabled={!file}
+            >
+              Download
+            </Button>
+            <Button
+              onClick={handleDelete}
+              variant="subtle"
+              color="red"
+              leftSection={<TrashSimpleIcon />}
+              fullWidth
+              loading={deletingFile}
+              disabled={!file}
+            >
+              Delete file
+            </Button>
           </Stack>
         </RightSidebar.Open>
       </RightSidebar>
     </PageWrapper>
+  );
+}
+
+function ContextField({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack gap={2}>
+      <Text size="xs" c="dimmed">
+        {label}
+      </Text>
+      <Text size="sm" className={styles.contextValue}>
+        {value}
+      </Text>
+    </Stack>
   );
 }

@@ -146,9 +146,9 @@ The current suite covers:
 
 - protected-route redirection and login;
 - idea creation, title updates, collaboration persistence, and reload;
-- deterministic Spyglass Glimpse generation and history;
-- durable Deep Focus streaming, citations, saved history, and replay;
-- reconnecting to a Deep Focus run after leaving the page; and
+- durable Spyglass Glimpse and Deep Focus streaming, saved history, and replay;
+- deterministic Glimpse maps and Deep Focus findings with citations;
+- reconnecting to either Spyglass mode after leaving the page; and
 - recoverable handling of an interrupted legacy stream.
 
 ### Writing an E2E test

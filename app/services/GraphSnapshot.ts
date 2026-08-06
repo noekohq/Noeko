@@ -6,6 +6,7 @@ import type {
   IGraphSnapshotNodeType,
 } from "../../shared/types/graph-snapshot";
 import type { ILoadedConstellation } from "../../shared/types/constellation";
+import type { IGraphShare, IGraphSnapshotShareEdge } from "../../shared/types/shared-landscape";
 
 const GRAPH_DISTANCES = {
   small: 100,
@@ -116,6 +117,18 @@ const toSnapshotEdge = (
   ...config,
 });
 
+const toSnapshotShareEdge = (edge: IGraphShare): IGraphSnapshotShareEdge => ({
+  ...toSnapshotEdge(edge, {
+    type: "share",
+    distance: GRAPH_DISTANCES.medium,
+    strength: 0.5,
+    visibility: "medium",
+  }),
+  type: "share",
+  accessLevel: edge.accessLevel,
+  direction: edge.direction,
+});
+
 export const buildGraphSnapshot = (constellation: ILoadedConstellation): IGraphSnapshot => {
   const nodes = [
     ...(constellation.things || []).map((node) => toSnapshotNode(node as SnapshotSourceNode)),
@@ -162,14 +175,7 @@ export const buildGraphSnapshot = (constellation: ILoadedConstellation): IGraphS
         visibility: "high",
       })
     ),
-    ...(constellation.shares || []).map((edge) =>
-      toSnapshotEdge(edge as SnapshotSourceEdge, {
-        type: "share",
-        distance: GRAPH_DISTANCES.medium,
-        strength: 0.5,
-        visibility: "medium",
-      })
-    ),
+    ...(constellation.shares || []).map((edge) => toSnapshotShareEdge(edge as IGraphShare)),
   ].filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target));
 
   return {

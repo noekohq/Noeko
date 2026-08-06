@@ -8,7 +8,6 @@ import { Tabs } from "@core/design/components/Layout/Utils/Tabs";
 import PaperDateRangeFilter from "@core/design/components/Paper/DateRangeFilter/PaperDateRangeFilter";
 import { TagPickerContent } from "@/core/design/components/Display/Interactions/Tags/TagPicker";
 import { RabbitholePickerContent } from "@domains/rabbitholes/components/Rabbitholes/RabbitholePicker";
-import { useLandscape } from "@/contexts/LandscapeContext";
 import { useSearch } from "@domains/discovery/contexts/SearchContext";
 
 export type IScopeBuilderProps = Record<string, unknown>;
@@ -21,23 +20,19 @@ const ScopeBuilder: React.FC<IScopeBuilderProps> = () => {
     global: {
       scope: { get: value, set: onChange },
       scopeData: {
+        rabbithole: { set: setScopeRabbithole },
         tags: { add: addTag },
       },
     },
   } = useSearch();
-
-  const {
-    rabbitholes: {
-      entered: { set: setRabbithole },
-    },
-  } = useLandscape();
 
   const handleAddTag = (tag: ITag) => {
     addTag(tag);
   };
 
   const handleSetRabbithole = (rh: IRabbithole) => {
-    setRabbithole(rh);
+    onChange({ ...value, rabbithole: rh.id.toString() });
+    setScopeRabbithole(rh);
     setPopoverOpened(false);
   };
 

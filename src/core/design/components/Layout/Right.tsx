@@ -79,7 +79,7 @@ const RightSidebar = ({ children, topLevel, startOpened, startClosed }: IRightSi
     if (isMobile) {
       setMode("collapsed");
     }
-  }, []);
+  }, [isMobile, setMode]);
 
   useShortcuts({
     shortcuts: openable
@@ -120,6 +120,7 @@ const RightSidebar = ({ children, topLevel, startOpened, startClosed }: IRightSi
             onClick={() => {
               setMode("collapsed");
             }}
+            aria-label="Close right sidebar"
             variant="subtle"
             size={"md"}
             color={defaultColor}
@@ -134,7 +135,12 @@ const RightSidebar = ({ children, topLevel, startOpened, startClosed }: IRightSi
         <Group gap="xs">
           <HoverCard openDelay={400} width="300px">
             <HoverCard.Target>
-              <Badge color="gray" size="sm" variant="light">
+              <Badge
+                color="gray"
+                size="sm"
+                variant="light"
+                styles={{ label: { color: "var(--mantine-color-text)" } }}
+              >
                 BETA
               </Badge>
             </HoverCard.Target>
@@ -201,6 +207,7 @@ const RightSidebar = ({ children, topLevel, startOpened, startClosed }: IRightSi
             onClick={() => {
               setMode("collapsed");
             }}
+            aria-label="Close right sidebar"
             variant="subtle"
             size={"md"}
             color={defaultColor}
@@ -221,6 +228,7 @@ const RightSidebar = ({ children, topLevel, startOpened, startClosed }: IRightSi
             onClick={() => {
               setMode("open");
             }}
+            aria-label="Open right sidebar"
             variant="subtle"
             size={"md"}
             color={defaultColor}
@@ -280,7 +288,7 @@ type IContentProps = {
   children: React.ReactNode | React.ReactNode[];
 };
 
-RightSidebar.Open = ({ children }: IContentProps) => {
+RightSidebar.Open = function RightSidebarOpen({ children }: IContentProps) {
   const {
     elements: {
       rightSidebar: {
@@ -294,7 +302,23 @@ RightSidebar.Open = ({ children }: IContentProps) => {
   return children;
 };
 
-RightSidebar.Collapsed = ({ children }: IContentProps) => {
+RightSidebar.PersistentOpen = function RightSidebarPersistentOpen({ children }: IContentProps) {
+  const {
+    elements: {
+      rightSidebar: {
+        mode: { get: mode },
+      },
+    },
+  } = useLayout();
+  const visible = ["open", "hovering"].includes(mode);
+  return (
+    <div hidden={!visible} aria-hidden={!visible}>
+      {children}
+    </div>
+  );
+};
+
+RightSidebar.Collapsed = function RightSidebarCollapsed({ children }: IContentProps) {
   const {
     elements: {
       rightSidebar: {
@@ -309,7 +333,7 @@ RightSidebar.Collapsed = ({ children }: IContentProps) => {
   return children;
 };
 
-RightSidebar.Compact = ({ children }: IContentProps) => {
+RightSidebar.Compact = function RightSidebarCompact({ children }: IContentProps) {
   const {
     elements: {
       rightSidebar: {
